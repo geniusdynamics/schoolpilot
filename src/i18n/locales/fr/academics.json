@@ -1,0 +1,53 @@
+
+{
+  "dashboard": {
+    "title": "Tableau de Bord Académique",
+    "totalSubjects": "Total Matières",
+    "totalSubjectPapers": "Total Épreuves",
+    "examSessions": "Sessions d'Examen",
+    "gradingSchemes": "Systèmes de Notation",
+    "subjectsPerDepartment": "Matières par Département Académique",
+    "subjectsCountLabel": "Nb. de Matières",
+    "overviewTitle": "Aperçu du Module Académique",
+    "overviewDescription": "Gérer les matières, sessions d'examen, résultats, notation, emplois du temps et analyses académiques.",
+    "enhancementNote": "Plus de résumés et graphiques académiques seront ajoutés ici."
+  },
+  "subjects": {
+    "title": "Gestion des Matières",
+    "description": "Définir les matières offertes, leurs codes, groupements et départements associés.",
+    "addSubjectButton": "Ajouter Matière",
+    "modalAddTitle": "Ajouter Nouvelle Matière",
+    "modalEditTitle": "Modifier Matière",
+    "codeLabel": "Code Matière",
+    "abbreviationLabel": "Abréviation",
+    "nameLabel": "Nom de la Matière",
+    "departmentLabel": "Département",
+    "selectDepartmentOption": "Sélectionner Département",
+    "groupingLabel": "Groupement",
+    "compulsoryLabel": "Matière Obligatoire",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette matière ?"
+  },
+  "classes": {
+    "title": "Gestion des Classes et Filières",
+    "addClassButton": "Ajouter Classe",
+    "modalAddTitle": "Ajouter Nouvelle Classe",
+    "modalEditTitle": "Modifier Classe",
+    "nameLabel": "Nom de la Classe",
+    "streamsTitle": "{{className}} - Filières",
+    "addStreamButton": "Ajouter Filière",
+    "noStreamsMessage": "Aucune filière pour cette classe.",
+    "modalAddStreamTitle": "Ajouter Nouvelle Filière à {{className}}",
+    "modalEditStreamTitle": "Modifier Filière",
+    "streamNameLabel": "Nom de la Filière",
+    "teacherLabel": "Professeur Principal",
+    "selectTeacherOption": "Sélectionner Professeur",
+    "manageStreamsButton": "Gérer Filières"
+  },
+  "tableHeaders": {
+    "id": "ID",
+    "className": "Nom de la Classe",
+    "streamCount": "Nb. de Filières",
+    "streamName": "Nom de la Filière",
+    "classTeacher": "Professeur Principal"
+  }
+}

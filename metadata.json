@@ -1,0 +1,6 @@
+{
+  "name": "School Management System",
+  "description": "A comprehensive School Management System application built with React, TypeScript, and Tailwind CSS. It provides modules for managing students, staff, academics, finances, and more.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
