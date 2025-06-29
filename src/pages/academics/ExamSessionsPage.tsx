@@ -4,7 +4,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { SchoolPeriod } from '../../types';
-import { AcademicsExamSessionType as ExamSession, ExamSessionStatus, AcademicsSubjectPaperType as SubjectPaper, AcademicsExamPaperSettingType as ExamPaperSetting } from '../../types'; 
+import { AcademicsExamSessionType as ExamSession, ExamSessionStatus, AcademicsSubjectPaperType as SubjectPaper, AcademicsExamPaperSettingType as ExamPaperSetting } from '../../modules/academics/data/types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';

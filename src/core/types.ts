@@ -42,35 +42,7 @@ export enum AttendanceStatus {
   EXCUSED = 'Excused',
 }
 
-export enum SubjectGrouping {
-  GROUP_1_COMPULSORY = 'Group 1 Compulsory',
-  GROUP_2_SCIENCES = 'Group 2 Sciences',
-  GROUP_3_HUMANITIES = 'Group 3 Humanities',
-  GROUP_4_TECHNICALS = 'Group 4 Technicals',
-  OTHER = 'Other',
-}
-
-export enum StudentEnrollmentStatus {
-    ENROLLED = 'Enrolled',
-    WITHDRAWN = 'Withdrawn',
-}
-
-export enum ExamSessionStatus {
-  PLANNING = 'Planning',
-  MARKS_ENTRY_OPEN = 'Marks Entry Open',
-  MARKS_ENTRY_CLOSED = 'Marks Entry Closed',
-  RANKING_COMPLETE = 'Ranking Complete',
-  PUBLISHED = 'Published',
-}
-
-export enum DayOfWeek {
-    MONDAY = 'Monday',
-    TUESDAY = 'Tuesday',
-    WEDNESDAY = 'Wednesday',
-    THURSDAY = 'Thursday',
-    FRIDAY = 'Friday',
-    SATURDAY = 'Saturday',
-}
+// Academic-specific enums moved to src/modules/academics/data/types.ts
 
 export enum AccountType {
   ASSET = 'Asset',

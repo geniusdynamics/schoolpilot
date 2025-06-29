@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { ClassStream, Staff, DayOfWeek } from '../../types';
-import { TimetableEntry, TimetablePeriodDef, Subject, TeacherSubjectAssignment, ClassSubjectAllocation } from '../../modules/academics/data/types'; // Corrected imports
+import { ClassStream, Staff } from '../../types';
+import { DayOfWeek, TimetableEntry, TimetablePeriodDef, Subject, TeacherSubjectAssignment, ClassSubjectAllocation } from '../../modules/academics/data/types'; // Corrected imports
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
