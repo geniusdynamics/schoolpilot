@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { SubjectGrouping } from '../../types';
-import { Subject } from '../../modules/academics/data/types'; // Correct import
+import { AcademicsSubjectType as Subject, SubjectGrouping } from '@/modules/academics/data/types';
+
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';

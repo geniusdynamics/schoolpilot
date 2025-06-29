@@ -4,13 +4,22 @@
 // =================================================================================
 // TYPE & ENUM RE-EXPORTS FROM MODULES
 // =================================================================================
-export * from './modules/academics/data/types';
-export * from './modules/administration/data/types';
-export * from './modules/finance/data/types';
-export * from './modules/hr/data/types';
-export * from './modules/inventory/data/types';
-export * from './modules/library/data/types';
-export * from './modules/nutrition/data/types';
+import { AcademicsSubjectType, AcademicsSubjectPaperType, AcademicsClassSubjectAllocationType, AcademicsTeacherSubjectAssignmentType, AcademicsStudentSubjectEnrollmentType, AcademicsExamPaperSettingType, AcademicsExamSessionType, AcademicsGradingSchemeType, AcademicsStudentExamResultWithDetailsType, AcademicsTimetablePeriodDefType, AcademicsTimetableEntryType, AcademicsExamResultSummaryType } from './modules/academics/data/types';
+import { AdminPartnerType, AdminClubAndSocietyType, AdminCustomerType, AdminStudentHealthRecordType, AdminStudentAttendanceType, AdminTemplateCommType, AdminCampaignType } from './modules/administration/data/types';
+import { FinChartOfAccountType, FinExpenseCategoryType, FinBankType, FinSupplierType, FinFeeTemplateItemType, FinFeeTemplateType, FinExpenseClaimType, FinStudentOpeningBalanceType, FinFeeAdjustmentType, FinTransportRouteType, FinStudentTransportAssignmentType, FinStudentInvoiceItemType, FinStudentInvoiceType, FinStudentPaymentType, FinInvoicePaymentApplicationType, FinCustomerInvoiceItemType, FinCustomerInvoiceType, FinSupplierInvoiceType, FinGeneralPaymentItemType, FinGeneralPaymentType, FinGeneralLedgerEntryType, FinFinancialYearStatusEnum, FinInvoiceStatusEnum, FinCustomerInvoiceStatusEnum } from './modules/finance/data/types';
+import { HRPayrollPeriodType, HRPayrollItemTypeType, HRStaffRecurringItemType, HRStaffSalarySettingType, HRPayslipType } from './modules/hr/data/types';
+import { InvRFQType, InvWarehouseType, InvItemCategoryType, InvItemType, InvFixedAssetType, InvAssetDepreciationLogType, InvStockLevelType, InvStockTransactionType, InvRequisitionItemType, InvRequisitionType, InvPurchaseOrderItemType, InvPurchaseOrderType, InvRequisitionStatusEnum } from './modules/inventory/data/types';
+import { LibBookCategoryType, LibBookType, LibLoanType, LibFineType, LibBookStatusEnum, LibFineStatusEnum } from './modules/library/data/types';
+import { NutrMealPlanType, NutrStudentMealPlanType, NutrMenuType, NutrMealConsumptionLogType, NutrWalletTransactionType, NutrStudentWalletType, NutrMerchantType, NutrStudentMealPlanStatusEnum, NutrMealTypeEnum, NutrWalletTransactionType as NutrWalletTransactionTypeEnum } from './modules/nutrition/data/types';
+
+export { AcademicsSubjectType, AcademicsSubjectPaperType, AcademicsClassSubjectAllocationType, AcademicsTeacherSubjectAssignmentType, AcademicsStudentSubjectEnrollmentType, AcademicsExamPaperSettingType, AcademicsExamSessionType, AcademicsGradingSchemeType, AcademicsStudentExamResultWithDetailsType, AcademicsTimetablePeriodDefType, AcademicsTimetableEntryType, AcademicsExamResultSummaryType };
+export { AdminPartnerType, AdminClubAndSocietyType, AdminCustomerType, AdminStudentHealthRecordType, AdminStudentAttendanceType, AdminTemplateCommType, AdminCampaignType };
+export { FinChartOfAccountType, FinExpenseCategoryType, FinBankType, FinSupplierType, FinFeeTemplateItemType, FinFeeTemplateType, FinExpenseClaimType, FinStudentOpeningBalanceType, FinFeeAdjustmentType, FinTransportRouteType, FinStudentTransportAssignmentType, FinStudentInvoiceItemType, FinStudentInvoiceType, FinStudentPaymentType, FinInvoicePaymentApplicationType, FinCustomerInvoiceItemType, FinCustomerInvoiceType, FinSupplierInvoiceType, FinGeneralPaymentItemType, FinGeneralPaymentType, FinGeneralLedgerEntryType, FinFinancialYearStatusEnum, FinInvoiceStatusEnum, FinCustomerInvoiceStatusEnum };
+export { HRPayrollPeriodType, HRPayrollItemTypeType, HRStaffRecurringItemType, HRStaffSalarySettingType, HRPayslipType };
+export { InvRFQType, InvWarehouseType, InvItemCategoryType, InvItemType, InvFixedAssetType, InvAssetDepreciationLogType, InvStockLevelType, InvStockTransactionType, InvRequisitionItemType, InvRequisitionType, InvPurchaseOrderItemType, InvPurchaseOrderType, InvRequisitionStatusEnum };
+export { LibBookCategoryType, LibBookType, LibLoanType, LibFineType, LibBookStatusEnum, LibFineStatusEnum };
+export { NutrMealPlanType, NutrStudentMealPlanType, NutrMenuType, NutrMealConsumptionLogType, NutrWalletTransactionType, NutrStudentWalletType, NutrMerchantType, NutrStudentMealPlanStatusEnum, NutrMealTypeEnum, NutrWalletTransactionTypeEnum };
+
 
 
 // =================================================================================
