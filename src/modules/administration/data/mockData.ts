@@ -103,3 +103,31 @@ export const initialMockDormitories: Dormitory[] = [
     { id: 1, name: 'Simba House', master_id: 'STF002', master_name: 'Dwight Schrute', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
     { id: 2, name: 'Twiga Block', master_id: 'STF005', master_name: 'Kevin Malone', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
 ];
+export const initialMockWorkflows = [
+    {
+        id: 1,
+        name: 'Store Requisition Approval',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        states: [
+            { id: 1, workflow_id: 1, name: 'Draft', sequence_order: 1 },
+            { id: 2, workflow_id: 1, name: 'Pending HOD Approval', sequence_order: 2 },
+            { id: 3, workflow_id: 1, name: 'Pending Store Approval', sequence_order: 3 },
+            { id: 4, workflow_id: 1, name: 'Approved & Issued', sequence_order: 4 },
+            { id: 5, workflow_id: 1, name: 'Rejected', sequence_order: 5 },
+        ]
+    },
+    {
+        id: 2,
+        name: 'Expense Claim Approval',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        states: [
+            { id: 6, workflow_id: 2, name: 'Draft', sequence_order: 1 },
+            { id: 7, workflow_id: 2, name: 'Pending Accounts Approval', sequence_order: 2 },
+            { id: 8, workflow_id: 2, name: 'Approved for Payment', sequence_order: 3 },
+            { id: 9, workflow_id: 2, name: 'Paid', sequence_order: 4 },
+            { id: 10, workflow_id: 2, name: 'Rejected', sequence_order: 5 },
+        ]
+    }
+];

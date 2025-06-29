@@ -38,6 +38,7 @@ import {
     initialMockDesignations,
     initialMockStudentCategories,
     initialMockDormitories,
+    initialMockWorkflows,
 } from '../modules/administration/data/mockData';
 
 // Academics
@@ -230,7 +231,7 @@ export const rawInitialData: AppDataType = {
     templatesComm: [] as TemplateComm[],
     campaigns: [] as Campaign[],
     supplierInvoices: [] as SupplierInvoice[],
-    workflows: [] as Workflow[],
+    workflows: initialMockWorkflows,
     auditLogs: [] as AuditLog[],
     rfqs: [] as RFQ[],
 };
