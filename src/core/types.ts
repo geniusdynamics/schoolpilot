@@ -42,7 +42,18 @@ export enum AttendanceStatus {
   EXCUSED = 'Excused',
 }
 
-// Academic-specific enums moved to src/modules/academics/data/types.ts
+// Shared cross-system enums that are used by multiple modules
+export enum DayOfWeek {
+    MONDAY = 'MONDAY', 
+    TUESDAY = 'TUESDAY', 
+    WEDNESDAY = 'WEDNESDAY', 
+    THURSDAY = 'THURSDAY', 
+    FRIDAY = 'FRIDAY', 
+    SATURDAY = 'SATURDAY', 
+    SUNDAY = 'SUNDAY'
+}
+
+// Module-specific academic enums moved to src/modules/academics/data/types.ts
 
 export enum AccountType {
   ASSET = 'Asset',

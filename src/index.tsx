@@ -4,6 +4,7 @@
 import React, { Suspense } from 'react'; 
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './index.css'; // Import Tailwind CSS
 import './i18n/i18n'; // Import your i18n configuration, this initializes i18next
 
 const rootElement = document.getElementById('root');

@@ -421,6 +421,12 @@ export const MenuIcon: React.FC<IconProps> = (props) => ( // For responsive side
   </svg>
 );
 
+export const ExamIcon: React.FC<IconProps> = (props) => ( // For exams and assessments
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-.668-.287-1.265-.773-1.699l-4.368-4.368a1.125 1.125 0 00-.796-.341H6.108c-.668 0-1.265.287-1.699.773l-4.368 4.368A1.125 1.125 0 00.75 6.108v10.142c0 .668.287 1.265.773 1.699l4.368 4.368c.486.486 1.03.773 1.699.773H12M9 12H3.75M9 15H3.75M9 18H3.75" />
+  </svg>
+);
+
 
 // Placeholder for ChatBubbleLeftEllipsisIcon, using a simplified message icon instead
 export const ChatBubbleLeftEllipsisIcon: React.FC<IconProps> = MessageIcon;

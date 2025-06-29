@@ -3,8 +3,11 @@ import {
   Subject, SubjectPaper, ExamSession, ExamPaperSetting, GradingScheme, GradingSchemeLevel,
   StudentExamResult, StudentPaperMark, ClassSubjectAllocation, TeacherSubjectAssignment,
   StudentSubjectEnrollment, TimetablePeriodDef, TimetableEntry, StudentExamResultWithDetails,
-  SubjectGrouping, ExamSessionStatus, StudentEnrollmentStatus, DayOfWeek
+  DayOfWeek
 } from '../../../core/types';
+import {
+  SubjectGrouping, ExamSessionStatus, StudentEnrollmentStatus
+} from './types';
 
 const generateId = (prefix: string = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
