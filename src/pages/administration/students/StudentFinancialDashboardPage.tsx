@@ -55,11 +55,11 @@ const StudentFinancialDashboardPage: React.FC = () => {
     { header: 'Status', accessor: 'status' as keyof StudentInvoiceChargeItem, 
       render: (item: StudentInvoiceChargeItem) => {
         let colorClass = '';
-        if (item.status === InvoiceStatus.PAID) colorClass = 'bg-green-100 text-green-800';
-        else if (item.status === InvoiceStatus.DUE) colorClass = 'bg-yellow-100 text-yellow-800';
-        else if (item.status === InvoiceStatus.OVERDUE) colorClass = 'bg-red-100 text-red-800';
-        else if (item.status === InvoiceStatus.PARTIALLY_PAID) colorClass = 'bg-blue-100 text-blue-800';
-        else if (item.status === InvoiceStatus.VOIDED) colorClass = 'bg-gray-100 text-gray-800 line-through';
+        if (item.status === FinInvoiceStatusEnum.PAID) colorClass = 'bg-green-100 text-green-800';
+        else if (item.status === FinInvoiceStatusEnum.DUE) colorClass = 'bg-yellow-100 text-yellow-800';
+        else if (item.status === FinInvoiceStatusEnum.OVERDUE) colorClass = 'bg-red-100 text-red-800';
+        else if (item.status === FinInvoiceStatusEnum.PARTIALLY_PAID) colorClass = 'bg-blue-100 text-blue-800';
+        else if (item.status === FinInvoiceStatusEnum.VOIDED) colorClass = 'bg-gray-100 text-gray-800 line-through';
         else colorClass = 'bg-gray-100 text-gray-800';
         return <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
       }
