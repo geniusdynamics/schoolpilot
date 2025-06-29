@@ -1,12 +1,13 @@
+/// <reference types="react" />
 // ABOUTME: This is the data context provider for the entire application.
 // ABOUTME: It dynamically switches between mock data and RxDB based on the app mode.
 
 import React, { createContext, useContext, ReactNode, useMemo, useEffect, useState } from 'react';
 import { APP_MODE } from './config'; 
-import { useMockData } from '../hooks/useMockData'; 
-import { rawInitialData as mockDataContentForProdSeed } from '../hooks/useMockData';
+import { useMockData } from '../hooks/useCompleteMockData';
+import { rawInitialData as mockDataContentForProdSeed } from '../hooks/useCompleteMockData';
 
-import type { AppDataContextType } from '../types';
+import type { AppDataContextType } from '../core/types';
 import Spinner from '../components/ui/Spinner'; 
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
