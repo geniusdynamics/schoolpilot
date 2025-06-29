@@ -13,7 +13,7 @@ import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
 
 type ExpenseClaimFormData = Omit<Partial<ExpenseClaim>, 'id' | 'created_at' | 'updated_at' | 'claimant_name' | 'expense_category_name' | 'claimant_type'> & {
-    claimant_type: ExpenseClaimantType; // Ensure this is required for form logic
+    claimant_type: FinExpenseClaimantTypeEnum; // Ensure this is required for form logic
 };
 
 const ExpensesPage: React.FC = () => {
@@ -32,7 +32,7 @@ const ExpensesPage: React.FC = () => {
   const [editingClaim, setEditingClaim] = useState<ExpenseClaim | null>(null);
   
   const initialFormData: ExpenseClaimFormData = { 
-    claimant_type: ExpenseClaimantType.STAFF, 
+    claimant_type: FinExpenseClaimantTypeEnum.STAFF, 
     claimant_id: undefined, 
     claim_date: new Date().toISOString().split('T')[0], 
     description: '', 
@@ -42,9 +42,9 @@ const ExpensesPage: React.FC = () => {
   const [formData, setFormData] = useState<ExpenseClaimFormData>(initialFormData);
 
   const claimantList = useMemo(() => {
-    if (formData.claimant_type === ExpenseClaimantType.STAFF) {
+    if (formData.claimant_type === FinExpenseClaimantTypeEnum.STAFF) {
       return staff.filter(s => s.is_active).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Staff)` }));
-    } else if (formData.claimant_type === ExpenseClaimantType.STUDENT) {
+    } else if (formData.claimant_type === FinExpenseClaimantTypeEnum.STUDENT) {
       return students.filter(s => s.status === 'Active').map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Student)` }));
     }
     return [];
@@ -175,7 +175,7 @@ const ExpensesPage: React.FC = () => {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select name="claimant_type" label="Claimant Type" value={formData.claimant_type} onChange={handleInputChange} required>
-                {Object.values(ExpenseClaimantType).map(type => (<option key={type} value={type}>{type}</option>))}
+                {Object.values(FinExpenseClaimantTypeEnum).map(type => (<option key={type} value={type}>{type}</option>))}
             </Select>
             <Select name="claimant_id" label="Claimant" value={formData.claimant_id || ''} onChange={handleInputChange} required>
                 <option value="">Select Claimant</option>

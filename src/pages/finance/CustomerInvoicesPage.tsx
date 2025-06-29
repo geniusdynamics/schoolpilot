@@ -256,7 +256,7 @@ const CustomerInvoicesPage: React.FC = () => {
             <Input name="issue_date" label="Issue Date" type="date" value={invoiceFormData.issue_date || ''} onChange={handleInvoiceInputChange} required />
             <Input name="due_date" label="Due Date" type="date" value={invoiceFormData.due_date || ''} onChange={handleInvoiceInputChange} />
             <Select name="status" label="Status" value={invoiceFormData.status} onChange={handleInvoiceInputChange} required>
-                {Object.values(CustomerInvoiceStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                {Object.values(FinCustomerInvoiceStatusEnum).map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
         </div>
       </Modal>
