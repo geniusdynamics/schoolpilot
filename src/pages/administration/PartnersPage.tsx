@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
-import { Partner, PartnerType } from '../../types';
+import { AdminPartnerType as Partner } from '@/modules/administration/data/types';
+import { PartnerType } from '@/modules/administration/data/types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -28,7 +29,7 @@ const PartnersPage: React.FC = () => {
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const initialFormData: PartnerFormData = { 
     name: '', 
-    partner_type: PartnerType.OTHER, 
+    partner_type: PartnerType.OTHER,
     contact_person: '', 
     email: '', 
     phone: '',

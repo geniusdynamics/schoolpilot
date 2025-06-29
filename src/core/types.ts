@@ -1553,8 +1553,12 @@ export type AppDataLoadingStates = {
   [K in keyof AppDataType]: boolean;
 } & { all: boolean };
 
-// The full context includes the data, loading states, and raw data
+// The full context includes the data, loading states, raw data, and CRUD operations
 export type AppDataContextType = AppDataType & {
   loading: AppDataLoadingStates;
   rawInitialData: any;
+  // Partner CRUD operations
+  addPartner: (partnerData: Omit<Partner, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  updatePartner: (updatedPartner: Partner) => Promise<void>;
+  deletePartner: (partnerId: string) => Promise<void>;
 };

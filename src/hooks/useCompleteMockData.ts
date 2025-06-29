@@ -237,7 +237,7 @@ export const rawInitialData: AppDataType = {
 };
 
 export const useMockData = (): AppDataContextType => {
-  const [data, setData] = useState<Partial<AppDataType>>({});
+  const [data, setData] = useState<Partial<AppDataType>>(rawInitialData);
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
 
   useEffect(() => {
@@ -263,9 +263,48 @@ export const useMockData = (): AppDataContextType => {
     loadAllData();
   }, []);
 
+  // Partner CRUD operations
+  const addPartner = async (partnerData: Omit<Partner, 'id' | 'created_at' | 'updated_at'>) => {
+    await delay(MOCK_API_DELAY);
+    const newPartner: Partner = {
+      ...partnerData,
+      id: `PTN${Date.now()}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      partners: [...(prev.partners || []), newPartner]
+    }));
+  };
+
+  const updatePartner = async (updatedPartner: Partner) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      partners: (prev.partners || []).map(p => 
+        p.id === updatedPartner.id 
+          ? { ...updatedPartner, updated_at: new Date().toISOString() }
+          : p
+      )
+    }));
+  };
+
+  const deletePartner = async (partnerId: string) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      partners: (prev.partners || []).filter(p => p.id !== partnerId)
+    }));
+  };
+
   return {
     ...(data as AppDataType),
     loading,
     rawInitialData,
+    // Partner CRUD operations
+    addPartner,
+    updatePartner,
+    deletePartner,
   } as AppDataContextType;
 };
