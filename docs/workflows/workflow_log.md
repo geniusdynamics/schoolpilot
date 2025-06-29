@@ -281,3 +281,30 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
   2. Verify data persistence and mock data operations
   3. Validate responsive design across different screen sizes
   4. Set up production build process when ready for deployment
+
+---
+
+## Log Entry: 2025-06-29 16:55:00
+**Phase:** Strategic Planning & Roadmap Development
+**What was accomplished:** Created comprehensive next steps roadmap document outlining concrete short-term implementation tasks for transitioning from mock data to production-ready RxDB implementation.
+**File created:** `docs/workflows/next_steps_20250629.md`
+**Location:** D:\DevCenter\abuilds\EduGen\old_system\schoolpilot3\docs\workflows\next_steps_20250629.md
+**What the roadmap includes:**
+- **Task 1**: Implement `useRxDBData.ts` CRUD parity with mocks (Priority: High)
+  - Location: `src/composables/useRxDBData.ts`
+  - Focus: Complete CRUD operation parity, consistent API interface, error handling
+- **Task 2**: Guarded seeding/clearing logic respecting "no re-import after data entry" (Priority: High)
+  - Location: `src/services/dataService.ts` and related seed utilities
+  - Focus: Data state detection, user data protection, demo vs production distinction
+- **Task 3**: Write minimal unit test scaffolding (TDD) for Student Management CRUD path (Priority: Medium-High)
+  - Location: `tests/unit/` directory structure
+  - Focus: Jest/Vitest setup, Create→Read→Update→Delete flow testing
+- **Task 4**: Manual smoke test checklist for demo vs production modes (Priority: Medium)
+  - Location: `docs/testing/smoke_test_checklist.md`
+  - Focus: Demo mode tests, production mode tests, cross-mode validation, browser compatibility
+**Implementation Timeline:** 4-week phased approach with clear weekly objectives
+**Risk Mitigation:** Incremental implementation with feature flags, comprehensive backup procedures, parallel mock system maintenance
+**Success Metrics:** 100% feature parity, zero data loss incidents, complete TDD coverage, smooth mode experience
+**Git Status:** Committed as ff3bb0b with detailed commit message
+**Next Review:** Scheduled for January 5, 2025 with development team
+**Next Steps:** Begin Week 1 implementation focusing on `useRxDBData.ts` CRUD parity development
