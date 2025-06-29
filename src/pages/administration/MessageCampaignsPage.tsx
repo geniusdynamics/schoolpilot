@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Campaign, CampaignStatus, CampaignAudienceType, TemplateComm, User, ClassStream, TemplateType } from '../../types';
+import { Staff, Class, ClassStream } from '../../types';
+import { AdminCampaignType as Campaign, CampaignStatus, CampaignAudienceType, AdminTemplateCommType as TemplateComm, TemplateType } from '../../modules/administration/data/types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';

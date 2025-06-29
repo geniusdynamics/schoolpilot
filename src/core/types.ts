@@ -29,18 +29,7 @@ export enum StudentStatus {
   WITHDRAWN = 'Withdrawn'
 }
 
-export enum ClubType {
-  CLUB = 'Club',
-  SOCIETY = 'Society',
-  SPORT = 'Sport',
-}
-
-export enum AttendanceStatus {
-  PRESENT = 'Present',
-  ABSENT = 'Absent',
-  LATE = 'Late',
-  EXCUSED = 'Excused',
-}
+// ClubType and AttendanceStatus moved to administration module to avoid conflicts
 
 // Shared cross-system enums that are used by multiple modules
 export enum DayOfWeek {
@@ -182,29 +171,7 @@ export enum WalletTransactionType {
     PURCHASE = 'Purchase',
 }
 
-export enum TemplateType {
-    SMS = 'SMS',
-    EMAIL = 'Email',
-    PUSH_NOTIFICATION = 'PushNotification',
-}
-
-export enum CampaignStatus {
-    DRAFT = 'Draft',
-    PENDING_APPROVAL = 'Pending Approval',
-    APPROVED = 'Approved',
-    QUEUED = 'Queued',
-    SENDING = 'Sending',
-    SENT = 'Sent',
-    CANCELLED = 'Cancelled',
-}
-
-export enum CampaignAudienceType {
-    ALL_STUDENTS = 'All Students',
-    ALL_PARENTS = 'All Parents',
-    ALL_STAFF = 'All Staff',
-    STUDENTS_OF_CLASS = 'Students of Class',
-    PARENTS_OF_CLASS = 'Parents of Class',
-}
+// TemplateType, CampaignStatus, and CampaignAudienceType moved to administration module to avoid conflicts
 
 export enum AuditAction {
     INSERT = 'INSERT',
@@ -219,13 +186,6 @@ export enum RFQStatus {
     CLOSED = 'Closed',
     AWARDED = 'Awarded',
     CANCELLED = 'Cancelled',
-}
-
-export enum PartnerType {
-    SUPPLIER = 'Supplier',
-    SERVICE_PROVIDER = 'Service Provider',
-    DONOR = 'Donor',
-    GOVERNMENT_AGENCY = 'Government Agency',
 }
 
 export enum RequisitionStatus {
@@ -822,28 +782,9 @@ export interface RFQ {
     updated_at: string;
 }
 
-export interface Partner {
-    id: string;
-    name: string;
-    partner_type: PartnerType;
-    contact_person?: string | null;
-    email?: string | null;
-    phone?: string | null;
-    address?: string | null;
-    created_at: string;
-    updated_at: string;
-}
+// Partner interface moved to administration module to avoid PartnerType conflicts
 
-export interface ClubAndSociety {
-    id: number;
-    name: string;
-    type: ClubType;
-    patron_id?: string | null;
-    created_at: string;
-    updated_at: string;
-    // Denormalized
-    patron_name?: string | null;
-}
+// ClubAndSociety interface moved to administration module to avoid conflicts
 
 export interface StudentHealthRecord {
     id: string;
@@ -858,17 +799,7 @@ export interface StudentHealthRecord {
     student_name?: string | null;
 }
 
-export interface StudentAttendance {
-    id: string;
-    student_id: string;
-    period_id: number;
-    date: string;
-    status: AttendanceStatus;
-    created_at?: string | null;
-    // Denormalized
-    student_name?: string | null;
-    period_name?: string | null;
-}
+// StudentAttendance interface moved to administration module to avoid conflicts
 
 export interface TimetablePeriodDef {
     id: number;
@@ -877,37 +808,7 @@ export interface TimetablePeriodDef {
     end_time: string;
 }
 
-export interface TemplateComm {
-    id: number;
-    name: string;
-    type: TemplateType;
-    subject?: string | null;
-    body_template: string;
-    created_at: string;
-    updated_at: string;
-}
-
-export interface Campaign {
-    id: string;
-    name: string;
-    template_id?: number | null;
-    subject?: string | null;
-    body?: string | null;
-    status: CampaignStatus;
-    target_audience_type?: CampaignAudienceType | null;
-    target_id?: string | null;
-    scheduled_for?: string | null;
-    sent_at?: string | null;
-    created_by: string;
-    approved_by?: string | null;
-    created_at: string;
-    updated_at: string;
-    // Denormalized
-    template_name?: string | null;
-    created_by_name?: string | null;
-    approved_by_name?: string | null;
-    target_audience_display?: string | null;
-}
+// TemplateComm and Campaign interfaces moved to administration module to avoid conflicts
 
 export interface SubjectPaper {
     id: number;
@@ -1466,14 +1367,14 @@ export type AppDataType = {
   academicYearStructures: AcademicYearStructure[];
   academicPeriodDefinitions: AcademicPeriodDefinition[];
   financialYears: FinancialYear[];
-  partners: Partner[];
-  clubs: ClubAndSociety[];
-  customers: Customer[];
-  studentHealthRecords: StudentHealthRecord[];
-  studentAttendance: StudentAttendance[];
+  partners: any[]; // AdminPartnerType[] - defined in administration module
+  clubs: any[]; // AdminClubAndSocietyType[] - defined in administration module
+  customers: any[]; // AdminCustomerType[] - defined in administration module
+  studentHealthRecords: any[]; // AdminStudentHealthRecordType[] - defined in administration module
+  studentAttendance: any[]; // AdminStudentAttendanceType[] - defined in administration module
   timetablePeriodDefs: TimetablePeriodDef[];
-  templatesComm: TemplateComm[];
-  campaigns: Campaign[];
+  templatesComm: any[]; // AdminTemplateCommType[] - defined in administration module
+  campaigns: any[]; // AdminCampaignType[] - defined in administration module
   subjectPapers: SubjectPaper[];
   examSessions: ExamSession[];
   examPaperSettings: ExamPaperSetting[];
@@ -1540,8 +1441,8 @@ export type AppDataLoadingStates = {
 export type AppDataContextType = AppDataType & {
   loading: AppDataLoadingStates;
   rawInitialData: any;
-  // Partner CRUD operations
-  addPartner: (partnerData: Omit<Partner, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
-  updatePartner: (updatedPartner: Partner) => Promise<void>;
+  // Partner CRUD operations - AdminPartnerType from administration module
+  addPartner: (partnerData: any) => Promise<void>;
+  updatePartner: (updatedPartner: any) => Promise<void>;
   deletePartner: (partnerId: string) => Promise<void>;
 };

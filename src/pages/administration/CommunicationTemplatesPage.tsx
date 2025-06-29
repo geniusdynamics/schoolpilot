@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { TemplateComm, TemplateType } from '../../types';
+import { AdminTemplateCommType as TemplateComm, TemplateType } from '../../modules/administration/data/types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';

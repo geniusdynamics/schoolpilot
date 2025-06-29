@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { ClubAndSociety, ClubType, Staff } from '../../types';
+import { Staff } from '../../types';
+import { AdminClubAndSocietyType as ClubAndSociety, ClubType } from '../../modules/administration/data/types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';

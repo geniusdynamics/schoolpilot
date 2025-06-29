@@ -7,10 +7,10 @@ import {
   ParentGuardian, StudentGuardianRelationship, // For student relationships
   ExamResultSummary, // Simplified exam summary for UI
   Role, Department, Designation, ClassStream, AcademicPeriodDefinition, AcademicYearStructure, FinancialYear, FinancialYearStatus, SchoolDetails,
-  ClubAndSociety, ClubType, Customer, GradingScheme, GradingSchemeLevel, Bank, ChartOfAccount, AccountType, AccountTemplateType,
-  Supplier, FeeTemplate, FeeTemplateItem, ExpenseCategory, Partner, PartnerType, StudentHealthRecord, StudentAttendance, AttendanceStatus, TimetablePeriodDef,
+  Customer, GradingScheme, GradingSchemeLevel, Bank, ChartOfAccount, AccountType, AccountTemplateType,
+  Supplier, FeeTemplate, FeeTemplateItem, ExpenseCategory, StudentHealthRecord, TimetablePeriodDef,
   ItemInv, ItemTypeInv, ItemCategoryInv, Requisition, RequisitionItem, RequisitionStatus, PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, // Inventory specific
-  TemplateComm, TemplateType, Campaign, CampaignAudienceType, CampaignStatus, // Communication specific
+// TemplateComm, TemplateType, Campaign, CampaignAudienceType, CampaignStatus moved to administration module
   StudentDetailProfile, StudentEnrolledSubject, StudentPaymentLogItem, StudentInvoice, InvoiceStatus, // For Student Detail Page
   StudentFinancialSummary, StudentInvoiceChargeItem, StudentPayment, CustomerInvoice, CustomerInvoiceStatus, // Added CustomerInvoiceStatus
   ClassSubjectAllocation, TeacherSubjectAssignment, StudentSubjectEnrollment, StudentEnrollmentStatus, StudentExamResult, ExamSession, SubjectPaper, // Academics

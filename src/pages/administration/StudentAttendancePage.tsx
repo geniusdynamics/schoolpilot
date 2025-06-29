@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Student, ClassStream, TimetablePeriodDef, StudentAttendance, AttendanceStatus } from '../../types';
+import { Student, ClassStream, TimetablePeriodDef } from '../../types';
+import { AdminStudentAttendanceType as StudentAttendance, AttendanceStatus } from '../../modules/administration/data/types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
