@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { CustomerInvoice, CustomerInvoiceItem, Customer, ChartOfAccount, FinAccountTypeEnum, FinCustomerInvoiceStatusEnum } from '../../types';
+import { FinCustomerInvoiceType as CustomerInvoice, FinCustomerInvoiceItemType as CustomerInvoiceItem, Customer, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinCustomerInvoiceStatusEnum } from '../../types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -13,7 +13,7 @@ import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
 
 type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status'> & {
-    status: CustomerInvoiceStatus;
+    status: FinCustomerInvoiceStatusEnum;
 };
 type CustomerInvoiceItemFormData = Omit<Partial<CustomerInvoiceItem>, 'id' | 'invoice_id' | 'revenue_account_name'>;
 
@@ -40,14 +40,14 @@ const CustomerInvoicesPage: React.FC = () => {
     invoice_number: '', 
     issue_date: new Date().toISOString().split('T')[0], 
     due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default 30 days due
-    status: CustomerInvoiceStatus.DUE,
+    status: FinCustomerInvoiceStatusEnum.DUE,
   };
   const [invoiceFormData, setInvoiceFormData] = useState<CustomerInvoiceFormData>(initialInvoiceFormData);
 
   const initialItemFormData: CustomerInvoiceItemFormData = { description: '', amount: 0, revenue_account_id: undefined };
   const [itemFormData, setItemFormData] = useState<CustomerInvoiceItemFormData>(initialItemFormData);
 
-  const revenueAccounts = useMemo(() => chartOfAccounts.filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
+  const revenueAccounts = useMemo(() => chartOfAccounts.filter(coa => coa.type === FinAccountTypeEnum.REVENUE && coa.is_active), [chartOfAccounts]);
 
   // Invoice Modal
   const openInvoiceModal = (invoice?: CustomerInvoice) => {
@@ -58,7 +58,7 @@ const CustomerInvoicesPage: React.FC = () => {
         invoice_number: invoice.invoice_number, 
         issue_date: invoice.issue_date, 
         due_date: invoice.due_date, 
-        status: invoice.status || CustomerInvoiceStatus.DUE,
+        status: invoice.status || FinCustomerInvoiceStatusEnum.DUE,
       } : 
       initialInvoiceFormData
     );

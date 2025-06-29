@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Bank, ChartOfAccount, FinAccountTypeEnum } from '../../types';
+import { FinBankType as Bank, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum } from '../../types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -28,7 +28,7 @@ const BanksPage: React.FC = () => {
   const initialFormData: BankFormData = { name: '', account_no: '', gl_account_id: undefined };
   const [formData, setFormData] = useState<BankFormData>(initialFormData);
 
-  const assetAccounts = chartOfAccounts.filter(coa => coa.type === AccountType.ASSET && coa.is_active);
+  const assetAccounts = chartOfAccounts.filter(coa => coa.type === FinAccountTypeEnum.ASSET && coa.is_active);
 
   const openModal = (bank?: Bank) => {
     setEditingBank(bank || null);

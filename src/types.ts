@@ -6,6 +6,8 @@ export * from './core/types';
 
 // Module-specific types - academics types imported directly from module to avoid circular dependencies
 // Administration types are imported directly from module to avoid circular dependencies
+export * from './modules/administration/data/types';
+export * from './modules/academics/data/types';
 export * from './modules/finance/data/types';
 export * from './modules/hr/data/types';
 export * from './modules/inventory/data/types';

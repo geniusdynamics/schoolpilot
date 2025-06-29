@@ -3,7 +3,7 @@ import Card from '../../components/ui/Card';
 import { LibraryIcon, BookOpenIcon, ArrowsRightLeftIcon, SparklesIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
-import { ChartData, LibBookStatusEnum, LibFineStatusEnum } from '@/types';
+import { ChartData, BookStatus, FineStatus } from '../../types';
 import DonutChart from '../../components/ui/DonutChart'; // Ensure you have this component
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (

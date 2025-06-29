@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChartOfAccount, FinAccountTypeEnum, FinAccountTemplateTypeEnum, FinExpenseCategoryType } from '../../types';
+import { FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinAccountTemplateTypeEnum, FinExpenseCategoryType } from '../../types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -12,8 +12,8 @@ import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
 
 type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' | 'updated_at' | 'expense_category_name' | 'type' | 'template_type'> & {
-    type: AccountType; // Make type required for the form
-    template_type: AccountTemplateType; // Make template_type required
+    type: FinAccountTypeEnum; // Make type required for the form
+    template_type: FinAccountTemplateTypeEnum; // Make template_type required
 };
 
 const ChartOfAccountsPage: React.FC = () => {
@@ -35,8 +35,8 @@ const ChartOfAccountsPage: React.FC = () => {
   const initialFormData: ChartOfAccountFormData = { 
     account_code: '', 
     name: '', 
-    type: AccountType.ASSET, 
-    template_type: AccountTemplateType.CUSTOM, 
+    type: FinAccountTypeEnum.ASSET, 
+    template_type: FinAccountTemplateTypeEnum.CUSTOM,
     is_active: true, 
     expense_category_id: undefined 
   };
@@ -154,16 +154,16 @@ const ChartOfAccountsPage: React.FC = () => {
             <Input name="name" label="Account Name" value={formData.name || ''} onChange={handleInputChange} required className="md:col-span-2" />
             
             <Select name="type" label="Account Type" value={formData.type || ''} onChange={handleInputChange} required>
-                {Object.values(AccountType).map(type => (<option key={type} value={type}>{type}</option>))}
+                {Object.values(FinAccountTypeEnum).map(type => (<option key={type} value={type}>{type}</option>))}
             </Select>
             <Select name="template_type" label="Template Type" value={formData.template_type || ''} onChange={handleInputChange} required>
-                {Object.values(AccountTemplateType).map(type => (<option key={type} value={type}>{type}</option>))}
+                {Object.values(FinAccountTemplateTypeEnum).map(type => (<option key={type} value={type}>{type}</option>))}
             </Select>
 
-            {formData.type === AccountType.EXPENSE && (
+            {formData.type === FinAccountTypeEnum.EXPENSE && (
                  <Select name="expense_category_id" label="Expense Category (for Expense Type)" value={formData.expense_category_id || ''} onChange={handleInputChange}>
                     <option value="">Select Expense Category</option>
-                    {initialMockExpenseCategories.map((cat: ExpenseCategory) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                    {initialMockExpenseCategories.map((cat: FinExpenseCategoryType) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
                 </Select>
             )}
            
