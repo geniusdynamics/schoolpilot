@@ -1,4 +1,6 @@
-// src/modules/administration/data/mockData.ts
+// ABOUTME: Mock data for administration module entities including partners, clubs, customers, etc.
+// ABOUTME: This provides sample data for development and demo modes without external dependencies.
+
 import {
   User, Role, Department, Designation, StudentCategory, Dormitory,
   Class, ClassStream, Student, ParentsGuardian, SchoolDetails, Staff,
@@ -6,6 +8,13 @@ import {
   FinancialYear, FinancialYearStatus,
   UserType, PersonGender, StudentStatus
 } from '../../../core/types';
+
+import {
+  AdminPartnerType, AdminClubAndSocietyType, AdminCustomerType,
+  AdminStudentHealthRecordType, AdminStudentAttendanceType,
+  AdminTemplateCommType, AdminCampaignType,
+  PartnerType, ClubType, AttendanceStatus, TemplateType, CampaignStatus, CampaignAudienceType
+} from './types';
 
 export const initialMockSchoolDetails: SchoolDetails = {
   id: 1, name: 'Greenwood High International', email: 'info@greenwood.int', telephone: '+254-722-123456',
@@ -130,4 +139,184 @@ export const initialMockWorkflows = [
             { id: 10, workflow_id: 2, name: 'Rejected', sequence_order: 5 },
         ]
     }
+];
+
+// Administration-specific mock data
+export const initialMockPartners: AdminPartnerType[] = [
+  {
+    id: 'PART001',
+    name: 'Kenyan Education Board',
+    partner_type: PartnerType.GOVERNMENT_AGENCY,
+    contact_person: 'Dr. Jane Mwangi',
+    email: 'j.mwangi@keb.go.ke',
+    phone: '+254-722-555-001',
+    address: 'P.O. Box 200-00100, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART002',
+    name: 'TechCorp Solutions',
+    partner_type: PartnerType.SERVICE_PROVIDER,
+    contact_person: 'Michael Johnson',
+    email: 'm.johnson@techcorp.com',
+    phone: '+254-733-555-002',
+    address: 'Westlands, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART003',
+    name: 'Community Trust Foundation',
+    partner_type: PartnerType.SPONSOR,
+    contact_person: 'Sarah Williams',
+    email: 's.williams@ctf.org',
+    phone: '+254-744-555-003',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const initialMockClubsAndSocieties: AdminClubAndSocietyType[] = [
+  {
+    id: 1,
+    name: 'Science Club',
+    type: ClubType.CLUB,
+    patron_id: 'STF002',
+    patron_name: 'Dwight Schrute',
+    description: 'Promoting scientific inquiry and experimentation',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    name: 'Drama Society',
+    type: ClubType.SOCIETY,
+    patron_id: 'STF008',
+    patron_name: 'Phyllis Vance',
+    description: 'Theatre arts and performance',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 3,
+    name: 'Basketball Team',
+    type: ClubType.SPORTS_TEAM,
+    patron_id: 'STF005',
+    patron_name: 'Kevin Malone',
+    description: 'School basketball team',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const initialMockCustomers: AdminCustomerType[] = [
+  {
+    id: 1,
+    name: 'Uniforms Direct Ltd',
+    phone: '+254-711-444-001',
+    email: 'orders@uniformsdirect.co.ke',
+    address: 'Industrial Area, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    name: 'Stationery World',
+    phone: '+254-722-444-002',
+    email: 'sales@stationeryworld.com',
+    address: 'CBD, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const initialMockStudentHealthRecords: AdminStudentHealthRecordType[] = [
+  {
+    id: 'SHR001',
+    student_id: 'S001',
+    student_name: 'Jim Halpert',
+    blood_type: 'O+',
+    allergies: 'None',
+    medical_conditions: 'None',
+    emergency_contact_override: '+254-711-999-001',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'SHR002',
+    student_id: 'S002',
+    student_name: 'Michael Scofield',
+    blood_type: 'A+',
+    allergies: 'Peanuts',
+    medical_conditions: 'Asthma',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const initialMockStudentAttendance: AdminStudentAttendanceType[] = [
+  {
+    id: 'ATT001',
+    student_id: 'S001',
+    student_name: 'Jim Halpert',
+    period_id: 1,
+    period_name: 'Period 1',
+    date: new Date().toISOString().split('T')[0],
+    status: AttendanceStatus.PRESENT,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'ATT002',
+    student_id: 'S002',
+    student_name: 'Michael Scofield',
+    period_id: 1,
+    period_name: 'Period 1',
+    date: new Date().toISOString().split('T')[0],
+    status: AttendanceStatus.LATE,
+    reason_for_absence: 'Traffic jam',
+    created_at: new Date().toISOString()
+  }
+];
+
+export const initialMockTemplateComms: AdminTemplateCommType[] = [
+  {
+    id: 1,
+    name: 'Welcome Message',
+    type: TemplateType.SMS,
+    subject: 'Welcome to Greenwood High',
+    body_template: 'Welcome {{student_name}} to Greenwood High International School. We are excited to have you join our community!',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    name: 'Fee Reminder',
+    type: TemplateType.EMAIL,
+    subject: 'Fee Payment Reminder',
+    body_template: 'Dear {{parent_name}}, this is a reminder that the school fees for {{student_name}} are due on {{due_date}}.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const initialMockCampaigns: AdminCampaignType[] = [
+  {
+    id: 'CAMP001',
+    name: 'New Term Welcome',
+    template_id: 1,
+    template_name: 'Welcome Message',
+    subject: 'Welcome to New Term',
+    body: 'Welcome to the new academic term at Greenwood High!',
+    status: CampaignStatus.SENT,
+    target_audience_type: CampaignAudienceType.ALL_STUDENTS,
+    target_audience_display: 'All Students',
+    sent_at: new Date().toISOString(),
+    created_by: 'STF001_USR',
+    created_by_name: 'Michael Scott',
+    approved_by: 'STF001_USR',
+    approved_by_name: 'Michael Scott',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
 ];

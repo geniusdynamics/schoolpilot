@@ -2,7 +2,8 @@
 
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { FinGeneralPaymentType as GeneralPayment, FinGeneralPaymentItemType as GeneralPaymentItem, FinGeneralPayerTypeEnum as GeneralPayerType, Student, Staff, AdminCustomerType as Customer, AdminPartnerType as Partner, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '../../types';
+import { FinGeneralPaymentType as GeneralPayment, FinGeneralPaymentItemType as GeneralPaymentItem, FinGeneralPayerTypeEnum as GeneralPayerType, Student, Staff, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '../../types';
+import { AdminCustomerType as Customer, AdminPartnerType as Partner } from '@/modules/administration/data/types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';

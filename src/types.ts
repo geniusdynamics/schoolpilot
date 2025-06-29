@@ -6,17 +6,7 @@ export * from './core/types';
 
 // Module-specific types
 export * from './modules/academics/data/types';
-export { 
-  AdminPartnerType,
-  AdminClubAndSocietyType,
-  AdminCustomerType,
-  AdminStudentHealthRecordType,
-  AdminStudentAttendanceType,
-  AdminTemplateCommType,
-  AdminCampaignType,
-  ClubType,
-  AttendanceStatus
-} from './modules/administration/data/types';
+// Administration types are imported directly from module to avoid circular dependencies
 export * from './modules/finance/data/types';
 export * from './modules/hr/data/types';
 export * from './modules/inventory/data/types';
