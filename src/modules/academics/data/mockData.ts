@@ -14,27 +14,106 @@ const generateId = (prefix: string = 'id') => `${prefix}_${Date.now()}_${Math.ra
 export const initialMockSubjects: Subject[] = [
     { id: 1, subject_code: '101', abbreviation: 'ENG', name: 'English', department_id: 'DEPT005', is_compulsory: true, grouping: SubjectGrouping.GROUP_1_COMPULSORY, department_name: 'Languages & Literature', papers: [] },
     { id: 2, subject_code: '102', abbreviation: 'KIS', name: 'Kiswahili', department_id: 'DEPT005', is_compulsory: true, grouping: SubjectGrouping.GROUP_1_COMPULSORY, department_name: 'Languages & Literature', papers: [] },
-    { id: 3, subject_code: '121', abbreviation: 'MAT', name: 'Mathematics', department_id: 'DEPT001', is_compulsory: true, grouping: SubjectGrouping.GROUP_1_COMPULSORY, department_name: 'Academics', papers: [] },
+    { id: 3, subject_code: '121', abbreviation: 'MAT', name: 'Mathematics', department_id: 'DEPT001', is_compulsory: true, grouping: SubjectGrouping.GROUP_1_COMPULSORY, department_name: 'Mathematics', papers: [] },
     { id: 4, subject_code: '231', abbreviation: 'BIO', name: 'Biology', department_id: 'DEPT003', grouping: SubjectGrouping.GROUP_2_SCIENCES, department_name: 'Sciences', papers: [] },
     { id: 5, subject_code: '232', abbreviation: 'PHY', name: 'Physics', department_id: 'DEPT003', grouping: SubjectGrouping.GROUP_2_SCIENCES, department_name: 'Sciences', papers: [] },
     { id: 6, subject_code: '233', abbreviation: 'CHEM', name: 'Chemistry', department_id: 'DEPT003', grouping: SubjectGrouping.GROUP_2_SCIENCES, department_name: 'Sciences', papers: [] },
+    { id: 7, subject_code: '311', abbreviation: 'HIS', name: 'History', department_id: 'DEPT004', grouping: SubjectGrouping.GROUP_3_HUMANITIES, department_name: 'Humanities', papers: [] },
+    { id: 8, subject_code: '312', abbreviation: 'GEO', name: 'Geography', department_id: 'DEPT004', grouping: SubjectGrouping.GROUP_3_HUMANITIES, department_name: 'Humanities', papers: [] },
+    { id: 9, subject_code: '313', abbreviation: 'CRE', name: 'Christian Religious Education', department_id: 'DEPT004', grouping: SubjectGrouping.GROUP_3_HUMANITIES, department_name: 'Humanities', papers: [] },
+    { id: 10, subject_code: '411', abbreviation: 'BUS', name: 'Business Studies', department_id: 'DEPT006', grouping: SubjectGrouping.GROUP_4_TECHNICAL, department_name: 'Business Studies', papers: [] },
+    { id: 11, subject_code: '412', abbreviation: 'COMP', name: 'Computer Studies', department_id: 'DEPT006', grouping: SubjectGrouping.GROUP_4_TECHNICAL, department_name: 'Technology', papers: [] },
+    { id: 12, subject_code: '413', abbreviation: 'AGR', name: 'Agriculture', department_id: 'DEPT007', grouping: SubjectGrouping.GROUP_4_TECHNICAL, department_name: 'Agriculture', papers: [] },
+    { id: 13, subject_code: '511', abbreviation: 'FRE', name: 'French', department_id: 'DEPT005', grouping: SubjectGrouping.GROUP_5_LANGUAGES, department_name: 'Languages & Literature', papers: [] },
+    { id: 14, subject_code: '512', abbreviation: 'GER', name: 'German', department_id: 'DEPT005', grouping: SubjectGrouping.GROUP_5_LANGUAGES, department_name: 'Languages & Literature', papers: [] },
+    { id: 15, subject_code: '611', abbreviation: 'ART', name: 'Art & Design', department_id: 'DEPT008', grouping: SubjectGrouping.GROUP_6_APPLIED, department_name: 'Creative Arts', papers: [] },
+    { id: 16, subject_code: '612', abbreviation: 'MUS', name: 'Music', department_id: 'DEPT008', grouping: SubjectGrouping.GROUP_6_APPLIED, department_name: 'Creative Arts', papers: [] },
+    { id: 17, subject_code: '613', abbreviation: 'HME', name: 'Home Science', department_id: 'DEPT009', grouping: SubjectGrouping.GROUP_6_APPLIED, department_name: 'Home Science', papers: [] },
+    { id: 18, subject_code: '614', abbreviation: 'PE', name: 'Physical Education', department_id: 'DEPT010', grouping: SubjectGrouping.GROUP_6_APPLIED, department_name: 'Physical Education', papers: [] }
 ];
 
 export const initialMockSubjectPapers: SubjectPaper[] = [
+    // English Papers
     { id: 1, subject_id: 1, name: 'English Paper 1 (Grammar)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'English' },
     { id: 2, subject_id: 1, name: 'English Paper 2 (Literature)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'English' },
-    { id: 3, subject_id: 3, name: 'Mathematics Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Mathematics' },
-    { id: 4, subject_id: 4, name: 'Biology Paper 1 (Theory)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Biology' },
-    { id: 5, subject_id: 4, name: 'Biology Paper 2 (Practical)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Biology' },
+    { id: 3, subject_id: 1, name: 'English Paper 3 (Creative Writing)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'English' },
+    // Kiswahili Papers
+    { id: 4, subject_id: 2, name: 'Kiswahili Paper 1 (Grammar)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Kiswahili' },
+    { id: 5, subject_id: 2, name: 'Kiswahili Paper 2 (Literature)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Kiswahili' },
+    { id: 6, subject_id: 2, name: 'Kiswahili Paper 3 (Creative Writing)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Kiswahili' },
+    // Mathematics Papers
+    { id: 7, subject_id: 3, name: 'Mathematics Paper 1 (Pure)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Mathematics' },
+    { id: 8, subject_id: 3, name: 'Mathematics Paper 2 (Applied)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Mathematics' },
+    // Science Papers
+    { id: 9, subject_id: 4, name: 'Biology Paper 1 (Theory)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Biology' },
+    { id: 10, subject_id: 4, name: 'Biology Paper 2 (Theory)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Biology' },
+    { id: 11, subject_id: 4, name: 'Biology Paper 3 (Practical)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Biology' },
+    { id: 12, subject_id: 5, name: 'Physics Paper 1 (Theory)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Physics' },
+    { id: 13, subject_id: 5, name: 'Physics Paper 2 (Theory)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Physics' },
+    { id: 14, subject_id: 5, name: 'Physics Paper 3 (Practical)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Physics' },
+    { id: 15, subject_id: 6, name: 'Chemistry Paper 1 (Theory)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Chemistry' },
+    { id: 16, subject_id: 6, name: 'Chemistry Paper 2 (Theory)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Chemistry' },
+    { id: 17, subject_id: 6, name: 'Chemistry Paper 3 (Practical)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Chemistry' },
+    // Humanities Papers
+    { id: 18, subject_id: 7, name: 'History Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'History' },
+    { id: 19, subject_id: 7, name: 'History Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'History' },
+    { id: 20, subject_id: 8, name: 'Geography Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Geography' },
+    { id: 21, subject_id: 8, name: 'Geography Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Geography' },
+    { id: 22, subject_id: 9, name: 'Christian Religious Education Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Christian Religious Education' },
+    { id: 23, subject_id: 9, name: 'Christian Religious Education Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Christian Religious Education' },
+    // Technical Papers
+    { id: 24, subject_id: 10, name: 'Business Studies Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Business Studies' },
+    { id: 25, subject_id: 10, name: 'Business Studies Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Business Studies' },
+    { id: 26, subject_id: 11, name: 'Computer Studies Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Computer Studies' },
+    { id: 27, subject_id: 11, name: 'Computer Studies Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Computer Studies' },
+    { id: 28, subject_id: 12, name: 'Agriculture Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Agriculture' },
+    { id: 29, subject_id: 12, name: 'Agriculture Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Agriculture' },
+    // Languages Papers
+    { id: 30, subject_id: 13, name: 'French Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'French' },
+    { id: 31, subject_id: 13, name: 'French Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'French' },
+    { id: 32, subject_id: 14, name: 'German Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'German' },
+    { id: 33, subject_id: 14, name: 'German Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'German' },
+    // Applied Papers
+    { id: 34, subject_id: 15, name: 'Art & Design Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Art & Design' },
+    { id: 35, subject_id: 15, name: 'Art & Design Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Art & Design' },
+    { id: 36, subject_id: 16, name: 'Music Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Music' },
+    { id: 37, subject_id: 16, name: 'Music Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Music' },
+    { id: 38, subject_id: 17, name: 'Home Science Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Home Science' },
+    { id: 39, subject_id: 17, name: 'Home Science Paper 2', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Home Science' },
+    { id: 40, subject_id: 18, name: 'Physical Education Paper 1', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_name: 'Physical Education' }
 ];
 initialMockSubjects.forEach(s => {s.papers = initialMockSubjectPapers.filter(sp => sp.subject_id === s.id)});
 
 export const initialMockExamPaperSettings: ExamPaperSetting[] = [
-    {id: 'EPS001', exam_session_id: 'ES001', subject_paper_id: 1, marks_out_of: 100, weight_percentage: 50, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'English Paper 1 (Grammar)', subject_name: 'English' },
-    {id: 'EPS002', exam_session_id: 'ES001', subject_paper_id: 2, marks_out_of: 100, weight_percentage: 50, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'English Paper 2 (Literature)', subject_name: 'English' },
-    {id: 'EPS003', exam_session_id: 'ES001', subject_paper_id: 3, marks_out_of: 100, weight_percentage: 100, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Mathematics Paper 1', subject_name: 'Mathematics' },
-    {id: 'EPS004', exam_session_id: 'ES002', subject_paper_id: 4, marks_out_of: 70, weight_percentage: 70, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Biology Paper 1 (Theory)', subject_name: 'Biology' },
-    {id: 'EPS005', exam_session_id: 'ES002', subject_paper_id: 5, marks_out_of: 30, weight_percentage: 30, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Biology Paper 2 (Practical)', subject_name: 'Biology' },
+    // English Papers - End of Term 3 Exams 2024
+    {id: 'EPS001', exam_session_id: 'ES001', subject_paper_id: 1, marks_out_of: 100, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'English Paper 1 (Grammar)', subject_name: 'English' },
+    {id: 'EPS002', exam_session_id: 'ES001', subject_paper_id: 2, marks_out_of: 100, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'English Paper 2 (Literature)', subject_name: 'English' },
+    {id: 'EPS003', exam_session_id: 'ES001', subject_paper_id: 3, marks_out_of: 100, weight_percentage: 20, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'English Paper 3 (Creative Writing)', subject_name: 'English' },
+    // Kiswahili Papers - End of Term 3 Exams 2024
+    {id: 'EPS004', exam_session_id: 'ES001', subject_paper_id: 4, marks_out_of: 100, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Kiswahili Paper 1 (Grammar)', subject_name: 'Kiswahili' },
+    {id: 'EPS005', exam_session_id: 'ES001', subject_paper_id: 5, marks_out_of: 100, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Kiswahili Paper 2 (Literature)', subject_name: 'Kiswahili' },
+    {id: 'EPS006', exam_session_id: 'ES001', subject_paper_id: 6, marks_out_of: 100, weight_percentage: 20, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Kiswahili Paper 3 (Creative Writing)', subject_name: 'Kiswahili' },
+    // Mathematics Papers - End of Term 3 Exams 2024
+    {id: 'EPS007', exam_session_id: 'ES001', subject_paper_id: 7, marks_out_of: 100, weight_percentage: 60, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Mathematics Paper 1 (Pure)', subject_name: 'Mathematics' },
+    {id: 'EPS008', exam_session_id: 'ES001', subject_paper_id: 8, marks_out_of: 100, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Mathematics Paper 2 (Applied)', subject_name: 'Mathematics' },
+    // Biology Papers - Mid Term 1 Exams 2025
+    {id: 'EPS009', exam_session_id: 'ES002', subject_paper_id: 9, marks_out_of: 80, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Biology Paper 1 (Theory)', subject_name: 'Biology' },
+    {id: 'EPS010', exam_session_id: 'ES002', subject_paper_id: 10, marks_out_of: 80, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Biology Paper 2 (Theory)', subject_name: 'Biology' },
+    {id: 'EPS011', exam_session_id: 'ES002', subject_paper_id: 11, marks_out_of: 40, weight_percentage: 20, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Biology Paper 3 (Practical)', subject_name: 'Biology' },
+    // Physics Papers - Mid Term 1 Exams 2025
+    {id: 'EPS012', exam_session_id: 'ES002', subject_paper_id: 12, marks_out_of: 80, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Physics Paper 1 (Theory)', subject_name: 'Physics' },
+    {id: 'EPS013', exam_session_id: 'ES002', subject_paper_id: 13, marks_out_of: 80, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Physics Paper 2 (Theory)', subject_name: 'Physics' },
+    {id: 'EPS014', exam_session_id: 'ES002', subject_paper_id: 14, marks_out_of: 40, weight_percentage: 20, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Physics Paper 3 (Practical)', subject_name: 'Physics' },
+    // Chemistry Papers - Mid Term 1 Exams 2025
+    {id: 'EPS015', exam_session_id: 'ES002', subject_paper_id: 15, marks_out_of: 80, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Chemistry Paper 1 (Theory)', subject_name: 'Chemistry' },
+    {id: 'EPS016', exam_session_id: 'ES002', subject_paper_id: 16, marks_out_of: 80, weight_percentage: 40, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Chemistry Paper 2 (Theory)', subject_name: 'Chemistry' },
+    {id: 'EPS017', exam_session_id: 'ES002', subject_paper_id: 17, marks_out_of: 40, weight_percentage: 20, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Chemistry Paper 3 (Practical)', subject_name: 'Chemistry' },
+    // History Papers - End of Term 3 Exams 2024
+    {id: 'EPS018', exam_session_id: 'ES001', subject_paper_id: 18, marks_out_of: 100, weight_percentage: 50, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'History Paper 1', subject_name: 'History' },
+    {id: 'EPS019', exam_session_id: 'ES001', subject_paper_id: 19, marks_out_of: 100, weight_percentage: 50, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'History Paper 2', subject_name: 'History' },
+    // Geography Papers - End of Term 3 Exams 2024
+    {id: 'EPS020', exam_session_id: 'ES001', subject_paper_id: 20, marks_out_of: 100, weight_percentage: 50, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Geography Paper 1', subject_name: 'Geography' },
+    {id: 'EPS021', exam_session_id: 'ES001', subject_paper_id: 21, marks_out_of: 100, weight_percentage: 50, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), subject_paper_name: 'Geography Paper 2', subject_name: 'Geography' }
 ];
 
 export const initialMockExamSessions: ExamSession[] = [
@@ -62,26 +141,218 @@ export const initialMockGradingSchemes: GradingScheme[] = [
 export const initialMockStudentExamResults: StudentExamResultWithDetails[] = []; // Usually populated dynamically
 
 export const initialMockClassSubjectAllocations: ClassSubjectAllocation[] = [
+    // Form 1 A Allocations - Core Subjects (11 subjects)
     {id: 'CSA001', class_stream_id: 1, subject_id: 1, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'English', academic_year_name: 'AY 2023/2024'},
-    {id: 'CSA002', class_stream_id: 1, subject_id: 3, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024'},
-    {id: 'CSA003', class_stream_id: 2, subject_id: 1, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'English', academic_year_name: 'AY 2023/2024'},
-    {id: 'CSA004', class_stream_id: 3, subject_id: 4, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Biology', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA002', class_stream_id: 1, subject_id: 2, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA003', class_stream_id: 1, subject_id: 3, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA004', class_stream_id: 1, subject_id: 4, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Biology', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA005', class_stream_id: 1, subject_id: 5, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Physics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA006', class_stream_id: 1, subject_id: 6, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA007', class_stream_id: 1, subject_id: 7, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'History', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA008', class_stream_id: 1, subject_id: 8, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Geography', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA009', class_stream_id: 1, subject_id: 9, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Christian Religious Education', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA010', class_stream_id: 1, subject_id: 15, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Art & Design', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA011', class_stream_id: 1, subject_id: 18, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'Physical Education', academic_year_name: 'AY 2023/2024'},
+
+    // Form 1 B Allocations - Core Subjects (11 subjects)
+    {id: 'CSA012', class_stream_id: 2, subject_id: 1, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'English', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA013', class_stream_id: 2, subject_id: 2, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA014', class_stream_id: 2, subject_id: 3, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA015', class_stream_id: 2, subject_id: 4, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Biology', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA016', class_stream_id: 2, subject_id: 5, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Physics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA017', class_stream_id: 2, subject_id: 6, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA018', class_stream_id: 2, subject_id: 7, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'History', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA019', class_stream_id: 2, subject_id: 8, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Geography', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA020', class_stream_id: 2, subject_id: 9, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Christian Religious Education', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA021', class_stream_id: 2, subject_id: 16, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Music', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA022', class_stream_id: 2, subject_id: 18, academic_year_id: 1, class_stream_name: 'Form 1 B', subject_name: 'Physical Education', academic_year_name: 'AY 2023/2024'},
+
+    // Form 2 A Allocations - Compulsory + Technical/Applied Subjects (10 subjects)
+    {id: 'CSA023', class_stream_id: 3, subject_id: 1, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'English', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA024', class_stream_id: 3, subject_id: 2, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA025', class_stream_id: 3, subject_id: 3, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA026', class_stream_id: 3, subject_id: 4, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Biology', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA027', class_stream_id: 3, subject_id: 5, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Physics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA028', class_stream_id: 3, subject_id: 6, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA029', class_stream_id: 3, subject_id: 8, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Geography', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA030', class_stream_id: 3, subject_id: 10, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Business Studies', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA031', class_stream_id: 3, subject_id: 11, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Computer Studies', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA032', class_stream_id: 3, subject_id: 12, academic_year_id: 1, class_stream_name: 'Form 2 A', subject_name: 'Agriculture', academic_year_name: 'AY 2023/2024'},
+
+    // Form 2 B Allocations - Core + Humanities Focus (10 subjects)
+    {id: 'CSA033', class_stream_id: 4, subject_id: 1, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'English', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA034', class_stream_id: 4, subject_id: 2, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA035', class_stream_id: 4, subject_id: 3, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA036', class_stream_id: 4, subject_id: 4, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'Biology', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA037', class_stream_id: 4, subject_id: 5, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'Physics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA038', class_stream_id: 4, subject_id: 6, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA039', class_stream_id: 4, subject_id: 7, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'History', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA040', class_stream_id: 4, subject_id: 8, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'Geography', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA041', class_stream_id: 4, subject_id: 9, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'Christian Religious Education', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA042', class_stream_id: 4, subject_id: 13, academic_year_id: 1, class_stream_name: 'Form 2 B', subject_name: 'French', academic_year_name: 'AY 2023/2024'},
+
+    // Form 3 North Allocations - Sciences Focus (8 subjects)
+    {id: 'CSA043', class_stream_id: 5, subject_id: 1, academic_year_id: 1, class_stream_name: 'Form 3 North', subject_name: 'English', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA044', class_stream_id: 5, subject_id: 2, academic_year_id: 1, class_stream_name: 'Form 3 North', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA045', class_stream_id: 5, subject_id: 3, academic_year_id: 1, class_stream_name: 'Form 3 North', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA046', class_stream_id: 5, subject_id: 4, academic_year_id: 1, class_stream_name: 'Form 3 North', subject_name: 'Biology', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA047', class_stream_id: 5, subject_id: 5, academic_year_id: 1, class_stream_name: 'Form 3 North', subject_name: 'Physics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA048', class_stream_id: 5, subject_id: 6, academic_year_id: 1, class_stream_name: 'Form 3 North', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA049', class_stream_id: 5, subject_id: 8, academic_year_id: 1, class_stream_name: 'Form 3 North', subject_name: 'Geography', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA050', class_stream_id: 5, subject_id: 11, academic_year_id: 1, class_stream_name: 'Form 3 North', subject_name: 'Computer Studies', academic_year_name: 'AY 2023/2024'},
+
+    // Form 4 East Allocations - KCSE Preparation Focus (8 subjects)
+    {id: 'CSA051', class_stream_id: 6, subject_id: 1, academic_year_id: 1, class_stream_name: 'Form 4 East', subject_name: 'English', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA052', class_stream_id: 6, subject_id: 2, academic_year_id: 1, class_stream_name: 'Form 4 East', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA053', class_stream_id: 6, subject_id: 3, academic_year_id: 1, class_stream_name: 'Form 4 East', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA054', class_stream_id: 6, subject_id: 4, academic_year_id: 1, class_stream_name: 'Form 4 East', subject_name: 'Biology', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA055', class_stream_id: 6, subject_id: 5, academic_year_id: 1, class_stream_name: 'Form 4 East', subject_name: 'Physics', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA056', class_stream_id: 6, subject_id: 6, academic_year_id: 1, class_stream_name: 'Form 4 East', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA057', class_stream_id: 6, subject_id: 7, academic_year_id: 1, class_stream_name: 'Form 4 East', subject_name: 'History', academic_year_name: 'AY 2023/2024'},
+    {id: 'CSA058', class_stream_id: 6, subject_id: 10, academic_year_id: 1, class_stream_name: 'Form 4 East', subject_name: 'Business Studies', academic_year_name: 'AY 2023/2024'}
 ];
 
 export const initialMockTeacherSubjectAssignments: TeacherSubjectAssignment[] = [
-    {id: 'TSA001', allocation_id: 'CSA001', teacher_id: 'STF002', class_stream_name: 'Form 1 A', subject_name: 'English', academic_year_name: 'AY 2023/2024', teacher_name: 'Dwight Schrute'},
+    // Form 1 A Assignments (11 subjects)
+    {id: 'TSA001', allocation_id: 'CSA001', teacher_id: 'STF001', class_stream_name: 'Form 1 A', subject_name: 'English', academic_year_name: 'AY 2023/2024', teacher_name: 'Michael Scott'},
+    {id: 'TSA002', allocation_id: 'CSA002', teacher_id: 'STF014', class_stream_name: 'Form 1 A', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', teacher_name: 'Grace Mwangi'},
+    {id: 'TSA003', allocation_id: 'CSA003', teacher_id: 'STF003', class_stream_name: 'Form 1 A', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', teacher_name: 'John Kamau'},
+    {id: 'TSA004', allocation_id: 'CSA004', teacher_id: 'STF004', class_stream_name: 'Form 1 A', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', teacher_name: 'Mary Wanjiku'},
+    {id: 'TSA005', allocation_id: 'CSA005', teacher_id: 'STF005', class_stream_name: 'Form 1 A', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', teacher_name: 'David Kiprotich'},
+    {id: 'TSA006', allocation_id: 'CSA006', teacher_id: 'STF006', class_stream_name: 'Form 1 A', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', teacher_name: 'Sarah Njeri'},
+    {id: 'TSA007', allocation_id: 'CSA007', teacher_id: 'STF007', class_stream_name: 'Form 1 A', subject_name: 'History', academic_year_name: 'AY 2023/2024', teacher_name: 'Peter Ochieng'},
+    {id: 'TSA008', allocation_id: 'CSA008', teacher_id: 'STF008', class_stream_name: 'Form 1 A', subject_name: 'Geography', academic_year_name: 'AY 2023/2024', teacher_name: 'Jane Wambui'},
+    {id: 'TSA009', allocation_id: 'CSA009', teacher_id: 'STF009', class_stream_name: 'Form 1 A', subject_name: 'Christian Religious Education', academic_year_name: 'AY 2023/2024', teacher_name: 'Samuel Gitonga'},
+    {id: 'TSA010', allocation_id: 'CSA010', teacher_id: 'STF010', class_stream_name: 'Form 1 A', subject_name: 'Art & Design', academic_year_name: 'AY 2023/2024', teacher_name: 'Agnes Chepkoech'},
+    {id: 'TSA011', allocation_id: 'CSA011', teacher_id: 'STF012', class_stream_name: 'Form 1 A', subject_name: 'Physical Education', academic_year_name: 'AY 2023/2024', teacher_name: 'Robert Mwangi'},
+
+    // Form 1 B Assignments (11 subjects)
+    {id: 'TSA012', allocation_id: 'CSA012', teacher_id: 'STF001', class_stream_name: 'Form 1 B', subject_name: 'English', academic_year_name: 'AY 2023/2024', teacher_name: 'Michael Scott'},
+    {id: 'TSA013', allocation_id: 'CSA013', teacher_id: 'STF014', class_stream_name: 'Form 1 B', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', teacher_name: 'Grace Mwangi'},
+    {id: 'TSA014', allocation_id: 'CSA014', teacher_id: 'STF021', class_stream_name: 'Form 1 B', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', teacher_name: 'Catherine Muthoni'},
+    {id: 'TSA015', allocation_id: 'CSA015', teacher_id: 'STF004', class_stream_name: 'Form 1 B', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', teacher_name: 'Mary Wanjiku'},
+    {id: 'TSA016', allocation_id: 'CSA016', teacher_id: 'STF005', class_stream_name: 'Form 1 B', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', teacher_name: 'David Kiprotich'},
+    {id: 'TSA017', allocation_id: 'CSA017', teacher_id: 'STF006', class_stream_name: 'Form 1 B', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', teacher_name: 'Sarah Njeri'},
+    {id: 'TSA018', allocation_id: 'CSA018', teacher_id: 'STF007', class_stream_name: 'Form 1 B', subject_name: 'History', academic_year_name: 'AY 2023/2024', teacher_name: 'Peter Ochieng'},
+    {id: 'TSA019', allocation_id: 'CSA019', teacher_id: 'STF008', class_stream_name: 'Form 1 B', subject_name: 'Geography', academic_year_name: 'AY 2023/2024', teacher_name: 'Jane Wambui'},
+    {id: 'TSA020', allocation_id: 'CSA020', teacher_id: 'STF009', class_stream_name: 'Form 1 B', subject_name: 'Christian Religious Education', academic_year_name: 'AY 2023/2024', teacher_name: 'Samuel Gitonga'},
+    {id: 'TSA021', allocation_id: 'CSA021', teacher_id: 'STF019', class_stream_name: 'Form 1 B', subject_name: 'Music', academic_year_name: 'AY 2023/2024', teacher_name: 'Lucy Wambui'},
+    {id: 'TSA022', allocation_id: 'CSA022', teacher_id: 'STF012', class_stream_name: 'Form 1 B', subject_name: 'Physical Education', academic_year_name: 'AY 2023/2024', teacher_name: 'Robert Mwangi'},
+
+    // Form 2 A Assignments (10 subjects)
+    {id: 'TSA023', allocation_id: 'CSA023', teacher_id: 'STF002', class_stream_name: 'Form 2 A', subject_name: 'English', academic_year_name: 'AY 2023/2024', teacher_name: 'Susan Akinyi'},
+    {id: 'TSA024', allocation_id: 'CSA024', teacher_id: 'STF014', class_stream_name: 'Form 2 A', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', teacher_name: 'Grace Mwangi'},
+    {id: 'TSA025', allocation_id: 'CSA025', teacher_id: 'STF003', class_stream_name: 'Form 2 A', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', teacher_name: 'John Kamau'},
+    {id: 'TSA026', allocation_id: 'CSA026', teacher_id: 'STF004', class_stream_name: 'Form 2 A', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', teacher_name: 'Mary Wanjiku'},
+    {id: 'TSA027', allocation_id: 'CSA027', teacher_id: 'STF005', class_stream_name: 'Form 2 A', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', teacher_name: 'David Kiprotich'},
+    {id: 'TSA028', allocation_id: 'CSA028', teacher_id: 'STF006', class_stream_name: 'Form 2 A', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', teacher_name: 'Sarah Njeri'},
+    {id: 'TSA029', allocation_id: 'CSA029', teacher_id: 'STF008', class_stream_name: 'Form 2 A', subject_name: 'Geography', academic_year_name: 'AY 2023/2024', teacher_name: 'Jane Wambui'},
+    {id: 'TSA030', allocation_id: 'CSA030', teacher_id: 'STF023', class_stream_name: 'Form 2 A', subject_name: 'Business Studies', academic_year_name: 'AY 2023/2024', teacher_name: 'Daniel Muturi'},
+    {id: 'TSA031', allocation_id: 'CSA031', teacher_id: 'STF024', class_stream_name: 'Form 2 A', subject_name: 'Computer Studies', academic_year_name: 'AY 2023/2024', teacher_name: 'Elizabeth Nyawira'},
+    {id: 'TSA032', allocation_id: 'CSA032', teacher_id: 'STF018', class_stream_name: 'Form 2 A', subject_name: 'Agriculture', academic_year_name: 'AY 2023/2024', teacher_name: 'Patrick Kiptoo'},
+
+    // Form 2 B Assignments (10 subjects)
+    {id: 'TSA033', allocation_id: 'CSA033', teacher_id: 'STF002', class_stream_name: 'Form 2 B', subject_name: 'English', academic_year_name: 'AY 2023/2024', teacher_name: 'Susan Akinyi'},
+    {id: 'TSA034', allocation_id: 'CSA034', teacher_id: 'STF014', class_stream_name: 'Form 2 B', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', teacher_name: 'Grace Mwangi'},
+    {id: 'TSA035', allocation_id: 'CSA035', teacher_id: 'STF021', class_stream_name: 'Form 2 B', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', teacher_name: 'Catherine Muthoni'},
+    {id: 'TSA036', allocation_id: 'CSA036', teacher_id: 'STF004', class_stream_name: 'Form 2 B', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', teacher_name: 'Mary Wanjiku'},
+    {id: 'TSA037', allocation_id: 'CSA037', teacher_id: 'STF005', class_stream_name: 'Form 2 B', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', teacher_name: 'David Kiprotich'},
+    {id: 'TSA038', allocation_id: 'CSA038', teacher_id: 'STF006', class_stream_name: 'Form 2 B', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', teacher_name: 'Sarah Njeri'},
+    {id: 'TSA039', allocation_id: 'CSA039', teacher_id: 'STF007', class_stream_name: 'Form 2 B', subject_name: 'History', academic_year_name: 'AY 2023/2024', teacher_name: 'Peter Ochieng'},
+    {id: 'TSA040', allocation_id: 'CSA040', teacher_id: 'STF008', class_stream_name: 'Form 2 B', subject_name: 'Geography', academic_year_name: 'AY 2023/2024', teacher_name: 'Jane Wambui'},
+    {id: 'TSA041', allocation_id: 'CSA041', teacher_id: 'STF009', class_stream_name: 'Form 2 B', subject_name: 'Christian Religious Education', academic_year_name: 'AY 2023/2024', teacher_name: 'Samuel Gitonga'},
+    {id: 'TSA042', allocation_id: 'CSA042', teacher_id: 'STF025', class_stream_name: 'Form 2 B', subject_name: 'French', academic_year_name: 'AY 2023/2024', teacher_name: 'Francis Kimani'},
+
+    // Form 3 North Assignments (8 subjects)
+    {id: 'TSA043', allocation_id: 'CSA043', teacher_id: 'STF001', class_stream_name: 'Form 3 North', subject_name: 'English', academic_year_name: 'AY 2023/2024', teacher_name: 'Michael Scott'},
+    {id: 'TSA044', allocation_id: 'CSA044', teacher_id: 'STF014', class_stream_name: 'Form 3 North', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', teacher_name: 'Grace Mwangi'},
+    {id: 'TSA045', allocation_id: 'CSA045', teacher_id: 'STF003', class_stream_name: 'Form 3 North', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', teacher_name: 'John Kamau'},
+    {id: 'TSA046', allocation_id: 'CSA046', teacher_id: 'STF004', class_stream_name: 'Form 3 North', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', teacher_name: 'Mary Wanjiku'},
+    {id: 'TSA047', allocation_id: 'CSA047', teacher_id: 'STF005', class_stream_name: 'Form 3 North', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', teacher_name: 'David Kiprotich'},
+    {id: 'TSA048', allocation_id: 'CSA048', teacher_id: 'STF006', class_stream_name: 'Form 3 North', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', teacher_name: 'Sarah Njeri'},
+    {id: 'TSA049', allocation_id: 'CSA049', teacher_id: 'STF008', class_stream_name: 'Form 3 North', subject_name: 'Geography', academic_year_name: 'AY 2023/2024', teacher_name: 'Jane Wambui'},
+    {id: 'TSA050', allocation_id: 'CSA050', teacher_id: 'STF024', class_stream_name: 'Form 3 North', subject_name: 'Computer Studies', academic_year_name: 'AY 2023/2024', teacher_name: 'Elizabeth Nyawira'},
+
+    // Form 4 East Assignments (8 subjects)
+    {id: 'TSA051', allocation_id: 'CSA051', teacher_id: 'STF002', class_stream_name: 'Form 4 East', subject_name: 'English', academic_year_name: 'AY 2023/2024', teacher_name: 'Susan Akinyi'},
+    {id: 'TSA052', allocation_id: 'CSA052', teacher_id: 'STF014', class_stream_name: 'Form 4 East', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', teacher_name: 'Grace Mwangi'},
+    {id: 'TSA053', allocation_id: 'CSA053', teacher_id: 'STF021', class_stream_name: 'Form 4 East', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', teacher_name: 'Catherine Muthoni'},
+    {id: 'TSA054', allocation_id: 'CSA054', teacher_id: 'STF004', class_stream_name: 'Form 4 East', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', teacher_name: 'Mary Wanjiku'},
+    {id: 'TSA055', allocation_id: 'CSA055', teacher_id: 'STF005', class_stream_name: 'Form 4 East', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', teacher_name: 'David Kiprotich'},
+    {id: 'TSA056', allocation_id: 'CSA056', teacher_id: 'STF006', class_stream_name: 'Form 4 East', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', teacher_name: 'Sarah Njeri'},
+    {id: 'TSA057', allocation_id: 'CSA057', teacher_id: 'STF007', class_stream_name: 'Form 4 East', subject_name: 'History', academic_year_name: 'AY 2023/2024', teacher_name: 'Peter Ochieng'},
+    {id: 'TSA058', allocation_id: 'CSA058', teacher_id: 'STF023', class_stream_name: 'Form 4 East', subject_name: 'Business Studies', academic_year_name: 'AY 2023/2024', teacher_name: 'Daniel Muturi'}
 ];
 
 export const initialMockStudentSubjectEnrollments: StudentSubjectEnrollment[] = [
+    // Student Jim Halpert (Form 1 A) Enrollments
     {id: 'SSE001', student_id: 'S001', class_subject_allocation_id: 'CSA001', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Jim Halpert', class_name: 'Form 1', stream_name: 'A', subject_name: 'English', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE002', student_id: 'S001', class_subject_allocation_id: 'CSA002', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Jim Halpert', class_name: 'Form 1', stream_name: 'A', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE003', student_id: 'S001', class_subject_allocation_id: 'CSA003', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Jim Halpert', class_name: 'Form 1', stream_name: 'A', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE004', student_id: 'S001', class_subject_allocation_id: 'CSA004', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Jim Halpert', class_name: 'Form 1', stream_name: 'A', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE005', student_id: 'S001', class_subject_allocation_id: 'CSA005', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Jim Halpert', class_name: 'Form 1', stream_name: 'A', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE006', student_id: 'S001', class_subject_allocation_id: 'CSA006', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Jim Halpert', class_name: 'Form 1', stream_name: 'A', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE007', student_id: 'S001', class_subject_allocation_id: 'CSA007', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Jim Halpert', class_name: 'Form 1', stream_name: 'A', subject_name: 'History', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE008', student_id: 'S001', class_subject_allocation_id: 'CSA008', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Jim Halpert', class_name: 'Form 1', stream_name: 'A', subject_name: 'Geography', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    // Student Michael Scofield (Form 2 A) Enrollments
+    {id: 'SSE009', student_id: 'S002', class_subject_allocation_id: 'CSA015', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Michael Scofield', class_name: 'Form 2', stream_name: 'A', subject_name: 'English', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE010', student_id: 'S002', class_subject_allocation_id: 'CSA016', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Michael Scofield', class_name: 'Form 2', stream_name: 'A', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE011', student_id: 'S002', class_subject_allocation_id: 'CSA017', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Michael Scofield', class_name: 'Form 2', stream_name: 'A', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE012', student_id: 'S002', class_subject_allocation_id: 'CSA018', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Michael Scofield', class_name: 'Form 2', stream_name: 'A', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE013', student_id: 'S002', class_subject_allocation_id: 'CSA019', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Michael Scofield', class_name: 'Form 2', stream_name: 'A', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE014', student_id: 'S002', class_subject_allocation_id: 'CSA020', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Michael Scofield', class_name: 'Form 2', stream_name: 'A', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE015', student_id: 'S002', class_subject_allocation_id: 'CSA021', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Michael Scofield', class_name: 'Form 2', stream_name: 'A', subject_name: 'Business Studies', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE016', student_id: 'S002', class_subject_allocation_id: 'CSA022', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Michael Scofield', class_name: 'Form 2', stream_name: 'A', subject_name: 'Computer Studies', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    // Student Pam Beesly (Form 1 B) Enrollments
+    {id: 'SSE017', student_id: 'S003', class_subject_allocation_id: 'CSA009', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Pam Beesly', class_name: 'Form 1', stream_name: 'B', subject_name: 'English', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE018', student_id: 'S003', class_subject_allocation_id: 'CSA010', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Pam Beesly', class_name: 'Form 1', stream_name: 'B', subject_name: 'Kiswahili', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE019', student_id: 'S003', class_subject_allocation_id: 'CSA011', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Pam Beesly', class_name: 'Form 1', stream_name: 'B', subject_name: 'Mathematics', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE020', student_id: 'S003', class_subject_allocation_id: 'CSA012', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Pam Beesly', class_name: 'Form 1', stream_name: 'B', subject_name: 'Biology', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE021', student_id: 'S003', class_subject_allocation_id: 'CSA013', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Pam Beesly', class_name: 'Form 1', stream_name: 'B', subject_name: 'Physics', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'},
+    {id: 'SSE022', student_id: 'S003', class_subject_allocation_id: 'CSA014', enrollment_date: '2023-09-05', status: StudentEnrollmentStatus.ENROLLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Pam Beesly', class_name: 'Form 1', stream_name: 'B', subject_name: 'Chemistry', academic_year_name: 'AY 2023/2024', enrollment_status_display: 'Enrolled'}
 ];
 
 export const initialMockTimetablePeriodDefs: TimetablePeriodDef[] = [
-    { id: 1, period_name: 'Lesson 1', start_time: '08:00', end_time: '09:00' },
-    { id: 2, period_name: 'Lesson 2', start_time: '09:00', end_time: '10:00' },
-    { id: 3, period_name: 'Break', start_time: '10:00', end_time: '10:30' },
+    { id: 1, period_name: 'Lesson 1', start_time: '08:00', end_time: '08:40' },
+    { id: 2, period_name: 'Lesson 2', start_time: '08:40', end_time: '09:20' },
+    { id: 3, period_name: 'Lesson 3', start_time: '09:20', end_time: '10:00' },
+    { id: 4, period_name: 'Break', start_time: '10:00', end_time: '10:20' },
+    { id: 5, period_name: 'Lesson 4', start_time: '10:20', end_time: '11:00' },
+    { id: 6, period_name: 'Lesson 5', start_time: '11:00', end_time: '11:40' },
+    { id: 7, period_name: 'Lesson 6', start_time: '11:40', end_time: '12:20' },
+    { id: 8, period_name: 'Lunch Break', start_time: '12:20', end_time: '13:20' },
+    { id: 9, period_name: 'Lesson 7', start_time: '13:20', end_time: '14:00' },
+    { id: 10, period_name: 'Lesson 8', start_time: '14:00', end_time: '14:40' },
+    { id: 11, period_name: 'Games/Clubs', start_time: '14:40', end_time: '15:40' },
+    { id: 12, period_name: 'Study Hall', start_time: '15:40', end_time: '16:20' }
 ];
 
 export const initialMockTimetableEntries: TimetableEntry[] = [
+    // Form 1 A Monday Timetable
     {id: 'TTE001', class_stream_id: 1, day_of_week: DayOfWeek.MONDAY, period_id: 1, subject_id: 1, teacher_id: 'STF002', class_stream_name: 'Form 1 A', period_name: 'Lesson 1', subject_name: 'English', teacher_name: 'Dwight Schrute'},
+    {id: 'TTE002', class_stream_id: 1, day_of_week: DayOfWeek.MONDAY, period_id: 2, subject_id: 3, teacher_id: 'STF004', class_stream_name: 'Form 1 A', period_name: 'Lesson 2', subject_name: 'Mathematics', teacher_name: 'Pam Beesly'},
+    {id: 'TTE003', class_stream_id: 1, day_of_week: DayOfWeek.MONDAY, period_id: 3, subject_id: 2, teacher_id: 'STF003', class_stream_name: 'Form 1 A', period_name: 'Lesson 3', subject_name: 'Kiswahili', teacher_name: 'Jim Halpert'},
+    {id: 'TTE004', class_stream_id: 1, day_of_week: DayOfWeek.MONDAY, period_id: 5, subject_id: 4, teacher_id: 'STF005', class_stream_name: 'Form 1 A', period_name: 'Lesson 4', subject_name: 'Biology', teacher_name: 'Ryan Howard'},
+    {id: 'TTE005', class_stream_id: 1, day_of_week: DayOfWeek.MONDAY, period_id: 6, subject_id: 5, teacher_id: 'STF006', class_stream_name: 'Form 1 A', period_name: 'Lesson 5', subject_name: 'Physics', teacher_name: 'Kelly Kapoor'},
+    {id: 'TTE006', class_stream_id: 1, day_of_week: DayOfWeek.MONDAY, period_id: 7, subject_id: 6, teacher_id: 'STF007', class_stream_name: 'Form 1 A', period_name: 'Lesson 6', subject_name: 'Chemistry', teacher_name: 'Stanley Hudson'},
+    {id: 'TTE007', class_stream_id: 1, day_of_week: DayOfWeek.MONDAY, period_id: 9, subject_id: 7, teacher_id: 'STF008', class_stream_name: 'Form 1 A', period_name: 'Lesson 7', subject_name: 'History', teacher_name: 'Phyllis Vance'},
+    {id: 'TTE008', class_stream_id: 1, day_of_week: DayOfWeek.MONDAY, period_id: 10, subject_id: 8, teacher_id: 'STF009', class_stream_name: 'Form 1 A', period_name: 'Lesson 8', subject_name: 'Geography', teacher_name: 'Oscar Martinez'},
+    // Form 1 A Tuesday Timetable
+    {id: 'TTE009', class_stream_id: 1, day_of_week: DayOfWeek.TUESDAY, period_id: 1, subject_id: 3, teacher_id: 'STF004', class_stream_name: 'Form 1 A', period_name: 'Lesson 1', subject_name: 'Mathematics', teacher_name: 'Pam Beesly'},
+    {id: 'TTE010', class_stream_id: 1, day_of_week: DayOfWeek.TUESDAY, period_id: 2, subject_id: 1, teacher_id: 'STF002', class_stream_name: 'Form 1 A', period_name: 'Lesson 2', subject_name: 'English', teacher_name: 'Dwight Schrute'},
+    {id: 'TTE011', class_stream_id: 1, day_of_week: DayOfWeek.TUESDAY, period_id: 3, subject_id: 5, teacher_id: 'STF006', class_stream_name: 'Form 1 A', period_name: 'Lesson 3', subject_name: 'Physics', teacher_name: 'Kelly Kapoor'},
+    {id: 'TTE012', class_stream_id: 1, day_of_week: DayOfWeek.TUESDAY, period_id: 5, subject_id: 6, teacher_id: 'STF007', class_stream_name: 'Form 1 A', period_name: 'Lesson 4', subject_name: 'Chemistry', teacher_name: 'Stanley Hudson'},
+    {id: 'TTE013', class_stream_id: 1, day_of_week: DayOfWeek.TUESDAY, period_id: 6, subject_id: 2, teacher_id: 'STF003', class_stream_name: 'Form 1 A', period_name: 'Lesson 5', subject_name: 'Kiswahili', teacher_name: 'Jim Halpert'},
+    {id: 'TTE014', class_stream_id: 1, day_of_week: DayOfWeek.TUESDAY, period_id: 7, subject_id: 4, teacher_id: 'STF005', class_stream_name: 'Form 1 A', period_name: 'Lesson 6', subject_name: 'Biology', teacher_name: 'Ryan Howard'},
+    {id: 'TTE015', class_stream_id: 1, day_of_week: DayOfWeek.TUESDAY, period_id: 9, subject_id: 8, teacher_id: 'STF009', class_stream_name: 'Form 1 A', period_name: 'Lesson 7', subject_name: 'Geography', teacher_name: 'Oscar Martinez'},
+    {id: 'TTE016', class_stream_id: 1, day_of_week: DayOfWeek.TUESDAY, period_id: 10, subject_id: 7, teacher_id: 'STF008', class_stream_name: 'Form 1 A', period_name: 'Lesson 8', subject_name: 'History', teacher_name: 'Phyllis Vance'},
+    // Form 2 A Monday Timetable
+    {id: 'TTE017', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 1, subject_id: 1, teacher_id: 'STF009', class_stream_name: 'Form 2 A', period_name: 'Lesson 1', subject_name: 'English', teacher_name: 'Oscar Martinez'},
+    {id: 'TTE018', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 2, subject_id: 3, teacher_id: 'STF010', class_stream_name: 'Form 2 A', period_name: 'Lesson 2', subject_name: 'Mathematics', teacher_name: 'Kevin Malone'},
+    {id: 'TTE019', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 3, subject_id: 4, teacher_id: 'STF011', class_stream_name: 'Form 2 A', period_name: 'Lesson 3', subject_name: 'Biology', teacher_name: 'Angela Martin'},
+    {id: 'TTE020', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 5, subject_id: 10, teacher_id: 'STF012', class_stream_name: 'Form 2 A', period_name: 'Lesson 4', subject_name: 'Business Studies', teacher_name: 'Toby Flenderson'},
+    {id: 'TTE021', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 6, subject_id: 11, teacher_id: 'STF013', class_stream_name: 'Form 2 A', period_name: 'Lesson 5', subject_name: 'Computer Studies', teacher_name: 'Creed Bratton'},
+    {id: 'TTE022', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 7, subject_id: 2, teacher_id: 'STF003', class_stream_name: 'Form 2 A', period_name: 'Lesson 6', subject_name: 'Kiswahili', teacher_name: 'Jim Halpert'},
+    {id: 'TTE023', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 9, subject_id: 5, teacher_id: 'STF019', class_stream_name: 'Form 2 A', period_name: 'Lesson 7', subject_name: 'Physics', teacher_name: 'Todd Packer'},
+    {id: 'TTE024', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 10, subject_id: 6, teacher_id: 'STF007', class_stream_name: 'Form 2 A', period_name: 'Lesson 8', subject_name: 'Chemistry', teacher_name: 'Stanley Hudson'}
 ];
