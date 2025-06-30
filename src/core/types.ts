@@ -43,6 +43,25 @@ export enum DayOfWeek {
 }
 
 // Module-specific academic enums moved to src/modules/academics/data/types.ts
+// But we need some for cross-module compatibility
+export enum SubjectGrouping {
+  CORE = 'Core',
+  ELECTIVE = 'Elective',
+  OPTIONAL = 'Optional',
+}
+
+export enum StudentEnrollmentStatus {
+  ACTIVE = 'Active',
+  DROPPED = 'Dropped',
+  GRADUATED = 'Graduated',
+}
+
+export enum ExamSessionStatus {
+  OPEN = 'Open',
+  CLOSED = 'Closed',
+  RESULTS_PENDING = 'Results Pending',
+  RESULTS_RELEASED = 'Results Released',
+}
 
 export enum AccountType {
   ASSET = 'Asset',
@@ -1441,6 +1460,18 @@ export type AppDataLoadingStates = {
 export type AppDataContextType = AppDataType & {
   loading: AppDataLoadingStates;
   rawInitialData: any;
+  // Student Detail Functions
+  getStudentDetailsById: (id: string) => Promise<StudentDetailProfile | null>;
+  getStudentFinancialDetailsById: (id: string) => Promise<StudentDetailProfile | null>;
+  // Student Attendance Functions
+  saveStudentAttendance: (attendanceRecords: any[]) => Promise<void>;
+  getStudentAttendanceByFilters: (date: string, classStreamId: number, periodId: number) => any[];
+  getTimetablePeriodDefs: () => TimetablePeriodDef[];
+  // Timetable Functions
+  getTimetableEntries: (classStreamId: number) => any[];
+  addTimetableEntry: (entryData: any) => Promise<void>;
+  updateTimetableEntry: (updatedEntry: any) => Promise<void>;
+  deleteTimetableEntry: (entryId: string) => Promise<void>;
   // Partner CRUD operations - AdminPartnerType from administration module
   addPartner: (partnerData: any) => Promise<void>;
   updatePartner: (updatedPartner: any) => Promise<void>;
