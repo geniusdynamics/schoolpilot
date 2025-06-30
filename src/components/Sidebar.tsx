@@ -93,22 +93,39 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   return (
     <>
-      {/* Static sidebar for larger screens */}
-      <div className="hidden lg:flex lg:flex-col w-72 bg-gray-800 text-white min-h-screen">
-        <div className="flex items-center justify-center h-20 border-b border-gray-700 px-4">
-          <SchoolIcon className="w-10 h-10 mr-2 text-indigo-400 flex-shrink-0" />
-          <h1 className="text-xl font-bold text-indigo-400 truncate">{appNameTranslated}</h1>
-        </div>
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto" aria-label={t('navigation:sidebarNavigation')}>
-          <ul>
-            {NAVIGATION_ITEMS.map((item) => (
-              <NavItemLink key={item.name} item={item} />
-            ))}
-          </ul>
-        </nav>
-        <div className="p-4 border-t border-gray-700">
-          <p className="text-xs text-gray-500 text-center">&copy; {new Date().getFullYear()} {appNameTranslated}</p>
-        </div>
+{/* Sidebar for larger screens */}
+      <div className={`hidden lg:flex lg:flex-col bg-gray-800 text-white min-h-screen transition-all duration-300 ease-in-out ${
+        isOpen ? 'w-72' : 'w-0'
+      } overflow-hidden`}
+      aria-hidden={!isOpen}
+      >
+        {isOpen && (
+          <>
+            <div className="flex items-center justify-between h-20 border-b border-gray-700 px-4 min-w-[18rem]">
+              <div className="flex items-center">
+                <SchoolIcon className="w-10 h-10 mr-2 text-indigo-400 flex-shrink-0" />
+                <h1 className="text-xl font-bold text-indigo-400 truncate">{appNameTranslated}</h1>
+              </div>
+              <button 
+                onClick={toggleSidebar} 
+                className="p-2 text-gray-400 hover:text-white"
+                aria-label={t('common:closeSidebar')} 
+              >
+                <XIcon className="w-6 h-6" />
+              </button>
+            </div>
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto min-w-[18rem]" aria-label={t('navigation:sidebarNavigation')}>
+              <ul>
+                {NAVIGATION_ITEMS.map((item) => (
+                  <NavItemLink key={item.name} item={item} />
+                ))}
+              </ul>
+            </nav>
+            <div className="p-4 border-t border-gray-700 min-w-[18rem]">
+              <p className="text-xs text-gray-500 text-center">&copy; {new Date().getFullYear()} {appNameTranslated}</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Mobile/Tablet sidebar (overlay) */}

@@ -9,7 +9,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const { loading } = useAppData(); // Consume the AppDataContext
 
   const toggleSidebar = () => {
@@ -19,7 +19,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+        isSidebarOpen ? 'lg:ml-0' : 'lg:ml-0'
+      }`}>
         <Header toggleSidebar={toggleSidebar} />
         <main 
           className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 md:p-6"

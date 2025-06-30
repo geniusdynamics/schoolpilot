@@ -1476,4 +1476,6 @@ export type AppDataContextType = AppDataType & {
   addPartner: (partnerData: any) => Promise<void>;
   updatePartner: (updatedPartner: any) => Promise<void>;
   deletePartner: (partnerId: string) => Promise<void>;
+  // Invoice Generation Functions
+  generateStudentInvoices: (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => Promise<any[]>;
 };

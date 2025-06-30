@@ -358,6 +358,42 @@ export const useMockData = (): AppDataContextType => {
 
   const getTimetablePeriodDefs = () => data.timetablePeriodDefs || [];
 
+  // Subject CRUD operations
+  const addSubject = async (subjectData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newSubject = {
+      ...subjectData,
+      id: Date.now(),
+      department_name: (data.departments || []).find((d: any) => d.id === subjectData.department_id)?.name,
+      papers: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      subjects: [...(prev.subjects || []), newSubject]
+    }));
+  };
+
+  const updateSubject = async (updatedSubject: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      subjects: (prev.subjects || []).map((sub: any) => 
+        sub.id === updatedSubject.id 
+          ? { ...updatedSubject, updated_at: new Date().toISOString() }
+          : sub
+      )
+    }));
+  };
+
+  const deleteSubject = async (subjectId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      subjects: (prev.subjects || []).filter(sub => sub.id !== subjectId)
+    }));
+  };
   // Timetable Functions
   const getTimetableEntries = (classStreamId: number) => {
     return (data.timetableEntries || []).filter((entry: any) => entry.class_stream_id === classStreamId);
@@ -704,6 +740,139 @@ export const useMockData = (): AppDataContextType => {
     }));
   };
 
+  // Chart of Account CRUD operations
+  const addChartOfAccount = async (accountData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newAccount = {
+      ...accountData,
+      id: Date.now(),
+      expense_category_name: accountData.expense_category_id ? (data.expenseCategories || []).find((ec: any) => ec.id === accountData.expense_category_id)?.name : undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      chartOfAccounts: [...(prev.chartOfAccounts || []), newAccount]
+    }));
+  };
+
+  const updateChartOfAccount = async (updatedAccount: any) => {
+    await delay(MOCK_API_DELAY);
+    const accountWithDenormalized = {
+      ...updatedAccount,
+      expense_category_name: updatedAccount.expense_category_id ? (data.expenseCategories || []).find((ec: any) => ec.id === updatedAccount.expense_category_id)?.name : undefined,
+      updated_at: new Date().toISOString()
+    };
+    setData(prev => ({
+      ...prev,
+      chartOfAccounts: (prev.chartOfAccounts || []).map((acc: any) => 
+        acc.id === updatedAccount.id ? accountWithDenormalized : acc
+      )
+    }));
+  };
+
+  const deleteChartOfAccount = async (accountId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      chartOfAccounts: (prev.chartOfAccounts || []).filter((acc: any) => acc.id !== accountId)
+    }));
+  };
+
+  // Student Exam Result Helper Functions
+  const getStudentsForExamEntry = (classStreamId: number) => {
+    return (data.students || []).filter((student: any) => student.class_stream_id === classStreamId);
+  };
+
+  const getExamPaperSettingsForSession = (sessionId: string) => {
+    return (data.examPaperSettings || []).filter((setting: any) => setting.exam_session_id === sessionId);
+  };
+
+  const saveStudentExamResult = async (resultData: any, marks: any[]) => {
+    await delay(MOCK_API_DELAY);
+    // First create or update the student exam result
+    const newResult = {
+      ...resultData,
+      id: `SER${Date.now()}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Create student paper marks
+    const paperMarks = marks.map(mark => ({
+      ...mark,
+      id: `SPM${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      student_exam_result_id: newResult.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+
+    setData(prev => ({
+      ...prev,
+      studentExamResults: [...(prev.studentExamResults || []), newResult],
+      studentPaperMarks: [...(prev.studentPaperMarks || []), ...paperMarks]
+    }));
+  };
+
+  // Generate Student Invoices Function
+  const generateStudentInvoices = async (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => {
+    await delay(MOCK_API_DELAY);
+    
+    // Get the fee template
+    const feeTemplate = (data.feeTemplates || []).find((ft: any) => ft.id === feeTemplateId);
+    if (!feeTemplate) {
+      throw new Error('Fee template not found');
+    }
+    
+    // Filter students based on criteria
+    let filteredStudents = data.students || [];
+    if (studentCriteria.categoryId) {
+      filteredStudents = filteredStudents.filter((s: any) => s.student_category_id === studentCriteria.categoryId);
+    }
+    if (studentCriteria.classStreamId) {
+      filteredStudents = filteredStudents.filter((s: any) => s.current_class_stream_id === studentCriteria.classStreamId);
+    }
+    
+    // Generate invoices
+    const generatedInvoices = [];
+    for (const student of filteredStudents) {
+      const totalAmount = (feeTemplate.items || []).reduce((sum: number, item: any) => sum + item.amount, 0);
+      
+      const newInvoice = {
+        id: `INV${Date.now()}_${student.id}`,
+        student_id: student.id,
+        invoice_number: `INV${Date.now()}${Math.random().toString(36).substr(2, 4)}`,
+        school_period_id: schoolPeriodId,
+        issue_date: new Date().toISOString().split('T')[0],
+        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+        total_amount_billed: totalAmount,
+        amount_paid: 0,
+        status: 'DUE',
+        items: (feeTemplate.items || []).map((item: any) => ({
+          id: `ITEM${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          invoice_id: `INV${Date.now()}_${student.id}`,
+          description: item.description,
+          amount: item.amount,
+          fee_template_item_id: item.id
+        })),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        student_name: student.display_name || `${student.first_name} ${student.last_name}`,
+        school_period_name: (data.schoolPeriods || []).find((sp: any) => sp.id === schoolPeriodId)?.name
+      };
+      
+      generatedInvoices.push(newInvoice);
+    }
+    
+    // Add to state
+    setData(prev => ({
+      ...prev,
+      studentInvoices: [...(prev.studentInvoices || []), ...generatedInvoices]
+    }));
+    
+    return generatedInvoices;
+  };
+
   return {
     ...(data as AppDataType),
     loading,
@@ -715,6 +884,10 @@ export const useMockData = (): AppDataContextType => {
     saveStudentAttendance,
     getStudentAttendanceByFilters,
     getTimetablePeriodDefs,
+    // Subject CRUD operations
+    addSubject,
+    updateSubject,
+    deleteSubject,
     // Timetable Functions
     getTimetableEntries,
     addTimetableEntry,
@@ -747,9 +920,1115 @@ export const useMockData = (): AppDataContextType => {
     addBank,
     updateBank,
     deleteBank,
+    // Chart of Accounts Functions
+    addChartOfAccount,
+    updateChartOfAccount,
+    deleteChartOfAccount,
     // Supplier CRUD operations
     addSupplier,
     updateSupplier,
     deleteSupplier,
-  } as AppDataContextType;
+    // Student Exam Result Functions
+    getStudentsForExamEntry,
+    getExamPaperSettingsForSession,
+    saveStudentExamResult,
+  // Invoice Generation Functions
+  generateStudentInvoices,
+
+  // === HR MODULE CRUD OPERATIONS ===
+  // Payroll Period CRUD operations
+  addPayrollPeriod: async (periodData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newPeriod = {
+      ...periodData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      payrollPeriods: [...(prev.payrollPeriods || []), newPeriod]
+    }));
+    return newPeriod;
+  },
+
+  updatePayrollPeriod: async (updatedPeriod: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      payrollPeriods: (prev.payrollPeriods || []).map((p: any) => 
+        p.id === updatedPeriod.id 
+          ? { ...updatedPeriod, updated_at: new Date().toISOString() }
+          : p
+      )
+    }));
+    return updatedPeriod;
+  },
+
+  deletePayrollPeriod: async (periodId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      payrollPeriods: (prev.payrollPeriods || []).filter((p: any) => p.id !== periodId)
+    }));
+  },
+
+  // Payroll Item Type CRUD operations
+  addPayrollItemType: async (itemData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newItem = {
+      ...itemData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      payrollItemTypes: [...(prev.payrollItemTypes || []), newItem]
+    }));
+    return newItem;
+  },
+
+  updatePayrollItemType: async (updatedItem: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      payrollItemTypes: (prev.payrollItemTypes || []).map((item: any) => 
+        item.id === updatedItem.id 
+          ? { ...updatedItem, updated_at: new Date().toISOString() }
+          : item
+      )
+    }));
+    return updatedItem;
+  },
+
+  deletePayrollItemType: async (itemId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      payrollItemTypes: (prev.payrollItemTypes || []).filter((item: any) => item.id !== itemId)
+    }));
+  },
+
+  updateStaffSalarySetting: async (salaryData: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      staffSalarySettings: (prev.staffSalarySettings || []).map((setting: any) => 
+        setting.staff_id === salaryData.staff_id 
+          ? { ...salaryData, updated_at: new Date().toISOString() }
+          : setting
+      )
+    }));
+    return salaryData;
+  },
+
+  generatePayslipsForPeriod: async (periodId: number) => {
+    await delay(MOCK_API_DELAY);
+    const payslips = (data.staffSalarySettings || []).map((setting: any, index: number) => ({
+      id: `PAY${Date.now()}_${index}`,
+      staff_id: setting.staff_id,
+      payroll_period_id: periodId,
+      gross_pay: setting.basic_salary + setting.allowances,
+      deductions: setting.deductions || 0,
+      net_pay: (setting.basic_salary + setting.allowances) - (setting.deductions || 0),
+      generated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    }));
+    
+    setData(prev => ({
+      ...prev,
+      payslips: [...(prev.payslips || []), ...payslips]
+    }));
+    return payslips;
+  },
+
+  // === INVENTORY MODULE CRUD OPERATIONS ===
+  // Warehouse CRUD operations
+  addWarehouse: async (warehouseData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newWarehouse = {
+      ...warehouseData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      warehouses: [...(prev.warehouses || []), newWarehouse]
+    }));
+    return newWarehouse;
+  },
+
+  updateWarehouse: async (updatedWarehouse: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      warehouses: (prev.warehouses || []).map((w: any) => 
+        w.id === updatedWarehouse.id 
+          ? { ...updatedWarehouse, updated_at: new Date().toISOString() }
+          : w
+      )
+    }));
+    return updatedWarehouse;
+  },
+
+  deleteWarehouse: async (warehouseId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      warehouses: (prev.warehouses || []).filter((w: any) => w.id !== warehouseId)
+    }));
+  },
+
+  // Item Category CRUD operations
+  addItemCategoryInv: async (categoryData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newCategory = {
+      ...categoryData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      itemCategoriesInv: [...(prev.itemCategoriesInv || []), newCategory]
+    }));
+    return newCategory;
+  },
+
+  updateItemCategoryInv: async (updatedCategory: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      itemCategoriesInv: (prev.itemCategoriesInv || []).map((cat: any) => 
+        cat.id === updatedCategory.id 
+          ? { ...updatedCategory, updated_at: new Date().toISOString() }
+          : cat
+      )
+    }));
+    return updatedCategory;
+  },
+
+  deleteItemCategoryInv: async (categoryId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      itemCategoriesInv: (prev.itemCategoriesInv || []).filter((cat: any) => cat.id !== categoryId)
+    }));
+  },
+
+  // Item CRUD operations
+  addItemInv: async (itemData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newItem = {
+      ...itemData,
+      id: Date.now(),
+      category_name: (data.itemCategoriesInv || []).find((cat: any) => cat.id === itemData.category_id)?.name,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      itemsInv: [...(prev.itemsInv || []), newItem]
+    }));
+    return newItem;
+  },
+
+  updateItemInv: async (updatedItem: any) => {
+    await delay(MOCK_API_DELAY);
+    const itemWithDenormalized = {
+      ...updatedItem,
+      category_name: (data.itemCategoriesInv || []).find((cat: any) => cat.id === updatedItem.category_id)?.name,
+      updated_at: new Date().toISOString()
+    };
+    setData(prev => ({
+      ...prev,
+      itemsInv: (prev.itemsInv || []).map((item: any) => 
+        item.id === updatedItem.id ? itemWithDenormalized : item
+      )
+    }));
+    return itemWithDenormalized;
+  },
+
+  deleteItemInv: async (itemId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      itemsInv: (prev.itemsInv || []).filter((item: any) => item.id !== itemId)
+    }));
+  },
+
+  // Fixed Asset CRUD operations
+  addFixedAsset: async (assetData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newAsset = {
+      ...assetData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      fixedAssets: [...(prev.fixedAssets || []), newAsset]
+    }));
+    return newAsset;
+  },
+
+  updateFixedAsset: async (updatedAsset: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      fixedAssets: (prev.fixedAssets || []).map((asset: any) => 
+        asset.id === updatedAsset.id 
+          ? { ...updatedAsset, updated_at: new Date().toISOString() }
+          : asset
+      )
+    }));
+    return updatedAsset;
+  },
+
+  deleteFixedAsset: async (assetId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      fixedAssets: (prev.fixedAssets || []).filter((asset: any) => asset.id !== assetId)
+    }));
+  },
+
+  // Requisition CRUD operations
+  addRequisition: async (reqData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newRequisition = {
+      ...reqData,
+      id: Date.now(),
+      request_date: new Date().toISOString().split('T')[0],
+      status: 'Pending',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      requisitions: [...(prev.requisitions || []), newRequisition]
+    }));
+    return newRequisition;
+  },
+
+  updateRequisition: async (updatedReq: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      requisitions: (prev.requisitions || []).map((req: any) => 
+        req.id === updatedReq.id 
+          ? { ...updatedReq, updated_at: new Date().toISOString() }
+          : req
+      )
+    }));
+    return updatedReq;
+  },
+
+  deleteRequisition: async (reqId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      requisitions: (prev.requisitions || []).filter((req: any) => req.id !== reqId)
+    }));
+  },
+
+  updateRequisitionStatus: async (reqId: number, status: string) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      requisitions: (prev.requisitions || []).map((req: any) => 
+        req.id === reqId 
+          ? { ...req, status, updated_at: new Date().toISOString() }
+          : req
+      )
+    }));
+  },
+
+  // Purchase Order CRUD operations
+  addPurchaseOrder: async (poData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newPO = {
+      ...poData,
+      id: Date.now(),
+      order_date: new Date().toISOString().split('T')[0],
+      status: 'Pending',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      purchaseOrders: [...(prev.purchaseOrders || []), newPO]
+    }));
+    return newPO;
+  },
+
+  updatePurchaseOrder: async (updatedPO: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      purchaseOrders: (prev.purchaseOrders || []).map((po: any) => 
+        po.id === updatedPO.id 
+          ? { ...updatedPO, updated_at: new Date().toISOString() }
+          : po
+      )
+    }));
+    return updatedPO;
+  },
+
+  deletePurchaseOrder: async (poId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      purchaseOrders: (prev.purchaseOrders || []).filter((po: any) => po.id !== poId)
+    }));
+  },
+
+  addStockTransaction: async (transactionData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newTransaction = {
+      ...transactionData,
+      id: Date.now(),
+      transaction_date: new Date().toISOString().split('T')[0],
+      created_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      stockTransactions: [...(prev.stockTransactions || []), newTransaction]
+    }));
+    
+    // Update stock levels
+    setData(prev => ({
+      ...prev,
+      stockLevels: (prev.stockLevels || []).map((stock: any) => 
+        stock.item_id === transactionData.item_id && stock.warehouse_id === transactionData.warehouse_id
+          ? { 
+              ...stock, 
+              quantity: transactionData.transaction_type === 'IN' 
+                ? stock.quantity + transactionData.quantity 
+                : stock.quantity - transactionData.quantity 
+            }
+          : stock
+      )
+    }));
+    
+    return newTransaction;
+  },
+
+  // === LIBRARY MODULE CRUD OPERATIONS ===
+  // Book Category CRUD operations
+  addBookCategory: async (categoryData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newCategory = {
+      ...categoryData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      bookCategories: [...(prev.bookCategories || []), newCategory]
+    }));
+    return newCategory;
+  },
+
+  updateBookCategory: async (updatedCategory: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      bookCategories: (prev.bookCategories || []).map((cat: any) => 
+        cat.id === updatedCategory.id 
+          ? { ...updatedCategory, updated_at: new Date().toISOString() }
+          : cat
+      )
+    }));
+    return updatedCategory;
+  },
+
+  deleteBookCategory: async (categoryId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      bookCategories: (prev.bookCategories || []).filter((cat: any) => cat.id !== categoryId)
+    }));
+  },
+
+  // Book CRUD operations
+  addBook: async (bookData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newBook = {
+      ...bookData,
+      id: Date.now(),
+      accession_number: `ACC${Date.now()}`,
+      status: 'Available',
+      category_name: (data.bookCategories || []).find((cat: any) => cat.id === bookData.category_id)?.name,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      books: [...(prev.books || []), newBook]
+    }));
+    return newBook;
+  },
+
+  updateBook: async (updatedBook: any) => {
+    await delay(MOCK_API_DELAY);
+    const bookWithDenormalized = {
+      ...updatedBook,
+      category_name: (data.bookCategories || []).find((cat: any) => cat.id === updatedBook.category_id)?.name,
+      updated_at: new Date().toISOString()
+    };
+    setData(prev => ({
+      ...prev,
+      books: (prev.books || []).map((book: any) => 
+        book.id === updatedBook.id ? bookWithDenormalized : book
+      )
+    }));
+    return bookWithDenormalized;
+  },
+
+  deleteBook: async (bookId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      books: (prev.books || []).filter((book: any) => book.id !== bookId)
+    }));
+  },
+
+  // Loan CRUD operations
+  addLoan: async (loanData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newLoan = {
+      ...loanData,
+      id: Date.now(),
+      loan_date: new Date().toISOString().split('T')[0],
+      status: 'Active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    
+    // Update book status
+    setData(prev => ({
+      ...prev,
+      books: (prev.books || []).map((book: any) => 
+        book.id === loanData.book_id ? { ...book, status: 'On Loan' } : book
+      ),
+      loans: [...(prev.loans || []), newLoan]
+    }));
+    return newLoan;
+  },
+
+  updateLoan: async (updatedLoan: any) => {
+    await delay(MOCK_API_DELAY);
+    const oldLoan = (data.loans || []).find((loan: any) => loan.id === updatedLoan.id);
+    
+    setData(prev => ({
+      ...prev,
+      loans: (prev.loans || []).map((loan: any) => 
+        loan.id === updatedLoan.id 
+          ? { ...updatedLoan, updated_at: new Date().toISOString() }
+          : loan
+      )
+    }));
+    
+    // If returning book, update book status
+    if (updatedLoan.status === 'Returned' && oldLoan?.status !== 'Returned') {
+      setData(prev => ({
+        ...prev,
+        books: (prev.books || []).map((book: any) => 
+          book.id === updatedLoan.book_id ? { ...book, status: 'Available' } : book
+        )
+      }));
+    }
+    
+    return updatedLoan;
+  },
+
+  // Fine CRUD operations
+  addFine: async (fineData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newFine = {
+      ...fineData,
+      id: Date.now(),
+      fine_date: new Date().toISOString().split('T')[0],
+      status: 'Unpaid',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      fines: [...(prev.fines || []), newFine]
+    }));
+    return newFine;
+  },
+
+  updateFineStatus: async (fineId: number, status: string) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      fines: (prev.fines || []).map((fine: any) => 
+        fine.id === fineId 
+          ? { ...fine, status, updated_at: new Date().toISOString() }
+          : fine
+      )
+    }));
+  },
+
+  // === NUTRITION MODULE CRUD OPERATIONS ===
+  // Meal Plan CRUD operations
+  addMealPlan: async (planData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newPlan = {
+      ...planData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      mealPlans: [...(prev.mealPlans || []), newPlan]
+    }));
+    return newPlan;
+  },
+
+  updateMealPlan: async (updatedPlan: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      mealPlans: (prev.mealPlans || []).map((plan: any) => 
+        plan.id === updatedPlan.id 
+          ? { ...updatedPlan, updated_at: new Date().toISOString() }
+          : plan
+      )
+    }));
+    return updatedPlan;
+  },
+
+  deleteMealPlan: async (planId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      mealPlans: (prev.mealPlans || []).filter((plan: any) => plan.id !== planId)
+    }));
+  },
+
+  // Menu CRUD operations
+  addMenu: async (menuData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newMenu = {
+      ...menuData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      menus: [...(prev.menus || []), newMenu]
+    }));
+    return newMenu;
+  },
+
+  updateMenu: async (updatedMenu: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      menus: (prev.menus || []).map((menu: any) => 
+        menu.id === updatedMenu.id 
+          ? { ...updatedMenu, updated_at: new Date().toISOString() }
+          : menu
+      )
+    }));
+    return updatedMenu;
+  },
+
+  deleteMenu: async (menuId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      menus: (prev.menus || []).filter((menu: any) => menu.id !== menuId)
+    }));
+  },
+
+  // Student Meal Plan CRUD operations
+  addStudentMealPlan: async (assignmentData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newAssignment = {
+      ...assignmentData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      studentMealPlans: [...(prev.studentMealPlans || []), newAssignment]
+    }));
+    return newAssignment;
+  },
+
+  updateStudentMealPlan: async (updatedAssignment: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      studentMealPlans: (prev.studentMealPlans || []).map((assignment: any) => 
+        assignment.id === updatedAssignment.id 
+          ? { ...updatedAssignment, updated_at: new Date().toISOString() }
+          : assignment
+      )
+    }));
+    return updatedAssignment;
+  },
+
+  deleteStudentMealPlan: async (assignmentId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      studentMealPlans: (prev.studentMealPlans || []).filter((assignment: any) => assignment.id !== assignmentId)
+    }));
+  },
+
+  // Meal Consumption Log operations
+  addMealConsumptionLog: async (logData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newLog = {
+      ...logData,
+      id: Date.now(),
+      consumption_date: new Date().toISOString().split('T')[0],
+      consumption_time: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      mealConsumptionLogs: [...(prev.mealConsumptionLogs || []), newLog]
+    }));
+    return newLog;
+  },
+
+  // Merchant CRUD operations
+  addMerchant: async (merchantData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newMerchant = {
+      ...merchantData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      merchants: [...(prev.merchants || []), newMerchant]
+    }));
+    return newMerchant;
+  },
+
+  updateMerchant: async (updatedMerchant: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      merchants: (prev.merchants || []).map((merchant: any) => 
+        merchant.id === updatedMerchant.id 
+          ? { ...updatedMerchant, updated_at: new Date().toISOString() }
+          : merchant
+      )
+    }));
+    return updatedMerchant;
+  },
+
+  deleteMerchant: async (merchantId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      merchants: (prev.merchants || []).filter((merchant: any) => merchant.id !== merchantId)
+    }));
+  },
+
+  // Wallet Transaction operations
+  addWalletTransaction: async (transactionData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newTransaction = {
+      ...transactionData,
+      id: Date.now(),
+      transaction_date: new Date().toISOString().split('T')[0],
+      created_at: new Date().toISOString(),
+    };
+    
+    // Update student wallet balance
+    setData(prev => ({
+      ...prev,
+      walletTransactions: [...(prev.walletTransactions || []), newTransaction],
+      studentWallets: (prev.studentWallets || []).map((wallet: any) => 
+        wallet.student_id === transactionData.student_id
+          ? { 
+              ...wallet, 
+              current_balance: transactionData.transaction_type === 'CREDIT'
+                ? wallet.current_balance + transactionData.amount
+                : wallet.current_balance - transactionData.amount,
+              updated_at: new Date().toISOString()
+            }
+          : wallet
+      )
+    }));
+    
+    return newTransaction;
+  },
+
+  // === ADDITIONAL MISSING CRUD OPERATIONS ===
+  // Fee Template CRUD operations
+  addFeeTemplate: async (templateData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newTemplate = {
+      ...templateData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      feeTemplates: [...(prev.feeTemplates || []), newTemplate]
+    }));
+    return newTemplate;
+  },
+
+  updateFeeTemplate: async (updatedTemplate: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      feeTemplates: (prev.feeTemplates || []).map((template: any) => 
+        template.id === updatedTemplate.id 
+          ? { ...updatedTemplate, updated_at: new Date().toISOString() }
+          : template
+      )
+    }));
+    return updatedTemplate;
+  },
+
+  deleteFeeTemplate: async (templateId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      feeTemplates: (prev.feeTemplates || []).filter((template: any) => template.id !== templateId)
+    }));
+  },
+
+  // Expense Category CRUD operations
+  addExpenseCategory: async (categoryData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newCategory = {
+      ...categoryData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      expenseCategories: [...(prev.expenseCategories || []), newCategory]
+    }));
+    return newCategory;
+  },
+
+  updateExpenseCategory: async (updatedCategory: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      expenseCategories: (prev.expenseCategories || []).map((category: any) => 
+        category.id === updatedCategory.id 
+          ? { ...updatedCategory, updated_at: new Date().toISOString() }
+          : category
+      )
+    }));
+    return updatedCategory;
+  },
+
+  deleteExpenseCategory: async (categoryId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      expenseCategories: (prev.expenseCategories || []).filter((category: any) => category.id !== categoryId)
+    }));
+  },
+
+  // Student CRUD operations
+  addStudent: async (studentData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newStudent = {
+      ...studentData,
+      id: `STU${Date.now()}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      students: [...(prev.students || []), newStudent]
+    }));
+    return newStudent;
+  },
+
+  updateStudent: async (updatedStudent: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      students: (prev.students || []).map((student: any) => 
+        student.id === updatedStudent.id 
+          ? { ...updatedStudent, updated_at: new Date().toISOString() }
+          : student
+      )
+    }));
+    return updatedStudent;
+  },
+
+  deleteStudent: async (studentId: string) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      students: (prev.students || []).filter((student: any) => student.id !== studentId)
+    }));
+  },
+
+  // Staff CRUD operations
+  addStaffMember: async (staffData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newStaff = {
+      ...staffData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      staff: [...(prev.staff || []), newStaff]
+    }));
+    return newStaff;
+  },
+
+  updateStaffMember: async (updatedStaff: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      staff: (prev.staff || []).map((staff: any) => 
+        staff.id === updatedStaff.id 
+          ? { ...updatedStaff, updated_at: new Date().toISOString() }
+          : staff
+      )
+    }));
+    return updatedStaff;
+  },
+
+  deleteStaffMember: async (staffId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      staff: (prev.staff || []).filter((staff: any) => staff.id !== staffId)
+    }));
+  },
+
+  // Department CRUD operations
+  addDepartment: async (deptData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newDepartment = {
+      ...deptData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      departments: [...(prev.departments || []), newDepartment]
+    }));
+    return newDepartment;
+  },
+
+  updateDepartment: async (updatedDept: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      departments: (prev.departments || []).map((dept: any) => 
+        dept.id === updatedDept.id 
+          ? { ...updatedDept, updated_at: new Date().toISOString() }
+          : dept
+      )
+    }));
+    return updatedDept;
+  },
+
+  deleteDepartment: async (deptId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      departments: (prev.departments || []).filter((dept: any) => dept.id !== deptId)
+    }));
+  },
+
+  // === PLACEHOLDER FUNCTIONS FOR REMAINING OPERATIONS ===
+  // Academic Year Structure CRUD operations (stub)
+  addAcademicYearStructure: unimplementedAsync,
+  updateAcademicYearStructure: unimplementedAsync,
+  deleteAcademicYearStructure: unimplementedAsync,
+  
+  // Academic Period Definition CRUD operations (stub)
+  addAcademicPeriodDefinition: unimplementedAsync,
+  updateAcademicPeriodDefinition: unimplementedAsync,
+  deleteAcademicPeriodDefinition: unimplementedAsync,
+  
+  // Academic Year CRUD operations (stub)
+  addAcademicYear: unimplementedAsync,
+  updateAcademicYear: unimplementedAsync,
+  deleteAcademicYear: unimplementedAsync,
+  
+  // School Period CRUD operations (stub)
+  addSchoolPeriod: unimplementedAsync,
+  updateSchoolPeriod: unimplementedAsync,
+  deleteSchoolPeriod: unimplementedAsync,
+  
+  // Designation CRUD operations (stub)
+  addDesignation: unimplementedAsync,
+  updateDesignation: unimplementedAsync,
+  deleteDesignation: unimplementedAsync,
+  
+  // Student Category CRUD operations (stub)
+  addStudentCategory: unimplementedAsync,
+  updateStudentCategory: unimplementedAsync,
+  deleteStudentCategory: unimplementedAsync,
+  
+  // Dormitory CRUD operations (stub)
+  addDormitory: unimplementedAsync,
+  updateDormitory: unimplementedAsync,
+  deleteDormitory: unimplementedAsync,
+  
+  // Timetable Period Definition CRUD operations (stub)
+  addTimetablePeriodDef: unimplementedAsync,
+  updateTimetablePeriodDef: unimplementedAsync,
+  deleteTimetablePeriodDef: unimplementedAsync,
+  
+  // Subject Paper CRUD operations (stub)
+  addSubjectPaper: unimplementedAsync,
+  updateSubjectPaper: unimplementedAsync,
+  deleteSubjectPaper: unimplementedAsync,
+  
+  // Exam Session CRUD operations (stub)
+  addExamSession: unimplementedAsync,
+  updateExamSession: unimplementedAsync,
+  deleteExamSession: unimplementedAsync,
+  
+  // Exam Paper Setting CRUD operations (stub)
+  addExamPaperSetting: unimplementedAsync,
+  updateExamPaperSetting: unimplementedAsync,
+  deleteExamPaperSetting: unimplementedAsync,
+  
+  // Grading Scheme CRUD operations (stub)
+  addGradingScheme: unimplementedAsync,
+  updateGradingScheme: unimplementedAsync,
+  deleteGradingScheme: unimplementedAsync,
+  
+  // Class Subject Allocation CRUD operations (stub)
+  addClassSubjectAllocation: unimplementedAsync,
+  updateClassSubjectAllocation: unimplementedAsync,
+  deleteClassSubjectAllocation: unimplementedAsync,
+  
+  // Teacher Subject Assignment CRUD operations (stub)
+  addTeacherSubjectAssignment: unimplementedAsync,
+  deleteTeacherSubjectAssignment: unimplementedAsync,
+  
+  // Student Subject Enrollment CRUD operations (stub)
+  addStudentSubjectEnrollment: unimplementedAsync,
+  updateStudentSubjectEnrollment: unimplementedAsync,
+  deleteStudentSubjectEnrollment: unimplementedAsync,
+  
+  // Customer Invoice CRUD operations (stub)
+  addCustomerInvoice: unimplementedAsync,
+  updateCustomerInvoice: unimplementedAsync,
+  deleteCustomerInvoice: unimplementedAsync,
+  
+  // Supplier Invoice CRUD operations (stub)
+  addSupplierInvoice: unimplementedAsync,
+  updateSupplierInvoice: unimplementedAsync,
+  deleteSupplierInvoice: unimplementedAsync,
+  
+  // Student Opening Balance CRUD operations (stub)
+  addStudentOpeningBalance: unimplementedAsync,
+  updateStudentOpeningBalance: unimplementedAsync,
+  deleteStudentOpeningBalance: unimplementedAsync,
+  
+  // Fee Adjustment CRUD operations (stub)
+  addFeeAdjustment: unimplementedAsync,
+  updateFeeAdjustment: unimplementedAsync,
+  deleteFeeAdjustment: unimplementedAsync,
+  
+  // Transport Route CRUD operations (stub)
+  addTransportRoute: unimplementedAsync,
+  updateTransportRoute: unimplementedAsync,
+  deleteTransportRoute: unimplementedAsync,
+  
+  // Student Transport Assignment CRUD operations (stub)
+  addStudentTransportAssignment: unimplementedAsync,
+  updateStudentTransportAssignment: unimplementedAsync,
+  deleteStudentTransportAssignment: unimplementedAsync,
+  
+  // Student Payment CRUD operations (stub)
+  addStudentPayment: unimplementedAsync,
+  updateStudentPayment: unimplementedAsync,
+  deleteStudentPayment: unimplementedAsync,
+  applyPaymentToInvoices: unimplementedAsync,
+  
+  // General Payment CRUD operations (stub)
+  addGeneralPayment: unimplementedAsync,
+  updateGeneralPayment: unimplementedAsync,
+  deleteGeneralPayment: unimplementedAsync,
+  
+  // Financial Year CRUD operations (stub)
+  addFinancialYear: unimplementedAsync,
+  updateFinancialYear: unimplementedAsync,
+  deleteFinancialYear: unimplementedAsync,
+  
+  // User & Role CRUD operations (stub)
+  addUser: unimplementedAsync,
+  updateUser: unimplementedAsync,
+  deleteUser: unimplementedAsync,
+  addRole: unimplementedAsync,
+  updateRole: unimplementedAsync,
+  deleteRole: unimplementedAsync,
+  
+  // Workflow CRUD operations (stub)
+  addWorkflow: unimplementedAsync,
+  updateWorkflow: unimplementedAsync,
+  deleteWorkflow: unimplementedAsync,
+  addWorkflowState: unimplementedAsync,
+  updateWorkflowState: unimplementedAsync,
+  deleteWorkflowState: unimplementedAsync,
+  
+  // Class & Class Stream CRUD operations (stub)
+  addClass: unimplementedAsync,
+  updateClass: unimplementedAsync,
+  deleteClass: unimplementedAsync,
+  addClassStream: unimplementedAsync,
+  updateClassStream: unimplementedAsync,
+  deleteClassStream: unimplementedAsync,
+  
+  // School Details operations (stub)
+  updateSchoolDetails: unimplementedAsync,
+  
+  // RFQ operations (stub)
+  addRfq: unimplementedAsync,
+  updateRfq: unimplementedAsync,
+  deleteRfq: unimplementedAsync,
+  
+  // Parent Guardian operations (stub)
+  addParentGuardian: unimplementedAsync,
+  updateParentGuardian: unimplementedAsync,
+  deleteParentGuardian: unimplementedAsync,
+  addStudentGuardianRelationship: unimplementedAsync,
+  updateStudentGuardianRelationship: unimplementedAsync,
+  deleteStudentGuardianRelationship: unimplementedAsync,
+  
+  // Asset Depreciation operations (stub)
+  addAssetDepreciationLog: unimplementedAsync,
+  
+  // Expense Claim operations (stub)
+  addExpenseClaim: unimplementedAsync,
+  updateExpenseClaim: unimplementedAsync,
+  deleteExpenseClaim: unimplementedAsync,
+  
+  // Audit Log operations (stub)
+  addAuditLog: unimplementedAsync,
+} as AppDataContextType;
 };

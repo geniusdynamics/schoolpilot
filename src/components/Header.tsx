@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
       <div className="flex items-center">
         <button
           onClick={toggleSidebar}
-          className="text-gray-500 focus:outline-none focus:text-gray-700 lg:hidden mr-3"
+          className="text-gray-500 focus:outline-none focus:text-gray-700 mr-3"
           aria-label={t('toggleSidebar')}
         >
           <MenuIcon className="w-6 h-6" />
