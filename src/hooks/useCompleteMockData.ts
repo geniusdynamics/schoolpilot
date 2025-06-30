@@ -39,6 +39,17 @@ import {
     initialMockStudentCategories,
     initialMockDormitories,
     initialMockWorkflows,
+    initialMockPartners,
+    initialMockClubsAndSocieties,
+    initialMockCustomers,
+    initialMockStudentHealthRecords,
+    initialMockStudentAttendance,
+    initialMockTemplateComms,
+    initialMockCampaigns,
+    initialMockAcademicYearStructures,
+    initialMockAcademicPeriodDefinitions,
+    initialMockAcademicYears,
+    initialMockSchoolPeriods,
 } from '../modules/administration/data/mockData';
 
 // Academics
@@ -218,20 +229,22 @@ export const rawInitialData: AppDataType = {
     walletTransactions: initialMockWalletTransactions,
     studentWallets: initialMockStudentWallets,
 
-    // Placeholders for data not yet modularized or empty
-    academicYearStructures: [] as AcademicYearStructure[],
-    academicPeriodDefinitions: [] as AcademicPeriodDefinition[],
-    academicYears: [] as AcademicYear[],
-    schoolPeriods: [] as SchoolPeriod[],
-    partners: [] as Partner[],
-    clubs: [] as ClubAndSociety[],
-    customers: [] as Customer[],
-    studentHealthRecords: [] as StudentHealthRecord[],
-    studentAttendance: [] as StudentAttendance[],
-    templatesComm: [] as TemplateComm[],
-    campaigns: [] as Campaign[],
-    supplierInvoices: [] as SupplierInvoice[],
+    // Administration-specific data
+    partners: initialMockPartners,
+    clubs: initialMockClubsAndSocieties,
+    customers: initialMockCustomers,
+    studentHealthRecords: initialMockStudentHealthRecords,
+    studentAttendance: initialMockStudentAttendance,
+    templatesComm: initialMockTemplateComms,
+    campaigns: initialMockCampaigns,
     workflows: initialMockWorkflows,
+    
+    // Academic Year Data from Administration Module
+    academicYearStructures: initialMockAcademicYearStructures,
+    academicPeriodDefinitions: initialMockAcademicPeriodDefinitions,
+    academicYears: initialMockAcademicYears,
+    schoolPeriods: initialMockSchoolPeriods,
+    supplierInvoices: [] as SupplierInvoice[],
     auditLogs: [] as AuditLog[],
     rfqs: [] as RFQ[],
 };
@@ -429,6 +442,268 @@ export const useMockData = (): AppDataContextType => {
     }));
   };
 
+  // Club/Society CRUD operations
+  const addClub = async (clubData: Omit<ClubAndSociety, 'id' | 'created_at' | 'updated_at' | 'patron_name'>) => {
+    await delay(MOCK_API_DELAY);
+    const newClub: ClubAndSociety = {
+      ...clubData,
+      id: Date.now(),
+      patron_name: clubData.patron_id ? (data.staff || []).find((s: any) => s.id === clubData.patron_id)?.display_name || 
+                   `${(data.staff || []).find((s: any) => s.id === clubData.patron_id)?.first_name || ''} ${(data.staff || []).find((s: any) => s.id === clubData.patron_id)?.last_name || ''}`.trim() : undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      clubs: [...(prev.clubs || []), newClub]
+    }));
+  };
+
+  const updateClub = async (updatedClub: ClubAndSociety) => {
+    await delay(MOCK_API_DELAY);
+    const clubWithDenormalized = {
+      ...updatedClub,
+      patron_name: updatedClub.patron_id ? (data.staff || []).find((s: any) => s.id === updatedClub.patron_id)?.display_name || 
+                   `${(data.staff || []).find((s: any) => s.id === updatedClub.patron_id)?.first_name || ''} ${(data.staff || []).find((s: any) => s.id === updatedClub.patron_id)?.last_name || ''}`.trim() : undefined,
+      updated_at: new Date().toISOString()
+    };
+    setData(prev => ({
+      ...prev,
+      clubs: (prev.clubs || []).map(c => 
+        c.id === updatedClub.id ? clubWithDenormalized : c
+      )
+    }));
+  };
+
+  const deleteClub = async (clubId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      clubs: (prev.clubs || []).filter(c => c.id !== clubId)
+    }));
+  };
+
+  // Customer CRUD operations
+  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
+    await delay(MOCK_API_DELAY);
+    const newCustomer: Customer = {
+      ...customerData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      customers: [...(prev.customers || []), newCustomer]
+    }));
+  };
+
+  const updateCustomer = async (updatedCustomer: Customer) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      customers: (prev.customers || []).map(c => 
+        c.id === updatedCustomer.id 
+          ? { ...updatedCustomer, updated_at: new Date().toISOString() }
+          : c
+      )
+    }));
+  };
+
+  const deleteCustomer = async (customerId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      customers: (prev.customers || []).filter(c => c.id !== customerId)
+    }));
+  };
+
+  // Student Health Record CRUD operations
+  const addStudentHealthRecord = async (healthData: Omit<StudentHealthRecord, 'id' | 'created_at' | 'updated_at' | 'student_name'>) => {
+    await delay(MOCK_API_DELAY);
+    const newRecord: StudentHealthRecord = {
+      ...healthData,
+      id: `SHR${Date.now()}`,
+      student_name: (data.students || []).find((s: any) => s.id === healthData.student_id)?.display_name ||
+                   `${(data.students || []).find((s: any) => s.id === healthData.student_id)?.first_name || ''} ${(data.students || []).find((s: any) => s.id === healthData.student_id)?.last_name || ''}`.trim(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      studentHealthRecords: [...(prev.studentHealthRecords || []), newRecord]
+    }));
+  };
+
+  const updateStudentHealthRecord = async (updatedRecord: StudentHealthRecord) => {
+    await delay(MOCK_API_DELAY);
+    const recordWithDenormalized = {
+      ...updatedRecord,
+      student_name: (data.students || []).find((s: any) => s.id === updatedRecord.student_id)?.display_name ||
+                   `${(data.students || []).find((s: any) => s.id === updatedRecord.student_id)?.first_name || ''} ${(data.students || []).find((s: any) => s.id === updatedRecord.student_id)?.last_name || ''}`.trim(),
+      updated_at: new Date().toISOString()
+    };
+    setData(prev => ({
+      ...prev,
+      studentHealthRecords: (prev.studentHealthRecords || []).map(r => 
+        r.id === updatedRecord.id ? recordWithDenormalized : r
+      )
+    }));
+  };
+
+  // Communication Template CRUD operations
+  const addTemplateComm = async (templateData: Omit<TemplateComm, 'id' | 'created_at' | 'updated_at'>) => {
+    await delay(MOCK_API_DELAY);
+    const newTemplate: TemplateComm = {
+      ...templateData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      templatesComm: [...(prev.templatesComm || []), newTemplate]
+    }));
+  };
+
+  const updateTemplateComm = async (updatedTemplate: TemplateComm) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      templatesComm: (prev.templatesComm || []).map(t => 
+        t.id === updatedTemplate.id 
+          ? { ...updatedTemplate, updated_at: new Date().toISOString() }
+          : t
+      )
+    }));
+  };
+
+  const deleteTemplateComm = async (templateId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      templatesComm: (prev.templatesComm || []).filter(t => t.id !== templateId)
+    }));
+  };
+
+  // Campaign CRUD operations
+  const addCampaign = async (campaignData: Omit<Campaign, 'id' | 'created_at' | 'updated_at' | 'template_name' | 'created_by_name' | 'approved_by_name' | 'target_audience_display'>) => {
+    await delay(MOCK_API_DELAY);
+    const newCampaign: Campaign = {
+      ...campaignData,
+      id: `CAMP${Date.now()}`,
+      template_name: campaignData.template_id ? (data.templatesComm || []).find((t: any) => t.id === campaignData.template_id)?.name : undefined,
+      created_by_name: campaignData.created_by ? (data.users || []).find((u: any) => u.id === campaignData.created_by)?.display_name : undefined,
+      approved_by_name: campaignData.approved_by ? (data.users || []).find((u: any) => u.id === campaignData.approved_by)?.display_name : undefined,
+      target_audience_display: campaignData.target_audience_type || 'All Students', // Default value
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      campaigns: [...(prev.campaigns || []), newCampaign]
+    }));
+  };
+
+  const updateCampaign = async (updatedCampaign: Campaign) => {
+    await delay(MOCK_API_DELAY);
+    const campaignWithDenormalized = {
+      ...updatedCampaign,
+      template_name: updatedCampaign.template_id ? (data.templatesComm || []).find((t: any) => t.id === updatedCampaign.template_id)?.name : undefined,
+      created_by_name: updatedCampaign.created_by ? (data.users || []).find((u: any) => u.id === updatedCampaign.created_by)?.display_name : undefined,
+      approved_by_name: updatedCampaign.approved_by ? (data.users || []).find((u: any) => u.id === updatedCampaign.approved_by)?.display_name : undefined,
+      updated_at: new Date().toISOString()
+    };
+    setData(prev => ({
+      ...prev,
+      campaigns: (prev.campaigns || []).map(c => 
+        c.id === updatedCampaign.id ? campaignWithDenormalized : c
+      )
+    }));
+  };
+
+  const deleteCampaign = async (campaignId: string) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      campaigns: (prev.campaigns || []).filter(c => c.id !== campaignId)
+    }));
+  };
+
+  // Bank CRUD operations
+  const addBank = async (bankData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newBank = {
+      ...bankData,
+      id: Date.now(),
+      gl_account_name: (data.chartOfAccounts || []).find((coa: any) => coa.id === bankData.gl_account_id)?.name,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      banks: [...(prev.banks || []), newBank]
+    }));
+  };
+
+  const updateBank = async (updatedBank: any) => {
+    await delay(MOCK_API_DELAY);
+    const bankWithDenormalized = {
+      ...updatedBank,
+      gl_account_name: (data.chartOfAccounts || []).find((coa: any) => coa.id === updatedBank.gl_account_id)?.name,
+      updated_at: new Date().toISOString()
+    };
+    setData(prev => ({
+      ...prev,
+      banks: (prev.banks || []).map((b: any) => 
+        b.id === updatedBank.id ? bankWithDenormalized : b
+      )
+    }));
+  };
+
+  const deleteBank = async (bankId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      banks: (prev.banks || []).filter((b: any) => b.id !== bankId)
+    }));
+  };
+
+  // Supplier CRUD operations
+  const addSupplier = async (supplierData: any) => {
+    await delay(MOCK_API_DELAY);
+    const newSupplier = {
+      ...supplierData,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      suppliers: [...(prev.suppliers || []), newSupplier]
+    }));
+  };
+
+  const updateSupplier = async (updatedSupplier: any) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      suppliers: (prev.suppliers || []).map((s: any) => 
+        s.id === updatedSupplier.id 
+          ? { ...updatedSupplier, updated_at: new Date().toISOString() }
+          : s
+      )
+    }));
+  };
+
+  const deleteSupplier = async (supplierId: number) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      suppliers: (prev.suppliers || []).filter((s: any) => s.id !== supplierId)
+    }));
+  };
+
   return {
     ...(data as AppDataType),
     loading,
@@ -449,5 +724,32 @@ export const useMockData = (): AppDataContextType => {
     addPartner,
     updatePartner,
     deletePartner,
+    // Club/Society CRUD operations
+    addClub,
+    updateClub,
+    deleteClub,
+    // Customer CRUD operations
+    addCustomer,
+    updateCustomer,
+    deleteCustomer,
+    // Student Health Record CRUD operations
+    addStudentHealthRecord,
+    updateStudentHealthRecord,
+    // Communication Template CRUD operations
+    addTemplateComm,
+    updateTemplateComm,
+    deleteTemplateComm,
+    // Campaign CRUD operations
+    addCampaign,
+    updateCampaign,
+    deleteCampaign,
+    // Bank CRUD operations
+    addBank,
+    updateBank,
+    deleteBank,
+    // Supplier CRUD operations
+    addSupplier,
+    updateSupplier,
+    deleteSupplier,
   } as AppDataContextType;
 };
