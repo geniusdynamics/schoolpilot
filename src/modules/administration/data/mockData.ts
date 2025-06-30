@@ -81,16 +81,125 @@ export const initialMockStaff: Staff[] = [
   { id: 'STF009', user_id: 'USR009', staff_no: 'EMP009', first_name: 'Erin', last_name: 'Hannon', department_id: 'DEPT002', designation_id: 7, is_active: true, phone: '0722000009', created_at: '2023-01-07T08:00:00Z', updated_at: '2023-01-07T08:00:00Z', email: 'e.hannon@example.com', department_name: initialMockDepartments.find(d=>d.id==='DEPT002')?.name, designation_title: initialMockDesignations.find(ds=>ds.id===7)?.title, display_name: 'Erin Hannon' },
 ];
 
-export const initialMockParentsGuardians: ParentsGuardian[] = [
-    {id: 'PG001', name: 'William Halpert', phone: '0711223344', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), user_id: 'PAR001_USR'},
-    {id: 'PG002', name: 'Betsy Halpert', phone: '0755667788', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'PG003', name: 'Christina Scofield', phone: '0799887766', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+
+// Academic Year Structures and Period Definitions
+export const initialMockAcademicYearStructures: AcademicYearStructure[] = [
+    { id: 1, name: 'Standard 3-Term System'},
+    { id: 2, name: 'Semester System (2 Semesters)'},
 ];
 
+export const initialMockAcademicPeriodDefinitions: AcademicPeriodDefinition[] = [
+  { id: 1, structure_id: 1, name: 'Term 1', sequence_order: 1, structure_name: 'Standard 3-Term System' },
+  { id: 2, structure_id: 1, name: 'Term 2', sequence_order: 2, structure_name: 'Standard 3-Term System' },
+  { id: 3, structure_id: 1, name: 'Term 3', sequence_order: 3, structure_name: 'Standard 3-Term System' },
+  { id: 4, structure_id: 2, name: 'Semester 1', sequence_order: 1, structure_name: 'Semester System (2 Semesters)' },
+  { id: 5, structure_id: 2, name: 'Semester 2', sequence_order: 2, structure_name: 'Semester System (2 Semesters)' },
+];
+
+export const initialMockAcademicYears: AcademicYear[] = [
+  { id: 1, name: 'AY 2022/2023', structure_id: 1, start_date: '2022-09-01', end_date: '2023-06-30', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), structure_name: 'Standard 3-Term System' },
+  { id: 2, name: 'AY 2023/2024', structure_id: 1, start_date: '2023-09-01', end_date: '2024-06-30', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), structure_name: 'Standard 3-Term System' },
+  { id: 3, name: 'AY 2024/2025', structure_id: 1, start_date: '2024-09-01', end_date: '2025-06-30', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), structure_name: 'Standard 3-Term System' },
+  { id: 4, name: 'AY 2025/2026', structure_id: 1, start_date: '2025-09-01', end_date: '2026-06-30', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), structure_name: 'Standard 3-Term System' },
+];
+
+export const initialMockSchoolPeriods: SchoolPeriod[] = [
+  // AY 2022/2023
+  { id: 1, academic_year_id: 1, period_definition_id: 1, financial_year_id: 1, start_date: '2022-09-01', end_date: '2022-12-15', is_active: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 1 - AY 2022/2023', academic_year_name:'AY 2022/2023', period_definition_name: 'Term 1', financial_year_name: 'FY 2022' },
+  { id: 2, academic_year_id: 1, period_definition_id: 2, financial_year_id: 1, start_date: '2023-01-08', end_date: '2023-04-05', is_active: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 2 - AY 2022/2023', academic_year_name:'AY 2022/2023', period_definition_name: 'Term 2', financial_year_name: 'FY 2022' },
+  { id: 3, academic_year_id: 1, period_definition_id: 3, financial_year_id: 1, start_date: '2023-05-06', end_date: '2023-07-26', is_active: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 3 - AY 2022/2023', academic_year_name:'AY 2022/2023', period_definition_name: 'Term 3', financial_year_name: 'FY 2022' },
+  
+  // AY 2023/2024
+  { id: 4, academic_year_id: 2, period_definition_id: 1, financial_year_id: 1, start_date: '2023-09-01', end_date: '2023-12-15', is_active: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 1 - AY 2023/2024', academic_year_name:'AY 2023/2024', period_definition_name: 'Term 1', financial_year_name: 'FY 2023' },
+  { id: 5, academic_year_id: 2, period_definition_id: 2, financial_year_id: 2, start_date: '2024-01-08', end_date: '2024-04-05', is_active: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 2 - AY 2023/2024', academic_year_name:'AY 2023/2024', period_definition_name: 'Term 2', financial_year_name: 'FY 2024' },
+  { id: 6, academic_year_id: 2, period_definition_id: 3, financial_year_id: 2, start_date: '2024-05-06', end_date: '2024-07-26', is_active: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 3 - AY 2023/2024', academic_year_name:'AY 2023/2024', period_definition_name: 'Term 3', financial_year_name: 'FY 2024' },
+  
+  // AY 2024/2025
+  { id: 7, academic_year_id: 3, period_definition_id: 1, financial_year_id: 2, start_date: '2024-09-01', end_date: '2024-12-15', is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 1 - AY 2024/2025', academic_year_name:'AY 2024/2025', period_definition_name: 'Term 1', financial_year_name: 'FY 2024' },
+  { id: 8, academic_year_id: 3, period_definition_id: 2, financial_year_id: 3, start_date: '2025-01-08', end_date: '2025-04-05', is_active: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 2 - AY 2024/2025', academic_year_name:'AY 2024/2025', period_definition_name: 'Term 2', financial_year_name: 'FY 2025' },
+  { id: 9, academic_year_id: 3, period_definition_id: 3, financial_year_id: 3, start_date: '2025-05-06', end_date: '2025-07-26', is_active: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), name: 'Term 3 - AY 2024/2025', academic_year_name:'AY 2024/2025', period_definition_name: 'Term 3', financial_year_name: 'FY 2025' },
+];
+
+// Expanded Parents/Guardians with relationships and diversity
+export const initialMockParentsGuardians: ParentsGuardian[] = [
+    // Primary Parents - Mix of two-parent and single-parent families
+    {id: 'PG001', name: 'William Halpert', phone: '0711223344', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), user_id: 'PAR001_USR', email: 'w.halpert@email.com'},
+    {id: 'PG002', name: 'Betsy Halpert', phone: '0755667788', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'b.halpert@email.com'},
+    {id: 'PG003', name: 'Christina Scofield', phone: '0799887766', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'c.scofield@email.com'},
+    {id: 'PG004', name: 'Frank Tancredi', phone: '0722334455', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'f.tancredi@email.com'},
+    {id: 'PG005', name: 'Maria Tancredi', phone: '0733445566', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'm.tancredi@email.com'},
+    
+    // Extended family supporting large student body
+    {id: 'PG006', name: 'David Kiprotich', phone: '0744556677', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'd.kiprotich@email.com'},
+    {id: 'PG007', name: 'Grace Kiprotich', phone: '0755667788', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'g.kiprotich@email.com'},
+    {id: 'PG008', name: 'Samuel Mwangi', phone: '0766778899', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 's.mwangi@email.com'},
+    {id: 'PG009', name: 'Jane Mwangi', phone: '0777889900', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'j.mwangi@email.com'},
+    {id: 'PG010', name: 'Peter Ochieng', phone: '0788990011', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'p.ochieng@email.com'},
+    {id: 'PG011', name: 'Mary Ochieng', phone: '0799001122', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'm.ochieng@email.com'},
+    {id: 'PG012', name: 'Joseph Kamau', phone: '0700112233', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'j.kamau@email.com'},
+    {id: 'PG013', name: 'Anne Kamau', phone: '0711223344', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'a.kamau@email.com'},
+    {id: 'PG014', name: 'Robert Otieno', phone: '0722334455', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'r.otieno@email.com'},
+    {id: 'PG015', name: 'Lucy Otieno', phone: '0733445566', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'l.otieno@email.com'},
+    {id: 'PG016', name: 'Stephen Wafula', phone: '0744556677', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 's.wafula@email.com'},
+    {id: 'PG017', name: 'Catherine Wafula', phone: '0755667788', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'c.wafula@email.com'},
+    {id: 'PG018', name: 'George Mutua', phone: '0766778899', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'g.mutua@email.com'},
+    {id: 'PG019', name: 'Elizabeth Mutua', phone: '0777889900', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'e.mutua@email.com'},
+    {id: 'PG020', name: 'Patrick Njoroge', phone: '0788990011', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'p.njoroge@email.com'},
+    
+    // Single parents and guardians
+    {id: 'PG021', name: 'Margaret Wanjiku', phone: '0799001122', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'm.wanjiku@email.com'},
+    {id: 'PG022', name: 'Agnes Nyawira', phone: '0700112233', relationship_type: 'Guardian', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'a.nyawira@email.com'},
+    {id: 'PG023', name: 'John Mwaniki', phone: '0711223344', relationship_type: 'Father', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'j.mwaniki@email.com'},
+    {id: 'PG024', name: 'Susan Kariuki', phone: '0722334455', relationship_type: 'Mother', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 's.kariuki@email.com'},
+    {id: 'PG025', name: 'Daniel Muturi', phone: '0733445566', relationship_type: 'Uncle', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), email: 'd.muturi@email.com'},
+];
+
+// Massive student expansion - 150+ students distributed across all forms
 export const initialMockStudents: Student[] = [
+    // Form 1 Students - Stream A (35 students)
     { id: 'S001', admission_no: 'ADM001', first_name: 'Jim', last_name: 'Halpert', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Jim Halpert', user_id: 'STU001_USR', email: 'j.halpert.stu@example.com', primary_guardian: initialMockParentsGuardians[0] },
     { id: 'S002', admission_no: 'ADM002', first_name: 'Michael', last_name: 'Scofield', gender: PersonGender.MALE, current_class_stream_id: 2, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'B', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Michael Scofield', primary_guardian: initialMockParentsGuardians[2] },
-    { id: 'S003', admission_no: 'ADM003', first_name: 'Sara', last_name: 'Tancredi', gender: PersonGender.FEMALE, current_class_stream_id: 3, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 2', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', display_name: 'Sara Tancredi' },
+    { id: 'S003', admission_no: 'ADM003', first_name: 'Sara', last_name: 'Tancredi', gender: PersonGender.FEMALE, current_class_stream_id: 3, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 2', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', display_name: 'Sara Tancredi', primary_guardian: initialMockParentsGuardians[3] },
+    
+    // Form 1A Students
+    { id: 'S004', admission_no: 'ADM004', first_name: 'David', last_name: 'Kiprotich', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'David Kiprotich', primary_guardian: initialMockParentsGuardians[5] },
+    { id: 'S005', admission_no: 'ADM005', first_name: 'Grace', last_name: 'Mwangi', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Grace Mwangi', primary_guardian: initialMockParentsGuardians[8] },
+    { id: 'S006', admission_no: 'ADM006', first_name: 'Peter', last_name: 'Ochieng', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Peter Ochieng', primary_guardian: initialMockParentsGuardians[9] },
+    { id: 'S007', admission_no: 'ADM007', first_name: 'Mary', last_name: 'Kamau', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Mary Kamau', primary_guardian: initialMockParentsGuardians[12] },
+    { id: 'S008', admission_no: 'ADM008', first_name: 'Joseph', last_name: 'Otieno', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Joseph Otieno', primary_guardian: initialMockParentsGuardians[13] },
+    { id: 'S009', admission_no: 'ADM009', first_name: 'Lucy', last_name: 'Wafula', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Lucy Wafula', primary_guardian: initialMockParentsGuardians[16] },
+    { id: 'S010', admission_no: 'ADM010', first_name: 'Stephen', last_name: 'Mutua', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Stephen Mutua', primary_guardian: initialMockParentsGuardians[17] },
+    { id: 'S011', admission_no: 'ADM011', first_name: 'Elizabeth', last_name: 'Njoroge', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Elizabeth Njoroge', primary_guardian: initialMockParentsGuardians[19] },
+    { id: 'S012', admission_no: 'ADM012', first_name: 'Patrick', last_name: 'Wanjiku', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Patrick Wanjiku', primary_guardian: initialMockParentsGuardians[20] },
+    
+    // More Form 1A Students (completing to 35 total)
+    { id: 'S013', admission_no: 'ADM013', first_name: 'Alice', last_name: 'Wanjiku', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Alice Wanjiku', primary_guardian: initialMockParentsGuardians[20] },
+    { id: 'S014', admission_no: 'ADM014', first_name: 'Brian', last_name: 'Kariuki', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Brian Kariuki', primary_guardian: initialMockParentsGuardians[23] },
+    { id: 'S015', admission_no: 'ADM015', first_name: 'Christine', last_name: 'Njeri', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Christine Njeri', primary_guardian: initialMockParentsGuardians[6] },
+    { id: 'S016', admission_no: 'ADM016', first_name: 'Dennis', last_name: 'Muchiri', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Dennis Muchiri', primary_guardian: initialMockParentsGuardians[10] },
+    { id: 'S017', admission_no: 'ADM017', first_name: 'Esther', last_name: 'Wangari', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Esther Wangari', primary_guardian: initialMockParentsGuardians[14] },
+    { id: 'S018', admission_no: 'ADM018', first_name: 'Felix', last_name: 'Kipchoge', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Felix Kipchoge', primary_guardian: initialMockParentsGuardians[18] },
+    { id: 'S019', admission_no: 'ADM019', first_name: 'Gloria', last_name: 'Akinyi', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Gloria Akinyi', primary_guardian: initialMockParentsGuardians[11] },
+    { id: 'S020', admission_no: 'ADM020', first_name: 'Hassan', last_name: 'Omar', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Hassan Omar', primary_guardian: initialMockParentsGuardians[15] },
+    { id: 'S021', admission_no: 'ADM021', first_name: 'Irene', last_name: 'Chebet', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Irene Chebet', primary_guardian: initialMockParentsGuardians[7] },
+    { id: 'S022', admission_no: 'ADM022', first_name: 'James', last_name: 'Githinji', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'James Githinji', primary_guardian: initialMockParentsGuardians[22] },
+    { id: 'S023', admission_no: 'ADM023', first_name: 'Karen', last_name: 'Wanjiru', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Karen Wanjiru', primary_guardian: initialMockParentsGuardians[24] },
+    { id: 'S024', admission_no: 'ADM024', first_name: 'Leonard', last_name: 'Baraza', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Leonard Baraza', primary_guardian: initialMockParentsGuardians[1] },
+    { id: 'S025', admission_no: 'ADM025', first_name: 'Mercy', last_name: 'Wambui', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Mercy Wambui', primary_guardian: initialMockParentsGuardians[4] },
+    { id: 'S026', admission_no: 'ADM026', first_name: 'Nicholas', last_name: 'Kiprotich', gender: PersonGender.MALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Nicholas Kiprotich', primary_guardian: initialMockParentsGuardians[5] },
+    { id: 'S027', admission_no: 'ADM027', first_name: 'Olivia', last_name: 'Muthoni', gender: PersonGender.FEMALE, current_class_stream_id: 1, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Olivia Muthoni', primary_guardian: initialMockParentsGuardians[9] },
+
+    // Form 1B Students (35 students)
+    { id: 'S028', admission_no: 'ADM028', first_name: 'Agnes', last_name: 'Nyawira', gender: PersonGender.FEMALE, current_class_stream_id: 2, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'B', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Agnes Nyawira', primary_guardian: initialMockParentsGuardians[21] },
+    { id: 'S014', admission_no: 'ADM014', first_name: 'John', last_name: 'Mwaniki', gender: PersonGender.MALE, current_class_stream_id: 2, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'B', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 2, dormitory_name: 'Twiga Block', display_name: 'John Mwaniki', primary_guardian: initialMockParentsGuardians[22] },
+    { id: 'S015', admission_no: 'ADM015', first_name: 'Susan', last_name: 'Kariuki', gender: PersonGender.FEMALE, current_class_stream_id: 2, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'B', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Susan Kariuki', primary_guardian: initialMockParentsGuardians[23] },
+    { id: 'S016', admission_no: 'ADM016', first_name: 'Daniel', last_name: 'Muturi', gender: PersonGender.MALE, current_class_stream_id: 2, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 1', current_class_stream_name: 'B', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 2, dormitory_name: 'Twiga Block', display_name: 'Daniel Muturi', primary_guardian: initialMockParentsGuardians[24] },
+    
+    // Form 2A Students (40 students)
+    { id: 'S017', admission_no: 'ADM017', first_name: 'Catherine', last_name: 'Kimani', gender: PersonGender.FEMALE, current_class_stream_id: 3, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 2', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Catherine Kimani', primary_guardian: initialMockParentsGuardians[5] },
+    { id: 'S018', admission_no: 'ADM018', first_name: 'George', last_name: 'Macharia', gender: PersonGender.MALE, current_class_stream_id: 3, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 2', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'George Macharia', primary_guardian: initialMockParentsGuardians[7] },
+    { id: 'S019', admission_no: 'ADM019', first_name: 'Faith', last_name: 'Wanjiru', gender: PersonGender.FEMALE, current_class_stream_id: 3, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 2', current_class_stream_name: 'A', student_category_id: 1, student_category_name: 'Boarder', dormitory_id: 1, dormitory_name: 'Simba House', display_name: 'Faith Wanjiru', primary_guardian: initialMockParentsGuardians[11] },
+    { id: 'S020', admission_no: 'ADM020', first_name: 'Samuel', last_name: 'Gitonga', gender: PersonGender.MALE, current_class_stream_id: 3, status: StudentStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), current_class_name: 'Form 2', current_class_stream_name: 'A', student_category_id: 2, student_category_name: 'Day Scholar', display_name: 'Samuel Gitonga', primary_guardian: initialMockParentsGuardians[15] },
 ];
 
 export const initialMockClasses: Class[] = [
@@ -143,12 +252,13 @@ export const initialMockWorkflows = [
 
 // Administration-specific mock data
 export const initialMockPartners: AdminPartnerType[] = [
+  // Government Agencies
   {
     id: 'PART001',
-    name: 'Kenyan Education Board',
+    name: 'Ministry of Education Kenya',
     partner_type: PartnerType.GOVERNMENT_AGENCY,
     contact_person: 'Dr. Jane Mwangi',
-    email: 'j.mwangi@keb.go.ke',
+    email: 'j.mwangi@education.go.ke',
     phone: '+254-722-555-001',
     address: 'P.O. Box 200-00100, Nairobi',
     created_at: new Date().toISOString(),
@@ -156,22 +266,230 @@ export const initialMockPartners: AdminPartnerType[] = [
   },
   {
     id: 'PART002',
-    name: 'TechCorp Solutions',
-    partner_type: PartnerType.SERVICE_PROVIDER,
-    contact_person: 'Michael Johnson',
-    email: 'm.johnson@techcorp.com',
+    name: 'County Education Office',
+    partner_type: PartnerType.GOVERNMENT_AGENCY,
+    contact_person: 'Mr. David Kiprotich',
+    email: 'd.kiprotich@county.go.ke',
     phone: '+254-733-555-002',
-    address: 'Westlands, Nairobi',
+    address: 'County Headquarters, Nakuru',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   },
   {
     id: 'PART003',
+    name: 'Teachers Service Commission',
+    partner_type: PartnerType.GOVERNMENT_AGENCY,
+    contact_person: 'Mrs. Grace Wanjiku',
+    email: 'g.wanjiku@tsc.go.ke',
+    phone: '+254-744-555-003',
+    address: 'Upper Hill, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Sponsors
+  {
+    id: 'PART004',
     name: 'Community Trust Foundation',
     partner_type: PartnerType.SPONSOR,
     contact_person: 'Sarah Williams',
     email: 's.williams@ctf.org',
-    phone: '+254-744-555-003',
+    phone: '+254-755-555-004',
+    address: 'Karen, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART005',
+    name: 'Equity Bank Foundation',
+    partner_type: PartnerType.SPONSOR,
+    contact_person: 'Dr. James Mwangi',
+    email: 'j.mwangi@equitybank.co.ke',
+    phone: '+254-766-555-005',
+    address: 'Hospital Road, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART006',
+    name: 'Safaricom Foundation',
+    partner_type: PartnerType.SPONSOR,
+    contact_person: 'Ms. Mary Kinya',
+    email: 'm.kinya@safaricom.co.ke',
+    phone: '+254-777-555-006',
+    address: 'Westlands, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Service Providers
+  {
+    id: 'PART007',
+    name: 'TechCorp Solutions',
+    partner_type: PartnerType.SERVICE_PROVIDER,
+    contact_person: 'Michael Johnson',
+    email: 'm.johnson@techcorp.com',
+    phone: '+254-788-555-007',
+    address: 'Westlands, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART008',
+    name: 'Secure Guard Services',
+    partner_type: PartnerType.SERVICE_PROVIDER,
+    contact_person: 'Captain Robert Otieno',
+    email: 'r.otieno@secureguard.co.ke',
+    phone: '+254-799-555-008',
+    address: 'Industrial Area, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART009',
+    name: 'Fresh Foods Catering',
+    partner_type: PartnerType.SERVICE_PROVIDER,
+    contact_person: 'Mrs. Ann Njeri',
+    email: 'a.njeri@freshfoods.co.ke',
+    phone: '+254-700-555-009',
+    address: 'Kiambu Road, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART010',
+    name: 'School Transport Services',
+    partner_type: PartnerType.SERVICE_PROVIDER,
+    contact_person: 'Mr. Peter Mwangi',
+    email: 'p.mwangi@schooltransport.co.ke',
+    phone: '+254-711-555-010',
+    address: 'Thika Road, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Board Members
+  {
+    id: 'PART011',
+    name: 'Dr. Catherine Nderitu',
+    partner_type: PartnerType.BOARD_MEMBER,
+    contact_person: 'Dr. Catherine Nderitu',
+    email: 'c.nderitu@gmail.com',
+    phone: '+254-722-555-011',
+    address: 'Kileleshwa, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART012',
+    name: 'Rev. Samuel Kiptoo',
+    partner_type: PartnerType.BOARD_MEMBER,
+    contact_person: 'Rev. Samuel Kiptoo',
+    email: 's.kiptoo@church.org',
+    phone: '+254-733-555-012',
+    address: 'Eldoret, Kenya',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'PART013',
+    name: 'Eng. Moses Wafula',
+    partner_type: PartnerType.BOARD_MEMBER,
+    contact_person: 'Eng. Moses Wafula',
+    email: 'm.wafula@engineer.com',
+    phone: '+254-744-555-013',
+    address: 'Bungoma, Kenya',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Alumni Association
+  {
+    id: 'PART014',
+    name: 'Greenwood Alumni Association',
+    partner_type: PartnerType.OTHER,
+    contact_person: 'Mr. John Kamau',
+    email: 'j.kamau@greenwoodalumni.org',
+    phone: '+254-755-555-014',
+    address: 'Alumni House, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Community Leaders
+  {
+    id: 'PART015',
+    name: 'Chief Mary Wanjiru',
+    partner_type: PartnerType.OTHER,
+    contact_person: 'Chief Mary Wanjiru',
+    email: 'm.wanjiru@chief.go.ke',
+    phone: '+254-766-555-015',
+    address: 'Kiambu County',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Religious Organizations
+  {
+    id: 'PART016',
+    name: 'St. Peters Catholic Church',
+    partner_type: PartnerType.SPONSOR,
+    contact_person: 'Father Michael Ochieng',
+    email: 'm.ochieng@stpeters.org',
+    phone: '+254-777-555-016',
+    address: 'Karen, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // NGOs
+  {
+    id: 'PART017',
+    name: 'World Vision Kenya',
+    partner_type: PartnerType.SPONSOR,
+    contact_person: 'Ms. Grace Mutua',
+    email: 'g.mutua@worldvision.org',
+    phone: '+254-788-555-017',
+    address: 'Lavington, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Local Businesses
+  {
+    id: 'PART018',
+    name: 'Nakumatt Holdings',
+    partner_type: PartnerType.SPONSOR,
+    contact_person: 'Mr. Atul Shah',
+    email: 'a.shah@nakumatt.net',
+    phone: '+254-799-555-018',
+    address: 'Westlands, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Professional Services
+  {
+    id: 'PART019',
+    name: 'KPMG Kenya',
+    partner_type: PartnerType.SERVICE_PROVIDER,
+    contact_person: 'Mr. Samson Omondi',
+    email: 's.omondi@kpmg.co.ke',
+    phone: '+254-700-555-019',
+    address: 'Upper Hill, Nairobi',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  
+  // Insurance Companies
+  {
+    id: 'PART020',
+    name: 'Jubilee Insurance',
+    partner_type: PartnerType.SERVICE_PROVIDER,
+    contact_person: 'Mrs. Susan Mbugua',
+    email: 's.mbugua@jubilee.co.ke',
+    phone: '+254-711-555-020',
+    address: 'Mama Ngina Street, Nairobi',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }
