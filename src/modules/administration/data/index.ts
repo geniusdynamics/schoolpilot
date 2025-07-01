@@ -7,3 +7,5 @@ export * from './schema';
 export * from './collections';
 export { isGlobalProvider as isDepartmentGlobalProvider, useDepartmentData } from './useDepartmentData';
 export { isGlobalProvider as isDesignationGlobalProvider, useDesignationData } from './useDesignationData';
+export { isGlobalProvider as isSchoolPeriodGlobalProvider, useSchoolPeriodData } from './useSchoolPeriodData';
+export { isGlobalProvider as isAcademicYearGlobalProvider, useAcademicYearData } from './useAcademicYearData';
