@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import { Designation } from '../../types'; // Designation is a core type
 import Card from '../../components/ui/Card';
@@ -9,13 +6,13 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, IdentificationIcon } from '../../components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useDesignationData } from '../../modules/administration/data/useDesignationData';
 import Spinner from '../../components/ui/Spinner';
 
 type DesignationFormData = Omit<Partial<Designation>, 'id' | 'created_at' | 'updated_at'>;
 
 const DesignationsPage: React.FC = () => {
-  const { designations, loading, addDesignation, updateDesignation, deleteDesignation } = useAppData();
+  const { designations, loading, addDesignation, updateDesignation, deleteDesignation } = useDesignationData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDesignation, setEditingDesignation] = useState<Designation | null>(null);

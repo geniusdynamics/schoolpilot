@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { Department } from '../../types'; // Department is a core type
 import Card from '../../components/ui/Card';
@@ -8,13 +6,12 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon } from '../../components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
-import Spinner from '../../components/ui/Spinner';
+import { useDepartmentData } from '../../modules/administration/data/useDepartmentData';
 
 type DepartmentFormData = Omit<Partial<Department>, 'id' | 'created_at' | 'updated_at'>;
 
 const DepartmentsPage: React.FC = () => {
-  const { departments, loading, addDepartment, updateDepartment, deleteDepartment: mockDeleteDepartment } = useAppData(); // Updated
+  const { departments, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
@@ -23,14 +20,14 @@ const DepartmentsPage: React.FC = () => {
 
   const openModal = (dept?: Department) => {
     setEditingDepartment(dept || null);
-    setFormData(dept ? { name: dept.name, is_academic: dept.is_academic } : initialFormData);
+    setFormData(dept ? { ...dept } : initialFormData);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setIsModalOpen(false);
     setEditingDepartment(null);
     setFormData(initialFormData);
+    setIsModalOpen(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,9 +53,9 @@ const DepartmentsPage: React.FC = () => {
     closeModal();
   };
 
-  const handleDelete = async (id: number) => { 
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this department?')) {
-      await mockDeleteDepartment(id);
+      await deleteDepartment(id);
     }
   };
 
@@ -78,14 +75,6 @@ const DepartmentsPage: React.FC = () => {
     },
   ];
 
-  if (loading.departments && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Departments...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title="Departments Management" actions={
@@ -93,15 +82,15 @@ const DepartmentsPage: React.FC = () => {
           Add Department
         </Button>
       }>
-        <Table columns={columns} data={departments} isLoading={loading.departments && isModalOpen} />
+        <Table columns={columns} data={departments} isLoading={isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDepartment ? 'Edit Department' : 'Add New Department'}
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.departments}>
-              {loading.departments ? <Spinner size="sm"/> : (editingDepartment ? 'Save Changes' : 'Add Department')}
+            <Button onClick={handleSubmit} disabled={isModalOpen}>
+              {editingDepartment ? 'Save Changes' : 'Add Department'}
             </Button>
           </>
         }

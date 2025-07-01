@@ -5,3 +5,5 @@ export * from './types';
 export * from './mockData';
 export * from './schema';
 export * from './collections';
+export { isGlobalProvider as isDepartmentGlobalProvider, useDepartmentData } from './useDepartmentData';
+export { isGlobalProvider as isDesignationGlobalProvider, useDesignationData } from './useDesignationData';
