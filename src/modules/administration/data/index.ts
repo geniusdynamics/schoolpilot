@@ -14,3 +14,4 @@ export { isGlobalProvider as isDormitoryGlobalProvider, useDormitoryData } from 
 export { isGlobalProvider as isStudentCategoryGlobalProvider, useStudentCategoryData } from './useStudentCategoryData';
 export { isGlobalProvider as isClubAndSocietyGlobalProvider, useClubAndSocietyData } from './useClubAndSocietyData';
 export { isGlobalProvider as isCustomerGlobalProvider, useCustomerData } from './useCustomerData';
+export { isGlobalProvider as isStudentHealthRecordGlobalProvider, useStudentHealthRecordData } from './useStudentHealthRecordData';
