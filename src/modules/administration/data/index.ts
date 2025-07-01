@@ -9,3 +9,4 @@ export { isGlobalProvider as isDepartmentGlobalProvider, useDepartmentData } fro
 export { isGlobalProvider as isDesignationGlobalProvider, useDesignationData } from './useDesignationData';
 export { isGlobalProvider as isSchoolPeriodGlobalProvider, useSchoolPeriodData } from './useSchoolPeriodData';
 export { isGlobalProvider as isAcademicYearGlobalProvider, useAcademicYearData } from './useAcademicYearData';
+export { isGlobalProvider as isAcademicPeriodDefinitionGlobalProvider, useAcademicPeriodDefinitionData } from './useAcademicPeriodDefinitionData';
