@@ -17,3 +17,4 @@ export { isGlobalProvider as isCustomerGlobalProvider, useCustomerData } from '.
 export { isGlobalProvider as isStudentHealthRecordGlobalProvider, useStudentHealthRecordData } from './useStudentHealthRecordData';
 export { isGlobalProvider as isStudentAttendanceGlobalProvider, useStudentAttendanceData } from './useStudentAttendanceData';
 export { isGlobalProvider as isTemplateCommGlobalProvider, useTemplateCommData } from './useTemplateCommData';
+export { isGlobalProvider as isCampaignGlobalProvider, useCampaignData } from './useCampaignData';
