@@ -4,15 +4,25 @@
 import { ModuleDefinition } from './types';
 import { moduleRegistry } from './moduleRegistry';
 import { rbacService } from './rbacService';
-import fs from 'fs';
-import path from 'path';
 
 // Core modules (always available)
-import coreModules from '../modules/core/moduleDefinition';
+import coreModules from '../modules/core/moduleDefinition.tsx';
+import administrationModule from '../modules/administration/moduleDefinition.tsx';
+import academicsModule from '../modules/academics/moduleDefinition.tsx';
+import financeModule from '../modules/finance/moduleDefinition.tsx';
+import hrModule from '../modules/hr/moduleDefinition.tsx';
+import inventoryModule from '../modules/inventory/moduleDefinition.tsx';
+import libraryModule from '../modules/library/moduleDefinition.tsx';
+import nutritionModule from '../modules/nutrition/moduleDefinition.tsx';
 
-// Individual module definitions (dynamically imported)
-// Note: In a real implementation, these would be dynamically discovered
-// For now, we'll import them statically but structure for future dynamic loading
+import { corePermissions, coreDefaultRoles } from '../modules/core/rbac.ts';
+import { administrationPermissions, administrationDefaultRoles } from '../modules/administration/rbac.ts';
+import { academicsPermissions, academicsDefaultRoles } from '../modules/academics/rbac.ts';
+import { financePermissions, financeDefaultRoles } from '../modules/finance/rbac.ts';
+import { hrPermissions, hrDefaultRoles } from '../modules/hr/rbac.ts';
+import { inventoryPermissions, inventoryDefaultRoles } from '../modules/inventory/rbac.ts';
+import { libraryPermissions, libraryDefaultRoles } from '../modules/library/rbac.ts';
+import { nutritionPermissions, nutritionDefaultRoles } from '../modules/nutrition/rbac.ts';
 
 // Collect all available modules
 const collectAvailableModules = (): ModuleDefinition[] => {
@@ -21,8 +31,36 @@ const collectAvailableModules = (): ModuleDefinition[] => {
   // Add core modules
   modules.push(...coreModules);
 
+  // Add feature modules
+  modules.push(
+    administrationModule,
+    academicsModule,
+    financeModule,
+    hrModule,
+    inventoryModule,
+    libraryModule,
+    nutritionModule
+  );
+
   return modules;
 };
+
+// Attach RBAC to modules
+coreModules.forEach(m => { m.rbacPermissions = corePermissions; m.defaultRoles = coreDefaultRoles; });
+administrationModule.rbacPermissions = administrationPermissions;
+administrationModule.defaultRoles = administrationDefaultRoles;
+academicsModule.rbacPermissions = academicsPermissions;
+academicsModule.defaultRoles = academicsDefaultRoles;
+financeModule.rbacPermissions = financePermissions;
+financeModule.defaultRoles = financeDefaultRoles;
+hrModule.rbacPermissions = hrPermissions;
+hrModule.defaultRoles = hrDefaultRoles;
+inventoryModule.rbacPermissions = inventoryPermissions;
+inventoryModule.defaultRoles = inventoryDefaultRoles;
+libraryModule.rbacPermissions = libraryPermissions;
+libraryModule.defaultRoles = libraryDefaultRoles;
+nutritionModule.rbacPermissions = nutritionPermissions;
+nutritionModule.defaultRoles = nutritionDefaultRoles;
 
 // Initialize dynamic modules
 export const initializeDynamicModules = async (): Promise<void> => {
@@ -30,68 +68,15 @@ export const initializeDynamicModules = async (): Promise<void> => {
   
   const availableModules = collectAvailableModules();
   
-  // Register all available modules
+  // Register all available modules (with RBAC attached)
   availableModules.forEach(module => {
     moduleRegistry.registerModule(module);
+    rbacService.registerModule(module);
     console.log(`Registered module: ${module.id} (${module.version})`);
   });
   
   console.log(`Total modules registered: ${moduleRegistry.getAllModules().length}`);
   console.log(`Active modules: ${moduleRegistry.getEnabledModules().length}`);
-
-  // Administration module
-  let administrationModule: ModuleDefinition | null = null;
-  try {
-    const administrationModuleImport = await import('../modules/administration/moduleDefinition');
-    administrationModule = administrationModuleImport.default || administrationModuleImport.administrationModule;
-    // Register RBAC definitions if present
-    try {
-      const rbacModule = await import('../modules/administration/rbac');
-      if (rbacModule && rbacModule.default) {
-        const { rbacService } = await import('./rbacService');
-        rbacService.registerModule(rbacModule.default);
-      }
-    } catch (rbacError) {
-      console.warn('Administration RBAC not available:', rbacError);
-    }
-  } catch (error) {
-    console.warn('Administration module not available:', error);
-  }
-
-  // Core module RBAC
-  try {
-    const coreRbacModule = await import('../modules/core/rbac');
-    if (coreRbacModule && coreRbacModule.default) {
-      const { rbacService } = await import('./rbacService');
-      rbacService.registerModule(coreRbacModule.default);
-    }
-  } catch (coreRbacError) {
-    console.warn('Core RBAC not available:', coreRbacError);
-  }
-
-  // Register RBAC for all modules
-  await registerAllModuleRBAC();
-};
-
-// Helper to dynamically discover and register RBAC for all modules
-const MODULES_PATH = path.resolve(__dirname, '../modules');
-
-export const registerAllModuleRBAC = async () => {
-  const moduleDirs = fs.readdirSync(MODULES_PATH, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory() && dirent.name !== 'core')
-    .map(dirent => dirent.name);
-
-  for (const moduleName of moduleDirs) {
-    const rbacPath = path.join(MODULES_PATH, moduleName, 'rbac.ts');
-    if (fs.existsSync(rbacPath)) {
-      const rbacModule = await import(`../modules/${moduleName}/rbac`);
-      // Optionally register permissions/roles here if needed
-      // (The module loader will also register via moduleDefinition)
-      if (rbacModule && rbacModule.default) {
-        rbacService.registerModule(rbacModule.default);
-      }
-    }
-  }
 };
 
 // Get all available modules

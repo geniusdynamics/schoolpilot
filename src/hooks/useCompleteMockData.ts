@@ -19,7 +19,10 @@ import {
     AcademicPeriodDefinition,
     AcademicYear,
     AcademicYearStructure,
-    SchoolPeriod
+    SchoolPeriod,
+    Permission,
+    Role,
+    UserRole
 } from '../core/types';
 import { MOCK_API_DELAY } from '../constants';
 
@@ -249,9 +252,23 @@ export const rawInitialData: AppDataType = {
     rfqs: [] as RFQ[],
 };
 
+// --- Mock RBAC Data ---
+const mockPermissions: Permission[] = [
+  // Example: { id: 'mock.permission', name: 'Mock Permission', description: 'A mock permission', resource: 'mock', action: 'read', moduleId: 'mock' }
+];
+const mockRoles: Role[] = [
+  // Example: { id: 'mock_role', name: 'Mock Role', description: 'A mock role', permissions: ['mock.permission'], isActive: true, isSystem: false, moduleAccess: { mock: { enabled: true, permissions: ['mock.permission'] } } }
+];
+const mockUserRoles: UserRole[] = [
+  // Example: { userId: 'mock_user', roleId: 'mock_role', assignedAt: new Date(), assignedBy: 'system' }
+];
+
 export const useMockData = (): AppDataContextType => {
   const [data, setData] = useState<Partial<AppDataType>>(rawInitialData);
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
+  const [permissions, setPermissions] = useState<Permission[]>(mockPermissions);
+  const [roles, setRoles] = useState<Role[]>(mockRoles);
+  const [userRoles, setUserRoles] = useState<UserRole[]>(mockUserRoles);
 
   useEffect(() => {
     const loadAllData = async () => {
@@ -872,6 +889,16 @@ export const useMockData = (): AppDataContextType => {
     
     return generatedInvoices;
   };
+
+  // RBAC CRUD/assignment methods
+  const addPermission = async (p: Permission) => setPermissions(prev => [...prev, p]);
+  const updatePermission = async (p: Permission) => setPermissions(prev => prev.map(x => x.id === p.id ? p : x));
+  const deletePermission = async (id: string) => setPermissions(prev => prev.filter(x => x.id !== id));
+  const addRole = async (r: Role) => setRoles(prev => [...prev, r]);
+  const updateRole = async (r: Role) => setRoles(prev => prev.map(x => x.id === r.id ? r : x));
+  const deleteRole = async (id: string) => setRoles(prev => prev.filter(x => x.id !== id));
+  const assignRoleToUser = async (userRole: UserRole) => setUserRoles(prev => [...prev, userRole]);
+  const removeRoleFromUser = async (userId: string, roleId: string) => setUserRoles(prev => prev.filter(x => !(x.userId === userId && x.roleId === roleId)));
 
   return {
     ...(data as AppDataType),
@@ -1861,9 +1888,40 @@ export const useMockData = (): AppDataContextType => {
 
   // === PLACEHOLDER FUNCTIONS FOR REMAINING OPERATIONS ===
   // Academic Year Structure CRUD operations (stub)
-  addAcademicYearStructure: unimplementedAsync,
-  updateAcademicYearStructure: unimplementedAsync,
-  deleteAcademicYearStructure: unimplementedAsync,
+  addAcademicYearStructure: async (structure) => {
+    await delay(MOCK_API_DELAY);
+    const newStructure = {
+      ...structure,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData(prev => ({
+      ...prev,
+      academicYearStructures: [...(prev.academicYearStructures || []), newStructure],
+    }));
+    return newStructure;
+  },
+  updateAcademicYearStructure: async (updatedStructure) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      academicYearStructures: (prev.academicYearStructures || []).map((item) =>
+        item.id === updatedStructure.id
+          ? { ...updatedStructure, updated_at: new Date().toISOString() }
+          : item
+      ),
+    }));
+    return updatedStructure;
+  },
+  deleteAcademicYearStructure: async (id) => {
+    await delay(MOCK_API_DELAY);
+    setData(prev => ({
+      ...prev,
+      academicYearStructures: (prev.academicYearStructures || []).filter((item) => item.id !== id),
+    }));
+    return id;
+  },
   
   // Academic Period Definition CRUD operations (stub)
   addAcademicPeriodDefinition: unimplementedAsync,
@@ -1984,9 +2042,9 @@ export const useMockData = (): AppDataContextType => {
   addUser: unimplementedAsync,
   updateUser: unimplementedAsync,
   deleteUser: unimplementedAsync,
-  addRole: unimplementedAsync,
-  updateRole: unimplementedAsync,
-  deleteRole: unimplementedAsync,
+  addRole,
+  updateRole,
+  deleteRole,
   
   // Workflow CRUD operations (stub)
   addWorkflow: unimplementedAsync,
@@ -2030,5 +2088,13 @@ export const useMockData = (): AppDataContextType => {
   
   // Audit Log operations (stub)
   addAuditLog: unimplementedAsync,
+  permissions,
+  roles,
+  userRoles,
+  addPermission,
+  updatePermission,
+  deletePermission,
+  assignRoleToUser,
+  removeRoleFromUser,
 } as AppDataContextType;
 };

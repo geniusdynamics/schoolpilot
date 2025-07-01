@@ -6,6 +6,7 @@ import type { SchoolDatabase, SchoolDatabaseCollections } from '../services/rxdb
 import { getDatabase, seedDatabaseWithMockData, clearDatabase as clearDbFnFromService, getUsingDummyDataFlag as getDummyFlagFnFromService, generateId, generateNumericId } from '../services/rxdbService';
 import * as allTypes from '../types';
 import type { AppDataLoadingStates, RawInitialData, AppDataContextType } from '../types';
+import { rbacService } from '../core/rbacService';
 
 const createInitialLoadingStates = (): AppDataLoadingStates => ({
   all: true, schoolDetails: true, roles: true, users: true, students: true, staff: true, classes: true,
@@ -29,6 +30,8 @@ const createInitialLoadingStates = (): AppDataLoadingStates => ({
   invoicePaymentApplications: true, studentMealPlans: true, mealConsumptionLogs: true,
   walletTransactions: true, studentWallets: true, generalPayments: true, generalLedgerEntries: true,
   rfqs: true, appSettings: true, studentClassHistory: true, healthIncidentReports: true, disciplinaryRecords: true,
+  permissions: true,
+  userRoles: true,
 });
 
 const unimplementedAsync = async (..._args: any[]): Promise<any> => { console.warn("RxDB function not implemented yet."); await new Promise(resolve => setTimeout(resolve, 50)); return null; };
@@ -46,6 +49,7 @@ export const useRxDBData = (
   const [initializationError, setInitializationError] = useState<Error | null>(null);
   const [isUsingRxDBDummyData, setIsUsingRxDBDummyData] = useState<boolean | null>(null);
   const [data, setData] = useState<Omit<AppDataContextType, 'loading' | 'rawInitialData' | 'initializationError' | 'isRxDBModeActive' | 'isUsingRxDBDummyData' | 'triggerSeedRxDB' | 'triggerClearRxDB' | 'getStudentDetailsById' | 'getStudentFinancialDetailsById' | 'updateSchoolDetails'| 'addUser' | 'updateUser'| 'deleteUser' | 'addRole'| 'updateRole'|'deleteRole'|'addStudent'|'updateStudent'|'deleteStudent'|'addStaffMember'|'updateStaffMember'|'deleteStaffMember'|'addParentGuardian'|'updateParentGuardian'|'deleteParentGuardian'|'addStudentGuardianRelationship'|'updateStudentGuardianRelationship'|'deleteStudentGuardianRelationship'|'addDepartment'|'updateDepartment'|'deleteDepartment'|'addDesignation'|'updateDesignation'|'deleteDesignation'|'addStudentCategory'|'updateStudentCategory'|'deleteStudentCategory'|'addDormitory'|'updateDormitory'|'deleteDormitory'|'addAcademicYearStructure'|'updateAcademicYearStructure'|'deleteAcademicYearStructure'|'addAcademicPeriodDefinition'|'updateAcademicPeriodDefinition'|'deleteAcademicPeriodDefinition'|'addAcademicYear'|'updateAcademicYear'|'deleteAcademicYear'|'addSchoolPeriod'|'updateSchoolPeriod'|'deleteSchoolPeriod'|'addPartner'|'updatePartner'|'deletePartner'|'addClub'|'updateClub'|'deleteClub'|'addCustomer'|'updateCustomer'|'deleteCustomer'|'addStudentHealthRecord'|'updateStudentHealthRecord'|'saveStudentAttendance'|'getStudentAttendanceByFilters'|'addTemplateComm'|'updateTemplateComm'|'deleteTemplateComm'|'addCampaign'|'updateCampaign'|'deleteCampaign'|'addAuditLog'|'addClass'|'updateClass'|'deleteClass'|'addClassStream'|'updateClassStream'|'deleteClassStream'|'addSubject'|'updateSubject'|'deleteSubject'|'addSubjectPaper'|'updateSubjectPaper'|'deleteSubjectPaper'|'addExamSession'|'updateExamSession'|'deleteExamSession'|'addExamPaperSetting'|'updateExamPaperSetting'|'deleteExamPaperSetting'|'addGradingScheme'|'updateGradingScheme'|'deleteGradingScheme'|'getStudentsForExamEntry'|'getExamPaperSettingsForSession'|'saveStudentExamResult'|'getTimetablePeriodDefs'|'addTimetablePeriodDef'|'updateTimetablePeriodDef'|'deleteTimetablePeriodDef'|'getTimetableEntries'|'addTimetableEntry'|'updateTimetableEntry'|'deleteTimetableEntry'|'addClassSubjectAllocation'|'updateClassSubjectAllocation'|'deleteClassSubjectAllocation'|'addTeacherSubjectAssignment'|'deleteTeacherSubjectAssignment'|'addStudentSubjectEnrollment'|'updateStudentSubjectEnrollment'|'deleteStudentSubjectEnrollment'|'addChartOfAccount'|'updateChartOfAccount'|'deleteChartOfAccount'|'addBank'|'updateBank'|'deleteBank'|'addSupplier'|'updateSupplier'|'deleteSupplier'|'addFeeTemplate'|'updateFeeTemplate'|'deleteFeeTemplate'|'addExpenseClaim'|'updateExpenseClaim'|'deleteExpenseClaim'|'addExpenseCategory'|'updateExpenseCategory'|'deleteExpenseCategory'|'addCustomerInvoice'|'updateCustomerInvoice'|'deleteCustomerInvoice'|'addSupplierInvoice'|'updateSupplierInvoice'|'deleteSupplierInvoice'|'addStudentOpeningBalance'|'updateStudentOpeningBalance'|'deleteStudentOpeningBalance'|'addFeeAdjustment'|'updateFeeAdjustment'|'deleteFeeAdjustment'|'addTransportRoute'|'updateTransportRoute'|'deleteTransportRoute'|'addStudentTransportAssignment'|'updateStudentTransportAssignment'|'deleteStudentTransportAssignment'|'generateStudentInvoices'|'addStudentPayment'|'updateStudentPayment'|'deleteStudentPayment'|'applyPaymentToInvoices'|'addGeneralPayment'|'updateGeneralPayment'|'deleteGeneralPayment'|'addFinancialYear'|'updateFinancialYear'|'deleteFinancialYear'|'addPayrollPeriod'|'updatePayrollPeriod'|'deletePayrollPeriod'|'addPayrollItemType'|'updatePayrollItemType'|'deletePayrollItemType'|'updateStaffSalarySetting'|'generatePayslipsForPeriod'|'addWarehouse'|'updateWarehouse'|'deleteWarehouse'|'addItemCategoryInv'|'updateItemCategoryInv'|'deleteItemCategoryInv'|'addItemInv'|'updateItemInv'|'deleteItemInv'|'addFixedAsset'|'updateFixedAsset'|'deleteFixedAsset'|'addAssetDepreciationLog'|'addRequisition'|'updateRequisition'|'deleteRequisition'|'updateRequisitionStatus'|'addPurchaseOrder'|'updatePurchaseOrder'|'deletePurchaseOrder'|'addStockTransaction'|'addRfq'|'updateRfq'|'deleteRfq'|'addBookCategory'|'updateBookCategory'|'deleteBookCategory'|'addBook'|'updateBook'|'deleteBook'|'addLoan'|'updateLoan'|'addFine'|'updateFineStatus'|'addMealPlan'|'updateMealPlan'|'deleteMealPlan'|'addMenu'|'updateMenu'|'deleteMenu'|'addStudentMealPlan'|'updateStudentMealPlan'|'deleteStudentMealPlan'|'addMealConsumptionLog'|'addMerchant'|'updateMerchant'|'deleteMerchant'|'addWalletTransaction'|'addWorkflow'|'updateWorkflow'|'deleteWorkflow'|'addWorkflowState'|'updateWorkflowState'|'deleteWorkflowState'>>({} as any);
+  const [rbac, setRbac] = useState({ permissions: [], roles: [], userRoles: [] });
   
   useEffect(() => {
     let isMounted = true;
@@ -121,6 +125,18 @@ export const useRxDBData = (
                         });
                     }
                 }, 500); 
+            }
+
+            // RBAC: Load from rbacService
+            rbacService.setDatabase(dbInstance);
+            await rbacService.loadFromDb();
+            if (isMounted) {
+                setRbac({
+                    permissions: rbacService.getAllPermissions(),
+                    roles: rbacService.getAllRoles(),
+                    userRoles: Array.from(rbacService["userRoles"].values()).flat(),
+                });
+                setLoading(prev => ({ ...prev, permissions: false, roles: false, userRoles: false }));
             }
         }
       } catch (err: any) {
@@ -343,7 +359,16 @@ export const useRxDBData = (
     addWorkflowState: unimplementedAsync as any, updateWorkflowState: unimplementedAsync as any, deleteWorkflowState: unimplementedAsync as any,
     addParentGuardian: unimplementedAsync as any, updateParentGuardian: unimplementedAsync as any, deleteParentGuardian: unimplementedAsync as any,
     addStudentGuardianRelationship: unimplementedAsync as any, updateStudentGuardianRelationship: unimplementedAsync as any, deleteStudentGuardianRelationship: unimplementedAsync as any,
-  }), [data, loading, initializationError, isUsingRxDBDummyData, triggerSeedRxDB, triggerClearRxDB, dbInstance, getStudentDetailsById, updateSchoolDetails]);
+    // RBAC fields and methods
+    permissions: rbac.permissions,
+    roles: rbac.roles,
+    userRoles: rbac.userRoles,
+    addPermission: rbacService.addPermission.bind(rbacService),
+    updatePermission: rbacService.updatePermission.bind(rbacService),
+    deletePermission: rbacService.deletePermission.bind(rbacService),
+    assignUserRole: rbacService.assignRoleToUserDb.bind(rbacService),
+    removeUserRole: rbacService.removeRoleFromUserDb.bind(rbacService),
+  }), [data, loading, initializationError, isUsingRxDBDummyData, triggerSeedRxDB, triggerClearRxDB, dbInstance, getStudentDetailsById, updateSchoolDetails, rbac]);
   
   return contextValue;
 };

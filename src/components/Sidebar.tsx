@@ -418,7 +418,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full z-40 flex flex-col ${sidebarWidth} transition-all duration-500 ${sidebarBg} rounded-r-3xl m-2 overflow-x-hidden`}
+      className={`fixed top-0 left-0 h-screen z-40 flex flex-col ${sidebarWidth} transition-all duration-500 ${sidebarBg} rounded-r-3xl overflow-x-hidden`}
       aria-label="Sidebar"
     >
       {/* Header */}

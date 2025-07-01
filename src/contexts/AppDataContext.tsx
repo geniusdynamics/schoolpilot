@@ -9,6 +9,7 @@ import { rawInitialData as mockDataContentForProdSeed } from '../hooks/useComple
 
 import type { AppDataContextType } from '../core/types';
 import Spinner from '../components/ui/Spinner'; 
+import { rbacService } from '../core/rbacService';
 
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
@@ -18,63 +19,71 @@ type RxDBServiceModuleType = typeof import('../services/rxdbService');
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const mockDataHookResult = useMockData();
-  
-  // const [rxDBHookModule, setRxDBHookModule] = useState<{ useRxDBData: UseRxDBDataHookType } | null>(null);
-  // const [rxDBServiceModule, setRxDBServiceModule] = useState<RxDBServiceModuleType | null>(null);
-  const [isProdDepsLoaded, setIsProdDepsLoaded] = useState(true); // Always true for now
+  const [rxDBHookModule, setRxDBHookModule] = useState<{ useRxDBData: UseRxDBDataHookType } | null>(null);
+  const [rxDBServiceModule, setRxDBServiceModule] = useState<RxDBServiceModuleType | null>(null);
+  const [isProdDepsLoaded, setIsProdDepsLoaded] = useState(false);
   const [prodDepsError, setProdDepsError] = useState<Error | null>(null);
-  
-  // useEffect(() => {
-  //   let isMounted = true;
-  //   if (APP_MODE === 'production') {
-  //     console.log("AppDataProvider: Production mode - attempting to load RxDB modules...");
-  //     Promise.all([
-  //       import('../hooks/useRxDBData'), 
-  //       import('../services/rxdbService') 
-  //     ]).then(([{ useRxDBData }, serviceModule]) => {
-  //       if (isMounted) {
-  //         console.log("AppDataProvider: RxDB modules loaded.");
-  //         setRxDBHookModule({ useRxDBData });
-  //         setRxDBServiceModule(serviceModule);
-  //         setIsProdDepsLoaded(true);
-  //       }
-  //     }).catch(error => {
-  //       if (isMounted) {
-  //         console.error("AppDataProvider: Failed to load RxDB modules:", error);
-  //         setProdDepsError(error);
-  //         setIsProdDepsLoaded(true); 
-  //       }
-  //     });
-  //   }
-  //   return () => { isMounted = false; };
-  // }, []);
+  const [rxDBDataHookResult, setRxDBDataHookResult] = useState<AppDataContextType | null>(null);
 
-  const rxDBDataHookResult = null; // Temporarily disable RxDB
+  useEffect(() => {
+    let isMounted = true;
+    if (APP_MODE === 'production') {
+      Promise.all([
+        import('../hooks/useRxDBData'),
+        import('../services/rxdbService')
+      ]).then(([{ useRxDBData }, serviceModule]) => {
+        if (isMounted) {
+          setRxDBHookModule({ useRxDBData });
+          setRxDBServiceModule(serviceModule);
+          setIsProdDepsLoaded(true);
+          // Initialize RxDB and useRxDBData
+          const dbPromise = serviceModule.getDatabase();
+          dbPromise.then((db: any) => {
+            const hookResult = useRxDBData(
+              serviceModule.getDatabase,
+              serviceModule.seedDatabaseWithMockData,
+              serviceModule.clearDatabase,
+              serviceModule.getUsingDummyDataFlag,
+              mockDataContentForProdSeed
+            );
+            setRxDBDataHookResult(hookResult);
+          });
+        }
+      }).catch(error => {
+        if (isMounted) {
+          setProdDepsError(error);
+          setIsProdDepsLoaded(true);
+        }
+      });
+    } else {
+      setIsProdDepsLoaded(true);
+    }
+    return () => { isMounted = false; };
+  }, []);
 
   const currentDataMode = useMemo(() => {
-    // if (APP_MODE === 'production' && isProdDepsLoaded && rxDBDataHookResult && !rxDBDataHookResult.initializationError && !prodDepsError) {
-    //   return 'rxdb';
-    // }
+    if (APP_MODE === 'production' && isProdDepsLoaded && rxDBDataHookResult && !rxDBDataHookResult.initializationError && !prodDepsError) {
+      return 'rxdb';
+    }
     return 'mock';
   }, [isProdDepsLoaded, rxDBDataHookResult, prodDepsError]);
 
   const activeHookResult = useMemo(() => {
-    // if (currentDataMode === 'rxdb' && rxDBDataHookResult) {
-    //   return rxDBDataHookResult;
-    // }
+    if (currentDataMode === 'rxdb' && rxDBDataHookResult) {
+      return rxDBDataHookResult;
+    }
     return mockDataHookResult;
   }, [currentDataMode, mockDataHookResult, rxDBDataHookResult]);
 
-  const isRxDBModeEffectivelyActive = false; // Temporarily disable RxDB
-  
-  const initializationError = null; // Temporarily disable RxDB
+  const isRxDBModeEffectivelyActive = currentDataMode === 'rxdb';
+  const initializationError = isRxDBModeEffectivelyActive ? rxDBDataHookResult?.initializationError : null;
 
   const dataSourceDescription = useMemo(() => {
     if (APP_MODE === 'demo') return "AppDataProvider: Using Mock Data (Demo Mode)";
-    // if (APP_MODE === 'production' && !isProdDepsLoaded) return "AppDataProvider: Loading RxDB modules...";
-    // if (prodDepsError) return `AppDataProvider: Using Mock Data (Fallback due to RxDB module load error: ${prodDepsError.message})`;
-    // if (initializationError) return `AppDataProvider: Using Mock Data (Fallback due to RxDB init error: ${initializationError.message})`;
-    // if (isRxDBModeEffectivelyActive) return "AppDataProvider: Using RxDB Data";
+    if (APP_MODE === 'production' && !isProdDepsLoaded) return "AppDataProvider: Loading RxDB modules...";
+    if (prodDepsError) return `AppDataProvider: Using Mock Data (Fallback due to RxDB module load error: ${prodDepsError.message})`;
+    if (initializationError) return `AppDataProvider: Using Mock Data (Fallback due to RxDB init error: ${initializationError.message})`;
+    if (isRxDBModeEffectivelyActive) return "AppDataProvider: Using RxDB Data";
     return "AppDataProvider: Using Mock Data (Production Fallback / Initializing)";
   }, [APP_MODE, isProdDepsLoaded, prodDepsError, initializationError, isRxDBModeEffectivelyActive]);
 
@@ -86,9 +95,21 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     ...activeHookResult,
     initializationError,
     isRxDBModeActive: isRxDBModeEffectivelyActive,
-    isUsingRxDBDummyData: null, // Temporarily disable RxDB
-    triggerSeedRxDB: async () => { console.warn("Seed RxDB not available in current mode or RxDB hook not loaded."); },
-    triggerClearRxDB: async () => { console.warn("Clear RxDB not available in current mode or RxDB hook not loaded."); },
+    isUsingRxDBDummyData: activeHookResult.isUsingRxDBDummyData,
+    triggerSeedRxDB: activeHookResult.triggerSeedRxDB,
+    triggerClearRxDB: activeHookResult.triggerClearRxDB,
+    // RBAC fields (from mock or rbacService)
+    permissions: activeHookResult.permissions,
+    roles: activeHookResult.roles,
+    userRoles: activeHookResult.userRoles,
+    addPermission: activeHookResult.addPermission,
+    updatePermission: activeHookResult.updatePermission,
+    deletePermission: activeHookResult.deletePermission,
+    addRole: activeHookResult.addRole,
+    updateRole: activeHookResult.updateRole,
+    deleteRole: activeHookResult.deleteRole,
+    assignUserRole: activeHookResult.assignUserRole,
+    removeUserRole: activeHookResult.removeUserRole,
   }), [activeHookResult, initializationError, isRxDBModeEffectivelyActive, currentDataMode, rxDBDataHookResult]);
 
   if (APP_MODE === 'production' && !isProdDepsLoaded) {
@@ -119,7 +140,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           fontSize: '0.85em', boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
           textAlign: 'center',
         }}>
-          <strong>Warning:</strong> Could not connect to local database. Using temporary sample data. Changes will not be saved. ({initializationError.message})
+          <strong>Warning:</strong> Could not connect to local database. Using temporary sample data. Changes will not be saved. ({initializationError?.message})
         </div>
       )}
       {children}

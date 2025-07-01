@@ -2,6 +2,7 @@
 // ABOUTME: Provides granular permission management for the modular architecture
 
 import { ModuleDefinition } from './types';
+import type { SchoolDatabase } from '../services/rxdbService';
 
 // RBAC Types
 export interface Permission {
@@ -65,6 +66,84 @@ export class RBACService {
   private permissions: Map<string, Permission> = new Map();
   private userRoles: Map<string, UserRole[]> = new Map();
   private modules: Map<string, ModuleDefinition> = new Map();
+
+  // RxDB collections
+  private db: SchoolDatabase | null = null;
+
+  public setDatabase(db: SchoolDatabase) {
+    this.db = db;
+  }
+
+  // Load all RBAC data from RxDB
+  public async loadFromDb() {
+    if (!this.db) return;
+    // Permissions
+    const permissions = await this.db.permissions.find().exec();
+    permissions.forEach(p => this.permissions.set(p.id, p));
+    // Roles
+    const roles = await this.db.rbac_roles.find().exec();
+    roles.forEach(r => this.roles.set(r.id, r));
+    // UserRoles
+    const userRoles = await this.db.user_roles.find().exec();
+    this.userRoles.clear();
+    userRoles.forEach(ur => {
+      if (!this.userRoles.has(ur.userId)) this.userRoles.set(ur.userId, []);
+      this.userRoles.get(ur.userId)!.push(ur);
+    });
+  }
+
+  // Add/update/delete Permission
+  public async addPermission(permission: Permission) {
+    if (!this.db) return;
+    await this.db.permissions.insert(permission);
+    this.permissions.set(permission.id, permission);
+  }
+  public async updatePermission(permission: Permission) {
+    if (!this.db) return;
+    const doc = await this.db.permissions.findOne({ selector: { id: permission.id } }).exec();
+    if (doc) await doc.atomicPatch(permission);
+    this.permissions.set(permission.id, permission);
+  }
+  public async deletePermission(id: string) {
+    if (!this.db) return;
+    const doc = await this.db.permissions.findOne({ selector: { id } }).exec();
+    if (doc) await doc.remove();
+    this.permissions.delete(id);
+  }
+
+  // Add/update/delete Role
+  public async addRole(role: Role) {
+    if (!this.db) return;
+    await this.db.rbac_roles.insert(role);
+    this.roles.set(role.id, role);
+  }
+  public async updateRoleDb(role: Role) {
+    if (!this.db) return;
+    const doc = await this.db.rbac_roles.findOne({ selector: { id: role.id } }).exec();
+    if (doc) await doc.atomicPatch(role);
+    this.roles.set(role.id, role);
+  }
+  public async deleteRoleDb(id: string) {
+    if (!this.db) return;
+    const doc = await this.db.rbac_roles.findOne({ selector: { id } }).exec();
+    if (doc) await doc.remove();
+    this.roles.delete(id);
+  }
+
+  // Add/remove UserRole
+  public async assignRoleToUserDb(userRole: UserRole) {
+    if (!this.db) return;
+    await this.db.user_roles.insert(userRole);
+    if (!this.userRoles.has(userRole.userId)) this.userRoles.set(userRole.userId, []);
+    this.userRoles.get(userRole.userId)!.push(userRole);
+  }
+  public async removeRoleFromUserDb(userId: string, roleId: string) {
+    if (!this.db) return;
+    const doc = await this.db.user_roles.findOne({ selector: { userId, roleId } }).exec();
+    if (doc) await doc.remove();
+    const userRoles = this.userRoles.get(userId) || [];
+    this.userRoles.set(userId, userRoles.filter(ur => ur.roleId !== roleId));
+  }
 
   constructor() {
     // No default feature module permissions/roles

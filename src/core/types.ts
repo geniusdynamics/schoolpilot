@@ -1478,6 +1478,18 @@ export type AppDataContextType = AppDataType & {
   deletePartner: (partnerId: string) => Promise<void>;
   // Invoice Generation Functions
   generateStudentInvoices: (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => Promise<any[]>;
+  // RBAC
+  permissions: Permission[];
+  roles: Role[];
+  userRoles: UserRole[];
+  addPermission: (p: Permission) => Promise<void>;
+  updatePermission: (p: Permission) => Promise<void>;
+  deletePermission: (id: string) => Promise<void>;
+  addRole: (r: Role) => Promise<void>;
+  updateRole: (r: Role) => Promise<void>;
+  deleteRole: (id: string) => Promise<void>;
+  assignRoleToUser: (userRole: UserRole) => Promise<void>;
+  removeRoleFromUser: (userId: string, roleId: string) => Promise<void>;
 };
 
 // Navigation and Module Types

@@ -108,6 +108,55 @@ const classSchema: RxJsonSchema<allTypes.Class> = createEntitySchema<allTypes.Cl
 const classStreamSchema: RxJsonSchema<allTypes.ClassStream> = createEntitySchema<allTypes.ClassStream>('class_stream', { id: { type: 'number' }, class_id: { type: 'number', ref: 'classes' }, name: { type: 'string' }, class_teacher_id: { type: ['string', 'null'], ref: 'staff' }, class_name: { type: ['string', 'null'] }, class_teacher_name: { type: ['string', 'null'] }, }, { key: 'id', type: 'number' }, ['id', 'class_id', 'name']);
 const studentInvoiceItemSchema: RxJsonSchema<allTypes.FinStudentInvoiceItemType> = createEntitySchema<allTypes.FinStudentInvoiceItemType>('student_invoice_item', { id: { type: 'string' }, invoice_id: { type: 'string' }, description: { type: 'string' }, amount: { type: 'number' }, fee_template_item_id: {type: ['string', 'null']}, student_transport_assignment_id: {type: ['string', 'null']}, fine_id: {type: ['string', 'null']}}, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'invoice_id', 'description', 'amount']);
 
+// RBAC Schemas
+const permissionSchema: RxJsonSchema = {
+  title: 'permission',
+  version: 0,
+  description: 'RBAC Permission',
+  type: 'object',
+  properties: {
+    id: { type: 'string', primary: true },
+    name: { type: 'string' },
+    description: { type: 'string' },
+    resource: { type: 'string' },
+    action: { type: 'string' },
+    moduleId: { type: 'string' },
+    feature: { type: 'string' }
+  },
+  required: ['id', 'name', 'resource', 'action', 'moduleId']
+};
+
+const rbacRoleSchema: RxJsonSchema = {
+  title: 'rbac_role',
+  version: 0,
+  description: 'RBAC Role',
+  type: 'object',
+  properties: {
+    id: { type: 'string', primary: true },
+    name: { type: 'string' },
+    description: { type: 'string' },
+    permissions: { type: 'array', items: { type: 'string' } },
+    isActive: { type: 'boolean' },
+    isSystem: { type: 'boolean' },
+    moduleAccess: { type: 'object', additionalProperties: true }
+  },
+  required: ['id', 'name', 'permissions', 'isActive', 'isSystem', 'moduleAccess']
+};
+
+const userRoleSchema: RxJsonSchema = {
+  title: 'user_role',
+  version: 0,
+  description: 'RBAC UserRole',
+  type: 'object',
+  properties: {
+    userId: { type: 'string' },
+    roleId: { type: 'string' },
+    assignedAt: { type: 'string' },
+    assignedBy: { type: 'string' },
+    expiresAt: { type: 'string' }
+  },
+  required: ['userId', 'roleId', 'assignedAt', 'assignedBy']
+};
 
 // --- Master Collections Definition (to be dynamically populated) ---
 export const collectionsDefinition: Record<string, { schema: RxJsonSchema<any>}> = { 
@@ -140,6 +189,9 @@ export const collectionsDefinition: Record<string, { schema: RxJsonSchema<any>}>
   ...inventoryCollections,
   ...libraryCollections,
   ...nutritionCollections,
+  permissions: { schema: permissionSchema },
+  rbac_roles: { schema: rbacRoleSchema },
+  user_roles: { schema: userRoleSchema },
 };
 
 // Type for the database instance, mapping collection names to RxCollection types
@@ -236,6 +288,10 @@ export type SchoolDatabaseCollections = {
   merchants: RxCollection<nutritionTypes.NutrMerchantType>;
   student_wallets: RxCollection<nutritionTypes.NutrStudentWalletType>;
   wallet_transactions: RxCollection<nutritionTypes.NutrWalletTransactionType>;
+  // RBAC collections
+  permissions: RxCollection<any>;
+  rbac_roles: RxCollection<any>;
+  user_roles: RxCollection<any>;
 };
 
 export type SchoolDatabase = RxDatabase<SchoolDatabaseCollections>;

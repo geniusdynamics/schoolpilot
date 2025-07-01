@@ -2,6 +2,7 @@
 // ABOUTME: This system allows modules to be registered, enabled/disabled, and their navigation to be dynamically generated
 
 import { ModuleDefinition, NavItem } from './types';
+import { MODULE_ORDER } from '../moduleOrder';
 
 // Module Registry Class
 class ModuleRegistry {
@@ -66,10 +67,19 @@ class ModuleRegistry {
 
   // Get navigation items from all enabled modules
   getNavigationItems(): NavItem[] {
+    let enabledModules = this.getEnabledModules();
+    // Sort by MODULE_ORDER, then alphabetically for extras
+    enabledModules = enabledModules.sort((a, b) => {
+      const aIdx = MODULE_ORDER.indexOf(a.id);
+      const bIdx = MODULE_ORDER.indexOf(b.id);
+      if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+      if (aIdx !== -1) return -1;
+      if (bIdx !== -1) return 1;
+      // Both not in MODULE_ORDER: sort alphabetically
+      return a.name.localeCompare(b.name);
+    });
     const navigationItems: NavItem[] = [];
-    
-    this.getEnabledModules().forEach(module => {
-      // Add the main module navigation item
+    enabledModules.forEach(module => {
       const mainNavItem: NavItem = {
         name: module.name,
         path: module.path,
@@ -79,10 +89,8 @@ class ModuleRegistry {
         children: module.navigation,
         isActive: module.isActive
       };
-      
       navigationItems.push(mainNavItem);
     });
-
     return navigationItems;
   }
 
