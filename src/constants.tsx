@@ -1,9 +1,10 @@
-
 // ABOUTME: Defines application-wide constants like navigation structure and app name.
 // ABOUTME: Uses translation keys for display names to support internationalization.
+// ENHANCED: Now supports dynamic module-based navigation loading
 
 import React from 'react';
-import { NavItem } from './types'; 
+import { NavItem } from './core/types'; 
+import { getDynamicNavigationItems, initializeModules } from './core/moduleLoader';
 import {
   HomeIcon,
   UsersIcon, 
@@ -56,19 +57,26 @@ import {
 export const APP_NAME_KEY = "common:appName"; // Translation key for App Name
 export const MOCK_API_DELAY = 300; // milliseconds
 
+// Initialize modules on first import
+initializeModules();
+
 // Note: The 'name' property in NavItem should now be treated as a translation key.
 // The Sidebar component will use this key to fetch the translated string.
 
-export const NAVIGATION_ITEMS: NavItem[] = [
+// Dynamic navigation items from module registry
+export const NAVIGATION_ITEMS: NavItem[] = getDynamicNavigationItems();
+
+// Fallback navigation items (for backward compatibility)
+export const FALLBACK_NAVIGATION_ITEMS: NavItem[] = [
   { name: 'navigation:dashboard', path: '/dashboard', icon: <HomeIcon /> },
   {
     name: 'navigation:administration.title',
     path: '/administration/dashboard',
-    icon: <CogIcon />,
+    icon: <AcademicCapIcon />,
     isGroup: true,
     modulePath: '/administration',
     children: [
-      { name: 'navigation:administration.dashboard', path: '/administration/dashboard', icon: <CogIcon /> },
+      { name: 'navigation:administration.dashboard', path: '/administration/dashboard', icon: <AcademicCapIcon /> },
       { name: 'navigation:administration.students', path: '/administration/students', icon: <UsersIcon /> },
       { name: 'navigation:administration.staff', path: '/administration/staff', icon: <UserGroupIcon /> },
       { name: 'navigation:administration.partners', path: '/administration/partners', icon: <UserCircleIcon /> },
@@ -91,11 +99,11 @@ export const NAVIGATION_ITEMS: NavItem[] = [
   {
     name: 'navigation:academics.title',
     path: '/academics/dashboard',
-    icon: <AcademicCapIcon />,
+    icon: <BookOpenIcon />,
     isGroup: true,
     modulePath: '/academics',
     children: [
-      { name: 'navigation:academics.dashboard', path: '/academics/dashboard', icon: <BeakerIcon /> },
+      { name: 'navigation:academics.dashboard', path: '/academics/dashboard', icon: <BookOpenIcon /> },
       { name: 'navigation:academics.classes', path: '/academics/classes', icon: <AcademicCapIcon /> },
       { name: 'navigation:academics.subjects', path: '/academics/subjects', icon: <BookOpenIcon /> },
       { name: 'navigation:academics.subjectPapers', path: '/academics/subject-papers', icon: <BookOpenIcon /> },

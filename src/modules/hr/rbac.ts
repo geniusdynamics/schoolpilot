@@ -1,0 +1,151 @@
+import { Permission } from '../../core/rbacService';
+
+export const hrPermissions: Permission[] = [
+  // Dashboard
+  {
+    id: 'hr.dashboard.read',
+    name: 'View HR Dashboard',
+    description: 'View the HR dashboard',
+    resource: 'hr.dashboard',
+    action: 'read',
+    moduleId: 'hr',
+    feature: 'dashboard',
+  },
+  // Payroll Item Types
+  {
+    id: 'hr.payrollItemTypes.read',
+    name: 'View Payroll Item Types',
+    description: 'View payroll item types',
+    resource: 'hr.payrollItemTypes',
+    action: 'read',
+    moduleId: 'hr',
+    feature: 'payroll-management',
+  },
+  {
+    id: 'hr.payrollItemTypes.create',
+    name: 'Create Payroll Item Types',
+    description: 'Create new payroll item types',
+    resource: 'hr.payrollItemTypes',
+    action: 'create',
+    moduleId: 'hr',
+    feature: 'payroll-management',
+  },
+  {
+    id: 'hr.payrollItemTypes.update',
+    name: 'Update Payroll Item Types',
+    description: 'Update payroll item types',
+    resource: 'hr.payrollItemTypes',
+    action: 'update',
+    moduleId: 'hr',
+    feature: 'payroll-management',
+  },
+  {
+    id: 'hr.payrollItemTypes.delete',
+    name: 'Delete Payroll Item Types',
+    description: 'Delete payroll item types',
+    resource: 'hr.payrollItemTypes',
+    action: 'delete',
+    moduleId: 'hr',
+    feature: 'payroll-management',
+  },
+  // Payroll Periods
+  {
+    id: 'hr.payrollPeriods.read',
+    name: 'View Payroll Periods',
+    description: 'View payroll periods',
+    resource: 'hr.payrollPeriods',
+    action: 'read',
+    moduleId: 'hr',
+    feature: 'payroll-management',
+  },
+  {
+    id: 'hr.payrollPeriods.create',
+    name: 'Create Payroll Periods',
+    description: 'Create new payroll periods',
+    resource: 'hr.payrollPeriods',
+    action: 'create',
+    moduleId: 'hr',
+    feature: 'payroll-management',
+  },
+  {
+    id: 'hr.payrollPeriods.update',
+    name: 'Update Payroll Periods',
+    description: 'Update payroll periods',
+    resource: 'hr.payrollPeriods',
+    action: 'update',
+    moduleId: 'hr',
+    feature: 'payroll-management',
+  },
+  {
+    id: 'hr.payrollPeriods.delete',
+    name: 'Delete Payroll Periods',
+    description: 'Delete payroll periods',
+    resource: 'hr.payrollPeriods',
+    action: 'delete',
+    moduleId: 'hr',
+    feature: 'payroll-management',
+  },
+  // Payslips
+  {
+    id: 'hr.payslips.read',
+    name: 'View Payslips',
+    description: 'View payslips',
+    resource: 'hr.payslips',
+    action: 'read',
+    moduleId: 'hr',
+    feature: 'staff-compensation',
+  },
+  {
+    id: 'hr.payslips.create',
+    name: 'Create Payslips',
+    description: 'Create new payslips',
+    resource: 'hr.payslips',
+    action: 'create',
+    moduleId: 'hr',
+    feature: 'staff-compensation',
+  },
+  {
+    id: 'hr.payslips.update',
+    name: 'Update Payslips',
+    description: 'Update payslip information',
+    resource: 'hr.payslips',
+    action: 'update',
+    moduleId: 'hr',
+    feature: 'staff-compensation',
+  },
+  {
+    id: 'hr.payslips.delete',
+    name: 'Delete Payslips',
+    description: 'Delete payslips',
+    resource: 'hr.payslips',
+    action: 'delete',
+    moduleId: 'hr',
+    feature: 'staff-compensation',
+  },
+  // Staff Salary Settings
+  {
+    id: 'hr.staffSalarySettings.read',
+    name: 'View Staff Salary Settings',
+    description: 'View staff salary settings',
+    resource: 'hr.staffSalarySettings',
+    action: 'read',
+    moduleId: 'hr',
+    feature: 'staff-compensation',
+  },
+  {
+    id: 'hr.staffSalarySettings.update',
+    name: 'Update Staff Salary Settings',
+    description: 'Update staff salary settings',
+    resource: 'hr.staffSalarySettings',
+    action: 'update',
+    moduleId: 'hr',
+    feature: 'staff-compensation',
+  },
+];
+
+export const hrDefaultRoles = ['hr_manager', 'administrator'];
+
+export default {
+  permissions: hrPermissions,
+  defaultRoles: hrDefaultRoles,
+}; 

@@ -1,42 +1,46 @@
-
-import React, { ReactNode, useState } from 'react';
-import Sidebar from './Sidebar';
+import React, { useState, useEffect } from 'react';
+import PrimarySidebar from './PrimarySidebar';
+import SecondarySidebar from './SecondarySidebar';
+import SettingsPopup from './SettingsPopup';
 import Header from './Header';
-import { useAppData } from '@/contexts/AppDataContext'; // Import useAppData
+import { NAVIGATION_ITEMS } from '../constants';
+import useDynamicNavigation from '../hooks/useDynamicNavigation';
 
-interface LayoutProps {
-  children: ReactNode;
-}
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { getMainModules, isLoading } = useDynamicNavigation();
+  const [showSettings, setShowSettings] = useState(false);
+  const [selectedModuleKey, setSelectedModuleKey] = useState('');
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
-  const { loading } = useAppData(); // Consume the AppDataContext
+  // Set default module when navigation loads
+  useEffect(() => {
+    if (!isLoading) {
+      const mainModules = getMainModules();
+      if (mainModules.length > 0 && !selectedModuleKey) {
+        setSelectedModuleKey(mainModules[0].name);
+      }
+    }
+  }, [isLoading, getMainModules, selectedModuleKey]);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  const handleModuleSelect = (moduleKey: string) => {
+    if (moduleKey === selectedModuleKey) {
+      setIsSubmenuOpen((open: boolean) => !open); // toggle submenu
+    } else {
+      setSelectedModuleKey(moduleKey);
+      setIsSubmenuOpen(true); // open submenu for new module
+    }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
-        isSidebarOpen ? 'lg:ml-0' : 'lg:ml-0'
-      }`}>
-        <Header toggleSidebar={toggleSidebar} />
-        <main 
-          className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 md:p-6"
-          aria-busy={loading.all} // Set aria-busy based on global loading state
-          aria-live="polite" // Inform screen readers of changes in busy state
-        >
-          {/* Overlay for mobile when sidebar is open */}
-          {isSidebarOpen && (
-            <div 
-              className="fixed inset-0 z-10 bg-black opacity-50 lg:hidden" 
-              onClick={toggleSidebar}
-            ></div>
-          )}
+    <div className="flex flex-col h-screen w-screen bg-slate-100">
+      <Header onSettings={() => setShowSettings(true)} />
+      <div className="flex flex-1 min-h-0 pt-16">
+        <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
+        <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
+        <main className="flex-1 overflow-auto p-6">
           {children}
         </main>
+        <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />
       </div>
     </div>
   );

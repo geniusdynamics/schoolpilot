@@ -1479,3 +1479,116 @@ export type AppDataContextType = AppDataType & {
   // Invoice Generation Functions
   generateStudentInvoices: (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => Promise<any[]>;
 };
+
+// Navigation and Module Types
+export interface NavItem {
+  name: string; // Translation key
+  path: string;
+  icon?: React.ReactNode;
+  isGroup?: boolean;
+  modulePath?: string;
+  children?: NavItem[];
+  permissions?: string[]; // Optional permissions required
+  isActive?: boolean; // Whether this module/feature is active
+}
+
+export interface ModuleDefinition {
+  id: string;
+  name: string; // Translation key for module name
+  description?: string; // Translation key for module description
+  icon: React.ReactNode;
+  path: string; // Base path for the module
+  isActive: boolean; // Whether the module is enabled
+  version: string;
+  dependencies?: string[]; // Other modules this depends on
+  permissions?: string[]; // Permissions required to access this module
+  navigation: NavItem[]; // Navigation items for this module
+  features?: string[]; // List of features this module provides
+  settings?: {
+    category: string; // Settings category
+    items: Array<{
+      key: string;
+      type: 'boolean' | 'string' | 'number' | 'select';
+      defaultValue: any;
+      options?: Array<{ value: any; label: string }>;
+    }>;
+  };
+}
+
+export interface LanguageOption {
+  code: string;
+  name: string;
+  nativeName: string;
+  flag: string; // Country code for flag emoji or flag icon
+  isRTL?: boolean;
+}
+
+// RBAC Types
+export interface Permission {
+  id: string;
+  name: string;
+  description: string;
+  resource: string; // e.g., 'administration.students', 'finance.payments'
+  action: 'create' | 'read' | 'update' | 'delete' | 'execute';
+  moduleId: string;
+  feature?: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[]; // Permission IDs
+  isActive: boolean;
+  isSystem: boolean; // System roles cannot be deleted
+  moduleAccess: {
+    [moduleId: string]: {
+      enabled: boolean;
+      permissions: string[]; // Specific permissions for this module
+    };
+  };
+}
+
+export interface UserRole {
+  userId: string;
+  roleId: string;
+  assignedAt: Date;
+  assignedBy: string;
+  expiresAt?: Date;
+}
+
+export interface ModulePermission {
+  moduleId: string;
+  permissions: Permission[];
+  navigationItems: string[]; // Navigation item IDs that are accessible
+  features: string[]; // Features that are accessible
+}
+
+// Enhanced ModuleDefinition with RBAC support
+export interface ModuleDefinition {
+  id: string;
+  name: string; // Translation key for module name
+  description?: string; // Translation key for module description
+  icon: React.ReactNode;
+  path: string; // Base path for the module
+  isActive: boolean; // Whether the module is enabled
+  version: string;
+  dependencies?: string[]; // Other modules this depends on
+  permissions?: string[]; // Permissions required to access this module
+  navigation: NavItem[]; // Navigation items for this module
+  features?: string[]; // List of features this module provides
+  settings?: {
+    category: string; // Settings category
+    items: Array<{
+      key: string;
+      type: 'boolean' | 'string' | 'number' | 'select';
+      defaultValue: any;
+      options?: Array<{ value: any; label: string }>;
+    }>;
+  };
+  // RBAC-specific properties
+  rbacPermissions?: Permission[];
+  defaultRoles?: string[]; // Roles that have access by default
+  requiresAuthentication?: boolean;
+  publicAccess?: boolean; // Whether module can be accessed without authentication
+}

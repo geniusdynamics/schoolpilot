@@ -1,0 +1,78 @@
+import { Permission } from '../../core/rbacService';
+
+export const academicsPermissions: Permission[] = [
+  {
+    id: 'academics.subjects.read',
+    name: 'View Subjects',
+    description: 'View subject information',
+    resource: 'academics.subjects',
+    action: 'read',
+    moduleId: 'academics',
+    feature: 'subject-management',
+  },
+  {
+    id: 'academics.subjects.create',
+    name: 'Create Subjects',
+    description: 'Create new subjects',
+    resource: 'academics.subjects',
+    action: 'create',
+    moduleId: 'academics',
+    feature: 'subject-management',
+  },
+  {
+    id: 'academics.subjects.update',
+    name: 'Update Subjects',
+    description: 'Update subject information',
+    resource: 'academics.subjects',
+    action: 'update',
+    moduleId: 'academics',
+    feature: 'subject-management',
+  },
+  {
+    id: 'academics.subjects.delete',
+    name: 'Delete Subjects',
+    description: 'Delete subjects',
+    resource: 'academics.subjects',
+    action: 'delete',
+    moduleId: 'academics',
+    feature: 'subject-management',
+  },
+  {
+    id: 'academics.exams.read',
+    name: 'View Exams',
+    description: 'View exam information',
+    resource: 'academics.exams',
+    action: 'read',
+    moduleId: 'academics',
+    feature: 'exam-management',
+  },
+  {
+    id: 'academics.exams.create',
+    name: 'Create Exams',
+    description: 'Create new exams',
+    resource: 'academics.exams',
+    action: 'create',
+    moduleId: 'academics',
+    feature: 'exam-management',
+  },
+  {
+    id: 'academics.exams.update',
+    name: 'Update Exams',
+    description: 'Update exam information',
+    resource: 'academics.exams',
+    action: 'update',
+    moduleId: 'academics',
+    feature: 'exam-management',
+  },
+  {
+    id: 'academics.exams.delete',
+    name: 'Delete Exams',
+    description: 'Delete exams',
+    resource: 'academics.exams',
+    action: 'delete',
+    moduleId: 'academics',
+    feature: 'exam-management',
+  },
+];
+
+export const academicsDefaultRoles = ['teacher', 'administrator']; 

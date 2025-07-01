@@ -50,3 +50,152 @@
     text-wrap: balance;
   }
 }
+
+/* Phase 2: Advanced Animations and Micro-interactions */
+
+/* Staggered animation for navigation items */
+.nav-item-staggered {
+  animation: staggered 0.5s ease-out both;
+  animation-delay: calc(var(--item-index) * 0.05s);
+}
+
+@keyframes staggered {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Enhanced hover effects */
+.nav-item:hover {
+  transform: translateX(4px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-group-header:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Micro-interaction ripple effect */
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.nav-item:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Loading skeleton animation */
+.skeleton-loading {
+  background: linear-gradient(90deg, 
+    rgba(148, 163, 184, 0.1) 25%, 
+    rgba(148, 163, 184, 0.2) 50%, 
+    rgba(148, 163, 184, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Pulse animation for active indicators */
+.active-pulse {
+  animation: activePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes activePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Smooth slide down for dropdowns */
+.slide-down-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.slide-down-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+.slide-down-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.slide-down-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+/* Enhanced focus states */
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: scale(1.02);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Enhanced mobile responsiveness */
+@media (max-width: 1023px) {
+  .sidebar-mobile {
+    backdrop-filter: blur(20px);
+  }
+  
+  .nav-item-mobile {
+    padding: 16px 20px;
+    font-size: 1rem;
+  }
+  
+  .nav-icon-mobile {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .nav-item-staggered {
+    animation: none;
+  }
+  
+  .skeleton-loading {
+    animation: none;
+  }
+  
+  .active-pulse {
+    animation: none;
+  }
+}
