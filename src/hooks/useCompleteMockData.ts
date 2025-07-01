@@ -54,6 +54,15 @@ import {
     initialMockAcademicYears,
     initialMockSchoolPeriods,
 } from '../modules/administration/data/mockData';
+import {
+  AdminPartnerType,
+  AdminClubAndSocietyType,
+  AdminTemplateCommType,
+  AdminCampaignType,
+  AdminStudentAttendanceType
+} from '../modules/administration/data/types';
+import { useDepartmentData } from '../modules/administration/data/useDepartmentData';
+import { useDesignationData } from '../modules/administration/data/useDesignationData';
 
 // Academics
 import {
@@ -233,13 +242,13 @@ export const rawInitialData: AppDataType = {
     studentWallets: initialMockStudentWallets,
 
     // Administration-specific data
-    partners: initialMockPartners,
-    clubs: initialMockClubsAndSocieties,
+    partners: initialMockPartners as AdminPartnerType[],
+    clubs: initialMockClubsAndSocieties as AdminClubAndSocietyType[],
     customers: initialMockCustomers,
     studentHealthRecords: initialMockStudentHealthRecords,
-    studentAttendance: initialMockStudentAttendance,
-    templatesComm: initialMockTemplateComms,
-    campaigns: initialMockCampaigns,
+    studentAttendance: initialMockStudentAttendance as AdminStudentAttendanceType[],
+    templatesComm: initialMockTemplateComms as AdminTemplateCommType[],
+    campaigns: initialMockCampaigns as AdminCampaignType[],
     workflows: initialMockWorkflows,
     
     // Academic Year Data from Administration Module
@@ -250,6 +259,7 @@ export const rawInitialData: AppDataType = {
     supplierInvoices: [] as SupplierInvoice[],
     auditLogs: [] as AuditLog[],
     rfqs: [] as RFQ[],
+    studentPaperMarks: [], // Add this property to match usage
 };
 
 // --- Mock RBAC Data ---
@@ -1850,41 +1860,14 @@ export const useMockData = (): AppDataContextType => {
   },
 
   // Department CRUD operations
-  addDepartment: async (deptData: any) => {
-    await delay(MOCK_API_DELAY);
-    const newDepartment = {
-      ...deptData,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setData(prev => ({
-      ...prev,
-      departments: [...(prev.departments || []), newDepartment]
-    }));
-    return newDepartment;
-  },
+  addDepartment: useDepartmentData().addDepartment,
+  updateDepartment: useDepartmentData().updateDepartment,
+  deleteDepartment: useDepartmentData().deleteDepartment,
 
-  updateDepartment: async (updatedDept: any) => {
-    await delay(MOCK_API_DELAY);
-    setData(prev => ({
-      ...prev,
-      departments: (prev.departments || []).map((dept: any) => 
-        dept.id === updatedDept.id 
-          ? { ...updatedDept, updated_at: new Date().toISOString() }
-          : dept
-      )
-    }));
-    return updatedDept;
-  },
-
-  deleteDepartment: async (deptId: number) => {
-    await delay(MOCK_API_DELAY);
-    setData(prev => ({
-      ...prev,
-      departments: (prev.departments || []).filter((dept: any) => dept.id !== deptId)
-    }));
-  },
+  // Designation CRUD operations
+  addDesignation: useDesignationData().addDesignation,
+  updateDesignation: useDesignationData().updateDesignation,
+  deleteDesignation: useDesignationData().deleteDesignation,
 
   // === PLACEHOLDER FUNCTIONS FOR REMAINING OPERATIONS ===
   // Academic Year Structure CRUD operations (stub)
@@ -1937,11 +1920,6 @@ export const useMockData = (): AppDataContextType => {
   addSchoolPeriod: unimplementedAsync,
   updateSchoolPeriod: unimplementedAsync,
   deleteSchoolPeriod: unimplementedAsync,
-  
-  // Designation CRUD operations (stub)
-  addDesignation: unimplementedAsync,
-  updateDesignation: unimplementedAsync,
-  deleteDesignation: unimplementedAsync,
   
   // Student Category CRUD operations (stub)
   addStudentCategory: unimplementedAsync,

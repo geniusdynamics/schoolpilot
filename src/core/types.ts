@@ -272,11 +272,20 @@ export interface User {
 }
 
 export interface Role {
-  id: number;
+  id: string;
   name: string;
   description?: string | null;
   created_at: string;
   updated_at: string;
+  permissions: string[]; // Permission IDs
+  isActive: boolean;
+  isSystem: boolean; // System roles cannot be deleted
+  moduleAccess: {
+    [moduleId: string]: {
+      enabled: boolean;
+      permissions: string[]; // Specific permissions for this module
+    };
+  };
 }
 
 export interface AcademicYearStructure {
@@ -1449,6 +1458,7 @@ export type AppDataType = {
   generalPayments: GeneralPayment[];
   generalLedgerEntries: GeneralLedgerEntry[];
   rfqs: RFQ[];
+  studentPaperMarks: StudentPaperMark[];
 };
 
 // Loading states should only map over the data types
@@ -1544,21 +1554,6 @@ export interface Permission {
   action: 'create' | 'read' | 'update' | 'delete' | 'execute';
   moduleId: string;
   feature?: string;
-}
-
-export interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[]; // Permission IDs
-  isActive: boolean;
-  isSystem: boolean; // System roles cannot be deleted
-  moduleAccess: {
-    [moduleId: string]: {
-      enabled: boolean;
-      permissions: string[]; // Specific permissions for this module
-    };
-  };
 }
 
 export interface UserRole {
