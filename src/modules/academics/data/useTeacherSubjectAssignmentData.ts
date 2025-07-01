@@ -1,36 +1,18 @@
-// ABOUTME: Global provider hook for TeacherSubjectAssignment entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Provides CRUD and data provider logic for TeacherSubjectAssignment in Academics.
+// ABOUTME: Exports a global provider hook for system-wide use.
 
 import { useState } from 'react';
-import { TeacherSubjectAssignment } from '../../../core/types';
+import { AcademicsTeacherSubjectAssignmentType } from './types';
+import { initialMockTeacherSubjectAssignments } from './mockData';
 
 export const isGlobalProvider = true;
 
 export function useTeacherSubjectAssignmentData() {
-  const [teacherSubjectAssignments, setTeacherSubjectAssignments] = useState<TeacherSubjectAssignment[]>([]);
+  const [data, setData] = useState<AcademicsTeacherSubjectAssignmentType[]>(initialMockTeacherSubjectAssignments);
 
-  const addTeacherSubjectAssignment = (data: Omit<TeacherSubjectAssignment, 'id'>) => {
-    const newAssignment: TeacherSubjectAssignment = {
-      ...data,
-      id: `TSA${Date.now()}`,
-    };
-    setTeacherSubjectAssignments(prev => [...prev, newAssignment]);
-    return newAssignment;
-  };
-
-  const updateTeacherSubjectAssignment = (updated: TeacherSubjectAssignment) => {
-    setTeacherSubjectAssignments(prev => prev.map(a => a.id === updated.id ? { ...updated } : a));
-    return updated;
-  };
-
-  const deleteTeacherSubjectAssignment = (id: string) => {
-    setTeacherSubjectAssignments(prev => prev.filter(a => a.id !== id));
-  };
-
-  return {
-    teacherSubjectAssignments,
-    addTeacherSubjectAssignment,
-    updateTeacherSubjectAssignment,
-    deleteTeacherSubjectAssignment,
-  };
+  const create = (item: AcademicsTeacherSubjectAssignmentType) => setData(prev => [...prev, item]);
+  const update = (id: string, updates: Partial<AcademicsTeacherSubjectAssignmentType>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
+  const get = (id: string) => data.find(item => item.id === id);
+  return { data, create, update, remove, get };
 } 

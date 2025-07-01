@@ -15,3 +15,7 @@ export { isGlobalProvider as isGradingSchemeLevelGlobalProvider, useGradingSchem
 export { isGlobalProvider as isStudentExamResultGlobalProvider, useStudentExamResultData } from './useStudentExamResultData';
 export { isGlobalProvider as isStudentPaperMarkGlobalProvider, useStudentPaperMarkData } from './useStudentPaperMarkData';
 export { isGlobalProvider as isClassSubjectAllocationGlobalProvider, useClassSubjectAllocationData } from './useClassSubjectAllocationData';
+export { isGlobalProvider as isTeacherSubjectAssignmentGlobalProvider, useTeacherSubjectAssignmentData } from './useTeacherSubjectAssignmentData';
+export { isGlobalProvider as isStudentSubjectEnrollmentGlobalProvider, useStudentSubjectEnrollmentData } from './useStudentSubjectEnrollmentData';
+export { isGlobalProvider as isTimetablePeriodDefGlobalProvider, useTimetablePeriodDefData } from './useTimetablePeriodDefData';
+export { isGlobalProvider as isTimetableEntryGlobalProvider, useTimetableEntryData } from './useTimetableEntryData';
