@@ -4,6 +4,7 @@
 import { ModuleDefinition } from './types';
 import type { SchoolDatabase } from '../services/rxdbService';
 import type { RbacRole } from './types';
+import { APP_MODE } from '../contexts/config';
 
 // RBAC Types
 export interface Permission {
@@ -321,29 +322,31 @@ export class RBACService {
   }
 
   public initializeSuperAdminRole() {
-    const allPermissionIds = Array.from(this.permissions.keys());
-    const superAdminRole: RbacRole = {
-      id: SYSTEM_ROLES.SUPER_ADMIN,
-      name: 'Super Administrator',
-      description: 'Has all permissions in the system.',
-      permissions: allPermissionIds,
-      isActive: true,
-      isSystem: true,
-      moduleAccess: {},
-    };
-
-    // Grant access to all modules
-    for (const moduleId of this.modules.keys()) {
-      superAdminRole.moduleAccess[moduleId] = {
-        enabled: true,
-        permissions: Array.from(this.permissions.values())
-          .filter(p => p.moduleId === moduleId)
-          .map(p => p.id),
+    if (APP_MODE === 'demo') {
+      const allPermissionIds = Array.from(this.permissions.keys());
+      const superAdminRole: RbacRole = {
+        id: SYSTEM_ROLES.SUPER_ADMIN,
+        name: 'Super Administrator',
+        description: 'Has all permissions in the system.',
+        permissions: allPermissionIds,
+        isActive: true,
+        isSystem: true,
+        moduleAccess: {},
       };
-    }
 
-    this.roles.set(SYSTEM_ROLES.SUPER_ADMIN, superAdminRole);
-    console.log('Initialized Super Admin role with all permissions.');
+      // Grant access to all modules
+      for (const moduleId of this.modules.keys()) {
+        superAdminRole.moduleAccess[moduleId] = {
+          enabled: true,
+          permissions: Array.from(this.permissions.values())
+            .filter(p => p.moduleId === moduleId)
+            .map(p => p.id),
+        };
+      }
+
+      this.roles.set(SYSTEM_ROLES.SUPER_ADMIN, superAdminRole);
+      console.log('Initialized Super Admin role with all permissions for demo mode.');
+    }
   }
 
   // Filter navigation items based on user permissions

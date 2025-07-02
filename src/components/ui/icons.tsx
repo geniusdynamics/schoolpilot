@@ -468,3 +468,5 @@ export const FolderIcon: React.FC<IconProps> = (props) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75A2.25 2.25 0 014.5 4.5h3.379c.621 0 1.21.288 1.591.788l1.26 1.684a2.25 2.25 0 001.591.788H19.5a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25H4.5A2.25 2.25 0 012.25 17.25v-10.5z" />
   </svg>
 );
+
+export { XMarkIcon } from '@heroicons/react/24/outline';

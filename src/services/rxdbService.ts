@@ -3,7 +3,7 @@ import {
   createRxDatabase, addRxPlugin, RxDatabase, RxCollection, RxJsonSchema, toTypedRxJsonSchema, PrimaryKey, RxDocumentData
 } from 'rxdb';
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-storage';
+import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema';
 import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
 import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
 import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
