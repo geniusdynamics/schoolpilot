@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Payslip, PayrollPeriod, PayslipStatus, PayslipItem, AcademicYear } from '../../types';
 import Card from '../../components/ui/Card';
@@ -9,6 +8,7 @@ import Select from '../../components/ui/Select';
 import { ScaleIcon, EyeIcon, ListBulletIcon, CalendarDaysIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 const PayslipsPage: React.FC = () => {
   const { 

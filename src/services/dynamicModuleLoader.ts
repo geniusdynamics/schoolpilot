@@ -72,15 +72,28 @@ class DynamicModuleLoader {
       
       // Load RBAC if available
       try {
-        const rbac = await import(`../modules/${moduleId}/rbac.ts`);
-        if (rbac.defaultPermissions) {
-          module.rbacPermissions = rbac.defaultPermissions;
+        const rbacModule = await import(`../modules/${moduleId}/rbac.ts`);
+        
+        // Find the first exported array that looks like a permissions array.
+        const permissions = Object.values(rbacModule).find(val => 
+          Array.isArray(val) && 
+          val.length > 0 && 
+          val[0].id && 
+          val[0].resource
+        );
+
+        if (permissions) {
+          module.rbacPermissions = permissions as any;
         }
-        if (rbac.defaultRoles) {
-          module.defaultRoles = rbac.defaultRoles;
+        
+        // Also handle default export object which is used in some modules
+        if (rbacModule.default && rbacModule.default.permissions) {
+            module.rbacPermissions = rbacModule.default.permissions;
         }
-      } catch (rbacError) {
-        console.warn(`⚠️ No RBAC found for module ${moduleId}:`, rbacError);
+
+      } catch (error) {
+        // This is not a critical error, modules may not have rbac.ts file
+        // console.warn(`Could not load RBAC for module ${moduleId}:`, error);
       }
 
       // Cache the loaded module

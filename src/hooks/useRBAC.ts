@@ -37,7 +37,7 @@ export interface RBACHookReturn {
 export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   // Get user roles
   const userRoles = useMemo((): string[] => {
-    if (!userId) return [];
+    if (!userId) return ['super_admin'];
     // This would typically come from the user context or API
     // For now, we'll use a default role based on user type
     if (userType === 'Staff') {

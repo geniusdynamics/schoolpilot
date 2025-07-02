@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PayrollPeriod, FinancialYear, SchoolPeriod, PayrollPeriodStatus } from '../../types';
 import Card from '../../components/ui/Card';
@@ -10,6 +9,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type PayrollPeriodFormData = Omit<Partial<PayrollPeriod>, 'id' | 'financial_year_name' | 'school_period_name' | 'status'> & {
     status: PayrollPeriodStatus; // Make status required for form

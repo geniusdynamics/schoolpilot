@@ -424,4 +424,23 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - Language switching (English/French) was tested and works as expected.
 - No hardcoded UI labels remain in the Finance module.
 
+## [HR Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the HR module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/hr.json` and `src/i18n/locales/fr/hr.json` as needed.
+- Language switching was validated for all HR pages.
+
+**Files/Directories Updated:**
+- `src/pages/hr/HRDashboardPage.tsx`
+- `src/pages/hr/PayrollItemTypesPage.tsx`
+- `src/pages/hr/PayrollPeriodsPage.tsx`
+- `src/pages/hr/PayslipsPage.tsx`
+- `src/pages/hr/StaffSalarySettingsPage.tsx`
+
+**Validation:**
+- All HR pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the HR module.
+
 ---

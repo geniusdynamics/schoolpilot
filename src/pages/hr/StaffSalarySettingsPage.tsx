@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Staff, StaffSalarySetting, StaffRecurringItem, PayrollItemType, PayrollItemCategory } from '../../types';
 import Card from '../../components/ui/Card';
@@ -10,6 +9,7 @@ import Select from '../../components/ui/Select';
 import { CogIcon, EditIcon, DeleteIcon, PlusIcon, WalletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type SalarySettingFormData = Omit<Partial<StaffSalarySetting>, 'id' | 'staff_id' | 'created_at' | 'updated_at' | 'staff_name' | 'recurring_items'>;
 type RecurringItemFormData = Omit<Partial<StaffRecurringItem>, 'id' | 'staff_salary_setting_id' | 'created_at' | 'item_type_name' | 'item_category'>;

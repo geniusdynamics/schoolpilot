@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PayrollItemType, PayrollItemCategory, PayrollTaxImplication } from '../../types';
 import Card from '../../components/ui/Card';
@@ -10,6 +9,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type PayrollItemTypeFormData = Omit<Partial<PayrollItemType>, 'id' | 'created_at' | 'updated_at' | 'category' | 'tax_implication'> & {
     category: PayrollItemCategory; 
