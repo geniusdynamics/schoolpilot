@@ -11,7 +11,7 @@ import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
 
 type LoanFormData = Omit<Partial<Loan>, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name' | 'loan_date' | 'user_type'> & {
-    user_type?: UserType; // for selection
+    user_type?: 'Staff' | 'Student' | 'Parent' | ...; // for selection
 };
 
 const BookLoansPage: React.FC = () => {
@@ -37,7 +37,7 @@ const BookLoansPage: React.FC = () => {
   const [formData, setFormData] = useState<LoanFormData>(initialFormData);
 
   const availableBooks = useMemo(() => books.filter(b => b.status === BookStatus.AVAILABLE), [books]);
-  const borrowers = useMemo(() => users.filter(u => u.is_active && (u.user_type === UserType.STUDENT || u.user_type === UserType.STAFF)), [users]);
+  const borrowers = useMemo(() => users.filter(u => u.isActive && (u.userType === 'Student' || u.userType === 'Staff')), [users]);
 
 
   const openModal = (loan?: Loan) => {
@@ -65,11 +65,11 @@ const BookLoansPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    let processedValue: string | number | undefined | UserType = value;
+    let processedValue: string | number | undefined | 'Staff' | 'Student' | 'Parent' | ... = value;
     if (name === 'book_id' || name === 'user_id') {
         processedValue = value || undefined;
     } else if (name === 'user_type') {
-        processedValue = value as UserType || undefined;
+        processedValue = value as 'Staff' | 'Student' | 'Parent' | ... || undefined;
     }
     setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
@@ -177,7 +177,7 @@ const BookLoansPage: React.FC = () => {
           disabled={!!editingLoan}
         >
           <option value="">Select User</option>
-          {borrowers.map(user => <option key={user.id} value={user.id}>{user.display_name} ({user.user_type})</option>)}
+          {borrowers.map(user => <option key={user.id} value={user.id}>{user.displayName} ({user.userType})</option>)}
         </Select>
         <Input 
           name="due_date" 

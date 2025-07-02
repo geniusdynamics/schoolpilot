@@ -58,9 +58,9 @@ const SettingsPage: React.FC = () => {
   const userColumns = [
     { header: t('tableHeaders.username'), accessor: 'username' as keyof User },
     { header: t('tableHeaders.email'), accessor: 'email' as keyof User },
-    { header: t('tableHeaders.userType'), accessor: 'user_type' as keyof User},
+    { header: t('tableHeaders.userType'), accessor: 'userType' as keyof User},
     { header: t('tableHeaders.role'), accessor: 'role' as keyof User }, 
-    { header: t('tableHeaders.status'), accessor: 'is_active' as keyof User }
+    { header: t('tableHeaders.status'), accessor: 'isActive' as keyof User }
   ];
 
   const pageIsLoadingSchoolDetails = appLoading.schoolDetails || (appLoading.all && !initialSchoolDetails);

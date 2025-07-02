@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Student, Staff, Class, Subject, User, // Core entities
-  PersonGender, StudentStatus, SubjectGrouping, UserType, // Enums
+  PersonGender, StudentStatus, SubjectGrouping, // Enums
   SchoolPeriod, AcademicYear, StudentCategory, Dormitory, // Supporting adm/core entities
   ParentGuardian, StudentGuardianRelationship, // For student relationships
   ExamResultSummary, // Simplified exam summary for UI
@@ -60,13 +60,13 @@ const initialMockRoles: Role[] = [
 ];
 
 const initialMockUsers: User[] = [
-  { id: 'USR_MOCK_ADMIN', username: 'admin_user', email: 'admin@example.com', user_type: UserType.STAFF, is_active: true, role_id: 1, role: 'Administrator', display_name: 'Admin User (Mock)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
-  { id: 'STF001', username: 'mscott', email: 'm.scott@example.com', user_type: UserType.STAFF, is_active: true, role_id: 1, role: 'Administrator', display_name: 'Michael Scott', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
-  { id: 'STF002', username: 'dschrute', email: 'd.schrute@example.com', user_type: UserType.STAFF, is_active: true, role_id: 2, role: 'Teacher', display_name: 'Dwight Schrute', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
-  { id: 'STF003', username: 'pbeesly', email: 'p.beesly@example.com', user_type: UserType.STAFF, is_active: false, role_id: 3, role: 'Accountant', display_name: 'Pam Beesly', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
-  { id: 'STF007', username: 'omartinez', email: 'o.martinez@example.com', user_type: UserType.STAFF, is_active: true, role_id: 3, role: 'Accountant', display_name: 'Oscar Martinez', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
-  { id: 'STF008', username: 'pvance', email: 'p.vance@example.com', user_type: UserType.STAFF, is_active: true, role_id: 2, role: 'Teacher', display_name: 'Phyllis Vance', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
-  { id: 'STF009', username: 'ehannon', email: 'e.hannon@example.com', user_type: UserType.STAFF, is_active: true, role_id: 4, role: 'Librarian', display_name: 'Erin Hannon', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
+  { id: 'USR_MOCK_ADMIN', username: 'admin_user', email: 'admin@example.com', userType: 'Staff', isActive: true, role_id: 1, role: 'Administrator', display_name: 'Admin User (Mock)', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
+  { id: 'STF001', username: 'mscott', email: 'm.scott@example.com', userType: 'Staff', isActive: true, role_id: 1, role: 'Administrator', display_name: 'Michael Scott', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
+  { id: 'STF002', username: 'dschrute', email: 'd.schrute@example.com', userType: 'Staff', isActive: true, role_id: 2, role: 'Teacher', display_name: 'Dwight Schrute', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
+  { id: 'STF003', username: 'pbeesly', email: 'p.beesly@example.com', userType: 'Staff', isActive: false, role_id: 3, role: 'Accountant', display_name: 'Pam Beesly', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
+  { id: 'STF007', username: 'omartinez', email: 'o.martinez@example.com', userType: 'Staff', isActive: true, role_id: 3, role: 'Accountant', display_name: 'Oscar Martinez', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
+  { id: 'STF008', username: 'pvance', email: 'p.vance@example.com', userType: 'Staff', isActive: true, role_id: 2, role: 'Teacher', display_name: 'Phyllis Vance', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
+  { id: 'STF009', username: 'ehannon', email: 'e.hannon@example.com', userType: 'Staff', isActive: true, role_id: 4, role: 'Librarian', display_name: 'Erin Hannon', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hashed_password: 'mockhashedpassword' },
 ];
 
 
@@ -124,9 +124,9 @@ const initialMockDesignations: Designation[] = [
 ];
 
 const initialMockStaff: Staff[] = initialMockUsers
-    .filter(u => u.user_type === UserType.STAFF)
+    .filter(u => u.userType === 'Staff')
     .map(u => {
-        const staffDefaults: Partial<Staff> = { staff_no: `STF${u.id.slice(-3)}`, first_name: u.display_name?.split(' ')[0] || u.username.split('_')[0], last_name: u.display_name?.split(' ')[1] || u.username.split('_')[1] || 'User', department_id: 2, designation_id: 6, is_active: u.is_active, phone: '0700000000', created_at: u.created_at, updated_at: u.updated_at, email: u.email, display_name: u.display_name };
+        const staffDefaults: Partial<Staff> = { staff_no: `STF${u.id.slice(-3)}`, first_name: u.display_name?.split(' ')[0] || u.username.split('_')[0], last_name: u.display_name?.split(' ')[1] || u.username.split('_')[1] || 'User', department_id: 2, designation_id: 6, isActive: u.isActive, phone: '0700000000', created_at: u.created_at, updated_at: u.updated_at, email: u.email, display_name: u.display_name };
         const specificStaff: Partial<Staff> = {
             'STF001': { department_id: 2, designation_id: 1, display_name: 'Michael Scott'},
             'STF002': { department_id: 1, designation_id: 3, hod_of_department_id: 3, display_name: 'Dwight Schrute' },
@@ -139,9 +139,9 @@ const initialMockStaff: Staff[] = initialMockUsers
         return { ...staffDefaults, ...specificStaff, id: u.id, user_id: u.id } as Staff;
     })
     .concat([
-      { id: 'STF104', staff_no: 'STF104', first_name: 'Angela', last_name: 'Martin', department_id: 6, designation_id: 5, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), department_name: 'Finance', designation_title: 'Accountant', display_name: 'Angela Martin' },
-      { id: 'STF105', staff_no: 'STF105', first_name: 'Kevin', last_name: 'Malone', department_id: 1, designation_id: 3, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), department_name: 'Academics', designation_title: 'Teacher', display_name: 'Kevin Malone' },
-      { id: 'STF106', staff_no: 'STF106', first_name: 'Toby', last_name: 'Flenderson', department_id: 7, designation_id: 9, is_active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), department_name: 'Human Resources', designation_title: 'HR Manager', display_name: 'Toby Flenderson' },
+      { id: 'STF104', staff_no: 'STF104', first_name: 'Angela', last_name: 'Martin', department_id: 6, designation_id: 5, isActive: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), department_name: 'Finance', designation_title: 'Accountant', display_name: 'Angela Martin' },
+      { id: 'STF105', staff_no: 'STF105', first_name: 'Kevin', last_name: 'Malone', department_id: 1, designation_id: 3, isActive: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), department_name: 'Academics', designation_title: 'Teacher', display_name: 'Kevin Malone' },
+      { id: 'STF106', staff_no: 'STF106', first_name: 'Toby', last_name: 'Flenderson', department_id: 7, designation_id: 9, isActive: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), department_name: 'Human Resources', designation_title: 'HR Manager', display_name: 'Toby Flenderson' },
     ].map(s => ({...s, department_name: initialMockDepartments.find(d => d.id === s.department_id)?.name, designation_title: initialMockDesignations.find(d => d.id === s.designation_id)?.title, display_name: s.display_name || `${s.first_name} ${s.last_name}` } as Staff)));
 
 

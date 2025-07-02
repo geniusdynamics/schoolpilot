@@ -4,7 +4,6 @@
 import { RxJsonSchema } from 'rxdb';
 import * as types from './types';
 import { createEntitySchema } from '../../../services/rxdbService';
-import { UserType } from '../../../types'; // For Loan.user_type
 
 export const bookCategorySchema: RxJsonSchema<types.LibBookCategoryType> = createEntitySchema<types.LibBookCategoryType>(
     'book_category',
@@ -48,7 +47,7 @@ export const loanSchema: RxJsonSchema<types.LibLoanType> = createEntitySchema<ty
         id: { type: 'string', maxLength: 100, final: true },
         book_id: { type: 'string', ref: 'books' },
         user_id: { type: 'string', ref: 'users' }, // Refers to core User table
-        user_type: { type: 'string', enum: Object.values(UserType) },
+        userType: { type: 'string', enum: ['Staff', 'Student', 'Parent', 'Supplier'] },
         loan_date: { type: 'string', format: 'date' },
         due_date: { type: 'string', format: 'date' },
         return_date: { type: ['string', 'null'], format: 'date' },

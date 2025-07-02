@@ -349,6 +349,8 @@ export interface User {
   // Denormalized
   role?: string | null;
   display_name?: string | null;
+  userType: string; // Broad user category (e.g., Staff, Student, Parent, Supplier, etc.)
+  isActive: boolean; // Whether the user is active
 }
 
 export interface Role {
@@ -1273,7 +1275,6 @@ export interface Loan {
     id: string;
     book_id: string;
     user_id: string;
-    user_type: UserType;
     loan_date: string;
     due_date: string;
     return_date?: string | null;

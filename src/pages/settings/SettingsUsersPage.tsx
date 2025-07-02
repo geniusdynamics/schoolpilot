@@ -11,13 +11,15 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import type { RbacRole } from '../../core/types';
 
-type UserFormData = Omit<Partial<User>, 'id' | 'created_at' | 'updated_at' | 'last_login_at' | 'hashed_password' | 'display_name' | 'role' | 'user_type' | 'is_active'> & {
+type UserFormData = Omit<Partial<User>, 'id' | 'created_at' | 'updated_at' | 'last_login_at' | 'hashed_password' | 'display_name' | 'role' | 'userType' | 'isActive'> & {
     password?: string;
-    user_type: UserType;
-    is_active: boolean;
+    userType: string;
+    isActive: boolean;
 };
 type RoleFormData = Omit<Partial<Role>, 'id' | 'created_at' | 'updated_at'>;
 
+// Add a string array of user types for the dropdown
+const USER_TYPES = ['Staff', 'Student', 'Parent', 'Supplier'];
 
 const SettingsUsersPage: React.FC = () => {
   const context = useAppData();
@@ -33,7 +35,7 @@ const SettingsUsersPage: React.FC = () => {
 
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const initialUserFormData: UserFormData = { username: '', email: '', user_type: UserType.STAFF, is_active: true, role_id: undefined };
+  const initialUserFormData: UserFormData = { username: '', email: '', userType: '', isActive: true, role_id: undefined };
   const [userFormData, setUserFormData] = useState<UserFormData>(initialUserFormData);
 
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -46,7 +48,7 @@ const SettingsUsersPage: React.FC = () => {
   const openUserModal = (user?: User) => {
     setEditingUser(user || null);
     setUserFormData(user ? 
-      { username: user.username, email: user.email, user_type: user.user_type, is_active: user.is_active, role_id: user.role_id } : 
+      { username: user.username, email: user.email, userType: user.userType, isActive: user.isActive, role_id: user.role_id } : 
       initialUserFormData
     );
     setIsUserModalOpen(true);
@@ -83,7 +85,7 @@ const SettingsUsersPage: React.FC = () => {
   };
 
   const handleUserSubmit = async () => {
-    if (!userFormData.username || !userFormData.email || !userFormData.user_type) {
+    if (!userFormData.username || !userFormData.email || !userFormData.userType) {
       alert("Username, Email, and User Type are required.");
       return;
     }
@@ -96,8 +98,8 @@ const SettingsUsersPage: React.FC = () => {
     const payload: Omit<User, 'id' | 'last_login_at' | 'hashed_password' | 'display_name' | 'role' | 'created_at' | 'updated_at'> & {created_at?:string, updated_at?:string} = {
         username: userFormData.username!,
         email: userFormData.email!,
-        user_type: userFormData.user_type,
-        is_active: userFormData.is_active,
+        userType: userFormData.userType,
+        isActive: userFormData.isActive,
         role_id: userFormData.role_id ? Number(userFormData.role_id) : undefined,
         password: userFormData.password, // Will be ignored if editingUser
     };
@@ -142,9 +144,9 @@ const SettingsUsersPage: React.FC = () => {
   const userColumns = [
     { header: 'Username', accessor: 'username' as keyof User },
     { header: 'Email', accessor: 'email' as keyof User },
-    { header: 'User Type', accessor: 'user_type' as keyof User},
+    { header: 'User Type', accessor: 'userType' as keyof User},
     { header: 'Role', accessor: 'role' as keyof User }, 
-    { header: 'Status', accessor: 'is_active' as keyof User },
+    { header: 'Status', accessor: 'isActive' as keyof User },
     {
       header: 'Actions',
       accessor: 'id' as keyof User,
@@ -217,17 +219,17 @@ const SettingsUsersPage: React.FC = () => {
         {!editingUser && (
             <Input name="password" label="Password" type="password" value={userFormData.password || ''} onChange={handleUserInputChange} required />
         )}
-        <Select name="user_type" label="User Type" value={userFormData.user_type} onChange={handleUserInputChange} required>
-            {Object.values(UserType).map(type => (<option key={type} value={type}>{type}</option>))}
+        <Select name="userType" label="User Type" value={userFormData.userType} onChange={handleUserInputChange} required>
+          {USER_TYPES.map(type => (<option key={type} value={type}>{type}</option>))}
         </Select>
         <Select name="role_id" label="Role" value={userFormData.role_id || ''} onChange={handleUserInputChange}>
             <option value="">Select Role</option>
             {roles.map(role => (<option key={role.id} value={role.id}>{role.name}</option>))}
         </Select>
         <div className="mt-4 flex items-center">
-            <input id="is_active_user" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
-                checked={userFormData.is_active} onChange={handleUserInputChange} />
-            <label htmlFor="is_active_user" className="ml-2 block text-sm text-gray-900">Is Active User</label>
+            <input id="isActive_user" name="isActive" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
+                checked={userFormData.isActive} onChange={handleUserInputChange} />
+            <label htmlFor="isActive_user" className="ml-2 block text-sm text-gray-900">Is Active User</label>
         </div>
       </Modal>
 
