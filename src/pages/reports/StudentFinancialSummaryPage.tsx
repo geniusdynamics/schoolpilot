@@ -6,7 +6,8 @@ import Spinner from '../../components/ui/Spinner';
 import Table from '../../components/ui/Table';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
-import { Student, Class as SchoolClass, ClassStream, SchoolPeriod, StudentInvoice, StudentPayment, FeeAdjustment, InvoiceStatus } from '../../types';
+import { FinStudentInvoiceType, FinStudentPaymentType, FinFeeAdjustmentType } from '../../modules/finance/data/types';
+import { Student, Class as SchoolClass, ClassStream, SchoolPeriod, InvoiceStatus } from '../../types';
 
 interface FinancialSummaryRow {
   studentId: string;
@@ -66,28 +67,26 @@ const StudentFinancialSummaryPage: React.FC = () => {
     }
 
     const summaryData: FinancialSummaryRow[] = filteredStudents.map(student => {
-      const invoicesForStudentAndPeriod = studentInvoices.filter(
-        inv => inv.student_id === student.id && inv.school_period_id === selectedSchoolPeriodId && inv.status !== InvoiceStatus.VOIDED
+      const invoicesForStudentAndPeriod = (studentInvoices as FinStudentInvoiceType[]).filter(
+        inv => inv.student_id === student.id && inv.school_period_id === selectedSchoolPeriodId && inv.status !== 'Voided'
       );
       const totalBilled = invoicesForStudentAndPeriod.reduce((sum, inv) => sum + inv.total_amount_billed, 0);
 
-      // Payments might not be directly linked to a period, filter by date if needed
-      // For simplicity here, let's assume all payments for a student are for any period
-      const paymentsForStudent = studentPayments.filter(p => p.student_id === student.id);
-      const totalPaid = paymentsForStudent.reduce((sum, p) => sum + p.total_amount_paid, 0); // Simplified sum of all payments
+      const paymentsForStudent = (studentPayments as FinStudentPaymentType[]).filter(p => p.student_id === student.id);
+      const totalPaid = paymentsForStudent.reduce((sum, p) => sum + p.total_amount_paid, 0);
 
-      const adjustmentsForStudentAndPeriod = feeAdjustments.filter(
-          adj => adj.student_id === student.id && adj.school_period_id === selectedSchoolPeriodId
+      const adjustmentsForStudentAndPeriod = (feeAdjustments as FinFeeAdjustmentType[]).filter(
+        adj => adj.student_id === student.id && adj.school_period_id === selectedSchoolPeriodId
       );
-      const totalAdjustments = adjustmentsForStudentAndPeriod.reduce((sum, adj) => sum + adj.amount, 0); // Amount can be +/-
+      const totalAdjustments = adjustmentsForStudentAndPeriod.reduce((sum, adj) => sum + adj.amount, 0);
 
-      const balance = totalBilled + totalAdjustments - totalPaid; // Note: Adjustments sum can be credits or debits
+      const balance = totalBilled + totalAdjustments - totalPaid;
 
       return {
         studentId: student.id,
         admissionNo: student.admission_no,
         studentName: `${student.first_name} ${student.last_name}`,
-        className: student.current_class_name,
+        className: student.current_class_name || undefined,
         totalBilled,
         totalPaid,
         totalAdjustments,

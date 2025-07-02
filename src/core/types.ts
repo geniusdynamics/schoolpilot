@@ -1,12 +1,23 @@
 // src/core/types.ts
 
-// --- Enums ---
+// ABOUTME: This file defines global and cross-module types for the SchoolPilot system.
+// ABOUTME: Only types used by more than one module should live here.
+import type {
+  FinStudentInvoiceType,
+  FinStudentInvoiceItemType,
+  FinStudentPaymentType,
+  FinFeeAdjustmentType,
+  FinInvoicePaymentApplicationType,
+  FinCustomerInvoiceType,
+  FinSupplierInvoiceType,
+  FinGeneralPaymentType,
+  FinGeneralLedgerEntryType,
+  FinStudentOpeningBalanceType,
+  FinTransportRouteType,
+  FinStudentTransportAssignmentType
+} from '../modules/finance/data/types';
 
-export enum UserType {
-  STAFF = 'Staff',
-  STUDENT = 'Student',
-  PARENT = 'Parent',
-}
+// --- Enums ---
 
 export enum FinancialYearStatus {
   OPEN = 'Open',
@@ -42,25 +53,100 @@ export enum DayOfWeek {
     SUNDAY = 'SUNDAY'
 }
 
-// Module-specific academic enums moved to src/modules/academics/data/types.ts
-// But we need some for cross-module compatibility
+// === PROMOTED FROM ADMINISTRATION MODULE ===
+export enum PartnerType {
+    SPONSOR = 'Sponsor',
+    BOARD_MEMBER = 'Board Member',
+    SERVICE_PROVIDER = 'Service Provider',
+    GOVERNMENT_AGENCY = 'Government Agency',
+    NGO = 'NGO',
+    OTHER = 'Other'
+}
+
+export enum ClubType {
+    CLUB = 'Club',
+    SOCIETY = 'Society',
+    SPORTS_TEAM = 'Sports Team'
+}
+
+export enum AttendanceStatus {
+    PRESENT = 'Present',
+    ABSENT = 'Absent',
+    LATE = 'Late',
+    EXCUSED = 'Excused'
+}
+
+export enum TemplateType {
+    SMS = 'SMS',
+    EMAIL = 'Email',
+    PUSH_NOTIFICATION = 'Push Notification'
+}
+
+export enum CampaignAudienceType {
+    ALL_STUDENTS = 'All Students',
+    ALL_PARENTS = 'All Parents',
+    ALL_STAFF = 'All Staff',
+    STUDENTS_OF_CLASS = 'Students of Class',
+    PARENTS_OF_CLASS = 'Parents of Class'
+}
+
+export enum CampaignStatus {
+    DRAFT = 'Draft',
+    SCHEDULED = 'Scheduled',
+    APPROVED = 'Approved',
+    SENT = 'Sent',
+    CANCELLED = 'Cancelled'
+}
+
+// === PROMOTED FROM HR MODULE ===
+export enum HRPayrollPeriodStatusEnum {
+    OPEN = 'Open',
+    CLOSED = 'Closed',
+    PROCESSED = 'Processed'
+}
+
+export interface HRPayrollPeriodType {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  financial_year_id: number;
+  school_period_id?: number;
+  status: HRPayrollPeriodStatusEnum;
+  financial_year_name?: string;
+  school_period_name?: string;
+}
+
+// === MERGED/EXPANDED FROM ACADEMICS MODULE ===
 export enum SubjectGrouping {
   CORE = 'Core',
   ELECTIVE = 'Elective',
   OPTIONAL = 'Optional',
+  GROUP_1_COMPULSORY = 'Group 1 (Compulsory)',
+  GROUP_2_SCIENCES = 'Group 2 (Sciences)',
+  GROUP_3_HUMANITIES = 'Group 3 (Humanities)',
+  GROUP_4_TECHNICALS = 'Group 4 (Technicals)',
+  GROUP_5_LANGUAGES = 'Group 5 (Foreign Languages)',
+  OTHER = 'Other/Optional'
 }
 
 export enum StudentEnrollmentStatus {
-  ACTIVE = 'Active',
-  DROPPED = 'Dropped',
-  GRADUATED = 'Graduated',
+    ACTIVE = 'Active',
+    DROPPED = 'Dropped',
+    GRADUATED = 'Graduated',
+    ENROLLED = 'Enrolled',
+    WITHDRAWN = 'Withdrawn'
 }
 
 export enum ExamSessionStatus {
-  OPEN = 'Open',
-  CLOSED = 'Closed',
-  RESULTS_PENDING = 'Results Pending',
-  RESULTS_RELEASED = 'Results Released',
+    OPEN = 'Open',
+    CLOSED = 'Closed',
+    RESULTS_PENDING = 'Results Pending',
+    RESULTS_RELEASED = 'Results Released',
+    PLANNING = 'Planning',
+    MARKS_ENTRY_OPEN = 'Marks Entry Open',
+    PUBLISHED = 'Published',
+    ARCHIVED = 'Archived'
 }
 
 export enum AccountType {
@@ -259,12 +345,6 @@ export interface User {
   hashed_password?: string | null;
   password?: string | null; // For creation/update, not stored
   email: string;
-  user_type: UserType;
-  is_active: boolean;
-  last_login_at?: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string | null;
   role_id?: number | null;
   // Denormalized
   role?: string | null;
@@ -1405,8 +1485,13 @@ export type AppDataType = {
   feeTemplates: FeeTemplate[];
   feeTemplateItems: FeeTemplateItem[];
   expenseClaims: ExpenseClaim[];
-  customerInvoices: CustomerInvoice[];
-  supplierInvoices: SupplierInvoice[];
+  studentInvoices: FinStudentInvoiceType[];
+  studentInvoiceItems: FinStudentInvoiceItemType[];
+  studentPayments: FinStudentPaymentType[];
+  feeAdjustments: FinFeeAdjustmentType[];
+  invoicePaymentApplications: FinInvoicePaymentApplicationType[];
+  customerInvoices: FinCustomerInvoiceType[];
+  supplierInvoices: FinSupplierInvoiceType[];
   studentExamResults: StudentExamResultWithDetails[];
   classSubjectAllocations: ClassSubjectAllocation[];
   teacherSubjectAssignments: TeacherSubjectAssignment[];
@@ -1434,20 +1519,11 @@ export type AppDataType = {
   menus: Menu[];
   merchants: Merchant[];
   auditLogs: AuditLog[];
-  studentOpeningBalances: StudentOpeningBalance[];
-  feeAdjustments: FeeAdjustment[];
-  transportRoutes: TransportRoute[];
-  studentTransportAssignments: StudentTransportAssignment[];
-  studentInvoices: StudentInvoice[];
-  studentInvoiceItems: StudentInvoiceItem[];
-  studentPayments: StudentPayment[];
-  invoicePaymentApplications: InvoicePaymentApplication[];
-  studentMealPlans: StudentMealPlan[];
-  mealConsumptionLogs: MealConsumptionLog[];
-  walletTransactions: WalletTransaction[];
-  studentWallets: StudentWallet[];
-  generalPayments: GeneralPayment[];
-  generalLedgerEntries: GeneralLedgerEntry[];
+  studentOpeningBalances: FinStudentOpeningBalanceType[];
+  transportRoutes: FinTransportRouteType[];
+  studentTransportAssignments: FinStudentTransportAssignmentType[];
+  generalPayments: FinGeneralPaymentType[];
+  generalLedgerEntries: FinGeneralLedgerEntryType[];
   rfqs: RFQ[];
 };
 
@@ -1496,7 +1572,7 @@ export type AppDataContextType = AppDataType & {
 export interface NavItem {
   name: string; // Translation key
   path: string;
-  icon?: React.ReactNode;
+  icon?: React.ComponentType<any>;
   isGroup?: boolean;
   modulePath?: string;
   children?: NavItem[];
@@ -1508,7 +1584,7 @@ export interface ModuleDefinition {
   id: string;
   name: string; // Translation key for module name
   description?: string; // Translation key for module description
-  icon: React.ReactNode;
+  icon: React.ComponentType<any>;
   path: string; // Base path for the module
   isActive: boolean; // Whether the module is enabled
   version: string;
@@ -1546,21 +1622,6 @@ export interface Permission {
   feature?: string;
 }
 
-export interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[]; // Permission IDs
-  isActive: boolean;
-  isSystem: boolean; // System roles cannot be deleted
-  moduleAccess: {
-    [moduleId: string]: {
-      enabled: boolean;
-      permissions: string[]; // Specific permissions for this module
-    };
-  };
-}
-
 export interface UserRole {
   userId: string;
   roleId: string;
@@ -1581,7 +1642,7 @@ export interface ModuleDefinition {
   id: string;
   name: string; // Translation key for module name
   description?: string; // Translation key for module description
-  icon: React.ReactNode;
+  icon: React.ComponentType<any>;
   path: string; // Base path for the module
   isActive: boolean; // Whether the module is enabled
   version: string;
@@ -1603,4 +1664,20 @@ export interface ModuleDefinition {
   defaultRoles?: string[]; // Roles that have access by default
   requiresAuthentication?: boolean;
   publicAccess?: boolean; // Whether module can be accessed without authentication
+}
+
+// RBAC Role for the new permission system
+export interface RbacRole {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[]; // Permission IDs
+  isActive: boolean;
+  isSystem: boolean; // System roles cannot be deleted
+  moduleAccess: {
+    [moduleId: string]: {
+      enabled: boolean;
+      permissions: string[]; // Specific permissions for this module
+    };
+  };
 }

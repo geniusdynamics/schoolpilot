@@ -2,7 +2,8 @@
 // ABOUTME: Works with both demo mode (mock data) and production mode (RxDB)
 
 import { useAppData } from '../contexts/AppDataContext';
-import { rxdbService } from './rxdbService';
+import * as rxdbService from './rxdbService';
+import type { RbacRole } from '../core/types';
 
 // Types for User Permissions System
 export interface Permission {
@@ -16,22 +17,11 @@ export interface Permission {
   updatedAt?: Date;
 }
 
-export interface UserType {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[]; // Permission IDs
-  isDefault: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface User {
   id: string;
   username: string;
   email: string;
   fullName: string;
-  userTypeId: string;
   customPermissions: string[]; // Additional permission IDs
   isActive: boolean;
   createdAt: Date;
@@ -58,7 +48,9 @@ class UserPermissionsService {
 
   constructor() {
     // Check if RxDB is available to determine mode
-    this.isDemoMode = !rxdbService.isInitialized();
+    rxdbService.getDatabase()
+      .then(() => { this.isDemoMode = false; })
+      .catch(() => { this.isDemoMode = true; });
   }
 
   // ===== USER MANAGEMENT =====
@@ -92,40 +84,6 @@ class UserPermissionsService {
       return this.deleteMockUser(id);
     } else {
       return this.deleteRxDBUser(id);
-    }
-  }
-
-  // ===== USER TYPE MANAGEMENT =====
-
-  async getUserTypes(): Promise<ServiceResultList<UserType>> {
-    if (this.isDemoMode) {
-      return this.getMockUserTypes();
-    } else {
-      return this.getRxDBUserTypes();
-    }
-  }
-
-  async createUserType(userTypeData: Omit<UserType, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceResult<UserType>> {
-    if (this.isDemoMode) {
-      return this.createMockUserType(userTypeData);
-    } else {
-      return this.createRxDBUserType(userTypeData);
-    }
-  }
-
-  async updateUserType(id: string, userTypeData: Partial<UserType>): Promise<ServiceResult<UserType>> {
-    if (this.isDemoMode) {
-      return this.updateMockUserType(id, userTypeData);
-    } else {
-      return this.updateRxDBUserType(id, userTypeData);
-    }
-  }
-
-  async deleteUserType(id: string): Promise<ServiceResult<void>> {
-    if (this.isDemoMode) {
-      return this.deleteMockUserType(id);
-    } else {
-      return this.deleteRxDBUserType(id);
     }
   }
 
@@ -172,7 +130,6 @@ class UserPermissionsService {
         username: 'admin',
         email: 'admin@school.com',
         fullName: 'System Administrator',
-        userTypeId: 'admin',
         customPermissions: [],
         isActive: true,
         createdAt: new Date(),
@@ -183,7 +140,6 @@ class UserPermissionsService {
         username: 'teacher1',
         email: 'teacher1@school.com',
         fullName: 'John Smith',
-        userTypeId: 'teacher',
         customPermissions: ['academics.read', 'academics.update'],
         isActive: true,
         createdAt: new Date(),
@@ -194,7 +150,6 @@ class UserPermissionsService {
         username: 'finance1',
         email: 'finance1@school.com',
         fullName: 'Jane Doe',
-        userTypeId: 'finance',
         customPermissions: [],
         isActive: true,
         createdAt: new Date(),
@@ -264,119 +219,6 @@ class UserPermissionsService {
     return {
       success: true,
       message: 'User deleted successfully'
-    };
-  }
-
-  private async getMockUserTypes(): Promise<ServiceResultList<UserType>> {
-    const mockUserTypes: UserType[] = [
-      {
-        id: 'admin',
-        name: 'Administrator',
-        description: 'Full system access',
-        permissions: ['*'],
-        isDefault: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: 'teacher',
-        name: 'Teacher',
-        description: 'Academic module access',
-        permissions: ['academics.read', 'academics.update', 'students.read'],
-        isDefault: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: 'finance',
-        name: 'Finance Officer',
-        description: 'Financial module access',
-        permissions: ['finance.read', 'finance.update', 'finance.create'],
-        isDefault: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: 'student',
-        name: 'Student',
-        description: 'Limited student access',
-        permissions: ['academics.read', 'finance.read'],
-        isDefault: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ];
-
-    return {
-      success: true,
-      data: mockUserTypes,
-      message: 'User types retrieved successfully'
-    };
-  }
-
-  private async createMockUserType(userTypeData: Omit<UserType, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceResult<UserType>> {
-    const newUserType: UserType = {
-      id: userTypeData.name.toLowerCase().replace(/\s+/g, '_'),
-      ...userTypeData,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    return {
-      success: true,
-      data: newUserType,
-      message: 'User type created successfully'
-    };
-  }
-
-  private async updateMockUserType(id: string, userTypeData: Partial<UserType>): Promise<ServiceResult<UserType>> {
-    const mockUserTypes = (await this.getMockUserTypes()).data;
-    const userTypeIndex = mockUserTypes.findIndex(t => t.id === id);
-    
-    if (userTypeIndex === -1) {
-      return {
-        success: false,
-        message: 'User type not found',
-        errors: ['User type with specified ID does not exist']
-      };
-    }
-
-    const updatedUserType = {
-      ...mockUserTypes[userTypeIndex],
-      ...userTypeData,
-      updatedAt: new Date()
-    };
-
-    return {
-      success: true,
-      data: updatedUserType,
-      message: 'User type updated successfully'
-    };
-  }
-
-  private async deleteMockUserType(id: string): Promise<ServiceResult<void>> {
-    const mockUserTypes = (await this.getMockUserTypes()).data;
-    const userType = mockUserTypes.find(t => t.id === id);
-    
-    if (!userType) {
-      return {
-        success: false,
-        message: 'User type not found',
-        errors: ['User type with specified ID does not exist']
-      };
-    }
-
-    if (userType.isDefault) {
-      return {
-        success: false,
-        message: 'Cannot delete default user type',
-        errors: ['Default user types cannot be deleted']
-      };
-    }
-
-    return {
-      success: true,
-      message: 'User type deleted successfully'
     };
   }
 
@@ -471,12 +313,11 @@ class UserPermissionsService {
 
   private async getRxDBUsers(): Promise<ServiceResultList<User>> {
     try {
-      const usersCollection = await rxdbService.getCollection('users');
+      const usersCollection = (await rxdbService.getDatabase()).users;
       const users = await usersCollection.find().exec();
-      
       return {
         success: true,
-        data: users.map(user => user.toJSON() as User),
+        data: users.map(user => mapRxdbUserToUser(user.toJSON())),
         message: 'Users retrieved successfully'
       };
     } catch (error) {
@@ -491,16 +332,17 @@ class UserPermissionsService {
 
   private async createRxDBUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceResult<User>> {
     try {
-      const usersCollection = await rxdbService.getCollection('users');
-      const newUser = await usersCollection.insert({
+      const usersCollection = (await rxdbService.getDatabase()).users;
+      const now = new Date();
+      const newUser = await usersCollection.insert(mapUserToRxdbUser({
         ...userData,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
+        id: Date.now().toString(),
+        createdAt: now,
+        updatedAt: now
+      } as User));
       return {
         success: true,
-        data: newUser.toJSON() as User,
+        data: mapRxdbUserToUser(newUser.toJSON()),
         message: 'User created successfully'
       };
     } catch (error) {
@@ -514,9 +356,8 @@ class UserPermissionsService {
 
   private async updateRxDBUser(id: string, userData: Partial<User>): Promise<ServiceResult<User>> {
     try {
-      const usersCollection = await rxdbService.getCollection('users');
+      const usersCollection = (await rxdbService.getDatabase()).users;
       const user = await usersCollection.findOne(id).exec();
-      
       if (!user) {
         return {
           success: false,
@@ -524,15 +365,14 @@ class UserPermissionsService {
           errors: ['User with specified ID does not exist']
         };
       }
-
-      await user.patch({
+      await user.patch(mapUserToRxdbUser({
+        ...user.toJSON(),
         ...userData,
         updatedAt: new Date()
-      });
-
+      } as User));
       return {
         success: true,
-        data: user.toJSON() as User,
+        data: mapRxdbUserToUser(user.toJSON()),
         message: 'User updated successfully'
       };
     } catch (error) {
@@ -546,9 +386,8 @@ class UserPermissionsService {
 
   private async deleteRxDBUser(id: string): Promise<ServiceResult<void>> {
     try {
-      const usersCollection = await rxdbService.getCollection('users');
+      const usersCollection = (await rxdbService.getDatabase()).users;
       const user = await usersCollection.findOne(id).exec();
-      
       if (!user) {
         return {
           success: false,
@@ -556,9 +395,7 @@ class UserPermissionsService {
           errors: ['User with specified ID does not exist']
         };
       }
-
       await user.remove();
-
       return {
         success: true,
         message: 'User deleted successfully'
@@ -572,120 +409,9 @@ class UserPermissionsService {
     }
   }
 
-  private async getRxDBUserTypes(): Promise<ServiceResultList<UserType>> {
-    try {
-      const userTypesCollection = await rxdbService.getCollection('userTypes');
-      const userTypes = await userTypesCollection.find().exec();
-      
-      return {
-        success: true,
-        data: userTypes.map(userType => userType.toJSON() as UserType),
-        message: 'User types retrieved successfully'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: [],
-        message: 'Failed to retrieve user types',
-        errors: [error instanceof Error ? error.message : 'Unknown error']
-      };
-    }
-  }
-
-  private async createRxDBUserType(userTypeData: Omit<UserType, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceResult<UserType>> {
-    try {
-      const userTypesCollection = await rxdbService.getCollection('userTypes');
-      const newUserType = await userTypesCollection.insert({
-        ...userTypeData,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
-
-      return {
-        success: true,
-        data: newUserType.toJSON() as UserType,
-        message: 'User type created successfully'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Failed to create user type',
-        errors: [error instanceof Error ? error.message : 'Unknown error']
-      };
-    }
-  }
-
-  private async updateRxDBUserType(id: string, userTypeData: Partial<UserType>): Promise<ServiceResult<UserType>> {
-    try {
-      const userTypesCollection = await rxdbService.getCollection('userTypes');
-      const userType = await userTypesCollection.findOne(id).exec();
-      
-      if (!userType) {
-        return {
-          success: false,
-          message: 'User type not found',
-          errors: ['User type with specified ID does not exist']
-        };
-      }
-
-      await userType.patch({
-        ...userTypeData,
-        updatedAt: new Date()
-      });
-
-      return {
-        success: true,
-        data: userType.toJSON() as UserType,
-        message: 'User type updated successfully'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Failed to update user type',
-        errors: [error instanceof Error ? error.message : 'Unknown error']
-      };
-    }
-  }
-
-  private async deleteRxDBUserType(id: string): Promise<ServiceResult<void>> {
-    try {
-      const userTypesCollection = await rxdbService.getCollection('userTypes');
-      const userType = await userTypesCollection.findOne(id).exec();
-      
-      if (!userType) {
-        return {
-          success: false,
-          message: 'User type not found',
-          errors: ['User type with specified ID does not exist']
-        };
-      }
-
-      if (userType.isDefault) {
-        return {
-          success: false,
-          message: 'Cannot delete default user type',
-          errors: ['Default user types cannot be deleted']
-        };
-      }
-
-      await userType.remove();
-
-      return {
-        success: true,
-        message: 'User type deleted successfully'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Failed to delete user type',
-        errors: [error instanceof Error ? error.message : 'Unknown error']
-      };
-    }
-  }
-
   private async getRxDBPermissions(): Promise<ServiceResultList<Permission>> {
     try {
-      const permissionsCollection = await rxdbService.getCollection('permissions');
+      const permissionsCollection = (await rxdbService.getDatabase()).permissions;
       const permissions = await permissionsCollection.find().exec();
       
       return {
@@ -705,7 +431,7 @@ class UserPermissionsService {
 
   private async createRxDBPermission(permissionData: Omit<Permission, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServiceResult<Permission>> {
     try {
-      const permissionsCollection = await rxdbService.getCollection('permissions');
+      const permissionsCollection = (await rxdbService.getDatabase()).permissions;
       const newPermission = await permissionsCollection.insert({
         ...permissionData,
         createdAt: new Date(),
@@ -728,7 +454,7 @@ class UserPermissionsService {
 
   private async updateRxDBPermission(id: string, permissionData: Partial<Permission>): Promise<ServiceResult<Permission>> {
     try {
-      const permissionsCollection = await rxdbService.getCollection('permissions');
+      const permissionsCollection = (await rxdbService.getDatabase()).permissions;
       const permission = await permissionsCollection.findOne(id).exec();
       
       if (!permission) {
@@ -768,7 +494,7 @@ class UserPermissionsService {
         };
       }
 
-      const permissionsCollection = await rxdbService.getCollection('permissions');
+      const permissionsCollection = (await rxdbService.getDatabase()).permissions;
       const permission = await permissionsCollection.findOne(id).exec();
       
       if (!permission) {
@@ -805,20 +531,8 @@ class UserPermissionsService {
         return false;
       }
 
-      const userTypes = await this.getUserTypes();
-      const userType = userTypes.data.find(t => t.id === user.userTypeId);
-      
-      if (!userType) {
-        return false;
-      }
-
       // Check if user has admin permission
-      if (userType.permissions.includes('*') || user.customPermissions.includes('*')) {
-        return true;
-      }
-
-      // Check user type permissions
-      if (userType.permissions.includes(permissionId)) {
+      if (user.customPermissions.includes('*')) {
         return true;
       }
 
@@ -843,17 +557,7 @@ class UserPermissionsService {
         return [];
       }
 
-      const userTypes = await this.getUserTypes();
-      const userType = userTypes.data.find(t => t.id === user.userTypeId);
-      
-      if (!userType) {
-        return [];
-      }
-
       const permissions = new Set<string>();
-
-      // Add user type permissions
-      userType.permissions.forEach(permission => permissions.add(permission));
 
       // Add custom permissions
       user.customPermissions.forEach(permission => permissions.add(permission));
@@ -878,10 +582,6 @@ export const useUserPermissions = () => {
     createUser: userPermissionsService.createUser.bind(userPermissionsService),
     updateUser: userPermissionsService.updateUser.bind(userPermissionsService),
     deleteUser: userPermissionsService.deleteUser.bind(userPermissionsService),
-    getUserTypes: userPermissionsService.getUserTypes.bind(userPermissionsService),
-    createUserType: userPermissionsService.createUserType.bind(userPermissionsService),
-    updateUserType: userPermissionsService.updateUserType.bind(userPermissionsService),
-    deleteUserType: userPermissionsService.deleteUserType.bind(userPermissionsService),
     getPermissions: userPermissionsService.getPermissions.bind(userPermissionsService),
     createPermission: userPermissionsService.createPermission.bind(userPermissionsService),
     updatePermission: userPermissionsService.updatePermission.bind(userPermissionsService),
@@ -891,3 +591,29 @@ export const useUserPermissions = () => {
     isDemoMode: !isRxDBModeActive
   };
 };
+
+// Mapping functions for User
+function mapRxdbUserToUser(doc: any): User {
+  return {
+    id: doc.id,
+    username: doc.username,
+    email: doc.email,
+    fullName: doc.full_name,
+    customPermissions: doc.custom_permissions,
+    isActive: doc.is_active,
+    createdAt: doc.created_at ? new Date(doc.created_at) : new Date(),
+    updatedAt: doc.updated_at ? new Date(doc.updated_at) : new Date(),
+  };
+}
+function mapUserToRxdbUser(user: User): any {
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    full_name: user.fullName,
+    custom_permissions: user.customPermissions,
+    is_active: user.isActive,
+    created_at: user.createdAt.toISOString(),
+    updated_at: user.updatedAt.toISOString(),
+  };
+}

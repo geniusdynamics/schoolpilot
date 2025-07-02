@@ -1,6 +1,5 @@
-
 import React, { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
-import { User, UserType } from '../types';
+import { User } from '../types';
 
 interface UserContextType {
   currentUser: User | null;
@@ -17,7 +16,6 @@ export const UserProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       id: 'USR_MOCK_ADMIN',
       username: 'admin_user',
       email: 'admin@example.com',
-      user_type: UserType.STAFF, 
       is_active: true,
       role: 'Administrator', 
       display_name: 'Admin User (Mock)',

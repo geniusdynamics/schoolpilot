@@ -3,6 +3,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { rbacService, SYSTEM_ROLES } from '../core/rbacService';
+import type { RbacRole } from '../core/types';
 
 export interface RBACHookReturn {
   // Permission checks

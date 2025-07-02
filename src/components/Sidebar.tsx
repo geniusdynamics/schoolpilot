@@ -125,12 +125,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   }, [location.pathname]);
 
   // Dynamically generate quick actions for all modules
-  const defaultQuickActions: QuickAction[] = NAVIGATION_ITEMS.filter(item => !!item.icon).map(item => ({
-    id: item.name,
-    name: t(item.name),
-    icon: item.icon as React.ReactElement,
-    path: item.path
-  }));
+  const defaultQuickActions: QuickAction[] = NAVIGATION_ITEMS.map(item => {
+    let iconElement: React.ReactElement = <CogIcon />;
+    if (typeof item.icon === 'function') {
+      const Icon = item.icon as React.FC<any>;
+      iconElement = <Icon />;
+    }
+    return {
+      id: item.name,
+      name: t(item.name),
+      icon: iconElement,
+      path: item.path
+    };
+  });
 
   // Combined quick actions (default + custom)
   const allQuickActions = [...defaultQuickActions, ...customQuickActions];

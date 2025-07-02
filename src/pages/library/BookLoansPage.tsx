@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { Loan, Book, User, UserType, BookStatus } from '../../types';
+import { Loan, Book, User, BookStatus } from '../../types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
