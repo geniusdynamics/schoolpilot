@@ -3,15 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { NAVIGATION_ITEMS } from '../constants';
 import { getDynamicNavigationItems } from '../core/moduleLoader';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon } from './ui/icons';
-
-// Dummy translation function (replace with real i18n if available)
-function t(key: string) {
-  // If you have a real translation function, use it here
-  // For now, prettify the key
-  let label = key.replace('navigation:', '').replace('.title', '').replace('.submenu', '');
-  label = label.replace(/([A-Z])/g, ' $1').replace(/\./g, ' ');
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
+import { useTranslation } from 'react-i18next';
 
 function getFallbackIcon(moduleKey: string) {
   switch (moduleKey) {
@@ -37,6 +29,7 @@ const moduleBg: Record<string, string> = {
 };
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
+  const { t } = useTranslation(['navigation', 'common']);
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
@@ -71,7 +64,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search"
+          placeholder={t('common:search')}
           className="w-full rounded bg-white border border-slate-200 text-slate-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-slate-400"
         />
       </div>
@@ -85,7 +78,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                     <span className="flex items-center gap-2">
                       {item.icon && React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)} {t(item.name).split(' ').slice(1).join(' ')}
                     </span>
-                    <span>{openGroups[item.name] ? '▾' : '▸'}</span>
+                    <span>{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>
                   </button>
                   {openGroups[item.name] && (
                     <ul className="space-y-1 mt-1">

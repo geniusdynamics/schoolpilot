@@ -6,52 +6,45 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Select from '../../components/ui/Select';
 import Input from '../../components/ui/Input';
-import { PlusIcon, EditIcon, DeleteIcon, ArrowsRightLeftIcon } from '../../components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { PlusIcon } from '../../components/ui/icons';
+import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
+import { useLoanData } from '../../modules/library/data/useLoanData';
 
-type LoanFormData = Omit<Partial<Loan>, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name' | 'loan_date' | 'user_type'> & {
-    user_type?: 'Staff' | 'Student' | 'Parent' | ...; // for selection
+type LoanFormData = Omit<Partial<Loan>, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name' | 'loan_date'> & {
+    userType?: string;
 };
 
 const BookLoansPage: React.FC = () => {
-  const { 
-    loans, 
-    books, 
-    users, // users from core.users table
-    loading, 
-    addLoan, 
-    updateLoan, 
-    // deleteLoan is not a primary action, typically loans are returned or marked lost.
-  } = useAppData(); // Updated
-  
+  const { t } = useTranslation(['library', 'common']);
+  const { books, users, loading } = useAppData();
+  const { data: loans, create: addLoan, update: updateLoan } = useLoanData();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingLoan, setEditingLoan] = useState<Loan | null>(null); // For marking returned mainly
-  
-  const initialFormData: LoanFormData = { 
-    book_id: undefined, 
-    user_id: undefined, 
-    due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default 2 weeks
-    user_type: undefined
+  const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
+
+  const initialFormData: LoanFormData = {
+    book_id: undefined,
+    user_id: undefined,
+    due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    userType: undefined
   };
   const [formData, setFormData] = useState<LoanFormData>(initialFormData);
 
   const availableBooks = useMemo(() => books.filter(b => b.status === BookStatus.AVAILABLE), [books]);
   const borrowers = useMemo(() => users.filter(u => u.isActive && (u.userType === 'Student' || u.userType === 'Staff')), [users]);
 
-
   const openModal = (loan?: Loan) => {
     setEditingLoan(loan || null);
-    // For new loans, set default due date. If editing, load existing.
-    // Edit modal might be different (e.g. only for extending due date or marking returned)
-    setFormData(loan ? 
-      { 
-        book_id: loan.book_id, 
-        user_id: loan.user_id, 
-        user_type: loan.user_type,
+    setFormData(loan ?
+      {
+        book_id: loan.book_id,
+        user_id: loan.user_id,
         due_date: loan.due_date,
         return_date: loan.return_date,
-      } : 
+        userType: users.find(u => u.id === loan.user_id)?.userType
+      } :
       initialFormData
     );
     setIsModalOpen(true);
@@ -65,63 +58,59 @@ const BookLoansPage: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    let processedValue: string | number | undefined | 'Staff' | 'Student' | 'Parent' | ... = value;
+    let processedValue: string | number | undefined = value;
     if (name === 'book_id' || name === 'user_id') {
-        processedValue = value || undefined;
-    } else if (name === 'user_type') {
-        processedValue = value as 'Staff' | 'Student' | 'Parent' | ... || undefined;
+      processedValue = value || undefined;
+    } else if (name === 'userType') {
+      processedValue = value || undefined;
     }
     setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
 
   const handleIssueBook = async () => {
     if (!formData.book_id || !formData.user_id || !formData.due_date) {
-      alert("Book, User, and Due Date are required to issue a loan.");
+      alert(t('library:bookLoans.alertRequiredFields'));
       return;
     }
     const selectedUser = users.find(u => u.id === formData.user_id);
     if (!selectedUser) {
-        alert("Selected user not found.");
-        return;
+      alert(t('library:bookLoans.alertUserNotFound'));
+      return;
     }
-
     const payload: Omit<Loan, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name'> = {
       book_id: formData.book_id!,
       user_id: formData.user_id!,
-      user_type: selectedUser.user_type, // Get user_type from selected user
-      loan_date: new Date().toISOString().split('T')[0], // Today's date
+      loan_date: new Date().toISOString().split('T')[0],
       due_date: formData.due_date!,
-      return_date: undefined, // Not returned yet
+      return_date: undefined,
     };
-
-    await addLoan(payload);
+    addLoan(payload);
     closeModal();
   };
 
   const handleMarkAsReturned = async (loanId: string) => {
     const loanToReturn = loans.find(l => l.id === loanId);
     if (loanToReturn) {
-      if (window.confirm(`Mark book "${loanToReturn.book_title}" as returned?`)) {
-        await updateLoan({ ...loanToReturn, return_date: new Date().toISOString().split('T')[0] });
+      if (window.confirm(t('library:bookLoans.confirmMarkReturned', { bookTitle: loanToReturn.book_title }))) {
+        updateLoan(loanId, { ...loanToReturn, return_date: new Date().toISOString().split('T')[0] });
       }
     }
   };
 
   const columns = [
-    { header: 'Loan ID', accessor: 'id' as keyof Loan },
-    { header: 'Book Title', accessor: 'book_title' as keyof Loan },
-    { header: 'User Name', accessor: 'user_name' as keyof Loan },
-    { header: 'User Type', accessor: 'user_type' as keyof Loan },
-    { header: 'Loan Date', accessor: 'loan_date' as keyof Loan, render: (item: Loan) => new Date(item.loan_date).toLocaleDateString() },
-    { header: 'Due Date', accessor: 'due_date' as keyof Loan, render: (item: Loan) => new Date(item.due_date).toLocaleDateString() },
-    { header: 'Return Date', accessor: 'return_date' as keyof Loan, render: (item: Loan) => item.return_date ? new Date(item.return_date).toLocaleDateString() : 'Not Returned' },
+    { header: t('library:bookLoans.loanId'), accessor: 'id' as keyof Loan },
+    { header: t('library:bookLoans.bookTitle'), accessor: 'book_title' as keyof Loan },
+    { header: t('library:bookLoans.userName'), accessor: 'user_name' as keyof Loan },
+    { header: t('library:bookLoans.loanDate'), accessor: 'loan_date' as keyof Loan, render: (item: Loan) => new Date(item.loan_date).toLocaleDateString() },
+    { header: t('library:bookLoans.dueDate'), accessor: 'due_date' as keyof Loan, render: (item: Loan) => new Date(item.due_date).toLocaleDateString() },
+    { header: t('library:bookLoans.returnDate'), accessor: 'return_date' as keyof Loan, render: (item: Loan) => item.return_date ? new Date(item.return_date).toLocaleDateString() : t('library:bookLoans.notReturned') },
     {
-      header: 'Actions',
+      header: t('common:actions'),
       accessor: 'id' as keyof Loan,
       render: (item: Loan) => (
         !item.return_date ? (
-          <Button size="sm" variant="secondary" onClick={() => handleMarkAsReturned(item.id)}>Mark Returned</Button>
-        ) : <span className="text-xs text-green-600 font-semibold">Returned</span>
+          <Button size="sm" variant="secondary" onClick={() => handleMarkAsReturned(item.id)}>{t('library:bookLoans.markReturned')}</Button>
+        ) : <span className="text-xs text-green-600 font-semibold">{t('library:bookLoans.returned')}</span>
       ),
     },
   ];
@@ -129,59 +118,58 @@ const BookLoansPage: React.FC = () => {
   if ((loading.loans || loading.books || loading.users) && !isModalOpen) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Book Loans...</span>
+        <Spinner size="lg" /> <span className="ml-2">{t('library:bookLoans.loading')}</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card title="Book Loans Management" actions={
+      <Card title={t('library:bookLoans.title')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Issue New Loan
+          {t('library:bookLoans.issueNewLoan')}
         </Button>
       }>
         <p className="text-sm text-gray-600 mb-4">
-          Issue books to users and manage returns. Overdue books may automatically generate fines.
+          {t('library:bookLoans.description')}
         </p>
         <Table columns={columns} data={loans} isLoading={loading.loans && isModalOpen} />
       </Card>
-
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingLoan ? 'View Loan Details' : 'Issue New Book Loan'} size="lg"
-        footer={ editingLoan ? <Button variant="secondary" onClick={closeModal}>Close</Button> :
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingLoan ? t('library:bookLoans.viewLoanDetails') : t('library:bookLoans.issueNewBookLoan')} size="lg"
+        footer={ editingLoan ? <Button variant="secondary" onClick={closeModal}>{t('common:close')}</Button> :
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('common:cancel')}</Button>
             <Button onClick={handleIssueBook} disabled={loading.loans}>
-              {loading.loans ? <Spinner size="sm"/> : 'Issue Book'}
+              {loading.loans ? <Spinner size="sm"/> : t('library:bookLoans.issueBook')}
             </Button>
           </>
         }
       >
         <Select 
           name="book_id" 
-          label="Book to Loan" 
+          label={t('library:bookLoans.bookToLoan')} 
           value={formData.book_id || ''} 
           onChange={handleInputChange}
           required
           disabled={!!editingLoan}
         >
-          <option value="">Select Book</option>
+          <option value="">{t('library:bookLoans.selectBook')}</option>
           {availableBooks.map(book => <option key={book.id} value={book.id}>{book.title} (Acc: {book.accession_no})</option>)}
         </Select>
         <Select 
           name="user_id" 
-          label="Borrower (Student/Staff)" 
+          label={t('library:bookLoans.borrower')} 
           value={formData.user_id || ''} 
           onChange={handleInputChange}
           required
           disabled={!!editingLoan}
         >
-          <option value="">Select User</option>
-          {borrowers.map(user => <option key={user.id} value={user.id}>{user.displayName} ({user.userType})</option>)}
+          <option value="">{t('library:bookLoans.selectUser')}</option>
+          {borrowers.map(user => <option key={user.id} value={user.id}>{user.display_name} ({user.userType})</option>)}
         </Select>
         <Input 
           name="due_date" 
-          label="Due Date" 
+          label={t('library:bookLoans.dueDate')} 
           type="date"
           value={formData.due_date || ''} 
           onChange={handleInputChange} 
@@ -191,7 +179,7 @@ const BookLoansPage: React.FC = () => {
         {editingLoan && formData.return_date && (
              <Input 
                 name="return_date" 
-                label="Return Date" 
+                label={t('library:bookLoans.returnDate')} 
                 type="date"
                 value={formData.return_date || ''} 
                 disabled 

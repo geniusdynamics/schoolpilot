@@ -1,10 +1,9 @@
 import React from 'react';
-import { NAVIGATION_ITEMS } from '../constants';
-import { getDynamicNavigationItems } from '../core/moduleLoader';
+import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 
 const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key: string) => void }> = ({ selectedModuleKey, onModuleSelect }) => {
-  // Only show top-level groups as main modules
-  const mainModules = NAVIGATION_ITEMS.filter(item => item.isGroup);
+  const { navigationItems } = useDynamicNavigation();
+  const mainModules = navigationItems.filter(item => item.isGroup);
   return (
     <aside className="flex flex-col items-center h-full w-16 bg-gradient-to-r from-blue-900 via-indigo-800 to-fuchsia-600/70 backdrop-blur-lg rounded-r-3xl py-4 shadow-xl">
       <div className="flex flex-col gap-4 flex-1 w-full items-center">

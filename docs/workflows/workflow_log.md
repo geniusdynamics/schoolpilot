@@ -308,3 +308,13 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 **Git Status:** Committed as ff3bb0b with detailed commit message
 **Next Review:** Scheduled for January 5, 2025 with development team
 **Next Steps:** Begin Week 1 implementation focusing on `useRxDBData.ts` CRUD parity development
+
+## 2024-07-02: RBAC Modularization & Hybrid User Model
+- Migrated to modular RBAC system: each module now has its own `rbac.ts` (e.g., `src/modules/reports/rbac.ts`, `src/modules/settings/rbac.ts`).
+- Introduced `RbacRole` interface and new RBAC logic in `src/core/rbacService.ts` and related files.
+- Restored `userType` (string) for user categorization in `src/core/types.ts`, mock data (`src/hooks/useMockData.ts`, `src/modules/administration/data/mockData.ts`), and UI (`src/pages/settings/SettingsUsersPage.tsx`).
+- Updated all forms, tables, and filters to support both `userType` and roles.
+- All mock users now use `userType` and `isActive`.
+- All type errors and linter issues resolved for new model.
+- Legacy consumers can still use mapped roles for backward compatibility.
+- **Transitioned to i18n sweep:** Recap and plan in `docs/workflows/recap2_i18n_sweep_20240702.md`.

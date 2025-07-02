@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { NAVIGATION_ITEMS } from '../constants';
 import { XIcon } from './ui/icons';
 
@@ -24,10 +25,10 @@ const SettingsPopup: React.FC<SettingsPopupProps> = ({ open, onClose }) => {
           <ul className="space-y-2">
             {settingsMenu.map((item: any) => (
               <li key={item.name}>
-                <a href={item.path} className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all">
+                <Link to={item.path} className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all" onClick={onClose}>
                   {item.icon && React.cloneElement(item.icon, { className: 'w-5 h-5' })}
                   <span className="font-medium text-base">{item.name.replace('navigation:settings.', '').replace(/([A-Z])/g, ' $1').replace(/\./g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
