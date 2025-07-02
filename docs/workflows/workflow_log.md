@@ -508,4 +508,25 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - Language switching (English/French) was tested and works as expected.
 - No hardcoded UI labels remain in the Nutrition module.
 
+## [Reports Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Reports module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/reports.json` and `src/i18n/locales/fr/reports.json` as needed.
+- Language switching was validated for all Reports pages.
+
+**Files/Directories Updated:**
+- `src/pages/reports/StudentFinancialSummaryPage.tsx`
+- `src/pages/reports/AccountLedgerPage.tsx`
+- `src/pages/reports/ExamResultsHorizontalPage.tsx`
+- `src/pages/reports/FeeCollectionSummaryPage.tsx`
+- `src/pages/reports/StudentMasterlistPage.tsx`
+- `src/pages/reports/StudentVoteheadStatementPage.tsx`
+- `src/pages/reports/TeacherAssignmentsPage.tsx`
+
+**Validation:**
+- All Reports pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Reports module.
+
 ---

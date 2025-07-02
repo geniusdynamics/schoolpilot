@@ -7,9 +7,11 @@ import Table from '../../components/ui/Table';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
 import { Staff, AcademicYear, TeacherSubjectAssignment } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 const TeacherAssignmentsPage: React.FC = () => {
   const { staff, academicYears, teacherSubjectAssignments, loading } = useAppData();
+  const { t } = useTranslation();
 
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>(academicYears[0]?.id);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | undefined>();
@@ -54,37 +56,37 @@ const TeacherAssignmentsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Teacher Subject Assignments Report">
+      <Card title={t('teacherAssignmentsPage.title')}>
          <div className="p-4 border-b mb-4 bg-gray-50 rounded-md">
             <p className="text-sm text-gray-600 mb-4">
-                View subjects and classes assigned to teachers for a selected academic year.
+                {t('teacherAssignmentsPage.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <Select label="Academic Year" value={selectedAcademicYearId || ''} onChange={e => setSelectedAcademicYearId(Number(e.target.value) || undefined)}>
-                    <option value="">All Years</option>
+                <Select label={t('teacherAssignmentsPage.selectAcademicYear')} value={selectedAcademicYearId || ''} onChange={e => setSelectedAcademicYearId(Number(e.target.value) || undefined)}>
+                    <option value="">{t('teacherAssignmentsPage.allYears')}</option>
                     {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
                 </Select>
-                <Select label="Teacher" value={selectedTeacherId || ''} onChange={e => setSelectedTeacherId(e.target.value || undefined)}>
-                    <option value="">All Teachers</option>
+                <Select label={t('teacherAssignmentsPage.selectTeacher')} value={selectedTeacherId || ''} onChange={e => setSelectedTeacherId(e.target.value || undefined)}>
+                    <option value="">{t('teacherAssignmentsPage.allTeachers')}</option>
                     {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
                 </Select>
                 <Button onClick={handleGenerateReport} disabled={isGenerating || isLoadingPage} className="h-10">
-                    {isGenerating ? <Spinner size="sm" /> : 'Generate Report'}
+                    {isGenerating ? <Spinner size="sm" /> : t('teacherAssignmentsPage.generateReport')}
                 </Button>
             </div>
         </div>
         
         {isLoadingPage && !isGenerating ? (
-             <div className="flex justify-center items-center py-10"><Spinner size="lg" /><span className="ml-2">Loading data...</span></div>
+             <div className="flex justify-center items-center py-10"><Spinner size="lg" /><span className="ml-2">{t('teacherAssignmentsPage.loadingData')}</span></div>
         ) : isGenerating ? (
-            <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Generating report...</span></div>
+            <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">{t('teacherAssignmentsPage.generatingReport')}</span></div>
         ) : (
             <>
                 <div className="flex justify-end space-x-2 mb-4">
-                    <Button variant="secondary" size="sm" onClick={() => alert("Print functionality to be implemented.")}>Print</Button>
-                    <Button variant="secondary" size="sm" onClick={() => alert("Export to CSV functionality to be implemented.")}>Export CSV</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert("Print functionality to be implemented.")}>{t('teacherAssignmentsPage.print')}</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert("Export to CSV functionality to be implemented.")}>{t('teacherAssignmentsPage.exportCSV')}</Button>
                 </div>
-                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage="No assignments found for the selected criteria."/>
+                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage={t('teacherAssignmentsPage.noAssignmentsFound')}/>
             </>
         )}
       </Card>

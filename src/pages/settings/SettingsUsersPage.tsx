@@ -10,6 +10,7 @@ import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import type { RbacRole } from '../../core/types';
+import { useTranslation } from 'react-i18next';
 
 type UserFormData = Omit<Partial<User>, 'id' | 'created_at' | 'updated_at' | 'last_login_at' | 'hashed_password' | 'display_name' | 'role' | 'userType' | 'isActive'> & {
     password?: string;

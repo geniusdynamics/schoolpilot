@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import { IdentificationIcon } from '../../components/ui/icons';
@@ -8,9 +7,11 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 const SettingsSchoolProfilePage: React.FC = () => {
   const { schoolDetails: initialSchoolDetails, updateSchoolDetails, loading } = useAppData();
+  const { t } = useTranslation();
   
   const [schoolDetails, setSchoolDetails] = useState<Partial<SchoolDetails>>(initialSchoolDetails || {});
   const [isSaving, setIsSaving] = useState(false);
@@ -44,18 +45,20 @@ const SettingsSchoolProfilePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="School Profile Management">
+      <Card title={t('schoolProfileManagement')}>
         <div className="text-center py-8 border-b mb-6">
           <IdentificationIcon className="w-16 h-16 text-indigo-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">Update School Information</h2>
-          <p className="text-gray-500">Manage the core details of your school.</p>
+          <h2 className="text-xl font-semibold text-gray-700">{t('updateSchoolInformation')}</h2>
+          <p className="text-gray-500">{t('manageCoreDetails')}</p>
         </div>
 
         {pageIsLoading ? (
-          <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Loading school details...</span></div>
+          <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">{t('loadingSchoolDetails')}</span></div>
         ) : (
         <form className="space-y-4" onSubmit={handleSaveSchoolDetails}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input label={t('schoolName')} name="name" value={schoolDetails.name || ''} onChange={handleSchoolDetailsChange} required />
+            <Input label={t('schoolCodeSystem')} name="school_code" value={schoolDetails.school_code || ''} onChange={handleSchoolDetailsChange} placeholder={t('eGhi001')}/>
             <Input label="School Name" name="name" value={schoolDetails.name || ''} onChange={handleSchoolDetailsChange} required />
             <Input label="School Code (System)" name="school_code" value={schoolDetails.school_code || ''} onChange={handleSchoolDetailsChange} placeholder="e.g. GHI001"/>
             <Input label="Email Address" name="email" type="email" value={schoolDetails.email || ''} onChange={handleSchoolDetailsChange} />

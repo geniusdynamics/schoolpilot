@@ -6,9 +6,24 @@ import { UsersIcon, UserGroupIcon, AcademicCapIcon, BookOpenIcon, IconProps, Tic
 import { useAppData } from '@/contexts/AppDataContext'; // Use
 import { StudentStatus, PersonGender, ChartData, BarChartData } from '../types';
 import Spinner from '../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
+import { useRBAC } from '../hooks/useRBAC';
 
 const DashboardPage: React.FC = () => {
   const { students, staff, classes, subjects, loading } = useAppData(); // Use useAppData
+  const { t } = useTranslation('dashboard');
+  const { hasPermission } = useRBAC();
+
+  const canViewDashboard = hasPermission('dashboard.view');
+
+  if (!canViewDashboard) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full py-16">
+        <h2 className="text-2xl font-semibold text-gray-700 mb-2">{t('noDashboardPermissionTitle', 'Dashboard Access Restricted')}</h2>
+        <p className="text-gray-500">{t('noDashboardPermissionMessage', 'You do not have permission to view the dashboard. Please contact your administrator if you believe this is an error.')}</p>
+      </div>
+    );
+  }
 
   if (loading.students || loading.staff || loading.classes || loading.subjects || loading.all) { // Check loading.all as well
     return (
@@ -63,16 +78,16 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-        <StatCard title="Total Students" value={totalStudents} icon={<UsersIcon />} bgColorClass="bg-indigo-100" iconColorClass="text-indigo-600" />
-        <StatCard title="Total Staff" value={totalStaff} icon={<UserGroupIcon />} bgColorClass="bg-green-100" iconColorClass="text-green-600" />
-        <StatCard title="Total Classes" value={totalClasses} icon={<AcademicCapIcon />} bgColorClass="bg-yellow-100" iconColorClass="text-yellow-600" />
-        <StatCard title="Total Subjects" value={totalSubjects} icon={<BookOpenIcon />} bgColorClass="bg-red-100" iconColorClass="text-red-600" />
-        <StatCard title="Active Fee Structures" value={activeFeeStructures} icon={<TicketIcon />} bgColorClass="bg-blue-100" iconColorClass="text-blue-600" />
-        <StatCard title="Analyzed Exams" value={analyzedExams} icon={<ExamIcon />} bgColorClass="bg-purple-100" iconColorClass="text-purple-600" />
+        <StatCard title={t('totalStudents')} value={totalStudents} icon={<UsersIcon />} bgColorClass="bg-indigo-100" iconColorClass="text-indigo-600" />
+        <StatCard title={t('totalStaff')} value={totalStaff} icon={<UserGroupIcon />} bgColorClass="bg-green-100" iconColorClass="text-green-600" />
+        <StatCard title={t('totalClasses')} value={totalClasses} icon={<AcademicCapIcon />} bgColorClass="bg-yellow-100" iconColorClass="text-yellow-600" />
+        <StatCard title={t('totalSubjects')} value={totalSubjects} icon={<BookOpenIcon />} bgColorClass="bg-red-100" iconColorClass="text-red-600" />
+        <StatCard title={t('activeFeeStructures')} value={activeFeeStructures} icon={<TicketIcon />} bgColorClass="bg-blue-100" iconColorClass="text-blue-600" />
+        <StatCard title={t('analyzedExams')} value={analyzedExams} icon={<ExamIcon />} bgColorClass="bg-purple-100" iconColorClass="text-purple-600" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Student Gender Distribution">
+        <Card title={t('studentGenderDistribution')}>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label fill="#8884d8">
@@ -85,7 +100,7 @@ const DashboardPage: React.FC = () => {
             </PieChart>
           </ResponsiveContainer>
         </Card>
-        <Card title="Student Status Overview">
+        <Card title={t('studentStatusOverview')}>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie data={studentStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label fill="#82ca9d">
@@ -100,7 +115,7 @@ const DashboardPage: React.FC = () => {
         </Card>
       </div>
 
-      <Card title="Fee Collection Overview (Mock Data)">
+      <Card title={t('feeCollectionOverview')}>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={feeCollectionData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -108,8 +123,8 @@ const DashboardPage: React.FC = () => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="pv" fill="#8884d8" name="Paid Amount" />
-            <Bar dataKey="uv" fill="#82ca9d" name="Billed Amount" />
+            <Bar dataKey="pv" fill="#8884d8" name={t('paidAmount')} />
+            <Bar dataKey="uv" fill="#82ca9d" name={t('billedAmount')} />
           </BarChart>
         </ResponsiveContainer>
       </Card>

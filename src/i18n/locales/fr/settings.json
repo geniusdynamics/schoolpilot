@@ -162,5 +162,7 @@
     "action": "Action",
     "entity": "Entité",
     "recordId": "ID Enregistrement"
-  }
+  },
+  "accessDeniedTitle": "Accès refusé",
+  "accessDeniedMessage": "Vous n'avez pas la permission d'accéder à la page des paramètres."
 }

@@ -1,4 +1,3 @@
-
 // pages/settings/DatabaseSettingsPage.tsx
 import React, { useState } from 'react';
 import Card from '../../components/ui/Card';
@@ -7,6 +6,7 @@ import Spinner from '../../components/ui/Spinner';
 import { useAppData } from '../../contexts/AppDataContext';
 import { CogIcon, ArchiveIcon, DeleteIcon, CheckCircleIcon, ExclamationTriangleIcon } from '../../components/ui/icons'; // Changed TrashIcon to DeleteIcon
 import { APP_MODE } from '../../contexts/config';
+import { useTranslation } from 'react-i18next';
 
 const DatabaseSettingsPage: React.FC = () => {
   const { 

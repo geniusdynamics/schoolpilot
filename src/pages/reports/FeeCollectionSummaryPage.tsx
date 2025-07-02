@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Card from '../../components/ui/Card';
 import { CurrencyDollarIcon, PrinterIcon, DownloadIcon } from '../../components/ui/icons'; // Added icons
@@ -8,6 +7,7 @@ import Table from '../../components/ui/Table';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
 import { SchoolPeriod, Class as SchoolClass, StudentInvoice, InvoiceStatus } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface FeeCollectionSummaryRow {
   votehead: string;

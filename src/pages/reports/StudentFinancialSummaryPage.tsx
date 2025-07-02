@@ -8,6 +8,7 @@ import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
 import { FinStudentInvoiceType, FinStudentPaymentType, FinFeeAdjustmentType } from '../../modules/finance/data/types';
 import { Student, Class as SchoolClass, ClassStream, SchoolPeriod, InvoiceStatus } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface FinancialSummaryRow {
   studentId: string;

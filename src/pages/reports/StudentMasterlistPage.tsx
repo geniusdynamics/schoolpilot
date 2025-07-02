@@ -7,9 +7,11 @@ import Table from '../../components/ui/Table';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
 import { Student, Class as SchoolClass, ClassStream, StudentStatus, PersonGender } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 const StudentMasterlistPage: React.FC = () => {
   const { students, classes, classStreams, loading } = useAppData();
+  const { t } = useTranslation();
 
   const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
   const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
@@ -108,45 +110,45 @@ const StudentMasterlistPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Student Masterlist Report">
+      <Card title={t('studentMasterlistPage.title')}>
         <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
           <p className="text-sm text-gray-600 mb-4">
-            Filter and generate a comprehensive list of students.
+            {t('studentMasterlistPage.filterDescription')}
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-            <Select label="Filter by Class" value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}>
-                <option value="">All Classes</option>
+            <Select label={t('studentMasterlistPage.filterByClass')} value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}>
+                <option value="">{t('studentMasterlistPage.allClasses')}</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
-            <Select label="Filter by Stream" value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId && availableStreams.length === classStreams.length}>
-                <option value="">All Streams</option>
+            <Select label={t('studentMasterlistPage.filterByStream')} value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId && availableStreams.length === classStreams.length}>
+                <option value="">{t('studentMasterlistPage.allStreams')}</option>
                 {availableStreams.map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
             </Select>
-            <Select label="Filter by Status" value={selectedStatus} onChange={e => setSelectedStatus(e.target.value as StudentStatus | '')}>
-                <option value="">All Statuses</option>
+            <Select label={t('studentMasterlistPage.filterByStatus')} value={selectedStatus} onChange={e => setSelectedStatus(e.target.value as StudentStatus | '')}>
+                <option value="">{t('studentMasterlistPage.allStatuses')}</option>
                 {Object.values(StudentStatus).map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
-            <Select label="Filter by Gender" value={selectedGender} onChange={e => setSelectedGender(e.target.value as PersonGender | '')}>
-                <option value="">All Genders</option>
+            <Select label={t('studentMasterlistPage.filterByGender')} value={selectedGender} onChange={e => setSelectedGender(e.target.value as PersonGender | '')}>
+                <option value="">{t('studentMasterlistPage.allGenders')}</option>
                 {Object.values(PersonGender).map(g => <option key={g} value={g}>{g}</option>)}
             </Select>
             <Button onClick={handleGenerateReport} disabled={isGenerating || isLoadingPage} className="h-10">
-              {isGenerating ? <Spinner size="sm" /> : 'Generate Report'}
+              {isGenerating ? <Spinner size="sm" /> : t('studentMasterlistPage.generateReport')}
             </Button>
           </div>
         </div>
 
         {isLoadingPage && !isGenerating ? (
-            <div className="flex justify-center items-center py-10"><Spinner size="lg" /><span className="ml-2">Loading initial data...</span></div>
+            <div className="flex justify-center items-center py-10"><Spinner size="lg" /><span className="ml-2">{t('studentMasterlistPage.loadingInitialData')}</span></div>
         ) : isGenerating ? (
-            <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Generating report...</span></div>
+            <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">{t('studentMasterlistPage.generatingReport')}</span></div>
         ) : (
           <>
             <div className="flex justify-end space-x-2 mb-4 print-hide">
-                <Button variant="secondary" size="sm" onClick={handlePrint}>Print</Button>
-                <Button variant="secondary" size="sm" onClick={handleExportCSV}>Export CSV</Button>
+                <Button variant="secondary" size="sm" onClick={handlePrint}>{t('studentMasterlistPage.print')}</Button>
+                <Button variant="secondary" size="sm" onClick={handleExportCSV}>{t('studentMasterlistPage.exportCSV')}</Button>
             </div>
-            <Table columns={columns} data={filteredStudents} isLoading={isGenerating} emptyStateMessage="No students found matching the criteria."/>
+            <Table columns={columns} data={filteredStudents} isLoading={isGenerating} emptyStateMessage={t('studentMasterlistPage.noStudentsFound')}/>
           </>
         )}
       </Card>

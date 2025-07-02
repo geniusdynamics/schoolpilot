@@ -162,5 +162,7 @@
     "action": "Action",
     "entity": "Entity",
     "recordId": "Record ID"
-  }
+  },
+  "accessDeniedTitle": "Access Denied",
+  "accessDeniedMessage": "You do not have permission to view the settings page."
 }

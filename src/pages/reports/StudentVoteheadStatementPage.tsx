@@ -7,6 +7,7 @@ import Table from '../../components/ui/Table';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
 import { Student, SchoolPeriod, StudentInvoice, StudentPayment, InvoicePaymentApplication, StudentInvoiceItem, InvoiceStatus } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface StatementRow {
   date: string;

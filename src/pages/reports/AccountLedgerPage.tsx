@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback } from 'react';
 import Card from '../../components/ui/Card';
 import { BookOpenIcon, PrinterIcon, DownloadIcon } from '../../components/ui/icons';
@@ -9,6 +8,7 @@ import Select from '../../components/ui/Select';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { ChartOfAccount, GeneralLedgerEntry } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface LedgerEntryRow extends GeneralLedgerEntry {
   running_balance_display?: number;
@@ -18,6 +18,7 @@ const AccountLedgerPage: React.FC = () => {
   const { chartOfAccounts, rawInitialData, loading } = useAppData(); 
   const { initialMockGeneralLedgerEntries: generalLedgerEntries } = rawInitialData;
 
+  const { t } = useTranslation();
 
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
   const [startDate, setStartDate] = useState<string>(new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]); 
@@ -107,38 +108,38 @@ const AccountLedgerPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Account Ledger Report">
+      <Card title={t('accountLedgerPage.title')}>
         <div className="p-4 border-b mb-4 bg-gray-50 rounded-md filter-section">
             <p className="text-sm text-gray-600 mb-4">
-                View transactions for a selected GL account within a date range.
+                {t('accountLedgerPage.description')}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                <Select label="GL Account" value={selectedAccountId || ''} onChange={e => setSelectedAccountId(Number(e.target.value) || undefined)} required>
-                    <option value="">-- Select Account --</option>
+                <Select label={t('accountLedgerPage.selectAccount')} value={selectedAccountId || ''} onChange={e => setSelectedAccountId(Number(e.target.value) || undefined)} required>
+                    <option value="">-- {t('accountLedgerPage.selectAccountPlaceholder')} --</option>
                     {chartOfAccounts.map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
                 </Select>
-                <Input label="Start Date" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-                <Input label="End Date" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                <Input label={t('accountLedgerPage.startDate')} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                <Input label={t('accountLedgerPage.endDate')} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
                 <Button onClick={handleGenerateReport} disabled={isGenerating || isLoadingPage || !selectedAccountId} className="h-10 print-hide">
-                    {isGenerating ? <Spinner size="sm" /> : 'Generate Ledger'}
+                    {isGenerating ? <Spinner size="sm" /> : t('accountLedgerPage.generateLedger')}
                 </Button>
             </div>
         </div>
 
         {isLoadingPage && !isGenerating ? (
-             <div className="flex justify-center items-center py-10"><Spinner size="lg" /><span className="ml-2">Loading data...</span></div>
+             <div className="flex justify-center items-center py-10"><Spinner size="lg" /><span className="ml-2">{t('accountLedgerPage.loadingData')}</span></div>
         ) : isGenerating ? (
-            <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Generating ledger...</span></div>
+            <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">{t('accountLedgerPage.generatingLedger')}</span></div>
         ) : reportData.length > 0 ? (
              <>
                 <div className="flex justify-end space-x-2 mb-4 print-hide">
-                    <Button variant="secondary" size="sm" onClick={handlePrint} leftIcon={<PrinterIcon className="w-4 h-4"/>}>Print</Button>
-                    <Button variant="secondary" size="sm" onClick={handleExportCSV} leftIcon={<DownloadIcon className="w-4 h-4"/>}>Export CSV</Button>
+                    <Button variant="secondary" size="sm" onClick={handlePrint} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('accountLedgerPage.print')}</Button>
+                    <Button variant="secondary" size="sm" onClick={handleExportCSV} leftIcon={<DownloadIcon className="w-4 h-4"/>}>{t('accountLedgerPage.exportCSV')}</Button>
                 </div>
-                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage="No transactions found for the selected criteria."/>
+                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage={t('accountLedgerPage.noTransactionsFound')}/>
             </>
         ) : (
-            <p className="text-center text-gray-500 py-4">Please select filters and click "Generate Ledger".</p>
+            <p className="text-center text-gray-500 py-4">{t('accountLedgerPage.pleaseSelectFiltersAndClickGenerateLedger')}</p>
         )}
       </Card>
     </div>

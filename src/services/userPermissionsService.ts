@@ -11,7 +11,7 @@ export interface Permission {
   name: string;
   description: string;
   module: string;
-  action: 'create' | 'read' | 'update' | 'delete' | 'admin';
+  action: 'create' | 'read' | 'update' | 'delete' | 'admin' | 'view';
   resource: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -233,6 +233,7 @@ class UserPermissionsService {
       { id: 'finance.update', name: 'Update Financial Records', description: 'Modify financial records', module: 'finance', action: 'update', resource: 'finance' },
       { id: 'students.read', name: 'View Students', description: 'View student information', module: 'administration', action: 'read', resource: 'students' },
       { id: 'students.update', name: 'Update Students', description: 'Modify student records', module: 'administration', action: 'update', resource: 'students' },
+      { id: 'dashboard.view', name: 'View Dashboard', description: 'View the main dashboard and its widgets', module: 'dashboard', action: 'view', resource: 'dashboard' },
       { id: '*', name: 'All Permissions', description: 'Full system access', module: 'all', action: 'admin', resource: 'all' }
     ];
 
