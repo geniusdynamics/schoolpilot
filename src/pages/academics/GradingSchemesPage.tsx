@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { GradingScheme, GradingSchemeLevel } from '../../modules/academics/data/types'; // Corrected import
 import Card from '../../components/ui/Card';
@@ -9,6 +8,7 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ShieldCheckIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type GradingSchemeFormData = Omit<Partial<GradingScheme>, 'id' | 'created_at' | 'updated_at' | 'levels'>;
 type LevelFormData = Omit<Partial<GradingSchemeLevel>, 'id' | 'scheme_id'>;

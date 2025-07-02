@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Student, ClassStream } from '../../types';
 import { StudentExamResultWithDetails, StudentPaperMarkWithDetails, ExamSession, ExamPaperSetting, SubjectPaper, StudentPaperMark } from '../../modules/academics/data/types'; // Corrected imports
@@ -10,6 +9,7 @@ import Input from '../../components/ui/Input';
 import { ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 interface MarkInput {
   [studentId: string]: {

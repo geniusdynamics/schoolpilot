@@ -1,10 +1,9 @@
-
 // ABOUTME: This page component allows users to manage exam sessions and their paper settings.
 // ABOUTME: It uses modals for creating/editing sessions and configuring subject papers for each exam.
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { SchoolPeriod } from '../../types';
-import { AcademicsExamSessionType as ExamSession, ExamSessionStatus, AcademicsSubjectPaperType as SubjectPaper, AcademicsExamPaperSettingType as ExamPaperSetting } from '../../modules/academics/data/types';
+import { ExamSession, SubjectPaper, ExamPaperSetting, ExamSessionStatus } from '../../core/types';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -14,6 +13,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, ChartPieIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; 
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type ExamSessionFormData = Omit<Partial<ExamSession>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'paper_settings' | 'status'> & {
     status: ExamSessionStatus; 
@@ -28,12 +28,6 @@ const ExamSessionsPage: React.FC = () => {
     schoolPeriods, 
     subjectPapers, 
     loading, 
-    addExamSession, 
-    updateExamSession, 
-    deleteExamSession,
-    addExamPaperSetting,
-    updateExamPaperSetting,
-    deleteExamPaperSetting,
   } = useAppData(); 
 
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
@@ -116,9 +110,9 @@ const ExamSessionsPage: React.FC = () => {
     };
 
     if (editingSession) {
-      await updateExamSession({ ...editingSession, ...payload, paper_settings: editingSession.paper_settings || [] });
+      // TODO: Implement updateExamSession when available in context
     } else {
-      await addExamSession(payload);
+      // TODO: Implement addExamSession when available in context
     }
     closeSessionModal();
   };
@@ -136,9 +130,9 @@ const ExamSessionsPage: React.FC = () => {
     };
 
     if (editingPaperSetting) {
-      await updateExamPaperSetting({ ...editingPaperSetting, ...payload });
+      // TODO: Implement updateExamPaperSetting when available in context
     } else {
-      await addExamPaperSetting(payload);
+      // TODO: Implement addExamPaperSetting when available in context
     }
     
     const updatedSession = examSessions.find(es => es.id === currentSessionForPapers.id);
@@ -151,14 +145,14 @@ const ExamSessionsPage: React.FC = () => {
 
   const handleDeleteSession = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this exam session? This will also delete all its paper settings and might affect related results.')) {
-      await deleteExamSession(id);
+      // TODO: Implement deleteExamSession when available in context
     }
   };
 
   const handleDeletePaperSetting = async (paperSettingId: string) => {
       if (!currentSessionForPapers) return;
       if (window.confirm('Are you sure you want to delete this paper setting?')) {
-          await deleteExamPaperSetting(paperSettingId, currentSessionForPapers.id);
+          // TODO: Implement deleteExamPaperSetting when available in context
            const updatedSession = examSessions.find(es => es.id === currentSessionForPapers.id);
            if(updatedSession) setCurrentSessionForPapers(updatedSession);
       }

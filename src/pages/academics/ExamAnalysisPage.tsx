@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { ClassStream, Student, AcademicYear, SchoolPeriod } from '../../types';
 import { AcademicsExamSessionType as ExamSession, AcademicsStudentExamResultWithDetailsType as StudentExamResultWithDetails, AcademicsSubjectPaperType as SubjectPaper, AcademicsExamPaperSettingType as ExamPaperSetting, AcademicsClassSubjectAllocationType as ClassSubjectAllocation, AcademicsSubjectType as Subject } from '../../types'; 
@@ -11,6 +8,7 @@ import Select from '../../components/ui/Select';
 import { ChartPieIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; 
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 interface SubjectAnalysisData {
   subjectId: number;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TimetablePeriodDef } from '../../modules/academics/data/types'; // Corrected import
 import Card from '../../components/ui/Card';
@@ -9,6 +8,7 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ClockIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type TimetablePeriodFormData = Omit<Partial<TimetablePeriodDef>, 'id'>;
 

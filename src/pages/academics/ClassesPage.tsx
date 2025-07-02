@@ -196,14 +196,10 @@ const ClassesPage: React.FC = () => {
       </Modal>
 
       {/* Stream Modal */}
-      <Modal isOpen={isStreamModalOpen} onClose={closeStreamModal} title={editingStream ? t('classes.modalEditStreamTitle') : t('classes.modalAddStreamTitle', { className: selectedClassForStream?.name || ''})}
-         footer={<><Button variant="secondary" onClick={closeStreamModal}>{t('common:cancel')}</Button><Button onClick={handleStreamSubmit} disabled={loading.classStreams}>{loading.classStreams ? <Spinner size="sm"/> : t('common:save')}</Button></>}
+      <Modal isOpen={isStreamModalOpen} onClose={closeStreamModal} title={editingStream ? t('classes.streamModalEditTitle') : t('classes.streamModalAddTitle', {className: selectedClassForStream?.name})}
+        footer={<><Button variant="secondary" onClick={closeStreamModal}>{t('common:cancel')}</Button><Button onClick={handleStreamSubmit} disabled={loading.classStreams}>{loading.classStreams ? <Spinner size="sm"/> : t('common:save')}</Button></>}
       >
         <Input name="name" label={t('classes.streamNameLabel')} value={streamFormData.name || ''} onChange={(e) => setStreamFormData({...streamFormData, name: e.target.value})} required />
-        <Select name="class_teacher_id" label={t('classes.teacherLabel')} value={streamFormData.class_teacher_id || ''} onChange={(e) => setStreamFormData({...streamFormData, class_teacher_id: e.target.value})}>
-            <option value="">{t('classes.selectTeacherOption')}</option>
-            {staff.filter(s => s.is_active).map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
-        </Select>
       </Modal>
     </div>
   );

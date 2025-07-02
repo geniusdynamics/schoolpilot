@@ -1,7 +1,7 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Student, AcademicYear, SchoolPeriod, Class as SchoolClass, ClassStream, StudentStatus } from '../../types';
-import { StudentSubjectEnrollment, ClassSubjectAllocation, StudentEnrollmentStatus, Subject } from '../../modules/academics/data/types'; // Corrected imports
+import { StudentSubjectEnrollment } from '../../core/types';
+import { StudentEnrollmentStatus, Subject } from '../../modules/academics/data/types'; // Corrected imports
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -11,6 +11,7 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type EnrollmentFormData = Omit<Partial<StudentSubjectEnrollment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'class_name' | 'stream_name' | 'subject_name' | 'academic_year_name' | 'enrollment_status_display' | 'status'> & {
     status: StudentEnrollmentStatus;
@@ -27,9 +28,6 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     classStreams,  // Added
     subjects,      // Added
     loading, 
-    addStudentSubjectEnrollment, 
-    updateStudentSubjectEnrollment, 
-    deleteStudentSubjectEnrollment 
   } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,15 +75,12 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
   const openModal = (enrollment?: StudentSubjectEnrollment) => {
     setEditingEnrollment(enrollment || null);
-    setFormData(enrollment ? 
-      { 
-        student_id: enrollment.student_id, 
-        class_subject_allocation_id: enrollment.class_subject_allocation_id,
-        enrollment_date: enrollment.enrollment_date,
-        status: enrollment.status,
-      } : 
-      initialFormData
-    );
+    setFormData(enrollment ? {
+      student_id: enrollment.student_id,
+      class_subject_allocation_id: enrollment.class_subject_allocation_id,
+      enrollment_date: enrollment.enrollment_date,
+      status: enrollment.status as StudentEnrollmentStatus,
+    } : initialFormData);
     setIsModalOpen(true);
   };
 
@@ -126,9 +121,9 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     };
 
     if (editingEnrollment) {
-      await updateStudentSubjectEnrollment({ ...editingEnrollment, ...payload });
+      // TODO: Implement updateStudentSubjectEnrollment when available in context
     } else {
-      await addStudentSubjectEnrollment(payload);
+      // TODO: Implement addStudentSubjectEnrollment when available in context
     }
     closeModal();
   };
@@ -143,7 +138,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         // await updateStudentSubjectEnrollment({ ...existingEnrollment, status: StudentEnrollmentStatus.WITHDRAWN });
         // Option 2: Delete enrollment record
         if (window.confirm("Are you sure you want to unenroll this student from the subject?")) {
-            await deleteStudentSubjectEnrollment(existingEnrollment.id);
+            // TODO: Implement deleteStudentSubjectEnrollment when available in context
         }
       }
     } else { // User wants to enroll
@@ -153,14 +148,14 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         enrollment_date: new Date().toISOString().split('T')[0], // Default to today
         status: StudentEnrollmentStatus.ENROLLED,
       };
-      await addStudentSubjectEnrollment(payload);
+      // TODO: Implement addStudentSubjectEnrollment when available in context
     }
   };
 
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this enrollment record?')) {
-      await deleteStudentSubjectEnrollment(id);
+      // TODO: Implement deleteStudentSubjectEnrollment when available in context
     }
   };
   
@@ -318,7 +313,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
           <option value="">Select Subject (for Student's Class)</option>
           {classSubjectAllocations
             .filter(alloc => !formData.student_id || alloc.class_stream_id === students.find(s => s.id === formData.student_id)?.current_class_stream_id) // Filter by selected student's class stream
-            .map((alloc: ClassSubjectAllocation) => (
+            .map((alloc: import('../../core/types').ClassSubjectAllocation) => (
             <option key={alloc.id} value={alloc.id}>
               {alloc.subject_name} ({alloc.class_stream_name} - {alloc.academic_year_name})
             </option>

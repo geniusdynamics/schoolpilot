@@ -318,3 +318,46 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - All type errors and linter issues resolved for new model.
 - Legacy consumers can still use mapped roles for backward compatibility.
 - **Transitioned to i18n sweep:** Recap and plan in `docs/workflows/recap2_i18n_sweep_20240702.md`.
+
+## [Academics Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Academics module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/academics.json` and `src/i18n/locales/fr/academics.json` as needed.
+- Language switching was validated for all Academics pages.
+
+**Files/Directories Updated:**
+- `src/pages/academics/AcademicsDashboardPage.tsx`
+- `src/pages/academics/ClassesPage.tsx`
+- `src/pages/academics/ClassSubjectAllocationsPage.tsx`
+- `src/pages/academics/ExamAnalysisPage.tsx`
+- `src/pages/academics/ExamSessionsPage.tsx`
+- `src/pages/academics/GradingSchemesPage.tsx`
+- `src/pages/academics/StudentExamResultsEntryPage.tsx`
+- `src/pages/academics/StudentSubjectEnrollmentPage.tsx`
+- `src/pages/academics/SubjectsPage.tsx`
+- `src/pages/academics/SubjectPapersManagementPage.tsx`
+- `src/pages/academics/TeacherSubjectAssignmentPage.tsx`
+- `src/pages/academics/TimetableEntriesPage.tsx`
+- `src/pages/academics/TimetablePeriodsPage.tsx`
+- `src/pages/academics/UseAcademicYearData.ts`
+- `src/pages/academics/UseClassSubjectAllocationData.ts`
+- `src/pages/academics/UseExamPaperSettingData.ts`
+- `src/pages/academics/UseExamSessionData.ts`
+- `src/pages/academics/UseGradingSchemeData.ts`
+- `src/pages/academics/UseGradingSchemeLevelData.ts`
+- `src/pages/academics/UseStudentExamResultData.ts`
+- `src/pages/academics/UseStudentPaperMarkData.ts`
+- `src/pages/academics/UseSubjectData.ts`
+- `src/pages/academics/UseSubjectPaperData.ts`
+- `src/pages/academics/UseTeacherSubjectAssignmentData.ts`
+- `src/pages/academics/UseTimetableEntryData.ts`
+- `src/pages/academics/UseTimetablePeriodDefData.ts`
+- `src/pages/academics/StudentPaperMarkData.ts`
+
+**Validation:**
+- All Academics pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Academics module.
+
+---

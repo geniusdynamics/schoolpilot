@@ -1,7 +1,6 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { ClassStream, Staff } from '../../types';
-import { DayOfWeek, TimetableEntry, TimetablePeriodDef, Subject, TeacherSubjectAssignment, ClassSubjectAllocation } from '../../modules/academics/data/types'; // Corrected imports
+import { DayOfWeek, TimetableEntry, TimetablePeriodDef, Subject } from '../../core/types';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -9,6 +8,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TableCellsIcon, PrinterIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type TimetableEntryFormData = Omit<Partial<TimetableEntry>, 'id' | 'class_stream_id' | 'class_stream_name' | 'period_name' | 'subject_name' | 'teacher_name' | 'day_of_week'> & {
     day_of_week?: DayOfWeek;
@@ -268,8 +268,8 @@ const TimetableEntriesPage: React.FC = () => {
           required
         >
           <option value="">Select Subject</option>
-          {subjects.map((sub: Subject) => ( 
-            <option key={sub.id} value={sub.id}>{sub.name}</option>
+          {subjects.map((subject: Subject) => (
+            <option key={subject.id} value={subject.id}>{subject.name}</option>
           ))}
         </Select>
         <Select 

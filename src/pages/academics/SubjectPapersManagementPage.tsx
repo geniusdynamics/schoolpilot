@@ -9,6 +9,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type SubjectPaperFormData = Omit<Partial<SubjectPaper>, 'id' | 'created_at' | 'updated_at' | 'subject_name'>;
 
