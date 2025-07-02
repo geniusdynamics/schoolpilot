@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Card from '../../components/ui/Card';
 import { CogIcon, AcademicCapIcon, CalendarDaysIcon, UserGroupIcon, UsersIcon, PuzzlePieceIcon, BriefcaseIcon, BuildingOffice2Icon, ListBulletIcon, PlusIcon } from '../../components/ui/icons';
@@ -8,6 +7,7 @@ import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import DonutChart from '../../components/ui/DonutChart';
 import { ChartData } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (

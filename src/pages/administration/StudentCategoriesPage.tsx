@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { StudentCategory } from '../../types'; // StudentCategory is a core type
 import Card from '../../components/ui/Card';
@@ -10,11 +8,13 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; 
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type StudentCategoryFormData = Omit<Partial<StudentCategory>, 'id'>;
 
 const StudentCategoriesPage: React.FC = () => {
   const { studentCategories, loading, addStudentCategory, updateStudentCategory, deleteStudentCategory } = useAppData();
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<StudentCategory | null>(null);
@@ -86,27 +86,27 @@ const StudentCategoriesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Student Categories Management" actions={
+      <Card title={t('studentCategories.title')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Category
+          {t('studentCategories.addCategory')}
         </Button>
       }>
         <Table columns={columns} data={studentCategories} isLoading={loading.studentCategories && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCategory ? 'Edit Student Category' : 'Add New Student Category'}
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCategory ? t('studentCategories.editStudentCategory') : t('studentCategories.addNewStudentCategory')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('studentCategories.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.studentCategories}>
-              {loading.studentCategories ? <Spinner size="sm"/> : (editingCategory ? 'Save Changes' : 'Add Category')}
+              {loading.studentCategories ? <Spinner size="sm"/> : (editingCategory ? t('studentCategories.saveChanges') : t('studentCategories.addCategory'))}
             </Button>
           </>
         }
       >
         <Input 
           name="name" 
-          label="Category Name" 
+          label={t('studentCategories.categoryName')} 
           value={formData.name || ''} 
           onChange={handleInputChange} 
           required 

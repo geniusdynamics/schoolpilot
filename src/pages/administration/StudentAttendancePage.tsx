@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Student, ClassStream, TimetablePeriodDef } from '../../types';
 import { AdminStudentAttendanceType as StudentAttendance, AttendanceStatus } from '../../modules/administration/data/types';
@@ -11,6 +10,7 @@ import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, ClockIcon, MinusCircleI
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
 import Table from '../../components/ui/Table';
+import { useTranslation } from 'react-i18next';
 
 interface AttendanceData {
   [studentId: string]: AttendanceStatus;

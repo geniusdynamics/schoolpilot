@@ -8,11 +8,13 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, IdentificationIcon } from '../../components/ui/icons';
 import { useDesignationData } from '../../modules/administration/data/useDesignationData';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type DesignationFormData = Omit<Partial<Designation>, 'id' | 'created_at' | 'updated_at'>;
 
 const DesignationsPage: React.FC = () => {
   const { designations, loading, addDesignation, updateDesignation, deleteDesignation } = useDesignationData();
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDesignation, setEditingDesignation] = useState<Designation | null>(null);
@@ -84,27 +86,27 @@ const DesignationsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Designations Management" actions={
+      <Card title={t('designations.management')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Designation
+          {t('designations.addDesignation')}
         </Button>
       }>
         <Table columns={columns} data={designations} isLoading={loading.designations && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDesignation ? 'Edit Designation' : 'Add New Designation'}
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDesignation ? t('designations.editDesignation') : t('designations.addNewDesignation')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('designations.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.designations}>
-               {loading.designations ? <Spinner size="sm"/> : (editingDesignation ? 'Save Changes' : 'Add Designation')}
+               {loading.designations ? <Spinner size="sm"/> : (editingDesignation ? t('designations.saveChanges') : t('designations.addDesignation'))}
             </Button>
           </>
         }
       >
         <Input 
           name="title" 
-          label="Designation Title" 
+          label={t('designations.designationTitle')} 
           value={formData.title || ''} 
           onChange={handleInputChange} 
           required 

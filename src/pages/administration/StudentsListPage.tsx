@@ -11,6 +11,7 @@ import { PlusIcon, EditIcon, DeleteIcon } from '../../components/ui/icons';
 // import { useMockData } from '../hooks/useMockData'; // Switch to useAppData
 import { useAppData } from '@/contexts/AppDataContext'; // Import useAppData
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {
   admission_no: string; // Required

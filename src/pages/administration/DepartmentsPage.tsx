@@ -7,11 +7,13 @@ import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon } from '../../components/ui/icons';
 import { useDepartmentData } from '../../modules/administration/data/useDepartmentData';
+import { useTranslation } from 'react-i18next';
 
 type DepartmentFormData = Omit<Partial<Department>, 'id' | 'created_at' | 'updated_at'>;
 
 const DepartmentsPage: React.FC = () => {
   const { departments, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
@@ -77,27 +79,27 @@ const DepartmentsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Departments Management" actions={
+      <Card title={t('departments.management')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Department
+          {t('departments.addDepartment')}
         </Button>
       }>
         <Table columns={columns} data={departments} isLoading={isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDepartment ? 'Edit Department' : 'Add New Department'}
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDepartment ? t('departments.editDepartment') : t('departments.addNewDepartment')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('departments.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={isModalOpen}>
-              {editingDepartment ? 'Save Changes' : 'Add Department'}
+              {editingDepartment ? t('departments.saveChanges') : t('departments.addDepartment')}
             </Button>
           </>
         }
       >
         <Input 
           name="name" 
-          label="Department Name" 
+          label={t('departments.departmentName')} 
           value={formData.name || ''} 
           onChange={handleInputChange} 
           required 
@@ -112,7 +114,7 @@ const DepartmentsPage: React.FC = () => {
             className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
           />
           <label htmlFor="is_academic" className="ml-2 block text-sm text-gray-900">
-            Is Academic Department
+            {t('departments.isAcademicDepartment')}
           </label>
         </div>
       </Modal>

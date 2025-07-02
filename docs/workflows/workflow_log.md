@@ -360,4 +360,38 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - Language switching (English/French) was tested and works as expected.
 - No hardcoded UI labels remain in the Academics module.
 
+## [Administration Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Administration module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/administration.json` and `src/i18n/locales/fr/administration.json` as needed.
+- Language switching was validated for all Administration pages.
+
+**Files/Directories Updated:**
+- `src/pages/administration/AcademicPeriodDefinitionsPage.tsx`
+- `src/pages/administration/AcademicStructurePage.tsx`
+- `src/pages/administration/AcademicYearsPage.tsx`
+- `src/pages/administration/AdministrationDashboardPage.tsx`
+- `src/pages/administration/ClubsPage.tsx`
+- `src/pages/administration/CommunicationTemplatesPage.tsx`
+- `src/pages/administration/CustomersPage.tsx`
+- `src/pages/administration/DepartmentsPage.tsx`
+- `src/pages/administration/DesignationsPage.tsx`
+- `src/pages/administration/DormitoriesPage.tsx`
+- `src/pages/administration/MessageCampaignsPage.tsx`
+- `src/pages/administration/PartnersPage.tsx`
+- `src/pages/administration/SchoolPeriodsPage.tsx`
+- `src/pages/administration/StaffListPage.tsx`
+- `src/pages/administration/StudentAttendancePage.tsx`
+- `src/pages/administration/StudentCategoriesPage.tsx`
+- `src/pages/administration/StudentHealthRecordsPage.tsx`
+- `src/pages/administration/StudentsListPage.tsx`
+- `src/pages/administration/students/StudentDetailPage.tsx`
+- `src/pages/administration/students/StudentFinancialDashboardPage.tsx`
+
+**Validation:**
+- All Administration pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Administration module.
+
 ---

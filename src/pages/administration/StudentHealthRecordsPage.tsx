@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Student, StudentHealthRecord } from '../../types';
 import Card from '../../components/ui/Card';
@@ -10,6 +9,7 @@ import { EditIcon, ClipboardDocumentListIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
 import Textarea from '../../components/ui/Textarea';
+import { useTranslation } from 'react-i18next';
 
 type HealthRecordFormData = Omit<Partial<StudentHealthRecord>, 'id' | 'student_id' | 'created_at' | 'updated_at'>;
 

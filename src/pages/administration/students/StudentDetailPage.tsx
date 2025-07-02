@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom'; 
 // import { useMockData } from '../../hooks/useMockData'; // Switch
@@ -10,6 +9,7 @@ import Tabs from '../../../components/ui/Tabs';
 import Table from '../../../components/ui/Table';
 import Button from '../../../components/ui/Button';
 import { UserCircleIcon, AcademicCapIcon, EnvelopeIcon, PhoneIcon, DownloadIcon, MessageIcon, EditIcon, CurrencyDollarIcon, PrinterIcon } from '../../../components/ui/icons';
+import { useTranslation } from 'react-i18next';
 
 const StudentDetailPage: React.FC = () => {
   const { studentId } = useParams<{ studentId: string }>();

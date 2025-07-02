@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { AcademicPeriodDefinition, AcademicYearStructure } from '../../types';
 import Card from '../../components/ui/Card';
@@ -10,6 +9,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type PeriodDefinitionFormData = Omit<Partial<AcademicPeriodDefinition>, 'id' | 'structure_name'>;
 

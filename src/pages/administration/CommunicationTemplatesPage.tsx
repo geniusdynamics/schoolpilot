@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AdminTemplateCommType as TemplateComm, TemplateType } from '../../modules/administration/data/types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, EnvelopeIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updated_at' | 'type'> & {
     type: TemplateType; // Make type required

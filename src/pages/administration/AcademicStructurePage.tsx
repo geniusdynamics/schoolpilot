@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AcademicYearStructure } from '../../types';
 import Card from '../../components/ui/Card';
@@ -9,6 +8,7 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, PuzzlePieceIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type AcademicStructureFormData = Omit<Partial<AcademicYearStructure>, 'id'>;
 

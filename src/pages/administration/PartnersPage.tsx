@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { AdminPartnerType as Partner } from '@/modules/administration/data/types';
 import { PartnerType } from '@/modules/administration/data/types';
@@ -11,6 +10,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon as PartnersIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at' | 'partner_type'> & {
     partner_type: PartnerType; // Make type required for the form

@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo } from 'react';
 import { Staff, Department, Designation } from '../../../types';
 import Table from '../../components/ui/Table';
@@ -12,6 +10,7 @@ import { PlusIcon, EditIcon, DeleteIcon } from '../../components/ui/icons';
 // import { useMockData } from '../hooks/useMockData'; // Switch to useAppData
 import { useAppData } from '@/contexts/AppDataContext'; // Import useAppData
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'department_name' | 'designation_title' | 'email' | 'hod_of_department_name' | 'display_name' | 'user_username' | 'deleted_at'> { 
   department_id?: number; 

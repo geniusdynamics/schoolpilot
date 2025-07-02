@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Customer } from '../../types';
 import Card from '../../components/ui/Card';
@@ -9,11 +8,13 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon as CustomersIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type CustomerFormData = Omit<Partial<Customer>, 'id' | 'created_at' | 'updated_at'>;
 
 const CustomersPage: React.FC = () => {
   const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useAppData(); // Updated
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -89,43 +90,43 @@ const CustomersPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="External Customers Management" actions={
+      <Card title={t('customers.managementTitle')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Customer
+          {t('customers.addCustomer')}
         </Button>
       }>
          <p className="text-sm text-gray-600 mb-4">
-          Manage non-student/staff customers for services like facility rentals or other sales.
+          {t('customers.managementDescription')}
         </p>
         <Table columns={columns} data={customers} isLoading={loading.customers && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCustomer ? 'Edit Customer' : 'Add New Customer'} size="lg"
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={t(editingCustomer ? 'customers.editCustomer' : 'customers.addNewCustomer')} size="lg"
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('customers.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.customers}>
-              {loading.customers ? <Spinner size="sm"/> : (editingCustomer ? 'Save Changes' : 'Add Customer')}
+              {loading.customers ? <Spinner size="sm"/> : (editingCustomer ? t('customers.saveChanges') : t('customers.addCustomer'))}
             </Button>
           </>
         }
       >
         <Input 
           name="name" 
-          label="Customer Name" 
+          label={t('customers.customerName')} 
           value={formData.name || ''} 
           onChange={handleInputChange} 
           required 
         />
         <Input 
           name="phone" 
-          label="Phone Number" 
+          label={t('customers.phoneNumber')} 
           value={formData.phone || ''} 
           onChange={handleInputChange} 
         />
         <Input 
           name="email" 
-          label="Email Address" 
+          label={t('customers.emailAddress')} 
           type="email"
           value={formData.email || ''} 
           onChange={handleInputChange} 

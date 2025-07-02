@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Staff, Class, ClassStream } from '../../types';
 import { AdminCampaignType as Campaign, CampaignStatus, CampaignAudienceType, AdminTemplateCommType as TemplateComm, TemplateType } from '../../modules/administration/data/types';
@@ -13,6 +12,7 @@ import { PlusIcon, EditIcon, DeleteIcon, MegaphoneIcon } from '../../components/
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
 import { useUser } from '../../contexts/UserContext'; // Import useUser
+import { useTranslation } from 'react-i18next';
 
 type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'template_name' | 'created_by_name' | 'target_audience_display' | 'approved_by' | 'status' | 'template_id' | 'target_audience_type' | 'approved_by_name'> & {
     status: CampaignStatus;
@@ -33,6 +33,7 @@ const MessageCampaignsPage: React.FC = () => {
   } = useAppData(); // Updated
   
   const { currentUser } = useUser(); // Get currentUser
+  const { t } = useTranslation();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
@@ -195,23 +196,23 @@ const MessageCampaignsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Message Campaigns Management" actions={
+      <Card title={t('MessageCampaignsPage.title')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Create Campaign
+          {t('MessageCampaignsPage.createCampaign')}
         </Button>
       }>
         <p className="text-sm text-gray-600 mb-4">
-          Design and manage communication campaigns. Select templates, define audiences, and schedule messages.
+          {t('MessageCampaignsPage.designAndManageCommunicationCampaigns')}
         </p>
         <Table columns={columns} data={campaigns} isLoading={loading.campaigns && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCampaign ? 'Edit Campaign' : 'Create New Campaign'} size="xl"
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCampaign ? t('MessageCampaignsPage.editCampaign') : t('MessageCampaignsPage.createNewCampaign')} size="xl"
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('MessageCampaignsPage.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.campaigns}>
-              {loading.campaigns ? <Spinner size="sm"/> : (editingCampaign ? 'Save Changes' : 'Create Campaign')}
+              {loading.campaigns ? <Spinner size="sm"/> : (editingCampaign ? t('MessageCampaignsPage.saveChanges') : t('MessageCampaignsPage.createCampaign'))}
             </Button>
           </>
         }
@@ -219,7 +220,7 @@ const MessageCampaignsPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input 
                 name="name" 
-                label="Campaign Name" 
+                label={t('MessageCampaignsPage.campaignName')} 
                 value={formData.name || ''} 
                 onChange={handleInputChange} 
                 required 
@@ -227,18 +228,18 @@ const MessageCampaignsPage: React.FC = () => {
             />
             <Select 
                 name="template_id" 
-                label="Communication Template (Optional)" 
+                label={t('MessageCampaignsPage.communicationTemplateOptional')} 
                 value={formData.template_id || ''} 
                 onChange={handleInputChange}
                 >
-                <option value="">Use Custom Subject/Body</option>
+                <option value="">{t('MessageCampaignsPage.useCustomSubjectBody')}</option>
                 {templatesComm.map((template) => (
                     <option key={template.id} value={template.id}>{template.name} ({template.type})</option>
                 ))}
             </Select>
             <Input 
                 name="subject" 
-                label="Subject (for Email/Push)" 
+                label={t('MessageCampaignsPage.subjectForEmailPush')} 
                 value={formData.subject || ''} 
                 onChange={handleInputChange} 
                 disabled={!!selectedTemplate && selectedTemplate.type === TemplateType.SMS}
@@ -246,11 +247,11 @@ const MessageCampaignsPage: React.FC = () => {
             />
             <Select 
                 name="target_audience_type" 
-                label="Target Audience" 
+                label={t('MessageCampaignsPage.targetAudience')} 
                 value={formData.target_audience_type || ''} 
                 onChange={handleInputChange}
                 >
-                <option value="">Select Target Audience</option>
+                <option value="">{t('MessageCampaignsPage.selectTargetAudience')}</option>
                 {Object.values(CampaignAudienceType).map((type) => (
                     <option key={type} value={type}>{type}</option>
                 ))}
@@ -258,25 +259,25 @@ const MessageCampaignsPage: React.FC = () => {
             {(formData.target_audience_type === CampaignAudienceType.STUDENTS_OF_CLASS || formData.target_audience_type === CampaignAudienceType.PARENTS_OF_CLASS) && (
                  <Select 
                     name="target_id" 
-                    label="Select Class/Stream" 
+                    label={t('MessageCampaignsPage.selectClassStream')} 
                     value={formData.target_id || ''} 
                     onChange={handleInputChange}
                     required
                 >
-                    <option value="">Select Class/Stream</option>
+                    <option value="">{t('MessageCampaignsPage.selectClassStream')}</option>
                     {classStreams.map(cs => <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>)}
                 </Select>
             )}
              <Input 
                 name="scheduled_for" 
-                label="Schedule For (Optional)" 
+                label={t('MessageCampaignsPage.scheduleForOptional')} 
                 type="datetime-local"
                 value={formData.scheduled_for || ''} 
                 onChange={handleInputChange} 
             />
             <Select 
                 name="status" 
-                label="Campaign Status" 
+                label={t('MessageCampaignsPage.campaignStatus')} 
                 value={formData.status} 
                 onChange={handleInputChange}
                 required
@@ -288,11 +289,11 @@ const MessageCampaignsPage: React.FC = () => {
         </div>
          <Textarea
             name="body"
-            label="Campaign Body Content"
+            label={t('MessageCampaignsPage.campaignBodyContent')}
             value={formData.body || ''}
             onChange={handleInputChange}
             rows={8}
-            placeholder="Enter campaign message here. Placeholders like {{student_name}} will be replaced if applicable."
+            placeholder={t('MessageCampaignsPage.enterCampaignMessageHere')}
             containerClassName="mt-4"
             required
         />

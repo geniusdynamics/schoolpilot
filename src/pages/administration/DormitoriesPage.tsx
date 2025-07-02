@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import { Dormitory, Staff } from '../../types';
 import Card from '../../components/ui/Card';
@@ -12,11 +9,13 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingLibraryIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; 
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type DormitoryFormData = Omit<Partial<Dormitory>, 'id' | 'created_at' | 'updated_at' | 'master_name'>;
 
 const DormitoriesPage: React.FC = () => {
   const { dormitories, staff, loading, addDormitory, updateDormitory, deleteDormitory } = useAppData();
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDormitory, setEditingDormitory] = useState<Dormitory | null>(null);
@@ -92,45 +91,45 @@ const DormitoriesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Dormitories Management" actions={
+      <Card title={t('dormitories.management')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Dormitory
+          {t('dormitories.addDormitory')}
         </Button>
       }>
         <Table columns={columns} data={dormitories} isLoading={loading.dormitories && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDormitory ? 'Edit Dormitory' : 'Add New Dormitory'}
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDormitory ? t('dormitories.editDormitory') : t('dormitories.addNewDormitory')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('dormitories.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.dormitories}>
-              {loading.dormitories ? <Spinner size="sm"/> : (editingDormitory ? 'Save Changes' : 'Add Dormitory')}
+              {loading.dormitories ? <Spinner size="sm"/> : (editingDormitory ? t('dormitories.saveChanges') : t('dormitories.addDormitory'))}
             </Button>
           </>
         }
       >
         <Input 
           name="name" 
-          label="Dormitory Name" 
+          label={t('dormitories.dormitoryName')} 
           value={formData.name || ''} 
           onChange={handleInputChange} 
           required 
         />
          <Input 
           name="capacity" 
-          label="Capacity" 
+          label={t('dormitories.capacity')} 
           type="number"
           value={formData.capacity || ''} 
           onChange={handleInputChange} 
         />
         <Select 
           name="master_id" 
-          label="Dormitory Master/Mistress" 
+          label={t('dormitories.dormitoryMasterMistress')} 
           value={formData.master_id || ''} 
           onChange={handleInputChange}
         >
-          <option value="">Select Staff Member</option>
+          <option value="">{t('dormitories.selectStaffMember')}</option>
           {staff.filter(s => s.is_active).map((staffMember: Staff) => (
             <option key={staffMember.id} value={staffMember.id}>
               {staffMember.first_name} {staffMember.last_name} ({staffMember.designation_title || 'N/A'})
