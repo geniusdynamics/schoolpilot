@@ -7,4 +7,6 @@ export const MODULE_ORDER: string[] = [
   'inventory',
   'library',
   'nutrition',
+  'reports',
+  'settings',
 ]; 

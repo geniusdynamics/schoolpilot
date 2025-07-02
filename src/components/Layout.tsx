@@ -32,12 +32,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-100">
+    <div className="flex flex-col min-h-screen w-screen bg-slate-100">
       <Header onSettings={() => setShowSettings(true)} />
-      <div className="flex flex-1 min-h-0 pt-16">
+      <div className="flex flex-1 pt-16">
         <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
         <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 p-6">
           {children}
         </main>
         <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />

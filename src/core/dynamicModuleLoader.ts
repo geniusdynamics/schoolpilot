@@ -15,6 +15,9 @@ import inventoryModule from '../modules/inventory/moduleDefinition.tsx';
 import libraryModule from '../modules/library/moduleDefinition.tsx';
 import nutritionModule from '../modules/nutrition/moduleDefinition.tsx';
 
+// Import reports and settings modules from moduleDefinitions
+import { reportsModule, settingsModule } from '../modules/moduleDefinitions';
+
 import { corePermissions, coreDefaultRoles } from '../modules/core/rbac.ts';
 import { administrationPermissions, administrationDefaultRoles } from '../modules/administration/rbac.ts';
 import { academicsPermissions, academicsDefaultRoles } from '../modules/academics/rbac.ts';
@@ -39,7 +42,9 @@ const collectAvailableModules = (): ModuleDefinition[] => {
     hrModule,
     inventoryModule,
     libraryModule,
-    nutritionModule
+    nutritionModule,
+    reportsModule,
+    settingsModule
   );
 
   return modules;
