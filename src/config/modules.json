@@ -1,0 +1,74 @@
+{
+  "enabledModules": [
+    "dashboard",
+    "administration", 
+    "academics",
+    "finance",
+    "hr",
+    "inventory",
+    "library",
+    "nutrition",
+    "reports",
+    "settings"
+  ],
+  "disabledModules": [],
+  "moduleSettings": {
+    "dashboard": {
+      "enabled": true,
+      "required": true,
+      "description": "Core dashboard functionality"
+    },
+    "administration": {
+      "enabled": true,
+      "required": false,
+      "description": "Student and staff administration"
+    },
+    "academics": {
+      "enabled": true,
+      "required": false,
+      "description": "Academic curriculum and exam management"
+    },
+    "finance": {
+      "enabled": true,
+      "required": false,
+      "description": "Financial management and accounting"
+    },
+    "hr": {
+      "enabled": true,
+      "required": false,
+      "description": "Human resources and payroll"
+    },
+    "inventory": {
+      "enabled": true,
+      "required": false,
+      "description": "Inventory and procurement management"
+    },
+    "library": {
+      "enabled": true,
+      "required": false,
+      "description": "Library management system"
+    },
+    "nutrition": {
+      "enabled": true,
+      "required": false,
+      "description": "Nutrition and meal management"
+    },
+    "reports": {
+      "enabled": true,
+      "required": false,
+      "description": "Reporting and analytics"
+    },
+    "settings": {
+      "enabled": true,
+      "required": false,
+      "description": "System configuration and settings"
+    }
+  },
+  "moduleDependencies": {
+    "academics": ["administration"],
+    "finance": ["administration"],
+    "hr": ["administration"],
+    "nutrition": ["administration"],
+    "reports": ["administration", "academics", "finance"]
+  }
+} 

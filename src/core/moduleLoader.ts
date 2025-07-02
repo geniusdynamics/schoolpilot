@@ -1,14 +1,14 @@
 // ABOUTME: Module loader for registering and initializing all modules
-// ABOUTME: Uses dynamic module loading for plugin-like architecture
+// ABOUTME: Uses true dynamic module loading for plugin-like architecture
 
 import { moduleRegistry } from './moduleRegistry';
-import { initializeDynamicModules, getAvailableModules } from './dynamicModuleLoader';
+import { initializeDynamicModules, getAvailableModules } from '../services/dynamicModuleLoader';
 
-// Initialize all modules
+// Initialize all modules using the new dynamic system
 export const initializeModules = async (): Promise<void> => {
-  console.log('Initializing modules...');
+  console.log('🚀 Initializing modules with dynamic loader...');
   
-  // Use dynamic module loading
+  // Use the new true dynamic module loading
   await initializeDynamicModules();
 };
 
