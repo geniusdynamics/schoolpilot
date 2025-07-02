@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Fine, Loan, FineStatus } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, SparklesIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type FineFormData = Omit<Partial<Fine>, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name' | 'loan_due_date' | 'status'> & {
     status: FineStatus; // Ensure status is required for the form

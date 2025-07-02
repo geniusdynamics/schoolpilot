@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BookCategory } from '../../types';
 import Card from '../../components/ui/Card';
@@ -9,11 +8,13 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type BookCategoryFormData = Omit<Partial<BookCategory>, 'id'>;
 
 const BookCategoriesPage: React.FC = () => {
   const { bookCategories, loading, addBookCategory, updateBookCategory, deleteBookCategory } = useAppData(); // Updated
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BookCategory | null>(null);
@@ -83,13 +84,13 @@ const BookCategoriesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Book Categories Management" actions={
+      <Card title={t('bookCategories.managementTitle')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Category
+          {t('bookCategories.addCategory')}
         </Button>
       }>
         <p className="text-sm text-gray-600 mb-4">
-          Define categories for library books (e.g., Fiction, Science, History, Reference).
+          {t('bookCategories.defineCategories')}
         </p>
         <Table columns={columns} data={bookCategories} isLoading={loading.bookCategories && isModalOpen} />
       </Card>
@@ -97,19 +98,19 @@ const BookCategoriesPage: React.FC = () => {
       <Modal 
         isOpen={isModalOpen} 
         onClose={closeModal} 
-        title={editingCategory ? 'Edit Book Category' : 'Add New Book Category'}
+        title={editingCategory ? t('bookCategories.editBookCategory') : t('bookCategories.addNewBookCategory')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('bookCategories.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.bookCategories}>
-              {loading.bookCategories ? <Spinner size="sm"/> : (editingCategory ? 'Save Changes' : 'Add Category')}
+              {loading.bookCategories ? <Spinner size="sm"/> : (editingCategory ? t('bookCategories.saveChanges') : t('bookCategories.addCategory'))}
             </Button>
           </>
         }
       >
         <Input 
           name="name" 
-          label="Category Name" 
+          label={t('bookCategories.categoryName')} 
           value={formData.name || ''} 
           onChange={handleInputChange} 
           required 

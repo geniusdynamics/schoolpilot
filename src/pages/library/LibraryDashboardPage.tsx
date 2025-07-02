@@ -5,6 +5,7 @@ import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
 import { ChartData, BookStatus, FineStatus } from '../../types';
 import DonutChart from '../../components/ui/DonutChart'; // Ensure you have this component
+import { useTranslation } from 'react-i18next';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
   <Card className="shadow-md">

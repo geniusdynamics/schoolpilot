@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Book, BookCategory, BookStatus } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type BookFormData = Omit<Partial<Book>, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'category_name' | 'status'> & {
     status: BookStatus; // Ensure status is always provided in the form

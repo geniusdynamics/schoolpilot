@@ -320,6 +320,32 @@ export class RBACService {
     return true;
   }
 
+  public initializeSuperAdminRole() {
+    const allPermissionIds = Array.from(this.permissions.keys());
+    const superAdminRole: RbacRole = {
+      id: SYSTEM_ROLES.SUPER_ADMIN,
+      name: 'Super Administrator',
+      description: 'Has all permissions in the system.',
+      permissions: allPermissionIds,
+      isActive: true,
+      isSystem: true,
+      moduleAccess: {},
+    };
+
+    // Grant access to all modules
+    for (const moduleId of this.modules.keys()) {
+      superAdminRole.moduleAccess[moduleId] = {
+        enabled: true,
+        permissions: Array.from(this.permissions.values())
+          .filter(p => p.moduleId === moduleId)
+          .map(p => p.id),
+      };
+    }
+
+    this.roles.set(SYSTEM_ROLES.SUPER_ADMIN, superAdminRole);
+    console.log('Initialized Super Admin role with all permissions.');
+  }
+
   // Filter navigation items based on user permissions
   public filterNavigationItems(userId: string, moduleId: string, navigationItems: any[]): any[] {
     const userPermissions = this.getUserModulePermissions(userId, moduleId);

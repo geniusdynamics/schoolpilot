@@ -468,4 +468,23 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - Language switching (English/French) was tested and works as expected.
 - No hardcoded UI labels remain in the Inventory module.
 
+## [Library Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Library module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/library.json` and `src/i18n/locales/fr/library.json` as needed.
+- Language switching was validated for all Library pages.
+
+**Files/Directories Updated:**
+- `src/pages/library/BookLoansPage.tsx`
+- `src/pages/library/LibraryDashboardPage.tsx`
+- `src/pages/library/BookCategoriesPage.tsx`
+- `src/pages/library/BooksPage.tsx`
+- `src/pages/library/FinesPage.tsx`
+
+**Validation:**
+- All Library pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Library module.
+
 ---

@@ -179,6 +179,8 @@ export const initializeDynamicModules = async (): Promise<void> => {
       moduleRegistry.registerModule(module);
       rbacService.registerModule(module);
     });
+
+    rbacService.initializeSuperAdminRole();
     
     console.log(`✅ Successfully initialized ${modules.length} modules`);
     
