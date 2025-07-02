@@ -17,6 +17,7 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Modal from '../ui/Modal';
 import Table from '../ui/Table';
+import allModules from '../../modules/moduleDefinitions';
 
 // Types for User Permissions System
 export interface Permission {
@@ -100,7 +101,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
   }, []);
 
   const loadData = () => {
-    // Load mock data for demo mode
+    // Dynamically generate mock users and user types based on available modules
     setUsers([
       {
         id: '1',
@@ -108,28 +109,6 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
         email: 'admin@school.com',
         fullName: 'System Administrator',
         userTypeId: 'admin',
-        customPermissions: [],
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: '2',
-        username: 'teacher1',
-        email: 'teacher1@school.com',
-        fullName: 'John Smith',
-        userTypeId: 'teacher',
-        customPermissions: ['academics.read', 'academics.update'],
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: '3',
-        username: 'finance1',
-        email: 'finance1@school.com',
-        fullName: 'Jane Doe',
-        userTypeId: 'finance',
         customPermissions: [],
         isActive: true,
         createdAt: new Date(),
@@ -147,47 +126,26 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
         createdAt: new Date(),
         updatedAt: new Date()
       },
-      {
-        id: 'teacher',
-        name: 'Teacher',
-        description: 'Academic module access',
-        permissions: ['academics.read', 'academics.update', 'students.read'],
+      ...allModules.map(module => ({
+        id: module.id,
+        name: `${module.name} User`,
+        description: `Access to ${module.name} module`,
+        permissions: [`${module.id}.read`, `${module.id}.update`],
         isDefault: false,
         createdAt: new Date(),
         updatedAt: new Date()
-      },
-      {
-        id: 'finance',
-        name: 'Finance Officer',
-        description: 'Financial module access',
-        permissions: ['finance.read', 'finance.update', 'finance.create'],
-        isDefault: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        id: 'student',
-        name: 'Student',
-        description: 'Limited student access',
-        permissions: ['academics.read', 'finance.read'],
-        isDefault: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
+      }))
     ]);
 
-    setPermissions([
-      { id: 'academics.read', name: 'View Academics', description: 'View academic information', module: 'academics', action: 'read', resource: 'academics' },
-      { id: 'academics.create', name: 'Create Academic Records', description: 'Create new academic records', module: 'academics', action: 'create', resource: 'academics' },
-      { id: 'academics.update', name: 'Update Academic Records', description: 'Modify academic records', module: 'academics', action: 'update', resource: 'academics' },
-      { id: 'academics.delete', name: 'Delete Academic Records', description: 'Remove academic records', module: 'academics', action: 'delete', resource: 'academics' },
-      { id: 'finance.read', name: 'View Finance', description: 'View financial information', module: 'finance', action: 'read', resource: 'finance' },
-      { id: 'finance.create', name: 'Create Financial Records', description: 'Create new financial records', module: 'finance', action: 'create', resource: 'finance' },
-      { id: 'finance.update', name: 'Update Financial Records', description: 'Modify financial records', module: 'finance', action: 'update', resource: 'finance' },
-      { id: 'students.read', name: 'View Students', description: 'View student information', module: 'administration', action: 'read', resource: 'students' },
-      { id: 'students.update', name: 'Update Students', description: 'Modify student records', module: 'administration', action: 'update', resource: 'students' },
-      { id: '*', name: 'All Permissions', description: 'Full system access', module: 'all', action: 'admin', resource: 'all' }
+    // Dynamically generate permissions for all modules
+    const dynamicPermissions = allModules.flatMap(module => [
+      { id: `${module.id}.read`, name: `View ${module.name}`, description: `View ${module.name} information`, module: module.id, action: 'read' as Permission['action'], resource: module.id },
+      { id: `${module.id}.create`, name: `Create ${module.name} Records`, description: `Create new ${module.name} records`, module: module.id, action: 'create' as Permission['action'], resource: module.id },
+      { id: `${module.id}.update`, name: `Update ${module.name} Records`, description: `Modify ${module.name} records`, module: module.id, action: 'update' as Permission['action'], resource: module.id },
+      { id: `${module.id}.delete`, name: `Delete ${module.name} Records`, description: `Remove ${module.name} records`, module: module.id, action: 'delete' as Permission['action'], resource: module.id }
     ]);
+    dynamicPermissions.push({ id: '*', name: 'All Permissions', description: 'Full system access', module: 'all', action: 'admin' as Permission['action'], resource: 'all' });
+    setPermissions(dynamicPermissions);
   };
 
   const handleSaveUser = () => {
@@ -316,77 +274,38 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
   };
 
   const userColumns = [
-    { header: 'Username', accessor: 'username' },
-    { header: 'Full Name', accessor: 'fullName' },
-    { header: 'Email', accessor: 'email' },
-    { 
-      header: 'User Type', 
-      accessor: 'userTypeId',
-      render: (user: User) => getUserTypeName(user.userTypeId)
-    },
-    { 
-      header: 'Custom Permissions', 
-      accessor: 'customPermissions',
-      render: (user: User) => getPermissionNames(user.customPermissions)
-    },
-    { 
-      header: 'Status', 
-      accessor: 'isActive',
-      render: (user: User) => user.isActive ? 'Active' : 'Inactive'
-    },
-    { 
-      header: 'Actions', 
-      accessor: 'id',
-      render: (user: User) => (
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => handleEditUser(user)}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteUser(user.id)}>Delete</Button>
-        </div>
-      )
-    }
+    { header: 'Username', accessor: 'username' as keyof User },
+    { header: 'Full Name', accessor: 'fullName' as keyof User },
+    { header: 'Email', accessor: 'email' as keyof User },
+    { header: 'User Type', accessor: (user: User) => getUserTypeName(user.userTypeId) },
+    { header: 'Active', accessor: (user: User) => user.isActive ? 'Yes' : 'No' },
+    { header: 'Actions', accessor: (user: User) => (
+      <Button size="sm" onClick={() => handleEditUser(user)}>Edit</Button>
+    ) }
   ];
 
   const typeColumns = [
-    { header: 'Name', accessor: 'name' },
-    { header: 'Description', accessor: 'description' },
-    { 
-      header: 'Permissions', 
-      accessor: 'permissions',
-      render: (type: UserType) => getPermissionNames(type.permissions)
-    },
-    { 
-      header: 'Default', 
-      accessor: 'isDefault',
-      render: (type: UserType) => type.isDefault ? 'Yes' : 'No'
-    },
-    { 
-      header: 'Actions', 
-      accessor: 'id',
-      render: (type: UserType) => (
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => handleEditType(type)}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteType(type.id)}>Delete</Button>
-        </div>
-      )
-    }
+    { header: 'Name', accessor: 'name' as keyof UserType },
+    { header: 'Description', accessor: 'description' as keyof UserType },
+    { header: 'Default', accessor: (type: UserType) => type.isDefault ? 'Yes' : 'No' },
+    { header: 'Permissions', accessor: (type: UserType) => {
+      const names = getPermissionNames(type.permissions);
+      return Array.isArray(names) ? names.join(', ') : names;
+    } },
+    { header: 'Actions', accessor: (type: UserType) => (
+      <Button size="sm" onClick={() => handleEditType(type)}>Edit</Button>
+    ) }
   ];
 
   const permissionColumns = [
-    { header: 'Name', accessor: 'name' },
-    { header: 'Description', accessor: 'description' },
-    { header: 'Module', accessor: 'module' },
-    { header: 'Action', accessor: 'action' },
-    { header: 'Resource', accessor: 'resource' },
-    { 
-      header: 'Actions', 
-      accessor: 'id',
-      render: (permission: Permission) => (
-        <div className="flex gap-2">
-          <Button size="sm" onClick={() => handleEditPermission(permission)}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeletePermission(permission.id)}>Delete</Button>
-        </div>
-      )
-    }
+    { header: 'Name', accessor: 'name' as keyof Permission },
+    { header: 'Description', accessor: 'description' as keyof Permission },
+    { header: 'Module', accessor: 'module' as keyof Permission },
+    { header: 'Action', accessor: 'action' as keyof Permission },
+    { header: 'Resource', accessor: 'resource' as keyof Permission },
+    { header: 'Actions', accessor: (permission: Permission) => (
+      <Button size="sm" onClick={() => handleEditPermission(permission)}>Edit</Button>
+    ) }
   ];
 
   return (
@@ -634,15 +553,9 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
             required
           >
             <option value="">Select Module</option>
-            <option value="academics">Academics</option>
-            <option value="administration">Administration</option>
-            <option value="finance">Finance</option>
-            <option value="hr">HR</option>
-            <option value="inventory">Inventory</option>
-            <option value="library">Library</option>
-            <option value="nutrition">Nutrition</option>
-            <option value="reports">Reports</option>
-            <option value="settings">Settings</option>
+            {allModules.map(module => (
+              <option key={module.id} value={module.id}>{module.name}</option>
+            ))}
           </Select>
           <Select
             label="Action"

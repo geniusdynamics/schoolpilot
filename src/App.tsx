@@ -1,4 +1,3 @@
-
 // ABOUTME: This is the root component of the application.
 // ABOUTME: It sets up the main router and global context providers.
 
@@ -127,142 +126,37 @@ import SettingsAuditLogPage from './pages/settings/AuditLogPage';
 import SettingsPage from './pages/SettingsPage';
 import DatabaseSettingsPage from './pages/settings/DatabaseSettingsPage';
 
+import allModules from './modules/moduleDefinitions';
+import { Suspense, lazy } from 'react';
+
+const dynamicPageImport = (path: string) => {
+  // This function dynamically imports a page component based on the path
+  // Assumes all pages are under ./pages/ and follow the folder structure
+  return lazy(() => import(`./pages${path}`));
+};
+
+const generateModuleRoutes = () => {
+  return allModules.flatMap(module =>
+    module.navigation.map(nav => {
+      const PageComponent = dynamicPageImport(nav.path.replace(module.path, `/${module.id}`));
+      return <Route key={nav.path} path={nav.path} element={<Suspense fallback={<div>Loading...</div>}><PageComponent /></Suspense>} />;
+    })
+  );
+};
 
 const App: React.FC = () => {
   return (
     <UserProvider>
-      <AppDataProvider> 
+      <AppDataProvider>
         <HashRouter>
           <Layout>
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
-              
-              {/* Top Level Quick Access (still exist, but also nested for clarity) */}
-              <Route path="/staff" element={<StaffListPage />} /> 
-
-              {/* ADMINISTRATION MODULE */}
-              <Route path="/administration" element={<Navigate to="/administration/dashboard" replace />} />
-              <Route path="/administration/dashboard" element={<AdministrationDashboardPage />} />
-              <Route path="/administration/students" element={<StudentsListPage />} /> 
-              <Route path="/administration/students/:studentId" element={<StudentDetailPage />} /> 
-              <Route path="/administration/students/:studentId/financials" element={<StudentFinancialDashboardPage />} /> 
-              <Route path="/administration/staff" element={<StaffListPage />} />
-              <Route path="/administration/partners" element={<PartnersPage />} />
-              <Route path="/administration/departments" element={<DepartmentsPage />} />
-              <Route path="/administration/designations" element={<DesignationsPage />} />
-              <Route path="/administration/student-categories" element={<StudentCategoriesPage />} />
-              <Route path="/administration/dormitories" element={<DormitoriesPage />} />
-              <Route path="/administration/clubs" element={<ClubsPage />} />
-              <Route path="/administration/customers" element={<CustomersPage />} />
-              <Route path="/administration/student-health" element={<StudentHealthRecordsPage />} />
-              <Route path="/administration/student-attendance" element={<StudentAttendancePage />} />
-              <Route path="/administration/communication-templates" element={<CommunicationTemplatesPage />} />
-              <Route path="/administration/message-campaigns" element={<MessageCampaignsPage />} />
-              <Route path="/administration/academic-structures" element={<AcademicStructurePage />} />
-              <Route path="/administration/academic-years" element={<AcademicYearsPage />} />
-              <Route path="/administration/school-periods" element={<SchoolPeriodsPage />} />
-              <Route path="/administration/academic-period-definitions" element={<AcademicPeriodDefinitionsPage />} />
-
-
-              {/* ACADEMICS MODULE */}
-              <Route path="/academics" element={<Navigate to="/academics/dashboard" replace />} />
-              <Route path="/academics/dashboard" element={<AcademicsDashboardPage />} />
-              <Route path="/academics/classes" element={<ClassesPage />} />
-              <Route path="/academics/subjects" element={<SubjectsPage />} /> 
-              <Route path="/academics/subject-papers" element={<SubjectPapersManagementPage />} />
-              <Route path="/academics/class-subject-allocations" element={<ClassSubjectAllocationsPage />} /> 
-              <Route path="/academics/exam-sessions" element={<ExamSessionsPage />} />
-              <Route path="/academics/grading-schemes" element={<GradingSchemesPage />} />
-              <Route path="/academics/results-entry" element={<StudentExamResultsEntryPage />} />
-              <Route path="/academics/timetable-periods" element={<TimetablePeriodsPage />} />
-              <Route path="/academics/timetable-entries" element={<TimetableEntriesPage />} />
-              <Route path="/academics/teacher-assignments" element={<TeacherSubjectAssignmentPage />} />
-              <Route path="/academics/student-enrollments" element={<StudentSubjectEnrollmentPage />} />
-              <Route path="/academics/exam-analysis" element={<ExamAnalysisPage />} />
-              
-
-              {/* FINANCE MODULE */}
-              <Route path="/finance" element={<Navigate to="/finance/dashboard" replace />} />
-              <Route path="/finance/dashboard" element={<FinanceDashboardPage />} />
-              <Route path="/finance/banks" element={<BanksPage />} />
-              <Route path="/finance/chart-of-accounts" element={<ChartOfAccountsPage />} />
-              <Route path="/finance/customer-invoices" element={<CustomerInvoicesPage />} />
-              <Route path="/finance/expenses" element={<ExpensesPage />} />
-              <Route path="/finance/fee-adjustments" element={<FeeAdjustmentsPage />} />
-              <Route path="/finance/opening-balances" element={<StudentOpeningBalancesPage />} />
-              <Route path="/finance/student-payments" element={<StudentPaymentsPage />} />
-              <Route path="/finance/fee-templates" element={<FeeTemplatesPage />} />
-              <Route path="/finance/effect-fees" element={<EffectFeeStructuresPage />} />
-              <Route path="/finance/transport-routes" element={<TransportRoutesPage />} />
-              <Route path="/finance/student-transport" element={<StudentTransportAssignmentsPage />} />
-              <Route path="/finance/suppliers" element={<SuppliersPage />} />
-              <Route path="/finance/supplier-invoices" element={<SupplierInvoicesPage />} />
-              <Route path="/finance/general-receipts" element={<GeneralReceiptsPage />} /> 
-            
-
-              {/* HR MODULE */}
-              <Route path="/hr" element={<Navigate to="/hr/dashboard" replace />} />
-              <Route path="/hr/dashboard" element={<HRDashboardPage />} />
-              <Route path="/hr/payroll-periods" element={<PayrollPeriodsPage />} />
-              <Route path="/hr/payroll-item-types" element={<PayrollItemTypesPage />} />
-              <Route path="/hr/salary-settings" element={<StaffSalarySettingsPage />} />
-              <Route path="/hr/payslips" element={<PayslipsPage />} />
-
-
-              {/* INVENTORY MODULE */}
-              <Route path="/inventory" element={<Navigate to="/inventory/dashboard" replace />} />
-              <Route path="/inventory/dashboard" element={<InventoryDashboardPage />} /> 
-              <Route path="/inventory/procurement-dashboard" element={<SchoolProcurementDashboardPage />} />
-              <Route path="/inventory/vendor-portal" element={<VendorPortalDashboardPage />} />
-              <Route path="/inventory/warehouses" element={<WarehousesPage />} />
-              <Route path="/inventory/item-categories" element={<ItemCategoriesPage />} />
-              <Route path="/inventory/items" element={<ItemsPage />} />
-              <Route path="/inventory/fixed-assets" element={<FixedAssetsPage />} />
-              <Route path="/inventory/requisitions" element={<RequisitionsPage />} />
-              <Route path="/inventory/purchase-orders" element={<PurchaseOrdersPage />} />
-              <Route path="/inventory/stock-issuance" element={<StockIssuancePage />} />
-              <Route path="/inventory/stock-levels" element={<StockLevelsPage />} />
-              
-
-              {/* LIBRARY MODULE */}
-              <Route path="/library" element={<Navigate to="/library/dashboard" replace />} />
-              <Route path="/library/dashboard" element={<LibraryDashboardPage />} />
-              <Route path="/library/book-categories" element={<BookCategoriesPage />} />
-              <Route path="/library/books" element={<BooksPage />} />
-              <Route path="/library/book-loans" element={<BookLoansPage />} />
-              <Route path="/library/fines" element={<FinesPage />} />
-
-
-              {/* NUTRITION & WALLET MODULE */}
-              <Route path="/nutrition" element={<Navigate to="/nutrition/dashboard" replace />} />
-              <Route path="/nutrition/dashboard" element={<NutritionDashboardPage />} />
-              <Route path="/nutrition/meal-plans" element={<MealPlansPage />} />
-              <Route path="/nutrition/menus" element={<MenusPage />} />
-              <Route path="/nutrition/student-meal-assignments" element={<StudentMealAssignmentsPage />} />
-              <Route path="/nutrition/meal-consumption-log" element={<MealConsumptionLogPage />} />
-              <Route path="/nutrition/merchants" element={<MerchantsPage />} />
-              <Route path="/nutrition/student-wallet" element={<StudentWalletPage />} />
-              
-
-              {/* REPORTS MODULE */}
-              <Route path="/reports" element={<Navigate to="/reports/student-masterlist" replace />} />
-              <Route path="/reports/student-masterlist" element={<StudentMasterlistPage />} />
-              <Route path="/reports/exam-results" element={<ExamResultsHorizontalPage />} />
-              <Route path="/reports/student-financials" element={<StudentFinancialSummaryPage />} />
-              <Route path="/reports/votehead-statements" element={<StudentVoteheadStatementPage />} />
-              <Route path="/reports/teacher-assignments" element={<TeacherAssignmentsPage />} />
-              <Route path="/reports/account-ledger" element={<AccountLedgerPage />} />
-              <Route path="/reports/fee-collection" element={<FeeCollectionSummaryPage />} />
-
-              {/* SETTINGS MODULE */}
-              <Route path="/settings" element={<SettingsPage />} /> 
-              <Route path="/settings/school-profile" element={<SettingsSchoolProfilePage />} />
-              <Route path="/settings/users" element={<SettingsUsersPage />} />
-              <Route path="/settings/workflows" element={<SettingsWorkflowsPage />} />
-              <Route path="/settings/audit-log" element={<SettingsAuditLogPage />} />
-              <Route path="/settings/database" element={<DatabaseSettingsPage />} /> 
-              
+              {/* Dynamically generated module routes */}
+              {generateModuleRoutes()}
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Layout>
         </HashRouter>

@@ -124,12 +124,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  // Default quick actions
-  const defaultQuickActions: QuickAction[] = [
-    { id: 'add-student', name: 'Add Student', icon: <PlusIcon />, path: '/administration/students' },
-    { id: 'view-reports', name: 'View Reports', icon: <ChartBarIcon />, path: '/reports' },
-    { id: 'settings', name: 'Settings', icon: <Cog6ToothIcon />, path: '/settings' },
-  ];
+  // Dynamically generate quick actions for all modules
+  const defaultQuickActions: QuickAction[] = NAVIGATION_ITEMS.filter(item => !!item.icon).map(item => ({
+    id: item.name,
+    name: t(item.name),
+    icon: item.icon as React.ReactElement,
+    path: item.path
+  }));
 
   // Combined quick actions (default + custom)
   const allQuickActions = [...defaultQuickActions, ...customQuickActions];
