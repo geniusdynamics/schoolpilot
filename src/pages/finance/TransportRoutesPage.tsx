@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo } from 'react';
 import { FinTransportRouteType as TransportRoute, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '../../types';
 import Card from '../../components/ui/Card';
@@ -12,6 +9,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TruckIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type TransportRouteFormData = Omit<Partial<TransportRoute>, 'id' | 'created_at' | 'updated_at' | 'gl_revenue_account_name'>;
 

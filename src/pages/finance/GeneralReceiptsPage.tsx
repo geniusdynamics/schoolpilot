@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { FinGeneralPaymentType as GeneralPayment, FinGeneralPaymentItemType as GeneralPaymentItem, FinGeneralPayerTypeEnum as GeneralPayerType, Student, Staff, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '../../types';
 import { AdminCustomerType as Customer, AdminPartnerType as Partner } from '@/modules/administration/data/types';
@@ -14,6 +11,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, ReceiptRefundIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type GeneralPaymentItemFormData = Omit<GeneralPaymentItem, 'id' | 'general_payment_id' | 'revenue_account_name'>;
 type GeneralPaymentFormData = Omit<GeneralPayment, 'id' | 'created_at' | 'updated_at' | 'items' | 'total_amount_paid' | 'payer_name_resolved'> & {

@@ -1,4 +1,3 @@
-
 // ABOUTME: This page component displays a summary of fee collections by votehead.
 // ABOUTME: It allows filtering by school period and class to generate the report.
 

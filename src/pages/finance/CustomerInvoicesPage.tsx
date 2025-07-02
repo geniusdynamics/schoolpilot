@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { FinCustomerInvoiceType as CustomerInvoice, FinCustomerInvoiceItemType as CustomerInvoiceItem, Customer, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinCustomerInvoiceStatusEnum } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea'; // Assuming Textarea exists
 import { PlusIcon, EditIcon, DeleteIcon, ReceiptRefundIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status'> & {
     status: FinCustomerInvoiceStatusEnum;

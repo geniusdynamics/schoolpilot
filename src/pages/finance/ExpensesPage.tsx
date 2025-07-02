@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { ExpenseClaim, FinExpenseClaimantTypeEnum, Staff, Student, FinExpenseCategoryType } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CurrencyDollarIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type ExpenseClaimFormData = Omit<Partial<ExpenseClaim>, 'id' | 'created_at' | 'updated_at' | 'claimant_name' | 'expense_category_name' | 'claimant_type'> & {
     claimant_type: FinExpenseClaimantTypeEnum; // Ensure this is required for form logic

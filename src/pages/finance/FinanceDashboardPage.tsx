@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Card from '../../components/ui/Card';
 import { CurrencyDollarIcon, BanknotesIcon, CircleStackIcon, BuildingStorefrontIcon, TicketIcon, IconProps, PlusIcon, ReceiptRefundIcon } from '../../components/ui/icons';
@@ -8,6 +7,7 @@ import Spinner from '../../components/ui/Spinner';
 import { BarChartData } from '../../types'; 
 import Button from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode, iconBgColor?: string, iconColor?: string }> = 

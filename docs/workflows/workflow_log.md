@@ -394,4 +394,34 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - Language switching (English/French) was tested and works as expected.
 - No hardcoded UI labels remain in the Administration module.
 
+## [Finance Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Finance module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/finance.json` and `src/i18n/locales/fr/finance.json` as needed.
+- Language switching was validated for all Finance pages.
+
+**Files/Directories Updated:**
+- `src/pages/finance/ExpensesPage.tsx`
+- `src/pages/finance/CustomerInvoicesPage.tsx`
+- `src/pages/finance/ChartOfAccountsPage.tsx`
+- `src/pages/finance/BanksPage.tsx`
+- `src/pages/finance/GeneralReceiptsPage.tsx`
+- `src/pages/finance/FeeTemplatesPage.tsx`
+- `src/pages/finance/EffectFeeStructuresPage.tsx`
+- `src/pages/finance/FeeAdjustmentsPage.tsx`
+- `src/pages/finance/FeeCollectionSummaryPage.tsx`
+- `src/pages/finance/FinanceDashboardPage.tsx`
+- `src/pages/finance/StudentOpeningBalancesPage.tsx`
+- `src/pages/finance/StudentPaymentsPage.tsx`
+- `src/pages/finance/StudentTransportAssignmentsPage.tsx`
+- `src/pages/finance/SupplierInvoicesPage.tsx`
+- `src/pages/finance/SuppliersPage.tsx`
+- `src/pages/finance/TransportRoutesPage.tsx`
+
+**Validation:**
+- All Finance pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Finance module.
+
 ---

@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo } from 'react';
 import Card from '../../components/ui/Card';
 import { CogIcon, CheckCircleIcon } from '../../components/ui/icons';
@@ -9,6 +6,7 @@ import Spinner from '../../components/ui/Spinner';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
 import { FinFeeTemplateType as FeeTemplate, SchoolPeriod, StudentCategory, ClassStream, FinStudentInvoiceType as StudentInvoice } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 const EffectFeeStructuresPage: React.FC = () => {
   const { 

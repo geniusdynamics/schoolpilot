@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinAccountTemplateTypeEnum, FinExpenseCategoryType } from '../../types';
 import Card from '../../components/ui/Card';
@@ -10,6 +9,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CircleStackIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' | 'updated_at' | 'expense_category_name' | 'type' | 'template_type'> & {
     type: FinAccountTypeEnum; // Make type required for the form
