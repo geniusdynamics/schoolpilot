@@ -1,4 +1,3 @@
-
 // ABOUTME: This component renders the main settings page, offering navigation to various configuration sections.
 // ABOUTME: It also includes a form for editing basic school profile details.
 
@@ -14,6 +13,8 @@ import Table from '../../components/ui/Table';
 import Select from '../../components/ui/Select'; 
 import Spinner from '../../components/ui/Spinner';
 import { Link } from 'react-router-dom';
+import ModuleManagementPanel from '../../components/settings/ModuleManagementPanel';
+import UserPermissionsPanel from '../../components/settings/UserPermissionsPanel';
 
 const SettingsPage: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
@@ -74,6 +75,12 @@ const SettingsPage: React.FC = () => {
           <p className="text-gray-500">{t('general.appSettingsDescription')}</p>
         </div>
       </Card>
+
+      {/* Module Management Panel */}
+      <ModuleManagementPanel />
+
+      {/* User Permissions Panel */}
+      <UserPermissionsPanel />
 
       <Card title={t('navigation:settings.schoolProfile')}>
         {pageIsLoadingSchoolDetails ? (
