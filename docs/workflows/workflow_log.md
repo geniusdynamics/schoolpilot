@@ -443,4 +443,29 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - Language switching (English/French) was tested and works as expected.
 - No hardcoded UI labels remain in the HR module.
 
+## [Inventory Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Inventory module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/inventory.json` and `src/i18n/locales/fr/inventory.json` as needed.
+- Language switching was validated for all Inventory pages.
+
+**Files/Directories Updated:**
+- `src/pages/inventory/FixedAssetsPage.tsx`
+- `src/pages/inventory/ItemCategoriesPage.tsx`
+- `src/pages/inventory/ItemsPage.tsx`
+- `src/pages/inventory/PurchaseOrdersPage.tsx`
+- `src/pages/inventory/RequisitionsPage.tsx`
+- `src/pages/inventory/SchoolProcurementDashboardPage.tsx`
+- `src/pages/inventory/StockIssuancePage.tsx`
+- `src/pages/inventory/StockLevelsPage.tsx`
+- `src/pages/inventory/VendorPortalDashboardPage.tsx`
+- `src/pages/inventory/WarehousesPage.tsx`
+- `src/pages/inventory/InventoryDashboardPage.tsx`
+
+**Validation:**
+- All Inventory pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Inventory module.
+
 ---

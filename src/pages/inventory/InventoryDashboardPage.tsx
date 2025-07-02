@@ -1,7 +1,7 @@
-
 import React from 'react';
 import Card from '../../components/ui/Card';
 import { ArchiveIcon } from '../../components/ui/icons';
+import { useTranslation } from 'react-i18next';
 
 const InventoryDashboardPage: React.FC = () => {
   return (

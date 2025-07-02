@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { FixedAsset, ItemInv, Staff, ItemTypeInv, DepreciationMethod } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type FixedAssetFormData = Omit<Partial<FixedAsset>, 'id' | 'created_at' | 'updated_at' | 'item_name' | 'assigned_to_staff_name' | 'depreciation_method'> & {
     depreciation_method?: DepreciationMethod;

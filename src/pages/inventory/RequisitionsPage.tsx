@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Requisition, RequisitionItem, RequisitionStatus, Staff, ItemInv } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, QueueListIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type RequisitionFormData = Omit<Partial<Requisition>, 'id' | 'created_at' | 'updated_at' | 'items' | 'requesting_staff_name' | 'department_name' | 'total_requested_value' | 'status'> & {
     status: RequisitionStatus;

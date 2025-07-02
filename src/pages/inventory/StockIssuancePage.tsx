@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { StockTransaction, StockTransactionType, ItemInv, Warehouse } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, ArrowsRightLeftIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type StockTransactionFormData = Omit<Partial<StockTransaction>, 'id' | 'item_name' | 'warehouse_name' | 'transaction_type' | 'transaction_date'> & {
     transaction_date?: string; // For form input

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { StockLevel, Warehouse, ItemCategoryInv } from '../../types'; // Assuming ItemInv has category_id
 import Card from '../../components/ui/Card';
@@ -7,6 +6,7 @@ import Select from '../../components/ui/Select';
 import { TableCellsIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 const StockLevelsPage: React.FC = () => {
   const { 

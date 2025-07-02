@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
@@ -11,6 +10,7 @@ import { SchoolIcon, HomeIcon, DocumentReportIcon as DocumentTextIcon, ShoppingC
 import { InvPurchaseOrderType as PurchaseOrder, InvPurchaseOrderStatusEnum as PurchaseOrderStatus, InvRFQType as RFQ, InvRFQStatusEnum as RFQStatus } from '../../types';
 import Spinner from '../../components/ui/Spinner';
 import { useAppData } from '@/contexts/AppDataContext'; 
+import { useTranslation } from 'react-i18next';
 
 type VendorView = 'dashboard' | 'rfqs' | 'pos' | 'invoices' | 'profile';
 

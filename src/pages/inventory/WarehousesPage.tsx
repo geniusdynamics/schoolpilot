@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Warehouse } from '../../types';
 import Card from '../../components/ui/Card';
@@ -9,11 +8,13 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, CubeTransparentIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type WarehouseFormData = Omit<Partial<Warehouse>, 'id'>;
 
 const WarehousesPage: React.FC = () => {
   const { warehouses, loading, addWarehouse, updateWarehouse, deleteWarehouse } = useAppData(); // Updated
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
@@ -83,30 +84,30 @@ const WarehousesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Warehouses / Stores Management" actions={
+      <Card title={t('warehouses.title')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Warehouse
+          {t('warehouses.addWarehouse')}
         </Button>
       }>
         <p className="text-sm text-gray-600 mb-4">
-          Define and manage different warehouses or store locations within the school.
+          {t('warehouses.description')}
         </p>
         <Table columns={columns} data={warehouses} isLoading={loading.warehouses && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingWarehouse ? 'Edit Warehouse' : 'Add New Warehouse'}
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingWarehouse ? t('warehouses.editWarehouse') : t('warehouses.addNewWarehouse')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('warehouses.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.warehouses}>
-              {loading.warehouses ? <Spinner size="sm"/> : (editingWarehouse ? 'Save Changes' : 'Add Warehouse')}
+              {loading.warehouses ? <Spinner size="sm"/> : (editingWarehouse ? t('warehouses.saveChanges') : t('warehouses.addWarehouse'))}
             </Button>
           </>
         }
       >
         <Input 
           name="name" 
-          label="Warehouse Name" 
+          label={t('warehouses.warehouseName')} 
           value={formData.name || ''} 
           onChange={handleInputChange} 
           required 

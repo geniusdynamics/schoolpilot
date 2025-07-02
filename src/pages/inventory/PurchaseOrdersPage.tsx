@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, Supplier, ItemInv } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, ShoppingCartIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type PurchaseOrderFormData = Omit<Partial<PurchaseOrder>, 'id' | 'created_at' | 'updated_at' | 'items' | 'supplier_name' | 'total_value' | 'status'> & {
     status: PurchaseOrderStatus;

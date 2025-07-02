@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ItemInv, ItemCategoryInv, ItemTypeInv } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type ItemFormData = Omit<Partial<ItemInv>, 'id' | 'created_at' | 'updated_at' | 'category_name' | 'item_type'> & {
     item_type: ItemTypeInv; // Ensure item_type is required in the form
@@ -18,6 +18,7 @@ type ItemFormData = Omit<Partial<ItemInv>, 'id' | 'created_at' | 'updated_at' | 
 
 const ItemsPage: React.FC = () => {
   const { itemsInv, itemCategoriesInv, loading, addItemInv, updateItemInv, deleteItemInv } = useAppData(); // Updated
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemInv | null>(null);
@@ -121,39 +122,39 @@ const ItemsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Inventory Items Management" actions={
+      <Card title={t('inventory.items.management.title')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Item
+          {t('inventory.items.addItem')}
         </Button>
       }>
         <p className="text-sm text-gray-600 mb-4">
-          Maintain a master list of all inventory items.
+          {t('inventory.items.maintain.list')}
         </p>
         <Table columns={columns} data={itemsInv} isLoading={loading.itemsInv && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingItem ? 'Edit Item' : 'Add New Item'} size="xl"
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingItem ? t('inventory.items.editItem') : t('inventory.items.addNewItem')} size="xl"
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('inventory.items.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.itemsInv}>
-              {loading.itemsInv ? <Spinner size="sm"/> : (editingItem ? 'Save Changes' : 'Add Item')}
+              {loading.itemsInv ? <Spinner size="sm"/> : (editingItem ? t('inventory.items.saveChanges') : t('inventory.items.addItem'))}
             </Button>
           </>
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input name="name" label="Item Name" value={formData.name || ''} onChange={handleInputChange} required containerClassName="md:col-span-2"/>
-            <Select name="category_id" label="Category" value={formData.category_id || ''} onChange={handleInputChange}>
-                <option value="">Select Category</option>
+            <Input name="name" label={t('inventory.items.name')} value={formData.name || ''} onChange={handleInputChange} required containerClassName="md:col-span-2"/>
+            <Select name="category_id" label={t('inventory.items.category')} value={formData.category_id || ''} onChange={handleInputChange}>
+                <option value="">{t('inventory.items.selectCategory')}</option>
                 {itemCategoriesInv.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
             </Select>
-            <Input name="unit_of_measure" label="Unit of Measure" value={formData.unit_of_measure || ''} onChange={handleInputChange} required placeholder="e.g., Piece, Kg, Litre, Box" />
-            <Select name="item_type" label="Item Type" value={formData.item_type} onChange={handleInputChange} required>
+            <Input name="unit_of_measure" label={t('inventory.items.unitOfMeasure')} value={formData.unit_of_measure || ''} onChange={handleInputChange} required placeholder={t('inventory.items.e.g.,Piece,Kg,Litre,Box')} />
+            <Select name="item_type" label={t('inventory.items.itemType')} value={formData.item_type} onChange={handleInputChange} required>
                 {Object.values(ItemTypeInv).map(type => <option key={type} value={type}>{type}</option>)}
             </Select>
-            <Input name="current_price" label="Current Price (KES)" type="number" step="0.01" value={formData.current_price ?? ''} onChange={handleInputChange} />
-            <Textarea name="description" label="Description" value={formData.description || ''} onChange={handleInputChange} rows={3} containerClassName="md:col-span-2" />
+            <Input name="current_price" label={t('inventory.items.currentPriceKES')} type="number" step="0.01" value={formData.current_price ?? ''} onChange={handleInputChange} />
+            <Textarea name="description" label={t('inventory.items.description')} value={formData.description || ''} onChange={handleInputChange} rows={3} containerClassName="md:col-span-2" />
         </div>
       </Modal>
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ItemCategoryInv } from '../../types';
 import Card from '../../components/ui/Card';
@@ -9,11 +8,13 @@ import Input from '../../components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type ItemCategoryFormData = Omit<Partial<ItemCategoryInv>, 'id'>;
 
 const ItemCategoriesPage: React.FC = () => {
   const { itemCategoriesInv, loading, addItemCategoryInv, updateItemCategoryInv, deleteItemCategoryInv } = useAppData(); // Updated
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ItemCategoryInv | null>(null);
@@ -83,30 +84,30 @@ const ItemCategoriesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Inventory Item Categories Management" actions={
+      <Card title={t('inventory.itemCategoriesPage.title')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Category
+          {t('inventory.itemCategoriesPage.addCategory')}
         </Button>
       }>
         <p className="text-sm text-gray-600 mb-4">
-          Define categories for inventory items (e.g., Stationery, Lab Equipment, Furniture).
+          {t('inventory.itemCategoriesPage.description')}
         </p>
         <Table columns={columns} data={itemCategoriesInv} isLoading={loading.itemCategoriesInv && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCategory ? 'Edit Item Category' : 'Add New Item Category'}
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={t('inventory.itemCategoriesPage.editItemCategoryTitle')}
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('inventory.itemCategoriesPage.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.itemCategoriesInv}>
-              {loading.itemCategoriesInv ? <Spinner size="sm"/> : (editingCategory ? 'Save Changes' : 'Add Category')}
+              {loading.itemCategoriesInv ? <Spinner size="sm"/> : (editingCategory ? t('inventory.itemCategoriesPage.saveChanges') : t('inventory.itemCategoriesPage.addCategory'))}
             </Button>
           </>
         }
       >
         <Input 
           name="name" 
-          label="Category Name" 
+          label={t('inventory.itemCategoriesPage.categoryName')} 
           value={formData.name || ''} 
           onChange={handleInputChange} 
           required 
