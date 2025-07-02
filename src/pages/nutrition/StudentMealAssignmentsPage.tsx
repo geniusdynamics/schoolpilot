@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { StudentMealPlan, Student, MealPlan, SchoolPeriod, StudentMealPlanStatus, StudentStatus } from '../../types';
 import Card from '../../components/ui/Card';
@@ -9,6 +8,7 @@ import Select from '../../components/ui/Select';
 import { PlusIcon, EditIcon, UsersIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type AssignmentFormData = Omit<Partial<StudentMealPlan>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name' | 'meal_plan_name' | 'status'> & {
     status: StudentMealPlanStatus;

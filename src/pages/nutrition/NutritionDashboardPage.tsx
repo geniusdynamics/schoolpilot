@@ -7,6 +7,7 @@ import { StudentMealPlanStatus, ChartData, StudentWallet, Merchant, StudentMealP
 import DonutChart from '../../components/ui/DonutChart';
 import Button from '../../components/ui/Button';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
   <Card className="shadow-md">

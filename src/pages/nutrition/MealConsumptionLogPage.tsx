@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { MealConsumptionLog, Menu, Student, MealType, StudentStatus } from '../../types';
 import Card from '../../components/ui/Card';
@@ -9,6 +8,7 @@ import Input from '../../components/ui/Input';
 import { ClipboardDocumentListIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 const MealConsumptionLogPage: React.FC = () => {
   const { 

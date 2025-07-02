@@ -487,4 +487,25 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - Language switching (English/French) was tested and works as expected.
 - No hardcoded UI labels remain in the Library module.
 
+## [Nutrition Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Nutrition module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/nutrition.json` and `src/i18n/locales/fr/nutrition.json` as needed.
+- Language switching was validated for all Nutrition pages.
+
+**Files/Directories Updated:**
+- `src/pages/nutrition/MealConsumptionLogPage.tsx`
+- `src/pages/nutrition/MealPlansPage.tsx`
+- `src/pages/nutrition/MenusPage.tsx`
+- `src/pages/nutrition/MerchantsPage.tsx`
+- `src/pages/nutrition/NutritionDashboardPage.tsx`
+- `src/pages/nutrition/StudentMealAssignmentsPage.tsx`
+- `src/pages/nutrition/StudentWalletPage.tsx`
+
+**Validation:**
+- All Nutrition pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Nutrition module.
+
 ---

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Menu, MealType } from '../../types';
 import Card from '../../components/ui/Card';
@@ -11,6 +10,7 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CakeIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type MenuFormData = Omit<Partial<Menu>, 'id' | 'created_at' | 'updated_at' | 'meal_type'> & {
     meal_type: MealType;
@@ -18,6 +18,7 @@ type MenuFormData = Omit<Partial<Menu>, 'id' | 'created_at' | 'updated_at' | 'me
 
 const MenusPage: React.FC = () => {
   const { menus, loading, addMenu, updateMenu, deleteMenu } = useAppData();
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
@@ -99,30 +100,30 @@ const MenusPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Daily/Weekly Menus Management" actions={
+      <Card title={t('menus.management.title')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Menu
+          {t('menus.add.button')}
         </Button>
       }>
         <p className="text-sm text-gray-600 mb-4">
-          Create and manage menus for different meal types on specific dates.
+          {t('menus.management.description')}
         </p>
         <Table columns={columns} data={menus} isLoading={loading.menus && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingMenu ? 'Edit Menu' : 'Add New Menu'} size="lg"
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingMenu ? t('menus.edit.title') : t('menus.add.title')} size="lg"
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('menus.cancel.button')}</Button>
             <Button onClick={handleSubmit} disabled={loading.menus}>
-              {loading.menus ? <Spinner size="sm"/> : (editingMenu ? 'Save Changes' : 'Add Menu')}
+              {loading.menus ? <Spinner size="sm"/> : (editingMenu ? t('menus.save.button') : t('menus.add.button'))}
             </Button>
           </>
         }
       >
         <Input 
           name="menu_date" 
-          label="Menu Date" 
+          label={t('menus.date.label')} 
           type="date"
           value={formData.menu_date || ''} 
           onChange={handleInputChange} 
@@ -130,7 +131,7 @@ const MenusPage: React.FC = () => {
         />
         <Select 
           name="meal_type" 
-          label="Meal Type" 
+          label={t('menus.mealType.label')} 
           value={formData.meal_type} 
           onChange={handleInputChange}
           required
@@ -141,12 +142,12 @@ const MenusPage: React.FC = () => {
         </Select>
         <Textarea 
           name="description" 
-          label="Menu Description / Items" 
+          label={t('menus.description.label')} 
           value={formData.description || ''} 
           onChange={handleInputChange} 
           rows={4}
           required 
-          placeholder="e.g., Rice, Beef Stew, Cabbage, and a Banana"
+          placeholder={t('menus.description.placeholder')}
         />
       </Modal>
     </div>

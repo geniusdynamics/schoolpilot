@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MealPlan } from '../../types';
 import Card from '../../components/ui/Card';
@@ -10,11 +9,13 @@ import Textarea from '../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '../../components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '../../components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type MealPlanFormData = Omit<Partial<MealPlan>, 'id' | 'created_at' | 'updated_at'>;
 
 const MealPlansPage: React.FC = () => {
   const { mealPlans, loading, addMealPlan, updateMealPlan, deleteMealPlan } = useAppData();
+  const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<MealPlan | null>(null);
@@ -93,44 +94,44 @@ const MealPlansPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Meal Plans Management" actions={
+      <Card title={t('mealPlans.managementTitle')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Meal Plan
+          {t('mealPlans.addMealPlan')}
         </Button>
       }>
         <p className="text-sm text-gray-600 mb-4">
-          Define and manage meal plans offered by the school.
+          {t('mealPlans.managementDescription')}
         </p>
         <Table columns={columns} data={mealPlans} isLoading={loading.mealPlans && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPlan ? 'Edit Meal Plan' : 'Add New Meal Plan'} size="lg"
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPlan ? t('mealPlans.editMealPlan') : t('mealPlans.addNewMealPlan')} size="lg"
         footer={
           <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button variant="secondary" onClick={closeModal}>{t('mealPlans.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.mealPlans}>
-              {loading.mealPlans ? <Spinner size="sm"/> : (editingPlan ? 'Save Changes' : 'Add Plan')}
+              {loading.mealPlans ? <Spinner size="sm"/> : (editingPlan ? t('mealPlans.saveChanges') : t('mealPlans.addPlan'))}
             </Button>
           </>
         }
       >
         <Input 
           name="name" 
-          label="Plan Name" 
+          label={t('mealPlans.planName')} 
           value={formData.name || ''} 
           onChange={handleInputChange} 
           required 
         />
         <Textarea 
           name="description" 
-          label="Description (Optional)" 
+          label={t('mealPlans.description')} 
           value={formData.description || ''} 
           onChange={handleInputChange} 
           rows={3}
         />
         <Input 
           name="cost_per_period" 
-          label="Cost per Period (KES)" 
+          label={t('mealPlans.costPerPeriod')} 
           type="number" 
           step="0.01"
           value={formData.cost_per_period || ''} 
