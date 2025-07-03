@@ -1,7 +1,7 @@
 // ABOUTME: Main entry point of the React application.
 // ABOUTME: Initializes React DOM and renders the root App component with providers.
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
