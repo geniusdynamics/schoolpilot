@@ -100,9 +100,10 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
               
               {/* Icon with enhanced styling */}
               <span className="relative z-10 transition-transform duration-300 group-hover:scale-110">
-                {item.icon && React.isValidElement(item.icon) && React.cloneElement(item.icon as React.ReactElement<any>, {
-                  className: 'w-7 h-7 text-white drop-shadow-sm'
-                })}
+                {item.icon
+                  ? React.createElement(item.icon, { className: 'w-7 h-7 text-white drop-shadow-sm' })
+                  : <span className="w-7 h-7 bg-gray-500 rounded-full" />
+                }
               </span>
               
               <span className="sr-only">{item.name.replace('navigation:', '').replace('.title', '')}</span>
