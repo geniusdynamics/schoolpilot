@@ -14,30 +14,23 @@ class DynamicModuleLoader {
   async discoverAndLoadModules(): Promise<ModuleDefinition[]> {
     console.log('🔍 Discovering modules dynamically...');
     
-    const modules: ModuleDefinition[] = [];
     const enabledModuleIds = moduleConfigService.getEnabledModules();
-    
+
     // Load core modules first (always available)
-    const coreModules = await this.loadCoreModules();
-    modules.push(...coreModules);
-    
+    await this.loadCoreModules(); // This now populates this.loadedModules
+
     // Load feature modules based on configuration
     for (const moduleId of enabledModuleIds) {
-      if (moduleId === 'dashboard') continue; // Dashboard is handled separately
-      
       try {
-        const module = await this.loadModule(moduleId);
-        if (module) {
-          modules.push(module);
-          console.log(`✅ Loaded module: ${moduleId}`);
-        }
+        await this.loadModule(moduleId); // This calls this.loadedModules.set() and handles existing entries
       } catch (error) {
         console.warn(`⚠️ Failed to load module ${moduleId}:`, error);
       }
     }
-    
-    console.log(`📦 Total modules loaded: ${modules.length}`);
-    return modules;
+
+    const finalLoadedModules = Array.from(this.loadedModules.values());
+    console.log(`📦 Total modules loaded: ${finalLoadedModules.length}`);
+    return finalLoadedModules;
   }
 
   // Load core modules (always available)
@@ -45,13 +38,21 @@ class DynamicModuleLoader {
     try {
       const coreModules = await import('../modules/core/moduleDefinition.tsx');
       const modules = coreModules.default;
-      
-      // Handle both single module and array of modules
+
+      let loadedCoreModules: ModuleDefinition[] = [];
       if (Array.isArray(modules)) {
-        return modules;
+        loadedCoreModules = modules;
       } else {
-        return [modules];
+        loadedCoreModules = [modules];
       }
+
+      // Add core modules to the loadedModules map
+      loadedCoreModules.forEach(module => {
+        this.loadedModules.set(module.id, module);
+        console.log(`[dynamicModuleLoader] Loaded core module ${module.id}:`, module);
+      });
+
+      return loadedCoreModules;
     } catch (error) {
       console.warn('⚠️ Failed to load core modules:', error);
       return [];
@@ -69,6 +70,7 @@ class DynamicModuleLoader {
       // Dynamically import module definition
       const moduleDef = await import(`../modules/${moduleId}/moduleDefinition.tsx`);
       const module = moduleDef.default;
+      console.log(`[dynamicModuleLoader] Loaded module ${moduleId}:`, module);
       
       // Load RBAC if available
       try {

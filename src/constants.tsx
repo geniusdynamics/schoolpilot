@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { NavItem } from './core/types'; 
-import { getDynamicNavigationItems, initializeModules } from './core/moduleLoader';
+import { getDynamicNavigationItems } from './core/moduleLoader';
 import {
   HomeIcon,
   UsersIcon, 
@@ -57,8 +57,7 @@ import {
 export const APP_NAME_KEY = "common:appName"; // Translation key for App Name
 export const MOCK_API_DELAY = 300; // milliseconds
 
-// Initialize modules on first import
-initializeModules();
+
 
 // Note: The 'name' property in NavItem should now be treated as a translation key.
 // The Sidebar component will use this key to fetch the translated string.

@@ -4,6 +4,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { rbacService, SYSTEM_ROLES } from '../core/rbacService';
 import type { RbacRole } from '../core/types';
+import { APP_MODE } from '../contexts/config';
 
 export interface RBACHookReturn {
   // Permission checks
@@ -37,9 +38,20 @@ export interface RBACHookReturn {
 export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   // Get user roles
   const userRoles = useMemo((): string[] => {
-    if (!userId) return ['super_admin'];
-    // This would typically come from the user context or API
-    // For now, we'll use a default role based on user type
+    if (APP_MODE === 'demo') {
+      // In demo mode, regardless of whether a userId is provided,
+      // we treat the current session as having SUPER_ADMIN privileges
+      // until a proper login system is implemented.
+      return [SYSTEM_ROLES.SUPER_ADMIN];
+    }
+
+    // Production mode logic (or if APP_MODE is not 'demo')
+    if (!userId) {
+      // In production mode, if no userId is provided, return no roles
+      return [];
+    }
+
+    // Existing logic for production mode with a userId
     if (userType === 'Staff') {
       return ['teacher'];
     } else if (userType === 'Student') {

@@ -101,7 +101,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
               {/* Icon with enhanced styling */}
               <span className="relative z-10 transition-transform duration-300 group-hover:scale-110">
                 {item.icon
-                  ? React.createElement(item.icon, { className: 'w-7 h-7 text-white drop-shadow-sm' })
+                  ? <item.icon className="w-7 h-7 text-white drop-shadow-sm" />
                   : <span className="w-7 h-7 bg-gray-500 rounded-full" />
                 }
               </span>

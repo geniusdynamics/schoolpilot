@@ -8,7 +8,7 @@ const reportsModule: ModuleDefinition = {
   id: 'reports',
   name: 'navigation:reports.title',
   description: 'navigation:reports.description',
-  icon: DocumentReportIcon as React.FC<any>,
+  icon: DocumentReportIcon,
   path: '/reports',
   isActive: true,
   version: '1.0.0',

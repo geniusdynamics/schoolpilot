@@ -3,44 +3,30 @@
 
 import { ModuleDefinition, NavItem } from './types';
 import { MODULE_ORDER } from '../moduleOrder';
+import { moduleConfigService } from '../services/moduleConfigService';
 
 // Module Registry Class
 class ModuleRegistry {
   private modules: Map<string, ModuleDefinition> = new Map();
-  private enabledModules: Set<string> = new Set();
 
   // Register a new module
   registerModule(module: ModuleDefinition): void {
     this.modules.set(module.id, module);
-    if (module.isActive) {
-      this.enabledModules.add(module.id);
-    }
   }
 
   // Unregister a module
   unregisterModule(moduleId: string): void {
     this.modules.delete(moduleId);
-    this.enabledModules.delete(moduleId);
   }
 
-  // Enable a module
+  // Enable a module (updates config service)
   enableModule(moduleId: string): boolean {
-    const module = this.modules.get(moduleId);
-    if (module) {
-      this.enabledModules.add(moduleId);
-      return true;
-    }
-    return false;
+    return moduleConfigService.enableModule(moduleId);
   }
 
-  // Disable a module
+  // Disable a module (updates config service)
   disableModule(moduleId: string): boolean {
-    const module = this.modules.get(moduleId);
-    if (module) {
-      this.enabledModules.delete(moduleId);
-      return true;
-    }
-    return false;
+    return moduleConfigService.disableModule(moduleId);
   }
 
   // Get all registered modules
@@ -48,11 +34,16 @@ class ModuleRegistry {
     return Array.from(this.modules.values());
   }
 
-  // Get enabled modules only
+  // Get enabled modules only (based on config service and core modules)
   getEnabledModules(): ModuleDefinition[] {
-    return Array.from(this.modules.values()).filter(module => 
-      this.enabledModules.has(module.id)
-    );
+    return Array.from(this.modules.values()).filter(module => {
+      // Core modules (dashboard, settings, reports) are always enabled for navigation
+      if (['dashboard', 'settings', 'reports'].includes(module.id)) {
+        return true;
+      }
+      // For other modules, respect the moduleConfigService
+      return moduleConfigService.isModuleEnabled(module.id);
+    });
   }
 
   // Get a specific module
@@ -60,9 +51,12 @@ class ModuleRegistry {
     return this.modules.get(moduleId);
   }
 
-  // Check if a module is enabled
+  // Check if a module is enabled (based on config service and core modules)
   isModuleEnabled(moduleId: string): boolean {
-    return this.enabledModules.has(moduleId);
+    if (['dashboard', 'settings', 'reports'].includes(moduleId)) {
+      return true;
+    }
+    return moduleConfigService.isModuleEnabled(moduleId);
   }
 
   // Get navigation items from all enabled modules
@@ -87,7 +81,7 @@ class ModuleRegistry {
         isGroup: module.navigation.length > 0,
         modulePath: module.path,
         children: module.navigation,
-        isActive: module.isActive
+        isActive: this.isModuleEnabled(module.id) // Use the updated isModuleEnabled
       };
       navigationItems.push(mainNavItem);
     });
@@ -107,7 +101,7 @@ class ModuleRegistry {
       return { satisfied: true, missing: [] };
     }
 
-    const missing = module.dependencies.filter(dep => !this.enabledModules.has(dep));
+    const missing = module.dependencies.filter(dep => !this.isModuleEnabled(dep)); // Use the updated isModuleEnabled
     return {
       satisfied: missing.length === 0,
       missing
@@ -116,7 +110,7 @@ class ModuleRegistry {
 
   // Get modules by feature
   getModulesByFeature(feature: string): ModuleDefinition[] {
-    return this.getEnabledModules().filter(module => 
+    return this.getEnabledModules().filter(module =>
       module.features?.includes(feature)
     );
   }

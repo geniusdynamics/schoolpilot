@@ -12,7 +12,7 @@ import {
   checkModuleDependencies
 } from '../core/moduleLoader';
 
-export const useDynamicNavigation = () => {
+export const useDynamicNavigation = (modulesInitialized: boolean) => {
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([]);
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,10 +23,12 @@ export const useDynamicNavigation = () => {
     try {
       const items = getDynamicNavigationItems();
       setNavigationItems(items);
+      console.log('[useDynamicNavigation] navigationItems:', items);
       
       // Get enabled module IDs
       const modules = getEnabledModules();
       setEnabledModules(modules.map(m => m.id));
+      console.log('[useDynamicNavigation] enabledModules:', modules);
     } catch (error) {
       console.error('Error loading navigation items:', error);
     } finally {
@@ -100,8 +102,10 @@ export const useDynamicNavigation = () => {
 
   // Initialize on mount
   useEffect(() => {
-    loadNavigationItems();
-  }, [loadNavigationItems]);
+    if (modulesInitialized) {
+      loadNavigationItems();
+    }
+  }, [loadNavigationItems, modulesInitialized]);
 
   return {
     navigationItems,

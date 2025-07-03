@@ -1,13 +1,15 @@
 // ABOUTME: This is the root component of the application.
 // ABOUTME: It sets up the main router and global context providers.
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
 import { AppDataProvider } from '@/contexts/AppDataContext';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
+import { initializeModules } from './core/moduleLoader';
+import Spinner from './components/ui/Spinner';
 
 // Vite will statically analyze all .tsx files in ./pages
 const pageModules = import.meta.glob('./pages/**/*.tsx');
@@ -20,8 +22,8 @@ const getPageComponent = (path: string) => {
   return lazy(importFn as any);
 };
 
-const DynamicRoutes = () => {
-  const { navigationItems } = useDynamicNavigation();
+const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
+  const { navigationItems } = useDynamicNavigation(modulesInitialized);
   const { accessibleModules } = useRBAC();
 
   return (
@@ -52,12 +54,30 @@ const DynamicRoutes = () => {
 };
 
 const App: React.FC = () => {
+  const [modulesInitialized, setModulesInitialized] = useState(false);
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    const init = async () => {
+      if (!initializedRef.current) {
+        await initializeModules();
+        setModulesInitialized(true);
+        initializedRef.current = true;
+      }
+    };
+    init();
+  }, []);
+
+  if (!modulesInitialized) {
+    return <div className="flex items-center justify-center h-screen"><Spinner size="large" /></div>;
+  }
+
   return (
     <UserProvider>
       <AppDataProvider>
         <HashRouter>
           <Layout>
-            <DynamicRoutes />
+            <DynamicRoutes modulesInitialized={modulesInitialized} />
           </Layout>
         </HashRouter>
       </AppDataProvider>
@@ -66,3 +86,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+
