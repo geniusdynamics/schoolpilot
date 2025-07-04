@@ -11,27 +11,34 @@ import { useRBAC } from './hooks/useRBAC';
 import { initializeModules } from './core/moduleLoader';
 import Spinner from './components/ui/Spinner';
 
-// Vite will statically analyze all .tsx files in ./pages
-const pageModules = import.meta.glob('./pages/**/*.tsx');
+// Vite will statically analyze all .tsx files in ./pages and ./modules/*/pages
+const pageModules = {
+  ...import.meta.glob('./pages/**/*.tsx'),
+  ...import.meta.glob('./modules/*/pages/**/*.tsx'),
+};
 
-// Enhanced getPageComponent: Accepts nav item, uses 'page' property if present
+// Future-proof getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx, then src/pages/<module>/<PageName>.tsx, then src/pages/<PageName>.tsx
 const getPageComponent = (nav: any) => {
-  // If nav.page is present, use it for dynamic import
   if (nav.page) {
-    // Try to infer the module directory from the path
-    // E.g., /academics/subjects => ./pages/academics/SubjectsPage.tsx
     const segments = nav.path.split('/').filter(Boolean);
     let moduleDir = segments.length > 1 ? segments[0] : '';
-    // Special case for dashboard pages at root
-    if (nav.path === '/dashboard') {
-      moduleDir = '';
+    // Try modular location first
+    if (moduleDir) {
+      const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
+      const modularImportFn = pageModules[modularKey];
+      if (modularImportFn) return lazy(modularImportFn as any);
     }
-    const key = moduleDir
-      ? `./pages/${moduleDir}/${nav.page}.tsx`
-      : `./pages/${nav.page}.tsx`;
-    const importFn = pageModules[key];
-    if (!importFn) return null;
-    return lazy(importFn as any);
+    // Fallback to old src/pages/<module>/<PageName>.tsx
+    if (moduleDir) {
+      const legacyKey = `./pages/${moduleDir}/${nav.page}.tsx`;
+      const legacyImportFn = pageModules[legacyKey];
+      if (legacyImportFn) return lazy(legacyImportFn as any);
+    }
+    // Fallback to root-level page
+    const rootKey = `./pages/${nav.page}.tsx`;
+    const rootImportFn = pageModules[rootKey];
+    if (rootImportFn) return lazy(rootImportFn as any);
+    return null;
   }
   // Fallback: old logic
   const key = `./pages${nav.path}.tsx`;
