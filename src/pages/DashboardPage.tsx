@@ -8,11 +8,13 @@ import { StudentStatus, PersonGender, ChartData, BarChartData } from '../types';
 import Spinner from '../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useRBAC } from '../hooks/useRBAC';
+import { useUser } from '../contexts/UserContext';
 
 const DashboardPage: React.FC = () => {
   const { students, staff, classes, subjects, loading } = useAppData(); // Use useAppData
   const { t } = useTranslation('dashboard');
-  const { hasPermission } = useRBAC();
+  const { currentUser } = useUser();
+  const { hasPermission } = useRBAC(currentUser?.id);
 
   const canViewDashboard = hasPermission('dashboard.view');
 
