@@ -61,7 +61,7 @@ export const dashboardModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:dashboard', path: '/dashboard', icon: HomeIcon }
+    { name: 'navigation:dashboard', path: '/dashboard', icon: HomeIcon, page: 'DashboardPage' }
   ],
   features: ['core', 'dashboard', 'overview']
 };
@@ -253,6 +253,8 @@ export const reportsModule: ModuleDefinition = {
   version: '1.0.0',
   dependencies: ['administration', 'academics', 'finance'],
   navigation: [
+    // Uncomment the following line if you have a main ReportsPage
+    // { name: 'navigation:reports.title', path: '/reports', icon: DocumentReportIcon, page: 'ReportsPage' },
     { name: 'navigation:reports.accountLedger', path: '/reports/account-ledger', icon: BookOpenIcon },
     { name: 'navigation:reports.examResultsHorizontal', path: '/reports/exam-results-horizontal', icon: ChartPieIcon },
     { name: 'navigation:reports.feeCollectionSummary', path: '/reports/fee-collection-summary', icon: CurrencyDollarIcon },
@@ -274,6 +276,7 @@ export const settingsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
+    { name: 'navigation:settings.title', path: '/settings', icon: CogIcon, page: 'SettingsPage' },
     { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon },
     { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon },
     { name: 'navigation:settings.settings', path: '/settings/settings', icon: CogIcon },

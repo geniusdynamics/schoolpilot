@@ -530,5 +530,27 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - No hardcoded UI labels remain in the Reports module.
 
 ---
-C o r e   m o d u l e s   a l w a y s   i n c l u d e d   i n   e n a b l e d   m o d u l e s   f o r   n a v i g a t i o n .   R e g i s t r y   l o g i c   u p d a t e d .  
+C o r e   m o d u l e s   a l w a y s   i n c l u d e d   i n   e n a b l e d   m o d u l e s   f o r   n a v i g a t i o n .   R e g i s t r y   l o g i c   u p d a t e d . 
+ 
+### [2025-07-02] UI/UX Enhancements Completed
+
+**Summary:**
+- The following enhancements were implemented as requested by Mr GENIUS:
+
+1. **Dashboard Icon Navigation:**
+   - Clicking the main Dashboard icon in the primary sidebar now immediately navigates to `/dashboard` instead of just opening the submenu.
+   - This was achieved by updating navigation logic in `src/components/Layout.tsx`.
+
+2. **Secondary Sidebar Scrollability:**
+   - The secondary sidebar (submenu) is now independently scrollable, ensuring usability for modules with many submenu items.
+   - This was implemented by updating the flex and overflow styles in `src/components/SecondarySidebar.tsx`.
+
+**Files Modified:**
+- `src/components/Layout.tsx`
+- `src/components/SecondarySidebar.tsx`
+
+**Status:** Completed and verified file presence before logging.
+
+---
+
  

@@ -13,6 +13,8 @@ import {
   CalendarDaysIcon,
   DocumentDuplicateIcon,
   TruckIcon,
+  ArchiveIcon,
+  ChartPieIcon,
 } from '../../components/ui/icons';
 import { inventoryPermissions, inventoryDefaultRoles } from './rbac';
 

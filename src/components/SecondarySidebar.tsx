@@ -61,7 +61,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   }
 
   return (
-    <aside className={`w-56 transition-all duration-300 h-full flex flex-col shadow-xl border-l border-slate-100 px-2 py-4 custom-scrollbar relative bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`}>
+    <aside className={`w-56 transition-all duration-300 h-full flex flex-col min-h-0 shadow-xl border-l border-slate-100 px-2 py-4 custom-scrollbar relative bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`}>
       <button
         className="absolute top-4 left-0 z-10 text-slate-400 hover:text-slate-700 p-1"
         onClick={onClose}
@@ -78,7 +78,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           className="w-full rounded bg-white border border-slate-200 text-slate-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-slate-400"
         />
       </div>
-      <div className="mb-2 flex-1 overflow-y-auto">
+      <div className="mb-2 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
         <ul className="space-y-1">
           {filterItems(subMenus).map(item => (
             <li key={item.name}>

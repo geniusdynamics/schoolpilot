@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
 import SettingsPopup from './SettingsPopup';
@@ -12,6 +13,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedModuleKey, setSelectedModuleKey] = useState('');
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Set modules as ready after a short delay to ensure initialization
   useEffect(() => {
@@ -36,9 +38,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       
       if (mainModules.length > 0 && !selectedModuleKey) {
         setSelectedModuleKey(mainModules[0].name);
+        // If the first module is Dashboard, navigate to /dashboard
+        if (mainModules[0].name === 'navigation:dashboard') {
+          navigate('/dashboard', { replace: true });
+        }
       }
     }
-  }, [isLoading, modulesReady, getMainModules, selectedModuleKey]);
+  }, [isLoading, modulesReady, getMainModules, selectedModuleKey, navigate]);
 
   const handleModuleSelect = (moduleKey: string) => {
     console.log('🔍 [Layout] Module selected:', moduleKey, 'current:', selectedModuleKey);
@@ -47,6 +53,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     } else {
       setSelectedModuleKey(moduleKey);
       setIsSubmenuOpen(true); // open submenu for new module
+      // If Dashboard is selected, navigate to /dashboard
+      if (moduleKey === 'navigation:dashboard') {
+        navigate('/dashboard');
+      }
     }
   };
 
