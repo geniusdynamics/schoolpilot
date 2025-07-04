@@ -228,3 +228,56 @@ export const initialMockGeneralLedgerEntries: GeneralLedgerEntry[] = [
     {id: 'GLE029', transaction_date: '2024-07-26', reference_no: 'TUCK001', description: 'Tuck shop sales', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 2200, credit_account_id: 412, credit_account_name: 'Tuck Shop Sales Revenue', credit_amount: 2200, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
     {id: 'GLE030', transaction_date: '2024-07-29', reference_no: 'SPORTS001', description: 'Sports equipment sales', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 4500, credit_account_id: 414, credit_account_name: 'Sports Equipment Sales Revenue', credit_amount: 4500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()}
 ];
+
+// Mock Suppliers
+export const mockSuppliers = [
+  {
+    id: 1,
+    name: "ABC School Supplies Ltd.",
+    phone: "020-1234567",
+    email: "sales@abcschoolsupplies.com",
+    address: "123 Supply Street, Industrial Area, Nairobi",
+    contract_expiry_date: "2025-12-31",
+    created_at: "2024-01-01T10:00:00Z",
+    updated_at: "2024-06-01T12:00:00Z"
+  }
+];
+
+// Mock Purchase Orders
+export const mockPurchaseOrders = [
+  {
+    id: "PO-2024-045",
+    supplier_id: 1,
+    order_date: "2024-06-15",
+    status: "APPROVED",
+    notes: "Urgent delivery required",
+    created_at: "2024-06-15T09:00:00Z",
+    updated_at: "2024-06-16T10:00:00Z",
+    supplier_name: "ABC School Supplies Ltd.",
+    total_value: 12000,
+    items: [
+      { id: "POI-1", purchase_order_id: "PO-2024-045", item_id: "ITEM-1", quantity_ordered: 100, unit_price: 120 }
+    ]
+  }
+];
+
+// Mock Supplier Invoices
+export const mockSupplierInvoices = [
+  {
+    id: "INV-2024-030",
+    supplier_id: 1,
+    invoice_number: "INV-2024-030",
+    invoice_date: "2024-07-01",
+    due_date: "2024-07-20",
+    total_amount: 12000,
+    status: "PAID",
+    created_at: "2024-07-01T10:00:00Z",
+    updated_at: "2024-07-20T10:00:00Z",
+    supplier_name: "ABC School Supplies Ltd.",
+    po_id: "PO-2024-045",
+    file_url: "https://example.com/invoices/INV-2024-030.pdf"
+  }
+];
+
+// Export canonical vendor-related mocks for modular system
+export { mockSuppliers as suppliers, mockPurchaseOrders as purchaseOrders, mockSupplierInvoices as supplierInvoices };

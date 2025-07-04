@@ -9,7 +9,7 @@ import Textarea from '../../components/ui/Textarea';
 import { SchoolIcon, HomeIcon, DocumentReportIcon as DocumentTextIcon, ShoppingCartIcon, ReceiptRefundIcon, UserCircleIcon, BellIcon, PlusIcon } from '../../components/ui/icons'; 
 import { InvPurchaseOrderType as PurchaseOrder, InvPurchaseOrderStatusEnum as PurchaseOrderStatus, InvRFQType as RFQ, InvRFQStatusEnum as RFQStatus } from '../../modules/inventory/data/types';
 import Spinner from '../../components/ui/Spinner';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/contexts/AppDataContext';
 import { useTranslation } from 'react-i18next';
 import PortalSidebar, { PortalNavItem } from '../../components/ui/PortalSidebar';
 
@@ -36,7 +36,8 @@ const VendorPortalDashboardPage: React.FC = () => {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
-  const { purchaseOrders: corePurchaseOrders, rfqs: coreRfqs, loading } = useAppData();
+  const { suppliers, purchaseOrders, supplierInvoices, rfqs, loading } = useAppData();
+  const { t } = useTranslation();
 
   // Map core types to inventory types for conformity
   function mapCorePurchaseOrderToInv(po: any): PurchaseOrder {
@@ -52,22 +53,25 @@ const VendorPortalDashboardPage: React.FC = () => {
       status: rfq.status as RFQStatus, // Assume status string matches enum value
     };
   }
-  const purchaseOrders: PurchaseOrder[] = (corePurchaseOrders as any[]).map(mapCorePurchaseOrderToInv);
-  const rfqs: RFQ[] = (coreRfqs as any[]).map(mapCoreRFQToInv);
+  const purchaseOrders: PurchaseOrder[] = (purchaseOrders as any[]).map(mapCorePurchaseOrderToInv);
+  const rfqs: RFQ[] = (rfqs as any[]).map(mapCoreRFQToInv);
 
-  // Mock Data - In a real app, this would come from context or API based on logged-in vendor
-  const vendorName = "ABC School Supplies Ltd."; 
+  // Simulate logged-in vendor (in real app, get from auth context)
+  const vendorId = 1;
+  const vendor = suppliers.find(s => s.id === vendorId);
+  const vendorPOs = purchaseOrders.filter(po => po.supplier_id === vendorId);
+  const vendorInvoices = supplierInvoices.filter(inv => inv.supplier_id === vendorId);
   const newRfqCount = rfqs.filter(r => r.status === RFQStatus.OPEN).length;
-  const activePoCount = purchaseOrders.filter(po => po.supplier_name === vendorName && (po.status === PurchaseOrderStatus.APPROVED || po.status === PurchaseOrderStatus.SENT_TO_SUPPLIER || po.status === PurchaseOrderStatus.PARTIALLY_RECEIVED)).length;
-  const pendingInvoiceCount = 3; 
-  const overduePaymentCount = 1; 
+  const activePoCount = vendorPOs.filter(po => po.status === PurchaseOrderStatus.APPROVED || po.status === PurchaseOrderStatus.SENT_TO_SUPPLIER || po.status === PurchaseOrderStatus.PARTIALLY_RECEIVED).length;
+  const pendingInvoiceCount = vendorInvoices.filter(inv => inv.status !== 'PAID').length;
+  const overduePaymentCount = vendorInvoices.filter(inv => inv.status === 'OVERDUE').length;
 
   const [profileFormData, setProfileFormData] = useState<ProfileFormData>({
-    companyName: vendorName, // Pre-fill
-    contactPerson: 'Mr. John Doe', // Mock
-    email: 'sales@abcschoolsupplies.com', // Mock
-    phone: '020-1234567', // Mock
-    address: '123 Supply Street, Industrial Area, Nairobi', // Mock
+    companyName: vendor?.name || '',
+    contactPerson: '', // Not in Supplier type, could be extended
+    email: vendor?.email || '',
+    phone: vendor?.phone || '',
+    address: vendor?.address || '',
   });
 
   const initialInvoiceFormData: InvoiceFormData = {
@@ -124,15 +128,20 @@ const VendorPortalDashboardPage: React.FC = () => {
     setInvoiceFormData(initialInvoiceFormData); // Reset form
   };
 
-
+  // Example: derive recent activity from POs and invoices
   const mockRecentActivity = [
-    { id: 1, text: "New RFQ #RFQ-078 posted for Stationery.", time: "2 hours ago" },
-    { id: 2, text: "Invoice #INV-2024-034 status changed to Paid.", time: "1 day ago" },
-    { id: 3, text: "Purchase Order #PO-2024-055 acknowledged.", time: "2 days ago" },
-  ];
+    ...vendorInvoices.map(inv => ({
+      id: `inv-${inv.id}`,
+      text: t('vendor.activity.invoice', { invoice: inv.invoice_number, status: inv.status }),
+      time: inv.updated_at
+    })),
+    ...vendorPOs.map(po => ({
+      id: `po-${po.id}`,
+      text: t('vendor.activity.po', { po: po.id, status: po.status }),
+      time: po.updated_at
+    }))
+  ].sort((a, b) => (b.time || '').localeCompare(a.time || ''));
 
-  const vendorPOs: PurchaseOrder[] = purchaseOrders.filter(po => po.supplier_name === vendorName);
-  
   const poColumns = [
     { header: 'PO Number', accessor: 'id' as keyof PurchaseOrder },
     { header: 'Issue Date', accessor: 'order_date' as keyof PurchaseOrder, render: (item: PurchaseOrder) => new Date(item.order_date).toLocaleDateString() },
@@ -169,29 +178,20 @@ const VendorPortalDashboardPage: React.FC = () => {
     )}
   ];
 
-
-  const mockInvoices = [ 
-    { id: 'INV-2024-030', poNumber: 'PO-2024-045', amount: 12000, dueDate: '2024-07-20', status: 'Paid' },
-    { id: 'INV-2024-034', poNumber: 'PO-2024-050', amount: 8500, dueDate: '2024-08-05', status: 'Approved' },
-    { id: 'INV-2024-038', poNumber: 'PO-2024-058', amount: 16200, dueDate: '2024-08-15', status: 'Submitted' },
-  ];
-
-  type MockInvoice = typeof mockInvoices[0];
-
   const invoiceColumns = [
-    { header: 'Invoice #', accessor: 'id' as keyof MockInvoice },
-    { header: 'PO #', accessor: 'poNumber' as keyof MockInvoice },
-    { header: 'Amount', accessor: 'amount' as keyof MockInvoice, render: (item: MockInvoice) => `Ksh ${item.amount.toFixed(2)}` },
-    { header: 'Due Date', accessor: 'dueDate' as keyof MockInvoice },
-    { header: 'Status', accessor: 'status' as keyof MockInvoice,
-       render: (item: MockInvoice) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-        item.status === 'Paid' ? 'bg-green-100 text-green-800' :
-        item.status === 'Approved' ? 'bg-blue-100 text-blue-800' :
-        item.status === 'Submitted' ? 'bg-yellow-100 text-yellow-800' :
+    { header: t('vendor.invoice.number'), accessor: 'invoice_number' },
+    { header: t('vendor.invoice.po'), accessor: 'po_id' },
+    { header: t('vendor.invoice.amount'), accessor: 'total_amount', render: (item: any) => `Ksh ${item.total_amount?.toFixed(2)}` },
+    { header: t('vendor.invoice.dueDate'), accessor: 'due_date' },
+    { header: t('vendor.invoice.status'), accessor: 'status',
+      render: (item: any) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+        item.status === 'PAID' ? 'bg-green-100 text-green-800' :
+        item.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
+        item.status === 'SUBMITTED' ? 'bg-yellow-100 text-yellow-800' :
         'bg-gray-100 text-gray-800'
       }`}>{item.status}</span>
     },
-    { header: 'Action', accessor: 'id' as keyof MockInvoice, render: (item: MockInvoice) => <Button size="sm" variant="ghost" title="View or upload PDF">View/Upload PDF</Button> }
+    { header: t('vendor.invoice.action'), accessor: 'id', render: (item: any) => <Button size="sm" variant="ghost" title={t('vendor.invoice.viewUpload')}>{t('vendor.invoice.viewUpload')}</Button> }
   ];
 
   if (loading.purchaseOrders || loading.rfqs) { 
@@ -217,7 +217,7 @@ const VendorPortalDashboardPage: React.FC = () => {
       {/* Main Content Area */}
       <div className="w-5/6 (85%) ml-[16.666667%] p-6 space-y-6 overflow-y-auto"> 
         <header className="bg-white shadow-sm p-4 flex justify-between items-center rounded-md">
-            <h2 className="text-xl font-semibold text-gray-700">Welcome, {vendorName}!</h2>
+            <h2 className="text-xl font-semibold text-gray-700">{t('vendor.welcome', { name: vendor?.name || '' })}</h2>
             <Button variant="ghost" className="p-2">
                 <BellIcon className="w-6 h-6 text-gray-500" />
             </Button>
@@ -265,67 +265,67 @@ const VendorPortalDashboardPage: React.FC = () => {
         )}
 
         {activeView === 'invoices' && (
-          <Card title="Your Invoices" actions={
-            <Button onClick={() => setIsInvoiceModalOpen(true)} leftIcon={<PlusIcon className="w-5 h-5" />}>Submit New Invoice</Button>
+          <Card title={t('vendor.invoices')} actions={
+            <Button onClick={() => setIsInvoiceModalOpen(true)} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('vendor.invoice.submit')}</Button>
           }>
-             {mockInvoices.length > 0 ? (
-                <Table columns={invoiceColumns} data={mockInvoices} />
+             {vendorInvoices.length > 0 ? (
+                <Table columns={invoiceColumns} data={vendorInvoices} />
             ) : (
-                <p className="text-gray-600 text-center py-4">No invoices submitted yet.</p>
+                <p className="text-gray-600 text-center py-4">{t('vendor.invoice.none')}</p>
             )}
           </Card>
         )}
         
         {activeView === 'profile' && (
-          <Card title="Your Company Profile">
+          <Card title={t('vendor.profile')}>
             <form onSubmit={handleProfileSave} className="space-y-4 p-4">
                 <Input 
-                    label="Company Name" 
+                    label={t('vendor.profile.companyName')} 
                     name="companyName" 
                     value={profileFormData.companyName} 
                     onChange={handleProfileInputChange} 
                     readOnly 
                     className="bg-gray-100"
-                    placeholder="Company Name"
+                    placeholder={t('vendor.profile.companyName')}
                 />
                 <Input 
-                    label="Contact Person" 
+                    label={t('vendor.profile.contactPerson')} 
                     name="contactPerson" 
                     value={profileFormData.contactPerson} 
                     onChange={handleProfileInputChange} 
                     className="w-full border rounded p-2"
-                    placeholder="Contact Person"
+                    placeholder={t('vendor.profile.contactPerson')}
                 />
                 <Input 
-                    label="Email Address" 
+                    label={t('vendor.profile.email')} 
                     name="email" 
                     type="email"
                     value={profileFormData.email}
                     onChange={handleProfileInputChange}
                     className="w-full border rounded p-2"
-                    placeholder="Email"
+                    placeholder={t('vendor.profile.email')}
                 />
                 <Input 
-                    label="Phone Number" 
+                    label={t('vendor.profile.phone')} 
                     name="phone" 
                     value={profileFormData.phone} 
                     onChange={handleProfileInputChange}
                     className="w-full border rounded p-2"
-                    placeholder="Phone"
+                    placeholder={t('vendor.profile.phone')}
                 />
                 <Textarea 
-                    label="Company Address" 
+                    label={t('vendor.profile.address')} 
                     name="address" 
                     value={profileFormData.address} 
                     onChange={handleProfileInputChange} 
                     rows={3}
-                    placeholder="Address"
+                    placeholder={t('vendor.profile.address')}
                 />
                  <div className="text-right">
-                    <Button type="submit">Save Profile Changes</Button>
+                    <Button type="submit">{t('vendor.profile.save')}</Button>
                 </div>
             </form>
-            <p className="text-xs text-gray-500 p-4">Manage your company information, contacts, and certifications here. (Functionality is mock for now).</p>
+            <p className="text-xs text-gray-500 p-4">{t('vendor.profile.manageInfo')}</p>
           </Card>
         )}
 

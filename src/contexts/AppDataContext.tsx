@@ -4,8 +4,7 @@
 
 import React, { createContext, useContext, ReactNode, useMemo, useEffect, useState } from 'react';
 import { APP_MODE } from './config'; 
-import { useMockData } from '../hooks/useCompleteMockData';
-import { rawInitialData as mockDataContentForProdSeed } from '../hooks/useCompleteMockData';
+import { useModularMockData, rawInitialData as modularMockDataContentForProdSeed } from '../hooks/useModularMockData';
 
 import type { AppDataContextType, RbacRole, Role } from '../core/types';
 import Spinner from '../components/ui/Spinner'; 
@@ -28,7 +27,7 @@ function mapRbacRoleToLegacyRole(rbacRole: RbacRole, idx: number): Role {
 }
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const mockDataHookResult = useMockData();
+  const mockDataHookResult = useModularMockData();
   const [rxDBHookModule, setRxDBHookModule] = useState<{ useRxDBData: UseRxDBDataHookType } | null>(null);
   const [rxDBServiceModule, setRxDBServiceModule] = useState<RxDBServiceModuleType | null>(null);
   const [isProdDepsLoaded, setIsProdDepsLoaded] = useState(false);
@@ -54,7 +53,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
               serviceModule.seedDatabaseWithMockData,
               serviceModule.clearDatabase,
               serviceModule.getUsingDummyDataFlag,
-              mockDataContentForProdSeed
+              modularMockDataContentForProdSeed
             );
             setRxDBDataHookResult(hookResult);
           });
