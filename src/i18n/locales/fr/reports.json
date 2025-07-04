@@ -144,5 +144,13 @@
     "exportCSV": "Exporter CSV",
     "noData": "Aucune donnée de collecte des frais trouvée pour les critères sélectionnés.",
     "selectFiltersMessage": "Veuillez sélectionner les filtres et cliquer sur \"Générer Résumé\"."
-  }
+  },
+  "navigation:reports.title": "Tous les Rapports",
+  "navigation:reports.accountLedger": "Grand Livre Comptable",
+  "navigation:reports.examResultsHorizontal": "Relevé de Notes des Examens",
+  "navigation:reports.feeCollectionSummary": "Résumé de la Collecte des Frais",
+  "navigation:reports.studentFinancialSummary": "Résumé Financier Étudiant",
+  "navigation:reports.studentMasterlist": "Liste Principale des Étudiants",
+  "navigation:reports.studentVoteheadStatement": "Relevé de Compte Étudiant par Poste Budgétaire",
+  "navigation:reports.teacherAssignments": "Affectation des Enseignants"
 }

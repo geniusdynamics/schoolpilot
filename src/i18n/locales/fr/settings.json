@@ -164,5 +164,12 @@
     "recordId": "ID Enregistrement"
   },
   "accessDeniedTitle": "Accès refusé",
-  "accessDeniedMessage": "Vous n'avez pas la permission d'accéder à la page des paramètres."
+  "accessDeniedMessage": "Vous n'avez pas la permission d'accéder à la page des paramètres.",
+  "navigation:settings.title": "Paramètres",
+  "navigation:settings.auditLog": "Journal d'Audit",
+  "navigation:settings.databaseSettings": "Paramètres de la Base de Données",
+  "navigation:settings.settings": "Paramètres Généraux",
+  "navigation:settings.schoolProfile": "Profil de l'École",
+  "navigation:settings.users": "Gestion des Utilisateurs",
+  "navigation:settings.workflows": "Flux de Travail"
 }

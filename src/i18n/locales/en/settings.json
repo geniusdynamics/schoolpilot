@@ -164,5 +164,12 @@
     "recordId": "Record ID"
   },
   "accessDeniedTitle": "Access Denied",
-  "accessDeniedMessage": "You do not have permission to view the settings page."
+  "accessDeniedMessage": "You do not have permission to view the settings page.",
+  "navigation:settings.title": "Settings",
+  "navigation:settings.auditLog": "Audit Log",
+  "navigation:settings.databaseSettings": "Database Settings",
+  "navigation:settings.settings": "General Settings",
+  "navigation:settings.schoolProfile": "School Profile",
+  "navigation:settings.users": "User Management",
+  "navigation:settings.workflows": "Workflows"
 }

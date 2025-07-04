@@ -144,5 +144,13 @@
     "exportCSV": "Export CSV",
     "noData": "No fee collection data found for the selected criteria.",
     "selectFiltersMessage": "Please select filters and click \"Generate Summary\"."
-  }
+  },
+  "navigation:reports.title": "All Reports",
+  "navigation:reports.accountLedger": "Account Ledger",
+  "navigation:reports.examResultsHorizontal": "Exam Results Horizontal",
+  "navigation:reports.feeCollectionSummary": "Fee Collection Summary",
+  "navigation:reports.studentFinancialSummary": "Student Financial Summary",
+  "navigation:reports.studentMasterlist": "Student Masterlist",
+  "navigation:reports.studentVoteheadStatement": "Student Votehead Statement",
+  "navigation:reports.teacherAssignments": "Teacher Assignments"
 }
