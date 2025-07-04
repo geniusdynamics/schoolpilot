@@ -7,16 +7,40 @@ import { useAppData } from '@/contexts/AppDataContext'; // Use
 import { StudentStatus, PersonGender, ChartData, BarChartData } from '../types';
 import Spinner from '../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import { useRBAC } from '../hooks/useRBAC';
-import { useUser } from '../contexts/UserContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const DashboardPage: React.FC = () => {
   const { students, staff, classes, subjects, loading } = useAppData(); // Use useAppData
   const { t } = useTranslation('dashboard');
-  const { currentUser } = useUser();
-  const { hasPermission } = useRBAC(currentUser?.id);
+  const { user, hasPermission } = useAuth();
 
-  const canViewDashboard = hasPermission('dashboard.view');
+  // Check if user has dashboard permission
+  const [canViewDashboard, setCanViewDashboard] = React.useState(false);
+  const [checkingPermission, setCheckingPermission] = React.useState(true);
+
+  React.useEffect(() => {
+    const checkPermission = async () => {
+      try {
+        const hasAccess = await hasPermission('dashboard.view');
+        setCanViewDashboard(hasAccess);
+      } catch (error) {
+        console.error('Error checking dashboard permission:', error);
+        setCanViewDashboard(false);
+      } finally {
+        setCheckingPermission(false);
+      }
+    };
+
+    checkPermission();
+  }, [hasPermission]);
+
+  if (checkingPermission) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   if (!canViewDashboard) {
     return (
@@ -79,6 +103,16 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Welcome Message */}
+      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Welcome back, {user?.fullName || 'User'}!
+        </h1>
+        <p className="text-gray-600">
+          Here's what's happening in your school today.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         <StatCard title={t('totalStudents')} value={totalStudents} icon={<UsersIcon />} bgColorClass="bg-indigo-100" iconColorClass="text-indigo-600" />
         <StatCard title={t('totalStaff')} value={totalStaff} icon={<UserGroupIcon />} bgColorClass="bg-green-100" iconColorClass="text-green-600" />

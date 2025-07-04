@@ -1,17 +1,22 @@
 // ABOUTME: This is the root component of the application.
-// ABOUTME: It sets up the main router and global context providers.
+// ABOUTME: It sets up the main router and global context providers with authentication.
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
 import { AppDataProvider } from '@/contexts/AppDataContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
 import { initializeModules } from './core/moduleLoader';
 import Spinner from './components/ui/Spinner';
 import { moduleRegistry } from './core/moduleRegistry';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Lazy load the login page
+const LoginPage = lazy(() => import('./pages/LoginPage'));
 
 // Vite will statically analyze all .tsx files in ./pages and ./modules/*/pages
 const pageModules = {
@@ -52,6 +57,7 @@ const getPageComponent = (nav: any) => {
 const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
   const { navigationItems } = useDynamicNavigation(modulesInitialized);
   const { accessibleModules } = useRBAC();
+  const { user } = useAuth();
 
   // Debug logs to help identify the issue
   console.log('🔍 [DynamicRoutes] Debug Info:', {
@@ -60,12 +66,24 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
     navigationItems: navigationItems,
     accessibleModulesCount: accessibleModules.length,
     accessibleModules: accessibleModules,
+    user: user?.username,
     filteredItems: navigationItems.filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
   });
 
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      
+      {/* Login Route */}
+      <Route 
+        path="/login" 
+        element={
+          <Suspense fallback={<div>Loading...</div>}>
+            <LoginPage />
+          </Suspense>
+        } 
+      />
+      
       {/* Register custom/dynamic routes from all enabled modules */}
       {moduleRegistry.getEnabledModules().flatMap(module =>
         (module.routes || []).map(route => {
@@ -97,9 +115,11 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
               key={route.path}
               path={route.path}
               element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <PageComponent />
-                </Suspense>
+                <ProtectedRoute requiredModule={moduleDir}>
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <PageComponent />
+                  </Suspense>
+                </ProtectedRoute>
               }
             />
           );
@@ -111,14 +131,24 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           (module.children || []).map(nav => {
             const PageComponent = getPageComponent(nav);
             if (!PageComponent) return null;
+            
+            // Determine required permission based on module path
+            const modulePath = nav.modulePath?.replace('/', '') || '';
+            const requiredPermission = modulePath ? `${modulePath}.view` : undefined;
+            
             return (
               <Route
                 key={nav.path}
                 path={nav.path}
                 element={
-                  <Suspense fallback={<div>Loading...</div>}>
-                    <PageComponent />
-                  </Suspense>
+                  <ProtectedRoute 
+                    requiredPermission={requiredPermission}
+                    requiredModule={modulePath}
+                  >
+                    <Suspense fallback={<div>Loading...</div>}>
+                      <PageComponent />
+                    </Suspense>
+                  </ProtectedRoute>
                 }
               />
             );
@@ -131,6 +161,25 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
 
 const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitialized }) => {
   const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, show login page
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
   return (
     <Layout>
       <ErrorBoundary key={location.pathname}>
@@ -160,13 +209,15 @@ const App: React.FC = () => {
   }
 
   return (
-    <UserProvider>
-      <AppDataProvider>
-        <HashRouter>
-          <AppContent modulesInitialized={modulesInitialized} />
-        </HashRouter>
-      </AppDataProvider>
-    </UserProvider>
+    <AuthProvider>
+      <UserProvider>
+        <AppDataProvider>
+          <HashRouter>
+            <AppContent modulesInitialized={modulesInitialized} />
+          </HashRouter>
+        </AppDataProvider>
+      </UserProvider>
+    </AuthProvider>
   );
 };
 

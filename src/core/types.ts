@@ -17,6 +17,19 @@ import type {
   FinStudentTransportAssignmentType
 } from '../modules/finance/data/types';
 
+// --- Chart Data Types ---
+export interface ChartData {
+  name: string;
+  value: number;
+}
+
+export interface BarChartData {
+  name: string;
+  uv?: number;
+  pv?: number;
+  [key: string]: any;
+}
+
 // --- Enums ---
 
 export enum FinancialYearStatus {
