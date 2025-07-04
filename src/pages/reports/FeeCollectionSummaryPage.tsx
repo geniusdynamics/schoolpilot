@@ -44,23 +44,21 @@ const FeeCollectionSummaryPage: React.FC = () => {
     }
     setIsGenerating(true);
     
-    const invoicesForPeriod = studentInvoices.filter(inv => 
+    const invoicesForPeriod = (studentInvoices || []).filter(inv => 
       inv.school_period_id === selectedSchoolPeriodId &&
       inv.status !== InvoiceStatus.VOIDED &&
-      (!selectedClassId || students.find(s => s.id === inv.student_id)?.current_class_stream_id && classStreams.find(cs => cs.id === students.find(s => s.id === inv.student_id)?.current_class_stream_id)?.class_id === selectedClassId)
+      (!selectedClassId || (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id && (classStreams || []).find(cs => cs.id === (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id)?.class_id === selectedClassId)
     );
 
     const summaryMap = new Map<string, { expected: number; paid: number }>();
 
-    invoicesForPeriod.forEach(invoice => {
+    (invoicesForPeriod || []).forEach(invoice => {
       (invoice.items || []).forEach(item => {
         const votehead = item.description;
         const current = summaryMap.get(votehead) || { expected: 0, paid: 0 };
         current.expected += item.amount;
 
-        const paymentsForItem = invoicePaymentApplications
-          .filter(ipa => ipa.invoice_item_id === item.id)
-          .reduce((sum, ipa) => sum + ipa.amount_applied, 0);
+        const paymentsForItem = (invoicePaymentApplications || []).filter(ipa => ipa.invoice_item_id === item.id).reduce((sum, ipa) => sum + ipa.amount_applied, 0);
         current.paid += paymentsForItem;
         
         summaryMap.set(votehead, current);
@@ -140,11 +138,11 @@ const FeeCollectionSummaryPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)} required>
                     <option value="">All Periods</option>
-                    {schoolPeriods.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+                    {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
                 <Select label="Class (Optional)" value={selectedClassId || ''} onChange={e => setSelectedClassId(Number(e.target.value) || undefined)}>
                     <option value="">All Classes</option>
-                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </Select>
                 <Button onClick={handleGenerateReport} disabled={isGenerating || isLoadingPage || !selectedSchoolPeriodId} className="h-10 print-hide">
                     {isGenerating ? <Spinner size="sm" /> : 'Generate Summary'}
@@ -162,7 +160,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={handlePrint} leftIcon={<PrinterIcon className="w-4 h-4"/>}>Print</Button>
                     <Button variant="secondary" size="sm" onClick={handleExportCSV} leftIcon={<DownloadIcon className="w-4 h-4"/>}>Export CSV</Button>
                 </div>
-                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage="No fee collection data found for the selected criteria."/>
+                <Table columns={columns} data={(reportData || [])} isLoading={isGenerating} emptyStateMessage="No fee collection data found for the selected criteria."/>
             </>
         ) : (
             <p className="text-center text-gray-500 py-4">Please select filters and click "Generate Summary".</p>

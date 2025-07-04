@@ -11,6 +11,7 @@ import { useRBAC } from './hooks/useRBAC';
 import { initializeModules } from './core/moduleLoader';
 import Spinner from './components/ui/Spinner';
 import { moduleRegistry } from './core/moduleRegistry';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Vite will statically analyze all .tsx files in ./pages and ./modules/*/pages
 const pageModules = {
@@ -148,15 +149,17 @@ const App: React.FC = () => {
   }
 
   return (
-    <UserProvider>
-      <AppDataProvider>
-        <HashRouter>
-          <Layout>
-            <DynamicRoutes modulesInitialized={modulesInitialized} />
-          </Layout>
-        </HashRouter>
-      </AppDataProvider>
-    </UserProvider>
+    <ErrorBoundary>
+      <UserProvider>
+        <AppDataProvider>
+          <HashRouter>
+            <Layout>
+              <DynamicRoutes modulesInitialized={modulesInitialized} />
+            </Layout>
+          </HashRouter>
+        </AppDataProvider>
+      </UserProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -130,7 +130,7 @@ const ItemsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('inventory.items.maintain.list')}
         </p>
-        <Table columns={columns} data={itemsInv} isLoading={loading.itemsInv && isModalOpen} />
+        <Table columns={columns} data={(itemsInv || [])} isLoading={loading.itemsInv && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingItem ? t('inventory.items.editItem') : t('inventory.items.addNewItem')} size="xl"
@@ -147,7 +147,7 @@ const ItemsPage: React.FC = () => {
             <Input name="name" label={t('inventory.items.name')} value={formData.name || ''} onChange={handleInputChange} required containerClassName="md:col-span-2"/>
             <Select name="category_id" label={t('inventory.items.category')} value={formData.category_id || ''} onChange={handleInputChange}>
                 <option value="">{t('inventory.items.selectCategory')}</option>
-                {itemCategoriesInv.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                {(itemCategoriesInv || []).map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
             </Select>
             <Input name="unit_of_measure" label={t('inventory.items.unitOfMeasure')} value={formData.unit_of_measure || ''} onChange={handleInputChange} required placeholder={t('inventory.items.e.g.,Piece,Kg,Litre,Box')} />
             <Select name="item_type" label={t('inventory.items.itemType')} value={formData.item_type} onChange={handleInputChange} required>

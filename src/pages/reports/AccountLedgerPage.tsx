@@ -35,16 +35,16 @@ const AccountLedgerPage: React.FC = () => {
     }
     setIsGenerating(true);
 
-    const filteredEntries = generalLedgerEntries
+    const filteredEntries = (generalLedgerEntries || [])
       .filter(entry => entry.account_id === selectedAccountId)
       .filter(entry => {
         const entryDate = new Date(entry.effective_date);
         return (!startDate || entryDate >= new Date(startDate)) && (!endDate || entryDate <= new Date(endDate));
       })
-      .sort((a, b) => new Date(a.effective_date).getTime() - new Date(b.effective_date).getTime() || new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime());
+      .sort((a, b) => new Date(a.effective_date).getTime() - new Date(b.effective_date).getTime() || new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime());
 
     let runningBalance = 0; 
-    const processedData = filteredEntries.map(entry => {
+    const processedData = (filteredEntries || []).map(entry => {
       runningBalance += (entry.debit || 0) - (entry.credit || 0);
       return { ...entry, running_balance_display: runningBalance };
     });
@@ -116,7 +116,7 @@ const AccountLedgerPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                 <Select label={t('accountLedgerPage.selectAccount')} value={selectedAccountId || ''} onChange={e => setSelectedAccountId(Number(e.target.value) || undefined)} required>
                     <option value="">-- {t('accountLedgerPage.selectAccountPlaceholder')} --</option>
-                    {chartOfAccounts.map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
+                    {(chartOfAccounts || []).map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
                 </Select>
                 <Input label={t('accountLedgerPage.startDate')} type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
                 <Input label={t('accountLedgerPage.endDate')} type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
@@ -136,7 +136,7 @@ const AccountLedgerPage: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={handlePrint} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('accountLedgerPage.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={handleExportCSV} leftIcon={<DownloadIcon className="w-4 h-4"/>}>{t('accountLedgerPage.exportCSV')}</Button>
                 </div>
-                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage={t('accountLedgerPage.noTransactionsFound')}/>
+                <Table columns={columns} data={(reportData || [])} isLoading={isGenerating} emptyStateMessage={t('accountLedgerPage.noTransactionsFound')}/>
             </>
         ) : (
             <p className="text-center text-gray-500 py-4">{t('accountLedgerPage.pleaseSelectFiltersAndClickGenerateLedger')}</p>

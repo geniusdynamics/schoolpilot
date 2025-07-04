@@ -135,7 +135,7 @@ const FinesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           View and manage library fines. Fines for overdue books are often generated automatically upon return.
         </p>
-        <Table columns={columns} data={fines} isLoading={loading.fines && isModalOpen} />
+        <Table columns={columns} data={(fines || [])} isLoading={loading.fines && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingFine ? 'Update Fine Status' : 'Add Manual Fine'} size="lg"
@@ -157,7 +157,7 @@ const FinesPage: React.FC = () => {
           disabled={!!editingFine} // Usually loan_id is fixed once fine is created
         >
           <option value="">Select Loan (for context)</option>
-          {loans.map(loan => <option key={loan.id} value={loan.id}>{loan.book_title} - {loan.user_name} (Due: {new Date(loan.due_date).toLocaleDateString()})</option>)}
+          {(loans || []).map(loan => <option key={loan.id} value={loan.id}>{loan.book_title} - {loan.user_name} (Due: {new Date(loan.due_date).toLocaleDateString()})</option>)}
         </Select>
         <Input 
           name="amount" 

@@ -108,7 +108,7 @@ const MenusPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('menus.management.description')}
         </p>
-        <Table columns={columns} data={menus} isLoading={loading.menus && isModalOpen} />
+        <Table columns={columns} data={(menus || [])} isLoading={loading.menus && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingMenu ? t('menus.edit.title') : t('menus.add.title')} size="lg"

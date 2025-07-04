@@ -46,7 +46,7 @@ const FinanceDashboardPage: React.FC = () => {
   const mockTotalIncome = 5850000;
   const mockTotalExpenses = 2340000;
   const mockNetPosition = mockTotalIncome - mockTotalExpenses;
-  const mockOutstandingInvoices = studentInvoices.filter(inv => inv.status === 'Due' || inv.status === 'Overdue').length;
+  const mockOutstandingInvoices = (studentInvoices || []).filter(inv => inv.status === 'Due' || inv.status === 'Overdue').length;
 
 
   const incomeExpenseData: BarChartData[] = [

@@ -42,16 +42,16 @@ const NutritionDashboardPage: React.FC = () => {
     );
   }
 
-  const totalMealPlans = mealPlans.length;
-  const activeStudentAssignments = (studentMealPlans as StudentMealPlan[]).filter(smp => smp.status === StudentMealPlanStatus.ACTIVE).length;
-  const totalMenusCreated = menus.length;
-  const activeMerchants = (merchants as Merchant[]).length; 
-  const aggregateWalletBalance = (studentWallets as StudentWallet[]).reduce((sum, wallet) => sum + wallet.balance, 0);
+  const totalMealPlans = (mealPlans || []).length;
+  const activeStudentAssignments = (studentMealPlans || []).filter(smp => smp.status === StudentMealPlanStatus.ACTIVE).length;
+  const totalMenusCreated = (menus || []).length;
+  const activeMerchants = (merchants || []).length; 
+  const aggregateWalletBalance = (studentWallets || []).reduce((sum, wallet) => sum + wallet.balance, 0);
 
 
   const studentMealPlanStatusData: ChartData[] = Object.values(StudentMealPlanStatus).map(status => ({
     name: status,
-    value: (studentMealPlans as StudentMealPlan[]).filter(smp => smp.status === status).length
+    value: (studentMealPlans || []).filter(smp => smp.status === status).length
   })).filter(d => d.value > 0);
 
 

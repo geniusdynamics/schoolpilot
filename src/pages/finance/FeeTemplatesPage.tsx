@@ -40,7 +40,7 @@ const FeeTemplatesPage: React.FC = () => {
   const [templateFormData, setTemplateFormData] = useState<FeeTemplateFormData>(initialTemplateFormData);
   const [itemFormData, setItemFormData] = useState<FeeItemFormData>(initialItemFormData);
 
-  const revenueAccounts = useMemo(() => chartOfAccounts.filter(coa => coa.type === FinAccountTypeEnum.REVENUE && coa.is_active), [chartOfAccounts]);
+  const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === FinAccountTypeEnum.REVENUE && coa.is_active), [chartOfAccounts]);
 
   // Template Modal
   const openTemplateModal = (template?: FeeTemplate) => {
@@ -220,7 +220,7 @@ const FeeTemplatesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Create and manage fee templates for different school periods and student categories. Define template items (voteheads) and amounts.
         </p>
-        <Table columns={templateColumns} data={feeTemplates} isLoading={loading.feeTemplates && (isTemplateModalOpen || isItemModalOpen)} />
+        <Table columns={templateColumns} data={(feeTemplates || [])} isLoading={loading.feeTemplates && (isTemplateModalOpen || isItemModalOpen)} />
       </Card>
 
       <Modal isOpen={isTemplateModalOpen} onClose={closeTemplateModal} title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'} size="lg"
@@ -248,7 +248,7 @@ const FeeTemplatesPage: React.FC = () => {
           required
         >
           <option value="">Select School Period</option>
-          {schoolPeriods.map((period: SchoolPeriod) => (
+          {(schoolPeriods || []).map((period: SchoolPeriod) => (
             <option key={period.id} value={period.id}>{period.name}</option>
           ))}
         </Select>
@@ -259,7 +259,7 @@ const FeeTemplatesPage: React.FC = () => {
           onChange={handleTemplateInputChange}
         >
           <option value="">All Categories</option>
-          {studentCategories.map((category: StudentCategory) => (
+          {(studentCategories || []).map((category: StudentCategory) => (
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </Select>
@@ -280,11 +280,11 @@ const FeeTemplatesPage: React.FC = () => {
                 <Input name="amount" label="Amount" type="number" step="0.01" value={itemFormData.amount ?? ''} onChange={handleItemInputChange} required />
                 <Select name="revenue_account_id" label="Revenue GL Account" value={itemFormData.revenue_account_id || ''} onChange={handleItemInputChange} required>
                     <option value="">Select Revenue Account</option>
-                    {revenueAccounts.map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
+                    {(revenueAccounts || []).map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
                 </Select>
                 <Select name="linked_expense_category_id" label="Linked Expense Category (Optional)" value={itemFormData.linked_expense_category_id || ''} onChange={handleItemInputChange}>
                     <option value="">None</option>
-                    {expenseCategories.map(ec => <option key={ec.id} value={ec.id}>{ec.name}</option>)}
+                    {(expenseCategories || []).map(ec => <option key={ec.id} value={ec.id}>{ec.name}</option>)}
                 </Select>
               </div>
               <div className="text-right mt-4">
@@ -297,7 +297,7 @@ const FeeTemplatesPage: React.FC = () => {
             <h4 className="text-md font-semibold text-gray-700 mt-6">Existing Items for this Template</h4>
             <Table 
               columns={itemColumns} 
-              data={currentTemplateForItems.items || []} 
+              data={(currentTemplateForItems.items || [])} 
               isLoading={loading.feeTemplates && isItemModalOpen}
               emptyStateMessage="No items defined for this fee template yet."
             />

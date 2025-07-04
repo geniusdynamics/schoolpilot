@@ -45,7 +45,7 @@ const ReportsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b pb-2 mb-4">
-        {reportTabs.map(tab => (
+        {(reportTabs || []).map(tab => (
           <button
             key={tab}
             className={`px-4 py-2 rounded-t-lg font-semibold text-sm transition-all ${activeTab === tab ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500' : 'bg-white text-gray-600 hover:bg-blue-50'}`}
@@ -71,7 +71,7 @@ const ReportsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {kpiData.map((kpi, idx) => (
+              {(kpiData || []).map((kpi, idx) => (
                 <tr key={idx} className="border-b last:border-0">
                   <td className="py-1">{kpi.type}</td>
                   <td className="text-right py-1">{kpi.amount.toLocaleString()}</td>
@@ -86,7 +86,7 @@ const ReportsPage: React.FC = () => {
         <Card>
           <h2 className="text-lg font-bold mb-2">Working Capital Trend</h2>
           <div className="h-56 flex items-end gap-2">
-            {workingCapitalTrend.map((item, idx) => (
+            {(workingCapitalTrend || []).map((item, idx) => (
               <div key={item.month} className="flex flex-col items-center justify-end h-full">
                 <div
                   className="bg-blue-400 rounded-t w-8"
@@ -102,7 +102,7 @@ const ReportsPage: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mt-4">
-        {summaryData.map((item, idx) => (
+        {(summaryData || []).map((item, idx) => (
           <Card key={item.label} className="flex flex-col items-center p-3">
             <span className="text-xs text-gray-500 mb-1">{item.label}</span>
             <span className="text-lg font-bold">{item.value.toLocaleString()}</span>

@@ -19,19 +19,19 @@ const PayslipsPage: React.FC = () => {
     generatePayslipsForPeriod 
   } = useAppData(); // Updated
   
-  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>(academicYears[0]?.id);
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>((academicYears || [])[0]?.id);
   const [selectedPayrollPeriodId, setSelectedPayrollPeriodId] = useState<number | undefined>();
   const [viewingPayslip, setViewingPayslip] = useState<Payslip | null>(null);
 
   const filteredPayrollPeriods = useMemo(() => {
-    if (!selectedAcademicYearId) return payrollPeriods;
+    if (!selectedAcademicYearId) return (payrollPeriods || []);
     // This assumes payrollPeriods are linked to financial years which might loosely map to academic years.
     // For a more direct link, PayrollPeriod would need academic_year_id or a way to filter by AY's date range.
     // For now, let's assume a simpler filter or all periods if no direct link.
     // This logic might need refinement based on actual data relations.
-    const ay = academicYears.find(a => a.id === selectedAcademicYearId);
-    if (!ay) return payrollPeriods;
-    return payrollPeriods.filter(pp => {
+    const ay = (academicYears || []).find(a => a.id === selectedAcademicYearId);
+    if (!ay) return (payrollPeriods || []);
+    return (payrollPeriods || []).filter(pp => {
         // A simple check if payroll period overlaps with academic year dates
         const ppStart = new Date(pp.start_date);
         const ppEnd = new Date(pp.end_date);
@@ -43,7 +43,7 @@ const PayslipsPage: React.FC = () => {
 
   const payslipsForSelectedPeriod = useMemo(() => {
     if (!selectedPayrollPeriodId) return [];
-    return payslips.filter(p => p.payroll_period_id === selectedPayrollPeriodId);
+    return (payslips || []).filter(p => p.payroll_period_id === selectedPayrollPeriodId);
   }, [selectedPayrollPeriodId, payslips]);
 
   const handleGeneratePayslips = async () => {
@@ -115,18 +115,18 @@ const PayslipsPage: React.FC = () => {
                 onChange={e => setSelectedAcademicYearId(Number(e.target.value) || undefined)}
             >
                 <option value="">Select Academic Year</option>
-                {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
+                {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
             </Select>
             <Select 
                 name="payroll_period_id" 
                 label="Select Payroll Period" 
                 value={selectedPayrollPeriodId || ''} 
                 onChange={e => setSelectedPayrollPeriodId(Number(e.target.value) || undefined)}
-                disabled={!selectedAcademicYearId && academicYears.length > 0} 
+                disabled={!selectedAcademicYearId && (academicYears || []).length > 0} 
                 required
             >
                 <option value="">-- Select Payroll Period --</option>
-                {filteredPayrollPeriods.map((period: PayrollPeriod) => (
+                {(filteredPayrollPeriods || []).map((period: PayrollPeriod) => (
                     <option key={period.id} value={period.id}>{period.name}</option>
                 ))}
             </Select>
@@ -143,7 +143,7 @@ const PayslipsPage: React.FC = () => {
         
         {selectedPayrollPeriodId ? (
              payslipsForSelectedPeriod.length > 0 ? (
-                 <Table columns={payslipColumns} data={payslipsForSelectedPeriod} isLoading={loading.payslips && !!selectedPayrollPeriodId} />
+                 <Table columns={payslipColumns} data={(payslipsForSelectedPeriod || [])} isLoading={loading.payslips && !!selectedPayrollPeriodId} />
              ) : (
                  <p className="text-center text-gray-500 py-4">No payslips generated for the selected period yet, or no staff salary settings found for active staff.</p>
              )
@@ -168,7 +168,7 @@ const PayslipsPage: React.FC = () => {
                     <div className="col-span-2 text-lg"><strong className="text-gray-700">Net Salary:</strong> <span className="font-bold text-green-600">Ksh {viewingPayslip.net_salary?.toFixed(2)}</span></div>
                 </div>
                 <h4 className="text-md font-semibold text-gray-700 mt-2">Payslip Items:</h4>
-                <Table columns={payslipItemColumns} data={viewingPayslip.items || []} />
+                <Table columns={payslipItemColumns} data={(viewingPayslip?.items || [])} />
             </div>
         )}
       </Modal>

@@ -22,20 +22,20 @@ const StudentMasterlistPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const availableStreams = useMemo(() => {
-    if (!selectedClassId) return classStreams;
-    return classStreams.filter(cs => cs.class_id === selectedClassId);
+    if (!selectedClassId) return (classStreams || []);
+    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   const handleGenerateReport = useCallback(() => {
     setIsGenerating(true);
-    let tempStudents = [...students];
+    let tempStudents = [...(students || [])];
 
     if (selectedClassId) {
-      const streamsInClass = classStreams.filter(cs => cs.class_id === selectedClassId).map(cs => cs.id);
+      const streamsInClass = (classStreams || []).filter(cs => cs.class_id === selectedClassId).map(cs => cs.id);
       if (selectedStreamId) {
         tempStudents = tempStudents.filter(s => s.current_class_stream_id === selectedStreamId);
       } else {
-        tempStudents = tempStudents.filter(s => s.current_class_stream_id && streamsInClass.includes(s.current_class_stream_id));
+        tempStudents = tempStudents.filter(s => s.current_class_stream_id && (streamsInClass || []).includes(s.current_class_stream_id));
       }
     } else if (selectedStreamId) { 
         tempStudents = tempStudents.filter(s => s.current_class_stream_id === selectedStreamId);
@@ -118,11 +118,11 @@ const StudentMasterlistPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <Select label={t('studentMasterlistPage.filterByClass')} value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}>
                 <option value="">{t('studentMasterlistPage.allClasses')}</option>
-                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
             <Select label={t('studentMasterlistPage.filterByStream')} value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId && availableStreams.length === classStreams.length}>
                 <option value="">{t('studentMasterlistPage.allStreams')}</option>
-                {availableStreams.map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
+                {(availableStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
             </Select>
             <Select label={t('studentMasterlistPage.filterByStatus')} value={selectedStatus} onChange={e => setSelectedStatus(e.target.value as StudentStatus | '')}>
                 <option value="">{t('studentMasterlistPage.allStatuses')}</option>
@@ -148,7 +148,7 @@ const StudentMasterlistPage: React.FC = () => {
                 <Button variant="secondary" size="sm" onClick={handlePrint}>{t('studentMasterlistPage.print')}</Button>
                 <Button variant="secondary" size="sm" onClick={handleExportCSV}>{t('studentMasterlistPage.exportCSV')}</Button>
             </div>
-            <Table columns={columns} data={filteredStudents} isLoading={isGenerating} emptyStateMessage={t('studentMasterlistPage.noStudentsFound')}/>
+            <Table columns={columns} data={(filteredStudents || [])} isLoading={isGenerating} emptyStateMessage={t('studentMasterlistPage.noStudentsFound')}/>
           </>
         )}
       </Card>

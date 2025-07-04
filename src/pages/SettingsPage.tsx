@@ -136,7 +136,7 @@ const SettingsPage: React.FC = () => {
       
       <Card title={t('userManagement.title')}>
         <p className="text-gray-600 mb-4"><Trans i18nKey="userManagement.description" t={t} components={{ 1: <Link to="/settings/users" className="text-indigo-600 hover:underline" /> }} /></p>
-        <Table columns={userColumns} data={users} isLoading={usersLoading.users} />
+        <Table columns={userColumns} data={(users || [])} isLoading={usersLoading.users} />
       </Card>
 
       <Card title={t('academicCalendar.setupTitle')}>

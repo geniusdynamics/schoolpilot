@@ -34,23 +34,23 @@ const LibraryDashboardPage: React.FC = () => {
     return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
   }
 
-  const totalBooks = books.length;
-  const booksOnLoan = books.filter(b => b.status === BookStatus.ON_LOAN).length;
+  const totalBooks = (books || []).length;
+  const booksOnLoan = (books || []).filter(b => b.status === BookStatus.ON_LOAN).length;
   
-  const overdueLoans = loans.filter(loan => {
+  const overdueLoans = (loans || []).filter(loan => {
     if (loan.return_date) return false; // Already returned
     const dueDate = new Date(loan.due_date);
     const today = new Date();
     today.setHours(0,0,0,0); // Compare dates only
     return today > dueDate;
   });
-  const overdueBooksCount = overdueLoans.length;
+  const overdueBooksCount = (overdueLoans || []).length;
 
-  const pendingFines = fines.filter(f => f.status === FineStatus.PENDING || f.status === FineStatus.BILLED).length;
+  const pendingFines = (fines || []).filter(f => f.status === FineStatus.PENDING || f.status === FineStatus.BILLED).length;
 
-  const booksByCategoryData: ChartData[] = bookCategories.map(category => ({
+  const booksByCategoryData: ChartData[] = (bookCategories || []).map(category => ({
     name: category.name,
-    value: books.filter(book => book.category_id === category.id).length,
+    value: (books || []).filter(book => book.category_id === category.id).length,
   })).filter(d => d.value > 0);
 
 

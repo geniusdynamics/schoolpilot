@@ -13,23 +13,23 @@ const TeacherAssignmentsPage: React.FC = () => {
   const { staff, academicYears, teacherSubjectAssignments, loading } = useAppData();
   const { t } = useTranslation();
 
-  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>(academicYears[0]?.id);
+  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>((academicYears || [])[0]?.id);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | undefined>();
   
   const [reportData, setReportData] = useState<TeacherSubjectAssignment[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   
-  const teachers = useMemo(() => staff.filter(s => s.is_active && (s.designation_title?.includes('Teacher') || s.designation_title?.includes('Principal') || s.department_name === 'Academics')), [staff]);
+  const teachers = useMemo(() => (staff || []).filter(s => s.is_active && (s.designation_title?.includes('Teacher') || s.designation_title?.includes('Principal') || s.department_name === 'Academics')), [staff]);
 
   const handleGenerateReport = useCallback(() => {
     setIsGenerating(true);
-    let filteredAssignments = [...teacherSubjectAssignments];
+    let filteredAssignments = [...(teacherSubjectAssignments || [])];
 
     if (selectedAcademicYearId) {
       // This relies on teacherSubjectAssignments already having academic_year_name denormalized,
       // or academic_year_id if we had it on TeacherSubjectAssignment type directly or via allocation.
       // For now, we assume academic_year_name is present.
-      const ayName = academicYears.find(ay => ay.id === selectedAcademicYearId)?.name;
+      const ayName = (academicYears || []).find(ay => ay.id === selectedAcademicYearId)?.name;
       if (ayName) {
         filteredAssignments = filteredAssignments.filter(a => a.academic_year_name === ayName);
       }
@@ -64,11 +64,11 @@ const TeacherAssignmentsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <Select label={t('teacherAssignmentsPage.selectAcademicYear')} value={selectedAcademicYearId || ''} onChange={e => setSelectedAcademicYearId(Number(e.target.value) || undefined)}>
                     <option value="">{t('teacherAssignmentsPage.allYears')}</option>
-                    {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
+                    {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
                 </Select>
                 <Select label={t('teacherAssignmentsPage.selectTeacher')} value={selectedTeacherId || ''} onChange={e => setSelectedTeacherId(e.target.value || undefined)}>
                     <option value="">{t('teacherAssignmentsPage.allTeachers')}</option>
-                    {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
+                    {(teachers || []).map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
                 </Select>
                 <Button onClick={handleGenerateReport} disabled={isGenerating || isLoadingPage} className="h-10">
                     {isGenerating ? <Spinner size="sm" /> : t('teacherAssignmentsPage.generateReport')}
@@ -86,7 +86,7 @@ const TeacherAssignmentsPage: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => alert("Print functionality to be implemented.")}>{t('teacherAssignmentsPage.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert("Export to CSV functionality to be implemented.")}>{t('teacherAssignmentsPage.exportCSV')}</Button>
                 </div>
-                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage={t('teacherAssignmentsPage.noAssignmentsFound')}/>
+                <Table columns={columns} data={(reportData || [])} isLoading={isGenerating} emptyStateMessage={t('teacherAssignmentsPage.noAssignmentsFound')}/>
             </>
         )}
       </Card>

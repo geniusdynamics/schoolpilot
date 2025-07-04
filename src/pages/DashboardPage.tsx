@@ -33,21 +33,21 @@ const DashboardPage: React.FC = () => {
     );
   }
 
-  const totalStudents = students.length;
-  const totalStaff = staff.length;
-  const totalClasses = classes.length;
-  const totalSubjects = subjects.length;
+  const totalStudents = (students || []).length;
+  const totalStaff = (staff || []).length;
+  const totalClasses = (classes || []).length;
+  const totalSubjects = (subjects || []).length;
   const activeFeeStructures = 3; // Mock data
   const analyzedExams = 5; // Mock data
 
   const studentStatusData: ChartData[] = Object.values(StudentStatus).map(status => ({
     name: status,
-    value: students.filter(s => s.status === status).length,
+    value: (students || []).filter(s => s.status === status).length,
   })).filter(d => d.value > 0);
 
   const genderData: ChartData[] = Object.values(PersonGender).map(gender => ({
     name: gender,
-    value: students.filter(s => s.gender === gender).length,
+    value: (students || []).filter(s => s.gender === gender).length,
   })).filter(d => d.value > 0);
   
   const COLORS_GENDER = ['#0088FE', '#00C49F', '#FFBB28'];

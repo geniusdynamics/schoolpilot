@@ -37,8 +37,8 @@ const ExamResultsHorizontalPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const availableStreams = useMemo(() => {
-    if (!selectedClassId) return classStreams;
-    return classStreams.filter(cs => cs.class_id === selectedClassId);
+    if (!selectedClassId) return (classStreams || []);
+    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   const handleGenerateReport = useCallback(() => {
@@ -51,7 +51,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
     setIsGenerating(true);
 
     try {
-      const currentSession = examSessions.find(es => es.id === selectedExamSessionId);
+      const currentSession = (examSessions || []).find(es => es.id === selectedExamSessionId);
       if (!currentSession || !currentSession.paper_settings) {
           console.warn("Selected exam session not found or has no paper settings.");
           setReportData([]);
@@ -60,12 +60,12 @@ const ExamResultsHorizontalPage: React.FC = () => {
           return;
       }
       
-      const paperSettings = currentSession.paper_settings || []; 
+      const paperSettings = (currentSession?.paper_settings || []); 
 
       const newDynamicColumns = [
           { header: t('tableHeaders.admNo'), accessor: 'admissionNo' as keyof ReportRow },
           { header: t('tableHeaders.studentName'), accessor: 'studentName' as keyof ReportRow },
-          ...paperSettings.map(ps => ({
+          ...(paperSettings || []).map(ps => ({
               header: `${(ps.subject_name || 'N/A').substring(0,5)} - ${(ps.subject_paper_name || 'N/A').substring(0,7)} (${ps.marks_out_of || 'N/A'})`, 
               accessor: `paper_${ps.id}` as keyof ReportRow, 
               id: `paper_${ps.id}`, 
@@ -76,13 +76,13 @@ const ExamResultsHorizontalPage: React.FC = () => {
       ];
       setDynamicColumns(newDynamicColumns);
 
-      const studentsInStream = students.filter(s => s.current_class_stream_id === selectedStreamId);
-      const resultsForSessionAndStream = studentExamResults.filter(
-        res => res.exam_session_id === selectedExamSessionId && studentsInStream.some(s => s.id === res.student_id)
+      const studentsInStream = (students || []).filter(s => s.current_class_stream_id === selectedStreamId);
+      const resultsForSessionAndStream = (studentExamResults || []).filter(
+        res => res.exam_session_id === selectedExamSessionId && (studentsInStream || []).some(s => s.id === res.student_id)
       );
       
-      const newReportData: ReportRow[] = studentsInStream.map(student => {
-        const result = resultsForSessionAndStream.find(res => res.student_id === student.id);
+      const newReportData: ReportRow[] = (studentsInStream || []).map(student => {
+        const result = (resultsForSessionAndStream || []).find(res => res.student_id === student.id);
         const row: ReportRow = {
           studentId: student.id,
           studentName: `${student.first_name} ${student.last_name}`,
@@ -91,15 +91,15 @@ const ExamResultsHorizontalPage: React.FC = () => {
           meanGrade: result?.mean_grade || '-',
           rank: result?.stream_rank || 0, 
         };
-        paperSettings.forEach(ps => {
+        (paperSettings || []).forEach(ps => {
           const mark = result?.marks?.find(m => m.paper_setting_id === ps.id);
           row[`paper_${ps.id}`] = mark?.score !== undefined ? mark.score : '-';
         });
         return row;
       });
 
-      newReportData.sort((a, b) => (b.totalMarks || 0) - (a.totalMarks || 0));
-      newReportData.forEach((row, index) => {
+      (newReportData || []).sort((a, b) => (b.totalMarks || 0) - (a.totalMarks || 0));
+      (newReportData || []).forEach((row, index) => {
         row.rank = index + 1; 
       });
 
@@ -126,7 +126,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
                 onChange={e => setSelectedExamSessionId(e.target.value || undefined)}
             >
                 <option value="">{t('examResultsHorizontal.optionSelectExamSession')}</option>
-                {examSessions.map(session => (
+                {(examSessions || []).map(session => (
                 <option key={session.id} value={session.id}>{session.name} ({session.school_period_name})</option>
                 ))}
             </Select>
@@ -136,7 +136,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
                 onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}
             >
                 <option value="">{t('examResultsHorizontal.optionAllClasses')}</option>
-                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
             <Select
                 label={t('examResultsHorizontal.stream')}
@@ -145,7 +145,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
                 disabled={!selectedClassId}
             >
                 <option value="">{t('examResultsHorizontal.optionAllStreams')}</option>
-                {availableStreams.map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
+                {(availableStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
             </Select>
             <Button 
                 onClick={handleGenerateReport} 
@@ -167,7 +167,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => window.print()} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert("CSV Export to be implemented")} leftIcon={<ExportIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.exportCSV')}</Button>
                 </div>
-                <Table columns={dynamicColumns} data={reportData} isLoading={isGenerating} />
+                <Table columns={dynamicColumns} data={(reportData || [])} isLoading={isGenerating} />
             </>
         ) : (
             <p className="text-center text-gray-500 py-4">

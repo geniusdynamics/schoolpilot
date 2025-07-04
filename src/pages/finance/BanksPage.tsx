@@ -28,7 +28,7 @@ const BanksPage: React.FC = () => {
   const initialFormData: BankFormData = { name: '', account_no: '', gl_account_id: undefined };
   const [formData, setFormData] = useState<BankFormData>(initialFormData);
 
-  const assetAccounts = chartOfAccounts.filter(coa => coa.type === FinAccountTypeEnum.ASSET && coa.is_active);
+  const assetAccounts = (chartOfAccounts || []).filter(coa => coa.type === FinAccountTypeEnum.ASSET && coa.is_active);
 
   const openModal = (bank?: Bank) => {
     setEditingBank(bank || null);
@@ -110,7 +110,7 @@ const BanksPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           Manage the school's bank accounts. Each bank account must be linked to an Asset account in the Chart of Accounts.
         </p>
-        <Table columns={columns} data={banks} isLoading={loading.banks && isModalOpen} />
+        <Table columns={columns} data={(banks || [])} isLoading={loading.banks && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingBank ? 'Edit Bank Account' : 'Add New Bank Account'} size="lg"
@@ -144,7 +144,7 @@ const BanksPage: React.FC = () => {
           required
         >
           <option value="">Select GL Asset Account</option>
-          {assetAccounts.map((coa: ChartOfAccount) => (
+          {(assetAccounts || []).map((coa: ChartOfAccount) => (
             <option key={coa.id} value={coa.id}>
               {coa.account_code} - {coa.name}
             </option>

@@ -146,7 +146,7 @@ const BooksPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage all books in the library catalog.
         </p>
-        <Table columns={columns} data={books} isLoading={loading.books && isModalOpen} />
+        <Table columns={columns} data={(books || [])} isLoading={loading.books && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingBook ? 'Edit Book' : 'Add New Book'} size="xl"
@@ -167,7 +167,7 @@ const BooksPage: React.FC = () => {
             <Input name="isbn" label="ISBN" value={formData.isbn || ''} onChange={handleInputChange} />
             <Select name="category_id" label="Category" value={formData.category_id || ''} onChange={handleInputChange}>
                 <option value="">Select Category</option>
-                {bookCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                {(bookCategories || []).map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
             </Select>
             <Input name="purchase_cost" label="Purchase Cost (KES)" type="number" step="0.01" value={formData.purchase_cost ?? ''} onChange={handleInputChange} />
             <Select name="status" label="Status" value={formData.status} onChange={handleInputChange} required>

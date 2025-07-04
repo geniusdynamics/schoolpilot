@@ -43,9 +43,9 @@ const ExpensesPage: React.FC = () => {
 
   const claimantList = useMemo(() => {
     if (formData.claimant_type === FinExpenseClaimantTypeEnum.STAFF) {
-      return staff.filter(s => s.is_active).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Staff)` }));
+      return (staff || []).filter(s => s.is_active).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Staff)` }));
     } else if (formData.claimant_type === FinExpenseClaimantTypeEnum.STUDENT) {
-      return students.filter(s => s.status === 'Active').map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Student)` }));
+      return (students || []).filter(s => s.status === 'Active').map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Student)` }));
     }
     return [];
   }, [formData.claimant_type, staff, students]);
@@ -160,7 +160,7 @@ const ExpensesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Record and manage expense claims submitted by staff or students.
         </p>
-        <Table columns={columns} data={expenseClaims} isLoading={loading.expenseClaims && isModalOpen} />
+        <Table columns={columns} data={(expenseClaims || [])} isLoading={loading.expenseClaims && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingClaim ? 'Edit Expense Claim' : 'Add New Expense Claim'} size="xl"
@@ -179,13 +179,13 @@ const ExpensesPage: React.FC = () => {
             </Select>
             <Select name="claimant_id" label="Claimant" value={formData.claimant_id || ''} onChange={handleInputChange} required>
                 <option value="">Select Claimant</option>
-                {claimantList.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                {(claimantList || []).map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
             </Select>
             <Input name="claim_date" label="Claim Date" type="date" value={formData.claim_date || ''} onChange={handleInputChange} required />
             <Input name="amount" label="Amount (KES)" type="number" step="0.01" value={formData.amount || ''} onChange={handleInputChange} required />
             <Select name="expense_category_id" label="Expense Category" value={formData.expense_category_id || ''} onChange={handleInputChange} required className="md:col-span-2">
                 <option value="">Select Expense Category</option>
-                {expenseCategories.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                {(expenseCategories || []).map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
             </Select>
             <Textarea name="description" label="Description of Expense" value={formData.description || ''} onChange={handleInputChange} required rows={3} containerClassName="md:col-span-2"/>
         </div>

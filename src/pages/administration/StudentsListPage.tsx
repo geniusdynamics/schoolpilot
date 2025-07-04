@@ -91,7 +91,7 @@ const StudentsListPage: React.FC = () => {
       });
     } else {
        // Generate next admission number for new student
-      const existingAdmNos = students.map(s => parseInt(s.admission_no.replace(/\D/g, ''), 10)).filter(n => !isNaN(n));
+      const existingAdmNos = (students || []).map(s => parseInt(s.admission_no.replace(/\D/g, ''), 10)).filter(n => !isNaN(n));
       const nextAdmNoSuffix = existingAdmNos.length > 0 ? Math.max(...existingAdmNos) + 1 : 1;
       const nextAdmNo = `ADM${String(nextAdmNoSuffix).padStart(3, '0')}`;
       setFormData({...initialFormData, admission_no: nextAdmNo });

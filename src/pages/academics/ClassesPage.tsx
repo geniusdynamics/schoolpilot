@@ -46,9 +46,9 @@ const ClassesPage: React.FC = () => {
   const [streamFormData, setStreamFormData] = useState<StreamFormData>({ name: '' });
 
   const resolvedClassStreams = useMemo(() => {
-    return classStreams.map(cs => {
-        const teacher = staff.find(s => s.id === cs.class_teacher_id);
-        const schoolClass = classes.find(c => c.id === cs.class_id);
+    return (classStreams || []).map(cs => {
+        const teacher = (staff || []).find(s => s.id === cs.class_teacher_id);
+        const schoolClass = (classes || []).find(c => c.id === cs.class_id);
         return {
             ...cs,
             class_teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : 'N/A',
@@ -169,7 +169,7 @@ const ClassesPage: React.FC = () => {
   }
 
   const streamsForSelectedClass = selectedClassForStream 
-    ? resolvedClassStreams.filter(cs => cs.class_id === selectedClassForStream.id) 
+    ? (resolvedClassStreams || []).filter(cs => cs.class_id === selectedClassForStream.id) 
     : [];
 
   return (
@@ -177,7 +177,7 @@ const ClassesPage: React.FC = () => {
       <Card title={t('classes.title')} actions={
           <Button onClick={() => openClassModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classes.addClassButton')}</Button>
       }>
-        <Table columns={classColumns} data={classes} isLoading={loading.classes} />
+        <Table columns={classColumns} data={(classes || [])} isLoading={loading.classes} />
       </Card>
 
       {selectedClassForStream && (

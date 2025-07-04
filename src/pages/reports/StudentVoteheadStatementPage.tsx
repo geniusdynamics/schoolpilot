@@ -47,14 +47,14 @@ const StudentVoteheadStatementPage: React.FC = () => {
     }
     setIsGenerating(true);
     
-    const student = students.find(s => s.id === selectedStudentId);
+    const student = (students || []).find(s => s.id === selectedStudentId);
     if (!student) {
         setIsGenerating(false);
         return;
     }
 
     // For simplicity, opening balance is mock. Real OB would come from StudentOpeningBalance or prior period's closing.
-    const mockOB = studentOpeningBalances.find(ob => ob.student_id === selectedStudentId)?.amount || 0;
+    const mockOB = (studentOpeningBalances || []).find(ob => ob.student_id === selectedStudentId)?.amount || 0;
     setOpeningBalance(mockOB);
 
     let runningBalance = mockOB;
@@ -70,11 +70,11 @@ const StudentVoteheadStatementPage: React.FC = () => {
         });
     }
 
-    const invoicesForStudentAndPeriod = studentInvoices.filter(
+    const invoicesForStudentAndPeriod = (studentInvoices || []).filter(
       inv => inv.student_id === selectedStudentId && inv.school_period_id === selectedSchoolPeriodId && inv.status !== InvoiceStatus.VOIDED
     );
     
-    invoicesForStudentAndPeriod.forEach(invoice => {
+    (invoicesForStudentAndPeriod || []).forEach(invoice => {
       (invoice.items || []).forEach(item => {
         runningBalance += item.amount;
         statementEntries.push({
@@ -88,19 +88,19 @@ const StudentVoteheadStatementPage: React.FC = () => {
       });
     });
 
-    const paymentsForStudent = studentPayments.filter(p => p.student_id === selectedStudentId);
+    const paymentsForStudent = (studentPayments || []).filter(p => p.student_id === selectedStudentId);
     // Filter payments that fall within the selected school period (approximate for now)
     // And apply applications for these payments
     paymentsForStudent.forEach(payment => {
         // Consider only payments applied to invoices of the selected period for more accuracy
         // This requires checking invoicePaymentApplications
-        const applicationsForThisPayment = invoicePaymentApplications.filter(ipa => ipa.payment_id === payment.id);
+        const applicationsForThisPayment = (invoicePaymentApplications || []).filter(ipa => ipa.payment_id === payment.id);
         let paymentAppliedToThisPeriod = false;
         
         for(const app of applicationsForThisPayment) {
-            const invItem = studentInvoiceItems.find(sii => sii.id === app.invoice_item_id);
+            const invItem = (studentInvoiceItems || []).find(sii => sii.id === app.invoice_item_id);
             if(invItem) {
-                const parentInvoice = studentInvoices.find(si => si.id === invItem.invoice_id);
+                const parentInvoice = (studentInvoices || []).find(si => si.id === invItem.invoice_id);
                 if(parentInvoice && parentInvoice.school_period_id === selectedSchoolPeriodId) {
                     paymentAppliedToThisPeriod = true;
                     break;
@@ -121,11 +121,11 @@ const StudentVoteheadStatementPage: React.FC = () => {
         }
     });
 
-    statementEntries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    (statementEntries || []).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
     // Re-calculate running balance after sorting
     let currentBal = mockOB;
-    const finalStatement = statementEntries.map(entry => {
+    const finalStatement = (statementEntries || []).map(entry => {
         if (entry.description === 'Opening Balance') {
            // OB balance is already set correctly if it was the first entry
            // If it's not (e.g. manual OB entered mid-statement), this logic needs adjustment
@@ -172,11 +172,11 @@ const StudentVoteheadStatementPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <Select label="Select Student" value={selectedStudentId || ''} onChange={e => setSelectedStudentId(e.target.value || undefined)} required>
                     <option value="">-- Student --</option>
-                    {students.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.admission_no})</option>)}
+                    {(students || []).map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.admission_no})</option>)}
                 </Select>
                 <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)} required>
                     <option value="">-- Period --</option>
-                    {schoolPeriods.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+                    {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
                 <Button onClick={handleGenerateReport} disabled={isGenerating || isLoadingPage || !selectedStudentId || !selectedSchoolPeriodId} className="h-10 print-hide">
                     {isGenerating ? <Spinner size="sm" /> : 'Generate Statement'}
