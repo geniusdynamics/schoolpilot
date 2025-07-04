@@ -1579,6 +1579,7 @@ export interface NavItem {
   children?: NavItem[];
   permissions?: string[]; // Optional permissions required
   isActive?: boolean; // Whether this module/feature is active
+  page?: string; // Optional explicit page component name for dynamic import
 }
 
 export interface ModuleDefinition {

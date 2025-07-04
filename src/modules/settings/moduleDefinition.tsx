@@ -13,12 +13,12 @@ const settingsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon },
-    { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon },
-    { name: 'navigation:settings.settings', path: '/settings/settings', icon: CogIcon },
-    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon },
-    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon },
-    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon },
+    { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
+    { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon, page: 'DatabaseSettingsPage' },
+    { name: 'navigation:settings.settings', path: '/settings/settings', icon: CogIcon, page: 'SettingsPage' },
+    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
+    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage' },
+    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage' },
   ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management'],
   settings: {

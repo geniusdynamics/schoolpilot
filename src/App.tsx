@@ -14,9 +14,27 @@ import Spinner from './components/ui/Spinner';
 // Vite will statically analyze all .tsx files in ./pages
 const pageModules = import.meta.glob('./pages/**/*.tsx');
 
-const getPageComponent = (path: string) => {
-  // Ensure path always has .tsx extension
-  const key = `./pages${path}.tsx`;
+// Enhanced getPageComponent: Accepts nav item, uses 'page' property if present
+const getPageComponent = (nav: any) => {
+  // If nav.page is present, use it for dynamic import
+  if (nav.page) {
+    // Try to infer the module directory from the path
+    // E.g., /academics/subjects => ./pages/academics/SubjectsPage.tsx
+    const segments = nav.path.split('/').filter(Boolean);
+    let moduleDir = segments.length > 1 ? segments[0] : '';
+    // Special case for dashboard pages at root
+    if (nav.path === '/dashboard') {
+      moduleDir = '';
+    }
+    const key = moduleDir
+      ? `./pages/${moduleDir}/${nav.page}.tsx`
+      : `./pages/${nav.page}.tsx`;
+    const importFn = pageModules[key];
+    if (!importFn) return null;
+    return lazy(importFn as any);
+  }
+  // Fallback: old logic
+  const key = `./pages${nav.path}.tsx`;
   const importFn = pageModules[key];
   if (!importFn) return null;
   return lazy(importFn as any);
@@ -43,7 +61,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
         .flatMap(module =>
           (module.children || []).map(nav => {
-            const PageComponent = getPageComponent(nav.path);
+            const PageComponent = getPageComponent(nav);
             if (!PageComponent) return null;
             return (
               <Route
