@@ -149,17 +149,17 @@ const App: React.FC = () => {
   }
 
   return (
-    <ErrorBoundary>
-      <UserProvider>
-        <AppDataProvider>
-          <HashRouter>
-            <Layout>
+    <UserProvider>
+      <AppDataProvider>
+        <HashRouter>
+          <Layout>
+            <ErrorBoundary>
               <DynamicRoutes modulesInitialized={modulesInitialized} />
-            </Layout>
-          </HashRouter>
-        </AppDataProvider>
-      </UserProvider>
-    </ErrorBoundary>
+            </ErrorBoundary>
+          </Layout>
+        </HashRouter>
+      </AppDataProvider>
+    </UserProvider>
   );
 };
 

@@ -28,12 +28,16 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 32, textAlign: 'center', color: '#b91c1c', background: '#fef2f2' }}>
-          <h1>Something went wrong.</h1>
-          <pre style={{ color: '#991b1b', marginTop: 16 }}>{this.state.error?.toString()}</pre>
-          <details style={{ whiteSpace: 'pre-wrap', marginTop: 16 }}>
-            {this.state.errorInfo?.componentStack}
-          </details>
+        <div className="flex flex-col items-center justify-center h-full w-full">
+          <div className="bg-white rounded-lg shadow p-8 max-w-xl w-full border border-red-200">
+            <h1 className="text-2xl font-bold text-red-700 mb-4">Something went wrong</h1>
+            <pre className="text-red-600 bg-red-50 rounded p-4 overflow-x-auto mb-4">{this.state.error?.toString()}</pre>
+            {this.state.errorInfo?.componentStack && (
+              <details className="text-xs text-gray-500 whitespace-pre-wrap">
+                {this.state.errorInfo.componentStack}
+              </details>
+            )}
+          </div>
         </div>
       );
     }

@@ -553,4 +553,10 @@ C o r e   m o d u l e s   a l w a y s   i n c l u d e d   i n   e n a b l e d   
 
 ---
 
+### [2025-07-02] ErrorBoundary now preserves navigation/layout on error
+- ErrorBoundary moved to wrap only main content in `App.tsx` (`src/App.tsx`)
+- ErrorBoundary fallback UI updated for module-page look (`src/components/ErrorBoundary.tsx`)
+- Navigation, sidebars, and layout remain visible even when a page throws
+- Verified file existence: `src/App.tsx`, `src/components/ErrorBoundary.tsx`
+
  
