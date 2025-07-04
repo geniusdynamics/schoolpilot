@@ -65,7 +65,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           {/* Language Switcher */}
           <LanguageSwitcher />
           {/* Theme Toggle (using CogIcon as placeholder) */}
-          <button className="p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600" title="Theme settings">
+          <button className="p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600" title="Settings" onClick={onSettings}>
             <CogIcon className="w-6 h-6" />
           </button>
           {/* User Dropdown */}
@@ -81,8 +81,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white/90 rounded-2xl shadow-xl py-2 z-50 backdrop-blur border border-slate-100">
                 <a href="#" className="block px-5 py-2 text-slate-700 hover:bg-slate-100 rounded-xl">Your Profile</a>
-                <button className="block w-full text-left px-5 py-2 text-slate-700 hover:bg-slate-100 rounded-xl" onClick={onSettings}>Settings</button>
-                <button className="block w-full text-left px-5 py-2 text-slate-700 hover:bg-slate-100 rounded-xl">Sign out</button>
+                {/* Settings button removed from dropdown; add new action here if needed */}
               </div>
             )}
           </div>
