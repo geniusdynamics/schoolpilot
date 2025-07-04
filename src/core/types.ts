@@ -1594,6 +1594,7 @@ export interface ModuleDefinition {
   permissions?: string[]; // Permissions required to access this module
   navigation: NavItem[]; // Navigation items for this module
   features?: string[]; // List of features this module provides
+  routes?: Array<{ path: string; page: string }>; // Custom/dynamic routes for this module
   settings?: {
     category: string; // Settings category
     items: Array<{
@@ -1652,6 +1653,7 @@ export interface ModuleDefinition {
   permissions?: string[]; // Permissions required to access this module
   navigation: NavItem[]; // Navigation items for this module
   features?: string[]; // List of features this module provides
+  routes?: Array<{ path: string; page: string }>; // Custom/dynamic routes for this module
   settings?: {
     category: string; // Settings category
     items: Array<{

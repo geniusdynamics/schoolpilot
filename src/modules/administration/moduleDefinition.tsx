@@ -50,6 +50,9 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.schoolPeriods', path: '/administration/school-periods', icon: ClockIcon, page: 'SchoolPeriodsPage' },
   ],
   features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance'],
+  routes: [
+    { path: '/administration/students/:studentId', page: 'StudentDetailPage' }
+  ],
   settings: {
     category: 'administration',
     items: [

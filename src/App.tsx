@@ -10,6 +10,7 @@ import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
 import { initializeModules } from './core/moduleLoader';
 import Spinner from './components/ui/Spinner';
+import { moduleRegistry } from './core/moduleRegistry';
 
 // Vite will statically analyze all .tsx files in ./pages and ./modules/*/pages
 const pageModules = {
@@ -64,6 +65,45 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      {/* Register custom/dynamic routes from all enabled modules */}
+      {moduleRegistry.getEnabledModules().flatMap(module =>
+        (module.routes || []).map(route => {
+          // Use the same dynamic import logic as getPageComponent
+          const segments = route.path.split('/').filter(Boolean);
+          let moduleDir = segments.length > 1 ? segments[0] : '';
+          let PageComponent = null;
+          // Try modular location first
+          if (moduleDir) {
+            const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
+            const modularImportFn = pageModules[modularKey];
+            if (modularImportFn) PageComponent = lazy(modularImportFn as any);
+          }
+          // Fallback to old src/pages/<module>/<PageName>.tsx
+          if (!PageComponent && moduleDir) {
+            const legacyKey = `./pages/${moduleDir}/${route.page}.tsx`;
+            const legacyImportFn = pageModules[legacyKey];
+            if (legacyImportFn) PageComponent = lazy(legacyImportFn as any);
+          }
+          // Fallback to root-level page
+          if (!PageComponent) {
+            const rootKey = `./pages/${route.page}.tsx`;
+            const rootImportFn = pageModules[rootKey];
+            if (rootImportFn) PageComponent = lazy(rootImportFn as any);
+          }
+          if (!PageComponent) return null;
+          return (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                <Suspense fallback={<div>Loading...</div>}>
+                  <PageComponent />
+                </Suspense>
+              }
+            />
+          );
+        })
+      )}
       {navigationItems
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
         .flatMap(module =>
