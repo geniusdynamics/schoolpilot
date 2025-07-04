@@ -71,6 +71,7 @@ class DynamicModuleLoader {
       const moduleDef = await import(`../modules/${moduleId}/moduleDefinition.tsx`);
       const module = moduleDef.default;
       console.log(`[dynamicModuleLoader] Loaded module ${moduleId}:`, module);
+      console.log(`[dynamicModuleLoader] Icon for ${moduleId}:`, module.icon);
       
       // Load RBAC if available
       try {

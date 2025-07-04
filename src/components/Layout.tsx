@@ -7,22 +7,41 @@ import { NAVIGATION_ITEMS } from '../constants';
 import useDynamicNavigation from '../hooks/useDynamicNavigation';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { getMainModules, isLoading } = useDynamicNavigation();
+  const [modulesReady, setModulesReady] = useState(false);
+  const { getMainModules, isLoading } = useDynamicNavigation(modulesReady);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedModuleKey, setSelectedModuleKey] = useState('');
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
 
+  // Set modules as ready after a short delay to ensure initialization
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setModulesReady(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Set default module when navigation loads
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && modulesReady) {
       const mainModules = getMainModules();
+      console.log('🔍 [Layout] Debug Info:', {
+        isLoading,
+        modulesReady,
+        mainModulesCount: mainModules.length,
+        mainModules: mainModules,
+        selectedModuleKey,
+        willSetDefault: mainModules.length > 0 && !selectedModuleKey
+      });
+      
       if (mainModules.length > 0 && !selectedModuleKey) {
         setSelectedModuleKey(mainModules[0].name);
       }
     }
-  }, [isLoading, getMainModules, selectedModuleKey]);
+  }, [isLoading, modulesReady, getMainModules, selectedModuleKey]);
 
   const handleModuleSelect = (moduleKey: string) => {
+    console.log('🔍 [Layout] Module selected:', moduleKey, 'current:', selectedModuleKey);
     if (moduleKey === selectedModuleKey) {
       setIsSubmenuOpen((open: boolean) => !open); // toggle submenu
     } else {

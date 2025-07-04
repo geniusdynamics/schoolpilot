@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 
 // Module-specific glassmorphism color schemes
@@ -55,8 +55,28 @@ const getModuleGlassStyle = (moduleKey: string, isSelected: boolean) => {
 };
 
 const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key: string) => void }> = ({ selectedModuleKey, onModuleSelect }) => {
-  const { navigationItems } = useDynamicNavigation();
+  const [modulesReady, setModulesReady] = useState(false);
+  const { navigationItems } = useDynamicNavigation(modulesReady);
   const mainModules = navigationItems.filter(item => item.isGroup);
+  
+  // Set modules as ready after a short delay to ensure initialization
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setModulesReady(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Debug logs to help identify the issue
+  console.log('🔍 [PrimarySidebar] Debug Info:', {
+    modulesReady,
+    navigationItemsCount: navigationItems.length,
+    navigationItems: navigationItems,
+    mainModulesCount: mainModules.length,
+    mainModules: mainModules,
+    selectedModuleKey: selectedModuleKey,
+    mainModulesNames: mainModules.map(m => m.name)
+  });
   
   return (
     <aside className="
@@ -101,7 +121,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
               {/* Icon with enhanced styling */}
               <span className="relative z-10 transition-transform duration-300 group-hover:scale-110">
                 {item.icon
-                  ? <item.icon className="w-7 h-7 text-white drop-shadow-sm" />
+                  ? React.createElement(item.icon, { className: 'w-7 h-7 text-white drop-shadow-sm' })
                   : <span className="w-7 h-7 bg-gray-500 rounded-full" />
                 }
               </span>

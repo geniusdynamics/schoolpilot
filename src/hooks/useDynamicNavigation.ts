@@ -12,6 +12,9 @@ import {
   checkModuleDependencies
 } from '../core/moduleLoader';
 
+// NOTE: getEnabledModules now always includes core modules (dashboard, settings, reports)
+// so navigationItems will always include these regardless of config.
+
 export const useDynamicNavigation = (modulesInitialized: boolean) => {
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([]);
   const [enabledModules, setEnabledModules] = useState<string[]>([]);

@@ -5,6 +5,9 @@ import { ModuleDefinition, NavItem } from './types';
 import { MODULE_ORDER } from '../moduleOrder';
 import { moduleConfigService } from '../services/moduleConfigService';
 
+// Helper to identify core modules
+const CORE_MODULE_IDS = ['dashboard', 'settings', 'reports'];
+
 // Module Registry Class
 class ModuleRegistry {
   private modules: Map<string, ModuleDefinition> = new Map();
@@ -34,16 +37,12 @@ class ModuleRegistry {
     return Array.from(this.modules.values());
   }
 
-  // Get enabled modules only (based on config service and core modules)
+  // Get enabled modules only
   getEnabledModules(): ModuleDefinition[] {
-    return Array.from(this.modules.values()).filter(module => {
-      // Core modules (dashboard, settings, reports) are always enabled for navigation
-      if (['dashboard', 'settings', 'reports'].includes(module.id)) {
-        return true;
-      }
-      // For other modules, respect the moduleConfigService
-      return moduleConfigService.isModuleEnabled(module.id);
-    });
+    return Array.from(this.modules.values()).filter(module =>
+      CORE_MODULE_IDS.includes(module.id) ||
+      moduleConfigService.isModuleEnabled(module.id)
+    );
   }
 
   // Get a specific module

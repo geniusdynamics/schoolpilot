@@ -26,6 +26,16 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
   const { navigationItems } = useDynamicNavigation(modulesInitialized);
   const { accessibleModules } = useRBAC();
 
+  // Debug logs to help identify the issue
+  console.log('🔍 [DynamicRoutes] Debug Info:', {
+    modulesInitialized,
+    navigationItemsCount: navigationItems.length,
+    navigationItems: navigationItems,
+    accessibleModulesCount: accessibleModules.length,
+    accessibleModules: accessibleModules,
+    filteredItems: navigationItems.filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
+  });
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -69,7 +79,7 @@ const App: React.FC = () => {
   }, []);
 
   if (!modulesInitialized) {
-    return <div className="flex items-center justify-center h-screen"><Spinner size="large" /></div>;
+    return <div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>;
   }
 
   return (

@@ -530,3 +530,5 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 - No hardcoded UI labels remain in the Reports module.
 
 ---
+C o r e   m o d u l e s   a l w a y s   i n c l u d e d   i n   e n a b l e d   m o d u l e s   f o r   n a v i g a t i o n .   R e g i s t r y   l o g i c   u p d a t e d .  
+ 
