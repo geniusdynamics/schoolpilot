@@ -3,6 +3,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { rbacService, SYSTEM_ROLES } from '../core/rbacService';
+import { getEnabledModules } from '../core/moduleLoader';
 import type { RbacRole } from '../core/types';
 import { APP_MODE } from '../contexts/config';
 
@@ -105,6 +106,13 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Module access
   const accessibleModules = useMemo(() => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, return all available modules regardless of userId
+      const modules = getEnabledModules().map(module => module.id);
+      console.log('🔍 [useRBAC] Demo mode - accessible modules:', modules);
+      return modules;
+    }
+    
     if (!userId) return [];
     return rbacService.getUserModules(userId);
   }, [userId]);

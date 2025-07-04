@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { NAVIGATION_ITEMS } from '../constants';
-import { getDynamicNavigationItems } from '../core/moduleLoader';
+import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -30,14 +29,25 @@ const moduleBg: Record<string, string> = {
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
   const { t } = useTranslation(['navigation', 'common']);
+  const { navigationItems } = useDynamicNavigation(true); // Use dynamic navigation
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
 
-  // Find the selected main module
-  const selectedModule = NAVIGATION_ITEMS.find(item => item.name === selectedModuleKey && item.isGroup);
+  // Find the selected main module from dynamic navigation items
+  const selectedModule = navigationItems.find(item => item.name === selectedModuleKey && item.isGroup);
   const subMenus = selectedModule && selectedModule.children ? selectedModule.children : [];
   const moduleKey = selectedModuleKey.split(':')[1]?.split('.')[0] || '';
+
+  // Debug log to see what's happening
+  console.log('🔍 [SecondarySidebar] Debug Info:', {
+    selectedModuleKey,
+    isOpen,
+    navigationItemsCount: navigationItems.length,
+    selectedModule: selectedModule,
+    subMenusCount: subMenus.length,
+    subMenus: subMenus
+  });
 
   // Filtered navigation based on search
   const filterItems = (items: any[]) =>
