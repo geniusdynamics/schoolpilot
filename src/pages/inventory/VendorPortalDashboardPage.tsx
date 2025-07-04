@@ -7,7 +7,8 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import { SchoolIcon, HomeIcon, DocumentReportIcon as DocumentTextIcon, ShoppingCartIcon, ReceiptRefundIcon, UserCircleIcon, BellIcon, PlusIcon } from '../../components/ui/icons'; 
-import { InvPurchaseOrderType as PurchaseOrder, InvPurchaseOrderStatusEnum as PurchaseOrderStatus, InvRFQType as RFQ, InvRFQStatusEnum as RFQStatus } from '../../modules/inventory/data/types';
+import { InvPurchaseOrderType, InvPurchaseOrderStatusEnum, InvRFQType, InvRFQStatusEnum } from '../../modules/inventory/data/types';
+import { FinSupplierInvoiceStatusEnum } from '../../modules/finance/data/types';
 import Spinner from '../../components/ui/Spinner';
 import { useAppData } from '@/contexts/AppDataContext';
 import { useTranslation } from 'react-i18next';
@@ -39,32 +40,25 @@ const VendorPortalDashboardPage: React.FC = () => {
   const { suppliers, purchaseOrders, supplierInvoices, rfqs, loading } = useAppData();
   const { t } = useTranslation();
 
-  // Map core types to inventory types for conformity
-  function mapCorePurchaseOrderToInv(po: any): PurchaseOrder {
-    return {
-      ...po,
-      status: po.status as PurchaseOrderStatus, // Assume status string matches enum value
-    };
-  }
-  function mapCoreRFQToInv(rfq: any): RFQ {
-    return {
-      ...rfq,
-      description: rfq.description ?? undefined, // Convert null to undefined
-      status: rfq.status as RFQStatus, // Assume status string matches enum value
-    };
-  }
-  const purchaseOrders: PurchaseOrder[] = (purchaseOrders as any[]).map(mapCorePurchaseOrderToInv);
-  const rfqs: RFQ[] = (rfqs as any[]).map(mapCoreRFQToInv);
-
   // Simulate logged-in vendor (in real app, get from auth context)
   const vendorId = 1;
   const vendor = suppliers.find(s => s.id === vendorId);
   const vendorPOs = purchaseOrders.filter(po => po.supplier_id === vendorId);
   const vendorInvoices = supplierInvoices.filter(inv => inv.supplier_id === vendorId);
-  const newRfqCount = rfqs.filter(r => r.status === RFQStatus.OPEN).length;
-  const activePoCount = vendorPOs.filter(po => po.status === PurchaseOrderStatus.APPROVED || po.status === PurchaseOrderStatus.SENT_TO_SUPPLIER || po.status === PurchaseOrderStatus.PARTIALLY_RECEIVED).length;
-  const pendingInvoiceCount = vendorInvoices.filter(inv => inv.status !== 'PAID').length;
-  const overduePaymentCount = vendorInvoices.filter(inv => inv.status === 'OVERDUE').length;
+
+  // Map rfqs to InvRFQType[] (handle description null/undefined)
+  const canonicalRfqs: InvRFQType[] = Array.isArray(rfqs)
+    ? rfqs.map((rfq: any) => ({ ...rfq, description: rfq.description ?? undefined }))
+    : [];
+  // Map vendorPOs to InvPurchaseOrderType[] (ensure status is correct enum)
+  const canonicalVendorPOs: InvPurchaseOrderType[] = Array.isArray(vendorPOs)
+    ? vendorPOs.map((po: any) => ({ ...po, status: po.status as InvPurchaseOrderStatusEnum }))
+    : [];
+
+  const newRfqCount = canonicalRfqs.filter(r => r.status === InvRFQStatusEnum.OPEN).length;
+  const activePoCount = canonicalVendorPOs.filter(po => po.status === InvPurchaseOrderStatusEnum.APPROVED || po.status === InvPurchaseOrderStatusEnum.SENT_TO_SUPPLIER || po.status === InvPurchaseOrderStatusEnum.PARTIALLY_RECEIVED).length;
+  const pendingInvoiceCount = Array.isArray(vendorInvoices) ? vendorInvoices.filter(inv => inv.status !== FinSupplierInvoiceStatusEnum.PAID && inv.status !== FinSupplierInvoiceStatusEnum.UNPAID && inv.status !== FinSupplierInvoiceStatusEnum.PARTIALLY_PAID && inv.status !== FinSupplierInvoiceStatusEnum.VOIDED && inv.status !== 'Paid').length : 0;
+  const overduePaymentCount = Array.isArray(vendorInvoices) ? vendorInvoices.filter(inv => String(inv.status) === 'Overdue' || String(inv.status) === 'OVERDUE').length : 0;
 
   const [profileFormData, setProfileFormData] = useState<ProfileFormData>({
     companyName: vendor?.name || '',
@@ -143,55 +137,57 @@ const VendorPortalDashboardPage: React.FC = () => {
   ].sort((a, b) => (b.time || '').localeCompare(a.time || ''));
 
   const poColumns = [
-    { header: 'PO Number', accessor: 'id' as keyof PurchaseOrder },
-    { header: 'Issue Date', accessor: 'order_date' as keyof PurchaseOrder, render: (item: PurchaseOrder) => new Date(item.order_date).toLocaleDateString() },
-    { header: 'Amount', accessor: 'total_value' as keyof PurchaseOrder, render: (item: PurchaseOrder) => `Ksh ${item.total_value?.toFixed(2)}` },
-    { header: 'Status', accessor: 'status' as keyof PurchaseOrder, 
-      render: (item: PurchaseOrder) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-        item.status === PurchaseOrderStatus.APPROVED ? 'bg-blue-100 text-blue-800' :
-        item.status === PurchaseOrderStatus.SENT_TO_SUPPLIER ? 'bg-yellow-100 text-yellow-800' :
-        item.status === PurchaseOrderStatus.FULLY_RECEIVED || item.status === PurchaseOrderStatus.PARTIALLY_RECEIVED ? 'bg-green-100 text-green-800' :
+    { header: 'PO Number', accessor: 'id' as keyof InvPurchaseOrderType },
+    { header: 'Issue Date', accessor: 'order_date' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => new Date(item.order_date).toLocaleDateString() },
+    { header: 'Amount', accessor: 'total_value' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => `Ksh ${item.total_value?.toFixed(2)}` },
+    { header: 'Status', accessor: 'status' as keyof InvPurchaseOrderType, 
+      render: (item: InvPurchaseOrderType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+        item.status === InvPurchaseOrderStatusEnum.APPROVED ? 'bg-blue-100 text-blue-800' :
+        item.status === InvPurchaseOrderStatusEnum.SENT_TO_SUPPLIER ? 'bg-yellow-100 text-yellow-800' :
+        item.status === InvPurchaseOrderStatusEnum.FULLY_RECEIVED || item.status === InvPurchaseOrderStatusEnum.PARTIALLY_RECEIVED ? 'bg-green-100 text-green-800' :
         'bg-gray-100 text-gray-800'
       }`}>{item.status}</span>
     },
-    { header: 'Action', accessor: 'id' as keyof PurchaseOrder, render: (item: PurchaseOrder) => <Button size="sm" variant="ghost">View Details</Button> }
+    { header: 'Action', accessor: 'id' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => <Button size="sm" variant="ghost">View Details</Button> }
   ];
 
   const rfqColumns = [
-    { header: 'RFQ ID', accessor: 'id' as keyof RFQ },
-    { header: 'Title', accessor: 'title' as keyof RFQ },
-    { header: 'Issue Date', accessor: 'issue_date' as keyof RFQ, render: (item: RFQ) => new Date(item.issue_date).toLocaleDateString() },
-    { header: 'Closing Date', accessor: 'closing_date' as keyof RFQ, render: (item: RFQ) => new Date(item.closing_date).toLocaleDateString() },
-    { header: 'Status', accessor: 'status' as keyof RFQ,
-        render: (item: RFQ) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-            item.status === RFQStatus.OPEN ? 'bg-green-100 text-green-800' : 
-            item.status === RFQStatus.CLOSED ? 'bg-gray-100 text-gray-700' :
-            item.status === RFQStatus.AWARDED ? 'bg-blue-100 text-blue-800' :
+    { header: 'RFQ ID', accessor: 'id' as keyof InvRFQType },
+    { header: 'Title', accessor: 'title' as keyof InvRFQType },
+    { header: 'Issue Date', accessor: 'issue_date' as keyof InvRFQType, render: (item: InvRFQType) => new Date(item.issue_date).toLocaleDateString() },
+    { header: 'Closing Date', accessor: 'closing_date' as keyof InvRFQType, render: (item: InvRFQType) => new Date(item.closing_date).toLocaleDateString() },
+    { header: 'Status', accessor: 'status' as keyof InvRFQType,
+        render: (item: InvRFQType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            item.status === InvRFQStatusEnum.OPEN ? 'bg-green-100 text-green-800' : 
+            item.status === InvRFQStatusEnum.CLOSED ? 'bg-gray-100 text-gray-700' :
+            item.status === InvRFQStatusEnum.AWARDED ? 'bg-blue-100 text-blue-800' :
             'bg-red-100 text-red-700' // Cancelled
         }`}>{item.status}</span>
     },
-    { header: 'Action', accessor: 'id' as keyof RFQ, render: (item: RFQ) => (
+    { header: 'Action', accessor: 'id' as keyof InvRFQType, render: (item: InvRFQType) => (
         <div className="space-x-1">
             <Button size="sm" variant="ghost">View Details</Button>
-            {item.status === RFQStatus.OPEN && <Button size="sm" variant="primary">Submit Bid</Button>}
+            {item.status === InvRFQStatusEnum.OPEN && <Button size="sm" variant="primary">Submit Bid</Button>}
         </div>
     )}
   ];
 
   const invoiceColumns = [
-    { header: t('vendor.invoice.number'), accessor: 'invoice_number' },
-    { header: t('vendor.invoice.po'), accessor: 'po_id' },
-    { header: t('vendor.invoice.amount'), accessor: 'total_amount', render: (item: any) => `Ksh ${item.total_amount?.toFixed(2)}` },
-    { header: t('vendor.invoice.dueDate'), accessor: 'due_date' },
-    { header: t('vendor.invoice.status'), accessor: 'status',
-      render: (item: any) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-        item.status === 'PAID' ? 'bg-green-100 text-green-800' :
-        item.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
-        item.status === 'SUBMITTED' ? 'bg-yellow-100 text-yellow-800' :
+    { header: t('vendor.invoice.number'), accessor: 'invoice_number' as keyof typeof vendorInvoices[0] },
+    { header: t('vendor.invoice.po'), accessor: 'purchase_order_id' as keyof typeof vendorInvoices[0] },
+    { header: t('vendor.invoice.amount'), accessor: 'total_amount' as keyof typeof vendorInvoices[0], render: (item: typeof vendorInvoices[0]) => `Ksh ${item.total_amount?.toFixed(2)}` },
+    { header: t('vendor.invoice.dueDate'), accessor: 'due_date' as keyof typeof vendorInvoices[0] },
+    { header: t('vendor.invoice.status'), accessor: 'status' as keyof typeof vendorInvoices[0],
+      render: (item: typeof vendorInvoices[0]) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+        item.status === FinSupplierInvoiceStatusEnum.PAID ? 'bg-green-100 text-green-800' :
+        item.status === FinSupplierInvoiceStatusEnum.UNPAID ? 'bg-yellow-100 text-yellow-800' :
+        item.status === FinSupplierInvoiceStatusEnum.PARTIALLY_PAID ? 'bg-blue-100 text-blue-800' :
+        item.status === FinSupplierInvoiceStatusEnum.VOIDED ? 'bg-gray-100 text-gray-800' :
+        (item.status === 'Overdue' || item.status === 'OVERDUE') ? 'bg-red-100 text-red-800' :
         'bg-gray-100 text-gray-800'
       }`}>{item.status}</span>
     },
-    { header: t('vendor.invoice.action'), accessor: 'id', render: (item: any) => <Button size="sm" variant="ghost" title={t('vendor.invoice.viewUpload')}>{t('vendor.invoice.viewUpload')}</Button> }
+    { header: t('vendor.invoice.action'), accessor: 'id' as keyof typeof vendorInvoices[0], render: (item: typeof vendorInvoices[0]) => <Button size="sm" variant="ghost" title={t('vendor.invoice.viewUpload')}>{t('vendor.invoice.viewUpload')}</Button> }
   ];
 
   if (loading.purchaseOrders || loading.rfqs) { 
@@ -246,8 +242,8 @@ const VendorPortalDashboardPage: React.FC = () => {
 
         {activeView === 'rfqs' && (
           <Card title="New Opportunities (RFQs)">
-            {loading.rfqs ? <div className="flex justify-center p-4"><Spinner /></div> : rfqs.length > 0 ? (
-                 <Table columns={rfqColumns} data={rfqs} isLoading={loading.rfqs} />
+            {loading.rfqs ? <div className="flex justify-center p-4"><Spinner /></div> : canonicalRfqs.length > 0 ? (
+                 <Table columns={rfqColumns} data={canonicalRfqs} isLoading={loading.rfqs} />
             ) : (
                 <p className="text-gray-600 text-center py-4">No new RFQs available at the moment.</p>
             )}
@@ -256,8 +252,8 @@ const VendorPortalDashboardPage: React.FC = () => {
 
         {activeView === 'pos' && (
           <Card title="Your Purchase Orders">
-             {loading.purchaseOrders ? <div className="flex justify-center p-4"><Spinner /></div> : vendorPOs.length > 0 ? (
-                <Table columns={poColumns} data={vendorPOs} isLoading={loading.purchaseOrders} />
+             {loading.purchaseOrders ? <div className="flex justify-center p-4"><Spinner /></div> : canonicalVendorPOs.length > 0 ? (
+                <Table columns={poColumns} data={canonicalVendorPOs} isLoading={loading.purchaseOrders} />
             ) : (
                  <p className="text-gray-600 text-center py-4">No purchase orders found for your company.</p>
             )}
@@ -338,7 +334,7 @@ const VendorPortalDashboardPage: React.FC = () => {
             <Input name="invoice_number" label="Invoice Number" value={invoiceFormData.invoice_number} onChange={handleInvoiceFormChange} required />
             <Select name="po_number" label="Associated PO Number" value={invoiceFormData.po_number} onChange={handleInvoiceFormChange} required>
                 <option value="">Select PO</option>
-                {vendorPOs.filter(po => po.status !== PurchaseOrderStatus.INVOICED && po.status !== PurchaseOrderStatus.CANCELLED && po.status !== PurchaseOrderStatus.DRAFT && po.status !== PurchaseOrderStatus.PENDING_APPROVAL).map(po => (
+                {canonicalVendorPOs.filter(po => po.status !== InvPurchaseOrderStatusEnum.INVOICED && po.status !== InvPurchaseOrderStatusEnum.CANCELLED && po.status !== InvPurchaseOrderStatusEnum.DRAFT && po.status !== InvPurchaseOrderStatusEnum.PENDING_APPROVAL).map(po => (
                     <option key={po.id} value={po.id}>{po.id} - Ksh {po.total_value?.toFixed(2)}</option>
                 ))}
             </Select>
@@ -346,7 +342,7 @@ const VendorPortalDashboardPage: React.FC = () => {
             <Input name="amount" label="Invoice Amount (KES)" type="number" step="0.01" value={invoiceFormData.amount} onChange={handleInvoiceFormChange} required />
             <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Upload Invoice PDF</label>
-                <input type="file" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+                <input type="file" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" placeholder="Upload Invoice PDF" title="Upload Invoice PDF" />
                 <p className="text-xs text-gray-500 mt-1">Placeholder for file upload logic.</p>
             </div>
         </Modal>
