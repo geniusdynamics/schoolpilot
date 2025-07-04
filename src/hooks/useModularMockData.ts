@@ -28,6 +28,17 @@ const createLoadingStates = (): AppDataLoadingStates => {
   return { ...states, all: true };
 };
 
+// Dynamically collect all keys from all loaded mockData modules
+const allMockKeys = Array.from(
+  new Set(
+    Object.values(mockDataModules)
+      .flatMap(mod => (typeof mod === 'object' && mod !== null ? Object.keys(mod) : []))
+  )
+);
+
+// Helper to determine if a value is an array (for defaulting to [])
+const isArrayType = (val: any) => Array.isArray(val);
+
 export const useModularMockData = (): AppDataContextType => {
   const [data, setData] = useState<Partial<AppDataType>>(rawInitialData);
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
@@ -40,8 +51,18 @@ export const useModularMockData = (): AppDataContextType => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Fill in missing keys with empty arrays/objects for type safety
-  const fullData = { ...data } as AppDataType;
+  // Dynamically fill in missing keys with [] or null based on the type in rawInitialData
+  const fullData: any = { ...data };
+  for (const key of allMockKeys) {
+    if (fullData[key] === undefined) {
+      // If any module's value for this key is an array, default to []
+      const sample = Object.values(mockDataModules)
+        .map(mod => (typeof mod === 'object' && mod !== null ? (mod as any)[key] : undefined))
+        .find(val => val !== undefined);
+      fullData[key] = isArrayType(sample) ? [] : null;
+    }
+  }
+
   return {
     ...fullData,
     loading,

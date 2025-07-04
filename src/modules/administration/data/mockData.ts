@@ -679,3 +679,18 @@ export const initialMockCampaigns: AdminCampaignType[] = [
     updated_at: new Date().toISOString()
   }
 ];
+
+// Ensure all AppDataType keys for administration are exported
+export const departments = initialMockDepartments;
+export const designations = initialMockDesignations;
+export const staff = initialMockStaff;
+export const students = initialMockStudents;
+export const users = initialMockUsers;
+export const roles = initialMockRoles;
+export const academicYears = initialMockAcademicYears;
+export const schoolPeriods = initialMockSchoolPeriods;
+export const academicYearStructures = initialMockAcademicYearStructures;
+export const academicPeriodDefinitions = initialMockAcademicPeriodDefinitions;
+export const studentCategories = initialMockStudentCategories;
+export const dormitories = initialMockDormitories;
+export const parentsGuardians = initialMockParentsGuardians;

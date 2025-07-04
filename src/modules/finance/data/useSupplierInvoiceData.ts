@@ -1,12 +1,12 @@
 // ABOUTME: Provides CRUD and data provider logic for SupplierInvoice in Finance.
 // ABOUTME: Exports a global provider hook for system-wide use.
 import { useState } from 'react';
-import { initialMockSupplierInvoices } from './mockData';
+import { supplierInvoices } from 'src/globalMockData';
 
 export const isGlobalProvider = true;
 
 export function useSupplierInvoiceData() {
-  const [data, setData] = useState<any[]>(initialMockSupplierInvoices);
+  const [data, setData] = useState<any[]>(supplierInvoices);
 
   const create = (item: any) => setData(prev => [...prev, item]);
   const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));

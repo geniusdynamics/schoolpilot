@@ -7,13 +7,14 @@ import {
   FinancialYearStatus, AccountType, AccountTemplateType, ExpenseClaimantType, OpeningBalanceType,
   FeeAdjustmentType, TransportAssignmentStatus, InvoiceStatus, CustomerInvoiceStatus, SupplierInvoiceStatus, GeneralPayerType
 } from '../../../core/types';
+import { suppliers, supplierInvoices } from '../../../globalMockData';
 
 const generateId = (prefix: string = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
 export const initialMockFinancialYears: FinancialYear[] = [ 
     { id: 1, name: 'FY 2023', start_date: '2023-07-01', end_date: '2024-06-30', status: FinancialYearStatus.CLOSED, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
     { id: 2, name: 'FY 2024', start_date: '2024-07-01', end_date: '2025-06-30', status: FinancialYearStatus.OPEN, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-    { id: 3, name: 'FY 2025', start_date: '2025-07-01', end_date: '2026-06-30', status: FinancialYearStatus.PLANNING, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: 3, name: 'FY 2025', start_date: '2025-07-01', end_date: '2026-06-30', status: FinancialYearStatus.OPEN, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 export const initialMockExpenseCategories: ExpenseCategory[] = [
@@ -102,19 +103,6 @@ export const initialMockBanks: Bank[] = [
     { id: 4, name: 'NCBA Bank', account_no: '6789012345', gl_account_id: 103, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), gl_account_name: 'School Bank Account - Equity' }
 ];
 
-export const initialMockSuppliers: Supplier[] = [
-  {id: 1, name: 'Text Book Centre', phone: '0700111222', email: 'sales@textbookcentre.com', address: 'Kijabe Street, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 2, name: 'Savani\'s Bookshop', phone: '0722333444', email: 'info@savanis.co.ke', address: 'Moi Avenue, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 3, name: 'Kenya Literature Bureau', phone: '0733555666', email: 'orders@klb.co.ke', address: 'Bellevue Drive, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 4, name: 'Longhorn Publishers', phone: '0744777888', email: 'sales@longhorn.co.ke', address: 'Funzi Road, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 5, name: 'Office Depot Kenya', phone: '0755999000', email: 'procurement@officedepot.co.ke', address: 'Mombasa Road, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 6, name: 'Nakumatt Supplies', phone: '0766111222', email: 'corporate@nakumatt.co.ke', address: 'Kimathi Street, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 7, name: 'Scientific Equipment Ltd', phone: '0777333444', email: 'lab@scientificequip.co.ke', address: 'Industrial Area, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 8, name: 'Smart Security Systems', phone: '0788555666', email: 'info@smartsecurity.co.ke', address: 'Westlands, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 9, name: 'Kenya Power & Lighting', phone: '0799777888', email: 'billing@kplc.co.ke', address: 'Stima Plaza, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  {id: 10, name: 'Fresh Foods Catering', phone: '0711222333', email: 'catering@freshfoods.co.ke', address: 'Ngong Road, Nairobi', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
-];
-
 export const initialMockFeeTemplateItems: FeeTemplateItem[] = [
     { id: 'fti1', fee_template_id: 1, description: 'Tuition Fee', amount: 50000, revenue_account_id: 201, revenue_account_name: 'Tuition Fees Revenue' },
     { id: 'fti2', fee_template_id: 1, description: 'Transport Fee', amount: 10000, revenue_account_id: 202, revenue_account_name: 'Transport Fees Revenue' },
@@ -154,7 +142,7 @@ export const initialMockStudentInvoiceItems: StudentInvoiceItem[] = [
 ];
 
 export const initialMockStudentInvoices: StudentInvoice[] = [
-    {id: 'SINV001', student_id: 'S001', invoice_number: 'INV/2023/001', school_period_id: 1, issue_date: '2023-09-01', due_date: '2023-09-15', total_amount_billed: 60000, amount_paid: 60000, status: InvoiceStatus.PAID, student_name: 'Jim Halpert', school_period_name: 'Term 1 - AY 2023/2024', items: initialMockStudentInvoiceItems.filter(i => i.invoice_id === 'SINV001'), created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+    {id: 'SINV001', student_id: 'S001', invoice_number: 'INV/2023/001', school_period_id: 1, issue_date: '2023-09-01', due_date: '2023-09-15', total_amount_billed: 60000, status: InvoiceStatus.PAID, student_name: 'Jim Halpert', school_period_name: 'Term 1 - AY 2023/2024', items: initialMockStudentInvoiceItems.filter(i => i.invoice_id === 'SINV001'), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), amount_paid: 60000 }
 ];
 
 export const initialMockStudentPayments: StudentPayment[] = [
@@ -167,117 +155,107 @@ export const initialMockInvoicePaymentApplications: InvoicePaymentApplication[] 
 ];
 
 export const initialMockCustomerInvoices: CustomerInvoice[] = [
-    {id: 'CINV001', customer_name: 'Parent Teachers Association', invoice_number: 'CI/2024/001', issue_date: '2024-07-15', due_date: '2024-08-15', total_amount: 25000, amount_paid: 25000, status: CustomerInvoiceStatus.PAID, description: 'Fundraising event catering services', gl_revenue_account_id: 407, gl_revenue_account_name: 'Donations & Grants Revenue', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'CINV002', customer_name: 'Local Community Centre', invoice_number: 'CI/2024/002', issue_date: '2024-07-20', due_date: '2024-08-20', total_amount: 15000, amount_paid: 0, status: CustomerInvoiceStatus.OUTSTANDING, description: 'Hall rental for weekend workshops', gl_revenue_account_id: 408, gl_revenue_account_name: 'Interest Income', created_at: new Date().toISOString(), updated_at: new Date().toISOString()}
-];
-
-export const initialMockSupplierInvoices: SupplierInvoice[] = [
-    {id: 'SINV001', supplier_id: 1, supplier_name: 'Text Book Centre', invoice_number: 'TBC/2024/1256', invoice_date: '2024-07-10', due_date: '2024-08-10', total_amount: 85000, amount_paid: 85000, status: SupplierInvoiceStatus.PAID, description: 'Term 3 textbooks and reading materials', gl_expense_account_id: 504, gl_expense_account_name: 'Teaching Materials & Resources', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'SINV002', supplier_id: 3, supplier_name: 'Kenya Literature Bureau', invoice_number: 'KLB/2024/0789', invoice_date: '2024-07-15', due_date: '2024-08-15', total_amount: 45000, amount_paid: 0, status: SupplierInvoiceStatus.OUTSTANDING, description: 'Literature books for Form 3 & 4', gl_expense_account_id: 504, gl_expense_account_name: 'Teaching Materials & Resources', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'SINV003', supplier_id: 7, supplier_name: 'Scientific Equipment Ltd', invoice_number: 'SEL/2024/0456', invoice_date: '2024-07-18', due_date: '2024-08-18', total_amount: 120000, amount_paid: 60000, status: SupplierInvoiceStatus.PARTIALLY_PAID, description: 'Chemistry lab equipment and chemicals', gl_expense_account_id: 505, gl_expense_account_name: 'Laboratory Supplies & Equipment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'SINV004', supplier_id: 9, supplier_name: 'Kenya Power & Lighting', invoice_number: 'KPLC/2024/789654', invoice_date: '2024-07-25', due_date: '2024-08-25', total_amount: 35000, amount_paid: 35000, status: SupplierInvoiceStatus.PAID, description: 'July 2024 electricity charges', gl_expense_account_id: 506, gl_expense_account_name: 'Utilities - Electricity', created_at: new Date().toISOString(), updated_at: new Date().toISOString()}
+    {id: 'CINV001', customer_name: 'Parent Teachers Association', invoice_number: 'CI/2024/001', issue_date: '2024-07-15', due_date: '2024-08-15', total_amount: 25000, status: CustomerInvoiceStatus.PAID, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), customer_id: 1},
+    {id: 'CINV002', customer_name: 'Local Community Centre', invoice_number: 'CI/2024/002', issue_date: '2024-07-20', due_date: '2024-08-20', total_amount: 15000, status: CustomerInvoiceStatus.DUE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), customer_id: 2},
 ];
 
 export const initialMockGeneralPayments: GeneralPayment[] = [
-    {id: 'GPAY001', payee_name: 'G4S Security Services', payment_date: '2024-07-28', amount: 45000, payment_method: 'Bank Transfer', reference_no: 'BT240728001', description: 'Monthly security services - July 2024', payer_type: GeneralPayerType.SCHOOL, gl_expense_account_id: 514, gl_expense_account_name: 'Security Services', bank_account_id: 1, bank_account_name: 'KCB Bank', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GPAY002', payee_name: 'Safaricom Ltd', payment_date: '2024-07-30', amount: 12000, payment_method: 'Mobile Money', reference_no: 'MM240730002', description: 'Internet and communication services - July 2024', payer_type: GeneralPayerType.SCHOOL, gl_expense_account_id: 508, gl_expense_account_name: 'Internet & Communication', bank_account_id: 2, bank_account_name: 'Equity Bank', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GPAY003', payee_name: 'Water & Sewerage Company', payment_date: '2024-07-25', amount: 8500, payment_method: 'Cheque', reference_no: 'CHQ240725003', description: 'Water charges - July 2024', payer_type: GeneralPayerType.SCHOOL, gl_expense_account_id: 507, gl_expense_account_name: 'Utilities - Water', bank_account_id: 1, bank_account_name: 'KCB Bank', created_at: new Date().toISOString(), updated_at: new Date().toISOString()}
+    {id: 'GPAY001', payment_date: '2024-07-28', total_amount_paid: 45000, payment_method: 'Bank Transfer', description: 'Monthly security services - July 2024', payer_type: GeneralPayerType.EXTERNAL, gl_expense_account_id: 514, gl_expense_account_name: 'Security Services', bank_account_id: 1, bank_account_name: 'KCB Bank', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+    {id: 'GPAY002', payment_date: '2024-07-30', total_amount_paid: 12000, payment_method: 'Mobile Money', description: 'Internet and communication services - July 2024', payer_type: GeneralPayerType.EXTERNAL, gl_expense_account_id: 508, gl_expense_account_name: 'Internet & Communication', bank_account_id: 2, bank_account_name: 'Equity Bank', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+    {id: 'GPAY003', payment_date: '2024-07-25', total_amount_paid: 8500, payment_method: 'Cheque', description: 'Water charges - July 2024', payer_type: GeneralPayerType.EXTERNAL, gl_expense_account_id: 507, gl_expense_account_name: 'Utilities - Water', bank_account_id: 1, bank_account_name: 'KCB Bank', created_at: new Date().toISOString(), updated_at: new Date().toISOString()}
 ];
 
 export const initialMockGeneralLedgerEntries: GeneralLedgerEntry[] = [
-    {id: 'GLE001', transaction_date: '2024-07-01', reference_no: 'JE240701001', description: 'Opening balance - July 2024', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 500000, credit_account_id: 301, credit_account_name: 'Retained Earnings', credit_amount: 500000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE002', transaction_date: '2024-07-05', reference_no: 'SINV001', description: 'Student fees collection - Term 3', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 250000, credit_account_id: 401, credit_account_name: 'Tuition Fees Revenue', credit_amount: 250000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE003', transaction_date: '2024-07-10', reference_no: 'SINV001PAY', description: 'Payment to Text Book Centre', debit_account_id: 504, debit_account_name: 'Teaching Materials & Resources', debit_amount: 85000, credit_account_id: 101, credit_account_name: 'School Bank Account - KCB', credit_amount: 85000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE004', transaction_date: '2024-07-15', reference_no: 'SPAY001', description: 'Monthly salaries payment', debit_account_id: 501, debit_account_name: 'Salaries & Wages', debit_amount: 180000, credit_account_id: 103, credit_account_name: 'School Bank Account - Equity', credit_amount: 180000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE005', transaction_date: '2024-07-20', reference_no: 'TRANS001', description: 'Transport fees collection', debit_account_id: 103, debit_account_name: 'School Bank Account - Equity', debit_amount: 75000, credit_account_id: 402, credit_account_name: 'Transport Fees Revenue', credit_amount: 75000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE006', transaction_date: '2024-07-25', reference_no: 'GPAY003', description: 'Water utility payment', debit_account_id: 507, debit_account_name: 'Utilities - Water', debit_amount: 8500, credit_account_id: 101, credit_account_name: 'School Bank Account - KCB', credit_amount: 8500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE007', transaction_date: '2024-07-28', reference_no: 'GPAY001', description: 'Security services payment', debit_account_id: 514, debit_account_name: 'Security Services', debit_amount: 45000, credit_account_id: 101, credit_account_name: 'School Bank Account - KCB', credit_amount: 45000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE008', transaction_date: '2024-07-30', reference_no: 'GPAY002', description: 'Communication services payment', debit_account_id: 508, debit_account_name: 'Internet & Communication', debit_amount: 12000, credit_account_id: 103, credit_account_name: 'School Bank Account - Equity', credit_amount: 12000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    
-    // CROSS-MODULE INTEGRATIONS
-    
-    // Nutrition Module Integrations
-    {id: 'GLE009', transaction_date: '2024-07-28', reference_no: 'WTX001', description: 'Student wallet deposit - Jim Halpert', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 2000, credit_account_id: 203, credit_account_name: 'Student Advance Payments', credit_amount: 2000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE010', transaction_date: '2024-07-29', reference_no: 'WTX002', description: 'Canteen sales - Jim Halpert snacks purchase', debit_account_id: 203, debit_account_name: 'Student Advance Payments', debit_amount: 500, credit_account_id: 410, credit_account_name: 'Canteen Sales Revenue', credit_amount: 500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE011', transaction_date: '2024-07-25', reference_no: 'WTX003', description: 'Student wallet deposit - Pam Beesly', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 1500, credit_account_id: 203, credit_account_name: 'Student Advance Payments', credit_amount: 1500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE012', transaction_date: '2024-07-26', reference_no: 'WTX004', description: 'Canteen sales - Pam Beesly lunch purchase', debit_account_id: 203, debit_account_name: 'Student Advance Payments', debit_amount: 300, credit_account_id: 410, credit_account_name: 'Canteen Sales Revenue', credit_amount: 300, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE013', transaction_date: '2024-07-27', reference_no: 'WTX005', description: 'Canteen sales - Pam Beesly juice & biscuits', debit_account_id: 203, debit_account_name: 'Student Advance Payments', debit_amount: 150, credit_account_id: 410, credit_account_name: 'Canteen Sales Revenue', credit_amount: 150, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE014', transaction_date: '2024-07-30', reference_no: 'WTX006', description: 'Canteen sales - Jim Halpert rice & chicken', debit_account_id: 203, debit_account_name: 'Student Advance Payments', debit_amount: 250, credit_account_id: 410, credit_account_name: 'Canteen Sales Revenue', credit_amount: 250, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    
-    // Meal Plan Revenue
-    {id: 'GLE015', transaction_date: '2024-07-01', reference_no: 'MEAL001', description: 'Meal plan fees collection - Kevin Malone (Full Board)', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 15000, credit_account_id: 409, credit_account_name: 'Meal Plan Fees Revenue', credit_amount: 15000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE016', transaction_date: '2024-07-01', reference_no: 'MEAL002', description: 'Meal plan fees collection - Angela Martin (Standard Lunch)', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 7500, credit_account_id: 409, credit_account_name: 'Meal Plan Fees Revenue', credit_amount: 7500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE017', transaction_date: '2024-07-01', reference_no: 'MEAL003', description: 'Meal plan fees collection - Stanley Hudson (Breakfast Only)', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 3000, credit_account_id: 409, credit_account_name: 'Meal Plan Fees Revenue', credit_amount: 3000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE018', transaction_date: '2024-07-01', reference_no: 'MEAL004', description: 'Meal plan fees collection - Kelly Kapoor (Vegetarian Plan)', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 13000, credit_account_id: 409, credit_account_name: 'Meal Plan Fees Revenue', credit_amount: 13000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    
-    // Library Module Integrations
-    {id: 'GLE019', transaction_date: '2024-06-25', reference_no: 'FINE001', description: 'Library fine - Jim Halpert overdue book', debit_account_id: 104, debit_account_name: 'Accounts Receivable - Students', debit_amount: 50, credit_account_id: 415, credit_account_name: 'Library Fines Revenue', credit_amount: 50, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE020', transaction_date: '2024-05-16', reference_no: 'FINE002', description: 'Library book replacement - Michael Scott lost book', debit_account_id: 104, debit_account_name: 'Accounts Receivable - Students', debit_amount: 2500, credit_account_id: 416, credit_account_name: 'Library Book Replacement Revenue', credit_amount: 2500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE021', transaction_date: '2024-07-20', reference_no: 'FINE003', description: 'Library fine - Pam Beesly overdue book (5 days)', debit_account_id: 104, debit_account_name: 'Accounts Receivable - Students', debit_amount: 75, credit_account_id: 415, credit_account_name: 'Library Fines Revenue', credit_amount: 75, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE022', transaction_date: '2024-07-15', reference_no: 'FINE004PAY', description: 'Library fine payment - Stanley Hudson damaged book', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 100, credit_account_id: 415, credit_account_name: 'Library Fines Revenue', credit_amount: 100, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    
-    // HR/Payroll Module Integrations
-    {id: 'GLE023', transaction_date: '2024-06-30', reference_no: 'PSLP001', description: 'June payroll - Michael Scott net salary', debit_account_id: 501, debit_account_name: 'Salaries & Wages', debit_amount: 142940, credit_account_id: 103, credit_account_name: 'School Bank Account - Equity', credit_amount: 142940, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE024', transaction_date: '2024-06-30', reference_no: 'PSLP001TAX', description: 'June payroll - Michael Scott PAYE deduction', debit_account_id: 501, debit_account_name: 'Salaries & Wages', debit_amount: 40000, credit_account_id: 204, credit_account_name: 'PAYE Tax Payable', credit_amount: 40000, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE025', transaction_date: '2024-06-30', reference_no: 'PSLP001NHIF', description: 'June payroll - Michael Scott NHIF deduction', debit_account_id: 501, debit_account_name: 'Salaries & Wages', debit_amount: 1700, credit_account_id: 205, credit_account_name: 'NHIF Contributions Payable', credit_amount: 1700, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE026', transaction_date: '2024-06-30', reference_no: 'PSLP001NSSF', description: 'June payroll - Michael Scott NSSF deduction', debit_account_id: 501, debit_account_name: 'Salaries & Wages', debit_amount: 360, credit_account_id: 206, credit_account_name: 'NSSF Contributions Payable', credit_amount: 360, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    
-    // Additional Merchant Sales
-    {id: 'GLE027', transaction_date: '2024-07-22', reference_no: 'UNIFORM001', description: 'Uniform shop sales', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 3500, credit_account_id: 411, credit_account_name: 'Uniform Shop Sales Revenue', credit_amount: 3500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE028', transaction_date: '2024-07-24', reference_no: 'STAT001', description: 'Stationery store sales', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 1800, credit_account_id: 413, credit_account_name: 'Stationery Sales Revenue', credit_amount: 1800, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE029', transaction_date: '2024-07-26', reference_no: 'TUCK001', description: 'Tuck shop sales', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 2200, credit_account_id: 412, credit_account_name: 'Tuck Shop Sales Revenue', credit_amount: 2200, created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
-    {id: 'GLE030', transaction_date: '2024-07-29', reference_no: 'SPORTS001', description: 'Sports equipment sales', debit_account_id: 101, debit_account_name: 'School Bank Account - KCB', debit_amount: 4500, credit_account_id: 414, credit_account_name: 'Sports Equipment Sales Revenue', credit_amount: 4500, created_at: new Date().toISOString(), updated_at: new Date().toISOString()}
-];
+     // Opening balance - Debit Bank Account
+     {id: 'GLE001', transaction_date: '2024-07-01', effective_date: '2024-07-01', financial_year_id: 1, account_id: 101, debit: 500000, description: 'Opening balance - July 2024', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Opening balance - Credit Retained Earnings
+     {id: 'GLE002', transaction_date: '2024-07-01', effective_date: '2024-07-01', financial_year_id: 1, account_id: 301, credit: 500000, description: 'Opening balance - July 2024', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Student fees collection - Debit Bank Account
+     {id: 'GLE003', transaction_date: '2024-07-05', effective_date: '2024-07-05', financial_year_id: 1, account_id: 101, debit: 250000, description: 'Student fees collection - Term 3', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Student fees collection - Credit Revenue
+     {id: 'GLE004', transaction_date: '2024-07-05', effective_date: '2024-07-05', financial_year_id: 1, account_id: 401, credit: 250000, description: 'Student fees collection - Term 3', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Payment to Text Book Centre - Debit Expense
+     {id: 'GLE005', transaction_date: '2024-07-10', effective_date: '2024-07-10', financial_year_id: 1, account_id: 504, debit: 85000, description: 'Payment to Text Book Centre', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Payment to Text Book Centre - Credit Bank Account
+     {id: 'GLE006', transaction_date: '2024-07-10', effective_date: '2024-07-10', financial_year_id: 1, account_id: 101, credit: 85000, description: 'Payment to Text Book Centre', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Monthly salaries payment - Debit Expense
+     {id: 'GLE007', transaction_date: '2024-07-15', effective_date: '2024-07-15', financial_year_id: 1, account_id: 501, debit: 180000, description: 'Monthly salaries payment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Monthly salaries payment - Credit Bank Account
+     {id: 'GLE008', transaction_date: '2024-07-15', effective_date: '2024-07-15', financial_year_id: 1, account_id: 103, credit: 180000, description: 'Monthly salaries payment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Transport fees collection - Debit Bank Account
+     {id: 'GLE009', transaction_date: '2024-07-20', effective_date: '2024-07-20', financial_year_id: 1, account_id: 103, debit: 75000, description: 'Transport fees collection', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Transport fees collection - Credit Revenue
+     {id: 'GLE010', transaction_date: '2024-07-20', effective_date: '2024-07-20', financial_year_id: 1, account_id: 402, credit: 75000, description: 'Transport fees collection', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Water utility payment - Debit Expense
+     {id: 'GLE011', transaction_date: '2024-07-25', effective_date: '2024-07-25', financial_year_id: 1, account_id: 507, debit: 8500, description: 'Water utility payment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Water utility payment - Credit Bank Account
+     {id: 'GLE012', transaction_date: '2024-07-25', effective_date: '2024-07-25', financial_year_id: 1, account_id: 101, credit: 8500, description: 'Water utility payment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Security services payment - Debit Expense
+     {id: 'GLE013', transaction_date: '2024-07-28', effective_date: '2024-07-28', financial_year_id: 1, account_id: 514, debit: 45000, description: 'Security services payment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Security services payment - Credit Bank Account
+     {id: 'GLE014', transaction_date: '2024-07-28', effective_date: '2024-07-28', financial_year_id: 1, account_id: 101, credit: 45000, description: 'Security services payment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Communication services payment - Debit Expense
+     {id: 'GLE015', transaction_date: '2024-07-30', effective_date: '2024-07-30', financial_year_id: 1, account_id: 508, debit: 12000, description: 'Communication services payment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Communication services payment - Credit Bank Account
+     {id: 'GLE016', transaction_date: '2024-07-30', effective_date: '2024-07-30', financial_year_id: 1, account_id: 103, credit: 12000, description: 'Communication services payment', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // CROSS-MODULE INTEGRATIONS
+     
+     // Nutrition Module Integrations
+     // Student wallet deposit - Debit Bank Account
+     {id: 'GLE017', transaction_date: '2024-07-28', effective_date: '2024-07-28', financial_year_id: 1, account_id: 101, debit: 2000, description: 'Student wallet deposit - Jim Halpert', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Student wallet deposit - Credit Student Advance Payments
+     {id: 'GLE018', transaction_date: '2024-07-28', effective_date: '2024-07-28', financial_year_id: 1, account_id: 203, credit: 2000, description: 'Student wallet deposit - Jim Halpert', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Canteen sales - Debit Student Advance Payments
+     {id: 'GLE019', transaction_date: '2024-07-29', effective_date: '2024-07-29', financial_year_id: 1, account_id: 203, debit: 500, description: 'Canteen sales - Jim Halpert snacks purchase', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Canteen sales - Credit Revenue
+     {id: 'GLE020', transaction_date: '2024-07-29', effective_date: '2024-07-29', financial_year_id: 1, account_id: 410, credit: 500, description: 'Canteen sales - Jim Halpert snacks purchase', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Meal Plan Revenue - Debit Bank Account
+     {id: 'GLE021', transaction_date: '2024-07-01', effective_date: '2024-07-01', financial_year_id: 1, account_id: 101, debit: 15000, description: 'Meal plan fees collection - Kevin Malone (Full Board)', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Meal Plan Revenue - Credit Revenue
+     {id: 'GLE022', transaction_date: '2024-07-01', effective_date: '2024-07-01', financial_year_id: 1, account_id: 409, credit: 15000, description: 'Meal plan fees collection - Kevin Malone (Full Board)', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Library Module Integrations
+     // Library fine - Debit Accounts Receivable
+     {id: 'GLE023', transaction_date: '2024-06-25', effective_date: '2024-06-25', financial_year_id: 1, account_id: 104, debit: 50, description: 'Library fine - Jim Halpert overdue book', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Library fine - Credit Revenue
+     {id: 'GLE024', transaction_date: '2024-06-25', effective_date: '2024-06-25', financial_year_id: 1, account_id: 415, credit: 50, description: 'Library fine - Jim Halpert overdue book', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // HR/Payroll Module Integrations
+     // Salary payment - Debit Expense
+     {id: 'GLE025', transaction_date: '2024-06-30', effective_date: '2024-06-30', financial_year_id: 1, account_id: 501, debit: 142940, description: 'June payroll - Michael Scott net salary', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Salary payment - Credit Bank Account
+     {id: 'GLE026', transaction_date: '2024-06-30', effective_date: '2024-06-30', financial_year_id: 1, account_id: 103, credit: 142940, description: 'June payroll - Michael Scott net salary', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     
+     // Additional Merchant Sales - Debit Bank Account
+     {id: 'GLE027', transaction_date: '2024-07-22', effective_date: '2024-07-22', financial_year_id: 1, account_id: 101, debit: 3500, description: 'Uniform shop sales', created_at: new Date().toISOString(), updated_at: new Date().toISOString()},
+     // Additional Merchant Sales - Credit Revenue
+     {id: 'GLE028', transaction_date: '2024-07-22', effective_date: '2024-07-22', financial_year_id: 1, account_id: 411, credit: 3500, description: 'Uniform shop sales', created_at: new Date().toISOString(), updated_at: new Date().toISOString()}
+ ];
 
-// Mock Suppliers
-export const mockSuppliers = [
-  {
-    id: 1,
-    name: "ABC School Supplies Ltd.",
-    phone: "020-1234567",
-    email: "sales@abcschoolsupplies.com",
-    address: "123 Supply Street, Industrial Area, Nairobi",
-    contract_expiry_date: "2025-12-31",
-    created_at: "2024-01-01T10:00:00Z",
-    updated_at: "2024-06-01T12:00:00Z"
-  }
-];
-
-// Mock Purchase Orders
-export const mockPurchaseOrders = [
-  {
-    id: "PO-2024-045",
-    supplier_id: 1,
-    order_date: "2024-06-15",
-    status: "APPROVED",
-    notes: "Urgent delivery required",
-    created_at: "2024-06-15T09:00:00Z",
-    updated_at: "2024-06-16T10:00:00Z",
-    supplier_name: "ABC School Supplies Ltd.",
-    total_value: 12000,
-    items: [
-      { id: "POI-1", purchase_order_id: "PO-2024-045", item_id: "ITEM-1", quantity_ordered: 100, unit_price: 120 }
-    ]
-  }
-];
-
-// Mock Supplier Invoices
-export const mockSupplierInvoices = [
-  {
-    id: "INV-2024-030",
-    supplier_id: 1,
-    invoice_number: "INV-2024-030",
-    invoice_date: "2024-07-01",
-    due_date: "2024-07-20",
-    total_amount: 12000,
-    status: "PAID",
-    created_at: "2024-07-01T10:00:00Z",
-    updated_at: "2024-07-20T10:00:00Z",
-    supplier_name: "ABC School Supplies Ltd.",
-    po_id: "PO-2024-045",
-    file_url: "https://example.com/invoices/INV-2024-030.pdf"
-  }
-];
-
-// Export canonical vendor-related mocks for modular system
-export { mockSuppliers as suppliers, mockPurchaseOrders as purchaseOrders, mockSupplierInvoices as supplierInvoices };
+// Ensure all AppDataType keys for finance are exported
+export { suppliers, supplierInvoices };
+export const banks = initialMockBanks;
+export const expenseCategories = initialMockExpenseCategories;
+export const chartOfAccounts = initialMockChartOfAccounts;
+export const expenseClaims = initialMockExpenseClaims;
+export const studentOpeningBalances = initialMockStudentOpeningBalances;
+export const feeAdjustments = initialMockFeeAdjustments;
+export const transportRoutes = initialMockTransportRoutes;
+export const studentTransportAssignments = initialMockStudentTransportAssignments;
+export const studentInvoices = initialMockStudentInvoices;
+export const studentInvoiceItems = initialMockStudentInvoiceItems;
+export const studentPayments = initialMockStudentPayments;
+export const invoicePaymentApplications = initialMockInvoicePaymentApplications;
+export const customerInvoices = initialMockCustomerInvoices;
+export const generalPayments = initialMockGeneralPayments;
+export const generalLedgerEntries = initialMockGeneralLedgerEntries;

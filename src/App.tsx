@@ -2,7 +2,7 @@
 // ABOUTME: It sets up the main router and global context providers.
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
 import { AppDataProvider } from '@/contexts/AppDataContext';
@@ -129,6 +129,17 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
   );
 };
 
+const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitialized }) => {
+  const location = useLocation();
+  return (
+    <Layout>
+      <ErrorBoundary key={location.pathname}>
+        <DynamicRoutes modulesInitialized={modulesInitialized} />
+      </ErrorBoundary>
+    </Layout>
+  );
+};
+
 const App: React.FC = () => {
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
@@ -152,11 +163,7 @@ const App: React.FC = () => {
     <UserProvider>
       <AppDataProvider>
         <HashRouter>
-          <Layout>
-            <ErrorBoundary>
-              <DynamicRoutes modulesInitialized={modulesInitialized} />
-            </ErrorBoundary>
-          </Layout>
+          <AppContent modulesInitialized={modulesInitialized} />
         </HashRouter>
       </AppDataProvider>
     </UserProvider>

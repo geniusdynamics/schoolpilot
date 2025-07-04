@@ -280,6 +280,12 @@ export const initialMockDisciplinaryActions = [
     }
 ];
 
+// Ensure all AppDataType keys for hr are exported
+export const payrollPeriods = initialMockPayrollPeriods;
+export const payrollItemTypes = initialMockPayrollItemTypes;
+export const staffSalarySettings = initialMockStaffSalarySettings;
+export const payslips = initialMockPayslips;
+
 
 
 

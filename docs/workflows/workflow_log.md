@@ -559,4 +559,9 @@ C o r e   m o d u l e s   a l w a y s   i n c l u d e d   i n   e n a b l e d   
 - Navigation, sidebars, and layout remain visible even when a page throws
 - Verified file existence: `src/App.tsx`, `src/components/ErrorBoundary.tsx`
 
+### [2025-07-02] useModularMockData always provides all AppDataType keys
+- Patched `useModularMockData.ts` to ensure all AppDataType keys are present in the returned context, defaulting to empty arrays or nulls if missing from the aggregated mock data.
+- Prevents undefined errors in all pages, even if mock data is missing.
+- Verified file existence: `src/hooks/useModularMockData.ts`, `src/core/types.ts`
+
  

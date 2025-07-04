@@ -152,3 +152,9 @@ export const initialMockLibrarySettings = {
   reservation_hold_days: 3,
   overdue_notice_days: [7, 14, 21]
 };
+
+// Ensure all AppDataType keys for library are exported
+export const bookCategories = initialMockBookCategories;
+export const books = initialMockBooks;
+export const loans = initialMockLoans;
+export const fines = initialMockFines;

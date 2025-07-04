@@ -1,12 +1,12 @@
 // ABOUTME: Provides CRUD and data provider logic for Supplier in Finance.
 // ABOUTME: Exports a global provider hook for system-wide use.
 import { useState } from 'react';
-import { initialMockSuppliers } from './mockData';
+import { suppliers } from 'src/globalMockData';
 
 export const isGlobalProvider = true;
 
 export function useSupplierData() {
-  const [data, setData] = useState<any[]>(initialMockSuppliers);
+  const [data, setData] = useState<any[]>(suppliers);
 
   const create = (item: any) => setData(prev => [...prev, item]);
   const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));

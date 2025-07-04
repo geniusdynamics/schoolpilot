@@ -180,3 +180,11 @@ export const initialMockNutritionSettings = {
     holidays: 'Closed'
   }
 };
+
+// Ensure all AppDataType keys for nutrition are exported
+export const mealPlans = initialMockMealPlans;
+export const menus = initialMockMenus;
+export const merchants = initialMockMerchants;
+export const mealConsumptionLogs = initialMockMealConsumptionLogs;
+export const studentWallets = initialMockStudentWallets;
+export const walletTransactions = initialMockWalletTransactions;

@@ -868,6 +868,8 @@ export interface GeneralLedgerEntry {
     description: string;
     source_table?: string | null;
     source_id?: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 // --- Academics Interfaces ---
