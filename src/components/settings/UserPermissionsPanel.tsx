@@ -17,7 +17,7 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Modal from '../ui/Modal';
 import Table from '../ui/Table';
-import allModules from '../../modules/moduleDefinitions';
+import { moduleRegistry } from '../../core/moduleRegistry';
 import type { RbacRole } from '../../core/types';
 
 // Types for User Permissions System
@@ -95,7 +95,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
     ]);
 
     // Dynamically generate permissions for all modules
-    const dynamicPermissions = allModules.flatMap(module => [
+    const dynamicPermissions = moduleRegistry.getAllModules().flatMap(module => [
       { id: `${module.id}.read`, name: `View ${module.name}`, description: `View ${module.name} information`, module: module.id, action: 'read' as Permission['action'], resource: module.id },
       { id: `${module.id}.create`, name: `Create ${module.name} Records`, description: `Create new ${module.name} records`, module: module.id, action: 'create' as Permission['action'], resource: module.id },
       { id: `${module.id}.update`, name: `Update ${module.name} Records`, description: `Modify ${module.name} records`, module: module.id, action: 'update' as Permission['action'], resource: module.id },
@@ -365,7 +365,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
             required
           >
             <option value="">Select Module</option>
-            {allModules.map(module => (
+            {moduleRegistry.getAllModules().map(module => (
               <option key={module.id} value={module.id}>{module.name}</option>
             ))}
           </Select>
