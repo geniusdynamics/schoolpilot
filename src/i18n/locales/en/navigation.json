@@ -131,5 +131,12 @@
     "databaseSettings": "Database Settings",
     "settings": "General Settings",
     "users": "User Management"
+  },
+  "vendor": {
+    "dashboard": "Vendor Dashboard",
+    "rfqs": "New Opportunities",
+    "pos": "Purchase Orders",
+    "invoices": "Invoices",
+    "profile": "My Profile"
   }
 }

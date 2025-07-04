@@ -1,0 +1,33 @@
+{
+  "welcome": "Bienvenue, {{name}}!",
+  "dashboard": "TB Fournisseur",
+  "rfqs": "Nouvelles opportunités",
+  "pos": "Bons de commande",
+  "invoices": "Factures",
+  "profile": "Mon profil",
+  "activity": {
+    "invoice": "Facture {{invoice}} statut: {{status}}",
+    "po": "BC {{po}} statut: {{status}}"
+  },
+  "invoice": {
+    "number": "Numéro de facture",
+    "po": "Numéro BC",
+    "amount": "Montant",
+    "dueDate": "Date d'échéance",
+    "status": "Statut",
+    "action": "Action",
+    "viewUpload": "Voir/Télécharger PDF",
+    "submit": "Soumettre la facture",
+    "none": "Aucune facture trouvée.",
+    "overdue": "En retard"
+  },
+  "profile": {
+    "companyName": "Nom de l'entreprise",
+    "contactPerson": "Personne de contact",
+    "email": "Email",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "save": "Enregistrer le profil",
+    "manageInfo": "Gérez les informations de votre entreprise."
+  }
+} 

@@ -1,0 +1,33 @@
+{
+  "welcome": "Welcome, {{name}}!",
+  "dashboard": "Vendor Dashboard",
+  "rfqs": "New Opportunities",
+  "pos": "Purchase Orders",
+  "invoices": "Invoices",
+  "profile": "My Profile",
+  "activity": {
+    "invoice": "Invoice {{invoice}} status: {{status}}",
+    "po": "PO {{po}} status: {{status}}"
+  },
+  "invoice": {
+    "number": "Invoice Number",
+    "po": "PO Number",
+    "amount": "Amount",
+    "dueDate": "Due Date",
+    "status": "Status",
+    "action": "Action",
+    "viewUpload": "View/Upload PDF",
+    "submit": "Submit Invoice",
+    "none": "No invoices found.",
+    "overdue": "Overdue"
+  },
+  "profile": {
+    "companyName": "Company Name",
+    "contactPerson": "Contact Person",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "save": "Save Profile",
+    "manageInfo": "Manage your company profile information."
+  }
+} 

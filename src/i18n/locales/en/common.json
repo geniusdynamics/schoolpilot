@@ -41,5 +41,7 @@
   "closeSidebar": "Close sidebar",
   "notifications": "View notifications",
   "welcomeMessage": "Welcome, {{name}}",
-  "welcomeMessageGuest": "Welcome"
+  "welcomeMessageGuest": "Welcome",
+  "expand": "Expand",
+  "collapse": "Collapse"
 }

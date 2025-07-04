@@ -41,5 +41,7 @@
   "closeSidebar": "Fermer la barre latérale",
   "notifications": "Voir les notifications",
   "welcomeMessage": "Bienvenue, {{name}}",
-  "welcomeMessageGuest": "Bienvenue"
+  "welcomeMessageGuest": "Bienvenue",
+  "expand": "Développer",
+  "collapse": "Réduire"
 }
