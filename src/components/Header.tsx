@@ -41,7 +41,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-lg shadow-md select-none">
             E
           </div>
-          <span className="font-bold text-xl text-slate-800 tracking-tight">EduGen OS</span>
+          <span className="font-bold text-xl text-slate-800 tracking-tight">schoolpilot</span>
         </div>
         {/* Center: Search Bar */}
         <div className="flex-1 flex justify-center">
@@ -65,7 +65,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           {/* Language Switcher */}
           <LanguageSwitcher />
           {/* Theme Toggle (using CogIcon as placeholder) */}
-          <button className="p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600">
+          <button className="p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600" title="Theme settings">
             <CogIcon className="w-6 h-6" />
           </button>
           {/* User Dropdown */}

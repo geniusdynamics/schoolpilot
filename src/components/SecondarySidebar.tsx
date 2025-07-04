@@ -86,7 +86,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                 <div>
                   <button onClick={() => toggleGroup(item.name)} className="flex items-center justify-between w-full px-2 py-1 text-xs uppercase tracking-wider text-slate-700 font-bold focus:outline-none">
                     <span className="flex items-center gap-2">
-                      {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)} {t(item.name).split(' ').slice(1).join(' ')}
+                      {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)} {t(item.name)}
                     </span>
                     <span>{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>
                   </button>
@@ -107,7 +107,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                             }
                           >
                             {child.icon ? React.createElement(child.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                            <span className="font-medium text-sm">{t(child.name).split(' ').slice(1).join(' ')}</span>
+                            <span className="font-medium text-sm">{t(child.name)}</span>
                           </NavLink>
                         </li>
                       ))}
@@ -128,7 +128,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                   }
                 >
                   {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                  <span className="font-medium text-sm">{t(item.name).split(' ').slice(1).join(' ')}</span>
+                  <span className="font-medium text-sm">{t(item.name)}</span>
                 </NavLink>
               )}
             </li>
