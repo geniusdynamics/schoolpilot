@@ -1,4 +1,3 @@
-
 {
   "dashboard": "Tableau de bord",
   "administration": {
@@ -36,7 +35,10 @@
     "timetableEntries": "Emploi du temps",
     "teacherAssignments": "Affectations enseignants",
     "studentEnrollments": "Inscriptions matières",
-    "examAnalysis": "Analyse examens"
+    "examAnalysis": "Analyse examens",
+    "teacherSubjectAssignments": "Affectations Matières/Enseignants",
+    "studentSubjectEnrollment": "Inscription Matières/Élèves",
+    "studentExamResultsEntry": "Saisie Résultats Examens"
   },
   "finance": {
     "title": "Finance",
@@ -48,13 +50,16 @@
     "studentPayments": "Paiements élèves",
     "feeAdjustments": "Ajustements frais",
     "openingBalances": "Soldes initiaux",
+    "studentOpeningBalances": "Soldes Initiaux Élèves",
+    "feeCollectionSummary": "Résumé Collecte Frais",
     "generalReceipts": "Recettes générales",
     "customerInvoices": "Factures clients",
     "suppliers": "Fournisseurs",
     "supplierInvoices": "Factures fournisseurs",
     "expenses": "Dépenses",
     "transportRoutes": "Itinéraires transport",
-    "studentTransport": "Transport élèves"
+    "studentTransport": "Transport élèves",
+    "studentTransportAssignments": "Affectations Transport Élèves"
   },
   "hr": {
     "title": "Ressources Humaines",
@@ -62,13 +67,16 @@
     "payrollPeriods": "Périodes de paie",
     "payrollItemTypes": "Types d'éléments paie",
     "salarySettings": "Paramètres salaires",
+    "staffSalarySettings": "Paramètres Salaires Personnel",
     "payslips": "Fiches de paie"
   },
   "inventory": {
     "title": "Inventaire",
     "dashboard": "TB Inventaire",
     "procurementDashboard": "TB Achats",
+    "schoolProcurementDashboard": "TB Achats École",
     "vendorPortal": "Portail Fournisseurs",
+    "vendorPortalDashboard": "TB Portail Fournisseurs",
     "warehouses": "Entrepôts",
     "itemCategories": "Catégories d'articles",
     "items": "Articles",
@@ -104,7 +112,11 @@
     "voteheadStatements": "Relevés par poste",
     "teacherAssignments": "Affectations enseignants",
     "accountLedger": "Grand livre comptable",
-    "feeCollection": "Collecte des frais"
+    "feeCollection": "Collecte des frais",
+    "examResultsHorizontal": "Résultats Examens (Horizontal)",
+    "feeCollectionSummary": "Résumé Collecte Frais",
+    "studentFinancialSummary": "Résumé Financier Élève",
+    "studentVoteheadStatement": "Relevé Poste Élève"
   },
   "settings": {
     "title": "Paramètres",
@@ -113,7 +125,10 @@
     "userManagement": "Gestion utilisateurs",
     "workflows": "Flux de travail",
     "auditLog": "Journal d'audit",
-    "database": "Gestion Base de Données"
+    "database": "Gestion Base de Données",
+    "databaseSettings": "Paramètres Base de Données",
+    "settings": "Paramètres Généraux",
+    "users": "Gestion Utilisateurs"
   },
   "sidebarNavigation": "Navigation principale",
   "sidebarNavigationMobile": "Navigation mobile"
