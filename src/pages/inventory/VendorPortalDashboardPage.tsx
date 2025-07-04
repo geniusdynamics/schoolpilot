@@ -7,10 +7,11 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import { SchoolIcon, HomeIcon, DocumentReportIcon as DocumentTextIcon, ShoppingCartIcon, ReceiptRefundIcon, UserCircleIcon, BellIcon, PlusIcon } from '../../components/ui/icons'; 
-import { InvPurchaseOrderType as PurchaseOrder, InvPurchaseOrderStatusEnum as PurchaseOrderStatus, InvRFQType as RFQ, InvRFQStatusEnum as RFQStatus } from '../../types';
+import { InvPurchaseOrderType as PurchaseOrder, InvPurchaseOrderStatusEnum as PurchaseOrderStatus, InvRFQType as RFQ, InvRFQStatusEnum as RFQStatus } from '../../modules/inventory/data/types';
 import Spinner from '../../components/ui/Spinner';
 import { useAppData } from '@/contexts/AppDataContext'; 
 import { useTranslation } from 'react-i18next';
+import PortalSidebar, { PortalNavItem } from '../../components/ui/PortalSidebar';
 
 type VendorView = 'dashboard' | 'rfqs' | 'pos' | 'invoices' | 'profile';
 
@@ -33,8 +34,26 @@ interface InvoiceFormData {
 const VendorPortalDashboardPage: React.FC = () => {
   const [activeView, setActiveView] = useState<VendorView>('dashboard');
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
-  const { purchaseOrders, rfqs, loading } = useAppData(); 
+  const { purchaseOrders: corePurchaseOrders, rfqs: coreRfqs, loading } = useAppData();
+
+  // Map core types to inventory types for conformity
+  function mapCorePurchaseOrderToInv(po: any): PurchaseOrder {
+    return {
+      ...po,
+      status: po.status as PurchaseOrderStatus, // Assume status string matches enum value
+    };
+  }
+  function mapCoreRFQToInv(rfq: any): RFQ {
+    return {
+      ...rfq,
+      description: rfq.description ?? undefined, // Convert null to undefined
+      status: rfq.status as RFQStatus, // Assume status string matches enum value
+    };
+  }
+  const purchaseOrders: PurchaseOrder[] = (corePurchaseOrders as any[]).map(mapCorePurchaseOrderToInv);
+  const rfqs: RFQ[] = (coreRfqs as any[]).map(mapCoreRFQToInv);
 
   // Mock Data - In a real app, this would come from context or API based on logged-in vendor
   const vendorName = "ABC School Supplies Ltd."; 
@@ -60,6 +79,17 @@ const VendorPortalDashboardPage: React.FC = () => {
   };
   const [invoiceFormData, setInvoiceFormData] = useState<InvoiceFormData>(initialInvoiceFormData);
 
+  // Example RBAC permissions for vendor (in real app, fetch from user context)
+  const rbacPermissions = [
+    'vendor.dashboard', 'vendor.rfqs', 'vendor.pos', 'vendor.invoices', 'vendor.profile'
+  ];
+  const navItems: PortalNavItem[] = [
+    { key: 'dashboard', label: 'navigation:vendor.dashboard', icon: <HomeIcon className="w-5 h-5" />, permission: 'vendor.dashboard' },
+    { key: 'rfqs', label: 'navigation:vendor.rfqs', icon: <DocumentTextIcon className="w-5 h-5" />, permission: 'vendor.rfqs' },
+    { key: 'pos', label: 'navigation:vendor.pos', icon: <ShoppingCartIcon className="w-5 h-5" />, permission: 'vendor.pos' },
+    { key: 'invoices', label: 'navigation:vendor.invoices', icon: <ReceiptRefundIcon className="w-5 h-5" />, permission: 'vendor.invoices' },
+    { key: 'profile', label: 'navigation:vendor.profile', icon: <UserCircleIcon className="w-5 h-5" />, permission: 'vendor.profile' },
+  ];
 
   const handleProfileInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -161,21 +191,8 @@ const VendorPortalDashboardPage: React.FC = () => {
         'bg-gray-100 text-gray-800'
       }`}>{item.status}</span>
     },
-    { header: 'Action', accessor: 'id' as keyof MockInvoice, render: (item: MockInvoice) => <Button size="sm" variant="ghost">View/Upload PDF</Button> }
+    { header: 'Action', accessor: 'id' as keyof MockInvoice, render: (item: MockInvoice) => <Button size="sm" variant="ghost" title="View or upload PDF">View/Upload PDF</Button> }
   ];
-
-  const NavItem: React.FC<{ label: string; view: VendorView; icon: React.ReactNode }> = ({ label, view, icon }) => (
-    <li>
-      <button
-        onClick={() => setActiveView(view)}
-        className={`w-full flex items-center space-x-3 p-3 rounded-md text-sm hover:bg-indigo-700 hover:text-white transition-colors duration-200
-                    ${activeView === view ? 'bg-indigo-600 text-white font-semibold' : 'text-gray-300'}`}
-      >
-        {icon}
-        <span>{label}</span>
-      </button>
-    </li>
-  );
 
   if (loading.purchaseOrders || loading.rfqs) { 
       return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>
@@ -183,22 +200,19 @@ const VendorPortalDashboardPage: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 font-inter">
-      {/* Left Sidebar */}
-      <div className="w-1/6 (15%) bg-gray-800 text-white flex flex-col min-h-screen p-4 space-y-2 fixed top-0 left-0 bottom-0">
-        <div className="flex items-center justify-center h-16 border-b border-gray-700 mb-4">
-          <SchoolIcon className="w-8 h-8 mr-2 text-indigo-400" />
-          <h1 className="text-lg font-bold text-indigo-400 truncate">School Portal</h1>
-        </div>
-        <nav>
-          <ul className="space-y-1">
-            <NavItem label="Dashboard" view="dashboard" icon={<HomeIcon className="w-5 h-5" />} />
-            <NavItem label="New Opportunities" view="rfqs" icon={<DocumentTextIcon className="w-5 h-5" />} />
-            <NavItem label="Purchase Orders" view="pos" icon={<ShoppingCartIcon className="w-5 h-5" />} />
-            <NavItem label="Invoices" view="invoices" icon={<ReceiptRefundIcon className="w-5 h-5" />} />
-            <NavItem label="My Profile" view="profile" icon={<UserCircleIcon className="w-5 h-5" />} />
-          </ul>
-        </nav>
-      </div>
+      {/* Modern, modular, collapsible sidebar */}
+      <PortalSidebar
+        navItems={navItems}
+        activeView={activeView}
+        onSelect={(key: string) => {
+          if (["dashboard", "rfqs", "pos", "invoices", "profile"].includes(key)) {
+            setActiveView(key as VendorView);
+          }
+        }}
+        rbacPermissions={rbacPermissions}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+      />
 
       {/* Main Content Area */}
       <div className="w-5/6 (85%) ml-[16.666667%] p-6 space-y-6 overflow-y-auto"> 
@@ -272,25 +286,32 @@ const VendorPortalDashboardPage: React.FC = () => {
                     onChange={handleProfileInputChange} 
                     readOnly 
                     className="bg-gray-100"
+                    placeholder="Company Name"
                 />
                 <Input 
                     label="Contact Person" 
                     name="contactPerson" 
                     value={profileFormData.contactPerson} 
                     onChange={handleProfileInputChange} 
+                    className="w-full border rounded p-2"
+                    placeholder="Contact Person"
                 />
                 <Input 
                     label="Email Address" 
                     name="email" 
-                    type="email" 
-                    value={profileFormData.email} 
-                    onChange={handleProfileInputChange} 
+                    type="email"
+                    value={profileFormData.email}
+                    onChange={handleProfileInputChange}
+                    className="w-full border rounded p-2"
+                    placeholder="Email"
                 />
                 <Input 
                     label="Phone Number" 
                     name="phone" 
                     value={profileFormData.phone} 
-                    onChange={handleProfileInputChange} 
+                    onChange={handleProfileInputChange}
+                    className="w-full border rounded p-2"
+                    placeholder="Phone"
                 />
                 <Textarea 
                     label="Company Address" 
@@ -298,6 +319,7 @@ const VendorPortalDashboardPage: React.FC = () => {
                     value={profileFormData.address} 
                     onChange={handleProfileInputChange} 
                     rows={3}
+                    placeholder="Address"
                 />
                  <div className="text-right">
                     <Button type="submit">Save Profile Changes</Button>
