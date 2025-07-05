@@ -2,13 +2,13 @@
 // ABOUTME: Self-contained module definition for library management
 
 import React from 'react';
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   BookOpenIcon,
   DocumentTextIcon,
   ClipboardDocumentListIcon,
   CurrencyDollarIcon,
-} from '../../components/ui/icons';
+} from '@/components/ui/icons';
 import { libraryPermissions, libraryDefaultRoles } from './rbac';
 
 export const libraryModule: ModuleDefinition = {

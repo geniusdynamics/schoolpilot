@@ -1,8 +1,8 @@
 // ABOUTME: Reports module definition for modular system
 // ABOUTME: Exports the module definition for the reports module
 
-import { ModuleDefinition } from '../../core/types';
-import { DocumentReportIcon, BookOpenIcon, ChartPieIcon, CurrencyDollarIcon, WalletIcon, UsersIcon, UserGroupIcon } from '../../components/ui/icons';
+import { ModuleDefinition } from '@/core/types';
+import { DocumentReportIcon, BookOpenIcon, ChartPieIcon, CurrencyDollarIcon, WalletIcon, UsersIcon, UserGroupIcon } from '@/components/ui/icons';
 
 const reportsModule: ModuleDefinition = {
   id: 'reports',

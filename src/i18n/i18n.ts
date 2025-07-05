@@ -4,7 +4,7 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import { loadTranslations } from './loader'; // Import the loader
+import { loadModularTranslations } from './modularLoader'; // Import the modular loader
 
 i18next
   .use(LanguageDetector)
@@ -33,7 +33,7 @@ i18next
     },
   });
 
-// Load translations using the centralized loader
-loadTranslations(i18next);
+// Load translations using the modular loader
+loadModularTranslations(i18next);
 
 export default i18next;

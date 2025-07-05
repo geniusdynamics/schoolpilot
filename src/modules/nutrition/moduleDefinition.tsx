@@ -2,7 +2,7 @@
 // ABOUTME: Self-contained module definition for nutrition management
 
 import React from 'react';
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   CakeIcon,
   DocumentTextIcon,
@@ -10,7 +10,7 @@ import {
   UserGroupIcon,
   CurrencyDollarIcon,
   CalendarDaysIcon,
-} from '../../components/ui/icons';
+} from '@/components/ui/icons';
 import { nutritionPermissions, nutritionDefaultRoles } from './rbac';
 
 export const nutritionModule: ModuleDefinition = {

@@ -2,14 +2,14 @@
 // ABOUTME: Self-contained module definition for human resources management
 
 import React from 'react';
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   UserGroupIcon,
   CurrencyDollarIcon,
   DocumentTextIcon,
   CalendarDaysIcon,
   ClipboardDocumentListIcon,
-} from '../../components/ui/icons';
+} from '@/components/ui/icons';
 import { hrPermissions, hrDefaultRoles } from './rbac';
 
 export const hrModule: ModuleDefinition = {

@@ -1,12 +1,12 @@
 // ABOUTME: Core system module definitions
 // ABOUTME: Contains only essential system modules that are always available
 
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   HomeIcon,
   CogIcon,
   DocumentReportIcon,
-} from '../../components/ui/icons';
+} from '@/components/ui/icons';
 
 // Dashboard Module (Core System)
 export const dashboardModule: ModuleDefinition = {

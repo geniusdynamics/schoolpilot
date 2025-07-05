@@ -2,7 +2,7 @@
 // ABOUTME: Self-contained module definition for financial management
 
 import React from 'react';
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   CurrencyDollarIcon,
   BanknotesIcon,
@@ -15,7 +15,7 @@ import {
   CalendarDaysIcon,
   DocumentDuplicateIcon,
   CreditCardIcon,
-} from '../../components/ui/icons';
+} from '@/components/ui/icons';
 import { financePermissions, financeDefaultRoles } from './rbac';
 
 export const financeModule: ModuleDefinition = {

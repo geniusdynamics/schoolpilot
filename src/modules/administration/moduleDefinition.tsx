@@ -2,7 +2,7 @@
 // ABOUTME: Self-contained module definition for student and staff management
 
 import React from 'react';
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   AcademicCapIcon,
   UsersIcon, 
@@ -19,7 +19,7 @@ import {
   PuzzlePieceIcon, 
   DocumentDuplicateIcon, 
   ClockIcon,
-} from '../../components/ui/icons';
+} from '@/components/ui/icons';
 
 export const administrationModule: ModuleDefinition = {
   id: 'administration',

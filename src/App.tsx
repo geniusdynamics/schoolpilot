@@ -16,20 +16,19 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Lazy load the login page
-const LoginPage = lazy(() => import('./pages/LoginPage'));
+const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 
 // Lazy load the dashboard page
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 
-// Vite will statically analyze all .tsx files in ./pages and ./modules/*/pages
+// Vite will statically analyze all .tsx files in ./modules/*/pages
 const pageModules = {
-  ...import.meta.glob('./pages/**/*.tsx'),
   ...import.meta.glob('./modules/*/pages/**/*.tsx'),
 };
 
 console.log('🔍 [App] Available page modules:', Object.keys(pageModules));
 
-// Future-proof getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx, then src/pages/<module>/<PageName>.tsx, then src/pages/<PageName>.tsx
+// Modular getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx
 const getPageComponent = (nav: any) => {
   console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
   
@@ -45,7 +44,7 @@ const getPageComponent = (nav: any) => {
     
     console.log('🔍 [getPageComponent] Segments:', pathSegments, 'ModuleDir:', moduleDir);
     
-    // Try modular location first
+    // Try modular location
     if (moduleDir) {
       const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
       const modularImportFn = pageModules[modularKey];
@@ -54,33 +53,11 @@ const getPageComponent = (nav: any) => {
         return lazy(modularImportFn as any);
       }
     }
-    // Fallback to old src/pages/<module>/<PageName>.tsx
-    if (moduleDir) {
-      const legacyKey = `./pages/${moduleDir}/${nav.page}.tsx`;
-      const legacyImportFn = pageModules[legacyKey];
-      if (legacyImportFn) {
-        console.log('✅ [getPageComponent] Found legacy key:', legacyKey);
-        return lazy(legacyImportFn as any);
-      }
-    }
-    // Fallback to root-level page
-    const rootKey = `./pages/${nav.page}.tsx`;
-    const rootImportFn = pageModules[rootKey];
-    if (rootImportFn) {
-      console.log('✅ [getPageComponent] Found root key:', rootKey);
-      return lazy(rootImportFn as any);
-    }
     
     console.log('❌ [getPageComponent] No page component found for:', nav.page);
     return null;
   }
-  // Fallback: old logic (should ideally not be hit if nav.page is always provided)
-  const key = `./pages${nav.path}.tsx`;
-  const importFn = pageModules[key];
-  if (importFn) {
-    console.log('✅ [getPageComponent] Found fallback key:', key);
-    return lazy(importFn as any);
-  }
+  
   console.log('❌ [getPageComponent] No page component found for fallback path:', nav.path);
   return null;
 };
@@ -151,23 +128,11 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
             moduleDir = pathSegments[0];
           }
           let PageComponent = null;
-          // Try modular location first
+          // Try modular location
           if (moduleDir) {
             const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
             const modularImportFn = pageModules[modularKey];
             if (modularImportFn) PageComponent = lazy(modularImportFn as any);
-          }
-          // Fallback to old src/pages/<module>/<PageName>.tsx
-          if (!PageComponent && moduleDir) {
-            const legacyKey = `./pages/${moduleDir}/${route.page}.tsx`;
-            const legacyImportFn = pageModules[legacyKey];
-            if (legacyImportFn) PageComponent = lazy(legacyImportFn as any);
-          }
-          // Fallback to root-level page
-          if (!PageComponent) {
-            const rootKey = `./pages/${route.page}.tsx`;
-            const rootImportFn = pageModules[rootKey];
-            if (rootImportFn) PageComponent = lazy(rootImportFn as any);
           }
           if (!PageComponent) return null;
           

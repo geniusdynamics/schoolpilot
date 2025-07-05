@@ -2,7 +2,7 @@
 // ABOUTME: Self-contained module definition for inventory management
 
 import React from 'react';
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   CubeIcon,
   BuildingOffice2Icon,
@@ -15,7 +15,7 @@ import {
   TruckIcon,
   ArchiveIcon,
   ChartPieIcon,
-} from '../../components/ui/icons';
+} from '@/components/ui/icons';
 import { inventoryPermissions, inventoryDefaultRoles } from './rbac';
 
 export const inventoryModule: ModuleDefinition = {

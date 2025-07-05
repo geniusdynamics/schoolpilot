@@ -1,0 +1,93 @@
+{
+  "dashboard": {
+    "title": "Library Dashboard",
+    "totalBooks": "Total Books",
+    "booksOnLoan": "Books on Loan",
+    "overdueBooks": "Overdue Books",
+    "pendingFines": "Pending Fines",
+    "booksByCategoryChartTitle": "Books by Category",
+    "overviewTitle": "Library Portal Overview",
+    "description": "Manage book catalog, track loans and returns, handle fines, and oversee library resources."
+  },
+  "bookCategories": {
+    "title": "Book Categories Management",
+    "description": "Define categories for library books (e.g., Fiction, Science, History, Reference).",
+    "addButton": "Add Category",
+    "modalAddTitle": "Add New Book Category",
+    "modalEditTitle": "Edit Book Category",
+    "nameLabel": "Category Name",
+    "deleteConfirm": "Are you sure you want to delete this book category? This may affect existing books."
+  },
+  "books": {
+    "title": "Library Book Catalog Management",
+    "description": "Manage all books in the library catalog.",
+    "addButton": "Add Book",
+    "modalAddTitle": "Add New Book",
+    "modalEditTitle": "Edit Book",
+    "titleLabel": "Book Title",
+    "accessionNoLabel": "Accession Number",
+    "authorLabel": "Author(s)",
+    "publisherLabel": "Publisher",
+    "isbnLabel": "ISBN",
+    "categoryLabel": "Category",
+    "selectCategoryOption": "Select Category",
+    "purchaseCostLabel": "Purchase Cost (KES)",
+    "statusLabel": "Status",
+    "deleteConfirm": "Are you sure you want to delete this book? This may affect existing loans and fines."
+  },
+  "bookLoans": {
+    "title": "Book Loans Management",
+    "description": "Issue books to users and manage returns. Overdue books may automatically generate fines.",
+    "issueLoanButton": "Issue New Loan",
+    "issueButton": "Issue Book",
+    "modalAddTitle": "Issue New Book Loan",
+    "modalViewTitle": "View Loan Details",
+    "bookLabel": "Book to Loan",
+    "selectBookOption": "Select Book",
+    "borrowerLabel": "Borrower (Student/Staff)",
+    "selectUserOption": "Select User",
+    "dueDateLabel": "Due Date",
+    "returnDateLabel": "Return Date",
+    "markReturnedButton": "Mark Returned",
+    "markReturnedConfirm": "Mark book \"{{title}}\" as returned?",
+    "userNotFound": "Selected user not found."
+  },
+  "fines": {
+    "title": "Library Fines Management",
+    "description": "View and manage library fines. Fines for overdue books are often generated automatically upon return.",
+    "addFineButton": "Add Manual Fine",
+    "modalAddTitle": "Add Manual Fine",
+    "modalEditTitle": "Update Fine Status",
+    "loanLabel": "Associated Loan",
+    "selectLoanOption": "Select Loan (for context)",
+    "amountLabel": "Fine Amount (KES)",
+    "reasonLabel": "Reason for Fine",
+    "statusLabel": "Fine Status",
+    "deleteConfirm": "Are you sure you want to delete this fine?"
+  },
+  "tableHeaders": {
+    "id": "ID",
+    "name": "Name",
+    "actions": "Actions",
+    "accessionNo": "Accession No",
+    "title": "Title",
+    "author": "Author",
+    "category": "Category",
+    "status": "Status",
+    "bookTitle": "Book Title",
+    "userName": "User Name",
+    "userType": "User Type",
+    "loanDate": "Loan Date",
+    "dueDate": "Due Date",
+    "returnDate": "Return Date",
+    "amountKES": "Amount (KES)",
+    "reason": "Reason",
+    "loanId": "Loan ID"
+  },
+  "fineStatuses": {
+    "pending": "Pending",
+    "billed": "Billed",
+    "paid": "Paid",
+    "waived": "Waived"
+  }
+}

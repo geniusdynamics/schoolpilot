@@ -1,8 +1,8 @@
 // ABOUTME: Settings module definition for modular system
 // ABOUTME: Exports the module definition for the settings module
 
-import { ModuleDefinition } from '../../core/types';
-import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon } from '../../components/ui/icons';
+import { ModuleDefinition } from '@/core/types';
+import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon } from '@/components/ui/icons';
 
 const settingsModule: ModuleDefinition = {
   id: 'settings',
