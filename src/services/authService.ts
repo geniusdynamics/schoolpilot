@@ -212,7 +212,11 @@ class AuthService {
         lastLoginAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        permissions: ['academics.read', 'academics.update', 'dashboard.view', 'settings.view', 'settings.workflows.view'],
+        permissions: [
+          'dashboard.view',
+          'academics.view', 'academics.read', 'academics.update',
+          'settings.view', 'settings.workflows.view'
+        ],
         moduleAccess: ['dashboard', 'academics', 'settings']
       },
       'finance': {
@@ -225,7 +229,11 @@ class AuthService {
         lastLoginAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        permissions: ['finance.read', 'finance.update', 'dashboard.view', 'settings.view', 'settings.workflows.view'],
+        permissions: [
+          'dashboard.view',
+          'finance.view', 'finance.read', 'finance.update',
+          'settings.view', 'settings.workflows.view'
+        ],
         moduleAccess: ['dashboard', 'finance', 'settings']
       },
       'student': {
@@ -238,7 +246,10 @@ class AuthService {
         lastLoginAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        permissions: ['academics.read', 'dashboard.view'],
+        permissions: [
+          'dashboard.view',
+          'academics.view', 'academics.read'
+        ],
         moduleAccess: ['dashboard', 'academics']
       }
     };

@@ -130,7 +130,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       <Route 
         path="/dashboard" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
             <Suspense fallback={<div>Loading...</div>}>
               <DashboardPage />
             </Suspense>
@@ -170,12 +170,17 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
             if (rootImportFn) PageComponent = lazy(rootImportFn as any);
           }
           if (!PageComponent) return null;
+          
+          // Extract module name for permission checking
+          const moduleName = moduleDir || module.id;
+          const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
+          
           return (
             <Route
               key={route.path}
               path={route.path}
               element={
-                <ProtectedRoute requiredModule={moduleDir}>
+                <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
                   <Suspense fallback={<div>Loading...</div>}>
                     <PageComponent />
                   </Suspense>
@@ -199,9 +204,11 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
             
             // Determine required permission based on module path
             const modulePath = nav.modulePath?.replace('/', '') || '';
-            const requiredPermission = modulePath ? `${modulePath}.view` : undefined;
+            // Extract module name from path (e.g., '/administration' -> 'administration')
+            const moduleName = modulePath || nav.path.split('/')[1] || '';
+            const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
             
-            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission);
+            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission, 'moduleName:', moduleName);
             
             return (
               <Route
@@ -210,7 +217,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
                 element={
                   <ProtectedRoute 
                     requiredPermission={requiredPermission}
-                    requiredModule={modulePath}
+                    requiredModule={moduleName}
                   >
                     <Suspense fallback={<div>Loading...</div>}>
                       <PageComponent />
