@@ -212,8 +212,8 @@ class AuthService {
         lastLoginAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        permissions: ['academics.read', 'academics.update', 'dashboard.view'],
-        moduleAccess: ['dashboard', 'academics']
+        permissions: ['academics.read', 'academics.update', 'dashboard.view', 'settings.view', 'settings.workflows.view'],
+        moduleAccess: ['dashboard', 'academics', 'settings']
       },
       'finance': {
         id: 'USR_DEMO_FINANCE',
@@ -225,8 +225,8 @@ class AuthService {
         lastLoginAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        permissions: ['finance.read', 'finance.update', 'dashboard.view'],
-        moduleAccess: ['dashboard', 'finance']
+        permissions: ['finance.read', 'finance.update', 'dashboard.view', 'settings.view', 'settings.workflows.view'],
+        moduleAccess: ['dashboard', 'finance', 'settings']
       },
       'student': {
         id: 'USR_DEMO_STUDENT',

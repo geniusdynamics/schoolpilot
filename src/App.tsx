@@ -34,40 +34,55 @@ const getPageComponent = (nav: any) => {
   console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
   
   if (nav.page) {
-    const segments = nav.path.split('/').filter(Boolean);
-    let moduleDir = segments.length > 1 ? segments[0] : '';
+    const pathSegments = nav.path.split('/').filter(Boolean);
+    let moduleDir = '';
+
+    // Determine moduleDir based on pathSegments
+    if (pathSegments.length > 0) {
+      // The first segment of the path is always the module directory, if it exists
+      moduleDir = pathSegments[0];
+    }
     
-    console.log('🔍 [getPageComponent] Segments:', segments, 'ModuleDir:', moduleDir);
+    console.log('🔍 [getPageComponent] Segments:', pathSegments, 'ModuleDir:', moduleDir);
     
     // Try modular location first
     if (moduleDir) {
       const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
       const modularImportFn = pageModules[modularKey];
-      console.log('🔍 [getPageComponent] Trying modular key:', modularKey, 'Found:', !!modularImportFn);
-      if (modularImportFn) return lazy(modularImportFn as any);
+      if (modularImportFn) {
+        console.log('✅ [getPageComponent] Found modular key:', modularKey);
+        return lazy(modularImportFn as any);
+      }
     }
     // Fallback to old src/pages/<module>/<PageName>.tsx
     if (moduleDir) {
       const legacyKey = `./pages/${moduleDir}/${nav.page}.tsx`;
       const legacyImportFn = pageModules[legacyKey];
-      console.log('🔍 [getPageComponent] Trying legacy key:', legacyKey, 'Found:', !!legacyImportFn);
-      if (legacyImportFn) return lazy(legacyImportFn as any);
+      if (legacyImportFn) {
+        console.log('✅ [getPageComponent] Found legacy key:', legacyKey);
+        return lazy(legacyImportFn as any);
+      }
     }
     // Fallback to root-level page
     const rootKey = `./pages/${nav.page}.tsx`;
     const rootImportFn = pageModules[rootKey];
-    console.log('🔍 [getPageComponent] Trying root key:', rootKey, 'Found:', !!rootImportFn);
-    if (rootImportFn) return lazy(rootImportFn as any);
+    if (rootImportFn) {
+      console.log('✅ [getPageComponent] Found root key:', rootKey);
+      return lazy(rootImportFn as any);
+    }
     
     console.log('❌ [getPageComponent] No page component found for:', nav.page);
     return null;
   }
-  // Fallback: old logic
+  // Fallback: old logic (should ideally not be hit if nav.page is always provided)
   const key = `./pages${nav.path}.tsx`;
   const importFn = pageModules[key];
-  console.log('🔍 [getPageComponent] Fallback trying key:', key, 'Found:', !!importFn);
-  if (!importFn) return null;
-  return lazy(importFn as any);
+  if (importFn) {
+    console.log('✅ [getPageComponent] Found fallback key:', key);
+    return lazy(importFn as any);
+  }
+  console.log('❌ [getPageComponent] No page component found for fallback path:', nav.path);
+  return null;
 };
 
 const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
@@ -127,8 +142,14 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       {moduleRegistry.getEnabledModules().flatMap(module =>
         (module.routes || []).map(route => {
           // Use the same dynamic import logic as getPageComponent
-          const segments = route.path.split('/').filter(Boolean);
-          let moduleDir = segments.length > 1 ? segments[0] : '';
+          const pathSegments = route.path.split('/').filter(Boolean);
+          let moduleDir = '';
+
+          // Determine moduleDir based on pathSegments
+          if (pathSegments.length > 0) {
+            // The first segment of the path is always the module directory, if it exists
+            moduleDir = pathSegments[0];
+          }
           let PageComponent = null;
           // Try modular location first
           if (moduleDir) {
