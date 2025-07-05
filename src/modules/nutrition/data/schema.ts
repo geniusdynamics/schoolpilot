@@ -3,7 +3,7 @@
 
 import { RxJsonSchema } from 'rxdb';
 import * as types from './types';
-import { createEntitySchema } from '../../../services/rxdbService'; // Assuming createEntitySchema is made exportable
+import { createEntitySchema } from '../../../utils/schemaUtils';
 
 export const mealPlanSchema: RxJsonSchema<types.MealPlan> = createEntitySchema<types.MealPlan>(
     'meal_plan',

@@ -55,21 +55,12 @@ const getModuleGlassStyle = (moduleKey: string, isSelected: boolean) => {
 };
 
 const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key: string) => void }> = ({ selectedModuleKey, onModuleSelect }) => {
-  const [modulesReady, setModulesReady] = useState(false);
-  const { navigationItems } = useDynamicNavigation(modulesReady);
+  const { navigationItems } = useDynamicNavigation(true); // Always pass true since modules are already initialized
   const mainModules = navigationItems.filter(item => item.isGroup);
-  
-  // Set modules as ready after a short delay to ensure initialization
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setModulesReady(true);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
   
   // Debug logs to help identify the issue
   console.log('🔍 [PrimarySidebar] Debug Info:', {
-    modulesReady,
+    modulesReady: true,
     navigationItemsCount: navigationItems.length,
     navigationItems: navigationItems,
     mainModulesCount: mainModules.length,

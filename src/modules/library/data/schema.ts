@@ -3,7 +3,7 @@
 
 import { RxJsonSchema } from 'rxdb';
 import * as types from './types';
-import { createEntitySchema } from '../../../services/rxdbService';
+import { createEntitySchema } from '../../../utils/schemaUtils';
 
 export const bookCategorySchema: RxJsonSchema<types.LibBookCategoryType> = createEntitySchema<types.LibBookCategoryType>(
     'book_category',

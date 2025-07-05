@@ -18,44 +18,60 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Lazy load the login page
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 
+// Lazy load the dashboard page
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+
 // Vite will statically analyze all .tsx files in ./pages and ./modules/*/pages
 const pageModules = {
   ...import.meta.glob('./pages/**/*.tsx'),
   ...import.meta.glob('./modules/*/pages/**/*.tsx'),
 };
 
+console.log('🔍 [App] Available page modules:', Object.keys(pageModules));
+
 // Future-proof getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx, then src/pages/<module>/<PageName>.tsx, then src/pages/<PageName>.tsx
 const getPageComponent = (nav: any) => {
+  console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
+  
   if (nav.page) {
     const segments = nav.path.split('/').filter(Boolean);
     let moduleDir = segments.length > 1 ? segments[0] : '';
+    
+    console.log('🔍 [getPageComponent] Segments:', segments, 'ModuleDir:', moduleDir);
+    
     // Try modular location first
     if (moduleDir) {
       const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
       const modularImportFn = pageModules[modularKey];
+      console.log('🔍 [getPageComponent] Trying modular key:', modularKey, 'Found:', !!modularImportFn);
       if (modularImportFn) return lazy(modularImportFn as any);
     }
     // Fallback to old src/pages/<module>/<PageName>.tsx
     if (moduleDir) {
       const legacyKey = `./pages/${moduleDir}/${nav.page}.tsx`;
       const legacyImportFn = pageModules[legacyKey];
+      console.log('🔍 [getPageComponent] Trying legacy key:', legacyKey, 'Found:', !!legacyImportFn);
       if (legacyImportFn) return lazy(legacyImportFn as any);
     }
     // Fallback to root-level page
     const rootKey = `./pages/${nav.page}.tsx`;
     const rootImportFn = pageModules[rootKey];
+    console.log('🔍 [getPageComponent] Trying root key:', rootKey, 'Found:', !!rootImportFn);
     if (rootImportFn) return lazy(rootImportFn as any);
+    
+    console.log('❌ [getPageComponent] No page component found for:', nav.page);
     return null;
   }
   // Fallback: old logic
   const key = `./pages${nav.path}.tsx`;
   const importFn = pageModules[key];
+  console.log('🔍 [getPageComponent] Fallback trying key:', key, 'Found:', !!importFn);
   if (!importFn) return null;
   return lazy(importFn as any);
 };
 
 const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
-  const { navigationItems } = useDynamicNavigation(modulesInitialized);
+  const { navigationItems } = useDynamicNavigation(true);
   const { accessibleModules } = useRBAC();
   const { user } = useAuth();
 
@@ -70,6 +86,17 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
     filteredItems: navigationItems.filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
   });
 
+  // Debug: Check each navigation item structure
+  navigationItems.forEach((item, index) => {
+    console.log(`🔍 [DynamicRoutes] Navigation Item ${index}:`, {
+      name: item.name,
+      path: item.path,
+      isGroup: item.isGroup,
+      children: item.children,
+      childrenCount: item.children?.length || 0
+    });
+  });
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -81,6 +108,18 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           <Suspense fallback={<div>Loading...</div>}>
             <LoginPage />
           </Suspense>
+        } 
+      />
+      
+      {/* Direct Dashboard Route - Always Available */}
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<div>Loading...</div>}>
+              <DashboardPage />
+            </Suspense>
+          </ProtectedRoute>
         } 
       />
       
@@ -127,14 +166,21 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       )}
       {navigationItems
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
-        .flatMap(module =>
-          (module.children || []).map(nav => {
+        .flatMap(module => {
+          console.log('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
+          return (module.children || []).map(nav => {
+            console.log('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
             const PageComponent = getPageComponent(nav);
-            if (!PageComponent) return null;
+            if (!PageComponent) {
+              console.log('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
+              return null;
+            }
             
             // Determine required permission based on module path
             const modulePath = nav.modulePath?.replace('/', '') || '';
             const requiredPermission = modulePath ? `${modulePath}.view` : undefined;
+            
+            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission);
             
             return (
               <Route
@@ -152,8 +198,8 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
                 }
               />
             );
-          })
-        )}
+          });
+        })}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

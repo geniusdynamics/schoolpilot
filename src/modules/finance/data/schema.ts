@@ -3,7 +3,7 @@
 
 import { RxJsonSchema } from 'rxdb';
 import * as FinTypes from './types'; // Use alias to avoid conflict
-import { createEntitySchema } from '../../../services/rxdbService';
+import { createEntitySchema } from '../../../utils/schemaUtils';
 import { SchoolPeriod } from '../../../types'; // Import SchoolPeriod from core types
 
 export const financialYearSchema: RxJsonSchema<FinTypes.FinFinancialYearType> = createEntitySchema<FinTypes.FinFinancialYearType>(
