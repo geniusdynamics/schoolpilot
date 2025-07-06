@@ -67,7 +67,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
       return;
     }
 
-    const isDuplicate = classSubjectAllocations.some(
+    const isDuplicate = (classSubjectAllocations || []).some(
         alloc => alloc.id !== editingAllocation?.id &&
                  alloc.class_stream_id === Number(formData.class_stream_id) &&
                  alloc.subject_id === Number(formData.subject_id) &&
@@ -155,7 +155,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
           required
         >
           <option value="">{t('classSubjectAllocations.selectClassStreamOption')}</option>
-          {classStreams.map((cs: ClassStream) => (
+          {(classStreams || []).map((cs: ClassStream) => (
             <option key={cs.id} value={cs.id}>{cs.name}</option>
           ))}
         </Select>
@@ -167,7 +167,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
           required
         >
           <option value="">{t('classSubjectAllocations.selectSubjectOption')}</option>
-          {subjects.map((subject: CoreSubject) => (
+          {(subjects || []).map((subject: CoreSubject) => (
             <option key={subject.id} value={subject.id}>{subject.name} ({subject.subject_code})</option>
           ))}
         </Select>
@@ -179,7 +179,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
           required
         >
           <option value="">{t('classSubjectAllocations.selectAcademicYearOption')}</option>
-          {academicYears.map((ay: AcademicYear) => (
+          {(academicYears || []).map((ay: AcademicYear) => (
             <option key={ay.id} value={ay.id}>{ay.name}</option>
           ))}
         </Select>

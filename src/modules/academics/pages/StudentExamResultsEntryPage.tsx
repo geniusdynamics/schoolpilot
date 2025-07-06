@@ -51,7 +51,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
       const initialMarks: MarkInput = {};
       studs.forEach(student => {
         initialMarks[student.id] = {};
-        const existingResult = studentExamResults.find(
+        const existingResult = (studentExamResults || []).find(
           res => res.student_id === student.id && res.exam_session_id === selectedExamSessionId
         );
         papers.forEach(paperSetting => {
@@ -126,7 +126,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
       { header: 'Adm No', accessor: (item: Student) => item.admission_no },
       { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name}` },
     ];
-    const dynamicPaperColumns = paperSettingsForSession.map(paperSetting => ({
+    const dynamicPaperColumns = (paperSettingsForSession || []).map(paperSetting => ({
       header: `${paperSetting.subject_name || 'Subject'} - ${paperSetting.subject_paper_name || 'Paper'} (/${paperSetting.marks_out_of})`,
       accessor: (student: Student) => student.id, // Use student.id to then access marks state
       render: (student: Student) => (
@@ -158,7 +158,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
             onChange={(e) => setSelectedExamSessionId(e.target.value || undefined)}
           >
             <option value="">-- Select Exam Session --</option>
-            {examSessions.map(session => (
+            {(examSessions || []).map(session => (
               <option key={session.id} value={session.id}>{session.name} ({session.school_period_name})</option>
             ))}
           </Select>
@@ -169,7 +169,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
             disabled={!selectedExamSessionId}
           >
             <option value="">-- Select Class Stream --</option>
-            {classStreams.map(cs => (
+            {(classStreams || []).map(cs => (
               <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>
             ))}
           </Select>

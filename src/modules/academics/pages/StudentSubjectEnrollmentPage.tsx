@@ -52,23 +52,23 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
   // Filtered data for dropdowns
   const filteredSchoolPeriods = useMemo(() => {
     if (!selectedAcademicYearId) return [];
-    return schoolPeriods.filter(sp => sp.academic_year_id === selectedAcademicYearId);
+    return (schoolPeriods || []).filter(sp => sp.academic_year_id === selectedAcademicYearId);
   }, [selectedAcademicYearId, schoolPeriods]);
 
   const filteredClassStreams = useMemo(() => {
     if (!selectedClassId) return [];
-    return classStreams.filter(cs => cs.class_id === selectedClassId);
+    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   // Data for the enrollment grid
   const studentsForGrid = useMemo(() => {
     if (!selectedStreamId) return [];
-    return students.filter(s => s.current_class_stream_id === selectedStreamId && s.status === StudentStatus.ACTIVE);
+    return (students || []).filter(s => s.current_class_stream_id === selectedStreamId && s.status === StudentStatus.ACTIVE);
   }, [selectedStreamId, students]);
 
   const subjectsForGrid = useMemo(() => {
     if (!selectedStreamId || !selectedAcademicYearId) return [];
-    return classSubjectAllocations.filter(
+    return (classSubjectAllocations || []).filter(
       csa => csa.class_stream_id === selectedStreamId && csa.academic_year_id === selectedAcademicYearId
     );
   }, [selectedStreamId, selectedAcademicYearId, classSubjectAllocations]);
@@ -188,11 +188,11 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
   const gridColumns = useMemo(() => {
     if (!showEnrollmentGrid) return [];
     const studentCol = { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name}` };
-    const subjectCols = subjectsForGrid.map(csa => ({
+    const subjectCols = (subjectsForGrid || []).map(csa => ({
       header: csa.subject_name || 'Unknown Subject',
       accessor: 'id' as keyof Student, // Use student ID to look up enrollment
       render: (student: Student) => {
-        const isEnrolled = studentSubjectEnrollments.some(
+        const isEnrolled = (studentSubjectEnrollments || []).some(
           e => e.student_id === student.id && e.class_subject_allocation_id === csa.id && e.status === StudentEnrollmentStatus.ENROLLED
         );
         return (
@@ -298,7 +298,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
           disabled={!!editingEnrollment} 
         >
           <option value="">Select Student</option>
-          {students.filter(s => s.status === StudentStatus.ACTIVE).map((std: Student) => (
+          {(students || []).filter(s => s.status === StudentStatus.ACTIVE).map((std: Student) => (
             <option key={std.id} value={std.id}>{std.first_name} {std.last_name} ({std.admission_no}) - {std.current_class_name} {std.current_class_stream_name}</option>
           ))}
         </Select>
@@ -311,9 +311,9 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
           disabled={!!editingEnrollment || !formData.student_id}
         >
           <option value="">Select Subject (for Student's Class)</option>
-          {classSubjectAllocations
-            .filter(alloc => !formData.student_id || alloc.class_stream_id === students.find(s => s.id === formData.student_id)?.current_class_stream_id) // Filter by selected student's class stream
-            .map((alloc: import('../../core/types').ClassSubjectAllocation) => (
+          {(classSubjectAllocations || [])
+            .filter(alloc => !formData.student_id || alloc.class_stream_id === (students || []).find(s => s.id === formData.student_id)?.current_class_stream_id) // Filter by selected student's class stream
+            .map((alloc: any) => (
             <option key={alloc.id} value={alloc.id}>
               {alloc.subject_name} ({alloc.class_stream_name} - {alloc.academic_year_name})
             </option>

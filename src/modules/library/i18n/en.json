@@ -10,6 +10,14 @@
     "description": "Manage book catalog, track loans and returns, handle fines, and oversee library resources."
   },
   "bookCategories": {
+    "managementTitle": "Book Categories Management",
+    "defineCategories": "Define categories for library books (e.g., Fiction, Science, History, Reference).",
+    "addCategory": "Add Category",
+    "addNewBookCategory": "Add New Book Category",
+    "editBookCategory": "Edit Book Category",
+    "categoryName": "Category Name",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
     "title": "Book Categories Management",
     "description": "Define categories for library books (e.g., Fiction, Science, History, Reference).",
     "addButton": "Add Category",

@@ -195,7 +195,7 @@ const PayrollPeriodsPage: React.FC = () => {
           required
         >
           <option value="">Select Financial Year</option>
-          {financialYears.map((fy: FinancialYear) => (
+          {(financialYears || []).map((fy: FinancialYear) => (
             <option key={fy.id} value={fy.id}>{fy.name}</option>
           ))}
         </Select>
@@ -206,7 +206,7 @@ const PayrollPeriodsPage: React.FC = () => {
           onChange={handleInputChange}
         >
           <option value="">None</option>
-          {schoolPeriods.map((sp: SchoolPeriod) => (
+          {(schoolPeriods || []).map((sp: SchoolPeriod) => (
             <option key={sp.id} value={sp.id}>{sp.name}</option>
           ))}
         </Select>

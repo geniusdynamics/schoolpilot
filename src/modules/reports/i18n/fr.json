@@ -28,6 +28,24 @@
     "meanGrade": "Note Moyenne",
     "rank": "Rang"
   },
+  "studentMasterlistPage": {
+    "title": "Liste Principale des Étudiants",
+    "filterDescription": "Filtrez et générez une liste complète des étudiants.",
+    "filterByClass": "Filtrer par Classe",
+    "allClasses": "Toutes les Classes",
+    "filterByStream": "Filtrer par Filière",
+    "allStreams": "Toutes les Filières",
+    "filterByStatus": "Filtrer par Statut",
+    "allStatuses": "Tous les Statuts",
+    "filterByGender": "Filtrer par Sexe",
+    "allGenders": "Tous les Sexes",
+    "generateReport": "Générer le Rapport",
+    "loadingInitialData": "Chargement des données initiales...",
+    "generatingReport": "Génération du rapport...",
+    "print": "Imprimer",
+    "exportCSV": "Exporter CSV",
+    "noStudentsFound": "Aucun étudiant trouvé correspondant aux critères."
+  },
   "studentMasterlist": {
     "title": "Liste Principale des Étudiants",
     "description": "Filtrez et générez une liste complète des étudiants.",
@@ -99,6 +117,20 @@
     "closingBalanceLabel": "Solde de Clôture: KES",
     "selectFiltersMessage": "Veuillez sélectionner les filtres et cliquer sur \"Générer Relevé\"."
   },
+  "teacherAssignmentsPage": {
+    "title": "Rapport d'Affectation des Enseignants",
+    "description": "Voir les matières et classes assignées aux enseignants pour une année académique sélectionnée.",
+    "selectAcademicYear": "Année Académique",
+    "allYears": "Toutes Années",
+    "selectTeacher": "Enseignant",
+    "allTeachers": "Tous Enseignants",
+    "generateReport": "Générer Rapport",
+    "loadingData": "Chargement des données...",
+    "generatingReport": "Génération du rapport...",
+    "print": "Imprimer",
+    "exportCSV": "Exporter CSV",
+    "noAssignmentsFound": "Aucune affectation trouvée pour les critères sélectionnés."
+  },
   "teacherAssignments": {
     "title": "Rapport d'Affectation des Enseignants",
     "description": "Voir les matières et classes assignées aux enseignants pour une année académique sélectionnée.",
@@ -112,6 +144,21 @@
     "print": "Imprimer",
     "exportCSV": "Exporter CSV",
     "noData": "Aucune affectation trouvée pour les critères sélectionnés."
+  },
+  "accountLedgerPage": {
+    "title": "Rapport du Grand Livre Comptable",
+    "description": "Voir les transactions pour un compte GL sélectionné dans une plage de dates.",
+    "selectAccount": "Compte GL",
+    "selectAccountPlaceholder": "Sélectionner Compte",
+    "startDate": "Date de Début",
+    "endDate": "Date de Fin",
+    "generateLedger": "Générer Grand Livre",
+    "generatingLedger": "Génération du grand livre...",
+    "loadingData": "Chargement des données...",
+    "print": "Imprimer",
+    "exportCSV": "Exporter CSV",
+    "noTransactionsFound": "Aucune transaction trouvée pour les critères sélectionnés.",
+    "pleaseSelectFiltersAndClickGenerateLedger": "Veuillez sélectionner les filtres et cliquer sur \"Générer Grand Livre\"."
   },
   "accountLedger": {
     "title": "Rapport du Grand Livre Comptable",

@@ -127,6 +127,29 @@
     "selectTeacherOption": "Sélectionner Professeur",
     "manageStreamsButton": "Gérer Filières"
   },
+  "departments": {
+    "title": "Gestion des Départements",
+    "management": "Gestion des Départements",
+    "addDepartment": "Ajouter Département",
+    "addNewDepartment": "Ajouter Nouveau Département",
+    "editDepartment": "Modifier Département",
+    "departmentName": "Nom du Département",
+    "isAcademicDepartment": "Est un Département Académique",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer les Modifications",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce département ?"
+  },
+  "designations": {
+    "title": "Gestion des Désignations",
+    "management": "Gestion des Désignations",
+    "addDesignation": "Ajouter Désignation",
+    "addNewDesignation": "Ajouter Nouvelle Désignation",
+    "editDesignation": "Modifier Désignation",
+    "designationTitle": "Titre de la Désignation",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer les Modifications",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette désignation ?"
+  },
   "tableHeaders": {
     "partnerName": "Nom du Partenaire",
     "type": "Type",

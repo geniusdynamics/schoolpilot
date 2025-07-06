@@ -186,7 +186,7 @@ const SettingsWorkflowsPage: React.FC = () => {
         ) : null
       }>
         <p className="text-sm text-gray-600 mb-4">{t('workflows.description')}</p>
-        {loading.workflows && !currentWorkflowForStates ? <Spinner /> : <Table columns={workflowColumns} data={workflows} />}
+        {loading.workflows && !currentWorkflowForStates ? <Spinner /> : <Table columns={workflowColumns} data={(workflows || [])} />}
       </Card>
 
       {currentWorkflowForStates && (
@@ -195,7 +195,7 @@ const SettingsWorkflowsPage: React.FC = () => {
             <Button onClick={() => openStateModal(currentWorkflowForStates)} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('workflows.addStateButton')}</Button>
           ) : null
         }>
-          <Table columns={stateColumns} data={currentWorkflowForStates.states || []} emptyStateMessage={t('workflows.noStatesMessage')}/>
+          <Table columns={stateColumns} data={(currentWorkflowForStates.states || [])} emptyStateMessage={t('workflows.noStatesMessage')}/>
         </Card>
       )}
 

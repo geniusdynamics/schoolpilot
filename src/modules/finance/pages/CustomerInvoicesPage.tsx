@@ -47,7 +47,7 @@ const CustomerInvoicesPage: React.FC = () => {
   const initialItemFormData: CustomerInvoiceItemFormData = { description: '', amount: 0, revenue_account_id: undefined };
   const [itemFormData, setItemFormData] = useState<CustomerInvoiceItemFormData>(initialItemFormData);
 
-  const revenueAccounts = useMemo(() => chartOfAccounts.filter(coa => coa.type === FinAccountTypeEnum.REVENUE && coa.is_active), [chartOfAccounts]);
+  const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === FinAccountTypeEnum.REVENUE && coa.is_active), [chartOfAccounts]);
 
   // Invoice Modal
   const openInvoiceModal = (invoice?: CustomerInvoice) => {
@@ -127,14 +127,14 @@ const CustomerInvoicesPage: React.FC = () => {
     const now = new Date().toISOString(); 
 
     if (editingInvoiceItem) {
-      updatedItems = (currentInvoiceForItems.items || []).map(i => 
-        i.id === editingInvoiceItem.id ? 
-        { 
-            ...editingInvoiceItem, 
-            description: itemFormData.description!, 
-            amount: Number(itemFormData.amount!), 
+      updatedItems = (currentInvoiceForItems.items || []).map(i =>
+        i.id === editingInvoiceItem.id ?
+        {
+            ...editingInvoiceItem,
+            description: itemFormData.description!,
+            amount: Number(itemFormData.amount!),
             revenue_account_id: Number(itemFormData.revenue_account_id!),
-            revenue_account_name: revenueAccounts.find(ra => ra.id === Number(itemFormData.revenue_account_id!))?.name,
+            revenue_account_name: (revenueAccounts || []).find(ra => ra.id === Number(itemFormData.revenue_account_id!))?.name,
         } : i
       );
     } else {
@@ -250,7 +250,7 @@ const CustomerInvoicesPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select name="customer_id" label="Customer" value={invoiceFormData.customer_id || ''} onChange={handleInvoiceInputChange} required>
                 <option value="">Select Customer</option>
-                {customers.map((customer: Customer) => (<option key={customer.id} value={customer.id}>{customer.name}</option>))}
+                {(customers || []).map((customer: Customer) => (<option key={customer.id} value={customer.id}>{customer.name}</option>))}
             </Select>
             <Input name="invoice_number" label="Invoice Number" value={invoiceFormData.invoice_number || ''} onChange={handleInvoiceInputChange} required />
             <Input name="issue_date" label="Issue Date" type="date" value={invoiceFormData.issue_date || ''} onChange={handleInvoiceInputChange} required />
@@ -276,7 +276,7 @@ const CustomerInvoicesPage: React.FC = () => {
                 <Input name="amount" label="Amount (KES)" type="number" step="0.01" value={itemFormData.amount ?? ''} onChange={handleItemInputChange} required />
                 <Select name="revenue_account_id" label="Revenue GL Account" value={itemFormData.revenue_account_id || ''} onChange={handleItemInputChange} required className="md:col-span-2">
                     <option value="">Select Revenue Account</option>
-                    {revenueAccounts.map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
+                    {(revenueAccounts || []).map(coa => <option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>)}
                 </Select>
               </div>
               <div className="text-right mt-4">
