@@ -36,6 +36,8 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
 
   // Find the selected main module from dynamic navigation items
@@ -43,19 +45,39 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const subMenus = selectedModule && selectedModule.children ? selectedModule.children : [];
   const moduleKey = selectedModuleKey.split(':')[1]?.split('.')[0] || '';
 
-  // Debug logs to help identify the issue
-  const debugInfo = {
-    selectedModuleKey,
-    isOpen,
-    navigationItemsCount: navigationItems.length,
-    selectedModule,
-    subMenusCount: selectedModule?.children?.length || 0,
-    subMenus: selectedModule?.children || [],
-    accessibleModulesCount: accessibleModules.length,
-    accessibleModules: accessibleModules,
-    user: user?.username,
-    filteredSubMenus: selectedModule?.children?.filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', ''))) || []
-  };
+  // Responsive behavior: auto-collapse on small screens
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 1024); // lg breakpoint
+      
+      // Auto-minimize on medium screens (768-1024px)
+      if (width >= 768 && width < 1024) {
+        setIsMinimized(true);
+      } else if (width >= 1024) {
+        setIsMinimized(false);
+      }
+    };
+
+    handleResize(); // Check initial size
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Auto-close on mobile when clicking outside or on route change
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      const handleClickOutside = (event: MouseEvent) => {
+        const sidebar = document.getElementById('secondary-sidebar');
+        if (sidebar && !sidebar.contains(event.target as Node)) {
+          onClose();
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isMobile, isOpen, onClose]);
 
   // Only log once when component mounts or when there's an error
   useEffect(() => {
@@ -77,130 +99,175 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     return null;
   }
 
+  // Determine sidebar width and behavior based on state
+  const sidebarWidth = isMinimized ? 'w-16' : 'w-56';
+  const sidebarClasses = isMobile
+    ? 'fixed left-20 top-16 z-50 w-56 shadow-2xl' // Mobile: fixed overlay
+    : `relative ${sidebarWidth} transition-all duration-300`; // Desktop: responsive width
+
   return (
-    <aside className={`w-56 transition-all duration-300 flex flex-col shadow-xl border-l border-slate-100 px-2 py-4 relative bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`} style={{ height: 'calc(100vh - 4rem)' }}>
-      <button
-        className="absolute top-4 left-0 z-10 text-slate-400 hover:text-slate-700 p-1"
-        onClick={onClose}
-        title="Collapse menu"
-      >
-        <ChevronLeftIcon className="w-5 h-5" />
-      </button>
-      <div className="mb-4 flex-shrink-0">
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('common:search')}
-          className="w-full rounded bg-white border border-slate-200 text-slate-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-slate-400"
+    <>
+      {/* Mobile backdrop */}
+      {isMobile && (
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          onClick={onClose}
         />
-      </div>
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-        <ul className="space-y-1">
-          {filterItems(subMenus).map(item => (
-            <li key={item.name}>
-              {item.isGroup && item.children ? (
-                <div>
-                  <button onClick={() => toggleGroup(item.name)} className="flex items-center justify-between w-full px-2 py-1 text-xs uppercase tracking-wider text-slate-700 font-bold focus:outline-none">
-                    <span className="flex items-center gap-2">
-                      {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)} {t(item.name)}
-                    </span>
-                    <span>{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>
-                  </button>
-                  {openGroups[item.name] && (
-                    <ul className="space-y-1 mt-1">
-                      {item.children.map((child: any) => (
-                        <li key={child.name}>
-                          <NavLink
-                            to={child.path}
-                            className={({ isActive, isPending }) =>
-                              `flex items-center gap-3 px-3 py-2 border border-transparent transition-all duration-200 rounded-lg ${
-                                isActive
-                                  ? 'border-pink-400 text-pink-500 bg-white font-semibold'
-                                  : isPending
-                                    ? 'bg-blue-100/80 text-blue-900'
-                                    : 'text-slate-700 hover:bg-blue-100/80 hover:text-blue-900 hover:shadow-md'
-                              }`
-                            }
-                          >
-                            {child.icon ? React.createElement(child.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                            <span className="font-medium text-sm">{t(child.name)}</span>
-                          </NavLink>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ) : (
-                <NavLink
-                  to={item.path}
-                  className={({ isActive, isPending }) =>
-                    `flex items-center gap-3 px-3 py-2 border border-transparent transition-all duration-200 rounded-lg ${
-                      isActive
-                        ? 'border-pink-400 text-pink-500 bg-white font-semibold'
-                        : isPending
-                          ? 'bg-blue-100/80 text-blue-900'
-                          : 'text-slate-700 hover:bg-blue-100/80 hover:text-blue-900 hover:shadow-md'
-                    }`
-                  }
-                >
-                  {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                  <span className="font-medium text-sm">{t(item.name)}</span>
-                </NavLink>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <style>{`
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(241, 245, 249, 0.3);
-          border-radius: 10px;
-          margin: 4px 0;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg,
-            rgba(148, 163, 184, 0.4) 0%,
-            rgba(100, 116, 139, 0.6) 50%,
-            rgba(71, 85, 105, 0.7) 100%
-          );
-          border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          transition: all 0.3s ease;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg,
-            rgba(100, 116, 139, 0.7) 0%,
-            rgba(71, 85, 105, 0.8) 50%,
-            rgba(51, 65, 85, 0.9) 100%
-          );
-          border-color: rgba(255, 255, 255, 0.3);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-          transform: scaleX(1.1);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:active {
-          background: linear-gradient(135deg,
-            rgba(71, 85, 105, 0.8) 0%,
-            rgba(51, 65, 85, 0.9) 50%,
-            rgba(30, 41, 59, 1) 100%
-          );
-          transform: scaleX(1.2);
-        }
-        .custom-scrollbar::-webkit-scrollbar-corner {
-          background: transparent;
-        }
-      `}</style>
-    </aside>
+      )}
+      
+      <aside
+        id="secondary-sidebar"
+        className={`${sidebarClasses} flex flex-col shadow-xl border-l border-slate-100 px-2 py-4 bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`}
+        style={{ height: 'calc(100vh - 4rem)' }}
+      >
+        {/* Control buttons */}
+        <div className="absolute top-4 left-0 z-10 flex flex-col gap-1">
+          {!isMobile && (
+            <button
+              className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+              onClick={() => setIsMinimized(!isMinimized)}
+              title={isMinimized ? "Expand menu" : "Minimize menu"}
+            >
+              {isMinimized ? <ChevronRightIcon className="w-4 h-4" /> : <ChevronLeftIcon className="w-4 h-4" />}
+            </button>
+          )}
+          <button
+            className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+            onClick={onClose}
+            title="Close menu"
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+          </button>
+        </div>
+        
+        {/* Search bar - hidden when minimized */}
+        {!isMinimized && (
+          <div className="mb-4 flex-shrink-0">
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={t('common:search')}
+              className="w-full rounded bg-white border border-slate-200 text-slate-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-slate-400"
+            />
+          </div>
+        )}
+        
+        {/* Navigation content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+          <ul className={`space-y-1 ${isMinimized ? 'items-center' : ''}`}>
+            {filterItems(subMenus).map(item => (
+              <li key={item.name}>
+                {item.isGroup && item.children ? (
+                  <div>
+                    <button
+                      onClick={() => !isMinimized && toggleGroup(item.name)}
+                      className={`flex items-center ${isMinimized ? 'justify-center w-full' : 'justify-between w-full'} px-2 py-1 text-xs uppercase tracking-wider text-slate-700 font-bold focus:outline-none hover:bg-slate-100 rounded transition-colors`}
+                      title={isMinimized ? t(item.name) : undefined}
+                    >
+                      <span className={`flex items-center ${isMinimized ? '' : 'gap-2'}`}>
+                        {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
+                        {!isMinimized && t(item.name)}
+                      </span>
+                      {!isMinimized && <span>{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>}
+                    </button>
+                    {openGroups[item.name] && !isMinimized && (
+                      <ul className="space-y-1 mt-1">
+                        {item.children.map((child: any) => (
+                          <li key={child.name}>
+                            <NavLink
+                              to={child.path}
+                              className={({ isActive, isPending }) =>
+                                `flex items-center gap-3 px-3 py-2 border border-transparent transition-all duration-200 rounded-lg ${
+                                  isActive
+                                    ? 'border-pink-400 text-pink-500 bg-white font-semibold'
+                                    : isPending
+                                      ? 'bg-blue-100/80 text-blue-900'
+                                      : 'text-slate-700 hover:bg-blue-100/80 hover:text-blue-900 hover:shadow-md'
+                                }`
+                              }
+                            >
+                              {child.icon ? React.createElement(child.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
+                              <span className="font-medium text-sm">{t(child.name)}</span>
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive, isPending }) =>
+                      `flex items-center ${isMinimized ? 'justify-center' : 'gap-3'} px-3 py-2 border border-transparent transition-all duration-200 rounded-lg ${
+                        isActive
+                          ? 'border-pink-400 text-pink-500 bg-white font-semibold'
+                          : isPending
+                            ? 'bg-blue-100/80 text-blue-900'
+                            : 'text-slate-700 hover:bg-blue-100/80 hover:text-blue-900 hover:shadow-md'
+                      }`
+                    }
+                    title={isMinimized ? t(item.name) : undefined}
+                  >
+                    {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
+                    {!isMinimized && <span className="font-medium text-sm">{t(item.name)}</span>}
+                  </NavLink>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        <style>{`
+          .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(241, 245, 249, 0.3);
+            border-radius: 10px;
+            margin: 4px 0;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg,
+              rgba(148, 163, 184, 0.4) 0%,
+              rgba(100, 116, 139, 0.6) 50%,
+              rgba(71, 85, 105, 0.7) 100%
+            );
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg,
+              rgba(100, 116, 139, 0.7) 0%,
+              rgba(71, 85, 105, 0.8) 50%,
+              rgba(51, 65, 85, 0.9) 100%
+            );
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: scaleX(1.1);
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(135deg,
+              rgba(71, 85, 105, 0.8) 0%,
+              rgba(51, 65, 85, 0.9) 50%,
+              rgba(30, 41, 59, 1) 100%
+            );
+            transform: scaleX(1.2);
+          }
+          .custom-scrollbar::-webkit-scrollbar-corner {
+            background: transparent;
+          }
+        `}</style>
+      </aside>
+    </>
   );
 };
 
-export default SecondarySidebar; 
+export default SecondarySidebar;

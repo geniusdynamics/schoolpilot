@@ -47,11 +47,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen w-screen bg-slate-100">
       <Header onSettings={() => setShowSettings(true)} />
-      <div className="flex flex-1 pt-16">
+      <div className="flex flex-1 pt-16 md:pt-16">
         <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
         <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
-        <main className="flex-1 p-6">
-          {children}
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            {children}
+          </div>
         </main>
         <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />
       </div>
