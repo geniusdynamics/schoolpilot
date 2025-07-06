@@ -78,7 +78,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   }
 
   return (
-    <aside className={`w-56 transition-all duration-300 h-full flex flex-col min-h-0 shadow-xl border-l border-slate-100 px-2 py-4 custom-scrollbar relative bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`}>
+    <aside className={`w-56 transition-all duration-300 flex flex-col shadow-xl border-l border-slate-100 px-2 py-4 relative bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`} style={{ height: 'calc(100vh - 4rem)' }}>
       <button
         className="absolute top-4 left-0 z-10 text-slate-400 hover:text-slate-700 p-1"
         onClick={onClose}
@@ -86,7 +86,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       >
         <ChevronLeftIcon className="w-5 h-5" />
       </button>
-      <div className="mb-4">
+      <div className="mb-4 flex-shrink-0">
         <input
           type="text"
           value={search}
@@ -95,7 +95,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           className="w-full rounded bg-white border border-slate-200 text-slate-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-slate-400"
         />
       </div>
-      <div className="mb-2 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
         <ul className="space-y-1">
           {filterItems(subMenus).map(item => (
             <li key={item.name}>
@@ -155,19 +155,48 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       <style>{`
         .custom-scrollbar {
           scrollbar-width: thin;
-          scrollbar-color: #334155 #1e293b;
+          scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
         }
         .custom-scrollbar::-webkit-scrollbar {
-          width: 7px;
+          width: 8px;
           background: transparent;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(120deg, #334155 40%, #64748b 100%);
-          border-radius: 8px;
-          opacity: 0.5;
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(241, 245, 249, 0.3);
+          border-radius: 10px;
+          margin: 4px 0;
         }
-        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-          opacity: 0.8;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg,
+            rgba(148, 163, 184, 0.4) 0%,
+            rgba(100, 116, 139, 0.6) 50%,
+            rgba(71, 85, 105, 0.7) 100%
+          );
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg,
+            rgba(100, 116, 139, 0.7) 0%,
+            rgba(71, 85, 105, 0.8) 50%,
+            rgba(51, 65, 85, 0.9) 100%
+          );
+          border-color: rgba(255, 255, 255, 0.3);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+          transform: scaleX(1.1);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:active {
+          background: linear-gradient(135deg,
+            rgba(71, 85, 105, 0.8) 0%,
+            rgba(51, 65, 85, 0.9) 50%,
+            rgba(30, 41, 59, 1) 100%
+          );
+          transform: scaleX(1.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar-corner {
+          background: transparent;
         }
       `}</style>
     </aside>
