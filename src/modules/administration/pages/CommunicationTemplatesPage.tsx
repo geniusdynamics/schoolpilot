@@ -8,7 +8,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, EnvelopeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useTemplateCommData } from '../data/useTemplateCommData'; // Use module-specific hook
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -18,12 +18,11 @@ type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updat
 
 const CommunicationTemplatesPage: React.FC = () => {
   const {
-    templatesComm = [],
-    loading,
+    templateComms,
     addTemplateComm,
     updateTemplateComm,
     deleteTemplateComm
-  } = useAppData(); // Updated
+  } = useTemplateCommData(); // Use module-specific hook
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TemplateComm | null>(null);
@@ -108,13 +107,8 @@ const CommunicationTemplatesPage: React.FC = () => {
     },
   ];
 
-  if (loading.templatesComm && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Communication Templates...</span>
-      </div>
-    );
-  }
+  // Module-specific hooks don't have loading states like global context
+  // Remove loading check since data is immediately available
 
   return (
     <div className="space-y-6">
@@ -126,15 +120,15 @@ const CommunicationTemplatesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Create and manage templates for SMS, Email, and Push Notifications. Use placeholders like {"{{student_name}}"}, {"{{parent_name}}"}, {"{{balance}}"} in the body/subject.
         </p>
-        <Table columns={columns} data={templatesComm} isLoading={loading.templatesComm && isModalOpen} />
+        <Table columns={columns} data={templateComms} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingTemplate ? 'Edit Template' : 'Add New Template'} size="xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.templatesComm}>
-              {loading.templatesComm ? <Spinner size="sm"/> : (editingTemplate ? 'Save Changes' : 'Add Template')}
+            <Button onClick={handleSubmit}>
+              {editingTemplate ? 'Save Changes' : 'Add Template'}
             </Button>
           </>
         }

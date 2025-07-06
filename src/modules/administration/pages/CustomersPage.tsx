@@ -6,14 +6,14 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon as CustomersIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useCustomerData } from '@/modules/administration/data/useCustomerData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 type CustomerFormData = Omit<Partial<Customer>, 'id' | 'created_at' | 'updated_at'>;
 
 const CustomersPage: React.FC = () => {
-  const { customers = [], loading, addCustomer, updateCustomer, deleteCustomer } = useAppData(); // Updated
+  const { customers, addCustomer, updateCustomer, deleteCustomer } = useCustomerData();
   const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,14 +80,6 @@ const CustomersPage: React.FC = () => {
     },
   ];
 
-  if (loading.customers && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Customers...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title={t('customers.managementTitle')} actions={
@@ -98,15 +90,15 @@ const CustomersPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           {t('customers.managementDescription')}
         </p>
-        <Table columns={columns} data={customers} isLoading={loading.customers && isModalOpen} />
+        <Table columns={columns} data={customers} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={t(editingCustomer ? 'customers.editCustomer' : 'customers.addNewCustomer')} size="lg"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>{t('customers.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.customers}>
-              {loading.customers ? <Spinner size="sm"/> : (editingCustomer ? t('customers.saveChanges') : t('customers.addCustomer'))}
+            <Button onClick={handleSubmit}>
+              {editingCustomer ? t('customers.saveChanges') : t('customers.addCustomer')}
             </Button>
           </>
         }

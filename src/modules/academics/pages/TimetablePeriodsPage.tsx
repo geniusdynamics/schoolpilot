@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { TimetablePeriodDef } from '@/core/types'; // Corrected import
+import { TimetablePeriodDef } from '@/core/types'; // Use core type (shared across modules)
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ClockIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useTimetablePeriodDefData } from '../data/useTimetablePeriodDefData'; // Use module-specific hook
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -14,12 +14,11 @@ type TimetablePeriodFormData = Omit<Partial<TimetablePeriodDef>, 'id'>;
 
 const TimetablePeriodsPage: React.FC = () => {
   const {
-    timetablePeriodDefs = [],
-    loading,
-    addTimetablePeriodDef,
-    updateTimetablePeriodDef,
-    deleteTimetablePeriodDef
-  } = useAppData(); // Updated
+    data: timetablePeriodDefs,
+    create,
+    update,
+    remove
+  } = useTimetablePeriodDefData(); // Use module-specific hook
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<TimetablePeriodDef | null>(null);
@@ -56,23 +55,24 @@ const TimetablePeriodsPage: React.FC = () => {
         return;
     }
 
-    const payload: Omit<TimetablePeriodDef, 'id'> = {
+    const payload: TimetablePeriodDef = {
+      id: editingPeriod?.id || Date.now(), // Generate ID for new items
       period_name: formData.period_name!,
       start_time: formData.start_time!,
       end_time: formData.end_time!,
     };
 
     if (editingPeriod) {
-      await updateTimetablePeriodDef({ ...editingPeriod, ...payload });
+      update(editingPeriod.id, payload);
     } else {
-      await addTimetablePeriodDef(payload);
+      create(payload);
     }
     closeModal();
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this timetable period?')) {
-      await deleteTimetablePeriodDef(id);
+      remove(id);
     }
   };
 
@@ -93,13 +93,8 @@ const TimetablePeriodsPage: React.FC = () => {
     },
   ];
 
-  if (loading.timetablePeriodDefs && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Timetable Periods...</span>
-      </div>
-    );
-  }
+  // Module-specific hooks don't have loading states like global context
+  // Remove loading check since data is immediately available
 
   return (
     <div className="space-y-6">
@@ -111,15 +106,15 @@ const TimetablePeriodsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Define standard lesson periods for the school day (e.g., Lesson 1, Break) along with their start and end times.
         </p>
-        <Table columns={columns} data={timetablePeriodDefs} isLoading={loading.timetablePeriodDefs && isModalOpen} />
+        <Table columns={columns} data={timetablePeriodDefs} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPeriod ? 'Edit Timetable Period' : 'Add New Timetable Period'}
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.timetablePeriodDefs}>
-              {loading.timetablePeriodDefs ? <Spinner size="sm"/> : (editingPeriod ? 'Save Changes' : 'Add Period')}
+            <Button onClick={handleSubmit}>
+              {editingPeriod ? 'Save Changes' : 'Add Period'}
             </Button>
           </>
         }

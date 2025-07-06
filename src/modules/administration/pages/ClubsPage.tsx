@@ -9,7 +9,8 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon as ClubsIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useClubAndSocietyData } from '@/modules/administration/data/useClubAndSocietyData';
+import { useAppData } from '@/contexts/AppDataContext'; // For staff data only
 import Spinner from '@/components/ui/Spinner';
 
 type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated_at' | 'patron_name' | 'type'> & {
@@ -17,7 +18,8 @@ type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated
 };
 
 const ClubsPage: React.FC = () => {
-  const { clubs = [], staff = [], loading, addClub, updateClub, deleteClub } = useAppData(); // Updated
+  const { clubsAndSocieties, addClubAndSociety, updateClubAndSociety, deleteClubAndSociety } = useClubAndSocietyData();
+  const { staff = [] } = useAppData(); // Only for staff data
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<ClubAndSociety | null>(null);
@@ -53,16 +55,16 @@ const ClubsPage: React.FC = () => {
     };
 
     if (editingClub) {
-      await updateClub({ ...editingClub, ...payload });
+      updateClubAndSociety({ ...editingClub, ...payload });
     } else {
-      await addClub(payload);
+      addClubAndSociety(payload);
     }
     closeModal();
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this club/society?')) {
-      await deleteClub(id);
+      deleteClubAndSociety(id);
     }
   };
 
@@ -83,14 +85,6 @@ const ClubsPage: React.FC = () => {
     },
   ];
 
-  if ((loading.clubs || loading.staff) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Clubs & Societies...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <Card title="Clubs & Societies Management" actions={
@@ -101,15 +95,15 @@ const ClubsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage school clubs, societies, and sports teams. Assign patrons from the staff list.
         </p>
-        <Table columns={columns} data={clubs} isLoading={loading.clubs && isModalOpen} />
+        <Table columns={columns} data={clubsAndSocieties} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingClub ? 'Edit Club/Society' : 'Add New Club/Society'} size="lg"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.clubs}>
-              {loading.clubs ? <Spinner size="sm"/> : (editingClub ? 'Save Changes' : 'Add Club/Society')}
+            <Button onClick={handleSubmit}>
+              {editingClub ? 'Save Changes' : 'Add Club/Society'}
             </Button>
           </>
         }

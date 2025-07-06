@@ -9,7 +9,9 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, MegaphoneIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useCampaignData } from '@/modules/administration/data/useCampaignData';
+import { useTemplateCommData } from '@/modules/administration/data/useTemplateCommData';
+import { useAppData } from '@/contexts/AppDataContext'; // For classStreams only
 import Spinner from '@/components/ui/Spinner';
 import { useUser } from '@/contexts/UserContext'; // Import useUser
 import { useTranslation } from 'react-i18next';
@@ -22,15 +24,9 @@ type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_a
 
 
 const MessageCampaignsPage: React.FC = () => {
-  const {
-    campaigns = [],
-    templatesComm = [],
-    classStreams = [],
-    loading,
-    addCampaign,
-    updateCampaign,
-    deleteCampaign: mockDeleteCampaign
-  } = useAppData(); // Updated
+  const { campaigns, addCampaign, updateCampaign, deleteCampaign } = useCampaignData();
+  const { templateComms } = useTemplateCommData();
+  const { classStreams = [] } = useAppData(); // For classStreams only
   
   const { currentUser } = useUser(); // Get currentUser
   const { t } = useTranslation();
@@ -51,8 +47,8 @@ const MessageCampaignsPage: React.FC = () => {
   const [formData, setFormData] = useState<CampaignFormData>(initialFormData);
   
   const selectedTemplate = useMemo(() => {
-    return templatesComm.find(t => t.id === formData.template_id);
-  }, [templatesComm, formData.template_id]);
+    return templateComms.find((t: TemplateComm) => t.id === formData.template_id);
+  }, [templateComms, formData.template_id]);
 
   useEffect(() => {
     if (selectedTemplate && !editingCampaign) { 
@@ -99,7 +95,7 @@ const MessageCampaignsPage: React.FC = () => {
     setFormData(prev => {
         const newState = {...prev, [name]: processedValue};
         if (name === 'template_id' && processedValue) {
-            const newSelectedTemplate = templatesComm.find(t => t.id === processedValue);
+            const newSelectedTemplate = templateComms.find((t: TemplateComm) => t.id === processedValue);
             if (newSelectedTemplate) {
                 newState.subject = newSelectedTemplate.subject || '';
                 newState.body = newSelectedTemplate.body_template || '';
@@ -153,7 +149,7 @@ const MessageCampaignsPage: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this message campaign?')) {
-      await mockDeleteCampaign(id);
+      deleteCampaign(id);
     }
   };
 
@@ -186,13 +182,6 @@ const MessageCampaignsPage: React.FC = () => {
     },
   ];
 
-  if ((loading.campaigns || loading.templatesComm || loading.classStreams) && !isModalOpen) { // Corrected loading key
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Message Campaigns...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -204,15 +193,15 @@ const MessageCampaignsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('MessageCampaignsPage.designAndManageCommunicationCampaigns')}
         </p>
-        <Table columns={columns} data={campaigns} isLoading={loading.campaigns && isModalOpen} />
+        <Table columns={columns} data={campaigns} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCampaign ? t('MessageCampaignsPage.editCampaign') : t('MessageCampaignsPage.createNewCampaign')} size="xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>{t('MessageCampaignsPage.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.campaigns}>
-              {loading.campaigns ? <Spinner size="sm"/> : (editingCampaign ? t('MessageCampaignsPage.saveChanges') : t('MessageCampaignsPage.createCampaign'))}
+            <Button onClick={handleSubmit}>
+              {editingCampaign ? t('MessageCampaignsPage.saveChanges') : t('MessageCampaignsPage.createCampaign')}
             </Button>
           </>
         }
@@ -233,7 +222,7 @@ const MessageCampaignsPage: React.FC = () => {
                 onChange={handleInputChange}
                 >
                 <option value="">{t('MessageCampaignsPage.useCustomSubjectBody')}</option>
-                {templatesComm.map((template) => (
+                {templateComms.map((template) => (
                     <option key={template.id} value={template.id}>{template.name} ({template.type})</option>
                 ))}
             </Select>

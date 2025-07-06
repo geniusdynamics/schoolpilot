@@ -7,7 +7,8 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, ClockIcon, MinusCircleIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useStudentAttendanceData } from '@/modules/administration/data/useStudentAttendanceData';
+import { useAppData } from '@/contexts/AppDataContext'; // For other data sources
 import Spinner from '@/components/ui/Spinner';
 import Table from '@/components/ui/Table';
 import { useTranslation } from 'react-i18next';
@@ -17,16 +18,12 @@ interface AttendanceData {
 }
 
 const StudentAttendancePage: React.FC = () => {
+  const { studentAttendance, addStudentAttendance } = useStudentAttendanceData();
   const {
     students = [],
     classStreams = [],
     timetablePeriodDefs = [], // This is the raw list of all period definitions
-    studentAttendance = [], // This is the raw list of all attendance records
-    loading,
-    getTimetablePeriodDefs,
-    getStudentAttendanceByFilters,
-    saveStudentAttendance,
-  } = useAppData(); // Updated
+  } = useAppData(); // For other data sources
 
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>(undefined);
@@ -36,21 +33,30 @@ const StudentAttendancePage: React.FC = () => {
   const [pageLoading, setPageLoading] = useState(false); // For fetching students/attendance
   const [saving, setSaving] = useState(false);
 
-  const availablePeriods = useMemo(() => getTimetablePeriodDefs(), [getTimetablePeriodDefs]);
+  const availablePeriods = useMemo(() => timetablePeriodDefs || [], [timetablePeriodDefs]);
 
   const studentsInSelectedStream = useMemo(() => {
     if (!selectedClassStreamId) return [];
     return students.filter(s => s.current_class_stream_id === selectedClassStreamId);
   }, [students, selectedClassStreamId]);
 
+  // Helper function to filter attendance records
+  const getStudentAttendanceByFilters = (date: string, classStreamId: number, periodId: number) => {
+    return studentAttendance.filter(record =>
+      record.date === date &&
+      record.period_id === periodId &&
+      studentsInSelectedStream.some(student => student.id === record.student_id)
+    );
+  };
+
   useEffect(() => {
     if (selectedDate && selectedClassStreamId && selectedPeriodId) {
       setPageLoading(true);
-      // Simulate fetching existing attendance
+      // Get existing attendance records
       const existingRecords = getStudentAttendanceByFilters(selectedDate, selectedClassStreamId, selectedPeriodId);
       const newAttendanceData: AttendanceData = {};
       studentsInSelectedStream.forEach(student => {
-        const record = existingRecords.find(ar => ar.student_id === student.id);
+        const record = existingRecords.find((ar: StudentAttendance) => ar.student_id === student.id);
         newAttendanceData[student.id] = record ? record.status : AttendanceStatus.PRESENT; // Default to present
       });
       setAttendanceData(newAttendanceData);
@@ -58,7 +64,7 @@ const StudentAttendancePage: React.FC = () => {
     } else {
       setAttendanceData({}); // Clear data if filters are not set
     }
-  }, [selectedDate, selectedClassStreamId, selectedPeriodId, studentsInSelectedStream, getStudentAttendanceByFilters]);
+  }, [selectedDate, selectedClassStreamId, selectedPeriodId, studentsInSelectedStream, studentAttendance]);
 
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
@@ -71,17 +77,22 @@ const StudentAttendancePage: React.FC = () => {
       return;
     }
     setSaving(true);
-    const recordsToSave: Array<Omit<StudentAttendance, 'id' | 'created_at'>> = studentsInSelectedStream.map(student => ({
-      student_id: student.id,
-      date: selectedDate,
-      period_id: selectedPeriodId!,
-      status: attendanceData[student.id] || AttendanceStatus.PRESENT, // Default if somehow missing
-    }));
     
-    await saveStudentAttendance(recordsToSave);
+    // Save each attendance record
+    studentsInSelectedStream.forEach(student => {
+      const attendanceRecord: Omit<StudentAttendance, 'id'> = {
+        student_id: student.id,
+        date: selectedDate,
+        period_id: selectedPeriodId!,
+        status: attendanceData[student.id] || AttendanceStatus.PRESENT,
+        student_name: `${student.first_name} ${student.last_name}`,
+        period_name: availablePeriods.find(p => p.id === selectedPeriodId)?.period_name,
+      };
+      addStudentAttendance(attendanceRecord);
+    });
+    
     setSaving(false);
     alert("Attendance saved successfully!");
-    // Optionally refetch or update local state if saveStudentAttendance doesn't do it
   };
   
   const attendanceColumns = [
@@ -110,10 +121,6 @@ const StudentAttendancePage: React.FC = () => {
     },
   ];
 
-
-  if (loading.students || loading.classStreams || loading.timetablePeriodDefs) {
-      return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
-  }
 
   return (
     <div className="space-y-6">

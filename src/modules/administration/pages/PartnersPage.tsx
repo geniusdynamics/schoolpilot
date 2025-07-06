@@ -8,7 +8,7 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon as PartnersIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { usePartnerData } from '../data/usePartnerData'; // Use module-specific hook
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -18,12 +18,11 @@ type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at'
 
 const PartnersPage: React.FC = () => {
   const {
-    partners = [],
-    loading,
+    partners,
     addPartner,
     updatePartner,
     deletePartner
-  } = useAppData(); // Updated
+  } = usePartnerData(); // Use module-specific hook
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
@@ -111,13 +110,8 @@ const PartnersPage: React.FC = () => {
     },
   ];
 
-  if (loading.partners && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Partners...</span>
-      </div>
-    );
-  }
+  // Module-specific hooks don't have loading states like global context
+  // Remove loading check since data is immediately available
 
   return (
     <div className="space-y-6">
@@ -129,15 +123,15 @@ const PartnersPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage school partners such as sponsors, board members, service providers, and government agencies.
         </p>
-        <Table columns={columns} data={partners} isLoading={loading.partners && isModalOpen} />
+        <Table columns={columns} data={partners} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPartner ? 'Edit Partner' : 'Add New Partner'} size="xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.partners}>
-              {loading.partners ? <Spinner size="sm"/> : (editingPartner ? 'Save Changes' : 'Add Partner')}
+            <Button onClick={handleSubmit}>
+              {editingPartner ? 'Save Changes' : 'Add Partner'}
             </Button>
           </>
         }

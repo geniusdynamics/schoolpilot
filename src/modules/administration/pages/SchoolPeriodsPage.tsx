@@ -7,25 +7,22 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useSchoolPeriodData } from '../data/useSchoolPeriodData';
+import { useAcademicYearData } from '../data/useAcademicYearData';
+import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefinitionData';
+import { useFinancialYearData } from '../../finance/data/useFinancialYearData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'updated_at' | 'name' | 'academic_year_name' | 'period_definition_name' | 'financial_year_name' > & {
-    period_definition_id?: number; 
+    period_definition_id?: string;
 };
 
 const SchoolPeriodsPage: React.FC = () => {
-  const {
-    schoolPeriods = [],
-    academicYears = [],
-    academicPeriodDefinitions = [],
-    financialYears = [],
-    loading,
-    addSchoolPeriod,
-    updateSchoolPeriod,
-    deleteSchoolPeriod
-  } = useAppData(); // Updated
+  const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
+  const { academicYears } = useAcademicYearData();
+  const { academicPeriodDefinitions } = useAcademicPeriodDefinitionData();
+  const { data: financialYears } = useFinancialYearData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<SchoolPeriod | null>(null);
@@ -71,9 +68,11 @@ const SchoolPeriodsPage: React.FC = () => {
 
     if (type === 'checkbox' && 'checked' in e.target) {
         processedValue = (e.target as HTMLInputElement).checked;
-    } else if (name === 'academic_year_id' || name === 'financial_year_id' || name === 'period_definition_id') {
+    } else if (name === 'academic_year_id' || name === 'financial_year_id') {
         processedValue = value ? parseInt(value, 10) : undefined;
         if(Number.isNaN(processedValue as number)) processedValue = undefined;
+    } else if (name === 'period_definition_id') {
+        processedValue = value || undefined;
     }
     
     setFormData(prev => ({ ...prev, [name]: processedValue }));
@@ -93,9 +92,9 @@ const SchoolPeriodsPage: React.FC = () => {
         return;
     }
 
-    const payload = { 
-        academic_year_id: Number(formData.academic_year_id!), 
-        period_definition_id: Number(formData.period_definition_id!), 
+    const payload = {
+        academic_year_id: Number(formData.academic_year_id!),
+        period_definition_id: String(formData.period_definition_id!),
         financial_year_id: Number(formData.financial_year_id!),
         start_date: formData.start_date!,
         end_date: formData.end_date!,
@@ -139,13 +138,6 @@ const SchoolPeriodsPage: React.FC = () => {
     },
   ];
 
-  if ((loading.schoolPeriods || loading.academicYears || loading.academicPeriodDefinitions || loading.financialYears) && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading School Periods...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -157,15 +149,15 @@ const SchoolPeriodsPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           Define specific school terms or semesters within an academic year. Link them to financial years and academic period definitions (e.g., "Term 1").
         </p>
-        <Table columns={columns} data={schoolPeriods} isLoading={loading.schoolPeriods && isModalOpen} />
+        <Table columns={columns} data={schoolPeriods} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPeriod ? 'Edit School Period' : 'Add New School Period'} size="xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.schoolPeriods}>
-              {loading.schoolPeriods ? <Spinner size="sm"/> : (editingPeriod ? 'Save Changes' : 'Add Period')}
+            <Button onClick={handleSubmit}>
+              {editingPeriod ? 'Save Changes' : 'Add Period'}
             </Button>
           </>
         }
