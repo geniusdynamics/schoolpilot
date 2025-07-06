@@ -28,11 +28,11 @@ import reportsFr from '../modules/reports/i18n/fr.json';
 import settingsFr from '../modules/settings/i18n/fr.json';
 import dashboardFr from '../modules/dashboard/i18n/fr.json';
 
-// Keep common and navigation in the main i18n directory for now
-import commonEn from './locales/en/common.json';
-import navigationEn from './locales/en/navigation.json';
-import commonFr from './locales/fr/common.json';
-import navigationFr from './locales/fr/navigation.json';
+// Core module translations (common and navigation)
+import commonEn from '../modules/core/i18n/en/common.json';
+import navigationEn from '../modules/core/i18n/en/navigation.json';
+import commonFr from '../modules/core/i18n/fr/common.json';
+import navigationFr from '../modules/core/i18n/fr/navigation.json';
 
 export const loadModularTranslations = (i18nInstance: typeof i18next) => {
   // English modular resources
