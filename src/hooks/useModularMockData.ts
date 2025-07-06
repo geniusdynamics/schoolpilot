@@ -46,7 +46,14 @@ export const useModularMockData = (): AppDataContextType => {
   useEffect(() => {
     // Simulate async loading
     const timer = setTimeout(() => {
-      setLoading(prev => ({ ...prev, all: false }));
+      setLoading(prev => {
+        // Set all loading states to false
+        const newLoading = { ...prev };
+        Object.keys(newLoading).forEach(key => {
+          newLoading[key as keyof AppDataLoadingStates] = false;
+        });
+        return newLoading;
+      });
     }, 100);
     return () => clearTimeout(timer);
   }, []);

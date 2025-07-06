@@ -26,19 +26,19 @@ const StatCard: React.FC<{ title: string; value: string | number; icon: React.Re
 
 
 const AdministrationDashboardPage: React.FC = () => {
-  const { 
-    loading, 
-    students, 
-    staff, 
-    classes, 
-    academicYearStructures,
-    academicYears,
-    schoolPeriods,
-    clubs,
-    customers,
-    departments, // Added
-    studentCategories // Added
-  } = useAppData(); 
+  const {
+    loading,
+    students = [],
+    staff = [],
+    classes = [],
+    academicYearStructures = [],
+    academicYears = [],
+    schoolPeriods = [],
+    clubs = [],
+    customers = [],
+    departments = [], // Added with default
+    studentCategories = [] // Added with default
+  } = useAppData();
 
   if (loading.all || loading.students || loading.staff || loading.classes || loading.departments || loading.studentCategories) {
     return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;

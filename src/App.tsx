@@ -21,15 +21,32 @@ const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 // Lazy load the dashboard page
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 
+// Test direct import to see if the issue is with dynamic imports
+const testImport = async () => {
+  try {
+    const module = await import('./modules/administration/pages/AdministrationDashboardPage.tsx');
+    console.log('✅ [Test] Direct import successful:', module);
+  } catch (error) {
+    console.error('❌ [Test] Direct import failed:', error);
+  }
+};
+
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 const pageModules = {
+  ...import.meta.glob('./modules/*/pages/*.tsx'),
   ...import.meta.glob('./modules/*/pages/**/*.tsx'),
 };
 
 console.log('🚀 [App] Available page modules:', Object.keys(pageModules).length);
+console.log('🚀 [App] Page module keys:', Object.keys(pageModules));
+
+// Test the import
+testImport();
 
 // Modular getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx
 const getPageComponent = (nav: any) => {
+  console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
+  
   if (nav.page) {
     const pathSegments = nav.path.split('/').filter(Boolean);
     let moduleDir = '';
@@ -40,12 +57,18 @@ const getPageComponent = (nav: any) => {
       moduleDir = pathSegments[0];
     }
     
+    console.log('🔍 [getPageComponent] Segments:', pathSegments, 'ModuleDir:', moduleDir);
+    
     // Try modular location
     if (moduleDir) {
       const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
+      console.log('🔍 [getPageComponent] Looking for key:', modularKey);
       const modularImportFn = pageModules[modularKey];
       if (modularImportFn) {
+        console.log('✅ [getPageComponent] Found modular key:', modularKey);
         return lazy(modularImportFn as any);
+      } else {
+        console.log('❌ [getPageComponent] Key not found:', modularKey);
       }
     }
     
@@ -74,25 +97,39 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       
       {/* Login Route */}
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-center">
+                <Spinner size="lg" />
+                <p className="mt-4 text-gray-600">Loading login page...</p>
+              </div>
+            </div>
+          }>
             <LoginPage />
           </Suspense>
-        } 
+        }
       />
       
       {/* Direct Dashboard Route - Always Available */}
-      <Route 
-        path="/dashboard" 
+      <Route
+        path="/dashboard"
         element={
           <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading dashboard...</p>
+                </div>
+              </div>
+            }>
               <DashboardPage />
             </Suspense>
           </ProtectedRoute>
-        } 
+        }
       />
       
       {/* Register custom/dynamic routes from all enabled modules */}
@@ -126,7 +163,14 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
               path={route.path}
               element={
                 <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
-                  <Suspense fallback={<div>Loading...</div>}>
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center h-screen">
+                      <div className="text-center">
+                        <Spinner size="lg" />
+                        <p className="mt-4 text-gray-600">Loading page...</p>
+                      </div>
+                    </div>
+                  }>
                     <PageComponent />
                   </Suspense>
                 </ProtectedRoute>
@@ -138,9 +182,12 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       {navigationItems
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
         .flatMap(module => {
+          console.log('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
           return (module.children || []).map(nav => {
+            console.log('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
             const PageComponent = getPageComponent(nav);
             if (!PageComponent) {
+              console.log('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
               return null;
             }
             
@@ -150,16 +197,25 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
             const moduleName = modulePath || nav.path.split('/')[1] || '';
             const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
             
+            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission, 'moduleName:', moduleName);
+            
             return (
               <Route
                 key={nav.path}
                 path={nav.path}
                 element={
-                  <ProtectedRoute 
+                  <ProtectedRoute
                     requiredPermission={requiredPermission}
                     requiredModule={moduleName}
                   >
-                    <Suspense fallback={<div>Loading...</div>}>
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center h-screen">
+                        <div className="text-center">
+                          <Spinner size="lg" />
+                          <p className="mt-4 text-gray-600">Loading page...</p>
+                        </div>
+                      </div>
+                    }>
                       <PageComponent />
                     </Suspense>
                   </ProtectedRoute>
@@ -168,35 +224,16 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
             );
           });
         })}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };
 
 const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitialized }) => {
   const location = useLocation();
-  const { isAuthenticated, isLoading, login, isDemoMode } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   // Debug authentication state
-  console.log('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname, isDemoMode });
-
-  // Auto-login for demo mode if not authenticated
-  React.useEffect(() => {
-    if (!isLoading && !isAuthenticated && isDemoMode) {
-      console.log('🔍 [AppContent] Auto-login for demo mode');
-      login({ username: 'admin', password: 'admin123' })
-        .then(result => {
-          if (result.success) {
-            console.log('✅ [AppContent] Auto-login successful');
-          } else {
-            console.error('❌ [AppContent] Auto-login failed:', result.message);
-          }
-        })
-        .catch(error => {
-          console.error('❌ [AppContent] Auto-login error:', error);
-        });
-    }
-  }, [isLoading, isAuthenticated, isDemoMode, login]);
+  console.log('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
 
   // Show loading spinner while checking authentication
   if (isLoading) {
