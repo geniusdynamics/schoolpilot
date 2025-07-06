@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 type CustomerFormData = Omit<Partial<Customer>, 'id' | 'created_at' | 'updated_at'>;
 
 const CustomersPage: React.FC = () => {
-  const { customers, loading, addCustomer, updateCustomer, deleteCustomer } = useAppData(); // Updated
+  const { customers = [], loading, addCustomer, updateCustomer, deleteCustomer } = useAppData(); // Updated
   const { t } = useTranslation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);

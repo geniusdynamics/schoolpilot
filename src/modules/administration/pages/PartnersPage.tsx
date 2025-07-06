@@ -17,12 +17,12 @@ type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at'
 };
 
 const PartnersPage: React.FC = () => {
-  const { 
-    partners, 
-    loading, 
-    addPartner, 
-    updatePartner, 
-    deletePartner 
+  const {
+    partners = [],
+    loading,
+    addPartner,
+    updatePartner,
+    deletePartner
   } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);

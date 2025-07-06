@@ -72,16 +72,28 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Permission checks
   const hasPermission = useCallback((permissionId: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, super admin has all permissions
+      return true;
+    }
     if (!userId) return false;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const hasModuleAccess = useCallback((moduleId: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all modules are accessible
+      return true;
+    }
     if (!userId) return false;
     return rbacService.hasModuleAccess(userId, moduleId);
   }, [userId]);
 
   const hasFeatureAccess = useCallback((moduleId: string, feature: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all features are accessible
+      return true;
+    }
     if (!userId) return false;
     const features = rbacService.getUserModuleFeatures(userId, moduleId);
     return features.includes(feature);
@@ -135,30 +147,50 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Resource-based permission checks
   const canCreate = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.create`;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const canRead = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.read`;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const canUpdate = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.update`;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const canDelete = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.delete`;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const canExecute = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.execute`;
     return rbacService.hasPermission(userId, permissionId);

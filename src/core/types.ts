@@ -1568,6 +1568,34 @@ export type AppDataContextType = AppDataType & {
   addPartner: (partnerData: any) => Promise<void>;
   updatePartner: (updatedPartner: any) => Promise<void>;
   deletePartner: (partnerId: string) => Promise<void>;
+  // Club CRUD operations - AdminClubAndSocietyType from administration module
+  addClub: (clubData: any) => Promise<void>;
+  updateClub: (updatedClub: any) => Promise<void>;
+  deleteClub: (clubId: number) => Promise<void>;
+  // Customer CRUD operations
+  addCustomer: (customerData: any) => Promise<void>;
+  updateCustomer: (updatedCustomer: any) => Promise<void>;
+  deleteCustomer: (customerId: number) => Promise<void>;
+  // Student Health Record CRUD operations
+  addStudentHealthRecord: (healthRecordData: any) => Promise<void>;
+  updateStudentHealthRecord: (updatedHealthRecord: any) => Promise<void>;
+  deleteStudentHealthRecord: (healthRecordId: string) => Promise<void>;
+  // Communication Templates CRUD
+  addTemplateComm: (template: any) => Promise<void>;
+  updateTemplateComm: (template: any) => Promise<void>;
+  deleteTemplateComm: (id: number) => Promise<void>;
+  // Message Campaigns CRUD
+  addCampaign: (campaign: any) => Promise<void>;
+  updateCampaign: (campaign: any) => Promise<void>;
+  deleteCampaign: (id: string) => Promise<void>;
+  // School Periods CRUD
+  addSchoolPeriod: (period: any) => Promise<void>;
+  updateSchoolPeriod: (period: any) => Promise<void>;
+  deleteSchoolPeriod: (id: number) => Promise<void>;
+  // Timetable Period Definitions CRUD
+  addTimetablePeriodDef: (periodDef: any) => Promise<void>;
+  updateTimetablePeriodDef: (periodDef: any) => Promise<void>;
+  deleteTimetablePeriodDef: (id: number) => Promise<void>;
   // Invoice Generation Functions
   generateStudentInvoices: (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => Promise<any[]>;
   // RBAC

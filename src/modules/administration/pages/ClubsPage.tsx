@@ -17,7 +17,7 @@ type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated
 };
 
 const ClubsPage: React.FC = () => {
-  const { clubs, staff, loading, addClub, updateClub, deleteClub } = useAppData(); // Updated
+  const { clubs = [], staff = [], loading, addClub, updateClub, deleteClub } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingClub, setEditingClub] = useState<ClubAndSociety | null>(null);

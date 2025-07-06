@@ -14,11 +14,11 @@ import { useTranslation } from 'react-i18next';
 type HealthRecordFormData = Omit<Partial<StudentHealthRecord>, 'id' | 'student_id' | 'created_at' | 'updated_at'>;
 
 const StudentHealthRecordsPage: React.FC = () => {
-  const { 
-    students, 
-    studentHealthRecords,
-    loading, 
-    addStudentHealthRecord, 
+  const {
+    students = [],
+    studentHealthRecords = [],
+    loading,
+    addStudentHealthRecord,
     updateStudentHealthRecord,
   } = useAppData(); // Updated
   

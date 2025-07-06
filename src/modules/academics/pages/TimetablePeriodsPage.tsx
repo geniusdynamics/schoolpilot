@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TimetablePeriodDef } from '@/modules/academics/data/types'; // Corrected import
+import { TimetablePeriodDef } from '@/core/types'; // Corrected import
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
@@ -13,12 +13,12 @@ import { useTranslation } from 'react-i18next';
 type TimetablePeriodFormData = Omit<Partial<TimetablePeriodDef>, 'id'>;
 
 const TimetablePeriodsPage: React.FC = () => {
-  const { 
-    timetablePeriodDefs, 
-    loading, 
-    addTimetablePeriodDef, 
-    updateTimetablePeriodDef, 
-    deleteTimetablePeriodDef 
+  const {
+    timetablePeriodDefs = [],
+    loading,
+    addTimetablePeriodDef,
+    updateTimetablePeriodDef,
+    deleteTimetablePeriodDef
   } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);

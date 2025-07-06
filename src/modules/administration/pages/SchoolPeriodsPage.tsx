@@ -16,15 +16,15 @@ type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'u
 };
 
 const SchoolPeriodsPage: React.FC = () => {
-  const { 
-    schoolPeriods, 
-    academicYears,
-    academicPeriodDefinitions,
-    financialYears,
-    loading, 
-    addSchoolPeriod, 
-    updateSchoolPeriod, 
-    deleteSchoolPeriod 
+  const {
+    schoolPeriods = [],
+    academicYears = [],
+    academicPeriodDefinitions = [],
+    financialYears = [],
+    loading,
+    addSchoolPeriod,
+    updateSchoolPeriod,
+    deleteSchoolPeriod
   } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);

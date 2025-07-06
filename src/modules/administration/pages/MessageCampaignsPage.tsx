@@ -22,14 +22,14 @@ type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_a
 
 
 const MessageCampaignsPage: React.FC = () => {
-  const { 
-    campaigns, 
-    templatesComm,
-    classStreams, 
-    loading, 
-    addCampaign, 
-    updateCampaign, 
-    deleteCampaign: mockDeleteCampaign 
+  const {
+    campaigns = [],
+    templatesComm = [],
+    classStreams = [],
+    loading,
+    addCampaign,
+    updateCampaign,
+    deleteCampaign: mockDeleteCampaign
   } = useAppData(); // Updated
   
   const { currentUser } = useUser(); // Get currentUser

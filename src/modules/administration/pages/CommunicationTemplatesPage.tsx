@@ -17,12 +17,12 @@ type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updat
 };
 
 const CommunicationTemplatesPage: React.FC = () => {
-  const { 
-    templatesComm, 
-    loading, 
-    addTemplateComm, 
-    updateTemplateComm, 
-    deleteTemplateComm 
+  const {
+    templatesComm = [],
+    loading,
+    addTemplateComm,
+    updateTemplateComm,
+    deleteTemplateComm
   } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);

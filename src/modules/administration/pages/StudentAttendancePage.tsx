@@ -18,10 +18,10 @@ interface AttendanceData {
 
 const StudentAttendancePage: React.FC = () => {
   const {
-    students,
-    classStreams,
-    timetablePeriodDefs, // This is the raw list of all period definitions
-    studentAttendance, // This is the raw list of all attendance records
+    students = [],
+    classStreams = [],
+    timetablePeriodDefs = [], // This is the raw list of all period definitions
+    studentAttendance = [], // This is the raw list of all attendance records
     loading,
     getTimetablePeriodDefs,
     getStudentAttendanceByFilters,
