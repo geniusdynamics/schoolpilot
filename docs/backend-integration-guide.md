@@ -383,7 +383,7 @@ useEffect(() => {
 
 ## Performance Considerations
 
-### 1. Caching Strategyend handler with
+### 1. Caching Strategy
 - GET requests are cached for 5 minutes by default
 - Cache invalidation on write operations
 - Configurable cache TTL per endpoint
