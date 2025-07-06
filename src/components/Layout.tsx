@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useRBAC } from '../hooks/useRBAC';
+import { useAuth } from '../contexts/AuthContext';
+import Header from './Header';
+import Sidebar from './Sidebar';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
 import SettingsPopup from './SettingsPopup';
-import Header from './Header';
-import { NAVIGATION_ITEMS } from '../constants';
-import useDynamicNavigation from '../hooks/useDynamicNavigation';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { getMainModules, isLoading } = useDynamicNavigation(true);
@@ -18,14 +20,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   useEffect(() => {
     if (!isLoading) {
       const mainModules = getMainModules();
-      console.log('🔍 [Layout] Debug Info:', {
-        isLoading,
-        modulesReady: true,
-        mainModulesCount: mainModules.length,
-        mainModules: mainModules,
-        selectedModuleKey,
-        willSetDefault: mainModules.length > 0 && !selectedModuleKey
-      });
       
       if (mainModules.length > 0 && !selectedModuleKey) {
         setSelectedModuleKey(mainModules[0].name);
@@ -38,7 +32,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [isLoading, getMainModules, selectedModuleKey, navigate]);
 
   const handleModuleSelect = (moduleKey: string) => {
-    console.log('🔍 [Layout] Module selected:', moduleKey, 'current:', selectedModuleKey);
     if (moduleKey === selectedModuleKey) {
       setIsSubmenuOpen((open: boolean) => !open); // toggle submenu
     } else {

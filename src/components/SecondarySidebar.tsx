@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon } from './ui/icons';
@@ -39,15 +39,28 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const subMenus = selectedModule && selectedModule.children ? selectedModule.children : [];
   const moduleKey = selectedModuleKey.split(':')[1]?.split('.')[0] || '';
 
-  // Debug log to see what's happening
-  console.log('🔍 [SecondarySidebar] Debug Info:', {
+  // Debug logs to help identify the issue
+  const debugInfo = {
     selectedModuleKey,
     isOpen,
     navigationItemsCount: navigationItems.length,
-    selectedModule: selectedModule,
-    subMenusCount: subMenus.length,
-    subMenus: subMenus
-  });
+    selectedModule,
+    subMenusCount: selectedModule?.children?.length || 0,
+    subMenus: selectedModule?.children || [],
+    accessibleModulesCount: accessibleModules.length,
+    accessibleModules: accessibleModules,
+    user: user?.username,
+    filteredSubMenus: selectedModule?.children?.filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', ''))) || []
+  };
+
+  // Only log once when component mounts or when there's an error
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    if (!selectedModule) {
+      console.warn('⚠️ [SecondarySidebar] No selected module found for:', selectedModuleKey);
+    }
+  }, [isOpen, selectedModule, selectedModuleKey]);
 
   // Filtered navigation based on search
   const filterItems = (items: any[]) =>

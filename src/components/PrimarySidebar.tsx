@@ -55,19 +55,31 @@ const getModuleGlassStyle = (moduleKey: string, isSelected: boolean) => {
 };
 
 const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key: string) => void }> = ({ selectedModuleKey, onModuleSelect }) => {
-  const { navigationItems } = useDynamicNavigation(true); // Always pass true since modules are already initialized
+  const { navigationItems, isLoading } = useDynamicNavigation(true); // Always pass true since modules are already initialized
   const mainModules = navigationItems.filter(item => item.isGroup);
   
   // Debug logs to help identify the issue
-  console.log('🔍 [PrimarySidebar] Debug Info:', {
-    modulesReady: true,
+  const debugInfo = {
+    modulesReady: !isLoading,
     navigationItemsCount: navigationItems.length,
     navigationItems: navigationItems,
     mainModulesCount: mainModules.length,
     mainModules: mainModules,
-    selectedModuleKey: selectedModuleKey,
-    mainModulesNames: mainModules.map(m => m.name)
-  });
+    selectedModuleKey,
+    accessibleModulesCount: accessibleModules.length,
+    accessibleModules: accessibleModules,
+    user: user?.username,
+    filteredItems: navigationItems.filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
+  };
+
+  // Only log once when component mounts or when there's an error
+  useEffect(() => {
+    if (isLoading) return;
+    
+    if (navigationItems.length === 0) {
+      console.warn('⚠️ [PrimarySidebar] No navigation items found');
+    }
+  }, [isLoading, navigationItems.length]);
   
   return (
     <aside className="

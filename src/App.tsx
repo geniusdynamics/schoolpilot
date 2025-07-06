@@ -26,12 +26,10 @@ const pageModules = {
   ...import.meta.glob('./modules/*/pages/**/*.tsx'),
 };
 
-console.log('🔍 [App] Available page modules:', Object.keys(pageModules));
+console.log('🚀 [App] Available page modules:', Object.keys(pageModules).length);
 
 // Modular getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx
 const getPageComponent = (nav: any) => {
-  console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
-  
   if (nav.page) {
     const pathSegments = nav.path.split('/').filter(Boolean);
     let moduleDir = '';
@@ -42,23 +40,20 @@ const getPageComponent = (nav: any) => {
       moduleDir = pathSegments[0];
     }
     
-    console.log('🔍 [getPageComponent] Segments:', pathSegments, 'ModuleDir:', moduleDir);
-    
     // Try modular location
     if (moduleDir) {
       const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
       const modularImportFn = pageModules[modularKey];
       if (modularImportFn) {
-        console.log('✅ [getPageComponent] Found modular key:', modularKey);
         return lazy(modularImportFn as any);
       }
     }
     
-    console.log('❌ [getPageComponent] No page component found for:', nav.page);
+    console.warn('⚠️ [getPageComponent] No page component found for:', nav.page);
     return null;
   }
   
-  console.log('❌ [getPageComponent] No page component found for fallback path:', nav.path);
+  console.warn('⚠️ [getPageComponent] No page component found for fallback path:', nav.path);
   return null;
 };
 
@@ -67,27 +62,12 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
   const { accessibleModules } = useRBAC();
   const { user } = useAuth();
 
-  // Debug logs to help identify the issue
-  console.log('🔍 [DynamicRoutes] Debug Info:', {
-    modulesInitialized,
-    navigationItemsCount: navigationItems.length,
-    navigationItems: navigationItems,
-    accessibleModulesCount: accessibleModules.length,
-    accessibleModules: accessibleModules,
-    user: user?.username,
-    filteredItems: navigationItems.filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
-  });
-
-  // Debug: Check each navigation item structure
-  navigationItems.forEach((item, index) => {
-    console.log(`🔍 [DynamicRoutes] Navigation Item ${index}:`, {
-      name: item.name,
-      path: item.path,
-      isGroup: item.isGroup,
-      children: item.children,
-      childrenCount: item.children?.length || 0
-    });
-  });
+  // Only log essential information once
+  useEffect(() => {
+    if (modulesInitialized && navigationItems.length > 0) {
+      console.log('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
+    }
+  }, [modulesInitialized, navigationItems.length]);
 
   return (
     <Routes>
@@ -158,12 +138,9 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       {navigationItems
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
         .flatMap(module => {
-          console.log('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
           return (module.children || []).map(nav => {
-            console.log('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
             const PageComponent = getPageComponent(nav);
             if (!PageComponent) {
-              console.log('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
               return null;
             }
             
@@ -172,8 +149,6 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
             // Extract module name from path (e.g., '/administration' -> 'administration')
             const moduleName = modulePath || nav.path.split('/')[1] || '';
             const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
-            
-            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission, 'moduleName:', moduleName);
             
             return (
               <Route

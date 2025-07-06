@@ -7,7 +7,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { NAVIGATION_ITEMS, APP_NAME_KEY } from '../constants';
+import { APP_NAME_KEY } from '../constants';
+import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { NavItem } from '../core/types';
 import { 
   SchoolIcon, 
@@ -60,6 +61,7 @@ interface Notification {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { t } = useTranslation(['navigation', 'common']);
+  const { navigationItems } = useDynamicNavigation(true);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -108,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   };
   
   useEffect(() => {
-    NAVIGATION_ITEMS.forEach(item => {
+    navigationItems.forEach(item => {
       if (item.isGroup && item.children) {
         const isModuleActive = item.modulePath && location.pathname.startsWith(item.modulePath);
         const groupKey = item.name; 
@@ -125,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   }, [location.pathname]);
 
   // Dynamically generate quick actions for all modules
-  const defaultQuickActions: QuickAction[] = NAVIGATION_ITEMS.map(item => {
+  const defaultQuickActions: QuickAction[] = navigationItems.map(item => {
     let iconElement: React.ReactElement = <CogIcon />;
     if (typeof item.icon === 'function') {
       const Icon = item.icon as React.FC<any>;
@@ -183,7 +185,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       });
     };
 
-    searchInItems(NAVIGATION_ITEMS, 'Navigation');
+    searchInItems(navigationItems, 'Navigation');
 
     // Sort by relevance and return top results
     return results
@@ -448,7 +450,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden mt-2">
         <ul className="space-y-1 pr-1">
-          {NAVIGATION_ITEMS.map((item: NavItem, idx: number) => (
+          {navigationItems.map((item: NavItem, idx: number) => (
             <NavItemLink key={item.name} item={item} index={idx} />
           ))}
         </ul>
