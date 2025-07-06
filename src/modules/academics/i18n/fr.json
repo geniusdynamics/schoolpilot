@@ -26,28 +26,5 @@
     "groupingLabel": "Groupement",
     "compulsoryLabel": "Matière Obligatoire",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette matière ?"
-  },
-  "classes": {
-    "title": "Gestion des Classes et Filières",
-    "addClassButton": "Ajouter Classe",
-    "modalAddTitle": "Ajouter Nouvelle Classe",
-    "modalEditTitle": "Modifier Classe",
-    "nameLabel": "Nom de la Classe",
-    "streamsTitle": "{{className}} - Filières",
-    "addStreamButton": "Ajouter Filière",
-    "noStreamsMessage": "Aucune filière pour cette classe.",
-    "modalAddStreamTitle": "Ajouter Nouvelle Filière à {{className}}",
-    "modalEditStreamTitle": "Modifier Filière",
-    "streamNameLabel": "Nom de la Filière",
-    "teacherLabel": "Professeur Principal",
-    "selectTeacherOption": "Sélectionner Professeur",
-    "manageStreamsButton": "Gérer Filières"
-  },
-  "tableHeaders": {
-    "id": "ID",
-    "className": "Nom de la Classe",
-    "streamCount": "Nb. de Filières",
-    "streamName": "Nom de la Filière",
-    "classTeacher": "Professeur Principal"
   }
 }

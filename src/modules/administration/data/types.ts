@@ -207,18 +207,3 @@ export interface Department {
   updated_at: string;
 }
 
-export interface Class {
-  id: number;
-  name: string;
-  streams?: ClassStream[];
-}
-
-export interface ClassStream {
-  id: number;
-  class_id: number;
-  name: string;
-  class_teacher_id?: string | null;
-  // Denormalized
-  class_name?: string | null;
-  class_teacher_name?: string | null;
-}

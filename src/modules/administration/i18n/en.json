@@ -110,5 +110,35 @@
     "club": "Club",
     "society": "Society",
     "sports_team": "Sports Team"
+  },
+  "classes": {
+    "title": "Classes & Streams Management",
+    "addClassButton": "Add Class",
+    "modalAddTitle": "Add New Class",
+    "modalEditTitle": "Edit Class",
+    "nameLabel": "Class Name",
+    "streamsTitle": "{{className}} - Streams",
+    "addStreamButton": "Add Stream",
+    "noStreamsMessage": "No streams for this class.",
+    "modalAddStreamTitle": "Add New Stream to {{className}}",
+    "modalEditStreamTitle": "Edit Stream",
+    "streamNameLabel": "Stream Name",
+    "teacherLabel": "Class Teacher",
+    "selectTeacherOption": "Select Teacher",
+    "manageStreamsButton": "Manage Streams"
+  },
+  "tableHeaders": {
+    "partnerName": "Partner Name",
+    "type": "Type",
+    "contactPerson": "Contact Person",
+    "email": "Email",
+    "phone": "Phone",
+    "clubName": "Club/Society Name",
+    "patron": "Patron",
+    "id": "ID",
+    "className": "Class Name",
+    "streamCount": "No. of Streams",
+    "streamName": "Stream Name",
+    "classTeacher": "Class Teacher"
   }
 }

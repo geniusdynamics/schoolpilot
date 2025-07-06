@@ -18,3 +18,5 @@ export { isGlobalProvider as isStudentHealthRecordGlobalProvider, useStudentHeal
 export { isGlobalProvider as isStudentAttendanceGlobalProvider, useStudentAttendanceData } from './useStudentAttendanceData';
 export { isGlobalProvider as isTemplateCommGlobalProvider, useTemplateCommData } from './useTemplateCommData';
 export { isGlobalProvider as isCampaignGlobalProvider, useCampaignData } from './useCampaignData';
+export { isGlobalProvider as isClassGlobalProvider, useClassData } from './useClassData';
+export { isGlobalProvider as isClassStreamGlobalProvider, useClassStreamData } from './useClassStreamData';

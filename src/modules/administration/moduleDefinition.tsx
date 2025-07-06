@@ -40,6 +40,7 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.dormitories', path: '/administration/dormitories', icon: BuildingLibraryIcon, page: 'DormitoriesPage' },
     { name: 'navigation:administration.clubs', path: '/administration/clubs', icon: UserGroupIcon, page: 'ClubsPage' },
     { name: 'navigation:administration.customers', path: '/administration/customers', icon: UsersIcon, page: 'CustomersPage' },
+    { name: 'navigation:administration.classes', path: '/administration/classes', icon: UserGroupIcon, page: 'ClassesPage' },
     { name: 'navigation:administration.studentHealth', path: '/administration/student-health', icon: ClipboardDocumentListIcon, page: 'StudentHealthRecordsPage' },
     { name: 'navigation:administration.studentAttendance', path: '/administration/student-attendance', icon: CalendarDaysIcon, page: 'StudentAttendancePage' },
     { name: 'navigation:administration.commTemplates', path: '/administration/communication-templates', icon: EnvelopeIcon, page: 'CommunicationTemplatesPage' },

@@ -20,7 +20,7 @@ interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | '
 }
 
 const ClassesPage: React.FC = () => {
-  const { t } = useTranslation(['academics', 'common']);
+  const { t } = useTranslation(['administration', 'common']);
   const { 
     classes, 
     classStreams, 

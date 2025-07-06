@@ -110,5 +110,35 @@
     "club": "Club",
     "society": "Société",
     "sports_team": "Équipe Sportive"
+  },
+  "classes": {
+    "title": "Gestion des Classes et Filières",
+    "addClassButton": "Ajouter Classe",
+    "modalAddTitle": "Ajouter Nouvelle Classe",
+    "modalEditTitle": "Modifier Classe",
+    "nameLabel": "Nom de la Classe",
+    "streamsTitle": "{{className}} - Filières",
+    "addStreamButton": "Ajouter Filière",
+    "noStreamsMessage": "Aucune filière pour cette classe.",
+    "modalAddStreamTitle": "Ajouter Nouvelle Filière à {{className}}",
+    "modalEditStreamTitle": "Modifier Filière",
+    "streamNameLabel": "Nom de la Filière",
+    "teacherLabel": "Professeur Principal",
+    "selectTeacherOption": "Sélectionner Professeur",
+    "manageStreamsButton": "Gérer Filières"
+  },
+  "tableHeaders": {
+    "partnerName": "Nom du Partenaire",
+    "type": "Type",
+    "contactPerson": "Personne de Contact",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "clubName": "Nom du Club/Société",
+    "patron": "Parrain",
+    "id": "ID",
+    "className": "Nom de la Classe",
+    "streamCount": "Nb. de Filières",
+    "streamName": "Nom de la Filière",
+    "classTeacher": "Professeur Principal"
   }
 }

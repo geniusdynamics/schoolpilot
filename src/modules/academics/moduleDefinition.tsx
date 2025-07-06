@@ -30,7 +30,6 @@ export const academicsModule: ModuleDefinition = {
   navigation: [
     { name: 'navigation:academics.dashboard', path: '/academics/dashboard', icon: AcademicCapIcon, page: 'AcademicsDashboardPage' },
     { name: 'navigation:academics.subjects', path: '/academics/subjects', icon: BookOpenIcon, page: 'SubjectsPage' },
-    { name: 'navigation:academics.classes', path: '/academics/classes', icon: UserGroupIcon, page: 'ClassesPage' },
     { name: 'navigation:academics.timetablePeriods', path: '/academics/timetable-periods', icon: ClockIcon, page: 'TimetablePeriodsPage' },
     { name: 'navigation:academics.timetableEntries', path: '/academics/timetable-entries', icon: CalendarDaysIcon, page: 'TimetableEntriesPage' },
     { name: 'navigation:academics.subjectPapers', path: '/academics/subject-papers', icon: DocumentTextIcon, page: 'SubjectPapersManagementPage' },

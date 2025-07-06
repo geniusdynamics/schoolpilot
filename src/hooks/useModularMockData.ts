@@ -24,6 +24,8 @@ import { useSubjectData } from '../modules/academics/data/useSubjectData';
 import { useTimetableEntryData } from '../modules/academics/data/useTimetableEntryData';
 import { useTeacherSubjectAssignmentData } from '../modules/academics/data/useTeacherSubjectAssignmentData';
 import { useClassSubjectAllocationData } from '../modules/academics/data/useClassSubjectAllocationData';
+import { useClassData } from '../modules/administration/data/useClassData';
+import { useClassStreamData } from '../modules/administration/data/useClassStreamData';
 
 // Dynamically import all mockData.ts files from modules for fallback data
 const mockDataModules = import.meta.glob('../modules/*/data/mockData.ts', { eager: true });
@@ -80,6 +82,8 @@ export const useModularMockData = (): AppDataContextType => {
   const { data: timetableEntries, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
   const { data: teacherSubjectAssignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
   const { classSubjectAllocations, addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation } = useClassSubjectAllocationData();
+  const { classes, addClass, updateClass, deleteClass } = useClassData();
+  const { classStreams, addClassStream, updateClassStream, deleteClassStream } = useClassStreamData();
 
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
 
@@ -121,7 +125,9 @@ export const useModularMockData = (): AppDataContextType => {
     timetableEntries,
     teacherSubjectAssignments,
     classSubjectAllocations,
-    // Fallback to static data for other entities (includes staff, classStreams, etc.)
+    classes,
+    classStreams,
+    // Fallback to static data for other entities (includes staff, etc.)
     ...rawInitialData
   };
 
@@ -177,6 +183,12 @@ export const useModularMockData = (): AppDataContextType => {
     addTimetablePeriodDef: async () => {},
     updateTimetablePeriodDef: async () => {},
     deleteTimetablePeriodDef: async () => {},
+    addClass: addClass,
+    updateClass: updateClass,
+    deleteClass: deleteClass,
+    addClassStream: addClassStream,
+    updateClassStream: updateClassStream,
+    deleteClassStream: deleteClassStream,
     generateStudentInvoices: async () => [],
     permissions: [],
     roles: [],

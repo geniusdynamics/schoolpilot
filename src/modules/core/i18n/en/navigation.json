@@ -5,6 +5,7 @@
     "dashboard": "Admin Dashboard",
     "students": "Students",
     "staff": "Staff",
+    "classes": "Classes & Streams",
     "partners": "Partners",
     "departments": "Departments",
     "designations": "Designations",
@@ -24,7 +25,6 @@
   "academics": {
     "title": "Academics",
     "dashboard": "Academics Dashboard",
-    "classes": "Classes & Streams",
     "subjects": "Subjects",
     "subjectPapers": "Papers",
     "classSubjectAllocations": "Subject/Class Allocations",

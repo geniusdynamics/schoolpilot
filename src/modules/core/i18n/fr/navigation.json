@@ -5,6 +5,7 @@
     "dashboard": "TB Admin",
     "students": "Élèves",
     "staff": "Personnel",
+    "classes": "Classes & Filières",
     "partners": "Partenaires",
     "departments": "Départements",
     "designations": "Postes",
@@ -24,7 +25,6 @@
   "academics": {
     "title": "Académique",
     "dashboard": "TB Académique",
-    "classes": "Classes & Filières",
     "subjects": "Matières",
     "subjectPapers": "Épreuves",
     "classSubjectAllocations": "Allocations Matières/Classes",

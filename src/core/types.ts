@@ -1596,6 +1596,14 @@ export type AppDataContextType = AppDataType & {
   addTimetablePeriodDef: (periodDef: any) => Promise<void>;
   updateTimetablePeriodDef: (periodDef: any) => Promise<void>;
   deleteTimetablePeriodDef: (id: number) => Promise<void>;
+  // Class CRUD operations
+  addClass: (classData: Omit<Class, 'id'>) => Promise<Class>;
+  updateClass: (updatedClass: Class) => Promise<Class>;
+  deleteClass: (classId: number) => Promise<void>;
+  // Class Stream CRUD operations
+  addClassStream: (classId: number, streamData: Omit<ClassStream, 'id' | 'class_id'>) => Promise<ClassStream>;
+  updateClassStream: (updatedStream: ClassStream) => Promise<ClassStream>;
+  deleteClassStream: (streamId: number) => Promise<void>;
   // Invoice Generation Functions
   generateStudentInvoices: (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => Promise<any[]>;
   // RBAC
