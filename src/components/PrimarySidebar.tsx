@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useRBAC } from '../hooks/useRBAC';
+import { useAuth } from '../contexts/AuthContext';
 
 // Module-specific glassmorphism color schemes
 const getModuleGlassStyle = (moduleKey: string, isSelected: boolean) => {
@@ -56,6 +58,8 @@ const getModuleGlassStyle = (moduleKey: string, isSelected: boolean) => {
 
 const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key: string) => void }> = ({ selectedModuleKey, onModuleSelect }) => {
   const { navigationItems, isLoading } = useDynamicNavigation(true); // Always pass true since modules are already initialized
+  const { accessibleModules } = useRBAC();
+  const { user } = useAuth();
   const mainModules = navigationItems.filter(item => item.isGroup);
   
   // Debug logs to help identify the issue

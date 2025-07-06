@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useRBAC } from '../hooks/useRBAC';
+import { useAuth } from '../contexts/AuthContext';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -30,6 +32,8 @@ const moduleBg: Record<string, string> = {
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
   const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems } = useDynamicNavigation(true); // Use dynamic navigation
+  const { accessibleModules } = useRBAC();
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
