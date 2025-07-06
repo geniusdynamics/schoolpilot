@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
-import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon } from './ui/icons';
+import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 
 function getFallbackIcon(moduleKey: string) {
@@ -131,14 +131,16 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
               {isMinimized ? <ChevronRightIcon className="w-4 h-4" /> : <ChevronLeftIcon className="w-4 h-4" />}
             </button>
           )}
-          <button
-            className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
-            onClick={onClose}
-            title="Close menu"
-          >
-            <ChevronLeftIcon className="w-4 h-4" />
-          </button>
         </div>
+        
+        {/* Close button - Distinctive red X floating at the tip */}
+        <button
+          className="absolute -top-1 -right-1 z-30 text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-full bg-white shadow-lg border border-red-200 transition-all duration-200 hover:scale-110 hover:shadow-xl"
+          onClick={onClose}
+          title="Close sidebar"
+        >
+          <XIcon className="w-4 h-4" />
+        </button>
         
         {/* Search bar - hidden when minimized */}
         {!isMinimized && (
