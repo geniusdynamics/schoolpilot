@@ -1,4 +1,4 @@
-// Backend API service with intelligent request handling and offline queue
+nhance the// Backend API service with intelligent request handling and offline queue
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
@@ -53,8 +53,13 @@ export class BackendAPIService {
 
   constructor(baseURL: string = '/api/v1') {
     this.baseURL = baseURL;
-    this.networkManager = import('./NetworkStateManager').then(m => m.NetworkStateManager.getInstance());
+    this.networkManager = this.initializeNetworkManager();
     this.setupNetworkListener();
+  }
+
+  private async initializeNetworkManager(): Promise<NetworkStateManager> {
+    const m = await import('./NetworkStateManager');
+    return m.NetworkStateManager.getInstance();
   }
 
   private async setupNetworkListener(): Promise<void> {
@@ -168,7 +173,7 @@ export class BackendAPIService {
       return apiResponse;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error instanceof APIError) {
         throw error;
       }
@@ -254,7 +259,8 @@ export class BackendAPIService {
             this.requestQueue.unshift(item);
           }, Math.pow(2, item.retryCount) * 1000);
         } else {
-          item.reject(error);
+          this.logError('Request execution failed', error instanceof Error ? error : new Error(String(error)));
+          item.reject(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }

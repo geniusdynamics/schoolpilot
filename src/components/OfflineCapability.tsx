@@ -1,6 +1,15 @@
-// UI components for offline capability management and network status
+backedn// UI components for offline capability management and network status
 import React from 'react';
-import { AlertTriangle, WifiOff, Wifi, Server, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { 
+  ExclamationTriangleIcon, 
+  WifiIcon, 
+  ServerIcon, 
+  ClockIcon, 
+  CheckCircleIcon, 
+  XCircleIcon,
+  SignalIcon,
+  SignalSlashIcon
+} from '@heroicons/react/24/outline';
 import { useAppData } from '../contexts/EnhancedAppDataContext';
 
 // Component to wrap features that may not be available offline
@@ -30,7 +39,7 @@ export const OfflineCapableComponent: React.FC<OfflineCapableComponentProps> = (
         {fallback || (
           <div className="flex items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
             <div className="text-center">
-              <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+              <ExclamationTriangleIcon className="w-12 h-12 text-amber-500 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Feature Unavailable</h3>
               <p className="text-gray-600 mb-4">
                 {capability?.reason || 'This feature requires an internet connection'}
@@ -52,13 +61,13 @@ export const OfflineCapableComponent: React.FC<OfflineCapableComponentProps> = (
       {children}
       {showOfflineIndicator && !isOnline && (
         <div className="absolute top-2 right-2 flex items-center space-x-1 bg-amber-100 text-amber-800 px-2 py-1 rounded-md text-xs">
-          <WifiOff className="w-3 h-3" />
+          <SignalSlashIcon className="w-3 h-3" />
           <span>Offline</span>
         </div>
       )}
       {showOfflineIndicator && isOnline && !backendAvailable && (
         <div className="absolute top-2 right-2 flex items-center space-x-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs">
-          <Server className="w-3 h-3" />
+          <ServerIcon className="w-3 h-3" />
           <span>Local</span>
         </div>
       )}
@@ -94,9 +103,9 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
   };
 
   const getStatusIcon = () => {
-    if (!isOnline) return <WifiOff className="w-4 h-4" />;
-    if (!backendAvailable) return <Server className="w-4 h-4" />;
-    return <Wifi className="w-4 h-4" />;
+    if (!isOnline) return <SignalSlashIcon className="w-4 h-4" />;
+    if (!backendAvailable) return <ServerIcon className="w-4 h-4" />;
+    return <SignalIcon className="w-4 h-4" />;
   };
 
   const getStatusText = () => {
@@ -120,7 +129,7 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
           
           {pendingSyncCount > 0 && (
             <div className="flex items-center space-x-1 text-xs text-amber-600">
-              <Clock className="w-3 h-3" />
+              <ClockIcon className="w-3 h-3" />
               <span>{pendingSyncCount} pending</span>
             </div>
           )}
@@ -134,7 +143,7 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
           
           {syncStatus.state === 'error' && (
             <div className="flex items-center space-x-1 text-xs text-red-600">
-              <XCircle className="w-3 h-3" />
+              <XCircleIcon className="w-3 h-3" />
               <span>Sync Error</span>
             </div>
           )}
@@ -169,11 +178,11 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
       case 'syncing':
         return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>;
       case 'error':
-        return <XCircle className="w-4 h-4 text-red-500" />;
+        return <XCircleIcon className="w-4 h-4 text-red-500" />;
       case 'paused':
-        return <Clock className="w-4 h-4 text-amber-500" />;
+        return <ClockIcon className="w-4 h-4 text-amber-500" />;
       default:
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
+        return <CheckCircleIcon className="w-4 h-4 text-green-500" />;
     }
   };
 
@@ -286,9 +295,9 @@ export const FeatureAvailabilityIndicator: React.FC<FeatureAvailabilityProps> = 
           <div key={feature} className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               {available ? (
-                <CheckCircle className="w-4 h-4 text-green-500" />
+                <CheckCircleIcon className="w-4 h-4 text-green-500" />
               ) : (
-                <XCircle className="w-4 h-4 text-red-500" />
+                <XCircleIcon className="w-4 h-4 text-red-500" />
               )}
               <span className="text-sm font-medium capitalize">
                 {feature.replace('-', ' ')}

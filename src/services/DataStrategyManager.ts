@@ -314,15 +314,16 @@ export class DataStrategyManager {
   private async executeRxDBRead<T>(collection: any, params: any): Promise<T> {
     if (params.id) {
       const doc = await collection.findOne(params.id).exec();
-      return doc ? doc.toJSON() : null;
+      return (doc ? (doc.toJSON() as T) : null) as T | null;
     }
-    
+
     if (params.query) {
       const docs = await collection.find(params.query).exec();
-      return docs.map((doc: any) => doc.toJSON());
+      return docs.map((doc: any) => doc.toJSON()) as unknown as T;
     }
-    
+
     const docs = await collection.find().exec();
+    return docs.map((doc: any) => doc.toJSON()) as unknown as T;
     return docs.map((doc: any) => doc.toJSON());
   }
 
@@ -341,7 +342,7 @@ export class DataStrategyManager {
     return doc.toJSON();
   }
 
-  private async executeRxDBDelete<T>(collection: any, params: any): Promise<T> {
+  private async executeRxDBDelete<T>(collection: any, params: any): Promise<T | null> {
     const doc = await collection.findOne(params.id).exec();
     if (doc) {
       const result = doc.toJSON();
@@ -448,11 +449,11 @@ export class DataStrategyManager {
         
         // Remove from persistent queue
         await this.removeSyncItem(item.id);
-      } catch (error) {
+      } catch (error: unknown) {
         item.status = 'error';
-        item.error = error.message;
+        item.error = error instanceof Error ? error.message : 'Unknown error';
         item.retryCount++;
-        
+
         if (item.retryCount < 3) {
           // Re-queue for retry
           this.syncQueue.push(item);

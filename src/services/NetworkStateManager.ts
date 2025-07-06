@@ -103,6 +103,8 @@ export class NetworkStateManager {
       if (available) {
         try {
           healthData = await response.json();
+          // Use healthData for future health monitoring features
+          console.log('Backend health:', healthData);
         } catch (e) {
           // Health endpoint might not return JSON
         }

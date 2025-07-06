@@ -1,5 +1,4 @@
-// Enhanced AppDataContext with backend integration capabilities
-import React, { createContext, useContext, ReactNode, useMemo, useEffect, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useEffect, useState, useCallback } from 'react';
 import { APP_MODE } from './config';
 import { useModularMockData, rawInitialData as modularMockDataContentForProdSeed } from '../hooks/useModularMockData';
 import { NetworkStateManager, NetworkState } from '../services/NetworkStateManager';
@@ -8,7 +7,6 @@ import { BackendAPIService } from '../services/BackendAPIService';
 
 import type { AppDataContextType, RbacRole, Role } from '../core/types';
 import Spinner from '../components/ui/Spinner';
-import { rbacService } from '../core/rbacService';
 
 // Enhanced context type with backend integration features
 export interface EnhancedAppDataContextType extends AppDataContextType {
@@ -191,7 +189,6 @@ export const EnhancedAppDataProvider: React.FC<{ children: ReactNode }> = ({ chi
   const [networkManager] = useState(() => NetworkStateManager.getInstance());
   
   // RxDB and service loading state
-  const [rxDBHookModule, setRxDBHookModule] = useState<any>(null);
   const [rxDBServiceModule, setRxDBServiceModule] = useState<any>(null);
   const [isProdDepsLoaded, setIsProdDepsLoaded] = useState(false);
   const [prodDepsError, setProdDepsError] = useState<Error | null>(null);
@@ -216,10 +213,9 @@ export const EnhancedAppDataProvider: React.FC<{ children: ReactNode }> = ({ chi
           setRxDBHookModule({ useRxDBData });
           setRxDBServiceModule(serviceModule);
           setIsProdDepsLoaded(true);
-          
+
           // Initialize RxDB and useRxDBData
-          const dbPromise = serviceModule.getDatabase();
-          dbPromise.then((db: any) => {
+          serviceModule.getDatabase().then(() => {
             const hookResult = useRxDBData(
               serviceModule.getDatabase,
               serviceModule.seedDatabaseWithMockData,

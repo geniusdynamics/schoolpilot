@@ -1,28 +1,77 @@
-// Enhanced main App component with backend integration
-import React, { Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+// Enhanced main App component with backend integration using dynamic modular architecture
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Layout from './components/Layout';
+import { UserProvider } from './contexts/UserContext';
 import { EnhancedAppDataProvider, useAppData } from './contexts/EnhancedAppDataContext';
-import { NetworkStatusIndicator, SyncStatusComponent } from './components/OfflineCapability';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useDynamicNavigation } from './hooks/useDynamicNavigation';
+import { useRBAC } from './hooks/useRBAC';
+import { initializeModules } from './core/moduleLoader';
 import Spinner from './components/ui/Spinner';
-import { APP_MODE } from './config';
+import { moduleRegistry } from './core/moduleRegistry';
+import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
+import { NetworkStatusIndicator, SyncStatusComponent } from './components/OfflineCapability';
+import { APP_MODE } from './contexts/config';
 
-// Lazy load components for better performance
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const StudentsPage = lazy(() => import('./pages/StudentsPage'));
-const TeachersPage = lazy(() => import('./pages/TeachersPage'));
-const ClassesPage = lazy(() => import('./pages/ClassesPage'));
-const SubjectsPage = lazy(() => import('./pages/SubjectsPage'));
-const FeesPage = lazy(() => import('./pages/FeesPage'));
-const ExamsPage = lazy(() => import('./pages/ExamsPage'));
-const ReportsPage = lazy(() => import('./pages/ReportsPage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+// Lazy load the login page
+const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
+
+// Lazy load the dashboard page
+const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
+
+// Vite will statically analyze all .tsx files in ./modules/*/pages
+const pageModules = {
+  ...import.meta.glob('./modules/*/pages/*.tsx'),
+  ...import.meta.glob('./modules/*/pages/**/*.tsx'),
+};
+
+console.log('🚀 [EnhancedApp] Available page modules:', Object.keys(pageModules).length);
+
+// Modular getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx
+const getPageComponent = (nav: any) => {
+  console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
+  
+  if (nav.page) {
+    const pathSegments = nav.path.split('/').filter(Boolean);
+    let moduleDir = '';
+
+    // Determine moduleDir based on pathSegments
+    if (pathSegments.length > 0) {
+      // The first segment of the path is always the module directory, if it exists
+      moduleDir = pathSegments[0];
+    }
+    
+    console.log('🔍 [getPageComponent] Segments:', pathSegments, 'ModuleDir:', moduleDir);
+    
+    // Try modular location
+    if (moduleDir) {
+      const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
+      console.log('🔍 [getPageComponent] Looking for key:', modularKey);
+      const modularImportFn = pageModules[modularKey];
+      if (modularImportFn) {
+        console.log('✅ [getPageComponent] Found modular key:', modularKey);
+        return lazy(modularImportFn as any);
+      } else {
+        console.log('❌ [getPageComponent] Key not found:', modularKey);
+      }
+    }
+    
+    console.warn('⚠️ [getPageComponent] No page component found for:', nav.page);
+    return null;
+  }
+  
+  console.warn('⚠️ [getPageComponent] No page component found for fallback path:', nav.path);
+  return null;
+};
 
 // Enhanced navigation with offline awareness
 const EnhancedNavigation: React.FC = () => {
   const { isOnline, backendAvailable, dataSource, syncStatus } = useAppData();
   
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <div className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -54,69 +103,182 @@ const EnhancedNavigation: React.FC = () => {
           </div>
         </div>
       </div>
-    </nav>
+    </div>
   );
 };
 
-// Enhanced sidebar with feature availability indicators
-const EnhancedSidebar: React.FC = () => {
-  const { disabledFeatures } = useAppData();
-  
-  const navigationItems = [
-    { path: '/', label: 'Dashboard', feature: 'dashboard' },
-    { path: '/students', label: 'Students', feature: 'student-management' },
-    { path: '/teachers', label: 'Teachers', feature: 'teacher-management' },
-    { path: '/classes', label: 'Classes', feature: 'class-management' },
-    { path: '/subjects', label: 'Subjects', feature: 'subject-management' },
-    { path: '/fees', label: 'Fees', feature: 'fee-management' },
-    { path: '/exams', label: 'Exams', feature: 'exam-management' },
-    { path: '/reports', label: 'Reports', feature: 'reports' },
-    { path: '/settings', label: 'Settings', feature: 'settings' }
-  ];
-  
+const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
+  const { navigationItems } = useDynamicNavigation(true);
+  const { accessibleModules } = useRBAC();
+  const { user } = useAuth();
+
+  // Only log essential information once
+  useEffect(() => {
+    if (modulesInitialized && navigationItems.length > 0) {
+      console.log('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
+    }
+  }, [modulesInitialized, navigationItems.length]);
+
   return (
-    <aside className="w-64 bg-gray-50 min-h-screen border-r">
-      <div className="p-4">
-        <nav className="space-y-2">
-          {navigationItems.map(({ path, label, feature }) => {
-            const isDisabled = disabledFeatures.includes(feature);
-            
-            return (
-              <a
-                key={path}
-                href={path}
-                className={`block px-3 py-2 rounded-md text-sm font-medium ${
-                  isDisabled
-                    ? 'text-gray-400 cursor-not-allowed bg-gray-100'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-                onClick={isDisabled ? (e) => e.preventDefault() : undefined}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{label}</span>
-                  {isDisabled && (
-                    <span className="text-xs text-red-500">Offline</span>
-                  )}
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      
+      {/* Login Route */}
+      <Route
+        path="/login"
+        element={
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-center">
+                <Spinner size="lg" />
+                <p className="mt-4 text-gray-600">Loading login page...</p>
+              </div>
+            </div>
+          }>
+            <LoginPage />
+          </Suspense>
+        }
+      />
+      
+      {/* Direct Dashboard Route - Always Available */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading dashboard...</p>
                 </div>
-              </a>
-            );
-          })}
-        </nav>
-      </div>
-    </aside>
+              </div>
+            }>
+              <DashboardPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Register custom/dynamic routes from all enabled modules */}
+      {moduleRegistry.getEnabledModules().flatMap(module =>
+        (module.routes || []).map(route => {
+          // Use the same dynamic import logic as getPageComponent
+          const pathSegments = route.path.split('/').filter(Boolean);
+          let moduleDir = '';
+
+          // Determine moduleDir based on pathSegments
+          if (pathSegments.length > 0) {
+            // The first segment of the path is always the module directory, if it exists
+            moduleDir = pathSegments[0];
+          }
+          let PageComponent = null;
+          // Try modular location
+          if (moduleDir) {
+            const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
+            const modularImportFn = pageModules[modularKey];
+            if (modularImportFn) {
+              PageComponent = lazy(modularImportFn as any);
+            }
+          }
+
+          if (!PageComponent) {
+            console.warn(`⚠️ [DynamicRoutes] No component found for route: ${route.path} (${route.page})`);
+            return null;
+          }
+
+          return (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                <ProtectedRoute 
+                  requiredModule={route.requiredModule} 
+                  requiredPermission={route.requiredPermission}
+                >
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center h-screen">
+                      <div className="text-center">
+                        <Spinner size="lg" />
+                        <p className="mt-4 text-gray-600">Loading {route.page}...</p>
+                      </div>
+                    </div>
+                  }>
+                    <PageComponent />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+          );
+        }).filter(Boolean)
+      )}
+
+      {/* Dynamic navigation routes */}
+      {navigationItems
+        .filter(nav => nav.path !== '/dashboard' && nav.path !== '/login')
+        .map(nav => {
+          const PageComponent = getPageComponent(nav);
+          
+          if (!PageComponent) {
+            console.warn(`⚠️ [DynamicRoutes] No component found for navigation: ${nav.path} (${nav.page})`);
+            return null;
+          }
+
+          return (
+            <Route
+              key={nav.path}
+              path={nav.path}
+              element={
+                <ProtectedRoute 
+                  requiredModule={nav.requiredModule} 
+                  requiredPermission={nav.requiredPermission}
+                >
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center h-screen">
+                      <div className="text-center">
+                        <Spinner size="lg" />
+                        <p className="mt-4 text-gray-600">Loading {nav.label}...</p>
+                      </div>
+                    </div>
+                  }>
+                    <PageComponent />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+          );
+        }).filter(Boolean)}
+    </Routes>
   );
 };
 
-// Main app content with enhanced error boundaries
-const AppContent: React.FC = () => {
+// Enhanced app content with sync status
+const EnhancedAppContent: React.FC = () => {
   const { 
     isOnline, 
     backendAvailable, 
     syncStatus, 
-    pendingSyncCount,
-    dataSource 
+    pendingSyncCount 
   } = useAppData();
   
+  const [modulesInitialized, setModulesInitialized] = useState(false);
+  const initRef = useRef(false);
+
+  useEffect(() => {
+    if (!initRef.current) {
+      initRef.current = true;
+      console.log('🚀 [EnhancedApp] Initializing modules...');
+      initializeModules()
+        .then(() => {
+          console.log('✅ [EnhancedApp] Modules initialized successfully');
+          setModulesInitialized(true);
+        })
+        .catch(error => {
+          console.error('❌ [EnhancedApp] Module initialization failed:', error);
+          setModulesInitialized(true); // Still allow app to load
+        });
+    }
+  }, []);
+
   // Show sync status in development mode
   const showSyncStatus = APP_MODE !== 'demo' && (
     syncStatus.state !== 'idle' || 
@@ -124,49 +286,38 @@ const AppContent: React.FC = () => {
     !isOnline || 
     !backendAvailable
   );
-  
+
+  if (!modulesInitialized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">Initializing application modules...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Layout>
+      {/* Enhanced navigation header */}
       <EnhancedNavigation />
       
-      <div className="flex">
-        <EnhancedSidebar />
-        
-        <main className="flex-1 p-6">
-          {/* Sync status panel */}
-          {showSyncStatus && (
-            <div className="mb-6">
-              <SyncStatusComponent />
-            </div>
-          )}
-          
-          {/* Main content */}
-          <Suspense 
-            fallback={
-              <div className="flex justify-center items-center h-64">
-                <Spinner />
-              </div>
-            }
-          >
-            <Routes>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/students" element={<StudentsPage />} />
-              <Route path="/teachers" element={<TeachersPage />} />
-              <Route path="/classes" element={<ClassesPage />} />
-              <Route path="/subjects" element={<SubjectsPage />} />
-              <Route path="/fees" element={<FeesPage />} />
-              <Route path="/exams" element={<ExamsPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </main>
+      {/* Sync status panel */}
+      {showSyncStatus && (
+        <div className="p-4 bg-gray-50">
+          <SyncStatusComponent />
+        </div>
+      )}
+      
+      {/* Main content */}
+      <div className="flex-1">
+        <DynamicRoutes modulesInitialized={modulesInitialized} />
       </div>
       
       {/* Global notifications */}
       <GlobalNotifications />
-    </div>
+    </Layout>
   );
 };
 
@@ -331,17 +482,23 @@ class AppErrorBoundary extends React.Component<
   }
 }
 
-// Main App component
-const App: React.FC = () => {
+// Main Enhanced App component using your existing architecture
+const EnhancedApp: React.FC = () => {
   return (
     <AppErrorBoundary>
-      <EnhancedAppDataProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </EnhancedAppDataProvider>
+      <HashRouter>
+        <AuthProvider>
+          <UserProvider>
+            <EnhancedAppDataProvider>
+              <ErrorBoundary>
+                <EnhancedAppContent />
+              </ErrorBoundary>
+            </EnhancedAppDataProvider>
+          </UserProvider>
+        </AuthProvider>
+      </HashRouter>
     </AppErrorBoundary>
   );
 };
 
-export default App;
+export default EnhancedApp;
