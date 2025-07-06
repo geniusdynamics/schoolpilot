@@ -213,3 +213,16 @@ export const initialMockPurchaseOrderItems: PurchaseOrderItem[] = [
     { id: 'POI014', purchase_order_id: 'PO004', item_id: 'INV024', quantity_ordered: 2, unit_price: 8200, quantity_received: 0, item_name: 'Office Table' },
     { id: 'POI015', purchase_order_id: 'PO004', item_id: 'INV025', quantity_ordered: 1, unit_price: 11500, quantity_received: 0, item_name: 'Filing Cabinet' }
 ];
+
+// Ensure all AppDataType keys for inventory are exported
+export const warehouses = initialMockWarehouses;
+export const itemCategoriesInv = initialMockItemCategoriesInv;
+export const itemsInv = initialMockItemsInv;
+export const fixedAssets = initialMockFixedAssets;
+export const requisitions = initialMockRequisitions;
+export const requisitionItems = initialMockRequisitionItems;
+export const purchaseOrders = initialMockPurchaseOrders;
+export const purchaseOrderItems = initialMockPurchaseOrderItems;
+export const stockLevels = initialMockStockLevels;
+export const stockTransactions = initialMockStockTransactions;
+export const assetDepreciationLogs = initialMockAssetDepreciationLogs;

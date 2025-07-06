@@ -1,274 +1,299 @@
-
 // ABOUTME: This is the root component of the application.
-// ABOUTME: It sets up the main router and global context providers.
+// ABOUTME: It sets up the main router and global context providers with authentication.
 
-import React from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
-import DashboardPage from './pages/DashboardPage';
-import StaffListPage from './pages/administration/StaffListPage'; 
-import ClassesPage from './pages/academics/ClassesPage'; // Corrected Path
-
-// Moved Pages: Updated Imports
-import StudentsListPage from './pages/administration/StudentsListPage'; 
-import StudentDetailPage from './pages/administration/students/StudentDetailPage';
-import StudentFinancialDashboardPage from './pages/administration/students/StudentFinancialDashboardPage';
-import SubjectsPage from './pages/academics/SubjectsPage';
-
-
-import FinanceDashboardPage from './pages/finance/FinanceDashboardPage'; 
-import LibraryDashboardPage from './pages/library/LibraryDashboardPage'; 
-import InventoryDashboardPage from './pages/inventory/InventoryDashboardPage'; 
 import { UserProvider } from './contexts/UserContext';
-import { AppDataProvider } from '@/contexts/AppDataContext'; 
+import { AppDataProvider } from '@/contexts/AppDataContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useDynamicNavigation } from './hooks/useDynamicNavigation';
+import { useRBAC } from './hooks/useRBAC';
+import { initializeModules } from './core/moduleLoader';
+import Spinner from './components/ui/Spinner';
+import { moduleRegistry } from './core/moduleRegistry';
+import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
 
-// ADMINISTRATION IMPORTS
-import AdministrationDashboardPage from './pages/administration/AdministrationDashboardPage';
-import PartnersPage from './pages/administration/PartnersPage';
-import DepartmentsPage from './pages/administration/DepartmentsPage';
-import DesignationsPage from './pages/administration/DesignationsPage';
-import StudentCategoriesPage from './pages/administration/StudentCategoriesPage';
-import DormitoriesPage from './pages/administration/DormitoriesPage';
-import ClubsPage from './pages/administration/ClubsPage';
-import CustomersPage from './pages/administration/CustomersPage';
-import StudentHealthRecordsPage from './pages/administration/StudentHealthRecordsPage';
-import StudentAttendancePage from './pages/administration/StudentAttendancePage';
-import CommunicationTemplatesPage from './pages/administration/CommunicationTemplatesPage';
-import MessageCampaignsPage from './pages/administration/MessageCampaignsPage';
-import AcademicStructurePage from './pages/administration/AcademicStructurePage';
-import AcademicYearsPage from './pages/administration/AcademicYearsPage';
-import SchoolPeriodsPage from './pages/administration/SchoolPeriodsPage';
-import AcademicPeriodDefinitionsPage from './pages/administration/AcademicPeriodDefinitionsPage';
+// Lazy load the login page
+const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 
+// Lazy load the dashboard page
+const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 
-// ACADEMICS IMPORTS
-import AcademicsDashboardPage from './pages/academics/AcademicsDashboardPage';
-import ExamSessionsPage from './pages/academics/ExamSessionsPage';
-import SubjectPapersManagementPage from './pages/academics/SubjectPapersManagementPage';
-import GradingSchemesPage from './pages/academics/GradingSchemesPage';
-import StudentExamResultsEntryPage from './pages/academics/StudentExamResultsEntryPage';
-import TimetablePeriodsPage from './pages/academics/TimetablePeriodsPage';
-import TimetableEntriesPage from './pages/academics/TimetableEntriesPage';
-import ClassSubjectAllocationsPage from './pages/academics/ClassSubjectAllocationsPage'; 
-import TeacherSubjectAssignmentPage from './pages/academics/TeacherSubjectAssignmentPage';
-import StudentSubjectEnrollmentPage from './pages/academics/StudentSubjectEnrollmentPage';
-import ExamAnalysisPage from './pages/academics/ExamAnalysisPage';
+// Test direct import to see if the issue is with dynamic imports
+const testImport = async () => {
+  try {
+    const module = await import('./modules/administration/pages/AdministrationDashboardPage.tsx');
+    console.log('✅ [Test] Direct import successful:', module);
+  } catch (error) {
+    console.error('❌ [Test] Direct import failed:', error);
+  }
+};
 
+// Vite will statically analyze all .tsx files in ./modules/*/pages
+const pageModules = {
+  ...import.meta.glob('./modules/*/pages/*.tsx'),
+  ...import.meta.glob('./modules/*/pages/**/*.tsx'),
+};
 
-// FINANCE IMPORTS
-import BanksPage from './pages/finance/BanksPage';
-import ChartOfAccountsPage from './pages/finance/ChartOfAccountsPage';
-import CustomerInvoicesPage from './pages/finance/CustomerInvoicesPage';
-import ExpensesPage from './pages/finance/ExpensesPage';
-import FeeAdjustmentsPage from './pages/finance/FeeAdjustmentsPage';
-import StudentOpeningBalancesPage from './pages/finance/StudentOpeningBalancesPage';
-import StudentPaymentsPage from './pages/finance/StudentPaymentsPage';
-import FeeTemplatesPage from './pages/finance/FeeTemplatesPage';
-import EffectFeeStructuresPage from './pages/finance/EffectFeeStructuresPage';
-import TransportRoutesPage from './pages/finance/TransportRoutesPage';
-import StudentTransportAssignmentsPage from './pages/finance/StudentTransportAssignmentsPage';
-import SuppliersPage from './pages/finance/SuppliersPage';
-import SupplierInvoicesPage from './pages/finance/SupplierInvoicesPage';
-import GeneralReceiptsPage from './pages/finance/GeneralReceiptsPage'; 
+console.log('🚀 [App] Available page modules:', Object.keys(pageModules).length);
+console.log('🚀 [App] Page module keys:', Object.keys(pageModules));
 
+// Test the import
+testImport();
 
-// HR IMPORTS
-import HRDashboardPage from './pages/hr/HRDashboardPage';
-import PayrollPeriodsPage from './pages/hr/PayrollPeriodsPage';
-import PayrollItemTypesPage from './pages/hr/PayrollItemTypesPage';
-import StaffSalarySettingsPage from './pages/hr/StaffSalarySettingsPage';
-import PayslipsPage from './pages/hr/PayslipsPage';
+// Modular getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx
+const getPageComponent = (nav: any) => {
+  console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
+  
+  if (nav.page) {
+    const pathSegments = nav.path.split('/').filter(Boolean);
+    let moduleDir = '';
 
+    // Determine moduleDir based on pathSegments
+    if (pathSegments.length > 0) {
+      // The first segment of the path is always the module directory, if it exists
+      moduleDir = pathSegments[0];
+    }
+    
+    console.log('🔍 [getPageComponent] Segments:', pathSegments, 'ModuleDir:', moduleDir);
+    
+    // Try modular location
+    if (moduleDir) {
+      const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
+      console.log('🔍 [getPageComponent] Looking for key:', modularKey);
+      const modularImportFn = pageModules[modularKey];
+      if (modularImportFn) {
+        console.log('✅ [getPageComponent] Found modular key:', modularKey);
+        return lazy(modularImportFn as any);
+      } else {
+        console.log('❌ [getPageComponent] Key not found:', modularKey);
+      }
+    }
+    
+    console.warn('⚠️ [getPageComponent] No page component found for:', nav.page);
+    return null;
+  }
+  
+  console.warn('⚠️ [getPageComponent] No page component found for fallback path:', nav.path);
+  return null;
+};
 
-// INVENTORY IMPORTS
-import WarehousesPage from './pages/inventory/WarehousesPage';
-import ItemCategoriesPage from './pages/inventory/ItemCategoriesPage';
-import ItemsPage from './pages/inventory/ItemsPage';
-import FixedAssetsPage from './pages/inventory/FixedAssetsPage';
-import RequisitionsPage from './pages/inventory/RequisitionsPage';
-import PurchaseOrdersPage from './pages/inventory/PurchaseOrdersPage';
-import StockIssuancePage from './pages/inventory/StockIssuancePage';
-import StockLevelsPage from './pages/inventory/StockLevelsPage';
-import SchoolProcurementDashboardPage from './pages/inventory/SchoolProcurementDashboardPage';
-import VendorPortalDashboardPage from './pages/inventory/VendorPortalDashboardPage';
+const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
+  const { navigationItems } = useDynamicNavigation(true);
+  const { accessibleModules } = useRBAC();
+  const { user } = useAuth();
 
+  // Only log essential information once
+  useEffect(() => {
+    if (modulesInitialized && navigationItems.length > 0) {
+      console.log('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
+    }
+  }, [modulesInitialized, navigationItems.length]);
 
-// LIBRARY IMPORTS
-import BookCategoriesPage from './pages/library/BookCategoriesPage';
-import BooksPage from './pages/library/BooksPage';
-import BookLoansPage from './pages/library/BookLoansPage';
-import FinesPage from './pages/library/FinesPage';
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      
+      {/* Login Route */}
+      <Route
+        path="/login"
+        element={
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-center">
+                <Spinner size="lg" />
+                <p className="mt-4 text-gray-600">Loading login page...</p>
+              </div>
+            </div>
+          }>
+            <LoginPage />
+          </Suspense>
+        }
+      />
+      
+      {/* Direct Dashboard Route - Always Available */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading dashboard...</p>
+                </div>
+              </div>
+            }>
+              <DashboardPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Register custom/dynamic routes from all enabled modules */}
+      {moduleRegistry.getEnabledModules().flatMap(module =>
+        (module.routes || []).map(route => {
+          // Use the same dynamic import logic as getPageComponent
+          const pathSegments = route.path.split('/').filter(Boolean);
+          let moduleDir = '';
 
+          // Determine moduleDir based on pathSegments
+          if (pathSegments.length > 0) {
+            // The first segment of the path is always the module directory, if it exists
+            moduleDir = pathSegments[0];
+          }
+          let PageComponent = null;
+          // Try modular location
+          if (moduleDir) {
+            const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
+            const modularImportFn = pageModules[modularKey];
+            if (modularImportFn) PageComponent = lazy(modularImportFn as any);
+          }
+          if (!PageComponent) return null;
+          
+          // Extract module name for permission checking
+          const moduleName = moduleDir || module.id;
+          const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
+          
+          return (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center h-screen">
+                      <div className="text-center">
+                        <Spinner size="lg" />
+                        <p className="mt-4 text-gray-600">Loading page...</p>
+                      </div>
+                    </div>
+                  }>
+                    <PageComponent />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+          );
+        })
+      )}
+      {navigationItems
+        .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
+        .flatMap(module => {
+          console.log('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
+          return (module.children || []).map(nav => {
+            console.log('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
+            const PageComponent = getPageComponent(nav);
+            if (!PageComponent) {
+              console.log('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
+              return null;
+            }
+            
+            // Determine required permission based on module path
+            const modulePath = nav.modulePath?.replace('/', '') || '';
+            // Extract module name from path (e.g., '/administration' -> 'administration')
+            const moduleName = modulePath || nav.path.split('/')[1] || '';
+            const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
+            
+            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission, 'moduleName:', moduleName);
+            
+            return (
+              <Route
+                key={nav.path}
+                path={nav.path}
+                element={
+                  <ProtectedRoute
+                    requiredPermission={requiredPermission}
+                    requiredModule={moduleName}
+                  >
+                    <Suspense fallback={
+                      <div className="flex items-center justify-center h-screen">
+                        <div className="text-center">
+                          <Spinner size="lg" />
+                          <p className="mt-4 text-gray-600">Loading page...</p>
+                        </div>
+                      </div>
+                    }>
+                      <PageComponent />
+                    </Suspense>
+                  </ProtectedRoute>
+                }
+              />
+            );
+          });
+        })}
+    </Routes>
+  );
+};
 
-// NUTRITION & WALLET IMPORTS
-import NutritionDashboardPage from './pages/nutrition/NutritionDashboardPage';
-import MealPlansPage from './pages/nutrition/MealPlansPage';
-import MenusPage from './pages/nutrition/MenusPage';
-import StudentMealAssignmentsPage from './pages/nutrition/StudentMealAssignmentsPage';
-import MealConsumptionLogPage from './pages/nutrition/MealConsumptionLogPage';
-import MerchantsPage from './pages/nutrition/MerchantsPage';
-import StudentWalletPage from './pages/nutrition/StudentWalletPage';
+const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitialized }) => {
+  const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
 
+  // Debug authentication state
+  console.log('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
 
-// REPORTS IMPORTS
-import StudentMasterlistPage from './pages/reports/StudentMasterlistPage';
-import ExamResultsHorizontalPage from './pages/reports/ExamResultsHorizontalPage';
-import StudentFinancialSummaryPage from './pages/reports/StudentFinancialSummaryPage';
-import StudentVoteheadStatementPage from './pages/reports/StudentVoteheadStatementPage';
-import TeacherAssignmentsPage from './pages/reports/TeacherAssignmentsPage';
-import AccountLedgerPage from './pages/reports/AccountLedgerPage';
-import FeeCollectionSummaryPage from './pages/reports/FeeCollectionSummaryPage';
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
 
-// SETTINGS IMPORTS
-import SettingsSchoolProfilePage from './pages/settings/SettingsSchoolProfilePage';
-import SettingsUsersPage from './pages/settings/SettingsUsersPage';
-import SettingsWorkflowsPage from './pages/settings/SettingsWorkflowsPage';
-import SettingsAuditLogPage from './pages/settings/AuditLogPage';
-import SettingsPage from './pages/SettingsPage';
-import DatabaseSettingsPage from './pages/settings/DatabaseSettingsPage';
+  // If not authenticated, show login page
+  if (!isAuthenticated) {
+    console.log('🔍 [AppContent] User not authenticated, showing login page');
+    return <LoginPage />;
+  }
 
+  console.log('🔍 [AppContent] User authenticated, showing layout');
+  return (
+    <Layout>
+      <ErrorBoundary key={location.pathname}>
+        <DynamicRoutes modulesInitialized={modulesInitialized} />
+      </ErrorBoundary>
+    </Layout>
+  );
+};
 
 const App: React.FC = () => {
+  const [modulesInitialized, setModulesInitialized] = useState(false);
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    const init = async () => {
+      if (!initializedRef.current) {
+        await initializeModules();
+        setModulesInitialized(true);
+        initializedRef.current = true;
+      }
+    };
+    init();
+  }, []);
+
+  if (!modulesInitialized) {
+    return <div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>;
+  }
+
   return (
-    <UserProvider>
-      <AppDataProvider> 
-        <HashRouter>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              
-              {/* Top Level Quick Access (still exist, but also nested for clarity) */}
-              <Route path="/staff" element={<StaffListPage />} /> 
-
-              {/* ADMINISTRATION MODULE */}
-              <Route path="/administration" element={<Navigate to="/administration/dashboard" replace />} />
-              <Route path="/administration/dashboard" element={<AdministrationDashboardPage />} />
-              <Route path="/administration/students" element={<StudentsListPage />} /> 
-              <Route path="/administration/students/:studentId" element={<StudentDetailPage />} /> 
-              <Route path="/administration/students/:studentId/financials" element={<StudentFinancialDashboardPage />} /> 
-              <Route path="/administration/staff" element={<StaffListPage />} />
-              <Route path="/administration/partners" element={<PartnersPage />} />
-              <Route path="/administration/departments" element={<DepartmentsPage />} />
-              <Route path="/administration/designations" element={<DesignationsPage />} />
-              <Route path="/administration/student-categories" element={<StudentCategoriesPage />} />
-              <Route path="/administration/dormitories" element={<DormitoriesPage />} />
-              <Route path="/administration/clubs" element={<ClubsPage />} />
-              <Route path="/administration/customers" element={<CustomersPage />} />
-              <Route path="/administration/student-health" element={<StudentHealthRecordsPage />} />
-              <Route path="/administration/student-attendance" element={<StudentAttendancePage />} />
-              <Route path="/administration/communication-templates" element={<CommunicationTemplatesPage />} />
-              <Route path="/administration/message-campaigns" element={<MessageCampaignsPage />} />
-              <Route path="/administration/academic-structures" element={<AcademicStructurePage />} />
-              <Route path="/administration/academic-years" element={<AcademicYearsPage />} />
-              <Route path="/administration/school-periods" element={<SchoolPeriodsPage />} />
-              <Route path="/administration/academic-period-definitions" element={<AcademicPeriodDefinitionsPage />} />
-
-
-              {/* ACADEMICS MODULE */}
-              <Route path="/academics" element={<Navigate to="/academics/dashboard" replace />} />
-              <Route path="/academics/dashboard" element={<AcademicsDashboardPage />} />
-              <Route path="/academics/classes" element={<ClassesPage />} />
-              <Route path="/academics/subjects" element={<SubjectsPage />} /> 
-              <Route path="/academics/subject-papers" element={<SubjectPapersManagementPage />} />
-              <Route path="/academics/class-subject-allocations" element={<ClassSubjectAllocationsPage />} /> 
-              <Route path="/academics/exam-sessions" element={<ExamSessionsPage />} />
-              <Route path="/academics/grading-schemes" element={<GradingSchemesPage />} />
-              <Route path="/academics/results-entry" element={<StudentExamResultsEntryPage />} />
-              <Route path="/academics/timetable-periods" element={<TimetablePeriodsPage />} />
-              <Route path="/academics/timetable-entries" element={<TimetableEntriesPage />} />
-              <Route path="/academics/teacher-assignments" element={<TeacherSubjectAssignmentPage />} />
-              <Route path="/academics/student-enrollments" element={<StudentSubjectEnrollmentPage />} />
-              <Route path="/academics/exam-analysis" element={<ExamAnalysisPage />} />
-              
-
-              {/* FINANCE MODULE */}
-              <Route path="/finance" element={<Navigate to="/finance/dashboard" replace />} />
-              <Route path="/finance/dashboard" element={<FinanceDashboardPage />} />
-              <Route path="/finance/banks" element={<BanksPage />} />
-              <Route path="/finance/chart-of-accounts" element={<ChartOfAccountsPage />} />
-              <Route path="/finance/customer-invoices" element={<CustomerInvoicesPage />} />
-              <Route path="/finance/expenses" element={<ExpensesPage />} />
-              <Route path="/finance/fee-adjustments" element={<FeeAdjustmentsPage />} />
-              <Route path="/finance/opening-balances" element={<StudentOpeningBalancesPage />} />
-              <Route path="/finance/student-payments" element={<StudentPaymentsPage />} />
-              <Route path="/finance/fee-templates" element={<FeeTemplatesPage />} />
-              <Route path="/finance/effect-fees" element={<EffectFeeStructuresPage />} />
-              <Route path="/finance/transport-routes" element={<TransportRoutesPage />} />
-              <Route path="/finance/student-transport" element={<StudentTransportAssignmentsPage />} />
-              <Route path="/finance/suppliers" element={<SuppliersPage />} />
-              <Route path="/finance/supplier-invoices" element={<SupplierInvoicesPage />} />
-              <Route path="/finance/general-receipts" element={<GeneralReceiptsPage />} /> 
-            
-
-              {/* HR MODULE */}
-              <Route path="/hr" element={<Navigate to="/hr/dashboard" replace />} />
-              <Route path="/hr/dashboard" element={<HRDashboardPage />} />
-              <Route path="/hr/payroll-periods" element={<PayrollPeriodsPage />} />
-              <Route path="/hr/payroll-item-types" element={<PayrollItemTypesPage />} />
-              <Route path="/hr/salary-settings" element={<StaffSalarySettingsPage />} />
-              <Route path="/hr/payslips" element={<PayslipsPage />} />
-
-
-              {/* INVENTORY MODULE */}
-              <Route path="/inventory" element={<Navigate to="/inventory/dashboard" replace />} />
-              <Route path="/inventory/dashboard" element={<InventoryDashboardPage />} /> 
-              <Route path="/inventory/procurement-dashboard" element={<SchoolProcurementDashboardPage />} />
-              <Route path="/inventory/vendor-portal" element={<VendorPortalDashboardPage />} />
-              <Route path="/inventory/warehouses" element={<WarehousesPage />} />
-              <Route path="/inventory/item-categories" element={<ItemCategoriesPage />} />
-              <Route path="/inventory/items" element={<ItemsPage />} />
-              <Route path="/inventory/fixed-assets" element={<FixedAssetsPage />} />
-              <Route path="/inventory/requisitions" element={<RequisitionsPage />} />
-              <Route path="/inventory/purchase-orders" element={<PurchaseOrdersPage />} />
-              <Route path="/inventory/stock-issuance" element={<StockIssuancePage />} />
-              <Route path="/inventory/stock-levels" element={<StockLevelsPage />} />
-              
-
-              {/* LIBRARY MODULE */}
-              <Route path="/library" element={<Navigate to="/library/dashboard" replace />} />
-              <Route path="/library/dashboard" element={<LibraryDashboardPage />} />
-              <Route path="/library/book-categories" element={<BookCategoriesPage />} />
-              <Route path="/library/books" element={<BooksPage />} />
-              <Route path="/library/book-loans" element={<BookLoansPage />} />
-              <Route path="/library/fines" element={<FinesPage />} />
-
-
-              {/* NUTRITION & WALLET MODULE */}
-              <Route path="/nutrition" element={<Navigate to="/nutrition/dashboard" replace />} />
-              <Route path="/nutrition/dashboard" element={<NutritionDashboardPage />} />
-              <Route path="/nutrition/meal-plans" element={<MealPlansPage />} />
-              <Route path="/nutrition/menus" element={<MenusPage />} />
-              <Route path="/nutrition/student-meal-assignments" element={<StudentMealAssignmentsPage />} />
-              <Route path="/nutrition/meal-consumption-log" element={<MealConsumptionLogPage />} />
-              <Route path="/nutrition/merchants" element={<MerchantsPage />} />
-              <Route path="/nutrition/student-wallet" element={<StudentWalletPage />} />
-              
-
-              {/* REPORTS MODULE */}
-              <Route path="/reports" element={<Navigate to="/reports/student-masterlist" replace />} />
-              <Route path="/reports/student-masterlist" element={<StudentMasterlistPage />} />
-              <Route path="/reports/exam-results" element={<ExamResultsHorizontalPage />} />
-              <Route path="/reports/student-financials" element={<StudentFinancialSummaryPage />} />
-              <Route path="/reports/votehead-statements" element={<StudentVoteheadStatementPage />} />
-              <Route path="/reports/teacher-assignments" element={<TeacherAssignmentsPage />} />
-              <Route path="/reports/account-ledger" element={<AccountLedgerPage />} />
-              <Route path="/reports/fee-collection" element={<FeeCollectionSummaryPage />} />
-
-              {/* SETTINGS MODULE */}
-              <Route path="/settings" element={<SettingsPage />} /> 
-              <Route path="/settings/school-profile" element={<SettingsSchoolProfilePage />} />
-              <Route path="/settings/users" element={<SettingsUsersPage />} />
-              <Route path="/settings/workflows" element={<SettingsWorkflowsPage />} />
-              <Route path="/settings/audit-log" element={<SettingsAuditLogPage />} />
-              <Route path="/settings/database" element={<DatabaseSettingsPage />} /> 
-              
-            </Routes>
-          </Layout>
-        </HashRouter>
-      </AppDataProvider>
-    </UserProvider>
+    <AuthProvider>
+      <UserProvider>
+        <AppDataProvider>
+          <HashRouter>
+            <AppContent modulesInitialized={modulesInitialized} />
+          </HashRouter>
+        </AppDataProvider>
+      </UserProvider>
+    </AuthProvider>
   );
 };
 
 export default App;
+

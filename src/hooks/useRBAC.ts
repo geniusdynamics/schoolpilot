@@ -3,6 +3,9 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { rbacService, SYSTEM_ROLES } from '../core/rbacService';
+import { getEnabledModules } from '../core/moduleLoader';
+import type { RbacRole } from '../core/types';
+import { APP_MODE } from '../contexts/config';
 
 export interface RBACHookReturn {
   // Permission checks
@@ -36,9 +39,20 @@ export interface RBACHookReturn {
 export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   // Get user roles
   const userRoles = useMemo((): string[] => {
-    if (!userId) return [];
-    // This would typically come from the user context or API
-    // For now, we'll use a default role based on user type
+    if (APP_MODE === 'demo') {
+      // In demo mode, regardless of whether a userId is provided,
+      // we treat the current session as having SUPER_ADMIN privileges
+      // until a proper login system is implemented.
+      return [SYSTEM_ROLES.SUPER_ADMIN];
+    }
+
+    // Production mode logic (or if APP_MODE is not 'demo')
+    if (!userId) {
+      // In production mode, if no userId is provided, return no roles
+      return [];
+    }
+
+    // Existing logic for production mode with a userId
     if (userType === 'Staff') {
       return ['teacher'];
     } else if (userType === 'Student') {
@@ -58,16 +72,28 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Permission checks
   const hasPermission = useCallback((permissionId: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, super admin has all permissions
+      return true;
+    }
     if (!userId) return false;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const hasModuleAccess = useCallback((moduleId: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all modules are accessible
+      return true;
+    }
     if (!userId) return false;
     return rbacService.hasModuleAccess(userId, moduleId);
   }, [userId]);
 
   const hasFeatureAccess = useCallback((moduleId: string, feature: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all features are accessible
+      return true;
+    }
     if (!userId) return false;
     const features = rbacService.getUserModuleFeatures(userId, moduleId);
     return features.includes(feature);
@@ -92,6 +118,13 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Module access
   const accessibleModules = useMemo(() => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, return all available modules regardless of userId
+      const modules = getEnabledModules().map(module => module.id);
+      console.log('🔍 [useRBAC] Demo mode - accessible modules:', modules);
+      return modules;
+    }
+    
     if (!userId) return [];
     return rbacService.getUserModules(userId);
   }, [userId]);
@@ -114,30 +147,50 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Resource-based permission checks
   const canCreate = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.create`;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const canRead = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.read`;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const canUpdate = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.update`;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const canDelete = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.delete`;
     return rbacService.hasPermission(userId, permissionId);
   }, [userId]);
 
   const canExecute = useCallback((resource: string): boolean => {
+    if (APP_MODE === 'demo') {
+      // In demo mode, all CRUD operations are allowed
+      return true;
+    }
     if (!userId) return false;
     const permissionId = `${resource}.execute`;
     return rbacService.hasPermission(userId, permissionId);

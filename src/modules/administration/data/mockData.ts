@@ -6,7 +6,7 @@ import {
   Class, ClassStream, Student, ParentsGuardian, SchoolDetails, Staff,
   AcademicYear, SchoolPeriod, AcademicYearStructure, AcademicPeriodDefinition,
   FinancialYear, FinancialYearStatus,
-  UserType, PersonGender, StudentStatus
+  PersonGender, StudentStatus
 } from '../../../core/types';
 
 import {
@@ -35,16 +35,16 @@ export const initialMockRoles: Role[] = [
 ];
 
 export const initialMockUsers: User[] = [
-  { id: 'USR_MOCK_ADMIN', username: 'admin_user', email: 'admin@example.com', user_type: UserType.STAFF, is_active: true, role_id: 1, role: 'Administrator', display_name: 'Admin User', created_at: '2023-01-01T08:00:00Z', updated_at: '2023-01-01T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'STF001_USR', username: 'mscott', email: 'm.scott@example.com', user_type: UserType.STAFF, is_active: true, role_id: 1, role: 'Administrator', display_name: 'Michael Scott', created_at: '2023-01-02T08:00:00Z', updated_at: '2023-01-02T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'STF002_USR', username: 'dschrute', email: 'd.schrute@example.com', user_type: UserType.STAFF, is_active: true, role_id: 2, role: 'Teacher', display_name: 'Dwight Schrute', created_at: '2023-01-03T08:00:00Z', updated_at: '2023-01-03T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'STF003_USR', username: 'pbeesly', email: 'p.beesly@example.com', user_type: UserType.STAFF, is_active: true, role_id: 6, role: 'Inventory Manager', display_name: 'Pam Beesly', created_at: '2023-01-04T08:00:00Z', updated_at: '2023-01-04T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'USR007', username: 'omartinez', email: 'o.martinez@example.com', user_type: UserType.STAFF, is_active: true, role_id: 3, role: 'Accountant', display_name: 'Oscar Martinez', created_at: '2023-01-05T08:00:00Z', updated_at: '2023-01-05T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'USR008', username: 'pvance', email: 'p.vance@example.com', user_type: UserType.STAFF, is_active: true, role_id: 2, role: 'Teacher', display_name: 'Phyllis Vance', created_at: '2023-01-06T08:00:00Z', updated_at: '2023-01-06T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'USR009', username: 'ehannon', email: 'e.hannon@example.com', user_type: UserType.STAFF, is_active: true, role_id: 4, role: 'Librarian', display_name: 'Erin Hannon', created_at: '2023-01-07T08:00:00Z', updated_at: '2023-01-07T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'USR010', username: 'tflenderson', email: 't.flenderson@example.com', user_type: UserType.STAFF, is_active: true, role_id: 5, role: 'HR Manager', display_name: 'Toby Flenderson', created_at: '2023-01-08T08:00:00Z', updated_at: '2023-01-08T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'STU001_USR', username: 'jhalpert_stu', email: 'j.halpert.stu@example.com', user_type: UserType.STUDENT, is_active: true, role_id: 8, role: 'Student', display_name: 'Jim Halpert (Student)', created_at: '2023-01-09T08:00:00Z', updated_at: '2023-01-09T08:00:00Z', hashed_password: 'mockhashedpassword' },
-  { id: 'PAR001_USR', username: 'cbeesly_par', email: 'c.beesly.par@example.com', user_type: UserType.PARENT, is_active: true, role_id: 7, role: 'Parent', display_name: 'Cece Beesly (Parent)', created_at: '2023-01-10T08:00:00Z', updated_at: '2023-01-10T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'USR_MOCK_ADMIN', username: 'admin_user', email: 'admin@example.com', userType: 'Staff', isActive: true, role_id: 1, role: 'Administrator', display_name: 'Admin User', created_at: '2023-01-01T08:00:00Z', updated_at: '2023-01-01T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'STF001_USR', username: 'mscott', email: 'm.scott@example.com', userType: 'Staff', isActive: true, role_id: 1, role: 'Administrator', display_name: 'Michael Scott', created_at: '2023-01-02T08:00:00Z', updated_at: '2023-01-02T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'STF002_USR', username: 'dschrute', email: 'd.schrute@example.com', userType: 'Staff', isActive: true, role_id: 2, role: 'Teacher', display_name: 'Dwight Schrute', created_at: '2023-01-03T08:00:00Z', updated_at: '2023-01-03T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'STF003_USR', username: 'pbeesly', email: 'p.beesly@example.com', userType: 'Staff', isActive: true, role_id: 6, role: 'Inventory Manager', display_name: 'Pam Beesly', created_at: '2023-01-04T08:00:00Z', updated_at: '2023-01-04T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'USR007', username: 'omartinez', email: 'o.martinez@example.com', userType: 'Staff', isActive: true, role_id: 3, role: 'Accountant', display_name: 'Oscar Martinez', created_at: '2023-01-05T08:00:00Z', updated_at: '2023-01-05T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'USR008', username: 'pvance', email: 'p.vance@example.com', userType: 'Staff', isActive: true, role_id: 2, role: 'Teacher', display_name: 'Phyllis Vance', created_at: '2023-01-06T08:00:00Z', updated_at: '2023-01-06T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'USR009', username: 'ehannon', email: 'e.hannon@example.com', userType: 'Staff', isActive: true, role_id: 4, role: 'Librarian', display_name: 'Erin Hannon', created_at: '2023-01-07T08:00:00Z', updated_at: '2023-01-07T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'USR010', username: 'tflenderson', email: 't.flenderson@example.com', userType: 'Staff', isActive: true, role_id: 5, role: 'HR Manager', display_name: 'Toby Flenderson', created_at: '2023-01-08T08:00:00Z', updated_at: '2023-01-08T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'STU001_USR', username: 'jhalpert_stu', email: 'j.halpert.stu@example.com', userType: 'Student', isActive: true, role_id: 8, role: 'Student', display_name: 'Jim Halpert (Student)', created_at: '2023-01-09T08:00:00Z', updated_at: '2023-01-09T08:00:00Z', hashed_password: 'mockhashedpassword' },
+  { id: 'PAR001_USR', username: 'cbeesly_par', email: 'c.beesly.par@example.com', userType: 'Parent', isActive: true, role_id: 7, role: 'Parent', display_name: 'Cece Beesly (Parent)', created_at: '2023-01-10T08:00:00Z', updated_at: '2023-01-10T08:00:00Z', hashed_password: 'mockhashedpassword' },
 ];
 
 export const initialMockDepartments: Department[] = [
@@ -679,3 +679,18 @@ export const initialMockCampaigns: AdminCampaignType[] = [
     updated_at: new Date().toISOString()
   }
 ];
+
+// Ensure all AppDataType keys for administration are exported
+export const departments = initialMockDepartments;
+export const designations = initialMockDesignations;
+export const staff = initialMockStaff;
+export const students = initialMockStudents;
+export const users = initialMockUsers;
+export const roles = initialMockRoles;
+export const academicYears = initialMockAcademicYears;
+export const schoolPeriods = initialMockSchoolPeriods;
+export const academicYearStructures = initialMockAcademicYearStructures;
+export const academicPeriodDefinitions = initialMockAcademicPeriodDefinitions;
+export const studentCategories = initialMockStudentCategories;
+export const dormitories = initialMockDormitories;
+export const parentsGuardians = initialMockParentsGuardians;

@@ -1,16 +1,36 @@
-// ABOUTME: Provides CRUD and data provider logic for StaffSalarySetting in HR.
-// ABOUTME: Exports a global provider hook for system-wide use.
+// ABOUTME: Provides a global provider hook for HR Staff Salary Settings with full CRUD logic.
+// ABOUTME: Used for managing staff salary settings in the HR module.
+
 import { useState } from 'react';
+import { HRStaffSalarySettingType } from './types';
 import { initialMockStaffSalarySettings } from './mockData';
 
 export const isGlobalProvider = true;
 
-export function useStaffSalarySettingData() {
-  const [data, setData] = useState<any[]>(initialMockStaffSalarySettings);
+const convertNulls = (item: any) => ({
+  ...item,
+  payment_bank: item.payment_bank === null ? undefined : item.payment_bank,
+  bank_account_no: item.bank_account_no === null ? undefined : item.bank_account_no,
+});
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+export function useStaffSalarySettingData() {
+  const [data, setData] = useState<HRStaffSalarySettingType[]>(initialMockStaffSalarySettings.map(convertNulls));
+
+  const create = (item: Omit<HRStaffSalarySettingType, 'id'>) => {
+    const newItem = { ...item, id: `SSS${Date.now()}` };
+    setData(prev => [...prev, newItem]);
+    return newItem;
+  };
+
+  const read = () => data;
+
+  const update = (updated: HRStaffSalarySettingType) => {
+    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  };
+
+  const remove = (id: string) => {
+    setData(prev => prev.filter(item => item.id !== id));
+  };
+
+  return { data, create, read, update, remove };
+}

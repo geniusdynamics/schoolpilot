@@ -132,3 +132,78 @@ export interface AdminCampaignType {
   approved_by_name?: string;
   target_audience_display?: string;
 }
+
+// MOVED FROM core/types.ts (module-specific):
+export interface WorkflowState {
+  id: number;
+  workflow_id: number;
+  name: string;
+  sequence_order: number;
+}
+
+export interface Workflow {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  states?: WorkflowState[];
+}
+
+export interface ParentsGuardian {
+  id: string;
+  user_id?: string | null;
+  name: string;
+  phone: string;
+  email?: string | null;
+  relationship_type?: string | null;
+  location?: string | null;
+  address?: string | null;
+  photo_path?: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
+
+export interface StudentHealthRecord {
+  id: string;
+  student_id: string;
+  blood_type?: string | null;
+  allergies?: string | null;
+  medical_conditions?: string | null;
+  emergency_contact_override?: string | null;
+  created_at: string;
+  updated_at: string;
+  // Denormalized
+  student_name?: string | null;
+}
+
+export interface Dormitory {
+  id: number;
+  name: string;
+  master_id?: string | null;
+  // Denormalized
+  master_name?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StudentCategory {
+  id: number;
+  name: string;
+}
+
+export interface Designation {
+  id: number;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Department {
+  id: string;
+  name: string;
+  is_academic: boolean;
+  created_at: string;
+  updated_at: string;
+}
+

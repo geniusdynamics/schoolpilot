@@ -1,16 +1,35 @@
-// ABOUTME: Provides CRUD and data provider logic for StaffRecurringItem in HR.
-// ABOUTME: Exports a global provider hook for system-wide use.
+// ABOUTME: Provides a global provider hook for HR Staff Recurring Items with full CRUD logic.
+// ABOUTME: Used for managing staff recurring items in the HR module.
+
 import { useState } from 'react';
+import { HRStaffRecurringItemType } from './types';
 import { initialMockStaffRecurringItems } from './mockData';
 
 export const isGlobalProvider = true;
 
-export function useStaffRecurringItemData() {
-  const [data, setData] = useState<any[]>(initialMockStaffRecurringItems);
+const convertNulls = (item: any) => ({
+  ...item,
+  created_at: item.created_at === null ? undefined : item.created_at,
+});
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+export function useStaffRecurringItemData() {
+  const [data, setData] = useState<HRStaffRecurringItemType[]>(initialMockStaffRecurringItems.map(convertNulls));
+
+  const create = (item: Omit<HRStaffRecurringItemType, 'id'>) => {
+    const newItem = { ...item, id: `SRI${Date.now()}` };
+    setData(prev => [...prev, newItem]);
+    return newItem;
+  };
+
+  const read = () => data;
+
+  const update = (updated: HRStaffRecurringItemType) => {
+    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  };
+
+  const remove = (id: string) => {
+    setData(prev => prev.filter(item => item.id !== id));
+  };
+
+  return { data, create, read, update, remove };
+}

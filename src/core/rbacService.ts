@@ -3,6 +3,8 @@
 
 import { ModuleDefinition } from './types';
 import type { SchoolDatabase } from '../services/rxdbService';
+import type { RbacRole } from './types';
+import { APP_MODE } from '../contexts/config';
 
 // RBAC Types
 export interface Permission {
@@ -62,7 +64,7 @@ export const SYSTEM_ROLES = {
 
 // RBAC Service Class
 export class RBACService {
-  private roles: Map<string, Role> = new Map();
+  private roles: Map<string, RbacRole> = new Map();
   private permissions: Map<string, Permission> = new Map();
   private userRoles: Map<string, UserRole[]> = new Map();
   private modules: Map<string, ModuleDefinition> = new Map();
@@ -112,12 +114,12 @@ export class RBACService {
   }
 
   // Add/update/delete Role
-  public async addRole(role: Role) {
+  public async addRole(role: RbacRole) {
     if (!this.db) return;
     await this.db.rbac_roles.insert(role);
     this.roles.set(role.id, role);
   }
-  public async updateRoleDb(role: Role) {
+  public async updateRoleDb(role: RbacRole) {
     if (!this.db) return;
     const doc = await this.db.rbac_roles.findOne({ selector: { id: role.id } }).exec();
     if (doc) await doc.atomicPatch(role);
@@ -258,7 +260,7 @@ export class RBACService {
   }
 
   // Get all roles
-  public getAllRoles(): Role[] {
+  public getAllRoles(): RbacRole[] {
     return Array.from(this.roles.values());
   }
 
@@ -273,9 +275,9 @@ export class RBACService {
   }
 
   // Create custom role
-  public createRole(role: Omit<Role, 'id'>): string {
+  public createRole(role: Omit<RbacRole, 'id'>): string {
     const roleId = `custom_${Date.now()}`;
-    const newRole: Role = {
+    const newRole: RbacRole = {
       ...role,
       id: roleId,
       isSystem: false,
@@ -286,7 +288,7 @@ export class RBACService {
   }
 
   // Update role
-  public updateRole(roleId: string, updates: Partial<Role>): boolean {
+  public updateRole(roleId: string, updates: Partial<RbacRole>): boolean {
     const role = this.roles.get(roleId);
     if (!role) {
       return false;
@@ -317,6 +319,34 @@ export class RBACService {
 
     this.roles.delete(roleId);
     return true;
+  }
+
+  public initializeSuperAdminRole() {
+    if (APP_MODE === 'demo') {
+      const allPermissionIds = Array.from(this.permissions.keys());
+      const superAdminRole: RbacRole = {
+        id: SYSTEM_ROLES.SUPER_ADMIN,
+        name: 'Super Administrator',
+        description: 'Has all permissions in the system.',
+        permissions: allPermissionIds,
+        isActive: true,
+        isSystem: true,
+        moduleAccess: {},
+      };
+
+      // Grant access to all modules
+      for (const moduleId of this.modules.keys()) {
+        superAdminRole.moduleAccess[moduleId] = {
+          enabled: true,
+          permissions: Array.from(this.permissions.values())
+            .filter(p => p.moduleId === moduleId)
+            .map(p => p.id),
+        };
+      }
+
+      this.roles.set(SYSTEM_ROLES.SUPER_ADMIN, superAdminRole);
+      console.log('Initialized Super Admin role with all permissions for demo mode.');
+    }
   }
 
   // Filter navigation items based on user permissions

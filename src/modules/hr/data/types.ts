@@ -79,3 +79,72 @@ export interface HRPayslipType {
   staff_name?: string;
   payroll_period_name?: string;
 }
+
+export interface PayrollPeriod {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  financial_year_id: number;
+  school_period_id?: number | null;
+  status?: HRPayrollPeriodStatusEnum | null;
+  financial_year_name?: string | null;
+  school_period_name?: string | null;
+}
+
+export interface PayrollItemType {
+  id: number;
+  name: string;
+  category: HRPayrollItemCategoryEnum;
+  tax_implication: HRPayrollTaxImplicationEnum;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StaffRecurringItem {
+  id: string;
+  staff_salary_setting_id: string;
+  item_type_id: number;
+  amount: number;
+  created_at?: string | null;
+  item_type_name?: string | null;
+  item_category?: HRPayrollItemCategoryEnum | null;
+}
+
+export interface StaffSalarySetting {
+  id: string;
+  staff_id: string;
+  basic_salary: number;
+  payment_bank?: string | null;
+  bank_account_no?: string | null;
+  max_advance_amount?: number | null;
+  created_at: string;
+  updated_at: string;
+  recurring_items?: StaffRecurringItem[];
+  staff_name?: string | null;
+}
+
+export interface PayslipItem {
+  id: string;
+  payslip_id: string;
+  item_type_id: number;
+  description?: string | null;
+  amount?: number | null;
+  item_type_name?: string | null;
+  item_category?: HRPayrollItemCategoryEnum | null;
+}
+
+export interface Payslip {
+  id: string;
+  staff_id: string;
+  payroll_period_id: number;
+  gross_salary?: number | null;
+  total_deductions?: number | null;
+  net_salary?: number | null;
+  status?: HRPayslipStatusEnum | null;
+  created_at: string;
+  updated_at: string;
+  items?: PayslipItem[];
+  staff_name?: string | null;
+  payroll_period_name?: string | null;
+}

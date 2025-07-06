@@ -1,12 +1,36 @@
 // src/core/types.ts
 
-// --- Enums ---
+// ABOUTME: This file defines global and cross-module types for the SchoolPilot system.
+// ABOUTME: Only types used by more than one module should live here.
+import type {
+  FinStudentInvoiceType,
+  FinStudentInvoiceItemType,
+  FinStudentPaymentType,
+  FinFeeAdjustmentType,
+  FinInvoicePaymentApplicationType,
+  FinCustomerInvoiceType,
+  FinSupplierInvoiceType,
+  FinGeneralPaymentType,
+  FinGeneralLedgerEntryType,
+  FinStudentOpeningBalanceType,
+  FinTransportRouteType,
+  FinStudentTransportAssignmentType
+} from '../modules/finance/data/types';
 
-export enum UserType {
-  STAFF = 'Staff',
-  STUDENT = 'Student',
-  PARENT = 'Parent',
+// --- Chart Data Types ---
+export interface ChartData {
+  name: string;
+  value: number;
 }
+
+export interface BarChartData {
+  name: string;
+  uv?: number;
+  pv?: number;
+  [key: string]: any;
+}
+
+// --- Enums ---
 
 export enum FinancialYearStatus {
   OPEN = 'Open',
@@ -42,25 +66,100 @@ export enum DayOfWeek {
     SUNDAY = 'SUNDAY'
 }
 
-// Module-specific academic enums moved to src/modules/academics/data/types.ts
-// But we need some for cross-module compatibility
+// === PROMOTED FROM ADMINISTRATION MODULE ===
+export enum PartnerType {
+    SPONSOR = 'Sponsor',
+    BOARD_MEMBER = 'Board Member',
+    SERVICE_PROVIDER = 'Service Provider',
+    GOVERNMENT_AGENCY = 'Government Agency',
+    NGO = 'NGO',
+    OTHER = 'Other'
+}
+
+export enum ClubType {
+    CLUB = 'Club',
+    SOCIETY = 'Society',
+    SPORTS_TEAM = 'Sports Team'
+}
+
+export enum AttendanceStatus {
+    PRESENT = 'Present',
+    ABSENT = 'Absent',
+    LATE = 'Late',
+    EXCUSED = 'Excused'
+}
+
+export enum TemplateType {
+    SMS = 'SMS',
+    EMAIL = 'Email',
+    PUSH_NOTIFICATION = 'Push Notification'
+}
+
+export enum CampaignAudienceType {
+    ALL_STUDENTS = 'All Students',
+    ALL_PARENTS = 'All Parents',
+    ALL_STAFF = 'All Staff',
+    STUDENTS_OF_CLASS = 'Students of Class',
+    PARENTS_OF_CLASS = 'Parents of Class'
+}
+
+export enum CampaignStatus {
+    DRAFT = 'Draft',
+    SCHEDULED = 'Scheduled',
+    APPROVED = 'Approved',
+    SENT = 'Sent',
+    CANCELLED = 'Cancelled'
+}
+
+// === PROMOTED FROM HR MODULE ===
+export enum HRPayrollPeriodStatusEnum {
+    OPEN = 'Open',
+    CLOSED = 'Closed',
+    PROCESSED = 'Processed'
+}
+
+export interface HRPayrollPeriodType {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  financial_year_id: number;
+  school_period_id?: number;
+  status: HRPayrollPeriodStatusEnum;
+  financial_year_name?: string;
+  school_period_name?: string;
+}
+
+// === MERGED/EXPANDED FROM ACADEMICS MODULE ===
 export enum SubjectGrouping {
   CORE = 'Core',
   ELECTIVE = 'Elective',
   OPTIONAL = 'Optional',
+  GROUP_1_COMPULSORY = 'Group 1 (Compulsory)',
+  GROUP_2_SCIENCES = 'Group 2 (Sciences)',
+  GROUP_3_HUMANITIES = 'Group 3 (Humanities)',
+  GROUP_4_TECHNICALS = 'Group 4 (Technicals)',
+  GROUP_5_LANGUAGES = 'Group 5 (Foreign Languages)',
+  OTHER = 'Other/Optional'
 }
 
 export enum StudentEnrollmentStatus {
-  ACTIVE = 'Active',
-  DROPPED = 'Dropped',
-  GRADUATED = 'Graduated',
+    ACTIVE = 'Active',
+    DROPPED = 'Dropped',
+    GRADUATED = 'Graduated',
+    ENROLLED = 'Enrolled',
+    WITHDRAWN = 'Withdrawn'
 }
 
 export enum ExamSessionStatus {
-  OPEN = 'Open',
-  CLOSED = 'Closed',
-  RESULTS_PENDING = 'Results Pending',
-  RESULTS_RELEASED = 'Results Released',
+    OPEN = 'Open',
+    CLOSED = 'Closed',
+    RESULTS_PENDING = 'Results Pending',
+    RESULTS_RELEASED = 'Results Released',
+    PLANNING = 'Planning',
+    MARKS_ENTRY_OPEN = 'Marks Entry Open',
+    PUBLISHED = 'Published',
+    ARCHIVED = 'Archived'
 }
 
 export enum AccountType {
@@ -259,33 +358,20 @@ export interface User {
   hashed_password?: string | null;
   password?: string | null; // For creation/update, not stored
   email: string;
-  user_type: UserType;
-  is_active: boolean;
-  last_login_at?: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string | null;
   role_id?: number | null;
   // Denormalized
   role?: string | null;
   display_name?: string | null;
+  userType: string; // Broad user category (e.g., Staff, Student, Parent, Supplier, etc.)
+  isActive: boolean; // Whether the user is active
 }
 
 export interface Role {
-  id: string;
+  id: number;
   name: string;
   description?: string | null;
   created_at: string;
   updated_at: string;
-  permissions: string[]; // Permission IDs
-  isActive: boolean;
-  isSystem: boolean; // System roles cannot be deleted
-  moduleAccess: {
-    [moduleId: string]: {
-      enabled: boolean;
-      permissions: string[]; // Specific permissions for this module
-    };
-  };
 }
 
 export interface AcademicYearStructure {
@@ -795,6 +881,8 @@ export interface GeneralLedgerEntry {
     description: string;
     source_table?: string | null;
     source_id?: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 // --- Academics Interfaces ---
@@ -1202,7 +1290,6 @@ export interface Loan {
     id: string;
     book_id: string;
     user_id: string;
-    user_type: UserType;
     loan_date: string;
     due_date: string;
     return_date?: string | null;
@@ -1414,8 +1501,13 @@ export type AppDataType = {
   feeTemplates: FeeTemplate[];
   feeTemplateItems: FeeTemplateItem[];
   expenseClaims: ExpenseClaim[];
-  customerInvoices: CustomerInvoice[];
-  supplierInvoices: SupplierInvoice[];
+  studentInvoices: FinStudentInvoiceType[];
+  studentInvoiceItems: FinStudentInvoiceItemType[];
+  studentPayments: FinStudentPaymentType[];
+  feeAdjustments: FinFeeAdjustmentType[];
+  invoicePaymentApplications: FinInvoicePaymentApplicationType[];
+  customerInvoices: FinCustomerInvoiceType[];
+  supplierInvoices: FinSupplierInvoiceType[];
   studentExamResults: StudentExamResultWithDetails[];
   classSubjectAllocations: ClassSubjectAllocation[];
   teacherSubjectAssignments: TeacherSubjectAssignment[];
@@ -1443,22 +1535,12 @@ export type AppDataType = {
   menus: Menu[];
   merchants: Merchant[];
   auditLogs: AuditLog[];
-  studentOpeningBalances: StudentOpeningBalance[];
-  feeAdjustments: FeeAdjustment[];
-  transportRoutes: TransportRoute[];
-  studentTransportAssignments: StudentTransportAssignment[];
-  studentInvoices: StudentInvoice[];
-  studentInvoiceItems: StudentInvoiceItem[];
-  studentPayments: StudentPayment[];
-  invoicePaymentApplications: InvoicePaymentApplication[];
-  studentMealPlans: StudentMealPlan[];
-  mealConsumptionLogs: MealConsumptionLog[];
-  walletTransactions: WalletTransaction[];
-  studentWallets: StudentWallet[];
-  generalPayments: GeneralPayment[];
-  generalLedgerEntries: GeneralLedgerEntry[];
+  studentOpeningBalances: FinStudentOpeningBalanceType[];
+  transportRoutes: FinTransportRouteType[];
+  studentTransportAssignments: FinStudentTransportAssignmentType[];
+  generalPayments: FinGeneralPaymentType[];
+  generalLedgerEntries: FinGeneralLedgerEntryType[];
   rfqs: RFQ[];
-  studentPaperMarks: StudentPaperMark[];
 };
 
 // Loading states should only map over the data types
@@ -1486,6 +1568,42 @@ export type AppDataContextType = AppDataType & {
   addPartner: (partnerData: any) => Promise<void>;
   updatePartner: (updatedPartner: any) => Promise<void>;
   deletePartner: (partnerId: string) => Promise<void>;
+  // Club CRUD operations - AdminClubAndSocietyType from administration module
+  addClub: (clubData: any) => Promise<void>;
+  updateClub: (updatedClub: any) => Promise<void>;
+  deleteClub: (clubId: number) => Promise<void>;
+  // Customer CRUD operations
+  addCustomer: (customerData: any) => Promise<void>;
+  updateCustomer: (updatedCustomer: any) => Promise<void>;
+  deleteCustomer: (customerId: number) => Promise<void>;
+  // Student Health Record CRUD operations
+  addStudentHealthRecord: (healthRecordData: any) => Promise<void>;
+  updateStudentHealthRecord: (updatedHealthRecord: any) => Promise<void>;
+  deleteStudentHealthRecord: (healthRecordId: string) => Promise<void>;
+  // Communication Templates CRUD
+  addTemplateComm: (template: any) => Promise<void>;
+  updateTemplateComm: (template: any) => Promise<void>;
+  deleteTemplateComm: (id: number) => Promise<void>;
+  // Message Campaigns CRUD
+  addCampaign: (campaign: any) => Promise<void>;
+  updateCampaign: (campaign: any) => Promise<void>;
+  deleteCampaign: (id: string) => Promise<void>;
+  // School Periods CRUD
+  addSchoolPeriod: (period: any) => Promise<void>;
+  updateSchoolPeriod: (period: any) => Promise<void>;
+  deleteSchoolPeriod: (id: number) => Promise<void>;
+  // Timetable Period Definitions CRUD
+  addTimetablePeriodDef: (periodDef: any) => Promise<void>;
+  updateTimetablePeriodDef: (periodDef: any) => Promise<void>;
+  deleteTimetablePeriodDef: (id: number) => Promise<void>;
+  // Class CRUD operations
+  addClass: (classData: Omit<Class, 'id'>) => Promise<Class>;
+  updateClass: (updatedClass: Class) => Promise<Class>;
+  deleteClass: (classId: number) => Promise<void>;
+  // Class Stream CRUD operations
+  addClassStream: (classId: number, streamData: Omit<ClassStream, 'id' | 'class_id'>) => Promise<ClassStream>;
+  updateClassStream: (updatedStream: ClassStream) => Promise<ClassStream>;
+  deleteClassStream: (streamId: number) => Promise<void>;
   // Invoice Generation Functions
   generateStudentInvoices: (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => Promise<any[]>;
   // RBAC
@@ -1506,19 +1624,20 @@ export type AppDataContextType = AppDataType & {
 export interface NavItem {
   name: string; // Translation key
   path: string;
-  icon?: React.ReactNode;
+  icon?: React.ComponentType<any>;
   isGroup?: boolean;
   modulePath?: string;
   children?: NavItem[];
   permissions?: string[]; // Optional permissions required
   isActive?: boolean; // Whether this module/feature is active
+  page?: string; // Optional explicit page component name for dynamic import
 }
 
 export interface ModuleDefinition {
   id: string;
   name: string; // Translation key for module name
   description?: string; // Translation key for module description
-  icon: React.ReactNode;
+  icon: React.ComponentType<any>;
   path: string; // Base path for the module
   isActive: boolean; // Whether the module is enabled
   version: string;
@@ -1526,6 +1645,7 @@ export interface ModuleDefinition {
   permissions?: string[]; // Permissions required to access this module
   navigation: NavItem[]; // Navigation items for this module
   features?: string[]; // List of features this module provides
+  routes?: Array<{ path: string; page: string }>; // Custom/dynamic routes for this module
   settings?: {
     category: string; // Settings category
     items: Array<{
@@ -1576,7 +1696,7 @@ export interface ModuleDefinition {
   id: string;
   name: string; // Translation key for module name
   description?: string; // Translation key for module description
-  icon: React.ReactNode;
+  icon: React.ComponentType<any>;
   path: string; // Base path for the module
   isActive: boolean; // Whether the module is enabled
   version: string;
@@ -1584,6 +1704,7 @@ export interface ModuleDefinition {
   permissions?: string[]; // Permissions required to access this module
   navigation: NavItem[]; // Navigation items for this module
   features?: string[]; // List of features this module provides
+  routes?: Array<{ path: string; page: string }>; // Custom/dynamic routes for this module
   settings?: {
     category: string; // Settings category
     items: Array<{
@@ -1598,4 +1719,20 @@ export interface ModuleDefinition {
   defaultRoles?: string[]; // Roles that have access by default
   requiresAuthentication?: boolean;
   publicAccess?: boolean; // Whether module can be accessed without authentication
+}
+
+// RBAC Role for the new permission system
+export interface RbacRole {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[]; // Permission IDs
+  isActive: boolean;
+  isSystem: boolean; // System roles cannot be deleted
+  moduleAccess: {
+    [moduleId: string]: {
+      enabled: boolean;
+      permissions: string[]; // Specific permissions for this module
+    };
+  };
 }

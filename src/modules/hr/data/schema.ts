@@ -3,7 +3,7 @@
 
 import { RxJsonSchema } from 'rxdb';
 import * as types from './types';
-import { createEntitySchema } from '../../../services/rxdbService'; 
+import { createEntitySchema } from '../../../utils/schemaUtils'; 
 
 export const payrollPeriodsSchema: RxJsonSchema<types.HRPayrollPeriodType> = createEntitySchema<types.HRPayrollPeriodType>(
     'payroll_period',

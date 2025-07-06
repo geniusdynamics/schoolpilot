@@ -5,10 +5,9 @@ export * from './types';
 export * from './mockData';
 export * from './schema';
 export * from './collections';
-
-export { isGlobalProvider as isPayrollPeriodGlobalProvider, usePayrollPeriodData } from './usePayrollPeriodData';
-export { isGlobalProvider as isPayrollItemTypeGlobalProvider, usePayrollItemTypeData } from './usePayrollItemTypeData';
-export { isGlobalProvider as isStaffSalarySettingGlobalProvider, useStaffSalarySettingData } from './useStaffSalarySettingData';
-export { isGlobalProvider as isStaffRecurringItemGlobalProvider, useStaffRecurringItemData } from './useStaffRecurringItemData';
-export { isGlobalProvider as isPayslipGlobalProvider, usePayslipData } from './usePayslipData';
-export { isGlobalProvider as isPayslipItemGlobalProvider, usePayslipItemData } from './usePayslipItemData';
+export { usePayrollPeriodData } from './usePayrollPeriodData';
+export { usePayrollItemTypeData } from './usePayrollItemTypeData';
+export { useStaffSalarySettingData } from './useStaffSalarySettingData';
+export { useStaffRecurringItemData } from './useStaffRecurringItemData';
+export { usePayslipData } from './usePayslipData';
+export { usePayslipItemData } from './usePayslipItemData';

@@ -1,4 +1,4 @@
-import { Permission } from '../../core/rbacService';
+import { Permission } from '@/core/rbacService';
 
 export const nutritionPermissions: Permission[] = [
   {

@@ -1,17 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { NAVIGATION_ITEMS } from '../constants';
-import { getDynamicNavigationItems } from '../core/moduleLoader';
+import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useRBAC } from '../hooks/useRBAC';
+import { useAuth } from '../contexts/AuthContext';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon } from './ui/icons';
-
-// Dummy translation function (replace with real i18n if available)
-function t(key: string) {
-  // If you have a real translation function, use it here
-  // For now, prettify the key
-  let label = key.replace('navigation:', '').replace('.title', '').replace('.submenu', '');
-  label = label.replace(/([A-Z])/g, ' $1').replace(/\./g, ' ');
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
+import { useTranslation } from 'react-i18next';
 
 function getFallbackIcon(moduleKey: string) {
   switch (moduleKey) {
@@ -37,14 +30,41 @@ const moduleBg: Record<string, string> = {
 };
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
+  const { t } = useTranslation(['navigation', 'common']);
+  const { navigationItems } = useDynamicNavigation(true); // Use dynamic navigation
+  const { accessibleModules } = useRBAC();
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
 
-  // Find the selected main module
-  const selectedModule = NAVIGATION_ITEMS.find(item => item.name === selectedModuleKey && item.isGroup);
+  // Find the selected main module from dynamic navigation items
+  const selectedModule = navigationItems.find(item => item.name === selectedModuleKey && item.isGroup);
   const subMenus = selectedModule && selectedModule.children ? selectedModule.children : [];
   const moduleKey = selectedModuleKey.split(':')[1]?.split('.')[0] || '';
+
+  // Debug logs to help identify the issue
+  const debugInfo = {
+    selectedModuleKey,
+    isOpen,
+    navigationItemsCount: navigationItems.length,
+    selectedModule,
+    subMenusCount: selectedModule?.children?.length || 0,
+    subMenus: selectedModule?.children || [],
+    accessibleModulesCount: accessibleModules.length,
+    accessibleModules: accessibleModules,
+    user: user?.username,
+    filteredSubMenus: selectedModule?.children?.filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', ''))) || []
+  };
+
+  // Only log once when component mounts or when there's an error
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    if (!selectedModule) {
+      console.warn('⚠️ [SecondarySidebar] No selected module found for:', selectedModuleKey);
+    }
+  }, [isOpen, selectedModule, selectedModuleKey]);
 
   // Filtered navigation based on search
   const filterItems = (items: any[]) =>
@@ -58,7 +78,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   }
 
   return (
-    <aside className={`w-56 transition-all duration-300 h-full flex flex-col shadow-xl border-l border-slate-100 px-2 py-4 custom-scrollbar relative bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`}>
+    <aside className={`w-56 transition-all duration-300 h-full flex flex-col min-h-0 shadow-xl border-l border-slate-100 px-2 py-4 custom-scrollbar relative bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`}>
       <button
         className="absolute top-4 left-0 z-10 text-slate-400 hover:text-slate-700 p-1"
         onClick={onClose}
@@ -71,11 +91,11 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search"
+          placeholder={t('common:search')}
           className="w-full rounded bg-white border border-slate-200 text-slate-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-slate-400"
         />
       </div>
-      <div className="mb-2 flex-1 overflow-y-auto">
+      <div className="mb-2 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
         <ul className="space-y-1">
           {filterItems(subMenus).map(item => (
             <li key={item.name}>
@@ -83,9 +103,9 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                 <div>
                   <button onClick={() => toggleGroup(item.name)} className="flex items-center justify-between w-full px-2 py-1 text-xs uppercase tracking-wider text-slate-700 font-bold focus:outline-none">
                     <span className="flex items-center gap-2">
-                      {item.icon && React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)} {t(item.name).split(' ').slice(1).join(' ')}
+                      {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)} {t(item.name)}
                     </span>
-                    <span>{openGroups[item.name] ? '▾' : '▸'}</span>
+                    <span>{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>
                   </button>
                   {openGroups[item.name] && (
                     <ul className="space-y-1 mt-1">
@@ -103,8 +123,8 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                               }`
                             }
                           >
-                            {child.icon && React.isValidElement(child.icon) ? React.cloneElement(child.icon as React.ReactElement<any>, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                            <span className="font-medium text-sm">{t(child.name).split(' ').slice(1).join(' ')}</span>
+                            {child.icon ? React.createElement(child.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
+                            <span className="font-medium text-sm">{t(child.name)}</span>
                           </NavLink>
                         </li>
                       ))}
@@ -124,8 +144,8 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                     }`
                   }
                 >
-                  {item.icon && React.isValidElement(item.icon) ? React.cloneElement(item.icon as React.ReactElement<any>, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                  <span className="font-medium text-sm">{t(item.name).split(' ').slice(1).join(' ')}</span>
+                  {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
+                  <span className="font-medium text-sm">{t(item.name)}</span>
                 </NavLink>
               )}
             </li>

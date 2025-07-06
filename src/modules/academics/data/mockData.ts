@@ -356,3 +356,13 @@ export const initialMockTimetableEntries: TimetableEntry[] = [
     {id: 'TTE023', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 9, subject_id: 5, teacher_id: 'STF019', class_stream_name: 'Form 2 A', period_name: 'Lesson 7', subject_name: 'Physics', teacher_name: 'Todd Packer'},
     {id: 'TTE024', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 10, subject_id: 6, teacher_id: 'STF007', class_stream_name: 'Form 2 A', period_name: 'Lesson 8', subject_name: 'Chemistry', teacher_name: 'Stanley Hudson'}
 ];
+
+// Ensure all AppDataType keys for academics are exported
+export const subjects = initialMockSubjects;
+export const subjectPapers = initialMockSubjectPapers;
+export const examSessions = initialMockExamSessions;
+export const examPaperSettings = initialMockExamPaperSettings;
+export const gradingSchemes = initialMockGradingSchemes;
+export const classSubjectAllocations = initialMockClassSubjectAllocations;
+export const teacherSubjectAssignments = initialMockTeacherSubjectAssignments;
+export const studentExamResults = initialMockStudentExamResults;

@@ -3,7 +3,7 @@
 
 import { RxJsonSchema, toTypedRxJsonSchema } from 'rxdb';
 import * as types from './types'; // Academics specific types
-import { createEntitySchema } from '../../../services/rxdbService'; 
+import { createEntitySchema } from '../../../utils/schemaUtils'; 
 
 // --- Schema Definitions for Academics Module ---
 

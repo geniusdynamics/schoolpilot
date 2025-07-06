@@ -1,0 +1,30 @@
+
+{
+  "dashboard": {
+    "title": "Academics Dashboard",
+    "totalSubjects": "Total Subjects",
+    "totalSubjectPapers": "Total Subject Papers",
+    "examSessions": "Exam Sessions",
+    "gradingSchemes": "Grading Schemes",
+    "subjectsPerDepartment": "Subjects per Academic Department",
+    "subjectsCountLabel": "No. of Subjects",
+    "overviewTitle": "Academics Module Overview",
+    "overviewDescription": "Manage subjects, exam sessions, results, grading, timetables, and academic analysis.",
+    "enhancementNote": "More academic summaries and charts will be added here."
+  },
+  "subjects": {
+    "title": "Subjects Management",
+    "description": "Define subjects offered, their codes, groupings, and associated departments.",
+    "addSubjectButton": "Add Subject",
+    "modalAddTitle": "Add New Subject",
+    "modalEditTitle": "Edit Subject",
+    "codeLabel": "Subject Code",
+    "abbreviationLabel": "Abbreviation",
+    "nameLabel": "Subject Name",
+    "departmentLabel": "Department",
+    "selectDepartmentOption": "Select Department",
+    "groupingLabel": "Grouping",
+    "compulsoryLabel": "Is Compulsory Subject",
+    "deleteConfirm": "Are you sure you want to delete this subject?"
+  }
+}

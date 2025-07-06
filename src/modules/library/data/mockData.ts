@@ -27,8 +27,8 @@ export const initialMockBooks: Book[] = [
 ];
 
 export const initialMockLoans: Loan[] = [
-  { id: 'LOAN001', book_id: 'BOOK002', user_id: 'STU003', user_type: UserType.STUDENT, loan_date: '2024-06-10', due_date: '2024-06-24', return_date: null, book_title: 'Cosmos', user_name: 'Jim Halpert', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'LOAN002', book_id: 'BOOK004', user_id: 'STF001', user_type: UserType.STAFF, loan_date: '2024-05-01', due_date: '2024-05-15', return_date: null, book_title: 'Clean Code', user_name: 'Michael Scott', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN001', book_id: 'BOOK002', user_id: 'STU003', loan_date: '2024-06-10', due_date: '2024-06-24', return_date: null, book_title: 'Cosmos', user_name: 'Jim Halpert', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN002', book_id: 'BOOK004', user_id: 'STF001', loan_date: '2024-05-01', due_date: '2024-05-15', return_date: null, book_title: 'Clean Code', user_name: 'Michael Scott', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 export const initialMockFines: Fine[] = [
@@ -100,14 +100,14 @@ export const initialMockExtendedBooks: Book[] = [
 
 export const initialMockExtendedLoans: Loan[] = [
   ...initialMockLoans,
-  { id: 'LOAN003', book_id: 'BOOK005', user_id: 'STU004', user_type: UserType.STUDENT, loan_date: '2024-07-10', due_date: '2024-07-24', return_date: null, book_title: 'To Kill a Mockingbird', user_name: 'Pam Beesly', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'LOAN004', book_id: 'BOOK007', user_id: 'STU005', user_type: UserType.STUDENT, loan_date: '2024-06-25', due_date: '2024-07-09', return_date: '2024-07-12', book_title: 'The Catcher in the Rye', user_name: 'Stanley Hudson', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'LOAN005', book_id: 'BOOK008', user_id: 'STU006', user_type: UserType.STUDENT, loan_date: '2024-07-20', due_date: '2024-08-03', return_date: null, book_title: '1984', user_name: 'Kevin Malone', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'LOAN006', book_id: 'BOOK011', user_id: 'STF002', user_type: UserType.STAFF, loan_date: '2024-07-15', due_date: '2024-08-15', return_date: null, book_title: 'Organic Chemistry', user_name: 'Dwight Schrute', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'LOAN007', book_id: 'BOOK014', user_id: 'STU007', user_type: UserType.STUDENT, loan_date: '2024-07-18', due_date: '2024-08-01', return_date: null, book_title: 'Linear Algebra and Its Applications', user_name: 'Angela Martin', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'LOAN008', book_id: 'BOOK017', user_id: 'STU008', user_type: UserType.STUDENT, loan_date: '2024-07-22', due_date: '2024-08-05', return_date: null, book_title: 'Things Fall Apart', user_name: 'Oscar Martinez', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'LOAN009', book_id: 'BOOK021', user_id: 'STF003', user_type: UserType.STAFF, loan_date: '2024-07-12', due_date: '2024-08-12', return_date: null, book_title: 'Design Patterns', user_name: 'Jim Halpert', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'LOAN010', book_id: 'BOOK025', user_id: 'STF004', user_type: UserType.STAFF, loan_date: '2024-07-08', due_date: '2024-08-08', return_date: null, book_title: 'Good to Great', user_name: 'Toby Flenderson', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN003', book_id: 'BOOK005', user_id: 'STU004', loan_date: '2024-07-10', due_date: '2024-07-24', return_date: null, book_title: 'To Kill a Mockingbird', user_name: 'Pam Beesly', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN004', book_id: 'BOOK007', user_id: 'STU005', loan_date: '2024-06-25', due_date: '2024-07-09', return_date: '2024-07-12', book_title: 'The Catcher in the Rye', user_name: 'Stanley Hudson', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN005', book_id: 'BOOK008', user_id: 'STU006', loan_date: '2024-07-20', due_date: '2024-08-03', return_date: null, book_title: '1984', user_name: 'Kevin Malone', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN006', book_id: 'BOOK011', user_id: 'STF002', loan_date: '2024-07-15', due_date: '2024-08-15', return_date: null, book_title: 'Organic Chemistry', user_name: 'Dwight Schrute', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN007', book_id: 'BOOK014', user_id: 'STU007', loan_date: '2024-07-18', due_date: '2024-08-01', return_date: null, book_title: 'Linear Algebra and Its Applications', user_name: 'Angela Martin', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN008', book_id: 'BOOK017', user_id: 'STU008', loan_date: '2024-07-22', due_date: '2024-08-05', return_date: null, book_title: 'Things Fall Apart', user_name: 'Oscar Martinez', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN009', book_id: 'BOOK021', user_id: 'STF003', loan_date: '2024-07-12', due_date: '2024-08-12', return_date: null, book_title: 'Design Patterns', user_name: 'Jim Halpert', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'LOAN010', book_id: 'BOOK025', user_id: 'STF004', loan_date: '2024-07-08', due_date: '2024-08-08', return_date: null, book_title: 'Good to Great', user_name: 'Toby Flenderson', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 // Library statistics and reports data
@@ -152,3 +152,9 @@ export const initialMockLibrarySettings = {
   reservation_hold_days: 3,
   overdue_notice_days: [7, 14, 21]
 };
+
+// Ensure all AppDataType keys for library are exported
+export const bookCategories = initialMockBookCategories;
+export const books = initialMockBooks;
+export const loans = initialMockLoans;
+export const fines = initialMockFines;

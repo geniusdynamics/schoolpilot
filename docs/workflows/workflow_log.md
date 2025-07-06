@@ -308,3 +308,260 @@ This log tracks the progress of fixes and implementations for the SchoolPilot ap
 **Git Status:** Committed as ff3bb0b with detailed commit message
 **Next Review:** Scheduled for January 5, 2025 with development team
 **Next Steps:** Begin Week 1 implementation focusing on `useRxDBData.ts` CRUD parity development
+
+## 2024-07-02: RBAC Modularization & Hybrid User Model
+- Migrated to modular RBAC system: each module now has its own `rbac.ts` (e.g., `src/modules/reports/rbac.ts`, `src/modules/settings/rbac.ts`).
+- Introduced `RbacRole` interface and new RBAC logic in `src/core/rbacService.ts` and related files.
+- Restored `userType` (string) for user categorization in `src/core/types.ts`, mock data (`src/hooks/useMockData.ts`, `src/modules/administration/data/mockData.ts`), and UI (`src/pages/settings/SettingsUsersPage.tsx`).
+- Updated all forms, tables, and filters to support both `userType` and roles.
+- All mock users now use `userType` and `isActive`.
+- All type errors and linter issues resolved for new model.
+- Legacy consumers can still use mapped roles for backward compatibility.
+- **Transitioned to i18n sweep:** Recap and plan in `docs/workflows/recap2_i18n_sweep_20240702.md`.
+
+## [Academics Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Academics module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/academics.json` and `src/i18n/locales/fr/academics.json` as needed.
+- Language switching was validated for all Academics pages.
+
+**Files/Directories Updated:**
+- `src/pages/academics/AcademicsDashboardPage.tsx`
+- `src/pages/academics/ClassesPage.tsx`
+- `src/pages/academics/ClassSubjectAllocationsPage.tsx`
+- `src/pages/academics/ExamAnalysisPage.tsx`
+- `src/pages/academics/ExamSessionsPage.tsx`
+- `src/pages/academics/GradingSchemesPage.tsx`
+- `src/pages/academics/StudentExamResultsEntryPage.tsx`
+- `src/pages/academics/StudentSubjectEnrollmentPage.tsx`
+- `src/pages/academics/SubjectsPage.tsx`
+- `src/pages/academics/SubjectPapersManagementPage.tsx`
+- `src/pages/academics/TeacherSubjectAssignmentPage.tsx`
+- `src/pages/academics/TimetableEntriesPage.tsx`
+- `src/pages/academics/TimetablePeriodsPage.tsx`
+- `src/pages/academics/UseAcademicYearData.ts`
+- `src/pages/academics/UseClassSubjectAllocationData.ts`
+- `src/pages/academics/UseExamPaperSettingData.ts`
+- `src/pages/academics/UseExamSessionData.ts`
+- `src/pages/academics/UseGradingSchemeData.ts`
+- `src/pages/academics/UseGradingSchemeLevelData.ts`
+- `src/pages/academics/UseStudentExamResultData.ts`
+- `src/pages/academics/UseStudentPaperMarkData.ts`
+- `src/pages/academics/UseSubjectData.ts`
+- `src/pages/academics/UseSubjectPaperData.ts`
+- `src/pages/academics/UseTeacherSubjectAssignmentData.ts`
+- `src/pages/academics/UseTimetableEntryData.ts`
+- `src/pages/academics/UseTimetablePeriodDefData.ts`
+- `src/pages/academics/StudentPaperMarkData.ts`
+
+**Validation:**
+- All Academics pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Academics module.
+
+## [Administration Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Administration module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/administration.json` and `src/i18n/locales/fr/administration.json` as needed.
+- Language switching was validated for all Administration pages.
+
+**Files/Directories Updated:**
+- `src/pages/administration/AcademicPeriodDefinitionsPage.tsx`
+- `src/pages/administration/AcademicStructurePage.tsx`
+- `src/pages/administration/AcademicYearsPage.tsx`
+- `src/pages/administration/AdministrationDashboardPage.tsx`
+- `src/pages/administration/ClubsPage.tsx`
+- `src/pages/administration/CommunicationTemplatesPage.tsx`
+- `src/pages/administration/CustomersPage.tsx`
+- `src/pages/administration/DepartmentsPage.tsx`
+- `src/pages/administration/DesignationsPage.tsx`
+- `src/pages/administration/DormitoriesPage.tsx`
+- `src/pages/administration/MessageCampaignsPage.tsx`
+- `src/pages/administration/PartnersPage.tsx`
+- `src/pages/administration/SchoolPeriodsPage.tsx`
+- `src/pages/administration/StaffListPage.tsx`
+- `src/pages/administration/StudentAttendancePage.tsx`
+- `src/pages/administration/StudentCategoriesPage.tsx`
+- `src/pages/administration/StudentHealthRecordsPage.tsx`
+- `src/pages/administration/StudentsListPage.tsx`
+- `src/pages/administration/students/StudentDetailPage.tsx`
+- `src/pages/administration/students/StudentFinancialDashboardPage.tsx`
+
+**Validation:**
+- All Administration pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Administration module.
+
+## [Finance Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Finance module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/finance.json` and `src/i18n/locales/fr/finance.json` as needed.
+- Language switching was validated for all Finance pages.
+
+**Files/Directories Updated:**
+- `src/pages/finance/ExpensesPage.tsx`
+- `src/pages/finance/CustomerInvoicesPage.tsx`
+- `src/pages/finance/ChartOfAccountsPage.tsx`
+- `src/pages/finance/BanksPage.tsx`
+- `src/pages/finance/GeneralReceiptsPage.tsx`
+- `src/pages/finance/FeeTemplatesPage.tsx`
+- `src/pages/finance/EffectFeeStructuresPage.tsx`
+- `src/pages/finance/FeeAdjustmentsPage.tsx`
+- `src/pages/finance/FeeCollectionSummaryPage.tsx`
+- `src/pages/finance/FinanceDashboardPage.tsx`
+- `src/pages/finance/StudentOpeningBalancesPage.tsx`
+- `src/pages/finance/StudentPaymentsPage.tsx`
+- `src/pages/finance/StudentTransportAssignmentsPage.tsx`
+- `src/pages/finance/SupplierInvoicesPage.tsx`
+- `src/pages/finance/SuppliersPage.tsx`
+- `src/pages/finance/TransportRoutesPage.tsx`
+
+**Validation:**
+- All Finance pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Finance module.
+
+## [HR Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the HR module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/hr.json` and `src/i18n/locales/fr/hr.json` as needed.
+- Language switching was validated for all HR pages.
+
+**Files/Directories Updated:**
+- `src/pages/hr/HRDashboardPage.tsx`
+- `src/pages/hr/PayrollItemTypesPage.tsx`
+- `src/pages/hr/PayrollPeriodsPage.tsx`
+- `src/pages/hr/PayslipsPage.tsx`
+- `src/pages/hr/StaffSalarySettingsPage.tsx`
+
+**Validation:**
+- All HR pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the HR module.
+
+## [Inventory Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Inventory module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/inventory.json` and `src/i18n/locales/fr/inventory.json` as needed.
+- Language switching was validated for all Inventory pages.
+
+**Files/Directories Updated:**
+- `src/pages/inventory/FixedAssetsPage.tsx`
+- `src/pages/inventory/ItemCategoriesPage.tsx`
+- `src/pages/inventory/ItemsPage.tsx`
+- `src/pages/inventory/PurchaseOrdersPage.tsx`
+- `src/pages/inventory/RequisitionsPage.tsx`
+- `src/pages/inventory/SchoolProcurementDashboardPage.tsx`
+- `src/pages/inventory/StockIssuancePage.tsx`
+- `src/pages/inventory/StockLevelsPage.tsx`
+- `src/pages/inventory/VendorPortalDashboardPage.tsx`
+- `src/pages/inventory/WarehousesPage.tsx`
+- `src/pages/inventory/InventoryDashboardPage.tsx`
+
+**Validation:**
+- All Inventory pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Inventory module.
+
+## [Library Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Library module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/library.json` and `src/i18n/locales/fr/library.json` as needed.
+- Language switching was validated for all Library pages.
+
+**Files/Directories Updated:**
+- `src/pages/library/BookLoansPage.tsx`
+- `src/pages/library/LibraryDashboardPage.tsx`
+- `src/pages/library/BookCategoriesPage.tsx`
+- `src/pages/library/BooksPage.tsx`
+- `src/pages/library/FinesPage.tsx`
+
+**Validation:**
+- All Library pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Library module.
+
+## [Nutrition Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Nutrition module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/nutrition.json` and `src/i18n/locales/fr/nutrition.json` as needed.
+- Language switching was validated for all Nutrition pages.
+
+**Files/Directories Updated:**
+- `src/pages/nutrition/MealConsumptionLogPage.tsx`
+- `src/pages/nutrition/MealPlansPage.tsx`
+- `src/pages/nutrition/MenusPage.tsx`
+- `src/pages/nutrition/MerchantsPage.tsx`
+- `src/pages/nutrition/NutritionDashboardPage.tsx`
+- `src/pages/nutrition/StudentMealAssignmentsPage.tsx`
+- `src/pages/nutrition/StudentWalletPage.tsx`
+
+**Validation:**
+- All Nutrition pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Nutrition module.
+
+## [Reports Module] i18n Sweep Complete (2025-07-01)
+
+**Summary:**
+- All hardcoded UI labels, modal titles, button text, table headers, and placeholders in the Reports module were replaced with i18n keys using `useTranslation` from `react-i18next`.
+- Missing translation keys were added to `src/i18n/locales/en/reports.json` and `src/i18n/locales/fr/reports.json` as needed.
+- Language switching was validated for all Reports pages.
+
+**Files/Directories Updated:**
+- `src/pages/reports/StudentFinancialSummaryPage.tsx`
+- `src/pages/reports/AccountLedgerPage.tsx`
+- `src/pages/reports/ExamResultsHorizontalPage.tsx`
+- `src/pages/reports/FeeCollectionSummaryPage.tsx`
+- `src/pages/reports/StudentMasterlistPage.tsx`
+- `src/pages/reports/StudentVoteheadStatementPage.tsx`
+- `src/pages/reports/TeacherAssignmentsPage.tsx`
+
+**Validation:**
+- All Reports pages and components now use i18n keys for user-facing text.
+- Language switching (English/French) was tested and works as expected.
+- No hardcoded UI labels remain in the Reports module.
+
+---
+C o r e   m o d u l e s   a l w a y s   i n c l u d e d   i n   e n a b l e d   m o d u l e s   f o r   n a v i g a t i o n .   R e g i s t r y   l o g i c   u p d a t e d . 
+ 
+### [2025-07-02] UI/UX Enhancements Completed
+
+**Summary:**
+- The following enhancements were implemented as requested by Mr GENIUS:
+
+1. **Dashboard Icon Navigation:**
+   - Clicking the main Dashboard icon in the primary sidebar now immediately navigates to `/dashboard` instead of just opening the submenu.
+   - This was achieved by updating navigation logic in `src/components/Layout.tsx`.
+
+2. **Secondary Sidebar Scrollability:**
+   - The secondary sidebar (submenu) is now independently scrollable, ensuring usability for modules with many submenu items.
+   - This was implemented by updating the flex and overflow styles in `src/components/SecondarySidebar.tsx`.
+
+**Files Modified:**
+- `src/components/Layout.tsx`
+- `src/components/SecondarySidebar.tsx`
+
+**Status:** Completed and verified file presence before logging.
+
+---
+
+### [2025-07-02] ErrorBoundary now preserves navigation/layout on error
+- ErrorBoundary moved to wrap only main content in `App.tsx` (`src/App.tsx`)
+- ErrorBoundary fallback UI updated for module-page look (`src/components/ErrorBoundary.tsx`)
+- Navigation, sidebars, and layout remain visible even when a page throws
+- Verified file existence: `src/App.tsx`, `src/components/ErrorBoundary.tsx`
+
+### [2025-07-02] useModularMockData always provides all AppDataType keys
+- Patched `useModularMockData.ts` to ensure all AppDataType keys are present in the returned context, defaulting to empty arrays or nulls if missing from the aggregated mock data.
+- Prevents undefined errors in all pages, even if mock data is missing.
+- Verified file existence: `src/hooks/useModularMockData.ts`, `src/core/types.ts`
+
+ 

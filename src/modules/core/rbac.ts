@@ -1,4 +1,4 @@
-import { Permission } from '../../core/rbacService';
+import { Permission } from '@/core/rbacService';
 
 export const corePermissions: Permission[] = [
   // Dashboard
@@ -9,6 +9,24 @@ export const corePermissions: Permission[] = [
     resource: 'core.dashboard',
     action: 'read',
     moduleId: 'core',
+    feature: 'dashboard',
+  },
+  {
+    id: 'dashboard.view',
+    name: 'View Dashboard',
+    description: 'View the main dashboard and its widgets',
+    resource: 'dashboard',
+    action: 'read',
+    moduleId: 'dashboard',
+    feature: 'dashboard',
+  },
+  {
+    id: 'dashboard.view',
+    name: 'View Dashboard',
+    description: 'View the main dashboard and its widgets',
+    resource: 'dashboard',
+    action: 'read',
+    moduleId: 'dashboard',
     feature: 'dashboard',
   },
   // Settings

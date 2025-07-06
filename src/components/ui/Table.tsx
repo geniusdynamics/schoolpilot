@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import Spinner from './Spinner';
 
 interface TableColumn<T> {
   header: string;
@@ -64,7 +65,7 @@ const Table = <T extends object,>({ columns, data, isLoading = false, emptyState
               <tr>
                 <td colSpan={columns.length} className="px-6 py-4 text-center">
                   <div className="flex justify-center items-center">
-                    <div className="loader"></div>
+                    <Spinner size="md" />
                     <span className="ml-2 text-gray-500">Loading data...</span>
                   </div>
                 </td>

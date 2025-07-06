@@ -1,6 +1,5 @@
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Library module.
 // ABOUTME: It ensures all library-related data structures are managed in one place.
-import { UserType } from "../../../types";
 
 export enum LibBookStatusEnum {
     AVAILABLE = 'Available',
@@ -46,7 +45,6 @@ export interface LibLoanType {
   id: string;
   book_id: string;
   user_id: string;
-  user_type: UserType;
   loan_date: string;
   due_date: string;
   return_date?: string;
@@ -71,4 +69,56 @@ export interface LibFineType {
   book_title?: string;
   user_name?: string;
   loan_due_date?: string;
+}
+
+// MOVED FROM core/types.ts (module-specific):
+export interface BookCategory {
+  id: number;
+  name: string;
+}
+
+export interface Book {
+  id: string;
+  category_id?: number | null;
+  title: string;
+  author?: string | null;
+  publisher?: string | null;
+  isbn?: string | null;
+  accession_no: string;
+  purchase_cost?: number | null;
+  status: LibBookStatusEnum;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+  // Denormalized
+  category_name?: string | null;
+}
+
+export interface Loan {
+  id: string;
+  book_id: string;
+  user_id: string;
+  loan_date: string;
+  due_date: string;
+  return_date?: string | null;
+  created_at: string;
+  updated_at: string;
+  // Denormalized
+  book_title?: string | null;
+  user_name?: string | null;
+}
+
+export interface Fine {
+  id: string;
+  loan_id: string;
+  amount: number;
+  status: LibBookStatusEnum;
+  reason?: string | null;
+  fee_adjustment_id?: string | null;
+  created_at: string;
+  updated_at: string;
+  // Denormalized
+  book_title?: string | null;
+  user_name?: string | null;
+  loan_due_date?: string | null;
 }

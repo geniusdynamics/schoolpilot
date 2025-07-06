@@ -1,16 +1,36 @@
-// ABOUTME: Provides CRUD and data provider logic for PayrollItemType in HR.
-// ABOUTME: Exports a global provider hook for system-wide use.
+// ABOUTME: Provides a global provider hook for HR Payroll Item Types with full CRUD logic.
+// ABOUTME: Used for managing payroll item types in the HR module.
+
 import { useState } from 'react';
+import { HRPayrollItemTypeType } from './types';
 import { initialMockPayrollItemTypes } from './mockData';
 
 export const isGlobalProvider = true;
 
-export function usePayrollItemTypeData() {
-  const [data, setData] = useState<any[]>(initialMockPayrollItemTypes);
+const convertEnums = (item: any) => ({
+  ...item,
+  category: typeof item.category === 'string' ? item.category : String(item.category),
+  tax_implication: typeof item.tax_implication === 'string' ? item.tax_implication : String(item.tax_implication),
+});
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+export function usePayrollItemTypeData() {
+  const [data, setData] = useState<HRPayrollItemTypeType[]>(initialMockPayrollItemTypes.map(convertEnums));
+
+  const create = (item: Omit<HRPayrollItemTypeType, 'id'>) => {
+    const newItem = { ...item, id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    setData(prev => [...prev, newItem]);
+    return newItem;
+  };
+
+  const read = () => data;
+
+  const update = (updated: HRPayrollItemTypeType) => {
+    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  };
+
+  const remove = (id: number) => {
+    setData(prev => prev.filter(item => item.id !== id));
+  };
+
+  return { data, create, read, update, remove };
+}
