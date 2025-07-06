@@ -150,6 +150,47 @@
     "saveChanges": "Enregistrer les Modifications",
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette désignation ?"
   },
+  "studentCategories": {
+    "title": "Gestion des Catégories d'Élèves",
+    "management": "Gestion des Catégories d'Élèves",
+    "addStudentCategory": "Ajouter Catégorie d'Élève",
+    "addNewStudentCategory": "Ajouter Nouvelle Catégorie d'Élève",
+    "editStudentCategory": "Modifier Catégorie d'Élève",
+    "categoryName": "Nom de la Catégorie",
+    "description": "Description",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer les Modifications",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette catégorie d'élève ?"
+  },
+  "dormitories": {
+    "title": "Gestion des Dortoirs",
+    "management": "Gestion des Dortoirs",
+    "addDormitory": "Ajouter Dortoir",
+    "addNewDormitory": "Ajouter Nouveau Dortoir",
+    "editDormitory": "Modifier Dortoir",
+    "dormitoryName": "Nom du Dortoir",
+    "capacity": "Capacité",
+    "gender": "Genre",
+    "description": "Description",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer les Modifications",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce dortoir ?"
+  },
+  "messageCampaigns": {
+    "title": "Gestion des Campagnes de Messages",
+    "management": "Gestion des Campagnes de Messages",
+    "addCampaign": "Ajouter Campagne",
+    "addNewCampaign": "Ajouter Nouvelle Campagne",
+    "editCampaign": "Modifier Campagne",
+    "campaignName": "Nom de la Campagne",
+    "message": "Message",
+    "targetAudience": "Public Cible",
+    "scheduledDate": "Date Programmée",
+    "status": "Statut",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer les Modifications",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette campagne de messages ?"
+  },
   "tableHeaders": {
     "partnerName": "Nom du Partenaire",
     "type": "Type",
@@ -162,6 +203,16 @@
     "className": "Nom de la Classe",
     "streamCount": "Nb. de Filières",
     "streamName": "Nom de la Filière",
-    "classTeacher": "Professeur Principal"
+    "classTeacher": "Professeur Principal",
+    "categoryName": "Nom de la Catégorie",
+    "description": "Description",
+    "dormitoryName": "Nom du Dortoir",
+    "capacity": "Capacité",
+    "gender": "Genre",
+    "campaignName": "Nom de la Campagne",
+    "message": "Message",
+    "targetAudience": "Public Cible",
+    "scheduledDate": "Date Programmée",
+    "status": "Statut"
   }
 }

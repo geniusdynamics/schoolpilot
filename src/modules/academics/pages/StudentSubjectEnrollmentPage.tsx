@@ -101,7 +101,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
       return;
     }
 
-    const isDuplicate = studentSubjectEnrollments.some(
+    const isDuplicate = (studentSubjectEnrollments || []).some(
         enr => enr.id !== editingEnrollment?.id &&
                enr.student_id === formData.student_id &&
                enr.class_subject_allocation_id === formData.class_subject_allocation_id &&
@@ -130,7 +130,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
   
   const handleGridEnrollmentChange = async (studentId: string, csaId: string, isCurrentlyEnrolled: boolean) => {
     if (isCurrentlyEnrolled) { // User wants to unenroll
-      const existingEnrollment = studentSubjectEnrollments.find(
+      const existingEnrollment = (studentSubjectEnrollments || []).find(
         e => e.student_id === studentId && e.class_subject_allocation_id === csaId && e.status === StudentEnrollmentStatus.ENROLLED
       );
       if (existingEnrollment) {
@@ -243,7 +243,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-md bg-gray-50">
             <Select label="Academic Year" value={selectedAcademicYearId || ''} onChange={e => {setSelectedAcademicYearId(Number(e.target.value) || undefined); setSelectedSchoolPeriodId(undefined); setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}}>
                 <option value="">Select Year</option>
-                {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
+                {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
             </Select>
             <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => {setSelectedSchoolPeriodId(Number(e.target.value) || undefined); setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}} disabled={!selectedAcademicYearId}>
                 <option value="">Select Period</option>
@@ -251,7 +251,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
             </Select>
             <Select label="Class" value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}} disabled={!selectedSchoolPeriodId}>
                 <option value="">Select Class</option>
-                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
             <Select label="Stream" value={selectedStreamId || ''} onChange={e => {setSelectedStreamId(Number(e.target.value) || undefined); setShowEnrollmentGrid(false);}} disabled={!selectedClassId}>
                 <option value="">Select Stream</option>
@@ -265,7 +265,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         </div>
 
         {showEnrollmentGrid && studentsForGrid.length > 0 && subjectsForGrid.length > 0 && (
-            <Card title={`Enrollment Grid for ${classStreams.find(cs=>cs.id === selectedStreamId)?.name} - ${academicYears.find(ay=>ay.id === selectedAcademicYearId)?.name}`} className="mt-4">
+            <Card title={`Enrollment Grid for ${(classStreams || []).find(cs=>cs.id === selectedStreamId)?.name} - ${(academicYears || []).find(ay=>ay.id === selectedAcademicYearId)?.name}`} className="mt-4">
                 <p className="text-xs text-gray-500 mb-2">Check to enroll, uncheck to unenroll. Changes are saved immediately.</p>
                 <Table columns={gridColumns} data={studentsForGrid} isLoading={loading.studentSubjectEnrollments} />
             </Card>
@@ -276,7 +276,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
 
         <h3 className="text-lg font-semibold mt-8 mb-2">All Enrollment Records</h3>
-        <Table columns={columnsForListing} data={studentSubjectEnrollments} isLoading={loading.studentSubjectEnrollments && isModalOpen} />
+        <Table columns={columnsForListing} data={(studentSubjectEnrollments || [])} isLoading={loading.studentSubjectEnrollments && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingEnrollment ? 'Edit Enrollment Status' : 'Enroll Student in Subject'} size="lg"

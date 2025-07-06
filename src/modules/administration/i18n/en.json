@@ -150,6 +150,47 @@
     "saveChanges": "Save Changes",
     "deleteConfirm": "Are you sure you want to delete this designation?"
   },
+  "studentCategories": {
+    "title": "Student Categories Management",
+    "management": "Student Categories Management",
+    "addStudentCategory": "Add Student Category",
+    "addNewStudentCategory": "Add New Student Category",
+    "editStudentCategory": "Edit Student Category",
+    "categoryName": "Category Name",
+    "description": "Description",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "deleteConfirm": "Are you sure you want to delete this student category?"
+  },
+  "dormitories": {
+    "title": "Dormitories Management",
+    "management": "Dormitories Management",
+    "addDormitory": "Add Dormitory",
+    "addNewDormitory": "Add New Dormitory",
+    "editDormitory": "Edit Dormitory",
+    "dormitoryName": "Dormitory Name",
+    "capacity": "Capacity",
+    "gender": "Gender",
+    "description": "Description",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "deleteConfirm": "Are you sure you want to delete this dormitory?"
+  },
+  "messageCampaigns": {
+    "title": "Message Campaigns Management",
+    "management": "Message Campaigns Management",
+    "addCampaign": "Add Campaign",
+    "addNewCampaign": "Add New Campaign",
+    "editCampaign": "Edit Campaign",
+    "campaignName": "Campaign Name",
+    "message": "Message",
+    "targetAudience": "Target Audience",
+    "scheduledDate": "Scheduled Date",
+    "status": "Status",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "deleteConfirm": "Are you sure you want to delete this message campaign?"
+  },
   "tableHeaders": {
     "partnerName": "Partner Name",
     "type": "Type",
@@ -162,6 +203,16 @@
     "className": "Class Name",
     "streamCount": "No. of Streams",
     "streamName": "Stream Name",
-    "classTeacher": "Class Teacher"
+    "classTeacher": "Class Teacher",
+    "categoryName": "Category Name",
+    "description": "Description",
+    "dormitoryName": "Dormitory Name",
+    "capacity": "Capacity",
+    "gender": "Gender",
+    "campaignName": "Campaign Name",
+    "message": "Message",
+    "targetAudience": "Target Audience",
+    "scheduledDate": "Scheduled Date",
+    "status": "Status"
   }
 }

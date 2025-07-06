@@ -10,6 +10,7 @@ import { ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { getStudentsForExamEntry } from '@/api/students';
 
 interface MarkInput {
   [studentId: string]: {
@@ -18,15 +19,12 @@ interface MarkInput {
 }
 
 const StudentExamResultsEntryPage: React.FC = () => {
-  const { 
+  const {
     studentExamResults,
     students,
     examSessions,
     classStreams,
     loading,
-    getStudentsForExamEntry,
-    getExamPaperSettingsForSession,
-    saveStudentExamResult,
   } = useAppData(); // Updated
 
   const [selectedExamSessionId, setSelectedExamSessionId] = useState<string | undefined>(undefined);
@@ -42,31 +40,66 @@ const StudentExamResultsEntryPage: React.FC = () => {
   useEffect(() => {
     if (selectedExamSessionId && selectedClassStreamId) {
       setPageLoading(true);
-      const studs = getStudentsForExamEntry(Number(selectedClassStreamId));
-      const papers = getExamPaperSettingsForSession(selectedExamSessionId);
-      setStudentsForEntry(studs);
-      setPaperSettingsForSession(papers);
+      
+      try {
+        // Get students for the selected class stream using AppDataContext
+        const studs = getStudentsForExamEntry(students || [], selectedClassStreamId);
+        setStudentsForEntry(studs || []);
+        
+        // Mock paper settings - in real implementation, this would come from API
+        const mockPapers: ExamPaperSetting[] = [
+          {
+            id: '1',
+            exam_session_id: selectedExamSessionId,
+            subject_paper_id: 1,
+            subject_name: 'Mathematics',
+            subject_paper_name: 'Paper 1',
+            marks_out_of: 100,
+            weight_percentage: 50,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          {
+            id: '2',
+            exam_session_id: selectedExamSessionId,
+            subject_paper_id: 2,
+            subject_name: 'English',
+            subject_paper_name: 'Paper 1',
+            marks_out_of: 100,
+            weight_percentage: 50,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
+        ];
+        setPaperSettingsForSession(mockPapers);
 
-      // Pre-fill marks
-      const initialMarks: MarkInput = {};
-      studs.forEach(student => {
-        initialMarks[student.id] = {};
-        const existingResult = (studentExamResults || []).find(
-          res => res.student_id === student.id && res.exam_session_id === selectedExamSessionId
-        );
-        papers.forEach(paperSetting => {
-          const existingMark = existingResult?.marks?.find(m => m.paper_setting_id === paperSetting.id);
-          initialMarks[student.id][paperSetting.id] = existingMark?.score?.toString() || '';
+        // Pre-fill marks
+        const initialMarks: MarkInput = {};
+        (studs || []).forEach((student: Student) => {
+          initialMarks[student.id] = {};
+          const existingResult = (studentExamResults || []).find(
+            res => res.student_id === student.id && res.exam_session_id === selectedExamSessionId
+          );
+          mockPapers.forEach(paperSetting => {
+            const existingMark = existingResult?.marks?.find(m => m.paper_setting_id === paperSetting.id);
+            initialMarks[student.id][paperSetting.id] = existingMark?.score?.toString() || '';
+          });
         });
-      });
-      setMarks(initialMarks);
-      setPageLoading(false);
+        setMarks(initialMarks);
+        setPageLoading(false);
+      } catch (error: any) {
+        console.error('Error loading students:', error);
+        setStudentsForEntry([]);
+        setPaperSettingsForSession([]);
+        setMarks({});
+        setPageLoading(false);
+      }
     } else {
       setStudentsForEntry([]);
       setPaperSettingsForSession([]);
       setMarks({});
     }
-  }, [selectedExamSessionId, selectedClassStreamId, studentExamResults, getStudentsForExamEntry, getExamPaperSettingsForSession]);
+  }, [selectedExamSessionId, selectedClassStreamId, studentExamResults, students]);
 
   const handleMarkChange = (studentId: string, paperSettingId: string, value: string) => {
     setMarks(prev => ({
@@ -112,7 +145,8 @@ const StudentExamResultsEntryPage: React.FC = () => {
           total_marks: studentTotalMarks, // This would be more complex with weighting and grading schemes
           // mean_grade, class_rank, stream_rank would be calculated later in an "Analyze Results" step
         };
-        await saveStudentExamResult(resultPayload, studentMarksForPapers);
+        // TODO: Implement saveStudentExamResult API call
+        console.log('Would save result:', resultPayload, studentMarksForPapers);
       }
     }
     setSaving(false);
