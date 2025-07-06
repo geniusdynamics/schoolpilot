@@ -175,7 +175,28 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
 
 const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitialized }) => {
   const location = useLocation();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, login, isDemoMode } = useAuth();
+
+  // Debug authentication state
+  console.log('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname, isDemoMode });
+
+  // Auto-login for demo mode if not authenticated
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated && isDemoMode) {
+      console.log('🔍 [AppContent] Auto-login for demo mode');
+      login({ username: 'admin', password: 'admin123' })
+        .then(result => {
+          if (result.success) {
+            console.log('✅ [AppContent] Auto-login successful');
+          } else {
+            console.error('❌ [AppContent] Auto-login failed:', result.message);
+          }
+        })
+        .catch(error => {
+          console.error('❌ [AppContent] Auto-login error:', error);
+        });
+    }
+  }, [isLoading, isAuthenticated, isDemoMode, login]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -191,9 +212,11 @@ const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitiali
 
   // If not authenticated, show login page
   if (!isAuthenticated) {
+    console.log('🔍 [AppContent] User not authenticated, showing login page');
     return <LoginPage />;
   }
 
+  console.log('🔍 [AppContent] User authenticated, showing layout');
   return (
     <Layout>
       <ErrorBoundary key={location.pathname}>

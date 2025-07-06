@@ -29,20 +29,26 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const checkAccess = async () => {
       if (isLoading) return;
 
+      console.log('🔍 [ProtectedRoute] Checking access:', { requiredPermission, requiredModule, isAuthenticated });
       setCheckingAccess(true);
       try {
         let access = true;
 
         // Check specific permission if required
         if (requiredPermission) {
-          access = access && await hasPermission(requiredPermission);
+          const hasPerm = await hasPermission(requiredPermission);
+          console.log('🔍 [ProtectedRoute] Permission check:', { permission: requiredPermission, hasPerm });
+          access = access && hasPerm;
         }
 
         // Check module access if required
         if (requiredModule) {
-          access = access && await hasModuleAccess(requiredModule);
+          const hasModule = await hasModuleAccess(requiredModule);
+          console.log('🔍 [ProtectedRoute] Module check:', { module: requiredModule, hasModule });
+          access = access && hasModule;
         }
 
+        console.log('🔍 [ProtectedRoute] Final access result:', access);
         setHasAccess(access);
       } catch (error) {
         console.error('Error checking access:', error);
