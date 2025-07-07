@@ -14,7 +14,7 @@ type WarehouseFormData = Omit<Partial<Warehouse>, 'id'>;
 
 const WarehousesPage: React.FC = () => {
   const { warehouses, loading, addWarehouse, updateWarehouse, deleteWarehouse } = useAppData(); // Updated
-  const { t } = useTranslation();
+  const { t } = useTranslation('inventory');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
@@ -40,7 +40,7 @@ const WarehousesPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Warehouse name is required.");
+      alert(t('validation.warehouseNameIsRequired'));
       return;
     }
     const payload = { name: formData.name! };

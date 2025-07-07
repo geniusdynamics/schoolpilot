@@ -1,177 +1,302 @@
-// ABOUTME: Service for managing dynamic module configuration and loading
-// ABOUTME: Handles client-configurable module settings without code changes
+import { moduleRegistry } from '@/core/moduleRegistry';
 
-import moduleConfig from '../config/modules.json';
-
-export interface ModuleConfig {
-  enabledModules: string[];
-  disabledModules: string[];
-  moduleSettings: Record<string, {
-    enabled: boolean;
-    required: boolean;
-    description: string;
-  }>;
-  moduleDependencies: Record<string, string[]>;
-}
-
-export interface ModuleInfo {
+interface ModuleConfig {
   id: string;
   enabled: boolean;
+  settings?: Record<string, any>;
+  lastModified: Date;
+}
+
+// Add missing ModuleInfo interface
+export interface ModuleInfo {
+  id: string;
+  name: string;
+  description?: string;
+  enabled: boolean;
   required: boolean;
-  description: string;
   dependencies: string[];
   dependencySatisfied: boolean;
   missingDependencies: string[];
 }
 
 class ModuleConfigService {
-  private config: ModuleConfig;
+  private readonly STORAGE_KEY = 'module_configurations';
+  private configs: Map<string, ModuleConfig> = new Map();
+  private isLoading = false;
 
   constructor() {
-    this.config = moduleConfig;
+    console.log('[ModuleConfigService] Initializing...');
+    this.loadConfigurations();
+    console.log('[ModuleConfigService] Initialization complete');
+    console.log('[ModuleConfigService] DEBUG: Enabled modules after init:', this.getEnabledModules());
   }
 
-  // Get all module configuration
-  getConfig(): ModuleConfig {
-    return this.config;
-  }
-
-  // Check if a module is enabled
-  isModuleEnabled(moduleId: string): boolean {
-    return this.config.enabledModules.includes(moduleId);
-  }
-
-  // Check if a module is required
-  isModuleRequired(moduleId: string): boolean {
-    return this.config.moduleSettings[moduleId]?.required || false;
-  }
-
-  // Get module dependencies
-  getModuleDependencies(moduleId: string): string[] {
-    return this.config.moduleDependencies[moduleId] || [];
-  }
-
-  // Check if module dependencies are satisfied
-  checkDependencies(moduleId: string): { satisfied: boolean; missing: string[] } {
-    const dependencies = this.getModuleDependencies(moduleId);
-    const missing = dependencies.filter(dep => !this.isModuleEnabled(dep));
+  private loadConfigurations(): void {
+    if (this.isLoading) {
+      console.warn('[ModuleConfigService] Already loading configurations, skipping...');
+      return;
+    }
     
+    this.isLoading = true;
+    console.log('[ModuleConfigService] Loading configurations from localStorage...');
+    
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        console.log('[ModuleConfigService] Found stored configurations:', stored.length, 'characters');
+        const configs = JSON.parse(stored);
+        this.configs = new Map(Object.entries(configs).map(([id, config]: [string, any]) => [
+          id,
+          {
+            ...config,
+            lastModified: new Date(config.lastModified)
+          }
+        ]));
+        console.log('[ModuleConfigService] Loaded', this.configs.size, 'module configurations');
+      } else {
+        console.log('[ModuleConfigService] No stored configurations found');
+      }
+    } catch (error) {
+      console.error('[ModuleConfigService] Failed to load module configurations:', error);
+      this.configs = new Map();
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private saveConfigurations(): void {
+    try {
+      const configsObj = Object.fromEntries(
+        Array.from(this.configs.entries()).map(([id, config]) => [
+          id,
+          {
+            ...config,
+            lastModified: config.lastModified.toISOString()
+          }
+        ])
+      );
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(configsObj));
+    } catch (error) {
+      console.error('Failed to save module configurations:', error);
+    }
+  }
+
+  enableModule(moduleId: string): boolean {
+    try {
+      const config: ModuleConfig = this.configs.get(moduleId) || {
+        id: moduleId,
+        enabled: false,
+        lastModified: new Date()
+      };
+
+      config.enabled = true;
+      config.lastModified = new Date();
+      this.configs.set(moduleId, config);
+      this.saveConfigurations();
+      return true;
+    } catch (error) {
+      console.error('Failed to enable module:', error);
+      return false;
+    }
+  }
+
+  disableModule(moduleId: string): boolean {
+    try {
+      const config: ModuleConfig = this.configs.get(moduleId) || {
+        id: moduleId,
+        enabled: true,
+        lastModified: new Date()
+      };
+
+      config.enabled = false;
+      config.lastModified = new Date();
+      this.configs.set(moduleId, config);
+      this.saveConfigurations();
+      return true;
+    } catch (error) {
+      console.error('Failed to disable module:', error);
+      return false;
+    }
+  }
+
+  isModuleEnabled(moduleId: string): boolean {
+    // Core modules are always enabled
+    const coreModules = ['core', 'dashboard', 'settings', 'reports'];
+    if (coreModules.includes(moduleId)) {
+      console.log(`[ModuleConfigService] DEBUG: isModuleEnabled(${moduleId}) = true (core module)`);
+      return true;
+    }
+    
+    const config = this.configs.get(moduleId);
+    // Default to enabled if no configuration exists (auto-enable discovered modules)
+    const enabled = config?.enabled ?? true;
+    console.log(`[ModuleConfigService] DEBUG: isModuleEnabled(${moduleId}) = ${enabled}, config:`, config);
+    return enabled;
+  }
+
+  getEnabledModules(): string[] {
+    const enabled = Array.from(this.configs.entries())
+      .filter(([_, config]) => config.enabled)
+      .map(([id, _]) => id);
+    console.log('[ModuleConfigService] DEBUG: getEnabledModules() returning:', enabled);
+    return enabled;
+  }
+
+  getModuleConfig(moduleId: string): ModuleConfig | null {
+    return this.configs.get(moduleId) || null;
+  }
+
+  updateModuleSettings(moduleId: string, settings: Record<string, any>): void {
+    const config = this.configs.get(moduleId);
+    if (config) {
+      config.settings = { ...config.settings, ...settings };
+      config.lastModified = new Date();
+      this.configs.set(moduleId, config);
+      this.saveConfigurations();
+    }
+  }
+
+  getModuleSettings(moduleId: string): Record<string, any> {
+    const config = this.configs.get(moduleId);
+    return config?.settings || {};
+  }
+
+  getAllConfigurations(): ModuleConfig[] {
+    return Array.from(this.configs.values());
+  }
+
+  resetModuleConfig(moduleId: string): void {
+    this.configs.delete(moduleId);
+    this.saveConfigurations();
+  }
+
+  exportConfigurations(): string {
+    return JSON.stringify(Object.fromEntries(this.configs), null, 2);
+  }
+
+  importConfigurations(configJson: string): void {
+    try {
+      const configs = JSON.parse(configJson);
+      this.configs = new Map(Object.entries(configs).map(([id, config]: [string, any]) => [
+        id,
+        {
+          ...config,
+          lastModified: new Date(config.lastModified)
+        }
+      ]));
+      this.saveConfigurations();
+    } catch (error) {
+      console.error('Failed to import module configurations:', error);
+      throw new Error('Invalid configuration format');
+    }
+  }
+
+  // Add missing methods that are called by moduleManagementService
+  getAllModuleInfo(): ModuleInfo[] {
+    console.log('[ModuleConfigService] Getting all module info...');
+    const allModules = moduleRegistry.getAllModules();
+    const coreModules = ['core', 'dashboard', 'settings', 'reports'];
+    
+    return allModules.map(module => {
+      const config = this.configs.get(module.id);
+      const dependencies = module.dependencies || [];
+      const missingDeps = dependencies.filter(dep => !this.isModuleEnabled(dep));
+      
+      return {
+        id: module.id,
+        name: module.name,
+        description: module.description || `${module.name} module`,
+        enabled: coreModules.includes(module.id) || (config?.enabled ?? false),
+        required: coreModules.includes(module.id),
+        dependencies,
+        dependencySatisfied: missingDeps.length === 0,
+        missingDependencies: missingDeps
+      };
+    });
+  }
+
+  validateConfig(): { valid: boolean; errors: string[] } {
+    console.log('[ModuleConfigService] Validating configuration...');
+    const errors: string[] = [];
+    
+    try {
+      // Check for circular dependencies
+      const allModules = moduleRegistry.getAllModules();
+      for (const module of allModules) {
+        if (module.dependencies) {
+          const visited = new Set<string>();
+          const stack = new Set<string>();
+          
+          if (this.hasCircularDependency(module.id, module.dependencies, visited, stack, allModules)) {
+            errors.push(`Circular dependency detected for module: ${module.id}`);
+          }
+        }
+      }
+      
+      return { valid: errors.length === 0, errors };
+    } catch (error) {
+      console.error('[ModuleConfigService] Error validating config:', error);
+      return { valid: false, errors: ['Configuration validation failed'] };
+    }
+  }
+
+  private hasCircularDependency(
+    moduleId: string,
+    dependencies: string[],
+    visited: Set<string>,
+    stack: Set<string>,
+    allModules: any[]
+  ): boolean {
+    if (stack.has(moduleId)) return true;
+    if (visited.has(moduleId)) return false;
+    
+    visited.add(moduleId);
+    stack.add(moduleId);
+    
+    for (const dep of dependencies) {
+      const depModule = allModules.find(m => m.id === dep);
+      if (depModule && depModule.dependencies) {
+        if (this.hasCircularDependency(dep, depModule.dependencies, visited, stack, allModules)) {
+          return true;
+        }
+      }
+    }
+    
+    stack.delete(moduleId);
+    return false;
+  }
+
+  checkDependencies(moduleId: string): { satisfied: boolean; missing: string[] } {
+    console.log('[ModuleConfigService] Checking dependencies for:', moduleId);
+    const module = moduleRegistry.getModule(moduleId);
+    if (!module || !module.dependencies) {
+      return { satisfied: true, missing: [] };
+    }
+    
+    const missing = module.dependencies.filter(dep => !this.isModuleEnabled(dep));
     return {
       satisfied: missing.length === 0,
       missing
     };
   }
 
-  // Get all module information
-  getAllModuleInfo(): ModuleInfo[] {
-    const allModules = Object.keys(this.config.moduleSettings);
+  getModuleDependencies(moduleId: string): string[] {
+    console.log('[ModuleConfigService] Getting dependencies for:', moduleId);
+    const module = moduleRegistry.getModule(moduleId);
+    return module?.dependencies || [];
+  }
+
+  getConfig(): { moduleDependencies: Record<string, string[]> } {
+    console.log('[ModuleConfigService] Getting full config...');
+    const allModules = moduleRegistry.getAllModules();
+    const moduleDependencies: Record<string, string[]> = {};
     
-    return allModules.map(moduleId => {
-      const dependencies = this.getModuleDependencies(moduleId);
-      const { satisfied, missing } = this.checkDependencies(moduleId);
-      
-      return {
-        id: moduleId,
-        enabled: this.isModuleEnabled(moduleId),
-        required: this.isModuleRequired(moduleId),
-        description: this.config.moduleSettings[moduleId]?.description || '',
-        dependencies,
-        dependencySatisfied: satisfied,
-        missingDependencies: missing
-      };
+    allModules.forEach(module => {
+      moduleDependencies[module.id] = module.dependencies || [];
     });
-  }
-
-  // Enable a module
-  enableModule(moduleId: string): boolean {
-    if (!this.config.moduleSettings[moduleId]) {
-      console.warn(`Module ${moduleId} not found in configuration`);
-      return false;
-    }
-
-    // Check dependencies
-    const { satisfied, missing } = this.checkDependencies(moduleId);
-    if (!satisfied) {
-      console.warn(`Cannot enable ${moduleId}: missing dependencies: ${missing.join(', ')}`);
-      return false;
-    }
-
-    if (!this.isModuleEnabled(moduleId)) {
-      this.config.enabledModules.push(moduleId);
-      this.config.disabledModules = this.config.disabledModules.filter(id => id !== moduleId);
-    }
-
-    return true;
-  }
-
-  // Disable a module
-  disableModule(moduleId: string): boolean {
-    if (this.isModuleRequired(moduleId)) {
-      console.warn(`Cannot disable required module: ${moduleId}`);
-      return false;
-    }
-
-    // Check if other enabled modules depend on this one
-    const dependentModules = Object.entries(this.config.moduleDependencies)
-      .filter(([_, deps]) => deps.includes(moduleId))
-      .map(([id, _]) => id)
-      .filter(id => this.isModuleEnabled(id));
-
-    if (dependentModules.length > 0) {
-      console.warn(`Cannot disable ${moduleId}: other modules depend on it: ${dependentModules.join(', ')}`);
-      return false;
-    }
-
-    this.config.enabledModules = this.config.enabledModules.filter(id => id !== moduleId);
-    if (!this.config.disabledModules.includes(moduleId)) {
-      this.config.disabledModules.push(moduleId);
-    }
-
-    return true;
-  }
-
-  // Get enabled modules only
-  getEnabledModules(): string[] {
-    return this.config.enabledModules;
-  }
-
-  // Get disabled modules only
-  getDisabledModules(): string[] {
-    return this.config.disabledModules;
-  }
-
-  // Validate configuration
-  validateConfig(): { valid: boolean; errors: string[] } {
-    const errors: string[] = [];
-    const allModules = Object.keys(this.config.moduleSettings);
-
-    // Check for invalid enabled modules
-    const invalidEnabled = this.config.enabledModules.filter(id => !allModules.includes(id));
-    if (invalidEnabled.length > 0) {
-      errors.push(`Invalid enabled modules: ${invalidEnabled.join(', ')}`);
-    }
-
-    // Check for invalid disabled modules
-    const invalidDisabled = this.config.disabledModules.filter(id => !allModules.includes(id));
-    if (invalidDisabled.length > 0) {
-      errors.push(`Invalid disabled modules: ${invalidDisabled.join(', ')}`);
-    }
-
-    // Check dependencies
-    for (const moduleId of this.config.enabledModules) {
-      const { satisfied, missing } = this.checkDependencies(moduleId);
-      if (!satisfied) {
-        errors.push(`Module ${moduleId} has unsatisfied dependencies: ${missing.join(', ')}`);
-      }
-    }
-
-    return {
-      valid: errors.length === 0,
-      errors
-    };
+    
+    return { moduleDependencies };
   }
 }
 
-// Export singleton instance
 export const moduleConfigService = new ModuleConfigService();
-export default moduleConfigService; 

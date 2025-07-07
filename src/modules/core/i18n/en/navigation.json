@@ -118,6 +118,8 @@
     "studentFinancialSummary": "Student Financial Summary",
     "studentVoteheadStatement": "Student Votehead Statement"
   },
+  "settings": "Settings",
+  "settings.description": "System configuration and management",
   "settings": {
     "title": "Settings",
     "general": "General Settings",
@@ -127,7 +129,6 @@
     "auditLog": "Audit Log",
     "database": "Database Management",
     "databaseSettings": "Database Settings",
-    "settings": "General Settings",
     "users": "User Management"
   },
   "sidebarNavigation": "Main Navigation",

@@ -14,7 +14,7 @@ type DesignationFormData = Omit<Partial<Designation>, 'id' | 'created_at' | 'upd
 
 const DesignationsPage: React.FC = () => {
   const { designations, loading, addDesignation, updateDesignation, deleteDesignation } = useDesignationData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('administration');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDesignation, setEditingDesignation] = useState<Designation | null>(null);
@@ -40,7 +40,7 @@ const DesignationsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.title) {
-      alert("Designation title is required.");
+      alert(t('validation.designationTitleIsRequired'));
       return;
     }
     const payload = {

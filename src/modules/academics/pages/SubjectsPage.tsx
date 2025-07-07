@@ -19,7 +19,7 @@ interface SubjectFormData extends Omit<Partial<Subject>, 'id' | 'department_name
 const SubjectsPage: React.FC = () => {
   const { subjects: subjectsState, loading, rawInitialData } = useAppData();
   const { initialMockDepartments } = rawInitialData;
-  const { t } = useTranslation();
+  const { t } = useTranslation('academics');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
@@ -64,7 +64,7 @@ const SubjectsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.subject_code || !formData.abbreviation || !formData.grouping) {
-        alert("Name, Code, Abbreviation and Grouping are required.");
+        alert(t('validation.nameCodeAbbreviationAndGroupingAreRequired'));
         return;
     }
     

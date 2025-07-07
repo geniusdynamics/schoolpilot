@@ -100,7 +100,7 @@ const ExamSessionsPage: React.FC = () => {
 
   const handleSessionSubmit = async () => {
     if (!sessionFormData.name || !sessionFormData.school_period_id) {
-      alert("Exam session name and school period are required.");
+      alert(t('validation.examSessionNameAndSchoolPeriodAreRequired'));
       return;
     }
     const payload = {
@@ -119,7 +119,7 @@ const ExamSessionsPage: React.FC = () => {
   
   const handlePaperSettingSubmit = async () => {
     if (!currentSessionForPapers || !paperSettingFormData.subject_paper_id || paperSettingFormData.marks_out_of === undefined || paperSettingFormData.weight_percentage === undefined) {
-      alert("Subject Paper, Marks Out Of, and Weight Percentage are required.");
+      alert(t('validation.subjectPaperMarksOutOfAndWeightPercentageAreRequired'));
       return;
     }
     const payload: Omit<ExamPaperSetting, 'id' | 'created_at' | 'updated_at' | 'subject_paper_name' | 'subject_name'> = {

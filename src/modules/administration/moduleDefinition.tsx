@@ -52,7 +52,9 @@ export const administrationModule: ModuleDefinition = {
   ],
   features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance'],
   routes: [
-    { path: '/administration/students/:studentId', page: 'StudentDetailPage' }
+    { path: '/administration/students', page: 'StudentsListPage' },
+    { path: '/administration/students/:studentId', page: 'StudentDetailPage' },
+    { path: '/administration/students/:studentId/financial', page: 'StudentFinancialDetailPage' }
   ],
   settings: {
     category: 'administration',

@@ -6,6 +6,11 @@ import {
   HomeIcon,
   CogIcon,
   DocumentReportIcon,
+  CircleStackIcon,
+  ClockIcon,
+  IdentificationIcon,
+  UsersIcon,
+  ArrowsRightLeftIcon,
 } from '@/components/ui/icons';
 
 // Dashboard Module (Core System)
@@ -26,22 +31,31 @@ export const dashboardModule: ModuleDefinition = {
 // Settings Module (Core System)
 export const settingsModule: ModuleDefinition = {
   id: 'settings',
-  name: 'navigation:settings.title',
+  name: 'navigation:settings',
   description: 'navigation:settings.description',
   icon: CogIcon,
   path: '/settings',
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:settings.title', path: '/settings', icon: CogIcon, page: 'SettingsPage' },
-    { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: CogIcon, page: 'AuditLogPage' },
+    { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
+    { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
+    { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
     { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon, page: 'DatabaseSettingsPage' },
-    { name: 'navigation:settings.settings', path: '/settings/settings', icon: CogIcon, page: 'SettingsPage' },
-    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: CogIcon, page: 'SettingsSchoolProfilePage' },
-    { name: 'navigation:settings.users', path: '/settings/users', icon: CogIcon, page: 'SettingsUsersPage' },
-    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: CogIcon, page: 'SettingsWorkflowsPage' },
+    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
+    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage' },
+    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage' },
   ],
-  features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management'],
+  features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
+  rbacPermissions: [
+    { id: 'settings.view', name: 'View Settings', description: 'Can view settings pages', resource: 'settings', action: 'read', moduleId: 'settings' },
+    { id: 'settings.manage', name: 'Manage Settings', description: 'Can modify system settings', resource: 'settings', action: 'update', moduleId: 'settings' },
+    { id: 'settings.configure', name: 'Configure Settings', description: 'Can configure advanced settings', resource: 'settings', action: 'execute', moduleId: 'settings' },
+    { id: 'modules.view', name: 'View Modules', description: 'Can view module configurations', resource: 'modules', action: 'read', moduleId: 'settings' },
+    { id: 'modules.manage', name: 'Manage Modules', description: 'Can enable/disable modules', resource: 'modules', action: 'update', moduleId: 'settings' },
+    { id: 'modules.configure', name: 'Configure Modules', description: 'Can configure module settings', resource: 'modules', action: 'execute', moduleId: 'settings' },
+    { id: 'permissions.view', name: 'View Permissions', description: 'Can view permission configurations', resource: 'permissions', action: 'read', moduleId: 'settings' },
+  ],
   settings: {
     category: 'system',
     items: [

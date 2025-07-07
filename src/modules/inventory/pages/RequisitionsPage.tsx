@@ -107,7 +107,7 @@ const RequisitionsPage: React.FC = () => {
 
   const handleReqSubmit = async () => {
     if (!reqFormData.requesting_staff_id || !reqFormData.request_date || !reqFormData.status) {
-      alert("Requesting Staff, Request Date, and Status are required.");
+      alert(t('validation.requestingStaffRequestDateAndStatusAreRequired'));
       return;
     }
     const payloadBase = {
@@ -127,7 +127,7 @@ const RequisitionsPage: React.FC = () => {
 
   const handleItemSubmit = async () => {
     if (!currentRequisitionForItems || !itemFormData.item_id || itemFormData.quantity_requested <= 0) {
-      alert("Please select an item and specify a valid quantity.");
+      alert(t('validation.pleaseSelectAnItemAndSpecifyAValidQuantity'));
       return;
     }
     

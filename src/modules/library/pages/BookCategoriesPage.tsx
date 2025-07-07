@@ -14,7 +14,7 @@ type BookCategoryFormData = Omit<Partial<BookCategory>, 'id'>;
 
 const BookCategoriesPage: React.FC = () => {
   const { bookCategories, loading, addBookCategory, updateBookCategory, deleteBookCategory } = useAppData(); // Updated
-  const { t } = useTranslation();
+  const { t } = useTranslation('library');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<BookCategory | null>(null);

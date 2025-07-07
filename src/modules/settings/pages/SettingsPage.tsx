@@ -1,17 +1,13 @@
-// ABOUTME: This component renders the main settings page, offering navigation to various configuration sections.
-// ABOUTME: It also includes a form for editing basic school profile details.
+// ABOUTME: This component renders the main settings dashboard, providing navigation and overview of various configuration sections.
+// ABOUTME: It serves as a central hub for accessing different settings areas without duplicating functionality.
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { CogIcon, IdentificationIcon } from '@/components/ui/icons'; 
+import { CogIcon, IdentificationIcon, UserGroupIcon, ArrowsRightLeftIcon, ClockIcon, CircleStackIcon } from '@/components/ui/icons'; 
 import { useAppData } from '@/contexts/AppDataContext'; 
-import { SchoolDetails, User } from '@/types'; 
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { User } from '@/types'; 
 import Table from '@/components/ui/Table';
-import Select from '@/components/ui/Select'; 
-import Spinner from '@/components/ui/Spinner';
 import { Link } from 'react-router-dom';
 import ModuleManagementPanel from '@/components/settings/ModuleManagementPanel';
 import UserPermissionsPanel from '@/components/settings/UserPermissionsPanel';
@@ -21,39 +17,9 @@ const SettingsPage: React.FC = () => {
   const { 
     users, 
     loading: usersLoading, 
-    schoolDetails: initialSchoolDetails, 
-    updateSchoolDetails, 
-    loading: appLoading, 
+    schoolDetails, 
     isRxDBModeActive 
   } = useAppData(); 
-  
-  const [schoolDetails, setSchoolDetails] = useState<Partial<SchoolDetails>>(initialSchoolDetails || {});
-  const [isSavingSchoolDetails, setIsSavingSchoolDetails] = useState(false);
-
-  useEffect(() => {
-    if (initialSchoolDetails) {
-      setSchoolDetails(initialSchoolDetails);
-    }
-  }, [initialSchoolDetails]);
-
-
-  const handleSchoolDetailsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setSchoolDetails({ ...schoolDetails, [e.target.name]: e.target.value });
-  };
-
-  const handleSaveSchoolDetails = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSavingSchoolDetails(true);
-    try {
-      await updateSchoolDetails(schoolDetails);
-      alert(t('schoolProfile.saveSuccess'));
-    } catch (error) {
-      console.error("Failed to save school details:", error);
-      alert(t('schoolProfile.saveError'));
-    } finally {
-      setIsSavingSchoolDetails(false);
-    }
-  };
   
   const userColumns = [
     { header: t('tableHeaders.username'), accessor: 'username' as keyof User },
@@ -63,8 +29,8 @@ const SettingsPage: React.FC = () => {
     { header: t('tableHeaders.status'), accessor: 'isActive' as keyof User }
   ];
 
-  const pageIsLoadingSchoolDetails = appLoading.schoolDetails || (appLoading.all && !initialSchoolDetails);
-
+  // Show only first 5 users as preview
+  const previewUsers = users.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -82,47 +48,116 @@ const SettingsPage: React.FC = () => {
       {/* User Permissions Panel */}
       <UserPermissionsPanel />
 
-      <Card title={t('navigation:settings.schoolProfile')}>
-        {pageIsLoadingSchoolDetails ? (
-          <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">{t('schoolProfile.loadingDetails')}</span></div>
-        ) : (
-        <form className="space-y-4" onSubmit={handleSaveSchoolDetails}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input label={t('schoolProfile.nameLabel')} name="name" value={schoolDetails.name || ''} onChange={handleSchoolDetailsChange} required />
-            <Input label={t('schoolProfile.codeLabel')} name="school_code" value={schoolDetails.school_code || ''} onChange={handleSchoolDetailsChange} placeholder={t('schoolProfile.codePlaceholder')}/>
-            <Input label={t('schoolProfile.emailLabel')} name="email" type="email" value={schoolDetails.email || ''} onChange={handleSchoolDetailsChange} />
-            <Input label={t('schoolProfile.telephoneLabel')} name="telephone" value={schoolDetails.telephone || ''} onChange={handleSchoolDetailsChange} />
-            <Input label={t('schoolProfile.postalAddressLabel')} name="postal_address" value={schoolDetails.postal_address || ''} onChange={handleSchoolDetailsChange} />
-            <Input label={t('schoolProfile.townCityLabel')} name="town" value={schoolDetails.town || ''} onChange={handleSchoolDetailsChange} />
-            <Input label={t('schoolProfile.headTeacherLabel')} name="head_teacher_name" value={schoolDetails.head_teacher_name || ''} onChange={handleSchoolDetailsChange} />
-            <Select label={t('schoolProfile.genderLabel')} name="school_gender" value={schoolDetails.school_gender || ''} onChange={handleSchoolDetailsChange}>
-              <option value="">{t('schoolProfile.selectGenderOption')}</option>
-              <option value="Mixed">{t('schoolProfile.genderMixed')}</option>
-              <option value="Boys Only">{t('schoolProfile.genderBoys')}</option>
-              <option value="Girls Only">{t('schoolProfile.genderGirls')}</option>
-            </Select>
-            <Select label={t('schoolProfile.typeLabel')} name="school_type" value={schoolDetails.school_type || ''} onChange={handleSchoolDetailsChange}>
-               <option value="">{t('schoolProfile.selectClassificationOption')}</option>
-              <option value="Public">{t('schoolProfile.typePublic')}</option>
-              <option value="Private">{t('schoolProfile.typePrivate')}</option>
-              <option value="International">{t('schoolProfile.typeInternational')}</option>
-              <option value="Religious">{t('schoolProfile.typeReligious')}</option>
-              <option value="Community">{t('schoolProfile.typeCommunity')}</option>
-            </Select>
-            <Input label={t('schoolProfile.mottoLabel')} name="motto" value={schoolDetails.motto || ''} onChange={handleSchoolDetailsChange} className="md:col-span-2"/>
+      {/* Settings Quick Access Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        {/* School Profile Card */}
+        <Card title={t('navigation:settings.schoolProfile')}>
+          <div className="text-center py-6">
+            <IdentificationIcon className="w-12 h-12 text-indigo-500 mx-auto mb-3" />
+            <h3 className="font-medium text-gray-900 mb-2">{schoolDetails?.name || t('schoolProfile.notConfigured')}</h3>
+            <p className="text-sm text-gray-500 mb-4">{schoolDetails?.school_code || t('schoolProfile.noCode')}</p>
+            <Link 
+              to="/settings/school-profile" 
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {t('schoolProfile.manageProfile')}
+            </Link>
           </div>
-          <div className="pt-2">
-            <Button type="submit" disabled={isSavingSchoolDetails || pageIsLoadingSchoolDetails}>
-              {isSavingSchoolDetails ? <Spinner size="sm" /> : t('schoolProfile.saveButton')}
-            </Button>
+        </Card>
+
+        {/* User Management Card */}
+        <Card title={t('navigation:settings.users')}>
+          <div className="text-center py-6">
+            <UserGroupIcon className="w-12 h-12 text-blue-500 mx-auto mb-3" />
+            <h3 className="font-medium text-gray-900 mb-2">{users.length} {t('userManagement.totalUsers')}</h3>
+            <p className="text-sm text-gray-500 mb-4">{t('userManagement.quickOverview')}</p>
+            <Link 
+              to="/settings/users" 
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {t('userManagement.manageUsers')}
+            </Link>
           </div>
-        </form>
+        </Card>
+
+        {/* Workflows Card */}
+        <Card title={t('navigation:settings.workflows')}>
+          <div className="text-center py-6">
+            <ArrowsRightLeftIcon className="w-12 h-12 text-green-500 mx-auto mb-3" />
+            <h3 className="font-medium text-gray-900 mb-2">{t('workflows.title')}</h3>
+            <p className="text-sm text-gray-500 mb-4">{t('workflows.description')}</p>
+            <Link
+              to="/settings/workflows"
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              {t('workflows.manageWorkflows')}
+            </Link>
+          </div>
+        </Card>
+
+        {/* Module Management Card */}
+        <Card title={t('navigation:settings.modules')}>
+          <div className="text-center py-6">
+            <CircleStackIcon className="w-12 h-12 text-teal-500 mx-auto mb-3" />
+            <h3 className="font-medium text-gray-900 mb-2">{t('moduleManagement.title')}</h3>
+            <p className="text-sm text-gray-500 mb-4">{t('moduleManagement.description')}</p>
+            <Link
+              to="/settings/modules"
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-teal-700 bg-teal-100 hover:bg-teal-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+            >
+              {t('common:manage')}
+            </Link>
+          </div>
+        </Card>
+
+        {/* Audit Log Card */}
+        <Card title={t('navigation:settings.auditLog')}>
+          <div className="text-center py-6">
+            <ClockIcon className="w-12 h-12 text-purple-500 mx-auto mb-3" />
+            <h3 className="font-medium text-gray-900 mb-2">{t('auditLog.title')}</h3>
+            <p className="text-sm text-gray-500 mb-4">{t('auditLog.description')}</p>
+            <Link
+              to="/settings/audit-log"
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              {t('auditLog.viewLogs')}
+            </Link>
+          </div>
+        </Card>
+
+        {/* Database Settings Card - Only show in RxDB mode */}
+        {isRxDBModeActive && (
+          <Card title={t('navigation:settings.databaseSettings')}>
+            <div className="text-center py-6">
+              <CircleStackIcon className="w-12 h-12 text-orange-500 mx-auto mb-3" />
+              <h3 className="font-medium text-gray-900 mb-2">{t('database.title')}</h3>
+              <p className="text-sm text-gray-500 mb-4">{t('database.description')}</p>
+              <Link 
+                to="/settings/database-settings" 
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              >
+                {t('database.manageDatabase')}
+              </Link>
+            </div>
+          </Card>
         )}
-      </Card>
-      
-      <Card title={t('navigation:settings.userManagement')}>
-        <p className="text-gray-600 mb-4">{t('userManagement.description', { userManagementLink: t('navigation:settings.userManagement') })}</p>
-        <Table columns={userColumns} data={users} isLoading={usersLoading.users} />
+      </div>
+
+      {/* Recent Users Preview */}
+      <Card title={t('userManagement.recentUsers')}>
+        <div className="mb-4">
+          <p className="text-gray-600">{t('userManagement.previewDescription')}</p>
+        </div>
+        <Table columns={userColumns} data={previewUsers} isLoading={usersLoading.users} />
+        <div className="mt-4 text-center">
+          <Link 
+            to="/settings/users" 
+            className="text-indigo-600 hover:text-indigo-500 font-medium"
+          >
+            {t('userManagement.viewAllUsers')} →
+          </Link>
+        </div>
       </Card>
 
       <Card title={t('academicCalendar.setupTitle')}>
@@ -139,19 +174,9 @@ const SettingsPage: React.FC = () => {
 
       <Card title={t('rolesPermissions.title')}>
          <p className="text-gray-500">
-            {t('rolesPermissions.description', { userManagementLink: t('navigation:settings.userManagement'), workflowsLink: t('navigation:settings.workflows') })}
+            {t('rolesPermissions.description', { userManagementLink: t('navigation:settings.users'), workflowsLink: t('navigation:settings.workflows') })}
           </p>
       </Card>
-
-      {isRxDBModeActive && (
-        <Card title={t('navigation:settings.database')}>
-            <p className="text-gray-500">
-                {t('database.description')}
-                <br />
-                <Link to="/settings/database" className="text-indigo-600 hover:underline">{t('database.linkToSettings')}</Link>
-            </p>
-        </Card>
-      )}
     </div>
   );
 };

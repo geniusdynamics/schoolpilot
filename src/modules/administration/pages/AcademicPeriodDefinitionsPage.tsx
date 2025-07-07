@@ -74,7 +74,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.structure_id || formData.sequence_order === undefined || formData.sequence_order <= 0) {
-      alert("Name, Structure, and a valid positive Sequence Order are required.");
+      alert(t('validation.nameStructureSequenceRequired'));
       return;
     }
     const payload = { 

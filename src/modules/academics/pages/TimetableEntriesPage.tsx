@@ -104,7 +104,7 @@ const TimetableEntriesPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!selectedClassStreamId || !formData.day_of_week || !formData.period_id || !formData.subject_id || !formData.teacher_id) {
-      alert("Class Stream, Day, Period, Subject, and Teacher are required.");
+      alert(t('validation.classStreamDayPeriodSubjectAndTeacherAreRequired'));
       return;
     }
 

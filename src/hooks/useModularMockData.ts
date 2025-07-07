@@ -148,8 +148,172 @@ export const useModularMockData = (): AppDataContextType => {
     rawInitialData: fullData,
     // Provide no-op implementations for required context methods
     // NOTE: CRUD operations should be handled by module-specific hooks, not here
-    getStudentDetailsById: async () => null,
-    getStudentFinancialDetailsById: async () => null,
+    getStudentDetailsById: async (studentId: string) => {
+      // Find student in the mock data
+      const student = fullData.students?.find((s: any) => s.id === studentId);
+      if (!student) {
+        console.warn(`Student with ID ${studentId} not found`);
+        return null;
+      }
+
+      // Create a detailed student profile with all required fields
+      const studentProfile = {
+        ...student,
+        // Ensure all required fields are present
+        photo_path: student.photo_path || null,
+        first_name: student.first_name || '',
+        last_name: student.last_name || '',
+        admission_no: student.admission_no || '',
+        current_class_name: student.current_class_name || '',
+        current_class_stream_name: student.current_class_stream_name || '',
+        email: student.email || '',
+        phone: student.phone || '',
+        date_of_birth: student.date_of_birth || null,
+        gender: student.gender || '',
+        address: student.address || '',
+        religion: student.religion || '',
+        remarks: student.remarks || '',
+        primary_guardian: student.primary_guardian || null,
+        
+        // Mock enrolled subjects
+        enrolled_subjects: [
+          {
+            id: 1,
+            courseName: 'Mathematics',
+            professorInstructorName: 'Dr. Smith',
+            status: 'Active'
+          },
+          {
+            id: 2,
+            courseName: 'English Literature',
+            professorInstructorName: 'Ms. Johnson',
+            status: 'Active'
+          },
+          {
+            id: 3,
+            courseName: 'Physics',
+            professorInstructorName: 'Prof. Wilson',
+            status: 'Active'
+          },
+          {
+            id: 4,
+            courseName: 'Chemistry',
+            professorInstructorName: 'Dr. Brown',
+            status: 'Active'
+          }
+        ],
+        
+        // Mock payment history
+        payment_history: [
+          {
+            id: `PAY_${studentId}_001`,
+            transactionId: `TXN${studentId}001`,
+            paymentDate: '2024-01-15',
+            amount: 25000,
+            paymentMethod: 'Bank Transfer',
+            description: 'Term 1 School Fees'
+          },
+          {
+            id: `PAY_${studentId}_002`,
+            transactionId: `TXN${studentId}002`,
+            paymentDate: '2024-04-10',
+            amount: 25000,
+            paymentMethod: 'M-Pesa',
+            description: 'Term 2 School Fees'
+          },
+          {
+            id: `PAY_${studentId}_003`,
+            transactionId: `TXN${studentId}003`,
+            paymentDate: '2024-08-20',
+            amount: 25000,
+            paymentMethod: 'Cash',
+            description: 'Term 3 School Fees'
+          }
+        ]
+      };
+
+      console.log(`✅ Found student details for ID ${studentId}:`, studentProfile.first_name, studentProfile.last_name);
+      return studentProfile;
+    },
+    getStudentFinancialDetailsById: async (studentId: string) => {
+      // Find student in the mock data
+      const student = fullData.students?.find((s: any) => s.id === studentId);
+      if (!student) {
+        console.warn(`Student with ID ${studentId} not found for financial details`);
+        return null;
+      }
+
+      // Create mock financial details
+      const financialDetails = {
+        student_id: studentId,
+        student_name: `${student.first_name} ${student.last_name}`,
+        admission_no: student.admission_no,
+        current_class_name: student.current_class_name,
+        current_class_stream_name: student.current_class_stream_name,
+        
+        // Financial summary
+        total_fees_charged: 75000,
+        total_amount_paid: 65000,
+        outstanding_balance: 10000,
+        overpayment: 0,
+        
+        // Invoice/charges breakdown
+        invoices_charges: [
+          {
+            id: `INV_${studentId}_001`,
+            description: 'Term 1 Tuition Fees',
+            amount: 25000,
+            due_date: '2024-01-31',
+            status: 'Paid'
+          },
+          {
+            id: `INV_${studentId}_002`,
+            description: 'Term 2 Tuition Fees',
+            amount: 25000,
+            due_date: '2024-04-30',
+            status: 'Paid'
+          },
+          {
+            id: `INV_${studentId}_003`,
+            description: 'Term 3 Tuition Fees',
+            amount: 25000,
+            due_date: '2024-08-31',
+            status: 'Partially Paid'
+          }
+        ],
+        
+        // Payment history (same as in student details)
+        payment_history: [
+          {
+            id: `PAY_${studentId}_001`,
+            transactionId: `TXN${studentId}001`,
+            paymentDate: '2024-01-15',
+            amount: 25000,
+            paymentMethod: 'Bank Transfer',
+            description: 'Term 1 School Fees'
+          },
+          {
+            id: `PAY_${studentId}_002`,
+            transactionId: `TXN${studentId}002`,
+            paymentDate: '2024-04-10',
+            amount: 25000,
+            paymentMethod: 'M-Pesa',
+            description: 'Term 2 School Fees'
+          },
+          {
+            id: `PAY_${studentId}_003`,
+            transactionId: `TXN${studentId}003`,
+            paymentDate: '2024-08-20',
+            amount: 15000,
+            paymentMethod: 'Cash',
+            description: 'Partial Term 3 School Fees'
+          }
+        ]
+      };
+
+      console.log(`✅ Found financial details for student ID ${studentId}`);
+      return financialDetails;
+    },
     saveStudentAttendance: async () => {},
     getStudentAttendanceByFilters: () => [],
     getTimetablePeriodDefs: () => fullData.timetablePeriodDefs || [],

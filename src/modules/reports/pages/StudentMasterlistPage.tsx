@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 const StudentMasterlistPage: React.FC = () => {
   const { students, classes, classStreams, loading } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('reports');
 
   const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
   const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();

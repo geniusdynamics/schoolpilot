@@ -18,7 +18,7 @@ type ItemFormData = Omit<Partial<ItemInv>, 'id' | 'created_at' | 'updated_at' | 
 
 const ItemsPage: React.FC = () => {
   const { itemsInv, itemCategoriesInv, loading, addItemInv, updateItemInv, deleteItemInv } = useAppData(); // Updated
-  const { t } = useTranslation();
+  const { t } = useTranslation('inventory');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemInv | null>(null);
@@ -67,7 +67,7 @@ const ItemsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.unit_of_measure || !formData.item_type) {
-      alert("Item Name, Unit of Measure, and Item Type are required.");
+      alert(t('validation.itemNameUnitTypeRequired'));
       return;
     }
     const payload: Omit<ItemInv, 'id' | 'created_at' | 'updated_at' | 'category_name'> = {

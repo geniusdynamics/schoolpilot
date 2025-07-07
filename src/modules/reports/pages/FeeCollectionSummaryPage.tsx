@@ -38,7 +38,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
 
   const handleGenerateReport = useCallback(() => {
     if (!selectedSchoolPeriodId) {
-      alert("Please select a School Period.");
+      alert(t('validation.pleaseSelectASchoolPeriod'));
       setReportData([]);
       return;
     }
@@ -96,7 +96,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
 
   const handleExportCSV = () => {
     if (reportData.length === 0) {
-      alert("No data to export.");
+      alert(t('messages.noDataToExport'));
       return;
     }
     const headers = columns.map(col => col.header).join(',');

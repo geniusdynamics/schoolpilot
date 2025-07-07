@@ -73,7 +73,7 @@ const StudentAttendancePage: React.FC = () => {
 
   const handleSaveAttendance = async () => {
     if (!selectedDate || !selectedClassStreamId || !selectedPeriodId || studentsInSelectedStream.length === 0) {
-      alert("Please select date, class stream, period, and ensure students are loaded.");
+      alert(t('validation.pleaseSelectDateClassStreamPeriodAndEnsureStudentsAreLoaded'));
       return;
     }
     setSaving(true);
@@ -92,7 +92,7 @@ const StudentAttendancePage: React.FC = () => {
     });
     
     setSaving(false);
-    alert("Attendance saved successfully!");
+    alert(t('messages.attendanceSavedSuccessfully'));
   };
   
   const attendanceColumns = [

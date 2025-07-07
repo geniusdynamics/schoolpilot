@@ -113,7 +113,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
 
   const handleSaveAllMarks = async () => {
     if (!selectedExamSessionId || !selectedClassStreamId || studentsForEntry.length === 0) {
-      alert("Please select an exam session, class stream, and ensure students are loaded.");
+      alert(t('validation.pleaseSelectAnExamSessionClassStreamAndEnsureStudentsAreLoaded'));
       return;
     }
     setSaving(true);

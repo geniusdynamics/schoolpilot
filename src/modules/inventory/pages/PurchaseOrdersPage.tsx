@@ -102,7 +102,7 @@ const PurchaseOrdersPage: React.FC = () => {
 
   const handlePOSubmit = async () => {
     if (!poFormData.supplier_id || !poFormData.order_date || !poFormData.status) {
-      alert("Supplier, Order Date, and Status are required.");
+      alert(t('validation.supplierOrderDateStatusRequired'));
       return;
     }
     const payloadBase = {
@@ -122,7 +122,7 @@ const PurchaseOrdersPage: React.FC = () => {
 
   const handleItemSubmit = async () => {
     if (!currentPOForItems || !itemFormData.item_id || itemFormData.quantity_ordered <= 0 || itemFormData.unit_price === undefined || itemFormData.unit_price < 0) {
-      alert("Please select an item, specify a valid quantity and unit price.");
+      alert(t('validation.pleaseSelectAnItemSpecifyAValidQuantityAndUnitPrice'));
       return;
     }
     

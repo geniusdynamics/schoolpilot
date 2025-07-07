@@ -50,7 +50,7 @@ const SubjectPapersManagementPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.subject_id) {
-      alert("Paper name and subject are required.");
+      alert(t('validation.paperNameAndSubjectAreRequired'));
       return;
     }
     const payload = { 

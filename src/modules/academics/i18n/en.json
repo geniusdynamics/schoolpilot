@@ -1,4 +1,3 @@
-
 {
   "dashboard": {
     "title": "Academics Dashboard",
@@ -51,7 +50,16 @@
     "selectTeacher": "Select Teacher",
     "cancel": "Cancel",
     "saveChanges": "Save Changes",
-    "deleteConfirm": "Are you sure you want to delete this subject allocation?"
+    "deleteConfirm": "Are you sure you want to delete this subject allocation?",
+    "addButton": "Add",
+    "modalEditTitle": "Modal Edit",
+    "modalAddTitle": "Modal Add",
+    "classStreamLabel": "Class Stream",
+    "selectClassStreamOption": "Select select class stream",
+    "subjectLabel": "Subject",
+    "selectSubjectOption": "Select select subject",
+    "academicYearLabel": "Academic Year",
+    "selectAcademicYearOption": "Select select academic year"
   },
   "studentSubjectEnrollment": {
     "title": "Student Subject Enrollment",
@@ -175,6 +183,48 @@
     "search": "Search",
     "loading": "Loading...",
     "noDataFound": "No data found",
-    "actions": "Actions"
+    "actions": "Actions",
+    "true": "T",
+    "active": "a"
+  },
+  "validation": {
+    "classStreamSubjectAcademicYearRequired": "Class Stream, Subject, and Academic Year are required.",
+    "subjectAlreadyAllocated": "This subject is already allocated to this class stream for the selected academic year.",
+    "nameStructureSequenceRequired": "Name, Structure, and a valid positive Sequence Order are required.",
+    "structureNameRequired": "Structure name is required.",
+    "allFieldsRequired": "All fields are required.",
+    "endDateAfterStartDate": "End date must be after start date.",
+    "selectClassFirst": "Please select a class first to manage its streams.",
+    "itemAssetTagRequired": "Item and Asset Tag are required.",
+    "categoryNameRequired": "Category name is required.",
+    "itemNameUnitTypeRequired": "Item Name, Unit of Measure, and Item Type are required.",
+    "supplierOrderDateStatusRequired": "Supplier, Order Date, and Status are required.",
+    "selectGLAccount": "Please select a GL Account.",
+    "pleaseSelectAnExamSessionAndAClassStream": "Please Select An Exam Session And A Class Stream",
+    "examSessionNameAndSchoolPeriodAreRequired": "Exam Session Name And School Period Are Required",
+    "subjectPaperMarksOutOfAndWeightPercentageAreRequired": "Subject Paper Marks Out Of And Weight Percentage Are Required",
+    "schemeNameIsRequired": "Scheme Name Is Required",
+    "gradeAndMinimumScoreAreRequiredForALevel": "Grade And Minimum Score Are Required For A Level",
+    "pleaseSelectAnExamSessionClassStreamAndEnsureStudentsAreLoaded": "Please Select An Exam Session Class Stream And Ensure Students Are Loaded",
+    "studentSubjectAllocationEnrollmentDateAndStatusAreRequired": "Student Subject Allocation Enrollment Date And Status Are Required",
+    "pleaseSelectAcademicYearSchoolPeriodClassAndStreamFirst": "Please Select Academic Year School Period Class And Stream First",
+    "paperNameAndSubjectAreRequired": "Paper Name And Subject Are Required",
+    "nameCodeAbbreviationAndGroupingAreRequired": "Name Code Abbreviation And Grouping Are Required",
+    "classsubjectAllocationAndTeacherAreRequired": "Classsubject Allocation And Teacher Are Required",
+    "classStreamDayPeriodSubjectAndTeacherAreRequired": "Class Stream Day Period Subject And Teacher Are Required",
+    "endTimeMustBeAfterStartTime": "End Time Must Be After Start Time"
+  },
+  "messages": {
+    "noDataToExport": "No data to export.",
+    "csvExportToBeDeveloped": "CSV Export to be implemented",
+    "printToBeDeveloped": "Print functionality to be implemented.",
+    "exportToBeDeveloped": "Export to CSV functionality to be implemented.",
+    "updateWorkflowToBeDeveloped": "Update workflow functionality not yet implemented",
+    "addWorkflowToBeDeveloped": "Add workflow functionality not yet implemented",
+    "workflowStateToBeDeveloped": "Workflow state management not yet implemented",
+    "deleteWorkflowToBeDeveloped": "Delete workflow functionality not yet implemented",
+    "deleteWorkflowStateToBeDeveloped": "Delete workflow state functionality not yet implemented",
+    "thisStudentIsAlreadyActivelyEnrolledInThisSubject": "This Student Is Already Actively Enrolled In This Subject",
+    "thisTeacherIsAlreadyAssignedToThisClasssubjectAllocation": "This Teacher Is Already Assigned To This Classsubject Allocation"
   }
 }
