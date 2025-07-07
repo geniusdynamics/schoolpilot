@@ -17,16 +17,99 @@ function getFallbackIcon(moduleKey: string) {
   }
 }
 
-// Subtle color backgrounds for each module
-const moduleBg: Record<string, string> = {
-  administration: 'bg-blue-50',
-  academics: 'bg-green-50',
-  finance: 'bg-yellow-50',
-  hr: 'bg-purple-50',
-  inventory: 'bg-slate-50',
-  library: 'bg-pink-50',
-  nutrition: 'bg-orange-50',
-  reports: 'bg-cyan-50',
+// Enhanced glassmorphism color schemes matching primary sidebar
+const getModuleStyle = (moduleKey: string) => {
+  const colorSchemes = {
+    dashboard: {
+      background: 'bg-gradient-to-br from-blue-500/10 via-blue-400/8 to-blue-600/12',
+      border: 'border-blue-400/20',
+      accent: 'text-blue-600',
+      hover: 'hover:bg-blue-500/15',
+      activeLink: 'border-blue-400 text-blue-600 bg-blue-50/80',
+      hoverLink: 'hover:bg-blue-100/60 hover:text-blue-800'
+    },
+    administration: {
+      background: 'bg-gradient-to-br from-purple-500/10 via-purple-400/8 to-purple-600/12',
+      border: 'border-purple-400/20',
+      accent: 'text-purple-600',
+      hover: 'hover:bg-purple-500/15',
+      activeLink: 'border-purple-400 text-purple-600 bg-purple-50/80',
+      hoverLink: 'hover:bg-purple-100/60 hover:text-purple-800'
+    },
+    academics: {
+      background: 'bg-gradient-to-br from-green-500/10 via-green-400/8 to-green-600/12',
+      border: 'border-green-400/20',
+      accent: 'text-green-600',
+      hover: 'hover:bg-green-500/15',
+      activeLink: 'border-green-400 text-green-600 bg-green-50/80',
+      hoverLink: 'hover:bg-green-100/60 hover:text-green-800'
+    },
+    finance: {
+      background: 'bg-gradient-to-br from-yellow-500/10 via-yellow-400/8 to-yellow-600/12',
+      border: 'border-yellow-400/20',
+      accent: 'text-yellow-600',
+      hover: 'hover:bg-yellow-500/15',
+      activeLink: 'border-yellow-400 text-yellow-600 bg-yellow-50/80',
+      hoverLink: 'hover:bg-yellow-100/60 hover:text-yellow-800'
+    },
+    hr: {
+      background: 'bg-gradient-to-br from-red-500/10 via-red-400/8 to-red-600/12',
+      border: 'border-red-400/20',
+      accent: 'text-red-600',
+      hover: 'hover:bg-red-500/15',
+      activeLink: 'border-red-400 text-red-600 bg-red-50/80',
+      hoverLink: 'hover:bg-red-100/60 hover:text-red-800'
+    },
+    inventory: {
+      background: 'bg-gradient-to-br from-orange-500/10 via-orange-400/8 to-orange-600/12',
+      border: 'border-orange-400/20',
+      accent: 'text-orange-600',
+      hover: 'hover:bg-orange-500/15',
+      activeLink: 'border-orange-400 text-orange-600 bg-orange-50/80',
+      hoverLink: 'hover:bg-orange-100/60 hover:text-orange-800'
+    },
+    library: {
+      background: 'bg-gradient-to-br from-teal-500/10 via-teal-400/8 to-teal-600/12',
+      border: 'border-teal-400/20',
+      accent: 'text-teal-600',
+      hover: 'hover:bg-teal-500/15',
+      activeLink: 'border-teal-400 text-teal-600 bg-teal-50/80',
+      hoverLink: 'hover:bg-teal-100/60 hover:text-teal-800'
+    },
+    nutrition: {
+      background: 'bg-gradient-to-br from-pink-500/10 via-pink-400/8 to-pink-600/12',
+      border: 'border-pink-400/20',
+      accent: 'text-pink-600',
+      hover: 'hover:bg-pink-500/15',
+      activeLink: 'border-pink-400 text-pink-600 bg-pink-50/80',
+      hoverLink: 'hover:bg-pink-100/60 hover:text-pink-800'
+    },
+    reports: {
+      background: 'bg-gradient-to-br from-indigo-500/10 via-indigo-400/8 to-indigo-600/12',
+      border: 'border-indigo-400/20',
+      accent: 'text-indigo-600',
+      hover: 'hover:bg-indigo-500/15',
+      activeLink: 'border-indigo-400 text-indigo-600 bg-indigo-50/80',
+      hoverLink: 'hover:bg-indigo-100/60 hover:text-indigo-800'
+    },
+    settings: {
+      background: 'bg-gradient-to-br from-gray-500/10 via-gray-400/8 to-gray-600/12',
+      border: 'border-gray-400/20',
+      accent: 'text-gray-600',
+      hover: 'hover:bg-gray-500/15',
+      activeLink: 'border-gray-400 text-gray-600 bg-gray-50/80',
+      hoverLink: 'hover:bg-gray-100/60 hover:text-gray-800'
+    }
+  };
+
+  return colorSchemes[moduleKey as keyof typeof colorSchemes] || {
+    background: 'bg-gradient-to-br from-slate-500/10 via-slate-400/8 to-slate-600/12',
+    border: 'border-slate-400/20',
+    accent: 'text-slate-600',
+    hover: 'hover:bg-slate-500/15',
+    activeLink: 'border-slate-400 text-slate-600 bg-slate-50/80',
+    hoverLink: 'hover:bg-slate-100/60 hover:text-slate-800'
+  };
 };
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
@@ -44,6 +127,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const selectedModule = navigationItems.find(item => item.name === selectedModuleKey && item.isGroup);
   const subMenus = selectedModule && selectedModule.children ? selectedModule.children : [];
   const moduleKey = selectedModuleKey.split(':')[1]?.split('.')[0] || '';
+  const moduleStyle = getModuleStyle(moduleKey);
 
   // Responsive behavior: auto-collapse on small screens
   useEffect(() => {
@@ -117,14 +201,22 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       
       <aside
         id="secondary-sidebar"
-        className={`${sidebarClasses} flex flex-col shadow-xl border-l border-slate-100 px-2 py-4 bg-white/60 backdrop-blur-lg ${moduleBg[moduleKey] || ''}`}
+        className={`
+          ${sidebarClasses} 
+          flex flex-col shadow-xl border-l ${moduleStyle.border}
+          px-2 py-4 
+          ${moduleStyle.background}
+          backdrop-blur-lg
+          relative
+          before:absolute before:inset-0 before:bg-white/40 before:backdrop-blur-sm before:rounded-l-lg before:pointer-events-none
+        `}
         style={{ height: 'calc(100vh - 4rem)' }}
       >
         {/* Control buttons */}
         <div className="absolute top-4 left-0 z-10 flex flex-col gap-1">
           {!isMobile && (
             <button
-              className="text-slate-400 hover:text-slate-700 p-1 rounded transition-colors"
+              className={`${moduleStyle.accent} hover:${moduleStyle.accent}/80 p-1 rounded transition-colors backdrop-blur-sm bg-white/20 hover:bg-white/30`}
               onClick={() => setIsMinimized(!isMinimized)}
               title={isMinimized ? "Expand menu" : "Minimize menu"}
             >
@@ -144,19 +236,27 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         
         {/* Search bar - hidden when minimized */}
         {!isMinimized && (
-          <div className="mb-4 flex-shrink-0">
+          <div className="mb-4 flex-shrink-0 relative z-10">
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder={t('common:search')}
-              className="w-full rounded bg-white border border-slate-200 text-slate-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-slate-400"
+              className={`
+                w-full rounded-lg bg-white/80 backdrop-blur-sm 
+                border ${moduleStyle.border} 
+                ${moduleStyle.accent} 
+                px-3 py-1.5 
+                focus:outline-none focus:ring-2 focus:ring-current focus:ring-opacity-50
+                placeholder-slate-500
+                shadow-sm
+              `}
             />
           </div>
         )}
         
         {/* Navigation content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 relative z-10">
           <ul className={`space-y-1 ${isMinimized ? 'items-center' : ''}`}>
             {filterItems(subMenus).map(item => (
               <li key={item.name}>
@@ -164,7 +264,14 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                   <div>
                     <button
                       onClick={() => !isMinimized && toggleGroup(item.name)}
-                      className={`flex items-center ${isMinimized ? 'justify-center w-full' : 'justify-between w-full'} px-2 py-1 text-xs uppercase tracking-wider text-slate-700 font-bold focus:outline-none hover:bg-slate-100 rounded transition-colors`}
+                      className={`
+                        flex items-center ${isMinimized ? 'justify-center w-full' : 'justify-between w-full'} 
+                        px-2 py-1 text-xs uppercase tracking-wider 
+                        ${moduleStyle.accent} font-bold 
+                        focus:outline-none ${moduleStyle.hover} 
+                        rounded transition-colors
+                        backdrop-blur-sm bg-white/10
+                      `}
                       title={isMinimized ? t(item.name) : undefined}
                     >
                       <span className={`flex items-center ${isMinimized ? '' : 'gap-2'}`}>
@@ -180,12 +287,12 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                             <NavLink
                               to={child.path}
                               className={({ isActive, isPending }) =>
-                                `flex items-center gap-3 px-3 py-2 border border-transparent transition-all duration-200 rounded-lg ${
+                                `flex items-center gap-3 px-3 py-2 border border-transparent transition-all duration-200 rounded-lg backdrop-blur-sm ${
                                   isActive
-                                    ? 'border-pink-400 text-pink-500 bg-white font-semibold'
+                                    ? `${moduleStyle.activeLink} font-semibold shadow-sm`
                                     : isPending
-                                      ? 'bg-blue-100/80 text-blue-900'
-                                      : 'text-slate-700 hover:bg-blue-100/80 hover:text-blue-900 hover:shadow-md'
+                                      ? `${moduleStyle.hoverLink} bg-white/20`
+                                      : `text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20`
                                 }`
                               }
                             >
@@ -201,12 +308,12 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                   <NavLink
                     to={item.path}
                     className={({ isActive, isPending }) =>
-                      `flex items-center ${isMinimized ? 'justify-center' : 'gap-3'} px-3 py-2 border border-transparent transition-all duration-200 rounded-lg ${
+                      `flex items-center ${isMinimized ? 'justify-center' : 'gap-3'} px-3 py-2 border border-transparent transition-all duration-200 rounded-lg backdrop-blur-sm ${
                         isActive
-                          ? 'border-pink-400 text-pink-500 bg-white font-semibold'
+                          ? `${moduleStyle.activeLink} font-semibold shadow-sm`
                           : isPending
-                            ? 'bg-blue-100/80 text-blue-900'
-                            : 'text-slate-700 hover:bg-blue-100/80 hover:text-blue-900 hover:shadow-md'
+                            ? `${moduleStyle.hoverLink} bg-white/20`
+                            : `text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20`
                       }`
                     }
                     title={isMinimized ? t(item.name) : undefined}
