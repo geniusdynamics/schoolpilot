@@ -1,11 +1,11 @@
-// ABOUTME: This is the root component of the application.
-// ABOUTME: It sets up the main router and global context providers with authentication.
+// ABOUTME: This is the enhanced root component of the application with backend integration.
+// ABOUTME: It sets up the main router and global context providers with authentication, offline capabilities, and sync management.
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
-import { AppDataProvider } from '@/contexts/AppDataContext';
+import { AppDataProvider, useAppData } from '@/contexts/AppDataContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
@@ -14,6 +14,8 @@ import Spinner from './components/ui/Spinner';
 import { moduleRegistry } from './core/moduleRegistry';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
+import { NetworkStatusIndicator, SyncStatusComponent } from './components/OfflineCapability';
+import { APP_MODE } from './contexts/config';
 
 // Lazy load the login page
 const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
@@ -79,6 +81,7 @@ const getPageComponent = (nav: any) => {
   console.warn('⚠️ [getPageComponent] No page component found for fallback path:', nav.path);
   return null;
 };
+
 
 const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
   const { navigationItems } = useDynamicNavigation(true);
@@ -149,25 +152,30 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           if (moduleDir) {
             const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
             const modularImportFn = pageModules[modularKey];
-            if (modularImportFn) PageComponent = lazy(modularImportFn as any);
+            if (modularImportFn) {
+              PageComponent = lazy(modularImportFn as any);
+            }
           }
-          if (!PageComponent) return null;
-          
-          // Extract module name for permission checking
-          const moduleName = moduleDir || module.id;
-          const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
-          
+
+          if (!PageComponent) {
+            console.warn(`⚠️ [DynamicRoutes] No component found for route: ${route.path} (${route.page})`);
+            return null;
+          }
+
           return (
             <Route
               key={route.path}
               path={route.path}
               element={
-                <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
+                <ProtectedRoute
+                  requiredModule={moduleDir}
+                  requiredPermission={`${moduleDir}.view`}
+                >
                   <Suspense fallback={
                     <div className="flex items-center justify-center h-screen">
                       <div className="text-center">
                         <Spinner size="lg" />
-                        <p className="mt-4 text-gray-600">Loading page...</p>
+                        <p className="mt-4 text-gray-600">Loading {route.page}...</p>
                       </div>
                     </div>
                   }>
@@ -177,8 +185,10 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
               }
             />
           );
-        })
+        }).filter(Boolean)
       )}
+
+      {/* Dynamic navigation routes */}
       {navigationItems
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
         .flatMap(module => {
@@ -228,9 +238,16 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
   );
 };
 
+// Enhanced app content with sync status
 const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitialized }) => {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
+  const { 
+    isOnline, 
+    backendAvailable, 
+    syncStatus, 
+    pendingSyncCount 
+  } = useAppData();
 
   // Debug authentication state
   console.log('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
@@ -254,14 +271,197 @@ const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitiali
   }
 
   console.log('🔍 [AppContent] User authenticated, showing layout');
+
+  // Show sync status in development mode
+  const showSyncStatus = APP_MODE !== 'demo' && (
+    syncStatus.state !== 'idle' || 
+    pendingSyncCount > 0 || 
+    !isOnline || 
+    !backendAvailable
+  );
+
   return (
     <Layout>
-      <ErrorBoundary key={location.pathname}>
-        <DynamicRoutes modulesInitialized={modulesInitialized} />
-      </ErrorBoundary>
+      {/* Sync status panel - only show when there are issues */}
+      {showSyncStatus && (
+        <div className="p-4 bg-gray-50">
+          <SyncStatusComponent />
+        </div>
+      )}
+      
+      {/* Main content */}
+      <div className="flex-1">
+        <ErrorBoundary key={location.pathname}>
+          <DynamicRoutes modulesInitialized={modulesInitialized} />
+        </ErrorBoundary>
+      </div>
+      
+      {/* Global notifications */}
+      <GlobalNotifications />
     </Layout>
   );
 };
+
+// Global notification system
+const GlobalNotifications: React.FC = () => {
+  const { 
+    isOnline, 
+    backendAvailable, 
+    syncStatus, 
+    pendingSyncCount 
+  } = useAppData();
+  
+  const [notifications, setNotifications] = React.useState<Array<{
+    id: string;
+    type: 'info' | 'warning' | 'error' | 'success';
+    message: string;
+    persistent?: boolean;
+  }>>([]);
+  
+  // Manage notifications based on app state
+  useEffect(() => {
+    const newNotifications: typeof notifications = [];
+    
+    // Offline notification
+    if (!isOnline) {
+      newNotifications.push({
+        id: 'offline',
+        type: 'warning',
+        message: 'You are currently offline. Some features may be limited.',
+        persistent: true
+      });
+    }
+    
+    // Backend unavailable notification
+    if (isOnline && !backendAvailable) {
+      newNotifications.push({
+        id: 'backend-unavailable',
+        type: 'info',
+        message: 'Backend server is unavailable. Working with local data.',
+        persistent: true
+      });
+    }
+    
+    // Sync error notification
+    if (syncStatus.state === 'error') {
+      newNotifications.push({
+        id: 'sync-error',
+        type: 'error',
+        message: `Sync failed: ${syncStatus.lastError?.message || 'Unknown error'}`,
+        persistent: false
+      });
+    }
+    
+    // Pending sync notification
+    if (pendingSyncCount > 5) {
+      newNotifications.push({
+        id: 'pending-sync',
+        type: 'info',
+        message: `${pendingSyncCount} items waiting to sync`,
+        persistent: false
+      });
+    }
+    
+    setNotifications(newNotifications);
+  }, [isOnline, backendAvailable, syncStatus, pendingSyncCount]);
+  
+  // Auto-dismiss non-persistent notifications
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.persistent));
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, [notifications]);
+  
+  if (notifications.length === 0) return null;
+  
+  return (
+    <div className="fixed bottom-4 right-4 space-y-2 z-50">
+      {notifications.map(({ id, type, message, persistent }) => (
+        <div
+          key={id}
+          className={`max-w-sm p-4 rounded-lg shadow-lg ${
+            type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+            type === 'warning' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+            type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+            'bg-blue-100 text-blue-800 border border-blue-200'
+          }`}
+        >
+          <div className="flex justify-between items-start">
+            <p className="text-sm font-medium">{message}</p>
+            {!persistent && (
+              <button
+                onClick={() => setNotifications(prev => prev.filter(n => n.id !== id))}
+                className="ml-2 text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Error boundary for the entire app
+class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('App Error:', error, errorInfo);
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
+            <div className="text-center">
+              <div className="text-red-500 text-6xl mb-4">⚠️</div>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">
+                Application Error
+              </h1>
+              <p className="text-gray-600 mb-4">
+                Something went wrong. Please refresh the page to try again.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              >
+                Refresh Page
+              </button>
+              
+              {process.env.NODE_ENV === 'development' && (
+                <details className="mt-4 text-left">
+                  <summary className="cursor-pointer text-sm text-gray-500">
+                    Error Details
+                  </summary>
+                  <pre className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded overflow-auto">
+                    {this.state.error?.stack}
+                  </pre>
+                </details>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return this.props.children;
+  }
+}
 
 const App: React.FC = () => {
   const [modulesInitialized, setModulesInitialized] = useState(false);
@@ -270,30 +470,48 @@ const App: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       if (!initializedRef.current) {
-        await initializeModules();
-        setModulesInitialized(true);
-        initializedRef.current = true;
+        console.log('🚀 [App] Initializing modules...');
+        try {
+          await initializeModules();
+          console.log('✅ [App] Modules initialized successfully');
+          setModulesInitialized(true);
+          initializedRef.current = true;
+        } catch (error) {
+          console.error('❌ [App] Module initialization failed:', error);
+          setModulesInitialized(true); // Still allow app to load
+          initializedRef.current = true;
+        }
       }
     };
     init();
   }, []);
 
   if (!modulesInitialized) {
-    return <div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">Initializing application modules...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <AuthProvider>
-      <UserProvider>
-        <AppDataProvider>
-          <HashRouter>
-            <AppContent modulesInitialized={modulesInitialized} />
-          </HashRouter>
-        </AppDataProvider>
-      </UserProvider>
-    </AuthProvider>
+    <AppErrorBoundary>
+      <HashRouter>
+        <AuthProvider>
+          <UserProvider>
+            <AppDataProvider>
+              <ErrorBoundary>
+                <AppContent modulesInitialized={modulesInitialized} />
+              </ErrorBoundary>
+            </AppDataProvider>
+          </UserProvider>
+        </AuthProvider>
+      </HashRouter>
+    </AppErrorBoundary>
   );
 };
 
 export default App;
-

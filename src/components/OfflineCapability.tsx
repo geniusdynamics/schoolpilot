@@ -1,4 +1,4 @@
-backedn// UI components for offline capability management and network status
+// UI components for offline capability management and network status
 import React from 'react';
 import { 
   ExclamationTriangleIcon, 
@@ -10,7 +10,7 @@ import {
   SignalIcon,
   SignalSlashIcon
 } from '@heroicons/react/24/outline';
-import { useAppData } from '../contexts/EnhancedAppDataContext';
+import { useAppData } from '../contexts/AppDataContext';
 
 // Component to wrap features that may not be available offline
 interface OfflineCapableComponentProps {
