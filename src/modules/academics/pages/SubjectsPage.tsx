@@ -19,7 +19,7 @@ interface SubjectFormData extends Omit<Partial<Subject>, 'id' | 'department_name
 const SubjectsPage: React.FC = () => {
   const { subjects: subjectsState, loading, rawInitialData } = useAppData();
   const { initialMockDepartments } = rawInitialData;
-  const { t } = useTranslation();
+  const { t } = useTranslation('academics');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);

@@ -18,7 +18,7 @@ type MenuFormData = Omit<Partial<Menu>, 'id' | 'created_at' | 'updated_at' | 'me
 
 const MenusPage: React.FC = () => {
   const { menus, loading, addMenu, updateMenu, deleteMenu } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('nutrition');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);

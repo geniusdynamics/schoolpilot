@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+nslaimport React, { useState, useEffect, useMemo } from 'react';
 import { Staff, Class, ClassStream } from '@/types';
 import { AdminCampaignType as Campaign, CampaignStatus, CampaignAudienceType, AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
@@ -29,7 +29,7 @@ const MessageCampaignsPage: React.FC = () => {
   const { classStreams = [] } = useAppData(); // For classStreams only
   
   const { currentUser } = useUser(); // Get currentUser
-  const { t } = useTranslation();
+  const { t } = useTranslation('administration');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);

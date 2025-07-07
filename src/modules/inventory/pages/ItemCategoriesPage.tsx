@@ -14,7 +14,7 @@ type ItemCategoryFormData = Omit<Partial<ItemCategoryInv>, 'id'>;
 
 const ItemCategoriesPage: React.FC = () => {
   const { itemCategoriesInv, loading, addItemCategoryInv, updateItemCategoryInv, deleteItemCategoryInv } = useAppData(); // Updated
-  const { t } = useTranslation();
+  const { t } = useTranslation('inventory');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ItemCategoryInv | null>(null);

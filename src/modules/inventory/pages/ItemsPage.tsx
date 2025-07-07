@@ -18,7 +18,7 @@ type ItemFormData = Omit<Partial<ItemInv>, 'id' | 'created_at' | 'updated_at' | 
 
 const ItemsPage: React.FC = () => {
   const { itemsInv, itemCategoriesInv, loading, addItemInv, updateItemInv, deleteItemInv } = useAppData(); // Updated
-  const { t } = useTranslation();
+  const { t } = useTranslation('inventory');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemInv | null>(null);

@@ -13,7 +13,7 @@ type DepartmentFormData = Omit<Partial<Department>, 'id' | 'created_at' | 'updat
 
 const DepartmentsPage: React.FC = () => {
   const { departments, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('administration');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);

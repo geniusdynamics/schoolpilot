@@ -14,7 +14,7 @@ type CustomerFormData = Omit<Partial<Customer>, 'id' | 'created_at' | 'updated_a
 
 const CustomersPage: React.FC = () => {
   const { customers, addCustomer, updateCustomer, deleteCustomer } = useCustomerData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('administration');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);

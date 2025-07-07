@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 const TeacherAssignmentsPage: React.FC = () => {
   const { staff, academicYears, teacherSubjectAssignments, loading } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('reports');
 
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>((academicYears || [])[0]?.id);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | undefined>();

@@ -14,7 +14,7 @@ type StudentCategoryFormData = Omit<Partial<StudentCategory>, 'id'>;
 
 const StudentCategoriesPage: React.FC = () => {
   const { studentCategories, loading, addStudentCategory, updateStudentCategory, deleteStudentCategory } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('administration');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<StudentCategory | null>(null);

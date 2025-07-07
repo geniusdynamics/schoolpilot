@@ -11,7 +11,8 @@
     "analyze-translations": "node scripts/analyze-translation-usage.js",
     "fix-translation-keys": "node scripts/fix-translation-keys.js",
     "fix-hardcoded-strings": "node scripts/fix-hardcoded-strings.js",
-    "analyze-translation-issues": "node scripts/analyze-translation-issues.js"
+    "analyze-translation-issues": "node scripts/analyze-translation-issues.js",
+    "fix-translation-namespaces": "node scripts/fix-translation-namespaces.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

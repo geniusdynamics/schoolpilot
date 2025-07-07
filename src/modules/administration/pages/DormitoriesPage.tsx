@@ -15,7 +15,7 @@ type DormitoryFormData = Omit<Partial<Dormitory>, 'id' | 'created_at' | 'updated
 
 const DormitoriesPage: React.FC = () => {
   const { dormitories, staff, loading, addDormitory, updateDormitory, deleteDormitory } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('administration');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDormitory, setEditingDormitory] = useState<Dormitory | null>(null);

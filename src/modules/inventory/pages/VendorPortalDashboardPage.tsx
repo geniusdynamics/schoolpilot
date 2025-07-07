@@ -38,7 +38,7 @@ const VendorPortalDashboardPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const { suppliers, purchaseOrders, supplierInvoices, rfqs, loading } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('inventory');
 
   // Simulate logged-in vendor (in real app, get from auth context)
   const vendorId = 1;

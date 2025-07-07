@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 const SchoolProcurementDashboardPage: React.FC = () => {
   const { requisitions, purchaseOrders, suppliers, loading, updateRequisitionStatus } = useAppData(); 
-  const { t } = useTranslation();
+  const { t } = useTranslation('inventory');
 
   const openRequisitions = requisitions.filter(r => r.status === RequisitionStatus.PENDING_APPROVAL || r.status === RequisitionStatus.APPROVED);
   const pendingApprovalRequisitions = requisitions.filter(r => r.status === RequisitionStatus.PENDING_APPROVAL);
