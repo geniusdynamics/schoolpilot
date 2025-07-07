@@ -97,18 +97,42 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
   const { navigationItems, isLoading } = useDynamicNavigation(true);
   const { accessibleModules } = useRBAC();
   const { user } = useAuth();
+  const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
+  const [hoveredModule, setHoveredModule] = useState<string | null>(null);
   const mainModules = navigationItems.filter(item => item.isGroup);
-  
+
   useEffect(() => {
     if (isLoading) return;
-    
+
     if (navigationItems.length === 0) {
       console.warn('⚠️ [PrimarySidebar] No navigation items found');
     }
   }, [isLoading, navigationItems.length]);
-  
+
+
+  // Track mouse position to determine if user is near sidebar area
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      // Consider mouse "near sidebar" if within 300px from left edge
+      const isNearSidebar = e.clientX <= 300;
+      setIsMouseNearSidebar(isNearSidebar);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Handle module hover states
+  const handleModuleMouseEnter = (moduleKey: string) => {
+    setHoveredModule(moduleKey);
+  };
+
+  const handleModuleMouseLeave = () => {
+    setHoveredModule(null);
+  };
+
   return (
-    <aside className="
+    <aside className={`
       flex flex-col items-center min-h-full w-20
       bg-gradient-to-b from-slate-900/80 via-slate-800/70 to-slate-900/80
       backdrop-blur-xl
@@ -118,37 +142,58 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
       py-6
       relative
       before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:rounded-r-3xl before:pointer-events-none
-    ">
+      ${isMouseNearSidebar ? 'sidebar-active' : 'sidebar-inactive'}
+    `}>
       {/* Content container - no internal scrolling */}
       <div className="flex flex-col gap-3 w-full items-center relative z-10 px-2">
         {mainModules.map(item => {
           const isSelected = selectedModuleKey === item.name;
+          const isHovered = hoveredModule === item.name;
+          const isAnotherModuleHovered = hoveredModule && hoveredModule !== item.name;
           const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(item.name, isSelected);
           const displayName = getDisplayName(item.name);
-          
+
           return (
-            <div key={item.name} className="relative group/item flex-shrink-0">
-              {/* Badge/Label - positioned above and slightly inward to avoid overlap */}
+            <div
+              key={item.name}
+              className="relative group/item flex-shrink-0"
+              onMouseEnter={() => handleModuleMouseEnter(item.name)}
+              onMouseLeave={handleModuleMouseLeave}
+            >
+              {/* Badge/Label - with smart visibility based on mouse proximity */}
               <div className={`
                 absolute bottom-12 left-1/2 transform -translate-x-1/2 -translate-y-2
                 px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap
                 backdrop-blur-md border
                 shadow-lg shadow-black/20
-                transition-all duration-300 ease-out
+                transition-all duration-500 ease-out
                 pointer-events-none z-30
                 ${badgeColor}
-                ${isSelected 
-                  ? 'opacity-100 translate-y-0 scale-100' 
-                  : 'opacity-0 translate-y-1 scale-95 group-hover/item:opacity-100 group-hover/item:-translate-y-2 group-hover/item:scale-100'
-                }
+                ${(() => {
+                  if (isSelected) {
+                    // Selected badge: hide when another module is hovered
+                    if (isAnotherModuleHovered) {
+                      return 'opacity-0 translate-y-1 scale-95';
+                    }
+                    // Normal selected state based on mouse proximity
+                    return `opacity-100 translate-y-0 scale-100 ${isMouseNearSidebar ? '' : 'opacity-30'}`;
+                  } else {
+                    // Non-selected badge: show only when this specific module is hovered
+                    if (isHovered && isMouseNearSidebar) {
+                      return 'opacity-100 -translate-y-2 scale-100';
+                    }
+                    return 'opacity-0 translate-y-1 scale-95';
+                  }
+                })()}
               `}>
                 {displayName}
-                
+
                 {/* Arrow pointing down to the icon - adjusted for new position */}
                 <div className={`
                   absolute top-full left-1/2 transform -translate-x-1/2 translate-y-1
                   w-0 h-0 border-l-3 border-r-3 border-t-3
                   border-l-transparent border-r-transparent
+                  transition-opacity duration-500
                   ${badgeColor.includes('bg-blue') ? 'border-t-blue-500' : ''}
                   ${badgeColor.includes('bg-purple') ? 'border-t-purple-500' : ''}
                   ${badgeColor.includes('bg-green') ? 'border-t-green-500' : ''}
@@ -166,7 +211,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
                   borderTopWidth: '3px'
                 }} />
               </div>
-              
+
               <button
                 onClick={() => onModuleSelect(item.name)}
                 className={`
@@ -187,28 +232,28 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
                 {isSelected && (
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 to-transparent pointer-events-none" />
                 )}
-                
+
                 {/* Selection indicator - subtle glow ring */}
                 {isSelected && (
                   <div className="absolute inset-0 rounded-2xl ring-2 ring-white/30 ring-offset-2 ring-offset-transparent pointer-events-none" />
                 )}
-                
+
                 {/* Icon with dynamic coloring */}
                 <span className={`
-                  relative z-10 transition-all duration-300 
+                  relative z-10 transition-all duration-300
                   group-hover:scale-110 ${iconColor}
                   ${isSelected ? 'drop-shadow-lg' : 'drop-shadow-sm'}
                 `}>
                   {item.icon
-                    ? React.createElement(item.icon, { 
+                    ? React.createElement(item.icon, {
                         className: `w-7 h-7 transition-all duration-300 ${
                           isSelected ? 'filter brightness-110' : 'group-hover:text-white'
-                        }` 
+                        }`
                       })
                     : <span className="w-7 h-7 bg-gray-500 rounded-full" />
                   }
                 </span>
-                
+
                 <span className="sr-only">{displayName}</span>
               </button>
             </div>
