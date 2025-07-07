@@ -6,7 +6,7 @@ import { MODULE_ORDER } from '../moduleOrder';
 import { moduleConfigService } from '../services/moduleConfigService';
 
 // Helper to identify core modules
-const CORE_MODULE_IDS = ['dashboard', 'settings', 'reports'];
+const CORE_MODULE_IDS = ['core', 'dashboard', 'settings', 'reports'];
 
 // Module Registry Class
 class ModuleRegistry {
@@ -39,10 +39,20 @@ class ModuleRegistry {
 
   // Get enabled modules only
   getEnabledModules(): ModuleDefinition[] {
-    return Array.from(this.modules.values()).filter(module =>
-      CORE_MODULE_IDS.includes(module.id) ||
-      moduleConfigService.isModuleEnabled(module.id)
-    );
+    const allModules = Array.from(this.modules.values());
+    console.log('[ModuleRegistry] DEBUG: All registered modules:', allModules.map(m => m.id));
+    
+    const enabledModules = allModules.filter(module => {
+      const isCoreModule = CORE_MODULE_IDS.includes(module.id);
+      const isConfigEnabled = moduleConfigService.isModuleEnabled(module.id);
+      const isEnabled = isCoreModule || isConfigEnabled;
+      
+      console.log(`[ModuleRegistry] DEBUG: Module ${module.id} - core: ${isCoreModule}, configEnabled: ${isConfigEnabled}, finalEnabled: ${isEnabled}`);
+      return isEnabled;
+    });
+    
+    console.log('[ModuleRegistry] DEBUG: Final enabled modules:', enabledModules.map(m => m.id));
+    return enabledModules;
   }
 
   // Get a specific module
@@ -61,6 +71,8 @@ class ModuleRegistry {
   // Get navigation items from all enabled modules
   getNavigationItems(): NavItem[] {
     let enabledModules = this.getEnabledModules();
+    console.log('[ModuleRegistry] DEBUG: getNavigationItems() - enabled modules:', enabledModules.map(m => m.id));
+    
     // Sort by MODULE_ORDER, then alphabetically for extras
     enabledModules = enabledModules.sort((a, b) => {
       const aIdx = MODULE_ORDER.indexOf(a.id);
@@ -71,8 +83,16 @@ class ModuleRegistry {
       // Both not in MODULE_ORDER: sort alphabetically
       return a.name.localeCompare(b.name);
     });
+    
     const navigationItems: NavItem[] = [];
     enabledModules.forEach(module => {
+      console.log(`[ModuleRegistry] DEBUG: Processing navigation for module ${module.id}:`, {
+        name: module.name,
+        path: module.path,
+        navigationChildren: module.navigation?.length || 0,
+        isActive: this.isModuleEnabled(module.id)
+      });
+      
       const mainNavItem: NavItem = {
         name: module.name,
         path: module.path,
@@ -84,6 +104,14 @@ class ModuleRegistry {
       };
       navigationItems.push(mainNavItem);
     });
+    
+    console.log('[ModuleRegistry] DEBUG: Final navigation items:', navigationItems.map(item => ({
+      name: item.name,
+      path: item.path,
+      childrenCount: item.children?.length || 0,
+      isActive: item.isActive
+    })));
+    
     return navigationItems;
   }
 

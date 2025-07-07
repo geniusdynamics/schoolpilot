@@ -1,4 +1,4 @@
-nslaimport React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Staff, Class, ClassStream } from '@/types';
 import { AdminCampaignType as Campaign, CampaignStatus, CampaignAudienceType, AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';

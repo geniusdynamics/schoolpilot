@@ -33,7 +33,10 @@
     "mottoLabel": "Devise de l'École",
     "saveButton": "Enregistrer les Détails",
     "saveSuccess": "Détails de l'école enregistrés avec succès !",
-    "saveError": "Échec de l'enregistrement des détails."
+    "saveError": "Échec de l'enregistrement des détails.",
+    "notConfigured": "Non Configuré",
+    "noCode": "Aucun code d'école défini",
+    "manageProfile": "Gérer le Profil"
   },
   "userManagement": {
     "title": "Gestion des Comptes Utilisateurs",
@@ -63,11 +66,18 @@
         "descriptionLabel": "Description (Optionnel)"
     },
     "deleteUserConfirm": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
-    "deleteRoleConfirm": "Êtes-vous sûr de vouloir supprimer ce rôle ? Les utilisateurs avec ce rôle verront leur rôle désassigné."
+    "deleteRoleConfirm": "Êtes-vous sûr de vouloir supprimer ce rôle ? Les utilisateurs avec ce rôle verront leur rôle désassigné.",
+    "totalUsers": "Total Utilisateurs",
+    "quickOverview": "Aperçu rapide du système",
+    "manageUsers": "Gérer les Utilisateurs",
+    "recentUsers": "Utilisateurs Récents",
+    "previewDescription": "Affichage des 5 utilisateurs les plus récents. Voir tous les utilisateurs pour une gestion complète.",
+    "viewAllUsers": "Voir Tous les Utilisateurs"
   },
   "workflows": {
     "title": "Gestion des Flux de Travail",
-    "description": "Définir les flux d'approbation et leurs états.",
+    "description": "Configurer les flux d'approbation et les processus métier",
+    "manageWorkflows": "Gérer les Flux de Travail",
     "addButton": "Ajouter Flux",
     "addWorkflowButton": "Ajouter Flux",
     "loadingWorkflows": "Chargement des flux...",
@@ -99,7 +109,8 @@
   "auditLog": {
     "title": "Journal d'Audit Système",
     "header": "Consulter les Pistes d'Audit Système",
-    "description": "Examiner les journaux des actions importantes effectuées dans le système pour la sécurité et la responsabilité.",
+    "description": "Suivre les activités système et les actions des utilisateurs",
+    "viewLogs": "Voir les Journaux d'Audit",
     "filterCardTitle": "Filtrer les Journaux d'Audit",
     "startDateLabel": "Date de Début",
     "endDateLabel": "Date de Fin",
@@ -137,7 +148,8 @@
     "clearSuccess": "Toutes les données ont été effacées avec succès de RxDB.",
     "clearError": "Échec de l'effacement des données : {{message}}",
     "note": "Note : 'Importer Données Fictives' effacera les données RxDB existantes avant de peupler. 'Effacer Toutes les Données RxDB' est irréversible.",
-    "description": "Gérer les paramètres de données RxDB, importer des données fictives pour tester en production, ou effacer les données.",
+    "description": "Gérer les paramètres de base de données locale et la synchronisation",
+    "manageDatabase": "Paramètres de Base de Données",
     "linkToSettings": "Aller aux Paramètres de la Base de Données"
   },
   "academicCalendar": {
@@ -151,6 +163,49 @@
   "rolesPermissions": {
     "title": "Rôles et Permissions",
     "description": "Définir les rôles système (par ex., Enseignant, Comptable, Admin) et gérer les affectations des utilisateurs. Gestion complète disponible sous <1>Gestion des Utilisateurs</1> et <2>Flux de Travail</2> pour les processus d'approbation."
+  },
+  "moduleManagement": {
+    "title": "Gestion des Modules",
+    "header": "Gestion des Modules Système",
+    "description": "Activer, désactiver et configurer les modules système pour personnaliser votre expérience de gestion scolaire.",
+    "filtersTitle": "Recherche et Filtres",
+    "searchLabel": "Rechercher Modules",
+    "searchPlaceholder": "Rechercher par nom ou description...",
+    "categoryLabel": "Catégorie",
+    "modulesListTitle": "Modules Disponibles",
+    "noModulesFound": "Aucun module trouvé correspondant à vos critères.",
+    "configureModule": "Configurer {{name}}",
+    "modulePermissions": "Permissions {{name}}",
+    "moduleDependencies": "Dépendances {{name}}",
+    "viewDependencies": "Dépendances",
+    "moduleId": "ID Module",
+    "moduleVersion": "Version",
+    "moduleFeatures": "Fonctionnalités",
+    "permissionsDescription": "Ce module nécessite les permissions suivantes pour fonctionner correctement :",
+    "dependenciesDescription": "Ce module dépend des modules suivants :",
+    "required": "Requis",
+    "featuresCount": "fonctionnalités",
+    "toggleError": "Échec du changement de statut du module. Veuillez réessayer.",
+    "dependencyError": "Impossible d'activer le module. Dépendances manquantes : {{dependencies}}",
+    "disableDependencyWarning": "Désactiver ce module affectera les modules dépendants suivants : {{dependents}}. Voulez-vous continuer ?",
+    "columns": {
+      "name": "Nom du Module",
+      "version": "Version",
+      "category": "Catégorie",
+      "status": "Statut",
+      "features": "Fonctionnalités"
+    },
+    "status": {
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "active": "Actif"
+    },
+    "stats": {
+      "total": "Total Modules",
+      "enabled": "Activés",
+      "active": "Actifs",
+      "categories": "Catégories"
+    }
   },
   "tableHeaders": {
     "username": "Nom d'utilisateur",
@@ -175,6 +230,8 @@
   "accessDeniedTitle": "Accès refusé",
   "accessDeniedMessage": "Vous n'avez pas la permission d'accéder à la page des paramètres.",
   "navigation:settings.title": "Paramètres",
+  "navigation:settings.general": "Général",
+  "navigation:settings.modules": "Gestion des Modules",
   "navigation:settings.auditLog": "Journal d'Audit",
   "navigation:settings.databaseSettings": "Paramètres de la Base de Données",
   "navigation:settings.settings": "Paramètres Généraux",
