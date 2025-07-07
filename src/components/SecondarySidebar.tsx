@@ -17,6 +17,36 @@ function getFallbackIcon(moduleKey: string) {
   }
 }
 
+// Consistent icon wrapper component for standardized sizing
+const IconWrapper: React.FC<{ 
+  icon?: React.ComponentType<any>; 
+  moduleKey: string; 
+  className?: string;
+  isMinimized?: boolean;
+}> = ({ icon, moduleKey, className = "", isMinimized = false }) => {
+  // Standardized icon size - consistent across all states
+  const iconSize = isMinimized ? "w-5 h-5" : "w-5 h-5";
+  const wrapperSize = isMinimized ? "w-8 h-8" : "w-6 h-6";
+  
+  return (
+    <div className={`
+      ${wrapperSize} 
+      flex items-center justify-center 
+      flex-shrink-0
+      ${className}
+    `}>
+      {icon 
+        ? React.createElement(icon, { 
+            className: `${iconSize} transition-all duration-200` 
+          })
+        : React.cloneElement(getFallbackIcon(moduleKey), {
+            className: `${iconSize} transition-all duration-200`
+          })
+      }
+    </div>
+  );
+};
+
 // Enhanced glassmorphism color schemes matching primary sidebar
 const getModuleStyle = (moduleKey: string) => {
   const colorSchemes = {
@@ -212,11 +242,21 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         `}
         style={{ height: 'calc(100vh - 4rem)' }}
       >
-        {/* Control buttons */}
-        <div className="absolute top-4 left-0 z-10 flex flex-col gap-1">
+        {/* Control buttons - positioned to avoid search bar overlap */}
+        <div className="absolute top-4 right-2 z-20 flex flex-col gap-1">
           {!isMobile && (
             <button
-              className={`${moduleStyle.accent} hover:${moduleStyle.accent}/80 p-1 rounded transition-colors backdrop-blur-sm bg-white/20 hover:bg-white/30`}
+              className={`
+                text-slate-600 hover:text-slate-800
+                bg-white/90 hover:bg-white
+                backdrop-blur-sm
+                border border-slate-200/50 hover:border-slate-300
+                shadow-sm hover:shadow-md
+                p-2 rounded-lg
+                transition-all duration-200
+                hover:scale-105
+                focus:outline-none focus:ring-2 focus:ring-slate-400/50
+              `}
               onClick={() => setIsMinimized(!isMinimized)}
               title={isMinimized ? "Expand menu" : "Minimize menu"}
             >
@@ -265,20 +305,25 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                     <button
                       onClick={() => !isMinimized && toggleGroup(item.name)}
                       className={`
-                        flex items-center ${isMinimized ? 'justify-center w-full' : 'justify-between w-full'} 
-                        px-2 py-1 text-xs uppercase tracking-wider 
+                        flex items-center ${isMinimized ? 'justify-center w-full px-1 py-2' : 'justify-between w-full px-2 py-1'} 
+                        text-xs uppercase tracking-wider 
                         ${moduleStyle.accent} font-bold 
                         focus:outline-none ${moduleStyle.hover} 
                         rounded transition-colors
                         backdrop-blur-sm bg-white/10
+                        ${isMinimized ? 'min-h-[2.5rem]' : ''}
                       `}
                       title={isMinimized ? t(item.name) : undefined}
                     >
-                      <span className={`flex items-center ${isMinimized ? '' : 'gap-2'}`}>
-                        {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                        {!isMinimized && t(item.name)}
+                      <span className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-2'}`}>
+                        <IconWrapper 
+                          icon={item.icon} 
+                          moduleKey={moduleKey} 
+                          isMinimized={isMinimized}
+                        />
+                        {!isMinimized && <span className="truncate">{t(item.name)}</span>}
                       </span>
-                      {!isMinimized && <span>{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>}
+                      {!isMinimized && <span className="flex-shrink-0">{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>}
                     </button>
                     {openGroups[item.name] && !isMinimized && (
                       <ul className="space-y-1 mt-1">
@@ -296,8 +341,11 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                                 }`
                               }
                             >
-                              {child.icon ? React.createElement(child.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                              <span className="font-medium text-sm">{t(child.name)}</span>
+                              <IconWrapper 
+                                icon={child.icon} 
+                                moduleKey={moduleKey}
+                              />
+                              <span className="font-medium text-sm truncate">{t(child.name)}</span>
                             </NavLink>
                           </li>
                         ))}
@@ -308,7 +356,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                   <NavLink
                     to={item.path}
                     className={({ isActive, isPending }) =>
-                      `flex items-center ${isMinimized ? 'justify-center' : 'gap-3'} px-3 py-2 border border-transparent transition-all duration-200 rounded-lg backdrop-blur-sm ${
+                      `flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : 'gap-3 px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg backdrop-blur-sm ${
                         isActive
                           ? `${moduleStyle.activeLink} font-semibold shadow-sm`
                           : isPending
@@ -318,8 +366,12 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                     }
                     title={isMinimized ? t(item.name) : undefined}
                   >
-                    {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : getFallbackIcon(moduleKey)}
-                    {!isMinimized && <span className="font-medium text-sm">{t(item.name)}</span>}
+                    <IconWrapper 
+                      icon={item.icon} 
+                      moduleKey={moduleKey} 
+                      isMinimized={isMinimized}
+                    />
+                    {!isMinimized && <span className="font-medium text-sm truncate">{t(item.name)}</span>}
                   </NavLink>
                 )}
               </li>
