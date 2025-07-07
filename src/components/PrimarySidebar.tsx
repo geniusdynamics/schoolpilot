@@ -3,7 +3,7 @@ import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 
-// Module-specific glassmorphism color schemes (keeping only styling, no hard-coded names)
+// Enhanced module-specific styling with badge/label support
 const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
   const colorSchemes = {
     'navigation:dashboard': {
@@ -109,7 +109,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
   
   return (
     <aside className="
-      flex flex-col items-center h-full w-20
+      flex flex-col items-center min-h-full w-20
       bg-gradient-to-b from-slate-900/80 via-slate-800/70 to-slate-900/80
       backdrop-blur-xl
       border-r border-white/10
@@ -119,14 +119,15 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
       relative
       before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:rounded-r-3xl before:pointer-events-none
     ">
-      <div className="flex flex-col gap-3 flex-1 w-full items-center relative z-10">
+      {/* Content container - no internal scrolling */}
+      <div className="flex flex-col gap-3 w-full items-center relative z-10 px-2">
         {mainModules.map(item => {
           const isSelected = selectedModuleKey === item.name;
           const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(item.name, isSelected);
           const displayName = getDisplayName(item.name);
           
           return (
-            <div key={item.name} className="relative group/item">
+            <div key={item.name} className="relative group/item flex-shrink-0">
               {/* Badge/Label - positioned above and slightly inward to avoid overlap */}
               <div className={`
                 absolute bottom-12 left-1/2 transform -translate-x-1/2 -translate-y-2

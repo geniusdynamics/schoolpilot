@@ -216,31 +216,33 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   // Determine sidebar width and behavior based on state
   const sidebarWidth = isMinimized ? 'w-16' : 'w-56';
   const sidebarClasses = isMobile
-    ? 'fixed left-20 top-16 z-50 w-56 shadow-2xl' // Mobile: fixed overlay
-    : `relative ${sidebarWidth} transition-all duration-300`; // Desktop: responsive width
+    ? 'w-56 shadow-2xl' // Mobile: full width, let parent handle positioning
+    : `${sidebarWidth} transition-all duration-300`; // Desktop: responsive width
 
   return (
     <>
       {/* Mobile backdrop */}
-      {isMobile && (
+      {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20"
           onClick={onClose}
         />
       )}
-      
+
       <aside
         id="secondary-sidebar"
         className={`
-          ${sidebarClasses} 
+          ${sidebarClasses}
+          ${isOpen ? 'block' : 'hidden'}
           flex flex-col shadow-xl border-l ${moduleStyle.border}
-          px-2 py-4 
+          px-2 py-4
           ${moduleStyle.background}
           backdrop-blur-lg
           relative
+          h-screen
+          max-h-screen
           before:absolute before:inset-0 before:bg-white/40 before:backdrop-blur-sm before:rounded-l-lg before:pointer-events-none
         `}
-        style={{ height: 'calc(100vh - 4rem)' }}
       >
         {/* Control buttons - positioned to avoid search bar overlap */}
         <div className="absolute top-4 right-2 z-20 flex flex-col gap-1">
@@ -295,9 +297,9 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           </div>
         )}
         
-        {/* Navigation content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 relative z-10">
-          <ul className={`space-y-1 ${isMinimized ? 'items-center' : ''}`}>
+        {/* Navigation content - Scrollable area for menu items */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 relative z-10 min-h-0">
+          <ul className={`space-y-1 ${isMinimized ? 'items-center' : ''} pb-4`}>
             {filterItems(subMenus).map(item => (
               <li key={item.name}>
                 {item.isGroup && item.children ? (
@@ -382,45 +384,48 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         <style>{`
           .custom-scrollbar {
             scrollbar-width: thin;
-            scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+            scrollbar-color: rgba(100, 116, 139, 0.8) rgba(241, 245, 249, 0.2);
           }
           .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-            background: transparent;
+            width: 10px;
+            background: rgba(241, 245, 249, 0.2);
+            border-radius: 10px;
           }
           .custom-scrollbar::-webkit-scrollbar-track {
             background: rgba(241, 245, 249, 0.3);
             border-radius: 10px;
             margin: 4px 0;
+            border: 1px solid rgba(148, 163, 184, 0.2);
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg,
-              rgba(148, 163, 184, 0.4) 0%,
-              rgba(100, 116, 139, 0.6) 50%,
-              rgba(71, 85, 105, 0.7) 100%
-            );
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg,
               rgba(100, 116, 139, 0.7) 0%,
               rgba(71, 85, 105, 0.8) 50%,
               rgba(51, 65, 85, 0.9) 100%
             );
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            transform: scaleX(1.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
           }
-          .custom-scrollbar::-webkit-scrollbar-thumb:active {
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg,
               rgba(71, 85, 105, 0.8) 0%,
               rgba(51, 65, 85, 0.9) 50%,
               rgba(30, 41, 59, 1) 100%
             );
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
             transform: scaleX(1.2);
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(135deg,
+              rgba(51, 65, 85, 0.9) 0%,
+              rgba(30, 41, 59, 1) 50%,
+              rgba(15, 23, 42, 1) 100%
+            );
+            transform: scaleX(1.3);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
           }
           .custom-scrollbar::-webkit-scrollbar-corner {
             background: transparent;
