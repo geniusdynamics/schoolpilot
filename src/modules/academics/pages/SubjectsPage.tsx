@@ -64,7 +64,7 @@ const SubjectsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.subject_code || !formData.abbreviation || !formData.grouping) {
-        alert("Name, Code, Abbreviation and Grouping are required.");
+        alert(t('validation.nameCodeAbbreviationAndGroupingAreRequired'));
         return;
     }
     

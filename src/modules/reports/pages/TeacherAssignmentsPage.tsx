@@ -83,8 +83,8 @@ const TeacherAssignmentsPage: React.FC = () => {
         ) : (
             <>
                 <div className="flex justify-end space-x-2 mb-4">
-                    <Button variant="secondary" size="sm" onClick={() => alert("Print functionality to be implemented.")}>{t('teacherAssignmentsPage.print')}</Button>
-                    <Button variant="secondary" size="sm" onClick={() => alert("Export to CSV functionality to be implemented.")}>{t('teacherAssignmentsPage.exportCSV')}</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert(t('messages.printToBeDeveloped'))}>{t('teacherAssignmentsPage.print')}</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert(t('messages.exportToBeDeveloped'))}>{t('teacherAssignmentsPage.exportCSV')}</Button>
                 </div>
                 <Table columns={columns} data={(reportData || [])} isLoading={isGenerating} emptyStateMessage={t('teacherAssignmentsPage.noAssignmentsFound')}/>
             </>

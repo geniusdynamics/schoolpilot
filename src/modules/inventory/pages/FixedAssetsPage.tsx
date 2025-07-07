@@ -84,7 +84,7 @@ const FixedAssetsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.item_id || !formData.asset_tag) {
-      alert("Item and Asset Tag are required.");
+      alert(t('validation.itemAssetTagRequired'));
       return;
     }
     const payload: Omit<FixedAsset, 'id' | 'created_at' | 'updated_at' | 'item_name' | 'assigned_to_staff_name'> = {

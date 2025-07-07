@@ -57,11 +57,11 @@ const AcademicYearsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.structure_id || !formData.start_date || !formData.end_date) {
-      alert("All fields are required.");
+      alert(t('validation.allFieldsRequired'));
       return;
     }
     if (new Date(formData.start_date) >= new Date(formData.end_date)) {
-        alert("End date must be after start date.");
+        alert(t('validation.endDateAfterStartDate'));
         return;
     }
     const payload = { 

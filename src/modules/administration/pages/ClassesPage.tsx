@@ -72,7 +72,7 @@ const ClassesPage: React.FC = () => {
   const openStreamModal = (stream?: ClassStream, parentClass?: SchoolClass) => {
     const currentParent = parentClass || selectedClassForStream;
     if (!currentParent) {
-        alert("Please select a class first to manage its streams.");
+        alert(t('validation.selectClassFirst'));
         return;
     }
     setSelectedClassForStream(currentParent);
@@ -88,7 +88,7 @@ const ClassesPage: React.FC = () => {
   
   const handleClassSubmit = async () => {
     if (!classFormData.name) {
-        alert("Class name is required.");
+        alert(t('validation.classNameIsRequired'));
         return;
     }
     if (editingClass) {
@@ -101,7 +101,7 @@ const ClassesPage: React.FC = () => {
 
   const handleStreamSubmit = async () => {
     if (!selectedClassForStream || !streamFormData.name) {
-        alert("Stream name is required and a class must be selected.");
+        alert(t('validation.streamNameIsRequiredAndAClassMustBeSelected'));
         return;
     }
     const payload = {

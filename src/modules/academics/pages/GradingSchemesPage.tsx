@@ -76,7 +76,7 @@ const GradingSchemesPage: React.FC = () => {
   
   const handleSchemeSubmit = async () => {
     if (!schemeFormData.name) {
-      alert("Scheme name is required.");
+      alert(t('validation.schemeNameIsRequired'));
       return;
     }
     const payload = {
@@ -95,7 +95,7 @@ const GradingSchemesPage: React.FC = () => {
 
   const handleLevelSubmit = async () => {
     if (!currentSchemeForLevels || !levelFormData.grade || levelFormData.min_score === undefined) {
-      alert("Grade and Minimum Score are required for a level.");
+      alert(t('validation.gradeAndMinimumScoreAreRequiredForALevel'));
       return;
     }
 

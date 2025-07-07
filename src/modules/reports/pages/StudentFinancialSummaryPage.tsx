@@ -49,7 +49,7 @@ const StudentFinancialSummaryPage: React.FC = () => {
 
   const handleGenerateReport = useCallback(() => {
     if (!selectedSchoolPeriodId) {
-        alert("Please select a School Period.");
+        alert(t('validation.pleaseSelectASchoolPeriod'));
         setReportData([]);
         return;
     }
@@ -149,8 +149,8 @@ const StudentFinancialSummaryPage: React.FC = () => {
         ) : (
             <>
                 <div className="flex justify-end space-x-2 mb-4">
-                    <Button variant="secondary" size="sm" onClick={() => alert("Print functionality to be implemented.")}>Print</Button>
-                    <Button variant="secondary" size="sm" onClick={() => alert("Export to CSV functionality to be implemented.")}>Export CSV</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert(t('messages.printToBeDeveloped'))}>Print</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert(t('messages.exportToBeDeveloped'))}>Export CSV</Button>
                 </div>
                 <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage="No financial summary data found for the selected criteria."/>
             </>

@@ -57,7 +57,7 @@ const TeacherSubjectAssignmentPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.allocation_id || !formData.teacher_id) {
-      alert("Class-Subject Allocation and Teacher are required.");
+      alert(t('validation.classsubjectAllocationAndTeacherAreRequired'));
       return;
     }
 
@@ -68,7 +68,7 @@ const TeacherSubjectAssignmentPage: React.FC = () => {
     );
 
     if (isDuplicate) {
-        alert("This teacher is already assigned to this class-subject allocation.");
+        alert(t('messages.thisTeacherIsAlreadyAssignedToThisClasssubjectAllocation'));
         return;
     }
 

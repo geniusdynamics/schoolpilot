@@ -1,128 +1,44 @@
 {
-  "dashboard": {
-    "title": "Nutrition & Wallet Dashboard",
-    "totalMealPlans": "Total Meal Plans",
-    "activeMealAssignments": "Active Meal Assignments",
-    "totalMenusCreated": "Total Menus Created",
-    "activeMerchants": "Active Merchants",
-    "totalStudentWalletBalance": "Total Student Wallet Balance",
-    "quickLinksTitle": "Quick Links",
-    "manageMealPlansButton": "Manage Meal Plans",
-    "manageMenusButton": "Manage Menus",
-    "studentWalletsButton": "Student Wallets",
-    "logConsumptionButton": "Log Consumption",
-    "studentMealPlanStatusChartTitle": "Student Meal Plan Assignment Statuses",
-    "hubTitle": "Meals & Student Wallet Overview",
-    "hubDescription": "Manage school meal plans, menus, meal consumption, and student pocket money accounts.",
-    "enhancementNote": "Dashboard enhanced with key stats, charts, and quick links."
-  },
   "mealPlans": {
-    "title": "Meal Plans Management",
-    "description": "Define and manage meal plans offered by the school.",
-    "addButton": "Add Meal Plan",
-    "modalAddTitle": "Add New Meal Plan",
-    "modalEditTitle": "Edit Meal Plan",
-    "nameLabel": "Plan Name",
-    "descriptionLabel": "Description (Optional)",
-    "costPerPeriodLabel": "Cost per Period (KES)",
-    "deleteConfirm": "Are you sure you want to delete this meal plan?"
+    "managementTitle": "Meal Plans Management",
+    "managementDescription": "Define and manage meal plans offered by the school.",
+    "addMealPlan": "Add Meal Plan",
+    "addNewMealPlan": "Add New Meal Plan",
+    "editMealPlan": "Edit Meal Plan",
+    "planName": "Plan Name",
+    "description": "Description (Optional)",
+    "costPerPeriod": "Cost per Period (KES)",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "addPlan": "Add Plan"
   },
   "menus": {
-    "title": "Daily/Weekly Menus Management",
-    "description": "Create and manage menus for different meal types on specific dates.",
-    "addButton": "Add Menu",
-    "modalAddTitle": "Add New Menu",
-    "modalEditTitle": "Edit Menu",
-    "dateLabel": "Menu Date",
-    "mealTypeLabel": "Meal Type",
-    "descriptionLabel": "Menu Description / Items",
-    "descriptionPlaceholder": "e.g., Rice, Beef Stew, Cabbage, and a Banana",
-    "deleteConfirm": "Are you sure you want to delete this menu? This might affect consumption logs."
-  },
-  "studentMealAssignments": {
-    "title": "Student Meal Plan Assignments",
-    "filterPeriodLabel": "Filter by School Period",
-    "selectPeriodOption": "-- Select School Period --",
-    "noPeriodSelectedMessage": "Please select a school period to view and manage assignments.",
-    "modalAddTitle": "Assign Meal Plan to Student",
-    "modalEditTitle": "Edit Meal Plan Assignment",
-    "studentLabel": "Student",
-    "selectStudentOption": "Select Student",
-    "schoolPeriodLabel": "School Period",
-    "mealPlanLabel": "Meal Plan",
-    "selectMealPlanOption": "Select Meal Plan",
-    "statusLabel": "Assignment Status",
-    "alertStudentAlreadyActive": "This student already has an active meal plan for this period. Please edit the existing assignment or set it to inactive first."
-  },
-  "mealConsumption": {
-    "title": "Log Meal Consumption",
-    "description": "Select a student and the meal they are consuming. The system will check their meal plan or deduct from their wallet if applicable.",
-    "dateLabel": "Consumption Date",
-    "mealTypeLabel": "Meal Type",
-    "selectMealTypeOption": "Select Meal Type",
-    "studentLabel": "Select Student",
-    "selectStudentOption": "-- Select Student --",
-    "selectedMenuInfo": "Selected Menu: <strong>{{description}}</strong> for {{mealType}} on {{date}}.",
-    "noMenuFound": "No menu found for the selected date and meal type. Please define it first.",
-    "logButton": "Log Consumption",
-    "loggingButton": "Logging...",
-    "logSuccess": "Meal logged successfully for {{studentName}}.{{chargeInfo}}",
-    "chargeInfoBilled": " Amount charged: KES {{amount}}.",
-    "chargeInfoPlan": " Included in meal plan.",
-    "logError": "Failed to log meal consumption.",
-    "recentLogsTitle": "Recent Meal Consumption Logs",
-    "noLogsMessage": "No meal consumption logs recorded yet."
-  },
-  "merchants": {
-    "title": "Merchants Management (e.g., Canteen)",
-    "description": "Define merchants where students can make purchases using their wallets. Link to a revenue GL account.",
-    "addButton": "Add Merchant",
-    "modalAddTitle": "Add New Merchant",
-    "modalEditTitle": "Edit Merchant",
-    "nameLabel": "Merchant Name",
-    "glAccountLabel": "GL Account for Sales (Revenue Account)",
-    "selectGLOption": "Select GL Revenue Account",
-    "deleteConfirm": "Are you sure you want to delete this merchant?"
-  },
-  "studentWallet": {
-    "title": "Student Wallet Management",
-    "searchPlaceholder": "Search by student name or admission no...",
-    "manualTxButton": "Manual Transaction",
-    "modalTxTitle": "Manual Wallet Transaction",
-    "studentLabel": "Select Student",
-    "selectStudentOption": "-- Select Student --",
-    "txTypeLabel": "Transaction Type",
-    "txTypeDeposit": "Deposit (Credit Wallet)",
-    "txTypeDebitAdjustment": "Adjustment (Debit Wallet)",
-    "txTypeCreditAdjustment": "Adjustment (Credit Wallet)",
-    "amountLabel": "Amount (KES)",
-    "descriptionLabel": "Description / Reason",
-    "postTxButton": "Post Transaction",
-    "historyModalTitle": "Wallet History for {{studentName}}",
-    "currentBalanceLabel": "Current Balance:",
-    "noTransactionsMessage": "No transactions found for this student."
-  },
-  "tableHeaders": {
-    "id": "ID",
-    "name": "Name",
-    "description": "Description",
-    "costPerPeriodKES": "Cost per Period (KES)",
-    "actions": "Actions",
-    "date": "Date",
-    "mealType": "Meal Type",
-    "studentName": "Student Name",
-    "class": "Class",
-    "assignedMealPlan": "Assigned Meal Plan",
-    "status": "Status",
-    "menu": "Menu",
-    "time": "Time",
-    "amountChargedKES": "Amount Charged (KES)",
-    "glAccount": "Sales GL Account",
-    "admissionNo": "Admission No.",
-    "walletBalanceKES": "Wallet Balance (KES)",
-    "lastUpdated": "Last Updated",
-    "type": "Type",
-    "amountKES": "Amount (KES)",
-    "runningBalanceKES": "Running Balance (KES)"
+    "management": {
+      "title": "Daily/Weekly Menus Management",
+      "description": "Create and manage menus for different meal types on specific dates."
+    },
+    "add": {
+      "button": "Add Menu",
+      "title": "Add New Menu"
+    },
+    "edit": {
+      "title": "Edit Menu"
+    },
+    "date": {
+      "label": "Menu Date"
+    },
+    "mealType": {
+      "label": "Meal Type"
+    },
+    "description": {
+      "label": "Menu Description / Items",
+      "placeholder": "e.g., Rice, Beef Stew, Cabbage, and a Banana"
+    },
+    "cancel": {
+      "button": "Cancel"
+    },
+    "save": {
+      "button": "Save Changes"
+    }
   }
 }

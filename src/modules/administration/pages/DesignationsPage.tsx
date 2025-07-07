@@ -40,7 +40,7 @@ const DesignationsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.title) {
-      alert("Designation title is required.");
+      alert(t('validation.designationTitleIsRequired'));
       return;
     }
     const payload = {

@@ -41,7 +41,7 @@ const ExamAnalysisPage: React.FC = () => {
 
   const handleLoadAnalysis = useCallback(() => {
     if (!selectedExamSessionId || !selectedClassStreamId) {
-      alert("Please select an Exam Session and a Class Stream.");
+      alert(t('validation.pleaseSelectAnExamSessionAndAClassStream'));
       return;
     }
     setIsAnalyzing(true);

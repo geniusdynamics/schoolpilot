@@ -40,7 +40,7 @@ const WarehousesPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Warehouse name is required.");
+      alert(t('validation.warehouseNameIsRequired'));
       return;
     }
     const payload = { name: formData.name! };

@@ -41,7 +41,7 @@ const DormitoriesPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Dormitory name is required.");
+      alert(t('validation.dormitoryNameIsRequired'));
       return;
     }
     const payload = {

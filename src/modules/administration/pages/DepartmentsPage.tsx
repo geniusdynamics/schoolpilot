@@ -39,7 +39,7 @@ const DepartmentsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Department name is required.");
+      alert(t('validation.departmentNameIsRequired'));
       return;
     }
     const payload = {

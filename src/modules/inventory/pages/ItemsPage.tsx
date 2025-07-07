@@ -67,7 +67,7 @@ const ItemsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.unit_of_measure || !formData.item_type) {
-      alert("Item Name, Unit of Measure, and Item Type are required.");
+      alert(t('validation.itemNameUnitTypeRequired'));
       return;
     }
     const payload: Omit<ItemInv, 'id' | 'created_at' | 'updated_at' | 'category_name'> = {

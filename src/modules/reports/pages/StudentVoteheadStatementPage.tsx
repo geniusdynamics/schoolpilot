@@ -41,7 +41,7 @@ const StudentVoteheadStatementPage: React.FC = () => {
 
   const handleGenerateReport = useCallback(() => {
     if (!selectedStudentId || !selectedSchoolPeriodId) {
-      alert("Please select a Student and a School Period.");
+      alert(t('validation.pleaseSelectAStudentAndASchoolPeriod'));
       setReportData([]);
       return;
     }

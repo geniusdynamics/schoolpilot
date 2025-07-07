@@ -113,7 +113,7 @@ const VendorPortalDashboardPage: React.FC = () => {
 
   const handleInvoiceSubmit = () => {
     if (!invoiceFormData.invoice_number || !invoiceFormData.po_number || !invoiceFormData.invoice_date || !invoiceFormData.amount) {
-        alert("Please fill in all required invoice details.");
+        alert(t('validation.pleaseFillInAllRequiredInvoiceDetails'));
         return;
     }
     // const fileInfo = invoiceFormData.file ? `with file: ${invoiceFormData.file.name}` : 'no file attached';

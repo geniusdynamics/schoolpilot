@@ -40,7 +40,7 @@ const StudentCategoriesPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Category name is required.");
+      alert(t('validation.categoryNameRequired'));
       return;
     }
     const payload = {

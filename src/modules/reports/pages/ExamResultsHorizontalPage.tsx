@@ -165,7 +165,7 @@ const ExamResultsHorizontalPage: React.FC = () => {
             <>
                  <div className="flex justify-end space-x-2 mb-4 print-hide">
                     <Button variant="secondary" size="sm" onClick={() => window.print()} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.print')}</Button>
-                    <Button variant="secondary" size="sm" onClick={() => alert("CSV Export to be implemented")} leftIcon={<ExportIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.exportCSV')}</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert(t('messages.csvExportToBeDeveloped'))} leftIcon={<ExportIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.exportCSV')}</Button>
                 </div>
                 <Table columns={dynamicColumns} data={(reportData || [])} isLoading={isGenerating} />
             </>

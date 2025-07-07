@@ -65,7 +65,7 @@ const PartnersPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.partner_type) {
-      alert("Partner name and type are required.");
+      alert(t('validation.partnerNameAndTypeAreRequired'));
       return;
     }
     const payload: Omit<Partner, 'id' | 'created_at' | 'updated_at'> = {

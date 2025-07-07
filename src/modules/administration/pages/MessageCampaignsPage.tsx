@@ -110,19 +110,19 @@ const MessageCampaignsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.status) {
-      alert("Campaign name and status are required.");
+      alert(t('validation.campaignNameAndStatusAreRequired'));
       return;
     }
     if (!formData.body) {
-        alert("Campaign body content is required.");
+        alert(t('validation.campaignBodyContentIsRequired'));
         return;
     }
     if (selectedTemplate && (selectedTemplate.type === TemplateType.EMAIL || selectedTemplate.type === TemplateType.PUSH_NOTIFICATION) && !formData.subject) {
-        alert("Subject is required for Email/Push Notification campaigns based on the selected template.");
+        alert(t('validation.subjectIsRequiredForEmailpushNotificationCampaignsBasedOnTheSelectedTemplate'));
         return;
     }
      if ((formData.target_audience_type === CampaignAudienceType.STUDENTS_OF_CLASS || formData.target_audience_type === CampaignAudienceType.PARENTS_OF_CLASS) && !formData.target_id) {
-        alert("Please select a class/stream for the chosen target audience.");
+        alert(t('validation.pleaseSelectAClassstreamForTheChosenTargetAudience'));
         return;
     }
 

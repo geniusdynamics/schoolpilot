@@ -40,7 +40,7 @@ const CustomersPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Customer name is required.");
+      alert(t('validation.customerNameIsRequired'));
       return;
     }
     const payload = {

@@ -60,11 +60,11 @@ const CommunicationTemplatesPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.type || !formData.body_template) {
-      alert("Template name, type, and body are required.");
+      alert(t('validation.templateNameTypeAndBodyAreRequired'));
       return;
     }
     if ((formData.type === TemplateType.EMAIL || formData.type === TemplateType.PUSH_NOTIFICATION) && !formData.subject) {
-        alert("Subject is required for Email and Push Notification templates.");
+        alert(t('validation.subjectIsRequiredForEmailAndPushNotificationTemplates'));
         return;
     }
 

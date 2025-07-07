@@ -97,7 +97,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.class_subject_allocation_id || !formData.enrollment_date || !formData.status) {
-      alert("Student, Subject Allocation, Enrollment Date, and Status are required.");
+      alert(t('validation.studentSubjectAllocationEnrollmentDateAndStatusAreRequired'));
       return;
     }
 
@@ -109,7 +109,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     );
 
     if (isDuplicate && formData.status === StudentEnrollmentStatus.ENROLLED) {
-        alert("This student is already actively enrolled in this subject.");
+        alert(t('messages.thisStudentIsAlreadyActivelyEnrolledInThisSubject'));
         return;
     }
 
@@ -224,7 +224,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     if (selectedAcademicYearId && selectedStreamId) {
         setShowEnrollmentGrid(true);
     } else {
-        alert("Please select Academic Year, School Period, Class, and Stream first.");
+        alert(t('validation.pleaseSelectAcademicYearSchoolPeriodClassAndStreamFirst'));
     }
   }
 

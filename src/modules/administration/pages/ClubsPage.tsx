@@ -45,7 +45,7 @@ const ClubsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.type) {
-      alert("Club name and type are required.");
+      alert(t('validation.clubNameAndTypeAreRequired'));
       return;
     }
     const payload = {

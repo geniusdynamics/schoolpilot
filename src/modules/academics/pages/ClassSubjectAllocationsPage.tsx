@@ -63,7 +63,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.class_stream_id || !formData.subject_id || !formData.academic_year_id) {
-      alert("Class Stream, Subject, and Academic Year are required.");
+      alert(t('validation.classStreamSubjectAcademicYearRequired'));
       return;
     }
 
@@ -75,7 +75,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     );
 
     if (isDuplicate) {
-        alert("This subject is already allocated to this class stream for the selected academic year.");
+        alert(t('validation.subjectAlreadyAllocated'));
         return;
     }
 
