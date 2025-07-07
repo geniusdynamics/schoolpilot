@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 const StudentMasterlistPage: React.FC = () => {
   const { students, classes, classStreams, loading } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('reports');
 
   const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
   const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
@@ -78,7 +78,7 @@ const StudentMasterlistPage: React.FC = () => {
 
   const handleExportCSV = () => {
     const headers = columns.map(col => col.header).join(',');
-    const rows = filteredStudents.map(student => {
+    const rows = (filteredStudents || []).map(student => {
       return columns.map(col => {
         let value;
         if (typeof col.accessor === 'function') {
@@ -120,7 +120,7 @@ const StudentMasterlistPage: React.FC = () => {
                 <option value="">{t('studentMasterlistPage.allClasses')}</option>
                 {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
-            <Select label={t('studentMasterlistPage.filterByStream')} value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId && availableStreams.length === classStreams.length}>
+            <Select label={t('studentMasterlistPage.filterByStream')} value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId && availableStreams.length === (classStreams || []).length}>
                 <option value="">{t('studentMasterlistPage.allStreams')}</option>
                 {(availableStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
             </Select>

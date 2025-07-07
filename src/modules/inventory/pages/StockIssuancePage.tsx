@@ -63,7 +63,7 @@ const StockIssuancePage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.item_id || !formData.warehouse_id || formData.quantity <= 0 || !formData.transaction_date) {
-      alert("Item, Warehouse, valid Quantity, and Transaction Date are required.");
+      alert(t('validation.itemWarehouseValidQuantityAndTransactionDateAreRequired'));
       return;
     }
     const payload: Omit<StockTransaction, 'id' | 'item_name' | 'warehouse_name'> = {

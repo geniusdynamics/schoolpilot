@@ -38,7 +38,7 @@ const VendorPortalDashboardPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const { suppliers, purchaseOrders, supplierInvoices, rfqs, loading } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('inventory');
 
   // Simulate logged-in vendor (in real app, get from auth context)
   const vendorId = 1;
@@ -113,7 +113,7 @@ const VendorPortalDashboardPage: React.FC = () => {
 
   const handleInvoiceSubmit = () => {
     if (!invoiceFormData.invoice_number || !invoiceFormData.po_number || !invoiceFormData.invoice_date || !invoiceFormData.amount) {
-        alert("Please fill in all required invoice details.");
+        alert(t('validation.pleaseFillInAllRequiredInvoiceDetails'));
         return;
     }
     // const fileInfo = invoiceFormData.file ? `with file: ${invoiceFormData.file.name}` : 'no file attached';

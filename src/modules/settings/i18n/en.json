@@ -33,7 +33,10 @@
     "mottoLabel": "School Motto",
     "saveButton": "Save School Details",
     "saveSuccess": "School details saved successfully!",
-    "saveError": "Failed to save school details."
+    "saveError": "Failed to save school details.",
+    "notConfigured": "Not Configured",
+    "noCode": "No school code set",
+    "manageProfile": "Manage Profile"
   },
   "userManagement": {
     "title": "User Accounts Management",
@@ -45,90 +48,32 @@
     "rolesTitle": "Roles Management",
     "addRoleButton": "Add Role",
     "loadingRoles": "Loading roles...",
+    "totalUsers": "Total Users",
+    "quickOverview": "System user overview",
+    "manageUsers": "Manage Users",
+    "recentUsers": "Recent Users",
+    "previewDescription": "Showing the 5 most recent users. View all users for complete management.",
+    "viewAllUsers": "View All Users",
     "userModal": {
       "addTitle": "Add New User",
       "editTitle": "Edit User",
-      "usernameLabel": "Username",
-      "emailLabel": "Email",
-      "passwordLabel": "Password",
-      "userTypeLabel": "User Type",
-      "roleLabel": "Role",
-      "selectRoleOption": "Select Role",
-      "activeLabel": "Is Active User"
-    },
-    "roleModal": {
-        "addTitle": "Add New Role",
-        "editTitle": "Edit Role",
-        "nameLabel": "Role Name",
-        "descriptionLabel": "Description (Optional)"
-    },
-    "deleteUserConfirm": "Are you sure you want to delete this user?",
-    "deleteRoleConfirm": "Are you sure you want to delete this role? Users with this role will have it unassigned."
+      "usernameLabel": "Username"
+    }
   },
   "workflows": {
     "title": "Workflow Management",
-    "description": "Define approval workflows and their states.",
-    "addWorkflowButton": "Add Workflow",
-    "loadingWorkflows": "Loading workflows...",
-    "statesFor": "States for: {{workflowName}}",
-    "addStateButton": "Add State",
-    "noStates": "No states defined for this workflow.",
-    "workflowModal": {
-      "addTitle": "Add New Workflow",
-      "editTitle": "Edit Workflow",
-      "nameLabel": "Workflow Name"
-    },
-    "stateModal": {
-      "addTitle": "Add State to {{workflowName}}",
-      "editTitle": "Edit State",
-      "nameLabel": "State Name",
-      "sequenceLabel": "Sequence Order"
-    },
-    "deleteWorkflowConfirm": "Delete this workflow and all its states?",
-    "deleteStateConfirm": "Delete this workflow state?"
+    "description": "Configure approval workflows and business processes",
+    "manageWorkflows": "Manage Workflows"
   },
   "auditLog": {
     "title": "System Audit Log",
-    "header": "View System Audit Trails",
-    "description": "Review logs of significant actions performed within the system for security and accountability.",
-    "filterCardTitle": "Filter Audit Logs",
-    "startDateLabel": "Start Date",
-    "endDateLabel": "End Date",
-    "userLabel": "User",
-    "allUsersOption": "All Users",
-    "systemActionsOption": "System Actions",
-    "actionTypeLabel": "Action Type",
-    "allActionsOption": "All Actions",
-    "resetFiltersButton": "Reset Filters",
-    "loadingLogs": "Loading audit logs...",
-    "noLogsFound": "No audit logs found matching your criteria.",
-    "enhancementNote": "Basic filtering implemented. Detailed view for logs coming soon."
+    "description": "Track system activities and user actions",
+    "viewLogs": "View Audit Logs"
   },
   "database": {
-    "title": "Database Settings",
-    "titleRxDB": "RxDB Database Management",
-    "notInProduction": "Database management features are only available in 'Production' mode.",
-    "currentMode": "Currently in '{{mode}}' mode.",
-    "initFailedHeader": "RxDB Initialization Failed",
-    "initFailedMessage": "The application is currently running in fallback mode using mock data.",
-    "initError": "Error: {{message}}",
-    "initializingService": "Initializing RxDB service... Please wait.",
-    "currentStatusLabel": "Current Status:",
-    "statusChecking": " Checking...",
-    "statusUsingDummy": " RxDB is currently using imported dummy data.",
-    "statusLiveOrEmpty": " RxDB is using live data or is empty (not using dummy data).",
-    "importButton": "Import Dummy Data to RxDB",
-    "importingButton": "Importing...",
-    "clearButton": "Clear All RxDB Data",
-    "clearingButton": "Clearing...",
-    "importConfirm": "Are you sure you want to import dummy data? This will overwrite existing data in RxDB if any.",
-    "clearConfirm": "ARE YOU SURE you want to clear ALL data from RxDB? This action cannot be undone.",
-    "importSuccess": "Dummy data successfully imported into RxDB.",
-    "importError": "Failed to import dummy data: {{message}}",
-    "clearSuccess": "All data successfully cleared from RxDB.",
-    "clearError": "Failed to clear data: {{message}}",
-    "note": "Note: 'Import Dummy Data' will clear existing RxDB data before populating. 'Clear All RxDB Data' is irreversible.",
-    "description": "Manage RxDB data settings, import mock data for testing in production, or clear data.",
+    "title": "Database Management",
+    "description": "Manage local database settings and synchronization",
+    "manageDatabase": "Database Settings",
     "linkToSettings": "Go to Database Settings"
   },
   "academicCalendar": {
@@ -143,7 +88,50 @@
     "title": "Roles & Permissions",
     "description": "Define system roles (e.g., Teacher, Accountant, Admin) and manage user assignments. Full management available under <1>User Management</1> and <2>Workflows</2> for approval processes."
   },
-   "tableHeaders": {
+  "moduleManagement": {
+    "title": "Module Management",
+    "header": "System Module Management",
+    "description": "Enable, disable, and configure system modules to customize your school management experience.",
+    "filtersTitle": "Search & Filters",
+    "searchLabel": "Search Modules",
+    "searchPlaceholder": "Search by name or description...",
+    "categoryLabel": "Category",
+    "modulesListTitle": "Available Modules",
+    "noModulesFound": "No modules found matching your criteria.",
+    "configureModule": "Configure {{name}}",
+    "modulePermissions": "{{name}} Permissions",
+    "moduleDependencies": "{{name}} Dependencies",
+    "viewDependencies": "Dependencies",
+    "moduleId": "Module ID",
+    "moduleVersion": "Version",
+    "moduleFeatures": "Features",
+    "permissionsDescription": "This module requires the following permissions to function properly:",
+    "dependenciesDescription": "This module depends on the following modules:",
+    "required": "Required",
+    "featuresCount": "features",
+    "toggleError": "Failed to toggle module status. Please try again.",
+    "dependencyError": "Cannot enable module. Missing dependencies: {{dependencies}}",
+    "disableDependencyWarning": "Disabling this module will affect the following dependent modules: {{dependents}}. Do you want to continue?",
+    "columns": {
+      "name": "Module Name",
+      "version": "Version",
+      "category": "Category",
+      "status": "Status",
+      "features": "Features"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "active": "Active"
+    },
+    "stats": {
+      "total": "Total Modules",
+      "enabled": "Enabled",
+      "active": "Active",
+      "categories": "Categories"
+    }
+  },
+  "tableHeaders": {
     "username": "Username",
     "email": "Email",
     "userType": "User Type",
@@ -166,9 +154,10 @@
   "accessDeniedTitle": "Access Denied",
   "accessDeniedMessage": "You do not have permission to view the settings page.",
   "navigation:settings.title": "Settings",
+  "navigation:settings.general": "General",
+  "navigation:settings.modules": "Module Management",
   "navigation:settings.auditLog": "Audit Log",
   "navigation:settings.databaseSettings": "Database Settings",
-  "navigation:settings.settings": "General Settings",
   "navigation:settings.schoolProfile": "School Profile",
   "navigation:settings.users": "User Management",
   "navigation:settings.workflows": "Workflows"

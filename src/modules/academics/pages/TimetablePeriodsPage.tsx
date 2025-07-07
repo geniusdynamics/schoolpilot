@@ -47,11 +47,11 @@ const TimetablePeriodsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.period_name || !formData.start_time || !formData.end_time) {
-      alert("All fields are required.");
+      alert(t('validation.allFieldsRequired'));
       return;
     }
     if (formData.start_time >= formData.end_time) {
-        alert("End time must be after start time.");
+        alert(t('validation.endTimeMustBeAfterStartTime'));
         return;
     }
 

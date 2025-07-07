@@ -14,7 +14,7 @@ type ItemCategoryFormData = Omit<Partial<ItemCategoryInv>, 'id'>;
 
 const ItemCategoriesPage: React.FC = () => {
   const { itemCategoriesInv, loading, addItemCategoryInv, updateItemCategoryInv, deleteItemCategoryInv } = useAppData(); // Updated
-  const { t } = useTranslation();
+  const { t } = useTranslation('inventory');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<ItemCategoryInv | null>(null);
@@ -40,7 +40,7 @@ const ItemCategoriesPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Category name is required.");
+      alert(t('validation.categoryNameRequired'));
       return;
     }
     const payload = { name: formData.name! };

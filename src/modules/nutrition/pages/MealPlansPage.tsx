@@ -15,7 +15,7 @@ type MealPlanFormData = Omit<Partial<MealPlan>, 'id' | 'created_at' | 'updated_a
 
 const MealPlansPage: React.FC = () => {
   const { mealPlans, loading, addMealPlan, updateMealPlan, deleteMealPlan } = useAppData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('nutrition');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<MealPlan | null>(null);

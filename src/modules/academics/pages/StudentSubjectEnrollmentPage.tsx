@@ -52,23 +52,23 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
   // Filtered data for dropdowns
   const filteredSchoolPeriods = useMemo(() => {
     if (!selectedAcademicYearId) return [];
-    return schoolPeriods.filter(sp => sp.academic_year_id === selectedAcademicYearId);
+    return (schoolPeriods || []).filter(sp => sp.academic_year_id === selectedAcademicYearId);
   }, [selectedAcademicYearId, schoolPeriods]);
 
   const filteredClassStreams = useMemo(() => {
     if (!selectedClassId) return [];
-    return classStreams.filter(cs => cs.class_id === selectedClassId);
+    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   // Data for the enrollment grid
   const studentsForGrid = useMemo(() => {
     if (!selectedStreamId) return [];
-    return students.filter(s => s.current_class_stream_id === selectedStreamId && s.status === StudentStatus.ACTIVE);
+    return (students || []).filter(s => s.current_class_stream_id === selectedStreamId && s.status === StudentStatus.ACTIVE);
   }, [selectedStreamId, students]);
 
   const subjectsForGrid = useMemo(() => {
     if (!selectedStreamId || !selectedAcademicYearId) return [];
-    return classSubjectAllocations.filter(
+    return (classSubjectAllocations || []).filter(
       csa => csa.class_stream_id === selectedStreamId && csa.academic_year_id === selectedAcademicYearId
     );
   }, [selectedStreamId, selectedAcademicYearId, classSubjectAllocations]);
@@ -97,11 +97,11 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.class_subject_allocation_id || !formData.enrollment_date || !formData.status) {
-      alert("Student, Subject Allocation, Enrollment Date, and Status are required.");
+      alert(t('validation.studentSubjectAllocationEnrollmentDateAndStatusAreRequired'));
       return;
     }
 
-    const isDuplicate = studentSubjectEnrollments.some(
+    const isDuplicate = (studentSubjectEnrollments || []).some(
         enr => enr.id !== editingEnrollment?.id &&
                enr.student_id === formData.student_id &&
                enr.class_subject_allocation_id === formData.class_subject_allocation_id &&
@@ -109,7 +109,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     );
 
     if (isDuplicate && formData.status === StudentEnrollmentStatus.ENROLLED) {
-        alert("This student is already actively enrolled in this subject.");
+        alert(t('messages.thisStudentIsAlreadyActivelyEnrolledInThisSubject'));
         return;
     }
 
@@ -130,7 +130,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
   
   const handleGridEnrollmentChange = async (studentId: string, csaId: string, isCurrentlyEnrolled: boolean) => {
     if (isCurrentlyEnrolled) { // User wants to unenroll
-      const existingEnrollment = studentSubjectEnrollments.find(
+      const existingEnrollment = (studentSubjectEnrollments || []).find(
         e => e.student_id === studentId && e.class_subject_allocation_id === csaId && e.status === StudentEnrollmentStatus.ENROLLED
       );
       if (existingEnrollment) {
@@ -188,11 +188,11 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
   const gridColumns = useMemo(() => {
     if (!showEnrollmentGrid) return [];
     const studentCol = { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name}` };
-    const subjectCols = subjectsForGrid.map(csa => ({
+    const subjectCols = (subjectsForGrid || []).map(csa => ({
       header: csa.subject_name || 'Unknown Subject',
       accessor: 'id' as keyof Student, // Use student ID to look up enrollment
       render: (student: Student) => {
-        const isEnrolled = studentSubjectEnrollments.some(
+        const isEnrolled = (studentSubjectEnrollments || []).some(
           e => e.student_id === student.id && e.class_subject_allocation_id === csa.id && e.status === StudentEnrollmentStatus.ENROLLED
         );
         return (
@@ -224,7 +224,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     if (selectedAcademicYearId && selectedStreamId) {
         setShowEnrollmentGrid(true);
     } else {
-        alert("Please select Academic Year, School Period, Class, and Stream first.");
+        alert(t('validation.pleaseSelectAcademicYearSchoolPeriodClassAndStreamFirst'));
     }
   }
 
@@ -243,7 +243,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4 p-4 border rounded-md bg-gray-50">
             <Select label="Academic Year" value={selectedAcademicYearId || ''} onChange={e => {setSelectedAcademicYearId(Number(e.target.value) || undefined); setSelectedSchoolPeriodId(undefined); setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}}>
                 <option value="">Select Year</option>
-                {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
+                {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
             </Select>
             <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => {setSelectedSchoolPeriodId(Number(e.target.value) || undefined); setSelectedClassId(undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}} disabled={!selectedAcademicYearId}>
                 <option value="">Select Period</option>
@@ -251,7 +251,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
             </Select>
             <Select label="Class" value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined); setShowEnrollmentGrid(false);}} disabled={!selectedSchoolPeriodId}>
                 <option value="">Select Class</option>
-                {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
             <Select label="Stream" value={selectedStreamId || ''} onChange={e => {setSelectedStreamId(Number(e.target.value) || undefined); setShowEnrollmentGrid(false);}} disabled={!selectedClassId}>
                 <option value="">Select Stream</option>
@@ -265,7 +265,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         </div>
 
         {showEnrollmentGrid && studentsForGrid.length > 0 && subjectsForGrid.length > 0 && (
-            <Card title={`Enrollment Grid for ${classStreams.find(cs=>cs.id === selectedStreamId)?.name} - ${academicYears.find(ay=>ay.id === selectedAcademicYearId)?.name}`} className="mt-4">
+            <Card title={`Enrollment Grid for ${(classStreams || []).find(cs=>cs.id === selectedStreamId)?.name} - ${(academicYears || []).find(ay=>ay.id === selectedAcademicYearId)?.name}`} className="mt-4">
                 <p className="text-xs text-gray-500 mb-2">Check to enroll, uncheck to unenroll. Changes are saved immediately.</p>
                 <Table columns={gridColumns} data={studentsForGrid} isLoading={loading.studentSubjectEnrollments} />
             </Card>
@@ -276,7 +276,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
 
         <h3 className="text-lg font-semibold mt-8 mb-2">All Enrollment Records</h3>
-        <Table columns={columnsForListing} data={studentSubjectEnrollments} isLoading={loading.studentSubjectEnrollments && isModalOpen} />
+        <Table columns={columnsForListing} data={(studentSubjectEnrollments || [])} isLoading={loading.studentSubjectEnrollments && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingEnrollment ? 'Edit Enrollment Status' : 'Enroll Student in Subject'} size="lg"
@@ -298,7 +298,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
           disabled={!!editingEnrollment} 
         >
           <option value="">Select Student</option>
-          {students.filter(s => s.status === StudentStatus.ACTIVE).map((std: Student) => (
+          {(students || []).filter(s => s.status === StudentStatus.ACTIVE).map((std: Student) => (
             <option key={std.id} value={std.id}>{std.first_name} {std.last_name} ({std.admission_no}) - {std.current_class_name} {std.current_class_stream_name}</option>
           ))}
         </Select>
@@ -311,9 +311,9 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
           disabled={!!editingEnrollment || !formData.student_id}
         >
           <option value="">Select Subject (for Student's Class)</option>
-          {classSubjectAllocations
-            .filter(alloc => !formData.student_id || alloc.class_stream_id === students.find(s => s.id === formData.student_id)?.current_class_stream_id) // Filter by selected student's class stream
-            .map((alloc: import('../../core/types').ClassSubjectAllocation) => (
+          {(classSubjectAllocations || [])
+            .filter(alloc => !formData.student_id || alloc.class_stream_id === (students || []).find(s => s.id === formData.student_id)?.current_class_stream_id) // Filter by selected student's class stream
+            .map((alloc: any) => (
             <option key={alloc.id} value={alloc.id}>
               {alloc.subject_name} ({alloc.class_stream_name} - {alloc.academic_year_name})
             </option>

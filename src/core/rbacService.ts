@@ -324,6 +324,8 @@ export class RBACService {
   public initializeSuperAdminRole() {
     if (APP_MODE === 'demo') {
       const allPermissionIds = Array.from(this.permissions.keys());
+      console.log('[RBAC DEBUG] All available permissions:', allPermissionIds);
+      
       const superAdminRole: RbacRole = {
         id: SYSTEM_ROLES.SUPER_ADMIN,
         name: 'Super Administrator',
@@ -336,16 +338,21 @@ export class RBACService {
 
       // Grant access to all modules
       for (const moduleId of this.modules.keys()) {
+        const modulePermissions = Array.from(this.permissions.values())
+          .filter(p => p.moduleId === moduleId)
+          .map(p => p.id);
+        
         superAdminRole.moduleAccess[moduleId] = {
           enabled: true,
-          permissions: Array.from(this.permissions.values())
-            .filter(p => p.moduleId === moduleId)
-            .map(p => p.id),
+          permissions: modulePermissions,
         };
+        
+        console.log(`[RBAC DEBUG] Module ${moduleId} permissions:`, modulePermissions);
       }
 
       this.roles.set(SYSTEM_ROLES.SUPER_ADMIN, superAdminRole);
-      console.log('Initialized Super Admin role with all permissions for demo mode.');
+      console.log('[RBAC DEBUG] Initialized Super Admin role:', superAdminRole);
+      console.log('[RBAC DEBUG] Super Admin module access:', superAdminRole.moduleAccess);
     }
   }
 

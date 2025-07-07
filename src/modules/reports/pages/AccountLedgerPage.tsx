@@ -18,7 +18,7 @@ const AccountLedgerPage: React.FC = () => {
   const { chartOfAccounts, rawInitialData, loading } = useAppData(); 
   const { initialMockGeneralLedgerEntries: generalLedgerEntries } = rawInitialData;
 
-  const { t } = useTranslation();
+  const { t } = useTranslation('reports');
 
   const [selectedAccountId, setSelectedAccountId] = useState<number | undefined>();
   const [startDate, setStartDate] = useState<string>(new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0]); 
@@ -29,7 +29,7 @@ const AccountLedgerPage: React.FC = () => {
 
   const handleGenerateReport = useCallback(() => {
     if (!selectedAccountId) {
-      alert("Please select a GL Account.");
+      alert(t('validation.selectGLAccount'));
       setReportData([]);
       return;
     }
@@ -70,7 +70,7 @@ const AccountLedgerPage: React.FC = () => {
 
   const handleExportCSV = () => {
     if (reportData.length === 0) {
-      alert("No data to export.");
+      alert(t('messages.noDataToExport'));
       return;
     }
     const csvHeaders = columns.map(col => col.header).join(',');

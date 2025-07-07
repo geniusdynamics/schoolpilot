@@ -10,6 +10,14 @@
     "description": "Gérer le catalogue de livres, suivre les prêts et retours, gérer les amendes et superviser les ressources de la bibliothèque."
   },
   "bookCategories": {
+    "managementTitle": "Gestion des Catégories de Livres",
+    "defineCategories": "Définir les catégories pour les livres de la bibliothèque (ex: Fiction, Science, Histoire, Référence).",
+    "addCategory": "Ajouter Catégorie",
+    "addNewBookCategory": "Ajouter Nouvelle Catégorie",
+    "editBookCategory": "Modifier Catégorie",
+    "categoryName": "Nom de la Catégorie",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer les Modifications",
     "title": "Gestion des Catégories de Livres",
     "description": "Définir les catégories pour les livres de la bibliothèque (ex: Fiction, Science, Histoire, Référence).",
     "addButton": "Ajouter Catégorie",
@@ -49,7 +57,8 @@
     "dueDateLabel": "Date de Retour Prévue",
     "returnDateLabel": "Date de Retour",
     "markReturnedButton": "Marquer comme Rendu",
-    "markReturnedConfirm": "Marquer le livre \"{{title}}\" comme rendu ?"
+    "markReturnedConfirm": "Marquer le livre \"{{title}}\" comme rendu ?",
+    "userNotFound": "Utilisateur sélectionné introuvable."
   },
   "fines": {
     "title": "Gestion des Amendes de Bibliothèque",

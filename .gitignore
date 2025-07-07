@@ -26,5 +26,6 @@ dist-ssr
 # Development notes
 docs/AkademicoNotes/
 
-# CodeLLM files
+# CodeLLM
 .codellm/
+

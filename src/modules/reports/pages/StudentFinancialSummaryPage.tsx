@@ -36,28 +36,28 @@ const StudentFinancialSummaryPage: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState<number | undefined>();
   const [selectedStreamId, setSelectedStreamId] = useState<number | undefined>();
   const [selectedSchoolPeriodId, setSelectedSchoolPeriodId] = useState<number | undefined>(
-    schoolPeriods.find(sp => sp.is_active)?.id || schoolPeriods[0]?.id
+    (schoolPeriods || []).find(sp => sp.is_active)?.id || (schoolPeriods || [])[0]?.id
   );
   
   const [reportData, setReportData] = useState<FinancialSummaryRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const availableStreams = useMemo(() => {
-    if (!selectedClassId) return classStreams;
-    return classStreams.filter(cs => cs.class_id === selectedClassId);
+    if (!selectedClassId) return (classStreams || []);
+    return (classStreams || []).filter(cs => cs.class_id === selectedClassId);
   }, [selectedClassId, classStreams]);
 
   const handleGenerateReport = useCallback(() => {
     if (!selectedSchoolPeriodId) {
-        alert("Please select a School Period.");
+        alert(t('validation.pleaseSelectASchoolPeriod'));
         setReportData([]);
         return;
     }
     setIsGenerating(true);
     
-    let filteredStudents = [...students];
+    let filteredStudents = [...(students || [])];
     if (selectedClassId) {
-      const streamsInClass = classStreams.filter(cs => cs.class_id === selectedClassId).map(cs => cs.id);
+      const streamsInClass = (classStreams || []).filter(cs => cs.class_id === selectedClassId).map(cs => cs.id);
       if (selectedStreamId) {
         filteredStudents = filteredStudents.filter(s => s.current_class_stream_id === selectedStreamId);
       } else {
@@ -126,15 +126,15 @@ const StudentFinancialSummaryPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                  <Select label="School Period" value={selectedSchoolPeriodId || ''} onChange={e => setSelectedSchoolPeriodId(Number(e.target.value) || undefined)} required>
                     <option value="">All Periods</option>
-                    {schoolPeriods.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+                    {(schoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
                 <Select label="Class" value={selectedClassId || ''} onChange={e => {setSelectedClassId(Number(e.target.value) || undefined); setSelectedStreamId(undefined);}}>
                     <option value="">All Classes</option>
-                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {(classes || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </Select>
                 <Select label="Stream" value={selectedStreamId || ''} onChange={e => setSelectedStreamId(Number(e.target.value) || undefined)} disabled={!selectedClassId}>
                     <option value="">All Streams</option>
-                    {availableStreams.map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
+                    {(availableStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.name}</option>)}
                 </Select>
                 <Button onClick={handleGenerateReport} disabled={isGenerating || isLoadingPage || !selectedSchoolPeriodId} className="h-10">
                     {isGenerating ? <Spinner size="sm" /> : 'Generate Report'}
@@ -149,8 +149,8 @@ const StudentFinancialSummaryPage: React.FC = () => {
         ) : (
             <>
                 <div className="flex justify-end space-x-2 mb-4">
-                    <Button variant="secondary" size="sm" onClick={() => alert("Print functionality to be implemented.")}>Print</Button>
-                    <Button variant="secondary" size="sm" onClick={() => alert("Export to CSV functionality to be implemented.")}>Export CSV</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert(t('messages.printToBeDeveloped'))}>Print</Button>
+                    <Button variant="secondary" size="sm" onClick={() => alert(t('messages.exportToBeDeveloped'))}>Export CSV</Button>
                 </div>
                 <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage="No financial summary data found for the selected criteria."/>
             </>

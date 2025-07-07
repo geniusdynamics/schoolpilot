@@ -28,6 +28,24 @@
     "meanGrade": "Note Moyenne",
     "rank": "Rang"
   },
+  "studentMasterlistPage": {
+    "title": "Liste Principale des Étudiants",
+    "filterDescription": "Filtrez et générez une liste complète des étudiants.",
+    "filterByClass": "Filtrer par Classe",
+    "allClasses": "Toutes les Classes",
+    "filterByStream": "Filtrer par Filière",
+    "allStreams": "Toutes les Filières",
+    "filterByStatus": "Filtrer par Statut",
+    "allStatuses": "Tous les Statuts",
+    "filterByGender": "Filtrer par Sexe",
+    "allGenders": "Tous les Sexes",
+    "generateReport": "Générer le Rapport",
+    "loadingInitialData": "Chargement des données initiales...",
+    "generatingReport": "Génération du rapport...",
+    "print": "Imprimer",
+    "exportCSV": "Exporter CSV",
+    "noStudentsFound": "Aucun étudiant trouvé correspondant aux critères."
+  },
   "studentMasterlist": {
     "title": "Liste Principale des Étudiants",
     "description": "Filtrez et générez une liste complète des étudiants.",
@@ -99,6 +117,20 @@
     "closingBalanceLabel": "Solde de Clôture: KES",
     "selectFiltersMessage": "Veuillez sélectionner les filtres et cliquer sur \"Générer Relevé\"."
   },
+  "teacherAssignmentsPage": {
+    "title": "Rapport d'Affectation des Enseignants",
+    "description": "Voir les matières et classes assignées aux enseignants pour une année académique sélectionnée.",
+    "selectAcademicYear": "Année Académique",
+    "allYears": "Toutes Années",
+    "selectTeacher": "Enseignant",
+    "allTeachers": "Tous Enseignants",
+    "generateReport": "Générer Rapport",
+    "loadingData": "Chargement des données...",
+    "generatingReport": "Génération du rapport...",
+    "print": "Imprimer",
+    "exportCSV": "Exporter CSV",
+    "noAssignmentsFound": "Aucune affectation trouvée pour les critères sélectionnés."
+  },
   "teacherAssignments": {
     "title": "Rapport d'Affectation des Enseignants",
     "description": "Voir les matières et classes assignées aux enseignants pour une année académique sélectionnée.",
@@ -112,6 +144,21 @@
     "print": "Imprimer",
     "exportCSV": "Exporter CSV",
     "noData": "Aucune affectation trouvée pour les critères sélectionnés."
+  },
+  "accountLedgerPage": {
+    "title": "Rapport du Grand Livre Comptable",
+    "description": "Voir les transactions pour un compte GL sélectionné dans une plage de dates.",
+    "selectAccount": "Compte GL",
+    "selectAccountPlaceholder": "Sélectionner Compte",
+    "startDate": "Date de Début",
+    "endDate": "Date de Fin",
+    "generateLedger": "Générer Grand Livre",
+    "generatingLedger": "Génération du grand livre...",
+    "loadingData": "Chargement des données...",
+    "print": "Imprimer",
+    "exportCSV": "Exporter CSV",
+    "noTransactionsFound": "Aucune transaction trouvée pour les critères sélectionnés.",
+    "pleaseSelectFiltersAndClickGenerateLedger": "Veuillez sélectionner les filtres et cliquer sur \"Générer Grand Livre\"."
   },
   "accountLedger": {
     "title": "Rapport du Grand Livre Comptable",
@@ -152,5 +199,38 @@
   "navigation:reports.studentFinancialSummary": "Résumé Financier Étudiant",
   "navigation:reports.studentMasterlist": "Liste Principale des Étudiants",
   "navigation:reports.studentVoteheadStatement": "Relevé de Compte Étudiant par Poste Budgétaire",
-  "navigation:reports.teacherAssignments": "Affectation des Enseignants"
+  "navigation:reports.teacherAssignments": "Affectation des Enseignants",
+  "validation": {
+    "classStreamSubjectAcademicYearRequired": "Class Stream, Subject, and Academic Year are required.",
+    "subjectAlreadyAllocated": "This subject is already allocated to this class stream for the selected academic year.",
+    "nameStructureSequenceRequired": "Name, Structure, and a valid positive Sequence Order are required.",
+    "structureNameRequired": "Structure name is required.",
+    "allFieldsRequired": "All fields are required.",
+    "endDateAfterStartDate": "End date must be after start date.",
+    "selectClassFirst": "Please select a class first to manage its streams.",
+    "itemAssetTagRequired": "Item and Asset Tag are required.",
+    "categoryNameRequired": "Category name is required.",
+    "itemNameUnitTypeRequired": "Item Name, Unit of Measure, and Item Type are required.",
+    "supplierOrderDateStatusRequired": "Supplier, Order Date, and Status are required.",
+    "selectGLAccount": "Please select a GL Account.",
+    "pleaseSelectASchoolPeriod": "Please Select A School Period",
+    "pleaseSelectAStudentAndASchoolPeriod": "Please Select A Student And A School Period"
+  },
+  "messages": {
+    "noDataToExport": "No data to export.",
+    "csvExportToBeDeveloped": "CSV Export to be implemented",
+    "printToBeDeveloped": "Print functionality to be implemented.",
+    "exportToBeDeveloped": "Export to CSV functionality to be implemented.",
+    "updateWorkflowToBeDeveloped": "Update workflow functionality not yet implemented",
+    "addWorkflowToBeDeveloped": "Add workflow functionality not yet implemented",
+    "workflowStateToBeDeveloped": "Workflow state management not yet implemented",
+    "deleteWorkflowToBeDeveloped": "Delete workflow functionality not yet implemented",
+    "deleteWorkflowStateToBeDeveloped": "Delete workflow state functionality not yet implemented"
+  },
+  "common": {
+    "cancel": "common:cancel",
+    "save": "common:save",
+    "true": "T",
+    "active": "a"
+  }
 }

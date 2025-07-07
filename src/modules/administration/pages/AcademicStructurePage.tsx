@@ -45,7 +45,7 @@ const AcademicStructurePage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Structure name is required.");
+      alert(t('validation.structureNameRequired'));
       return;
     }
     const payload = { name: formData.name! };

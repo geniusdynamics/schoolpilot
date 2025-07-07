@@ -27,7 +27,7 @@ const EffectFeeStructuresPage: React.FC = () => {
   const [generationResult, setGenerationResult] = useState<{ count: number; totalBilled: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const activeSchoolPeriods = useMemo(() => schoolPeriods.filter(sp => sp.is_active), [schoolPeriods]);
+  const activeSchoolPeriods = useMemo(() => (schoolPeriods || []).filter(sp => sp.is_active), [schoolPeriods]);
 
   const handleGenerateInvoices = async () => {
     if (!selectedFeeTemplateId || !selectedSchoolPeriodId) {
@@ -83,7 +83,7 @@ const EffectFeeStructuresPage: React.FC = () => {
                     required
                 >
                     <option value="">-- Choose Fee Template --</option>
-                    {feeTemplates.map(ft => <option key={ft.id} value={ft.id}>{ft.name} ({ft.school_period_name})</option>)}
+                    {(feeTemplates || []).map(ft => <option key={ft.id} value={ft.id}>{ft.name} ({ft.school_period_name})</option>)}
                 </Select>
                 <Select 
                     label="Select School Period for Invoicing" 
@@ -92,7 +92,7 @@ const EffectFeeStructuresPage: React.FC = () => {
                     required
                 >
                     <option value="">-- Choose School Period --</option>
-                    {activeSchoolPeriods.map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
+                    {(activeSchoolPeriods || []).map(sp => <option key={sp.id} value={sp.id}>{sp.name}</option>)}
                 </Select>
                 <Select 
                     label="Target Student Category (Optional)" 
@@ -100,7 +100,7 @@ const EffectFeeStructuresPage: React.FC = () => {
                     onChange={e => setSelectedStudentCategoryId(Number(e.target.value) || undefined)}
                 >
                     <option value="">All Categories / Use Class Filter</option>
-                    {studentCategories.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+                    {(studentCategories || []).map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
                 </Select>
                 <Select 
                     label="Target Class/Stream (Optional)" 
@@ -108,7 +108,7 @@ const EffectFeeStructuresPage: React.FC = () => {
                     onChange={e => setSelectedClassStreamId(Number(e.target.value) || undefined)}
                 >
                     <option value="">All Class/Streams / Use Category Filter</option>
-                    {classStreams.map(cs => <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>)}
+                    {(classStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>)}
                 </Select>
             </div>
             <div className="mt-6 text-center">

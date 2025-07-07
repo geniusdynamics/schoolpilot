@@ -28,6 +28,24 @@
     "meanGrade": "Mean Grade",
     "rank": "Rank"
   },
+  "studentMasterlistPage": {
+    "title": "Student Masterlist Report",
+    "filterDescription": "Filter and generate a comprehensive list of students.",
+    "filterByClass": "Filter by Class",
+    "allClasses": "All Classes",
+    "filterByStream": "Filter by Stream",
+    "allStreams": "All Streams",
+    "filterByStatus": "Filter by Status",
+    "allStatuses": "All Statuses",
+    "filterByGender": "Filter by Gender",
+    "allGenders": "All Genders",
+    "generateReport": "Generate Report",
+    "loadingInitialData": "Loading initial data...",
+    "generatingReport": "Generating report...",
+    "print": "Print",
+    "exportCSV": "Export CSV",
+    "noStudentsFound": "No students found matching the criteria."
+  },
   "studentMasterlist": {
     "title": "Student Masterlist Report",
     "description": "Filter and generate a comprehensive list of students.",
@@ -99,6 +117,20 @@
     "closingBalanceLabel": "Closing Balance: KES",
     "selectFiltersMessage": "Please select filters and click \"Generate Statement\"."
   },
+  "teacherAssignmentsPage": {
+    "title": "Teacher Subject Assignments Report",
+    "description": "View subjects and classes assigned to teachers for a selected academic year.",
+    "selectAcademicYear": "Academic Year",
+    "allYears": "All Years",
+    "selectTeacher": "Teacher",
+    "allTeachers": "All Teachers",
+    "generateReport": "Generate Report",
+    "loadingData": "Loading data...",
+    "generatingReport": "Generating report...",
+    "print": "Print",
+    "exportCSV": "Export CSV",
+    "noAssignmentsFound": "No assignments found for the selected criteria."
+  },
   "teacherAssignments": {
     "title": "Teacher Subject Assignments Report",
     "description": "View subjects and classes assigned to teachers for a selected academic year.",
@@ -112,6 +144,21 @@
     "print": "Print",
     "exportCSV": "Export CSV",
     "noData": "No assignments found for the selected criteria."
+  },
+  "accountLedgerPage": {
+    "title": "Account Ledger Report",
+    "description": "View transactions for a selected GL account within a date range.",
+    "selectAccount": "GL Account",
+    "selectAccountPlaceholder": "Select Account",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "generateLedger": "Generate Ledger",
+    "generatingLedger": "Generating ledger...",
+    "loadingData": "Loading data...",
+    "print": "Print",
+    "exportCSV": "Export CSV",
+    "noTransactionsFound": "No transactions found for the selected criteria.",
+    "pleaseSelectFiltersAndClickGenerateLedger": "Please select filters and click \"Generate Ledger\"."
   },
   "accountLedger": {
     "title": "Account Ledger Report",
@@ -152,5 +199,38 @@
   "navigation:reports.studentFinancialSummary": "Student Financial Summary",
   "navigation:reports.studentMasterlist": "Student Masterlist",
   "navigation:reports.studentVoteheadStatement": "Student Votehead Statement",
-  "navigation:reports.teacherAssignments": "Teacher Assignments"
+  "navigation:reports.teacherAssignments": "Teacher Assignments",
+  "validation": {
+    "classStreamSubjectAcademicYearRequired": "Class Stream, Subject, and Academic Year are required.",
+    "subjectAlreadyAllocated": "This subject is already allocated to this class stream for the selected academic year.",
+    "nameStructureSequenceRequired": "Name, Structure, and a valid positive Sequence Order are required.",
+    "structureNameRequired": "Structure name is required.",
+    "allFieldsRequired": "All fields are required.",
+    "endDateAfterStartDate": "End date must be after start date.",
+    "selectClassFirst": "Please select a class first to manage its streams.",
+    "itemAssetTagRequired": "Item and Asset Tag are required.",
+    "categoryNameRequired": "Category name is required.",
+    "itemNameUnitTypeRequired": "Item Name, Unit of Measure, and Item Type are required.",
+    "supplierOrderDateStatusRequired": "Supplier, Order Date, and Status are required.",
+    "selectGLAccount": "Please select a GL Account.",
+    "pleaseSelectASchoolPeriod": "Please Select A School Period",
+    "pleaseSelectAStudentAndASchoolPeriod": "Please Select A Student And A School Period"
+  },
+  "messages": {
+    "noDataToExport": "No data to export.",
+    "csvExportToBeDeveloped": "CSV Export to be implemented",
+    "printToBeDeveloped": "Print functionality to be implemented.",
+    "exportToBeDeveloped": "Export to CSV functionality to be implemented.",
+    "updateWorkflowToBeDeveloped": "Update workflow functionality not yet implemented",
+    "addWorkflowToBeDeveloped": "Add workflow functionality not yet implemented",
+    "workflowStateToBeDeveloped": "Workflow state management not yet implemented",
+    "deleteWorkflowToBeDeveloped": "Delete workflow functionality not yet implemented",
+    "deleteWorkflowStateToBeDeveloped": "Delete workflow state functionality not yet implemented"
+  },
+  "common": {
+    "cancel": "common:cancel",
+    "save": "common:save",
+    "true": "T",
+    "active": "a"
+  }
 }

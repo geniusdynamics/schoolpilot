@@ -32,7 +32,7 @@ const AuditLogPage: React.FC = () => {
   };
 
   const filteredAuditLogs = useMemo(() => {
-    return auditLogs.filter(log => {
+    return (auditLogs || []).filter(log => {
       const logDate = new Date(log.changed_at);
       const startDateMatch = !filters.startDate || logDate >= new Date(filters.startDate);
       const endDateMatch = !filters.endDate || logDate <= new Date(new Date(filters.endDate).setHours(23, 59, 59, 999)); // Include whole end day
@@ -87,7 +87,7 @@ const AuditLogPage: React.FC = () => {
                     onChange={handleFilterChange}
                 >
                     <option value="">All Users</option>
-                    {users.map((user: User) => (
+                    {(users || []).map((user: User) => (
                         <option key={user.id} value={user.id}>{user.display_name || user.username}</option>
                     ))}
                     <option value="System">System Actions</option> 

@@ -118,6 +118,8 @@
     "studentFinancialSummary": "Résumé Financier Élève",
     "studentVoteheadStatement": "Relevé Poste Élève"
   },
+  "settings": "Paramètres",
+  "settings.description": "Configuration et gestion du système",
   "settings": {
     "title": "Paramètres",
     "general": "Paramètres généraux",

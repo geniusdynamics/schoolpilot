@@ -14,7 +14,7 @@ type CustomerFormData = Omit<Partial<Customer>, 'id' | 'created_at' | 'updated_a
 
 const CustomersPage: React.FC = () => {
   const { customers, addCustomer, updateCustomer, deleteCustomer } = useCustomerData();
-  const { t } = useTranslation();
+  const { t } = useTranslation('administration');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -40,7 +40,7 @@ const CustomersPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Customer name is required.");
+      alert(t('validation.customerNameIsRequired'));
       return;
     }
     const payload = {

@@ -1,156 +1,44 @@
 {
-  "tableHeaders": {
-    "admNo": "N° Adm",
-    "studentName": "Nom de l'Étudiant",
-    "gender": "Sexe",
-    "status": "Statut",
-    "class": "Classe",
-    "stream": "Filière",
-    "category": "Catégorie",
-    "dormitory": "Dortoir",
-    "guardianName": "Nom du Tuteur",
-    "guardianPhone": "Téléphone du Tuteur",
-    "date": "Date",
-    "description": "Description",
-    "invoiceReceiptNo": "N° Facture/Reçu",
-    "debitKES": "Débit (KES)",
-    "creditKES": "Crédit (KES)",
-    "balanceKES": "Solde (KES)",
-    "academicYear": "Année Académique",
-    "teacher": "Enseignant",
-    "classStream": "Classe/Filière",
-    "subject": "Matière",
-    "votehead": "Poste Budgétaire",
-    "expectedAmountKES": "Montant Prévu (KES)",
-    "paidAmountKES": "Montant Payé (KES)",
-    "arrearsKES": "Arriérés (KES)",
-    "totalMarks": "Total des Points",
-    "meanGrade": "Note Moyenne",
-    "rank": "Rang"
+  "mealPlans": {
+    "managementTitle": "Gestion des Plans de Repas",
+    "managementDescription": "Définir et gérer les plans de repas offerts par l'école.",
+    "addMealPlan": "Ajouter Plan de Repas",
+    "addNewMealPlan": "Ajouter Nouveau Plan de Repas",
+    "editMealPlan": "Modifier Plan de Repas",
+    "planName": "Nom du Plan",
+    "description": "Description (Optionnel)",
+    "costPerPeriod": "Coût par Période (KES)",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer Modifications",
+    "addPlan": "Ajouter Plan"
   },
-  "studentMasterlist": {
-    "title": "Liste Principale des Étudiants",
-    "description": "Filtrez et générez une liste complète des étudiants.",
-    "filterByClass": "Filtrer par Classe",
-    "optionAllClasses": "Toutes les Classes",
-    "filterByStream": "Filtrer par Filière",
-    "optionAllStreams": "Toutes les Filières",
-    "filterByStatus": "Filtrer par Statut",
-    "optionAllStatuses": "Tous les Statuts",
-    "filterByGender": "Filtrer par Sexe",
-    "optionAllGenders": "Tous les Sexes",
-    "generateReport": "Générer le Rapport",
-    "loadingInitialData": "Chargement des données initiales...",
-    "generatingReport": "Génération du rapport...",
-    "print": "Imprimer",
-    "exportCSV": "Exporter CSV",
-    "noStudentsFound": "Aucun étudiant trouvé correspondant aux critères."
-  },
-  "examResultsHorizontal": {
-    "title": "Relevé de Notes des Examens",
-    "alertSelectSessionStream": "Veuillez sélectionner une Session d'Examen et une Classe/Filière.",
-    "examSession": "Session d'Examen",
-    "optionSelectExamSession": "-- Sélectionner Session --",
-    "class": "Classe",
-    "optionAllClasses": "Toutes les Classes",
-    "stream": "Filière",
-    "optionAllStreams": "Toutes les Filières",
-    "generateReport": "Générer Relevé",
-    "generatingReport": "Génération du relevé...",
-    "loadingData": "Chargement des données d'examen...",
-    "print": "Imprimer",
-    "exportCSV": "Exporter CSV",
-    "selectFiltersMessage": "Sélectionnez une session d'examen et une classe/filière pour voir les résultats."
-  },
-  "studentFinancialSummary": {
-    "title": "Résumé Financier Étudiant",
-    "description": "Résumé des soldes de frais des étudiants pour une période sélectionnée.",
-    "alertSelectPeriod": "Veuillez sélectionner une Période Scolaire.",
-    "schoolPeriod": "Période Scolaire",
-    "optionAllPeriods": "Toutes Périodes",
-    "class": "Classe",
-    "optionAllClasses": "Toutes Classes",
-    "stream": "Filière",
-    "optionAllStreams": "Toutes Filières",
-    "generateReport": "Générer Résumé",
-    "loadingData": "Chargement des données...",
-    "generatingReport": "Génération du résumé...",
-    "print": "Imprimer",
-    "exportCSV": "Exporter CSV",
-    "noData": "Aucun résumé financier trouvé pour les critères sélectionnés."
-  },
-  "studentVotehead": {
-    "title": "Relevé de Compte Étudiant par Poste Budgétaire",
-    "description": "Relevé détaillé des charges et paiements pour un étudiant et une période sélectionnés.",
-    "alertSelectStudentPeriod": "Veuillez sélectionner un Étudiant et une Période Scolaire.",
-    "selectStudent": "Sélectionner Étudiant",
-    "optionStudent": "-- Étudiant --",
-    "schoolPeriod": "Période Scolaire",
-    "optionPeriod": "-- Période --",
-    "generateStatement": "Générer Relevé",
-    "generatingStatement": "Génération du relevé...",
-    "loadingData": "Chargement des données...",
-    "studentLabel": "Étudiant:",
-    "periodLabel": "Période:",
-    "openingBalanceLabel": "Solde d'Ouverture (pour la période): KES",
-    "print": "Imprimer",
-    "exportPDF": "Exporter PDF",
-    "noTransactions": "Aucune transaction trouvée pour les critères sélectionnés.",
-    "closingBalanceLabel": "Solde de Clôture: KES",
-    "selectFiltersMessage": "Veuillez sélectionner les filtres et cliquer sur \"Générer Relevé\"."
-  },
-  "teacherAssignments": {
-    "title": "Rapport d'Affectation des Enseignants",
-    "description": "Voir les matières et classes assignées aux enseignants pour une année académique sélectionnée.",
-    "academicYear": "Année Académique",
-    "allYears": "Toutes Années",
-    "teacher": "Enseignant",
-    "allTeachers": "Tous Enseignants",
-    "generateReport": "Générer Rapport",
-    "loadingData": "Chargement des données...",
-    "generatingReport": "Génération du rapport...",
-    "print": "Imprimer",
-    "exportCSV": "Exporter CSV",
-    "noData": "Aucune affectation trouvée pour les critères sélectionnés."
-  },
-  "accountLedger": {
-    "title": "Rapport du Grand Livre Comptable",
-    "description": "Voir les transactions pour un compte GL sélectionné dans une plage de dates.",
-    "alertSelectGL": "Veuillez sélectionner un Compte GL.",
-    "glAccount": "Compte GL",
-    "optionAccount": "-- Sélectionner Compte --",
-    "startDate": "Date de Début",
-    "endDate": "Date de Fin",
-    "generateLedger": "Générer Grand Livre",
-    "generatingLedger": "Génération du grand livre...",
-    "loadingData": "Chargement des données...",
-    "print": "Imprimer",
-    "exportCSV": "Exporter CSV",
-    "noTransactions": "Aucune transaction trouvée pour les critères sélectionnés.",
-    "selectFiltersMessage": "Veuillez sélectionner les filtres et cliquer sur \"Générer Grand Livre\"."
-  },
-  "feeCollection": {
-    "title": "Résumé de la Collecte des Frais",
-    "description": "Résumé agrégé de la collecte des frais par poste budgétaire pour les critères sélectionnés.",
-    "alertSelectPeriod": "Veuillez sélectionner une Période Scolaire.",
-    "schoolPeriod": "Période Scolaire",
-    "optionAllPeriods": "Toutes Périodes",
-    "classOptional": "Classe (Optionnel)",
-    "optionAllClasses": "Toutes Classes",
-    "generateSummary": "Générer Résumé",
-    "loadingData": "Chargement des données...",
-    "generatingSummary": "Génération du résumé...",
-    "print": "Imprimer",
-    "exportCSV": "Exporter CSV",
-    "noData": "Aucune donnée de collecte des frais trouvée pour les critères sélectionnés.",
-    "selectFiltersMessage": "Veuillez sélectionner les filtres et cliquer sur \"Générer Résumé\"."
-  },
-  "navigation:reports.title": "Tous les Rapports",
-  "navigation:reports.accountLedger": "Grand Livre Comptable",
-  "navigation:reports.examResultsHorizontal": "Relevé de Notes des Examens",
-  "navigation:reports.feeCollectionSummary": "Résumé de la Collecte des Frais",
-  "navigation:reports.studentFinancialSummary": "Résumé Financier Étudiant",
-  "navigation:reports.studentMasterlist": "Liste Principale des Étudiants",
-  "navigation:reports.studentVoteheadStatement": "Relevé de Compte Étudiant par Poste Budgétaire",
-  "navigation:reports.teacherAssignments": "Affectation des Enseignants"
+  "menus": {
+    "management": {
+      "title": "Gestion des Menus Quotidiens/Hebdomadaires",
+      "description": "Créer et gérer les menus pour différents types de repas à des dates spécifiques."
+    },
+    "add": {
+      "button": "Ajouter Menu",
+      "title": "Ajouter Nouveau Menu"
+    },
+    "edit": {
+      "title": "Modifier Menu"
+    },
+    "date": {
+      "label": "Date du Menu"
+    },
+    "mealType": {
+      "label": "Type de Repas"
+    },
+    "description": {
+      "label": "Description du Menu / Articles",
+      "placeholder": "ex: Riz, Ragoût de Bœuf, Chou, et une Banane"
+    },
+    "cancel": {
+      "button": "Annuler"
+    },
+    "save": {
+      "button": "Enregistrer Modifications"
+    }
+  }
 }

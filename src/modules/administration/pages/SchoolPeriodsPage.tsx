@@ -80,15 +80,15 @@ const SchoolPeriodsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.academic_year_id || !formData.period_definition_id || !formData.financial_year_id || !formData.start_date || !formData.end_date) {
-      alert("Academic Year, Period Definition, Financial Year, Start Date, and End Date are required.");
+      alert(t('validation.academicYearPeriodDefinitionFinancialYearStartDateAndEndDateAreRequired'));
       return;
     }
      if (new Date(formData.start_date) >= new Date(formData.end_date)) {
-        alert("End date must be after start date.");
+        alert(t('validation.endDateAfterStartDate'));
         return;
     }
     if(formData.mid_break_start && formData.mid_break_end && new Date(formData.mid_break_start) >= new Date(formData.mid_break_end)){
-        alert("Mid-break end date must be after mid-break start date.");
+        alert(t('validation.midbreakEndDateMustBeAfterMidbreakStartDate'));
         return;
     }
 

@@ -41,12 +41,12 @@ const ExamAnalysisPage: React.FC = () => {
 
   const handleLoadAnalysis = useCallback(() => {
     if (!selectedExamSessionId || !selectedClassStreamId) {
-      alert("Please select an Exam Session and a Class Stream.");
+      alert(t('validation.pleaseSelectAnExamSessionAndAClassStream'));
       return;
     }
     setIsAnalyzing(true);
 
-    const selectedSession = examSessions.find(es => es.id === selectedExamSessionId);
+    const selectedSession = (examSessions || []).find(es => es.id === selectedExamSessionId);
     if (!selectedSession) {
         setIsAnalyzing(false);
         console.warn("Selected exam session not found.");
@@ -54,8 +54,8 @@ const ExamAnalysisPage: React.FC = () => {
         return;
     }
     
-    const currentSchoolPeriod = schoolPeriods.find(sp => sp.id === selectedSession.school_period_id);
-    const currentAcademicYear = academicYears.find(ay => ay.id === currentSchoolPeriod?.academic_year_id);
+    const currentSchoolPeriod = (schoolPeriods || []).find(sp => sp.id === selectedSession.school_period_id);
+    const currentAcademicYear = (academicYears || []).find(ay => ay.id === currentSchoolPeriod?.academic_year_id);
     if (!currentAcademicYear) {
         setIsAnalyzing(false);
         console.warn("Academic year for the session not found.");
@@ -63,14 +63,14 @@ const ExamAnalysisPage: React.FC = () => {
         return;
     }
 
-    const allocatedSubjectsForStream = classSubjectAllocations
+    const allocatedSubjectsForStream = (classSubjectAllocations || [])
       .filter(csa => csa.class_stream_id === selectedClassStreamId && csa.academic_year_id === currentAcademicYear.id)
-      .map(csa => subjects.find(s => s.id === csa.subject_id))
+      .map(csa => (subjects || []).find(s => s.id === csa.subject_id))
       .filter((s): s is Subject => !!s);
 
 
-    const studentsInStream = students.filter(s => s.current_class_stream_id === selectedClassStreamId);
-    const resultsForSessionAndStream = studentExamResults.filter(
+    const studentsInStream = (students || []).filter(s => s.current_class_stream_id === selectedClassStreamId);
+    const resultsForSessionAndStream = (studentExamResults || []).filter(
       res => res.exam_session_id === selectedExamSessionId && studentsInStream.some(s => s.id === res.student_id)
     );
 
@@ -82,7 +82,7 @@ const ExamAnalysisPage: React.FC = () => {
       let totalMarksPossibleForSubject = 0;
 
       const subjectPaperSettings = (selectedSession.paper_settings || []).filter(ps => {
-        const paper = subjectPapers.find(sp => sp.id === ps.subject_paper_id);
+        const paper = (subjectPapers || []).find(sp => sp.id === ps.subject_paper_id);
         return paper?.subject_id === subject.id;
       });
       
@@ -153,7 +153,7 @@ const ExamAnalysisPage: React.FC = () => {
             onChange={(e) => setSelectedExamSessionId(e.target.value || undefined)}
           >
             <option value="">-- Select Exam Session --</option>
-            {examSessions.map(session => (
+            {(examSessions || []).map(session => (
               <option key={session.id} value={session.id}>{session.name} ({session.school_period_name})</option>
             ))}
           </Select>
@@ -163,7 +163,7 @@ const ExamAnalysisPage: React.FC = () => {
             onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
           >
             <option value="">-- Select Class Stream --</option>
-            {classStreams.map(cs => (
+            {(classStreams || []).map(cs => (
               <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>
             ))}
           </Select>

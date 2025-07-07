@@ -104,7 +104,7 @@ const TimetableEntriesPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!selectedClassStreamId || !formData.day_of_week || !formData.period_id || !formData.subject_id || !formData.teacher_id) {
-      alert("Class Stream, Day, Period, Subject, and Teacher are required.");
+      alert(t('validation.classStreamDayPeriodSubjectAndTeacherAreRequired'));
       return;
     }
 
@@ -168,7 +168,7 @@ const TimetableEntriesPage: React.FC = () => {
             onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
           >
             <option value="">-- Select Class Stream --</option>
-            {classStreams.map(cs => (
+            {(classStreams || []).map(cs => (
               <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>
             ))}
           </Select>
@@ -188,7 +188,7 @@ const TimetableEntriesPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {sortedPeriods.map(period => (
+                {(sortedPeriods || []).map(period => (
                   <tr key={period.id}>
                     <td className="border border-gray-300 p-2 text-xs font-semibold text-gray-700 whitespace-nowrap">
                       {period.period_name}<br/>({period.start_time.slice(0,5)} - {period.end_time.slice(0,5)})
@@ -256,7 +256,7 @@ const TimetableEntriesPage: React.FC = () => {
           disabled={!!editingEntry}
         >
           <option value="">Select Period</option>
-          {sortedPeriods.map((p: TimetablePeriodDef) => (
+          {(sortedPeriods || []).map((p: TimetablePeriodDef) => (
             <option key={p.id} value={p.id}>{p.period_name} ({p.start_time.slice(0,5)}-{p.end_time.slice(0,5)})</option>
           ))}
         </Select>
@@ -268,7 +268,7 @@ const TimetableEntriesPage: React.FC = () => {
           required
         >
           <option value="">Select Subject</option>
-          {subjects.map((subject: Subject) => (
+          {(subjects || []).map((subject: Subject) => (
             <option key={subject.id} value={subject.id}>{subject.name}</option>
           ))}
         </Select>
@@ -280,7 +280,7 @@ const TimetableEntriesPage: React.FC = () => {
           required
         >
           <option value="">Select Teacher</option>
-          {availableTeachers.map((t: Staff) => ( 
+          {(availableTeachers || []).map((t: Staff) => (
             <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
           ))}
         </Select>

@@ -14,15 +14,19 @@ class DynamicModuleLoader {
   async discoverAndLoadModules(): Promise<ModuleDefinition[]> {
     console.log('🔍 Discovering modules dynamically...');
     
-    const enabledModuleIds = moduleConfigService.getEnabledModules();
+    // First, discover all available modules from the filesystem
+    const availableModules = await this.discoverAvailableModules();
+    console.log('[DynamicModuleLoader] DEBUG: Available modules discovered:', availableModules);
 
     // Load core modules first (always available)
-    await this.loadCoreModules(); // This now populates this.loadedModules
+    const coreModules = await this.loadCoreModules();
+    console.log('[DynamicModuleLoader] DEBUG: Core modules loaded:', coreModules.map(m => m.id));
 
-    // Load feature modules based on configuration
-    for (const moduleId of enabledModuleIds) {
+    // Load all discovered modules
+    for (const moduleId of availableModules) {
       try {
-        await this.loadModule(moduleId); // This calls this.loadedModules.set() and handles existing entries
+        console.log(`[DynamicModuleLoader] DEBUG: Attempting to load module: ${moduleId}`);
+        await this.loadModule(moduleId);
       } catch (error) {
         console.warn(`⚠️ Failed to load module ${moduleId}:`, error);
       }
@@ -30,33 +34,92 @@ class DynamicModuleLoader {
 
     const finalLoadedModules = Array.from(this.loadedModules.values());
     console.log(`📦 Total modules loaded: ${finalLoadedModules.length}`);
+    console.log('[DynamicModuleLoader] DEBUG: Final loaded module IDs:', finalLoadedModules.map(m => m.id));
     return finalLoadedModules;
+  }
+
+  // Discover all available modules by scanning the filesystem
+  private async discoverAvailableModules(): Promise<string[]> {
+    console.log('[DynamicModuleLoader] Scanning filesystem for available modules...');
+    
+    // List of known module directories - this should be dynamically discovered in a real implementation
+    // For now, we'll use the modules we know exist based on the filesystem structure
+    // Note: 'dashboard' is loaded from core modules, not as a separate module
+    const potentialModules = [
+      'academics',
+      'administration',
+      'finance',
+      'hr',
+      'inventory',
+      'library',
+      'nutrition',
+      'reports',
+      'settings'
+    ];
+
+    const availableModules: string[] = [];
+
+    // Test each potential module to see if it has a moduleDefinition.tsx file
+    for (const moduleId of potentialModules) {
+      try {
+        // Try to dynamically import the module definition to check if it exists
+        await import(`../modules/${moduleId}/moduleDefinition.tsx`);
+        availableModules.push(moduleId);
+        console.log(`[DynamicModuleLoader] ✅ Found module: ${moduleId}`);
+      } catch (error) {
+        console.log(`[DynamicModuleLoader] ❌ Module ${moduleId} not available:`, error instanceof Error ? error.message : String(error));
+      }
+    }
+
+    console.log(`[DynamicModuleLoader] Discovered ${availableModules.length} available modules:`, availableModules);
+    return availableModules;
   }
 
   // Load core modules (always available)
   private async loadCoreModules(): Promise<ModuleDefinition[]> {
-    try {
-      const coreModules = await import('../modules/core/moduleDefinition.tsx');
-      const modules = coreModules.default;
+    const loadedCoreModules: ModuleDefinition[] = [];
 
-      let loadedCoreModules: ModuleDefinition[] = [];
+    try {
+      console.log(`[dynamicModuleLoader] Loading core modules from core/moduleDefinition.tsx`);
+      
+      // Load all core modules from the core module definition file
+      const coreModules = await import('../modules/core/moduleDefinition.tsx');
+      const modules = coreModules.default as ModuleDefinition | ModuleDefinition[];
+      
       if (Array.isArray(modules)) {
-        loadedCoreModules = modules;
-      } else {
-        loadedCoreModules = [modules];
+        modules.forEach(module => {
+          this.loadedModules.set(module.id, module);
+          loadedCoreModules.push(module);
+          console.log(`[dynamicModuleLoader] Loaded core module ${module.id}`);
+        });
+      } else if (modules) {
+        this.loadedModules.set(modules.id, modules);
+        loadedCoreModules.push(modules);
+        console.log(`[dynamicModuleLoader] Loaded core module ${modules.id}`);
       }
 
-      // Add core modules to the loadedModules map
-      loadedCoreModules.forEach(module => {
-        this.loadedModules.set(module.id, module);
-        console.log(`[dynamicModuleLoader] Loaded core module ${module.id}:`, module);
-      });
+      // Also load the standalone settings module if it exists (it has the Module Management navigation)
+      try {
+        const settingsModule = await this.loadModule('settings');
+        if (settingsModule && !this.loadedModules.has('settings')) {
+          this.loadedModules.set('settings', settingsModule);
+          loadedCoreModules.push(settingsModule);
+          console.log(`[dynamicModuleLoader] Loaded standalone settings module`);
+        } else if (settingsModule) {
+          // Replace the core settings module with the standalone one (it has more navigation items)
+          this.loadedModules.set('settings', settingsModule);
+          console.log(`[dynamicModuleLoader] Replaced core settings module with standalone version`);
+        }
+      } catch (error) {
+        console.log(`[dynamicModuleLoader] No standalone settings module found, using core version`);
+      }
 
-      return loadedCoreModules;
     } catch (error) {
-      console.warn('⚠️ Failed to load core modules:', error);
-      return [];
+      console.warn(`⚠️ Failed to load core modules:`, error);
     }
+
+    console.log(`[dynamicModuleLoader] Total core modules loaded: ${loadedCoreModules.length}`);
+    return loadedCoreModules;
   }
 
   // Load a specific module dynamically
