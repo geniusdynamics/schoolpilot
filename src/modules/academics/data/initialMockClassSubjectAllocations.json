@@ -1,0 +1,524 @@
+[
+  {
+    "id": "CSA001",
+    "class_stream_id": 1,
+    "subject_id": 1,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA002",
+    "class_stream_id": 1,
+    "subject_id": 2,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA003",
+    "class_stream_id": 1,
+    "subject_id": 3,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA004",
+    "class_stream_id": 1,
+    "subject_id": 4,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA005",
+    "class_stream_id": 1,
+    "subject_id": 5,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA006",
+    "class_stream_id": 1,
+    "subject_id": 6,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA007",
+    "class_stream_id": 1,
+    "subject_id": 7,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "History",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA008",
+    "class_stream_id": 1,
+    "subject_id": 8,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA009",
+    "class_stream_id": 1,
+    "subject_id": 9,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Christian Religious Education",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA010",
+    "class_stream_id": 1,
+    "subject_id": 15,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Art & Design",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA011",
+    "class_stream_id": 1,
+    "subject_id": 18,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Physical Education",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA012",
+    "class_stream_id": 2,
+    "subject_id": 1,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA013",
+    "class_stream_id": 2,
+    "subject_id": 2,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA014",
+    "class_stream_id": 2,
+    "subject_id": 3,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA015",
+    "class_stream_id": 2,
+    "subject_id": 4,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA016",
+    "class_stream_id": 2,
+    "subject_id": 5,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA017",
+    "class_stream_id": 2,
+    "subject_id": 6,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA018",
+    "class_stream_id": 2,
+    "subject_id": 7,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "History",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA019",
+    "class_stream_id": 2,
+    "subject_id": 8,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA020",
+    "class_stream_id": 2,
+    "subject_id": 9,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Christian Religious Education",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA021",
+    "class_stream_id": 2,
+    "subject_id": 16,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Music",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA022",
+    "class_stream_id": 2,
+    "subject_id": 18,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Physical Education",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA023",
+    "class_stream_id": 3,
+    "subject_id": 1,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA024",
+    "class_stream_id": 3,
+    "subject_id": 2,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA025",
+    "class_stream_id": 3,
+    "subject_id": 3,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA026",
+    "class_stream_id": 3,
+    "subject_id": 4,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA027",
+    "class_stream_id": 3,
+    "subject_id": 5,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA028",
+    "class_stream_id": 3,
+    "subject_id": 6,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA029",
+    "class_stream_id": 3,
+    "subject_id": 8,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA030",
+    "class_stream_id": 3,
+    "subject_id": 10,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Business Studies",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA031",
+    "class_stream_id": 3,
+    "subject_id": 11,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Computer Studies",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA032",
+    "class_stream_id": 3,
+    "subject_id": 12,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Agriculture",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA033",
+    "class_stream_id": 4,
+    "subject_id": 1,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA034",
+    "class_stream_id": 4,
+    "subject_id": 2,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA035",
+    "class_stream_id": 4,
+    "subject_id": 3,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA036",
+    "class_stream_id": 4,
+    "subject_id": 4,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA037",
+    "class_stream_id": 4,
+    "subject_id": 5,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA038",
+    "class_stream_id": 4,
+    "subject_id": 6,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA039",
+    "class_stream_id": 4,
+    "subject_id": 7,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "History",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA040",
+    "class_stream_id": 4,
+    "subject_id": 8,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA041",
+    "class_stream_id": 4,
+    "subject_id": 9,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Christian Religious Education",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA042",
+    "class_stream_id": 4,
+    "subject_id": 13,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 2 B",
+    "subject_name": "French",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA043",
+    "class_stream_id": 5,
+    "subject_id": 1,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 3 North",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA044",
+    "class_stream_id": 5,
+    "subject_id": 2,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA045",
+    "class_stream_id": 5,
+    "subject_id": 3,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA046",
+    "class_stream_id": 5,
+    "subject_id": 4,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA047",
+    "class_stream_id": 5,
+    "subject_id": 5,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA048",
+    "class_stream_id": 5,
+    "subject_id": 6,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA049",
+    "class_stream_id": 5,
+    "subject_id": 8,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA050",
+    "class_stream_id": 5,
+    "subject_id": 11,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Computer Studies",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA051",
+    "class_stream_id": 6,
+    "subject_id": 1,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 4 East",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA052",
+    "class_stream_id": 6,
+    "subject_id": 2,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA053",
+    "class_stream_id": 6,
+    "subject_id": 3,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA054",
+    "class_stream_id": 6,
+    "subject_id": 4,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA055",
+    "class_stream_id": 6,
+    "subject_id": 5,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA056",
+    "class_stream_id": 6,
+    "subject_id": 6,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA057",
+    "class_stream_id": 6,
+    "subject_id": 7,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 4 East",
+    "subject_name": "History",
+    "academic_year_name": "AY 2023/2024"
+  },
+  {
+    "id": "CSA058",
+    "class_stream_id": 6,
+    "subject_id": 10,
+    "academic_year_id": 1,
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Business Studies",
+    "academic_year_name": "AY 2023/2024"
+  }
+]

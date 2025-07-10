@@ -364,6 +364,8 @@ export interface User {
   display_name?: string | null;
   userType: string; // Broad user category (e.g., Staff, Student, Parent, Supplier, etc.)
   isActive: boolean; // Whether the user is active
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface Role {

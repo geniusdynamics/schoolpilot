@@ -20,10 +20,20 @@ import {
     PurchaseOrderStatus
 } from '../../../core/types';
 
-export const initialMockWarehouses: Warehouse[] = [
-  { id: 1, name: 'Main Store' },
-  { id: 2, name: 'Science Lab Store' },
-  { id: 3, name: 'Kitchen Store' },
+export const warehouses = [
+  { id: 'WH001', name: 'Main Warehouse', location: 'Campus A' },
+];
+
+export const itemCategoriesInv = [
+  { id: 'ICAT001', name: 'Stationery' },
+];
+
+export const itemsInv = [
+  { id: 'ITEM001', name: 'Notebook', category_id: 'ICAT001', quantity: 100 },
+];
+
+export const fixedAssets = [
+  { id: 'FA001', name: 'Projector', value: 500 },
 ];
 
 export const initialMockItemCategoriesInv: ItemCategoryInv[] = [
@@ -37,57 +47,57 @@ export const initialMockItemCategoriesInv: ItemCategoryInv[] = [
 
 export const initialMockItemsInv: ItemInv[] = [
   // Stationery Items
-  { id: 'INV001', name: 'A4 Ream Paper', category_id: 1, unit_of_measure: 'Ream', item_type: ItemTypeInv.CONSUMABLE, current_price: 500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV002', name: 'Blue Bic Pen', category_id: 1, unit_of_measure: 'Box (50pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 600, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV003', name: 'Red Bic Pen', category_id: 1, unit_of_measure: 'Box (50pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 600, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV004', name: 'HB Pencils', category_id: 1, unit_of_measure: 'Box (12pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 250, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV005', name: 'Mathematical Set', category_id: 1, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 350, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV006', name: 'Exercise Books 40 Pages', category_id: 1, unit_of_measure: 'Pack (20 books)', item_type: ItemTypeInv.CONSUMABLE, current_price: 800, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV007', name: 'Graph Books', category_id: 1, unit_of_measure: 'Pack (10 books)', item_type: ItemTypeInv.CONSUMABLE, current_price: 450, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV008', name: 'Whiteboard Markers', category_id: 1, unit_of_measure: 'Pack (4pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 320, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV009', name: 'Manila Paper Sheets', category_id: 1, unit_of_measure: 'Pack (100 sheets)', item_type: ItemTypeInv.CONSUMABLE, current_price: 750, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
-  { id: 'INV010', name: 'Stapler', category_id: 1, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 450, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Stationery' },
+  { id: 'INV001', name: 'A4 Ream Paper', category_id: 1, unit_of_measure: 'Ream', item_type: ItemTypeInv.CONSUMABLE, current_price: 500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV002', name: 'Blue Bic Pen', category_id: 1, unit_of_measure: 'Box (50pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 600, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV003', name: 'Red Bic Pen', category_id: 1, unit_of_measure: 'Box (50pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 600, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV004', name: 'HB Pencils', category_id: 1, unit_of_measure: 'Box (12pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 250, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV005', name: 'Mathematical Set', category_id: 1, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 350, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV006', name: 'Exercise Books 40 Pages', category_id: 1, unit_of_measure: 'Pack (20 books)', item_type: ItemTypeInv.CONSUMABLE, current_price: 800, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV007', name: 'Graph Books', category_id: 1, unit_of_measure: 'Pack (10 books)', item_type: ItemTypeInv.CONSUMABLE, current_price: 450, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV008', name: 'Whiteboard Markers', category_id: 1, unit_of_measure: 'Pack (4pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 320, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV009', name: 'Manila Paper Sheets', category_id: 1, unit_of_measure: 'Pack (100 sheets)', item_type: ItemTypeInv.CONSUMABLE, current_price: 750, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
+  { id: 'INV010', name: 'Stapler', category_id: 1, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 450, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Stationery' },
   // Textbooks
-  { id: 'INV011', name: 'English Form 1 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 850, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Textbooks' },
-  { id: 'INV012', name: 'Mathematics Form 1 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 920, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Textbooks' },
-  { id: 'INV013', name: 'Biology Form 3 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 1150, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Textbooks' },
-  { id: 'INV014', name: 'Chemistry Form 4 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 1280, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Textbooks' },
-  { id: 'INV015', name: 'History Form 2 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 780, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Textbooks' },
+  { id: 'INV011', name: 'English Form 1 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 850, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Textbooks' },
+  { id: 'INV012', name: 'Mathematics Form 1 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 920, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Textbooks' },
+  { id: 'INV013', name: 'Biology Form 3 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 1150, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Textbooks' },
+  { id: 'INV014', name: 'Chemistry Form 4 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 1280, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Textbooks' },
+  { id: 'INV015', name: 'History Form 2 Student Book', category_id: 2, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 780, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Textbooks' },
   // Lab Equipment
-  { id: 'INV016', name: 'Test Tubes', category_id: 3, unit_of_measure: 'Pack (50pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 2500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Lab Equipment' },
-  { id: 'INV017', name: 'Beakers 250ml', category_id: 3, unit_of_measure: 'Pack (6pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 1800, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Lab Equipment' },
-  { id: 'INV018', name: 'Microscope Student Grade', category_id: 3, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 45000, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Lab Equipment' },
-  { id: 'INV019', name: 'Digital Scale 0.1g', category_id: 3, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 8500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Lab Equipment' },
-  { id: 'INV020', name: 'Burette 50ml', category_id: 3, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 950, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Lab Equipment' },
+  { id: 'INV016', name: 'Test Tubes', category_id: 3, unit_of_measure: 'Pack (50pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 2500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Lab Equipment' },
+  { id: 'INV017', name: 'Beakers 250ml', category_id: 3, unit_of_measure: 'Pack (6pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 1800, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Lab Equipment' },
+  { id: 'INV018', name: 'Microscope Student Grade', category_id: 3, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 45000, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Lab Equipment' },
+  { id: 'INV019', name: 'Digital Scale 0.1g', category_id: 3, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 8500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Lab Equipment' },
+  { id: 'INV020', name: 'Burette 50ml', category_id: 3, unit_of_measure: 'Piece', item_type: ItemTypeInv.CONSUMABLE, current_price: 950, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Lab Equipment' },
   // Furniture
-  { id: 'INV021', name: 'Student Desk', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 3500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Furniture' },
-  { id: 'INV022', name: 'Lab Stool', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 1500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Furniture' },
-  { id: 'INV023', name: 'Teacher Chair', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 4500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Furniture' },
-  { id: 'INV024', name: 'Office Table', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 8500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Furniture' },
-  { id: 'INV025', name: 'Filing Cabinet', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 12000, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Furniture' },
-  { id: 'INV026', name: 'Whiteboard 4x6 ft', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 6500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Furniture' },
+  { id: 'INV021', name: 'Student Desk', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 3500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Furniture' },
+  { id: 'INV022', name: 'Lab Stool', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 1500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Furniture' },
+  { id: 'INV023', name: 'Teacher Chair', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 4500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Furniture' },
+  { id: 'INV024', name: 'Office Table', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 8500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Furniture' },
+  { id: 'INV025', name: 'Filing Cabinet', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 12000, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Furniture' },
+  { id: 'INV026', name: 'Whiteboard 4x6 ft', category_id: 4, unit_of_measure: 'Piece', item_type: ItemTypeInv.FIXED_ASSET, current_price: 6500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Furniture' },
   // Cleaning Supplies
-  { id: 'INV027', name: 'Toilet Paper Roll', category_id: 5, unit_of_measure: 'Pack (12 rolls)', item_type: ItemTypeInv.CONSUMABLE, current_price: 650, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Cleaning Supplies' },
-  { id: 'INV028', name: 'Hand Soap Liquid', category_id: 5, unit_of_measure: '5 Liter Container', item_type: ItemTypeInv.CONSUMABLE, current_price: 850, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Cleaning Supplies' },
-  { id: 'INV029', name: 'Floor Disinfectant', category_id: 5, unit_of_measure: '5 Liter Container', item_type: ItemTypeInv.CONSUMABLE, current_price: 1250, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Cleaning Supplies' },
-  { id: 'INV030', name: 'Cleaning Cloths', category_id: 5, unit_of_measure: 'Pack (10pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 450, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Cleaning Supplies' },
+  { id: 'INV027', name: 'Toilet Paper Roll', category_id: 5, unit_of_measure: 'Pack (12 rolls)', item_type: ItemTypeInv.CONSUMABLE, current_price: 650, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Cleaning Supplies' },
+  { id: 'INV028', name: 'Hand Soap Liquid', category_id: 5, unit_of_measure: '5 Liter Container', item_type: ItemTypeInv.CONSUMABLE, current_price: 850, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Cleaning Supplies' },
+  { id: 'INV029', name: 'Floor Disinfectant', category_id: 5, unit_of_measure: '5 Liter Container', item_type: ItemTypeInv.CONSUMABLE, current_price: 1250, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Cleaning Supplies' },
+  { id: 'INV030', name: 'Cleaning Cloths', category_id: 5, unit_of_measure: 'Pack (10pcs)', item_type: ItemTypeInv.CONSUMABLE, current_price: 450, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Cleaning Supplies' },
   // Foodstuff
-  { id: 'INV031', name: 'Maize Flour', category_id: 6, unit_of_measure: '90kg Bag', item_type: ItemTypeInv.CONSUMABLE, current_price: 5000, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Foodstuff' },
-  { id: 'INV032', name: 'Rice', category_id: 6, unit_of_measure: '50kg Bag', item_type: ItemTypeInv.CONSUMABLE, current_price: 4500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Foodstuff' },
-  { id: 'INV033', name: 'Cooking Oil', category_id: 6, unit_of_measure: '20 Liter Container', item_type: ItemTypeInv.CONSUMABLE, current_price: 3200, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Foodstuff' },
-  { id: 'INV034', name: 'Sugar', category_id: 6, unit_of_measure: '50kg Bag', item_type: ItemTypeInv.CONSUMABLE, current_price: 6500, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Foodstuff' },
-  { id: 'INV035', name: 'Tea Leaves', category_id: 6, unit_of_measure: '5kg Pack', item_type: ItemTypeInv.CONSUMABLE, current_price: 1800, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Foodstuff' }
+  { id: 'INV031', name: 'Maize Flour', category_id: 6, unit_of_measure: '90kg Bag', item_type: ItemTypeInv.CONSUMABLE, current_price: 5000, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Foodstuff' },
+  { id: 'INV032', name: 'Rice', category_id: 6, unit_of_measure: '50kg Bag', item_type: ItemTypeInv.CONSUMABLE, current_price: 4500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Foodstuff' },
+  { id: 'INV033', name: 'Cooking Oil', category_id: 6, unit_of_measure: '20 Liter Container', item_type: ItemTypeInv.CONSUMABLE, current_price: 3200, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Foodstuff' },
+  { id: 'INV034', name: 'Sugar', category_id: 6, unit_of_measure: '50kg Bag', item_type: ItemTypeInv.CONSUMABLE, current_price: 6500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Foodstuff' },
+  { id: 'INV035', name: 'Tea Leaves', category_id: 6, unit_of_measure: '5kg Pack', item_type: ItemTypeInv.CONSUMABLE, current_price: 1800, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", category_name: 'Foodstuff' }
 ];
 
 export const initialMockFixedAssets: FixedAsset[] = [
-  { id: 'FA001', item_id: 'INV021', asset_tag: 'DESK001', purchase_date: '2023-01-15', purchase_cost: 3500, current_value: 3200, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Student Desk', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA002', item_id: 'INV022', asset_tag: 'STOOL001', purchase_date: '2023-01-15', purchase_cost: 1500, current_value: 1350, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Lab Stool', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA003', item_id: 'INV018', asset_tag: 'MICRO001', purchase_date: '2023-02-20', purchase_cost: 45000, current_value: 40500, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Microscope Student Grade', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA004', item_id: 'INV019', asset_tag: 'SCALE001', purchase_date: '2023-02-20', purchase_cost: 8500, current_value: 7650, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Digital Scale 0.1g', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA005', item_id: 'INV023', asset_tag: 'CHAIR001', purchase_date: '2023-03-10', purchase_cost: 4500, current_value: 4050, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Teacher Chair', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA006', item_id: 'INV024', asset_tag: 'TABLE001', purchase_date: '2023-03-10', purchase_cost: 8500, current_value: 7650, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Office Table', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA007', item_id: 'INV025', asset_tag: 'CABINET001', purchase_date: '2023-04-05', purchase_cost: 12000, current_value: 10800, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Filing Cabinet', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA008', item_id: 'INV026', asset_tag: 'BOARD001', purchase_date: '2023-04-05', purchase_cost: 6500, current_value: 5850, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Whiteboard 4x6 ft', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+  { id: 'FA001', item_id: 'INV021', asset_tag: 'DESK001', purchase_date: '2023-01-15', purchase_cost: 3500, current_value: 3200, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Student Desk', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 'FA002', item_id: 'INV022', asset_tag: 'STOOL001', purchase_date: '2023-01-15', purchase_cost: 1500, current_value: 1350, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Lab Stool', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 'FA003', item_id: 'INV018', asset_tag: 'MICRO001', purchase_date: '2023-02-20', purchase_cost: 45000, current_value: 40500, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Microscope Student Grade', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 'FA004', item_id: 'INV019', asset_tag: 'SCALE001', purchase_date: '2023-02-20', purchase_cost: 8500, current_value: 7650, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Digital Scale 0.1g', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 'FA005', item_id: 'INV023', asset_tag: 'CHAIR001', purchase_date: '2023-03-10', purchase_cost: 4500, current_value: 4050, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Teacher Chair', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 'FA006', item_id: 'INV024', asset_tag: 'TABLE001', purchase_date: '2023-03-10', purchase_cost: 8500, current_value: 7650, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Office Table', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 'FA007', item_id: 'INV025', asset_tag: 'CABINET001', purchase_date: '2023-04-05', purchase_cost: 12000, current_value: 10800, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Filing Cabinet', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 'FA008', item_id: 'INV026', asset_tag: 'BOARD001', purchase_date: '2023-04-05', purchase_cost: 6500, current_value: 5850, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Whiteboard 4x6 ft', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" }
 ];
 
 export const initialMockAssetDepreciationLogs: AssetDepreciationLog[] = [
@@ -159,10 +169,10 @@ export const initialMockStockTransactions: StockTransaction[] = [
 ];
 
 export const initialMockRequisitions: Requisition[] = [
-  { id: 'REQ001', requesting_staff_id: 'STF004', request_date: '2024-07-01', status: RequisitionStatus.PENDING_APPROVAL, notes: 'Stationery for Term 3', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), requesting_staff_name: 'Pam Beesly', department_name: 'Administration' },
-  { id: 'REQ002', requesting_staff_id: 'STF005', request_date: '2024-07-05', status: RequisitionStatus.APPROVED, notes: 'Lab supplies for Chemistry practical', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), requesting_staff_name: 'Ryan Howard', department_name: 'Sciences' },
-  { id: 'REQ003', requesting_staff_id: 'STF008', request_date: '2024-07-08', status: RequisitionStatus.FULFILLED, notes: 'Cleaning supplies for maintenance', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), requesting_staff_name: 'Phyllis Vance', department_name: 'Maintenance' },
-  { id: 'REQ004', requesting_staff_id: 'STF011', request_date: '2024-07-12', status: RequisitionStatus.PENDING_APPROVAL, notes: 'Form 2 textbooks for new admissions', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), requesting_staff_name: 'Angela Martin', department_name: 'Academics' }
+  { id: 'REQ001', requesting_staff_id: 'STF004', request_date: '2024-07-01', status: RequisitionStatus.PENDING_APPROVAL, notes: 'Stationery for Term 3', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", requesting_staff_name: 'Pam Beesly', department_name: 'Administration' },
+  { id: 'REQ002', requesting_staff_id: 'STF005', request_date: '2024-07-05', status: RequisitionStatus.APPROVED, notes: 'Lab supplies for Chemistry practical', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", requesting_staff_name: 'Ryan Howard', department_name: 'Sciences' },
+  { id: 'REQ003', requesting_staff_id: 'STF008', request_date: '2024-07-08', status: RequisitionStatus.FULFILLED, notes: 'Cleaning supplies for maintenance', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", requesting_staff_name: 'Phyllis Vance', department_name: 'Maintenance' },
+  { id: 'REQ004', requesting_staff_id: 'STF011', request_date: '2024-07-12', status: RequisitionStatus.PENDING_APPROVAL, notes: 'Form 2 textbooks for new admissions', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", requesting_staff_name: 'Angela Martin', department_name: 'Academics' }
 ];
 
 export const initialMockRequisitionItems: RequisitionItem[] = [
@@ -186,10 +196,10 @@ export const initialMockRequisitionItems: RequisitionItem[] = [
 ];
 
 export const initialMockPurchaseOrders: PurchaseOrder[] = [
-    { id: 'PO001', supplier_id: 1, order_date: '2024-06-20', status: PurchaseOrderStatus.FULLY_RECEIVED, notes: 'Q3 Stationery Restock', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Text Book Centre' },
-    { id: 'PO002', supplier_id: 7, order_date: '2024-06-25', status: PurchaseOrderStatus.PARTIALLY_RECEIVED, notes: 'Laboratory equipment upgrade', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Scientific Equipment Ltd' },
-    { id: 'PO003', supplier_id: 10, order_date: '2024-07-01', status: PurchaseOrderStatus.PENDING, notes: 'Kitchen supplies for Term 3', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Fresh Foods Catering' },
-    { id: 'PO004', supplier_id: 5, order_date: '2024-07-05', status: PurchaseOrderStatus.APPROVED, notes: 'Office furniture and supplies', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), supplier_name: 'Office Depot Kenya' }
+    { id: 'PO001', supplier_id: 1, order_date: '2024-06-20', status: PurchaseOrderStatus.FULLY_RECEIVED, notes: 'Q3 Stationery Restock', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", supplier_name: 'Text Book Centre' },
+    { id: 'PO002', supplier_id: 7, order_date: '2024-06-25', status: PurchaseOrderStatus.PARTIALLY_RECEIVED, notes: 'Laboratory equipment upgrade', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", supplier_name: 'Scientific Equipment Ltd' },
+    { id: 'PO003', supplier_id: 10, order_date: '2024-07-01', status: PurchaseOrderStatus.PENDING, notes: 'Kitchen supplies for Term 3', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", supplier_name: 'Fresh Foods Catering' },
+    { id: 'PO004', supplier_id: 5, order_date: '2024-07-05', status: PurchaseOrderStatus.APPROVED, notes: 'Office furniture and supplies', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", supplier_name: 'Office Depot Kenya' }
 ];
 
 export const initialMockPurchaseOrderItems: PurchaseOrderItem[] = [
@@ -215,10 +225,6 @@ export const initialMockPurchaseOrderItems: PurchaseOrderItem[] = [
 ];
 
 // Ensure all AppDataType keys for inventory are exported
-export const warehouses = initialMockWarehouses;
-export const itemCategoriesInv = initialMockItemCategoriesInv;
-export const itemsInv = initialMockItemsInv;
-export const fixedAssets = initialMockFixedAssets;
 export const requisitions = initialMockRequisitions;
 export const requisitionItems = initialMockRequisitionItems;
 export const purchaseOrders = initialMockPurchaseOrders;

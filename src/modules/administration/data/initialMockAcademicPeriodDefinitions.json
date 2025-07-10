@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "structure_id": 1,
+    "name": "Term 1",
+    "sequence_order": 1,
+    "structure_name": "Standard 3-Term System"
+  },
+  {
+    "id": 2,
+    "structure_id": 1,
+    "name": "Term 2",
+    "sequence_order": 2,
+    "structure_name": "Standard 3-Term System"
+  },
+  {
+    "id": 3,
+    "structure_id": 1,
+    "name": "Term 3",
+    "sequence_order": 3,
+    "structure_name": "Standard 3-Term System"
+  },
+  {
+    "id": 4,
+    "structure_id": 2,
+    "name": "Semester 1",
+    "sequence_order": 1,
+    "structure_name": "Semester System (2 Semesters)"
+  },
+  {
+    "id": 5,
+    "structure_id": 2,
+    "name": "Semester 2",
+    "sequence_order": 2,
+    "structure_name": "Semester System (2 Semesters)"
+  }
+]

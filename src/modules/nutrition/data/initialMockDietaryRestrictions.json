@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "Vegetarian",
+    "description": "No meat or fish products"
+  },
+  {
+    "id": 2,
+    "name": "Vegan",
+    "description": "No animal products"
+  },
+  {
+    "id": 3,
+    "name": "Halal",
+    "description": "Islamic dietary requirements"
+  },
+  {
+    "id": 4,
+    "name": "Gluten-Free",
+    "description": "No gluten-containing products"
+  },
+  {
+    "id": 5,
+    "name": "Dairy-Free",
+    "description": "No dairy products"
+  },
+  {
+    "id": 6,
+    "name": "Nut Allergy",
+    "description": "No nuts or nut products"
+  },
+  {
+    "id": 7,
+    "name": "Diabetic",
+    "description": "Low sugar, controlled carbohydrates"
+  },
+  {
+    "id": 8,
+    "name": "Low Sodium",
+    "description": "Reduced salt intake"
+  }
+]

@@ -6,6 +6,7 @@ import * as rxdbService from './rxdbService';
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../core/rbacService';
 import { APP_MODE } from '../contexts/config';
+import { users as adminMockUsers } from '../modules/administration/data/mockData';
 
 // Authentication Types
 export interface AuthUser {
@@ -253,6 +254,23 @@ class AuthService {
         moduleAccess: ['dashboard', 'academics']
       }
     };
+
+    // Add all adminMockUsers to demoUsers
+    for (const user of adminMockUsers) {
+      demoUsers[user.username] = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: String(user.display_name ?? user.username),
+        role: user.role,
+        isActive: user.isActive,
+        lastLoginAt: new Date(),
+        createdAt: new Date(String(user.created_at ?? new Date().toISOString())),
+        updatedAt: new Date(String(user.updated_at ?? new Date().toISOString())),
+        permissions: ['*'],
+        moduleAccess: ['dashboard', 'administration', 'academics', 'finance', 'hr', 'inventory', 'library', 'nutrition', 'reports', 'settings']
+      };
+    }
 
     const user = demoUsers[credentials.username];
     if (!user) {

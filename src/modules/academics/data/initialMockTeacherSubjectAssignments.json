@@ -1,0 +1,524 @@
+[
+  {
+    "id": "TSA001",
+    "allocation_id": "CSA001",
+    "teacher_id": "STF001",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Michael Scott"
+  },
+  {
+    "id": "TSA002",
+    "allocation_id": "CSA002",
+    "teacher_id": "STF014",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Grace Mwangi"
+  },
+  {
+    "id": "TSA003",
+    "allocation_id": "CSA003",
+    "teacher_id": "STF003",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "John Kamau"
+  },
+  {
+    "id": "TSA004",
+    "allocation_id": "CSA004",
+    "teacher_id": "STF004",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Mary Wanjiku"
+  },
+  {
+    "id": "TSA005",
+    "allocation_id": "CSA005",
+    "teacher_id": "STF005",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "David Kiprotich"
+  },
+  {
+    "id": "TSA006",
+    "allocation_id": "CSA006",
+    "teacher_id": "STF006",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Sarah Njeri"
+  },
+  {
+    "id": "TSA007",
+    "allocation_id": "CSA007",
+    "teacher_id": "STF007",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "History",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Peter Ochieng"
+  },
+  {
+    "id": "TSA008",
+    "allocation_id": "CSA008",
+    "teacher_id": "STF008",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Jane Wambui"
+  },
+  {
+    "id": "TSA009",
+    "allocation_id": "CSA009",
+    "teacher_id": "STF009",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Christian Religious Education",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Samuel Gitonga"
+  },
+  {
+    "id": "TSA010",
+    "allocation_id": "CSA010",
+    "teacher_id": "STF010",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Art & Design",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Agnes Chepkoech"
+  },
+  {
+    "id": "TSA011",
+    "allocation_id": "CSA011",
+    "teacher_id": "STF012",
+    "class_stream_name": "Form 1 A",
+    "subject_name": "Physical Education",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Robert Mwangi"
+  },
+  {
+    "id": "TSA012",
+    "allocation_id": "CSA012",
+    "teacher_id": "STF001",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Michael Scott"
+  },
+  {
+    "id": "TSA013",
+    "allocation_id": "CSA013",
+    "teacher_id": "STF014",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Grace Mwangi"
+  },
+  {
+    "id": "TSA014",
+    "allocation_id": "CSA014",
+    "teacher_id": "STF021",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Catherine Muthoni"
+  },
+  {
+    "id": "TSA015",
+    "allocation_id": "CSA015",
+    "teacher_id": "STF004",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Mary Wanjiku"
+  },
+  {
+    "id": "TSA016",
+    "allocation_id": "CSA016",
+    "teacher_id": "STF005",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "David Kiprotich"
+  },
+  {
+    "id": "TSA017",
+    "allocation_id": "CSA017",
+    "teacher_id": "STF006",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Sarah Njeri"
+  },
+  {
+    "id": "TSA018",
+    "allocation_id": "CSA018",
+    "teacher_id": "STF007",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "History",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Peter Ochieng"
+  },
+  {
+    "id": "TSA019",
+    "allocation_id": "CSA019",
+    "teacher_id": "STF008",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Jane Wambui"
+  },
+  {
+    "id": "TSA020",
+    "allocation_id": "CSA020",
+    "teacher_id": "STF009",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Christian Religious Education",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Samuel Gitonga"
+  },
+  {
+    "id": "TSA021",
+    "allocation_id": "CSA021",
+    "teacher_id": "STF019",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Music",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Lucy Wambui"
+  },
+  {
+    "id": "TSA022",
+    "allocation_id": "CSA022",
+    "teacher_id": "STF012",
+    "class_stream_name": "Form 1 B",
+    "subject_name": "Physical Education",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Robert Mwangi"
+  },
+  {
+    "id": "TSA023",
+    "allocation_id": "CSA023",
+    "teacher_id": "STF002",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Susan Akinyi"
+  },
+  {
+    "id": "TSA024",
+    "allocation_id": "CSA024",
+    "teacher_id": "STF014",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Grace Mwangi"
+  },
+  {
+    "id": "TSA025",
+    "allocation_id": "CSA025",
+    "teacher_id": "STF003",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "John Kamau"
+  },
+  {
+    "id": "TSA026",
+    "allocation_id": "CSA026",
+    "teacher_id": "STF004",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Mary Wanjiku"
+  },
+  {
+    "id": "TSA027",
+    "allocation_id": "CSA027",
+    "teacher_id": "STF005",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "David Kiprotich"
+  },
+  {
+    "id": "TSA028",
+    "allocation_id": "CSA028",
+    "teacher_id": "STF006",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Sarah Njeri"
+  },
+  {
+    "id": "TSA029",
+    "allocation_id": "CSA029",
+    "teacher_id": "STF008",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Jane Wambui"
+  },
+  {
+    "id": "TSA030",
+    "allocation_id": "CSA030",
+    "teacher_id": "STF023",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Business Studies",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Daniel Muturi"
+  },
+  {
+    "id": "TSA031",
+    "allocation_id": "CSA031",
+    "teacher_id": "STF024",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Computer Studies",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Elizabeth Nyawira"
+  },
+  {
+    "id": "TSA032",
+    "allocation_id": "CSA032",
+    "teacher_id": "STF018",
+    "class_stream_name": "Form 2 A",
+    "subject_name": "Agriculture",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Patrick Kiptoo"
+  },
+  {
+    "id": "TSA033",
+    "allocation_id": "CSA033",
+    "teacher_id": "STF002",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Susan Akinyi"
+  },
+  {
+    "id": "TSA034",
+    "allocation_id": "CSA034",
+    "teacher_id": "STF014",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Grace Mwangi"
+  },
+  {
+    "id": "TSA035",
+    "allocation_id": "CSA035",
+    "teacher_id": "STF021",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Catherine Muthoni"
+  },
+  {
+    "id": "TSA036",
+    "allocation_id": "CSA036",
+    "teacher_id": "STF004",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Mary Wanjiku"
+  },
+  {
+    "id": "TSA037",
+    "allocation_id": "CSA037",
+    "teacher_id": "STF005",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "David Kiprotich"
+  },
+  {
+    "id": "TSA038",
+    "allocation_id": "CSA038",
+    "teacher_id": "STF006",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Sarah Njeri"
+  },
+  {
+    "id": "TSA039",
+    "allocation_id": "CSA039",
+    "teacher_id": "STF007",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "History",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Peter Ochieng"
+  },
+  {
+    "id": "TSA040",
+    "allocation_id": "CSA040",
+    "teacher_id": "STF008",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Jane Wambui"
+  },
+  {
+    "id": "TSA041",
+    "allocation_id": "CSA041",
+    "teacher_id": "STF009",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "Christian Religious Education",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Samuel Gitonga"
+  },
+  {
+    "id": "TSA042",
+    "allocation_id": "CSA042",
+    "teacher_id": "STF025",
+    "class_stream_name": "Form 2 B",
+    "subject_name": "French",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Francis Kimani"
+  },
+  {
+    "id": "TSA043",
+    "allocation_id": "CSA043",
+    "teacher_id": "STF001",
+    "class_stream_name": "Form 3 North",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Michael Scott"
+  },
+  {
+    "id": "TSA044",
+    "allocation_id": "CSA044",
+    "teacher_id": "STF014",
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Grace Mwangi"
+  },
+  {
+    "id": "TSA045",
+    "allocation_id": "CSA045",
+    "teacher_id": "STF003",
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "John Kamau"
+  },
+  {
+    "id": "TSA046",
+    "allocation_id": "CSA046",
+    "teacher_id": "STF004",
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Mary Wanjiku"
+  },
+  {
+    "id": "TSA047",
+    "allocation_id": "CSA047",
+    "teacher_id": "STF005",
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "David Kiprotich"
+  },
+  {
+    "id": "TSA048",
+    "allocation_id": "CSA048",
+    "teacher_id": "STF006",
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Sarah Njeri"
+  },
+  {
+    "id": "TSA049",
+    "allocation_id": "CSA049",
+    "teacher_id": "STF008",
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Geography",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Jane Wambui"
+  },
+  {
+    "id": "TSA050",
+    "allocation_id": "CSA050",
+    "teacher_id": "STF024",
+    "class_stream_name": "Form 3 North",
+    "subject_name": "Computer Studies",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Elizabeth Nyawira"
+  },
+  {
+    "id": "TSA051",
+    "allocation_id": "CSA051",
+    "teacher_id": "STF002",
+    "class_stream_name": "Form 4 East",
+    "subject_name": "English",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Susan Akinyi"
+  },
+  {
+    "id": "TSA052",
+    "allocation_id": "CSA052",
+    "teacher_id": "STF014",
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Kiswahili",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Grace Mwangi"
+  },
+  {
+    "id": "TSA053",
+    "allocation_id": "CSA053",
+    "teacher_id": "STF021",
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Mathematics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Catherine Muthoni"
+  },
+  {
+    "id": "TSA054",
+    "allocation_id": "CSA054",
+    "teacher_id": "STF004",
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Biology",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Mary Wanjiku"
+  },
+  {
+    "id": "TSA055",
+    "allocation_id": "CSA055",
+    "teacher_id": "STF005",
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Physics",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "David Kiprotich"
+  },
+  {
+    "id": "TSA056",
+    "allocation_id": "CSA056",
+    "teacher_id": "STF006",
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Chemistry",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Sarah Njeri"
+  },
+  {
+    "id": "TSA057",
+    "allocation_id": "CSA057",
+    "teacher_id": "STF007",
+    "class_stream_name": "Form 4 East",
+    "subject_name": "History",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Peter Ochieng"
+  },
+  {
+    "id": "TSA058",
+    "allocation_id": "CSA058",
+    "teacher_id": "STF023",
+    "class_stream_name": "Form 4 East",
+    "subject_name": "Business Studies",
+    "academic_year_name": "AY 2023/2024",
+    "teacher_name": "Daniel Muturi"
+  }
+]
