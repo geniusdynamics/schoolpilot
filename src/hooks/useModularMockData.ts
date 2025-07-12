@@ -5,40 +5,41 @@
 import { useState, useEffect } from 'react';
 import type { AppDataType, AppDataContextType, AppDataLoadingStates } from '../core/types';
 
-// --- Modular Loader: Dynamically import all module mockData.ts files ---
+// Import module-specific hooks to get live data
+import { usePartnerData } from '../modules/administration/data/usePartnerData';
+import { useCustomerData } from '../modules/administration/data/useCustomerData';
+import { useClubAndSocietyData } from '../modules/administration/data/useClubAndSocietyData';
+import { useStudentHealthRecordData } from '../modules/administration/data/useStudentHealthRecordData';
+import { useStudentAttendanceData } from '../modules/administration/data/useStudentAttendanceData';
+import { useTemplateCommData } from '../modules/administration/data/useTemplateCommData';
+import { useCampaignData } from '../modules/administration/data/useCampaignData';
+import { useSchoolPeriodData } from '../modules/administration/data/useSchoolPeriodData';
+import { useAcademicYearData } from '../modules/administration/data/useAcademicYearData';
+import { useAcademicPeriodDefinitionData } from '../modules/administration/data/useAcademicPeriodDefinitionData';
+import { useDesignationData } from '../modules/administration/data/useDesignationData';
+import { useTimetablePeriodDefData } from '../modules/academics/data/useTimetablePeriodDefData';
+import { useFinancialYearData } from '../modules/finance/data/useFinancialYearData';
+import { useDepartmentData } from '../modules/administration/data/useDepartmentData';
+import { useSubjectData } from '../modules/academics/data/useSubjectData';
+import { useTimetableEntryData } from '../modules/academics/data/useTimetableEntryData';
+import { useTeacherSubjectAssignmentData } from '../modules/academics/data/useTeacherSubjectAssignmentData';
+import { useClassSubjectAllocationData } from '../modules/academics/data/useClassSubjectAllocationData';
+import { useClassData } from '../modules/administration/data/useClassData';
+import { useClassStreamData } from '../modules/administration/data/useClassStreamData';
+
+// Dynamically import all mockData.ts files from modules for fallback data
 const mockDataModules = import.meta.glob('../modules/*/data/mockData.ts', { eager: true });
 
-function aggregateModularMockData(): Partial<AppDataType> {
-  const merged: any = {};
-  for (const modPath in mockDataModules) {
-    const mod = mockDataModules[modPath] as Record<string, any>;
-    for (const [key, value] of Object.entries(mod)) {
-      if (Array.isArray(value)) {
-        merged[key] = (merged[key] || []).concat(value);
-      } else {
-        merged[key] = value;
-      }
-    }
+// Aggregate all exported mock data into a single object for fallback
+const rawInitialData: Partial<AppDataType> = {};
+for (const mod of Object.values(mockDataModules)) {
+  if (typeof mod === 'object' && mod !== null) {
+    Object.entries(mod).forEach(([key, value]) => {
+      // Only add if not already present (last-in wins for duplicate keys)
+      rawInitialData[key as keyof AppDataType] = value;
+    });
   }
-  return merged;
 }
-
-function fillAllAppDataKeys(data: Partial<AppDataType>): AppDataType {
-  const APP_DATA_KEYS: (keyof AppDataType)[] = [
-    'schoolDetails', 'roles', 'users', 'students', 'staff', 'classes', 'classStreams', 'subjects', 'departments', 'designations', 'studentCategories', 'dormitories', 'academicYears', 'schoolPeriods', 'academicYearStructures', 'academicPeriodDefinitions', 'financialYears', 'partners', 'clubs', 'customers', 'studentHealthRecords', 'studentAttendance', 'timetablePeriodDefs', 'templatesComm', 'campaigns', 'subjectPapers', 'examSessions', 'examPaperSettings', 'gradingSchemes', 'chartOfAccounts', 'expenseCategories', 'banks', 'suppliers', 'feeTemplates', 'feeTemplateItems', 'expenseClaims', 'studentInvoices', 'studentInvoiceItems', 'studentPayments', 'feeAdjustments', 'invoicePaymentApplications', 'customerInvoices', 'supplierInvoices', 'studentExamResults', 'classSubjectAllocations', 'teacherSubjectAssignments', 'studentSubjectEnrollments', 'timetableEntries', 'warehouses', 'itemCategoriesInv', 'itemsInv', 'fixedAssets', 'requisitions', 'purchaseOrders', 'stockLevels', 'stockTransactions', 'payrollPeriods', 'payrollItemTypes', 'staffSalarySettings', 'payslips', 'bookCategories', 'books', 'loans', 'fines', 'parentsGuardians', 'workflows', 'mealPlans', 'menus', 'merchants', 'auditLogs', 'studentOpeningBalances', 'transportRoutes', 'studentTransportAssignments', 'generalPayments', 'generalLedgerEntries', 'rfqs'
-  ];
-  const filled: any = {};
-  for (const key of APP_DATA_KEYS) {
-    if (key === 'schoolDetails') {
-      filled[key] = data[key] ?? null;
-    } else {
-      filled[key] = Array.isArray(data[key]) ? data[key] : [];
-    }
-  }
-  return filled as AppDataType;
-}
-
-const rawInitialData: AppDataType = fillAllAppDataKeys(aggregateModularMockData());
 
 // Helper to create loading states for all entities
 const createLoadingStates = (): AppDataLoadingStates => {
@@ -53,7 +54,7 @@ const createLoadingStates = (): AppDataLoadingStates => {
 // Dynamically collect all keys from all loaded mockData modules
 const allMockKeys = Array.from(
   new Set(
-    Object.values(rawInitialData)
+    Object.values(mockDataModules)
       .flatMap(mod => (typeof mod === 'object' && mod !== null ? Object.keys(mod) : []))
   )
 );
@@ -62,7 +63,28 @@ const allMockKeys = Array.from(
 const isArrayType = (val: any) => Array.isArray(val);
 
 export const useModularMockData = (): AppDataContextType => {
-  // Only use the merged mock data
+  // Use module-specific hooks to get live data
+  const { partners, addPartner, updatePartner, deletePartner } = usePartnerData();
+  const { customers, addCustomer, updateCustomer, deleteCustomer } = useCustomerData();
+  const { clubsAndSocieties, addClubAndSociety, updateClubAndSociety, deleteClubAndSociety } = useClubAndSocietyData();
+  const { studentHealthRecords, addStudentHealthRecord, updateStudentHealthRecord, deleteStudentHealthRecord } = useStudentHealthRecordData();
+  const { studentAttendance, addStudentAttendance, updateStudentAttendance, deleteStudentAttendance } = useStudentAttendanceData();
+  const { templateComms, addTemplateComm, updateTemplateComm, deleteTemplateComm } = useTemplateCommData();
+  const { campaigns, addCampaign, updateCampaign, deleteCampaign } = useCampaignData();
+  const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
+  const { academicYears, addAcademicYear, updateAcademicYear, deleteAcademicYear } = useAcademicYearData();
+  const { academicPeriodDefinitions, addAcademicPeriodDefinition, updateAcademicPeriodDefinition, deleteAcademicPeriodDefinition } = useAcademicPeriodDefinitionData();
+  const { designations, addDesignation, updateDesignation, deleteDesignation } = useDesignationData();
+  const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
+  const { data: financialYears, create: addFinancialYear, update: updateFinancialYear, remove: deleteFinancialYear } = useFinancialYearData();
+  const { departments, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
+  const { subjects, addSubject, updateSubject, deleteSubject } = useSubjectData();
+  const { data: timetableEntries, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
+  const { data: teacherSubjectAssignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
+  const { classSubjectAllocations, addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation } = useClassSubjectAllocationData();
+  const { classes, addClass, updateClass, deleteClass } = useClassData();
+  const { classStreams, addClassStream, updateClassStream, deleteClassStream } = useClassStreamData();
+
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
 
   useEffect(() => {
@@ -80,13 +102,60 @@ export const useModularMockData = (): AppDataContextType => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Use only the merged mock data for all entities
-  const fullData: any = { ...rawInitialData };
+  // Combine live data from hooks with fallback data
+  const fullData: any = {
+    // Live data from module hooks
+    partners,
+    customers,
+    clubs: clubsAndSocieties, // Map clubsAndSocieties to clubs for backward compatibility
+    clubsAndSocieties,
+    studentHealthRecords,
+    studentAttendance,
+    templateComms,
+    templatesComm: templateComms, // Alias for backward compatibility
+    campaigns,
+    schoolPeriods,
+    academicYears,
+    academicPeriodDefinitions,
+    designations,
+    timetablePeriodDefs,
+    financialYears,
+    departments,
+    subjects,
+    timetableEntries,
+    teacherSubjectAssignments,
+    classSubjectAllocations,
+    classes,
+    classStreams,
+    // Fallback to static data for other entities (includes staff, etc.)
+    ...rawInitialData
+  };
 
-  // Patch: All context methods must return Promises
-  const getStudentDetailsById = async (studentId: string) => {
-    const student = rawInitialData.students.find((s: any) => s.id === studentId);
-    if (student) {
+  // Dynamically fill in missing keys with [] or null based on the type in rawInitialData
+  for (const key of allMockKeys) {
+    if (fullData[key] === undefined) {
+      // If any module's value for this key is an array, default to []
+      const sample = Object.values(mockDataModules)
+        .map(mod => (typeof mod === 'object' && mod !== null ? (mod as any)[key] : undefined))
+        .find(val => val !== undefined);
+      fullData[key] = isArrayType(sample) ? [] : null;
+    }
+  }
+
+  return {
+    ...fullData,
+    loading,
+    rawInitialData: fullData,
+    // Provide no-op implementations for required context methods
+    // NOTE: CRUD operations should be handled by module-specific hooks, not here
+    getStudentDetailsById: async (studentId: string) => {
+      // Find student in the mock data
+      const student = fullData.students?.find((s: any) => s.id === studentId);
+      if (!student) {
+        console.warn(`Student with ID ${studentId} not found`);
+        return null;
+      }
+
       // Create a detailed student profile with all required fields
       const studentProfile = {
         ...student,
@@ -105,6 +174,7 @@ export const useModularMockData = (): AppDataContextType => {
         religion: student.religion || '',
         remarks: student.remarks || '',
         primary_guardian: student.primary_guardian || null,
+        
         // Mock enrolled subjects
         enrolled_subjects: [
           {
@@ -132,24 +202,47 @@ export const useModularMockData = (): AppDataContextType => {
             status: 'Active'
           }
         ],
+        
         // Mock payment history
         payment_history: [
           {
             id: `PAY_${studentId}_001`,
             transactionId: `TXN${studentId}001`,
             paymentDate: '2024-01-15',
-            amount: 50000
+            amount: 25000,
+            paymentMethod: 'Bank Transfer',
+            description: 'Term 1 School Fees'
+          },
+          {
+            id: `PAY_${studentId}_002`,
+            transactionId: `TXN${studentId}002`,
+            paymentDate: '2024-04-10',
+            amount: 25000,
+            paymentMethod: 'M-Pesa',
+            description: 'Term 2 School Fees'
+          },
+          {
+            id: `PAY_${studentId}_003`,
+            transactionId: `TXN${studentId}003`,
+            paymentDate: '2024-08-20',
+            amount: 25000,
+            paymentMethod: 'Cash',
+            description: 'Term 3 School Fees'
           }
         ]
       };
-      return studentProfile;
-    }
-    return null;
-  };
 
-  const getStudentFinancialDetailsById = async (studentId: string) => {
-    const student = rawInitialData.students.find((s: any) => s.id === studentId);
-    if (student) {
+      console.log(`✅ Found student details for ID ${studentId}:`, studentProfile.first_name, studentProfile.last_name);
+      return studentProfile;
+    },
+    getStudentFinancialDetailsById: async (studentId: string) => {
+      // Find student in the mock data
+      const student = fullData.students?.find((s: any) => s.id === studentId);
+      if (!student) {
+        console.warn(`Student with ID ${studentId} not found for financial details`);
+        return null;
+      }
+
       // Create mock financial details
       const financialDetails = {
         student_id: studentId,
@@ -220,51 +313,46 @@ export const useModularMockData = (): AppDataContextType => {
 
       console.log(`✅ Found financial details for student ID ${studentId}`);
       return financialDetails;
-    }
-    console.warn(`Student with ID ${studentId} not found for financial details`);
-    return null;
-  };
-
-  return {
-    ...fullData,
-    loading,
-    initializationError: null,
-    isRxDBModeActive: false,
-    isUsingRxDBDummyData: false,
-    rawInitialData,
-    triggerSeedRxDB: async () => console.warn('Seeding not available in mock mode.'),
-    triggerClearRxDB: async () => console.warn('Clearing not available in mock mode.'),
-    getStudentDetailsById,
-    getStudentFinancialDetailsById,
-    // All the CRUD functions from module hooks
-    // addPartner, updatePartner, deletePartner, // Removed as per edit hint
-    // addClubAndSociety: async () => {}, // Removed as per edit hint
-    // updateClubAndSociety: async () => {}, // Removed as per edit hint
-    // deleteClubAndSociety: async () => {}, // Removed as per edit hint
-    // addCustomer: async () => {}, // Removed as per edit hint
-    // updateCustomer: async () => {}, // Removed as per edit hint
-    // deleteCustomer: async () => {}, // Removed as per edit hint
-    // addStudentHealthRecord: async () => {}, // Removed as per edit hint
-    // updateStudentHealthRecord: async () => {}, // Removed as per edit hint
-    // deleteStudentHealthRecord: async () => {}, // Removed as per edit hint
-    // addTemplateComm: async () => {}, // Removed as per edit hint
-    // updateTemplateComm: async () => {}, // Removed as per edit hint
-    // deleteTemplateComm: async () => {}, // Removed as per edit hint
-    // addCampaign: async () => {}, // Removed as per edit hint
-    // updateCampaign: async () => {}, // Removed as per edit hint
-    // deleteCampaign: async () => {}, // Removed as per edit hint
-    // addSchoolPeriod: async () => {}, // Removed as per edit hint
-    // updateSchoolPeriod: async () => {}, // Removed as per edit hint
-    // deleteSchoolPeriod: async () => {}, // Removed as per edit hint
-    // addTimetablePeriodDef: async () => {}, // Removed as per edit hint
-    // updateTimetablePeriodDef: async () => {}, // Removed as per edit hint
-    // deleteTimetablePeriodDef: async () => {}, // Removed as per edit hint
-    // addClass: addClass, // Removed as per edit hint
-    // updateClass: updateClass, // Removed as per edit hint
-    // deleteClass: deleteClass, // Removed as per edit hint
-    // addClassStream: addClassStream, // Removed as per edit hint
-    // updateClassStream: updateClassStream, // Removed as per edit hint
-    // deleteClassStream: deleteClassStream, // Removed as per edit hint
+    },
+    saveStudentAttendance: async () => {},
+    getStudentAttendanceByFilters: () => [],
+    getTimetablePeriodDefs: () => fullData.timetablePeriodDefs || [],
+    getTimetableEntries: () => fullData.timetableEntries || [],
+    addTimetableEntry: async () => {},
+    updateTimetableEntry: async () => {},
+    deleteTimetableEntry: async () => {},
+    // CRUD methods - these should delegate to module-specific hooks
+    // For now, providing no-op implementations to maintain interface compatibility
+    addPartner: async () => {},
+    updatePartner: async () => {},
+    deletePartner: async () => {},
+    addClub: async () => {},
+    updateClub: async () => {},
+    deleteClub: async () => {},
+    addCustomer: async () => {},
+    updateCustomer: async () => {},
+    deleteCustomer: async () => {},
+    addStudentHealthRecord: async () => {},
+    updateStudentHealthRecord: async () => {},
+    deleteStudentHealthRecord: async () => {},
+    addTemplateComm: async () => {},
+    updateTemplateComm: async () => {},
+    deleteTemplateComm: async () => {},
+    addCampaign: async () => {},
+    updateCampaign: async () => {},
+    deleteCampaign: async () => {},
+    addSchoolPeriod: async () => {},
+    updateSchoolPeriod: async () => {},
+    deleteSchoolPeriod: async () => {},
+    addTimetablePeriodDef: async () => {},
+    updateTimetablePeriodDef: async () => {},
+    deleteTimetablePeriodDef: async () => {},
+    addClass: addClass,
+    updateClass: updateClass,
+    deleteClass: deleteClass,
+    addClassStream: addClassStream,
+    updateClassStream: updateClassStream,
+    deleteClassStream: deleteClassStream,
     generateStudentInvoices: async () => [],
     permissions: [],
     roles: [],

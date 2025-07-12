@@ -281,21 +281,10 @@ export const initialMockDisciplinaryActions = [
 ];
 
 // Ensure all AppDataType keys for hr are exported
-export const payrollPeriods = [
-  { id: 'PP001', name: 'July 2024', start_date: '2024-07-01', end_date: '2024-07-31' },
-];
-
-export const payrollItemTypes = [
-  { id: 'PIT001', name: 'Basic Salary' },
-];
-
-export const staffSalarySettings = [
-  { id: 'SSS001', staff_id: 'STF001', salary: 1000 },
-];
-
-export const payslips = [
-  { id: 'PAY001', staff_id: 'STF001', period_id: 'PP001', amount: 1000 },
-];
+export const payrollPeriods = initialMockPayrollPeriods;
+export const payrollItemTypes = initialMockPayrollItemTypes;
+export const staffSalarySettings = initialMockStaffSalarySettings;
+export const payslips = initialMockPayslips;
 
 
 

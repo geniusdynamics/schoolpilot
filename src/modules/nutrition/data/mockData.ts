@@ -15,20 +15,20 @@ import {
 } from '../../../core/types';
 
 export const initialMockMealPlans: MealPlan[] = [
-  { id: 1, name: 'Standard Lunch Plan', description: 'Daily lunch for students', cost_per_period: 7500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 2, name: 'Full Board Plan (All Meals)', description: 'Breakfast, Lunch, Supper, and Snacks', cost_per_period: 15000, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 3, name: 'Pay-as-you-eat Wallet', description: 'Students use wallet balance to pay for meals', cost_per_period: 0, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 1, name: 'Standard Lunch Plan', description: 'Daily lunch for students', cost_per_period: 7500, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 2, name: 'Full Board Plan (All Meals)', description: 'Breakfast, Lunch, Supper, and Snacks', cost_per_period: 15000, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 3, name: 'Pay-as-you-eat Wallet', description: 'Students use wallet balance to pay for meals', cost_per_period: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 export const initialMockStudentMealPlans: StudentMealPlan[] = [
-  { id: 'SMP001', student_id: 'STU001', school_period_id: 3, meal_plan_id: 2, status: StudentMealPlanStatus.ACTIVE, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", student_name: 'Kevin Malone', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Full Board Plan (All Meals)' },
-  { id: 'SMP002', student_id: 'STU002', school_period_id: 3, meal_plan_id: 1, status: StudentMealPlanStatus.ACTIVE, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", student_name: 'Angela Martin', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Standard Lunch Plan' },
+  { id: 'SMP001', student_id: 'STU001', school_period_id: 3, meal_plan_id: 2, status: StudentMealPlanStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Kevin Malone', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Full Board Plan (All Meals)' },
+  { id: 'SMP002', student_id: 'STU002', school_period_id: 3, meal_plan_id: 1, status: StudentMealPlanStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Angela Martin', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Standard Lunch Plan' },
 ];
 
 export const initialMockMenus: Menu[] = [
-  {id: 'MENU001', menu_date: '2024-07-29', meal_type: "LUNCH", description: "Rice, Beans, Cabbage", created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  {id: 'MENU002', menu_date: '2024-07-29', meal_type: "BREAKFAST", description: "Tea, Bread, Egg", created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  {id: 'MENU003', menu_date: '2024-07-30', meal_type: "LUNCH", description: "Ugali, Sukuma Wiki, Beef", created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  {id: 'MENU001', menu_date: '2024-07-29', meal_type: MealType.LUNCH, description: "Rice, Beans, Cabbage", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  {id: 'MENU002', menu_date: '2024-07-29', meal_type: MealType.BREAKFAST, description: "Tea, Bread, Egg", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  {id: 'MENU003', menu_date: '2024-07-30', meal_type: MealType.LUNCH, description: "Ugali, Sukuma Wiki, Beef", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 export const initialMockMealConsumptionLogs: MealConsumptionLog[] = [
@@ -36,55 +36,54 @@ export const initialMockMealConsumptionLogs: MealConsumptionLog[] = [
 ];
 
 export const initialMockMerchants: Merchant[] = [
-  { id: 1, name: 'School Canteen', gl_account_id: 410, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", gl_account_name: 'Canteen Sales Revenue' },
-  { id: 2, name: 'Uniform Shop', gl_account_id: 411, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", gl_account_name: 'Uniform Shop Sales Revenue' },
+  { id: 1, name: 'School Canteen', gl_account_id: 410, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), gl_account_name: 'Canteen Sales Revenue' },
+  { id: 2, name: 'Uniform Shop', gl_account_id: 411, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), gl_account_name: 'Uniform Shop Sales Revenue' },
 ];
 
 export const initialMockStudentWallets: StudentWallet[] = [
-  { student_id: 'STU003', balance: 1500.00, last_updated: "2024-01-01T00:00:00.000Z", student_name: 'Jim Halpert' },
-  { student_id: 'STU004', balance: 500.00, last_updated: "2024-01-01T00:00:00.000Z", student_name: 'Pam Beesly' },
+  { student_id: 'STU003', balance: 1500.00, last_updated: new Date().toISOString(), student_name: 'Jim Halpert' },
+  { student_id: 'STU004', balance: 500.00, last_updated: new Date().toISOString(), student_name: 'Pam Beesly' },
 ];
 
 export const initialMockWalletTransactions: WalletTransaction[] = [
-  { id: 'WTX001', student_id: 'STU003', transaction_date: '2024-07-28T10:00:00Z', transaction_type: Wallet"DEPOSIT", amount: 2000, description: 'Pocket money deposit by parent', running_balance: 2000, student_name: 'Jim Halpert' },
-  { id: 'WTX002', student_id: 'STU003', transaction_date: '2024-07-29T13:10:00Z', transaction_type: Wallet"PURCHASE", amount: -500, description: 'Canteen Purchase - Snacks', reference_id: '1', reference_type: 'Merchant', running_balance: 1500, student_name: 'Jim Halpert' },
-  { id: 'WTX003', student_id: 'STU004', transaction_date: '2024-07-25T08:00:00Z', transaction_type: Wallet"DEPOSIT", amount: 1500, description: 'Initial wallet funding', running_balance: 1500, student_name: 'Pam Beesly' },
-  { id: 'WTX004', student_id: 'STU004', transaction_date: '2024-07-26T12:30:00Z', transaction_type: Wallet"PURCHASE", amount: -300, description: 'Lunch Purchase - Burger & Fries', reference_id: '1', reference_type: 'Merchant', running_balance: 1200, student_name: 'Pam Beesly' },
-  { id: 'WTX005', student_id: 'STU004', transaction_date: '2024-07-27T10:15:00Z', transaction_type: Wallet"PURCHASE", amount: -150, description: 'Snack Purchase - Juice & Biscuits', reference_id: '1', reference_type: 'Merchant', running_balance: 1050, student_name: 'Pam Beesly' },
-  { id: 'WTX006', student_id: 'STU003', transaction_date: '2024-07-30T14:00:00Z', transaction_type: Wallet"PURCHASE", amount: -250, description: 'Lunch Purchase - Rice & Chicken', reference_id: '1', reference_type: 'Merchant', running_balance: 1250, student_name: 'Jim Halpert' },
+  { id: 'WTX001', student_id: 'STU003', transaction_date: '2024-07-28T10:00:00Z', transaction_type: WalletTransactionType.DEPOSIT, amount: 2000, description: 'Pocket money deposit by parent', running_balance: 2000, student_name: 'Jim Halpert' },
+  { id: 'WTX002', student_id: 'STU003', transaction_date: '2024-07-29T13:10:00Z', transaction_type: WalletTransactionType.PURCHASE, amount: -500, description: 'Canteen Purchase - Snacks', reference_id: '1', reference_type: 'Merchant', running_balance: 1500, student_name: 'Jim Halpert' },
+  { id: 'WTX003', student_id: 'STU004', transaction_date: '2024-07-25T08:00:00Z', transaction_type: WalletTransactionType.DEPOSIT, amount: 1500, description: 'Initial wallet funding', running_balance: 1500, student_name: 'Pam Beesly' },
+  { id: 'WTX004', student_id: 'STU004', transaction_date: '2024-07-26T12:30:00Z', transaction_type: WalletTransactionType.PURCHASE, amount: -300, description: 'Lunch Purchase - Burger & Fries', reference_id: '1', reference_type: 'Merchant', running_balance: 1200, student_name: 'Pam Beesly' },
+  { id: 'WTX005', student_id: 'STU004', transaction_date: '2024-07-27T10:15:00Z', transaction_type: WalletTransactionType.PURCHASE, amount: -150, description: 'Snack Purchase - Juice & Biscuits', reference_id: '1', reference_type: 'Merchant', running_balance: 1050, student_name: 'Pam Beesly' },
+  { id: 'WTX006', student_id: 'STU003', transaction_date: '2024-07-30T14:00:00Z', transaction_type: WalletTransactionType.PURCHASE, amount: -250, description: 'Lunch Purchase - Rice & Chicken', reference_id: '1', reference_type: 'Merchant', running_balance: 1250, student_name: 'Jim Halpert' },
 ];
 
 // Extended nutrition and meal planning mock data
 export const initialMockExtendedMealPlans: MealPlan[] = [
   ...initialMockMealPlans,
-  { id: 4, name: 'Breakfast Only Plan', description: 'Daily breakfast for day scholars', cost_per_period: 3000, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 5, name: 'Lunch & Snack Plan', description: 'Lunch plus afternoon snack', cost_per_period: 9500, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 6, name: 'Weekend Special Plan', description: 'Weekend meals for boarding students', cost_per_period: 4000, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 7, name: 'Vegetarian Plan', description: 'Full vegetarian meal plan', cost_per_period: 13000, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 8, name: 'Special Diet Plan', description: 'For students with dietary restrictions', cost_per_period: 16000, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 4, name: 'Breakfast Only Plan', description: 'Daily breakfast for day scholars', cost_per_period: 3000, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 5, name: 'Lunch & Snack Plan', description: 'Lunch plus afternoon snack', cost_per_period: 9500, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 6, name: 'Weekend Special Plan', description: 'Weekend meals for boarding students', cost_per_period: 4000, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 7, name: 'Vegetarian Plan', description: 'Full vegetarian meal plan', cost_per_period: 13000, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 8, name: 'Special Diet Plan', description: 'For students with dietary restrictions', cost_per_period: 16000, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 export const initialMockExtendedStudentMealPlans: StudentMealPlan[] = [
   ...initialMockStudentMealPlans,
-  { id: 'SMP003', student_id: 'STU004', school_period_id: 3, meal_plan_id: 3, status: StudentMealPlanStatus.ACTIVE, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", student_name: 'Pam Beesly', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Pay-as-you-eat Wallet' },
-  { id: 'SMP004', student_id: 'STU005', school_period_id: 3, meal_plan_id: 4, status: StudentMealPlanStatus.ACTIVE, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", student_name: 'Stanley Hudson', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Breakfast Only Plan' },
-  { id: 'SMP005', student_id: 'STU006', school_period_id: 3, meal_plan_id: 7, status: StudentMealPlanStatus.ACTIVE, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", student_name: 'Kelly Kapoor', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Vegetarian Plan' },
-  // TODO: The following lines use 'PENDING' and 'SUPPER' as string literals for enum fields. Commented out for now if not valid.
-  // { id: 'SMP006', student_id: 'STU007', school_period_id: 3, meal_plan_id: 8, status: 'PENDING', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", student_name: 'Ryan Howard', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Special Diet Plan' },
+  { id: 'SMP003', student_id: 'STU004', school_period_id: 3, meal_plan_id: 3, status: StudentMealPlanStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Pam Beesly', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Pay-as-you-eat Wallet' },
+  { id: 'SMP004', student_id: 'STU005', school_period_id: 3, meal_plan_id: 4, status: StudentMealPlanStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Stanley Hudson', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Breakfast Only Plan' },
+  { id: 'SMP005', student_id: 'STU006', school_period_id: 3, meal_plan_id: 7, status: StudentMealPlanStatus.ACTIVE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Kelly Kapoor', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Vegetarian Plan' },
+  { id: 'SMP006', student_id: 'STU007', school_period_id: 3, meal_plan_id: 8, status: StudentMealPlanStatus.PENDING, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), student_name: 'Ryan Howard', school_period_name: 'Term 3 - AY 2023/2024', meal_plan_name: 'Special Diet Plan' },
 ];
 
 export const initialMockExtendedMenus: Menu[] = [
   ...initialMockMenus,
   // Week of July 29 - August 4, 2024
-  { id: 'MENU004', menu_date: '2024-07-29', meal_type: MealType.SUPPER, description: 'Chapati, Green Grams, Vegetables', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 'MENU005', menu_date: '2024-07-30', meal_type: "BREAKFAST", description: 'Porridge, Bread, Milk, Banana', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 'MENU006', menu_date: '2024-07-30', meal_type: MealType.SUPPER, description: 'Rice, Fish Stew, Spinach', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 'MENU007', menu_date: '2024-07-31', meal_type: "BREAKFAST", description: 'Tea, Mandazi, Boiled Egg', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 'MENU008', menu_date: '2024-07-31', meal_type: "LUNCH", description: 'Ugali, Chicken Curry, Cabbage', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 'MENU009', menu_date: '2024-07-31', meal_type: MealType.SUPPER, description: 'Githeri, Beef Stew, Kales', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 'MENU010', menu_date: '2024-08-01', meal_type: "BREAKFAST", description: 'Uji, Bread, Margarine, Orange', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 'MENU011', menu_date: '2024-08-01', meal_type: "LUNCH", description: 'Rice, Bean Stew, Collard Greens', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
-  { id: 'MENU012', menu_date: '2024-08-01', meal_type: MealType.SUPPER, description: 'Chapati, Liver Stew, Mixed Vegetables', created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z" },
+  { id: 'MENU004', menu_date: '2024-07-29', meal_type: MealType.SUPPER, description: 'Chapati, Green Grams, Vegetables', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'MENU005', menu_date: '2024-07-30', meal_type: MealType.BREAKFAST, description: 'Porridge, Bread, Milk, Banana', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'MENU006', menu_date: '2024-07-30', meal_type: MealType.SUPPER, description: 'Rice, Fish Stew, Spinach', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'MENU007', menu_date: '2024-07-31', meal_type: MealType.BREAKFAST, description: 'Tea, Mandazi, Boiled Egg', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'MENU008', menu_date: '2024-07-31', meal_type: MealType.LUNCH, description: 'Ugali, Chicken Curry, Cabbage', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'MENU009', menu_date: '2024-07-31', meal_type: MealType.SUPPER, description: 'Githeri, Beef Stew, Kales', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'MENU010', menu_date: '2024-08-01', meal_type: MealType.BREAKFAST, description: 'Uji, Bread, Margarine, Orange', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'MENU011', menu_date: '2024-08-01', meal_type: MealType.LUNCH, description: 'Rice, Bean Stew, Collard Greens', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'MENU012', menu_date: '2024-08-01', meal_type: MealType.SUPPER, description: 'Chapati, Liver Stew, Mixed Vegetables', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 export const initialMockExtendedMealConsumptionLogs: MealConsumptionLog[] = [
@@ -98,17 +97,17 @@ export const initialMockExtendedMealConsumptionLogs: MealConsumptionLog[] = [
 
 export const initialMockExtendedMerchants: Merchant[] = [
   ...initialMockMerchants,
-  { id: 3, name: 'Tuck Shop', gl_account_id: 412, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", gl_account_name: 'Tuck Shop Sales Revenue' },
-  { id: 4, name: 'Stationery Store', gl_account_id: 413, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", gl_account_name: 'Stationery Sales Revenue' },
-  { id: 5, name: 'Sports Equipment Store', gl_account_id: 414, created_at: "2024-01-01T00:00:00.000Z", updated_at: "2024-01-01T00:00:00.000Z", gl_account_name: 'Sports Equipment Sales Revenue' },
+  { id: 3, name: 'Tuck Shop', gl_account_id: 412, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), gl_account_name: 'Tuck Shop Sales Revenue' },
+  { id: 4, name: 'Stationery Store', gl_account_id: 413, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), gl_account_name: 'Stationery Sales Revenue' },
+  { id: 5, name: 'Sports Equipment Store', gl_account_id: 414, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), gl_account_name: 'Sports Equipment Sales Revenue' },
 ];
 
 export const initialMockExtendedStudentWallets: StudentWallet[] = [
   ...initialMockStudentWallets,
-  { student_id: 'STU005', balance: 750.00, last_updated: "2024-01-01T00:00:00.000Z", student_name: 'Stanley Hudson' },
-  { student_id: 'STU006', balance: 1200.00, last_updated: "2024-01-01T00:00:00.000Z", student_name: 'Kelly Kapoor' },
-  { student_id: 'STU007', balance: 0.00, last_updated: "2024-01-01T00:00:00.000Z", student_name: 'Ryan Howard' },
-  { student_id: 'STU008', balance: 850.00, last_updated: "2024-01-01T00:00:00.000Z", student_name: 'Toby Flenderson' },
+  { student_id: 'STU005', balance: 750.00, last_updated: new Date().toISOString(), student_name: 'Stanley Hudson' },
+  { student_id: 'STU006', balance: 1200.00, last_updated: new Date().toISOString(), student_name: 'Kelly Kapoor' },
+  { student_id: 'STU007', balance: 0.00, last_updated: new Date().toISOString(), student_name: 'Ryan Howard' },
+  { student_id: 'STU008', balance: 850.00, last_updated: new Date().toISOString(), student_name: 'Toby Flenderson' },
 ];
 
 // Nutrition analytics and dietary information
