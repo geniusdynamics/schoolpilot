@@ -46,12 +46,12 @@ export const initialMockStudentWallets: StudentWallet[] = [
 ];
 
 export const initialMockWalletTransactions: WalletTransaction[] = [
-  { id: 'WTX001', student_id: 'STU003', transaction_date: '2024-07-28T10:00:00Z', transaction_type: Wallet"DEPOSIT", amount: 2000, description: 'Pocket money deposit by parent', running_balance: 2000, student_name: 'Jim Halpert' },
-  { id: 'WTX002', student_id: 'STU003', transaction_date: '2024-07-29T13:10:00Z', transaction_type: Wallet"PURCHASE", amount: -500, description: 'Canteen Purchase - Snacks', reference_id: '1', reference_type: 'Merchant', running_balance: 1500, student_name: 'Jim Halpert' },
-  { id: 'WTX003', student_id: 'STU004', transaction_date: '2024-07-25T08:00:00Z', transaction_type: Wallet"DEPOSIT", amount: 1500, description: 'Initial wallet funding', running_balance: 1500, student_name: 'Pam Beesly' },
-  { id: 'WTX004', student_id: 'STU004', transaction_date: '2024-07-26T12:30:00Z', transaction_type: Wallet"PURCHASE", amount: -300, description: 'Lunch Purchase - Burger & Fries', reference_id: '1', reference_type: 'Merchant', running_balance: 1200, student_name: 'Pam Beesly' },
-  { id: 'WTX005', student_id: 'STU004', transaction_date: '2024-07-27T10:15:00Z', transaction_type: Wallet"PURCHASE", amount: -150, description: 'Snack Purchase - Juice & Biscuits', reference_id: '1', reference_type: 'Merchant', running_balance: 1050, student_name: 'Pam Beesly' },
-  { id: 'WTX006', student_id: 'STU003', transaction_date: '2024-07-30T14:00:00Z', transaction_type: Wallet"PURCHASE", amount: -250, description: 'Lunch Purchase - Rice & Chicken', reference_id: '1', reference_type: 'Merchant', running_balance: 1250, student_name: 'Jim Halpert' },
+  { id: 'WTX001', student_id: 'STU003', transaction_date: '2024-07-28T10:00:00Z', transaction_type: WalletTransactionType.DEPOSIT, amount: 2000, description: 'Pocket money deposit by parent', running_balance: 2000, student_name: 'Jim Halpert' },
+  { id: 'WTX002', student_id: 'STU003', transaction_date: '2024-07-29T13:10:00Z', transaction_type: WalletTransactionType.PURCHASE, amount: -500, description: 'Canteen Purchase - Snacks', reference_id: '1', reference_type: 'Merchant', running_balance: 1500, student_name: 'Jim Halpert' },
+  { id: 'WTX003', student_id: 'STU004', transaction_date: '2024-07-25T08:00:00Z', transaction_type: WalletTransactionType.DEPOSIT, amount: 1500, description: 'Initial wallet funding', running_balance: 1500, student_name: 'Pam Beesly' },
+  { id: 'WTX004', student_id: 'STU004', transaction_date: '2024-07-26T12:30:00Z', transaction_type: WalletTransactionType.PURCHASE, amount: -300, description: 'Lunch Purchase - Burger & Fries', reference_id: '1', reference_type: 'Merchant', running_balance: 1200, student_name: 'Pam Beesly' },
+  { id: 'WTX005', student_id: 'STU004', transaction_date: '2024-07-27T10:15:00Z', transaction_type: WalletTransactionType.PURCHASE, amount: -150, description: 'Snack Purchase - Juice & Biscuits', reference_id: '1', reference_type: 'Merchant', running_balance: 1050, student_name: 'Pam Beesly' },
+  { id: 'WTX006', student_id: 'STU003', transaction_date: '2024-07-30T14:00:00Z', transaction_type: WalletTransactionType.PURCHASE, amount: -250, description: 'Lunch Purchase - Rice & Chicken', reference_id: '1', reference_type: 'Merchant', running_balance: 1250, student_name: 'Jim Halpert' },
 ];
 
 // Extended nutrition and meal planning mock data
