@@ -1,35 +1,40 @@
-// ABOUTME: Provides a global provider hook for HR Staff Recurring Items with full CRUD logic.
-// ABOUTME: Used for managing staff recurring items in the HR module.
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-import { useState } from 'react';
-import { HRStaffRecurringItemType } from './types';
-import { initialMockStaffRecurringItems } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockanys } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const UseStaffRecurringItemData = () => {
+  const [data, setData] = useState<any[]>(initialMockanys);
 
-const convertNulls = (item: any) => ({
-  ...item,
-  created_at: item.created_at === null ? undefined : item.created_at,
-});
-
-export function useStaffRecurringItemData() {
-  const [data, setData] = useState<HRStaffRecurringItemType[]>(initialMockStaffRecurringItems.map(convertNulls));
-
-  const create = (item: Omit<HRStaffRecurringItemType, 'id'>) => {
-    const newItem = { ...item, id: `SRI${Date.now()}` };
-    setData(prev => [...prev, newItem]);
-    return newItem;
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any;
+    setData((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const read = () => data;
-
-  const update = (updated: HRStaffRecurringItemType) => {
-    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setData((prev: any[]) => prev.map((item: any) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const remove = (id: string) => {
-    setData(prev => prev.filter(item => item.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: any[]) => prev.filter((item: any) => item.id !== id));
   };
 
-  return { data, create, read, update, remove };
-}
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

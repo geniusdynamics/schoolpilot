@@ -1,39 +1,40 @@
-// ABOUTME: Global provider hook for Partner entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for partner data management
+// ABOUTME: Provides CRUD operations for partner without depending on AppDataContext
 
-import { useState } from 'react';
-import { AdminPartnerType } from './types';
-import { initialMockPartners } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockPartners } from '../../administration/data/mockData';
+import { Partner } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const usePartnerData = () => {
+  const [data, setData] = useState<Partner[]>(initialMockPartners);
 
-export function usePartnerData() {
-  const [partners, setPartners] = useState<AdminPartnerType[]>(initialMockPartners);
-
-  const addPartner = (data: Omit<AdminPartnerType, 'id' | 'created_at' | 'updated_at'>) => {
-    const newPartner: AdminPartnerType = {
-      ...data,
-      id: Date.now().toString(),
+  const create = async (newItem: Partial<Partner>) => {
+    const newDataItem: Partner = {
+      ...newItem,
+      id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setPartners(prev => [...prev, newPartner]);
-    return newPartner;
+      updated_at: new Date().toISOString()
+    } as Partner;
+    setData((prev: Partner[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updatePartner = (updated: AdminPartnerType) => {
-    setPartners(prev => prev.map(p => p.id === updated.id ? { ...updated, updated_at: new Date().toISOString() } : p));
-    return updated;
+  const update = async (id: number, updatedData: Partial<Partner>) => {
+    setData((prev: Partner[]) => prev.map((item: Partner) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deletePartner = (id: string) => {
-    setPartners(prev => prev.filter(p => p.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: Partner[]) => prev.filter((item: Partner) => item.id !== id));
   };
 
   return {
-    partners,
-    addPartner,
-    updatePartner,
-    deletePartner,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

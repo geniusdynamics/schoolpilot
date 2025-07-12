@@ -140,6 +140,8 @@ export const initialMockGradingSchemes: GradingScheme[] = [
 
 export const initialMockStudentExamResults: StudentExamResultWithDetails[] = []; // Usually populated dynamically
 
+export const initialMockStudentPaperMarks: StudentPaperMark[] = []; // Usually populated dynamically when students take exams
+
 export const initialMockClassSubjectAllocations: ClassSubjectAllocation[] = [
     // Form 1 A Allocations - Core Subjects (11 subjects)
     {id: 'CSA001', class_stream_id: 1, subject_id: 1, academic_year_id: 1, class_stream_name: 'Form 1 A', subject_name: 'English', academic_year_name: 'AY 2023/2024'},

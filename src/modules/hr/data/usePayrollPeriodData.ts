@@ -1,35 +1,40 @@
-// ABOUTME: Provides a global provider hook for HR Payroll Periods with full CRUD logic.
-// ABOUTME: Used for managing payroll periods in the HR module.
+// ABOUTME: Self-contained hook for payrollperiod data management
+// ABOUTME: Provides CRUD operations for payrollperiod without depending on AppDataContext
 
-import { useState } from 'react';
-import { HRPayrollPeriodType } from './types';
-import { initialMockPayrollPeriods } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockPayrollPeriods } from '../../hr/data/mockData';
+import { PayrollPeriod } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const usePayrollPeriodData = () => {
+  const [data, setData] = useState<PayrollPeriod[]>(initialMockPayrollPeriods);
 
-const convertNulls = (item: any) => ({
-  ...item,
-  school_period_id: item.school_period_id === null ? undefined : item.school_period_id,
-});
-
-export function usePayrollPeriodData() {
-  const [data, setData] = useState<HRPayrollPeriodType[]>(initialMockPayrollPeriods.map(convertNulls));
-
-  const create = (item: Omit<HRPayrollPeriodType, 'id'>) => {
-    const newItem = { ...item, id: Date.now() };
-    setData(prev => [...prev, newItem]);
-    return newItem;
+  const create = async (newItem: Partial<PayrollPeriod>) => {
+    const newDataItem: PayrollPeriod = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as PayrollPeriod;
+    setData((prev: PayrollPeriod[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const read = () => data;
-
-  const update = (updated: HRPayrollPeriodType) => {
-    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  const update = async (id: number, updatedData: Partial<PayrollPeriod>) => {
+    setData((prev: PayrollPeriod[]) => prev.map((item: PayrollPeriod) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const remove = (id: number) => {
-    setData(prev => prev.filter(item => item.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: PayrollPeriod[]) => prev.filter((item: PayrollPeriod) => item.id !== id));
   };
 
-  return { data, create, read, update, remove };
-}
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

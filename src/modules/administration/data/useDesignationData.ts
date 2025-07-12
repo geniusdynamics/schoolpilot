@@ -1,46 +1,40 @@
+// ABOUTME: Self-contained hook for designation data management
+// ABOUTME: Provides CRUD operations for designation without depending on AppDataContext
+
 import { useState, useEffect } from 'react';
+import { initialMockDesignations } from '../../administration/data/mockData';
 import { Designation } from '../../../core/types';
-import { initialMockDesignations } from './mockData';
 
-export const isGlobalProvider = true;
+export const useDesignationData = () => {
+  const [data, setData] = useState<Designation[]>(initialMockDesignations);
 
-export function useDesignationData() {
-  const [designations, setDesignations] = useState<Designation[]>(initialMockDesignations || []);
-  const [loading, setLoading] = useState({ designations: true });
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading({ designations: false });
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const addDesignation = async (designation: Omit<Designation, 'id' | 'created_at' | 'updated_at'>) => {
-    const newId = Math.max(...designations.map(d => d.id), 0) + 1;
-    const newDesignation: Designation = {
-      ...designation,
-      id: newId,
+  const create = async (newItem: Partial<Designation>) => {
+    const newDataItem: Designation = {
+      ...newItem,
+      id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setDesignations(prev => [...prev, newDesignation]);
-    return newDesignation;
+      updated_at: new Date().toISOString()
+    } as Designation;
+    setData((prev: Designation[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateDesignation = async (updated: Designation) => {
-    setDesignations(prev => prev.map(d => d.id === updated.id ? { ...updated, updated_at: new Date().toISOString() } : d));
+  const update = async (id: number, updatedData: Partial<Designation>) => {
+    setData((prev: Designation[]) => prev.map((item: Designation) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteDesignation = async (id: number) => {
-    setDesignations(prev => prev.filter(d => d.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: Designation[]) => prev.filter((item: Designation) => item.id !== id));
   };
 
   return {
-    designations,
-    loading,
-    addDesignation,
-    updateDesignation,
-    deleteDesignation,
+    data,
+    create,
+    update,
+    remove
   };
-}
+};

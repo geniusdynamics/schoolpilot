@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for SubjectPaper entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for subjectpaper data management
+// ABOUTME: Provides CRUD operations for subjectpaper without depending on AppDataContext
 
-import { useState } from 'react';
-import { SubjectPaper } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockSubjectPapers } from './mockData';
+import { SubjectPaper } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useSubjectPaperData = () => {
+  const [data, setData] = useState<SubjectPaper[]>(initialMockSubjectPapers);
 
-export function useSubjectPaperData() {
-  const [subjectPapers, setSubjectPapers] = useState<SubjectPaper[]>(initialMockSubjectPapers);
-
-  const addSubjectPaper = (data: Omit<SubjectPaper, 'id'>) => {
-    const newSubjectPaper: SubjectPaper = {
-      ...data,
+  const create = async (newItem: Partial<SubjectPaper>) => {
+    const newDataItem: SubjectPaper = {
+      ...newItem,
       id: Date.now(),
-    };
-    setSubjectPapers(prev => [...prev, newSubjectPaper]);
-    return newSubjectPaper;
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as SubjectPaper;
+    setData((prev: SubjectPaper[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateSubjectPaper = (updated: SubjectPaper) => {
-    setSubjectPapers(prev => prev.map(s => s.id === updated.id ? { ...updated } : s));
-    return updated;
+  const update = async (id: number, updatedData: Partial<SubjectPaper>) => {
+    setData((prev: SubjectPaper[]) => prev.map((item: SubjectPaper) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteSubjectPaper = (id: number) => {
-    setSubjectPapers(prev => prev.filter(s => s.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: SubjectPaper[]) => prev.filter((item: SubjectPaper) => item.id !== id));
   };
 
   return {
-    subjectPapers,
-    addSubjectPaper,
-    updateSubjectPaper,
-    deleteSubjectPaper,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

@@ -1,39 +1,40 @@
-// ABOUTME: Global provider hook for Campaign entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for campaign data management
+// ABOUTME: Provides CRUD operations for campaign without depending on AppDataContext
 
-import { useState } from 'react';
-import { AdminCampaignType } from './types';
-import { initialMockCampaigns } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockCampaigns } from '../../administration/data/mockData';
+import { Campaign } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useCampaignData = () => {
+  const [data, setData] = useState<Campaign[]>(initialMockCampaigns);
 
-export function useCampaignData() {
-  const [campaigns, setCampaigns] = useState<AdminCampaignType[]>(initialMockCampaigns);
-
-  const addCampaign = (data: Omit<AdminCampaignType, 'id' | 'created_at' | 'updated_at'>) => {
-    const newCampaign: AdminCampaignType = {
-      ...data,
-      id: Date.now().toString(),
+  const create = async (newItem: Partial<Campaign>) => {
+    const newDataItem: Campaign = {
+      ...newItem,
+      id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setCampaigns(prev => [...prev, newCampaign]);
-    return newCampaign;
+      updated_at: new Date().toISOString()
+    } as Campaign;
+    setData((prev: Campaign[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateCampaign = (updated: AdminCampaignType) => {
-    setCampaigns(prev => prev.map(c => c.id === updated.id ? { ...updated } : c));
-    return updated;
+  const update = async (id: number, updatedData: Partial<Campaign>) => {
+    setData((prev: Campaign[]) => prev.map((item: Campaign) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteCampaign = (id: string) => {
-    setCampaigns(prev => prev.filter(c => c.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: Campaign[]) => prev.filter((item: Campaign) => item.id !== id));
   };
 
   return {
-    campaigns,
-    addCampaign,
-    updateCampaign,
-    deleteCampaign,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

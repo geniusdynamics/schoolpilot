@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for StudentCategory entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for studentcategory data management
+// ABOUTME: Provides CRUD operations for studentcategory without depending on AppDataContext
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { initialMockStudentCategories } from '../../administration/data/mockData';
 import { StudentCategory } from '../../../core/types';
-import { initialMockStudentCategories } from './mockData';
 
-export const isGlobalProvider = true;
+export const useStudentCategoryData = () => {
+  const [data, setData] = useState<StudentCategory[]>(initialMockStudentCategories);
 
-export function useStudentCategoryData() {
-  const [studentCategories, setStudentCategories] = useState<StudentCategory[]>(initialMockStudentCategories);
-
-  const addStudentCategory = (data: Omit<StudentCategory, 'id'>) => {
-    const newCategory: StudentCategory = {
-      ...data,
+  const create = async (newItem: Partial<StudentCategory>) => {
+    const newDataItem: StudentCategory = {
+      ...newItem,
       id: Date.now(),
-    };
-    setStudentCategories(prev => [...prev, newCategory]);
-    return newCategory;
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as StudentCategory;
+    setData((prev: StudentCategory[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateStudentCategory = (updated: StudentCategory) => {
-    setStudentCategories(prev => prev.map(c => c.id === updated.id ? { ...updated } : c));
-    return updated;
+  const update = async (id: number, updatedData: Partial<StudentCategory>) => {
+    setData((prev: StudentCategory[]) => prev.map((item: StudentCategory) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteStudentCategory = (id: number) => {
-    setStudentCategories(prev => prev.filter(c => c.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: StudentCategory[]) => prev.filter((item: StudentCategory) => item.id !== id));
   };
 
   return {
-    studentCategories,
-    addStudentCategory,
-    updateStudentCategory,
-    deleteStudentCategory,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

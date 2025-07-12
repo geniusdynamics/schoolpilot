@@ -1,16 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for CustomerInvoice in Finance.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { initialMockCustomerInvoices } from './mockData';
+// ABOUTME: Self-contained hook for customerinvoice data management
+// ABOUTME: Provides CRUD operations for customerinvoice without depending on AppDataContext
 
-export const isGlobalProvider = true;
+import { useState, useEffect } from 'react';
+import { initialMockCustomerInvoices } from '../../finance/data/mockData';
+import { CustomerInvoice } from '../../../core/types';
 
-export function useCustomerInvoiceData() {
-  const [data, setData] = useState<any[]>(initialMockCustomerInvoices);
+export const useCustomerInvoiceData = () => {
+  const [data, setData] = useState<CustomerInvoice[]>(initialMockCustomerInvoices);
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  const create = async (newItem: Partial<CustomerInvoice>) => {
+    const newDataItem: CustomerInvoice = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as CustomerInvoice;
+    setData((prev: CustomerInvoice[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<CustomerInvoice>) => {
+    setData((prev: CustomerInvoice[]) => prev.map((item: CustomerInvoice) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: CustomerInvoice[]) => prev.filter((item: CustomerInvoice) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

@@ -1,97 +1,272 @@
-// ABOUTME: Dynamically loads and aggregates all modular mock data for the app.
-// ABOUTME: Used as the only source of mock data for AppDataContext in mock/demo mode.
-// ABOUTME: Delegates CRUD operations to module-specific hooks to respect modular architecture.
+// ABOUTME: This file provides modular mock data using module-specific hooks for live data.
+// ABOUTME: It aggregates data from all module hooks and provides a unified interface for the app context.
 
 import { useState, useEffect } from 'react';
-import type { AppDataType, AppDataContextType, AppDataLoadingStates } from '../core/types';
+import { AppDataContextType, AppDataLoadingStates } from '../types';
 
-// Import module-specific hooks to get live data
-import { usePartnerData } from '../modules/administration/data/usePartnerData';
-import { useCustomerData } from '../modules/administration/data/useCustomerData';
-import { useClubAndSocietyData } from '../modules/administration/data/useClubAndSocietyData';
-import { useStudentHealthRecordData } from '../modules/administration/data/useStudentHealthRecordData';
-import { useStudentAttendanceData } from '../modules/administration/data/useStudentAttendanceData';
-import { useTemplateCommData } from '../modules/administration/data/useTemplateCommData';
-import { useCampaignData } from '../modules/administration/data/useCampaignData';
-import { useSchoolPeriodData } from '../modules/administration/data/useSchoolPeriodData';
-import { useAcademicYearData } from '../modules/administration/data/useAcademicYearData';
-import { useAcademicPeriodDefinitionData } from '../modules/administration/data/useAcademicPeriodDefinitionData';
-import { useDesignationData } from '../modules/administration/data/useDesignationData';
-import { useTimetablePeriodDefData } from '../modules/academics/data/useTimetablePeriodDefData';
-import { useFinancialYearData } from '../modules/finance/data/useFinancialYearData';
-import { useDepartmentData } from '../modules/administration/data/useDepartmentData';
-import { useSubjectData } from '../modules/academics/data/useSubjectData';
-import { useTimetableEntryData } from '../modules/academics/data/useTimetableEntryData';
-import { useTeacherSubjectAssignmentData } from '../modules/academics/data/useTeacherSubjectAssignmentData';
+// Import all module hooks
+import { useAcademicYearData } from '../modules/academics/data/useAcademicYearData';
 import { useClassSubjectAllocationData } from '../modules/academics/data/useClassSubjectAllocationData';
+import { useExamPaperSettingData } from '../modules/academics/data/useExamPaperSettingData';
+import { useExamSessionData } from '../modules/academics/data/useExamSessionData';
+import { useGradingSchemeData } from '../modules/academics/data/useGradingSchemeData';
+import { useGradingSchemeLevelData } from '../modules/academics/data/useGradingSchemeLevelData';
+import { useStudentExamResultData } from '../modules/academics/data/useStudentExamResultData';
+import { useStudentPaperMarkData } from '../modules/academics/data/useStudentPaperMarkData';
+import { useStudentSubjectEnrollmentData } from '../modules/academics/data/useStudentSubjectEnrollmentData';
+import { useSubjectData } from '../modules/academics/data/useSubjectData';
+import { useSubjectPaperData } from '../modules/academics/data/useSubjectPaperData';
+import { useTeacherSubjectAssignmentData } from '../modules/academics/data/useTeacherSubjectAssignmentData';
+import { useTimetableEntryData } from '../modules/academics/data/useTimetableEntryData';
+import { useTimetablePeriodDefData } from '../modules/academics/data/useTimetablePeriodDefData';
+import { useAcademicPeriodDefinitionData } from '../modules/administration/data/useAcademicPeriodDefinitionData';
+import { useAcademicYearStructureData } from '../modules/administration/data/useAcademicYearStructureData';
+import { useCampaignData } from '../modules/administration/data/useCampaignData';
 import { useClassData } from '../modules/administration/data/useClassData';
 import { useClassStreamData } from '../modules/administration/data/useClassStreamData';
+import { useClubAndSocietyData } from '../modules/administration/data/useClubAndSocietyData';
+import { useCustomerData } from '../modules/administration/data/useCustomerData';
+import { useDepartmentData } from '../modules/administration/data/useDepartmentData';
+import { useDesignationData } from '../modules/administration/data/useDesignationData';
+import { useDormitoryData } from '../modules/administration/data/useDormitoryData';
+import { usePartnerData } from '../modules/administration/data/usePartnerData';
+import { useSchoolPeriodData } from '../modules/administration/data/useSchoolPeriodData';
+import { useStudentAttendanceData } from '../modules/administration/data/useStudentAttendanceData';
+import { useStudentCategoryData } from '../modules/administration/data/useStudentCategoryData';
+import { useStudentHealthRecordData } from '../modules/administration/data/useStudentHealthRecordData';
+import { useTemplateCommData } from '../modules/administration/data/useTemplateCommData';
+import { useBankData } from '../modules/finance/data/useBankData';
+import { useChartOfAccountData } from '../modules/finance/data/useChartOfAccountData';
+import { useCustomerInvoiceData } from '../modules/finance/data/useCustomerInvoiceData';
+import { useExpenseCategoryData } from '../modules/finance/data/useExpenseCategoryData';
+import { useExpenseClaimData } from '../modules/finance/data/useExpenseClaimData';
+import { useFeeAdjustmentData } from '../modules/finance/data/useFeeAdjustmentData';
+import { useFeeTemplateData } from '../modules/finance/data/useFeeTemplateData';
+import { useFeeTemplateItemData } from '../modules/finance/data/useFeeTemplateItemData';
+import { useFinancialYearData } from '../modules/finance/data/useFinancialYearData';
+import { useGeneralLedgerEntryData } from '../modules/finance/data/useGeneralLedgerEntryData';
+import { useGeneralPaymentData } from '../modules/finance/data/useGeneralPaymentData';
+import { useInvoicePaymentApplicationData } from '../modules/finance/data/useInvoicePaymentApplicationData';
+import { useStudentInvoiceData } from '../modules/finance/data/useStudentInvoiceData';
+import { useStudentInvoiceItemData } from '../modules/finance/data/useStudentInvoiceItemData';
+import { useStudentOpeningBalanceData } from '../modules/finance/data/useStudentOpeningBalanceData';
+import { useStudentPaymentData } from '../modules/finance/data/useStudentPaymentData';
+import { useStudentTransportAssignmentData } from '../modules/finance/data/useStudentTransportAssignmentData';
+import { useSupplierData } from '../modules/finance/data/useSupplierData';
+import { useSupplierInvoiceData } from '../modules/finance/data/useSupplierInvoiceData';
+import { useTransportRouteData } from '../modules/finance/data/useTransportRouteData';
+import { usePayrollItemTypeData } from '../modules/hr/data/usePayrollItemTypeData';
+import { usePayrollPeriodData } from '../modules/hr/data/usePayrollPeriodData';
+import { usePayslipData } from '../modules/hr/data/usePayslipData';
+import { usePayslipItemData } from '../modules/hr/data/usePayslipItemData';
+import { useStaffRecurringItemData } from '../modules/hr/data/useStaffRecurringItemData';
+import { useStaffSalarySettingData } from '../modules/hr/data/useStaffSalarySettingData';
+import { useAssetDepreciationLogData } from '../modules/inventory/data/useAssetDepreciationLogData';
+import { useFixedAssetData } from '../modules/inventory/data/useFixedAssetData';
+import { useItemCategoryData } from '../modules/inventory/data/useItemCategoryData';
+import { useItemData } from '../modules/inventory/data/useItemData';
+import { usePurchaseOrderData } from '../modules/inventory/data/usePurchaseOrderData';
+import { usePurchaseOrderItemData } from '../modules/inventory/data/usePurchaseOrderItemData';
+import { useRequisitionData } from '../modules/inventory/data/useRequisitionData';
+import { useRequisitionItemData } from '../modules/inventory/data/useRequisitionItemData';
+import { useRFQData } from '../modules/inventory/data/useRFQData';
+import { useStockLevelData } from '../modules/inventory/data/useStockLevelData';
+import { useStockTransactionData } from '../modules/inventory/data/useStockTransactionData';
+import { useWarehouseData } from '../modules/inventory/data/useWarehouseData';
+import { useBookCategoryData } from '../modules/library/data/useBookCategoryData';
+import { useBookData } from '../modules/library/data/useBookData';
+import { useFineData } from '../modules/library/data/useFineData';
+import { useLoanData } from '../modules/library/data/useLoanData';
+import { useMealConsumptionLogData } from '../modules/nutrition/data/useMealConsumptionLogData';
+import { useMealPlanData } from '../modules/nutrition/data/useMealPlanData';
+import { useMenuData } from '../modules/nutrition/data/useMenuData';
+import { useMerchantData } from '../modules/nutrition/data/useMerchantData';
+import { useStudentMealPlanData } from '../modules/nutrition/data/useStudentMealPlanData';
+import { useStudentWalletData } from '../modules/nutrition/data/useStudentWalletData';
+import { useWalletTransactionData } from '../modules/nutrition/data/useWalletTransactionData';
 
 // Dynamically import all mockData.ts files from modules for fallback data
 const mockDataModules = import.meta.glob('../modules/*/data/mockData.ts', { eager: true });
 
 // Aggregate all exported mock data into a single object for fallback
-const rawInitialData: Partial<AppDataType> = {};
+export const rawInitialData: any = {};
 for (const mod of Object.values(mockDataModules)) {
   if (typeof mod === 'object' && mod !== null) {
     Object.entries(mod).forEach(([key, value]) => {
       // Only add if not already present (last-in wins for duplicate keys)
-      rawInitialData[key as keyof AppDataType] = value;
+      rawInitialData[key] = value;
     });
   }
 }
 
-// Helper to create loading states for all entities
-const createLoadingStates = (): AppDataLoadingStates => {
-  const keys = Object.keys(rawInitialData) as Array<keyof AppDataType>;
-  const states = keys.reduce((acc, key) => {
-    acc[key] = true;
-    return acc;
-  }, {} as Record<keyof AppDataType, boolean>);
-  return { ...states, all: true };
-};
-
-// Dynamically collect all keys from all loaded mockData modules
-const allMockKeys = Array.from(
-  new Set(
-    Object.values(mockDataModules)
-      .flatMap(mod => (typeof mod === 'object' && mod !== null ? Object.keys(mod) : []))
-  )
-);
-
-// Helper to determine if a value is an array (for defaulting to [])
-const isArrayType = (val: any) => Array.isArray(val);
+// Helper function to create loading states
+const createLoadingStates = (): AppDataLoadingStates => ({
+  all: true,
+  schoolDetails: true,
+  roles: true,
+  users: true,
+  students: true,
+  staff: true,
+  classes: true,
+  subjects: true,
+  subjectPapers: true,
+  examSessions: true,
+  examPaperSettings: true,
+  gradingSchemes: true,
+  studentExamResults: true,
+  classSubjectAllocations: true,
+  teacherSubjectAssignments: true,
+  studentSubjectEnrollments: true,
+  timetablePeriodDefs: true,
+  timetableEntries: true,
+  departments: true,
+  designations: true,
+  studentCategories: true,
+  dormitories: true,
+  academicYears: true,
+  schoolPeriods: true,
+  academicYearStructures: true,
+  academicPeriodDefinitions: true,
+  financialYears: true,
+  classStreams: true,
+  parentsGuardians: true,
+  partners: true,
+  clubs: true,
+  customers: true,
+  studentHealthRecords: true,
+  studentAttendance: true,
+  templatesComm: true,
+  campaigns: true,
+  chartOfAccounts: true,
+  banks: true,
+  suppliers: true,
+  feeTemplates: true,
+  feeTemplateItems: true,
+  expenseCategories: true,
+  supplierInvoices: true,
+  warehouses: true,
+  itemCategoriesInv: true,
+  itemsInv: true,
+  fixedAssets: true,
+  requisitions: true,
+  purchaseOrders: true,
+  stockLevels: true,
+  stockTransactions: true,
+  payrollPeriods: true,
+  payrollItemTypes: true,
+  staffSalarySettings: true,
+  payslips: true,
+  bookCategories: true,
+  books: true,
+  loans: true,
+  fines: true,
+  customerInvoices: true,
+  workflows: true,
+  mealPlans: true,
+  menus: true,
+  merchants: true,
+  auditLogs: true,
+  expenseClaims: true,
+  studentOpeningBalances: true,
+  feeAdjustments: true,
+  transportRoutes: true,
+  studentTransportAssignments: true,
+  studentInvoices: true,
+  studentInvoiceItems: true,
+  studentPayments: true,
+  invoicePaymentApplications: true,
+  generalPayments: true,
+  generalLedgerEntries: true,
+  rfqs: true
+});
 
 export const useModularMockData = (): AppDataContextType => {
-  // Use module-specific hooks to get live data
-  const { partners, addPartner, updatePartner, deletePartner } = usePartnerData();
-  const { customers, addCustomer, updateCustomer, deleteCustomer } = useCustomerData();
-  const { clubsAndSocieties, addClubAndSociety, updateClubAndSociety, deleteClubAndSociety } = useClubAndSocietyData();
-  const { studentHealthRecords, addStudentHealthRecord, updateStudentHealthRecord, deleteStudentHealthRecord } = useStudentHealthRecordData();
-  const { studentAttendance, addStudentAttendance, updateStudentAttendance, deleteStudentAttendance } = useStudentAttendanceData();
-  const { templateComms, addTemplateComm, updateTemplateComm, deleteTemplateComm } = useTemplateCommData();
-  const { campaigns, addCampaign, updateCampaign, deleteCampaign } = useCampaignData();
-  const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
-  const { academicYears, addAcademicYear, updateAcademicYear, deleteAcademicYear } = useAcademicYearData();
-  const { academicPeriodDefinitions, addAcademicPeriodDefinition, updateAcademicPeriodDefinition, deleteAcademicPeriodDefinition } = useAcademicPeriodDefinitionData();
-  const { designations, addDesignation, updateDesignation, deleteDesignation } = useDesignationData();
-  const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
-  const { data: financialYears, create: addFinancialYear, update: updateFinancialYear, remove: deleteFinancialYear } = useFinancialYearData();
-  const { departments, addDepartment, updateDepartment, deleteDepartment } = useDepartmentData();
-  const { subjects, addSubject, updateSubject, deleteSubject } = useSubjectData();
-  const { data: timetableEntries, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
-  const { data: teacherSubjectAssignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
-  const { classSubjectAllocations, addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation } = useClassSubjectAllocationData();
-  const { classes, addClass, updateClass, deleteClass } = useClassData();
-  const { classStreams, addClassStream, updateClassStream, deleteClassStream } = useClassStreamData();
+  // Use module-specific hooks for live data
+  const { data: academicyears, create: addAcademicYear, update: updateAcademicYear, remove: deleteAcademicYear } = useAcademicYearData();
+  const { data: classsubjectallocations, create: addClassSubjectAllocation, update: updateClassSubjectAllocation, remove: deleteClassSubjectAllocation } = useClassSubjectAllocationData();
+  const { data: exampapersettings, create: addExamPaperSetting, update: updateExamPaperSetting, remove: deleteExamPaperSetting } = useExamPaperSettingData();
+  const { data: examsessions, create: addExamSession, update: updateExamSession, remove: deleteExamSession } = useExamSessionData();
+  const { data: gradingschemes, create: addGradingScheme, update: updateGradingScheme, remove: deleteGradingScheme } = useGradingSchemeData();
+  const { data: gradingschemelevels, create: addGradingSchemeLevel, update: updateGradingSchemeLevel, remove: deleteGradingSchemeLevel } = useGradingSchemeLevelData();
+  const { data: studentexamresults, create: addStudentExamResult, update: updateStudentExamResult, remove: deleteStudentExamResult } = useStudentExamResultData();
+  const { data: studentpapermarks, create: addStudentPaperMark, update: updateStudentPaperMark, remove: deleteStudentPaperMark } = useStudentPaperMarkData();
+  const { data: studentsubjectenrollments, create: addStudentSubjectEnrollment, update: updateStudentSubjectEnrollment, remove: deleteStudentSubjectEnrollment } = useStudentSubjectEnrollmentData();
+  const { data: subjects, create: addSubject, update: updateSubject, remove: deleteSubject } = useSubjectData();
+  const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
+  const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
+  const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
+  const { data: timetableperioddefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
+  const { data: academicperioddefinitions, create: addAcademicPeriodDefinition, update: updateAcademicPeriodDefinition, remove: deleteAcademicPeriodDefinition } = useAcademicPeriodDefinitionData();
+  const { data: academicyearstructures, create: addAcademicYearStructure, update: updateAcademicYearStructure, remove: deleteAcademicYearStructure } = useAcademicYearStructureData();
+  const { data: campaigns, create: addCampaign, update: updateCampaign, remove: deleteCampaign } = useCampaignData();
+  const { data: classs, create: addClass, update: updateClass, remove: deleteClass } = useClassData();
+  const { data: classstreams, create: addClassStream, update: updateClassStream, remove: deleteClassStream } = useClassStreamData();
+  const { data: clubandsocietys, create: addClubAndSociety, update: updateClubAndSociety, remove: deleteClubAndSociety } = useClubAndSocietyData();
+  const { data: customers, create: addCustomer, update: updateCustomer, remove: deleteCustomer } = useCustomerData();
+  const { data: departments, create: addDepartment, update: updateDepartment, remove: deleteDepartment } = useDepartmentData();
+  const { data: designations, create: addDesignation, update: updateDesignation, remove: deleteDesignation } = useDesignationData();
+  const { data: dormitorys, create: addDormitory, update: updateDormitory, remove: deleteDormitory } = useDormitoryData();
+  const { data: partners, create: addPartner, update: updatePartner, remove: deletePartner } = usePartnerData();
+  const { data: schoolperiods, create: addSchoolPeriod, update: updateSchoolPeriod, remove: deleteSchoolPeriod } = useSchoolPeriodData();
+  const { data: studentattendances, create: addStudentAttendance, update: updateStudentAttendance, remove: deleteStudentAttendance } = useStudentAttendanceData();
+  const { data: studentcategorys, create: addStudentCategory, update: updateStudentCategory, remove: deleteStudentCategory } = useStudentCategoryData();
+  const { data: studenthealthrecords, create: addStudentHealthRecord, update: updateStudentHealthRecord, remove: deleteStudentHealthRecord } = useStudentHealthRecordData();
+  const { data: templatecomms, create: addTemplateComm, update: updateTemplateComm, remove: deleteTemplateComm } = useTemplateCommData();
+  const { data: banks, create: addBank, update: updateBank, remove: deleteBank } = useBankData();
+  const { data: chartofaccounts, create: addChartOfAccount, update: updateChartOfAccount, remove: deleteChartOfAccount } = useChartOfAccountData();
+  const { data: customerinvoices, create: addCustomerInvoice, update: updateCustomerInvoice, remove: deleteCustomerInvoice } = useCustomerInvoiceData();
+  const { data: expensecategorys, create: addExpenseCategory, update: updateExpenseCategory, remove: deleteExpenseCategory } = useExpenseCategoryData();
+  const { data: expenseclaims, create: addExpenseClaim, update: updateExpenseClaim, remove: deleteExpenseClaim } = useExpenseClaimData();
+  const { data: feeadjustments, create: addFeeAdjustment, update: updateFeeAdjustment, remove: deleteFeeAdjustment } = useFeeAdjustmentData();
+  const { data: feetemplates, create: addFeeTemplate, update: updateFeeTemplate, remove: deleteFeeTemplate } = useFeeTemplateData();
+  const { data: feetemplateitems, create: addFeeTemplateItem, update: updateFeeTemplateItem, remove: deleteFeeTemplateItem } = useFeeTemplateItemData();
+  const { data: financialyears, create: addFinancialYear, update: updateFinancialYear, remove: deleteFinancialYear } = useFinancialYearData();
+  const { data: generalledgerentrys, create: addGeneralLedgerEntry, update: updateGeneralLedgerEntry, remove: deleteGeneralLedgerEntry } = useGeneralLedgerEntryData();
+  const { data: generalpayments, create: addGeneralPayment, update: updateGeneralPayment, remove: deleteGeneralPayment } = useGeneralPaymentData();
+  const { data: invoicepaymentapplications, create: addInvoicePaymentApplication, update: updateInvoicePaymentApplication, remove: deleteInvoicePaymentApplication } = useInvoicePaymentApplicationData();
+  const { data: studentinvoices, create: addStudentInvoice, update: updateStudentInvoice, remove: deleteStudentInvoice } = useStudentInvoiceData();
+  const { data: studentinvoiceitems, create: addStudentInvoiceItem, update: updateStudentInvoiceItem, remove: deleteStudentInvoiceItem } = useStudentInvoiceItemData();
+  const { data: studentopeningbalances, create: addStudentOpeningBalance, update: updateStudentOpeningBalance, remove: deleteStudentOpeningBalance } = useStudentOpeningBalanceData();
+  const { data: studentpayments, create: addStudentPayment, update: updateStudentPayment, remove: deleteStudentPayment } = useStudentPaymentData();
+  const { data: studenttransportassignments, create: addStudentTransportAssignment, update: updateStudentTransportAssignment, remove: deleteStudentTransportAssignment } = useStudentTransportAssignmentData();
+  const { data: suppliers, create: addSupplier, update: updateSupplier, remove: deleteSupplier } = useSupplierData();
+  const { data: supplierinvoices, create: addSupplierInvoice, update: updateSupplierInvoice, remove: deleteSupplierInvoice } = useSupplierInvoiceData();
+  const { data: transportroutes, create: addTransportRoute, update: updateTransportRoute, remove: deleteTransportRoute } = useTransportRouteData();
+  const { data: payrollitemtypes, create: addPayrollItemType, update: updatePayrollItemType, remove: deletePayrollItemType } = usePayrollItemTypeData();
+  const { data: payrollperiods, create: addPayrollPeriod, update: updatePayrollPeriod, remove: deletePayrollPeriod } = usePayrollPeriodData();
+  const { data: payslips, create: addPayslip, update: updatePayslip, remove: deletePayslip } = usePayslipData();
+  const { data: payslipitems, create: addPayslipItem, update: updatePayslipItem, remove: deletePayslipItem } = usePayslipItemData();
+  const { data: staffrecurringitems, create: addStaffRecurringItem, update: updateStaffRecurringItem, remove: deleteStaffRecurringItem } = useStaffRecurringItemData();
+  const { data: staffsalarysettings, create: addStaffSalarySetting, update: updateStaffSalarySetting, remove: deleteStaffSalarySetting } = useStaffSalarySettingData();
+  const { data: assetdepreciationlogs, create: addAssetDepreciationLog, update: updateAssetDepreciationLog, remove: deleteAssetDepreciationLog } = useAssetDepreciationLogData();
+  const { data: fixedassets, create: addFixedAsset, update: updateFixedAsset, remove: deleteFixedAsset } = useFixedAssetData();
+  const { data: itemcategorys, create: addItemCategory, update: updateItemCategory, remove: deleteItemCategory } = useItemCategoryData();
+  const { data: items, create: addItem, update: updateItem, remove: deleteItem } = useItemData();
+  const { data: purchaseorders, create: addPurchaseOrder, update: updatePurchaseOrder, remove: deletePurchaseOrder } = usePurchaseOrderData();
+  const { data: purchaseorderitems, create: addPurchaseOrderItem, update: updatePurchaseOrderItem, remove: deletePurchaseOrderItem } = usePurchaseOrderItemData();
+  const { data: requisitions, create: addRequisition, update: updateRequisition, remove: deleteRequisition } = useRequisitionData();
+  const { data: requisitionitems, create: addRequisitionItem, update: updateRequisitionItem, remove: deleteRequisitionItem } = useRequisitionItemData();
+  const { data: rfqs, create: addRFQ, update: updateRFQ, remove: deleteRFQ } = useRFQData();
+  const { data: stocklevels, create: addStockLevel, update: updateStockLevel, remove: deleteStockLevel } = useStockLevelData();
+  const { data: stocktransactions, create: addStockTransaction, update: updateStockTransaction, remove: deleteStockTransaction } = useStockTransactionData();
+  const { data: warehouses, create: addWarehouse, update: updateWarehouse, remove: deleteWarehouse } = useWarehouseData();
+  const { data: bookcategorys, create: addBookCategory, update: updateBookCategory, remove: deleteBookCategory } = useBookCategoryData();
+  const { data: books, create: addBook, update: updateBook, remove: deleteBook } = useBookData();
+  const { data: fines, create: addFine, update: updateFine, remove: deleteFine } = useFineData();
+  const { data: loans, create: addLoan, update: updateLoan, remove: deleteLoan } = useLoanData();
+  const { data: mealconsumptionlogs, create: addMealConsumptionLog, update: updateMealConsumptionLog, remove: deleteMealConsumptionLog } = useMealConsumptionLogData();
+  const { data: mealplans, create: addMealPlan, update: updateMealPlan, remove: deleteMealPlan } = useMealPlanData();
+  const { data: menus, create: addMenu, update: updateMenu, remove: deleteMenu } = useMenuData();
+  const { data: merchants, create: addMerchant, update: updateMerchant, remove: deleteMerchant } = useMerchantData();
+  const { data: studentmealplans, create: addStudentMealPlan, update: updateStudentMealPlan, remove: deleteStudentMealPlan } = useStudentMealPlanData();
+  const { data: studentwallets, create: addStudentWallet, update: updateStudentWallet, remove: deleteStudentWallet } = useStudentWalletData();
+  const { data: wallettransactions, create: addWalletTransaction, update: updateWalletTransaction, remove: deleteWalletTransaction } = useWalletTransactionData();
 
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
 
   useEffect(() => {
-    // Simulate async loading
     const timer = setTimeout(() => {
       setLoading(prev => {
-        // Set all loading states to false
         const newLoading = { ...prev };
         Object.keys(newLoading).forEach(key => {
           newLoading[key as keyof AppDataLoadingStates] = false;
@@ -102,270 +277,98 @@ export const useModularMockData = (): AppDataContextType => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Combine live data from hooks with fallback data
   const fullData: any = {
-    // Live data from module hooks
-    partners,
-    customers,
-    clubs: clubsAndSocieties, // Map clubsAndSocieties to clubs for backward compatibility
-    clubsAndSocieties,
-    studentHealthRecords,
-    studentAttendance,
-    templateComms,
-    templatesComm: templateComms, // Alias for backward compatibility
-    campaigns,
-    schoolPeriods,
-    academicYears,
-    academicPeriodDefinitions,
-    designations,
-    timetablePeriodDefs,
-    financialYears,
-    departments,
+    academicyears,
+    classsubjectallocations,
+    exampapersettings,
+    examsessions,
+    gradingschemes,
+    gradingschemelevels,
+    studentexamresults,
+    studentpapermarks,
+    studentsubjectenrollments,
     subjects,
-    timetableEntries,
-    teacherSubjectAssignments,
-    classSubjectAllocations,
-    classes,
-    classStreams,
-    // Fallback to static data for other entities (includes staff, etc.)
+    subjectpapers,
+    teachersubjectassignments,
+    timetableentrys,
+    timetableperioddefs,
+    academicperioddefinitions,
+    academicyearstructures,
+    campaigns,
+    classs,
+    classstreams,
+    clubandsocietys,
+    customers,
+    departments,
+    designations,
+    dormitorys,
+    partners,
+    schoolperiods,
+    studentattendances,
+    studentcategorys,
+    studenthealthrecords,
+    templatecomms,
+    banks,
+    chartofaccounts,
+    customerinvoices,
+    expensecategorys,
+    expenseclaims,
+    feeadjustments,
+    feetemplates,
+    feetemplateitems,
+    financialyears,
+    generalledgerentrys,
+    generalpayments,
+    invoicepaymentapplications,
+    studentinvoices,
+    studentinvoiceitems,
+    studentopeningbalances,
+    studentpayments,
+    studenttransportassignments,
+    suppliers,
+    supplierinvoices,
+    transportroutes,
+    payrollitemtypes,
+    payrollperiods,
+    payslips,
+    payslipitems,
+    staffrecurringitems,
+    staffsalarysettings,
+    assetdepreciationlogs,
+    fixedassets,
+    itemcategorys,
+    items,
+    purchaseorders,
+    purchaseorderitems,
+    requisitions,
+    requisitionitems,
+    rfqs,
+    stocklevels,
+    stocktransactions,
+    warehouses,
+    bookcategorys,
+    books,
+    fines,
+    loans,
+    mealconsumptionlogs,
+    mealplans,
+    menus,
+    merchants,
+    studentmealplans,
+    studentwallets,
+    wallettransactions,
+
+    // Fallback to static data for other entities
     ...rawInitialData
   };
-
-  // Dynamically fill in missing keys with [] or null based on the type in rawInitialData
-  for (const key of allMockKeys) {
-    if (fullData[key] === undefined) {
-      // If any module's value for this key is an array, default to []
-      const sample = Object.values(mockDataModules)
-        .map(mod => (typeof mod === 'object' && mod !== null ? (mod as any)[key] : undefined))
-        .find(val => val !== undefined);
-      fullData[key] = isArrayType(sample) ? [] : null;
-    }
-  }
 
   return {
     ...fullData,
     loading,
-    rawInitialData: fullData,
-    // Provide no-op implementations for required context methods
-    // NOTE: CRUD operations should be handled by module-specific hooks, not here
-    getStudentDetailsById: async (studentId: string) => {
-      // Find student in the mock data
-      const student = fullData.students?.find((s: any) => s.id === studentId);
-      if (!student) {
-        console.warn(`Student with ID ${studentId} not found`);
-        return null;
-      }
-
-      // Create a detailed student profile with all required fields
-      const studentProfile = {
-        ...student,
-        // Ensure all required fields are present
-        photo_path: student.photo_path || null,
-        first_name: student.first_name || '',
-        last_name: student.last_name || '',
-        admission_no: student.admission_no || '',
-        current_class_name: student.current_class_name || '',
-        current_class_stream_name: student.current_class_stream_name || '',
-        email: student.email || '',
-        phone: student.phone || '',
-        date_of_birth: student.date_of_birth || null,
-        gender: student.gender || '',
-        address: student.address || '',
-        religion: student.religion || '',
-        remarks: student.remarks || '',
-        primary_guardian: student.primary_guardian || null,
-        
-        // Mock enrolled subjects
-        enrolled_subjects: [
-          {
-            id: 1,
-            courseName: 'Mathematics',
-            professorInstructorName: 'Dr. Smith',
-            status: 'Active'
-          },
-          {
-            id: 2,
-            courseName: 'English Literature',
-            professorInstructorName: 'Ms. Johnson',
-            status: 'Active'
-          },
-          {
-            id: 3,
-            courseName: 'Physics',
-            professorInstructorName: 'Prof. Wilson',
-            status: 'Active'
-          },
-          {
-            id: 4,
-            courseName: 'Chemistry',
-            professorInstructorName: 'Dr. Brown',
-            status: 'Active'
-          }
-        ],
-        
-        // Mock payment history
-        payment_history: [
-          {
-            id: `PAY_${studentId}_001`,
-            transactionId: `TXN${studentId}001`,
-            paymentDate: '2024-01-15',
-            amount: 25000,
-            paymentMethod: 'Bank Transfer',
-            description: 'Term 1 School Fees'
-          },
-          {
-            id: `PAY_${studentId}_002`,
-            transactionId: `TXN${studentId}002`,
-            paymentDate: '2024-04-10',
-            amount: 25000,
-            paymentMethod: 'M-Pesa',
-            description: 'Term 2 School Fees'
-          },
-          {
-            id: `PAY_${studentId}_003`,
-            transactionId: `TXN${studentId}003`,
-            paymentDate: '2024-08-20',
-            amount: 25000,
-            paymentMethod: 'Cash',
-            description: 'Term 3 School Fees'
-          }
-        ]
-      };
-
-      console.log(`✅ Found student details for ID ${studentId}:`, studentProfile.first_name, studentProfile.last_name);
-      return studentProfile;
-    },
-    getStudentFinancialDetailsById: async (studentId: string) => {
-      // Find student in the mock data
-      const student = fullData.students?.find((s: any) => s.id === studentId);
-      if (!student) {
-        console.warn(`Student with ID ${studentId} not found for financial details`);
-        return null;
-      }
-
-      // Create mock financial details
-      const financialDetails = {
-        student_id: studentId,
-        student_name: `${student.first_name} ${student.last_name}`,
-        admission_no: student.admission_no,
-        current_class_name: student.current_class_name,
-        current_class_stream_name: student.current_class_stream_name,
-        
-        // Financial summary
-        total_fees_charged: 75000,
-        total_amount_paid: 65000,
-        outstanding_balance: 10000,
-        overpayment: 0,
-        
-        // Invoice/charges breakdown
-        invoices_charges: [
-          {
-            id: `INV_${studentId}_001`,
-            description: 'Term 1 Tuition Fees',
-            amount: 25000,
-            due_date: '2024-01-31',
-            status: 'Paid'
-          },
-          {
-            id: `INV_${studentId}_002`,
-            description: 'Term 2 Tuition Fees',
-            amount: 25000,
-            due_date: '2024-04-30',
-            status: 'Paid'
-          },
-          {
-            id: `INV_${studentId}_003`,
-            description: 'Term 3 Tuition Fees',
-            amount: 25000,
-            due_date: '2024-08-31',
-            status: 'Partially Paid'
-          }
-        ],
-        
-        // Payment history (same as in student details)
-        payment_history: [
-          {
-            id: `PAY_${studentId}_001`,
-            transactionId: `TXN${studentId}001`,
-            paymentDate: '2024-01-15',
-            amount: 25000,
-            paymentMethod: 'Bank Transfer',
-            description: 'Term 1 School Fees'
-          },
-          {
-            id: `PAY_${studentId}_002`,
-            transactionId: `TXN${studentId}002`,
-            paymentDate: '2024-04-10',
-            amount: 25000,
-            paymentMethod: 'M-Pesa',
-            description: 'Term 2 School Fees'
-          },
-          {
-            id: `PAY_${studentId}_003`,
-            transactionId: `TXN${studentId}003`,
-            paymentDate: '2024-08-20',
-            amount: 15000,
-            paymentMethod: 'Cash',
-            description: 'Partial Term 3 School Fees'
-          }
-        ]
-      };
-
-      console.log(`✅ Found financial details for student ID ${studentId}`);
-      return financialDetails;
-    },
-    saveStudentAttendance: async () => {},
-    getStudentAttendanceByFilters: () => [],
-    getTimetablePeriodDefs: () => fullData.timetablePeriodDefs || [],
-    getTimetableEntries: () => fullData.timetableEntries || [],
-    addTimetableEntry: async () => {},
-    updateTimetableEntry: async () => {},
-    deleteTimetableEntry: async () => {},
-    // CRUD methods - these should delegate to module-specific hooks
-    // For now, providing no-op implementations to maintain interface compatibility
-    addPartner: async () => {},
-    updatePartner: async () => {},
-    deletePartner: async () => {},
-    addClub: async () => {},
-    updateClub: async () => {},
-    deleteClub: async () => {},
-    addCustomer: async () => {},
-    updateCustomer: async () => {},
-    deleteCustomer: async () => {},
-    addStudentHealthRecord: async () => {},
-    updateStudentHealthRecord: async () => {},
-    deleteStudentHealthRecord: async () => {},
-    addTemplateComm: async () => {},
-    updateTemplateComm: async () => {},
-    deleteTemplateComm: async () => {},
-    addCampaign: async () => {},
-    updateCampaign: async () => {},
-    deleteCampaign: async () => {},
-    addSchoolPeriod: async () => {},
-    updateSchoolPeriod: async () => {},
-    deleteSchoolPeriod: async () => {},
-    addTimetablePeriodDef: async () => {},
-    updateTimetablePeriodDef: async () => {},
-    deleteTimetablePeriodDef: async () => {},
-    addClass: addClass,
-    updateClass: updateClass,
-    deleteClass: deleteClass,
-    addClassStream: addClassStream,
-    updateClassStream: updateClassStream,
-    deleteClassStream: deleteClassStream,
-    generateStudentInvoices: async () => [],
-    permissions: [],
-    roles: [],
-    userRoles: [],
-    addPermission: async () => {},
-    updatePermission: async () => {},
-    deletePermission: async () => {},
-    addRole: async () => {},
-    updateRole: async () => {},
-    deleteRole: async () => {},
-    assignRoleToUser: async () => {},
-    removeRoleFromUser: async () => {},
+    // Add CRUD operations
+    addStudent: async (data: any) => { /* implementation */ },
+    updateStudent: async (id: string, data: any) => { /* implementation */ },
+    deleteStudent: async (id: string) => { /* implementation */ },
+    // Add other CRUD operations as needed
   };
 };
-
-export { rawInitialData }; 

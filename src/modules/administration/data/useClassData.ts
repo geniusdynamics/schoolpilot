@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for Class entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for class data management
+// ABOUTME: Provides CRUD operations for class without depending on AppDataContext
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { initialMockClasses } from '../../administration/data/mockData';
 import { Class } from '../../../core/types';
-import { initialMockClasses } from './mockData';
 
-export const isGlobalProvider = true;
+export const useClassData = () => {
+  const [data, setData] = useState<Class[]>(initialMockClasses);
 
-export function useClassData() {
-  const [classes, setClasses] = useState<Class[]>(initialMockClasses);
-
-  const addClass = (data: Omit<Class, 'id'>) => {
-    const newClass: Class = {
-      ...data,
-      id: Math.max(...classes.map(c => c.id), 0) + 1,
-    };
-    setClasses(prev => [...prev, newClass]);
-    return newClass;
+  const create = async (newItem: Partial<Class>) => {
+    const newDataItem: Class = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as Class;
+    setData((prev: Class[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateClass = (updated: Class) => {
-    setClasses(prev => prev.map(c => c.id === updated.id ? updated : c));
-    return updated;
+  const update = async (id: number, updatedData: Partial<Class>) => {
+    setData((prev: Class[]) => prev.map((item: Class) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteClass = (id: number) => {
-    setClasses(prev => prev.filter(c => c.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: Class[]) => prev.filter((item: Class) => item.id !== id));
   };
 
   return {
-    classes,
-    addClass,
-    updateClass,
-    deleteClass,
+    data,
+    create,
+    update,
+    remove
   };
-}
+};

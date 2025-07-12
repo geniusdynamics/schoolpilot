@@ -10,3 +10,15 @@ export const RXDB_DB_NAME = 'school_management_system_db_v4';
 export const RXDB_LEADER_ELECTION_DISABLED = true;
 export const RXDB_SETTINGS_COLLECTION_NAME = 'app_settings'; // For storing app-specific settings
 export const RXDB_DUMMY_DATA_FLAG_ID = 'config'; // Document ID for the dummy data flag
+
+// Environment-based configuration
+export const getAppMode = (): AppMode => {
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode');
+    if (mode === 'production' || mode === 'demo') {
+      return mode;
+    }
+  }
+  return APP_MODE;
+};

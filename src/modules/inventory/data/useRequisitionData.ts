@@ -1,16 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for Requisition in Inventory.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { initialMockRequisitions } from './mockData';
+// ABOUTME: Self-contained hook for requisition data management
+// ABOUTME: Provides CRUD operations for requisition without depending on AppDataContext
 
-export const isGlobalProvider = true;
+import { useState, useEffect } from 'react';
+import { initialMockRequisitions } from '../../inventory/data/mockData';
+import { Requisition } from '../../../core/types';
 
-export function useRequisitionData() {
-  const [data, setData] = useState<any[]>(initialMockRequisitions);
+export const useRequisitionData = () => {
+  const [data, setData] = useState<Requisition[]>(initialMockRequisitions);
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  const create = async (newItem: Partial<Requisition>) => {
+    const newDataItem: Requisition = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as Requisition;
+    setData((prev: Requisition[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<Requisition>) => {
+    setData((prev: Requisition[]) => prev.map((item: Requisition) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: Requisition[]) => prev.filter((item: Requisition) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

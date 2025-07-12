@@ -1,39 +1,40 @@
-// ABOUTME: Global provider hook for TemplateComm entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for templatecomm data management
+// ABOUTME: Provides CRUD operations for templatecomm without depending on AppDataContext
 
-import { useState } from 'react';
-import { AdminTemplateCommType } from './types';
-import { initialMockTemplateComms } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockTemplateComms } from '../../administration/data/mockData';
+import { TemplateComm } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useTemplateCommData = () => {
+  const [data, setData] = useState<TemplateComm[]>(initialMockTemplateComms);
 
-export function useTemplateCommData() {
-  const [templateComms, setTemplateComms] = useState<AdminTemplateCommType[]>(initialMockTemplateComms);
-
-  const addTemplateComm = (data: Omit<AdminTemplateCommType, 'id' | 'created_at' | 'updated_at'>) => {
-    const newTemplate: AdminTemplateCommType = {
-      ...data,
+  const create = async (newItem: Partial<TemplateComm>) => {
+    const newDataItem: TemplateComm = {
+      ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setTemplateComms(prev => [...prev, newTemplate]);
-    return newTemplate;
+      updated_at: new Date().toISOString()
+    } as TemplateComm;
+    setData((prev: TemplateComm[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateTemplateComm = (updated: AdminTemplateCommType) => {
-    setTemplateComms(prev => prev.map(t => t.id === updated.id ? { ...updated } : t));
-    return updated;
+  const update = async (id: number, updatedData: Partial<TemplateComm>) => {
+    setData((prev: TemplateComm[]) => prev.map((item: TemplateComm) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteTemplateComm = (id: number) => {
-    setTemplateComms(prev => prev.filter(t => t.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: TemplateComm[]) => prev.filter((item: TemplateComm) => item.id !== id));
   };
 
   return {
-    templateComms,
-    addTemplateComm,
-    updateTemplateComm,
-    deleteTemplateComm,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

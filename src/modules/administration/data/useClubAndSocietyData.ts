@@ -1,39 +1,40 @@
-// ABOUTME: Global provider hook for ClubAndSociety entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-import { useState } from 'react';
-import { AdminClubAndSocietyType } from './types';
-import { initialMockClubsAndSocieties } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockanys } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const UseClubAndSocietyData = () => {
+  const [data, setData] = useState<any[]>(initialMockanys);
 
-export function useClubAndSocietyData() {
-  const [clubsAndSocieties, setClubsAndSocieties] = useState<AdminClubAndSocietyType[]>(initialMockClubsAndSocieties);
-
-  const addClubAndSociety = (data: Omit<AdminClubAndSocietyType, 'id' | 'created_at' | 'updated_at'>) => {
-    const newClub: AdminClubAndSocietyType = {
-      ...data,
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setClubsAndSocieties(prev => [...prev, newClub]);
-    return newClub;
+      updated_at: new Date().toISOString()
+    } as any;
+    setData((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateClubAndSociety = (updated: AdminClubAndSocietyType) => {
-    setClubsAndSocieties(prev => prev.map(c => c.id === updated.id ? { ...updated } : c));
-    return updated;
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setData((prev: any[]) => prev.map((item: any) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteClubAndSociety = (id: number) => {
-    setClubsAndSocieties(prev => prev.filter(c => c.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: any[]) => prev.filter((item: any) => item.id !== id));
   };
 
   return {
-    clubsAndSocieties,
-    addClubAndSociety,
-    updateClubAndSociety,
-    deleteClubAndSociety,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

@@ -1,35 +1,40 @@
-import { useState } from 'react';
+// ABOUTME: Self-contained hook for department data management
+// ABOUTME: Provides CRUD operations for department without depending on AppDataContext
+
+import { useState, useEffect } from 'react';
+import { initialMockDepartments } from '../../administration/data/mockData';
 import { Department } from '../../../core/types';
-import { initialMockDepartments } from './mockData';
 
-export const isGlobalProvider = true;
+export const useDepartmentData = () => {
+  const [data, setData] = useState<Department[]>(initialMockDepartments);
 
-export function useDepartmentData() {
-  const [departments, setDepartments] = useState<Department[]>(initialMockDepartments);
-
-  const addDepartment = (department: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
-    const newDepartment: Department = {
-      ...department,
-      id: Date.now().toString(),
+  const create = async (newItem: Partial<Department>) => {
+    const newDataItem: Department = {
+      ...newItem,
+      id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setDepartments(prev => [...prev, newDepartment]);
-    return newDepartment;
+      updated_at: new Date().toISOString()
+    } as Department;
+    setData((prev: Department[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateDepartment = (updated: Department) => {
-    setDepartments(prev => prev.map(d => d.id === updated.id ? { ...updated, updated_at: new Date().toISOString() } : d));
+  const update = async (id: number, updatedData: Partial<Department>) => {
+    setData((prev: Department[]) => prev.map((item: Department) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteDepartment = (id: string) => {
-    setDepartments(prev => prev.filter(d => d.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: Department[]) => prev.filter((item: Department) => item.id !== id));
   };
 
   return {
-    departments,
-    addDepartment,
-    updateDepartment,
-    deleteDepartment,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

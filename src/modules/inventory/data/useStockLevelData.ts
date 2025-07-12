@@ -1,16 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for StockLevel in Inventory.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { initialMockStockLevels } from './mockData';
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-export const isGlobalProvider = true;
+import { useState, useEffect } from 'react';
+import { initialMockanys } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export function useStockLevelData() {
-  const [data, setData] = useState<any[]>(initialMockStockLevels);
+export const UseStockLevelData = () => {
+  const [data, setData] = useState<any[]>(initialMockanys);
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (compositeId: string, updates: Partial<any>) => setData(prev => prev.map(item => item.compositeId === compositeId ? { ...item, ...updates } : item));
-  const remove = (compositeId: string) => setData(prev => prev.filter(item => item.compositeId !== compositeId));
-  const get = (compositeId: string) => data.find(item => item.compositeId === compositeId);
-  return { data, create, update, remove, get };
-} 
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any;
+    setData((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setData((prev: any[]) => prev.map((item: any) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

@@ -1,16 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for FixedAsset in Inventory.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { initialMockFixedAssets } from './mockData';
+// ABOUTME: Self-contained hook for fixedasset data management
+// ABOUTME: Provides CRUD operations for fixedasset without depending on AppDataContext
 
-export const isGlobalProvider = true;
+import { useState, useEffect } from 'react';
+import { initialMockFixedAssets } from '../../inventory/data/mockData';
+import { FixedAsset } from '../../../core/types';
 
-export function useFixedAssetData() {
-  const [data, setData] = useState<any[]>(initialMockFixedAssets);
+export const useFixedAssetData = () => {
+  const [data, setData] = useState<FixedAsset[]>(initialMockFixedAssets);
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  const create = async (newItem: Partial<FixedAsset>) => {
+    const newDataItem: FixedAsset = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as FixedAsset;
+    setData((prev: FixedAsset[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<FixedAsset>) => {
+    setData((prev: FixedAsset[]) => prev.map((item: FixedAsset) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: FixedAsset[]) => prev.filter((item: FixedAsset) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for Subject entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for subject data management
+// ABOUTME: Provides CRUD operations for subject without depending on AppDataContext
 
-import { useState } from 'react';
-import { Subject } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockSubjects } from './mockData';
+import { Subject } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useSubjectData = () => {
+  const [data, setData] = useState<Subject[]>(initialMockSubjects);
 
-export function useSubjectData() {
-  const [subjects, setSubjects] = useState<Subject[]>(initialMockSubjects);
-
-  const addSubject = (data: Omit<Subject, 'id'>) => {
-    const newSubject: Subject = {
-      ...data,
+  const create = async (newItem: Partial<Subject>) => {
+    const newDataItem: Subject = {
+      ...newItem,
       id: Date.now(),
-    };
-    setSubjects(prev => [...prev, newSubject]);
-    return newSubject;
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as Subject;
+    setData((prev: Subject[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateSubject = (updated: Subject) => {
-    setSubjects(prev => prev.map(s => s.id === updated.id ? { ...updated } : s));
-    return updated;
+  const update = async (id: number, updatedData: Partial<Subject>) => {
+    setData((prev: Subject[]) => prev.map((item: Subject) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteSubject = (id: number) => {
-    setSubjects(prev => prev.filter(s => s.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: Subject[]) => prev.filter((item: Subject) => item.id !== id));
   };
 
   return {
-    subjects,
-    addSubject,
-    updateSubject,
-    deleteSubject,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for AcademicPeriodDefinition entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for academicperioddefinition data management
+// ABOUTME: Provides CRUD operations for academicperioddefinition without depending on AppDataContext
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { initialMockAcademicPeriodDefinitions } from '../../administration/data/mockData';
 import { AcademicPeriodDefinition } from '../../../core/types';
-import { initialMockAcademicPeriodDefinitions } from './mockData';
 
-export const isGlobalProvider = true;
+export const useAcademicPeriodDefinitionData = () => {
+  const [data, setData] = useState<AcademicPeriodDefinition[]>(initialMockAcademicPeriodDefinitions);
 
-export function useAcademicPeriodDefinitionData() {
-  const [academicPeriodDefinitions, setAcademicPeriodDefinitions] = useState<AcademicPeriodDefinition[]>(initialMockAcademicPeriodDefinitions);
-
-  const addAcademicPeriodDefinition = (data: Omit<AcademicPeriodDefinition, 'id'>) => {
-    const newDef: AcademicPeriodDefinition = {
-      ...data,
+  const create = async (newItem: Partial<AcademicPeriodDefinition>) => {
+    const newDataItem: AcademicPeriodDefinition = {
+      ...newItem,
       id: Date.now(),
-    };
-    setAcademicPeriodDefinitions(prev => [...prev, newDef]);
-    return newDef;
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as AcademicPeriodDefinition;
+    setData((prev: AcademicPeriodDefinition[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateAcademicPeriodDefinition = (updated: AcademicPeriodDefinition) => {
-    setAcademicPeriodDefinitions(prev => prev.map(d => d.id === updated.id ? { ...updated } : d));
-    return updated;
+  const update = async (id: number, updatedData: Partial<AcademicPeriodDefinition>) => {
+    setData((prev: AcademicPeriodDefinition[]) => prev.map((item: AcademicPeriodDefinition) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteAcademicPeriodDefinition = (id: number) => {
-    setAcademicPeriodDefinitions(prev => prev.filter(d => d.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: AcademicPeriodDefinition[]) => prev.filter((item: AcademicPeriodDefinition) => item.id !== id));
   };
 
   return {
-    academicPeriodDefinitions,
-    addAcademicPeriodDefinition,
-    updateAcademicPeriodDefinition,
-    deleteAcademicPeriodDefinition,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

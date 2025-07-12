@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for ExamSession entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for examsession data management
+// ABOUTME: Provides CRUD operations for examsession without depending on AppDataContext
 
-import { useState } from 'react';
-import { ExamSession } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockExamSessions } from './mockData';
+import { ExamSession } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useExamSessionData = () => {
+  const [data, setData] = useState<ExamSession[]>(initialMockExamSessions);
 
-export function useExamSessionData() {
-  const [examSessions, setExamSessions] = useState<ExamSession[]>(initialMockExamSessions);
-
-  const addExamSession = (data: Omit<ExamSession, 'id'>) => {
-    const newExamSession: ExamSession = {
-      ...data,
-      id: `ES${Date.now()}`,
-    };
-    setExamSessions(prev => [...prev, newExamSession]);
-    return newExamSession;
+  const create = async (newItem: Partial<ExamSession>) => {
+    const newDataItem: ExamSession = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as ExamSession;
+    setData((prev: ExamSession[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateExamSession = (updated: ExamSession) => {
-    setExamSessions(prev => prev.map(e => e.id === updated.id ? { ...updated } : e));
-    return updated;
+  const update = async (id: number, updatedData: Partial<ExamSession>) => {
+    setData((prev: ExamSession[]) => prev.map((item: ExamSession) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteExamSession = (id: string) => {
-    setExamSessions(prev => prev.filter(e => e.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: ExamSession[]) => prev.filter((item: ExamSession) => item.id !== id));
   };
 
   return {
-    examSessions,
-    addExamSession,
-    updateExamSession,
-    deleteExamSession,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

@@ -1,16 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for Supplier in Finance.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { suppliers } from 'src/globalMockData';
+// ABOUTME: Self-contained hook for supplier data management
+// ABOUTME: Provides CRUD operations for supplier without depending on AppDataContext
 
-export const isGlobalProvider = true;
+import { useState, useEffect } from 'react';
+import { initialMockSuppliers } from '../../finance/data/mockData';
+import { Supplier } from '../../../core/types';
 
-export function useSupplierData() {
-  const [data, setData] = useState<any[]>(suppliers);
+export const useSupplierData = () => {
+  const [data, setData] = useState<Supplier[]>(initialMockSuppliers);
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  const create = async (newItem: Partial<Supplier>) => {
+    const newDataItem: Supplier = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as Supplier;
+    setData((prev: Supplier[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<Supplier>) => {
+    setData((prev: Supplier[]) => prev.map((item: Supplier) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: Supplier[]) => prev.filter((item: Supplier) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

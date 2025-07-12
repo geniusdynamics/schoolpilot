@@ -37,6 +37,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   useEffect(() => {
     let isMounted = true;
     if (APP_MODE === 'production') {
+        // Ensure RxDB is properly loaded in production mode
+        console.log('Loading RxDB in production mode...');
       Promise.all([
         import('../hooks/useRxDBData'),
         import('../services/rxdbService')

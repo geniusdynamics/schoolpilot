@@ -1,16 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for MealPlan in Nutrition.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { initialMockMealPlans } from './mockData';
+// ABOUTME: Self-contained hook for mealplan data management
+// ABOUTME: Provides CRUD operations for mealplan without depending on AppDataContext
 
-export const isGlobalProvider = true;
+import { useState, useEffect } from 'react';
+import { initialMockMealPlans } from '../../nutrition/data/mockData';
+import { MealPlan } from '../../../core/types';
 
-export function useMealPlanData() {
-  const [data, setData] = useState<any[]>(initialMockMealPlans);
+export const useMealPlanData = () => {
+  const [data, setData] = useState<MealPlan[]>(initialMockMealPlans);
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  const create = async (newItem: Partial<MealPlan>) => {
+    const newDataItem: MealPlan = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as MealPlan;
+    setData((prev: MealPlan[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<MealPlan>) => {
+    setData((prev: MealPlan[]) => prev.map((item: MealPlan) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: MealPlan[]) => prev.filter((item: MealPlan) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

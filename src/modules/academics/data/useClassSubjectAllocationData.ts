@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for ClassSubjectAllocation entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for classsubjectallocation data management
+// ABOUTME: Provides CRUD operations for classsubjectallocation without depending on AppDataContext
 
-import { useState } from 'react';
-import { ClassSubjectAllocation } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockClassSubjectAllocations } from './mockData';
+import { ClassSubjectAllocation } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useClassSubjectAllocationData = () => {
+  const [data, setData] = useState<ClassSubjectAllocation[]>(initialMockClassSubjectAllocations);
 
-export function useClassSubjectAllocationData() {
-  const [classSubjectAllocations, setClassSubjectAllocations] = useState<ClassSubjectAllocation[]>(initialMockClassSubjectAllocations);
-
-  const addClassSubjectAllocation = (data: Omit<ClassSubjectAllocation, 'id'>) => {
-    const newAllocation: ClassSubjectAllocation = {
-      ...data,
-      id: `CSA${Date.now()}`,
-    };
-    setClassSubjectAllocations(prev => [...prev, newAllocation]);
-    return newAllocation;
+  const create = async (newItem: Partial<ClassSubjectAllocation>) => {
+    const newDataItem: ClassSubjectAllocation = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as ClassSubjectAllocation;
+    setData((prev: ClassSubjectAllocation[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateClassSubjectAllocation = (updated: ClassSubjectAllocation) => {
-    setClassSubjectAllocations(prev => prev.map(a => a.id === updated.id ? { ...updated } : a));
-    return updated;
+  const update = async (id: number, updatedData: Partial<ClassSubjectAllocation>) => {
+    setData((prev: ClassSubjectAllocation[]) => prev.map((item: ClassSubjectAllocation) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteClassSubjectAllocation = (id: string) => {
-    setClassSubjectAllocations(prev => prev.filter(a => a.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: ClassSubjectAllocation[]) => prev.filter((item: ClassSubjectAllocation) => item.id !== id));
   };
 
   return {
-    classSubjectAllocations,
-    addClassSubjectAllocation,
-    updateClassSubjectAllocation,
-    deleteClassSubjectAllocation,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

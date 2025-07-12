@@ -1,39 +1,40 @@
-// ABOUTME: Global provider hook for AcademicYear entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for academicyear data management
+// ABOUTME: Provides CRUD operations for academicyear without depending on AppDataContext
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { initialMockAcademicYears } from '../../administration/data/mockData';
 import { AcademicYear } from '../../../core/types';
-import { initialMockAcademicYears } from './mockData';
 
-export const isGlobalProvider = true;
+export const useAcademicYearData = () => {
+  const [data, setData] = useState<AcademicYear[]>(initialMockAcademicYears);
 
-export function useAcademicYearData() {
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>(initialMockAcademicYears);
-
-  const addAcademicYear = (data: Omit<AcademicYear, 'id' | 'created_at' | 'updated_at'>) => {
-    const newYear: AcademicYear = {
-      ...data,
+  const create = async (newItem: Partial<AcademicYear>) => {
+    const newDataItem: AcademicYear = {
+      ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setAcademicYears(prev => [...prev, newYear]);
-    return newYear;
+      updated_at: new Date().toISOString()
+    } as AcademicYear;
+    setData((prev: AcademicYear[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateAcademicYear = (updated: AcademicYear) => {
-    setAcademicYears(prev => prev.map(y => y.id === updated.id ? { ...updated, updated_at: new Date().toISOString() } : y));
-    return updated;
+  const update = async (id: number, updatedData: Partial<AcademicYear>) => {
+    setData((prev: AcademicYear[]) => prev.map((item: AcademicYear) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteAcademicYear = (id: number) => {
-    setAcademicYears(prev => prev.filter(y => y.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: AcademicYear[]) => prev.filter((item: AcademicYear) => item.id !== id));
   };
 
   return {
-    academicYears,
-    addAcademicYear,
-    updateAcademicYear,
-    deleteAcademicYear,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

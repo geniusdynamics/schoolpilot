@@ -1,39 +1,40 @@
-// ABOUTME: Global provider hook for StudentHealthRecord entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for studenthealthrecord data management
+// ABOUTME: Provides CRUD operations for studenthealthrecord without depending on AppDataContext
 
-import { useState } from 'react';
-import { AdminStudentHealthRecordType } from './types';
-import { initialMockStudentHealthRecords } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockStudentHealthRecords } from '../../administration/data/mockData';
+import { StudentHealthRecord } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useStudentHealthRecordData = () => {
+  const [data, setData] = useState<StudentHealthRecord[]>(initialMockStudentHealthRecords);
 
-export function useStudentHealthRecordData() {
-  const [studentHealthRecords, setStudentHealthRecords] = useState<AdminStudentHealthRecordType[]>(initialMockStudentHealthRecords);
-
-  const addStudentHealthRecord = (data: Omit<AdminStudentHealthRecordType, 'id' | 'created_at' | 'updated_at'>) => {
-    const newRecord: AdminStudentHealthRecordType = {
-      ...data,
-      id: Date.now().toString(),
+  const create = async (newItem: Partial<StudentHealthRecord>) => {
+    const newDataItem: StudentHealthRecord = {
+      ...newItem,
+      id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setStudentHealthRecords(prev => [...prev, newRecord]);
-    return newRecord;
+      updated_at: new Date().toISOString()
+    } as StudentHealthRecord;
+    setData((prev: StudentHealthRecord[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateStudentHealthRecord = (updated: AdminStudentHealthRecordType) => {
-    setStudentHealthRecords(prev => prev.map(r => r.id === updated.id ? { ...updated } : r));
-    return updated;
+  const update = async (id: number, updatedData: Partial<StudentHealthRecord>) => {
+    setData((prev: StudentHealthRecord[]) => prev.map((item: StudentHealthRecord) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteStudentHealthRecord = (id: string) => {
-    setStudentHealthRecords(prev => prev.filter(r => r.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: StudentHealthRecord[]) => prev.filter((item: StudentHealthRecord) => item.id !== id));
   };
 
   return {
-    studentHealthRecords,
-    addStudentHealthRecord,
-    updateStudentHealthRecord,
-    deleteStudentHealthRecord,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};
