@@ -33,7 +33,7 @@ const StudentHealthRecordsPage: React.FC = () => {
 
   const openModal = (student: Student) => {
     setSelectedStudent(student);
-    const existingRecord = studentHealthRecords.find(hr => hr.student_id === student.id);
+    const existingRecord = (studentHealthRecords || []).find(hr => hr.student_id === student.id);
     setCurrentHealthRecord(existingRecord || null);
     setFormData(existingRecord ?
       {
@@ -85,7 +85,7 @@ const StudentHealthRecordsPage: React.FC = () => {
     { header: 'Health Record Status', 
       accessor: 'id' as keyof Student, 
       render: (item: Student) => {
-        const hasRecord = studentHealthRecords.some(hr => hr.student_id === item.id);
+        const hasRecord = (studentHealthRecords || []).some(hr => hr.student_id === item.id);
         return hasRecord ? 
           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Record Exists</span> : 
           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">No Record</span>;

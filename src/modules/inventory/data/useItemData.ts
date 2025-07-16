@@ -2,33 +2,33 @@
 // ABOUTME: Provides CRUD operations for item without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockItems } from '../../inventory/data/mockData';
-import { Item } from '../../../core/types';
+import { initialMockItemsInv } from './mockData';
+import { ItemInv } from '../../../core/types';
 
 export const useItemData = () => {
-  const [data, setData] = useState<Item[]>(initialMockItems);
+  const [data, setData] = useState<ItemInv[]>(initialMockItemsInv);
 
-  const create = async (newItem: Partial<Item>) => {
-    const newDataItem: Item = {
+  const create = async (newItem: Partial<ItemInv>) => {
+    const newDataItem: ItemInv = {
       ...newItem,
-      id: Date.now(),
+      id: Date.now().toString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as Item;
-    setData((prev: Item[]) => [...prev, newDataItem]);
+    } as ItemInv;
+    setData((prev: ItemInv[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<Item>) => {
-    setData((prev: Item[]) => prev.map((item: Item) => 
+  const update = async (id: string, updatedData: Partial<ItemInv>) => {
+    setData((prev: ItemInv[]) => prev.map((item: ItemInv) => 
       item.id === id 
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
-    setData((prev: Item[]) => prev.filter((item: Item) => item.id !== id));
+  const remove = async (id: string) => {
+    setData((prev: ItemInv[]) => prev.filter((item: ItemInv) => item.id !== id));
   };
 
   return {

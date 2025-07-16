@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for menu without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockMenus } from '../../nutrition/data/mockData';
+import { initialMockMenus } from './mockData';
 import { Menu } from '../../../core/types';
 
 export const useMenuData = () => {

@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for bank without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockBanks } from '../../finance/data/mockData';
+import { initialMockBanks } from './mockData';
 import { Bank } from '../../../core/types';
 
 export const useBankData = () => {

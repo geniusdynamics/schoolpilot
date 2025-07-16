@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for financialyear without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockFinancialYears } from '../../finance/data/mockData';
+import { initialMockFinancialYears } from './mockData';
 import { FinancialYear } from '../../../core/types';
 
 export const useFinancialYearData = () => {

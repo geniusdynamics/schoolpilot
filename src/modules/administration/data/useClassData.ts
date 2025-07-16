@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for class without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockClasses } from '../../administration/data/mockData';
+import { initialMockClasses } from './mockData';
 import { Class } from '../../../core/types';
 
 export const useClassData = () => {

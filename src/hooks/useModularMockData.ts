@@ -277,6 +277,117 @@ export const useModularMockData = (): AppDataContextType => {
     return () => clearTimeout(timer);
   }, []);
 
+  const getStudentDetailsById = async (studentId: string) => {
+    console.log('Getting student details for ID:', studentId);
+
+    // Aggregate all students from mock data
+    const allStudents = rawInitialData.students || [];
+
+    // Find student by id or admission number
+    const student = allStudents.find((s: any) => s.id === studentId || s.admission_no === studentId);
+
+    if (!student) {
+      console.log('Student not found:', studentId);
+      return null;
+    }
+
+    // Enhance student with enrolled subjects (mocked data)
+    const enrolledSubjects = [
+      { courseName: 'Mathematics', professorInstructorName: 'Mr. Johnson', status: 'A-' },
+      { courseName: 'English Language', professorInstructorName: 'Ms. Smith', status: 'B+' },
+      { courseName: 'Science', professorInstructorName: 'Dr. Brown', status: 'A' },
+      { courseName: 'History', professorInstructorName: 'Mr. Davis', status: 'B' },
+      { courseName: 'Geography', professorInstructorName: 'Ms. Wilson', status: 'A-' }
+    ];
+
+    // Mock payment history
+    const paymentHistory = [
+      {
+        transactionId: 'PAY001',
+        paymentDate: '2024-01-10',
+        amount: 15000,
+        paymentMethod: 'Bank Transfer',
+        description: 'Tuition Fee - Term 1',
+        id: '1'
+      },
+      {
+        transactionId: 'PAY002',
+        paymentDate: '2024-01-28',
+        amount: 2500,
+        paymentMethod: 'Cash',
+        description: 'Activity Fee',
+        id: '2'
+      },
+      {
+        transactionId: 'PAY003',
+        paymentDate: null,
+        amount: 15000,
+        paymentMethod: null,
+        description: 'Tuition Fee - Term 2',
+        id: '3'
+      }
+    ];
+
+    return {
+      ...student,
+      enrolled_subjects: enrolledSubjects,
+      payment_history: paymentHistory
+    };
+  };
+
+  const getStudentFinancialDetailsById = async (studentId: string) => {
+    console.log('Getting student financial details for ID:', studentId);
+
+    const student = await getStudentDetailsById(studentId);
+    if (!student) {
+      return null;
+    }
+
+    // Mock financial summary
+    const financialSummary = {
+      currentBalance: 15000,
+      totalFees: 32500,
+      totalPaid: 17500,
+      totalDiscount: 0,
+      totalFine: 0
+    };
+
+    // Mock invoices and charges
+    const invoicesCharges = [
+      {
+        invoiceId: 'INV001',
+        feeTypeDescription: 'Tuition Fee - Term 1',
+        dueDate: '2024-01-15',
+        amount: 15000,
+        status: 'Paid',
+        id: '1'
+      },
+      {
+        invoiceId: 'INV002',
+        feeTypeDescription: 'Activity Fee',
+        dueDate: '2024-02-01',
+        amount: 2500,
+        status: 'Paid',
+        id: '2'
+      },
+      {
+        invoiceId: 'INV003',
+        feeTypeDescription: 'Tuition Fee - Term 2',
+        dueDate: '2024-04-15',
+        amount: 15000,
+        status: 'Pending',
+        id: '3'
+      }
+    ];
+
+    return {
+      ...student,
+      financial_summary: financialSummary,
+      invoices_charges: invoicesCharges,
+      payment_history: student.payment_history
+    };
+  };
+
   const fullData: any = {
     academicyears,
     classsubjectallocations,
@@ -365,6 +476,8 @@ export const useModularMockData = (): AppDataContextType => {
   return {
     ...fullData,
     loading,
+    getStudentDetailsById,
+    getStudentFinancialDetailsById,
     // Add CRUD operations
     addStudent: async (data: any) => { /* implementation */ },
     updateStudent: async (id: string, data: any) => { /* implementation */ },

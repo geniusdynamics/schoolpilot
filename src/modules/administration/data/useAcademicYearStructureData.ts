@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for academicyearstructure without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockAcademicYearStructures } from '../../administration/data/mockData';
+import { initialMockAcademicYearStructures } from './mockData';
 import { AcademicYearStructure } from '../../../core/types';
 
 export const useAcademicYearStructureData = () => {

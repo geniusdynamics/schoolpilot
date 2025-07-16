@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for requisition without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockRequisitions } from '../../inventory/data/mockData';
+import { initialMockRequisitions } from './mockData';
 import { Requisition } from '../../../core/types';
 
 export const useRequisitionData = () => {

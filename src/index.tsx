@@ -5,8 +5,12 @@ import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import './index.css'; // Import Tailwind CSS
 import './i18n/i18n'; // Import your i18n configuration, this initializes i18next
+import { detectOptimalConfiguration, updateAppConfig } from './config/appConfig';
+
+// Initialize optimal configuration based on browser capabilities
+const optimalConfig = detectOptimalConfiguration();
+updateAppConfig(optimalConfig);
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

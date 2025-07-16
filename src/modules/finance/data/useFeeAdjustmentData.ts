@@ -2,11 +2,24 @@
 // ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockanys } from '../../administration/data/mockData';
+import { initialMockUsers } from '../../administration/data/mockData';
 import { any } from '../../../core/types';
 
-export const UseFeeAdjustmentData = () => {
-  const [data, setData] = useState<any[]>(initialMockanys);
+const useFeeAdjustmentData = () => {
+  const [feeAdjustments, setFeeAdjustments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setFeeAdjustments(initialMockUsers);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch fee adjustments');
+      setIsLoading(false);
+    }
+  }, []);
 
   const create = async (newItem: Partial<any>) => {
     const newDataItem: any = {
@@ -15,26 +28,30 @@ export const UseFeeAdjustmentData = () => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as any;
-    setData((prev: any[]) => [...prev, newDataItem]);
+    setFeeAdjustments((prev: any[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
   const update = async (id: number, updatedData: Partial<any>) => {
-    setData((prev: any[]) => prev.map((item: any) => 
-      item.id === id 
+    setFeeAdjustments((prev: any[]) => prev.map((item: any) =>
+      item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
   const remove = async (id: number) => {
-    setData((prev: any[]) => prev.filter((item: any) => item.id !== id));
+    setFeeAdjustments((prev: any[]) => prev.filter((item: any) => item.id !== id));
   };
 
   return {
-    data,
+    data: feeAdjustments,
+    isLoading,
+    error,
     create,
     update,
     remove
   };
 };
+
+export { useFeeAdjustmentData };

@@ -2,11 +2,24 @@
 // ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockanys } from '../../administration/data/mockData';
+import { initialMockUsers } from '../../administration/data/mockData';
 import { any } from '../../../core/types';
 
-export const UseStudentInvoiceData = () => {
-  const [data, setData] = useState<any[]>(initialMockanys);
+const useStudentInvoiceData = () => {
+  const [studentInvoices, setStudentInvoices] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setStudentInvoices(initialMockUsers);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch student invoices');
+      setIsLoading(false);
+    }
+  }, []);
 
   const create = async (newItem: Partial<any>) => {
     const newDataItem: any = {
@@ -15,26 +28,30 @@ export const UseStudentInvoiceData = () => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as any;
-    setData((prev: any[]) => [...prev, newDataItem]);
+    setStudentInvoices((prev: any[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
   const update = async (id: number, updatedData: Partial<any>) => {
-    setData((prev: any[]) => prev.map((item: any) => 
-      item.id === id 
+    setStudentInvoices((prev: any[]) => prev.map((item: any) =>
+      item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
   const remove = async (id: number) => {
-    setData((prev: any[]) => prev.filter((item: any) => item.id !== id));
+    setStudentInvoices((prev: any[]) => prev.filter((item: any) => item.id !== id));
   };
 
   return {
-    data,
+    data: studentInvoices,
+    isLoading,
+    error,
     create,
     update,
     remove
   };
 };
+
+export { useStudentInvoiceData };

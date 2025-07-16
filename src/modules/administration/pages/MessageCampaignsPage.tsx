@@ -47,7 +47,7 @@ const MessageCampaignsPage: React.FC = () => {
   const [formData, setFormData] = useState<CampaignFormData>(initialFormData);
   
   const selectedTemplate = useMemo(() => {
-    return templateComms.find((t: TemplateComm) => t.id === formData.template_id);
+    return (templateComms || []).find((t: TemplateComm) => t.id === formData.template_id);
   }, [templateComms, formData.template_id]);
 
   useEffect(() => {
@@ -95,7 +95,7 @@ const MessageCampaignsPage: React.FC = () => {
     setFormData(prev => {
         const newState = {...prev, [name]: processedValue};
         if (name === 'template_id' && processedValue) {
-            const newSelectedTemplate = templateComms.find((t: TemplateComm) => t.id === processedValue);
+            const newSelectedTemplate = (templateComms || []).find((t: TemplateComm) => t.id === processedValue);
             if (newSelectedTemplate) {
                 newState.subject = newSelectedTemplate.subject || '';
                 newState.body = newSelectedTemplate.body_template || '';
@@ -193,7 +193,7 @@ const MessageCampaignsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('MessageCampaignsPage.designAndManageCommunicationCampaigns')}
         </p>
-        <Table columns={columns} data={campaigns} />
+        <Table columns={columns} data={campaigns || []} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCampaign ? t('MessageCampaignsPage.editCampaign') : t('MessageCampaignsPage.createNewCampaign')} size="xl"
@@ -222,7 +222,7 @@ const MessageCampaignsPage: React.FC = () => {
                 onChange={handleInputChange}
                 >
                 <option value="">{t('MessageCampaignsPage.useCustomSubjectBody')}</option>
-                {templateComms.map((template) => (
+                {(templateComms || []).map((template) => (
                     <option key={template.id} value={template.id}>{template.name} ({template.type})</option>
                 ))}
             </Select>
@@ -254,7 +254,7 @@ const MessageCampaignsPage: React.FC = () => {
                     required
                 >
                     <option value="">{t('MessageCampaignsPage.selectClassStream')}</option>
-                    {classStreams.map(cs => <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>)}
+                    {(classStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>)}
                 </Select>
             )}
              <Input 

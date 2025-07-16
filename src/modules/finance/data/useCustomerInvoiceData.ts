@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for customerinvoice without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockCustomerInvoices } from '../../finance/data/mockData';
+import { initialMockCustomerInvoices } from './mockData';
 import { CustomerInvoice } from '../../../core/types';
 
 export const useCustomerInvoiceData = () => {

@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for mealconsumptionlog without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockMealConsumptionLogs } from '../../nutrition/data/mockData';
+import { initialMockMealConsumptionLogs } from './mockData';
 import { MealConsumptionLog } from '../../../core/types';
 
 export const useMealConsumptionLogData = () => {

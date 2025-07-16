@@ -149,7 +149,7 @@ const SchoolPeriodsPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           Define specific school terms or semesters within an academic year. Link them to financial years and academic period definitions (e.g., "Term 1").
         </p>
-        <Table columns={columns} data={schoolPeriods} />
+        <Table columns={columns} data={schoolPeriods || []} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPeriod ? 'Edit School Period' : 'Add New School Period'} size="xl"
@@ -165,15 +165,15 @@ const SchoolPeriodsPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select name="academic_year_id" label="Academic Year" value={formData.academic_year_id || ''} onChange={handleInputChange} required>
                 <option value="">Select Academic Year</option>
-                {academicYears.map((ay: AcademicYear) => (<option key={ay.id} value={ay.id}>{ay.name}</option>))}
+                {(academicYears || []).map((ay: AcademicYear) => (<option key={ay.id} value={ay.id}>{ay.name}</option>))}
             </Select>
             <Select name="period_definition_id" label="Period Definition" value={formData.period_definition_id || ''} onChange={handleInputChange} required>
                 <option value="">Select Period Definition</option>
-                {academicPeriodDefinitions.map((pd: AcademicPeriodDefinition) => (<option key={pd.id} value={pd.id}>{pd.name} ({pd.structure_name})</option>))}
+                {(academicPeriodDefinitions || []).map((pd: AcademicPeriodDefinition) => (<option key={pd.id} value={pd.id}>{pd.name} ({pd.structure_name})</option>))}
             </Select>
             <Select name="financial_year_id" label="Financial Year" value={formData.financial_year_id || ''} onChange={handleInputChange} required>
                 <option value="">Select Financial Year</option>
-                {financialYears.map((fy: FinancialYear) => (<option key={fy.id} value={fy.id}>{fy.name}</option>))}
+                {(financialYears || []).map((fy: FinancialYear) => (<option key={fy.id} value={fy.id}>{fy.name}</option>))}
             </Select>
             <Input name="start_date" label="Start Date" type="date" value={formData.start_date || ''} onChange={handleInputChange} required />
             <Input name="end_date" label="End Date" type="date" value={formData.end_date || ''} onChange={handleInputChange} required />

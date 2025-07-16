@@ -3,32 +3,32 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockPartners } from '../../administration/data/mockData';
-import { Partner } from '../../../core/types';
+import { AdminPartnerType } from './types';
 
 export const usePartnerData = () => {
-  const [data, setData] = useState<Partner[]>(initialMockPartners);
+  const [data, setData] = useState<AdminPartnerType[]>(initialMockPartners || []);
 
-  const create = async (newItem: Partial<Partner>) => {
-    const newDataItem: Partner = {
+  const create = async (newItem: Omit<AdminPartnerType, 'id' | 'created_at' | 'updated_at'>) => {
+    const newDataItem: AdminPartnerType = {
       ...newItem,
-      id: Date.now(),
+      id: Date.now().toString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as Partner;
-    setData((prev: Partner[]) => [...prev, newDataItem]);
+    };
+    setData((prev: AdminPartnerType[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<Partner>) => {
-    setData((prev: Partner[]) => prev.map((item: Partner) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+  const update = async (updatedItem: AdminPartnerType) => {
+    setData((prev: AdminPartnerType[]) => prev.map((item: AdminPartnerType) => 
+      item.id === updatedItem.id 
+        ? { ...updatedItem, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
-    setData((prev: Partner[]) => prev.filter((item: Partner) => item.id !== id));
+  const remove = async (id: string) => {
+    setData((prev: AdminPartnerType[]) => prev.filter((item: AdminPartnerType) => item.id !== id));
   };
 
   return {

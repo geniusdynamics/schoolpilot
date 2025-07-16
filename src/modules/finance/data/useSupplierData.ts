@@ -2,11 +2,11 @@
 // ABOUTME: Provides CRUD operations for supplier without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockSuppliers } from '../../finance/data/mockData';
+import { suppliers } from '../../finance/data/mockData';
 import { Supplier } from '../../../core/types';
 
 export const useSupplierData = () => {
-  const [data, setData] = useState<Supplier[]>(initialMockSuppliers);
+  const [data, setData] = useState<Supplier[]>(suppliers);
 
   const create = async (newItem: Partial<Supplier>) => {
     const newDataItem: Supplier = {

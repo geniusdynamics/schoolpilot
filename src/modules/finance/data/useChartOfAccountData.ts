@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for chartofaccount without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockChartOfAccounts } from '../../finance/data/mockData';
+import { initialMockChartOfAccounts } from './mockData';
 import { ChartOfAccount } from '../../../core/types';
 
 export const useChartOfAccountData = () => {

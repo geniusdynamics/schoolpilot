@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for campaign without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockCampaigns } from '../../administration/data/mockData';
+import { initialMockCampaigns } from './mockData';
 import { Campaign } from '../../../core/types';
 
 export const useCampaignData = () => {

@@ -33,7 +33,7 @@ const TimetableEntriesPage: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<TimetableEntry | null>(null);
-  const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>(classStreams.length > 0 ? classStreams[0].id : undefined);
+  const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>((classStreams && classStreams.length > 0) ? classStreams[0].id : undefined);
   
   const initialFormData: TimetableEntryFormData = { 
     day_of_week: undefined, 
@@ -82,23 +82,23 @@ const TimetableEntriesPage: React.FC = () => {
   
   const availableTeachers = useMemo(() => {
     if (!formData.subject_id || !selectedClassStreamId) {
-      return staff.filter(s => s.is_active && (s.department_name === 'Academics' || s.designation_title?.includes('Teacher') || s.designation_title?.includes('Principal')));
+      return (staff || []).filter(s => s.is_active && (s.department_name === 'Academics' || s.designation_title?.includes('Teacher') || s.designation_title?.includes('Principal')));
     }
 
     // Find relevant ClassSubjectAllocations for the current stream and selected subject
-    const relevantAllocations = classSubjectAllocations.filter(
+    const relevantAllocations = (classSubjectAllocations || []).filter(
         csa => csa.class_stream_id === selectedClassStreamId && csa.subject_id === Number(formData.subject_id)
     );
 
     if (relevantAllocations.length === 0) return []; 
 
-    const teacherIds = teacherSubjectAssignments
+    const teacherIds = (teacherSubjectAssignments || [])
         .filter(tsa => relevantAllocations.some(ra => ra.id === tsa.allocation_id))
         .map(tsa => tsa.teacher_id);
     
     const uniqueTeacherIds = [...new Set(teacherIds)];
 
-    return staff.filter(s => s.is_active && uniqueTeacherIds.includes(s.id));
+    return (staff || []).filter(s => s.is_active && uniqueTeacherIds.includes(s.id));
   }, [formData.subject_id, selectedClassStreamId, staff, classSubjectAllocations, teacherSubjectAssignments]);
 
 
@@ -132,7 +132,7 @@ const TimetableEntriesPage: React.FC = () => {
 
   const daysOfWeekOrder: DayOfWeek[] = [DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY];
   const sortedPeriods = useMemo(() => 
-    [...timetablePeriodDefs].sort((a,b) => a.start_time.localeCompare(b.start_time)), 
+    [...(timetablePeriodDefs || [])].sort((a,b) => a.start_time.localeCompare(b.start_time)), 
   [timetablePeriodDefs]);
 
   const entriesForSelectedStream = useMemo(() => {

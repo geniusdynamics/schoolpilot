@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for payrollitemtype without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockPayrollItemTypes } from '../../hr/data/mockData';
+import { initialMockPayrollItemTypes } from './mockData';
 import { PayrollItemType } from '../../../core/types';
 
 export const usePayrollItemTypeData = () => {

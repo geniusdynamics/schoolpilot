@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for classstream without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockClassStreams } from '../../administration/data/mockData';
+import { initialMockClassStreams } from './mockData';
 import { ClassStream } from '../../../core/types';
 
 export const useClassStreamData = () => {

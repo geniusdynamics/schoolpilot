@@ -120,7 +120,7 @@ const SubjectsPage: React.FC = () => {
       <Card title={t('subjects.management')} actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>Add Subject</Button>
       }>
-        <Table columns={columns} data={subjectsState} isLoading={loading.subjects && isModalOpen} />
+        <Table columns={columns} data={subjectsState || []} isLoading={loading.subjects && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={t(editingSubject ? 'subjects.edit' : 'subjects.addNew')} size="lg"

@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for schoolperiod without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockSchoolPeriods } from '../../administration/data/mockData';
+import { initialMockSchoolPeriods } from './mockData';
 import { SchoolPeriod } from '../../../core/types';
 
 export const useSchoolPeriodData = () => {

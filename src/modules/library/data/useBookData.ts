@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for book without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockBooks } from '../../library/data/mockData';
+import { initialMockBooks } from './mockData';
 import { Book } from '../../../core/types';
 
 export const useBookData = () => {

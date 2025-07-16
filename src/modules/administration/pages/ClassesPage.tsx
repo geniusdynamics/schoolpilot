@@ -46,9 +46,10 @@ const ClassesPage: React.FC = () => {
   const [streamFormData, setStreamFormData] = useState<StreamFormData>({ name: '' });
 
   const resolvedClassStreams = useMemo(() => {
+    if (!classStreams || !Array.isArray(classStreams)) return [];
     return classStreams.map(cs => {
-        const teacher = staff.find(s => s.id === cs.class_teacher_id);
-        const schoolClass = classes.find(c => c.id === cs.class_id);
+        const teacher = staff?.find(s => s.id === cs.class_teacher_id);
+        const schoolClass = classes?.find(c => c.id === cs.class_id);
         return {
             ...cs,
             class_teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : 'N/A',
@@ -177,7 +178,7 @@ const ClassesPage: React.FC = () => {
       <Card title={t('classes.title')} actions={
           <Button onClick={() => openClassModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classes.addClassButton')}</Button>
       }>
-        <Table columns={classColumns} data={classes} isLoading={loading.classes} />
+        <Table columns={classColumns} data={classes || []} isLoading={loading.classes} />
       </Card>
 
       {selectedClassForStream && (
@@ -202,7 +203,7 @@ const ClassesPage: React.FC = () => {
         <Input name="name" label={t('classes.streamNameLabel')} value={streamFormData.name || ''} onChange={(e) => setStreamFormData({...streamFormData, name: e.target.value})} required />
         <Select name="class_teacher_id" label={t('classes.teacherLabel')} value={streamFormData.class_teacher_id || ''} onChange={(e) => setStreamFormData({...streamFormData, class_teacher_id: e.target.value})}>
             <option value="">{t('classes.selectTeacherOption')}</option>
-            {staff.filter(s => s.is_active).map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
+            {(staff || []).filter(s => s.is_active).map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
         </Select>
       </Modal>
     </div>

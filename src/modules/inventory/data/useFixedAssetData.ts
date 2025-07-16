@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for fixedasset without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockFixedAssets } from '../../inventory/data/mockData';
+import { initialMockFixedAssets } from './mockData';
 import { FixedAsset } from '../../../core/types';
 
 export const useFixedAssetData = () => {

@@ -1,4 +1,4 @@
-nhance the// Backend API service with intelligent request handling and offline queue
+// Enhanced Backend API service with intelligent request handling and offline queue
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
@@ -333,5 +333,9 @@ export class BackendAPIService {
 
   public clearCache(): void {
     this.requestCache.clear();
+  }
+
+  private logError(message: string, error: Error): void {
+    console.error(`[BackendAPIService] ${message}:`, error);
   }
 }

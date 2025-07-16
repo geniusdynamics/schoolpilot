@@ -2,11 +2,11 @@
 // ABOUTME: Provides CRUD operations for supplierinvoice without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockSupplierInvoices } from '../../finance/data/mockData';
+import { supplierInvoices } from '../../finance/data/mockData';
 import { SupplierInvoice } from '../../../core/types';
 
 export const useSupplierInvoiceData = () => {
-  const [data, setData] = useState<SupplierInvoice[]>(initialMockSupplierInvoices);
+  const [data, setData] = useState<SupplierInvoice[]>(supplierInvoices);
 
   const create = async (newItem: Partial<SupplierInvoice>) => {
     const newDataItem: SupplierInvoice = {

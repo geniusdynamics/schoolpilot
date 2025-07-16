@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for academicperioddefinition without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockAcademicPeriodDefinitions } from '../../administration/data/mockData';
+import { initialMockAcademicPeriodDefinitions } from './mockData';
 import { AcademicPeriodDefinition } from '../../../core/types';
 
 export const useAcademicPeriodDefinitionData = () => {

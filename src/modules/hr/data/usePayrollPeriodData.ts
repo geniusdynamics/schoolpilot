@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for payrollperiod without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockPayrollPeriods } from '../../hr/data/mockData';
+import { initialMockPayrollPeriods } from './mockData';
 import { PayrollPeriod } from '../../../core/types';
 
 export const usePayrollPeriodData = () => {

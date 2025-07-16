@@ -2,33 +2,31 @@
 // ABOUTME: Provides CRUD operations for itemcategory without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockItemCategories } from '../../inventory/data/mockData';
-import { ItemCategory } from '../../../core/types';
+import { initialMockItemCategoriesInv } from './mockData';
+import { ItemCategoryInv } from '../../../core/types';
 
 export const useItemCategoryData = () => {
-  const [data, setData] = useState<ItemCategory[]>(initialMockItemCategories);
+  const [data, setData] = useState<ItemCategoryInv[]>(initialMockItemCategoriesInv);
 
-  const create = async (newItem: Partial<ItemCategory>) => {
-    const newDataItem: ItemCategory = {
+  const create = async (newItem: Partial<ItemCategoryInv>) => {
+    const newDataItem: ItemCategoryInv = {
       ...newItem,
       id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as ItemCategory;
-    setData((prev: ItemCategory[]) => [...prev, newDataItem]);
+    } as ItemCategoryInv;
+    setData((prev: ItemCategoryInv[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<ItemCategory>) => {
-    setData((prev: ItemCategory[]) => prev.map((item: ItemCategory) => 
+  const update = async (id: number, updatedData: Partial<ItemCategoryInv>) => {
+    setData((prev: ItemCategoryInv[]) => prev.map((item: ItemCategoryInv) => 
       item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        ? { ...item, ...updatedData }
         : item
     ));
   };
 
   const remove = async (id: number) => {
-    setData((prev: ItemCategory[]) => prev.filter((item: ItemCategory) => item.id !== id));
+    setData((prev: ItemCategoryInv[]) => prev.filter((item: ItemCategoryInv) => item.id !== id));
   };
 
   return {

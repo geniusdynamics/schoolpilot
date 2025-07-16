@@ -2,11 +2,24 @@
 // ABOUTME: Provides CRUD operations for bookcategory without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockBookCategories } from '../../library/data/mockData';
+import { initialMockBookCategories } from './mockData';
 import { BookCategory } from '../../../core/types';
 
 export const useBookCategoryData = () => {
-  const [data, setData] = useState<BookCategory[]>(initialMockBookCategories);
+  const [bookCategories, setBookCategories] = useState<BookCategory[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setBookCategories(initialMockBookCategories);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch book categories');
+      setIsLoading(false);
+    }
+  }, []);
 
   const create = async (newItem: Partial<BookCategory>) => {
     const newDataItem: BookCategory = {
@@ -15,24 +28,26 @@ export const useBookCategoryData = () => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as BookCategory;
-    setData((prev: BookCategory[]) => [...prev, newDataItem]);
+    setBookCategories((prev: BookCategory[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
   const update = async (id: number, updatedData: Partial<BookCategory>) => {
-    setData((prev: BookCategory[]) => prev.map((item: BookCategory) => 
-      item.id === id 
+    setBookCategories((prev: BookCategory[]) => prev.map((item: BookCategory) =>
+      item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
   const remove = async (id: number) => {
-    setData((prev: BookCategory[]) => prev.filter((item: BookCategory) => item.id !== id));
+    setBookCategories((prev: BookCategory[]) => prev.filter((item: BookCategory) => item.id !== id));
   };
 
   return {
-    data,
+    data: bookCategories,
+    isLoading,
+    error,
     create,
     update,
     remove

@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
+import { SyncStatusComponent } from './OfflineCapability';
 
 const UserMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,6 +63,11 @@ const UserMenu: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Sync Status Section */}
+          <div className="p-2 border-b border-gray-200">
+            <SyncStatusComponent className="!p-2 !shadow-none !bg-transparent" />
           </div>
 
           <div className="p-2">

@@ -2,39 +2,61 @@
 // ABOUTME: Provides CRUD operations for designation without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockDesignations } from '../../administration/data/mockData';
+import { initialMockDesignations } from './mockData';
 import { Designation } from '../../../core/types';
 
 export const useDesignationData = () => {
-  const [data, setData] = useState<Designation[]>(initialMockDesignations);
+  const [data, setData] = useState<Designation[]>(initialMockDesignations || []);
+  const [loading, setLoading] = useState({ designations: false });
 
-  const create = async (newItem: Partial<Designation>) => {
-    const newDataItem: Designation = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as Designation;
-    setData((prev: Designation[]) => [...prev, newDataItem]);
-    return newDataItem;
+  const addDesignation = async (newItem: Omit<Designation, 'id' | 'created_at' | 'updated_at'>) => {
+    setLoading(prev => ({ ...prev, designations: true }));
+    try {
+      const newDataItem: Designation = {
+        ...newItem,
+        id: Date.now(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setData((prev: Designation[]) => [...prev, newDataItem]);
+      return newDataItem;
+    } finally {
+      setLoading(prev => ({ ...prev, designations: false }));
+    }
   };
 
-  const update = async (id: number, updatedData: Partial<Designation>) => {
-    setData((prev: Designation[]) => prev.map((item: Designation) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
+  const updateDesignation = async (updatedItem: Designation) => {
+    setLoading(prev => ({ ...prev, designations: true }));
+    try {
+      setData((prev: Designation[]) => prev.map((item: Designation) => 
+        item.id === updatedItem.id 
+          ? { ...updatedItem, updated_at: new Date().toISOString() }
+          : item
+      ));
+    } finally {
+      setLoading(prev => ({ ...prev, designations: false }));
+    }
   };
 
-  const remove = async (id: number) => {
-    setData((prev: Designation[]) => prev.filter((item: Designation) => item.id !== id));
+  const deleteDesignation = async (id: number) => {
+    setLoading(prev => ({ ...prev, designations: true }));
+    try {
+      setData((prev: Designation[]) => prev.filter((item: Designation) => item.id !== id));
+    } finally {
+      setLoading(prev => ({ ...prev, designations: false }));
+    }
   };
 
   return {
+    designations: data,
+    loading,
+    addDesignation,
+    updateDesignation,
+    deleteDesignation,
+    // Legacy compatibility
     data,
-    create,
-    update,
-    remove
+    create: addDesignation,
+    update: updateDesignation,
+    remove: deleteDesignation
   };
 };

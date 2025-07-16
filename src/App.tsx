@@ -1,11 +1,11 @@
-// ABOUTME: This is the root component of the application.
-// ABOUTME: It sets up the main router and global context providers with authentication.
+// ABOUTME: Consolidated application entry point with feature flag support
+// ABOUTME: Supports both standard and enhanced modes with backward compatibility
+// ABOUTME: Unified from App.tsx, EnhancedApp.tsx, and AppUnified.tsx for single entry point
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
-import { AppDataProvider } from '@/contexts/AppDataContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
@@ -14,6 +14,13 @@ import Spinner from './components/ui/Spinner';
 import { moduleRegistry } from './core/moduleRegistry';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
+import { getAppConfig, subscribeToConfig, AppConfig } from './config/appConfig';
+
+// Enhanced components (lazy loaded to avoid bundle bloat when not needed)
+const EnhancedNavigation = lazy(() => import('./components/EnhancedNavigation'));
+const GlobalNotifications = lazy(() => import('./components/GlobalNotifications'));
+const NetworkStatusIndicator = lazy(() => import('./components/OfflineCapability').then(module => ({ default: module.NetworkStatusIndicator })));
+const SyncStatusComponent = lazy(() => import('./components/OfflineCapability').then(module => ({ default: module.SyncStatusComponent })));
 
 // Lazy load the login page
 const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
@@ -21,27 +28,19 @@ const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 // Lazy load the dashboard page
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 
-// Test direct import to see if the issue is with dynamic imports
-const testImport = async () => {
-  try {
-    const module = await import('./modules/administration/pages/AdministrationDashboardPage.tsx');
-    console.log('✅ [Test] Direct import successful:', module);
-  } catch (error) {
-    console.error('❌ [Test] Direct import failed:', error);
-  }
-};
-
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 const pageModules = {
   ...import.meta.glob('./modules/*/pages/*.tsx'),
   ...import.meta.glob('./modules/*/pages/**/*.tsx'),
 };
 
-console.log('🚀 [App] Available page modules:', Object.keys(pageModules).length);
-console.log('🚀 [App] Page module keys:', Object.keys(pageModules));
-
-// Test the import
-testImport();
+// Debug logging helper
+const debugLog = (message: string, ...args: any[]) => {
+  const config = getAppConfig();
+  if (config.development.enableDebugLogging) {
+    console.log(message, ...args);
+  }
+};
 
 // Modular getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx
 const getPageComponent = (nav: any) => {
@@ -80,15 +79,14 @@ const getPageComponent = (nav: any) => {
   return null;
 };
 
-const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
+// Enhanced routing component with feature flag support
+const DynamicRoutes = ({ modulesInitialized, config }: { modulesInitialized: boolean; config: AppConfig }) => {
   const { navigationItems } = useDynamicNavigation(true);
   const { accessibleModules } = useRBAC();
-  const { user } = useAuth();
 
-  // Only log essential information once
   useEffect(() => {
     if (modulesInitialized && navigationItems.length > 0) {
-      console.log('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
+      debugLog('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
     }
   }, [modulesInitialized, navigationItems.length]);
 
@@ -135,25 +133,27 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       {/* Register custom/dynamic routes from all enabled modules */}
       {moduleRegistry.getEnabledModules().flatMap(module =>
         (module.routes || []).map(route => {
-          // Use the same dynamic import logic as getPageComponent
           const pathSegments = route.path.split('/').filter(Boolean);
           let moduleDir = '';
 
-          // Determine moduleDir based on pathSegments
           if (pathSegments.length > 0) {
-            // The first segment of the path is always the module directory, if it exists
             moduleDir = pathSegments[0];
           }
+          
           let PageComponent = null;
-          // Try modular location
           if (moduleDir) {
             const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
             const modularImportFn = pageModules[modularKey];
-            if (modularImportFn) PageComponent = lazy(modularImportFn as any);
+            if (modularImportFn) {
+              PageComponent = lazy(modularImportFn as any);
+            }
           }
-          if (!PageComponent) return null;
           
-          // Extract module name for permission checking
+          if (!PageComponent) {
+            debugLog('❌ [DynamicRoutes] No component found for route:', route.path);
+            return null;
+          }
+          
           const moduleName = moduleDir || module.id;
           const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
           
@@ -163,51 +163,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
               path={route.path}
               element={
                 <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
-                  <Suspense fallback={
-                    <div className="flex items-center justify-center h-screen">
-                      <div className="text-center">
-                        <Spinner size="lg" />
-                        <p className="mt-4 text-gray-600">Loading page...</p>
-                      </div>
-                    </div>
-                  }>
-                    <PageComponent />
-                  </Suspense>
-                </ProtectedRoute>
-              }
-            />
-          );
-        })
-      )}
-      {navigationItems
-        .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
-        .flatMap(module => {
-          console.log('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
-          return (module.children || []).map(nav => {
-            console.log('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
-            const PageComponent = getPageComponent(nav);
-            if (!PageComponent) {
-              console.log('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
-              return null;
-            }
-            
-            // Determine required permission based on module path
-            const modulePath = nav.modulePath?.replace('/', '') || '';
-            // Extract module name from path (e.g., '/administration' -> 'administration')
-            const moduleName = modulePath || nav.path.split('/')[1] || '';
-            const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
-            
-            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission, 'moduleName:', moduleName);
-            
-            return (
-              <Route
-                key={nav.path}
-                path={nav.path}
-                element={
-                  <ProtectedRoute
-                    requiredPermission={requiredPermission}
-                    requiredModule={moduleName}
-                  >
+                  <PageErrorBoundary pageName={route.page || route.path}>
                     <Suspense fallback={
                       <div className="flex items-center justify-center h-screen">
                         <div className="text-center">
@@ -218,22 +174,73 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
                     }>
                       <PageComponent />
                     </Suspense>
+                  </PageErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+          );
+        }).filter(Boolean)
+      )}
+      
+      {/* Dynamic navigation routes */}
+      {navigationItems
+        .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
+        .flatMap(module => {
+          debugLog('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
+          return (module.children || []).map(nav => {
+            debugLog('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
+            const PageComponent = getPageComponent(nav);
+            if (!PageComponent) {
+              debugLog('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
+              return null;
+            }
+            
+            const modulePath = nav.modulePath?.replace('/', '') || '';
+            const moduleName = modulePath || nav.path.split('/')[1] || '';
+            const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
+            
+            debugLog('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission);
+            
+            return (
+              <Route
+                key={nav.path}
+                path={nav.path}
+                element={
+                  <ProtectedRoute
+                    requiredPermission={requiredPermission}
+                    requiredModule={moduleName}
+                  >
+                    <PageErrorBoundary pageName={nav.name || nav.path}>
+                      <Suspense fallback={
+                        <div className="flex items-center justify-center h-screen">
+                          <div className="text-center">
+                            <Spinner size="lg" />
+                            <p className="mt-4 text-gray-600">Loading page...</p>
+                          </div>
+                        </div>
+                      }>
+                        <PageComponent />
+                      </Suspense>
+                    </PageErrorBoundary>
                   </ProtectedRoute>
                 }
               />
             );
           });
-        })}
+        }).filter(Boolean)}
     </Routes>
   );
 };
 
-const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitialized }) => {
+// Enhanced app content with feature flag support
+const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> = ({ modulesInitialized, config }) => {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
 
   // Debug authentication state
-  console.log('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
+  useEffect(() => {
+    debugLog('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
+  }, [isAuthenticated, isLoading, location.pathname]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -249,49 +256,133 @@ const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitiali
 
   // If not authenticated, show login page
   if (!isAuthenticated) {
-    console.log('🔍 [AppContent] User not authenticated, showing login page');
+    debugLog('🔍 [AppContent] User not authenticated, showing login page');
     return <LoginPage />;
   }
 
-  console.log('🔍 [AppContent] User authenticated, showing layout');
+  debugLog('🔍 [AppContent] User authenticated, showing layout');
+  
   return (
     <Layout>
-      <ErrorBoundary key={location.pathname}>
-        <DynamicRoutes modulesInitialized={modulesInitialized} />
-      </ErrorBoundary>
+
+      
+      {/* Main content with error boundary */}
+      <div className="flex-1">
+        <ErrorBoundary key={location.pathname}>
+          <DynamicRoutes modulesInitialized={modulesInitialized} config={config} />
+        </ErrorBoundary>
+      </div>
+      
+      {/* Global notifications (if enabled) */}
+      {config.features.globalNotifications && config.useEnhancedFeatures && (
+        <Suspense fallback={null}>
+          <GlobalNotifications />
+        </Suspense>
+      )}
     </Layout>
   );
 };
 
+// Data provider wrapper - uses the consolidated AppDataProvider which supports both modes
+const DataProviderWrapper: React.FC<{ config: AppConfig; children: React.ReactNode }> = ({ config, children }) => {
+  debugLog('🚀 [App] Using Consolidated Data Provider with enhanced features:', config.useEnhancedFeatures);
+  
+  // The AppDataProvider already supports both standard and enhanced features
+  // It automatically switches based on configuration and available services
+  const AppDataProvider = lazy(() => import('./contexts/AppDataContext').then(module => ({ default: module.AppDataProvider })));
+  
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading data layer...</p>
+        </div>
+      </div>
+    }>
+      <AppDataProvider>{children}</AppDataProvider>
+    </Suspense>
+  );
+};
+
+// Import the new comprehensive error boundaries
+import ApplicationErrorBoundary from './components/ApplicationErrorBoundary';
+import ModuleErrorBoundary from './components/ModuleErrorBoundary';
+import PageErrorBoundary from './components/PageErrorBoundary';
+
+// Main consolidated App component
 const App: React.FC = () => {
+  const [config, setConfig] = useState<AppConfig>(getAppConfig());
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
 
+  // Subscribe to configuration changes
+  useEffect(() => {
+    const unsubscribe = subscribeToConfig(setConfig);
+    return unsubscribe;
+  }, []);
+
+  // Initialize modules
   useEffect(() => {
     const init = async () => {
       if (!initializedRef.current) {
-        await initializeModules();
-        setModulesInitialized(true);
+        debugLog('🚀 [App] Initializing modules with config:', config);
+        try {
+          await initializeModules();
+          setModulesInitialized(true);
+          debugLog('✅ [App] Modules initialized successfully');
+        } catch (error) {
+          console.error('❌ [App] Module initialization failed:', error);
+          // Still allow app to load with degraded functionality
+          setModulesInitialized(true);
+        }
         initializedRef.current = true;
       }
     };
     init();
-  }, []);
+  }, [config]);
 
+  // Show loading screen while modules initialize
   if (!modulesInitialized) {
-    return <div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">
+            Initializing application modules...
+            {config.useEnhancedFeatures && ' (Enhanced Mode)'}
+          </p>
+        </div>
+      </div>
+    );
   }
 
+  debugLog('🚀 [App] Rendering with config:', {
+    mode: config.mode,
+    useEnhancedFeatures: config.useEnhancedFeatures,
+    enabledFeatures: Object.entries(config.features).filter(([, enabled]) => enabled).map(([name]) => name)
+  });
+
   return (
-    <AuthProvider>
-      <UserProvider>
-        <AppDataProvider>
-          <HashRouter>
-            <AppContent modulesInitialized={modulesInitialized} />
-          </HashRouter>
-        </AppDataProvider>
-      </UserProvider>
-    </AuthProvider>
+    <ApplicationErrorBoundary 
+      onError={(error, errorInfo, errorId) => {
+        // Log critical application errors
+        console.error('🚨 Critical Application Error:', { errorId, error, errorInfo });
+      }}
+      maxRetries={3}
+    >
+      <HashRouter>
+        <AuthProvider>
+          <UserProvider>
+            <DataProviderWrapper config={config}>
+              <ModuleErrorBoundary moduleName="Core Application">
+                <AppContent modulesInitialized={modulesInitialized} config={config} />
+              </ModuleErrorBoundary>
+            </DataProviderWrapper>
+          </UserProvider>
+        </AuthProvider>
+      </HashRouter>
+    </ApplicationErrorBoundary>
   );
 };
 

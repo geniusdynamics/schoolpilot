@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for mealplan without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockMealPlans } from '../../nutrition/data/mockData';
+import { initialMockMealPlans } from './mockData';
 import { MealPlan } from '../../../core/types';
 
 export const useMealPlanData = () => {
