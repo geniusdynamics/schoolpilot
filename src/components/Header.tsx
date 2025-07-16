@@ -6,6 +6,7 @@ import { BellIcon, CogIcon } from './ui/icons';
 import LanguageSwitcher from './ui/LanguageSwitcher';
 import UserMenu from './UserMenu';
 import { NetworkStatusIndicator } from './OfflineCapability';
+import ModuleHealthIndicator from './ModuleHealthIndicator';
 
 const notifications = 3; // Example notification count
 
@@ -71,6 +72,11 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           {/* Network Status Indicator - Between search and notifications */}
           <div className="hidden sm:block">
             <NetworkStatusIndicator className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white/90 shadow text-xs" />
+          </div>
+          
+          {/* Module Health Indicator */}
+          <div className="hidden sm:block">
+            <ModuleHealthIndicator className="rounded-lg bg-white/70 hover:bg-white/90 shadow" showCount={true} />
           </div>
           
           {/* Notifications */}

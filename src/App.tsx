@@ -9,7 +9,7 @@ import { UserProvider } from './contexts/UserContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
-import { initializeModules } from './core/moduleLoader';
+import { initializeModulesOptimized } from './core/optimizedModuleLoader';
 import Spinner from './components/ui/Spinner';
 import { moduleRegistry } from './core/moduleRegistry';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -309,6 +309,8 @@ const DataProviderWrapper: React.FC<{ config: AppConfig; children: React.ReactNo
 import ApplicationErrorBoundary from './components/ApplicationErrorBoundary';
 import ModuleErrorBoundary from './components/ModuleErrorBoundary';
 import PageErrorBoundary from './components/PageErrorBoundary';
+import ModuleLoadingProgress from './components/ModuleLoadingProgress';
+import dynamicModuleLoader from './services/dynamicModuleLoader';
 
 // Main consolidated App component
 const App: React.FC = () => {
@@ -327,8 +329,16 @@ const App: React.FC = () => {
     const init = async () => {
       if (!initializedRef.current) {
         debugLog('🚀 [App] Initializing modules with config:', config);
+        
+        // Set a safety timeout to prevent the app from getting stuck on initialization
+        const safetyTimeout = setTimeout(() => {
+          console.warn('⚠️ [App] Module initialization safety timeout triggered');
+          setModulesInitialized(true);
+          initializedRef.current = true;
+        }, 15000); // 15 seconds safety timeout
+        
         try {
-          await initializeModules();
+          await initializeModulesOptimized();
           setModulesInitialized(true);
           debugLog('✅ [App] Modules initialized successfully');
         } catch (error) {
@@ -336,6 +346,8 @@ const App: React.FC = () => {
           // Still allow app to load with degraded functionality
           setModulesInitialized(true);
         }
+        
+        clearTimeout(safetyTimeout);
         initializedRef.current = true;
       }
     };
@@ -346,12 +358,41 @@ const App: React.FC = () => {
   if (!modulesInitialized) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
+        <div className="text-center w-full max-w-md px-4">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">
+          <p className="mt-4 mb-6 text-gray-600">
             Initializing application modules...
             {config.useEnhancedFeatures && ' (Enhanced Mode)'}
           </p>
+          <ModuleLoadingProgress 
+            showDetails={true}
+            timeoutMs={15000} // 15 seconds timeout
+            onComplete={() => {
+              console.log('✅ [App] Module loading progress complete, proceeding to application');
+              setModulesInitialized(true);
+            }}
+          />
+          {/* Add a manual continue button as a last resort */}
+          <div className="mt-6">
+            <button
+              onClick={() => {
+                console.warn('⚠️ [App] Manual continue triggered by user');
+                // Force the module loader to complete
+                try {
+                  dynamicModuleLoader.forceCompleteLoading();
+                } catch (error) {
+                  console.error('Failed to force complete loading:', error);
+                }
+                setModulesInitialized(true);
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Continue to Application
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Click to continue if loading appears to be stuck
+            </p>
+          </div>
         </div>
       </div>
     );
