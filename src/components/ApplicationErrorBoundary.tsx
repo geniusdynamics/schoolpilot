@@ -1,7 +1,7 @@
 // ABOUTME: Application-level error boundary for critical error handling
 // ABOUTME: Provides recovery mechanisms and prevents complete application crashes
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;

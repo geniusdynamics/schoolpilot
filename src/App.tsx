@@ -39,38 +39,32 @@ const debugLog = (message: string, ...args: any[]) => {
   }
 };
 
-// Enhanced page component resolution with robust loading
-import PageComponentLoader from './components/PageComponentLoader';
-import { pageComponentResolver } from './services/pageComponentResolver';
-
 const getPageComponent = (nav: any) => {
   console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
   
-  // Return a component that uses the enhanced loader
-  return React.memo(() => (
-    <PageComponentLoader
-      pageName={nav.name || nav.page || nav.path}
-      componentLoader={async () => {
-        const result = await pageComponentResolver.resolvePageComponent(nav);
-        if (result.component) {
-          return { default: result.component };
-        }
-        throw result.error || new Error(`Failed to resolve component for ${nav.name || nav.page}`);
-      }}
-      enableCaching={true}
-      loadingTimeout={10000}
-      retryAttempts={2}
-      onLoadStart={() => {
-        debugLog('🔄 [PageComponent] Starting to load:', nav.name || nav.page);
-      }}
-      onLoadComplete={(loadTime, fromCache) => {
-        debugLog('✅ [PageComponent] Loaded:', nav.name || nav.page, `(${loadTime}ms, cached: ${fromCache})`);
-      }}
-      onLoadError={(error) => {
-        debugLog('❌ [PageComponent] Failed to load:', nav.name || nav.page, error.message);
-      }}
-    />
-  ));
+  if (!nav.page) {
+    console.log('❌ [getPageComponent] No page property found for nav item');
+    return null;
+  }
+
+  const pathSegments = nav.path.split('/').filter(Boolean);
+  if (pathSegments.length === 0) {
+    console.log('❌ [getPageComponent] No path segments found');
+    return null;
+  }
+
+  const moduleDir = pathSegments[0];
+  const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
+  const modularImportFn = pageModules[modularKey];
+  
+  if (modularImportFn) {
+    console.log('✅ [getPageComponent] Found component for:', modularKey);
+    return lazy(modularImportFn as any);
+  }
+  
+  console.log('❌ [getPageComponent] No component found for key:', modularKey);
+  console.log('Available keys:', Object.keys(pageModules).filter(key => key.includes(moduleDir)));
+  return null;
 };
 
 // Simplified routing component
@@ -204,7 +198,18 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
                     requiredPermission={requiredPermission}
                     requiredModule={moduleName}
                   >
-                    <PageComponent />
+                    <PageErrorBoundary pageName={nav.page || nav.path}>
+                      <Suspense fallback={
+                        <div className="flex items-center justify-center h-screen">
+                          <div className="text-center">
+                            <Spinner size="lg" />
+                            <p className="mt-4 text-gray-600">Loading page...</p>
+                          </div>
+                        </div>
+                      }>
+                        <PageComponent />
+                      </Suspense>
+                    </PageErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -292,8 +297,8 @@ const DataProviderWrapper: React.FC<{ config: AppConfig; children: React.ReactNo
 import ApplicationErrorBoundary from './components/ApplicationErrorBoundary';
 import ModuleErrorBoundary from './components/ModuleErrorBoundary';
 import PageErrorBoundary from './components/PageErrorBoundary';
-import ModuleLoadingProgress from './components/ModuleLoadingProgress';
-import dynamicModuleLoader from './services/dynamicModuleLoader';
+// import ModuleLoadingProgress from './components/ModuleLoadingProgress'; // Unused
+// import dynamicModuleLoader from './services/dynamicModuleLoader'; // Unused
 
 // Main consolidated App component
 const App: React.FC = () => {
@@ -307,74 +312,60 @@ const App: React.FC = () => {
     return unsubscribe;
   }, []);
 
-  // Initialize modules with improved error handling
+  // Simplified module initialization to prevent loading issues
   useEffect(() => {
     const init = async () => {
       if (!initializedRef.current) {
-        debugLog('🚀 [App] Initializing modules with config:', config);
+        debugLog('🚀 [App] Starting simplified module initialization');
         initializedRef.current = true;
         
-        // Set a shorter safety timeout to prevent infinite loading
-        const safetyTimeout = setTimeout(() => {
-          console.warn('⚠️ [App] Module initialization safety timeout triggered - proceeding anyway');
+        // Use a very short timeout to prevent blocking
+        const quickTimeout = setTimeout(() => {
+          console.log('✅ [App] Quick initialization complete - proceeding to app');
           setModulesInitialized(true);
-        }, 5000); // Reduced to 5 seconds
+        }, 1000); // Just 1 second
         
         try {
-          // Try to initialize modules, but don't block the app if it fails
-          const initPromise = initializeModulesOptimized();
-          const timeoutPromise = new Promise<void>((resolve) => {
-            setTimeout(() => {
-              console.warn('⚠️ [App] Module initialization taking too long, proceeding...');
-              resolve();
-            }, 3000); // 3 second timeout for module init
-          });
-          
-          await Promise.race([initPromise, timeoutPromise]);
-          debugLog('✅ [App] Modules initialized successfully');
+          // Try basic module registry initialization
+          if (typeof initializeModulesOptimized === 'function') {
+            // Set a race condition with quick timeout
+            const initPromise = initializeModulesOptimized();
+            const quickPromise = new Promise<void>((resolve) => {
+              setTimeout(() => {
+                console.log('⚡ [App] Quick init timeout - proceeding');
+                resolve();
+              }, 500); // Very quick 500ms timeout
+            });
+            
+            await Promise.race([initPromise, quickPromise]);
+          }
         } catch (error) {
-          console.error('❌ [App] Module initialization failed:', error);
-          // Continue anyway - app should work with basic functionality
+          console.warn('⚠️ [App] Module initialization had issues, continuing anyway:', error);
         } finally {
-          clearTimeout(safetyTimeout);
+          clearTimeout(quickTimeout);
           setModulesInitialized(true);
         }
       }
     };
     
-    // Start initialization immediately, don't wait for config changes
+    // Start immediately
     init();
-  }, []); // Remove config dependency to prevent re-initialization
+  }, []); // No dependencies to prevent re-runs
 
-  // Show loading screen while modules initialize
+  // Simplified loading screen with quick bypass
   if (!modulesInitialized) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center w-full max-w-md px-4">
           <Spinner size="lg" />
           <p className="mt-4 mb-6 text-gray-600">
-            Initializing application modules...
-            {config.useEnhancedFeatures && ' (Enhanced Mode)'}
+            Loading application...
           </p>
-          <ModuleLoadingProgress 
-            showDetails={true}
-            timeoutMs={15000} // 15 seconds timeout
-            onComplete={() => {
-              console.log('✅ [App] Module loading progress complete, proceeding to application');
-              setModulesInitialized(true);
-            }}
-          />
-          {/* Add a manual continue button as a last resort */}
+          {/* Immediate continue button to prevent getting stuck */}
           <div className="mt-6">
             <button
               onClick={() => {
-                console.warn('⚠️ [App] Manual continue triggered by user');
-                // Force the module loader to complete
-                try {
-                  dynamicModuleLoader.forceCompleteLoading();
-                } catch (error) {
-                  console.error('Failed to force complete loading:', error);
-                }
+                console.log('🚀 [App] User clicked continue - proceeding to application');
                 setModulesInitialized(true);
               }}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
@@ -382,7 +373,7 @@ const App: React.FC = () => {
               Continue to Application
             </button>
             <p className="text-xs text-gray-500 mt-2">
-              Click to continue if loading appears to be stuck
+              Click to continue to the application
             </p>
           </div>
         </div>

@@ -114,7 +114,7 @@ export class UnifiedCRUDService {
   private cache = new DataCache();
   private dataStrategyManager: DataStrategyManager | null = null;
   private mockDataService: any = null;
-  private rxdbService: any = null;
+  // private rxdbService: any = null; // Unused
 
   constructor(
     dataStrategyManager?: DataStrategyManager,
@@ -132,7 +132,7 @@ export class UnifiedCRUDService {
     data: Partial<T>,
     options: CRUDOptions = {}
   ): Promise<CRUDResult<T>> {
-    const startTime = Date.now();
+    // const startTime = Date.now(); // Unused
     const opts = { validate: true, cache: true, sync: true, priority: 'normal', ...options };
 
     try {
@@ -173,7 +173,7 @@ export class UnifiedCRUDService {
         const operation: DataOperation = {
           type: 'write',
           entity: entityName,
-          priority: opts.priority!,
+          priority: (opts.priority || 'normal') as 'low' | 'normal' | 'high' | 'critical',
           requiresBackend: false,
           allowOffline: true
         };
@@ -417,7 +417,7 @@ export class UnifiedCRUDService {
         const operation: DataOperation = {
           type: 'write',
           entity: entityName,
-          priority: opts.priority!,
+          priority: (opts.priority || 'normal') as 'low' | 'normal' | 'high' | 'critical',
           requiresBackend: false,
           allowOffline: true
         };
@@ -506,7 +506,7 @@ export class UnifiedCRUDService {
         const operation: DataOperation = {
           type: 'delete',
           entity: entityName,
-          priority: opts.priority!,
+          priority: (opts.priority || 'normal') as 'low' | 'normal' | 'high' | 'critical',
           requiresBackend: false,
           allowOffline: true
         };

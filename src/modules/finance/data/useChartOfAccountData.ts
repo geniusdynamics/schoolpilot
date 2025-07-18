@@ -3,32 +3,32 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockChartOfAccounts } from './mockData';
-import { ChartOfAccount } from '../../../core/types';
+import { FinChartOfAccountType } from './types';
 
 export const useChartOfAccountData = () => {
-  const [data, setData] = useState<ChartOfAccount[]>(initialMockChartOfAccounts);
+  const [data, setData] = useState<FinChartOfAccountType[]>(initialMockChartOfAccounts);
 
-  const create = async (newItem: Partial<ChartOfAccount>) => {
-    const newDataItem: ChartOfAccount = {
+  const create = async (newItem: Partial<FinChartOfAccountType>) => {
+    const newDataItem: FinChartOfAccountType = {
       ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as ChartOfAccount;
-    setData((prev: ChartOfAccount[]) => [...prev, newDataItem]);
+    } as FinChartOfAccountType;
+    setData((prev: FinChartOfAccountType[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<ChartOfAccount>) => {
-    setData((prev: ChartOfAccount[]) => prev.map((item: ChartOfAccount) => 
-      item.id === id 
+  const update = async (id: number, updatedData: Partial<FinChartOfAccountType>) => {
+    setData((prev: FinChartOfAccountType[]) => prev.map((item: FinChartOfAccountType) =>
+      item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
   const remove = async (id: number) => {
-    setData((prev: ChartOfAccount[]) => prev.filter((item: ChartOfAccount) => item.id !== id));
+    setData((prev: FinChartOfAccountType[]) => prev.filter((item: FinChartOfAccountType) => item.id !== id));
   };
 
   return {

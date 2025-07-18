@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon, HomeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 
@@ -29,6 +30,7 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems, isLoading } = useDynamicNavigation(true);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [navigationErrors, setNavigationErrors] = useState<Set<string>>(new Set());
@@ -43,7 +45,7 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
     // Add home breadcrumb
     if (showHome) {
       items.push({
-        label: 'Dashboard',
+        label: t('common:dashboard', 'Dashboard'),
         path: '/dashboard',
         isActive: location.pathname === '/dashboard',
         isAccessible: true,
@@ -60,8 +62,27 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
       const navItem = findNavigationItem(navigationItems, currentPath);
       const isLast = index === pathSegments.length - 1;
       
+      // Translate the navigation item name if it's a translation key
+      let label = navItem?.name || formatSegmentLabel(segment);
+      if (navItem?.name && navItem.name.includes(':')) {
+        // This is a translation key like "navigation:administration.title"
+        const [namespace, key] = navItem.name.split(':');
+        if (namespace === 'navigation' && key) {
+          try {
+            const translated = t(`navigation:${key}`, { defaultValue: key.split('.').pop() || segment });
+            // Make sure we got a string, not an object
+            label = typeof translated === 'string' ? translated : key.split('.').pop() || segment;
+          } catch (error) {
+            console.warn('Translation error for key:', `navigation:${key}`, error);
+            label = key.split('.').pop() || segment;
+          }
+        } else {
+          label = t(navItem.name, navItem.name.split(':').pop() || segment);
+        }
+      }
+      
       items.push({
-        label: navItem?.name || formatSegmentLabel(segment),
+        label,
         path: currentPath,
         isActive: isLast,
         isAccessible: !!navItem,

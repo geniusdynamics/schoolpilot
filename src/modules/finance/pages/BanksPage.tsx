@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FinBankType as Bank, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum } from '@/types';
+import { FinBankType, FinChartOfAccountType } from '@/modules/finance/data/types';
+import { FinAccountTypeEnum } from '@/modules/finance/data/types';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
@@ -8,20 +9,18 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BanknotesIcon } from '@/components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useBankData } from '@/modules/finance/data/useBankData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+
+type Bank = FinBankType;
+type ChartOfAccount = FinChartOfAccountType;
 
 type BankFormData = Omit<Partial<Bank>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
 
 const BanksPage: React.FC = () => {
-  const { 
-    banks, 
-    chartOfAccounts,
-    loading, 
-    addBank, 
-    updateBank, 
-    deleteBank 
-  } = useAppData(); // Updated
+  const { chartOfAccounts, loading } = useAppData(); // Updated
+  const { data: banks, create: addBank, update: updateBank, remove: deleteBank } = useBankData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBank, setEditingBank] = useState<Bank | null>(null);

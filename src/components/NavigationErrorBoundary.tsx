@@ -2,7 +2,7 @@
 // ABOUTME: Provides graceful handling of navigation failures and route resolution errors
 
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+// import { useNavigate, useLocation } from 'react-router-dom'; // Unused
 import { AlertTriangleIcon, HomeIcon, ArrowLeftIcon, RefreshCwIcon } from './ui/icons';
 
 interface NavigationErrorBoundaryState {
@@ -32,8 +32,8 @@ class NavigationErrorBoundary extends React.Component<
   NavigationErrorBoundaryProps,
   NavigationErrorBoundaryState
 > {
-  private navigate: any;
-  private location: any;
+  // private navigate: any; // Unused
+  // private location: any; // Unused
 
   constructor(props: NavigationErrorBoundaryProps) {
     super(props);
@@ -83,7 +83,7 @@ class NavigationErrorBoundary extends React.Component<
     }
   }
 
-  componentDidUpdate(prevProps: NavigationErrorBoundaryProps, prevState: NavigationErrorBoundaryState) {
+  componentDidUpdate(_prevProps: NavigationErrorBoundaryProps, prevState: NavigationErrorBoundaryState) {
     // Clear error state when route changes successfully
     if (!this.state.hasError && prevState.hasError) {
       const currentRoute = window.location.hash.replace('#', '') || '/';
@@ -333,8 +333,8 @@ class NavigationErrorBoundary extends React.Component<
 
 // HOC to provide navigation hooks to class component
 const NavigationErrorBoundaryWithHooks: React.FC<NavigationErrorBoundaryProps> = (props) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  // const navigate = useNavigate(); // Unused
+  // const location = useLocation(); // Unused
 
   // Store last working route
   React.useEffect(() => {

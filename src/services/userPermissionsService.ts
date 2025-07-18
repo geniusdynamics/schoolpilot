@@ -3,7 +3,7 @@
 
 import { useAppData } from '../contexts/AppDataContext';
 import * as rxdbService from './rxdbService';
-import type { RbacRole } from '../core/types';
+// import type { RbacRole } from '../core/types'; // Unused
 
 // Types for User Permissions System
 export interface Permission {
@@ -576,7 +576,7 @@ export const userPermissionsService = new UserPermissionsService();
 
 // Export React hooks for easy use in components
 export const useUserPermissions = () => {
-  const { isRxDBModeActive } = useAppData();
+  // const { isRxDBModeActive } = useAppData(); // Property doesn't exist
   
   return {
     getUsers: userPermissionsService.getUsers.bind(userPermissionsService),

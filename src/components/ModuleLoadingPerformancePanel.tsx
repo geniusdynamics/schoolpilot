@@ -4,7 +4,8 @@
 import React, { useState } from 'react';
 import { useModuleLoadingPerformance } from '../hooks/useModuleLoadingPerformance';
 import { ModuleLoadingPriority } from '../services/dynamicModuleLoader';
-import { RefreshCwIcon, ChartBarIcon, ClockIcon } from './ui/icons';
+import { RefreshCwIcon } from './ui/icons';
+// import { ChartBarIcon, ClockIcon } from './ui/icons'; // Unused
 import Card from './ui/Card';
 import Button from './ui/Button';
 import Badge from './ui/Badge';

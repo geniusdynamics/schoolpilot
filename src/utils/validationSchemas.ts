@@ -3,7 +3,7 @@
 
 import { 
   EntityValidationSchema, 
-  BusinessRule, 
+  // BusinessRule, // Unused
   ConsistencyCheck,
   ValidationError,
   CommonValidations,
@@ -14,8 +14,8 @@ import {
   StudentStatus, 
   FinancialYearStatus, 
   InvoiceStatus,
-  ExamSessionStatus,
-  StudentEnrollmentStatus 
+  ExamSessionStatus
+  // StudentEnrollmentStatus // Unused
 } from '../core/types';
 
 // Student validation schema

@@ -95,8 +95,8 @@ const getDisplayName = (navigationKey: string): string => {
 
 const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key: string) => void }> = ({ selectedModuleKey, onModuleSelect }) => {
   const { navigationItems, isLoading } = useDynamicNavigation(true);
-  const { accessibleModules } = useRBAC();
-  const { user } = useAuth();
+  const { /* accessibleModules */ } = useRBAC();
+  const { /* user */ } = useAuth();
   const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
   const [hoveredModule, setHoveredModule] = useState<string | null>(null);
   const mainModules = navigationItems.filter(item => item.isGroup);

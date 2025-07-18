@@ -1,6 +1,14 @@
 // ABOUTME: Simplified dynamic module loader with force completion capability
 // ABOUTME: Provides fallback mechanisms to prevent infinite loading states
 
+export enum ModuleLoadingPriority {
+  CRITICAL = 'critical',
+  HIGH = 'high', 
+  NORMAL = 'normal',
+  LOW = 'low',
+  LAZY = 'lazy'
+}
+
 class DynamicModuleLoader {
   private isLoading = false;
   private isCompleted = false;

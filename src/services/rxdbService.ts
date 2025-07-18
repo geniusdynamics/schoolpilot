@@ -60,8 +60,8 @@ const academicYearSchema: RxJsonSchema<allTypes.AcademicYear> = createEntitySche
 const workflowStateProperties: RxJsonSchema<allTypes.WorkflowState>['properties'] = { id: { type: 'number' }, workflow_id: { type: 'number' }, name: { type: 'string' }, sequence_order: { type: 'number' } };
 const workflowSchema: RxJsonSchema<allTypes.Workflow> = createEntitySchema<allTypes.Workflow>('workflow', { id: { type: 'number' }, name: { type: 'string' }, states: { type: 'array', items: { type: 'object', properties: workflowStateProperties } as RxJsonSchema<any> }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' }, }, { key: 'id', type: 'number' }, ['id', 'name', 'created_at', 'updated_at']);
 const auditLogSchema: RxJsonSchema<allTypes.AuditLog> = createEntitySchema<allTypes.AuditLog>('audit_log', { id: { type: 'string' }, user_id: { type: ['string', 'null'], ref: 'users' }, user_name: { type: ['string', 'null'] }, action: { type: 'string', enum: Object.values(allTypes.AuditAction) }, table_name: { type: ['string', 'null'] }, record_pk: { type: ['string', 'null'] }, old_data: { type: ['object', 'null'], additionalProperties: true }, new_data: { type: ['object', 'null'], additionalProperties: true }, changed_at: { type: 'string', format: 'date-time' }, ip_address: { type: ['string', 'null'] }, user_agent: { type: ['string', 'null'] } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'action', 'changed_at']);
-const parentGuardianSchemaProperties: RxJsonSchema<allTypes.ParentGuardian>['properties'] = { id: { type: 'string' }, name: { type: 'string' }, phone: { type: 'string' }, user_id: { type: ['string', 'null'] }, email: { type: ['string', 'null'] }, relationship_type: { type: ['string', 'null'] }, location: { type: ['string', 'null'] }, address: { type: ['string', 'null'] }, photo_path: { type: ['string', 'null'] }, deleted_at: { type: ['string', 'null'] }, created_at: { type: 'string' }, updated_at: { type: 'string' } };
-const parentGuardianSchema: RxJsonSchema<allTypes.ParentGuardian> = createEntitySchema<allTypes.ParentGuardian>('parents_guardian', parentGuardianSchemaProperties, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'name', 'phone', 'created_at', 'updated_at']);
+const parentGuardianSchemaProperties: RxJsonSchema<allTypes.ParentsGuardian>['properties'] = { id: { type: 'string' }, name: { type: 'string' }, phone: { type: 'string' }, user_id: { type: ['string', 'null'] }, email: { type: ['string', 'null'] }, relationship_type: { type: ['string', 'null'] }, location: { type: ['string', 'null'] }, address: { type: ['string', 'null'] }, photo_path: { type: ['string', 'null'] }, deleted_at: { type: ['string', 'null'] }, created_at: { type: 'string' }, updated_at: { type: 'string' } };
+const parentGuardianSchema: RxJsonSchema<allTypes.ParentsGuardian> = createEntitySchema<allTypes.ParentsGuardian>('parents_guardian', parentGuardianSchemaProperties, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'name', 'phone', 'created_at', 'updated_at']);
 const examResultSummaryProperties: RxJsonSchema<allTypes.AcademicsExamResultSummaryType>['properties'] = { exam_name: { type: ['string', 'null'] }, english: { type: ['string', 'null'] }, kiswahili: { type: ['string', 'null'] }, mathematics: { type: ['string', 'null'] }, science: { type: ['string', 'null'] }, social_studies_religious_education: { type: ['string', 'null'] }, total_marks: { type: ['number', 'null'] } };
 const studentSchema: RxJsonSchema<allTypes.Student> = createEntitySchema<allTypes.Student>('student', { id: { type: 'string' }, admission_no: { type: 'string', maxLength: 50 }, upi_no: { type: ['string', 'null'], maxLength: 50 }, first_name: { type: 'string' }, middle_name: { type: ['string', 'null'] }, last_name: { type: 'string' }, gender: { type: 'string', enum: Object.values(allTypes.PersonGender) }, date_of_birth: { type: ['string', 'null'], format: 'date' }, photo_path: { type: ['string', 'null'] }, current_class_stream_id: { type: ['number', 'null'], ref: 'class_streams' }, student_category_id: { type: ['number', 'null'], ref: 'student_categories' }, dormitory_id: { type: ['number', 'null'], ref: 'dormitories' }, admission_date: { type: ['string', 'null'], format: 'date' }, status: { type: 'string', enum: Object.values(allTypes.StudentStatus) }, deleted_at: { type: ['string', 'null'], format: 'date-time' }, current_class_name: { type: ['string', 'null'] }, current_class_stream_name: { type: ['string', 'null'] }, student_category_name: { type: ['string', 'null'] }, dormitory_name: { type: ['string', 'null'] }, primary_guardian: { type: ['object', 'null'], properties: parentGuardianSchemaProperties as RxJsonSchema<any>['properties'] }, exam_result_summary: { type: ['object', 'null'], properties: examResultSummaryProperties as RxJsonSchema<any>['properties'] }, email: { type: ['string', 'null'], format: 'email' }, phone: { type: ['string', 'null'] }, address: { type: ['string', 'null'] }, remarks: { type: ['string', 'null'] }, religion: { type: ['string', 'null'] }, county: { type: ['string', 'null'] }, district: { type: ['string', 'null'] }, student_type: { type: ['string', 'null'] }, primary_school: { type: ['string', 'null'] }, marks_attained_primary: { type: ['string', 'null'] }, class_admitted: { type: ['string', 'null'] }, stream_admitted: { type: ['string', 'null'] }, user_id: { type: ['string', 'null'], ref: 'users' }, display_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' }, }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'admission_no', 'first_name', 'last_name', 'gender', 'status', 'created_at', 'updated_at'], ['admission_no', 'current_class_stream_id', 'status']);
 const studentGuardianRelationshipSchema: RxJsonSchema<allTypes.StudentGuardianRelationship> = createEntitySchema<allTypes.StudentGuardianRelationship>('student_guardian_relationship', { id: { type: 'string' }, student_id: { type: 'string', ref: 'students' }, guardian_id: { type: 'string', ref: 'parents_guardians' }, is_primary: { type: 'boolean' }, relationship_type: { type: 'string' }, can_pickup: { type: 'boolean', default: false }, receives_communication: { type: 'boolean', default: true }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' }, }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'student_id', 'guardian_id', 'is_primary', 'relationship_type', 'created_at', 'updated_at']);
@@ -71,12 +71,12 @@ const designationSchema: RxJsonSchema<allTypes.Designation> = createEntitySchema
 const studentCategorySchema: RxJsonSchema<allTypes.StudentCategory> = createEntitySchema<allTypes.StudentCategory>('student_category', { id: { type: 'number' }, name: { type: 'string' } }, { key: 'id', type: 'number' }, ['id', 'name']);
 const dormitorySchema: RxJsonSchema<allTypes.Dormitory> = createEntitySchema<allTypes.Dormitory>('dormitory', { id: { type: 'number' }, name: { type: 'string' }, master_id: { type: ['string', 'null'], ref: 'staff' }, capacity: { type: ['number', 'null'] }, master_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' }, }, { key: 'id', type: 'number' }, ['id', 'name', 'created_at', 'updated_at']);
 const classStreamItemProperties: RxJsonSchema<Omit<allTypes.ClassStream, 'class_name'|'class_teacher_name'>>['properties'] = { id: { type: 'number' }, class_id: { type: 'number' }, name: { type: 'string' }, class_teacher_id: { type:['string','null'] } };
-const classSchema: RxJsonSchema<allTypes.Class> = createEntitySchema<allTypes.Class>('class', { id: { type: 'number' }, name: { type: 'string' }, streams: { type: ['array', 'null'], default: [], items: { type: 'object', properties: classStreamItemProperties } as RxJsonSchema<any> } }, { key: 'id', type: 'number' }, ['id', 'name']);
+const classSchema: RxJsonSchema<allTypes.Class> = createEntitySchema<allTypes.Class>('class', { id: { type: 'number' }, name: { type: 'string' }, streams: { type: ['array', 'null'], default: [], items: { type: 'object', properties: classStreamItemProperties } as RxJsonSchema<any> }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'number' }, ['id', 'name', 'created_at', 'updated_at']);
 const classStreamSchema: RxJsonSchema<allTypes.ClassStream> = createEntitySchema<allTypes.ClassStream>('class_stream', { id: { type: 'number' }, class_id: { type: 'number', ref: 'classes' }, name: { type: 'string' }, class_teacher_id: { type: ['string', 'null'], ref: 'staff' }, class_name: { type: ['string', 'null'] }, class_teacher_name: { type: ['string', 'null'] }, }, { key: 'id', type: 'number' }, ['id', 'class_id', 'name']);
 const studentInvoiceItemSchema: RxJsonSchema<allTypes.FinStudentInvoiceItemType> = createEntitySchema<allTypes.FinStudentInvoiceItemType>('student_invoice_item', { id: { type: 'string' }, invoice_id: { type: 'string' }, description: { type: 'string' }, amount: { type: 'number' }, fee_template_item_id: {type: ['string', 'null']}, student_transport_assignment_id: {type: ['string', 'null']}, fine_id: {type: ['string', 'null']}}, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'invoice_id', 'description', 'amount']);
 
 // RBAC Schemas
-const permissionSchema: RxJsonSchema = {
+const permissionSchema: RxJsonSchema<any> = {
   title: 'permission',
   version: 0,
   description: 'RBAC Permission',
@@ -93,7 +93,7 @@ const permissionSchema: RxJsonSchema = {
   required: ['id', 'name', 'resource', 'action', 'moduleId']
 };
 
-const rbacRoleSchema: RxJsonSchema = {
+const rbacRoleSchema: RxJsonSchema<any> = {
   title: 'rbac_role',
   version: 0,
   description: 'RBAC Role',
@@ -110,7 +110,7 @@ const rbacRoleSchema: RxJsonSchema = {
   required: ['id', 'name', 'permissions', 'isActive', 'isSystem', 'moduleAccess']
 };
 
-const userRoleSchema: RxJsonSchema = {
+const userRoleSchema: RxJsonSchema<any> = {
   title: 'user_role',
   version: 0,
   description: 'RBAC UserRole',
@@ -170,11 +170,11 @@ export type SchoolDatabaseCollections = {
   academic_year_structures: RxCollection<allTypes.AcademicYearStructure>;
   academic_period_definitions: RxCollection<allTypes.AcademicPeriodDefinition>;
   academic_years: RxCollection<allTypes.AcademicYear>;
-  financial_years: RxCollection<financeTypes.FinFinancialYearType>;
+  financial_years: RxCollection<financeTypes.FinancialYear>;
   school_periods: RxCollection<allTypes.SchoolPeriod>;
   workflows: RxCollection<allTypes.Workflow>;
   audit_logs: RxCollection<allTypes.AuditLog>;
-  parents_guardians: RxCollection<allTypes.ParentGuardian>;
+  parents_guardians: RxCollection<allTypes.ParentsGuardian>;
   students: RxCollection<allTypes.Student>;
   student_guardian_relationships: RxCollection<allTypes.StudentGuardianRelationship>;
   staff: RxCollection<allTypes.Staff>;
@@ -221,16 +221,16 @@ export type SchoolDatabaseCollections = {
   staff_salary_settings: RxCollection<hrTypes.HRStaffSalarySettingType>;
   payslips: RxCollection<hrTypes.HRPayslipType>;
   
-  subjects: RxCollection<academicTypes.AcademicsSubjectType>;
-  subject_papers: RxCollection<academicTypes.AcademicsSubjectPaperType>;
-  exam_sessions: RxCollection<academicTypes.AcademicsExamSessionType>;
-  grading_schemes: RxCollection<academicTypes.AcademicsGradingSchemeType>;
-  student_exam_results: RxCollection<academicTypes.AcademicsStudentExamResultWithDetailsType>;
-  class_subject_allocations: RxCollection<academicTypes.AcademicsClassSubjectAllocationType>;
-  teacher_subject_assignments: RxCollection<academicTypes.AcademicsTeacherSubjectAssignmentType>;
-  student_subject_enrollments: RxCollection<academicTypes.AcademicsStudentSubjectEnrollmentType>;
-  timetable_period_definitions: RxCollection<academicTypes.AcademicsTimetablePeriodDefType>;
-  timetable_entries: RxCollection<academicTypes.AcademicsTimetableEntryType>;
+  subjects: RxCollection<academicTypes.Subject>;
+  subject_papers: RxCollection<academicTypes.SubjectPaper>;
+  exam_sessions: RxCollection<academicTypes.ExamSession>;
+  grading_schemes: RxCollection<academicTypes.GradingScheme>;
+  student_exam_results: RxCollection<academicTypes.StudentExamResultWithDetails>;
+  class_subject_allocations: RxCollection<academicTypes.ClassSubjectAllocation>;
+  teacher_subject_assignments: RxCollection<academicTypes.TeacherSubjectAssignment>;
+  student_subject_enrollments: RxCollection<academicTypes.StudentSubjectEnrollment>;
+  timetable_period_definitions: RxCollection<academicTypes.TimetablePeriodDef>;
+  timetable_entries: RxCollection<academicTypes.TimetableEntry>;
 
   book_categories: RxCollection<libraryTypes.LibBookCategoryType>;
   books: RxCollection<libraryTypes.LibBookType>;

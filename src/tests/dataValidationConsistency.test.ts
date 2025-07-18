@@ -1,24 +1,25 @@
 // ABOUTME: Comprehensive tests for data validation and consistency implementation
 // ABOUTME: Tests validation rules, referential integrity, and consistency checks
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { 
-  DataValidator, 
-  ValidationResult, 
-  EntityValidationSchema,
+  // DataValidator, // Unused
+  // ValidationResult, // Unused
+  // EntityValidationSchema, // Unused
   globalDataValidator,
   CommonValidations 
 } from '../utils/dataValidation';
 import { 
-  DataConsistencyService,
-  globalDataConsistencyService 
+  DataConsistencyService
+  // globalDataConsistencyService // Unused
 } from '../services/DataConsistencyService';
 import { 
-  UnifiedCRUDService,
-  globalUnifiedCRUDService 
+  UnifiedCRUDService
+  // globalUnifiedCRUDService // Unused
 } from '../services/UnifiedCRUDService';
 import { registerCoreValidationSchemas } from '../utils/validationSchemas';
-import { PersonGender, StudentStatus, FinancialYearStatus } from '../core/types';
+import { PersonGender, StudentStatus } from '../core/types';
+// import { FinancialYearStatus } from '../core/types'; // Unused
 
 describe('Data Validation System', () => {
   beforeEach(() => {

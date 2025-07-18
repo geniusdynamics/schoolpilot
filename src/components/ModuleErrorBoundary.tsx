@@ -1,7 +1,7 @@
 // ABOUTME: Module-level error boundary for isolating module failures
 // ABOUTME: Allows other modules to continue working when one module fails
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;

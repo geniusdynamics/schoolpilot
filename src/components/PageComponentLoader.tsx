@@ -1,7 +1,7 @@
 // ABOUTME: Enhanced page component loader with caching and health monitoring
 // ABOUTME: Provides robust loading with fallback strategies and performance tracking
 
-import React, { Suspense, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { Suspense, useState, /* useEffect, */ useCallback, useMemo } from 'react';
 import PageLoadingIndicator from './PageLoadingIndicator';
 import PageErrorBoundary from './PageErrorBoundary';
 
@@ -154,10 +154,10 @@ const PageComponentLoader: React.FC<PageComponentLoaderProps> = ({
   onLoadError,
   className = ''
 }) => {
-  const [loadingState, setLoadingState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
+  const [/* loadingState */, setLoadingState] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
   const [error, setError] = useState<Error | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [loadStartTime, setLoadStartTime] = useState<number>(0);
+  const [/* loadStartTime */, setLoadStartTime] = useState<number>(0);
 
   const cacheKey = `page:${pageName}`;
 
@@ -337,8 +337,6 @@ const PageComponentLoader: React.FC<PageComponentLoaderProps> = ({
   return (
     <PageErrorBoundary
       pageName={pageName}
-      fallbackComponent={ErrorFallback}
-      maxRetries={retryAttempts}
     >
       <Suspense fallback={<LoadingFallback />}>
         <LazyComponent />

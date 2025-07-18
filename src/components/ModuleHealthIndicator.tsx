@@ -4,7 +4,8 @@
 import React, { useState } from 'react';
 import { useModuleHealth } from '../hooks/useModuleHealth';
 import { ModuleHealthStatus } from '../services/enhancedModuleLoader';
-import { CheckCircleIcon, AlertTriangleIcon, AlertCircleIcon, XCircleIcon } from './ui/icons';
+import { CheckCircleIcon, AlertTriangleIcon, AlertCircleIcon } from './ui/icons';
+// import { XCircleIcon } from './ui/icons'; // Unused
 import ModuleHealthDashboard from './ModuleHealthDashboard';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
@@ -21,12 +22,12 @@ const ModuleHealthIndicator: React.FC<ModuleHealthIndicatorProps> = ({
   className = ''
 }) => {
   const { 
-    isHealthy, 
+    // isHealthy, // Unused
     hasWarnings, 
     hasErrors, 
     statusCounts,
-    modulesWithIssues,
-    refreshHealth
+    modulesWithIssues
+    // refreshHealth // Unused
   } = useModuleHealth({ autoRefresh: true, refreshInterval: 30000 });
   
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);

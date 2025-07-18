@@ -1,7 +1,7 @@
 // ABOUTME: Page-level error boundary for individual page failures
 // ABOUTME: Provides navigation alternatives when specific pages fail to load
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;

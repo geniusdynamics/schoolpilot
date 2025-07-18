@@ -17,6 +17,17 @@ import type {
   FinStudentTransportAssignmentType
 } from '../modules/finance/data/types';
 
+// --- Core Application Types ---
+export interface AppSetting {
+  id: string;
+  using_dummy_data: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Raw initial data type for mock data aggregation
+export type RawInitialData = Record<string, any[]>;
+
 // --- Chart Data Types ---
 export interface ChartData {
   name: string;

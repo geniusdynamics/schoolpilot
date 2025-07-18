@@ -33,5 +33,5 @@ export const createEntitySchema = <T extends { [key: string]: any }>(
             : [...(indexes as ReadonlyArray<Extract<keyof T, string>>)]
       ) : []
   };
-  return toTypedRxJsonSchema(schemaDefinitionInternal as any);
+  return toTypedRxJsonSchema(schemaDefinitionInternal);
 }; 

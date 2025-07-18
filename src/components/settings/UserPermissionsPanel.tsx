@@ -3,10 +3,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  CheckIcon, 
-  XIcon, 
+  // CheckIcon, // Unused
+  // XIcon, // Unused
   PlusIcon,
-  DeleteIcon,
+  // DeleteIcon, // Unused
   EyeIcon,
   EyeSlashIcon,
   UsersIcon,

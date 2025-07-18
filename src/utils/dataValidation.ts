@@ -1,7 +1,7 @@
 // ABOUTME: Comprehensive data validation utilities for all CRUD operations
 // ABOUTME: Provides schema validation, referential integrity checks, and consistency validation
 
-import { EntityData } from '../hooks/useDataHookFactory';
+// import { EntityData } from '../hooks/useDataHookFactory'; // Unused
 
 // Validation result interface
 export interface ValidationResult {
@@ -201,7 +201,7 @@ export class DataValidator {
     }
 
     // Enum validation
-    if (rule.enum && !rule.enum.includes(value)) {
+    if (rule.enum && !(rule.enum as any[]).includes(value)) {
       errors.push({
         field: fieldName,
         message: `${fieldName} must be one of: ${rule.enum.join(', ')}`,

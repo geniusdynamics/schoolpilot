@@ -118,11 +118,11 @@
     "studentFinancialSummary": "Student Financial Summary",
     "studentVoteheadStatement": "Student Votehead Statement"
   },
-  "settings": "Settings",
   "settings.description": "System configuration and management",
   "settings": {
     "title": "Settings",
     "general": "General Settings",
+    "modules": "Module Management",
     "schoolProfile": "School Profile",
     "userManagement": "User Management",
     "workflows": "Workflows",

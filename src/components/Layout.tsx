@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { /* useLocation, */ useNavigate } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useRBAC } from '../hooks/useRBAC';
-import { useAuth } from '../contexts/AuthContext';
+// import { useRBAC } from '../hooks/useRBAC'; // Unused
+// import { useAuth } from '../contexts/AuthContext'; // Unused
 import { ChevronUpIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import Header from './Header';
-import Sidebar from './Sidebar';
+// import Sidebar from './Sidebar'; // Unused
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
 import SettingsPopup from './SettingsPopup';
@@ -87,7 +87,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             
             {/* Main content wrapped with navigation error boundary */}
             <NavigationErrorBoundary
-              onError={(error, errorInfo, currentRoute) => {
+              onError={(error, _errorInfo, currentRoute) => {
                 console.error(`Navigation boundary caught error on ${currentRoute}:`, error);
               }}
               maxRetries={2}
