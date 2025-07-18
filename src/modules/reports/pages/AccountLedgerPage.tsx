@@ -16,7 +16,8 @@ interface LedgerEntryRow extends GeneralLedgerEntry {
 
 const AccountLedgerPage: React.FC = () => {
   const { chartOfAccounts, rawInitialData, loading } = useAppData(); 
-  const { initialMockGeneralLedgerEntries: generalLedgerEntries } = rawInitialData;
+  // Get general ledger entries with fallback to empty array
+  const generalLedgerEntries = rawInitialData?.generalLedgerEntries || [];
 
   const { t } = useTranslation('reports');
 

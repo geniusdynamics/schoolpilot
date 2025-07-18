@@ -27,7 +27,8 @@ const ChartOfAccountsPage: React.FC = () => {
     rawInitialData
   } = useAppData(); // Updated
 
-  const { initialMockExpenseCategories } = rawInitialData;
+  // Get expense categories with fallback to empty array
+  const initialMockExpenseCategories = rawInitialData?.expenseCategories || [];
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<ChartOfAccount | null>(null);

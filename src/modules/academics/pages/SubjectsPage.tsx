@@ -18,7 +18,8 @@ interface SubjectFormData extends Omit<Partial<Subject>, 'id' | 'department_name
 
 const SubjectsPage: React.FC = () => {
   const { subjects: subjectsState, loading, rawInitialData } = useAppData();
-  const { initialMockDepartments } = rawInitialData;
+  // Get departments with fallback to empty array
+  const initialMockDepartments = rawInitialData?.departments || [];
   const { t } = useTranslation('academics');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
