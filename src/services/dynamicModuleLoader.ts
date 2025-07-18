@@ -5,7 +5,13 @@ class DynamicModuleLoader {
   private isLoading = false;
   private isCompleted = false;
   private loadingPromise: Promise<void> | null = null;
-  private availableModules: string[] = [
+  private discoveredModules: string[] = [];
+  
+  // Core modules that are always available (system-critical)
+  private readonly CORE_MODULES = ['dashboard', 'settings', 'reports'];
+  
+  // Fallback list for when discovery fails (backwards compatibility)
+  private readonly FALLBACK_MODULES = [
     'dashboard',
     'administration', 
     'academics',
@@ -49,8 +55,11 @@ class DynamicModuleLoader {
   async discoverAndLoadModules(): Promise<any[]> {
     console.log('🚀 [DynamicModuleLoader] Discovering and loading modules...');
     
+    // Discover modules dynamically
+    const availableModules = await this.discoverAvailableModules();
+    
     // Return basic module definitions to prevent hanging
-    const basicModules = this.availableModules.map(moduleId => ({
+    const basicModules = availableModules.map(moduleId => ({
       id: moduleId,
       name: moduleId.charAt(0).toUpperCase() + moduleId.slice(1),
       version: '1.0.0',
@@ -66,16 +75,59 @@ class DynamicModuleLoader {
     return basicModules;
   }
 
+  // Dynamically discover available modules using Vite's import.meta.glob
+  private async discoverAvailableModules(): Promise<string[]> {
+    try {
+      console.log('🔍 [DynamicModuleLoader] Starting module discovery...');
+      
+      // Use import.meta.glob to discover module directories with moduleDefinition.tsx files
+      const moduleDirectories = import.meta.glob('../modules/*/moduleDefinition.tsx', { eager: true });
+      
+      // Extract module IDs from paths
+      const moduleIds = Object.keys(moduleDirectories).map(path => {
+        const match = path.match(/\.\.\/modules\/([^/]+)\/moduleDefinition\.tsx$/);
+        return match ? match[1] : null;
+      }).filter(Boolean) as string[];
+      
+      console.log(`[DynamicModuleLoader] Discovered module files:`, Object.keys(moduleDirectories));
+      console.log(`[DynamicModuleLoader] Extracted module IDs:`, moduleIds);
+      
+      // Always include core modules
+      const allModules = [...new Set([...this.CORE_MODULES, ...moduleIds])];
+      
+      // Cache discovered modules
+      this.discoveredModules = allModules;
+      
+      console.log(`✅ [DynamicModuleLoader] Successfully discovered ${allModules.length} modules:`, allModules);
+      return allModules;
+      
+    } catch (error) {
+      console.error('❌ [DynamicModuleLoader] Error during module discovery:', error);
+      console.log('🔄 [DynamicModuleLoader] Falling back to predefined module list');
+      
+      // Fallback to predefined list if discovery fails
+      this.discoveredModules = this.FALLBACK_MODULES;
+      return this.FALLBACK_MODULES;
+    }
+  }
+
   generatePerformanceReport(): any {
+    const moduleCount = this.discoveredModules.length || this.FALLBACK_MODULES.length;
     return {
-      totalModules: this.availableModules.length,
+      totalModules: moduleCount,
+      discoveredModules: this.discoveredModules,
       loadTime: '500ms',
-      status: 'completed'
+      status: 'completed',
+      discoveryMethod: this.discoveredModules.length > 0 ? 'dynamic' : 'fallback'
     };
   }
 
-  getAvailableModules(): string[] {
-    return [...this.availableModules];
+  async getAvailableModules(): Promise<string[]> {
+    // If modules haven't been discovered yet, discover them
+    if (this.discoveredModules.length === 0) {
+      await this.discoverAvailableModules();
+    }
+    return [...this.discoveredModules];
   }
 
   forceCompleteLoading(): void {

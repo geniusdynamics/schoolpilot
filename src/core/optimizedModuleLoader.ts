@@ -9,15 +9,15 @@ import { ModuleDefinition } from './types';
 // Initialize and load modules with optimization
 export async function initializeModulesOptimized(): Promise<ModuleDefinition[]> {
   console.log('🚀 [OptimizedModuleLoader] Initializing modules with optimization...');
-  
+
   try {
     // Get available module IDs
-    const availableModuleIds = dynamicModuleLoader.getAvailableModules();
+    const availableModuleIds = await dynamicModuleLoader.getAvailableModules();
     console.log(`[OptimizedModuleLoader] Available modules:`, availableModuleIds);
-    
+
     // Load actual module definitions
     const loadedModules: ModuleDefinition[] = [];
-    
+
     for (const moduleId of availableModuleIds) {
       try {
         const module = await loadModuleDefinition(moduleId);
@@ -31,25 +31,25 @@ export async function initializeModulesOptimized(): Promise<ModuleDefinition[]> 
         console.error(`[OptimizedModuleLoader] Error loading module ${moduleId}:`, error);
       }
     }
-    
+
     console.log(`[OptimizedModuleLoader] Successfully loaded ${loadedModules.length} modules`);
-    
+
     // Register modules with the module registry and RBAC service
     loadedModules.forEach(module => {
       console.log(`[OptimizedModuleLoader] Registering module: ${module.id}`);
       moduleRegistry.registerModule(module);
       rbacService.registerModule(module);
     });
-    
+
     // Initialize super admin role with all permissions
     rbacService.initializeSuperAdminRole();
-    
+
     // Generate performance report
     const performanceReport = dynamicModuleLoader.generatePerformanceReport();
     console.log('📊 [OptimizedModuleLoader] Module loading performance report:', performanceReport);
-    
+
     console.log(`✅ [OptimizedModuleLoader] Successfully registered ${loadedModules.length} modules with registry and RBAC`);
-    
+
     return loadedModules;
   } catch (error) {
     console.error('❌ [OptimizedModuleLoader] Error initializing modules:', error);
@@ -62,16 +62,16 @@ async function discoverAvailableModules(): Promise<string[]> {
   try {
     // Use import.meta.glob to discover module directories with moduleDefinition.tsx files
     const moduleDirectories = import.meta.glob('../modules/*/moduleDefinition.tsx', { eager: true });
-    
+
     // Extract module IDs from paths
     const moduleIds = Object.keys(moduleDirectories).map(path => {
       const match = path.match(/\.\.\/modules\/([^/]+)\/moduleDefinition\.tsx$/);
       return match ? match[1] : null;
     }).filter(Boolean) as string[];
-    
+
     console.log(`[OptimizedModuleLoader] Discovered module files:`, Object.keys(moduleDirectories));
     console.log(`[OptimizedModuleLoader] Extracted module IDs:`, moduleIds);
-    
+
     return moduleIds;
   } catch (error) {
     console.error('Failed to discover modules:', error);
@@ -83,10 +83,10 @@ async function discoverAvailableModules(): Promise<string[]> {
 async function loadModuleDefinition(moduleId: string): Promise<ModuleDefinition | null> {
   try {
     console.log(`[OptimizedModuleLoader] Loading definition for module: ${moduleId}`);
-    
+
     // Try to import the module definition
     let moduleDefinition: ModuleDefinition | null = null;
-    
+
     switch (moduleId) {
       case 'dashboard':
         const { dashboardModule } = await import('../modules/core/moduleDefinition');
@@ -132,14 +132,14 @@ async function loadModuleDefinition(moduleId: string): Promise<ModuleDefinition 
         console.warn(`[OptimizedModuleLoader] Unknown module: ${moduleId}`);
         return null;
     }
-    
+
     if (moduleDefinition) {
       console.log(`✅ [OptimizedModuleLoader] Successfully loaded definition for module: ${moduleId}`, {
         hasNavigation: !!moduleDefinition.navigation,
         navigationCount: moduleDefinition.navigation?.length || 0
       });
     }
-    
+
     return moduleDefinition;
   } catch (error) {
     console.error(`❌ [OptimizedModuleLoader] Error loading definition for module ${moduleId}:`, error);
@@ -150,7 +150,7 @@ async function loadModuleDefinition(moduleId: string): Promise<ModuleDefinition 
 // Load a specific module
 export async function loadModule(moduleId: string): Promise<ModuleDefinition | null> {
   console.log(`🔍 [OptimizedModuleLoader] Loading module: ${moduleId}`);
-  
+
   try {
     // Check if module is already loaded
     const existingModule = moduleRegistry.getModule(moduleId);
@@ -158,10 +158,10 @@ export async function loadModule(moduleId: string): Promise<ModuleDefinition | n
       console.log(`[OptimizedModuleLoader] Module ${moduleId} is already loaded`);
       return existingModule;
     }
-    
+
     // Load module directly from definition file
     const module = await loadModuleDefinition(moduleId);
-    
+
     if (module) {
       // Register module
       moduleRegistry.registerModule(module);
