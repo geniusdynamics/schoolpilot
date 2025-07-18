@@ -153,13 +153,17 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
   );
 };
 
-// Sync status component
+// Enhanced sync status component with queue management
 interface SyncStatusComponentProps {
   className?: string;
+  showQueueDetails?: boolean;
+  showSettings?: boolean;
 }
 
 export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
-  className = ''
+  className = '',
+  showQueueDetails = false,
+  showSettings = false
 }) => {
   const { 
     syncStatus, 
@@ -167,11 +171,17 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
     forceSync, 
     getQueueStatus,
     isOnline,
-    backendAvailable 
+    backendAvailable,
+    clearSyncQueue,
+    pauseSync,
+    resumeSync,
+    getSyncSettings,
+    updateSyncSettings
   } = useAppData();
 
   const queueStatus = getQueueStatus();
   const canSync = isOnline && backendAvailable;
+  const syncSettings = getSyncSettings?.() || { autoSync: true, syncInterval: 30000, batchSize: 10 };
 
   const getSyncStatusIcon = () => {
     switch (syncStatus.state) {
@@ -237,6 +247,90 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
         </div>
       )}
       
+      {/* Queue Details Section */}
+      {showQueueDetails && pendingSyncCount > 0 && (
+        <div className="mb-4 border-t pt-4">
+          <h4 className="text-sm font-medium text-gray-900 mb-3">Sync Queue Details</h4>
+          <div className="space-y-2">
+            {queueStatus.sync.items?.slice(0, 5).map((item: any, index: number) => (
+              <div key={index} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    item.status === 'processing' ? 'bg-blue-500 animate-pulse' :
+                    item.status === 'error' ? 'bg-red-500' : 'bg-gray-400'
+                  }`} />
+                  <span className="font-medium">{item.operation?.entity || 'Unknown'}</span>
+                  <span className="text-gray-500">{item.operation?.type || 'unknown'}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    item.priority === 'critical' ? 'bg-red-100 text-red-800' :
+                    item.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                    item.priority === 'normal' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {item.priority}
+                  </span>
+                  {item.retryCount > 0 && (
+                    <span className="text-amber-600">Retry {item.retryCount}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+            {queueStatus.sync.pending > 5 && (
+              <div className="text-xs text-gray-500 text-center">
+                ... and {queueStatus.sync.pending - 5} more items
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Sync Settings Section */}
+      {showSettings && (
+        <div className="mb-4 border-t pt-4">
+          <h4 className="text-sm font-medium text-gray-900 mb-3">Sync Settings</h4>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm text-gray-700">Auto Sync</label>
+              <input
+                type="checkbox"
+                checked={syncSettings.autoSync}
+                onChange={(e) => updateSyncSettings?.({ autoSync: e.target.checked })}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm text-gray-700">Sync Interval (seconds)</label>
+              <select
+                value={syncSettings.syncInterval / 1000}
+                onChange={(e) => updateSyncSettings?.({ syncInterval: parseInt(e.target.value) * 1000 })}
+                className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value={15}>15s</option>
+                <option value={30}>30s</option>
+                <option value={60}>1m</option>
+                <option value={300}>5m</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm text-gray-700">Batch Size</label>
+              <select
+                value={syncSettings.batchSize}
+                onChange={(e) => updateSyncSettings?.({ batchSize: parseInt(e.target.value) })}
+                className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action Buttons */}
       <div className="flex space-x-2">
         <button
           onClick={forceSync}
@@ -245,6 +339,37 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
         >
           {syncStatus.state === 'syncing' ? 'Syncing...' : 'Force Sync'}
         </button>
+        
+        {syncStatus.state === 'syncing' && pauseSync && (
+          <button
+            onClick={pauseSync}
+            className="px-4 py-2 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700"
+          >
+            Pause
+          </button>
+        )}
+        
+        {syncStatus.state === 'paused' && resumeSync && (
+          <button
+            onClick={resumeSync}
+            className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
+          >
+            Resume
+          </button>
+        )}
+        
+        {pendingSyncCount > 0 && clearSyncQueue && (
+          <button
+            onClick={() => {
+              if (window.confirm('Clear all pending sync items? This cannot be undone.')) {
+                clearSyncQueue();
+              }
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700"
+          >
+            Clear Queue
+          </button>
+        )}
         
         {!canSync && (
           <div className="flex-1 text-center text-xs text-gray-500 py-2">
@@ -326,6 +451,208 @@ export const withOfflineCapability = <P extends object>(
     <OfflineCapableComponent feature={feature} fallback={fallback}>
       <WrappedComponent {...props} />
     </OfflineCapableComponent>
+  );
+};
+
+// Conflict resolution component
+interface ConflictResolutionProps {
+  conflicts: Array<{
+    id: string;
+    entityName: string;
+    entityId: string;
+    localData: any;
+    serverData: any;
+    timestamp: Date;
+    conflictType: 'update' | 'delete' | 'create';
+  }>;
+  onResolve: (conflictId: string, resolution: 'local' | 'server' | 'merge', mergedData?: any) => void;
+  onResolveAll: (resolution: 'local' | 'server') => void;
+  className?: string;
+}
+
+export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
+  conflicts,
+  onResolve,
+  onResolveAll,
+  className = ''
+}) => {
+  const [selectedConflict, setSelectedConflict] = React.useState<string | null>(null);
+  const [mergeData, setMergeData] = React.useState<any>({});
+
+  const conflict = conflicts.find(c => c.id === selectedConflict);
+
+  const handleMergeChange = (field: string, value: any, source: 'local' | 'server') => {
+    setMergeData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const renderDataComparison = (conflict: any) => {
+    const localKeys = Object.keys(conflict.localData || {});
+    const serverKeys = Object.keys(conflict.serverData || {});
+    const allKeys = [...new Set([...localKeys, ...serverKeys])];
+
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-4 text-sm font-medium text-gray-700 border-b pb-2">
+          <div>Field</div>
+          <div>Local Version</div>
+          <div>Server Version</div>
+        </div>
+        {allKeys.map(key => {
+          const localValue = conflict.localData?.[key];
+          const serverValue = conflict.serverData?.[key];
+          const isDifferent = JSON.stringify(localValue) !== JSON.stringify(serverValue);
+
+          return (
+            <div key={key} className={`grid grid-cols-3 gap-4 text-sm py-2 ${isDifferent ? 'bg-red-50' : 'bg-gray-50'}`}>
+              <div className="font-medium">{key}</div>
+              <div className="break-words">
+                {typeof localValue === 'object' ? JSON.stringify(localValue, null, 2) : String(localValue || 'N/A')}
+              </div>
+              <div className="break-words">
+                {typeof serverValue === 'object' ? JSON.stringify(serverValue, null, 2) : String(serverValue || 'N/A')}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  if (conflicts.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={`bg-white rounded-lg shadow-lg border border-red-200 ${className}`}>
+      <div className="bg-red-50 px-4 py-3 border-b border-red-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
+            <h3 className="text-lg font-medium text-red-900">
+              Sync Conflicts ({conflicts.length})
+            </h3>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => onResolveAll('local')}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            >
+              Keep All Local
+            </button>
+            <button
+              onClick={() => onResolveAll('server')}
+              className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+            >
+              Keep All Server
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4">
+        {!selectedConflict ? (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600 mb-4">
+              The following items have conflicts between your local changes and server data. 
+              Choose how to resolve each conflict:
+            </p>
+            {conflicts.map(conflict => (
+              <div key={conflict.id} className="border rounded-lg p-3 hover:bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {conflict.entityName} #{conflict.entityId}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {conflict.conflictType} conflict • {conflict.timestamp.toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setSelectedConflict(conflict.id)}
+                      className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200"
+                    >
+                      Review
+                    </button>
+                    <button
+                      onClick={() => onResolve(conflict.id, 'local')}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      Keep Local
+                    </button>
+                    <button
+                      onClick={() => onResolve(conflict.id, 'server')}
+                      className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                    >
+                      Keep Server
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-medium text-gray-900">
+                Resolve Conflict: {conflict?.entityName} #{conflict?.entityId}
+              </h4>
+              <button
+                onClick={() => setSelectedConflict(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <XCircleIcon className="w-5 h-5" />
+              </button>
+            </div>
+
+            {conflict && (
+              <>
+                <div className="mb-6">
+                  {renderDataComparison(conflict)}
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <button
+                    onClick={() => {
+                      onResolve(conflict.id, 'local');
+                      setSelectedConflict(null);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Keep Local Version
+                  </button>
+                  <button
+                    onClick={() => {
+                      onResolve(conflict.id, 'server');
+                      setSelectedConflict(null);
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Keep Server Version
+                  </button>
+                  <button
+                    onClick={() => {
+                      // For now, merge is simplified - in a real implementation,
+                      // you'd want a more sophisticated merge UI
+                      const merged = { ...conflict.localData, ...conflict.serverData, ...mergeData };
+                      onResolve(conflict.id, 'merge', merged);
+                      setSelectedConflict(null);
+                      setMergeData({});
+                    }}
+                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                  >
+                    Merge Changes
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
