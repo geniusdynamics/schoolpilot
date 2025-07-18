@@ -324,7 +324,6 @@ export class DataStrategyManager {
 
     const docs = await collection.find().exec();
     return docs.map((doc: any) => doc.toJSON()) as unknown as T;
-    return docs.map((doc: any) => doc.toJSON());
   }
 
   private async executeRxDBWrite<T>(collection: any, params: any): Promise<T> {
