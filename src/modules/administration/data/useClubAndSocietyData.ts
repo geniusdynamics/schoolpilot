@@ -1,39 +1,60 @@
-// ABOUTME: Global provider hook for ClubAndSociety entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-import { useState } from 'react';
-import { AdminClubAndSocietyType } from './types';
-import { initialMockClubsAndSocieties } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockClubsAndSocieties } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export const isGlobalProvider = true;
+const useClubAndSocietyData = () => {
+  const [clubsAndSocieties, setClubsAndSocieties] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-export function useClubAndSocietyData() {
-  const [clubsAndSocieties, setClubsAndSocieties] = useState<AdminClubAndSocietyType[]>(initialMockClubsAndSocieties);
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setClubsAndSocieties(initialMockClubsAndSocieties);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch clubs and societies');
+      setIsLoading(false);
+    }
+  }, []);
 
-  const addClubAndSociety = (data: Omit<AdminClubAndSocietyType, 'id' | 'created_at' | 'updated_at'>) => {
-    const newClub: AdminClubAndSocietyType = {
-      ...data,
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setClubsAndSocieties(prev => [...prev, newClub]);
-    return newClub;
+      updated_at: new Date().toISOString()
+    } as any;
+    setClubsAndSocieties((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateClubAndSociety = (updated: AdminClubAndSocietyType) => {
-    setClubsAndSocieties(prev => prev.map(c => c.id === updated.id ? { ...updated } : c));
-    return updated;
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setClubsAndSocieties((prev: any[]) => prev.map((item: any) =>
+      item.id === id
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteClubAndSociety = (id: number) => {
-    setClubsAndSocieties(prev => prev.filter(c => c.id !== id));
+  const remove = async (id: number) => {
+    setClubsAndSocieties((prev: any[]) => prev.filter((item: any) => item.id !== id));
   };
 
   return {
-    clubsAndSocieties,
-    addClubAndSociety,
-    updateClubAndSociety,
-    deleteClubAndSociety,
+    data: clubsAndSocieties,
+    isLoading,
+    error,
+    create,
+    update,
+    remove
   };
-} 
+};
+
+export { useClubAndSocietyData };
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

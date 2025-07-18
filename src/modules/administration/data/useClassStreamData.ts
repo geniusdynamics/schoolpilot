@@ -1,38 +1,43 @@
-// ABOUTME: Global provider hook for ClassStream entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for classstream data management
+// ABOUTME: Provides CRUD operations for classstream without depending on AppDataContext
 
-import { useState } from 'react';
-import { ClassStream } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockClassStreams } from './mockData';
+import { ClassStream } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useClassStreamData = () => {
+  const [data, setData] = useState<ClassStream[]>(initialMockClassStreams);
 
-export function useClassStreamData() {
-  const [classStreams, setClassStreams] = useState<ClassStream[]>(initialMockClassStreams);
-
-  const addClassStream = async (classId: number, streamData: Omit<ClassStream, 'id' | 'class_id'>) => {
-    const newStream: ClassStream = {
-      ...streamData,
-      id: Math.max(...classStreams.map(cs => cs.id), 0) + 1,
-      class_id: classId,
-    };
-    setClassStreams(prev => [...prev, newStream]);
-    return newStream;
+  const create = async (newItem: Partial<ClassStream>) => {
+    const newDataItem: ClassStream = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as ClassStream;
+    setData((prev: ClassStream[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateClassStream = (updated: ClassStream) => {
-    setClassStreams(prev => prev.map(cs => cs.id === updated.id ? updated : cs));
-    return updated;
+  const update = async (id: number, updatedData: Partial<ClassStream>) => {
+    setData((prev: ClassStream[]) => prev.map((item: ClassStream) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteClassStream = (id: number) => {
-    setClassStreams(prev => prev.filter(cs => cs.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: ClassStream[]) => prev.filter((item: ClassStream) => item.id !== id));
   };
 
   return {
-    classStreams,
-    addClassStream,
-    updateClassStream,
-    deleteClassStream,
+    data,
+    create,
+    update,
+    remove
   };
-}
+};
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

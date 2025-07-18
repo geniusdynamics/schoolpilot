@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for ExamPaperSetting entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for exampapersetting data management
+// ABOUTME: Provides CRUD operations for exampapersetting without depending on AppDataContext
 
-import { useState } from 'react';
-import { ExamPaperSetting } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockExamPaperSettings } from './mockData';
+import { ExamPaperSetting } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useExamPaperSettingData = () => {
+  const [data, setData] = useState<ExamPaperSetting[]>(initialMockExamPaperSettings);
 
-export function useExamPaperSettingData() {
-  const [examPaperSettings, setExamPaperSettings] = useState<ExamPaperSetting[]>(initialMockExamPaperSettings);
-
-  const addExamPaperSetting = (data: Omit<ExamPaperSetting, 'id'>) => {
-    const newSetting: ExamPaperSetting = {
-      ...data,
-      id: `EPS${Date.now()}`,
-    };
-    setExamPaperSettings(prev => [...prev, newSetting]);
-    return newSetting;
+  const create = async (newItem: Partial<ExamPaperSetting>) => {
+    const newDataItem: ExamPaperSetting = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as ExamPaperSetting;
+    setData((prev: ExamPaperSetting[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateExamPaperSetting = (updated: ExamPaperSetting) => {
-    setExamPaperSettings(prev => prev.map(e => e.id === updated.id ? { ...updated } : e));
-    return updated;
+  const update = async (id: number, updatedData: Partial<ExamPaperSetting>) => {
+    setData((prev: ExamPaperSetting[]) => prev.map((item: ExamPaperSetting) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteExamPaperSetting = (id: string) => {
-    setExamPaperSettings(prev => prev.filter(e => e.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: ExamPaperSetting[]) => prev.filter((item: ExamPaperSetting) => item.id !== id));
   };
 
   return {
-    examPaperSettings,
-    addExamPaperSetting,
-    updateExamPaperSetting,
-    deleteExamPaperSetting,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

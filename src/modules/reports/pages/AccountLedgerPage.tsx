@@ -16,7 +16,8 @@ interface LedgerEntryRow extends GeneralLedgerEntry {
 
 const AccountLedgerPage: React.FC = () => {
   const { chartOfAccounts, rawInitialData, loading } = useAppData(); 
-  const { initialMockGeneralLedgerEntries: generalLedgerEntries } = rawInitialData;
+  // Get general ledger entries with fallback to empty array
+  const generalLedgerEntries = rawInitialData?.generalLedgerEntries || [];
 
   const { t } = useTranslation('reports');
 
@@ -44,7 +45,7 @@ const AccountLedgerPage: React.FC = () => {
       .sort((a, b) => new Date(a.effective_date).getTime() - new Date(b.effective_date).getTime() || new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime());
 
     let runningBalance = 0; 
-    const processedData = (filteredEntries || []).map(entry => {
+    const processedData = filteredEntries.map(entry => {
       runningBalance += (entry.debit || 0) - (entry.credit || 0);
       return { ...entry, running_balance_display: runningBalance };
     });

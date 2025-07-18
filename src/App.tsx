@@ -1,21 +1,23 @@
-// ABOUTME: This is the enhanced root component of the application with backend integration.
-// ABOUTME: It sets up the main router and global context providers with authentication, offline capabilities, and sync management.
+// ABOUTME: Consolidated application entry point with feature flag support
+// ABOUTME: Supports both standard and enhanced modes with backward compatibility
+// ABOUTME: Simplified to resolve continuous loading issues
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
-import { AppDataProvider, useAppData } from '@/contexts/AppDataContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
-import { initializeModules } from './core/moduleLoader';
 import Spinner from './components/ui/Spinner';
-import { moduleRegistry } from './core/moduleRegistry';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
-import { NetworkStatusIndicator, SyncStatusComponent } from './components/OfflineCapability';
-import { APP_MODE } from './contexts/config';
+import { getAppConfig, subscribeToConfig, AppConfig } from './config/appConfig';
+import { moduleRegistry } from './core/moduleRegistry';
+import { initializeModulesOptimized } from './core/optimizedModuleLoader';
+
+// Enhanced components (lazy loaded to avoid bundle bloat when not needed)
+const GlobalNotifications = lazy(() => import('./components/GlobalNotifications'));
 
 // Lazy load the login page
 const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
@@ -23,75 +25,62 @@ const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 // Lazy load the dashboard page
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 
-// Test direct import to see if the issue is with dynamic imports
-const testImport = async () => {
-  try {
-    const module = await import('./modules/administration/pages/AdministrationDashboardPage.tsx');
-    console.log('✅ [Test] Direct import successful:', module);
-  } catch (error) {
-    console.error('❌ [Test] Direct import failed:', error);
-  }
-};
-
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 const pageModules = {
   ...import.meta.glob('./modules/*/pages/*.tsx'),
   ...import.meta.glob('./modules/*/pages/**/*.tsx'),
 };
 
-console.log('🚀 [App] Available page modules:', Object.keys(pageModules).length);
-console.log('🚀 [App] Page module keys:', Object.keys(pageModules));
+// Debug logging helper
+const debugLog = (message: string, ...args: any[]) => {
+  // Simplified debug logging to avoid config dependency issues
+  if (import.meta.env.DEV) {
+    console.log(message, ...args);
+  }
+};
 
-// Test the import
-testImport();
+// Enhanced page component resolution with robust loading
+import PageComponentLoader from './components/PageComponentLoader';
+import { pageComponentResolver } from './services/pageComponentResolver';
 
-// Modular getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx
 const getPageComponent = (nav: any) => {
   console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
   
-  if (nav.page) {
-    const pathSegments = nav.path.split('/').filter(Boolean);
-    let moduleDir = '';
-
-    // Determine moduleDir based on pathSegments
-    if (pathSegments.length > 0) {
-      // The first segment of the path is always the module directory, if it exists
-      moduleDir = pathSegments[0];
-    }
-    
-    console.log('🔍 [getPageComponent] Segments:', pathSegments, 'ModuleDir:', moduleDir);
-    
-    // Try modular location
-    if (moduleDir) {
-      const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
-      console.log('🔍 [getPageComponent] Looking for key:', modularKey);
-      const modularImportFn = pageModules[modularKey];
-      if (modularImportFn) {
-        console.log('✅ [getPageComponent] Found modular key:', modularKey);
-        return lazy(modularImportFn as any);
-      } else {
-        console.log('❌ [getPageComponent] Key not found:', modularKey);
-      }
-    }
-    
-    console.warn('⚠️ [getPageComponent] No page component found for:', nav.page);
-    return null;
-  }
-  
-  console.warn('⚠️ [getPageComponent] No page component found for fallback path:', nav.path);
-  return null;
+  // Return a component that uses the enhanced loader
+  return React.memo(() => (
+    <PageComponentLoader
+      pageName={nav.name || nav.page || nav.path}
+      componentLoader={async () => {
+        const result = await pageComponentResolver.resolvePageComponent(nav);
+        if (result.component) {
+          return { default: result.component };
+        }
+        throw result.error || new Error(`Failed to resolve component for ${nav.name || nav.page}`);
+      }}
+      enableCaching={true}
+      loadingTimeout={10000}
+      retryAttempts={2}
+      onLoadStart={() => {
+        debugLog('🔄 [PageComponent] Starting to load:', nav.name || nav.page);
+      }}
+      onLoadComplete={(loadTime, fromCache) => {
+        debugLog('✅ [PageComponent] Loaded:', nav.name || nav.page, `(${loadTime}ms, cached: ${fromCache})`);
+      }}
+      onLoadError={(error) => {
+        debugLog('❌ [PageComponent] Failed to load:', nav.name || nav.page, error.message);
+      }}
+    />
+  ));
 };
 
-
+// Simplified routing component
 const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
-  const { navigationItems } = useDynamicNavigation(true);
+  const { navigationItems } = useDynamicNavigation(modulesInitialized);
   const { accessibleModules } = useRBAC();
-  const { user } = useAuth();
 
-  // Only log essential information once
   useEffect(() => {
     if (modulesInitialized && navigationItems.length > 0) {
-      console.log('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
+      debugLog('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
     }
   }, [modulesInitialized, navigationItems.length]);
 
@@ -138,17 +127,14 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       {/* Register custom/dynamic routes from all enabled modules */}
       {moduleRegistry.getEnabledModules().flatMap(module =>
         (module.routes || []).map(route => {
-          // Use the same dynamic import logic as getPageComponent
           const pathSegments = route.path.split('/').filter(Boolean);
           let moduleDir = '';
 
-          // Determine moduleDir based on pathSegments
           if (pathSegments.length > 0) {
-            // The first segment of the path is always the module directory, if it exists
             moduleDir = pathSegments[0];
           }
+          
           let PageComponent = null;
-          // Try modular location
           if (moduleDir) {
             const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
             const modularImportFn = pageModules[modularKey];
@@ -156,68 +142,22 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
               PageComponent = lazy(modularImportFn as any);
             }
           }
-
+          
           if (!PageComponent) {
-            console.warn(`⚠️ [DynamicRoutes] No component found for route: ${route.path} (${route.page})`);
+            debugLog('❌ [DynamicRoutes] No component found for route:', route.path);
             return null;
           }
-
+          
+          const moduleName = moduleDir || module.id;
+          const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
+          
           return (
             <Route
               key={route.path}
               path={route.path}
               element={
-                <ProtectedRoute
-                  requiredModule={moduleDir}
-                  requiredPermission={`${moduleDir}.view`}
-                >
-                  <Suspense fallback={
-                    <div className="flex items-center justify-center h-screen">
-                      <div className="text-center">
-                        <Spinner size="lg" />
-                        <p className="mt-4 text-gray-600">Loading {route.page}...</p>
-                      </div>
-                    </div>
-                  }>
-                    <PageComponent />
-                  </Suspense>
-                </ProtectedRoute>
-              }
-            />
-          );
-        }).filter(Boolean)
-      )}
-
-      {/* Dynamic navigation routes */}
-      {navigationItems
-        .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
-        .flatMap(module => {
-          console.log('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
-          return (module.children || []).map(nav => {
-            console.log('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
-            const PageComponent = getPageComponent(nav);
-            if (!PageComponent) {
-              console.log('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
-              return null;
-            }
-            
-            // Determine required permission based on module path
-            const modulePath = nav.modulePath?.replace('/', '') || '';
-            // Extract module name from path (e.g., '/administration' -> 'administration')
-            const moduleName = modulePath || nav.path.split('/')[1] || '';
-            const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
-            
-            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission, 'moduleName:', moduleName);
-            
-            return (
-              <Route
-                key={nav.path}
-                path={nav.path}
-                element={
-                  <ProtectedRoute
-                    requiredPermission={requiredPermission}
-                    requiredModule={moduleName}
-                  >
+                <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
+                  <PageErrorBoundary pageName={route.page || route.path}>
                     <Suspense fallback={
                       <div className="flex items-center justify-center h-screen">
                         <div className="text-center">
@@ -228,29 +168,62 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
                     }>
                       <PageComponent />
                     </Suspense>
+                  </PageErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+          );
+        }).filter(Boolean)
+      )}
+      
+      {/* Dynamic navigation routes */}
+      {navigationItems
+        .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
+        .flatMap(module => {
+          debugLog('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
+          return (module.children || []).map(nav => {
+            debugLog('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
+            const PageComponent = getPageComponent(nav);
+            if (!PageComponent) {
+              debugLog('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
+              return null;
+            }
+            
+            const modulePath = nav.modulePath?.replace('/', '') || '';
+            const moduleName = modulePath || nav.path.split('/')[1] || '';
+            const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
+            
+            debugLog('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission);
+            
+            return (
+              <Route
+                key={nav.path}
+                path={nav.path}
+                element={
+                  <ProtectedRoute
+                    requiredPermission={requiredPermission}
+                    requiredModule={moduleName}
+                  >
+                    <PageComponent />
                   </ProtectedRoute>
                 }
               />
             );
           });
-        })}
+        }).filter(Boolean)}
     </Routes>
   );
 };
 
-// Enhanced app content with sync status
-const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitialized }) => {
+// Enhanced app content with feature flag support
+const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> = ({ modulesInitialized, config }) => {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
-  const { 
-    isOnline, 
-    backendAvailable, 
-    syncStatus, 
-    pendingSyncCount 
-  } = useAppData();
 
   // Debug authentication state
-  console.log('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
+  useEffect(() => {
+    debugLog('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
+  }, [isAuthenticated, isLoading, location.pathname]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -266,252 +239,185 @@ const AppContent: React.FC<{ modulesInitialized: boolean }> = ({ modulesInitiali
 
   // If not authenticated, show login page
   if (!isAuthenticated) {
-    console.log('🔍 [AppContent] User not authenticated, showing login page');
+    debugLog('🔍 [AppContent] User not authenticated, showing login page');
     return <LoginPage />;
   }
 
-  console.log('🔍 [AppContent] User authenticated, showing layout');
-
-  // Show sync status in development mode
-  const showSyncStatus = APP_MODE !== 'demo' && (
-    syncStatus.state !== 'idle' || 
-    pendingSyncCount > 0 || 
-    !isOnline || 
-    !backendAvailable
-  );
-
+  debugLog('🔍 [AppContent] User authenticated, showing layout');
+  
   return (
     <Layout>
-      {/* Sync status panel - only show when there are issues */}
-      {showSyncStatus && (
-        <div className="p-4 bg-gray-50">
-          <SyncStatusComponent />
-        </div>
-      )}
+
       
-      {/* Main content */}
+      {/* Main content with error boundary */}
       <div className="flex-1">
         <ErrorBoundary key={location.pathname}>
           <DynamicRoutes modulesInitialized={modulesInitialized} />
         </ErrorBoundary>
       </div>
       
-      {/* Global notifications */}
-      <GlobalNotifications />
+      {/* Global notifications (if enabled) */}
+      {config.features.globalNotifications && config.useEnhancedFeatures && (
+        <Suspense fallback={null}>
+          <GlobalNotifications />
+        </Suspense>
+      )}
     </Layout>
   );
 };
 
-// Global notification system
-const GlobalNotifications: React.FC = () => {
-  const { 
-    isOnline, 
-    backendAvailable, 
-    syncStatus, 
-    pendingSyncCount 
-  } = useAppData();
+// Data provider wrapper - uses the consolidated AppDataProvider which supports both modes
+const DataProviderWrapper: React.FC<{ config: AppConfig; children: React.ReactNode }> = ({ config, children }) => {
+  debugLog('🚀 [App] Using Consolidated Data Provider with enhanced features:', config.useEnhancedFeatures);
   
-  const [notifications, setNotifications] = React.useState<Array<{
-    id: string;
-    type: 'info' | 'warning' | 'error' | 'success';
-    message: string;
-    persistent?: boolean;
-  }>>([]);
-  
-  // Manage notifications based on app state
-  useEffect(() => {
-    const newNotifications: typeof notifications = [];
-    
-    // Offline notification
-    if (!isOnline) {
-      newNotifications.push({
-        id: 'offline',
-        type: 'warning',
-        message: 'You are currently offline. Some features may be limited.',
-        persistent: true
-      });
-    }
-    
-    // Backend unavailable notification
-    if (isOnline && !backendAvailable) {
-      newNotifications.push({
-        id: 'backend-unavailable',
-        type: 'info',
-        message: 'Backend server is unavailable. Working with local data.',
-        persistent: true
-      });
-    }
-    
-    // Sync error notification
-    if (syncStatus.state === 'error') {
-      newNotifications.push({
-        id: 'sync-error',
-        type: 'error',
-        message: `Sync failed: ${syncStatus.lastError?.message || 'Unknown error'}`,
-        persistent: false
-      });
-    }
-    
-    // Pending sync notification
-    if (pendingSyncCount > 5) {
-      newNotifications.push({
-        id: 'pending-sync',
-        type: 'info',
-        message: `${pendingSyncCount} items waiting to sync`,
-        persistent: false
-      });
-    }
-    
-    setNotifications(newNotifications);
-  }, [isOnline, backendAvailable, syncStatus, pendingSyncCount]);
-  
-  // Auto-dismiss non-persistent notifications
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.persistent));
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, [notifications]);
-  
-  if (notifications.length === 0) return null;
+  // The AppDataProvider already supports both standard and enhanced features
+  // It automatically switches based on configuration and available services
+  const AppDataProvider = lazy(() => import('./contexts/AppDataContext').then(module => ({ default: module.AppDataProvider })));
   
   return (
-    <div className="fixed bottom-4 right-4 space-y-2 z-50">
-      {notifications.map(({ id, type, message, persistent }) => (
-        <div
-          key={id}
-          className={`max-w-sm p-4 rounded-lg shadow-lg ${
-            type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
-            type === 'warning' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-            type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
-            'bg-blue-100 text-blue-800 border border-blue-200'
-          }`}
-        >
-          <div className="flex justify-between items-start">
-            <p className="text-sm font-medium">{message}</p>
-            {!persistent && (
-              <button
-                onClick={() => setNotifications(prev => prev.filter(n => n.id !== id))}
-                className="ml-2 text-gray-400 hover:text-gray-600"
-              >
-                ×
-              </button>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Error boundary for the entire app
-class AppErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-  
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('App Error:', error, errorInfo);
-  }
-  
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6">
-            <div className="text-center">
-              <div className="text-red-500 text-6xl mb-4">⚠️</div>
-              <h1 className="text-xl font-bold text-gray-900 mb-2">
-                Application Error
-              </h1>
-              <p className="text-gray-600 mb-4">
-                Something went wrong. Please refresh the page to try again.
-              </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-              >
-                Refresh Page
-              </button>
-              
-              {process.env.NODE_ENV === 'development' && (
-                <details className="mt-4 text-left">
-                  <summary className="cursor-pointer text-sm text-gray-500">
-                    Error Details
-                  </summary>
-                  <pre className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded overflow-auto">
-                    {this.state.error?.stack}
-                  </pre>
-                </details>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    return this.props.children;
-  }
-}
-
-const App: React.FC = () => {
-  const [modulesInitialized, setModulesInitialized] = useState(false);
-  const initializedRef = useRef(false);
-
-  useEffect(() => {
-    const init = async () => {
-      if (!initializedRef.current) {
-        console.log('🚀 [App] Initializing modules...');
-        try {
-          await initializeModules();
-          console.log('✅ [App] Modules initialized successfully');
-          setModulesInitialized(true);
-          initializedRef.current = true;
-        } catch (error) {
-          console.error('❌ [App] Module initialization failed:', error);
-          setModulesInitialized(true); // Still allow app to load
-          initializedRef.current = true;
-        }
-      }
-    };
-    init();
-  }, []);
-
-  if (!modulesInitialized) {
-    return (
+    <Suspense fallback={
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Initializing application modules...</p>
+          <p className="mt-4 text-gray-600">Loading data layer...</p>
+        </div>
+      </div>
+    }>
+      <AppDataProvider>{children}</AppDataProvider>
+    </Suspense>
+  );
+};
+
+// Import the new comprehensive error boundaries
+import ApplicationErrorBoundary from './components/ApplicationErrorBoundary';
+import ModuleErrorBoundary from './components/ModuleErrorBoundary';
+import PageErrorBoundary from './components/PageErrorBoundary';
+import ModuleLoadingProgress from './components/ModuleLoadingProgress';
+import dynamicModuleLoader from './services/dynamicModuleLoader';
+
+// Main consolidated App component
+const App: React.FC = () => {
+  const [config, setConfig] = useState<AppConfig>(getAppConfig());
+  const [modulesInitialized, setModulesInitialized] = useState(false);
+  const initializedRef = useRef(false);
+
+  // Subscribe to configuration changes
+  useEffect(() => {
+    const unsubscribe = subscribeToConfig(setConfig);
+    return unsubscribe;
+  }, []);
+
+  // Initialize modules with improved error handling
+  useEffect(() => {
+    const init = async () => {
+      if (!initializedRef.current) {
+        debugLog('🚀 [App] Initializing modules with config:', config);
+        initializedRef.current = true;
+        
+        // Set a shorter safety timeout to prevent infinite loading
+        const safetyTimeout = setTimeout(() => {
+          console.warn('⚠️ [App] Module initialization safety timeout triggered - proceeding anyway');
+          setModulesInitialized(true);
+        }, 5000); // Reduced to 5 seconds
+        
+        try {
+          // Try to initialize modules, but don't block the app if it fails
+          const initPromise = initializeModulesOptimized();
+          const timeoutPromise = new Promise<void>((resolve) => {
+            setTimeout(() => {
+              console.warn('⚠️ [App] Module initialization taking too long, proceeding...');
+              resolve();
+            }, 3000); // 3 second timeout for module init
+          });
+          
+          await Promise.race([initPromise, timeoutPromise]);
+          debugLog('✅ [App] Modules initialized successfully');
+        } catch (error) {
+          console.error('❌ [App] Module initialization failed:', error);
+          // Continue anyway - app should work with basic functionality
+        } finally {
+          clearTimeout(safetyTimeout);
+          setModulesInitialized(true);
+        }
+      }
+    };
+    
+    // Start initialization immediately, don't wait for config changes
+    init();
+  }, []); // Remove config dependency to prevent re-initialization
+
+  // Show loading screen while modules initialize
+  if (!modulesInitialized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center w-full max-w-md px-4">
+          <Spinner size="lg" />
+          <p className="mt-4 mb-6 text-gray-600">
+            Initializing application modules...
+            {config.useEnhancedFeatures && ' (Enhanced Mode)'}
+          </p>
+          <ModuleLoadingProgress 
+            showDetails={true}
+            timeoutMs={15000} // 15 seconds timeout
+            onComplete={() => {
+              console.log('✅ [App] Module loading progress complete, proceeding to application');
+              setModulesInitialized(true);
+            }}
+          />
+          {/* Add a manual continue button as a last resort */}
+          <div className="mt-6">
+            <button
+              onClick={() => {
+                console.warn('⚠️ [App] Manual continue triggered by user');
+                // Force the module loader to complete
+                try {
+                  dynamicModuleLoader.forceCompleteLoading();
+                } catch (error) {
+                  console.error('Failed to force complete loading:', error);
+                }
+                setModulesInitialized(true);
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Continue to Application
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Click to continue if loading appears to be stuck
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
+  debugLog('🚀 [App] Rendering with config:', {
+    mode: config.mode,
+    useEnhancedFeatures: config.useEnhancedFeatures,
+    enabledFeatures: Object.entries(config.features).filter(([, enabled]) => enabled).map(([name]) => name)
+  });
+
   return (
-    <AppErrorBoundary>
+    <ApplicationErrorBoundary 
+      onError={(error, errorInfo, errorId) => {
+        // Log critical application errors
+        console.error('🚨 Critical Application Error:', { errorId, error, errorInfo });
+      }}
+      maxRetries={3}
+    >
       <HashRouter>
         <AuthProvider>
           <UserProvider>
-            <AppDataProvider>
-              <ErrorBoundary>
-                <AppContent modulesInitialized={modulesInitialized} />
-              </ErrorBoundary>
-            </AppDataProvider>
+            <DataProviderWrapper config={config}>
+              <ModuleErrorBoundary moduleName="Core Application">
+                <AppContent modulesInitialized={modulesInitialized} config={config} />
+              </ModuleErrorBoundary>
+            </DataProviderWrapper>
           </UserProvider>
         </AuthProvider>
       </HashRouter>
-    </AppErrorBoundary>
+    </ApplicationErrorBoundary>
   );
 };
 
 export default App;
+

@@ -1,18 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for TeacherSubjectAssignment in Academics.
-// ABOUTME: Exports a global provider hook for system-wide use.
+// ABOUTME: Self-contained hook for teachersubjectassignment data management
+// ABOUTME: Provides CRUD operations for teachersubjectassignment without depending on AppDataContext
 
-import { useState } from 'react';
-import { AcademicsTeacherSubjectAssignmentType } from './types';
+import { useState, useEffect } from 'react';
 import { initialMockTeacherSubjectAssignments } from './mockData';
+import { TeacherSubjectAssignment } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useTeacherSubjectAssignmentData = () => {
+  const [data, setData] = useState<TeacherSubjectAssignment[]>(initialMockTeacherSubjectAssignments);
 
-export function useTeacherSubjectAssignmentData() {
-  const [data, setData] = useState<AcademicsTeacherSubjectAssignmentType[]>(initialMockTeacherSubjectAssignments);
+  const create = async (newItem: Partial<TeacherSubjectAssignment>) => {
+    const newDataItem: TeacherSubjectAssignment = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as TeacherSubjectAssignment;
+    setData((prev: TeacherSubjectAssignment[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
 
-  const create = (item: AcademicsTeacherSubjectAssignmentType) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<AcademicsTeacherSubjectAssignmentType>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  const update = async (id: number, updatedData: Partial<TeacherSubjectAssignment>) => {
+    setData((prev: TeacherSubjectAssignment[]) => prev.map((item: TeacherSubjectAssignment) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: TeacherSubjectAssignment[]) => prev.filter((item: TeacherSubjectAssignment) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

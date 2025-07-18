@@ -1,39 +1,43 @@
-// ABOUTME: Global provider hook for Dormitory entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for dormitory data management
+// ABOUTME: Provides CRUD operations for dormitory without depending on AppDataContext
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { initialMockDormitories } from '../../administration/data/mockData';
 import { Dormitory } from '../../../core/types';
-import { initialMockDormitories } from './mockData';
 
-export const isGlobalProvider = true;
+export const useDormitoryData = () => {
+  const [data, setData] = useState<Dormitory[]>(initialMockDormitories);
 
-export function useDormitoryData() {
-  const [dormitories, setDormitories] = useState<Dormitory[]>(initialMockDormitories);
-
-  const addDormitory = (data: Omit<Dormitory, 'id' | 'created_at' | 'updated_at'>) => {
-    const newDorm: Dormitory = {
-      ...data,
+  const create = async (newItem: Partial<Dormitory>) => {
+    const newDataItem: Dormitory = {
+      ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setDormitories(prev => [...prev, newDorm]);
-    return newDorm;
+      updated_at: new Date().toISOString()
+    } as Dormitory;
+    setData((prev: Dormitory[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateDormitory = (updated: Dormitory) => {
-    setDormitories(prev => prev.map(d => d.id === updated.id ? { ...updated, updated_at: new Date().toISOString() } : d));
-    return updated;
+  const update = async (id: number, updatedData: Partial<Dormitory>) => {
+    setData((prev: Dormitory[]) => prev.map((item: Dormitory) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteDormitory = (id: number) => {
-    setDormitories(prev => prev.filter(d => d.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: Dormitory[]) => prev.filter((item: Dormitory) => item.id !== id));
   };
 
   return {
-    dormitories,
-    addDormitory,
-    updateDormitory,
-    deleteDormitory,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

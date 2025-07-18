@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for GradingScheme entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for gradingscheme data management
+// ABOUTME: Provides CRUD operations for gradingscheme without depending on AppDataContext
 
-import { useState } from 'react';
-import { GradingScheme } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockGradingSchemes } from './mockData';
+import { GradingScheme } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useGradingSchemeData = () => {
+  const [data, setData] = useState<GradingScheme[]>(initialMockGradingSchemes);
 
-export function useGradingSchemeData() {
-  const [gradingSchemes, setGradingSchemes] = useState<GradingScheme[]>(initialMockGradingSchemes);
-
-  const addGradingScheme = (data: Omit<GradingScheme, 'id'>) => {
-    const newScheme: GradingScheme = {
-      ...data,
+  const create = async (newItem: Partial<GradingScheme>) => {
+    const newDataItem: GradingScheme = {
+      ...newItem,
       id: Date.now(),
-    };
-    setGradingSchemes(prev => [...prev, newScheme]);
-    return newScheme;
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as GradingScheme;
+    setData((prev: GradingScheme[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateGradingScheme = (updated: GradingScheme) => {
-    setGradingSchemes(prev => prev.map(g => g.id === updated.id ? { ...updated } : g));
-    return updated;
+  const update = async (id: number, updatedData: Partial<GradingScheme>) => {
+    setData((prev: GradingScheme[]) => prev.map((item: GradingScheme) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteGradingScheme = (id: number) => {
-    setGradingSchemes(prev => prev.filter(g => g.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: GradingScheme[]) => prev.filter((item: GradingScheme) => item.id !== id));
   };
 
   return {
-    gradingSchemes,
-    addGradingScheme,
-    updateGradingScheme,
-    deleteGradingScheme,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

@@ -1,36 +1,57 @@
-// ABOUTME: Provides a global provider hook for HR Staff Salary Settings with full CRUD logic.
-// ABOUTME: Used for managing staff salary settings in the HR module.
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-import { useState } from 'react';
-import { HRStaffSalarySettingType } from './types';
-import { initialMockStaffSalarySettings } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockUsers } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export const isGlobalProvider = true;
+const useStaffSalarySettingData = () => {
+  const [staffSalarySettings, setStaffSalarySettings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-const convertNulls = (item: any) => ({
-  ...item,
-  payment_bank: item.payment_bank === null ? undefined : item.payment_bank,
-  bank_account_no: item.bank_account_no === null ? undefined : item.bank_account_no,
-});
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setStaffSalarySettings(initialMockUsers);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch staff salary settings');
+      setIsLoading(false);
+    }
+  }, []);
 
-export function useStaffSalarySettingData() {
-  const [data, setData] = useState<HRStaffSalarySettingType[]>(initialMockStaffSalarySettings.map(convertNulls));
-
-  const create = (item: Omit<HRStaffSalarySettingType, 'id'>) => {
-    const newItem = { ...item, id: `SSS${Date.now()}` };
-    setData(prev => [...prev, newItem]);
-    return newItem;
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any;
+    setStaffSalarySettings((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const read = () => data;
-
-  const update = (updated: HRStaffSalarySettingType) => {
-    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setStaffSalarySettings((prev: any[]) => prev.map((item: any) =>
+      item.id === id
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const remove = (id: string) => {
-    setData(prev => prev.filter(item => item.id !== id));
+  const remove = async (id: number) => {
+    setStaffSalarySettings((prev: any[]) => prev.filter((item: any) => item.id !== id));
   };
 
-  return { data, create, read, update, remove };
-}
+  return {
+    data: staffSalarySettings,
+    isLoading,
+    error,
+    create,
+    update,
+    remove
+  };
+};
+
+export { useStaffSalarySettingData };

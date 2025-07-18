@@ -1,40 +1,57 @@
-// ABOUTME: Provides a global provider hook for HR Payslips with full CRUD logic.
-// ABOUTME: Used for managing payslips in the HR module.
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-import { useState } from 'react';
-import { HRPayslipType } from './types';
-import { initialMockPayslips } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockUsers } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export const isGlobalProvider = true;
+const usePayslipData = () => {
+  const [payslips, setPayslips] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-const convertNulls = (item: any) => ({
-  ...item,
-  gross_salary: item.gross_salary === null ? undefined : item.gross_salary,
-  total_deductions: item.total_deductions === null ? undefined : item.total_deductions,
-  net_salary: item.net_salary === null ? undefined : item.net_salary,
-  status: item.status === null ? undefined : item.status,
-  processed_at: item.processed_at === null ? undefined : item.processed_at,
-  paid_at: item.paid_at === null ? undefined : item.paid_at,
-});
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setPayslips(initialMockUsers);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch payslips');
+      setIsLoading(false);
+    }
+  }, []);
 
-export function usePayslipData() {
-  const [data, setData] = useState<HRPayslipType[]>(initialMockPayslips.map(convertNulls));
-
-  const create = (item: Omit<HRPayslipType, 'id'>) => {
-    const newItem = { ...item, id: `PSLP${Date.now()}` };
-    setData(prev => [...prev, newItem]);
-    return newItem;
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any;
+    setPayslips((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const read = () => data;
-
-  const update = (updated: HRPayslipType) => {
-    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setPayslips((prev: any[]) => prev.map((item: any) =>
+      item.id === id
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const remove = (id: string) => {
-    setData(prev => prev.filter(item => item.id !== id));
+  const remove = async (id: number) => {
+    setPayslips((prev: any[]) => prev.filter((item: any) => item.id !== id));
   };
 
-  return { data, create, read, update, remove };
-}
+  return {
+    data: payslips,
+    isLoading,
+    error,
+    create,
+    update,
+    remove
+  };
+};
+
+export { usePayslipData };

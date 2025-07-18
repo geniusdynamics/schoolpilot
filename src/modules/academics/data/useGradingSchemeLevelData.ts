@@ -1,40 +1,43 @@
-// ABOUTME: Global provider hook for GradingSchemeLevel entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for gradingschemelevel data management
+// ABOUTME: Provides CRUD operations for gradingschemelevel without depending on AppDataContext
 
-import { useState } from 'react';
-import { GradingSchemeLevel } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockGradingSchemes } from './mockData';
-
-export const isGlobalProvider = true;
+import { GradingSchemeLevel } from '../../../core/types';
 
 // Flatten all levels from all grading schemes
 const initialMockGradingSchemeLevels: GradingSchemeLevel[] = initialMockGradingSchemes.flatMap(s => s.levels ?? []).filter((l): l is GradingSchemeLevel => !!l);
 
-export function useGradingSchemeLevelData() {
-  const [gradingSchemeLevels, setGradingSchemeLevels] = useState<GradingSchemeLevel[]>(initialMockGradingSchemeLevels);
+export const useGradingSchemeLevelData = () => {
+  const [data, setData] = useState<GradingSchemeLevel[]>(initialMockGradingSchemeLevels);
 
-  const addGradingSchemeLevel = (data: Omit<GradingSchemeLevel, 'id'>) => {
-    const newLevel: GradingSchemeLevel = {
-      ...data,
+  const create = async (newItem: Partial<GradingSchemeLevel>) => {
+    const newDataItem: GradingSchemeLevel = {
+      ...newItem,
       id: Date.now(),
-    };
-    setGradingSchemeLevels(prev => [...prev, newLevel]);
-    return newLevel;
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as GradingSchemeLevel;
+    setData((prev: GradingSchemeLevel[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateGradingSchemeLevel = (updated: GradingSchemeLevel) => {
-    setGradingSchemeLevels(prev => prev.map(l => l.id === updated.id ? { ...updated } : l));
-    return updated;
+  const update = async (id: number, updatedData: Partial<GradingSchemeLevel>) => {
+    setData((prev: GradingSchemeLevel[]) => prev.map((item: GradingSchemeLevel) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteGradingSchemeLevel = (id: number) => {
-    setGradingSchemeLevels(prev => prev.filter(l => l.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: GradingSchemeLevel[]) => prev.filter((item: GradingSchemeLevel) => item.id !== id));
   };
 
   return {
-    gradingSchemeLevels,
-    addGradingSchemeLevel,
-    updateGradingSchemeLevel,
-    deleteGradingSchemeLevel,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

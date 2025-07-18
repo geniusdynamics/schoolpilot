@@ -1,35 +1,27 @@
-import { useState } from 'react';
-import { AcademicYear } from '../../../core/types';
+// ABOUTME: Standardized hook for academic year data management
+// ABOUTME: Provides CRUD operations for academic years with AppDataContext integration
+// ABOUTME: Uses the data hook factory for consistent interface and behavior
+
 import { initialMockAcademicYears } from '../../administration/data/mockData';
+import { AcademicYear } from '../../../core/types';
+import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
+import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
 
-export const isGlobalProvider = true;
+// Configuration for the data hook
+export const useAcademicYearDataConfig: DataHookConfig<AcademicYear> = {
+  entityName: 'academicYears',
+  initialData: initialMockAcademicYears,
+  entityModule: 'academics',
+  requiresBackend: false,
+  allowOffline: true,
+  syncPriority: 'normal'
+};
 
-export function useAcademicYearData() {
-  const [academicYears, setAcademicYears] = useState<AcademicYear[]>(initialMockAcademicYears);
+// Create the standardized data hook using the factory
+export const useAcademicYearData = () => {
+  // Register the hook with the global context
+  useDataHookRegistration(useAcademicYearDataConfig);
 
-  const addAcademicYear = (year: Omit<AcademicYear, 'id' | 'created_at' | 'updated_at'>) => {
-    const newYear: AcademicYear = {
-      ...year,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setAcademicYears(prev => [...prev, newYear]);
-    return newYear;
-  };
-
-  const updateAcademicYear = (updated: AcademicYear) => {
-    setAcademicYears(prev => prev.map(y => y.id === updated.id ? { ...updated, updated_at: new Date().toISOString() } : y));
-  };
-
-  const deleteAcademicYear = (id: number) => {
-    setAcademicYears(prev => prev.filter(y => y.id !== id));
-  };
-
-  return {
-    academicYears,
-    addAcademicYear,
-    updateAcademicYear,
-    deleteAcademicYear,
-  };
-} 
+  // Return the hook implementation
+  return createDataHook<AcademicYear>(useAcademicYearDataConfig)();
+};

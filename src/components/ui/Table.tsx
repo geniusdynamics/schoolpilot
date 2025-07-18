@@ -41,7 +41,7 @@ const Table = <T extends object,>({ columns, data, isLoading = false, emptyState
     return '-'; 
   };
 
-  const showEmptyState = !isLoading && data.length === 0;
+  const showEmptyState = !isLoading && (!data || data.length === 0);
 
   return (
     <div className="shadow border-b border-gray-200 sm:rounded-lg overflow-hidden">
@@ -77,7 +77,7 @@ const Table = <T extends object,>({ columns, data, isLoading = false, emptyState
                 </td>
               </tr>
             ) : (
-              data.map((item, rowIndex) => (
+              (data || []).map((item, rowIndex) => (
                 <tr key={rowIndex} className="hover:bg-gray-50 transition-colors duration-150">
                   {columns.map((col, colIndex) => (
                     <td key={colIndex} className={`px-6 py-4 whitespace-nowrap text-sm text-gray-700 ${col.className || ''}`}>

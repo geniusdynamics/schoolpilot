@@ -1,36 +1,40 @@
-// ABOUTME: Global provider hook for StudentPaperMark entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for studentpapermark data management
+// ABOUTME: Provides CRUD operations for studentpapermark without depending on AppDataContext
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { initialMockStudentPaperMarks } from './mockData';
 import { StudentPaperMark } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useStudentPaperMarkData = () => {
+  const [data, setData] = useState<StudentPaperMark[]>(initialMockStudentPaperMarks);
 
-export function useStudentPaperMarkData() {
-  const [studentPaperMarks, setStudentPaperMarks] = useState<StudentPaperMark[]>([]);
-
-  const addStudentPaperMark = (data: Omit<StudentPaperMark, 'id'>) => {
-    const newMark: StudentPaperMark = {
-      ...data,
-      id: `SPM${Date.now()}`,
-    };
-    setStudentPaperMarks(prev => [...prev, newMark]);
-    return newMark;
+  const create = async (newItem: Partial<StudentPaperMark>) => {
+    const newDataItem: StudentPaperMark = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as StudentPaperMark;
+    setData((prev: StudentPaperMark[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateStudentPaperMark = (updated: StudentPaperMark) => {
-    setStudentPaperMarks(prev => prev.map(m => m.id === updated.id ? { ...updated } : m));
-    return updated;
+  const update = async (id: number, updatedData: Partial<StudentPaperMark>) => {
+    setData((prev: StudentPaperMark[]) => prev.map((item: StudentPaperMark) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteStudentPaperMark = (id: string) => {
-    setStudentPaperMarks(prev => prev.filter(m => m.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: StudentPaperMark[]) => prev.filter((item: StudentPaperMark) => item.id !== id));
   };
 
   return {
-    studentPaperMarks,
-    addStudentPaperMark,
-    updateStudentPaperMark,
-    deleteStudentPaperMark,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

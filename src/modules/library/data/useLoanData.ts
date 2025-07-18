@@ -1,16 +1,60 @@
-// ABOUTME: Provides CRUD and data provider logic for Loan in Library.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { initialMockLoans } from './mockData';
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
+import { useState, useEffect } from 'react';
+import { initialMockUsers } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
+
+const useLoanData = () => {
+  const [loans, setLoans] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setLoans(initialMockUsers);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch loans');
+      setIsLoading(false);
+    }
+  }, []);
+
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any;
+    setLoans((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setLoans((prev: any[]) => prev.map((item: any) =>
+      item.id === id
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setLoans((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  };
+
+  return {
+    data: loans,
+    isLoading,
+    error,
+    create,
+    update,
+    remove
+  };
+};
+
+export { useLoanData };
+
+// Mark this as a global provider for cross-module use
 export const isGlobalProvider = true;
-
-export function useLoanData() {
-  const [data, setData] = useState<any[]>(initialMockLoans);
-
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 

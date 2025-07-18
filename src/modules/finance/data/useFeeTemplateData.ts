@@ -1,16 +1,57 @@
-// ABOUTME: Provides CRUD and data provider logic for FeeTemplate in Finance.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { initialMockFeeTemplates } from './mockData';
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-export const isGlobalProvider = true;
+import { useState, useEffect } from 'react';
+import { initialMockUsers } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export function useFeeTemplateData() {
-  const [data, setData] = useState<any[]>(initialMockFeeTemplates);
+const useFeeTemplateData = () => {
+  const [feeTemplates, setFeeTemplates] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setFeeTemplates(initialMockUsers);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch fee templates');
+      setIsLoading(false);
+    }
+  }, []);
+
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any;
+    setFeeTemplates((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setFeeTemplates((prev: any[]) => prev.map((item: any) =>
+      item.id === id
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setFeeTemplates((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  };
+
+  return {
+    data: feeTemplates,
+    isLoading,
+    error,
+    create,
+    update,
+    remove
+  };
+};
+
+export { useFeeTemplateData };

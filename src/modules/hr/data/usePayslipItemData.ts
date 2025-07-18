@@ -1,35 +1,57 @@
-// ABOUTME: Provides a global provider hook for HR Payslip Items with full CRUD logic.
-// ABOUTME: Used for managing payslip items in the HR module.
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-import { useState } from 'react';
-import { HRPayslipItemType } from './types';
-import { initialMockPayslipItems } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockUsers } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export const isGlobalProvider = true;
+const usePayslipItemData = () => {
+  const [payslipItems, setPayslipItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-const convertNulls = (item: any) => ({
-  ...item,
-  description: item.description === null ? undefined : item.description,
-});
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setPayslipItems(initialMockUsers);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch payslip items');
+      setIsLoading(false);
+    }
+  }, []);
 
-export function usePayslipItemData() {
-  const [data, setData] = useState<HRPayslipItemType[]>(initialMockPayslipItems.map(convertNulls));
-
-  const create = (item: Omit<HRPayslipItemType, 'id'>) => {
-    const newItem = { ...item, id: `PSLI${Date.now()}` };
-    setData(prev => [...prev, newItem]);
-    return newItem;
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any;
+    setPayslipItems((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const read = () => data;
-
-  const update = (updated: HRPayslipItemType) => {
-    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setPayslipItems((prev: any[]) => prev.map((item: any) =>
+      item.id === id
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const remove = (id: string) => {
-    setData(prev => prev.filter(item => item.id !== id));
+  const remove = async (id: number) => {
+    setPayslipItems((prev: any[]) => prev.filter((item: any) => item.id !== id));
   };
 
-  return { data, create, read, update, remove };
-}
+  return {
+    data: payslipItems,
+    isLoading,
+    error,
+    create,
+    update,
+    remove
+  };
+};
+
+export { usePayslipItemData };

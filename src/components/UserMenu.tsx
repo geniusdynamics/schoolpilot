@@ -3,16 +3,14 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useAppData } from '../contexts/AppDataContext';
 import { useTranslation } from 'react-i18next';
 import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
-import { APP_MODE } from '../contexts/config';
+import { SyncStatusComponent } from './OfflineCapability';
 
 const UserMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout, isDemoMode } = useAuth();
-  const { dataSource, isOnline, backendAvailable } = useAppData();
   const { t } = useTranslation('common');
 
   const handleLogout = async () => {
@@ -56,41 +54,20 @@ const UserMenu: React.FC = () => {
               </div>
             </div>
             
-            {/* System Status Information */}
-            <div className="mt-3 space-y-2">
-              {/* Demo Mode Indicator */}
-              {(isDemoMode || APP_MODE === 'demo') && (
-                <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
-                      <span className="text-xs text-yellow-800 font-medium">Demo Mode</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Data Source Information */}
-              <div className="p-2 bg-gray-50 border border-gray-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">Data Source:</span>
-                  <span className="text-xs font-medium text-gray-800 capitalize">{dataSource}</span>
-                </div>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-xs text-gray-600">Status:</span>
-                  <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full mr-1 ${
-                      !isOnline ? 'bg-red-400' :
-                      !backendAvailable ? 'bg-yellow-400' :
-                      'bg-green-400'
-                    }`}></div>
-                    <span className="text-xs font-medium text-gray-800">
-                      {!isOnline ? 'Offline' : !backendAvailable ? 'Local' : 'Online'}
-                    </span>
-                  </div>
+            {/* Demo Mode Indicator */}
+            {isDemoMode && (
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
+                  <span className="text-xs text-yellow-800 font-medium">Demo Mode</span>
                 </div>
               </div>
-            </div>
+            )}
+          </div>
+
+          {/* Sync Status Section */}
+          <div className="p-2 border-b border-gray-200">
+            <SyncStatusComponent className="!p-2 !shadow-none !bg-transparent" />
           </div>
 
           <div className="p-2">

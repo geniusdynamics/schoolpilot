@@ -1,17 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for FinancialYear in Finance.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { FinFinancialYearStatusEnum } from './types';
+// ABOUTME: Self-contained hook for financialyear data management
+// ABOUTME: Provides CRUD operations for financialyear without depending on AppDataContext
+
+import { useState, useEffect } from 'react';
 import { initialMockFinancialYears } from './mockData';
+import { FinancialYear } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useFinancialYearData = () => {
+  const [data, setData] = useState<FinancialYear[]>(initialMockFinancialYears);
 
-export function useFinancialYearData() {
-  const [data, setData] = useState<any[]>(initialMockFinancialYears);
+  const create = async (newItem: Partial<FinancialYear>) => {
+    const newDataItem: FinancialYear = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as FinancialYear;
+    setData((prev: FinancialYear[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  const update = async (id: number, updatedData: Partial<FinancialYear>) => {
+    setData((prev: FinancialYear[]) => prev.map((item: FinancialYear) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: FinancialYear[]) => prev.filter((item: FinancialYear) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

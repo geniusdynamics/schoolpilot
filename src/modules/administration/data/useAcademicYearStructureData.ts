@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for AcademicYearStructure entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for academicyearstructure data management
+// ABOUTME: Provides CRUD operations for academicyearstructure without depending on AppDataContext
 
-import { useState } from 'react';
-import { AcademicYearStructure } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockAcademicYearStructures } from './mockData';
+import { AcademicYearStructure } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useAcademicYearStructureData = () => {
+  const [data, setData] = useState<AcademicYearStructure[]>(initialMockAcademicYearStructures);
 
-export function useAcademicYearStructureData() {
-  const [academicYearStructures, setAcademicYearStructures] = useState<AcademicYearStructure[]>(initialMockAcademicYearStructures);
-
-  const addAcademicYearStructure = (data: Omit<AcademicYearStructure, 'id'>) => {
-    const newStructure: AcademicYearStructure = {
-      ...data,
-      id: Date.now().toString(),
-    };
-    setAcademicYearStructures(prev => [...prev, newStructure]);
-    return newStructure;
+  const create = async (newItem: Partial<AcademicYearStructure>) => {
+    const newDataItem: AcademicYearStructure = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as AcademicYearStructure;
+    setData((prev: AcademicYearStructure[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateAcademicYearStructure = (updated: AcademicYearStructure) => {
-    setAcademicYearStructures(prev => prev.map(s => s.id === updated.id ? { ...updated } : s));
-    return updated;
+  const update = async (id: number, updatedData: Partial<AcademicYearStructure>) => {
+    setData((prev: AcademicYearStructure[]) => prev.map((item: AcademicYearStructure) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteAcademicYearStructure = (id: string) => {
-    setAcademicYearStructures(prev => prev.filter(s => s.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: AcademicYearStructure[]) => prev.filter((item: AcademicYearStructure) => item.id !== id));
   };
 
   return {
-    academicYearStructures,
-    addAcademicYearStructure,
-    updateAcademicYearStructure,
-    deleteAcademicYearStructure,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

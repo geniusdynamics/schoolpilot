@@ -1,35 +1,43 @@
-import { useState } from 'react';
-import { SchoolPeriod } from '../../../core/types';
+// ABOUTME: Self-contained hook for schoolperiod data management
+// ABOUTME: Provides CRUD operations for schoolperiod without depending on AppDataContext
+
+import { useState, useEffect } from 'react';
 import { initialMockSchoolPeriods } from './mockData';
+import { SchoolPeriod } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useSchoolPeriodData = () => {
+  const [data, setData] = useState<SchoolPeriod[]>(initialMockSchoolPeriods);
 
-export function useSchoolPeriodData() {
-  const [schoolPeriods, setSchoolPeriods] = useState<SchoolPeriod[]>(initialMockSchoolPeriods);
-
-  const addSchoolPeriod = (period: Omit<SchoolPeriod, 'id' | 'created_at' | 'updated_at'>) => {
-    const newPeriod: SchoolPeriod = {
-      ...period,
+  const create = async (newItem: Partial<SchoolPeriod>) => {
+    const newDataItem: SchoolPeriod = {
+      ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setSchoolPeriods(prev => [...prev, newPeriod]);
-    return newPeriod;
+      updated_at: new Date().toISOString()
+    } as SchoolPeriod;
+    setData((prev: SchoolPeriod[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateSchoolPeriod = (updated: SchoolPeriod) => {
-    setSchoolPeriods(prev => prev.map(p => p.id === updated.id ? { ...updated, updated_at: new Date().toISOString() } : p));
+  const update = async (id: number, updatedData: Partial<SchoolPeriod>) => {
+    setData((prev: SchoolPeriod[]) => prev.map((item: SchoolPeriod) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteSchoolPeriod = (id: number) => {
-    setSchoolPeriods(prev => prev.filter(p => p.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: SchoolPeriod[]) => prev.filter((item: SchoolPeriod) => item.id !== id));
   };
 
   return {
-    schoolPeriods,
-    addSchoolPeriod,
-    updateSchoolPeriod,
-    deleteSchoolPeriod,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

@@ -1,37 +1,43 @@
-// ABOUTME: Global provider hook for StudentAttendance entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for studentattendance data management
+// ABOUTME: Provides CRUD operations for studentattendance without depending on AppDataContext
 
-import { useState } from 'react';
-import { AdminStudentAttendanceType } from './types';
-import { initialMockStudentAttendance } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockStudentAttendance } from '../../administration/data/mockData';
+import { StudentAttendance } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useStudentAttendanceData = () => {
+  const [data, setData] = useState<StudentAttendance[]>(initialMockStudentAttendance);
 
-export function useStudentAttendanceData() {
-  const [studentAttendance, setStudentAttendance] = useState<AdminStudentAttendanceType[]>(initialMockStudentAttendance);
-
-  const addStudentAttendance = (data: Omit<AdminStudentAttendanceType, 'id'>) => {
-    const newAttendance: AdminStudentAttendanceType = {
-      ...data,
-      id: Date.now().toString(),
-    };
-    setStudentAttendance(prev => [...prev, newAttendance]);
-    return newAttendance;
+  const create = async (newItem: Partial<StudentAttendance>) => {
+    const newDataItem: StudentAttendance = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as StudentAttendance;
+    setData((prev: StudentAttendance[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateStudentAttendance = (updated: AdminStudentAttendanceType) => {
-    setStudentAttendance(prev => prev.map(a => a.id === updated.id ? { ...updated } : a));
-    return updated;
+  const update = async (id: number, updatedData: Partial<StudentAttendance>) => {
+    setData((prev: StudentAttendance[]) => prev.map((item: StudentAttendance) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteStudentAttendance = (id: string) => {
-    setStudentAttendance(prev => prev.filter(a => a.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: StudentAttendance[]) => prev.filter((item: StudentAttendance) => item.id !== id));
   };
 
   return {
-    studentAttendance,
-    addStudentAttendance,
-    updateStudentAttendance,
-    deleteStudentAttendance,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

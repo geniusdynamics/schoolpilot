@@ -1,35 +1,65 @@
-import { useState } from 'react';
-import { Department } from '../../../core/types';
+// ABOUTME: Self-contained hook for department data management
+// ABOUTME: Provides CRUD operations for department without depending on AppDataContext
+
+import { useState, useEffect } from 'react';
 import { initialMockDepartments } from './mockData';
+import { Department } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useDepartmentData = () => {
+  const [data, setData] = useState<Department[]>(initialMockDepartments || []);
+  const [loading, setLoading] = useState({ departments: false });
 
-export function useDepartmentData() {
-  const [departments, setDepartments] = useState<Department[]>(initialMockDepartments);
-
-  const addDepartment = (department: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
-    const newDepartment: Department = {
-      ...department,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setDepartments(prev => [...prev, newDepartment]);
-    return newDepartment;
+  const addDepartment = async (newItem: Omit<Department, 'id' | 'created_at' | 'updated_at'>) => {
+    setLoading(prev => ({ ...prev, departments: true }));
+    try {
+      const newDataItem: Department = {
+        ...newItem,
+        id: Date.now().toString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setData((prev: Department[]) => [...prev, newDataItem]);
+      return newDataItem;
+    } finally {
+      setLoading(prev => ({ ...prev, departments: false }));
+    }
   };
 
-  const updateDepartment = (updated: Department) => {
-    setDepartments(prev => prev.map(d => d.id === updated.id ? { ...updated, updated_at: new Date().toISOString() } : d));
+  const updateDepartment = async (updatedItem: Department) => {
+    setLoading(prev => ({ ...prev, departments: true }));
+    try {
+      setData((prev: Department[]) => prev.map((item: Department) => 
+        item.id === updatedItem.id 
+          ? { ...updatedItem, updated_at: new Date().toISOString() }
+          : item
+      ));
+    } finally {
+      setLoading(prev => ({ ...prev, departments: false }));
+    }
   };
 
-  const deleteDepartment = (id: string) => {
-    setDepartments(prev => prev.filter(d => d.id !== id));
+  const deleteDepartment = async (id: string) => {
+    setLoading(prev => ({ ...prev, departments: true }));
+    try {
+      setData((prev: Department[]) => prev.filter((item: Department) => item.id !== id));
+    } finally {
+      setLoading(prev => ({ ...prev, departments: false }));
+    }
   };
 
   return {
-    departments,
+    departments: data,
+    loading,
     addDepartment,
     updateDepartment,
     deleteDepartment,
+    // Legacy compatibility
+    data,
+    create: addDepartment,
+    update: updateDepartment,
+    remove: deleteDepartment
   };
-} 
+};
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

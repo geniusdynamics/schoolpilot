@@ -1,16 +1,57 @@
-// ABOUTME: Provides CRUD and data provider logic for StudentMealPlan in Nutrition.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { initialMockStudentMealPlans } from './mockData';
+// ABOUTME: Self-contained hook for any data management
+// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
-export const isGlobalProvider = true;
+import { useState, useEffect } from 'react';
+import { initialMockUsers } from '../../administration/data/mockData';
+import { any } from '../../../core/types';
 
-export function useStudentMealPlanData() {
-  const [data, setData] = useState<any[]>(initialMockStudentMealPlans);
+const useStudentMealPlanData = () => {
+  const [studentMealPlans, setStudentMealPlans] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  useEffect(() => {
+    try {
+      // Simulate fetching data from a mock source
+      setStudentMealPlans(initialMockUsers);
+      setIsLoading(false);
+    } catch (e) {
+      setError('Failed to fetch student meal plans');
+      setIsLoading(false);
+    }
+  }, []);
+
+  const create = async (newItem: Partial<any>) => {
+    const newDataItem: any = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as any;
+    setStudentMealPlans((prev: any[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<any>) => {
+    setStudentMealPlans((prev: any[]) => prev.map((item: any) =>
+      item.id === id
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setStudentMealPlans((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  };
+
+  return {
+    data: studentMealPlans,
+    isLoading,
+    error,
+    create,
+    update,
+    remove
+  };
+};
+
+export { useStudentMealPlanData };

@@ -1,36 +1,40 @@
-// ABOUTME: Provides a global provider hook for HR Payroll Item Types with full CRUD logic.
-// ABOUTME: Used for managing payroll item types in the HR module.
+// ABOUTME: Self-contained hook for payrollitemtype data management
+// ABOUTME: Provides CRUD operations for payrollitemtype without depending on AppDataContext
 
-import { useState } from 'react';
-import { HRPayrollItemTypeType } from './types';
+import { useState, useEffect } from 'react';
 import { initialMockPayrollItemTypes } from './mockData';
+import { PayrollItemType } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const usePayrollItemTypeData = () => {
+  const [data, setData] = useState<PayrollItemType[]>(initialMockPayrollItemTypes);
 
-const convertEnums = (item: any) => ({
-  ...item,
-  category: typeof item.category === 'string' ? item.category : String(item.category),
-  tax_implication: typeof item.tax_implication === 'string' ? item.tax_implication : String(item.tax_implication),
-});
-
-export function usePayrollItemTypeData() {
-  const [data, setData] = useState<HRPayrollItemTypeType[]>(initialMockPayrollItemTypes.map(convertEnums));
-
-  const create = (item: Omit<HRPayrollItemTypeType, 'id'>) => {
-    const newItem = { ...item, id: Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    setData(prev => [...prev, newItem]);
-    return newItem;
+  const create = async (newItem: Partial<PayrollItemType>) => {
+    const newDataItem: PayrollItemType = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as PayrollItemType;
+    setData((prev: PayrollItemType[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const read = () => data;
-
-  const update = (updated: HRPayrollItemTypeType) => {
-    setData(prev => prev.map(item => item.id === updated.id ? updated : item));
+  const update = async (id: number, updatedData: Partial<PayrollItemType>) => {
+    setData((prev: PayrollItemType[]) => prev.map((item: PayrollItemType) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const remove = (id: number) => {
-    setData(prev => prev.filter(item => item.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: PayrollItemType[]) => prev.filter((item: PayrollItemType) => item.id !== id));
   };
 
-  return { data, create, read, update, remove };
-}
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

@@ -1,6 +1,4 @@
-// Backend API service with intelligent request handling and offline queue
-import { NetworkStateManager, NetworkState } from './NetworkStateManager';
-
+// Enhanced Backend API service with intelligent request handling and offline queue
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
@@ -47,7 +45,7 @@ export class BackendAPIService {
   private authToken: string | null = null;
   private requestQueue: RequestQueueItem[] = [];
   private isProcessingQueue = false;
-  private networkManager: NetworkStateManager | null = null;
+  private networkManager: import('./NetworkStateManager').NetworkStateManager;
   private requestCache = new Map<string, { data: any; timestamp: Date; ttl: number }>();
   private readonly DEFAULT_TIMEOUT = 10000;
   private readonly MAX_RETRY_COUNT = 3;
@@ -55,24 +53,22 @@ export class BackendAPIService {
 
   constructor(baseURL: string = '/api/v1') {
     this.baseURL = baseURL;
-    this.initializeNetworkManager();
+    this.networkManager = this.initializeNetworkManager();
+    this.setupNetworkListener();
   }
 
-  private initializeNetworkManager(): void {
-    import('./NetworkStateManager').then(m => {
-      this.networkManager = m.NetworkStateManager.getInstance();
-      this.setupNetworkListener();
+  private async initializeNetworkManager(): Promise<NetworkStateManager> {
+    const m = await import('./NetworkStateManager');
+    return m.NetworkStateManager.getInstance();
+  }
+
+  private async setupNetworkListener(): Promise<void> {
+    const networkManager = await this.networkManager;
+    networkManager.subscribe((state) => {
+      if (state.isOnline && state.backendAvailable && !this.isProcessingQueue) {
+        this.processQueue();
+      }
     });
-  }
-
-  private setupNetworkListener(): void {
-    if (this.networkManager) {
-      this.networkManager.subscribe((state: NetworkState) => {
-        if (state.isOnline && state.backendAvailable && !this.isProcessingQueue) {
-          this.processQueue();
-        }
-      });
-    }
   }
 
   public setAuthToken(token: string | null): void {
@@ -83,12 +79,8 @@ export class BackendAPIService {
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<APIResponse<T>> {
-    if (!this.networkManager) {
-      // If network manager not initialized yet, assume online
-      return this.executeRequest<T>(endpoint, options);
-    }
-    
-    const networkState = this.networkManager.getState();
+    const networkManager = await this.networkManager;
+    const networkState = networkManager.getState();
 
     // Check cache first for GET requests
     if (options.method === 'GET' || !options.method) {
@@ -186,7 +178,7 @@ export class BackendAPIService {
         throw error;
       }
       
-      if (error instanceof Error && error.name === 'AbortError') {
+      if (error.name === 'AbortError') {
         throw new APIError('Request timeout', 408);
       }
       
@@ -234,11 +226,12 @@ export class BackendAPIService {
   }
 
   private async processQueue(): Promise<void> {
-    if (this.isProcessingQueue || this.requestQueue.length === 0 || !this.networkManager) {
+    if (this.isProcessingQueue || this.requestQueue.length === 0) {
       return;
     }
 
-    const networkState = this.networkManager.getState();
+    const networkManager = await this.networkManager;
+    const networkState = networkManager.getState();
     
     if (!networkState.isOnline || !networkState.backendAvailable) {
       return;
@@ -247,7 +240,7 @@ export class BackendAPIService {
     this.isProcessingQueue = true;
 
     while (this.requestQueue.length > 0) {
-      const networkState = this.networkManager.getState();
+      const networkState = networkManager.getState();
       
       if (!networkState.isOnline || !networkState.backendAvailable) {
         break; // Stop processing if network becomes unavailable
@@ -266,7 +259,7 @@ export class BackendAPIService {
             this.requestQueue.unshift(item);
           }, Math.pow(2, item.retryCount) * 1000);
         } else {
-          console.error('Request execution failed:', error);
+          this.logError('Request execution failed', error instanceof Error ? error : new Error(String(error)));
           item.reject(error instanceof Error ? error : new Error(String(error)));
         }
       }
@@ -340,5 +333,9 @@ export class BackendAPIService {
 
   public clearCache(): void {
     this.requestCache.clear();
+  }
+
+  private logError(message: string, error: Error): void {
+    console.error(`[BackendAPIService] ${message}:`, error);
   }
 }

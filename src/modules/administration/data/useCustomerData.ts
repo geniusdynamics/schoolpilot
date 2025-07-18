@@ -1,39 +1,65 @@
-// ABOUTME: Global provider hook for Customer entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for customer data management
+// ABOUTME: Provides CRUD operations for customer without depending on AppDataContext
 
-import { useState } from 'react';
-import { AdminCustomerType } from './types';
-import { initialMockCustomers } from './mockData';
+import { useState, useEffect } from 'react';
+import { initialMockCustomers } from '../../administration/data/mockData';
+import { Customer } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useCustomerData = () => {
+  const [data, setData] = useState<Customer[]>(initialMockCustomers || []);
+  const [loading, setLoading] = useState({ customers: false });
 
-export function useCustomerData() {
-  const [customers, setCustomers] = useState<AdminCustomerType[]>(initialMockCustomers);
-
-  const addCustomer = (data: Omit<AdminCustomerType, 'id' | 'created_at' | 'updated_at'>) => {
-    const newCustomer: AdminCustomerType = {
-      ...data,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    setCustomers(prev => [...prev, newCustomer]);
-    return newCustomer;
+  const addCustomer = async (newItem: Omit<Customer, 'id' | 'created_at' | 'updated_at'>) => {
+    setLoading(prev => ({ ...prev, customers: true }));
+    try {
+      const newDataItem: Customer = {
+        ...newItem,
+        id: Date.now(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setData((prev: Customer[]) => [...prev, newDataItem]);
+      return newDataItem;
+    } finally {
+      setLoading(prev => ({ ...prev, customers: false }));
+    }
   };
 
-  const updateCustomer = (updated: AdminCustomerType) => {
-    setCustomers(prev => prev.map(c => c.id === updated.id ? { ...updated } : c));
-    return updated;
+  const updateCustomer = async (updatedItem: Customer) => {
+    setLoading(prev => ({ ...prev, customers: true }));
+    try {
+      setData((prev: Customer[]) => prev.map((item: Customer) => 
+        item.id === updatedItem.id 
+          ? { ...updatedItem, updated_at: new Date().toISOString() }
+          : item
+      ));
+    } finally {
+      setLoading(prev => ({ ...prev, customers: false }));
+    }
   };
 
-  const deleteCustomer = (id: number) => {
-    setCustomers(prev => prev.filter(c => c.id !== id));
+  const deleteCustomer = async (id: number) => {
+    setLoading(prev => ({ ...prev, customers: true }));
+    try {
+      setData((prev: Customer[]) => prev.filter((item: Customer) => item.id !== id));
+    } finally {
+      setLoading(prev => ({ ...prev, customers: false }));
+    }
   };
 
   return {
-    customers,
+    customers: data,
+    loading,
     addCustomer,
     updateCustomer,
     deleteCustomer,
+    // Legacy compatibility
+    data,
+    create: addCustomer,
+    update: updateCustomer,
+    remove: deleteCustomer
   };
-} 
+};
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

@@ -97,9 +97,9 @@ class ModuleRegistry {
         name: module.name,
         path: module.path,
         icon: module.icon,
-        isGroup: module.navigation.length > 0,
+        isGroup: (module.navigation?.length || 0) > 0,
         modulePath: module.path,
-        children: module.navigation,
+        children: module.navigation || [],
         isActive: this.isModuleEnabled(module.id) // Use the updated isModuleEnabled
       };
       navigationItems.push(mainNavItem);

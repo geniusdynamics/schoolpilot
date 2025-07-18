@@ -1,16 +1,27 @@
-// ABOUTME: Provides CRUD and data provider logic for Bank in Finance.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
+// ABOUTME: Standardized hook for bank data management
+// ABOUTME: Provides CRUD operations for banks with AppDataContext integration
+// ABOUTME: Uses the data hook factory for consistent interface and behavior
+
 import { initialMockBanks } from './mockData';
+import { Bank } from '../../../core/types';
+import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
+import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
 
-export const isGlobalProvider = true;
+// Configuration for the data hook
+export const useBankDataConfig: DataHookConfig<Bank> = {
+  entityName: 'banks',
+  initialData: initialMockBanks,
+  entityModule: 'finance',
+  requiresBackend: false,
+  allowOffline: true,
+  syncPriority: 'medium'
+};
 
-export function useBankData() {
-  const [data, setData] = useState<any[]>(initialMockBanks);
-
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+// Create the standardized data hook using the factory
+export const useBankData = () => {
+  // Register the hook with the global context
+  useDataHookRegistration(useBankDataConfig);
+  
+  // Return the hook implementation
+  return createDataHook<Bank>(useBankDataConfig)();
+};

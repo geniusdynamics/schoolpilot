@@ -1,17 +1,40 @@
-// ABOUTME: Provides CRUD and data provider logic for TimetablePeriodDef in Academics.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
-import { TimetablePeriodDef } from '../../../core/types';
+// ABOUTME: Self-contained hook for timetableperioddef data management
+// ABOUTME: Provides CRUD operations for timetableperioddef without depending on AppDataContext
+
+import { useState, useEffect } from 'react';
 import { initialMockTimetablePeriodDefs } from './mockData';
+import { TimetablePeriodDef } from '../../../core/types';
 
-export const isGlobalProvider = true;
-
-export function useTimetablePeriodDefData() {
+export const useTimetablePeriodDefData = () => {
   const [data, setData] = useState<TimetablePeriodDef[]>(initialMockTimetablePeriodDefs);
 
-  const create = (item: TimetablePeriodDef) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<TimetablePeriodDef>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-}
+  const create = async (newItem: Partial<TimetablePeriodDef>) => {
+    const newDataItem: TimetablePeriodDef = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as TimetablePeriodDef;
+    setData((prev: TimetablePeriodDef[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<TimetablePeriodDef>) => {
+    setData((prev: TimetablePeriodDef[]) => prev.map((item: TimetablePeriodDef) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: TimetablePeriodDef[]) => prev.filter((item: TimetablePeriodDef) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

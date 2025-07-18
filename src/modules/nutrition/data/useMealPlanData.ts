@@ -1,16 +1,27 @@
-// ABOUTME: Provides CRUD and data provider logic for MealPlan in Nutrition.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
+// ABOUTME: Standardized hook for mealplan data management
+// ABOUTME: Provides CRUD operations for mealplans with AppDataContext integration
+// ABOUTME: Uses the data hook factory for consistent interface and behavior
+
 import { initialMockMealPlans } from './mockData';
+import { MealPlan } from '../../../core/types';
+import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
+import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
 
-export const isGlobalProvider = true;
+// Configuration for the data hook
+export const useMealPlanDataConfig: DataHookConfig<MealPlan> = {
+  entityName: 'mealPlans',
+  initialData: initialMockMealPlans,
+  entityModule: 'nutrition',
+  requiresBackend: false,
+  allowOffline: true,
+  syncPriority: 'medium'
+};
 
-export function useMealPlanData() {
-  const [data, setData] = useState<any[]>(initialMockMealPlans);
-
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+// Create the standardized data hook using the factory
+export const useMealPlanData = () => {
+  // Register the hook with the global context
+  useDataHookRegistration(useMealPlanDataConfig);
+  
+  // Return the hook implementation
+  return createDataHook<MealPlan>(useMealPlanDataConfig)();
+};

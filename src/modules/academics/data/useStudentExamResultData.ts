@@ -1,37 +1,40 @@
-// ABOUTME: Global provider hook for StudentExamResult entity with full CRUD using mock data.
-// ABOUTME: Used for modular, plugin-ready data access across the system.
+// ABOUTME: Self-contained hook for studentexamresult data management
+// ABOUTME: Provides CRUD operations for studentexamresult without depending on AppDataContext
 
-import { useState } from 'react';
-import { StudentExamResultWithDetails } from '../../../core/types';
+import { useState, useEffect } from 'react';
 import { initialMockStudentExamResults } from './mockData';
+import { StudentExamResult } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useStudentExamResultData = () => {
+  const [data, setData] = useState<StudentExamResult[]>(initialMockStudentExamResults);
 
-export function useStudentExamResultData() {
-  const [studentExamResults, setStudentExamResults] = useState<StudentExamResultWithDetails[]>(initialMockStudentExamResults);
-
-  const addStudentExamResult = (data: Omit<StudentExamResultWithDetails, 'id'>) => {
-    const newResult: StudentExamResultWithDetails = {
-      ...data,
-      id: `SER${Date.now()}`,
-    };
-    setStudentExamResults(prev => [...prev, newResult]);
-    return newResult;
+  const create = async (newItem: Partial<StudentExamResult>) => {
+    const newDataItem: StudentExamResult = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as StudentExamResult;
+    setData((prev: StudentExamResult[]) => [...prev, newDataItem]);
+    return newDataItem;
   };
 
-  const updateStudentExamResult = (updated: StudentExamResultWithDetails) => {
-    setStudentExamResults(prev => prev.map(r => r.id === updated.id ? { ...updated } : r));
-    return updated;
+  const update = async (id: number, updatedData: Partial<StudentExamResult>) => {
+    setData((prev: StudentExamResult[]) => prev.map((item: StudentExamResult) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
   };
 
-  const deleteStudentExamResult = (id: string) => {
-    setStudentExamResults(prev => prev.filter(r => r.id !== id));
+  const remove = async (id: number) => {
+    setData((prev: StudentExamResult[]) => prev.filter((item: StudentExamResult) => item.id !== id));
   };
 
   return {
-    studentExamResults,
-    addStudentExamResult,
-    updateStudentExamResult,
-    deleteStudentExamResult,
+    data,
+    create,
+    update,
+    remove
   };
-} 
+};

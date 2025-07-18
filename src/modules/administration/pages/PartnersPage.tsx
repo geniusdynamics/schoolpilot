@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { AdminPartnerType as Partner } from '../data/types';
-import { PartnerType } from '../data/types';
+import { AdminPartnerType as Partner, PartnerType } from '../data/types';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
@@ -18,10 +17,10 @@ type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at'
 
 const PartnersPage: React.FC = () => {
   const {
-    partners,
-    addPartner,
-    updatePartner,
-    deletePartner
+    data: partners,
+    create: addPartner,
+    update: updatePartner,
+    remove: deletePartner
   } = usePartnerData(); // Use module-specific hook
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,9 +62,11 @@ const PartnersPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const { t } = useTranslation();
+
   const handleSubmit = async () => {
     if (!formData.name || !formData.partner_type) {
-      alert(t('validation.partnerNameAndTypeAreRequired'));
+      alert('Partner name and type are required');
       return;
     }
     const payload: Omit<Partner, 'id' | 'created_at' | 'updated_at'> = {

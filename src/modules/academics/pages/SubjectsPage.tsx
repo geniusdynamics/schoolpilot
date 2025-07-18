@@ -18,7 +18,8 @@ interface SubjectFormData extends Omit<Partial<Subject>, 'id' | 'department_name
 
 const SubjectsPage: React.FC = () => {
   const { subjects: subjectsState, loading, rawInitialData } = useAppData();
-  const { initialMockDepartments } = rawInitialData;
+  // Get departments with fallback to empty array
+  const initialMockDepartments = rawInitialData?.departments || [];
   const { t } = useTranslation('academics');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -120,7 +121,7 @@ const SubjectsPage: React.FC = () => {
       <Card title={t('subjects.management')} actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>Add Subject</Button>
       }>
-        <Table columns={columns} data={subjectsState} isLoading={loading.subjects && isModalOpen} />
+        <Table columns={columns} data={subjectsState || []} isLoading={loading.subjects && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={t(editingSubject ? 'subjects.edit' : 'subjects.addNew')} size="lg"

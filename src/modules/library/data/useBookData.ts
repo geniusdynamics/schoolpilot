@@ -1,16 +1,43 @@
-// ABOUTME: Provides CRUD and data provider logic for Book in Library.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
+// ABOUTME: Self-contained hook for book data management
+// ABOUTME: Provides CRUD operations for book without depending on AppDataContext
+
+import { useState, useEffect } from 'react';
 import { initialMockBooks } from './mockData';
+import { Book } from '../../../core/types';
 
+export const useBookData = () => {
+  const [data, setData] = useState<Book[]>(initialMockBooks);
+
+  const create = async (newItem: Partial<Book>) => {
+    const newDataItem: Book = {
+      ...newItem,
+      id: Date.now(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as Book;
+    setData((prev: Book[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
+
+  const update = async (id: number, updatedData: Partial<Book>) => {
+    setData((prev: Book[]) => prev.map((item: Book) => 
+      item.id === id 
+        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: Book[]) => prev.filter((item: Book) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};
+
+// Mark this as a global provider for cross-module use
 export const isGlobalProvider = true;
-
-export function useBookData() {
-  const [data, setData] = useState<any[]>(initialMockBooks);
-
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: string, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: string) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: string) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 

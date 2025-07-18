@@ -27,7 +27,8 @@ const ChartOfAccountsPage: React.FC = () => {
     rawInitialData
   } = useAppData(); // Updated
 
-  const { initialMockExpenseCategories } = rawInitialData;
+  // Get expense categories with fallback to empty array
+  const initialMockExpenseCategories = rawInitialData?.expenseCategories || [];
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<ChartOfAccount | null>(null);
@@ -136,7 +137,7 @@ const ChartOfAccountsPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           Manage the school's chart of accounts. Define accounts for assets, liabilities, equity, revenue, and expenses.
         </p>
-        <Table columns={columns} data={chartOfAccounts} isLoading={loading.chartOfAccounts && isModalOpen} />
+        <Table columns={columns} data={chartOfAccounts || []} isLoading={loading.chartOfAccounts && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAccount ? 'Edit Account' : 'Add New Account'} size="xl"

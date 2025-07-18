@@ -1,16 +1,38 @@
-// ABOUTME: Provides CRUD and data provider logic for ItemCategory in Inventory.
-// ABOUTME: Exports a global provider hook for system-wide use.
-import { useState } from 'react';
+// ABOUTME: Self-contained hook for itemcategory data management
+// ABOUTME: Provides CRUD operations for itemcategory without depending on AppDataContext
+
+import { useState, useEffect } from 'react';
 import { initialMockItemCategoriesInv } from './mockData';
+import { ItemCategoryInv } from '../../../core/types';
 
-export const isGlobalProvider = true;
+export const useItemCategoryData = () => {
+  const [data, setData] = useState<ItemCategoryInv[]>(initialMockItemCategoriesInv);
 
-export function useItemCategoryData() {
-  const [data, setData] = useState<any[]>(initialMockItemCategoriesInv);
+  const create = async (newItem: Partial<ItemCategoryInv>) => {
+    const newDataItem: ItemCategoryInv = {
+      ...newItem,
+      id: Date.now(),
+    } as ItemCategoryInv;
+    setData((prev: ItemCategoryInv[]) => [...prev, newDataItem]);
+    return newDataItem;
+  };
 
-  const create = (item: any) => setData(prev => [...prev, item]);
-  const update = (id: number, updates: Partial<any>) => setData(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  const remove = (id: number) => setData(prev => prev.filter(item => item.id !== id));
-  const get = (id: number) => data.find(item => item.id === id);
-  return { data, create, update, remove, get };
-} 
+  const update = async (id: number, updatedData: Partial<ItemCategoryInv>) => {
+    setData((prev: ItemCategoryInv[]) => prev.map((item: ItemCategoryInv) => 
+      item.id === id 
+        ? { ...item, ...updatedData }
+        : item
+    ));
+  };
+
+  const remove = async (id: number) => {
+    setData((prev: ItemCategoryInv[]) => prev.filter((item: ItemCategoryInv) => item.id !== id));
+  };
+
+  return {
+    data,
+    create,
+    update,
+    remove
+  };
+};

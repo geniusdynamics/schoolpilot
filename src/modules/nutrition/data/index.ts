@@ -1,15 +1,28 @@
-// ABOUTME: Serves as the main CSL entry point for the Nutrition & Wallet module's data definitions.
-// ABOUTME: It re-exports types, mock data, schemas, and collection configurations.
+// ABOUTME: Exports all data hooks and types for the nutrition module
+// ABOUTME: Registers data hooks with the global context
+// ABOUTME: Provides consistent data access patterns
 
+import { useMealConsumptionLogData } from './useMealConsumptionLogData';
+import { useMealPlanData } from './useMealPlanData';
+import { useMenuData } from './useMenuData';
+import { useMerchantData } from './useMerchantData';
+import { useStudentMealPlanData } from './useStudentMealPlanData';
+import { useStudentWalletData } from './useStudentWalletData';
+import { useWalletTransactionData } from './useWalletTransactionData';
+
+// Export all data hooks
+export {
+  useMealConsumptionLogData,
+  useMealPlanData,
+  useMenuData,
+  useMerchantData,
+  useStudentMealPlanData,
+  useStudentWalletData,
+  useWalletTransactionData
+};
+
+// Export data hook configurations for registration
+export { useMealPlanDataConfig } from './useMealPlanData';
+
+// Export types
 export * from './types';
-export * from './mockData';
-export * from './schema';
-export * from './collections';
-
-export { isGlobalProvider as isMealPlanGlobalProvider, useMealPlanData } from './useMealPlanData';
-export { isGlobalProvider as isStudentMealPlanGlobalProvider, useStudentMealPlanData } from './useStudentMealPlanData';
-export { isGlobalProvider as isMenuGlobalProvider, useMenuData } from './useMenuData';
-export { isGlobalProvider as isMealConsumptionLogGlobalProvider, useMealConsumptionLogData } from './useMealConsumptionLogData';
-export { isGlobalProvider as isMerchantGlobalProvider, useMerchantData } from './useMerchantData';
-export { isGlobalProvider as isStudentWalletGlobalProvider, useStudentWalletData } from './useStudentWalletData';
-export { isGlobalProvider as isWalletTransactionGlobalProvider, useWalletTransactionData } from './useWalletTransactionData';
