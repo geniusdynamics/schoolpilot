@@ -2,7 +2,7 @@
 // ABOUTME: Self-contained module definition for academic management
 
 import React from 'react';
-import { ModuleDefinition } from '@/core/types';
+import { ModuleDefinition } from '../../core/types';
 import {
   AcademicCapIcon,
   BookOpenIcon,
@@ -16,7 +16,7 @@ import {
   DocumentDuplicateIcon,
   PuzzlePieceIcon,
   ListBulletIcon,
-} from '@/components/ui/icons';
+} from '../../components/ui/icons';
 import { academicsPermissions, academicsDefaultRoles } from './rbac';
 
 export const academicsModule: ModuleDefinition = {

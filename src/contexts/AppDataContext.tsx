@@ -9,6 +9,9 @@ import { useModularMockData, rawInitialData as modularMockDataContentForProdSeed
 import { NetworkStateManager, NetworkState } from '../services/NetworkStateManager';
 import { DataStrategyManager, DataStrategy, DataOperation } from '../services/DataStrategyManager';
 import { BackendAPIService } from '../services/BackendAPIService';
+import { globalDataConsistencyService, DataConsistencyConfig } from '../services/DataConsistencyService';
+import { globalUnifiedCRUDService } from '../services/UnifiedCRUDService';
+import { globalDataSyncMonitoringService, SyncStatus as DetailedSyncStatus } from '../services/DataSyncMonitoringService';
 
 import type { AppDataContextType, RbacRole, Role } from '../core/types';
 import Spinner from '../components/ui/Spinner';
@@ -37,11 +40,18 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
   
   // Strategy management
   dataStrategy: DataStrategy;
+  dataStrategyManager?: DataStrategyManager | null;
   updateDataStrategy: (strategy: Partial<DataStrategy>) => void;
   
   // Queue management
   getQueueStatus: () => QueueStatus;
   clearQueue: () => void;
+  
+  // Data validation and consistency
+  validateEntity: (entityName: string, data: any, operation: 'create' | 'update' | 'delete') => Promise<import('../utils/dataValidation').ValidationResult>;
+  runConsistencyCheck: () => Promise<import('../services/DataConsistencyService').ConsistencyReport>;
+  getValidationConfig: () => DataConsistencyConfig;
+  updateValidationConfig: (config: Partial<DataConsistencyConfig>) => void;
 }
 
 export interface SyncStatus {
@@ -250,7 +260,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => { isMounted = false; };
   }, [dataStrategy.mode]);
 
-  // Initialize DataStrategyManager
+  // Initialize DataStrategyManager and related services
   useEffect(() => {
     if (rxDBServiceModule && isProdDepsLoaded) {
       const manager = new DataStrategyManager(
@@ -260,8 +270,36 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       );
       setDataStrategyManager(manager);
       
+      // Initialize data consistency service with appropriate config
+      const consistencyConfig: DataConsistencyConfig = {
+        enableValidation: true,
+        enableReferentialIntegrity: true,
+        enableConsistencyChecks: true,
+        validationMode: dataStrategy.mode === 'demo' ? 'lenient' : 'strict',
+        autoFix: false,
+        logErrors: process.env.NODE_ENV === 'development'
+      };
+      globalDataConsistencyService.updateConfig(consistencyConfig);
+      
+      // Initialize unified CRUD service
+      globalUnifiedCRUDService.updateServices(manager, { useModularMockData }, rxDBServiceModule);
+      
+      // Initialize sync monitoring service
+      globalDataSyncMonitoringService.updateDataStrategyManager(manager);
+      
+      // Import and initialize DataContextIntegrationService
+      import('../services/DataContextIntegrationService').then(({ dataContextIntegrationService }) => {
+        // We'll initialize it after the context value is created
+        // This is handled in another useEffect below
+      });
+      
       return () => {
         manager.destroy();
+        globalDataSyncMonitoringService.destroy();
+        // Clean up DataContextIntegrationService
+        import('../services/DataContextIntegrationService').then(({ dataContextIntegrationService }) => {
+          dataContextIntegrationService.destroy();
+        });
       };
     }
   }, [dataStrategy, rxDBServiceModule, isProdDepsLoaded]);
@@ -452,6 +490,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       offlineCapabilities,
       disabledFeatures,
       dataStrategy,
+      dataStrategyManager,
       
       // Enhanced operations
       ...enhancedOperations,
@@ -467,6 +506,40 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       clearQueue: () => {
         backendAPI.clearQueue();
         dataStrategyManager?.clearSyncQueue();
+      },
+      
+      // Data validation and consistency functions
+      validateEntity: async (entityName: string, data: any, operation: 'create' | 'update' | 'delete') => {
+        return await globalDataConsistencyService.validateEntity(entityName, data, operation, {
+          dataContext: { [entityName]: activeHookResult[entityName as keyof typeof activeHookResult] || [] },
+          allData: activeHookResult
+        });
+      },
+      
+      runConsistencyCheck: async () => {
+        const dataContext: Record<string, any[]> = {};
+        
+        // Collect all entity data from the active hook result
+        const entityKeys = ['students', 'staff', 'financialYears', 'studentInvoices', 'examSessions', 
+                           'classStreams', 'subjects', 'departments', 'designations', 'studentCategories', 
+                           'dormitories', 'parentsGuardians', 'academicYears', 'schoolPeriods'];
+        
+        for (const key of entityKeys) {
+          const entityData = activeHookResult[key as keyof typeof activeHookResult];
+          if (Array.isArray(entityData)) {
+            dataContext[key] = entityData;
+          }
+        }
+        
+        return await globalDataConsistencyService.runConsistencyCheck(dataContext, currentDataMode as any);
+      },
+      
+      getValidationConfig: () => {
+        return globalDataConsistencyService.getConfig();
+      },
+      
+      updateValidationConfig: (config: Partial<DataConsistencyConfig>) => {
+        globalDataConsistencyService.updateConfig(config);
       }
     };
   }, [
@@ -477,12 +550,21 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     offlineCapabilities, 
     disabledFeatures, 
     dataStrategy,
+    dataStrategyManager,
     enhancedOperations,
     syncControls,
     getQueueStatus,
-    backendAPI,
-    dataStrategyManager
+    backendAPI
   ]);
+  
+  // Initialize DataContextIntegrationService with the context value
+  useEffect(() => {
+    if (contextValue && dataStrategyManager) {
+      import('../services/DataContextIntegrationService').then(({ dataContextIntegrationService }) => {
+        dataContextIntegrationService.initialize(contextValue);
+      });
+    }
+  }, [contextValue, dataStrategyManager]);
 
   // Loading states
   if (APP_MODE === 'production' && !isProdDepsLoaded) {
@@ -593,4 +675,10 @@ export const useAppData = (): EnhancedAppDataContextType => {
     throw new Error('useAppData must be used within an AppDataProvider');
   }
   return context;
+};
+
+// Internal hook for use during provider initialization - doesn't throw error
+export const useAppDataInternal = (): EnhancedAppDataContextType | null => {
+  const context = useContext(AppDataContext);
+  return context || null;
 };

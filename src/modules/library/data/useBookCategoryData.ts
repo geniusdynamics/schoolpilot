@@ -53,3 +53,6 @@ export const useBookCategoryData = () => {
     remove
   };
 };
+
+// Mark this as a global provider for cross-module use
+export const isGlobalProvider = true;

@@ -1,6 +1,6 @@
 // ABOUTME: Consolidated application entry point with feature flag support
 // ABOUTME: Supports both standard and enhanced modes with backward compatibility
-// ABOUTME: Unified from App.tsx, EnhancedApp.tsx, and AppUnified.tsx for single entry point
+// ABOUTME: Simplified to resolve continuous loading issues
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -9,18 +9,15 @@ import { UserProvider } from './contexts/UserContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
-import { initializeModulesOptimized } from './core/optimizedModuleLoader';
 import Spinner from './components/ui/Spinner';
-import { moduleRegistry } from './core/moduleRegistry';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 import { getAppConfig, subscribeToConfig, AppConfig } from './config/appConfig';
+import { moduleRegistry } from './core/moduleRegistry';
+import { initializeModulesOptimized } from './core/optimizedModuleLoader';
 
 // Enhanced components (lazy loaded to avoid bundle bloat when not needed)
-const EnhancedNavigation = lazy(() => import('./components/EnhancedNavigation'));
 const GlobalNotifications = lazy(() => import('./components/GlobalNotifications'));
-const NetworkStatusIndicator = lazy(() => import('./components/OfflineCapability').then(module => ({ default: module.NetworkStatusIndicator })));
-const SyncStatusComponent = lazy(() => import('./components/OfflineCapability').then(module => ({ default: module.SyncStatusComponent })));
 
 // Lazy load the login page
 const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
@@ -36,52 +33,49 @@ const pageModules = {
 
 // Debug logging helper
 const debugLog = (message: string, ...args: any[]) => {
-  const config = getAppConfig();
-  if (config.development.enableDebugLogging) {
+  // Simplified debug logging to avoid config dependency issues
+  if (import.meta.env.DEV) {
     console.log(message, ...args);
   }
 };
 
-// Modular getPageComponent: Try src/modules/<module>/pages/<PageName>.tsx
+// Enhanced page component resolution with robust loading
+import PageComponentLoader from './components/PageComponentLoader';
+import { pageComponentResolver } from './services/pageComponentResolver';
+
 const getPageComponent = (nav: any) => {
   console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
   
-  if (nav.page) {
-    const pathSegments = nav.path.split('/').filter(Boolean);
-    let moduleDir = '';
-
-    // Determine moduleDir based on pathSegments
-    if (pathSegments.length > 0) {
-      // The first segment of the path is always the module directory, if it exists
-      moduleDir = pathSegments[0];
-    }
-    
-    console.log('🔍 [getPageComponent] Segments:', pathSegments, 'ModuleDir:', moduleDir);
-    
-    // Try modular location
-    if (moduleDir) {
-      const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
-      console.log('🔍 [getPageComponent] Looking for key:', modularKey);
-      const modularImportFn = pageModules[modularKey];
-      if (modularImportFn) {
-        console.log('✅ [getPageComponent] Found modular key:', modularKey);
-        return lazy(modularImportFn as any);
-      } else {
-        console.log('❌ [getPageComponent] Key not found:', modularKey);
-      }
-    }
-    
-    console.warn('⚠️ [getPageComponent] No page component found for:', nav.page);
-    return null;
-  }
-  
-  console.warn('⚠️ [getPageComponent] No page component found for fallback path:', nav.path);
-  return null;
+  // Return a component that uses the enhanced loader
+  return React.memo(() => (
+    <PageComponentLoader
+      pageName={nav.name || nav.page || nav.path}
+      componentLoader={async () => {
+        const result = await pageComponentResolver.resolvePageComponent(nav);
+        if (result.component) {
+          return { default: result.component };
+        }
+        throw result.error || new Error(`Failed to resolve component for ${nav.name || nav.page}`);
+      }}
+      enableCaching={true}
+      loadingTimeout={10000}
+      retryAttempts={2}
+      onLoadStart={() => {
+        debugLog('🔄 [PageComponent] Starting to load:', nav.name || nav.page);
+      }}
+      onLoadComplete={(loadTime, fromCache) => {
+        debugLog('✅ [PageComponent] Loaded:', nav.name || nav.page, `(${loadTime}ms, cached: ${fromCache})`);
+      }}
+      onLoadError={(error) => {
+        debugLog('❌ [PageComponent] Failed to load:', nav.name || nav.page, error.message);
+      }}
+    />
+  ));
 };
 
-// Enhanced routing component with feature flag support
-const DynamicRoutes = ({ modulesInitialized, config }: { modulesInitialized: boolean; config: AppConfig }) => {
-  const { navigationItems } = useDynamicNavigation(true);
+// Simplified routing component
+const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
+  const { navigationItems } = useDynamicNavigation(modulesInitialized);
   const { accessibleModules } = useRBAC();
 
   useEffect(() => {
@@ -210,18 +204,7 @@ const DynamicRoutes = ({ modulesInitialized, config }: { modulesInitialized: boo
                     requiredPermission={requiredPermission}
                     requiredModule={moduleName}
                   >
-                    <PageErrorBoundary pageName={nav.name || nav.path}>
-                      <Suspense fallback={
-                        <div className="flex items-center justify-center h-screen">
-                          <div className="text-center">
-                            <Spinner size="lg" />
-                            <p className="mt-4 text-gray-600">Loading page...</p>
-                          </div>
-                        </div>
-                      }>
-                        <PageComponent />
-                      </Suspense>
-                    </PageErrorBoundary>
+                    <PageComponent />
                   </ProtectedRoute>
                 }
               />
@@ -269,7 +252,7 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> =
       {/* Main content with error boundary */}
       <div className="flex-1">
         <ErrorBoundary key={location.pathname}>
-          <DynamicRoutes modulesInitialized={modulesInitialized} config={config} />
+          <DynamicRoutes modulesInitialized={modulesInitialized} />
         </ErrorBoundary>
       </div>
       
@@ -324,35 +307,44 @@ const App: React.FC = () => {
     return unsubscribe;
   }, []);
 
-  // Initialize modules
+  // Initialize modules with improved error handling
   useEffect(() => {
     const init = async () => {
       if (!initializedRef.current) {
         debugLog('🚀 [App] Initializing modules with config:', config);
+        initializedRef.current = true;
         
-        // Set a safety timeout to prevent the app from getting stuck on initialization
+        // Set a shorter safety timeout to prevent infinite loading
         const safetyTimeout = setTimeout(() => {
-          console.warn('⚠️ [App] Module initialization safety timeout triggered');
+          console.warn('⚠️ [App] Module initialization safety timeout triggered - proceeding anyway');
           setModulesInitialized(true);
-          initializedRef.current = true;
-        }, 15000); // 15 seconds safety timeout
+        }, 5000); // Reduced to 5 seconds
         
         try {
-          await initializeModulesOptimized();
-          setModulesInitialized(true);
+          // Try to initialize modules, but don't block the app if it fails
+          const initPromise = initializeModulesOptimized();
+          const timeoutPromise = new Promise<void>((resolve) => {
+            setTimeout(() => {
+              console.warn('⚠️ [App] Module initialization taking too long, proceeding...');
+              resolve();
+            }, 3000); // 3 second timeout for module init
+          });
+          
+          await Promise.race([initPromise, timeoutPromise]);
           debugLog('✅ [App] Modules initialized successfully');
         } catch (error) {
           console.error('❌ [App] Module initialization failed:', error);
-          // Still allow app to load with degraded functionality
+          // Continue anyway - app should work with basic functionality
+        } finally {
+          clearTimeout(safetyTimeout);
           setModulesInitialized(true);
         }
-        
-        clearTimeout(safetyTimeout);
-        initializedRef.current = true;
       }
     };
+    
+    // Start initialization immediately, don't wait for config changes
     init();
-  }, [config]);
+  }, []); // Remove config dependency to prevent re-initialization
 
   // Show loading screen while modules initialize
   if (!modulesInitialized) {

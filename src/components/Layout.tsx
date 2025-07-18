@@ -9,6 +9,8 @@ import Sidebar from './Sidebar';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
 import SettingsPopup from './SettingsPopup';
+import BreadcrumbNavigation from './BreadcrumbNavigation';
+import NavigationErrorBoundary from './NavigationErrorBoundary';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { getMainModules, isLoading } = useDynamicNavigation(true);
@@ -73,7 +75,27 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
         <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-hidden">
           <div className="h-full overflow-y-auto">
-            {children}
+            {/* Breadcrumb Navigation */}
+            <div className="mb-4">
+              <BreadcrumbNavigation 
+                className="mb-2"
+                onNavigationError={(path, error) => {
+                  console.error(`Navigation error for ${path}:`, error);
+                }}
+              />
+            </div>
+            
+            {/* Main content wrapped with navigation error boundary */}
+            <NavigationErrorBoundary
+              onError={(error, errorInfo, currentRoute) => {
+                console.error(`Navigation boundary caught error on ${currentRoute}:`, error);
+              }}
+              maxRetries={2}
+              enableFallbackRoutes={true}
+              fallbackRoutes={['/dashboard', '/reports', '/administration']}
+            >
+              {children}
+            </NavigationErrorBoundary>
           </div>
         </main>
         <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />

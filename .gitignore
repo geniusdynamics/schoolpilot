@@ -28,3 +28,6 @@ docs/AkademicoNotes/
 
 # CodeLLM
 .codellm/
+
+# Kiro AI Assistant
+.kiro/

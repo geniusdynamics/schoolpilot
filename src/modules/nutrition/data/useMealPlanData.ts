@@ -1,40 +1,27 @@
-// ABOUTME: Self-contained hook for mealplan data management
-// ABOUTME: Provides CRUD operations for mealplan without depending on AppDataContext
+// ABOUTME: Standardized hook for mealplan data management
+// ABOUTME: Provides CRUD operations for mealplans with AppDataContext integration
+// ABOUTME: Uses the data hook factory for consistent interface and behavior
 
-import { useState, useEffect } from 'react';
 import { initialMockMealPlans } from './mockData';
 import { MealPlan } from '../../../core/types';
+import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
+import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
 
+// Configuration for the data hook
+export const useMealPlanDataConfig: DataHookConfig<MealPlan> = {
+  entityName: 'mealPlans',
+  initialData: initialMockMealPlans,
+  entityModule: 'nutrition',
+  requiresBackend: false,
+  allowOffline: true,
+  syncPriority: 'medium'
+};
+
+// Create the standardized data hook using the factory
 export const useMealPlanData = () => {
-  const [data, setData] = useState<MealPlan[]>(initialMockMealPlans);
-
-  const create = async (newItem: Partial<MealPlan>) => {
-    const newDataItem: MealPlan = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as MealPlan;
-    setData((prev: MealPlan[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
-
-  const update = async (id: number, updatedData: Partial<MealPlan>) => {
-    setData((prev: MealPlan[]) => prev.map((item: MealPlan) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
-
-  const remove = async (id: number) => {
-    setData((prev: MealPlan[]) => prev.filter((item: MealPlan) => item.id !== id));
-  };
-
-  return {
-    data,
-    create,
-    update,
-    remove
-  };
+  // Register the hook with the global context
+  useDataHookRegistration(useMealPlanDataConfig);
+  
+  // Return the hook implementation
+  return createDataHook<MealPlan>(useMealPlanDataConfig)();
 };

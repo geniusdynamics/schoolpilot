@@ -1,40 +1,27 @@
-// ABOUTME: Self-contained hook for academic year data management
-// ABOUTME: Provides CRUD operations for academic years without depending on AppDataContext
+// ABOUTME: Standardized hook for academic year data management
+// ABOUTME: Provides CRUD operations for academic years with AppDataContext integration
+// ABOUTME: Uses the data hook factory for consistent interface and behavior
 
-import { useState, useEffect } from 'react';
 import { initialMockAcademicYears } from '../../administration/data/mockData';
 import { AcademicYear } from '../../../core/types';
+import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
+import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
 
+// Configuration for the data hook
+export const useAcademicYearDataConfig: DataHookConfig<AcademicYear> = {
+  entityName: 'academicYears',
+  initialData: initialMockAcademicYears,
+  entityModule: 'academics',
+  requiresBackend: false,
+  allowOffline: true,
+  syncPriority: 'normal'
+};
+
+// Create the standardized data hook using the factory
 export const useAcademicYearData = () => {
-  const [data, setData] = useState<AcademicYear[]>(initialMockAcademicYears);
+  // Register the hook with the global context
+  useDataHookRegistration(useAcademicYearDataConfig);
 
-  const create = async (newItem: Partial<AcademicYear>) => {
-    const newDataItem: AcademicYear = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as AcademicYear;
-    setData((prev: AcademicYear[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
-
-  const update = async (id: number, updatedData: Partial<AcademicYear>) => {
-    setData((prev: AcademicYear[]) => prev.map((item: AcademicYear) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
-
-  const remove = async (id: number) => {
-    setData((prev: AcademicYear[]) => prev.filter((item: AcademicYear) => item.id !== id));
-  };
-
-  return {
-    data,
-    create,
-    update,
-    remove
-  };
+  // Return the hook implementation
+  return createDataHook<AcademicYear>(useAcademicYearDataConfig)();
 };

@@ -135,11 +135,34 @@ class ModuleConfigService {
   }
 
   getEnabledModules(): string[] {
-    const enabled = Array.from(this.configs.entries())
+    // Always include core modules
+    const coreModules = ['core', 'dashboard', 'settings', 'reports'];
+    
+    // Get explicitly configured modules that are enabled
+    const configuredEnabled = Array.from(this.configs.entries())
       .filter(([_, config]) => config.enabled)
       .map(([id, _]) => id);
-    console.log('[ModuleConfigService] DEBUG: getEnabledModules() returning:', enabled);
-    return enabled;
+    
+    // Use a default list of available modules since registry might not be populated yet
+    const allAvailableModules = [
+      'dashboard', 'administration', 'academics', 'finance', 
+      'hr', 'inventory', 'library', 'nutrition', 'reports', 'settings'
+    ];
+    
+    // Auto-enable modules that don't have explicit configuration (default behavior)
+    const autoEnabled = allAvailableModules.filter(moduleId => 
+      !this.configs.has(moduleId) && !coreModules.includes(moduleId)
+    );
+    
+    // Combine all enabled modules and remove duplicates
+    const allEnabled = [...new Set([...coreModules, ...configuredEnabled, ...autoEnabled])];
+    
+    console.log('[ModuleConfigService] DEBUG: getEnabledModules() returning:', allEnabled);
+    console.log('[ModuleConfigService] DEBUG: Core modules:', coreModules);
+    console.log('[ModuleConfigService] DEBUG: Configured enabled:', configuredEnabled);
+    console.log('[ModuleConfigService] DEBUG: Auto-enabled:', autoEnabled);
+    
+    return allEnabled;
   }
 
   getModuleConfig(moduleId: string): ModuleConfig | null {

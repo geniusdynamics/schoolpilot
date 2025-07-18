@@ -1,14 +1,13 @@
-// ABOUTME: Main types export file that consolidates all types from core and modules.
-// ABOUTME: This file re-exports all types to provide a centralized import point for the application.
+// ABOUTME: Main types export file that consolidates global and cross-module types.
+// ABOUTME: Only exports types used by multiple modules, following the type export strategy.
 
-// Core types
+// Core types - these are global types used by 3+ modules
 export * from './core/types';
 
-// Module-specific types - academics types imported directly from module to avoid circular dependencies
-// Administration types are imported directly from module to avoid circular dependencies
+// Module types - exported for cross-module usage
+export * from './modules/finance/data/types';
 export * from './modules/administration/data/types';
 export * from './modules/academics/data/types';
-export * from './modules/finance/data/types';
 export * from './modules/hr/data/types';
 export * from './modules/inventory/data/types';
 export * from './modules/library/data/types';

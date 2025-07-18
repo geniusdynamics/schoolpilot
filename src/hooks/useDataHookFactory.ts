@@ -1,0 +1,403 @@
+// ABOUTME: Factory for creating standardized data hooks that integrate with AppDataContext
+// ABOUTME: Provides consistent CRUD operations and data synchronization capabilities
+// ABOUTME: Ensures all module data hooks follow the same pattern and interface
+
+import { useState, useEffect, useCallback } from 'react';
+import { useAppDataInternal } from '../contexts/AppDataContext';
+import { DataOperation } from '../services/DataStrategyManager';
+import { globalDataConsistencyService } from '../services/DataConsistencyService';
+import { ValidationResult } from '../utils/dataValidation';
+
+// Generic type for entity data
+export interface EntityData {
+  id: number | string;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
+}
+
+// Standard interface for all data hooks
+export interface DataHookResult<T extends EntityData> {
+  // Data
+  data: T[];
+  loading: boolean;
+  error: Error | null;
+  
+  // CRUD operations
+  create: (item: Partial<T>) => Promise<T>;
+  update: (id: T['id'], updates: Partial<T>) => Promise<T>;
+  remove: (id: T['id']) => Promise<boolean>;
+  
+  // Batch operations
+  createMany: (items: Partial<T>[]) => Promise<T[]>;
+  updateMany: (updates: Array<{ id: T['id'], data: Partial<T> }>) => Promise<T[]>;
+  removeMany: (ids: Array<T['id']>) => Promise<boolean>;
+  
+  // Sync operations
+  refresh: () => Promise<void>;
+  syncStatus: {
+    lastSync: Date | null;
+    isPending: boolean;
+    hasErrors: boolean;
+  };
+}
+
+// Configuration for the data hook factory
+export interface DataHookConfig<T extends EntityData> {
+  entityName: string;
+  initialData: T[];
+  entityModule: string;
+  requiresBackend?: boolean;
+  allowOffline?: boolean;
+  syncPriority?: 'low' | 'normal' | 'high' | 'critical';
+}
+
+/**
+ * Factory function to create standardized data hooks
+ * @param config Configuration for the data hook
+ * @returns A React hook that provides standardized data operations
+ */
+export function createDataHook<T extends EntityData>(
+  config: DataHookConfig<T>
+): () => DataHookResult<T> {
+  const {
+    entityName,
+    initialData,
+    entityModule,
+    requiresBackend = false,
+    allowOffline = true,
+    syncPriority = 'normal'
+  } = config;
+
+  // The actual hook function
+  return function useDataHook(): DataHookResult<T> {
+    // Local state for the hook
+    const [data, setData] = useState<T[]>(initialData);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<Error | null>(null);
+    const [lastSync, setLastSync] = useState<Date | null>(null);
+    const [isPendingSync, setIsPendingSync] = useState<boolean>(false);
+    const [hasSyncErrors, setHasSyncErrors] = useState<boolean>(false);
+    
+    // Get the global app data context - handle initialization phase
+    const appData = useAppDataInternal();
+    
+    // Determine if we should use the global context or local state
+    // During initialization, appData might be null/undefined, so default to local state
+    const useGlobalContext = appData?.dataSource !== 'mock' && appData?.dataSource !== undefined;
+    
+    // Initialize data from global context if available
+    useEffect(() => {
+      const initializeData = async () => {
+        try {
+          setLoading(true);
+          
+          // If we're using the global context and it has this entity data
+          if (useGlobalContext && appData[entityName as keyof typeof appData]) {
+            const globalData = appData[entityName as keyof typeof appData] as T[];
+            setData(globalData);
+          }
+          
+          setLoading(false);
+        } catch (err) {
+          setError(err instanceof Error ? err : new Error(String(err)));
+          setLoading(false);
+        }
+      };
+      
+      initializeData();
+    }, [useGlobalContext, appData, entityName]);
+    
+    // Create operation
+    const create = useCallback(async (item: Partial<T>): Promise<T> => {
+      try {
+        // Create timestamp fields
+        const now = new Date().toISOString();
+        const newItem = {
+          ...item,
+          id: item.id || Date.now(),
+          created_at: now,
+          updated_at: now
+        } as T;
+
+        // Validate the new item before creation
+        const validation = await globalDataConsistencyService.validateEntity(
+          entityName,
+          newItem,
+          'create',
+          {
+            dataContext: { [entityName]: data },
+            allData: appData || {} // Provide fallback during initialization
+          }
+        );
+
+        if (!validation.isValid) {
+          const errorMessage = validation.errors.map(e => e.message).join('; ');
+          throw new Error(`Validation failed: ${errorMessage}`);
+        }
+        
+        // If using global context and it has a specific create method for this entity
+        if (useGlobalContext && appData[`add${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`]) {
+          const createFn = appData[`add${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`] as Function;
+          const result = await createFn(newItem);
+          return result;
+        }
+        
+        // If using global context with DataStrategyManager
+        if (useGlobalContext && appData.dataStrategy) {
+          const operation: DataOperation = {
+            type: 'write',
+            entity: entityName,
+            priority: syncPriority,
+            requiresBackend,
+            allowOffline
+          };
+          
+          const result = await appData.dataStrategyManager?.executeOperation(operation, newItem);
+          return result as T;
+        }
+        
+        // Fallback to local state management
+        setData(prev => [...prev, newItem]);
+        return newItem;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        throw err;
+      }
+    }, [useGlobalContext, appData, entityName, requiresBackend, allowOffline, syncPriority]);
+    
+    // Update operation
+    const update = useCallback(async (id: T['id'], updates: Partial<T>): Promise<T> => {
+      try {
+        // Find existing item for validation
+        const existingItem = data.find(item => item.id === id);
+        if (!existingItem) {
+          throw new Error(`Entity with ID ${id} not found`);
+        }
+
+        // Create updated item for validation
+        const updatedItem = { ...existingItem, ...updates, updated_at: new Date().toISOString() } as T;
+
+        // Validate the updated item
+        const validation = await globalDataConsistencyService.validateEntity(
+          entityName,
+          updatedItem,
+          'update',
+          {
+            dataContext: { [entityName]: data },
+            allData: appData || {} // Provide fallback during initialization
+          }
+        );
+
+        if (!validation.isValid) {
+          const errorMessage = validation.errors.map(e => e.message).join('; ');
+          throw new Error(`Validation failed: ${errorMessage}`);
+        }
+
+        // If using global context and it has a specific update method for this entity
+        if (useGlobalContext && appData[`update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`]) {
+          const updateFn = appData[`update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`] as Function;
+          const result = await updateFn(id, updates);
+          return result;
+        }
+        
+        // If using global context with DataStrategyManager
+        if (useGlobalContext && appData.dataStrategy) {
+          const operation: DataOperation = {
+            type: 'write',
+            entity: entityName,
+            priority: syncPriority,
+            requiresBackend,
+            allowOffline
+          };
+          
+          const result = await appData.dataStrategyManager?.executeOperation(operation, { id, ...updates });
+          return result as T;
+        }
+        
+        // Fallback to local state management
+        const now = new Date().toISOString();
+        const updateData = { ...updates, updated_at: now } as Partial<T>;
+        
+        setData(prev => 
+          prev.map(item => 
+            item.id === id ? { ...item, ...updateData } as T : item
+          )
+        );
+        
+        return data.find(item => item.id === id) as T;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        throw err;
+      }
+    }, [useGlobalContext, appData, data, entityName, requiresBackend, allowOffline, syncPriority]);
+    
+    // Remove operation
+    const remove = useCallback(async (id: T['id']): Promise<boolean> => {
+      try {
+        // Find existing item for validation
+        const existingItem = data.find(item => item.id === id);
+        if (!existingItem) {
+          throw new Error(`Entity with ID ${id} not found`);
+        }
+
+        // Validate the delete operation
+        const validation = await globalDataConsistencyService.validateEntity(
+          entityName,
+          existingItem,
+          'delete',
+          {
+            dataContext: { [entityName]: data },
+            allData: appData
+          }
+        );
+
+        if (!validation.isValid) {
+          const errorMessage = validation.errors.map(e => e.message).join('; ');
+          throw new Error(`Validation failed: ${errorMessage}`);
+        }
+
+        // If using global context and it has a specific delete method for this entity
+        if (useGlobalContext && appData[`delete${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`]) {
+          const deleteFn = appData[`delete${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`] as Function;
+          const result = await deleteFn(id);
+          return result;
+        }
+        
+        // If using global context with DataStrategyManager
+        if (useGlobalContext && appData.dataStrategy) {
+          const operation: DataOperation = {
+            type: 'delete',
+            entity: entityName,
+            priority: syncPriority,
+            requiresBackend,
+            allowOffline
+          };
+          
+          const result = await appData.dataStrategyManager?.executeOperation(operation, { id });
+          return result as boolean;
+        }
+        
+        // Fallback to local state management
+        setData(prev => prev.filter(item => item.id !== id));
+        return true;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        throw err;
+      }
+    }, [useGlobalContext, appData, entityName, requiresBackend, allowOffline, syncPriority]);
+    
+    // Batch create operation
+    const createMany = useCallback(async (items: Partial<T>[]): Promise<T[]> => {
+      try {
+        const results: T[] = [];
+        
+        for (const item of items) {
+          const result = await create(item);
+          results.push(result);
+        }
+        
+        return results;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        throw err;
+      }
+    }, [create]);
+    
+    // Batch update operation
+    const updateMany = useCallback(async (updates: Array<{ id: T['id'], data: Partial<T> }>): Promise<T[]> => {
+      try {
+        const results: T[] = [];
+        
+        for (const { id, data: updateData } of updates) {
+          const result = await update(id, updateData);
+          results.push(result);
+        }
+        
+        return results;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        throw err;
+      }
+    }, [update]);
+    
+    // Batch remove operation
+    const removeMany = useCallback(async (ids: Array<T['id']>): Promise<boolean> => {
+      try {
+        let success = true;
+        
+        for (const id of ids) {
+          const result = await remove(id);
+          if (!result) success = false;
+        }
+        
+        return success;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        throw err;
+      }
+    }, [remove]);
+    
+    // Refresh data
+    const refresh = useCallback(async (): Promise<void> => {
+      try {
+        setLoading(true);
+        
+        // If using global context and it has a forceSync method
+        if (useGlobalContext && appData.forceSync) {
+          await appData.forceSync();
+          
+          // Update local state from global context if available
+          if (appData[entityName as keyof typeof appData]) {
+            const globalData = appData[entityName as keyof typeof appData] as T[];
+            setData(globalData);
+          }
+        }
+        
+        setLastSync(new Date());
+        setLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+        setHasSyncErrors(true);
+        setLoading(false);
+      }
+    }, [useGlobalContext, appData, entityName]);
+    
+    // Update sync status based on global context
+    useEffect(() => {
+      if (useGlobalContext && appData?.syncStatus) {
+        setIsPendingSync(appData.syncStatus.state === 'syncing');
+        setHasSyncErrors(appData.syncStatus.state === 'error');
+        
+        if (appData.syncStatus.lastSyncTime) {
+          setLastSync(appData.syncStatus.lastSyncTime);
+        }
+      }
+    }, [useGlobalContext, appData?.syncStatus]);
+    
+    return {
+      // Data
+      data,
+      loading,
+      error,
+      
+      // CRUD operations
+      create,
+      update,
+      remove,
+      
+      // Batch operations
+      createMany,
+      updateMany,
+      removeMany,
+      
+      // Sync operations
+      refresh,
+      syncStatus: {
+        lastSync,
+        isPending: isPendingSync,
+        hasErrors: hasSyncErrors
+      }
+    };
+  };
+}

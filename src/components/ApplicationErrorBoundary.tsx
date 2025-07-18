@@ -1,42 +1,35 @@
-// ABOUTME: Application-level error boundary for critical application errors
-// ABOUTME: Provides comprehensive error handling with recovery options and detailed logging
+// ABOUTME: Application-level error boundary for critical error handling
+// ABOUTME: Provides recovery mechanisms and prevents complete application crashes
 
-import React from 'react';
-import { getAppConfig } from '../config/appConfig';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 
-interface ApplicationErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-  errorInfo: React.ErrorInfo | null;
-  errorId: string | null;
-  retryCount: number;
-}
-
-interface ApplicationErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback?: React.ComponentType<{ error: Error; retry: () => void; errorId: string }>;
-  onError?: (error: Error, errorInfo: React.ErrorInfo, errorId: string) => void;
+interface Props {
+  children: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo, errorId: string) => void;
   maxRetries?: number;
 }
 
-class ApplicationErrorBoundary extends React.Component<
-  ApplicationErrorBoundaryProps,
-  ApplicationErrorBoundaryState
-> {
-  private retryTimeoutId: NodeJS.Timeout | null = null;
+interface State {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+  retryCount: number;
+  errorId: string;
+}
 
-  constructor(props: ApplicationErrorBoundaryProps) {
+class ApplicationErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
     super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: null,
-      retryCount: 0
+      retryCount: 0,
+      errorId: ''
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<ApplicationErrorBoundaryState> {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     const errorId = `app-error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     return {
       hasError: true,
@@ -45,222 +38,101 @@ class ApplicationErrorBoundary extends React.Component<
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    const errorId = this.state.errorId || `app-error-${Date.now()}`;
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    const { onError } = this.props;
+    const { errorId } = this.state;
     
-    this.setState({
-      error,
-      errorInfo,
-      errorId
-    });
-
-    // Log error details
+    this.setState({ errorInfo });
+    
     console.error('🚨 [ApplicationErrorBoundary] Critical application error:', {
       errorId,
       error: error.message,
       stack: error.stack,
-      componentStack: errorInfo.componentStack,
-      retryCount: this.state.retryCount
+      componentStack: errorInfo.componentStack
     });
 
-    // Call custom error handler if provided
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo, errorId);
-    }
-
-    // Log to external service in production
-    if (process.env.NODE_ENV === 'production') {
-      this.logErrorToService(error, errorInfo, errorId);
+    if (onError) {
+      onError(error, errorInfo, errorId);
     }
   }
 
-  componentWillUnmount() {
-    if (this.retryTimeoutId) {
-      clearTimeout(this.retryTimeoutId);
-    }
-  }
+  handleRetry = () => {
+    const { maxRetries = 3 } = this.props;
+    const { retryCount } = this.state;
 
-  private logErrorToService = (error: Error, errorInfo: React.ErrorInfo, errorId: string) => {
-    // TODO: Implement external error logging service
-    // This could be Sentry, LogRocket, or custom logging endpoint
-    try {
-      // Example implementation:
-      // errorLoggingService.log({
-      //   errorId,
-      //   message: error.message,
-      //   stack: error.stack,
-      //   componentStack: errorInfo.componentStack,
-      //   userAgent: navigator.userAgent,
-      //   url: window.location.href,
-      //   timestamp: new Date().toISOString(),
-      //   retryCount: this.state.retryCount
-      // });
-    } catch (loggingError) {
-      console.error('Failed to log error to external service:', loggingError);
+    if (retryCount < maxRetries) {
+      console.log(`🔄 [ApplicationErrorBoundary] Retrying... (${retryCount + 1}/${maxRetries})`);
+      this.setState({
+        hasError: false,
+        error: null,
+        errorInfo: null,
+        retryCount: retryCount + 1
+      });
     }
   };
 
-  private handleRetry = () => {
-    const maxRetries = this.props.maxRetries || 3;
-    
-    if (this.state.retryCount >= maxRetries) {
-      console.warn('Maximum retry attempts reached');
-      return;
-    }
-
-    console.log(`🔄 [ApplicationErrorBoundary] Retrying... (${this.state.retryCount + 1}/${maxRetries})`);
-    
-    this.setState(prevState => ({
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      errorId: null,
-      retryCount: prevState.retryCount + 1
-    }));
-  };
-
-  private handleReload = () => {
+  handleReload = () => {
     window.location.reload();
   };
 
-  private handleReportError = () => {
-    const { error, errorInfo, errorId } = this.state;
-    const config = getAppConfig();
-    
-    const errorReport = {
-      errorId,
-      message: error?.message,
-      stack: error?.stack,
-      componentStack: errorInfo?.componentStack,
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      timestamp: new Date().toISOString(),
-      appConfig: {
-        mode: config.mode,
-        useEnhancedFeatures: config.useEnhancedFeatures,
-        enabledFeatures: Object.entries(config.features)
-          .filter(([, enabled]) => enabled)
-          .map(([name]) => name)
-      }
-    };
-
-    // Copy error report to clipboard
-    navigator.clipboard.writeText(JSON.stringify(errorReport, null, 2))
-      .then(() => alert('Error report copied to clipboard'))
-      .catch(() => {
-        // Fallback: show error report in a new window
-        const reportWindow = window.open('', '_blank');
-        if (reportWindow) {
-          reportWindow.document.write(`
-            <html>
-              <head><title>Error Report</title></head>
-              <body>
-                <h1>Application Error Report</h1>
-                <pre>${JSON.stringify(errorReport, null, 2)}</pre>
-              </body>
-            </html>
-          `);
-        }
-      });
-  };
-
   render() {
-    if (this.state.hasError) {
-      const { error, errorId, retryCount } = this.state;
-      const maxRetries = this.props.maxRetries || 3;
-      const config = getAppConfig();
+    const { hasError, error, retryCount, errorId } = this.state;
+    const { maxRetries = 3 } = this.props;
 
-      // Use custom fallback if provided
-      if (this.props.fallback) {
-        const FallbackComponent = this.props.fallback;
-        return (
-          <FallbackComponent
-            error={error!}
-            retry={this.handleRetry}
-            errorId={errorId!}
-          />
-        );
-      }
-
-      // Default fallback UI
+    if (hasError && error) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
-            <div className="text-center mb-6">
-              <div className="text-red-500 text-6xl mb-4">⚠️</div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Application Error
-              </h1>
-              <p className="text-gray-600 mb-4">
-                A critical error occurred that prevented the application from working properly.
-              </p>
-              {errorId && (
-                <p className="text-sm text-gray-500 mb-4">
-                  Error ID: <code className="bg-gray-100 px-2 py-1 rounded">{errorId}</code>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0">
+                <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Application Error
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Something went wrong with the application
                 </p>
-              )}
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+            <div className="mb-4">
+              <p className="text-sm text-gray-700 mb-2">
+                <strong>Error:</strong> {error.message}
+              </p>
+              <p className="text-xs text-gray-500">
+                Error ID: {errorId}
+              </p>
+            </div>
+
+            <div className="flex space-x-3">
               {retryCount < maxRetries && (
                 <button
                   onClick={this.handleRetry}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  Try Again ({maxRetries - retryCount} attempts left)
+                  Try Again ({maxRetries - retryCount} left)
                 </button>
               )}
-              
               <button
                 onClick={this.handleReload}
-                className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
                 Reload Page
               </button>
-              
-              <button
-                onClick={this.handleReportError}
-                className="bg-orange-600 text-white px-6 py-2 rounded-md hover:bg-orange-700 transition-colors"
-              >
-                Report Error
-              </button>
             </div>
 
-            {config.development.enableDebugLogging && error && (
-              <details className="mt-6 text-left">
-                <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
-                  Error Details (Development Mode)
-                </summary>
-                <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                  <div className="mb-3">
-                    <h4 className="font-medium text-red-800">Error Message:</h4>
-                    <p className="text-red-700 text-sm">{error.message}</p>
-                  </div>
-                  
-                  {error.stack && (
-                    <div className="mb-3">
-                      <h4 className="font-medium text-red-800">Stack Trace:</h4>
-                      <pre className="text-xs text-red-600 bg-red-100 p-2 rounded overflow-auto max-h-40">
-                        {error.stack}
-                      </pre>
-                    </div>
-                  )}
-                  
-                  {this.state.errorInfo?.componentStack && (
-                    <div>
-                      <h4 className="font-medium text-red-800">Component Stack:</h4>
-                      <pre className="text-xs text-red-600 bg-red-100 p-2 rounded overflow-auto max-h-40">
-                        {this.state.errorInfo.componentStack}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </details>
-            )}
-
-            <div className="mt-6 text-center text-sm text-gray-500">
-              <p>If this problem persists, please contact support with the error ID above.</p>
-            </div>
+            <details className="mt-4">
+              <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800">
+                Technical Details
+              </summary>
+              <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-700 max-h-32 overflow-y-auto">
+                {error.stack}
+              </div>
+            </details>
           </div>
         </div>
       );
