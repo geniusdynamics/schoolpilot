@@ -65,19 +65,19 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
       // Translate the navigation item name if it's a translation key
       let label = navItem?.name || formatSegmentLabel(segment);
       if (navItem?.name && navItem.name.includes(':')) {
-        // This is a translation key like "navigation:administration.title"
-        const [namespace, key] = navItem.name.split(':');
-        if (namespace === 'navigation' && key) {
-          try {
-            const translated = t(`navigation:${key}`, { defaultValue: key.split('.').pop() || segment });
-            // Make sure we got a string, not an object
-            label = typeof translated === 'string' ? translated : key.split('.').pop() || segment;
-          } catch (error) {
-            console.warn('Translation error for key:', `navigation:${key}`, error);
-            label = key.split('.').pop() || segment;
+        // This is a translation key like "navigation:settings.features"
+        try {
+          const translated = t(navItem.name, { defaultValue: formatSegmentLabel(segment) });
+          // Make sure we got a string, not an object
+          if (typeof translated === 'string') {
+            label = translated;
+          } else {
+            console.warn('Translation returned non-string for key:', navItem.name, translated);
+            label = formatSegmentLabel(segment);
           }
-        } else {
-          label = t(navItem.name, navItem.name.split(':').pop() || segment);
+        } catch (error) {
+          console.warn('Translation error for key:', navItem.name, error);
+          label = formatSegmentLabel(segment);
         }
       }
       
