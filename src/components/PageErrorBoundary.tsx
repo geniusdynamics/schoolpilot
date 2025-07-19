@@ -59,47 +59,83 @@ class PageErrorBoundary extends Component<Props, State> {
     window.location.hash = '#/dashboard';
   };
 
+  handleRefresh = () => {
+    window.location.reload();
+  };
+
   render() {
     const { hasError, error } = this.state;
     const { pageName } = this.props;
 
     if (hasError && error) {
+      const errorId = `page-error-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-            <div className="text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Page Error</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Failed to load page: {pageName}
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0">
+                <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Page Error
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Failed to load page: {pageName}
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-gray-700 mb-2">
+                <strong>Error:</strong> {error.message}
               </p>
-              <p className="mt-2 text-xs text-red-600">
-                {error.message}
+              <p className="text-xs text-gray-500">
+                Error ID: {errorId}
               </p>
             </div>
 
-            <div className="mt-6 flex flex-col space-y-2">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <button
                 onClick={this.handleRetry}
-                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 Try Again
               </button>
               <button
+                onClick={this.handleRefresh}
+                className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Refresh Page
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
                 onClick={this.handleGoBack}
-                className="w-full bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700"
+                className="bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 Go Back
               </button>
               <button
                 onClick={this.handleGoHome}
-                className="w-full bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700"
+                className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 Go to Dashboard
               </button>
             </div>
+
+            <details className="mt-4">
+              <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800">
+                Technical Details
+              </summary>
+              <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-700 max-h-32 overflow-y-auto">
+                {error.stack}
+              </div>
+            </details>
           </div>
         </div>
       );

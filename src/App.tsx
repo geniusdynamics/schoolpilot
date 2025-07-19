@@ -46,20 +46,41 @@ import { pageComponentResolver } from './services/pageComponentResolver';
 const getPageComponent = (nav: any) => {
   console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
   
-  // Return a component that uses the enhanced loader
+  if (!nav.page) {
+    console.log('❌ [getPageComponent] No page property found for nav item');
+    return null;
+  }
+
+  const pathSegments = nav.path.split('/').filter(Boolean);
+  if (pathSegments.length === 0) {
+    console.log('❌ [getPageComponent] No path segments found');
+    return null;
+  }
+
+  const moduleDir = pathSegments[0];
+  const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
+  const modularImportFn = pageModules[modularKey];
+  
+  if (!modularImportFn) {
+    console.log('❌ [getPageComponent] No component found for key:', modularKey);
+    console.log('Available keys:', Object.keys(pageModules).filter(key => key.includes(moduleDir)));
+    return null;
+  }
+
+  console.log('✅ [getPageComponent] Found component for:', modularKey);
+  
+  // Return a component with comprehensive error handling using PageComponentLoader
   return React.memo(() => (
     <PageComponentLoader
       pageName={nav.name || nav.page || nav.path}
       componentLoader={async () => {
-        const result = await pageComponentResolver.resolvePageComponent(nav);
-        if (result.component) {
-          return { default: result.component };
-        }
-        throw result.error || new Error(`Failed to resolve component for ${nav.name || nav.page}`);
+        // Use the static import function we found
+        const module = await modularImportFn();
+        return module;
       }}
       enableCaching={true}
       loadingTimeout={10000}
-      retryAttempts={2}
+      retryAttempts={3}
       onLoadStart={() => {
         debugLog('🔄 [PageComponent] Starting to load:', nav.name || nav.page);
       }}
