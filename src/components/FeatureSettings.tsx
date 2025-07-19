@@ -141,6 +141,10 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
             {getStatusBadge(config.features.networkStatusIndicator, config.features.networkStatusIndicator ? 'Enabled' : 'Disabled')}
           </div>
           <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Module Health Indicator</span>
+            {getStatusBadge(config.features.moduleHealthIndicator, config.features.moduleHealthIndicator ? 'Enabled' : 'Disabled')}
+          </div>
+          <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Sync Status Component</span>
             {getStatusBadge(config.features.syncStatusComponent, config.features.syncStatusComponent ? 'Enabled' : 'Disabled')}
           </div>
@@ -313,6 +317,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     const descriptions: Record<string, string> = {
       enhancedDataLayer: 'Advanced data management with RxDB integration',
       networkStatusIndicator: 'Real-time network connectivity display',
+      moduleHealthIndicator: 'Module loading status and health monitoring',
       syncStatusComponent: 'Detailed sync progress and queue management',
       globalNotifications: 'System-wide notification management',
       performanceOptimizations: 'Bundle and runtime performance improvements',

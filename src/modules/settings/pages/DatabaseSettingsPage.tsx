@@ -7,6 +7,7 @@ import { useAppData } from '@/contexts/AppDataContext';
 import { CogIcon, ArchiveIcon, DeleteIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@/components/ui/icons'; // Changed TrashIcon to DeleteIcon
 import { APP_MODE } from '@/contexts/config';
 import { useTranslation } from 'react-i18next';
+import { getAppConfig } from '@/config/appConfig';
 
 const DatabaseSettingsPage: React.FC = () => {
   const { 
@@ -16,6 +17,9 @@ const DatabaseSettingsPage: React.FC = () => {
     triggerClearRxDB,
     initializationError 
   } = useAppData();
+  
+  const appConfig = getAppConfig();
+  const currentMode = appConfig.mode;
 
   const [isSeeding, setIsSeeding] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -57,13 +61,14 @@ const DatabaseSettingsPage: React.FC = () => {
     }
   };
 
-  if (APP_MODE !== 'production') {
+  if (currentMode !== 'production') {
     return (
       <Card title="Database Settings">
         <div className="p-6 text-center">
           <CogIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
           <p className="text-gray-600">Database management features are only available in 'Production' mode.</p>
-          <p className="text-sm text-gray-500 mt-1">Currently in '{APP_MODE}' mode.</p>
+          <p className="text-sm text-gray-500 mt-1">Currently in '{currentMode}' mode.</p>
+          <p className="text-sm text-blue-600 mt-2">Switch to Production mode in Feature Settings to access database management.</p>
         </div>
       </Card>
     );
@@ -82,7 +87,7 @@ const DatabaseSettingsPage: React.FC = () => {
     );
   }
   
-  if (!isRxDBModeActive && APP_MODE === 'production') {
+  if (!isRxDBModeActive && currentMode === 'production') {
      return (
       <Card title="Database Settings">
         <div className="p-6 text-center">

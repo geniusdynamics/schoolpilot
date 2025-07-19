@@ -78,9 +78,11 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           )}
           
           {/* Module Health Indicator */}
-          <div className="hidden sm:block">
-            <ModuleHealthIndicator className="rounded-lg bg-white/70 hover:bg-white/90 shadow" showCount={true} />
-          </div>
+          {isFeatureEnabled('moduleHealthIndicator') && (
+            <div className="hidden sm:block">
+              <ModuleHealthIndicator className="rounded-lg bg-white/70 hover:bg-white/90 shadow" showCount={true} />
+            </div>
+          )}
           
           {/* Notifications */}
           <div className="relative">

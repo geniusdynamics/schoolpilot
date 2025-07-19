@@ -12,6 +12,7 @@ export interface AppConfig {
   features: {
     enhancedDataLayer: boolean;
     networkStatusIndicator: boolean;
+    moduleHealthIndicator: boolean;
     syncStatusComponent: boolean;
     globalNotifications: boolean;
     performanceOptimizations: boolean;
@@ -43,6 +44,7 @@ const DEFAULT_CONFIG: AppConfig = {
   features: {
     enhancedDataLayer: false,
     networkStatusIndicator: false,
+    moduleHealthIndicator: false,
     syncStatusComponent: false,
     globalNotifications: false,
     performanceOptimizations: true,
@@ -72,6 +74,7 @@ export const CONFIG_PRESETS: Record<string, Partial<AppConfig>> = {
     features: {
       enhancedDataLayer: false,
       networkStatusIndicator: false,
+      moduleHealthIndicator: false,
       syncStatusComponent: false,
       globalNotifications: false,
       performanceOptimizations: true,
@@ -87,6 +90,7 @@ export const CONFIG_PRESETS: Record<string, Partial<AppConfig>> = {
     features: {
       enhancedDataLayer: true,
       networkStatusIndicator: true,
+      moduleHealthIndicator: true,
       syncStatusComponent: true,
       globalNotifications: true,
       performanceOptimizations: true,
@@ -102,6 +106,7 @@ export const CONFIG_PRESETS: Record<string, Partial<AppConfig>> = {
     features: {
       enhancedDataLayer: true,
       networkStatusIndicator: true,
+      moduleHealthIndicator: true,
       syncStatusComponent: true,
       globalNotifications: true,
       performanceOptimizations: false,
@@ -235,6 +240,7 @@ export const detectOptimalConfiguration = (): Partial<AppConfig> => {
     features: {
       enhancedDataLayer: hasIndexedDB,
       networkStatusIndicator: true,
+      moduleHealthIndicator: true,
       syncStatusComponent: hasServiceWorker,
       globalNotifications: true,
       performanceOptimizations: isProduction,
