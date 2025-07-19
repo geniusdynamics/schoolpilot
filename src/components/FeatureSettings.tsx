@@ -1,5 +1,5 @@
-// ABOUTME: Comprehensive settings panel for enhanced features including sync management, offline capabilities, and feature flags
-// ABOUTME: Provides user-friendly interface for configuring all enhanced application features
+// ABOUTME: Comprehensive settings panel for application features including sync management, offline capabilities, and feature flags
+// ABOUTME: Provides user-friendly interface for configuring all application features
 
 import React, { useState } from 'react';
 import { 
@@ -21,15 +21,16 @@ import {
   ConflictResolutionComponent,
   FeatureAvailabilityIndicator 
 } from './OfflineCapability';
+import SyncManagementPanel from './SyncManagementPanel';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 
-interface EnhancedFeaturesSettingsProps {
+interface FeatureSettingsProps {
   className?: string;
 }
 
-const EnhancedFeaturesSettings: React.FC<EnhancedFeaturesSettingsProps> = ({
+const FeatureSettings: React.FC<FeatureSettingsProps> = ({
   className = ''
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts'>('overview');
@@ -175,29 +176,7 @@ const EnhancedFeaturesSettings: React.FC<EnhancedFeaturesSettingsProps> = ({
 
   const renderSyncTab = () => (
     <div className="space-y-6">
-      <SyncStatusComponent 
-        showQueueDetails={true} 
-        showSettings={true}
-        className="!shadow-none !bg-transparent border border-gray-200"
-      />
-      
-      <Card title="Sync Actions">
-        <div className="flex flex-wrap gap-3">
-          <Button onClick={forceSync} disabled={!isOnline || !backendAvailable}>
-            Force Sync All
-          </Button>
-          <Button 
-            variant="secondary" 
-            onClick={clearSyncQueue}
-            disabled={pendingSyncCount === 0}
-          >
-            Clear Queue
-          </Button>
-          <Button variant="secondary">
-            Export Sync Log
-          </Button>
-        </div>
-      </Card>
+      <SyncManagementPanel className="!shadow-none !bg-transparent border border-gray-200" />
     </div>
   );
 
@@ -355,8 +334,8 @@ const EnhancedFeaturesSettings: React.FC<EnhancedFeaturesSettingsProps> = ({
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Enhanced Features</h1>
-            <p className="text-gray-600">Manage offline capabilities, sync settings, and advanced features</p>
+            <h1 className="text-2xl font-bold text-gray-900">Feature Settings</h1>
+            <p className="text-gray-600">Manage offline capabilities, sync settings, and application features</p>
           </div>
           <NetworkStatusIndicator showDetails={true} className="bg-white p-3 rounded-lg shadow" />
         </div>
@@ -393,4 +372,4 @@ const EnhancedFeaturesSettings: React.FC<EnhancedFeaturesSettingsProps> = ({
   );
 };
 
-export default EnhancedFeaturesSettings;
+export default FeatureSettings;

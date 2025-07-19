@@ -1,0 +1,36 @@
+// ABOUTME: Feature settings page that provides access to sync management, offline capabilities, and feature configuration
+// ABOUTME: Integrates the FeatureSettings component into the settings module navigation
+
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import FeatureSettings from '../../../components/FeatureSettings';
+import { useRBAC } from '../../../hooks/useRBAC';
+
+const FeatureSettingsPage: React.FC = () => {
+  const { t } = useTranslation(['settings', 'common']);
+  const { hasPermission } = useRBAC();
+
+  // Check if user has permission to access feature settings
+  if (!hasPermission('settings.view')) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            {t('settings:accessDeniedTitle')}
+          </h2>
+          <p className="text-gray-600">
+            {t('settings:accessDeniedMessage')}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <FeatureSettings />
+    </div>
+  );
+};
+
+export default FeatureSettingsPage;

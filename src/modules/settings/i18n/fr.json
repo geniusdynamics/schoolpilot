@@ -231,6 +231,7 @@
   "accessDeniedMessage": "Vous n'avez pas la permission d'accéder à la page des paramètres.",
   "navigation:settings.title": "Paramètres",
   "navigation:settings.general": "Général",
+  "navigation:settings.features": "Paramètres des Fonctionnalités",
   "navigation:settings.modules": "Gestion des Modules",
   "navigation:settings.auditLog": "Journal d'Audit",
   "navigation:settings.databaseSettings": "Paramètres de la Base de Données",
