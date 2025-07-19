@@ -84,6 +84,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await authService.logout();
       setUser(null);
       setIsDemoMode(true);
+      
+      // Clear any stored route information on logout
+      try {
+        sessionStorage.removeItem('currentRoute');
+        sessionStorage.removeItem('lastVisitTimestamp');
+      } catch (error) {
+        console.warn('Failed to clear route storage on logout:', error);
+      }
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {

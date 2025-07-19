@@ -4,6 +4,7 @@
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useRoutePersistence } from './hooks/useRoutePersistence';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -240,11 +241,23 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
 const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> = ({ modulesInitialized, config }) => {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
+  const { restoreRouteIfNeeded } = useRoutePersistence();
 
   // Debug authentication state
   useEffect(() => {
     debugLog('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
   }, [isAuthenticated, isLoading, location.pathname]);
+
+  // Restore route after authentication is complete and modules are initialized
+  useEffect(() => {
+    if (isAuthenticated && modulesInitialized && !isLoading) {
+      // Try to restore the route the user was on before refresh
+      const restored = restoreRouteIfNeeded();
+      if (restored) {
+        debugLog('✅ [AppContent] Route restored after refresh');
+      }
+    }
+  }, [isAuthenticated, modulesInitialized, isLoading, restoreRouteIfNeeded]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
