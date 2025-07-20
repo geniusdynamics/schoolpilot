@@ -2,6 +2,7 @@
 // ABOUTME: Initializes test environment and mocks for validation system testing
 
 import { beforeAll, afterAll, vi } from 'vitest';
+import '@testing-library/jest-dom';
 
 // Mock console methods to reduce noise in tests
 beforeAll(() => {
@@ -22,6 +23,21 @@ vi.setSystemTime(mockDate);
 Object.defineProperty(navigator, 'onLine', {
   writable: true,
   value: true
+});
+
+// Mock window.matchMedia for accessibility tests
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
 });
 
 // Global test utilities

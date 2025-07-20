@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Staff } from '@/types';
 import { TeacherSubjectAssignment, ClassSubjectAllocation } from '@/modules/academics/data/types'; // Corrected imports
 import Card from '@/components/ui/Card';
@@ -14,6 +15,7 @@ import Spinner from '@/components/ui/Spinner';
 type AssignmentFormData = Omit<Partial<TeacherSubjectAssignment>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name' | 'teacher_name'>;
 
 const TeacherSubjectAssignmentPage: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     teacherSubjectAssignments, 
     classSubjectAllocations,

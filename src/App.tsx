@@ -16,6 +16,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { getAppConfig, subscribeToConfig, AppConfig } from './config/appConfig';
 import { moduleRegistry } from './core/moduleRegistry';
 import { initializeModulesOptimized } from './core/optimizedModuleLoader';
+import { initializeTheme } from './hooks/useTheme';
 
 // Enhanced components (lazy loaded to avoid bundle bloat when not needed)
 const GlobalNotifications = lazy(() => import('./components/GlobalNotifications'));
@@ -341,6 +342,11 @@ const App: React.FC = () => {
   const [config, setConfig] = useState<AppConfig>(getAppConfig());
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
+  
+  // Initialize theme system on app startup
+  useEffect(() => {
+    initializeTheme();
+  }, []);
   
   // Performance monitoring for the main app
   const { measureAsync } = usePerformanceMonitoring({
