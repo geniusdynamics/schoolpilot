@@ -57,6 +57,8 @@ class PerformanceMonitorService {
   constructor() {
     this.startTime = performance.now();
     this.initializePerformanceObserver();
+    // Clean up any invalid metrics from previous sessions
+    this.cleanupInvalidModuleMetrics();
   }
 
   private initializePerformanceObserver() {
@@ -203,7 +205,20 @@ class PerformanceMonitorService {
   }
 
   getModuleMetrics(): ModuleLoadingMetric[] {
-    return [...this.moduleMetrics].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    // Filter out invalid 'core' module metrics (core is not a real module)
+    const validMetrics = this.moduleMetrics.filter(metric => metric.moduleId !== 'core');
+    return [...validMetrics].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  // Clean up invalid module metrics
+  cleanupInvalidModuleMetrics(): void {
+    const initialCount = this.moduleMetrics.length;
+    this.moduleMetrics = this.moduleMetrics.filter(metric => metric.moduleId !== 'core');
+    const removedCount = initialCount - this.moduleMetrics.length;
+    
+    if (removedCount > 0) {
+      console.log(`[PerformanceMonitor] Cleaned up ${removedCount} invalid 'core' module metrics`);
+    }
   }
 
   getDataMetrics(): DataOperationMetric[] {
