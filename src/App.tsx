@@ -296,6 +296,9 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> =
           <GlobalNotifications />
         </Suspense>
       )}
+      
+      {/* Performance Monitor (development only) */}
+      <PerformanceMonitor showDetails={true} />
     </Layout>
   );
 };
@@ -328,12 +331,29 @@ import ModuleErrorBoundary from './components/ModuleErrorBoundary';
 import PageErrorBoundary from './components/PageErrorBoundary';
 import ModuleLoadingProgress from './components/ModuleLoadingProgress';
 import dynamicModuleLoader from './services/dynamicModuleLoader';
+import PerformanceMonitor from './components/PerformanceMonitor';
+import { performanceMonitor } from './services/performanceMonitor';
+import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
+import { useMemoryManagement } from './hooks/useMemoryManagement';
 
 // Main consolidated App component
 const App: React.FC = () => {
   const [config, setConfig] = useState<AppConfig>(getAppConfig());
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
+  
+  // Performance monitoring for the main app
+  const { measureAsync } = usePerformanceMonitoring({
+    componentName: 'App',
+    trackMounts: true
+  });
+
+  // Memory management for the main app (optimized to prevent flickering)
+  const { isMemoryHigh, forceCleanup } = useMemoryManagement({
+    componentName: 'App',
+    trackLifecycle: true,
+    enableAlerts: false // Disable alerts in main app to reduce noise
+  });
 
   // Subscribe to configuration changes
   useEffect(() => {
@@ -355,8 +375,13 @@ const App: React.FC = () => {
         }, 5000); // Reduced to 5 seconds
         
         try {
+          // Track module initialization performance with measureAsync
+          
           // Try to initialize modules, but don't block the app if it fails
-          const initPromise = initializeModulesOptimized();
+          const initPromise = measureAsync(
+            () => initializeModulesOptimized(),
+            'module_initialization'
+          );
           const timeoutPromise = new Promise<void>((resolve) => {
             setTimeout(() => {
               console.warn('⚠️ [App] Module initialization taking too long, proceeding...');
@@ -365,6 +390,7 @@ const App: React.FC = () => {
           });
           
           await Promise.race([initPromise, timeoutPromise]);
+          trackModuleInit(); // Record completion time
           debugLog('✅ [App] Modules initialized successfully');
         } catch (error) {
           console.error('❌ [App] Module initialization failed:', error);
@@ -372,6 +398,8 @@ const App: React.FC = () => {
         } finally {
           clearTimeout(safetyTimeout);
           setModulesInitialized(true);
+          
+          // Application startup completed - modules initialized
         }
       }
     };
@@ -449,6 +477,9 @@ const App: React.FC = () => {
           </UserProvider>
         </AuthProvider>
       </HashRouter>
+      
+      {/* Performance Monitor (Feature Flag Controlled) */}
+      {config.features.performanceMonitorWidget && <PerformanceMonitor />}
     </ApplicationErrorBoundary>
   );
 };

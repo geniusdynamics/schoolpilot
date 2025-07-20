@@ -105,7 +105,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
     if (isLoading) return;
 
     if (navigationItems.length === 0) {
-      console.warn('⚠️ [PrimarySidebar] No navigation items found');
+      console.log('🔄 [PrimarySidebar] Navigation items still loading...');
     }
   }, [isLoading, navigationItems.length]);
 

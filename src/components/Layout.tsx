@@ -12,6 +12,7 @@ import SettingsPopup from './SettingsPopup';
 import BreadcrumbNavigation from './BreadcrumbNavigation';
 import NavigationErrorBoundary from './NavigationErrorBoundary';
 import { useRoutePersistence } from '../hooks/useRoutePersistence';
+import { useInteractionTracking } from '../hooks/usePerformanceMonitoring';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { getMainModules, isLoading } = useDynamicNavigation(true);
@@ -22,6 +23,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { getStoredRoute } = useRoutePersistence();
+  const { trackNavigation } = useInteractionTracking('Layout');
 
   // Track scroll position to show/hide scroll helpers
   useEffect(() => {
@@ -79,7 +81,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       setIsSubmenuOpen(true); // open submenu for new module
       // If Dashboard is selected, navigate to /dashboard
       if (moduleKey === 'navigation:dashboard') {
+        const trackNav = trackNavigation(location.pathname, '/dashboard');
         navigate('/dashboard');
+        // Track navigation completion after a brief delay
+        setTimeout(trackNav, 100);
       }
     }
   };

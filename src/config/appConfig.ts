@@ -17,6 +17,7 @@ export interface AppConfig {
     globalNotifications: boolean;
     performanceOptimizations: boolean;
     advancedErrorBoundaries: boolean;
+    performanceMonitorWidget: boolean;
   };
   
   // Development settings
@@ -49,6 +50,7 @@ const DEFAULT_CONFIG: AppConfig = {
     globalNotifications: false,
     performanceOptimizations: true,
     advancedErrorBoundaries: true,
+    performanceMonitorWidget: false, // Disabled by default
   },
   
   development: {
@@ -79,6 +81,7 @@ export const CONFIG_PRESETS: Record<string, Partial<AppConfig>> = {
       globalNotifications: false,
       performanceOptimizations: true,
       advancedErrorBoundaries: true,
+      performanceMonitorWidget: false,
     },
   },
   
@@ -95,6 +98,7 @@ export const CONFIG_PRESETS: Record<string, Partial<AppConfig>> = {
       globalNotifications: true,
       performanceOptimizations: true,
       advancedErrorBoundaries: true,
+      performanceMonitorWidget: true,
     },
   },
   
@@ -111,6 +115,7 @@ export const CONFIG_PRESETS: Record<string, Partial<AppConfig>> = {
       globalNotifications: true,
       performanceOptimizations: false,
       advancedErrorBoundaries: true,
+      performanceMonitorWidget: true,
     },
     development: {
       enableDebugLogging: true,

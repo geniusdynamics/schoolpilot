@@ -7,6 +7,8 @@ import { useAppDataInternal } from '../contexts/AppDataContext';
 import { DataOperation } from '../services/DataStrategyManager';
 import { globalDataConsistencyService } from '../services/DataConsistencyService';
 import { ValidationResult } from '../utils/dataValidation';
+import { performanceMonitor } from '../services/performanceMonitor';
+import { useMemoryAwareCache } from './useMemoryManagement';
 
 // Generic type for entity data
 export interface EntityData {
@@ -76,6 +78,12 @@ export function createDataHook<T extends EntityData>(
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
     const [lastSync, setLastSync] = useState<Date | null>(null);
+
+    // Memory-aware caching for data operations
+    const { setCache: setCachedData, getCache: getCachedData, clearCache: clearDataCache } = useMemoryAwareCache<T[]>(
+      `${entityName}Data`,
+      10 // Max 10 cached data sets
+    );
     const [isPendingSync, setIsPendingSync] = useState<boolean>(false);
     const [hasSyncErrors, setHasSyncErrors] = useState<boolean>(false);
     
@@ -110,6 +118,7 @@ export function createDataHook<T extends EntityData>(
     
     // Create operation
     const create = useCallback(async (item: Partial<T>): Promise<T> => {
+      const startTime = performance.now();
       try {
         // Create timestamp fields
         const now = new Date().toISOString();
@@ -159,8 +168,31 @@ export function createDataHook<T extends EntityData>(
         
         // Fallback to local state management
         setData(prev => [...prev, newItem]);
+        
+        // Record successful operation
+        const duration = performance.now() - startTime;
+        performanceMonitor.recordDataOperation({
+          operation: 'create',
+          entity: entityName,
+          duration,
+          success: true,
+          timestamp: new Date(),
+          recordCount: 1
+        });
+        
         return newItem;
       } catch (err) {
+        // Record failed operation
+        const duration = performance.now() - startTime;
+        performanceMonitor.recordDataOperation({
+          operation: 'create',
+          entity: entityName,
+          duration,
+          success: false,
+          timestamp: new Date(),
+          recordCount: 0
+        });
+        
         setError(err instanceof Error ? err : new Error(String(err)));
         throw err;
       }
@@ -168,6 +200,7 @@ export function createDataHook<T extends EntityData>(
     
     // Update operation
     const update = useCallback(async (id: T['id'], updates: Partial<T>): Promise<T> => {
+      const startTime = performance.now();
       try {
         // Find existing item for validation
         const existingItem = data.find(item => item.id === id);
@@ -225,8 +258,32 @@ export function createDataHook<T extends EntityData>(
           )
         );
         
-        return data.find(item => item.id === id) as T;
+        const finalUpdatedItem = data.find(item => item.id === id) as T;
+        
+        // Record successful operation
+        const duration = performance.now() - startTime;
+        performanceMonitor.recordDataOperation({
+          operation: 'update',
+          entity: entityName,
+          duration,
+          success: true,
+          timestamp: new Date(),
+          recordCount: 1
+        });
+        
+        return finalUpdatedItem;
       } catch (err) {
+        // Record failed operation
+        const duration = performance.now() - startTime;
+        performanceMonitor.recordDataOperation({
+          operation: 'update',
+          entity: entityName,
+          duration,
+          success: false,
+          timestamp: new Date(),
+          recordCount: 0
+        });
+        
         setError(err instanceof Error ? err : new Error(String(err)));
         throw err;
       }
@@ -234,6 +291,7 @@ export function createDataHook<T extends EntityData>(
     
     // Remove operation
     const remove = useCallback(async (id: T['id']): Promise<boolean> => {
+      const startTime = performance.now();
       try {
         // Find existing item for validation
         const existingItem = data.find(item => item.id === id);
@@ -280,8 +338,31 @@ export function createDataHook<T extends EntityData>(
         
         // Fallback to local state management
         setData(prev => prev.filter(item => item.id !== id));
+        
+        // Record successful operation
+        const duration = performance.now() - startTime;
+        performanceMonitor.recordDataOperation({
+          operation: 'delete',
+          entity: entityName,
+          duration,
+          success: true,
+          timestamp: new Date(),
+          recordCount: 1
+        });
+        
         return true;
       } catch (err) {
+        // Record failed operation
+        const duration = performance.now() - startTime;
+        performanceMonitor.recordDataOperation({
+          operation: 'delete',
+          entity: entityName,
+          duration,
+          success: false,
+          timestamp: new Date(),
+          recordCount: 0
+        });
+        
         setError(err instanceof Error ? err : new Error(String(err)));
         throw err;
       }

@@ -22,6 +22,8 @@ import {
   FeatureAvailabilityIndicator 
 } from './OfflineCapability';
 import SyncManagementPanel from './SyncManagementPanel';
+import PerformanceDashboard from './PerformanceDashboard';
+import MemoryDashboard from './MemoryDashboard';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
@@ -33,7 +35,7 @@ interface FeatureSettingsProps {
 const FeatureSettings: React.FC<FeatureSettingsProps> = ({
   className = ''
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'memory'>('overview');
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [config, setConfig] = useState(getAppConfig());
   
@@ -321,7 +323,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
       syncStatusComponent: 'Detailed sync progress and queue management',
       globalNotifications: 'System-wide notification management',
       performanceOptimizations: 'Bundle and runtime performance improvements',
-      advancedErrorBoundaries: 'Enhanced error handling and recovery'
+      advancedErrorBoundaries: 'Enhanced error handling and recovery',
+      performanceMonitorWidget: 'Show floating performance monitor widget (bottom-right corner)'
     };
     return descriptions[key] || 'Enhanced application feature';
   };
@@ -330,7 +333,9 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     { id: 'overview', label: 'Overview', icon: CogIcon },
     { id: 'sync', label: 'Sync Management', icon: ArrowPathIcon },
     { id: 'features', label: 'Feature Flags', icon: Cog6ToothIcon },
-    { id: 'conflicts', label: `Conflicts ${conflicts.length > 0 ? `(${conflicts.length})` : ''}`, icon: ExclamationTriangleIcon }
+    { id: 'conflicts', label: `Conflicts ${conflicts.length > 0 ? `(${conflicts.length})` : ''}`, icon: ExclamationTriangleIcon },
+    { id: 'performance', label: 'Performance', icon: ClockIcon },
+    { id: 'memory', label: 'Memory', icon: ServerIcon }
   ];
 
   return (
@@ -372,6 +377,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
         {activeTab === 'sync' && renderSyncTab()}
         {activeTab === 'features' && renderFeaturesTab()}
         {activeTab === 'conflicts' && renderConflictsTab()}
+        {activeTab === 'performance' && <PerformanceDashboard />}
+        {activeTab === 'memory' && <MemoryDashboard />}
       </div>
     </div>
   );

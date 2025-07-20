@@ -5,6 +5,7 @@ import { dynamicModuleLoader } from '../services/dynamicModuleLoader';
 import { moduleRegistry } from './moduleRegistry';
 import { rbacService } from './rbacService';
 import { ModuleDefinition } from './types';
+import { performanceMonitor } from '../services/performanceMonitor';
 
 // Initialize and load modules with optimization
 export async function initializeModulesOptimized(): Promise<ModuleDefinition[]> {
@@ -19,15 +20,40 @@ export async function initializeModulesOptimized(): Promise<ModuleDefinition[]> 
     const loadedModules: ModuleDefinition[] = [];
 
     for (const moduleId of availableModuleIds) {
+      const startTime = performance.now();
       try {
         const module = await loadModuleDefinition(moduleId);
+        const loadTime = performance.now() - startTime;
+        
         if (module) {
           loadedModules.push(module);
+          performanceMonitor.recordModuleLoading({
+            moduleId,
+            loadTime,
+            success: true,
+            timestamp: new Date(),
+            strategy: 'optimized-loader'
+          });
           console.log(`[OptimizedModuleLoader] Successfully loaded module: ${moduleId}`);
         } else {
+          performanceMonitor.recordModuleLoading({
+            moduleId,
+            loadTime,
+            success: false,
+            timestamp: new Date(),
+            strategy: 'optimized-loader'
+          });
           console.warn(`[OptimizedModuleLoader] Failed to load module: ${moduleId}`);
         }
       } catch (error) {
+        const loadTime = performance.now() - startTime;
+        performanceMonitor.recordModuleLoading({
+          moduleId,
+          loadTime,
+          success: false,
+          timestamp: new Date(),
+          strategy: 'optimized-loader'
+        });
         console.error(`[OptimizedModuleLoader] Error loading module ${moduleId}:`, error);
       }
     }
