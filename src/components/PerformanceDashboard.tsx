@@ -1,9 +1,10 @@
 // ABOUTME: Performance dashboard component for detailed performance analysis
 // ABOUTME: Provides comprehensive performance metrics and analysis tools
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { performanceMonitor, PerformanceReport } from '../services/performanceMonitor';
 import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring';
+import { usePerformanceEvents } from '../services/performanceEventManager';
 import PerformanceBenchmark from './PerformanceBenchmark';
 
 interface PerformanceDashboardProps {
@@ -13,26 +14,50 @@ interface PerformanceDashboardProps {
 const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className = '' }) => {
   const [report, setReport] = useState<PerformanceReport | null>(null);
   const [activeView, setActiveView] = useState<'overview' | 'modules' | 'data' | 'interactions' | 'charts' | 'benchmarks'>('overview');
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false); // Default OFF to prevent flickering
   
   const { trackUserInteraction } = usePerformanceMonitoring({
     componentName: 'PerformanceDashboard'
   });
 
-  // Update performance report
-  useEffect(() => {
-    const updateReport = () => {
-      const newReport = performanceMonitor.getPerformanceReport();
-      setReport(newReport);
-    };
+  // Use event-driven performance updates
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const { shouldRefresh, emitEvent } = usePerformanceEvents(
+    (event) => {
+      // Only refresh if enough time has passed and it's a relevant event
+      if (shouldRefresh(lastRefresh, 2000)) { // Minimum 2 seconds between refreshes
+        updateReport();
+        setLastRefresh(Date.now());
+      }
+    },
+    ['navigation', 'data_operation', 'manual_refresh', 'tab_switch'] // Only listen to relevant events
+  );
 
-    updateReport(); // Initial load
+  // Update performance report - Event-driven approach
+  const updateReport = useCallback(() => {
+    const newReport = performanceMonitor.getPerformanceReport();
+    setReport(newReport);
+  }, []);
+
+  // Initial load only
+  useEffect(() => {
+    updateReport();
+  }, [updateReport]);
+
+  // Optional auto-refresh (only if explicitly enabled by user)
+  useEffect(() => {
+    if (!autoRefresh) return;
     
-    if (autoRefresh) {
-      const interval = setInterval(updateReport, 2000); // 2 seconds
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh]);
+    const interval = setInterval(updateReport, 15000); // Reduced to 15 seconds when enabled
+    return () => clearInterval(interval);
+  }, [autoRefresh, updateReport]);
+
+  // Manual refresh button handler
+  const handleManualRefresh = useCallback(() => {
+    emitEvent('manual_refresh', 'performance_dashboard');
+    updateReport();
+    setLastRefresh(Date.now());
+  }, [emitEvent, updateReport]);
 
   const formatTime = (ms: number) => {
     if (ms < 1000) {
@@ -56,6 +81,8 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
   const handleViewChange = (view: typeof activeView) => {
     trackUserInteraction('change_performance_view', { view });
     setActiveView(view);
+    // Emit event for view change (will trigger refresh if needed)
+    emitEvent('user_interaction', 'performance_dashboard', { action: 'view_change', view });
   };
 
   if (!report) {
@@ -85,15 +112,15 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
               onChange={(e) => setAutoRefresh(e.target.checked)}
               className="mr-2"
             />
-            <span className="text-sm text-gray-600">Auto-refresh</span>
+            <span className="text-sm text-gray-600">Auto-refresh (15s intervals - may cause flickering)</span>
           </label>
           <button
-            onClick={() => {
-              trackUserInteraction('refresh_performance_data');
-              setReport(performanceMonitor.getPerformanceReport());
-            }}
-            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            onClick={handleManualRefresh}
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
             Refresh
           </button>
         </div>

@@ -1,9 +1,10 @@
 // ABOUTME: Performance monitoring display component for development and debugging
 // ABOUTME: Shows real-time performance metrics and allows performance analysis
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { performanceMonitor, PerformanceReport } from '../services/performanceMonitor';
 import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring';
+import { usePerformanceEvents } from '../services/performanceEventManager';
 
 interface PerformanceMonitorProps {
   className?: string;
@@ -23,46 +24,65 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
     componentName: 'PerformanceMonitor'
   });
 
-  // Update performance report periodically with visibility check and auto-refresh toggle
-  useEffect(() => {
-    let isActive = true;
-    
-    const updateReport = () => {
-      if (!isActive || !isVisible) return;
-      
-      try {
-        const newReport = performanceMonitor.getPerformanceReport();
-        setReport(prevReport => {
-          // Only update if there are meaningful changes
-          if (!prevReport || 
-              Math.abs(newReport.startupTime - prevReport.startupTime) > 100 ||
-              newReport.totalMetrics !== prevReport.totalMetrics) {
-            return newReport;
-          }
-          return prevReport;
-        });
-      } catch (error) {
-        console.warn('Error updating performance report:', error);
+  // Use event-driven performance updates
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const { shouldRefresh, emitEvent } = usePerformanceEvents(
+    (event) => {
+      // Only refresh if widget is visible and enough time has passed
+      if (isVisible && shouldRefresh(lastRefresh, 2000)) {
+        updateReport();
+        setLastRefresh(Date.now());
       }
-    };
+    },
+    ['navigation', 'data_operation', 'manual_refresh', 'tab_switch']
+  );
 
-    updateReport(); // Initial load
+  // Update performance report - Event-driven approach with optional auto-refresh
+  const updateReport = useCallback(() => {
+    if (!isVisible) return;
     
-    // Only set up auto-refresh if enabled
-    if (!autoRefresh) return;
+    try {
+      const newReport = performanceMonitor.getPerformanceReport();
+      setReport(prevReport => {
+        // Only update if there are meaningful changes
+        if (!prevReport || 
+            Math.abs(newReport.startupTime - prevReport.startupTime) > 100 ||
+            newReport.totalMetrics !== prevReport.totalMetrics) {
+          return newReport;
+        }
+        return prevReport;
+      });
+    } catch (error) {
+      console.warn('Error updating performance report:', error);
+    }
+  }, [isVisible]);
+
+  // Initial load when component becomes visible
+  useEffect(() => {
+    if (isVisible) {
+      updateReport();
+    }
+  }, [isVisible, updateReport]);
+
+  // Optional auto-refresh (only if explicitly enabled by user)
+  useEffect(() => {
+    if (!autoRefresh || !isVisible) return;
     
-    // Only update when component is visible and page is active
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible' && isVisible) {
         updateReport();
       }
     }, refreshInterval);
 
-    return () => {
-      isActive = false;
-      clearInterval(interval);
-    };
-  }, [refreshInterval, isVisible, autoRefresh]);
+    return () => clearInterval(interval);
+  }, [refreshInterval, isVisible, autoRefresh, updateReport]);
+
+  // Manual refresh handler
+  const handleManualRefresh = useCallback(() => {
+    emitEvent('manual_refresh', 'performance_monitor');
+    updateReport();
+    setLastRefresh(Date.now());
+  }, [emitEvent, updateReport]);
 
   // Component is now controlled by feature flag in App.tsx
 
@@ -74,6 +94,8 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   const handleTabChange = (tab: typeof activeTab) => {
     trackUserInteraction('change_performance_tab', { tab });
     setActiveTab(tab);
+    // Emit event for tab change (will trigger refresh if needed)
+    emitEvent('user_interaction', 'performance_monitor', { action: 'tab_change', tab });
   };
 
   const formatTime = (ms: number) => {
@@ -111,7 +133,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
           <h3 className="text-lg font-semibold text-gray-800">Performance Monitor</h3>
           <div className="flex items-center space-x-2">
             <button 
-              onClick={() => setReport(performanceMonitor.getPerformanceReport())}
+              onClick={handleManualRefresh}
               className="text-blue-500 hover:text-blue-700 text-sm"
               title="Refresh data"
             >
@@ -260,7 +282,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               onClick={() => {
                 trackUserInteraction('clear_performance_metrics');
                 performanceMonitor.clearOldMetrics(0); // Clear all metrics
-                setReport(performanceMonitor.getPerformanceReport());
+                handleManualRefresh(); // Use the event-driven refresh
               }}
               className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
             >

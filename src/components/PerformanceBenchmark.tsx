@@ -39,7 +39,7 @@ const PerformanceBenchmark: React.FC<PerformanceBenchmarkProps> = ({ className =
     clearError
   } = usePerformanceBenchmark();
 
-  const regressionStatus = useRegressionDetection(true, 30000); // Check every 30 seconds
+  const regressionStatus = useRegressionDetection(true, 300000); // Check every 5 minutes (less aggressive)
 
   const [activeTab, setActiveTab] = useState<'baselines' | 'benchmarks' | 'comparison' | 'regression'>('baselines');
   const [selectedBaseline, setSelectedBaseline] = useState<string>('');
