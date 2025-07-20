@@ -7,24 +7,23 @@ import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring';
 
 interface PerformanceMonitorProps {
   className?: string;
-  showDetails?: boolean;
   refreshInterval?: number;
 }
 
 const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   className = '',
-  showDetails = false,
   refreshInterval = 15000 // 15 seconds (reduced frequency to prevent flickering)
 }) => {
   const [report, setReport] = useState<PerformanceReport | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'modules' | 'data' | 'interactions'>('overview');
+  const [autoRefresh, setAutoRefresh] = useState(false); // Auto-refresh toggle
   
   const { trackUserInteraction } = usePerformanceMonitoring({
     componentName: 'PerformanceMonitor'
   });
 
-  // Update performance report periodically with visibility check
+  // Update performance report periodically with visibility check and auto-refresh toggle
   useEffect(() => {
     let isActive = true;
     
@@ -49,6 +48,9 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
 
     updateReport(); // Initial load
     
+    // Only set up auto-refresh if enabled
+    if (!autoRefresh) return;
+    
     // Only update when component is visible and page is active
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible' && isVisible) {
@@ -60,7 +62,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
       isActive = false;
       clearInterval(interval);
     };
-  }, [refreshInterval, isVisible]);
+  }, [refreshInterval, isVisible, autoRefresh]);
 
   // Component is now controlled by feature flag in App.tsx
 
@@ -107,13 +109,36 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-gray-800">Performance Monitor</h3>
-          <button
-            onClick={handleToggleVisibility}
-            className="text-gray-500 hover:text-gray-700 text-xl"
-            title="Hide Performance Monitor"
-          >
-            ×
-          </button>
+          <div className="flex items-center space-x-2">
+            <button 
+              onClick={() => setReport(performanceMonitor.getPerformanceReport())}
+              className="text-blue-500 hover:text-blue-700 text-sm"
+              title="Refresh data"
+            >
+              🔄
+            </button>
+            <button
+              onClick={handleToggleVisibility}
+              className="text-gray-500 hover:text-gray-700 text-xl"
+              title="Hide Performance Monitor"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        
+        {/* Auto-refresh toggle */}
+        <div className="flex items-center mb-3 text-xs">
+          <input
+            type="checkbox"
+            id="perfMonitorAutoRefresh"
+            checked={autoRefresh}
+            onChange={(e) => setAutoRefresh(e.target.checked)}
+            className="mr-1 h-3 w-3"
+          />
+          <label htmlFor="perfMonitorAutoRefresh" className="text-gray-600">
+            Auto-refresh (may cause UI updates)
+          </label>
         </div>
 
         {/* Tab Navigation */}

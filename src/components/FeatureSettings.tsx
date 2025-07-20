@@ -232,18 +232,118 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-600">
               Loaded {Object.keys(config.features).length} feature flags
+              <div className="text-xs text-gray-500 mt-1">
+                {Object.keys(config.features).join(', ')}
+              </div>
+              {!config.features.performanceMonitorWidget && (
+                <div className="text-xs text-red-500 mt-1">
+                  ⚠️ performanceMonitorWidget is missing - click "Fix Missing Flags"
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => {
-                // Clear localStorage and reload config
-                localStorage.removeItem('app-config');
-                localStorage.removeItem('app-config-version');
-                window.location.reload();
-              }}
-              className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded transition-colors"
-            >
-              Reset Config
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => {
+                  // Clear localStorage and reload config
+                  localStorage.removeItem('app-config');
+                  localStorage.removeItem('app-config-version');
+                  window.location.reload();
+                }}
+                className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded transition-colors"
+              >
+                Reset Config
+              </button>
+              <button
+                onClick={() => {
+                  // Force complete reset - clear ALL localStorage
+                  localStorage.clear();
+                  // Force reload from scratch
+                  window.location.href = window.location.origin + window.location.pathname;
+                }}
+                className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors"
+              >
+                Force Reset
+              </button>
+              <button
+                onClick={() => {
+                  // Force add missing feature flag
+                  const currentConfig = getAppConfig();
+                  const updatedConfig = {
+                    ...currentConfig,
+                    features: {
+                      ...currentConfig.features,
+                      performanceMonitorWidget: false // Add the missing flag
+                    }
+                  };
+                  
+                  // Update both global config and local state
+                  updateAppConfig(updatedConfig);
+                  setConfig(updatedConfig);
+                  
+                  // Also force localStorage update
+                  localStorage.setItem('app-config', JSON.stringify(updatedConfig));
+                  localStorage.setItem('app-config-version', '1.2.0');
+                  
+                  console.log('Added missing performanceMonitorWidget flag');
+                  window.location.reload();
+                }}
+                className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
+              >
+                Fix Missing Flags
+              </button>
+              <button
+                onClick={() => {
+                  // Force restore all default feature flags
+                  const defaultFeatures = {
+                    enhancedDataLayer: false,
+                    networkStatusIndicator: false,
+                    moduleHealthIndicator: false,
+                    syncStatusComponent: false,
+                    globalNotifications: false,
+                    performanceOptimizations: true,
+                    advancedErrorBoundaries: true,
+                    performanceMonitorWidget: false, // This is the missing one
+                  };
+                  
+                  const currentConfig = getAppConfig();
+                  const updatedConfig = {
+                    ...currentConfig,
+                    features: {
+                      ...currentConfig.features,
+                      ...defaultFeatures // Merge with defaults to ensure all flags exist
+                    }
+                  };
+                  
+                  // Update everything
+                  updateAppConfig(updatedConfig);
+                  setConfig(updatedConfig);
+                  localStorage.setItem('app-config', JSON.stringify(updatedConfig));
+                  localStorage.setItem('app-config-version', '1.2.0');
+                  
+                  console.log('Restored all default feature flags:', updatedConfig.features);
+                  window.location.reload();
+                }}
+                className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded transition-colors"
+              >
+                Restore Defaults
+              </button>
+              <button
+                onClick={() => {
+                  // Debug: Show current localStorage content
+                  const stored = localStorage.getItem('app-config');
+                  const version = localStorage.getItem('app-config-version');
+                  console.log('=== DEBUG INFO ===');
+                  console.log('Config version:', version);
+                  console.log('Stored config:', stored ? JSON.parse(stored) : 'None');
+                  console.log('Current config:', getAppConfig());
+                  console.log('Feature flags:', Object.keys(getAppConfig().features));
+                  alert('Check console for debug info');
+                }}
+                className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded transition-colors"
+              >
+                Debug
+              </button>
+            </div>
           </div>
         </div>
         <div className="space-y-4">
