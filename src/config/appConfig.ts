@@ -35,6 +35,9 @@ export interface AppConfig {
   };
 }
 
+// Configuration version for migration
+const CONFIG_VERSION = '1.2.0'; // Incremented to include performanceMonitorWidget feature flag
+
 // Default configuration
 const DEFAULT_CONFIG: AppConfig = {
   mode: 'demo',
@@ -139,9 +142,30 @@ class AppConfigManager {
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('app-config');
+        const storedVersion = localStorage.getItem('app-config-version');
+        
         if (stored) {
           const parsed = JSON.parse(stored);
-          return { ...DEFAULT_CONFIG, ...parsed };
+          
+          // Check if we need to migrate configuration
+          if (storedVersion !== CONFIG_VERSION) {
+            console.log('Migrating configuration from version', storedVersion, 'to', CONFIG_VERSION);
+            // Clear old config and use defaults with any user preferences
+            localStorage.setItem('app-config-version', CONFIG_VERSION);
+          }
+          
+          // Deep merge features to ensure new feature flags are included
+          return {
+            ...DEFAULT_CONFIG,
+            ...parsed,
+            features: {
+              ...DEFAULT_CONFIG.features,
+              ...parsed.features
+            }
+          };
+        } else {
+          // First time - set version
+          localStorage.setItem('app-config-version', CONFIG_VERSION);
         }
       } catch (error) {
         console.warn('Failed to load stored configuration:', error);
@@ -155,9 +179,17 @@ class AppConfigManager {
 
       let config = { ...DEFAULT_CONFIG };
 
-      // Apply preset if specified
+      // Apply preset if specified with deep merge for features
       if (preset && CONFIG_PRESETS[preset]) {
-        config = { ...config, ...CONFIG_PRESETS[preset] };
+        const presetConfig = CONFIG_PRESETS[preset];
+        config = {
+          ...config,
+          ...presetConfig,
+          features: {
+            ...config.features,
+            ...presetConfig.features
+          }
+        };
       }
 
       // Apply URL parameter overrides

@@ -37,7 +37,12 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'memory'>('overview');
   const [showConflictModal, setShowConflictModal] = useState(false);
-  const [config, setConfig] = useState(getAppConfig());
+  const [config, setConfig] = useState(() => {
+    // Force refresh configuration to ensure new feature flags are loaded
+    const currentConfig = getAppConfig();
+    console.log('FeatureSettings loaded config with features:', Object.keys(currentConfig.features));
+    return currentConfig;
+  });
   
   const { 
     isOnline, 
@@ -223,6 +228,24 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 
       {/* Feature Flags */}
       <Card title="Feature Flags">
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Loaded {Object.keys(config.features).length} feature flags
+            </div>
+            <button
+              onClick={() => {
+                // Clear localStorage and reload config
+                localStorage.removeItem('app-config');
+                localStorage.removeItem('app-config-version');
+                window.location.reload();
+              }}
+              className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded transition-colors"
+            >
+              Reset Config
+            </button>
+          </div>
+        </div>
         <div className="space-y-4">
           {Object.entries(config.features).map(([key, enabled]) => (
             <div key={key} className="flex items-center justify-between">
