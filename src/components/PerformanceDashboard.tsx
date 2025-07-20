@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { performanceMonitor, PerformanceReport } from '../services/performanceMonitor';
 import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring';
+import PerformanceBenchmark from './PerformanceBenchmark';
 
 interface PerformanceDashboardProps {
   className?: string;
@@ -11,7 +12,7 @@ interface PerformanceDashboardProps {
 
 const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className = '' }) => {
   const [report, setReport] = useState<PerformanceReport | null>(null);
-  const [activeView, setActiveView] = useState<'overview' | 'modules' | 'data' | 'interactions' | 'charts'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'modules' | 'data' | 'interactions' | 'charts' | 'benchmarks'>('overview');
   const [autoRefresh, setAutoRefresh] = useState(true);
   
   const { trackUserInteraction } = usePerformanceMonitoring({
@@ -105,7 +106,8 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
           { key: 'modules', label: 'Modules', icon: '📦' },
           { key: 'data', label: 'Data Ops', icon: '💾' },
           { key: 'interactions', label: 'User Actions', icon: '👆' },
-          { key: 'charts', label: 'Charts', icon: '📈' }
+          { key: 'charts', label: 'Charts', icon: '📈' },
+          { key: 'benchmarks', label: 'Benchmarks', icon: '🎯' }
         ].map(tab => (
           <button
             key={tab.key}
@@ -309,6 +311,10 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
               </div>
             </div>
           </div>
+        )}
+
+        {activeView === 'benchmarks' && (
+          <PerformanceBenchmark />
         )}
       </div>
 
