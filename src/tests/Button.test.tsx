@@ -16,15 +16,15 @@ describe('Button Component', () => {
     render(<Button>Click me</Button>);
     const button = screen.getByRole('button', { name: /click me/i });
     expect(button).toBeInTheDocument();
-    expect(button).toHaveClass('bg-primary-600'); // Default primary variant
+    expect(button).toHaveClass('bg-indigo-600'); // Default primary variant
   });
 
   it('applies different variants correctly', () => {
     const { rerender } = render(<Button variant="secondary">Secondary</Button>);
-    expect(screen.getByRole('button')).toHaveClass('bg-secondary-100');
+    expect(screen.getByRole('button')).toHaveClass('bg-gray-100');
 
     rerender(<Button variant="danger">Danger</Button>);
-    expect(screen.getByRole('button')).toHaveClass('bg-error-600');
+    expect(screen.getByRole('button')).toHaveClass('bg-red-600');
 
     rerender(<Button variant="ghost">Ghost</Button>);
     expect(screen.getByRole('button')).toHaveClass('bg-transparent');
@@ -121,7 +121,7 @@ describe('IconButton Component', () => {
     const { rerender } = render(
       <IconButton icon={<MockIcon />} aria-label="Test" variant="primary" />
     );
-    expect(screen.getByRole('button')).toHaveClass('bg-primary-600');
+    expect(screen.getByRole('button')).toHaveClass('bg-indigo-600');
 
     rerender(
       <IconButton icon={<MockIcon />} aria-label="Test" variant="ghost" />
@@ -260,7 +260,7 @@ describe('ButtonGroup Component', () => {
     );
     
     const group = screen.getByRole('group');
-    expect(group).toHaveClass('bg-secondary-100', 'border', 'rounded-lg');
+    expect(group).toHaveClass('bg-gray-100', 'border', 'rounded-lg');
   });
 
   it('supports toolbar variant', () => {
