@@ -16,8 +16,9 @@ export type { ModernInputProps } from './Input';
 // Form utilities
 export * from './forms';
 
-// Re-export existing components
+// Enhanced form components
 export { default as Select } from './Select';
+export type { SelectOption, SelectProps } from './Select';
 export { default as Modal } from './Modal';
 export { default as Card } from './Card';
 export { default as Table } from './Table';
