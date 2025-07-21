@@ -19,6 +19,9 @@ export * from './forms';
 export { default as DatePicker } from './forms/DatePicker';
 export type { DatePickerProps } from './forms/DatePicker';
 
+export { default as TabbedForm } from './forms/TabbedForm';
+export type { TabbedFormProps, FormTab } from './forms/TabbedForm';
+
 // Enhanced form components
 export { default as Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';

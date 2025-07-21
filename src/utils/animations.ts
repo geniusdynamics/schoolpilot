@@ -97,7 +97,7 @@ export const animationPresets = {
     duration: designTokens.animations.duration.normal,
     easing: designTokens.animations.easing.easeOut,
     delay: '50ms', // Base delay, multiply by index
-  },
+  } as AnimationPreset,
 } as const;
 
 // Animation keyframes
@@ -293,15 +293,15 @@ export const optimizeAnimation = (element: HTMLElement, properties: string[]): v
 
 // Animation event handlers
 export const useAnimationEvents = () => {
-  const handleAnimationStart = (callback: () => void) => (event: AnimationEvent) => {
+  const handleAnimationStart = (callback: () => void) => (_event: AnimationEvent) => {
     callback();
   };
   
-  const handleAnimationEnd = (callback: () => void) => (event: AnimationEvent) => {
+  const handleAnimationEnd = (callback: () => void) => (_event: AnimationEvent) => {
     callback();
   };
   
-  const handleTransitionEnd = (callback: () => void) => (event: TransitionEvent) => {
+  const handleTransitionEnd = (callback: () => void) => (_event: TransitionEvent) => {
     callback();
   };
   
@@ -349,4 +349,28 @@ export const useIntersectionAnimation = (
 };
 
 // React imports
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+// Transition state hook for component transitions
+export const useTransitionState = () => {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  
+  const startTransition = useCallback((callback: () => void) => {
+    setIsTransitioning(true);
+    
+    // Execute the callback after a brief delay to allow for transition effects
+    setTimeout(() => {
+      callback();
+      
+      // Reset transition state after animation completes
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 200); // Match typical transition duration
+    }, 50);
+  }, []);
+  
+  return {
+    isTransitioning,
+    startTransition,
+  };
+};
