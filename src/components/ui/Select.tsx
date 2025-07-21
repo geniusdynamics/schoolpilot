@@ -338,19 +338,40 @@ const Select: React.FC<SelectProps> = ({
   }, [onFocus]);
 
   const handleBlur = useCallback((event: FocusEvent<HTMLDivElement>) => {
-    // Only close if focus is moving outside the component
-    if (!containerRef.current?.contains(event.relatedTarget as Node)) {
-      setIsOpen(false);
-      setSearchQuery('');
-      setFocusedIndex(-1);
+    // For multi-select, don't close on blur - let click outside handle it
+    if (multiple) {
+      onBlur?.(event);
+      return;
     }
+    
+    // Use setTimeout to allow click events to be processed first
+    setTimeout(() => {
+      // Only close if focus is moving outside the component and dropdown is still open
+      if (!containerRef.current?.contains(document.activeElement as Node)) {
+        setIsOpen(false);
+        setSearchQuery('');
+        setFocusedIndex(-1);
+      }
+    }, 0);
     onBlur?.(event);
-  }, [onBlur]);
+  }, [onBlur, multiple]);
 
   // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event: Event) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Element;
+      
+      // Don't close if clicking on an option (let the option handler run first)
+      if (target && target.closest('[role="option"]')) {
+        return;
+      }
+      
+      // For multi-select, be more careful about closing
+      if (multiple && target && containerRef.current?.contains(target as Node)) {
+        return;
+      }
+      
+      if (containerRef.current && !containerRef.current.contains(target as Node)) {
         setIsOpen(false);
         setSearchQuery('');
         setFocusedIndex(-1);
@@ -366,7 +387,7 @@ const Select: React.FC<SelectProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, multiple]);
 
   // Focus search input when dropdown opens
   useEffect(() => {

@@ -115,7 +115,11 @@ describe('Select Component', () => {
 
       expect(onChange).toHaveBeenCalledWith(['option1']);
       
+      // Wait a bit to ensure the dropdown stays open
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Dropdown should still be open for multi-select
+      expect(screen.getByRole('combobox')).toHaveAttribute('aria-expanded', 'true');
       const option2 = screen.getByRole('option', { name: /Option 2/ });
       await user.click(option2);
 
