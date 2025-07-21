@@ -16,6 +16,9 @@ export type { ModernInputProps } from './Input';
 // Form utilities
 export * from './forms';
 
+export { default as DatePicker } from './forms/DatePicker';
+export type { DatePickerProps } from './forms/DatePicker';
+
 // Enhanced form components
 export { default as Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';
