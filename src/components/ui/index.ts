@@ -22,6 +22,12 @@ export type { DatePickerProps } from './forms/DatePicker';
 export { default as TabbedForm } from './forms/TabbedForm';
 export type { TabbedFormProps, FormTab } from './forms/TabbedForm';
 
+// Data display components
+export * from './data';
+
+export { default as DataGrid } from './data/DataGrid';
+export type { DataGridProps, DataGridColumn, PaginationConfig } from './data/DataGrid';
+
 // Enhanced form components
 export { default as Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';
