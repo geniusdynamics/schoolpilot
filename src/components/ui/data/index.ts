@@ -5,3 +5,6 @@ export { default as DataGrid } from './DataGrid';
 export type { DataGridProps, DataGridColumn, PaginationConfig } from './DataGrid';
 
 export { default as SkeletonLoader } from './SkeletonLoader';
+
+export { default as DataCard } from './DataCard';
+export type { DataCardMetric, DataCardField } from './DataCard';

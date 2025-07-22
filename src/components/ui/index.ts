@@ -33,6 +33,7 @@ export { default as Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';
 export { default as Modal } from './Modal';
 export { default as Card } from './Card';
+export type { CardVariant, CardSize } from './Card';
 export { default as Table } from './Table';
 export { default as Tabs } from './Tabs';
 export { default as Spinner } from './Spinner';
