@@ -8,3 +8,6 @@ export { default as SkeletonLoader } from './SkeletonLoader';
 
 export { default as DataCard } from './DataCard';
 export type { DataCardMetric, DataCardField } from './DataCard';
+
+export { default as KanbanBoard } from './KanbanBoard';
+export type { KanbanBoardProps, KanbanColumn, KanbanCard } from './KanbanBoard';
