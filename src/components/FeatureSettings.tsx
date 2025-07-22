@@ -27,6 +27,7 @@ import MemoryDashboard from './MemoryDashboard';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
+import TooltipDemo from './TooltipDemo';
 
 interface FeatureSettingsProps {
   className?: string;
@@ -35,7 +36,7 @@ interface FeatureSettingsProps {
 const FeatureSettings: React.FC<FeatureSettingsProps> = ({
   className = ''
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'memory'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'memory' | 'ui-components'>('overview');
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [config, setConfig] = useState(() => {
     // Force refresh configuration to ensure new feature flags are loaded
@@ -458,7 +459,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     { id: 'features', label: 'Feature Flags', icon: Cog6ToothIcon },
     { id: 'conflicts', label: `Conflicts ${conflicts.length > 0 ? `(${conflicts.length})` : ''}`, icon: ExclamationTriangleIcon },
     { id: 'performance', label: 'Performance', icon: ClockIcon },
-    { id: 'memory', label: 'Memory', icon: ServerIcon }
+    { id: 'memory', label: 'Memory', icon: ServerIcon },
+    { id: 'ui-components', label: 'UI Components', icon: Cog6ToothIcon }
   ];
 
   return (
@@ -502,6 +504,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
         {activeTab === 'conflicts' && renderConflictsTab()}
         {activeTab === 'performance' && <PerformanceDashboard />}
         {activeTab === 'memory' && <MemoryDashboard />}
+        {activeTab === 'ui-components' && <TooltipDemo />}
       </div>
     </div>
   );

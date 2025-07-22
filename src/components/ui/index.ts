@@ -48,6 +48,15 @@ export {
 export { default as Toast } from './feedback/Toast';
 export type { ToastProps, ToastVariant } from './feedback/Toast';
 
+export {
+  Tooltip,
+  InfoTooltip,
+  HelpTooltip,
+  ValidationTooltip,
+  useTooltip
+} from './feedback/Tooltip';
+export type { TooltipProps, InfoTooltipProps, HelpTooltipProps, ValidationTooltipProps } from './feedback/Tooltip';
+
 // Enhanced form components
 export { default as Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';

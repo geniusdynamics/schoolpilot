@@ -17,3 +17,12 @@ export {
 
 export { default as Toast } from './Toast';
 export type { ToastProps, ToastVariant } from './Toast';
+
+export {
+  Tooltip,
+  InfoTooltip,
+  HelpTooltip,
+  ValidationTooltip,
+  useTooltip
+} from './Tooltip';
+export type { TooltipProps, InfoTooltipProps, HelpTooltipProps, ValidationTooltipProps } from './Tooltip';
