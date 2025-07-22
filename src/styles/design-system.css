@@ -407,6 +407,167 @@
   }
 }
 
+/* Page transition keyframes */
+@keyframes pageSlideLeft {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pageSlideRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pageSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageSlideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Advanced interaction keyframes */
+@keyframes morphIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-10deg);
+    border-radius: 50%;
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    border-radius: var(--border-radius-md);
+  }
+}
+
+@keyframes morphOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    border-radius: var(--border-radius-md);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) rotate(10deg);
+    border-radius: 50%;
+  }
+}
+
+/* Elastic keyframes */
+@keyframes elasticIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  25% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  75% {
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes elasticOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(0.97);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+/* Attention-seeking keyframes */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-10px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(10px);
+  }
+}
+
+@keyframes wobble {
+  0% {
+    transform: translateX(0%);
+  }
+  15% {
+    transform: translateX(-25%) rotate(-5deg);
+  }
+  30% {
+    transform: translateX(20%) rotate(3deg);
+  }
+  45% {
+    transform: translateX(-15%) rotate(-3deg);
+  }
+  60% {
+    transform: translateX(10%) rotate(2deg);
+  }
+  75% {
+    transform: translateX(-5%) rotate(-1deg);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
 /* Glow utility classes */
 /* Glow effect utility classes */
 .glow-focus {
@@ -534,6 +695,53 @@
   animation-delay: calc(var(--stagger-index, 0) * 50ms);
 }
 
+/* Page transition animations */
+.animate-page-slide-left {
+  animation: pageSlideLeft var(--duration-normal) var(--easing-ease-in-out) both;
+}
+
+.animate-page-slide-right {
+  animation: pageSlideRight var(--duration-normal) var(--easing-ease-in-out) both;
+}
+
+.animate-page-slide-up {
+  animation: pageSlideUp var(--duration-normal) var(--easing-ease-in-out) both;
+}
+
+.animate-page-slide-down {
+  animation: pageSlideDown var(--duration-normal) var(--easing-ease-in-out) both;
+}
+
+/* Advanced interaction animations */
+.animate-morph-in {
+  animation: morphIn var(--duration-slow) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-morph-out {
+  animation: morphOut var(--duration-normal) var(--easing-ease-in) both;
+}
+
+.animate-elastic-in {
+  animation: elasticIn var(--duration-slow) cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+}
+
+.animate-elastic-out {
+  animation: elasticOut var(--duration-normal) cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* Attention-seeking animations */
+.animate-shake {
+  animation: shake 600ms var(--easing-ease-in-out);
+}
+
+.animate-wobble {
+  animation: wobble 1s var(--easing-ease-in-out);
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.3s var(--easing-ease-in-out) infinite;
+}
+
 /* Transition utilities */
 .transition-all {
   transition: all var(--duration-normal) var(--easing-ease-in-out);
@@ -557,6 +765,53 @@
   transition: box-shadow var(--duration-normal) var(--easing-ease-in-out);
 }
 
+/* Performance optimization utilities */
+.will-change-auto {
+  will-change: auto;
+}
+
+.will-change-scroll {
+  will-change: scroll-position;
+}
+
+.will-change-contents {
+  will-change: contents;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-transform-opacity {
+  will-change: transform, opacity;
+}
+
+/* GPU acceleration utilities */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.hardware-accelerated {
+  transform: translate3d(0, 0, 0);
+}
+
+/* Animation performance classes */
+.animate-performant {
+  animation-fill-mode: both;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.animate-60fps {
+  animation-timing-function: steps(60, end);
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -571,8 +826,24 @@
   .animate-pulse,
   .animate-spin,
   .animate-bounce,
-  .animate-shimmer {
+  .animate-shimmer,
+  .animate-shake,
+  .animate-wobble,
+  .animate-heartbeat {
     animation: none !important;
+  }
+  
+  /* Provide instant feedback for reduced motion */
+  .animate-fade-in,
+  .animate-slide-in-up,
+  .animate-slide-in-down,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-scale-in,
+  .animate-morph-in,
+  .animate-elastic-in {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
