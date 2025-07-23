@@ -6,8 +6,8 @@ import { createPortal } from 'react-dom';
 import { useFocusManagement, announceToScreenReader } from '../../../utils/accessibility';
 import { useAnimation, transitions } from '../../../utils/animations';
 import { designTokens } from '../../../utils/designTokens';
-import { Button } from '../Button';
-import { IconButton } from '../IconButton';
+import Button from '../Button';
+import IconButton from '../IconButton';
 
 export interface SlideoutFormProps {
   isOpen: boolean;

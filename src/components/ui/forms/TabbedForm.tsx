@@ -1,7 +1,7 @@
 // ABOUTME: TabbedForm component for multi-step forms with tab navigation and progress indicators
 // ABOUTME: Supports validation state indicators, responsive mobile navigation, and form state preservation
 
-import React, { ReactNode, useState, useCallback, useEffect, useRef } from 'react';
+import React, { ReactNode, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useTransition } from '../../../utils/animations';
 import { designTokens } from '../../../utils/designTokens';
 import { generateId, announceToScreenReader } from '../../../utils/accessibility';
