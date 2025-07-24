@@ -1,15 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { StudentWallet, WalletTransaction, Student, WalletTransactionType, StudentStatus } from '@/types';
-import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
+import { Card, DataGrid, Button, Modal, Input, Select, Textarea, Toast, Spinner } from '@/components/ui';
 import { PlusIcon, EyeIcon, CreditCardIcon } from '@/components/ui/icons';
 import { useAppData } from '@/contexts/AppDataContext';
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 type WalletTransactionFormData = {
@@ -33,6 +26,8 @@ const StudentWalletPage: React.FC = () => {
   
   const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<StudentWallet | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   const initialTxFormData: WalletTransactionFormData = { 
     student_id: '', 
@@ -79,13 +74,13 @@ const StudentWalletPage: React.FC = () => {
 
   const handleTxSubmit = async () => {
     if (!txFormData.student_id || txFormData.amount <= 0 || !txFormData.description) {
-      alert("Student, valid Amount, and Description are required.");
+      setToast({ message: 'Student, valid Amount, and Description are required.', type: 'error' });
       return;
     }
     
     const validAdminTxTypes: WalletTransactionType[] = [WalletTransactionType.DEPOSIT, WalletTransactionType.ADJUSTMENT_DEBIT, WalletTransactionType.ADJUSTMENT_CREDIT];
     if(!validAdminTxTypes.includes(txFormData.transaction_type as WalletTransactionType)){
-        alert("Invalid transaction type for manual entry.");
+        setToast({ message: 'Invalid transaction type for manual entry.', type: 'error' });
         return;
     }
     
@@ -104,32 +99,84 @@ const StudentWalletPage: React.FC = () => {
       description: txFormData.description!,
     };
 
-    await addWalletTransaction(payload);
-    closeTxModal();
+    try {
+      await addWalletTransaction(payload);
+      setToast({ message: 'Transaction posted successfully!', type: 'success' });
+      closeTxModal();
+    } catch (error) {
+      setToast({ message: 'Failed to post transaction. Please try again.', type: 'error' });
+    }
   };
 
   const walletColumns = [
-    { header: 'Student Name', accessor: 'student_name' as keyof StudentWallet },
-    { header: 'Admission No.', accessor: (item: StudentWallet) => students.find(s => s.id === item.student_id)?.admission_no || 'N/A' },
-    { header: 'Wallet Balance (KES)', accessor: 'balance' as keyof StudentWallet, render: (item: StudentWallet) => item.balance.toFixed(2) },
-    { header: 'Last Updated', accessor: 'last_updated' as keyof StudentWallet, render: (item: StudentWallet) => new Date(item.last_updated).toLocaleString() },
+    { 
+      key: 'student_name', 
+      header: 'Student Name', 
+      sortable: true,
+      searchable: true
+    },
+    { 
+      key: 'admission_no', 
+      header: 'Admission No.', 
+      render: (item: StudentWallet) => students.find(s => s.id === item.student_id)?.admission_no || 'N/A',
+      sortable: true,
+      searchable: true
+    },
+    { 
+      key: 'balance', 
+      header: 'Wallet Balance (KES)', 
+      render: (item: StudentWallet) => item.balance.toFixed(2),
+      sortable: true,
+      align: 'right' as const
+    },
+    { 
+      key: 'last_updated', 
+      header: 'Last Updated', 
+      render: (item: StudentWallet) => new Date(item.last_updated).toLocaleString(),
+      sortable: true
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'student_id' as keyof StudentWallet,
       render: (item: StudentWallet) => (
         <Button size="sm" variant="ghost" onClick={() => openHistoryModal(item)} leftIcon={<EyeIcon className="w-4 h-4" />}>
           View History
         </Button>
       ),
+      width: 150
     },
   ];
 
   const historyColumns = [
-    { header: 'Date', accessor: 'transaction_date' as keyof WalletTransaction, render: (item: WalletTransaction) => new Date(item.transaction_date).toLocaleString() },
-    { header: 'Type', accessor: 'transaction_type' as keyof WalletTransaction },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof WalletTransaction, render: (item:WalletTransaction) => item.amount.toFixed(2)},
-    { header: 'Description', accessor: 'description' as keyof WalletTransaction },
-    { header: 'Running Balance (KES)', accessor: 'running_balance' as keyof WalletTransaction, render: (item:WalletTransaction) => item.running_balance.toFixed(2) },
+    { 
+      key: 'transaction_date', 
+      header: 'Date', 
+      render: (item: WalletTransaction) => new Date(item.transaction_date).toLocaleString(),
+      sortable: true
+    },
+    { 
+      key: 'transaction_type', 
+      header: 'Type', 
+      sortable: true
+    },
+    { 
+      key: 'amount', 
+      header: 'Amount (KES)', 
+      render: (item: WalletTransaction) => item.amount.toFixed(2),
+      sortable: true,
+      align: 'right' as const
+    },
+    { 
+      key: 'description', 
+      header: 'Description',
+      searchable: true
+    },
+    { 
+      key: 'running_balance', 
+      header: 'Running Balance (KES)', 
+      render: (item: WalletTransaction) => item.running_balance.toFixed(2),
+      align: 'right' as const
+    },
   ];
 
   if ((loading.studentWallets || loading.students || loading.walletTransactions) && !isTxModalOpen && !isHistoryModalOpen) {
@@ -155,7 +202,18 @@ const StudentWalletPage: React.FC = () => {
                 onChange={e => setSearchTerm(e.target.value)}
             />
         </div>
-        <Table columns={walletColumns} data={filteredStudentWallets} isLoading={loading.studentWallets && !isTxModalOpen} />
+        <DataGrid 
+          columns={walletColumns} 
+          data={filteredStudentWallets} 
+          loading={loading.studentWallets && !isTxModalOpen}
+          selectable
+          selectedRows={selectedRows}
+          onSelectionChange={setSelectedRows}
+          searchable
+          sortable
+          pagination
+          pageSize={10}
+        />
       </Card>
 
       {/* Manual Transaction Modal */}
@@ -195,15 +253,27 @@ const StudentWalletPage: React.FC = () => {
                  <div className="mb-4 p-3 bg-indigo-50 rounded-md">
                     Current Balance: <strong className="text-indigo-700">KES {selectedStudentForHistory.balance.toFixed(2)}</strong>
                 </div>
-                <Table 
+                <DataGrid 
                     columns={historyColumns} 
                     data={studentTransactionHistory} 
-                    isLoading={loading.walletTransactions}
+                    loading={loading.walletTransactions}
+                    searchable
+                    sortable
+                    pagination
+                    pageSize={5}
                     emptyStateMessage="No transactions found for this student."
                 />
             </div>
         )}
       </Modal>
+      
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

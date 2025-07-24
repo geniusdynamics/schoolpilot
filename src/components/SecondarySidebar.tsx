@@ -224,7 +224,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       {/* Mobile backdrop */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20"
+          className="fixed inset-0 bg-black/20 lg:backdrop-blur-sm z-20"
           onClick={onClose}
         />
       )}
@@ -237,7 +237,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           flex flex-col shadow-xl border-l ${moduleStyle.border}
           px-2 py-4
           ${moduleStyle.background}
-          backdrop-blur-lg
+          lg:backdrop-blur-lg backdrop-blur-sm
           relative
           h-screen
           max-h-screen

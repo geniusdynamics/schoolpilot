@@ -13,6 +13,9 @@ export { default as ButtonGroup } from './ButtonGroup';
 export { default as Input } from './Input';
 export type { ModernInputProps } from './Input';
 
+export { default as Textarea } from './Textarea';
+export type { TextareaProps } from './Textarea';
+
 // Form utilities
 export * from './forms';
 

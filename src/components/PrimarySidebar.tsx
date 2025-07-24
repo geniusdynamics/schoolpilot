@@ -135,7 +135,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
     <aside className={`
       flex flex-col items-center min-h-full w-20
       bg-gradient-to-b from-slate-900/80 via-slate-800/70 to-slate-900/80
-      backdrop-blur-xl
+      lg:backdrop-blur-xl backdrop-blur-sm
       border-r border-white/10
       shadow-2xl shadow-black/20
       rounded-r-3xl

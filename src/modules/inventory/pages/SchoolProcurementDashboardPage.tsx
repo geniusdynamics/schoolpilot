@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import Table from '@/components/ui/Table';
 import DonutChart from '@/components/ui/DonutChart';
 import HorizontalBarChart from '@/components/ui/BarChart';
+import { KanbanBoard, KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
 import { useAppData } from '@/contexts/AppDataContext'; 
 import { PurchaseOrder, Requisition, RequisitionStatus, PurchaseOrderStatus, Supplier, ChartData } from '@/types';
 import Spinner from '@/components/ui/Spinner';
@@ -98,6 +99,55 @@ const SchoolProcurementDashboardPage: React.FC = () => {
     </div>
   );
 
+  // Transform PO data for Kanban board
+  const transformPOToKanbanCard = (po: PurchaseOrder): KanbanCard => ({
+    id: po.id,
+    title: po.id,
+    description: `${po.supplier_name} - Ksh ${po.total_value?.toFixed(2)}`,
+    tags: [new Date(po.order_date).toLocaleDateString()],
+    priority: po.total_value && po.total_value > 100000 ? 'high' : 'medium',
+  });
+
+  // Kanban columns configuration
+  const kanbanColumns: KanbanColumn[] = [
+    {
+      id: 'raised',
+      title: `Raised (${poStatusRaised.length})`,
+      cards: poStatusRaised.map(transformPOToKanbanCard),
+      color: '#3B82F6',
+    },
+    {
+      id: 'dispatched',
+      title: `Dispatched (${poStatusDispatched.length})`,
+      cards: poStatusDispatched.map(transformPOToKanbanCard),
+      color: '#F59E0B',
+    },
+    {
+      id: 'received',
+      title: `Received (${poStatusReceived.length})`,
+      cards: poStatusReceived.map(transformPOToKanbanCard),
+      color: '#10B981',
+    },
+    {
+      id: 'invoiced',
+      title: `Invoiced (${poStatusInvoiced.length})`,
+      cards: poStatusInvoiced.map(transformPOToKanbanCard),
+      color: '#8B5CF6',
+    },
+  ];
+
+  // Handle PO status change via drag and drop
+  const handlePOStatusChange = (cardId: string, fromColumn: string, toColumn: string) => {
+    console.log(`Moving PO ${cardId} from ${fromColumn} to ${toColumn}`);
+    // Here you would typically update the PO status in your backend
+    // For now, we'll just log the action
+  };
+
+  // Handle PO card click
+  const handlePOCardClick = (card: KanbanCard) => {
+    console.log(`Clicked on PO: ${card.id}`);
+    // Here you would typically open a modal or navigate to PO details
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 font-inter">
@@ -140,32 +190,12 @@ const SchoolProcurementDashboardPage: React.FC = () => {
           </Card>
 
           <Card title="Purchase Order Status" className="bg-white">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2 p-2 bg-gray-100 rounded-t-md">Raised ({poStatusRaised.length})</h3>
-                <div className="space-y-2 max-h-96 overflow-y-auto p-1">
-                  {poStatusRaised.map(renderPurchaseOrderCard)}
-                </div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2 p-2 bg-gray-100 rounded-t-md">Dispatched ({poStatusDispatched.length})</h3>
-                <div className="space-y-2 max-h-96 overflow-y-auto p-1">
-                  {poStatusDispatched.map(renderPurchaseOrderCard)}
-                </div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2 p-2 bg-gray-100 rounded-t-md">Received ({poStatusReceived.length})</h3>
-                <div className="space-y-2 max-h-96 overflow-y-auto p-1">
-                  {poStatusReceived.map(renderPurchaseOrderCard)}
-                </div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2 p-2 bg-gray-100 rounded-t-md">Invoiced ({poStatusInvoiced.length})</h3>
-                <div className="space-y-2 max-h-96 overflow-y-auto p-1">
-                  {poStatusInvoiced.map(renderPurchaseOrderCard)}
-                </div>
-              </div>
-            </div>
+            <KanbanBoard
+              columns={kanbanColumns}
+              onCardMove={handlePOStatusChange}
+              onCardClick={handlePOCardClick}
+              className="p-4"
+            />
           </Card>
           
           <Card title="Top Spending Categories" className="bg-white">
