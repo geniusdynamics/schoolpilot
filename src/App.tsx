@@ -397,7 +397,6 @@ const App: React.FC = () => {
           });
           
           await Promise.race([initPromise, timeoutPromise]);
-          trackModuleInit(); // Record completion time
           debugLog('✅ [App] Modules initialized successfully');
         } catch (error) {
           console.error('❌ [App] Module initialization failed:', error);

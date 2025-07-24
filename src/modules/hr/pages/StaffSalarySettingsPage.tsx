@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Staff, StaffSalarySetting, StaffRecurringItem, PayrollItemType, PayrollItemCategory } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -148,40 +148,95 @@ const StaffSalarySettingsPage: React.FC = () => {
     }
   };
 
-  const staffListColumns = [
-    { header: 'Staff No.', accessor: 'staff_no' as keyof Staff },
-    { header: 'Name', accessor: 'display_name' as keyof Staff },
-    { header: 'Department', accessor: 'department_name' as keyof Staff },
-    { header: 'Designation', accessor: 'designation_title' as keyof Staff },
-    { header: 'Basic Salary', 
-      accessor: 'id' as keyof Staff, 
-      render: (staffMember: Staff) => {
-        const setting = staffSalarySettings.find(s => s.staff_id === staffMember.id);
+  const staffListColumns: DataGridColumn<Staff>[] = [
+    { 
+      key: 'staff_no', 
+      header: 'Staff No.', 
+      sortable: true, 
+      filterable: true, 
+      width: 120
+    },
+    { 
+      key: 'display_name', 
+      header: 'Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200
+    },
+    { 
+      key: 'department_name', 
+      header: 'Department', 
+      sortable: true, 
+      filterable: true, 
+      width: 150
+    },
+    { 
+      key: 'designation_title', 
+      header: 'Designation', 
+      sortable: true, 
+      filterable: true, 
+      width: 150
+    },
+    { 
+      key: 'id', 
+      header: 'Basic Salary', 
+      sortable: true, 
+      filterable: false, 
+      width: 150,
+      render: (value, row) => {
+        const setting = staffSalarySettings.find(s => s.staff_id === row.id);
         return setting ? `Ksh ${setting.basic_salary.toFixed(2)}` : 'Not Set';
       } 
     },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Staff,
-      render: (staffMember: Staff) => (
-        <Button size="sm" variant="ghost" onClick={() => openSettingModal(staffMember)} leftIcon={<CogIcon className="w-4 h-4" />}>
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
+        <Button size="sm" variant="ghost" onClick={() => openSettingModal(row)} leftIcon={<CogIcon className="w-4 h-4" />}>
           Manage Salary
         </Button>
       ),
     },
   ];
 
-  const recurringItemColumns = [
-    { header: 'Item Type', accessor: 'item_type_name' as keyof StaffRecurringItem },
-    { header: 'Category', accessor: 'item_category' as keyof StaffRecurringItem },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof StaffRecurringItem, render: (item: StaffRecurringItem) => item.amount.toFixed(2) },
+  const recurringItemColumns: DataGridColumn<StaffRecurringItem>[] = [
+    { 
+      key: 'item_type_name', 
+      header: 'Item Type', 
+      sortable: true, 
+      filterable: true, 
+      width: 200
+    },
+    { 
+      key: 'item_category', 
+      header: 'Category', 
+      sortable: true, 
+      filterable: true, 
+      width: 150
+    },
+    { 
+      key: 'amount', 
+      header: 'Amount (KES)', 
+      sortable: true, 
+      filterable: false, 
+      width: 150,
+      render: (value, row) => row.amount.toFixed(2)
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof StaffRecurringItem,
-      render: (item: StaffRecurringItem) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openRecurringItemModal(item)} leftIcon={<EditIcon className="w-3 h-3"/>}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteRecurringItem(item.id)} leftIcon={<DeleteIcon className="w-3 h-3"/>}>Del</Button>
+          <Button size="sm" variant="ghost" onClick={() => openRecurringItemModal(row)} leftIcon={<EditIcon className="w-3 h-3"/>}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDeleteRecurringItem(row.id)} leftIcon={<DeleteIcon className="w-3 h-3"/>}>Del</Button>
         </div>
       ),
     },
@@ -201,7 +256,18 @@ const StaffSalarySettingsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage salary configurations for each staff member, including basic pay and recurring allowances or deductions.
         </p>
-        <Table columns={staffListColumns} data={staff} isLoading={loading.staff && !isSettingModalOpen} />
+        <DataGrid 
+          columns={staffListColumns} 
+          data={staff || []} 
+          isLoading={loading.staff && !isSettingModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <WalletIcon className="w-12 h-12 text-gray-400" />,
+            title: "No staff members found",
+            description: "Add staff members to manage their salary settings and payroll configurations."
+          }}
+        />
       </Card>
 
       {/* Main Salary Setting Modal */}
@@ -233,7 +299,17 @@ const StaffSalarySettingsPage: React.FC = () => {
             bodyClassName="p-0"
         >
             {modalRecurringItems.length > 0 ? (
-                 <Table columns={recurringItemColumns} data={modalRecurringItems} />
+                 <DataGrid 
+                   columns={recurringItemColumns} 
+                   data={modalRecurringItems}
+                   sortable
+                   filterable
+                   emptyState={{
+                     icon: <PlusIcon className="w-8 h-8 text-gray-400" />,
+                     title: "No recurring items",
+                     description: "Add recurring allowances or deductions for this staff member."
+                   }}
+                 />
             ): (
                 <p className="text-sm text-gray-500 p-4 text-center">No recurring items added for this staff member yet.</p>
             )}

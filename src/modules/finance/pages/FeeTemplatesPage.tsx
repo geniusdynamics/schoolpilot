@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { FinFeeTemplateType as FeeTemplate, FinFeeTemplateItemType as FeeTemplateItem, SchoolPeriod, StudentCategory, FinChartOfAccountType as ChartOfAccount, FinExpenseCategoryType as ExpenseCategory, FinAccountTypeEnum } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -164,37 +164,108 @@ const FeeTemplatesPage: React.FC = () => {
     }
   };
 
-  const templateColumns = [
-    { header: 'ID', accessor: 'id' as keyof FeeTemplate },
-    { header: 'Template Name', accessor: 'name' as keyof FeeTemplate },
-    { header: 'School Period', accessor: 'school_period_name' as keyof FeeTemplate },
-    { header: 'Student Category', accessor: 'student_category_name' as keyof FeeTemplate },
-    { header: 'Items', accessor: 'id' as keyof FeeTemplate, render: (item: FeeTemplate) => (item.items?.length || 0) },
+  const templateColumns: DataGridColumn<FeeTemplate>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, row) => <span className="font-mono text-sm">{value}</span>
+    },
+    { 
+      key: 'name', 
+      header: 'Template Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'school_period_name', 
+      header: 'School Period', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="text-blue-600">{value}</span>
+    },
+    { 
+      key: 'student_category_name', 
+      header: 'Student Category', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="text-purple-600">{value || 'All Categories'}</span>
+    },
+    { 
+      key: 'id', 
+      header: 'Items', 
+      sortable: true, 
+      filterable: false, 
+      width: 80,
+      render: (value, row) => <span className="text-center font-semibold">{row.items?.length || 0}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof FeeTemplate,
-      render: (item: FeeTemplate) => (
+      sortable: false,
+      filterable: false,
+      width: 200,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openTemplateModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="secondary" onClick={() => openItemModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Items</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteTemplate(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openTemplateModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="secondary" onClick={() => openItemModal(row)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Items</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDeleteTemplate(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
   ];
 
-  const itemColumns = [
-    { header: 'Description', accessor: 'description' as keyof FeeTemplateItem },
-    { header: 'Amount', accessor: 'amount' as keyof FeeTemplateItem, render: (item: FeeTemplateItem) => item.amount.toFixed(2) },
-    { header: 'Revenue Account', accessor: 'revenue_account_name' as keyof FeeTemplateItem },
-    { header: 'Expense Category', accessor: 'linked_expense_category_name' as keyof FeeTemplateItem },
+  const itemColumns: DataGridColumn<FeeTemplateItem>[] = [
+    { 
+      key: 'description', 
+      header: 'Description', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'amount', 
+      header: 'Amount', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="font-mono text-green-600">{row.amount.toFixed(2)}</span>
+    },
+    { 
+      key: 'revenue_account_name', 
+      header: 'Revenue Account', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, row) => <span className="text-blue-600">{value}</span>
+    },
+    { 
+      key: 'linked_expense_category_name', 
+      header: 'Expense Category', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="text-purple-600">{value || 'None'}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof FeeTemplateItem,
-      render: (item: FeeTemplateItem) => (
+      sortable: false,
+      filterable: false,
+      width: 120,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openItemModal(currentTemplateForItems!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteItem(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
+          <Button size="sm" variant="ghost" onClick={() => openItemModal(currentTemplateForItems!, row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDeleteItem(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
         </div>
       ),
     },
@@ -220,7 +291,22 @@ const FeeTemplatesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Create and manage fee templates for different school periods and student categories. Define template items (voteheads) and amounts.
         </p>
-        <Table columns={templateColumns} data={(feeTemplates || [])} isLoading={loading.feeTemplates && (isTemplateModalOpen || isItemModalOpen)} />
+        <DataGrid 
+          columns={templateColumns} 
+          data={(feeTemplates || [])} 
+          isLoading={loading.feeTemplates && (isTemplateModalOpen || isItemModalOpen)}
+          sortable
+          filterable
+          emptyState={{
+            icon: <TicketIcon className="w-12 h-12 text-gray-400" />,
+            title: "No Fee Templates Found",
+            description: "Create your first fee template to define fees for different school periods and student categories.",
+            action: {
+              label: "Add Fee Template",
+              onClick: () => openTemplateModal()
+            }
+          }}
+        />
       </Card>
 
       <Modal isOpen={isTemplateModalOpen} onClose={closeTemplateModal} title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'} size="lg"
@@ -295,11 +381,17 @@ const FeeTemplatesPage: React.FC = () => {
             </Card>
             
             <h4 className="text-md font-semibold text-gray-700 mt-6">Existing Items for this Template</h4>
-            <Table 
+            <DataGrid 
               columns={itemColumns} 
               data={(currentTemplateForItems.items || [])} 
               isLoading={loading.feeTemplates && isItemModalOpen}
-              emptyStateMessage="No items defined for this fee template yet."
+              sortable
+              filterable
+              emptyState={{
+                icon: <ListBulletIcon className="w-12 h-12 text-gray-400" />,
+                title: "No Items Defined",
+                description: "No items have been defined for this fee template yet. Add items to specify the fee components."
+              }}
             />
           </div>
         )}

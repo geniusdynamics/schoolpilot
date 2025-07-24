@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Warehouse } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -59,16 +59,32 @@ const WarehousesPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Warehouse },
-    { header: 'Warehouse Name', accessor: 'name' as keyof Warehouse },
+  const columns: DataGridColumn<Warehouse>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80
+    },
+    { 
+      key: 'name', 
+      header: 'Warehouse Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Warehouse,
-      render: (item: Warehouse) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
+        <div className="space-x-1">
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -92,7 +108,22 @@ const WarehousesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('warehouses.description')}
         </p>
-        <Table columns={columns} data={warehouses} isLoading={loading.warehouses && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={warehouses || []} 
+          isLoading={loading.warehouses && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <CubeTransparentIcon className="w-12 h-12 text-gray-400" />,
+            title: "No warehouses found",
+            description: "Create warehouses to organize and track your inventory across different locations.",
+            action: {
+              label: "Add Warehouse",
+              onClick: () => openModal()
+            }
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingWarehouse ? t('warehouses.editWarehouse') : t('warehouses.addNewWarehouse')}

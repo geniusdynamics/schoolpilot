@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FinStudentOpeningBalanceType as StudentOpeningBalance, Student, FinOpeningBalanceTypeEnum as OpeningBalanceType, StudentStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -97,19 +97,62 @@ const StudentOpeningBalancesPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Student Name', accessor: 'student_name' as keyof StudentOpeningBalance },
-    { header: 'Balance Type', accessor: 'balance_type' as keyof StudentOpeningBalance },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof StudentOpeningBalance, render: (item: StudentOpeningBalance) => item.amount.toFixed(2) },
-    { header: 'As Of Date', accessor: 'as_of_date' as keyof StudentOpeningBalance, render: (item: StudentOpeningBalance) => new Date(item.as_of_date).toLocaleDateString() },
-    { header: 'Billed', accessor: 'is_billed' as keyof StudentOpeningBalance },
+  const columns: DataGridColumn<StudentOpeningBalance>[] = [
+    { 
+      key: 'student_name', 
+      header: 'Student Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'balance_type', 
+      header: 'Balance Type', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+        row.balance_type === OpeningBalanceType.DEBIT ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+      }`}>{value}</span>
+    },
+    { 
+      key: 'amount', 
+      header: 'Amount (KES)', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="font-mono text-green-600">{row.amount.toFixed(2)}</span>
+    },
+    { 
+      key: 'as_of_date', 
+      header: 'As Of Date', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="text-blue-600">{new Date(row.as_of_date).toLocaleDateString()}</span>
+    },
+    { 
+      key: 'is_billed', 
+      header: 'Billed', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, row) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+        row.is_billed ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+      }`}>{row.is_billed ? 'Yes' : 'No'}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof StudentOpeningBalance,
-      render: (item: StudentOpeningBalance) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -135,7 +178,22 @@ const StudentOpeningBalancesPage: React.FC = () => {
         {studentsWithoutOB.length === 0 && !editingBalance && (
             <p className="text-sm text-yellow-700 bg-yellow-50 p-3 rounded-md">All active students seem to have opening balances recorded.</p>
         )}
-        <Table columns={columns} data={studentOpeningBalances} isLoading={loading.studentOpeningBalances && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={studentOpeningBalances} 
+          isLoading={loading.studentOpeningBalances && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <BookOpenIcon className="w-12 h-12 text-gray-400" />,
+            title: "No opening balances found",
+            description: "Set up opening fee balances for students to track their financial history from the beginning of the academic period.",
+            action: studentsWithoutOB.length > 0 ? {
+              label: "Add Opening Balance",
+              onClick: () => openModal()
+            } : undefined
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingBalance ? 'Edit Opening Balance' : 'Add Student Opening Balance'} size="lg"

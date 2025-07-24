@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, Supplier, ItemInv } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -182,50 +182,131 @@ const PurchaseOrdersPage: React.FC = () => {
       }
   };
 
-  const poColumns = [
-    { header: 'PO ID', accessor: 'id' as keyof PurchaseOrder },
-    { header: 'Supplier', accessor: 'supplier_name' as keyof PurchaseOrder },
-    { header: 'Order Date', accessor: 'order_date' as keyof PurchaseOrder, render: (item: PurchaseOrder) => new Date(item.order_date).toLocaleDateString() },
-    { header: 'Status', accessor: 'status' as keyof PurchaseOrder, 
-        render: (item: PurchaseOrder) => {
-            let colorClass = 'bg-gray-200 text-gray-800';
-            if (item.status === PurchaseOrderStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
-            else if (item.status === PurchaseOrderStatus.APPROVED || item.status === PurchaseOrderStatus.SENT_TO_SUPPLIER) colorClass = 'bg-blue-100 text-blue-800';
-            else if (item.status === PurchaseOrderStatus.FULLY_RECEIVED || item.status === PurchaseOrderStatus.PARTIALLY_RECEIVED) colorClass = 'bg-green-100 text-green-800';
-            else if (item.status === PurchaseOrderStatus.CANCELLED) colorClass = 'bg-red-100 text-red-800';
-            return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
-        }
+  const poColumns: DataGridColumn<PurchaseOrder>[] = [
+    { 
+      key: 'id', 
+      header: 'PO ID', 
+      accessor: 'id' as keyof PurchaseOrder,
+      sortable: true,
+      filterable: true,
+      width: '120px'
     },
-    { header: 'Items', accessor: 'id' as keyof PurchaseOrder, render: (item: PurchaseOrder) => item.items?.length || 0 },
-    { header: 'Total Value', accessor: 'total_value' as keyof PurchaseOrder, render: (item: PurchaseOrder) => `Ksh ${item.total_value?.toFixed(2) || '0.00'}`},
+    { 
+      key: 'supplier_name', 
+      header: 'Supplier', 
+      accessor: 'supplier_name' as keyof PurchaseOrder,
+      sortable: true,
+      filterable: true,
+      width: '200px'
+    },
+    { 
+      key: 'order_date', 
+      header: 'Order Date', 
+      accessor: 'order_date' as keyof PurchaseOrder, 
+      render: (value: any, item: PurchaseOrder) => new Date(item.order_date).toLocaleDateString(),
+      sortable: true,
+      filterable: true,
+      width: '120px'
+    },
+    { 
+      key: 'status', 
+      header: 'Status', 
+      accessor: 'status' as keyof PurchaseOrder,
+      render: (value: any, item: PurchaseOrder) => {
+        let colorClass = 'bg-gray-200 text-gray-800';
+        if (item.status === PurchaseOrderStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
+        else if (item.status === PurchaseOrderStatus.APPROVED || item.status === PurchaseOrderStatus.SENT_TO_SUPPLIER) colorClass = 'bg-blue-100 text-blue-800';
+        else if (item.status === PurchaseOrderStatus.FULLY_RECEIVED || item.status === PurchaseOrderStatus.PARTIALLY_RECEIVED) colorClass = 'bg-green-100 text-green-800';
+        else if (item.status === PurchaseOrderStatus.CANCELLED) colorClass = 'bg-red-100 text-red-800';
+        return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
+      },
+      sortable: true,
+      filterable: true,
+      width: '140px'
+    },
+    { 
+      key: 'items_count', 
+      header: 'Items', 
+      accessor: 'id' as keyof PurchaseOrder, 
+      render: (value: any, item: PurchaseOrder) => item?.items?.length || 0,
+      sortable: true,
+      width: '80px'
+    },
+    { 
+      key: 'total_value', 
+      header: 'Total Value', 
+      accessor: 'total_value' as keyof PurchaseOrder, 
+      render: (value: any, item: PurchaseOrder) => `Ksh ${item.total_value?.toFixed(2) || '0.00'}`,
+      sortable: true,
+      width: '120px'
+    },
     {
+      key: 'actions',
       header: 'Actions',
       accessor: 'id' as keyof PurchaseOrder,
-      render: (item: PurchaseOrder) => (
+      render: (value: any, item: PurchaseOrder) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openPOModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="secondary" onClick={() => openItemModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Items</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeletePO(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
+      sticky: 'right',
+      width: '200px'
     },
   ];
 
-  const poItemColumns = [
-    { header: 'Item Name', accessor: 'item_name' as keyof PurchaseOrderItem },
-    { header: 'Qty Ordered', accessor: 'quantity_ordered' as keyof PurchaseOrderItem },
-    { header: 'Unit Price', accessor: 'unit_price' as keyof PurchaseOrderItem, render: (item: PurchaseOrderItem) => `Ksh ${item.unit_price.toFixed(2)}` },
-    { header: 'Line Total', accessor: 'line_total' as keyof PurchaseOrderItem, render: (item: PurchaseOrderItem) => `Ksh ${item.line_total?.toFixed(2) || '0.00'}` },
-    { header: 'Qty Received', accessor: 'quantity_received' as keyof PurchaseOrderItem },
+  const poItemColumns: DataGridColumn<PurchaseOrderItem>[] = [
+    { 
+      key: 'item_name', 
+      header: 'Item Name', 
+      accessor: 'item_name' as keyof PurchaseOrderItem,
+      sortable: true,
+      filterable: true,
+      width: '200px'
+    },
+    { 
+      key: 'quantity_ordered', 
+      header: 'Qty Ordered', 
+      accessor: 'quantity_ordered' as keyof PurchaseOrderItem,
+      sortable: true,
+      width: '120px'
+    },
+    { 
+      key: 'unit_price', 
+      header: 'Unit Price', 
+      accessor: 'unit_price' as keyof PurchaseOrderItem, 
+      render: (value: any, item: PurchaseOrderItem) => `Ksh ${item.unit_price.toFixed(2)}`,
+      sortable: true,
+      width: '120px'
+    },
+    { 
+      key: 'line_total', 
+      header: 'Line Total', 
+      accessor: 'line_total' as keyof PurchaseOrderItem, 
+      render: (value: any, item: PurchaseOrderItem) => `Ksh ${item.line_total?.toFixed(2) || '0.00'}`,
+      sortable: true,
+      width: '120px'
+    },
+    { 
+      key: 'quantity_received', 
+      header: 'Qty Received', 
+      accessor: 'quantity_received' as keyof PurchaseOrderItem,
+      sortable: true,
+      width: '120px'
+    },
     {
+      key: 'actions',
       header: 'Actions',
       accessor: 'id' as keyof PurchaseOrderItem,
-      render: (item: PurchaseOrderItem) => (
+      render: (value: any, item: PurchaseOrderItem) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openItemModal(currentPOForItems!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteItem(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
         </div>
       ),
+      sticky: 'right',
+      width: '140px'
     },
   ];
   
@@ -246,7 +327,17 @@ const PurchaseOrdersPage: React.FC = () => {
           New Purchase Order
         </Button>
       }>
-        <Table columns={poColumns} data={purchaseOrders} isLoading={loading.purchaseOrders && (isPOModalOpen || isItemModalOpen)} />
+        <DataGrid 
+          columns={poColumns} 
+          data={purchaseOrders} 
+          sortable
+          filterable
+          emptyState={{
+            icon: <ShoppingCartIcon className="w-8 h-8 text-gray-400" />,
+            title: "No purchase orders found",
+            description: "Get started by creating your first purchase order."
+          }}
+        />
       </Card>
 
       <Modal isOpen={isPOModalOpen} onClose={closePOModal} title={editingPO ? 'Edit Purchase Order' : 'Add New Purchase Order'} size="lg"
@@ -298,11 +389,16 @@ const PurchaseOrdersPage: React.FC = () => {
             </Card>
             
             <h4 className="text-md font-semibold text-gray-700 mt-6">Items in this Purchase Order</h4>
-            <Table 
+            <DataGrid 
               columns={poItemColumns} 
               data={currentPOForItems.items || []} 
-              isLoading={loading.purchaseOrders && isItemModalOpen}
-              emptyStateMessage="No items added to this purchase order yet."
+              sortable
+              filterable
+              emptyState={{
+                icon: <ListBulletIcon className="w-8 h-8 text-gray-400" />,
+                title: "No items added",
+                description: "No items added to this purchase order yet."
+              }}
             />
           </div>
         )}

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Loan, Book, User, BookStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import DataGrid from '@/components/ui/data/DataGrid';
+import type { DataGridColumn } from '@/components/ui/data/DataGrid';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
@@ -97,22 +98,67 @@ const BookLoansPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: t('library:bookLoans.loanId'), accessor: 'id' as keyof Loan },
-    { header: t('library:bookLoans.bookTitle'), accessor: 'book_title' as keyof Loan },
-    { header: t('library:bookLoans.userName'), accessor: 'user_name' as keyof Loan },
-    { header: t('library:bookLoans.loanDate'), accessor: 'loan_date' as keyof Loan, render: (item: Loan) => new Date(item.loan_date).toLocaleDateString() },
-    { header: t('library:bookLoans.dueDate'), accessor: 'due_date' as keyof Loan, render: (item: Loan) => new Date(item.due_date).toLocaleDateString() },
-    { header: t('library:bookLoans.returnDate'), accessor: 'return_date' as keyof Loan, render: (item: Loan) => item.return_date ? new Date(item.return_date).toLocaleDateString() : t('library:bookLoans.notReturned') },
+  const columns: DataGridColumn<Loan>[] = [
     {
-      header: t('common:actions'),
-      accessor: 'id' as keyof Loan,
-      render: (item: Loan) => (
-        !item.return_date ? (
-          <Button size="sm" variant="secondary" onClick={() => handleMarkAsReturned(item.id)}>{t('library:bookLoans.markReturned')}</Button>
-        ) : <span className="text-xs text-green-600 font-semibold">{t('library:bookLoans.returned')}</span>
-      ),
+      key: 'id',
+      header: t('library:bookLoans.loanId'),
+      sortable: true,
+      filterable: true,
+      sticky: true,
+      width: 120
     },
+    {
+      key: 'book_title',
+      header: t('library:bookLoans.bookTitle'),
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'user_name',
+      header: t('library:bookLoans.userName'),
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'loan_date',
+      header: t('library:bookLoans.loanDate'),
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => new Date(item.loan_date).toLocaleDateString()
+    },
+    {
+      key: 'due_date',
+      header: t('library:bookLoans.dueDate'),
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => new Date(item.due_date).toLocaleDateString()
+    },
+    {
+      key: 'return_date',
+      header: t('library:bookLoans.returnDate'),
+      sortable: true,
+      filterable: true,
+      width: 140,
+      render: (value, item) => item.return_date ? new Date(item.return_date).toLocaleDateString() : (
+        <span className="text-xs text-orange-600 font-semibold">{t('library:bookLoans.notReturned')}</span>
+      )
+    },
+    {
+      key: 'actions',
+      header: t('common:actions'),
+      width: 150,
+      render: (_, item) => (
+        !item.return_date ? (
+          <Button size="sm" variant="secondary" onClick={() => handleMarkAsReturned(item.id)}>
+            {t('library:bookLoans.markReturned')}
+          </Button>
+        ) : (
+          <span className="text-xs text-green-600 font-semibold">{t('library:bookLoans.returned')}</span>
+        )
+      )
+    }
   ];
 
   if ((loading.loans || loading.books || loading.users) && !isModalOpen) {
@@ -133,7 +179,19 @@ const BookLoansPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('library:bookLoans.description')}
         </p>
-        <Table columns={columns} data={loans} isLoading={loading.loans && isModalOpen} />
+        <DataGrid
+          columns={columns}
+          data={loans || []}
+          loading={loading.loans && isModalOpen}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-8">
+              <PlusIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">{t('library:bookLoans.noLoansFound')}</p>
+            </div>
+          }
+        />
       </Card>
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingLoan ? t('library:bookLoans.viewLoanDetails') : t('library:bookLoans.issueNewBookLoan')} size="lg"
         footer={ editingLoan ? <Button variant="secondary" onClick={closeModal}>{t('common:close')}</Button> :

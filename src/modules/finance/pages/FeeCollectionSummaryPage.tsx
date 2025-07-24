@@ -7,7 +7,7 @@ import Card from '@/components/ui/Card';
 import { CurrencyDollarIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons'; 
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { SchoolPeriod, Class as SchoolClass } from '@/types'; 
@@ -89,11 +89,41 @@ const FeeCollectionSummaryPage: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSchoolPeriodId, selectedClassId, handleGenerateReport]); 
 
-  const columns = [
-    { header: t('tableHeaders.votehead'), accessor: 'votehead' as keyof FeeCollectionSummaryRow },
-    { header: t('tableHeaders.expectedAmountKES'), accessor: 'expectedAmount' as keyof FeeCollectionSummaryRow, render: (item: FeeCollectionSummaryRow) => item.expectedAmount.toFixed(2) },
-    { header: t('tableHeaders.paidAmountKES'), accessor: 'paidAmount' as keyof FeeCollectionSummaryRow, render: (item: FeeCollectionSummaryRow) => item.paidAmount.toFixed(2) },
-    { header: t('tableHeaders.arrearsKES'), accessor: 'arrears' as keyof FeeCollectionSummaryRow, render: (item: FeeCollectionSummaryRow) => item.arrears.toFixed(2) },
+  const columns: DataGridColumn<FeeCollectionSummaryRow>[] = [
+    { 
+      key: 'votehead', 
+      header: t('tableHeaders.votehead'), 
+      sortable: true, 
+      filterable: true, 
+      width: 250,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'expectedAmount', 
+      header: t('tableHeaders.expectedAmountKES'), 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="font-mono text-blue-600">{row.expectedAmount.toFixed(2)}</span>
+    },
+    { 
+      key: 'paidAmount', 
+      header: t('tableHeaders.paidAmountKES'), 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="font-mono text-green-600">{row.paidAmount.toFixed(2)}</span>
+    },
+    { 
+      key: 'arrears', 
+      header: t('tableHeaders.arrearsKES'), 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className={`font-mono ${
+        row.arrears > 0 ? 'text-red-600' : 'text-gray-600'
+      }`}>{row.arrears.toFixed(2)}</span>
+    },
   ];
 
   const isLoadingPage = loading.schoolPeriods || loading.classes || loading.studentInvoices || loading.studentPayments || loading.invoicePaymentApplications || loading.feeTemplates;
@@ -171,7 +201,18 @@ const FeeCollectionSummaryPage: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={handlePrint} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('feeCollection.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={handleExportCSV} leftIcon={<DownloadIcon className="w-4 h-4"/>}>{t('feeCollection.exportCSV')}</Button>
                 </div>
-                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage={t('feeCollection.noData')}/>
+                <DataGrid 
+                  columns={columns} 
+                  data={reportData} 
+                  isLoading={isGenerating}
+                  sortable
+                  filterable
+                  emptyState={{
+                    icon: <CurrencyDollarIcon className="w-12 h-12 text-gray-400" />,
+                    title: t('feeCollection.noData'),
+                    description: "Adjust your filters and generate the report to view fee collection summary data."
+                  }}
+                />
             </>
         ) : (
             <p className="text-center text-gray-500 py-4">{t('feeCollection.selectFiltersMessage')}</p>

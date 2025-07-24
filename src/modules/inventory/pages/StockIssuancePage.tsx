@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { StockTransaction, StockTransactionType, ItemInv, Warehouse } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -80,13 +80,55 @@ const StockIssuancePage: React.FC = () => {
     closeModal();
   };
 
-  const columns = [
-    { header: 'Transaction ID', accessor: 'id' as keyof StockTransaction },
-    { header: 'Item Name', accessor: 'item_name' as keyof StockTransaction },
-    { header: 'Warehouse', accessor: 'warehouse_name' as keyof StockTransaction },
-    { header: 'Quantity Issued', accessor: 'quantity' as keyof StockTransaction },
-    { header: 'Date', accessor: 'transaction_date' as keyof StockTransaction, render: (item: StockTransaction) => item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : 'N/A' },
-    { header: 'Notes', accessor: 'notes' as keyof StockTransaction },
+  const columns: DataGridColumn<StockTransaction>[] = [
+    { 
+      key: 'id', 
+      header: 'Transaction ID', 
+      accessor: 'id' as keyof StockTransaction,
+      sortable: true,
+      filterable: true,
+      width: '140px'
+    },
+    { 
+      key: 'item_name', 
+      header: 'Item Name', 
+      accessor: 'item_name' as keyof StockTransaction,
+      sortable: true,
+      filterable: true,
+      width: '200px'
+    },
+    { 
+      key: 'warehouse_name', 
+      header: 'Warehouse', 
+      accessor: 'warehouse_name' as keyof StockTransaction,
+      sortable: true,
+      filterable: true,
+      width: '150px'
+    },
+    { 
+      key: 'quantity', 
+      header: 'Quantity Issued', 
+      accessor: 'quantity' as keyof StockTransaction,
+      sortable: true,
+      width: '140px'
+    },
+    { 
+      key: 'transaction_date', 
+      header: 'Date', 
+      accessor: 'transaction_date' as keyof StockTransaction, 
+      render: (item: StockTransaction) => item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : 'N/A',
+      sortable: true,
+      filterable: true,
+      width: '120px'
+    },
+    { 
+      key: 'notes', 
+      header: 'Notes', 
+      accessor: 'notes' as keyof StockTransaction,
+      sortable: true,
+      filterable: true,
+      width: '200px'
+    },
   ];
 
   if ((loading.stockTransactions || loading.itemsInv || loading.warehouses) && !isModalOpen) {
@@ -107,7 +149,17 @@ const StockIssuancePage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Record items issued from stores. This will update stock levels.
         </p>
-        <Table columns={columns} data={issueTransactions} isLoading={loading.stockTransactions && isModalOpen} emptyStateMessage="No stock issuance records found."/>
+        <DataGrid 
+          columns={columns} 
+          data={issueTransactions} 
+          sortable
+          filterable
+          emptyState={{
+            icon: <ArrowsRightLeftIcon className="w-8 h-8 text-gray-400" />,
+            title: "No stock issuance records found",
+            description: "Start by issuing your first stock item."
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title="Issue Stock Item" size="lg"

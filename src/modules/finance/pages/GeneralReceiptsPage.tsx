@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { FinGeneralPaymentType as GeneralPayment, FinGeneralPaymentItemType as GeneralPaymentItem, FinGeneralPayerTypeEnum as GeneralPayerType, Student, Staff, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '@/types';
 import { AdminCustomerType as Customer, AdminPartnerType as Partner } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -181,20 +181,66 @@ const GeneralReceiptsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Receipt ID', accessor: 'id' as keyof GeneralPayment },
-    { header: 'Payer Name', accessor: 'payer_name_resolved' as keyof GeneralPayment },
-    { header: 'Payer Type', accessor: 'payer_type' as keyof GeneralPayment },
-    { header: 'Payment Date', accessor: 'payment_date' as keyof GeneralPayment, render: (item: GeneralPayment) => new Date(item.payment_date).toLocaleDateString() },
-    { header: 'Total Amount (KES)', accessor: 'total_amount_paid' as keyof GeneralPayment, render: (item: GeneralPayment) => item.total_amount_paid.toFixed(2) },
-    { header: 'Method', accessor: 'payment_method' as keyof GeneralPayment },
+  const columns: DataGridColumn<GeneralPayment>[] = [
+    { 
+      key: 'id', 
+      header: 'Receipt ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="font-mono text-sm">{value}</span>
+    },
+    { 
+      key: 'payer_name_resolved', 
+      header: 'Payer Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'payer_type', 
+      header: 'Payer Type', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{value}</span>
+    },
+    { 
+      key: 'payment_date', 
+      header: 'Payment Date', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="text-purple-600">{new Date(row.payment_date).toLocaleDateString()}</span>
+    },
+    { 
+      key: 'total_amount_paid', 
+      header: 'Total Amount (KES)', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="font-mono text-green-600">{row.total_amount_paid.toFixed(2)}</span>
+    },
+    { 
+      key: 'payment_method', 
+      header: 'Method', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="text-orange-600">{value}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof GeneralPayment,
-      render: (item: GeneralPayment) => (
+      sortable: false,
+      filterable: false,
+      width: 180,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>View/Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>View/Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -220,7 +266,22 @@ const GeneralReceiptsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Record miscellaneous payments received by the school.
         </p>
-        <Table columns={columns} data={generalPayments} isLoading={loading.generalPayments && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={generalPayments} 
+          isLoading={loading.generalPayments && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <ReceiptRefundIcon className="w-12 h-12 text-gray-400" />,
+            title: "No general receipts found",
+            description: "Start recording miscellaneous payments received by the school from various sources like donations, facility rentals, or other services.",
+            action: {
+              label: "Record Receipt",
+              onClick: () => openModal()
+            }
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPayment ? 'Edit General Receipt' : 'Record New General Receipt'} size="2xl"

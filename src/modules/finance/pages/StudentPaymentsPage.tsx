@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { FinStudentPaymentType as StudentPayment, Student } from '../../../types';
 import Card from '../../../components/ui/Card';
-import Table from '../../../components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '../../../components/ui/Button';
 import Modal from '../../../components/ui/Modal';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon } from '../../../components/ui/icons';
+import { PlusIcon, EditIcon, DeleteIcon, CreditCardIcon } from '../../../components/ui/icons';
 import { useAppData } from '../../../contexts/AppDataContext';
 import Spinner from '../../../components/ui/Spinner';
 
@@ -77,19 +77,58 @@ const StudentPaymentsPage: React.FC = () => {
     }
   };
 
-  const paymentColumns = [
-    { header: 'Receipt No', accessor: 'receipt_no' as keyof StudentPayment },
-    { header: 'Student Name', accessor: 'student_name' as keyof StudentPayment },
-    { header: 'Amount Paid (KES)', accessor: 'total_amount_paid' as keyof StudentPayment, render: (item: StudentPayment) => `KES ${item.total_amount_paid?.toFixed(2) || '0.00'}` },
-    { header: 'Payment Method', accessor: 'payment_method' as keyof StudentPayment },
-    { header: 'Date', accessor: 'transaction_date' as keyof StudentPayment, render: (item: StudentPayment) => new Date(item.transaction_date).toLocaleDateString() },
+  const paymentColumns: DataGridColumn<StudentPayment>[] = [
+    { 
+      key: 'receipt_no', 
+      header: 'Receipt No', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="font-mono text-sm">{value}</span>
+    },
+    { 
+      key: 'student_name', 
+      header: 'Student Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'total_amount_paid', 
+      header: 'Amount Paid (KES)', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="font-mono text-green-600">{`KES ${row.total_amount_paid?.toFixed(2) || '0.00'}`}</span>
+    },
+    { 
+      key: 'payment_method', 
+      header: 'Payment Method', 
+      sortable: true, 
+      filterable: true, 
+      width: 130,
+      render: (value, row) => <span className="text-blue-600">{value}</span>
+    },
+    { 
+      key: 'transaction_date', 
+      header: 'Date', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="text-gray-700">{new Date(row.transaction_date).toLocaleDateString()}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof StudentPayment,
-      render: (item: StudentPayment) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -112,7 +151,22 @@ const StudentPaymentsPage: React.FC = () => {
           Record Payment
         </Button>
       }>
-        <Table columns={paymentColumns} data={studentPayments || []} isLoading={loading.studentPayments} />
+        <DataGrid 
+          columns={paymentColumns} 
+          data={studentPayments || []} 
+          isLoading={loading.studentPayments}
+          sortable
+          filterable
+          emptyState={{
+            icon: <CreditCardIcon className="w-12 h-12 text-gray-400" />,
+            title: "No Student Payments Found",
+            description: "Record your first student payment to track fee collections and payment history.",
+            action: {
+              label: "Record Payment",
+              onClick: () => openModal()
+            }
+          }}
+        />
       </Card>
 
       <Modal

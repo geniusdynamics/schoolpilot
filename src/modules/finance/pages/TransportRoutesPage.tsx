@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FinTransportRouteType as TransportRoute, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -84,17 +84,42 @@ const TransportRoutesPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Route Name', accessor: 'name' as keyof TransportRoute },
-    { header: 'Cost per Period (KES)', accessor: 'cost_per_period' as keyof TransportRoute, render: (item: TransportRoute) => item.cost_per_period.toFixed(2) },
-    { header: 'GL Revenue Account', accessor: 'gl_revenue_account_name' as keyof TransportRoute },
+  const columns: DataGridColumn<TransportRoute>[] = [
+    { 
+      key: 'name', 
+      header: 'Route Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 250,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'cost_per_period', 
+      header: 'Cost per Period (KES)', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, row) => <span className="font-mono text-green-600">{row.cost_per_period.toFixed(2)}</span>
+    },
+    { 
+      key: 'gl_revenue_account_name', 
+      header: 'GL Revenue Account', 
+      sortable: true, 
+      filterable: true, 
+      width: 250,
+      render: (value, row) => <span className="text-blue-600">{value}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof TransportRoute,
-      render: (item: TransportRoute) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -117,7 +142,22 @@ const TransportRoutesPage: React.FC = () => {
           Add Transport Route
         </Button>
       }>
-        <Table columns={columns} data={transportRoutes} isLoading={loading.transportRoutes && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={transportRoutes} 
+          isLoading={loading.transportRoutes && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <TruckIcon className="w-12 h-12 text-gray-400" />,
+            title: "No transport routes found",
+            description: "Set up transport routes and their associated fees to manage student transportation services effectively.",
+            action: {
+              label: "Add Transport Route",
+              onClick: () => openModal()
+            }
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingRoute ? 'Edit Transport Route' : 'Add New Transport Route'} size="lg"

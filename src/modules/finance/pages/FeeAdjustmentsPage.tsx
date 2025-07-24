@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { FinFeeAdjustmentType as FeeAdjustment, Student, SchoolPeriod, FinFeeAdjustmentTypeEnum as FeeAdjustmentType, StudentStatus } from '../../../types';
 import Card from '../../../components/ui/Card';
-import Table from '../../../components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '../../../components/ui/Button';
 import Modal from '../../../components/ui/Modal';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Textarea from '../../../components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon } from '../../../components/ui/icons';
+import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '../../../components/ui/icons';
 import { useAppData } from '../../../contexts/AppDataContext';
 import Spinner from '../../../components/ui/Spinner';
 
@@ -88,20 +88,66 @@ const FeeAdjustmentsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Student Name', accessor: 'student_name' as keyof FeeAdjustment },
-    { header: 'School Period', accessor: 'school_period_name' as keyof FeeAdjustment },
-    { header: 'Type', accessor: 'adjustment_type' as keyof FeeAdjustment },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof FeeAdjustment, render: (item: FeeAdjustment) => `KES ${item.amount?.toFixed(2) || '0.00'}` },
-    { header: 'Reason', accessor: 'reason' as keyof FeeAdjustment },
-    { header: 'Applied to Invoice', accessor: 'applied_invoice_id' as keyof FeeAdjustment },
+  const columns: DataGridColumn<FeeAdjustment>[] = [
+    { 
+      key: 'student_name', 
+      header: 'Student Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'school_period_name', 
+      header: 'School Period', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="text-blue-600">{value}</span>
+    },
+    { 
+      key: 'adjustment_type', 
+      header: 'Type', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="text-purple-600 font-medium">{value}</span>
+    },
+    { 
+      key: 'amount', 
+      header: 'Amount (KES)', 
+      sortable: true, 
+      filterable: true, 
+      width: 130,
+      render: (value, row) => <span className="font-mono text-green-600">{`KES ${row.amount?.toFixed(2) || '0.00'}`}</span>
+    },
+    { 
+      key: 'reason', 
+      header: 'Reason', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="text-gray-700">{value}</span>
+    },
+    { 
+      key: 'applied_invoice_id', 
+      header: 'Applied to Invoice', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="font-mono text-sm">{value || 'N/A'}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof FeeAdjustment,
-      render: (item: FeeAdjustment) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -124,7 +170,22 @@ const FeeAdjustmentsPage: React.FC = () => {
           Add Adjustment
         </Button>
       }>
-        <Table columns={columns} data={feeAdjustments || []} isLoading={loading.feeAdjustments} />
+        <DataGrid 
+          columns={columns} 
+          data={feeAdjustments || []} 
+          isLoading={loading.feeAdjustments}
+          sortable
+          filterable
+          emptyState={{
+            icon: <DocumentDuplicateIcon className="w-12 h-12 text-gray-400" />,
+            title: "No Fee Adjustments Found",
+            description: "Create your first fee adjustment to manage student fee exemptions, discounts, or penalties.",
+            action: {
+              label: "Add Adjustment",
+              onClick: () => openModal()
+            }
+          }}
+        />
       </Card>
 
       <Modal 

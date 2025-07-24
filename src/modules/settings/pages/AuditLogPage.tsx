@@ -1,7 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import DataGrid from '@/components/ui/data/DataGrid';
+import type { DataGridColumn } from '@/components/ui/data/DataGrid';
 import { ClockIcon, ArrowPathIcon as ResetIcon, MagnifyingGlassIcon } from '@/components/ui/icons'; // Added ResetIcon
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '@/components/ui/Spinner';
@@ -42,13 +43,53 @@ const AuditLogPage: React.FC = () => {
     }).sort((a,b) => new Date(b.changed_at).getTime() - new Date(a.changed_at).getTime());
   }, [auditLogs, filters]);
 
-  const auditLogColumns = [
-    { header: 'Timestamp', accessor: 'changed_at' as keyof AuditLog, render: (item: AuditLog) => new Date(item.changed_at).toLocaleString() },
-    { header: 'User', accessor: 'user_name' as keyof AuditLog, render: (item: AuditLog) => item.user_name || item.user_id || 'System' },
-    { header: 'Action', accessor: 'action' as keyof AuditLog },
-    { header: 'Entity', accessor: 'table_name' as keyof AuditLog },
-    { header: 'Record ID', accessor: 'record_pk' as keyof AuditLog },
-    // Old/New data might be too complex for a simple table column, consider a detail view
+  const auditLogColumns: DataGridColumn<AuditLog>[] = [
+    {
+      key: 'changed_at',
+      header: 'Timestamp',
+      sortable: true,
+      width: 180,
+      sticky: true,
+      render: (value) => new Date(value).toLocaleString()
+    },
+    {
+      key: 'user_name',
+      header: 'User',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, row) => value || row.user_id || 'System'
+    },
+    {
+      key: 'action',
+      header: 'Action',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          value === 'CREATE' ? 'bg-green-100 text-green-800' :
+          value === 'UPDATE' ? 'bg-blue-100 text-blue-800' :
+          value === 'DELETE' ? 'bg-red-100 text-red-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'table_name',
+      header: 'Entity',
+      sortable: true,
+      filterable: true,
+      width: 150
+    },
+    {
+      key: 'record_pk',
+      header: 'Record ID',
+      sortable: true,
+      width: 100
+    }
   ];
   
   const isLoadingPage = loading.auditLogs || loading.users || loading.all;
@@ -111,13 +152,33 @@ const AuditLogPage: React.FC = () => {
             </div>
         </Card>
 
-        {isLoadingPage ? (
-          <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Loading audit logs...</span></div>
-        ) : filteredAuditLogs.length > 0 ? (
-          <Table columns={auditLogColumns} data={filteredAuditLogs} isLoading={loading.auditLogs} />
-        ) : (
-            <p className="text-center text-gray-500 py-4">No audit logs found matching your criteria.</p>
-        )}
+        <DataGrid
+          columns={auditLogColumns}
+          data={filteredAuditLogs}
+          loading={isLoadingPage}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-12">
+              <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No audit logs found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {Object.values(filters).some(v => v) ? 
+                  'No audit logs match your current filter criteria. Try adjusting your filters.' :
+                  'System audit logs will appear here as actions are performed.'
+                }
+              </p>
+              {Object.values(filters).some(v => v) && (
+                <div className="mt-6">
+                  <Button onClick={resetFilters} variant="secondary" leftIcon={<ResetIcon className="w-4 h-4" />}>
+                    Reset Filters
+                  </Button>
+                </div>
+              )}
+            </div>
+          }
+          className="mt-4"
+        />
          <div className="mt-6 text-center">
             <span className="inline-block bg-sky-100 text-sky-700 text-sm font-semibold px-3 py-1 rounded-full">
               Basic filtering implemented. Detailed view for logs coming soon.

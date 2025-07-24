@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Book, BookCategory, BookStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import DataGrid from '@/components/ui/data/DataGrid';
+import type { DataGridColumn } from '@/components/ui/data/DataGrid';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -100,32 +101,76 @@ const BooksPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Accession No', accessor: 'accession_no' as keyof Book },
-    { header: 'Title', accessor: 'title' as keyof Book },
-    { header: 'Author', accessor: 'author' as keyof Book },
-    { header: 'Category', accessor: 'category_name' as keyof Book },
-    { header: 'Status', accessor: 'status' as keyof Book, 
-        render: (item: Book) => (
-            <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                item.status === BookStatus.AVAILABLE ? 'bg-green-100 text-green-800' :
-                item.status === BookStatus.ON_LOAN ? 'bg-yellow-100 text-yellow-800' :
-                item.status === BookStatus.LOST ? 'bg-red-100 text-red-800' :
-                item.status === BookStatus.DAMAGED ? 'bg-orange-100 text-orange-800' :
-                'bg-gray-100 text-gray-800' // Reserved, Archived
-            }`}>{item.status}</span>
-        )
+  const columns: DataGridColumn<Book>[] = [
+    {
+      key: 'accession_no',
+      header: 'Accession No',
+      sortable: true,
+      filterable: true,
+      sticky: true,
+      width: 140
     },
     {
-      header: 'Actions',
-      accessor: 'id' as keyof Book,
-      render: (item: Book) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'title',
+      header: 'Title',
+      sortable: true,
+      filterable: true
     },
+    {
+      key: 'author',
+      header: 'Author',
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'category_name',
+      header: 'Category',
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, row) => (
+        <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+          value === BookStatus.AVAILABLE ? 'bg-green-100 text-green-800' :
+          value === BookStatus.ON_LOAN ? 'bg-yellow-100 text-yellow-800' :
+          value === BookStatus.LOST ? 'bg-red-100 text-red-800' :
+          value === BookStatus.DAMAGED ? 'bg-orange-100 text-orange-800' :
+          'bg-gray-100 text-gray-800' // Reserved, Archived
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 180,
+      render: (_, row) => (
+        <div className="flex space-x-2">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDelete(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
   if ((loading.books || loading.bookCategories) && !isModalOpen) {
@@ -146,7 +191,28 @@ const BooksPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage all books in the library catalog.
         </p>
-        <Table columns={columns} data={(books || [])} isLoading={loading.books && isModalOpen} />
+        <DataGrid
+          columns={columns}
+          data={books || []}
+          loading={loading.books && isModalOpen}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-12">
+              <BookOpenIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No books found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Get started by adding your first book to the library catalog.
+              </p>
+              <div className="mt-6">
+                <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-4 h-4" />}>
+                  Add Book
+                </Button>
+              </div>
+            </div>
+          }
+          className="mt-4"
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingBook ? 'Edit Book' : 'Add New Book'} size="xl"

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ItemInv, ItemCategoryInv, ItemTypeInv } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import DataGrid from '@/components/ui/data/DataGrid';
+import type { DataGridColumn } from '@/components/ui/data/DataGrid';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -93,23 +94,103 @@ const ItemsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof ItemInv },
-    { header: 'Item Name', accessor: 'name' as keyof ItemInv },
-    { header: 'Category', accessor: 'category_name' as keyof ItemInv },
-    { header: 'Unit', accessor: 'unit_of_measure' as keyof ItemInv },
-    { header: 'Type', accessor: 'item_type' as keyof ItemInv },
-    { header: 'Price', accessor: 'current_price' as keyof ItemInv, render: (item: ItemInv) => item.current_price?.toFixed(2) || 'N/A' },
+  const columns: DataGridColumn<ItemInv>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof ItemInv,
-      render: (item: ItemInv) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'id',
+      header: 'ID',
+      sortable: true,
+      width: 80,
+      sticky: 'left'
     },
+    {
+      key: 'name',
+      header: 'Item Name',
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value) => (
+        <span className="font-medium text-gray-900">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'category_name',
+      header: 'Category',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+          value ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+        }`}>
+          {value || 'Uncategorized'}
+        </span>
+      )
+    },
+    {
+      key: 'unit_of_measure',
+      header: 'Unit',
+      sortable: true,
+      width: 100,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'item_type',
+      header: 'Type',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+          value === ItemTypeInv.CONSUMABLE ? 'bg-orange-100 text-orange-800' :
+          value === ItemTypeInv.NON_CONSUMABLE ? 'bg-green-100 text-green-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'current_price',
+      header: 'Price',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="font-mono">
+          KES {value?.toFixed(2) || 'N/A'}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 180,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDelete(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
   if ((loading.itemsInv || loading.itemCategoriesInv) && !isModalOpen) {
@@ -130,7 +211,24 @@ const ItemsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('inventory.items.maintain.list')}
         </p>
-        <Table columns={columns} data={(itemsInv || [])} isLoading={loading.itemsInv && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={(itemsInv || [])} 
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <CubeIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No inventory items found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by adding your first inventory item.</p>
+              <div className="mt-6">
+                <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                  {t('inventory.items.addItem')}
+                </Button>
+              </div>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingItem ? t('inventory.items.editItem') : t('inventory.items.addNewItem')} size="xl"

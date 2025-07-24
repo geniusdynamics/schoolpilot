@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Payslip, PayrollPeriod, PayslipStatus, PayslipItem, AcademicYear } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
@@ -62,37 +62,104 @@ const PayslipsPage: React.FC = () => {
     setViewingPayslip(null);
   };
 
-  const payslipColumns = [
-    { header: 'Payslip ID', accessor: 'id' as keyof Payslip },
-    { header: 'Staff Name', accessor: 'staff_name' as keyof Payslip },
-    { header: 'Payroll Period', accessor: 'payroll_period_name' as keyof Payslip },
-    { header: 'Gross Salary', accessor: 'gross_salary' as keyof Payslip, render: (item: Payslip) => `Ksh ${item.gross_salary?.toFixed(2) || '0.00'}`},
-    { header: 'Total Deductions', accessor: 'total_deductions' as keyof Payslip, render: (item: Payslip) => `Ksh ${item.total_deductions?.toFixed(2) || '0.00'}`},
-    { header: 'Net Salary', accessor: 'net_salary' as keyof Payslip, render: (item: Payslip) => `Ksh ${item.net_salary?.toFixed(2) || '0.00'}`},
-    { header: 'Status', accessor: 'status' as keyof Payslip, 
-      render: (item: Payslip) => (
+  const payslipColumns: DataGridColumn<Payslip>[] = [
+    { 
+      key: 'id', 
+      header: 'Payslip ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 100
+    },
+    { 
+      key: 'staff_name', 
+      header: 'Staff Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200
+    },
+    { 
+      key: 'payroll_period_name', 
+      header: 'Payroll Period', 
+      sortable: true, 
+      filterable: true, 
+      width: 150
+    },
+    { 
+      key: 'gross_salary', 
+      header: 'Gross Salary', 
+      sortable: true, 
+      filterable: false, 
+      width: 120,
+      render: (value, row) => `Ksh ${row.gross_salary?.toFixed(2) || '0.00'}`
+    },
+    { 
+      key: 'total_deductions', 
+      header: 'Total Deductions', 
+      sortable: true, 
+      filterable: false, 
+      width: 140,
+      render: (value, row) => `Ksh ${row.total_deductions?.toFixed(2) || '0.00'}`
+    },
+    { 
+      key: 'net_salary', 
+      header: 'Net Salary', 
+      sortable: true, 
+      filterable: false, 
+      width: 120,
+      render: (value, row) => `Ksh ${row.net_salary?.toFixed(2) || '0.00'}`
+    },
+    { 
+      key: 'status', 
+      header: 'Status', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => (
         <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-            item.status === PayslipStatus.PAID ? 'bg-green-100 text-green-800' :
-            item.status === PayslipStatus.PROCESSED ? 'bg-blue-100 text-blue-800' :
+            row.status === PayslipStatus.PAID ? 'bg-green-100 text-green-800' :
+            row.status === PayslipStatus.PROCESSED ? 'bg-blue-100 text-blue-800' :
             'bg-yellow-100 text-yellow-800' // Draft
-        }`}>{item.status}</span>
+        }`}>{row.status}</span>
       )
     },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Payslip,
-      render: (item: Payslip) => (
-        <Button size="sm" variant="ghost" onClick={() => openPayslipDetailsModal(item)} leftIcon={<EyeIcon className="w-4 h-4" />}>
+      sortable: false,
+      filterable: false,
+      width: 120,
+      sticky: 'right',
+      render: (value, row) => (
+        <Button size="sm" variant="ghost" onClick={() => openPayslipDetailsModal(row)} leftIcon={<EyeIcon className="w-4 h-4" />}>
           View Details
         </Button>
       ),
     },
   ];
 
-  const payslipItemColumns = [
-    { header: 'Description', accessor: 'item_type_name' as keyof PayslipItem },
-    { header: 'Category', accessor: 'item_category' as keyof PayslipItem },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof PayslipItem, render: (item: PayslipItem) => item.amount?.toFixed(2) || '0.00' },
+  const payslipItemColumns: DataGridColumn<PayslipItem>[] = [
+    { 
+      key: 'item_type_name', 
+      header: 'Description', 
+      sortable: true, 
+      filterable: true, 
+      width: 200
+    },
+    { 
+      key: 'item_category', 
+      header: 'Category', 
+      sortable: true, 
+      filterable: true, 
+      width: 150
+    },
+    { 
+      key: 'amount', 
+      header: 'Amount (KES)', 
+      sortable: true, 
+      filterable: false, 
+      width: 150,
+      render: (value, row) => row.amount?.toFixed(2) || '0.00'
+    },
   ];
 
   const isLoadingPage = loading.payslips || loading.payrollPeriods || loading.academicYears;
@@ -143,7 +210,18 @@ const PayslipsPage: React.FC = () => {
         
         {selectedPayrollPeriodId ? (
              payslipsForSelectedPeriod.length > 0 ? (
-                 <Table columns={payslipColumns} data={(payslipsForSelectedPeriod || [])} isLoading={loading.payslips && !!selectedPayrollPeriodId} />
+                 <DataGrid 
+                   columns={payslipColumns} 
+                   data={payslipsForSelectedPeriod || []} 
+                   isLoading={loading.payslips && !!selectedPayrollPeriodId}
+                   sortable
+                   filterable
+                   emptyState={{
+                     icon: <ScaleIcon className="w-12 h-12 text-gray-400" />,
+                     title: "No payslips found",
+                     description: "No payslips generated for the selected period yet, or no staff salary settings found for active staff."
+                   }}
+                 />
              ) : (
                  <p className="text-center text-gray-500 py-4">No payslips generated for the selected period yet, or no staff salary settings found for active staff.</p>
              )
@@ -168,7 +246,17 @@ const PayslipsPage: React.FC = () => {
                     <div className="col-span-2 text-lg"><strong className="text-gray-700">Net Salary:</strong> <span className="font-bold text-green-600">Ksh {viewingPayslip.net_salary?.toFixed(2)}</span></div>
                 </div>
                 <h4 className="text-md font-semibold text-gray-700 mt-2">Payslip Items:</h4>
-                <Table columns={payslipItemColumns} data={(viewingPayslip?.items || [])} />
+                <DataGrid 
+                  columns={payslipItemColumns} 
+                  data={viewingPayslip?.items || []}
+                  sortable
+                  filterable
+                  emptyState={{
+                    icon: <ListBulletIcon className="w-8 h-8 text-gray-400" />,
+                    title: "No payslip items",
+                    description: "No items found for this payslip."
+                  }}
+                />
             </div>
         )}
       </Modal>

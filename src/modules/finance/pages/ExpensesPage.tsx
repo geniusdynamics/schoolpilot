@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ExpenseClaim, FinExpenseClaimantTypeEnum, Staff, Student, FinExpenseCategoryType } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -119,25 +119,119 @@ const ExpensesPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Claim ID', accessor: 'id' as keyof ExpenseClaim },
-    { header: 'Claimant', accessor: 'claimant_name' as keyof ExpenseClaim },
-    { header: 'Type', accessor: 'claimant_type' as keyof ExpenseClaim },
-    { header: 'Date', accessor: 'claim_date' as keyof ExpenseClaim, render: (item: ExpenseClaim) => new Date(item.claim_date).toLocaleDateString() },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof ExpenseClaim, render: (item: ExpenseClaim) => item.amount.toFixed(2) },
-    { header: 'Category', accessor: 'expense_category_name' as keyof ExpenseClaim },
-    { header: 'Description', accessor: 'description' as keyof ExpenseClaim, render: (item: ExpenseClaim) => <p className="truncate max-w-xs">{item.description}</p> },
-    // { header: 'Status', accessor: 'workflow_status_name' as keyof ExpenseClaim }, // Placeholder
+  const columns: DataGridColumn<ExpenseClaim>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof ExpenseClaim,
-      render: (item: ExpenseClaim) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'id',
+      header: 'Claim ID',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      sticky: 'left',
+      render: (value) => (
+        <span className="font-mono font-medium text-gray-900">
+          {value}
+        </span>
+      )
     },
+    {
+      key: 'claimant_name',
+      header: 'Claimant',
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value) => (
+        <span className="font-medium text-gray-900">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'claimant_type',
+      header: 'Type',
+      sortable: true,
+      filterable: true,
+      width: 100,
+      render: (value) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+          value === FinExpenseClaimantTypeEnum.STAFF ? 'bg-blue-100 text-blue-800' :
+          value === FinExpenseClaimantTypeEnum.STUDENT ? 'bg-green-100 text-green-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'claim_date',
+      header: 'Date',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {new Date(value).toLocaleDateString()}
+        </span>
+      )
+    },
+    {
+      key: 'amount',
+      header: 'Amount (KES)',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="font-medium text-green-600">
+          {value.toFixed(2)}
+        </span>
+      )
+    },
+    {
+      key: 'expense_category_name',
+      header: 'Category',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'description',
+      header: 'Description',
+      sortable: true,
+      filterable: true,
+      width: 250,
+      render: (value) => (
+        <p className="truncate max-w-xs text-sm text-gray-900">
+          {value}
+        </p>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 160,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDelete(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
   const isLoadingPageData = loading.expenseClaims || loading.expenseCategories || loading.staff || loading.students;
@@ -160,7 +254,26 @@ const ExpensesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Record and manage expense claims submitted by staff or students.
         </p>
-        <Table columns={columns} data={(expenseClaims || [])} isLoading={loading.expenseClaims && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={expenseClaims || []} 
+          isLoading={loading.expenseClaims && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <CurrencyDollarIcon className="w-12 h-12 text-gray-400" />,
+            title: "No Expense Claims Found",
+            description: "Get started by recording your first expense claim from staff or students.",
+            action: (
+              <Button 
+                onClick={() => openModal()} 
+                leftIcon={<PlusIcon className="w-5 h-5" />}
+              >
+                Add Expense Claim
+              </Button>
+            )
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingClaim ? 'Edit Expense Claim' : 'Add New Expense Claim'} size="xl"

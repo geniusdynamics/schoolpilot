@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ItemCategoryInv } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import DataGrid from '@/components/ui/data/DataGrid';
+import type { DataGridColumn } from '@/components/ui/data/DataGrid';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -59,19 +60,51 @@ const ItemCategoriesPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof ItemCategoryInv },
-    { header: 'Category Name', accessor: 'name' as keyof ItemCategoryInv },
+  const columns: DataGridColumn<ItemCategoryInv>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof ItemCategoryInv,
-      render: (item: ItemCategoryInv) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'id',
+      header: 'ID',
+      sortable: true,
+      width: 80,
+      sticky: 'left'
     },
+    {
+      key: 'name',
+      header: 'Category Name',
+      sortable: true,
+      filterable: true,
+      width: 300,
+      render: (value) => (
+        <span className="font-medium text-gray-900">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 180,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDelete(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
   if (loading.itemCategoriesInv && !isModalOpen) {
@@ -92,7 +125,24 @@ const ItemCategoriesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('inventory.itemCategoriesPage.description')}
         </p>
-        <Table columns={columns} data={itemCategoriesInv} isLoading={loading.itemCategoriesInv && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={itemCategoriesInv} 
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <ListBulletIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No item categories found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating your first item category.</p>
+              <div className="mt-6">
+                <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                  {t('inventory.itemCategoriesPage.addCategory')}
+                </Button>
+              </div>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={t('inventory.itemCategoriesPage.editItemCategoryTitle')}
