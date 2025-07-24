@@ -17,6 +17,7 @@ import { getAppConfig, subscribeToConfig, AppConfig } from './config/appConfig';
 import { moduleRegistry } from './core/moduleRegistry';
 import { initializeModulesOptimized } from './core/optimizedModuleLoader';
 import { initializeTheme } from './hooks/useTheme';
+import { ToastProvider } from './hooks/useToast';
 
 // Enhanced components (lazy loaded to avoid bundle bloat when not needed)
 const GlobalNotifications = lazy(() => import('./components/GlobalNotifications'));
@@ -475,11 +476,13 @@ const App: React.FC = () => {
       <HashRouter>
         <AuthProvider>
           <UserProvider>
-            <DataProviderWrapper config={config}>
-              <ModuleErrorBoundary moduleName="Core Application">
-                <AppContent modulesInitialized={modulesInitialized} config={config} />
-              </ModuleErrorBoundary>
-            </DataProviderWrapper>
+            <ToastProvider maxToasts={5} position="top-right">
+              <DataProviderWrapper config={config}>
+                <ModuleErrorBoundary moduleName="Core Application">
+                  <AppContent modulesInitialized={modulesInitialized} config={config} />
+                </ModuleErrorBoundary>
+              </DataProviderWrapper>
+            </ToastProvider>
           </UserProvider>
         </AuthProvider>
       </HashRouter>

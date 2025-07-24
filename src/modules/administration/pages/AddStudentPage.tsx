@@ -11,7 +11,7 @@ import Button from '../../../components/ui/Button';
 import { UserCircleIcon, UsersIcon, AcademicCapIcon, ArrowLeftIcon } from '../../../components/ui/icons';
 import { useAppData } from '../../../contexts/AppDataContext';
 import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
-import { useFormValidation, validators } from '../../../hooks/useFormValidation';
+// Removed useFormValidation import to fix infinite loop issue
 
 interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {
   admission_no: string; // Required
@@ -67,60 +67,15 @@ const AddStudentPage: React.FC = () => {
     primary_guardian_relationship_type: 'Guardian',
   }), []);
 
-  // Memoize validation configuration to prevent recreation on every render
-  const validationConfig = useMemo(() => ({
-    admission_no: {
-      rules: [validators.required('Admission number is required')],
-      required: true,
-    },
-    first_name: {
-      rules: [
-        validators.required('First name is required'),
-        validators.minLength(2, 'First name must be at least 2 characters'),
-      ],
-      required: true,
-    },
-    last_name: {
-      rules: [
-        validators.required('Last name is required'),
-        validators.minLength(2, 'Last name must be at least 2 characters'),
-      ],
-      required: true,
-    },
-    gender: {
-      rules: [validators.required('Gender is required')],
-      required: true,
-    },
-    status: {
-      rules: [validators.required('Status is required')],
-      required: true,
-    },
-    primary_guardian_name: {
-      rules: [validators.minLength(2, 'Guardian name must be at least 2 characters')],
-    },
-    primary_guardian_phone: {
-      rules: [validators.pattern(/^[\+]?[0-9\-\s\(\)]+$/, 'Please enter a valid phone number')],
-    },
-  }), []);
+  // Simple form state management
+  const [formData, setFormData] = useState<StudentFormData>(initialFormData);
 
-  const {
-    formData,
-    setFormData,
-    getFieldProps,
-    validateForm,
-    isValid,
-    isValidating,
-    resetForm,
-    validationState,
-  } = useFormValidation<StudentFormData>(validationConfig, {
-    mode: 'onChange',
-    announceErrors: true,
-  });
 
-  // Initialize form data - use useEffect with stable dependencies
+
+  // Initialize form data
   useEffect(() => {
-    resetForm(initialFormData);
-  }, [resetForm, initialFormData]);
+    setFormData(initialFormData);
+  }, []);
 
   // Handle form field changes with proper type conversion
   const handleFieldChange = useCallback((name: string, value: any) => {
@@ -142,39 +97,21 @@ const AddStudentPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: processedValue }));
   }, [setFormData]);
 
-  // Get validation state for tabs - memoize with stable computation
-  const tabValidation = useMemo(() => {
-    const personalValid = validationState.admission_no?.isValid !== false &&
-      validationState.first_name?.isValid !== false &&
-      validationState.last_name?.isValid !== false &&
-      validationState.gender?.isValid !== false &&
-      validationState.status?.isValid !== false;
-
-    const guardianValid = validationState.primary_guardian_name?.isValid !== false &&
-      validationState.primary_guardian_phone?.isValid !== false;
-
-    return {
-      personal: personalValid,
-      guardian: guardianValid,
-      academic: true, // Academic fields are optional
-    };
-  }, [
-    validationState.admission_no?.isValid,
-    validationState.first_name?.isValid,
-    validationState.last_name?.isValid,
-    validationState.gender?.isValid,
-    validationState.status?.isValid,
-    validationState.primary_guardian_name?.isValid,
-    validationState.primary_guardian_phone?.isValid,
-  ]);
+  // Simple validation for tabs
+  const tabValidation = {
+    personal: true, // We'll do simple validation on submit
+    guardian: true,
+    academic: true,
+  };
 
   // Handle form submission
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
 
     try {
-      const isFormValid = await validateForm();
-      if (!isFormValid) {
+      // Simple validation
+      if (!formData.admission_no || !formData.first_name || !formData.last_name) {
+        alert('Please fill in all required fields (Admission No, First Name, Last Name)');
         setIsSubmitting(false);
         return;
       }
@@ -236,7 +173,7 @@ const AddStudentPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, validateForm, addStudent, navigate]);
+  }, [formData, addStudent, navigate]);
 
   // Handle cancel
   const handleCancel = useCallback(() => {
@@ -267,7 +204,6 @@ const AddStudentPage: React.FC = () => {
                 label="Admission No."
                 required
                 value={formData.admission_no || ''}
-                error={validationState.admission_no?.errors?.[0]?.message}
                 onChange={(e) => handleFieldChange('admission_no', e.target.value)}
               />
               <Input
@@ -281,7 +217,7 @@ const AddStudentPage: React.FC = () => {
                 label="First Name"
                 required
                 value={formData.first_name || ''}
-                error={validationState.first_name?.errors?.[0]?.message}
+
                 onChange={(e) => handleFieldChange('first_name', e.target.value)}
               />
               <Input
@@ -295,7 +231,7 @@ const AddStudentPage: React.FC = () => {
                 label="Last Name"
                 required
                 value={formData.last_name || ''}
-                error={validationState.last_name?.errors?.[0]?.message}
+
                 onChange={(e) => handleFieldChange('last_name', e.target.value)}
               />
               <Select
@@ -303,7 +239,7 @@ const AddStudentPage: React.FC = () => {
                 label="Gender"
                 required
                 value={formData.gender || ''}
-                error={validationState.gender?.errors?.[0]?.message}
+
                 onChange={(e) => {
                   const value = typeof e === 'string' ? e : Array.isArray(e) ? e[0] : e.target.value;
                   handleFieldChange('gender', value);
@@ -332,7 +268,7 @@ const AddStudentPage: React.FC = () => {
                 label="Status"
                 required
                 value={formData.status || ''}
-                error={validationState.status?.errors?.[0]?.message}
+
                 onChange={(e) => {
                   const value = typeof e === 'string' ? e : Array.isArray(e) ? e[0] : e.target.value;
                   handleFieldChange('status', value);
@@ -383,7 +319,7 @@ const AddStudentPage: React.FC = () => {
                 name="primary_guardian_name"
                 label="Guardian Full Name"
                 value={formData.primary_guardian_name || ''}
-                error={validationState.primary_guardian_name?.errors?.[0]?.message}
+
                 onChange={(e) => handleFieldChange('primary_guardian_name', e.target.value)}
               />
               <Select
@@ -404,7 +340,7 @@ const AddStudentPage: React.FC = () => {
                 name="primary_guardian_phone"
                 label="Phone Number"
                 value={formData.primary_guardian_phone || ''}
-                error={validationState.primary_guardian_phone?.errors?.[0]?.message}
+
                 onChange={(e) => handleFieldChange('primary_guardian_phone', e.target.value)}
               />
             </div>
@@ -559,7 +495,7 @@ const AddStudentPage: React.FC = () => {
           allowTabSwitching={true}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          loading={isSubmitting || loading.students || isValidating}
+          loading={isSubmitting || loading.students}
           submitButtonText="Add Student"
           cancelButtonText="Cancel"
           size="lg"
