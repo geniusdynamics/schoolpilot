@@ -27,7 +27,7 @@ const ModuleHealthIndicator: React.FC<ModuleHealthIndicatorProps> = ({
     statusCounts,
     modulesWithIssues,
     refreshHealth
-  } = useModuleHealth({ autoRefresh: true, refreshInterval: 30000 });
+  } = useModuleHealth({ autoRefresh: false, refreshInterval: 30000 });
   
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   
