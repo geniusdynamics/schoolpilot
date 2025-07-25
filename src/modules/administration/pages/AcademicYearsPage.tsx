@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AcademicYear, AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -85,16 +85,63 @@ const AcademicYearsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof AcademicYear },
-    { header: 'Year Name', accessor: 'name' as keyof AcademicYear },
-    { header: 'Structure', accessor: 'structure_name' as keyof AcademicYear },
-    { header: 'Start Date', accessor: 'start_date' as keyof AcademicYear, render: (item: AcademicYear) => new Date(item.start_date).toLocaleDateString() },
-    { header: 'End Date', accessor: 'end_date' as keyof AcademicYear, render: (item: AcademicYear) => new Date(item.end_date).toLocaleDateString() },
+  const columns: DataGridColumn<AcademicYear>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, item) => <span className="font-mono text-sm">{value}</span>
+    },
+    { 
+      key: 'name', 
+      header: 'Year Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, item) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'structure_name', 
+      header: 'Structure', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, item) => <span className="text-blue-600">{value}</span>
+    },
+    { 
+      key: 'start_date', 
+      header: 'Start Date', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => (
+        <span className="text-green-600 font-medium">
+          {new Date(value).toLocaleDateString()}
+        </span>
+      )
+    },
+    { 
+      key: 'end_date', 
+      header: 'End Date', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => (
+        <span className="text-red-600 font-medium">
+          {new Date(value).toLocaleDateString()}
+        </span>
+      )
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof AcademicYear,
-      render: (item: AcademicYear) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -121,7 +168,19 @@ const AcademicYearsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Define academic years (e.g., "AY 2023/2024"), link them to an Academic Year Structure, and set their start and end dates.
         </p>
-        <Table columns={columns} data={academicYears} isLoading={loading.academicYears && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={academicYears || []} 
+          loading={loading.academicYears}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-8">
+              <CalendarDaysIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No academic years found. Create your first academic year to get started.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingYear ? 'Edit Academic Year' : 'Add New Academic Year'} size="lg"

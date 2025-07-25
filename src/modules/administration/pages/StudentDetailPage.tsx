@@ -5,7 +5,7 @@ import { StudentDetailProfile, StudentPaymentLogItem } from '@/types';
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Tabs from '@/components/ui/Tabs';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { UserCircleIcon, AcademicCapIcon, EnvelopeIcon, PhoneIcon, DownloadIcon, MessageIcon, EditIcon, CurrencyDollarIcon, PrinterIcon } from '@/components/ui/icons';
 
@@ -64,19 +64,83 @@ const StudentDetailPage: React.FC = () => {
 
   const fullName = `${first_name} ${last_name}`;
 
-  const enrolledSubjectsColumns = [
-    { header: 'Course Name', accessor: 'courseName' as keyof typeof enrolled_subjects[0] },
-    { header: 'Instructor', accessor: 'professorInstructorName' as keyof typeof enrolled_subjects[0] },
-    { header: 'Status', accessor: 'status' as keyof typeof enrolled_subjects[0] },
+  const enrolledSubjectsColumns: DataGridColumn<typeof enrolled_subjects[0]>[] = [
+    { 
+      key: 'courseName', 
+      header: 'Course Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, item) => value
+    },
+    { 
+      key: 'professorInstructorName', 
+      header: 'Instructor', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, item) => value
+    },
+    { 
+      key: 'status', 
+      header: 'Status', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => value
+    },
   ];
 
-  const paymentHistoryColumns = [
-    { header: 'Receipt No', accessor: 'transactionId' as keyof StudentPaymentLogItem },
-    { header: 'Date', accessor: 'paymentDate' as keyof StudentPaymentLogItem, render: (item: StudentPaymentLogItem) => new Date(item.paymentDate).toLocaleDateString() },
-    { header: 'Amount Paid (KES)', accessor: 'amount' as keyof StudentPaymentLogItem, render: (item: StudentPaymentLogItem) => item.amount.toFixed(2) },
-    { header: 'Method', accessor: 'paymentMethod' as keyof StudentPaymentLogItem },
-    { header: 'Reference/Notes', accessor: 'description' as keyof StudentPaymentLogItem },
-    { header: 'Action', accessor: 'id' as keyof StudentPaymentLogItem, render: (item: StudentPaymentLogItem) => <Button size="sm" variant="ghost" leftIcon={<PrinterIcon className="w-4 h-4"/>}>Receipt</Button> },
+  const paymentHistoryColumns: DataGridColumn<StudentPaymentLogItem>[] = [
+    { 
+      key: 'transactionId', 
+      header: 'Receipt No', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => value
+    },
+    { 
+      key: 'paymentDate', 
+      header: 'Date', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => new Date(item.paymentDate).toLocaleDateString()
+    },
+    { 
+      key: 'amount', 
+      header: 'Amount Paid (KES)', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, item) => item.amount.toFixed(2)
+    },
+    { 
+      key: 'paymentMethod', 
+      header: 'Method', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => value
+    },
+    { 
+      key: 'description', 
+      header: 'Reference/Notes', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, item) => value
+    },
+    { 
+      key: 'actions', 
+      header: 'Action', 
+      sortable: false, 
+      filterable: false, 
+      width: 100,
+      sticky: 'right',
+      render: (value, item) => <Button size="sm" variant="ghost" leftIcon={<PrinterIcon className="w-4 h-4"/>}>Receipt</Button>
+    },
   ];
 
   const tabs = [
@@ -99,11 +163,35 @@ const StudentDetailPage: React.FC = () => {
     },
     {
       label: 'Enrolled Subjects',
-      content: <Table columns={enrolledSubjectsColumns} data={enrolled_subjects || []} emptyStateMessage="No subjects enrolled." />
+      content: <DataGrid 
+        columns={enrolledSubjectsColumns} 
+        data={enrolled_subjects || []} 
+        sortable 
+        filterable 
+        emptyState={
+          <div className="text-center py-12">
+            <AcademicCapIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No subjects enrolled</h3>
+            <p className="mt-1 text-sm text-gray-500">This student is not enrolled in any subjects yet.</p>
+          </div>
+        }
+      />
     },
     {
       label: 'Payment History',
-      content: <Table columns={paymentHistoryColumns} data={payment_history || []} emptyStateMessage="No payment history found." />
+      content: <DataGrid 
+        columns={paymentHistoryColumns} 
+        data={payment_history || []} 
+        sortable 
+        filterable 
+        emptyState={
+          <div className="text-center py-12">
+            <CurrencyDollarIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No payment history found</h3>
+            <p className="mt-1 text-sm text-gray-500">No payments have been recorded for this student.</p>
+          </div>
+        }
+      />
     },
   ];
 

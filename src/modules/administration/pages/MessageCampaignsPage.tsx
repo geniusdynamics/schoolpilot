@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Staff, Class, ClassStream } from '@/types';
 import { AdminCampaignType as Campaign, CampaignStatus, CampaignAudienceType, AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -153,27 +153,78 @@ const MessageCampaignsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Campaign },
-    { header: 'Campaign Name', accessor: 'name' as keyof Campaign },
-    { header: 'Status', accessor: 'status' as keyof Campaign, 
-        render: (item: Campaign) => {
-            let colorClass = 'bg-gray-200 text-gray-800';
-            if (item.status === CampaignStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
-            else if (item.status === CampaignStatus.APPROVED) colorClass = 'bg-blue-100 text-blue-800';
-            else if (item.status === CampaignStatus.SENT) colorClass = 'bg-green-100 text-green-800';
-            else if (item.status === CampaignStatus.CANCELLED) colorClass = 'bg-red-100 text-red-800';
-            return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
-        } 
+  const columns: DataGridColumn<Campaign>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, item) => value
     },
-    { header: 'Template Used', accessor: (item: Campaign) => item.template_name || 'Custom Content' },
-    { header: 'Target Audience', accessor: 'target_audience_display' as keyof Campaign },
-    { header: 'Scheduled For', accessor: 'scheduled_for' as keyof Campaign, render: (item: Campaign) => item.scheduled_for ? new Date(item.scheduled_for).toLocaleString() : 'Not Scheduled' },
-    { header: 'Created By', accessor: (item: Campaign) => item.created_by_name || 'N/A' },
+    { 
+      key: 'name', 
+      header: 'Campaign Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, item) => value
+    },
+    { 
+      key: 'status', 
+      header: 'Status', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => {
+        let colorClass = 'bg-gray-200 text-gray-800';
+        if (item.status === CampaignStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
+        else if (item.status === CampaignStatus.APPROVED) colorClass = 'bg-blue-100 text-blue-800';
+        else if (item.status === CampaignStatus.SENT) colorClass = 'bg-green-100 text-green-800';
+        else if (item.status === CampaignStatus.CANCELLED) colorClass = 'bg-red-100 text-red-800';
+        return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
+      }
+    },
+    { 
+      key: 'template_name', 
+      header: 'Template Used', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, item) => item.template_name || 'Custom Content'
+    },
+    { 
+      key: 'target_audience_display', 
+      header: 'Target Audience', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, item) => value
+    },
+    { 
+      key: 'scheduled_for', 
+      header: 'Scheduled For', 
+      sortable: true, 
+      filterable: true, 
+      width: 160,
+      render: (value, item) => item.scheduled_for ? new Date(item.scheduled_for).toLocaleString() : 'Not Scheduled'
+    },
+    { 
+      key: 'created_by_name', 
+      header: 'Created By', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => item.created_by_name || 'N/A'
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof Campaign,
-      render: (item: Campaign) => (
+      sortable: false,
+      filterable: false,
+      width: 160,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -193,7 +244,19 @@ const MessageCampaignsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('MessageCampaignsPage.designAndManageCommunicationCampaigns')}
         </p>
-        <Table columns={columns} data={campaigns || []} />
+        <DataGrid 
+          columns={columns} 
+          data={campaigns || []} 
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <MegaphoneIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No message campaigns found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating your first message campaign.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCampaign ? t('MessageCampaignsPage.editCampaign') : t('MessageCampaignsPage.createNewCampaign')} size="xl"

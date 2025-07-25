@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Book, BookCategory, BookStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import DataGrid from '@/components/ui/data/DataGrid';
-import type { DataGridColumn } from '@/components/ui/data/DataGrid';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';

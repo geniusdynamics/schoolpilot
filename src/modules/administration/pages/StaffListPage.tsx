@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Staff, Department, Designation } from '@/types';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Card from '@/components/ui/Card';
-import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
+import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon } from '@/components/ui/icons';
 // import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
 import { useAppData } from '@/contexts/AppDataContext'; // Import useAppData
 import Spinner from '@/components/ui/Spinner';
@@ -110,19 +110,79 @@ const StaffListPage: React.FC = () => {
       );
   }, [staff, searchTerm, statusFilter]);
 
-  const columns = [
-    { header: 'Staff No', accessor: 'staff_no' as keyof Staff },
-    { header: 'Name', accessor: ((item: Staff) => `${item.first_name} ${item.last_name}`) },
-    { header: 'Department', accessor: 'department_name' as keyof Staff },
-    { header: 'Designation', accessor: 'designation_title' as keyof Staff },
-    { header: 'HOD Of', accessor: 'hod_of_department_name' as keyof Staff},
-    { header: 'Phone', accessor: 'phone' as keyof Staff },
-    { header: 'Email', accessor: 'email' as keyof Staff},
-    { header: 'Status', accessor: 'is_active' as keyof Staff },
+  const columns: DataGridColumn<Staff>[] = [
+    { 
+      key: 'staff_no',
+      header: 'Staff No', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => item.staff_no
+    },
+    { 
+      key: 'name',
+      header: 'Name', 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => `${item.first_name} ${item.last_name}`
+    },
+    { 
+      key: 'department_name',
+      header: 'Department', 
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, item) => item.department_name
+    },
+    { 
+      key: 'designation_title',
+      header: 'Designation', 
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, item) => item.designation_title
+    },
+    { 
+      key: 'hod_of_department_name',
+      header: 'HOD Of', 
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, item) => item.hod_of_department_name
+    },
+    { 
+      key: 'phone',
+      header: 'Phone', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => item.phone
+    },
+    { 
+      key: 'email',
+      header: 'Email', 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => item.email
+    },
+    { 
+      key: 'is_active',
+      header: 'Status', 
+      sortable: true,
+      filterable: true,
+      width: 100,
+      render: (value, item) => item.is_active ? 'Active' : 'Inactive'
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof Staff,
-      render: (item: Staff) => (
+      sortable: false,
+      filterable: false,
+      width: 200,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -162,7 +222,20 @@ const StaffListPage: React.FC = () => {
         {pageIsLoading && !isModalOpen ? (
           <div className="flex justify-center items-center py-10"> <Spinner /> <span className="ml-2">Loading staff...</span> </div>
         ) : (
-          <Table columns={columns} data={filteredStaff} isLoading={loading.staff && isModalOpen} />
+          <DataGrid 
+            columns={columns} 
+            data={filteredStaff} 
+            loading={loading.staff && isModalOpen}
+            sortable
+            filterable
+            emptyState={
+              <div className="text-center py-12">
+                <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No staff members found</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by adding your first staff member.</p>
+              </div>
+            }
+          />
         )}
       </Card>
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Department } from '@/types'; // Department is a core type
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -61,14 +61,45 @@ const DepartmentsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Department },
-    { header: 'Department Name', accessor: 'name' as keyof Department },
-    { header: 'Is Academic', accessor: 'is_academic' as keyof Department },
+  const columns: DataGridColumn<Department>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, item) => <span className="font-mono text-sm">{value}</span>
+    },
+    { 
+      key: 'name', 
+      header: 'Department Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, item) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'is_academic', 
+      header: 'Is Academic', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+          value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+        }`}>
+          {value ? 'Yes' : 'No'}
+        </span>
+      )
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Department,
-      render: (item: Department) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -84,7 +115,19 @@ const DepartmentsPage: React.FC = () => {
           {t('departments.addDepartment')}
         </Button>
       }>
-        <Table columns={columns} data={departments} isLoading={isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={departments || []} 
+          loading={false}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-8">
+              <PlusIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No departments found. Create your first department to get started.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDepartment ? t('departments.editDepartment') : t('departments.addNewDepartment')}

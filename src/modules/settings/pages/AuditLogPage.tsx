@@ -1,8 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
-import DataGrid from '@/components/ui/data/DataGrid';
-import type { DataGridColumn } from '@/components/ui/data/DataGrid';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { ClockIcon, ArrowPathIcon as ResetIcon, MagnifyingGlassIcon } from '@/components/ui/icons'; // Added ResetIcon
 import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '@/components/ui/Spinner';

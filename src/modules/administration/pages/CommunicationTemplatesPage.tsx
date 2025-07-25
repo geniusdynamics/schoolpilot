@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
-import DataGrid from '@/components/ui/data/DataGrid';
+import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';

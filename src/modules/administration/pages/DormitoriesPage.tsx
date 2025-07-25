@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dormitory, Staff } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -64,15 +64,47 @@ const DormitoriesPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Dormitory },
-    { header: 'Dormitory Name', accessor: 'name' as keyof Dormitory },
-    { header: 'Master/Mistress', accessor: 'master_name' as keyof Dormitory },
-    { header: 'Capacity', accessor: 'capacity' as keyof Dormitory },
+  const columns: DataGridColumn<Dormitory>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, item) => value
+    },
+    { 
+      key: 'name', 
+      header: 'Dormitory Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, item) => value
+    },
+    { 
+      key: 'master_name', 
+      header: 'Master/Mistress', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, item) => value || '-'
+    },
+    { 
+      key: 'capacity', 
+      header: 'Capacity', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => value || '-'
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof Dormitory,
-      render: (item: Dormitory) => (
+      sortable: false,
+      filterable: false,
+      width: 160,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -96,7 +128,20 @@ const DormitoriesPage: React.FC = () => {
           {t('dormitories.addDormitory')}
         </Button>
       }>
-        <Table columns={columns} data={dormitories} isLoading={loading.dormitories && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={dormitories} 
+          loading={loading.dormitories && isModalOpen}
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <BuildingLibraryIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No dormitories found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by adding your first dormitory.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDormitory ? t('dormitories.editDormitory') : t('dormitories.addNewDormitory')}

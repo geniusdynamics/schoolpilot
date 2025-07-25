@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Staff } from '@/types';
 import { AdminClubAndSocietyType as ClubAndSociety, ClubType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -12,13 +12,15 @@ import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon as ClubsIcon } from '@/co
 import { useClubAndSocietyData } from '@/modules/administration/data/useClubAndSocietyData';
 import { useAppData } from '@/contexts/AppDataContext'; // For staff data only
 import Spinner from '@/components/ui/Spinner';
+import { useTranslation } from 'react-i18next';
 
 type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated_at' | 'patron_name' | 'type'> & {
     type: ClubType; // Make type required for the form
 };
 
 const ClubsPage: React.FC = () => {
-  const { clubsAndSocieties, addClubAndSociety, updateClubAndSociety, deleteClubAndSociety } = useClubAndSocietyData();
+  const { t } = useTranslation();
+  const { data: clubsAndSocieties, create: addClubAndSociety, update: updateClubAndSociety, remove: deleteClubAndSociety } = useClubAndSocietyData();
   const { staff = [] } = useAppData(); // Only for staff data
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,15 +70,47 @@ const ClubsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof ClubAndSociety },
-    { header: 'Club/Society Name', accessor: 'name' as keyof ClubAndSociety },
-    { header: 'Type', accessor: 'type' as keyof ClubAndSociety },
-    { header: 'Patron', accessor: 'patron_name' as keyof ClubAndSociety },
+  const columns: DataGridColumn<ClubAndSociety>[] = [
+    { 
+      key: 'id',
+      header: 'ID', 
+      sortable: true,
+      filterable: true,
+      width: 80,
+      render: (value, item) => item.id
+    },
+    { 
+      key: 'name',
+      header: 'Club/Society Name', 
+      sortable: true,
+      filterable: true,
+      width: 250,
+      render: (value, item) => item.name
+    },
+    { 
+      key: 'type',
+      header: 'Type', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => item.type
+    },
+    { 
+      key: 'patron_name',
+      header: 'Patron', 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => item.patron_name
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof ClubAndSociety,
-      render: (item: ClubAndSociety) => (
+      sortable: false,
+      filterable: false,
+      width: 200,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -95,7 +129,19 @@ const ClubsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage school clubs, societies, and sports teams. Assign patrons from the staff list.
         </p>
-        <Table columns={columns} data={clubsAndSocieties} />
+        <DataGrid 
+          columns={columns} 
+          data={clubsAndSocieties}
+          sortable
+          filterable
+          emptyState={
+            <div className="text-center py-12">
+              <ClubsIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No clubs or societies found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating your first club or society.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingClub ? 'Edit Club/Society' : 'Add New Club/Society'} size="lg"
