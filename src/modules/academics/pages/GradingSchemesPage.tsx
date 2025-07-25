@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GradingScheme, GradingSchemeLevel } from '@/modules/academics/data/types'; // Corrected import
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -141,15 +141,15 @@ const GradingSchemesPage: React.FC = () => {
     }
   };
 
-  const schemeColumns = [
-    { header: 'ID', accessor: 'id' as keyof GradingScheme },
-    { header: 'Scheme Name', accessor: 'name' as keyof GradingScheme },
-    { header: 'Is Default', accessor: 'is_default' as keyof GradingScheme },
-    { header: 'Levels', accessor: 'id' as keyof GradingScheme, render: (item: GradingScheme) => (item.levels?.length || 0) },
+  const schemeColumns: DataGridColumn<GradingScheme>[] = [
+    { key: 'id', header: 'ID' },
+    { key: 'name', header: 'Scheme Name' },
+    { key: 'is_default', header: 'Is Default' },
+    { key: 'levels', header: 'Levels', render: (value: any, item: GradingScheme) => (item.levels?.length || 0) },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof GradingScheme,
-      render: (item: GradingScheme) => (
+      render: (value: any, item: GradingScheme) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openSchemeModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit Scheme</Button>
           <Button size="sm" variant="secondary" onClick={() => openLevelModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Manage Levels</Button>
@@ -159,15 +159,15 @@ const GradingSchemesPage: React.FC = () => {
     },
   ];
 
-  const levelColumns = [
-    { header: 'Grade', accessor: 'grade' as keyof GradingSchemeLevel },
-    { header: 'Min Score', accessor: 'min_score' as keyof GradingSchemeLevel },
-    { header: 'Points', accessor: 'points' as keyof GradingSchemeLevel },
-    { header: 'Comment', accessor: 'comment' as keyof GradingSchemeLevel },
+  const levelColumns: DataGridColumn<GradingSchemeLevel>[] = [
+    { key: 'grade', header: 'Grade' },
+    { key: 'min_score', header: 'Min Score' },
+    { key: 'points', header: 'Points' },
+    { key: 'comment', header: 'Comment' },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof GradingSchemeLevel,
-      render: (item: GradingSchemeLevel) => (
+      render: (value: any, item: GradingSchemeLevel) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openLevelModal(currentSchemeForLevels!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteLevel(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -194,7 +194,7 @@ const GradingSchemesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Define grading schemes and their corresponding levels (grades, minimum scores, points).
         </p>
-        <Table columns={schemeColumns} data={gradingSchemes} isLoading={loading.gradingSchemes && (isSchemeModalOpen || isLevelModalOpen)} />
+        <DataGrid columns={schemeColumns} data={gradingSchemes} />
       </Card>
 
       {/* Scheme Modal */}
@@ -255,10 +255,9 @@ const GradingSchemesPage: React.FC = () => {
             </Card>
             
             <h4 className="text-md font-semibold text-gray-700 mt-6">Existing Levels</h4>
-            <Table 
+            <DataGrid 
               columns={levelColumns} 
               data={currentSchemeForLevels.levels || []} 
-              emptyStateMessage="No levels defined for this scheme yet."
             />
           </div>
         )}

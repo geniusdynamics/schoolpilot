@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { SubjectPaper, Subject } from '@/modules/academics/data/types'; // Corrected import
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 type SubjectPaperFormData = Omit<Partial<SubjectPaper>, 'id' | 'created_at' | 'updated_at' | 'subject_name'>;
 
 const SubjectPapersManagementPage: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     subjectPapers, 
     subjects, // Need subjects for the dropdown
@@ -72,15 +73,15 @@ const SubjectPapersManagementPage: React.FC = () => {
     }
   };
   
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof SubjectPaper },
-    { header: 'Paper Name', accessor: 'name' as keyof SubjectPaper },
-    { header: 'Subject', accessor: 'subject_name' as keyof SubjectPaper }, // Resolved name
-    { header: 'Created At', accessor: 'created_at' as keyof SubjectPaper, render: (item: SubjectPaper) => new Date(item.created_at).toLocaleDateString() },
+  const columns: DataGridColumn<SubjectPaper>[] = [
+    { key: 'id', header: 'ID' },
+    { key: 'name', header: 'Paper Name' },
+    { key: 'subject_name', header: 'Subject' }, // Resolved name
+    { key: 'created_at', header: 'Created At', render: (value: any, item: SubjectPaper) => new Date(item.created_at).toLocaleDateString() },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof SubjectPaper,
-      render: (item: SubjectPaper) => (
+      render: (value: any, item: SubjectPaper) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -107,7 +108,7 @@ const SubjectPapersManagementPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Define individual papers for each subject (e.g., "Mathematics Paper 1", "Chemistry Practical Paper 2"). These papers are then used in exam settings.
         </p>
-        <Table columns={columns} data={subjectPapers} isLoading={loading.subjectPapers && isModalOpen} />
+        <DataGrid columns={columns} data={subjectPapers} loading={loading.subjectPapers && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPaper ? 'Edit Subject Paper' : 'Add New Subject Paper'} size="lg"

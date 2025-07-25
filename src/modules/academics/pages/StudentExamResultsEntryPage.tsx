@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Student, ClassStream } from '@/types';
 import { StudentExamResultWithDetails, StudentPaperMarkWithDetails, ExamSession, ExamPaperSetting, SubjectPaper, StudentPaperMark } from '@/modules/academics/data/types'; // Corrected imports
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
@@ -155,15 +155,15 @@ const StudentExamResultsEntryPage: React.FC = () => {
   };
 
 
-  const tableColumns = useMemo(() => {
-    const staticColumns = [
-      { header: 'Adm No', accessor: (item: Student) => item.admission_no },
-      { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name}` },
+  const tableColumns: DataGridColumn<Student>[] = useMemo(() => {
+    const staticColumns: DataGridColumn<Student>[] = [
+      { key: 'admission_no', header: 'Adm No' },
+      { key: 'first_name', header: 'Student Name', render: (value: any, item: Student) => `${item.first_name} ${item.last_name}` },
     ];
-    const dynamicPaperColumns = (paperSettingsForSession || []).map(paperSetting => ({
+    const dynamicPaperColumns: DataGridColumn<Student>[] = (paperSettingsForSession || []).map(paperSetting => ({
+      key: `paper_${paperSetting.id}`,
       header: `${paperSetting.subject_name || 'Subject'} - ${paperSetting.subject_paper_name || 'Paper'} (/${paperSetting.marks_out_of})`,
-      accessor: (student: Student) => student.id, // Use student.id to then access marks state
-      render: (student: Student) => (
+      render: (value: any, student: Student) => (
         <Input
           type="number"
           className="w-20 text-sm p-1"
@@ -216,7 +216,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
         ) : selectedExamSessionId && selectedClassStreamId ? (
           studentsForEntry.length > 0 && paperSettingsForSession.length > 0 ? (
             <>
-              <Table columns={tableColumns} data={studentsForEntry} />
+              <DataGrid columns={tableColumns} data={studentsForEntry} />
               <div className="mt-6 text-right">
                 <Button onClick={handleSaveAllMarks} disabled={saving} leftIcon={saving ? <Spinner size="sm"/> : undefined}>
                   {saving ? 'Saving Marks...' : 'Save All Marks'}

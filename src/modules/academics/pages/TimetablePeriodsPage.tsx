@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TimetablePeriodDef } from '@/core/types'; // Use core type (shared across modules)
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -47,7 +47,7 @@ const TimetablePeriodsPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.period_name || !formData.start_time || !formData.end_time) {
-      alert(t('validation.allFieldsRequired'));
+      alert(t('validation.allFieldsAreRequired'));
       return;
     }
     if (formData.start_time >= formData.end_time) {
@@ -76,15 +76,15 @@ const TimetablePeriodsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof TimetablePeriodDef },
-    { header: 'Period Name', accessor: 'period_name' as keyof TimetablePeriodDef },
-    { header: 'Start Time', accessor: 'start_time' as keyof TimetablePeriodDef },
-    { header: 'End Time', accessor: 'end_time' as keyof TimetablePeriodDef },
+  const columns: DataGridColumn<TimetablePeriodDef>[] = [
+    { key: 'id', header: 'ID' },
+    { key: 'period_name', header: 'Period Name' },
+    { key: 'start_time', header: 'Start Time' },
+    { key: 'end_time', header: 'End Time' },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof TimetablePeriodDef,
-      render: (item: TimetablePeriodDef) => (
+      render: (value: any, item: TimetablePeriodDef) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -106,7 +106,7 @@ const TimetablePeriodsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Define standard lesson periods for the school day (e.g., Lesson 1, Break) along with their start and end times.
         </p>
-        <Table columns={columns} data={timetablePeriodDefs} />
+        <DataGrid columns={columns} data={timetablePeriodDefs} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPeriod ? 'Edit Timetable Period' : 'Add New Timetable Period'}

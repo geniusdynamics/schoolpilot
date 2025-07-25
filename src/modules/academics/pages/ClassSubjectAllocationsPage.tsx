@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ClassStream, AcademicYear } from '@/types';
 import { ClassSubjectAllocation, Subject } from '@/modules/academics/data/types'; // Corrected imports
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
@@ -99,14 +99,14 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof ClassSubjectAllocation },
-    { header: 'Class Stream', accessor: 'class_stream_name' as keyof ClassSubjectAllocation },
-    { header: 'Subject', accessor: 'subject_name' as keyof ClassSubjectAllocation },
-    { header: 'Academic Year', accessor: 'academic_year_name' as keyof ClassSubjectAllocation },
+  const columns: DataGridColumn<ClassSubjectAllocation>[] = [
+    { header: 'ID', accessor: 'id' },
+    { header: 'Class Stream', accessor: 'class_stream_name' },
+    { header: 'Subject', accessor: 'subject_name' },
+    { header: 'Academic Year', accessor: 'academic_year_name' },
     {
       header: 'Actions',
-      accessor: 'id' as keyof ClassSubjectAllocation,
+      accessor: 'id',
       render: (item: ClassSubjectAllocation) => (
         <div className="space-x-2">
           {/* <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button> */}
@@ -134,7 +134,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Assign subjects to specific class streams for a given academic year.
         </p>
-        <Table columns={columns} data={classSubjectAllocations} isLoading={loading.classSubjectAllocations} />
+        <DataGrid columns={columns} data={classSubjectAllocations} loading={loading.classSubjectAllocations} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAllocation ? t('classSubjectAllocations.modalEditTitle') : t('classSubjectAllocations.modalAddTitle')} size="lg"
