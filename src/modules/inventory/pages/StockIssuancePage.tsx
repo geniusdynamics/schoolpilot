@@ -84,7 +84,6 @@ const StockIssuancePage: React.FC = () => {
     { 
       key: 'id', 
       header: 'Transaction ID', 
-      accessor: 'id' as keyof StockTransaction,
       sortable: true,
       filterable: true,
       width: '140px'
@@ -92,7 +91,6 @@ const StockIssuancePage: React.FC = () => {
     { 
       key: 'item_name', 
       header: 'Item Name', 
-      accessor: 'item_name' as keyof StockTransaction,
       sortable: true,
       filterable: true,
       width: '200px'
@@ -100,7 +98,6 @@ const StockIssuancePage: React.FC = () => {
     { 
       key: 'warehouse_name', 
       header: 'Warehouse', 
-      accessor: 'warehouse_name' as keyof StockTransaction,
       sortable: true,
       filterable: true,
       width: '150px'
@@ -108,15 +105,13 @@ const StockIssuancePage: React.FC = () => {
     { 
       key: 'quantity', 
       header: 'Quantity Issued', 
-      accessor: 'quantity' as keyof StockTransaction,
       sortable: true,
       width: '140px'
     },
     { 
       key: 'transaction_date', 
       header: 'Date', 
-      accessor: 'transaction_date' as keyof StockTransaction, 
-      render: (item: StockTransaction) => item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : 'N/A',
+      render: (value: any, item: StockTransaction) => item.transaction_date ? new Date(item.transaction_date).toLocaleDateString() : 'N/A',
       sortable: true,
       filterable: true,
       width: '120px'
@@ -124,7 +119,6 @@ const StockIssuancePage: React.FC = () => {
     { 
       key: 'notes', 
       header: 'Notes', 
-      accessor: 'notes' as keyof StockTransaction,
       sortable: true,
       filterable: true,
       width: '200px'

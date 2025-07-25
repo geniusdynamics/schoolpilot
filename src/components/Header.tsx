@@ -36,7 +36,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/70 lg:backdrop-blur backdrop-blur-none shadow-md border-b border-slate-100`}
+      className={`fixed top-0 left-0 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/90 lg:backdrop-blur-md shadow-md border-b border-slate-100`}
       style={{ height: '64px' }}
     >
       <div className="max-w-full mx-auto flex items-center justify-between h-16 px-3 sm:px-6">
@@ -111,7 +111,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
       
       {/* Mobile Search Bar - Only shows when toggled */}
       {showMobileSearch && (
-        <div className="md:hidden border-t border-slate-200/50 bg-white/80 lg:backdrop-blur backdrop-blur-none px-3 py-2">
+        <div className="md:hidden border-t border-slate-200/50 bg-white/95 lg:backdrop-blur-sm px-3 py-2">
           <div className="flex items-center gap-2">
             <input
               type="text"

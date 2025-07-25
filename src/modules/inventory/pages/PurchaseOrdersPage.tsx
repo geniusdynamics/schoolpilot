@@ -186,7 +186,6 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'id', 
       header: 'PO ID', 
-      accessor: 'id' as keyof PurchaseOrder,
       sortable: true,
       filterable: true,
       width: '120px'
@@ -194,7 +193,6 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'supplier_name', 
       header: 'Supplier', 
-      accessor: 'supplier_name' as keyof PurchaseOrder,
       sortable: true,
       filterable: true,
       width: '200px'
@@ -202,7 +200,6 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'order_date', 
       header: 'Order Date', 
-      accessor: 'order_date' as keyof PurchaseOrder, 
       render: (value: any, item: PurchaseOrder) => new Date(item.order_date).toLocaleDateString(),
       sortable: true,
       filterable: true,
@@ -211,7 +208,6 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'status', 
       header: 'Status', 
-      accessor: 'status' as keyof PurchaseOrder,
       render: (value: any, item: PurchaseOrder) => {
         let colorClass = 'bg-gray-200 text-gray-800';
         if (item.status === PurchaseOrderStatus.DRAFT) colorClass = 'bg-yellow-100 text-yellow-800';
@@ -227,7 +223,6 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'items_count', 
       header: 'Items', 
-      accessor: 'id' as keyof PurchaseOrder, 
       render: (value: any, item: PurchaseOrder) => item?.items?.length || 0,
       sortable: true,
       width: '80px'
@@ -235,7 +230,6 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'total_value', 
       header: 'Total Value', 
-      accessor: 'total_value' as keyof PurchaseOrder, 
       render: (value: any, item: PurchaseOrder) => `Ksh ${item.total_value?.toFixed(2) || '0.00'}`,
       sortable: true,
       width: '120px'
@@ -243,7 +237,6 @@ const PurchaseOrdersPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof PurchaseOrder,
       render: (value: any, item: PurchaseOrder) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openPOModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
@@ -260,7 +253,6 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'item_name', 
       header: 'Item Name', 
-      accessor: 'item_name' as keyof PurchaseOrderItem,
       sortable: true,
       filterable: true,
       width: '200px'
@@ -268,14 +260,12 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'quantity_ordered', 
       header: 'Qty Ordered', 
-      accessor: 'quantity_ordered' as keyof PurchaseOrderItem,
       sortable: true,
       width: '120px'
     },
     { 
       key: 'unit_price', 
       header: 'Unit Price', 
-      accessor: 'unit_price' as keyof PurchaseOrderItem, 
       render: (value: any, item: PurchaseOrderItem) => `Ksh ${item.unit_price.toFixed(2)}`,
       sortable: true,
       width: '120px'
@@ -283,7 +273,6 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'line_total', 
       header: 'Line Total', 
-      accessor: 'line_total' as keyof PurchaseOrderItem, 
       render: (value: any, item: PurchaseOrderItem) => `Ksh ${item.line_total?.toFixed(2) || '0.00'}`,
       sortable: true,
       width: '120px'
@@ -291,14 +280,12 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'quantity_received', 
       header: 'Qty Received', 
-      accessor: 'quantity_received' as keyof PurchaseOrderItem,
       sortable: true,
       width: '120px'
     },
     {
       key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof PurchaseOrderItem,
       render: (value: any, item: PurchaseOrderItem) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openItemModal(currentPOForItems!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>

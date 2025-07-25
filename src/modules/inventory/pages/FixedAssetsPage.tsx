@@ -117,7 +117,6 @@ const FixedAssetsPage: React.FC = () => {
     { 
       key: 'asset_tag', 
       header: 'Asset Tag', 
-      accessor: 'asset_tag' as keyof FixedAsset,
       sortable: true,
       filterable: true,
       width: '120px'
@@ -125,7 +124,6 @@ const FixedAssetsPage: React.FC = () => {
     { 
       key: 'item_name', 
       header: 'Item Name', 
-      accessor: 'item_name' as keyof FixedAsset,
       sortable: true,
       filterable: true,
       width: '200px'
@@ -133,7 +131,6 @@ const FixedAssetsPage: React.FC = () => {
     { 
       key: 'serial_number', 
       header: 'Serial No.', 
-      accessor: 'serial_number' as keyof FixedAsset,
       sortable: true,
       filterable: true,
       width: '140px'
@@ -141,8 +138,7 @@ const FixedAssetsPage: React.FC = () => {
     { 
       key: 'purchase_date', 
       header: 'Purchase Date', 
-      accessor: 'purchase_date' as keyof FixedAsset, 
-      render: (item: FixedAsset) => item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : 'N/A',
+      render: (value: any, item: FixedAsset) => item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : 'N/A',
       sortable: true,
       filterable: true,
       width: '130px'
@@ -150,23 +146,20 @@ const FixedAssetsPage: React.FC = () => {
     { 
       key: 'purchase_cost', 
       header: 'Purchase Cost', 
-      accessor: 'purchase_cost' as keyof FixedAsset, 
-      render: (item: FixedAsset) => item.purchase_cost ? `Ksh ${item.purchase_cost.toFixed(2)}` : 'N/A',
+      render: (value: any, item: FixedAsset) => item.purchase_cost ? `Ksh ${item.purchase_cost.toFixed(2)}` : 'N/A',
       sortable: true,
       width: '130px'
     },
     { 
       key: 'current_value', 
       header: 'Current Value', 
-      accessor: 'current_value' as keyof FixedAsset, 
-      render: (item: FixedAsset) => item.current_value ? `Ksh ${item.current_value.toFixed(2)}` : 'N/A',
+      render: (value: any, item: FixedAsset) => item.current_value ? `Ksh ${item.current_value.toFixed(2)}` : 'N/A',
       sortable: true,
       width: '130px'
     },
     { 
       key: 'assigned_to_staff_name', 
       header: 'Assigned To', 
-      accessor: 'assigned_to_staff_name' as keyof FixedAsset,
       sortable: true,
       filterable: true,
       width: '150px'
@@ -174,8 +167,7 @@ const FixedAssetsPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof FixedAsset,
-      render: (item: FixedAsset) => (
+      render: (value: any, item: FixedAsset) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>

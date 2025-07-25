@@ -143,15 +143,15 @@ const SettingsUsersPage: React.FC = () => {
   };
 
   const userColumns = [
-    { header: 'Username', accessor: 'username' as keyof User },
-    { header: 'Email', accessor: 'email' as keyof User },
-    { header: 'User Type', accessor: 'userType' as keyof User},
-    { header: 'Role', accessor: 'role' as keyof User }, 
-    { header: 'Status', accessor: 'isActive' as keyof User },
+    { header: 'Username', key: 'username' as keyof User },
+    { header: 'Email', key: 'email' as keyof User },
+    { header: 'User Type', key: 'userType' as keyof User},
+    { header: 'Role', key: 'role' as keyof User }, 
+    { header: 'Status', key: 'isActive' as keyof User },
     {
       header: 'Actions',
-      accessor: 'id' as keyof User,
-      render: (item: User) => (
+      key: 'id' as keyof User,
+      render: (value: any, item: User) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openUserModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteUser(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -160,13 +160,13 @@ const SettingsUsersPage: React.FC = () => {
     }
   ];
   const roleColumns = [
-    { header: 'ID', accessor: 'id' as keyof Role },
-    { header: 'Role Name', accessor: 'name' as keyof Role },
-    { header: 'Description', accessor: 'description' as keyof Role },
+    { header: 'ID', key: 'id' as keyof Role },
+    { header: 'Role Name', key: 'name' as keyof Role },
+    { header: 'Description', key: 'description' as keyof Role },
     {
       header: 'Actions',
-      accessor: 'id' as keyof Role,
-      render: (item: Role) => (
+      key: 'id' as keyof Role,
+      render: (value: any, item: Role) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openRoleModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteRole(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>

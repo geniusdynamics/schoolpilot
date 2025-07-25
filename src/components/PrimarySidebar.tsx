@@ -135,8 +135,8 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
     <aside className={`
       flex flex-col items-center min-h-full
       w-16 sm:w-20
-      bg-gradient-to-b from-slate-900/80 via-slate-800/70 to-slate-900/80
-      lg:backdrop-blur-xl backdrop-blur-sm
+      bg-gradient-to-b from-slate-900/95 via-slate-800/90 to-slate-900/95
+      lg:backdrop-blur-xl md:backdrop-blur-sm
       border-r border-white/10
       shadow-2xl shadow-black/20
       rounded-r-3xl
@@ -147,7 +147,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
       ${isMouseNearSidebar ? 'sidebar-active' : 'sidebar-inactive'}
     `}>
       {/* Content container - responsive spacing and scrolling */}
-      <div className="flex flex-col gap-2 sm:gap-3 w-full items-center relative z-10 px-1 sm:px-2 overflow-y-auto max-h-full">
+      <div className="flex flex-col gap-2 sm:gap-3 w-full items-center relative z-10 px-1 sm:px-2 overflow-y-auto max-h-full custom-scrollbar">
         {mainModules.map(item => {
           const isSelected = selectedModuleKey === item.name;
           const isHovered = hoveredModule === item.name;
@@ -268,6 +268,42 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
           );
         })}
       </div>
+      
+      <style>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(148, 163, 184, 0.6) rgba(30, 41, 59, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          background: rgba(30, 41, 59, 0.3);
+          border-radius: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(30, 41, 59, 0.2);
+          border-radius: 6px;
+          margin: 4px 0;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg,
+            rgba(148, 163, 184, 0.6) 0%,
+            rgba(100, 116, 139, 0.7) 50%,
+            rgba(71, 85, 105, 0.8) 100%
+          );
+          border-radius: 6px;
+          transition: all 0.3s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg,
+            rgba(148, 163, 184, 0.8) 0%,
+            rgba(100, 116, 139, 0.9) 50%,
+            rgba(71, 85, 105, 1) 100%
+          );
+        }
+        .custom-scrollbar::-webkit-scrollbar-corner {
+          background: transparent;
+        }
+      `}</style>
     </aside>
   );
 };

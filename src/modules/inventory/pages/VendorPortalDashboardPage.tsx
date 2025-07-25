@@ -137,34 +137,34 @@ const VendorPortalDashboardPage: React.FC = () => {
   ].sort((a, b) => (b.time || '').localeCompare(a.time || ''));
 
   const poColumns = [
-    { header: 'PO Number', accessor: 'id' as keyof InvPurchaseOrderType },
-    { header: 'Issue Date', accessor: 'order_date' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => new Date(item.order_date).toLocaleDateString() },
-    { header: 'Amount', accessor: 'total_value' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => `Ksh ${item.total_value?.toFixed(2)}` },
-    { header: 'Status', accessor: 'status' as keyof InvPurchaseOrderType, 
-      render: (item: InvPurchaseOrderType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+    { header: 'PO Number', key: 'id', render: (value: any, item: InvPurchaseOrderType) => value },
+    { header: 'Issue Date', key: 'order_date', render: (value: any, item: InvPurchaseOrderType) => new Date(item.order_date).toLocaleDateString() },
+    { header: 'Amount', key: 'total_value', render: (value: any, item: InvPurchaseOrderType) => `Ksh ${item.total_value?.toFixed(2)}` },
+    { header: 'Status', key: 'status', 
+      render: (value: any, item: InvPurchaseOrderType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
         item.status === InvPurchaseOrderStatusEnum.APPROVED ? 'bg-blue-100 text-blue-800' :
         item.status === InvPurchaseOrderStatusEnum.SENT_TO_SUPPLIER ? 'bg-yellow-100 text-yellow-800' :
         item.status === InvPurchaseOrderStatusEnum.FULLY_RECEIVED || item.status === InvPurchaseOrderStatusEnum.PARTIALLY_RECEIVED ? 'bg-green-100 text-green-800' :
         'bg-gray-100 text-gray-800'
       }`}>{item.status}</span>
     },
-    { header: 'Action', accessor: 'id' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => <Button size="sm" variant="ghost">View Details</Button> }
+    { header: 'Action', key: 'id', render: (value: any, item: InvPurchaseOrderType) => <Button size="sm" variant="ghost">View Details</Button> }
   ];
 
   const rfqColumns = [
-    { header: 'RFQ ID', accessor: 'id' as keyof InvRFQType },
-    { header: 'Title', accessor: 'title' as keyof InvRFQType },
-    { header: 'Issue Date', accessor: 'issue_date' as keyof InvRFQType, render: (item: InvRFQType) => new Date(item.issue_date).toLocaleDateString() },
-    { header: 'Closing Date', accessor: 'closing_date' as keyof InvRFQType, render: (item: InvRFQType) => new Date(item.closing_date).toLocaleDateString() },
-    { header: 'Status', accessor: 'status' as keyof InvRFQType,
-        render: (item: InvRFQType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+    { header: 'RFQ ID', key: 'id', render: (value: any, item: InvRFQType) => value },
+    { header: 'Title', key: 'title', render: (value: any, item: InvRFQType) => value },
+    { header: 'Issue Date', key: 'issue_date', render: (value: any, item: InvRFQType) => new Date(item.issue_date).toLocaleDateString() },
+    { header: 'Closing Date', key: 'closing_date', render: (value: any, item: InvRFQType) => new Date(item.closing_date).toLocaleDateString() },
+    { header: 'Status', key: 'status',
+        render: (value: any, item: InvRFQType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
             item.status === InvRFQStatusEnum.OPEN ? 'bg-green-100 text-green-800' : 
             item.status === InvRFQStatusEnum.CLOSED ? 'bg-gray-100 text-gray-700' :
             item.status === InvRFQStatusEnum.AWARDED ? 'bg-blue-100 text-blue-800' :
             'bg-red-100 text-red-700' // Cancelled
         }`}>{item.status}</span>
     },
-    { header: 'Action', accessor: 'id' as keyof InvRFQType, render: (item: InvRFQType) => (
+    { header: 'Action', key: 'id', render: (value: any, item: InvRFQType) => (
         <div className="space-x-1">
             <Button size="sm" variant="ghost">View Details</Button>
             {item.status === InvRFQStatusEnum.OPEN && <Button size="sm" variant="primary">Submit Bid</Button>}
@@ -173,12 +173,12 @@ const VendorPortalDashboardPage: React.FC = () => {
   ];
 
   const invoiceColumns = [
-    { header: t('vendor.invoice.number'), accessor: 'invoice_number' as keyof typeof vendorInvoices[0] },
-    { header: t('vendor.invoice.po'), accessor: 'purchase_order_id' as keyof typeof vendorInvoices[0] },
-    { header: t('vendor.invoice.amount'), accessor: 'total_amount' as keyof typeof vendorInvoices[0], render: (item: typeof vendorInvoices[0]) => `Ksh ${item.total_amount?.toFixed(2)}` },
-    { header: t('vendor.invoice.dueDate'), accessor: 'due_date' as keyof typeof vendorInvoices[0] },
-    { header: t('vendor.invoice.status'), accessor: 'status' as keyof typeof vendorInvoices[0],
-      render: (item: typeof vendorInvoices[0]) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+    { header: t('vendor.invoice.number'), key: 'invoice_number', render: (value: any, item: typeof vendorInvoices[0]) => value },
+    { header: t('vendor.invoice.po'), key: 'purchase_order_id', render: (value: any, item: typeof vendorInvoices[0]) => value },
+    { header: t('vendor.invoice.amount'), key: 'total_amount', render: (value: any, item: typeof vendorInvoices[0]) => `Ksh ${item.total_amount?.toFixed(2)}` },
+    { header: t('vendor.invoice.dueDate'), key: 'due_date', render: (value: any, item: typeof vendorInvoices[0]) => value },
+    { header: t('vendor.invoice.status'), key: 'status',
+      render: (value: any, item: typeof vendorInvoices[0]) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
         item.status === FinSupplierInvoiceStatusEnum.PAID ? 'bg-green-100 text-green-800' :
         item.status === FinSupplierInvoiceStatusEnum.UNPAID ? 'bg-yellow-100 text-yellow-800' :
         item.status === FinSupplierInvoiceStatusEnum.PARTIALLY_PAID ? 'bg-blue-100 text-blue-800' :
@@ -187,7 +187,7 @@ const VendorPortalDashboardPage: React.FC = () => {
         'bg-gray-100 text-gray-800'
       }`}>{item.status}</span>
     },
-    { header: t('vendor.invoice.action'), accessor: 'id' as keyof typeof vendorInvoices[0], render: (item: typeof vendorInvoices[0]) => <Button size="sm" variant="ghost" title={t('vendor.invoice.viewUpload')}>{t('vendor.invoice.viewUpload')}</Button> }
+    { header: t('vendor.invoice.action'), key: 'id', render: (value: any, item: typeof vendorInvoices[0]) => <Button size="sm" variant="ghost" title={t('vendor.invoice.viewUpload')}>{t('vendor.invoice.viewUpload')}</Button> }
   ];
 
   if (loading.purchaseOrders || loading.rfqs) { 

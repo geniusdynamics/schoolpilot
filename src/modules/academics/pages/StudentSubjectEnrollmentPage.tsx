@@ -187,11 +187,11 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
   const gridColumns = useMemo(() => {
     if (!showEnrollmentGrid) return [];
-    const studentCol = { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name}` };
+    const studentCol = { header: 'Student Name', key: 'student_name', render: (value: any, item: Student) => `${item.first_name} ${item.last_name}` };
     const subjectCols = (subjectsForGrid || []).map(csa => ({
       header: csa.subject_name || 'Unknown Subject',
-      accessor: 'id', // Use student ID to look up enrollment
-      render: (student: Student) => {
+      key: 'id', // Use student ID to look up enrollment
+      render: (value: any, student: Student) => {
         const isEnrolled = (studentSubjectEnrollments || []).some(
           e => e.student_id === student.id && e.class_subject_allocation_id === csa.id && e.status === StudentEnrollmentStatus.ENROLLED
         );

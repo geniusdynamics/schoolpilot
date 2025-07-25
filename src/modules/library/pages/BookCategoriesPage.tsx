@@ -60,12 +60,12 @@ const BookCategoriesPage: React.FC = () => {
   };
 
   const columns = [
-    { header: 'ID', accessor: 'id' as keyof BookCategory },
-    { header: 'Category Name', accessor: 'name' as keyof BookCategory },
+    { header: 'ID', key: 'id' as keyof BookCategory },
+    { header: 'Category Name', key: 'name' as keyof BookCategory },
     {
       header: 'Actions',
-      accessor: 'id' as keyof BookCategory,
-      render: (item: BookCategory) => (
+      key: 'id' as keyof BookCategory,
+      render: (value: any, item: BookCategory) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>

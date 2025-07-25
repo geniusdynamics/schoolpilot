@@ -22,11 +22,11 @@ const SettingsPage: React.FC = () => {
   } = useAppData(); 
   
   const userColumns = [
-    { header: t('tableHeaders.username'), accessor: 'username' as keyof User },
-    { header: t('tableHeaders.email'), accessor: 'email' as keyof User },
-    { header: t('tableHeaders.userType'), accessor: 'userType' as keyof User},
-    { header: t('tableHeaders.role'), accessor: 'role' as keyof User }, 
-    { header: t('tableHeaders.status'), accessor: 'isActive' as keyof User }
+    { header: t('tableHeaders.username'), key: 'username' as keyof User },
+    { header: t('tableHeaders.email'), key: 'email' as keyof User },
+    { header: t('tableHeaders.userType'), key: 'userType' as keyof User},
+    { header: t('tableHeaders.role'), key: 'role' as keyof User }, 
+    { header: t('tableHeaders.status'), key: 'isActive' as keyof User }
   ];
 
   // Show only first 5 users as preview

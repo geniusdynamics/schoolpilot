@@ -198,7 +198,7 @@ const FeeTemplatesPage: React.FC = () => {
       render: (value, row) => <span className="text-purple-600">{value || 'All Categories'}</span>
     },
     { 
-      key: 'id', 
+      key: 'items_count', 
       header: 'Items', 
       sortable: true, 
       filterable: false, 
@@ -206,7 +206,7 @@ const FeeTemplatesPage: React.FC = () => {
       render: (value, row) => <span className="text-center font-semibold">{row.items?.length || 0}</span>
     },
     {
-      key: 'id',
+      key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,

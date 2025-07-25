@@ -131,11 +131,11 @@ const ExamAnalysisPage: React.FC = () => {
   }, [selectedExamSessionId, selectedClassStreamId, examSessions, schoolPeriods, academicYears, classSubjectAllocations, subjects, students, studentExamResults, subjectPapers]);
 
   const analysisTableColumns: DataGridColumn<SubjectAnalysisData>[] = [
-    { header: 'Subject Name', accessor: 'subjectName' },
-    { header: 'Students Sat', accessor: 'studentsSat' },
-    { header: 'Highest Score', accessor: 'highestScore', render: (item:SubjectAnalysisData) => `${item.highestScore.toFixed(1)} / ${item.totalMarksPossible.toFixed(0)}` },
-    { header: 'Lowest Score', accessor: 'lowestScore', render: (item:SubjectAnalysisData) => `${item.lowestScore.toFixed(1)} / ${item.totalMarksPossible.toFixed(0)}` },
-    { header: 'Average Score', accessor: 'averageScore', render: (item:SubjectAnalysisData) => `${item.averageScore.toFixed(2)} / ${item.totalMarksPossible.toFixed(0)}` },
+    { header: 'Subject Name', key: 'subjectName' },
+    { header: 'Students Sat', key: 'studentsSat' },
+    { header: 'Highest Score', key: 'highestScore', render: (value: any, item: SubjectAnalysisData) => `${item.highestScore.toFixed(1)} / ${item.totalMarksPossible.toFixed(0)}` },
+    { header: 'Lowest Score', key: 'lowestScore', render: (value: any, item: SubjectAnalysisData) => `${item.lowestScore.toFixed(1)} / ${item.totalMarksPossible.toFixed(0)}` },
+    { header: 'Average Score', key: 'averageScore', render: (value: any, item: SubjectAnalysisData) => `${item.averageScore.toFixed(2)} / ${item.totalMarksPossible.toFixed(0)}` },
   ];
   
   const isLoadingPage = loading.examSessions || loading.classStreams || loading.students || loading.studentExamResults || loading.subjects || loading.subjectPapers || loading.classSubjectAllocations || loading.academicYears || loading.schoolPeriods;

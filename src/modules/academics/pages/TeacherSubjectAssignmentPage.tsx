@@ -99,15 +99,15 @@ const TeacherSubjectAssignmentPage: React.FC = () => {
   };
 
   const columns: DataGridColumn<TeacherSubjectAssignment>[] = [
-    { header: 'ID', accessor: 'id' },
-    { header: 'Teacher', accessor: 'teacher_name' },
-    { header: 'Class Stream', accessor: 'class_stream_name' },
-    { header: 'Subject', accessor: 'subject_name' },
-    { header: 'Academic Year', accessor: 'academic_year_name' },
+    { header: 'ID', key: 'id' },
+    { header: 'Teacher', key: 'teacher_name' },
+    { header: 'Class Stream', key: 'class_stream_name' },
+    { header: 'Subject', key: 'subject_name' },
+    { header: 'Academic Year', key: 'academic_year_name' },
     {
       header: 'Actions',
-      accessor: 'id',
-      render: (item: TeacherSubjectAssignment) => (
+      key: 'id',
+      render: (value: any, item: TeacherSubjectAssignment) => (
         <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
       ),
     },

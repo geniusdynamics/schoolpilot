@@ -189,8 +189,8 @@ const ModuleManagementPage: React.FC = () => {
   const moduleColumns = [
     {
       header: t('moduleManagement.columns.name'),
-      accessor: 'name' as keyof ModuleStatus,
-      render: (row: ModuleStatus) => (
+      key: 'name' as keyof ModuleStatus,
+      render: (value: any, row: ModuleStatus) => (
         <div>
           <div className="font-medium text-gray-900">{row.name}</div>
           <div className="text-sm text-gray-500">{row.description}</div>
@@ -199,12 +199,12 @@ const ModuleManagementPage: React.FC = () => {
     },
     {
       header: t('moduleManagement.columns.version'),
-      accessor: 'version' as keyof ModuleStatus
+      key: 'version' as keyof ModuleStatus
     },
     {
       header: t('moduleManagement.columns.category'),
-      accessor: 'category' as keyof ModuleStatus,
-      render: (row: ModuleStatus) => (
+      key: 'category' as keyof ModuleStatus,
+      render: (value: any, row: ModuleStatus) => (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
           {row.category}
         </span>
@@ -212,8 +212,8 @@ const ModuleManagementPage: React.FC = () => {
     },
     {
       header: t('moduleManagement.columns.status'),
-      accessor: 'isEnabled' as keyof ModuleStatus,
-      render: (row: ModuleStatus) => (
+      key: 'isEnabled' as keyof ModuleStatus,
+      render: (value: any, row: ModuleStatus) => (
         <div className="flex items-center space-x-2">
           {row.isEnabled ? (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -236,8 +236,8 @@ const ModuleManagementPage: React.FC = () => {
     },
     {
       header: t('moduleManagement.columns.features'),
-      accessor: 'features' as keyof ModuleStatus,
-      render: (row: ModuleStatus) => (
+      key: 'features' as keyof ModuleStatus,
+      render: (value: any, row: ModuleStatus) => (
         <div className="text-sm text-gray-600">
           {Array.isArray(row.features) ? row.features.length : 0} {t('moduleManagement.featuresCount')}
         </div>
@@ -245,8 +245,8 @@ const ModuleManagementPage: React.FC = () => {
     },
     {
       header: t('common:actions'),
-      accessor: 'id' as keyof ModuleStatus,
-      render: (row: ModuleStatus) => (
+      key: 'id' as keyof ModuleStatus,
+      render: (value: any, row: ModuleStatus) => (
         <div className="flex items-center space-x-2">
           {canManageModules && (
             <Button

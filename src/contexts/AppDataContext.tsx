@@ -390,6 +390,19 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         return dataStrategyManager.executeOperation(operation, params);
       },
 
+      // Alias for generateInvoices to match EffectFeeStructuresPage expectation
+      generateStudentInvoices: async (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => {
+        const operation: DataOperation = {
+          type: 'write',
+          entity: 'invoices',
+          priority: 'critical',
+          requiresBackend: true,
+          allowOffline: false
+        };
+        const params = { feeTemplateId, schoolPeriodId, studentCriteria };
+        return dataStrategyManager.executeOperation(operation, params);
+      },
+
       processPayment: async (payment: any) => {
         const operation: DataOperation = {
           type: 'write',

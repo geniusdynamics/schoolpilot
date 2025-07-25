@@ -100,14 +100,14 @@ const ClassSubjectAllocationsPage: React.FC = () => {
   };
 
   const columns: DataGridColumn<ClassSubjectAllocation>[] = [
-    { header: 'ID', accessor: 'id' },
-    { header: 'Class Stream', accessor: 'class_stream_name' },
-    { header: 'Subject', accessor: 'subject_name' },
-    { header: 'Academic Year', accessor: 'academic_year_name' },
+    { header: 'ID', key: 'id' },
+    { header: 'Class Stream', key: 'class_stream_name' },
+    { header: 'Subject', key: 'subject_name' },
+    { header: 'Academic Year', key: 'academic_year_name' },
     {
       header: 'Actions',
-      accessor: 'id',
-      render: (item: ClassSubjectAllocation) => (
+      key: 'id',
+      render: (value: any, item: ClassSubjectAllocation) => (
         <div className="space-x-2">
           {/* <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button> */}
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>

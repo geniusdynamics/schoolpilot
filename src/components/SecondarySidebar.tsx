@@ -214,17 +214,17 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   }
 
   // Determine sidebar width and behavior based on state
-  const sidebarWidth = isMinimized ? 'w-16' : 'w-56';
+  const sidebarWidth = isMinimized ? 'w-16' : 'w-48';
   const sidebarClasses = isMobile
-    ? 'w-56 shadow-2xl' // Mobile: full width, let parent handle positioning
-    : `${sidebarWidth} transition-all duration-300`; // Desktop: responsive width
+    ? 'w-48 fixed inset-y-0 left-0 z-30 shadow-2xl' // Mobile: fixed overlay positioning
+    : `${sidebarWidth} relative transition-all duration-300`; // Desktop: responsive width
 
   return (
     <>
       {/* Mobile backdrop */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 lg:backdrop-blur-sm z-20"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20"
           onClick={onClose}
         />
       )}
@@ -237,11 +237,10 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           flex flex-col shadow-xl border-l ${moduleStyle.border}
           px-2 py-4
           ${moduleStyle.background}
-          lg:backdrop-blur-lg backdrop-blur-sm
-          relative
+          ${isMobile ? 'bg-white/95 backdrop-blur-md' : 'lg:backdrop-blur-lg backdrop-blur-sm'}
           h-screen
           max-h-screen
-          before:absolute before:inset-0 before:bg-white/40 before:backdrop-blur-sm before:rounded-l-lg before:pointer-events-none
+          ${!isMobile ? 'before:absolute before:inset-0 before:bg-white/40 before:backdrop-blur-sm before:rounded-l-lg before:pointer-events-none' : ''}
         `}
       >
         {/* Control buttons - positioned to avoid search bar overlap */}
