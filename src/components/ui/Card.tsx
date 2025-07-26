@@ -217,4 +217,29 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
 
 Card.displayName = 'Card';
 
+// Shadcn-ui style sub-components for compatibility
+export const CardHeader: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div className={`p-6 pb-4 ${className}`}>
+    {children}
+  </div>
+);
+
+export const CardTitle: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>
+    {children}
+  </h3>
+);
+
+export const CardDescription: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <p className={`text-sm text-gray-600 mt-1 ${className}`}>
+    {children}
+  </p>
+);
+
+export const CardContent: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div className={`p-6 pt-0 ${className}`}>
+    {children}
+  </div>
+);
+
 export default Card;

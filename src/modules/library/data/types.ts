@@ -10,6 +10,12 @@ export enum LibBookStatusEnum {
     ARCHIVED = 'Archived'
 }
 
+export enum LibBookAvailabilityStatusEnum {
+    AVAILABLE = 'Available',
+    ON_LOAN = 'On Loan',
+    RESERVED = 'Reserved'
+}
+
 export enum LibFineStatusEnum {
     PENDING = 'Pending',
     BILLED = 'Billed',
@@ -35,6 +41,12 @@ export interface LibBookType {
   purchase_cost?: number;
   status: LibBookStatusEnum;
   location_shelf?: string;
+  is_digital?: boolean;
+  digital_access_url?: string;
+  digital_format?: string;
+  availability_status?: LibBookAvailabilityStatusEnum;
+  damaged_status?: boolean;
+  lost_status?: boolean;
   created_at: string;
   updated_at: string;
   deleted_at?: string;

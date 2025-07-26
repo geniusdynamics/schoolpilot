@@ -31,6 +31,12 @@ export const bookSchema: RxJsonSchema<types.LibBookType> = createEntitySchema<ty
         purchase_cost: { type: ['number', 'null'] },
         status: { type: 'string', enum: Object.values(types.LibBookStatusEnum) },
         location_shelf: { type: ['string', 'null'] },
+        is_digital: { type: 'boolean', default: false }, // New field for digital resources
+        digital_access_url: { type: ['string', 'null'] }, // New field for digital resources
+        digital_format: { type: ['string', 'null'] }, // New field for digital resources (e.g., 'PDF', 'EPUB')
+        availability_status: { type: 'string', enum: Object.values(types.LibBookAvailabilityStatusEnum), default: 'available' }, // New field for advanced search (e.g., 'available', 'on-loan', 'reserved')
+        damaged_status: { type: 'boolean', default: false }, // New field for damaged books
+        lost_status: { type: 'boolean', default: false }, // New field for lost books
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
         deleted_at: { type: ['string', 'null'], format: 'date-time' },

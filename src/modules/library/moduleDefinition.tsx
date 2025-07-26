@@ -26,6 +26,13 @@ export const libraryModule: ModuleDefinition = {
     { name: 'navigation:library.bookLoans', path: '/library/book-loans', icon: ClipboardDocumentListIcon, page: 'BookLoansPage' },
     { name: 'navigation:library.fines', path: '/library/fines', icon: CurrencyDollarIcon, page: 'FinesPage' },
   ],
+  routes: [
+    { path: '/library/dashboard', page: 'LibraryDashboardPage' },
+    { path: '/library/books', page: 'BooksPage' },
+    { path: '/library/book-categories', page: 'BookCategoriesPage' },
+    { path: '/library/book-loans', page: 'BookLoansPage' },
+    { path: '/library/fines', page: 'FinesPage' }
+  ],
   features: ['book-management', 'loan-tracking', 'fine-management'],
   dependencies: ['administration'],
   settings: {
@@ -52,4 +59,4 @@ export const libraryModule: ModuleDefinition = {
   defaultRoles: libraryDefaultRoles,
 };
 
-export default libraryModule; 
+export default libraryModule;

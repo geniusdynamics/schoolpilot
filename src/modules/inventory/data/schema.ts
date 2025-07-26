@@ -39,13 +39,19 @@ export const itemInvSchema: RxJsonSchema<types.InvItemType> = createEntitySchema
         item_type: { type: 'string', enum: Object.values(types.InvItemTypeEnum) },
         current_price: { type: ['number', 'null'] },
         reorder_level: { type: ['number', 'null'] },
+        reorder_point: { type: ['number', 'null'] },
+        reorder_quantity: { type: ['number', 'null'] },
+        max_stock_level: { type: ['number', 'null'] },
+        barcode: { type: ['string', 'null'], maxLength: 100 },
+        batch_tracking_enabled: { type: ['boolean', 'null'], default: false },
+        expiry_tracking_enabled: { type: ['boolean', 'null'], default: false },
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
         category_name: { type: ['string', 'null'] },
     },
     { key: 'id', type: 'string' },
     ['id', 'name', 'item_type', 'created_at', 'updated_at'],
-    ['name', 'category_id', 'item_type']
+    ['name', 'category_id', 'item_type', 'barcode']
 );
 
 export const fixedAssetSchema: RxJsonSchema<types.InvFixedAssetType> = createEntitySchema<types.InvFixedAssetType>(
@@ -95,14 +101,18 @@ export const stockLevelSchema: RxJsonSchema<types.InvStockLevelType> = createEnt
         item_id: { type: 'string', ref: 'items_inv' },
         warehouse_id: { type: 'number', ref: 'warehouses' },
         quantity: { type: 'number' },
+        batch_number: { type: ['string', 'null'], maxLength: 100 },
+        expiry_date: { type: ['string', 'null'], format: 'date' },
         last_updated: { type: ['string', 'null'], format: 'date-time' },
         item_name: { type: ['string', 'null'] },
         warehouse_name: { type: ['string', 'null'] },
         category_name: { type: ['string', 'null'] },
+        reorder_level: { type: ['number', 'null'] },
+        max_stock_level: { type: ['number', 'null'] },
     },
     { key: 'compositeId', type: 'string' },
     ['compositeId', 'item_id', 'warehouse_id', 'quantity'],
-    [['item_id', 'warehouse_id']] // Composite index
+    [['item_id', 'warehouse_id'], ['expiry_date'], ['batch_number']] // Enhanced indexes
 );
 
 export const stockTransactionSchema: RxJsonSchema<types.InvStockTransactionType> = createEntitySchema<types.InvStockTransactionType>(
@@ -113,6 +123,8 @@ export const stockTransactionSchema: RxJsonSchema<types.InvStockTransactionType>
         warehouse_id: { type: 'number', ref: 'warehouses' },
         transaction_type: { type: 'string', enum: Object.values(types.InvStockTransactionType) },
         quantity: { type: 'number' },
+        batch_number: { type: ['string', 'null'], maxLength: 100 },
+        expiry_date: { type: ['string', 'null'], format: 'date' },
         source_table: { type: ['string', 'null'] },
         source_id: { type: ['string', 'null'] },
         transaction_date: { type: ['string', 'null'], format: 'date-time' },
@@ -122,7 +134,7 @@ export const stockTransactionSchema: RxJsonSchema<types.InvStockTransactionType>
     },
     { key: 'id', type: 'string' },
     ['id', 'item_id', 'warehouse_id', 'transaction_type', 'quantity'],
-    ['item_id', 'warehouse_id', 'transaction_date']
+    ['item_id', 'warehouse_id', 'transaction_date', 'batch_number']
 );
 
 const requisitionItemProperties: RxJsonSchema<types.InvRequisitionItemType>['properties'] = {
@@ -202,4 +214,70 @@ export const rfqSchema: RxJsonSchema<types.InvRFQType> = createEntitySchema<type
     { key: 'id', type: 'string' },
     ['id', 'title', 'issue_date', 'closing_date', 'status', 'created_at', 'updated_at'],
     ['status', 'closing_date']
+);
+
+export const supplierSchema: RxJsonSchema<types.InvSupplierType> = createEntitySchema<types.InvSupplierType>(
+    'supplier',
+    {
+        id: { type: 'number' },
+        name: { type: 'string', maxLength: 200 },
+        contact_person: { type: ['string', 'null'], maxLength: 100 },
+        email: { type: ['string', 'null'], maxLength: 100 },
+        phone: { type: ['string', 'null'], maxLength: 50 },
+        address: { type: ['string', 'null'] },
+        tax_id: { type: ['string', 'null'], maxLength: 50 },
+        registration_number: { type: ['string', 'null'], maxLength: 50 },
+        status: { type: 'string', enum: Object.values(types.InvSupplierStatusEnum) },
+        payment_terms: { type: ['string', 'null'], maxLength: 100 },
+        credit_limit: { type: ['number', 'null'] },
+        performance_rating: { type: ['number', 'null'], minimum: 1, maximum: 5 },
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' },
+    },
+    { key: 'id', type: 'number' },
+    ['id', 'name', 'status', 'created_at', 'updated_at'],
+    ['name', 'status', 'email']
+);
+
+export const supplierContractSchema: RxJsonSchema<types.InvSupplierContractType> = createEntitySchema<types.InvSupplierContractType>(
+    'supplier_contract',
+    {
+        id: { type: 'string', maxLength: 100, final: true },
+        supplier_id: { type: 'number', ref: 'suppliers' },
+        contract_number: { type: 'string', maxLength: 100 },
+        title: { type: 'string', maxLength: 255 },
+        description: { type: ['string', 'null'] },
+        start_date: { type: 'string', format: 'date' },
+        end_date: { type: 'string', format: 'date' },
+        status: { type: 'string', enum: Object.values(types.InvContractStatusEnum) },
+        contract_value: { type: ['number', 'null'] },
+        renewal_notice_days: { type: ['number', 'null'] },
+        created_at: { type: 'string', format: 'date-time' },
+        updated_at: { type: 'string', format: 'date-time' },
+        supplier_name: { type: ['string', 'null'] },
+    },
+    { key: 'id', type: 'string' },
+    ['id', 'supplier_id', 'contract_number', 'start_date', 'end_date', 'status', 'created_at', 'updated_at'],
+    ['supplier_id', 'status', 'end_date', 'contract_number']
+);
+
+export const stockAlertSchema: RxJsonSchema<types.InvStockAlertType> = createEntitySchema<types.InvStockAlertType>(
+    'stock_alert',
+    {
+        id: { type: 'string', maxLength: 100, final: true },
+        item_id: { type: 'string', ref: 'items_inv' },
+        warehouse_id: { type: 'number', ref: 'warehouses' },
+        alert_type: { type: 'string', enum: ['LOW_STOCK', 'OVERSTOCK', 'EXPIRY_WARNING', 'EXPIRED'] },
+        current_quantity: { type: 'number' },
+        threshold_value: { type: ['number', 'null'] },
+        expiry_date: { type: ['string', 'null'], format: 'date' },
+        created_at: { type: 'string', format: 'date-time' },
+        acknowledged_at: { type: ['string', 'null'], format: 'date-time' },
+        acknowledged_by: { type: ['string', 'null'], ref: 'staff' },
+        item_name: { type: ['string', 'null'] },
+        warehouse_name: { type: ['string', 'null'] },
+    },
+    { key: 'id', type: 'string' },
+    ['id', 'item_id', 'warehouse_id', 'alert_type', 'created_at'],
+    ['item_id', 'warehouse_id', 'alert_type', 'acknowledged_at']
 );

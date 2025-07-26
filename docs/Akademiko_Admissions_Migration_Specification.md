@@ -121,10 +121,11 @@ This section details each missing feature identified during the comparison betwe
 - **Business Logic**: Rules for report generation, data aggregation, and presentation.
     - **Parameterization**: Detail how report parameters were defined and used.
     - **Customization Options**: Describe any customization options available to users (e.g., column selection, sorting).
-- **Proposed New System Implementation**: A flexible reporting configuration interface within the new `Reports` module.
+- **Proposed New System Implementation**: A flexible reporting configuration interface within the new `Reports` module, specifically within `src/modules/*/reports` or similar.
     - **Detailed Implementation Checklist**:
         - [ ] Design and implement `ReportConfigurationPage.tsx` for defining and managing reports.
         - [ ] Develop a dynamic report generation engine capable of handling various data sources.
+        - [ ] Implement a comprehensive data selector for filtering and loading reports, inspired by the provided image <mcfile name="Central-1_Admissions_Statistics_Pointer-Laptop-1440x820.png" path="D:\DevCenter\abuilds\EduGen\old_system\schoolpilot3\docs\AkademikoNotes\context\images\Central-1_Admissions_Statistics_Pointer-Laptop-1440x820.png"></mcfile>.
         - [ ] Implement a user-friendly interface for defining report parameters and layouts.
         - [ ] Implement API endpoints for saving, retrieving, and executing report configurations.
         - [ ] Integrate with RxDB for efficient data access.
@@ -194,6 +195,10 @@ This section details each missing feature identified during the comparison betwe
 Based on the analysis, the identified missing forms and reports will be logically placed within the new modular architecture:
 
 - **Administration Module**: Certificates Management, Disciplinary Cases Management, Student Data Import, K.C.P.E. Marks Management, Report Configurations, Scheduler, Student Clearance, Visitors Management, Enhanced Student List (including `DetailedStudentList`), User and Privileges Management, School Information Management, Database Management, Partners Management, Sports/Clubs Management, Dormitory Management, County/District Management.
+  - **Enhanced Student List Old System Reference**:
+    - **Files**: `frmStudentList.cs`, `frmStudentsRedefined.cs`
+    - **Key Functionalities**: Filtering by student type, class, stream; displaying student data in a grid; export functionality; opening student details for editing.
+
 - **Communication Module**: All SMS Communication Features.
 - **Academics Module**: Assign Subject Teachers, Class Stream Management, Class Teachers Management, Subjects Management, Term Dates Management, Graduate Students.
 - **HR Module**: Designation Management, Teacher Duty Schedule.

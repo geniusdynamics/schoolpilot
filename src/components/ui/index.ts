@@ -64,9 +64,20 @@ export type { TooltipProps, InfoTooltipProps, HelpTooltipProps, ValidationToolti
 export { default as Select } from './Select';
 export type { SelectOption, SelectProps } from './Select';
 export { default as Modal } from './Modal';
-export { default as Card } from './Card';
+export { default as Card, CardHeader, CardTitle, CardDescription, CardContent } from './Card';
 export type { CardVariant, CardSize } from './Card';
 export { default as Table } from './Table';
-export { default as Tabs } from './Tabs';
+export { TableBody, TableCell, TableHead, TableHeader, TableRow, TableRoot } from './TableComponents';
+export { default as Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export { default as Spinner } from './Spinner';
 export { default as Badge } from './Badge';
+export { Alert, AlertDescription } from './Alert';
+
+// Dialog components
+export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './Dialog';
+
+// Label component
+export { Label } from './Label';
+
+// Extended Select components
+export { SelectRoot, SelectTrigger, SelectValue, SelectContent, SelectItem } from './SelectExtensions';

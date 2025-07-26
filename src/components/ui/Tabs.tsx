@@ -50,4 +50,96 @@ const Tabs: React.FC<TabsProps> = ({ tabs, defaultTabIndex = 0 }) => {
   );
 };
 
+// Shadcn-ui style Tab components for compatibility
+export const TabsRoot: React.FC<{
+  value?: string;
+  onValueChange?: (value: string) => void;
+  children: ReactNode;
+  className?: string;
+}> = ({ value, onValueChange, children, className = '' }) => {
+  const [currentValue, setCurrentValue] = useState(value || '');
+  
+  const handleValueChange = (newValue: string) => {
+    setCurrentValue(newValue);
+    onValueChange?.(newValue);
+  };
+  
+  return (
+    <div className={`w-full ${className}`} data-tabs-value={currentValue}>
+      {React.Children.map(children, child =>
+        React.isValidElement(child)
+          ? React.cloneElement(child, { 
+              currentValue, 
+              onValueChange: handleValueChange 
+            } as any)
+          : child
+      )}
+    </div>
+  );
+};
+
+export const TabsList: React.FC<{
+  children: ReactNode;
+  className?: string;
+  currentValue?: string;
+  onValueChange?: (value: string) => void;
+}> = ({ children, className = '', currentValue, onValueChange }) => {
+  return (
+    <div className={`inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground ${className}`}>
+      {React.Children.map(children, child =>
+        React.isValidElement(child)
+          ? React.cloneElement(child, { 
+              currentValue, 
+              onValueChange 
+            } as any)
+          : child
+      )}
+    </div>
+  );
+};
+
+export const TabsTrigger: React.FC<{
+  value: string;
+  children: ReactNode;
+  className?: string;
+  currentValue?: string;
+  onValueChange?: (value: string) => void;
+}> = ({ value, children, className = '', currentValue, onValueChange }) => {
+  const isActive = currentValue === value;
+  
+  return (
+    <button
+      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
+        isActive
+          ? 'bg-background text-foreground shadow-sm'
+          : 'hover:bg-muted hover:text-foreground'
+      } ${className}`}
+      onClick={() => onValueChange?.(value)}
+      data-state={isActive ? 'active' : 'inactive'}
+    >
+      {children}
+    </button>
+  );
+};
+
+export const TabsContent: React.FC<{
+  value: string;
+  children: ReactNode;
+  className?: string;
+  currentValue?: string;
+}> = ({ value, children, className = '', currentValue }) => {
+  if (currentValue !== value) return null;
+  
+  return (
+    <div
+      className={`mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${className}`}
+      data-state="active"
+    >
+      {children}
+    </div>
+  );
+};
+
+// Export both APIs for compatibility
+export { TabsRoot as Tabs };
 export default Tabs;

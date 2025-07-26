@@ -220,7 +220,7 @@ const RequisitionsPage: React.FC = () => {
       header: 'Request Date',
       sortable: true,
       width: 120,
-      render: (value) => new Date(value).toLocaleDateString()
+      render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
     },
     {
       key: 'status',

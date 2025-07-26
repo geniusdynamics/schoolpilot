@@ -6,6 +6,10 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       plugins: [react()],
+      server: {
+        port: 5200,
+        host: true
+      },
       resolve: {
         alias: {
           '@': resolve(__dirname, './src')

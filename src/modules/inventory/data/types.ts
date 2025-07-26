@@ -46,6 +46,20 @@ export enum InvRFQStatusEnum {
     CANCELLED = 'Cancelled'
 }
 
+export enum InvSupplierStatusEnum {
+    ACTIVE = 'Active',
+    INACTIVE = 'Inactive',
+    BLACKLISTED = 'Blacklisted',
+    PENDING_APPROVAL = 'Pending Approval'
+}
+
+export enum InvContractStatusEnum {
+    ACTIVE = 'Active',
+    EXPIRED = 'Expired',
+    PENDING_RENEWAL = 'Pending Renewal',
+    TERMINATED = 'Terminated'
+}
+
 export interface InvRFQType {
     id: string;
     title: string;
@@ -55,6 +69,54 @@ export interface InvRFQType {
     status: InvRFQStatusEnum;
     created_at: string;
     updated_at: string;
+}
+
+export interface InvSupplierType {
+    id: number;
+    name: string;
+    contact_person?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    tax_id?: string;
+    registration_number?: string;
+    status: InvSupplierStatusEnum;
+    payment_terms?: string; // e.g., "Net 30", "COD"
+    credit_limit?: number;
+    performance_rating?: number; // 1-5 scale
+    created_at: string;
+    updated_at: string;
+}
+
+export interface InvSupplierContractType {
+    id: string;
+    supplier_id: number;
+    contract_number: string;
+    title: string;
+    description?: string;
+    start_date: string;
+    end_date: string;
+    status: InvContractStatusEnum;
+    contract_value?: number;
+    renewal_notice_days?: number; // Days before expiry to send renewal alert
+    created_at: string;
+    updated_at: string;
+    supplier_name?: string;
+}
+
+export interface InvStockAlertType {
+    id: string;
+    item_id: string;
+    warehouse_id: number;
+    alert_type: 'LOW_STOCK' | 'OVERSTOCK' | 'EXPIRY_WARNING' | 'EXPIRED';
+    current_quantity: number;
+    threshold_value?: number;
+    expiry_date?: string;
+    created_at: string;
+    acknowledged_at?: string;
+    acknowledged_by?: string;
+    item_name?: string;
+    warehouse_name?: string;
 }
 
 export interface InvWarehouseType {
@@ -77,6 +139,12 @@ export interface InvItemType {
   item_type: InvItemTypeEnum;
   current_price?: number;
   reorder_level?: number;
+  reorder_point?: number; // Added for automated reorder alerts - triggers when stock falls below this level
+  reorder_quantity?: number; // Added for automated reorder alerts - suggested quantity to reorder
+  max_stock_level?: number; // Added for automated reorder alerts
+  barcode?: string; // Added for barcode/QR code integration
+  batch_tracking_enabled?: boolean; // Added for batch/lot tracking
+  expiry_tracking_enabled?: boolean; // Added for expiry date management
   created_at: string;
   updated_at: string;
   category_name?: string;
@@ -111,14 +179,18 @@ export interface InvAssetDepreciationLogType {
 }
 
 export interface InvStockLevelType {
-    compositeId: string; // item_id + warehouse_id
+    compositeId: string; // item_id + warehouse_id + batch_number (if applicable)
     item_id: string;
     warehouse_id: number;
     quantity: number;
+    batch_number?: string; // Added for batch/lot tracking
+    expiry_date?: string; // Added for expiry date management
     last_updated?: string;
     item_name?: string;
     warehouse_name?: string;
     category_name?: string;
+    reorder_level?: number; // Denormalized from item for quick access
+    max_stock_level?: number; // Denormalized from item for quick access
 }
 
 export interface InvStockTransactionType {
@@ -127,6 +199,8 @@ export interface InvStockTransactionType {
     warehouse_id: number;
     transaction_type: InvStockTransactionType;
     quantity: number; // Can be negative for issues/returns
+    batch_number?: string; // Added for batch/lot tracking
+    expiry_date?: string; // Added for expiry date management
     source_table?: string; // e.g., 'purchase_orders', 'requisitions'
     source_id?: string;
     transaction_date?: string;
@@ -168,22 +242,34 @@ export interface InvPurchaseOrderItemType {
     quantity_ordered: number;
     unit_price: number;
     quantity_received?: number;
+    received_quantity?: number; // Added for partial delivery tracking
+    batch_number?: string; // Added for batch/lot tracking
+    expiry_date?: string; // Added for expiry date management
+    warehouse_id?: number; // Added for direct warehouse assignment
     item_name?: string;
+    warehouse_name?: string;
     line_total?: number;
 }
 
 export interface InvPurchaseOrderType {
     id: string;
-    supplier_id: number;
+    po_number: string;
+    supplier_id?: number; // Added for supplier relationship
+    vendor_name: string;
     order_date: string;
     expected_delivery_date?: string;
+    actual_delivery_date?: string; // Added for delivery tracking
     status: InvPurchaseOrderStatusEnum;
+    total_amount?: number;
+    tax_amount?: number; // Added for tax tracking
+    shipping_cost?: number; // Added for shipping cost tracking
+    discount_amount?: number; // Added for discount tracking
     notes?: string;
     requisition_id?: string;
     items?: InvPurchaseOrderItemType[];
     created_at: string;
     updated_at: string;
-    supplier_name?: string;
+    supplier_name?: string; // Denormalized for quick access
     total_value?: number;
 }
 

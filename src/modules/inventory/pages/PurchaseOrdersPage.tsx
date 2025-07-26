@@ -200,7 +200,7 @@ const PurchaseOrdersPage: React.FC = () => {
     { 
       key: 'order_date', 
       header: 'Order Date', 
-      render: (value: any, item: PurchaseOrder) => new Date(item.order_date).toLocaleDateString(),
+      render: (value: any, item: PurchaseOrder) => item.order_date ? new Date(item.order_date).toLocaleDateString() : 'N/A',
       sortable: true,
       filterable: true,
       width: '120px'

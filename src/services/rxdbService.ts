@@ -46,7 +46,9 @@ if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
 // ID Generation
 export const generateId = (): string => crypto.randomUUID(); 
 let numericIdCounter = Date.now();
-export const generateNumericId = (): number => ++numericIdCounter; 
+export const generateNumericId = (): number => ++numericIdCounter;
+
+// rxdbService object will be defined after function declarations 
 
 // --- CORE Schema Definitions (Non-modularized entities) ---
 
@@ -265,7 +267,7 @@ export type SchoolDatabase = RxDatabase<SchoolDatabaseCollections>;
 
 let dbPromise: Promise<SchoolDatabase> | null = null;
 
-const initializeDatabaseInternal = async (): Promise<SchoolDatabase> => {
+export const initializeDatabase = async (): Promise<SchoolDatabase> => {
   console.log("RxDB: Initializing database...");
   const db = await createRxDatabase<SchoolDatabaseCollections>({
     name: RXDB_DB_NAME,
@@ -292,7 +294,7 @@ const initializeDatabaseInternal = async (): Promise<SchoolDatabase> => {
 
 export const getDatabase = (): Promise<SchoolDatabase> => {
   if (!dbPromise) {
-    dbPromise = initializeDatabaseInternal();
+    dbPromise = initializeDatabase();
   }
   return dbPromise;
 };
@@ -361,3 +363,35 @@ export const getUsingDummyDataFlag = async (db: SchoolDatabase): Promise<boolean
     }
     return false; 
 };
+
+// Export the rxdbService object after all function declarations
+let database: SchoolDatabase | null = null;
+
+export const rxdbService = {
+  get collections() {
+    if (!database) {
+      throw new Error('Database not initialized. Call initializeDatabase first.');
+    }
+    return database.collections;
+  },
+  generateId,
+  generateNumericId,
+  initializeDatabase: async (): Promise<SchoolDatabase> => {
+    if (!database) {
+      database = await initializeDatabase();
+      dbPromise = Promise.resolve(database);
+    }
+    return database;
+  },
+  getDatabase: (): Promise<SchoolDatabase> => {
+    if (!database) {
+      return rxdbService.initializeDatabase();
+    }
+    return Promise.resolve(database);
+  },
+  clearDatabase,
+  getUsingDummyDataFlag,
+};
+
+// Initialize database on module load
+rxdbService.initializeDatabase().catch(console.error);

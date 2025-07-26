@@ -84,7 +84,12 @@
     "requisitions": "Requisitions",
     "purchaseOrders": "Purchase Orders",
     "stockIssuance": "Stock Issuance",
-    "stockLevels": "Stock Levels"
+    "stockLevels": "Stock Levels",
+      "reorderAlerts": "Reorder Alerts",
+      "stockReception": "Stock Reception",
+      "stockReturns": "Stock Returns",
+      "suppliers": "Suppliers",
+      "supplierContracts": "Supplier Contracts"
   },
   "library": {
     "title": "Library",
@@ -140,4 +145,4 @@
     "invoices": "Invoices",
     "profile": "My Profile"
   }
-} 
+}

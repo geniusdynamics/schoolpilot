@@ -21,6 +21,26 @@ import {
     RFQ,
     RFQStatus
 } from '../../../core/types';
+import { suppliers } from '../../../globalMockData';
+import { InvSupplierType, InvSupplierStatusEnum } from './types';
+
+// Map global suppliers to InvSupplierType for inventory module use
+export const initialMockSuppliers: InvSupplierType[] = suppliers.map(supplier => ({
+  id: supplier.id,
+  name: supplier.name,
+  contact_person: supplier.name, // Default to supplier name
+  email: supplier.email || undefined,
+  phone: supplier.phone || undefined,
+  address: supplier.address || undefined,
+  tax_id: undefined,
+  registration_number: undefined,
+  status: InvSupplierStatusEnum.ACTIVE,
+  payment_terms: 'Net 30',
+  credit_limit: 100000,
+  performance_rating: 4,
+  created_at: supplier.created_at,
+  updated_at: supplier.updated_at
+}));
 
 export const initialMockWarehouses: Warehouse[] = [
   { id: 1, name: 'Main Store' },

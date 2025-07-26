@@ -101,7 +101,7 @@ const SchoolProcurementDashboardPage: React.FC = () => {
       sortable: true, 
       filterable: false, 
       width: 100,
-      render: (value, row) => new Date(row.request_date).toLocaleDateString()
+      render: (value, row) => row.request_date ? new Date(row.request_date).toLocaleDateString() : 'N/A'
     },
     {
       key: 'id',
@@ -130,7 +130,7 @@ const SchoolProcurementDashboardPage: React.FC = () => {
       </div>
       <p className="text-sm text-gray-700 mt-1">{po.supplier_name}</p>
       <p className="text-xs text-gray-500">Amount: Ksh {po.total_value?.toFixed(2)}</p>
-      <p className="text-xs text-gray-500">Order Date: {new Date(po.order_date).toLocaleDateString()}</p>
+      <p className="text-xs text-gray-500">Order Date: {po.order_date ? new Date(po.order_date).toLocaleDateString() : 'N/A'}</p>
     </div>
   );
 
@@ -139,7 +139,7 @@ const SchoolProcurementDashboardPage: React.FC = () => {
     id: po.id,
     title: po.id,
     description: `${po.supplier_name} - Ksh ${po.total_value?.toFixed(2)}`,
-    tags: [new Date(po.order_date).toLocaleDateString()],
+    tags: [po.order_date ? new Date(po.order_date).toLocaleDateString() : 'N/A'],
     priority: po.total_value && po.total_value > 100000 ? 'high' : 'medium',
   });
 
