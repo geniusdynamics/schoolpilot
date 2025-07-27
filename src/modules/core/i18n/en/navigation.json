@@ -97,7 +97,12 @@
     "bookCategories": "Book Categories",
     "books": "Books",
     "bookLoans": "Book Loans",
-    "fines": "Fines"
+    "fines": "Fines",
+    "userPortal": "My Library Portal",
+    "digitalResources": "Digital Resources",
+    "damagedLostBooks": "Damaged & Lost Books",
+    "importBooks": "Import Books",
+    "settings": "Library Settings"
   },
   "nutrition": {
     "title": "Nutrition & Wallet",
@@ -121,7 +126,9 @@
     "examResultsHorizontal": "Exam Results (Horizontal)",
     "feeCollectionSummary": "Fee Collection Summary",
     "studentFinancialSummary": "Student Financial Summary",
-    "studentVoteheadStatement": "Student Votehead Statement"
+    "studentVoteheadStatement": "Student Votehead Statement",
+    "overdueBooks": "Overdue Books Report",
+    "inventoryStatus": "Inventory Status Report"
   },
   "settings": "Settings",
   "settings.description": "System configuration and management",

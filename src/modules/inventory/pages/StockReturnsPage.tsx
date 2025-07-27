@@ -1,24 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Box,
+  Button,
   Card,
   CardContent,
-  Button,
-  Modal,
-  Input,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Paper,
   Select,
-  Textarea,
   Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  Chip,
   Alert,
-  Badge,
-  Spinner
-} from '@/components/ui';
+  Autocomplete
+} from '@mui/material';
 import {
-  PlusIcon,
-  TrashIcon,
-  CheckIcon,
-  XMarkIcon,
-  ReceiptRefundIcon
-} from '@/components/ui/icons';
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Undo as UndoIcon
+} from '@mui/icons-material';
 import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData } from '../data';
 import { InvStockTransactionType, InvItemType, InvWarehouseType } from '../data/types';
 
@@ -366,7 +381,7 @@ const StockReturnsPage: React.FC = () => {
                   returns.map((returnRecord) => (
                     <TableRow key={returnRecord.id}>
                       <TableCell>{returnRecord.reference_number || 'N/A'}</TableCell>
-                      <TableCell>{returnRecord.return_date ? new Date(returnRecord.return_date).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>{new Date(returnRecord.return_date).toLocaleDateString()}</TableCell>
                       <TableCell>{getReturnTypeChip(returnRecord.return_type)}</TableCell>
                       <TableCell>{returnRecord.items.length}</TableCell>
                       <TableCell>{returnRecord.total_quantity}</TableCell>

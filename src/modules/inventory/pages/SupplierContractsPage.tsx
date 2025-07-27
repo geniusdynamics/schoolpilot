@@ -3,31 +3,41 @@
 
 import React, { useState, useEffect } from 'react';
 import {
+  Box,
+  Button,
   Card,
   CardContent,
-  Button,
-  Modal,
-  Input,
+  Typography,
+  TextField,
+  Grid,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
   Select,
-  Textarea,
-  Table,
+  MenuItem,
   Alert,
-  Badge,
-  Spinner,
-  DataGrid,
-  DatePicker
-} from '@/components/ui';
+  Tooltip,
+  LinearProgress
+} from '@mui/material';
 import {
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-  DocumentTextIcon,
-  CalendarIcon,
-  CurrencyDollarIcon,
-  ExclamationTriangleIcon
-} from '@/components/ui/icons';
-import type { DataGridColumn } from '@/components/ui/data/DataGrid';
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  Description as ContractIcon,
+  CalendarToday as CalendarIcon,
+  AttachMoney as MoneyIcon,
+  Warning as WarningIcon
+} from '@mui/icons-material';
+import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useSupplierContractData } from '../data/useSupplierContractData';
 import { useSupplierData } from '../data/useSupplierData';
 import { InvSupplierContractType, InvContractStatusEnum } from '../data/types';

@@ -1,7 +1,7 @@
 import { InvItemType, InvStockLevelType, InvStockAlertType } from '../data/types';
-import { useStockLevelData } from '../data/useStockLevelData';
-import { useStockAlertData } from '../data/useStockAlertData';
-import { useItemData } from '../data/useItemData';
+import { useStockLevelData } from '../hooks/useStockLevelData';
+import { useStockAlertData } from '../hooks/useStockAlertData';
+import { useItemData } from '../hooks/useItemData';
 
 export interface ReorderAlert {
   item_id: string;

@@ -94,8 +94,53 @@ export const useBookData = () => {
       book.isbn?.toLowerCase().includes(lowerCaseQuery) ||
       book.accession_no.toLowerCase().includes(lowerCaseQuery) ||
       book.status.toLowerCase().includes(lowerCaseQuery) ||
-      book.category_name?.toLowerCase().includes(lowerCaseQuery)
+      book.category_name?.toLowerCase().includes(lowerCaseQuery) ||
+      book.branch_id?.toLowerCase().includes(lowerCaseQuery) ||
+      book.damaged_status.toString().toLowerCase().includes(lowerCaseQuery) ||
+      book.lost_status.toString().toLowerCase().includes(lowerCaseQuery)
     );
+  };
+
+  // Advanced search helpers for new fields
+  const searchByBranchId = async (branchId: string) => {
+    return data.filter(book => book.branch_id === branchId);
+  };
+
+  const getDamagedBooks = async () => {
+    return data.filter(book => book.damaged_status === true);
+  };
+
+  const getLostBooks = async () => {
+    return data.filter(book => book.lost_status === true);
+  };
+
+  const getDigitalBooks = async () => {
+    return data.filter(book => book.is_digital === true);
+  };
+
+  const getBooksByAvailabilityStatus = async (status: string) => {
+    return data.filter(book => book.availability_status === status);
+  };
+
+  // Bulk update helpers
+  const markAsDamaged = async (id: string) => {
+    return update(id, { damaged_status: true });
+  };
+
+  const markAsLost = async (id: string) => {
+    return update(id, { lost_status: true });
+  };
+
+  const updateBranchId = async (id: string, branchId: string) => {
+    return update(id, { branch_id: branchId });
+  };
+
+  const updateDigitalStatus = async (id: string, isDigital: boolean, digitalUrl?: string, digitalFormat?: string) => {
+    return update(id, { 
+      is_digital: isDigital,
+      digital_access_url: digitalUrl,
+      digital_format: digitalFormat
+    });
   };
 
   return {
@@ -105,7 +150,17 @@ export const useBookData = () => {
     create,
     update,
     remove,
-    search
+    search,
+    // New field helpers
+    searchByBranchId,
+    getDamagedBooks,
+    getLostBooks,
+    getDigitalBooks,
+    getBooksByAvailabilityStatus,
+    markAsDamaged,
+    markAsLost,
+    updateBranchId,
+    updateDigitalStatus
   };
 };
 

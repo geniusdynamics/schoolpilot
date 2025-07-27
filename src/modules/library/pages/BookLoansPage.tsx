@@ -11,6 +11,8 @@ import { useAppData } from '@/contexts/AppDataContext';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useLoanData } from '@/modules/library/data/useLoanData';
+import { useLibrarySettingsData } from '@/modules/library/data/useLibrarySettingsData';
+import { LibrarySettingsType } from '@/modules/library/data/types';
 
 type LoanFormData = Omit<Partial<Loan>, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name' | 'loan_date'> & {
     userType?: string;
@@ -20,6 +22,7 @@ const BookLoansPage: React.FC = () => {
   const { t } = useTranslation(['library', 'common']);
   const { books, users, loading } = useAppData();
   const { data: loans, create: addLoan, update: updateLoan } = useLoanData();
+  const { data: librarySettings } = useLibrarySettingsData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
@@ -34,6 +37,41 @@ const BookLoansPage: React.FC = () => {
 
   const availableBooks = useMemo(() => books.filter(b => b.status === BookStatus.AVAILABLE), [books]);
   const borrowers = useMemo(() => users.filter(u => u.isActive && (u.userType === 'Student' || u.userType === 'Staff')), [users]);
+
+  // Borrowing rules validation functions
+  const getBorrowingRule = (userType: string): LibrarySettingsType | null => {
+    const activeSettings = librarySettings.filter(setting => setting.is_active);
+    return activeSettings.find(setting => setting.user_types.includes(userType)) || null;
+  };
+
+  const getUserActiveLoans = (userId: string): number => {
+    return loans.filter(loan => loan.user_id === userId && !loan.return_date).length;
+  };
+
+  const validateBorrowingRules = (userId: string, userType: string): { isValid: boolean; message?: string } => {
+    const rule = getBorrowingRule(userType);
+    if (!rule) {
+      return { isValid: false, message: 'No borrowing rules found for this user type.' };
+    }
+
+    const activeLoans = getUserActiveLoans(userId);
+    if (activeLoans >= rule.max_books_per_user) {
+      return {
+        isValid: false,
+        message: `User has reached the maximum limit of ${rule.max_books_per_user} books. Currently has ${activeLoans} active loans.`
+      };
+    }
+
+    return { isValid: true };
+  };
+
+  const calculateDueDate = (userType: string): string => {
+    const rule = getBorrowingRule(userType);
+    const loanDays = rule ? rule.max_loan_days : 14; // Default to 14 days
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + loanDays);
+    return dueDate.toISOString().split('T')[0];
+  };
 
   const openModal = (loan?: Loan) => {
     setEditingLoan(loan || null);
@@ -77,11 +115,22 @@ const BookLoansPage: React.FC = () => {
       alert(t('library:bookLoans.alertUserNotFound'));
       return;
     }
+
+    // Validate borrowing rules
+    const validation = validateBorrowingRules(selectedUser.id, selectedUser.userType);
+    if (!validation.isValid) {
+      alert(`Borrowing limit exceeded: ${validation.message}`);
+      return;
+    }
+
+    // Auto-calculate due date based on user type if not manually set
+    const dueDate = formData.due_date || calculateDueDate(selectedUser.userType);
+
     const payload: Omit<Loan, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name'> = {
       book_id: formData.book_id!,
       user_id: formData.user_id!,
       loan_date: new Date().toISOString().split('T')[0],
-      due_date: formData.due_date!,
+      due_date: dueDate,
       return_date: undefined,
     };
     addLoan(payload);
@@ -199,9 +248,34 @@ const BookLoansPage: React.FC = () => {
             <Button onClick={handleIssueBook} disabled={loading.loans}>
               {loading.loans ? <Spinner size="sm"/> : t('library:bookLoans.issueBook')}
             </Button>
-          </>
+        </>
         }
       >
+        {/* Show borrowing status if user is selected */}
+        {formData.user_id && !editingLoan && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm font-medium text-blue-900 mb-1">Borrowing Status:</p>
+            {(() => {
+              const selectedUser = users.find(u => u.id === formData.user_id);
+              if (!selectedUser) return null;
+              
+              const rule = getBorrowingRule(selectedUser.userType);
+              const activeLoans = getUserActiveLoans(selectedUser.id);
+              
+              return (
+                <div className="text-sm text-blue-800">
+                  <p>Active Loans: {activeLoans}/{rule?.max_books_per_user || 'N/A'}</p>
+                  <p>Max Loan Days: {rule?.max_loan_days || 'N/A'} days</p>
+                  <p>Fine per Day: KES {rule?.fine_per_day || 'N/A'}</p>
+                  {activeLoans >= (rule?.max_books_per_user || 0) && (
+                    <p className="text-red-600 font-medium mt-1">⚠️ Borrowing limit reached!</p>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+        
         <Select 
           name="book_id" 
           label={t('library:bookLoans.bookToLoan')} 

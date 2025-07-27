@@ -29,9 +29,10 @@ const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 
 // Vite will statically analyze all .tsx files in ./modules/*/pages
+// Using eager: true to avoid runtime module loading issues
 const pageModules = {
-  ...import.meta.glob('./modules/*/pages/*.tsx'),
-  ...import.meta.glob('./modules/*/pages/**/*.tsx'),
+  ...import.meta.glob('./modules/*/pages/*.tsx', { eager: false }),
+  ...import.meta.glob('./modules/*/pages/**/*.tsx', { eager: false }),
 };
 
 // Debug logging helper

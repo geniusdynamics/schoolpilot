@@ -3,30 +3,38 @@
 
 import React, { useState, useEffect } from 'react';
 import {
+  Box,
+  Button,
   Card,
   CardContent,
-  Button,
-  Modal,
-  Input,
+  Typography,
+  TextField,
+  Grid,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
   Select,
-  Textarea,
-  Table,
-  Alert,
-  Badge,
-  Spinner,
-  DataGrid
-} from '@/components/ui';
+  MenuItem,
+  Rating,
+  Tooltip,
+  Alert
+} from '@mui/material';
 import {
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-  BuildingOfficeIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  MapPinIcon
-} from '@/components/ui/icons';
-import type { DataGridColumn } from '@/components/ui/data/DataGrid';
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Search as SearchIcon,
+  Business as BusinessIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  LocationOn as LocationIcon
+} from '@mui/icons-material';
+import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { useSupplierData } from '../data/useSupplierData';
 import { InvSupplierType, InvSupplierStatusEnum } from '../data/types';
 import { useTranslation } from 'react-i18next';

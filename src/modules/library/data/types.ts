@@ -47,6 +47,7 @@ export interface LibBookType {
   availability_status?: LibBookAvailabilityStatusEnum;
   damaged_status?: boolean;
   lost_status?: boolean;
+  branch_id?: string;
   created_at: string;
   updated_at: string;
   deleted_at?: string;
@@ -61,6 +62,8 @@ export interface LibLoanType {
   due_date: string;
   return_date?: string;
   extended_due_date?: string;
+  userType: string;
+  branch_id?: string;
   created_at: string;
   updated_at: string;
   book_title?: string;
@@ -99,6 +102,14 @@ export interface Book {
   accession_no: string;
   purchase_cost?: number | null;
   status: LibBookStatusEnum;
+  location_shelf?: string | null;
+  is_digital?: boolean;
+  digital_access_url?: string | null;
+  digital_format?: string | null;
+  availability_status?: LibBookAvailabilityStatusEnum;
+  damaged_status?: boolean;
+  lost_status?: boolean;
+  branch_id?: string | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -113,6 +124,9 @@ export interface Loan {
   loan_date: string;
   due_date: string;
   return_date?: string | null;
+  extended_due_date?: string | null;
+  userType: string;
+  branch_id?: string | null;
   created_at: string;
   updated_at: string;
   // Denormalized
@@ -124,7 +138,7 @@ export interface Fine {
   id: string;
   loan_id: string;
   amount: number;
-  status: LibBookStatusEnum;
+  status: LibFineStatusEnum;
   reason?: string | null;
   fee_adjustment_id?: string | null;
   created_at: string;
@@ -133,4 +147,20 @@ export interface Fine {
   book_title?: string | null;
   user_name?: string | null;
   loan_due_date?: string | null;
+}
+
+export interface LibrarySettingsType {
+  id: string;
+  name: string;
+  description?: string;
+  max_loan_days: number;
+  max_renewals: number;
+  fine_per_day: number;
+  max_books_per_user: number;
+  book_categories: string[]; // Categories this rule applies to
+  user_types: string[]; // User types this rule applies to (Staff, Student, etc.)
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
 }

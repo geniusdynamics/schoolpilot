@@ -1,56 +1,156 @@
-// ABOUTME: Self-contained hook for any data management
-// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
+// ABOUTME: Self-contained hook for fine data management
+// ABOUTME: Provides CRUD operations for fine without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '../../../core/types';
+import { getDatabase } from '../../../services/rxdbService';
+import { LibFineType } from './types';
 
 const useFineData = () => {
-  const [fines, setFines] = useState<any[]>([]);
+  const [data, setData] = useState<LibFineType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    try {
-      // Simulate fetching data from a mock source
-      setFines(initialMockUsers);
-      setIsLoading(false);
-    } catch (e) {
-      setError('Failed to fetch fines');
-      setIsLoading(false);
-    }
+    let subscription: any = null;
+    
+    const initializeData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const db = await getDatabase();
+        subscription = db.collections.fines.find().$.subscribe(fines => {
+          if (fines) {
+            setData(fines);
+          }
+          setIsLoading(false);
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to initialize database'));
+        setIsLoading(false);
+      }
+    };
+    
+    initializeData();
+    
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as any;
-    setFines((prev: any[]) => [...prev, newDataItem]);
-    return newDataItem;
+  const create = async (newItem: Partial<LibFineType>) => {
+    try {
+      const db = await getDatabase();
+      const fine = await db.collections.fines.insert({
+        ...newItem,
+        id: newItem.id || Date.now().toString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as LibFineType);
+      return fine;
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Failed to create fine');
+    }
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setFines((prev: any[]) => prev.map((item: any) =>
-      item.id === id
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
+  const update = async (id: string, updatedData: Partial<LibFineType>) => {
+    try {
+      const db = await getDatabase();
+      const fine = await db.collections.fines.findOne(id).exec();
+      if (fine) {
+        await fine.update({
+          $set: {
+            ...updatedData,
+            updated_at: new Date().toISOString(),
+          },
+        });
+      }
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Failed to update fine');
+    }
   };
 
-  const remove = async (id: number) => {
-    setFines((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  const remove = async (id: string) => {
+    try {
+      const db = await getDatabase();
+      const fine = await db.collections.fines.findOne(id).exec();
+      if (fine) {
+        await fine.remove();
+      }
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Failed to remove fine');
+    }
+  };
+
+  // Search functionality
+  const search = async (query: string) => {
+    if (!query) {
+      return data;
+    }
+    const lowerCaseQuery = query.toLowerCase();
+    return data.filter(fine =>
+      fine.book_title?.toLowerCase().includes(lowerCaseQuery) ||
+      fine.user_name?.toLowerCase().includes(lowerCaseQuery) ||
+      fine.reason?.toLowerCase().includes(lowerCaseQuery) ||
+      fine.status.toLowerCase().includes(lowerCaseQuery)
+    );
+  };
+
+  // Advanced search helpers
+  const getPendingFines = async () => {
+    return data.filter(fine => fine.status === 'Pending');
+  };
+
+  const getPaidFines = async () => {
+    return data.filter(fine => fine.status === 'Paid');
+  };
+
+  const getBilledFines = async () => {
+    return data.filter(fine => fine.status === 'Billed');
+  };
+
+  const getWaivedFines = async () => {
+    return data.filter(fine => fine.status === 'Waived');
+  };
+
+  const getFinesByStatus = async (status: string) => {
+    return data.filter(fine => fine.status === status);
+  };
+
+  const markAsPaid = async (id: string, paymentDate?: string, paymentReference?: string) => {
+    return update(id, {
+      status: 'Paid' as any,
+      paid_date: paymentDate || new Date().toISOString().split('T')[0],
+      payment_reference: paymentReference
+    });
+  };
+
+  const waiveFine = async (id: string) => {
+    return update(id, { status: 'Waived' as any });
+  };
+
+  const billFine = async (id: string) => {
+    return update(id, { status: 'Billed' as any });
   };
 
   return {
-    data: fines,
+    data,
     isLoading,
     error,
     create,
     update,
-    remove
+    remove,
+    search,
+    // Status-specific helpers
+    getPendingFines,
+    getPaidFines,
+    getBilledFines,
+    getWaivedFines,
+    getFinesByStatus,
+    markAsPaid,
+    waiveFine,
+    billFine
   };
 };
 

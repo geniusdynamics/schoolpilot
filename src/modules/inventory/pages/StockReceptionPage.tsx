@@ -1,24 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Box,
+  Button,
   Card,
   CardContent,
-  Button,
-  Modal,
-  Input,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Paper,
   Select,
-  Textarea,
   Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  Chip,
   Alert,
-  Badge,
-  Spinner
-} from '@/components/ui';
+  Autocomplete
+} from '@mui/material';
 import {
-  PlusIcon,
-  TrashIcon,
-  CheckIcon,
-  XMarkIcon,
-  ReceiptRefundIcon
-} from '@/components/ui/icons';
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Receipt as ReceiptIcon
+} from '@mui/icons-material';
 import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData } from '../data';
 import { InvStockTransactionType, InvItemType, InvWarehouseType } from '../data/types';
 
@@ -310,7 +325,7 @@ const StockReceptionPage: React.FC = () => {
                   receptions.map((reception) => (
                     <TableRow key={reception.id}>
                       <TableCell>{reception.reference_number || 'N/A'}</TableCell>
-                      <TableCell>{reception.reception_date ? new Date(reception.reception_date).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>{new Date(reception.reception_date).toLocaleDateString()}</TableCell>
                       <TableCell>{reception.items.length}</TableCell>
                       <TableCell>{reception.total_quantity}</TableCell>
                       <TableCell>

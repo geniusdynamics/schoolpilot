@@ -6,6 +6,9 @@ import Spinner from '@/components/ui/Spinner';
 import { ChartData, BookStatus, FineStatus } from '@/types';
 import DonutChart from '@/components/ui/DonutChart'; // Ensure you have this component
 import { useTranslation } from 'react-i18next';
+import { useBookData } from '../data/useBookData';
+import { useLoanData } from '../data/useLoanData';
+import { useFineData } from '../data/useFineData';
 
 const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
   <Card className="shadow-md">
@@ -48,6 +51,23 @@ const LibraryDashboardPage: React.FC = () => {
 
   const pendingFines = (fines || []).filter(f => f.status === FineStatus.PENDING || f.status === FineStatus.BILLED).length;
 
+  // Calculate damaged and lost books count
+  const damagedBooksCount = (books || []).filter(b => b.damaged_status).length;
+  const lostBooksCount = (books || []).filter(b => b.lost_status).length;
+
+  // Calculate top borrowed books
+  const loanCounts = (loans || [])
+    .reduce((counts, loan) => {
+      const bookTitle = books.find(b => b.id === loan.book_id)?.title || 'Unknown Book';
+      counts[bookTitle] = counts[bookTitle] ? counts[bookTitle] + 1 : 1;
+      return counts;
+    }, {} as Record<string, number>);
+
+  const topBorrowed = Object.entries(loanCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([title, count]) => ({ title, count }));
+
   const booksByCategoryData: ChartData[] = (bookCategories || []).map(category => ({
     name: category.name,
     value: (books || []).filter(book => book.category_id === category.id).length,
@@ -58,18 +78,40 @@ const LibraryDashboardPage: React.FC = () => {
     <div className="space-y-6">
       <Card title="Library Dashboard" className="bg-white shadow-xl">
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
             <StatCard title="Total Books" value={totalBooks} icon={<BookOpenIcon className="w-7 h-7"/>} />
             <StatCard title="Books on Loan" value={booksOnLoan} icon={<ArrowsRightLeftIcon className="w-7 h-7"/>} />
             <StatCard title="Overdue Books" value={overdueBooksCount} icon={<BookOpenIcon className="w-7 h-7 text-red-500"/>} />
+            <StatCard title="Damaged Books" value={damagedBooksCount} icon={<BookOpenIcon className="w-7 h-7 text-orange-500"/>} />
+            <StatCard title="Lost Books" value={lostBooksCount} icon={<BookOpenIcon className="w-7 h-7 text-gray-800"/>} />
             <StatCard title="Pending Fines" value={pendingFines} icon={<SparklesIcon className="w-7 h-7 text-yellow-500"/>} />
           </div>
 
-          {booksByCategoryData.length > 0 && (
-             <Card title="Books by Category" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            {booksByCategoryData.length > 0 && (
+              <Card title="Books by Category">
                 <DonutChart data={booksByCategoryData} title="" />
-            </Card>
-          )}
+              </Card>
+            )}
+            
+            {topBorrowed.length > 0 && (
+              <Card title="Top Borrowed Books">
+                <div className="space-y-2">
+                  {topBorrowed.map((book, index) => (
+                    <div key={book.title} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center">
+                        <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center mr-3">
+                          {index + 1}
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 truncate">{book.title}</span>
+                      </div>
+                      <span className="text-sm text-gray-500">{book.count} loans</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
          
           <div className="text-center py-8 mt-6">
             <LibraryIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />

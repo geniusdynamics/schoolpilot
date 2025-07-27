@@ -87,6 +87,14 @@ const BooksPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredBooks, setFilteredBooks] = useState<LibBookType[]>([]);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [advancedSearchFilters, setAdvancedSearchFilters] = useState({
+    author: '',
+    publicationYear: '',
+    availability: '',
+    category: '',
+    publisher: ''
+  });
 
   useEffect(() => {
     setFilteredBooks(books);
@@ -146,6 +154,58 @@ const BooksPage: React.FC = () => {
   const handleSearch = async () => {
     const results = await search(searchQuery);
     setFilteredBooks(results);
+  };
+
+  const handleAdvancedSearchChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setAdvancedSearchFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAdvancedSearch = async () => {
+    let results = books;
+
+    if (advancedSearchFilters.author) {
+      results = results.filter(book => 
+        book.author?.toLowerCase().includes(advancedSearchFilters.author.toLowerCase())
+      );
+    }
+
+    if (advancedSearchFilters.publicationYear) {
+      results = results.filter(book => 
+        book.publication_year?.toString() === advancedSearchFilters.publicationYear
+      );
+    }
+
+    if (advancedSearchFilters.availability) {
+      results = results.filter(book => 
+        book.availability_status === advancedSearchFilters.availability
+      );
+    }
+
+    if (advancedSearchFilters.category) {
+      results = results.filter(book => 
+        book.category_id?.toString() === advancedSearchFilters.category
+      );
+    }
+
+    if (advancedSearchFilters.publisher) {
+      results = results.filter(book => 
+        book.publisher?.toLowerCase().includes(advancedSearchFilters.publisher.toLowerCase())
+      );
+    }
+
+    setFilteredBooks(results);
+  };
+
+  const clearAdvancedFilters = () => {
+    setAdvancedSearchFilters({
+      author: '',
+      publicationYear: '',
+      availability: '',
+      category: '',
+      publisher: ''
+    });
+    setFilteredBooks(books);
   };
 
   const handleSubmit = async () => {
@@ -318,6 +378,8 @@ const BooksPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage all books in the library catalog.
         </p>
+        
+        {/* Basic Search */}
         <div className="mb-4 flex items-center">
           <Input
             type="text"
@@ -329,10 +391,86 @@ const BooksPage: React.FC = () => {
           <Button
             onClick={handleSearch}
             leftIcon={<SearchIcon className="w-4 h-4" />}
+            className="mr-2"
           >
             Search
           </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+          >
+            {showAdvancedSearch ? 'Hide' : 'Advanced'} Search
+          </Button>
         </div>
+
+        {/* Advanced Search Panel */}
+        {showAdvancedSearch && (
+          <Card className="mb-4 bg-gray-50">
+            <div className="p-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Advanced Search Filters</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Input
+                  name="author"
+                  label="Author"
+                  placeholder="Filter by author..."
+                  value={advancedSearchFilters.author}
+                  onChange={handleAdvancedSearchChange}
+                />
+                <Input
+                  name="publicationYear"
+                  label="Publication Year"
+                  type="number"
+                  placeholder="e.g., 2023"
+                  value={advancedSearchFilters.publicationYear}
+                  onChange={handleAdvancedSearchChange}
+                />
+                <Select
+                  name="availability"
+                  label="Availability Status"
+                  value={advancedSearchFilters.availability}
+                  onChange={handleAdvancedSearchChange}
+                >
+                  <option value="">All Availability</option>
+                  {Object.values(LibBookAvailabilityStatusEnum).map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </Select>
+                <Select
+                  name="category"
+                  label="Category"
+                  value={advancedSearchFilters.category}
+                  onChange={handleAdvancedSearchChange}
+                >
+                  <option value="">All Categories</option>
+                  {(bookCategories || []).map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </Select>
+                <Input
+                  name="publisher"
+                  label="Publisher"
+                  placeholder="Filter by publisher..."
+                  value={advancedSearchFilters.publisher}
+                  onChange={handleAdvancedSearchChange}
+                />
+              </div>
+              <div className="flex items-center space-x-2 mt-4">
+                <Button
+                  onClick={handleAdvancedSearch}
+                  leftIcon={<SearchIcon className="w-4 h-4" />}
+                >
+                  Apply Filters
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={clearAdvancedFilters}
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
         <DataGrid<LibBookType>
           columns={columns}
           data={filteredBooks}

@@ -37,6 +37,7 @@ export const bookSchema: RxJsonSchema<types.LibBookType> = createEntitySchema<ty
         availability_status: { type: 'string', enum: Object.values(types.LibBookAvailabilityStatusEnum), default: 'available' }, // New field for advanced search (e.g., 'available', 'on-loan', 'reserved')
         damaged_status: { type: 'boolean', default: false }, // New field for damaged books
         lost_status: { type: 'boolean', default: false }, // New field for lost books
+        branch_id: { type: ['string', 'null'] }, // New field for branch association
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
         deleted_at: { type: ['string', 'null'], format: 'date-time' },
@@ -44,7 +45,7 @@ export const bookSchema: RxJsonSchema<types.LibBookType> = createEntitySchema<ty
     },
     { key: 'id', type: 'string' },
     ['id', 'title', 'accession_no', 'status', 'created_at', 'updated_at'],
-    ['title', 'author', 'isbn', 'accession_no', 'status', 'category_id']
+        ['title', 'author', 'isbn', 'accession_no', 'status', 'category_id', 'branch_id', 'damaged_status', 'lost_status', 'is_digital']
 );
 
 export const loanSchema: RxJsonSchema<types.LibLoanType> = createEntitySchema<types.LibLoanType>(
@@ -58,6 +59,7 @@ export const loanSchema: RxJsonSchema<types.LibLoanType> = createEntitySchema<ty
         due_date: { type: 'string', format: 'date' },
         return_date: { type: ['string', 'null'], format: 'date' },
         extended_due_date: { type: ['string', 'null'], format: 'date' },
+        branch_id: { type: ['string', 'null'] }, // New field for branch association
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
         book_title: { type: ['string', 'null'] },
@@ -65,7 +67,7 @@ export const loanSchema: RxJsonSchema<types.LibLoanType> = createEntitySchema<ty
     },
     { key: 'id', type: 'string' },
     ['id', 'book_id', 'user_id', 'loan_date', 'due_date', 'created_at', 'updated_at'],
-    ['book_id', 'user_id', 'due_date', 'return_date']
+        ['book_id', 'user_id', 'due_date', 'return_date', 'branch_id']
 );
 
 export const fineSchema: RxJsonSchema<types.LibFineType> = createEntitySchema<types.LibFineType>(

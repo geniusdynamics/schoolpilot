@@ -188,4 +188,4 @@ The new system should be designed with the following considerations to ensure fl
 *   **Security**: Robust authentication, authorization, and data protection mechanisms.
 
 ## 11. External References
-*   [Akademiko Library Module Source Code (Old System)](file:///D:/DevCenter/abuilds/EduGen/old_system/schoolpilot3/docs/AkademikoNotes/Akademiko_Library)
+*   [Akademiko Library Module Source Code (Old System)](file:///D:/DevCenter/abuilds/EduGen/old_system/schoolpilot3/docs/AkademicoNotes/Akademico_Library)

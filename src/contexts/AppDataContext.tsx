@@ -522,7 +522,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [dataStrategy.mode, isProdDepsLoaded, prodDepsError, currentDataMode]);
 
   // Context value
-const contextValue = useMemo((): EnhancedAppDataContextType => {
+  const contextValue = useMemo((): EnhancedAppDataContextType => {
     const getSyncSettings = () => ({ autoSync: true, syncInterval: 30000, batchSize: 10 });
     const updateSyncSettings = (settings: Partial<SyncSettings>) => {
       // Implement update logic
