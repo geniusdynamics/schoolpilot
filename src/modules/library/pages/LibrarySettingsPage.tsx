@@ -15,8 +15,8 @@ import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
-const LibrarySettingsPage: React.FC = () => {
-  const { t } = useTranslation();
+const LibrarySettingsPage: React.FC = () => {
+  const { t } = useTranslation('library');
   const {
     data: settings,
     create: addSetting,
@@ -106,7 +106,7 @@ const LibrarySettingsPage: React.FC = () => {
     {
       key: 'fine_per_day',
       header: 'Fine per Day',
-      render: (setting) => `KES ${setting.fine_per_day.toFixed(2)}`,
+      render: (setting) => `KES ${(setting.fine_per_day || 0).toFixed(2)}`,
     },
     {
       key: 'max_books_per_user',

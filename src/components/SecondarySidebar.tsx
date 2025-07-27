@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
-import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon } from './ui/icons';
+import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon, InformationCircleIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 
 function getFallbackIcon(moduleKey: string) {
@@ -302,7 +302,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
             {filterItems(subMenus).map(item => (
               <li key={item.name}>
                 {item.isGroup && item.children ? (
-                  <div>
+                  <div className="relative group">
                     <button
                       onClick={() => !isMinimized && toggleGroup(item.name)}
                       className={`
@@ -326,6 +326,13 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                       </span>
                       {!isMinimized && <span className="flex-shrink-0">{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>}
                     </button>
+                    {/* Tooltip for group items */}
+                    {(isMinimized || (item.name && t(item.name).length > 15)) && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                        {t(item.name)}
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-orange-500"></div>
+                      </div>
+                    )}
                     {openGroups[item.name] && !isMinimized && (
                       <ul className="space-y-1 mt-1">
                         {item.children.map((child: any) => (
@@ -354,26 +361,34 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                     )}
                   </div>
                 ) : (
-                  <NavLink
-                    to={item.path}
-                    className={({ isActive, isPending }) =>
-                      `flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : 'gap-3 px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg backdrop-blur-sm ${
-                        isActive
-                          ? `${moduleStyle.activeLink} font-semibold shadow-sm`
-                          : isPending
-                            ? `${moduleStyle.hoverLink} bg-white/20`
-                            : `text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20`
-                      }`
-                    }
-                    title={isMinimized ? t(item.name) : undefined}
-                  >
-                    <IconWrapper 
-                      icon={item.icon} 
-                      moduleKey={moduleKey} 
-                      isMinimized={isMinimized}
-                    />
-                    {!isMinimized && <span className="font-medium text-sm truncate">{t(item.name)}</span>}
-                  </NavLink>
+                  <div className="relative group">
+                    <NavLink
+                      to={item.path}
+                      className={({ isActive, isPending }) =>
+                        `flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : 'gap-3 px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg backdrop-blur-sm ${
+                          isActive
+                            ? `${moduleStyle.activeLink} font-semibold shadow-sm`
+                            : isPending
+                              ? `${moduleStyle.hoverLink} bg-white/20`
+                              : `text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20`
+                        }`
+                      }
+                      title={isMinimized ? t(item.name) : undefined}
+                    >
+                      <IconWrapper 
+                        icon={item.icon} 
+                        moduleKey={moduleKey} 
+                        isMinimized={isMinimized}
+                      />
+                      {!isMinimized && <span className="font-medium text-sm truncate">{t(item.name)}</span>}
+                    </NavLink>
+                    {(isMinimized || (item.name && t(item.name).length > 15)) && (
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-gradient-to-r from-slate-800 to-slate-900 text-white text-sm font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                          {t(item.name)}
+                          <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-slate-800"></div>
+                        </div>
+                      )}
+                  </div>
                 )}
               </li>
             ))}

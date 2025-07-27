@@ -149,7 +149,7 @@ const VendorPortalDashboardPage: React.FC = () => {
 
   const poColumns = [
     { header: 'PO Number', key: 'id', render: (value: any, item: InvPurchaseOrderType) => value },
-    { header: 'Issue Date', key: 'order_date', render: (value: any, item: InvPurchaseOrderType) => item.order_date ? new Date(item.order_date).toLocaleDateString() : 'N/A' },
+    { header: 'Issue Date', key: 'order_date', render: (value: any, item: InvPurchaseOrderType) => (item.order_date) ? new Date(item.order_date).toLocaleDateString() : 'N/A' },
     { header: 'Amount', key: 'total_value', render: (value: any, item: InvPurchaseOrderType) => `Ksh ${item.total_value?.toFixed(2) || '0.00'}` },
     { header: 'Status', key: 'status', 
       render: (value: any, item: InvPurchaseOrderType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -165,8 +165,8 @@ const VendorPortalDashboardPage: React.FC = () => {
   const rfqColumns = [
     { header: 'RFQ ID', key: 'id', render: (value: any, item: InvRFQType) => value },
     { header: 'Title', key: 'title', render: (value: any, item: InvRFQType) => value || 'N/A' },
-    { header: 'Issue Date', key: 'issue_date', render: (value: any, item: InvRFQType) => item.issue_date ? new Date(item.issue_date).toLocaleDateString() : 'N/A' },
-    { header: 'Closing Date', key: 'closing_date', render: (value: any, item: InvRFQType) => item.closing_date ? new Date(item.closing_date).toLocaleDateString() : 'N/A' },
+    { header: 'Issue Date', key: 'issue_date', render: (value: any, item: InvRFQType) => ((item as any).issue_date) ? new Date((item as any).issue_date).toLocaleDateString() : 'N/A' },
+    { header: 'Closing Date', key: 'closing_date', render: (value: any, item: InvRFQType) => (item.closing_date) ? new Date(item.closing_date).toLocaleDateString() : 'N/A' },
     { header: 'Status', key: 'status',
         render: (value: any, item: InvRFQType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
             item.status === InvRFQStatusEnum.OPEN ? 'bg-green-100 text-green-800' : 
@@ -186,7 +186,7 @@ const VendorPortalDashboardPage: React.FC = () => {
   const invoiceColumns = [
     { header: t('vendor.invoice.number'), key: 'invoice_number', render: (value: any, item: typeof vendorInvoices[0]) => value || 'N/A' },
     { header: t('vendor.invoice.po'), key: 'purchase_order_id', render: (value: any, item: typeof vendorInvoices[0]) => value || 'N/A' },
-    { header: t('vendor.invoice.amount'), key: 'total_amount', render: (value: any, item: typeof vendorInvoices[0]) => `Ksh ${item.total_amount?.toFixed(2) || '0.00'}` },
+    { header: t('vendor.invoice.amount'), key: 'total_amount', render: (value: any, item: typeof vendorInvoices[0]) => `Ksh ${(item.total_amount || 0).toFixed(2)}` },
     { header: t('vendor.invoice.dueDate'), key: 'due_date', render: (value: any, item: typeof vendorInvoices[0]) => value || 'N/A' },
     { header: t('vendor.invoice.status'), key: 'status',
       render: (value: any, item: typeof vendorInvoices[0]) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${

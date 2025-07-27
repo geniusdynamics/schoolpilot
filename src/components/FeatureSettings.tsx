@@ -58,7 +58,11 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     clearSyncQueue
   } = useAppData();
 
-  const queueStatus = getQueueStatus();
+  // Safely get queue status with fallback
+  const queueStatus = getQueueStatus ? getQueueStatus() : {
+    api: { pending: 0, processing: false, byPriority: {}, completed: 0 },
+    sync: { pending: 0, processing: false, byPriority: {}, errors: 0 }
+  };
 
   const handleFeatureToggle = (feature: keyof typeof config.features) => {
     const newConfig = {

@@ -71,14 +71,22 @@ const ModuleManagementPage: React.FC = () => {
       setLoading(true);
       
       // Get all available modules from registry
-      const availableModules = moduleRegistry.getEnabledModules();
-      const enabledModuleIds = moduleConfigService.getEnabledModules();
+      const availableModules = moduleRegistry.getEnabledModules() || [];
+      const enabledModuleIds = moduleConfigService.getEnabledModules() || [];
       
-      const moduleStatuses: ModuleStatus[] = availableModules.map((module: ModuleDefinition) => ({
+      // Filter out any undefined or invalid modules
+      const validModules = availableModules.filter((module: ModuleDefinition) => 
+        module && 
+        module.id && 
+        module.name && 
+        typeof module.name === 'string'
+      );
+      
+      const moduleStatuses: ModuleStatus[] = validModules.map((module: ModuleDefinition) => ({
         id: module.id,
         name: module.name,
         description: module.description || 'No description available',
-        version: module.version,
+        version: module.version || '1.0.0',
         isEnabled: enabledModuleIds.includes(module.id),
         isActive: moduleRegistry.isModuleEnabled(module.id),
         features: module.features || [],
@@ -91,6 +99,7 @@ const ModuleManagementPage: React.FC = () => {
       setModules(moduleStatuses);
     } catch (error) {
       console.error('Failed to load modules:', error);
+      setModules([]); // Set empty array on error
     } finally {
       setLoading(false);
     }

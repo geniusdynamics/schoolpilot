@@ -51,7 +51,6 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
   const { isMobile } = useBreakpoint();
   const prefersReducedMotion = useReducedMotion();
-  const [isAnimating, setIsAnimating] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
 
@@ -61,14 +60,10 @@ const Modal: React.FC<ModalProps> = ({
   // Handle modal state changes
   useEffect(() => {
     if (isOpen) {
-      setIsAnimating(true);
       document.body.style.overflow = 'hidden';
       
       // Add backdrop blur effect
       document.body.style.backdropFilter = 'blur(2px)';
-      
-      const timer = setTimeout(() => setIsAnimating(false), 150);
-      return () => clearTimeout(timer);
     } else {
       document.body.style.overflow = 'unset';
       document.body.style.backdropFilter = 'none';
@@ -143,26 +138,16 @@ const Modal: React.FC<ModalProps> = ({
     const baseTransition = 'transition-all duration-300 ease-out';
     
     if (effectiveVariant === 'drawer') {
-      return `${baseTransition} ${
-        isAnimating 
-          ? 'transform translate-x-full opacity-0' 
-          : 'transform translate-x-0 opacity-100'
-      }`;
+      return `${baseTransition} transform translate-x-0 opacity-100`;
     }
 
-    return `${baseTransition} ${
-      isAnimating 
-        ? 'transform scale-95 opacity-0' 
-        : 'transform scale-100 opacity-100'
-    }`;
+    return `${baseTransition} transform scale-100 opacity-100`;
   };
 
   // Backdrop animation classes
   const backdropAnimationClasses = prefersReducedMotion 
     ? '' 
-    : `transition-all duration-300 ease-out ${
-        isAnimating ? 'opacity-0' : 'opacity-100'
-      }`;
+    : `transition-all duration-300 ease-out opacity-100`;
 
   // Render drawer variant
   const renderDrawer = () => (

@@ -45,7 +45,10 @@ const Input: React.FC<ModernInputProps> = ({
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [hasValue, setHasValue] = useState(Boolean(value || defaultValue));
+  const [hasValue, setHasValue] = useState(() => {
+    // Better initial state calculation
+    return Boolean(value || defaultValue);
+  });
   const [internalError, setInternalError] = useState<string | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -58,7 +61,8 @@ const Input: React.FC<ModernInputProps> = ({
   
   // Update hasValue when value changes
   useEffect(() => {
-    setHasValue(Boolean(inputRef.current?.value));
+    const currentValue = value !== undefined ? value : inputRef.current?.value;
+    setHasValue(Boolean(currentValue));
   }, [value]);
   
   // Handle focus events
@@ -81,7 +85,8 @@ const Input: React.FC<ModernInputProps> = ({
   };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHasValue(Boolean(e.target.value));
+    const newValue = e.target.value;
+    setHasValue(Boolean(newValue));
     
     // Clear error when user starts typing
     if (internalError) {
@@ -92,7 +97,7 @@ const Input: React.FC<ModernInputProps> = ({
   };
   
   // Determine if label should be floating
-  const shouldFloat = floatingLabel && (isFocused || hasValue);
+  const shouldFloat = floatingLabel && (isFocused || hasValue || Boolean(value) || props.placeholder || props.type === 'date' || props.type === 'time' || props.type === 'datetime-local');
   
   // Size variants
   const sizeStyles = {

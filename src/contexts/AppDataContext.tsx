@@ -192,12 +192,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const mockDataHookResult = useModularMockData();
   
   // Enhanced state management
-  const [networkState, setNetworkState] = useState<NetworkState>({
-    isOnline: navigator.onLine,
-    backendAvailable: false,
-    latency: null,
-    lastCheck: new Date(),
-    connectionQuality: 'offline'
+  const [networkState, setNetworkState] = useState<NetworkState>(() => {
+    const manager = NetworkStateManager.getInstance();
+    return manager.getState();
   });
   
   const [dataStrategy, setDataStrategy] = useState<DataStrategy>(() => {

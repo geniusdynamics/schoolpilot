@@ -97,12 +97,7 @@
     "bookCategories": "Catégories de livres",
     "books": "Livres",
     "bookLoans": "Prêts de livres",
-    "fines": "Amendes",
-    "userPortal": "Mon Portail Bibliothèque",
-    "digitalResources": "Ressources Numériques",
-    "damagedLostBooks": "Livres Endommagés et Perdus",
-    "importBooks": "Importer Livres",
-    "settings": "Paramètres Bibliothèque"
+    "fines": "Amendes"
   },
   "nutrition": {
     "title": "Nutrition et Portefeuille",
@@ -126,9 +121,7 @@
     "examResultsHorizontal": "Résultats Examens (Horizontal)",
     "feeCollectionSummary": "Résumé Collecte Frais",
     "studentFinancialSummary": "Résumé Financier Élève",
-    "studentVoteheadStatement": "Relevé Poste Élève",
-    "overdueBooks": "Rapport Livres en Retard",
-    "inventoryStatus": "Rapport État Inventaire"
+    "studentVoteheadStatement": "Relevé Poste Élève"
   },
   "settings": "Paramètres",
   "settings.description": "Configuration et gestion du système",
