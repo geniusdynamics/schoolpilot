@@ -22,6 +22,8 @@ const GradingSchemesPage: React.FC = () => {
     deleteGradingScheme 
   } = useAppData(); // Updated
   
+  const { t } = useTranslation('academics');
+  
   const [isSchemeModalOpen, setIsSchemeModalOpen] = useState(false);
   const [isLevelModalOpen, setIsLevelModalOpen] = useState(false);
   

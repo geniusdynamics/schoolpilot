@@ -5,7 +5,8 @@ import { RxJsonSchema, toTypedRxJsonSchema } from 'rxdb';
 import * as types from './types'; // Academics specific types
 import { createEntitySchema } from '../../../utils/schemaUtils'; 
 
-// --- Schema Definitions for Academics Module ---
+// ABOUTME: Defines the database schema for the SP3 academics module.
+// ABOUTME: This file outlines entities, relations, and methods related to the academic data.
 
 export const subjectPaperProperties: RxJsonSchema<types.AcademicsSubjectPaperType>['properties'] = {
     id: { type: 'number' },

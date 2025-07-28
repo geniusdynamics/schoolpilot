@@ -69,9 +69,15 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
     conflicts = [],
     isOnline,
     backendAvailable
-  } = useAppData();
+  } = useAppData() || {};
 
-  const queueStatus = getQueueStatus();
+  // Safely get queue status with comprehensive fallback
+  const queueStatus = (getQueueStatus && typeof getQueueStatus === 'function') 
+    ? getQueueStatus() 
+    : {
+        api: { pending: 0, processing: false, byPriority: {}, completed: 0 },
+        sync: { pending: 0, processing: false, byPriority: {}, errors: 0, items: [] }
+      };
   const syncSettings = getSyncSettings?.() || {
     autoSync: true,
     syncInterval: 30000,
@@ -401,10 +407,10 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
   );
 
   const tabs = [
-    { id: 'queue', label: 'Sync Queue', count: pendingSyncCount },
+    { id: 'queue', label: 'Sync Queue', count: pendingSyncCount || 0 },
     { id: 'settings', label: 'Settings' },
     { id: 'history', label: 'History' },
-    { id: 'conflicts', label: 'Conflicts', count: conflicts.length, alert: conflicts.length > 0 }
+    { id: 'conflicts', label: 'Conflicts', count: Array.isArray(conflicts) ? conflicts.length : 0, alert: Array.isArray(conflicts) && conflicts.length > 0 }
   ];
 
   return (
@@ -426,7 +432,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
             }`}>
               {isOnline && backendAvailable ? 'Online' : 'Offline'}
             </div>
-            {syncStatus.state === 'syncing' && (
+            {syncStatus?.state === 'syncing' && (
               <div className="flex items-center space-x-1 text-sm text-blue-600">
                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
                 <span>Syncing...</span>

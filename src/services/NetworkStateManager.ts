@@ -26,11 +26,12 @@ export class NetworkStateManager {
     backendAvailable: false,
     latency: null,
     lastCheck: new Date(),
-    connectionQuality: 'offline'
+    connectionQuality: navigator.onLine ? 'good' : 'offline' // Default to good if online
   };
   private healthCheckInterval: NodeJS.Timeout | null = null;
   private readonly HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
   private readonly HEALTH_CHECK_TIMEOUT = 5000; // 5 seconds
+  private readonly isDemoMode: boolean = this.checkDemoMode();
 
   static getInstance(): NetworkStateManager {
     if (!NetworkStateManager.instance) {
@@ -41,9 +42,44 @@ export class NetworkStateManager {
 
   private constructor() {
     this.setupNetworkListeners();
-    this.startBackendHealthCheck();
-    // Initial health check
-    this.checkBackendHealth();
+    
+    // In demo mode, treat as online with good connection
+    if (this.isDemoMode) {
+      this.updateState({
+        isOnline: navigator.onLine,
+        backendAvailable: false, // No backend in demo mode
+        connectionQuality: navigator.onLine ? 'good' : 'offline',
+        latency: null,
+        lastCheck: new Date()
+      });
+    } else {
+      this.startBackendHealthCheck();
+      // Initial health check
+      this.checkBackendHealth();
+    }
+  }
+  
+  private checkDemoMode(): boolean {
+    try {
+      // Check if we're in demo mode based on app configuration
+      const isDemoBuild = import.meta.env.MODE === 'development' || 
+                          window.location.hostname === 'localhost' ||
+                          window.location.hostname === '127.0.0.1';
+      
+      // Also check if there's an app mode setting
+      const storedConfig = localStorage.getItem('app-config');
+      if (storedConfig) {
+        const config = JSON.parse(storedConfig);
+        if (config.mode === 'demo') {
+          return true;
+        }
+      }
+      
+      return isDemoBuild;
+    } catch (error) {
+      console.warn('Error checking demo mode:', error);
+      return true; // Default to demo mode if unsure
+    }
   }
 
   private setupNetworkListeners(): void {
@@ -52,9 +88,14 @@ export class NetworkStateManager {
   }
 
   private handleOnline(): void {
-    this.updateState({ isOnline: true });
-    // Immediately check backend when coming online
-    this.checkBackendHealth();
+    this.updateState({ 
+      isOnline: true,
+      connectionQuality: this.isDemoMode ? 'good' : 'poor' // Good for demo, poor until health check completes
+    });
+    // Only check backend health if not in demo mode
+    if (!this.isDemoMode) {
+      this.checkBackendHealth();
+    }
   }
 
   private handleOffline(): void {
@@ -136,7 +177,16 @@ export class NetworkStateManager {
     latency: number, 
     available: boolean
   ): NetworkState['connectionQuality'] {
-    if (!available || !this.state.isOnline) return 'offline';
+    // If offline, always return offline
+    if (!this.state.isOnline) return 'offline';
+    
+    // In demo mode, don't depend on backend availability for connection quality
+    if (this.isDemoMode) {
+      return this.state.isOnline ? 'good' : 'offline';
+    }
+    
+    // In production mode, consider backend availability
+    if (!available) return 'poor'; // Changed from 'offline' to 'poor'
     if (latency < 100) return 'excellent';
     if (latency < 300) return 'good';
     return 'poor';

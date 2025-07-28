@@ -1,7 +1,11 @@
 {
-  "dashboard": "Dashboard",
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Main overview and system statistics"
+  },
   "administration": {
     "title": "Administration",
+    "description": "Manage students, staff, classes, and administrative operations",
     "dashboard": "Admin Dashboard",
     "applications": "Applications",
     "preNAsMarks": "PreNAs Marks",
@@ -26,6 +30,7 @@
   },
   "academics": {
     "title": "Academics",
+    "description": "Academic curriculum, exams, subjects, and educational management",
     "dashboard": "Academics Dashboard",
     "subjects": "Subjects",
     "subjectPapers": "Papers",
@@ -44,6 +49,7 @@
   },
   "finance": {
     "title": "Finance",
+    "description": "Financial management, billing, and accounting operations",
     "dashboard": "Finance Dashboard",
     "banks": "Banks",
     "chartOfAccounts": "Chart of Accounts",
@@ -65,6 +71,7 @@
   },
   "hr": {
     "title": "Human Resources",
+    "description": "Staff management, payroll, and human resource operations",
     "dashboard": "HR Dashboard",
     "payrollPeriods": "Payroll Periods",
     "payrollItemTypes": "Payroll Item Types",
@@ -74,6 +81,7 @@
   },
   "inventory": {
     "title": "Inventory",
+    "description": "Inventory management, procurement, and stock control",
     "dashboard": "Inventory Dashboard",
     "procurementDashboard": "Procurement Dashboard",
     "schoolProcurementDashboard": "School Procurement Dashboard",
@@ -95,6 +103,7 @@
   },
   "library": {
     "title": "Library",
+    "description": "Library management, book loans, and cataloging",
     "dashboard": "Library Dashboard",
     "bookCategories": "Book Categories",
     "books": "Books",
@@ -103,6 +112,7 @@
   },
   "nutrition": {
     "title": "Nutrition & Wallet",
+    "description": "Meal planning, nutrition management, and student wallet system",
     "dashboard": "Nutrition Dashboard",
     "mealPlans": "Meal Plans",
     "menus": "Menus",
@@ -113,6 +123,7 @@
   },
   "reports": {
     "title": "Reports",
+    "description": "System reports, analytics, and data visualization",
     "studentMasterlist": "Student Masterlist",
     "examResults": "Exam Results",
     "studentFinancials": "Student Financials",
@@ -125,10 +136,9 @@
     "studentFinancialSummary": "Student Financial Summary",
     "studentVoteheadStatement": "Student Votehead Statement"
   },
-  "settings": "Settings",
-  "settings.description": "System configuration and management",
   "settings": {
     "title": "Settings",
+    "description": "System configuration and management",
     "general": "General Settings",
     "schoolProfile": "School Profile",
     "userManagement": "User Management",

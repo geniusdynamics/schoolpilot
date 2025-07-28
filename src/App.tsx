@@ -335,6 +335,7 @@ import PageErrorBoundary from './components/PageErrorBoundary';
 import ModuleLoadingProgress from './components/ModuleLoadingProgress';
 import dynamicModuleLoader from './services/dynamicModuleLoader';
 import PerformanceMonitor from './components/PerformanceMonitor';
+import PerformanceMonitorWidget from './components/PerformanceMonitorWidget';
 import { performanceMonitor } from './services/performanceMonitor';
 import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from './hooks/useMemoryManagement';
@@ -487,8 +488,14 @@ const App: React.FC = () => {
         </AuthProvider>
       </HashRouter>
       
-      {/* Performance Monitor (Feature Flag Controlled) */}
-      {config.features.performanceMonitorWidget && <PerformanceMonitor />}
+      {/* Performance Monitor Widget (Feature Flag Controlled) */}
+      {config.features.performanceMonitorWidget && (
+        <PerformanceMonitorWidget 
+          position="bottom-right"
+          showDetails={true}
+          refreshInterval={15000}
+        />
+      )}
     </ApplicationErrorBoundary>
   );
 };

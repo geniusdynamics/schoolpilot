@@ -7,10 +7,13 @@ import {
   ChevronDownIcon, 
   MagnifyingGlassIcon,
   FunnelIcon,
-  CheckIcon
+  CheckIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import Spinner from '../Spinner';
 import SkeletonLoader from './SkeletonLoader';
+import TableErrorBoundary from './TableErrorBoundary';
+import { DataValidationUtils } from '../../../utils/dataValidationUtils';
 
 export interface DataGridColumn<T> {
   key: keyof T | string;
@@ -57,6 +60,7 @@ interface FilterState {
   [key: string]: string;
 }
 
+// Enhanced DataGrid with validation and error boundaries
 const DataGrid = <T extends Record<string, any>>({
   columns,
   data,
@@ -77,6 +81,30 @@ const DataGrid = <T extends Record<string, any>>({
   const [filterState, setFilterState] = useState<FilterState>({});
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+
+  // Validate and prepare data with defensive checks
+  const validatedData = useMemo(() => {
+    // Ensure data is always an array
+    const safeData = DataValidationUtils.ensureArray(data);
+    
+    // Validate table data structure
+    const requiredColumns = columns
+      .filter(col => col.key !== 'actions') // Exclude action columns from validation
+      .map(col => col.key as string);
+    
+    const validation = DataValidationUtils.validateTableData(safeData, requiredColumns);
+    
+    if (!validation.isValid && validation.errors.length > 0) {
+      console.warn('DataGrid validation warnings:', validation.errors);
+    }
+    
+    return validation.validData;
+  }, [data, columns]);
+
+  // Validate and prepare columns with safe render functions
+  const validatedColumns = useMemo(() => {
+    return DataValidationUtils.validateColumns(columns);
+  }, [columns]);
 
   // Handle sorting
   const handleSort = useCallback((columnKey: string) => {
@@ -137,7 +165,7 @@ const DataGrid = <T extends Record<string, any>>({
 
   // Process data (sorting and filtering if not handled externally)
   const processedData = useMemo(() => {
-    let result = [...data];
+    let result = [...validatedData];
 
     // Apply filtering if not handled externally
     if (!onFilter && Object.keys(filterState).length > 0) {
@@ -219,9 +247,13 @@ const DataGrid = <T extends Record<string, any>>({
   const isAllSelected = selectedRows.size === processedData.length && processedData.length > 0;
   const isIndeterminate = selectedRows.size > 0 && selectedRows.size < processedData.length;
 
-  return (
-    <div className={`bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden ${className}`}>
-      {/* Filter Bar */}
+return (
+    <TableErrorBoundary
+      tableName="DataGrid"
+      fallback={<div>An error occurred while rendering the table. Please try again later.</div>}
+    >
+      <div className={`bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden ${className}`}>
+        {/* Filter Bar */}
       {filterable && (
         <div className="border-b border-gray-200 bg-gray-50">
           <div className="px-6 py-3 flex items-center justify-between">
@@ -419,7 +451,8 @@ const DataGrid = <T extends Record<string, any>>({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </TableErrorBoundary>
   );
 };
 

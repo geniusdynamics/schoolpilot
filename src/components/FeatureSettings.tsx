@@ -56,13 +56,15 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     getQueueStatus,
     forceSync,
     clearSyncQueue
-  } = useAppData();
+  } = useAppData() || {};
 
-  // Safely get queue status with fallback
-  const queueStatus = getQueueStatus ? getQueueStatus() : {
-    api: { pending: 0, processing: false, byPriority: {}, completed: 0 },
-    sync: { pending: 0, processing: false, byPriority: {}, errors: 0 }
-  };
+  // Safely get queue status with comprehensive fallback
+  const queueStatus = (getQueueStatus && typeof getQueueStatus === 'function') 
+    ? getQueueStatus() 
+    : {
+        api: { pending: 0, processing: false, byPriority: {}, completed: 0 },
+        sync: { pending: 0, processing: false, byPriority: {}, errors: 0 }
+      };
 
   const handleFeatureToggle = (feature: keyof typeof config.features) => {
     const newConfig = {
@@ -110,11 +112,11 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <ArrowPathIcon className={`w-8 h-8 mx-auto mb-2 ${
-              syncStatus.state === 'syncing' ? 'text-blue-500 animate-spin' :
-              syncStatus.state === 'error' ? 'text-red-500' : 'text-green-500'
+              syncStatus?.state === 'syncing' ? 'text-blue-500 animate-spin' :
+              syncStatus?.state === 'error' ? 'text-red-500' : 'text-green-500'
             }`} />
             <div className="text-sm font-medium">Sync</div>
-            <div className="text-xs text-gray-600 capitalize">{syncStatus.state}</div>
+            <div className="text-xs text-gray-600 capitalize">{syncStatus?.state || 'unknown'}</div>
           </div>
         </div>
       </Card>
@@ -123,11 +125,11 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
       <Card title="Quick Statistics">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{pendingSyncCount}</div>
+            <div className="text-2xl font-bold text-blue-600">{pendingSyncCount || 0}</div>
             <div className="text-sm text-gray-600">Pending Sync</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-amber-600">{conflicts.length}</div>
+            <div className="text-2xl font-bold text-amber-600">{Array.isArray(conflicts) ? conflicts.length : 0}</div>
             <div className="text-sm text-gray-600">Conflicts</div>
           </div>
           <div className="text-center">

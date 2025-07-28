@@ -155,14 +155,31 @@ class AppConfigManager {
           }
           
           // Deep merge features to ensure new feature flags are included
-          return {
+          // Always merge with DEFAULT_CONFIG.features first to include any new flags
+          const mergedConfig = {
             ...DEFAULT_CONFIG,
             ...parsed,
             features: {
-              ...DEFAULT_CONFIG.features,
-              ...parsed.features
+              ...DEFAULT_CONFIG.features, // Start with defaults to ensure all flags exist
+              ...parsed.features // Then apply user preferences
             }
           };
+          
+          // Check if any feature flags are missing and add them
+          const defaultFeatureFlags = Object.keys(DEFAULT_CONFIG.features) as (keyof AppConfig['features'])[];
+          const currentFeatureFlags = Object.keys(mergedConfig.features) as (keyof AppConfig['features'])[];
+          const missingFlags = defaultFeatureFlags.filter(flag => !currentFeatureFlags.includes(flag));
+          
+          if (missingFlags.length > 0) {
+            console.log('Adding missing feature flags:', missingFlags);
+            missingFlags.forEach(flag => {
+              (mergedConfig.features as any)[flag] = (DEFAULT_CONFIG.features as any)[flag];
+            });
+            // Update localStorage with the corrected config
+            localStorage.setItem('app-config', JSON.stringify(mergedConfig));
+          }
+          
+          return mergedConfig;
         } else {
           // First time - set version
           localStorage.setItem('app-config-version', CONFIG_VERSION);

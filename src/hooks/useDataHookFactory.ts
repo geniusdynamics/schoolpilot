@@ -2,13 +2,14 @@
 // ABOUTME: Provides consistent CRUD operations and data synchronization capabilities
 // ABOUTME: Ensures all module data hooks follow the same pattern and interface
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAppDataInternal } from '../contexts/AppDataContext';
 import { DataOperation } from '../services/DataStrategyManager';
 import { globalDataConsistencyService } from '../services/DataConsistencyService';
 import { ValidationResult } from '../utils/dataValidation';
 import { performanceMonitor } from '../services/performanceMonitor';
 import { useMemoryAwareCache } from './useMemoryManagement';
+import { DataValidationUtils } from '../utils/dataValidationUtils';
 
 // Generic type for entity data
 export interface EntityData {
@@ -456,9 +457,24 @@ export function createDataHook<T extends EntityData>(
       }
     }, [useGlobalContext, appData?.syncStatus]);
     
+    // Apply validation to data before returning
+    const validatedData = useMemo(() => {
+      // Ensure data is always an array
+      const safeData = DataValidationUtils.ensureArray(data);
+      
+      // Basic validation of data structure
+      const validation = DataValidationUtils.validateTableData(safeData, ['id']);
+      
+      if (!validation.isValid && validation.errors.length > 0) {
+        console.warn(`Data validation warnings for ${entityName}:`, validation.errors);
+      }
+      
+      return validation.validData;
+    }, [data, entityName]);
+    
     return {
-      // Data
-      data,
+      // Data with validation
+      data: validatedData,
       loading,
       error,
       

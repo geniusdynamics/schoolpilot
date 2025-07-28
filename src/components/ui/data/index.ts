@@ -11,3 +11,8 @@ export type { DataCardMetric, DataCardField } from './DataCard';
 
 export { default as KanbanBoard } from './KanbanBoard';
 export type { KanbanBoardProps, KanbanColumn, KanbanCard } from './KanbanBoard';
+
+export { default as TableErrorBoundary } from './TableErrorBoundary';
+
+// Re-export validation utilities
+export { DataValidationUtils } from '../../../utils/dataValidationUtils';

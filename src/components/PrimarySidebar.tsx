@@ -147,7 +147,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
       ${isMouseNearSidebar ? 'sidebar-active' : 'sidebar-inactive'}
     `}>
       {/* Content container - responsive spacing and scrolling */}
-      <div className="flex flex-col gap-2 sm:gap-3 w-full items-center relative z-10 px-1 sm:px-2 overflow-y-auto max-h-full custom-scrollbar">
+      <div className="flex flex-col gap-2 sm:gap-3 w-full items-center relative z-10 max-h-full">
         {mainModules.map(item => {
           const isSelected = selectedModuleKey === item.name;
           const isHovered = hoveredModule === item.name;
@@ -221,7 +221,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
                 onTouchEnd={() => handleModuleMouseLeave()}
                 className={`
                   group relative flex items-center justify-center
-                  w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl
+                  w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl
                   backdrop-blur-md
                   ${backgroundStyle}
                   border
@@ -254,7 +254,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
                 `}>
                   {item.icon
                     ? React.createElement(item.icon, {
-                        className: `w-5 h-5 sm:w-7 sm:h-7 transition-all duration-300 ${
+                        className: `w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${
                           isSelected ? 'filter brightness-110' : 'group-hover:text-white'
                         }`
                       })
@@ -269,41 +269,6 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
         })}
       </div>
       
-      <style>{`
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(148, 163, 184, 0.6) rgba(30, 41, 59, 0.3);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-          background: rgba(30, 41, 59, 0.3);
-          border-radius: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(30, 41, 59, 0.2);
-          border-radius: 6px;
-          margin: 4px 0;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg,
-            rgba(148, 163, 184, 0.6) 0%,
-            rgba(100, 116, 139, 0.7) 50%,
-            rgba(71, 85, 105, 0.8) 100%
-          );
-          border-radius: 6px;
-          transition: all 0.3s ease;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg,
-            rgba(148, 163, 184, 0.8) 0%,
-            rgba(100, 116, 139, 0.9) 50%,
-            rgba(71, 85, 105, 1) 100%
-          );
-        }
-        .custom-scrollbar::-webkit-scrollbar-corner {
-          background: transparent;
-        }
-      `}</style>
     </aside>
   );
 };

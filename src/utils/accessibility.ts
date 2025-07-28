@@ -1,7 +1,7 @@
 // ABOUTME: Accessibility utilities for the SchoolPilot3 design system
 // ABOUTME: WCAG compliance helpers, focus management, and screen reader support
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
 // WCAG color contrast utilities
 export const getContrastRatio = (color1: string, color2: string): number => {
@@ -256,5 +256,3 @@ export const getAriaInvalid = (hasError: boolean): 'true' | 'false' | undefined 
   return hasError ? 'true' : undefined;
 };
 
-// React imports
-import { useState } from 'react';

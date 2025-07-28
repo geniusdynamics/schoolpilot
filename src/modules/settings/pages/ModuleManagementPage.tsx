@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import Button from '@/components/ui/Button';
-import Table from '@/components/ui/Table';
+import DataGrid from '@/components/ui/data/DataGrid';
+import type { DataGridColumn } from '@/components/ui/data/DataGrid';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -28,7 +29,7 @@ interface ModuleStatus {
 }
 
 const ModuleManagementPage: React.FC = () => {
-  const { t } = useTranslation(['settings', 'common']);
+  const { t } = useTranslation(['settings', 'common', 'navigation']);
   const { hasPermission, userRoles, isSuperAdmin } = useRBAC();
   
   // State management
@@ -70,31 +71,55 @@ const ModuleManagementPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // Get all available modules from registry
-      const availableModules = moduleRegistry.getEnabledModules() || [];
-      const enabledModuleIds = moduleConfigService.getEnabledModules() || [];
+      // Get all available modules from registry with safe access
+      const availableModules = moduleRegistry?.getEnabledModules?.() || [];
+      const enabledModuleIds = moduleConfigService?.getEnabledModules?.() || [];
       
-      // Filter out any undefined or invalid modules
+      // Filter out any undefined or invalid modules with comprehensive checks
       const validModules = availableModules.filter((module: ModuleDefinition) => 
         module && 
+        typeof module === 'object' &&
         module.id && 
         module.name && 
+        typeof module.id === 'string' &&
         typeof module.name === 'string'
       );
       
-      const moduleStatuses: ModuleStatus[] = validModules.map((module: ModuleDefinition) => ({
-        id: module.id,
-        name: module.name,
-        description: module.description || 'No description available',
-        version: module.version || '1.0.0',
-        isEnabled: enabledModuleIds.includes(module.id),
-        isActive: moduleRegistry.isModuleEnabled(module.id),
-        features: module.features || [],
-        dependencies: module.dependencies || [],
-        requiredPermissions: module.rbacPermissions?.map(p => p.id) || [],
-        category: module.settings?.category || 'general',
-        lastModified: new Date()
-      }));
+      const moduleStatuses: ModuleStatus[] = validModules.map((module: ModuleDefinition) => {
+        // Safe access to all nested properties
+        const rbacPermissions = Array.isArray(module.rbacPermissions) 
+          ? module.rbacPermissions.filter(p => p && typeof p === 'object' && p.id).map(p => p.id)
+          : [];
+        
+        // Handle translation keys - if module.name looks like a translation key, translate it
+        let translatedName = module.name;
+        let translatedDescription = module.description || 'No description available';
+        
+        // Check if the name is a translation key (e.g. 'navigation:academics.title')
+        if (module.name && module.name.includes(':')) {
+          const translationKey = module.name.replace('navigation:', '');
+          translatedName = t(`navigation:${translationKey}`) || module.name;
+          translatedDescription = t(`navigation:${translationKey.replace('.title', '.description')}`) || translatedDescription;
+        } else {
+          // Try to get translation from module id
+          translatedName = t(`navigation:${module.id}.title`) || module.name;
+          translatedDescription = t(`navigation:${module.id}.description`) || translatedDescription;
+        }
+        
+        return {
+          id: module.id,
+          name: translatedName,
+          description: translatedDescription,
+          version: module.version || '1.0.0',
+          isEnabled: Array.isArray(enabledModuleIds) ? enabledModuleIds.includes(module.id) : false,
+          isActive: moduleRegistry?.isModuleEnabled?.(module.id) || false,
+          features: Array.isArray(module.features) ? module.features : [],
+          dependencies: Array.isArray(module.dependencies) ? module.dependencies : [],
+          requiredPermissions: rbacPermissions,
+          category: module.settings?.category || 'general',
+          lastModified: new Date()
+        };
+      });
 
       setModules(moduleStatuses);
     } catch (error) {
@@ -195,10 +220,12 @@ const ModuleManagementPage: React.FC = () => {
   // Get unique categories
   const categories = ['all', ...Array.from(new Set(modules.map(m => m.category)))];
 
-  const moduleColumns = [
+  const moduleColumns: DataGridColumn<ModuleStatus>[] = [
     {
+      key: 'name',
       header: t('moduleManagement.columns.name'),
-      key: 'name' as keyof ModuleStatus,
+      sortable: true,
+      filterable: true,
       render: (value: any, row: ModuleStatus) => (
         <div>
           <div className="font-medium text-gray-900">{row.name}</div>
@@ -207,12 +234,20 @@ const ModuleManagementPage: React.FC = () => {
       )
     },
     {
+      key: 'version',
       header: t('moduleManagement.columns.version'),
-      key: 'version' as keyof ModuleStatus
+      sortable: true,
+      width: 100,
+      render: (value: any, row: ModuleStatus) => (
+        <span>{row.version}</span>
+      )
     },
     {
+      key: 'category',
       header: t('moduleManagement.columns.category'),
-      key: 'category' as keyof ModuleStatus,
+      sortable: true,
+      filterable: true,
+      width: 120,
       render: (value: any, row: ModuleStatus) => (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
           {row.category}
@@ -220,8 +255,10 @@ const ModuleManagementPage: React.FC = () => {
       )
     },
     {
+      key: 'isEnabled',
       header: t('moduleManagement.columns.status'),
-      key: 'isEnabled' as keyof ModuleStatus,
+      sortable: true,
+      width: 180,
       render: (value: any, row: ModuleStatus) => (
         <div className="flex items-center space-x-2">
           {row.isEnabled ? (
@@ -244,8 +281,11 @@ const ModuleManagementPage: React.FC = () => {
       )
     },
     {
+      key: 'features',
       header: t('moduleManagement.columns.features'),
-      key: 'features' as keyof ModuleStatus,
+      sortable: true,
+      width: 120,
+      align: 'center',
       render: (value: any, row: ModuleStatus) => (
         <div className="text-sm text-gray-600">
           {Array.isArray(row.features) ? row.features.length : 0} {t('moduleManagement.featuresCount')}
@@ -253,15 +293,19 @@ const ModuleManagementPage: React.FC = () => {
       )
     },
     {
+      key: 'actions',
       header: t('common:actions'),
-      key: 'id' as keyof ModuleStatus,
+      width: 300,
       render: (value: any, row: ModuleStatus) => (
         <div className="flex items-center space-x-2">
           {canManageModules && (
             <Button
               size="sm"
               variant={row.isEnabled ? "outline" : "primary"}
-              onClick={() => handleToggleModule(row.id, !row.isEnabled)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleModule(row.id, !row.isEnabled);
+              }}
               disabled={processingModule === row.id}
             >
               {processingModule === row.id ? (
@@ -278,7 +322,10 @@ const ModuleManagementPage: React.FC = () => {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleConfigureModule(row)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleConfigureModule(row);
+              }}
             >
               {t('common:configure')}
             </Button>
@@ -288,7 +335,10 @@ const ModuleManagementPage: React.FC = () => {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleViewPermissions(row)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewPermissions(row);
+              }}
             >
               <ShieldCheckIcon className="w-4 h-4" />
             </Button>
@@ -298,7 +348,10 @@ const ModuleManagementPage: React.FC = () => {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleViewDependencies(row)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewDependencies(row);
+              }}
             >
               {t('moduleManagement.viewDependencies')}
             </Button>
@@ -385,11 +438,22 @@ const ModuleManagementPage: React.FC = () => {
 
       {/* Modules Table */}
       <Card title={t('moduleManagement.modulesListTitle')}>
-        <Table
+        <DataGrid
           columns={moduleColumns}
           data={filteredModules}
-          isLoading={loading}
-          emptyStateMessage={t('moduleManagement.noModulesFound')}
+          loading={loading}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-12">
+              <CogIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No modules found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {t('moduleManagement.noModulesFound')}
+              </p>
+            </div>
+          }
+          className="mt-4"
         />
       </Card>
 

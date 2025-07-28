@@ -28,9 +28,11 @@ export const OfflineCapableComponent: React.FC<OfflineCapableComponentProps> = (
   showOfflineIndicator = true,
   className = ''
 }) => {
-  const { isOnline, backendAvailable, offlineCapabilities } = useAppData();
+  const { isOnline, backendAvailable, offlineCapabilities } = useAppData() || {};
   
-  const capability = offlineCapabilities.find(cap => cap.feature === feature);
+  const capability = Array.isArray(offlineCapabilities)
+    ? offlineCapabilities.find(cap => cap?.feature === feature)
+    : null;
   const isAvailable = capability?.available ?? true;
   
   if (!isAvailable) {
@@ -134,14 +136,14 @@ export const NetworkStatusIndicator: React.FC<NetworkStatusIndicatorProps> = ({
             </div>
           )}
           
-          {syncStatus.state === 'syncing' && (
+          {syncStatus?.state === 'syncing' && (
             <div className="flex items-center space-x-1 text-xs text-blue-600">
               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
               <span>Syncing...</span>
             </div>
           )}
           
-          {syncStatus.state === 'error' && (
+          {syncStatus?.state === 'error' && (
             <div className="flex items-center space-x-1 text-xs text-red-600">
               <XCircleIcon className="w-3 h-3" />
               <span>Sync Error</span>
@@ -166,7 +168,7 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
   showSettings = false
 }) => {
   const { 
-    syncStatus, 
+    syncStatus,
     pendingSyncCount, 
     forceSync, 
     getQueueStatus,
@@ -177,13 +179,21 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
     resumeSync,
     getSyncSettings,
     updateSyncSettings
-  } = useAppData();
+  } = useAppData() || {};
 
-  const queueStatus = getQueueStatus();
+  // Safely get queue status with comprehensive fallback
+  const queueStatus = (getQueueStatus && typeof getQueueStatus === 'function') 
+    ? getQueueStatus() 
+    : {
+        api: { pending: 0, processing: false, byPriority: {}, completed: 0 },
+        sync: { pending: 0, processing: false, byPriority: {}, errors: 0, items: [] }
+      };
   const canSync = isOnline && backendAvailable;
   const syncSettings = getSyncSettings?.() || { autoSync: true, syncInterval: 30000, batchSize: 10 };
 
   const getSyncStatusIcon = () => {
+    if (!syncStatus) return <CheckCircleIcon className="w-4 h-4 text-green-500" />;
+    
     switch (syncStatus.state) {
       case 'syncing':
         return <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>;
@@ -197,9 +207,11 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
   };
 
   const getSyncStatusText = () => {
+    if (!syncStatus) return 'Ready to sync';
+    
     switch (syncStatus.state) {
       case 'syncing':
-        return `Syncing... (${Math.round(syncStatus.progress)}%)`;
+        return `Syncing... (${Math.round(syncStatus.progress || 0)}%)`;
       case 'error':
         return `Sync Error: ${syncStatus.lastError?.message || 'Unknown error'}`;
       case 'paused':
@@ -334,13 +346,13 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
       <div className="flex space-x-2">
         <button
           onClick={forceSync}
-          disabled={!canSync || syncStatus.state === 'syncing'}
+          disabled={!canSync || syncStatus?.state === 'syncing'}
           className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          {syncStatus.state === 'syncing' ? 'Syncing...' : 'Force Sync'}
+          {syncStatus?.state === 'syncing' ? 'Syncing...' : 'Force Sync'}
         </button>
         
-        {syncStatus.state === 'syncing' && pauseSync && (
+        {syncStatus?.state === 'syncing' && pauseSync && (
           <button
             onClick={pauseSync}
             className="px-4 py-2 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700"
@@ -349,7 +361,7 @@ export const SyncStatusComponent: React.FC<SyncStatusComponentProps> = ({
           </button>
         )}
         
-        {syncStatus.state === 'paused' && resumeSync && (
+        {syncStatus?.state === 'paused' && resumeSync && (
           <button
             onClick={resumeSync}
             className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
@@ -391,10 +403,12 @@ export const FeatureAvailabilityIndicator: React.FC<FeatureAvailabilityProps> = 
   features,
   className = ''
 }) => {
-  const { offlineCapabilities } = useAppData();
+  const { offlineCapabilities } = useAppData() || {};
   
   const featureStatus = features.map(feature => {
-    const capability = offlineCapabilities.find(cap => cap.feature === feature);
+    const capability = Array.isArray(offlineCapabilities) 
+      ? offlineCapabilities.find(cap => cap?.feature === feature)
+      : null;
     return {
       feature,
       available: capability?.available ?? true,
@@ -658,9 +672,11 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
 
 // Hook for checking feature availability
 export const useFeatureAvailability = (feature: string) => {
-  const { offlineCapabilities } = useAppData();
+  const { offlineCapabilities } = useAppData() || {};
   
-  const capability = offlineCapabilities.find(cap => cap.feature === feature);
+  const capability = Array.isArray(offlineCapabilities)
+    ? offlineCapabilities.find(cap => cap?.feature === feature)
+    : null;
   
   return {
     available: capability?.available ?? true,
