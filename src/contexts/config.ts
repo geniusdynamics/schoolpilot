@@ -4,7 +4,7 @@ export type AppMode = 'demo' | 'production';
 // To switch modes:
 // 1. For development, you can temporarily change this value.
 // 2. For builds, this could be set via environment variables or a build process.
-export const APP_MODE: AppMode = 'production'; // Development default for frontend-only work
+export const APP_MODE: AppMode = 'demo'; // Development default for frontend-only work
 
 export const RXDB_DB_NAME = 'school_management_system_db_v4';
 export const RXDB_LEADER_ELECTION_DISABLED = true;

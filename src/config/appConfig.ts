@@ -40,13 +40,13 @@ const CONFIG_VERSION = '1.2.0'; // Incremented to include performanceMonitorWidg
 
 // Default configuration
 const DEFAULT_CONFIG: AppConfig = {
-  mode: 'demo',
-  useEnhancedFeatures: false,
-  enableOfflineCapabilities: false,
-  enableBackendIntegration: false,
+  mode: 'production',
+  useEnhancedFeatures: true,
+  enableOfflineCapabilities: true,
+  enableBackendIntegration: true,
   
   features: {
-    enhancedDataLayer: false,
+    enhancedDataLayer: true,
     networkStatusIndicator: false,
     moduleHealthIndicator: false,
     syncStatusComponent: false,

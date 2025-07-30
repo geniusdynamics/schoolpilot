@@ -507,6 +507,15 @@ export const useModularMockData = (): AppDataContextType => {
     addTimetableEntry: addTimetableEntry,
     updateTimetableEntry: updateTimetableEntry,
     deleteTimetableEntry: deleteTimetableEntry,
+    addClassSubjectAllocation: addClassSubjectAllocation,
+    updateClassSubjectAllocation: updateClassSubjectAllocation,
+    deleteClassSubjectAllocation: deleteClassSubjectAllocation,
+    addTeacherSubjectAssignment: addTeacherSubjectAssignment,
+    updateTeacherSubjectAssignment: updateTeacherSubjectAssignment,
+    deleteTeacherSubjectAssignment: deleteTeacherSubjectAssignment,
+    addStudentSubjectEnrollment: addStudentSubjectEnrollment,
+    updateStudentSubjectEnrollment: updateStudentSubjectEnrollment,
+    deleteStudentSubjectEnrollment: deleteStudentSubjectEnrollment,
     getTimetableEntries: (classStreamId: number) => {
       return (timetableentrys || []).filter((entry: any) => entry.class_stream_id === classStreamId);
     }

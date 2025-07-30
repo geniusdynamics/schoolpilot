@@ -170,9 +170,15 @@ export class DataContextIntegrationService {
   }
   
   // Sync all module data
-  public syncAllModuleData(): Promise<void> {
-    // Get all data hooks
-    const dataHooks = getAllDataHooks();
+  public async syncAllModuleData(): Promise<void> {
+    // Get all data hooks (await the async function)
+    const dataHooks = await getAllDataHooks();
+    
+    // Ensure dataHooks is an array
+    if (!Array.isArray(dataHooks)) {
+      console.warn('[DataContextIntegration] getAllDataHooks did not return an array:', dataHooks);
+      return;
+    }
     
     // Call refresh on each hook
     const syncPromises = dataHooks.map(hook => {
