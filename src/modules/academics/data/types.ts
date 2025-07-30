@@ -1,3 +1,47 @@
+// Import required types from core
+import { Student, InvoiceStatus, ParentsGuardian } from '@/core/types';
+
+export interface ExamSchedule {
+  id: string;
+  exam_id: string;
+  period_id: number;
+  class_stream_id: number;
+  invigilator_id: string;
+  room_number: string;
+  created_at: string;
+  updated_at: string;
+}
+
+
+export enum ResultState {
+  DRAFT = 'Draft',
+  SUBMITTED = 'Submitted',
+  REVIEWED = 'Reviewed',
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected',
+  PUBLISHED = 'Published'
+}
+
+export interface AuditLog {
+  timestamp: string;
+  user_id: string;
+  action: string;
+  previous_state: ResultState;
+  new_state: ResultState;
+}
+
+export interface ResultApprovalEntity {
+  id: string;
+  result_id: string;
+  result?: StudentExamResult;
+  state: ResultState;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+  audit_trail: AuditLog[];
+}
+
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Academics module.
 // ABOUTME: It ensures all academic-related data structures are managed in one place.
 
@@ -217,4 +261,78 @@ export interface StudentExamResultWithDetails extends StudentExamResult {
   stream_name?: string | null;
   exam_session_name?: string | null;
   marks?: StudentPaperMarkWithDetails[];
+}
+
+// === EDUCATION SYSTEM CONFIGURATION TYPES ===
+
+export enum EducationSystemType {
+  PRIMARY = 'Primary',
+  SECONDARY = 'Secondary',
+  UNIVERSITY = 'University',
+  COLLEGE = 'College',
+  TECHNICAL = 'Technical',
+  VOCATIONAL = 'Vocational'
+}
+
+export enum GradingSystemType {
+  LETTER_GRADES = 'Letter Grades',
+  PERCENTAGE = 'Percentage',
+  COMPETENCY_BASED = 'Competency Based',
+  POINTS = 'Points/GPA',
+  PASS_FAIL = 'Pass/Fail'
+}
+
+export enum AcademicPeriodType {
+  TERM = 'Term',
+  SEMESTER = 'Semester',
+  QUARTER = 'Quarter',
+  TRIMESTER = 'Trimester'
+}
+
+export enum AssessmentType {
+  FORMATIVE = 'Formative',
+  SUMMATIVE = 'Summative',
+  COMPETENCY = 'Competency',
+  PROJECT_BASED = 'Project Based',
+  PRACTICAL = 'Practical'
+}
+
+export interface EducationSystemConfiguration {
+  id?: string;
+  name: string;
+  country_code: string;
+  system_type: EducationSystemType;
+  grading_system_type: GradingSystemType;
+  min_grade_level?: number;
+  max_grade_level?: number;
+  academic_period_type: AcademicPeriodType;
+  periods_per_year: number;
+  
+  // Grading Configuration
+  passing_grade?: number;
+  max_grade_value?: number;
+  grade_precision?: number;
+  
+  // Assessment Configuration
+  assessment_types: AssessmentType[];
+  continuous_assessment_weight?: number;
+  final_exam_weight?: number;
+  
+  // Competency-Based Configuration
+  uses_competency_tracking?: boolean;
+  competency_levels?: string[];
+  
+  // Credit Hour Configuration (for universities/colleges)
+  uses_credit_hours?: boolean;
+  min_credits_per_course?: number;
+  max_credits_per_course?: number;
+  min_credits_for_graduation?: number;
+  
+  // System Rules
+  allows_grade_modification?: boolean;
+  requires_external_moderation?: boolean;
+  supports_remedial_exams?: boolean;
+  
+  created_at?: string;
+  updated_at?: string;
 }

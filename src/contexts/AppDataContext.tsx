@@ -5,6 +5,7 @@
 
 import React, { createContext, useContext, ReactNode, useMemo, useEffect, useState, useCallback } from 'react';
 import { APP_MODE } from './config';
+import { appConfigManager, AppConfig, CONFIG_PRESETS } from '../config/appConfig';
 import { useModularMockData, rawInitialData as modularMockDataContentForProdSeed } from '../hooks/useModularMockData';
 import { NetworkStateManager, NetworkState } from '../services/NetworkStateManager';
 import { DataStrategyManager, DataStrategy, DataOperation } from '../services/DataStrategyManager';
@@ -188,8 +189,13 @@ function mapRbacRoleToLegacyRole(rbacRole: RbacRole, idx: number): Role {
 }
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [appConfig, setAppConfig] = useState<AppConfig | null>(null);
   // Original mock data hook
   const mockDataHookResult = useModularMockData();
+
+  useEffect(() => {
+    setAppConfig(appConfigManager.getConfig());
+  }, []);
   
   // Enhanced state management
   const [networkState, setNetworkState] = useState<NetworkState>(() => {
@@ -231,31 +237,49 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Load RxDB modules in production mode
   useEffect(() => {
     let isMounted = true;
-    
-    if (APP_MODE === 'production' || dataStrategy.mode !== 'demo') {
-      Promise.all([
-        import('../hooks/useRxDBData'),
-        import('../services/rxdbService')
-      ]).then(([{ useRxDBData }, serviceModule]) => {
+
+    const loadRxDB = async () => {
+      try {
+        const [{ useRxDBData }, serviceModule] = await Promise.all([
+          import('../hooks/useRxDBData'),
+          import('../services/rxdbService'),
+        ]);
+
         if (isMounted) {
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('reset') === 'true') {
+            console.log('Reset parameter detected, clearing database...');
+            const db = await serviceModule.getDatabase();
+            await serviceModule.clearDatabase(db);
+            console.log('Database cleared successfully.');
+            // Remove the query param to avoid re-clearing on hot-reload
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+
           setRxDBServiceModule(serviceModule);
           setUseRxDBData(() => useRxDBData);
           setIsProdDepsLoaded(true);
           console.log('RxDB modules loaded successfully');
         }
-      }).catch(error => {
+      } catch (error) {
         if (isMounted) {
           console.error('Failed to load RxDB modules:', error);
           setProdDepsError(error);
           setIsProdDepsLoaded(true);
         }
-      });
+      }
+    };
+
+    if (appConfig && appConfig.features.enhancedDataLayer) {
+      loadRxDB();
     } else {
-      setIsProdDepsLoaded(true);
+      setIsProdDepsLoaded(true); // Not using RxDB, so dependencies are 'loaded'
     }
-    
-    return () => { isMounted = false; };
-  }, [dataStrategy.mode]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [appConfig]);
 
   const currentDataMode = useMemo(() => {
     if (dataStrategy.mode === 'demo') return 'mock';
@@ -303,10 +327,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     // Still loading the hook itself
     return <Spinner message="Initializing data context..." />;
   }
-
-  // Fallback for non-production modes
-  const value = createContextValue(mockDataHookResult);
-  return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
 
   // Initialize DataStrategyManager and related services
   useEffect(() => {

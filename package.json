@@ -16,7 +16,13 @@
     "fix-hardcoded-strings": "node scripts/fix-hardcoded-strings.js",
     "analyze-translation-issues": "node scripts/analyze-translation-issues.js",
     "fix-translation-namespaces": "node scripts/fix-translation-namespaces.js",
-    "enable-performance-widget": "node scripts/enable-performance-widget.cjs"
+    "enable-performance-widget": "node scripts/enable-performance-widget.cjs",
+    "migration:extract": "tsx scripts/migration/extract_data.ts",
+    "migration:transform": "tsx scripts/migration/transform_data.ts",
+    "migration:load": "tsx scripts/migration/load_data.ts",
+    "migration:verify": "tsx scripts/migration/verify_migration.ts",
+    "migration:full": "tsx scripts/migration/run_full_migration.ts",
+    "migration:test-connections": "tsx scripts/migration/test_connections.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -28,9 +34,12 @@
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "dexie": "^4.0.7",
+    "dotenv": "^16.4.5",
     "i18next": "23.11.5",
     "i18next-browser-languagedetector": "8.0.0",
     "lucide-react": "^0.294.0",
+    "mysql2": "^3.9.1",
+    "pg": "^8.11.3",
     "postcss": "^8.4.38",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -39,16 +48,20 @@
     "recharts": "2.12.7",
     "rxdb": "^16.15.0",
     "rxjs": "^7.8.1",
-    "tailwindcss": "^3.4.4"
+    "tailwindcss": "^3.4.4",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.14.0",
+    "@types/pg": "^8.10.9",
+    "@types/uuid": "^9.0.7",
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.30.1",
     "jsdom": "^26.1.0",
+    "tsx": "^4.7.1",
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
     "vitest": "^3.2.4"

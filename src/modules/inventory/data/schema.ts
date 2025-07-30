@@ -8,11 +8,11 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const warehouseSchema: RxJsonSchema<types.InvWarehouseType> = createEntitySchema<types.InvWarehouseType>(
     'warehouse',
     {
-        id: { type: 'number' },
+        id: { type: 'number', final: true },
         name: { type: 'string', maxLength: 100 },
         location: { type: ['string', 'null'] },
     },
-    { key: 'id', type: 'number' },
+    'id',
     ['id', 'name'],
     ['name']
 );
@@ -20,10 +20,10 @@ export const warehouseSchema: RxJsonSchema<types.InvWarehouseType> = createEntit
 export const itemCategoryInvSchema: RxJsonSchema<types.InvItemCategoryType> = createEntitySchema<types.InvItemCategoryType>(
     'item_category_inv',
     {
-        id: { type: 'number' },
+        id: { type: 'number', final: true },
         name: { type: 'string', maxLength: 100 },
     },
-    { key: 'id', type: 'number' },
+    'id',
     ['id', 'name'],
     ['name']
 );
@@ -49,7 +49,7 @@ export const itemInvSchema: RxJsonSchema<types.InvItemType> = createEntitySchema
         updated_at: { type: 'string', format: 'date-time' },
         category_name: { type: ['string', 'null'] },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'name', 'item_type', 'created_at', 'updated_at'],
     ['name', 'category_id', 'item_type', 'barcode']
 );
@@ -75,7 +75,7 @@ export const fixedAssetSchema: RxJsonSchema<types.InvFixedAssetType> = createEnt
         item_name: { type: ['string', 'null'] },
         assigned_to_staff_name: { type: ['string', 'null'] },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'item_id', 'asset_tag', 'created_at', 'updated_at'],
     ['asset_tag', 'item_id', 'assigned_to_staff_id']
 );
@@ -89,7 +89,7 @@ export const assetDepreciationLogSchema: RxJsonSchema<types.InvAssetDepreciation
         amount_depreciated: { type: 'number' },
         book_value_after: { type: 'number' },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'asset_id', 'depreciation_date', 'amount_depreciated', 'book_value_after'],
     ['asset_id']
 );
@@ -110,7 +110,7 @@ export const stockLevelSchema: RxJsonSchema<types.InvStockLevelType> = createEnt
         reorder_level: { type: ['number', 'null'] },
         max_stock_level: { type: ['number', 'null'] },
     },
-    { key: 'compositeId', type: 'string' },
+    'compositeId',
     ['compositeId', 'item_id', 'warehouse_id', 'quantity'],
     [['item_id', 'warehouse_id'], ['expiry_date'], ['batch_number']] // Enhanced indexes
 );
@@ -132,7 +132,7 @@ export const stockTransactionSchema: RxJsonSchema<types.InvStockTransactionType>
         item_name: { type: ['string', 'null'] },
         warehouse_name: { type: ['string', 'null'] },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'item_id', 'warehouse_id', 'transaction_type', 'quantity'],
     ['item_id', 'warehouse_id', 'transaction_date', 'batch_number']
 );
@@ -163,7 +163,7 @@ export const requisitionSchema: RxJsonSchema<types.InvRequisitionType> = createE
         department_name: { type: ['string', 'null'] },
         total_requested_value: { type: ['number', 'null'] },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'requesting_staff_id', 'request_date', 'status', 'created_at', 'updated_at'],
     ['requesting_staff_id', 'status', 'request_date']
 );
@@ -194,7 +194,7 @@ export const purchaseOrderSchema: RxJsonSchema<types.InvPurchaseOrderType> = cre
         supplier_name: { type: ['string', 'null'] },
         total_value: { type: ['number', 'null'] },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'supplier_id', 'order_date', 'status', 'created_at', 'updated_at'],
     ['supplier_id', 'status', 'order_date']
 );
@@ -211,7 +211,7 @@ export const rfqSchema: RxJsonSchema<types.InvRFQType> = createEntitySchema<type
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'title', 'issue_date', 'closing_date', 'status', 'created_at', 'updated_at'],
     ['status', 'closing_date']
 );
@@ -219,7 +219,7 @@ export const rfqSchema: RxJsonSchema<types.InvRFQType> = createEntitySchema<type
 export const supplierSchema: RxJsonSchema<types.InvSupplierType> = createEntitySchema<types.InvSupplierType>(
     'supplier',
     {
-        id: { type: 'number' },
+        id: { type: 'number', final: true },
         name: { type: 'string', maxLength: 200 },
         contact_person: { type: ['string', 'null'], maxLength: 100 },
         email: { type: ['string', 'null'], maxLength: 100 },
@@ -234,7 +234,7 @@ export const supplierSchema: RxJsonSchema<types.InvSupplierType> = createEntityS
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
     },
-    { key: 'id', type: 'number' },
+    'id',
     ['id', 'name', 'status', 'created_at', 'updated_at'],
     ['name', 'status', 'email']
 );
@@ -256,7 +256,7 @@ export const supplierContractSchema: RxJsonSchema<types.InvSupplierContractType>
         updated_at: { type: 'string', format: 'date-time' },
         supplier_name: { type: ['string', 'null'] },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'supplier_id', 'contract_number', 'start_date', 'end_date', 'status', 'created_at', 'updated_at'],
     ['supplier_id', 'status', 'end_date', 'contract_number']
 );
@@ -277,7 +277,7 @@ export const stockAlertSchema: RxJsonSchema<types.InvStockAlertType> = createEnt
         item_name: { type: ['string', 'null'] },
         warehouse_name: { type: ['string', 'null'] },
     },
-    { key: 'id', type: 'string' },
+    'id',
     ['id', 'item_id', 'warehouse_id', 'alert_type', 'created_at'],
     ['item_id', 'warehouse_id', 'alert_type', 'acknowledged_at']
 );

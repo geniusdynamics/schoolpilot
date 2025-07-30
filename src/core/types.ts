@@ -638,7 +638,7 @@ export interface Bank {
 }
 
 export interface Supplier {
-    id: number;
+    id: string;
     name: string;
     phone?: string | null;
     email?: string | null;

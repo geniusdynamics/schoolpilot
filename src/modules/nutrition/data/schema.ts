@@ -8,14 +8,13 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const mealPlanSchema: RxJsonSchema<types.MealPlan> = createEntitySchema<types.MealPlan>(
     'meal_plan',
     {
-        id: { type: 'number' },
+        id: { type: 'number', final: true },
         name: { type: 'string', maxLength: 150 },
         description: { type: ['string', 'null'] },
         cost_per_period: { type: ['number', 'null'] },
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
     },
-    { key: 'id', type: 'number' },
     ['id', 'name', 'created_at', 'updated_at'],
     ['name']
 );
@@ -36,7 +35,6 @@ export const studentMealPlanSchema: RxJsonSchema<types.StudentMealPlan> = create
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
     },
-    { key: 'id', type: 'string' },
     ['id', 'student_id', 'school_period_id', 'meal_plan_id', 'status', 'created_at', 'updated_at'],
     ['student_id', 'school_period_id', 'meal_plan_id']
 );
@@ -51,7 +49,6 @@ export const menuSchema: RxJsonSchema<types.Menu> = createEntitySchema<types.Men
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
     },
-    { key: 'id', type: 'string' },
     ['id', 'menu_date', 'meal_type', 'description', 'created_at', 'updated_at'],
     ['menu_date', 'meal_type']
 );
@@ -70,7 +67,6 @@ export const mealConsumptionLogSchema: RxJsonSchema<types.MealConsumptionLog> = 
         menu_meal_type: { type: ['string', 'null'], enum: [...Object.values(types.NutrMealTypeEnum), null] as any[] },
         menu_date: { type: ['string', 'null'], format: 'date' },
     },
-    { key: 'id', type: 'string' },
     ['id', 'student_id', 'menu_id', 'consumption_time'],
     ['student_id', 'consumption_time']
 );
@@ -78,14 +74,13 @@ export const mealConsumptionLogSchema: RxJsonSchema<types.MealConsumptionLog> = 
 export const merchantSchema: RxJsonSchema<types.Merchant> = createEntitySchema<types.Merchant>(
     'merchant',
     {
-        id: { type: 'number' },
+        id: { type: 'number', final: true },
         name: { type: 'string', maxLength: 150 },
         gl_account_id: { type: ['number', 'null'], ref: 'chart_of_accounts' },
         gl_account_name: { type: ['string', 'null'] },
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
     },
-    { key: 'id', type: 'number' },
     ['id', 'name', 'created_at', 'updated_at'],
     ['name']
 );
@@ -98,7 +93,6 @@ export const studentWalletSchema: RxJsonSchema<types.StudentWallet> = createEnti
         last_updated: { type: 'string', format: 'date-time' },
         student_name: { type: ['string', 'null'] },
     },
-    { key: 'student_id', type: 'string' },
     ['student_id', 'balance', 'last_updated'],
     [] // student_id is PK, usually enough for direct lookups
 );
@@ -117,7 +111,6 @@ export const walletTransactionSchema: RxJsonSchema<types.WalletTransaction> = cr
         running_balance: { type: 'number' },
         student_name: { type: ['string', 'null'] },
     },
-    { key: 'id', type: 'string' },
     ['id', 'student_id', 'transaction_date', 'transaction_type', 'amount', 'description', 'running_balance'],
     ['student_id', 'transaction_date']
 );

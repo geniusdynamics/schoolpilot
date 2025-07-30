@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 type TimetablePeriodFormData = Omit<Partial<TimetablePeriodDef>, 'id'>;
 
 const TimetablePeriodsPage: React.FC = () => {
+  const { t } = useTranslation('academics');
   const {
     data: timetablePeriodDefs,
     create,

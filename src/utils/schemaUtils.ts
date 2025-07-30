@@ -14,10 +14,10 @@ export const createEntitySchema = <T extends { [key: string]: any }>(
   const pkName = primaryKeyDefinition.key;
 
   (properties as any)[pkName] = {
-    type: primaryKeyDefinition.type,
-    ...(primaryKeyDefinition.type === 'string' && primaryKeyDefinition.final !== undefined && { final: primaryKeyDefinition.final }),
-    ...(primaryKeyDefinition.maxLength !== undefined && { maxLength: primaryKeyDefinition.maxLength }),
     ...((properties as any)[pkName] || {}),
+    type: primaryKeyDefinition.type,
+    ...(primaryKeyDefinition.maxLength && { maxLength: primaryKeyDefinition.maxLength }),
+    ...(primaryKeyDefinition.final && { final: true }),
   };
 
   const schemaDefinitionInternal: RxJsonSchema<T> = {
@@ -34,4 +34,4 @@ export const createEntitySchema = <T extends { [key: string]: any }>(
       ) : []
   };
   return toTypedRxJsonSchema(schemaDefinitionInternal as any);
-}; 
+};

@@ -9,24 +9,24 @@ import { useTranslation } from 'react-i18next';
 function getFallbackIcon(moduleKey: string) {
   switch (moduleKey) {
     case 'library':
-      return <BookOpenIcon className="w-5 h-5" />;
+      return <BookOpenIcon className="w-4 h-4" />;
     case 'reports':
-      return <DocumentReportIcon className="w-5 h-5" />;
+      return <DocumentReportIcon className="w-4 h-4" />;
     default:
-      return <FolderIcon className="w-5 h-5" />;
+      return <FolderIcon className="w-4 h-4" />;
   }
 }
 
-// Consistent icon wrapper component for standardized sizing
+// Optimized icon wrapper component for better visual balance
 const IconWrapper: React.FC<{ 
   icon?: React.ComponentType<any>; 
   moduleKey: string; 
   className?: string;
   isMinimized?: boolean;
 }> = ({ icon, moduleKey, className = "", isMinimized = false }) => {
-  // Standardized icon size - consistent across all states
-  const iconSize = isMinimized ? "w-5 h-5" : "w-5 h-5";
-  const wrapperSize = isMinimized ? "w-8 h-8" : "w-6 h-6";
+  // Reduced icon sizing for better visual balance
+  const iconSize = "w-4 h-4";
+  const wrapperSize = isMinimized ? "w-5 h-5" : "w-5 h-5";
   
   return (
     <div className={`
@@ -99,6 +99,14 @@ const getModuleStyle = (moduleKey: string) => {
       hoverLink: 'hover:bg-orange-100/60 hover:text-orange-800'
     },
     library: {
+      background: 'bg-gradient-to-br from-indigo-500/10 via-indigo-400/8 to-indigo-600/12',
+      border: 'border-indigo-400/20',
+      accent: 'text-indigo-600',
+      hover: 'hover:bg-indigo-500/15',
+      activeLink: 'border-indigo-400 text-indigo-600 bg-indigo-50/80',
+      hoverLink: 'hover:bg-indigo-100/60 hover:text-indigo-800'
+    },
+    reports: {
       background: 'bg-gradient-to-br from-teal-500/10 via-teal-400/8 to-teal-600/12',
       border: 'border-teal-400/20',
       accent: 'text-teal-600',
@@ -106,7 +114,7 @@ const getModuleStyle = (moduleKey: string) => {
       activeLink: 'border-teal-400 text-teal-600 bg-teal-50/80',
       hoverLink: 'hover:bg-teal-100/60 hover:text-teal-800'
     },
-    nutrition: {
+    audit: {
       background: 'bg-gradient-to-br from-pink-500/10 via-pink-400/8 to-pink-600/12',
       border: 'border-pink-400/20',
       accent: 'text-pink-600',
@@ -114,13 +122,21 @@ const getModuleStyle = (moduleKey: string) => {
       activeLink: 'border-pink-400 text-pink-600 bg-pink-50/80',
       hoverLink: 'hover:bg-pink-100/60 hover:text-pink-800'
     },
-    reports: {
-      background: 'bg-gradient-to-br from-indigo-500/10 via-indigo-400/8 to-indigo-600/12',
-      border: 'border-indigo-400/20',
-      accent: 'text-indigo-600',
-      hover: 'hover:bg-indigo-500/15',
-      activeLink: 'border-indigo-400 text-indigo-600 bg-indigo-50/80',
-      hoverLink: 'hover:bg-indigo-100/60 hover:text-indigo-800'
+    nutrition: {
+      background: 'bg-gradient-to-br from-lime-500/10 via-lime-400/8 to-lime-600/12',
+      border: 'border-lime-400/20',
+      accent: 'text-lime-600',
+      hover: 'hover:bg-lime-500/15',
+      activeLink: 'border-lime-400 text-lime-600 bg-lime-50/80',
+      hoverLink: 'hover:bg-lime-100/60 hover:text-lime-800'
+    },
+    admissions: {
+      background: 'bg-gradient-to-br from-cyan-500/10 via-cyan-400/8 to-cyan-600/12',
+      border: 'border-cyan-400/20',
+      accent: 'text-cyan-600',
+      hover: 'hover:bg-cyan-500/15',
+      activeLink: 'border-cyan-400 text-cyan-600 bg-cyan-50/80',
+      hoverLink: 'hover:bg-cyan-100/60 hover:text-cyan-800'
     },
     settings: {
       background: 'bg-gradient-to-br from-gray-500/10 via-gray-400/8 to-gray-600/12',
@@ -132,14 +148,7 @@ const getModuleStyle = (moduleKey: string) => {
     }
   };
 
-  return colorSchemes[moduleKey as keyof typeof colorSchemes] || {
-    background: 'bg-gradient-to-br from-slate-500/10 via-slate-400/8 to-slate-600/12',
-    border: 'border-slate-400/20',
-    accent: 'text-slate-600',
-    hover: 'hover:bg-slate-500/15',
-    activeLink: 'border-slate-400 text-slate-600 bg-slate-50/80',
-    hoverLink: 'hover:bg-slate-100/60 hover:text-slate-800'
-  };
+  return colorSchemes[moduleKey as keyof typeof colorSchemes] || colorSchemes.settings;
 };
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
@@ -159,16 +168,16 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const moduleKey = selectedModuleKey.split(':')[1]?.split('.')[0] || '';
   const moduleStyle = getModuleStyle(moduleKey);
 
-  // Responsive behavior: auto-collapse on small screens
+  // Improved responsive behavior with better breakpoints
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       setIsMobile(width < 1024); // lg breakpoint
       
-      // Auto-minimize on medium screens (768-1024px)
-      if (width >= 768 && width < 1024) {
+      // Auto-minimize on medium screens (768-1200px) for better space utilization
+      if (width >= 768 && width < 1200) {
         setIsMinimized(true);
-      } else if (width >= 1024) {
+      } else if (width >= 1200) {
         setIsMinimized(false);
       }
     };
@@ -213,18 +222,18 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     return null;
   }
 
-  // Determine sidebar width and behavior based on state
-  const sidebarWidth = isMinimized ? 'w-16' : 'w-48';
+  // Optimized sidebar width for better visual balance
+  const sidebarWidth = isMinimized ? 'w-12' : 'w-48';
   const sidebarClasses = isMobile
-    ? 'w-48 fixed inset-y-0 left-0 z-30 shadow-2xl' // Mobile: fixed overlay positioning
+    ? 'w-48 fixed inset-y-0 left-16 sm:left-20 z-30 shadow-2xl' // Mobile: fixed overlay positioning with offset for primary sidebar
     : `${sidebarWidth} relative transition-all duration-300`; // Desktop: responsive width
 
   return (
     <>
-      {/* Mobile backdrop */}
+      {/* Mobile backdrop - reduced blur for better performance */}
       {isMobile && isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-20"
+          className="fixed inset-0 left-16 sm:left-20 bg-black/20 z-20"
           onClick={onClose}
         />
       )}
@@ -237,10 +246,9 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           flex flex-col shadow-xl border-l ${moduleStyle.border}
           px-2 py-4
           ${moduleStyle.background}
-          ${isMobile ? 'bg-white/95 backdrop-blur-md' : 'lg:backdrop-blur-lg backdrop-blur-sm'}
+          ${isMobile ? 'bg-white/98' : 'bg-white/95'}
           h-screen
           max-h-screen
-          ${!isMobile ? 'before:absolute before:inset-0 before:bg-white/40 before:backdrop-blur-sm before:rounded-l-lg before:pointer-events-none' : ''}
         `}
       >
         {/* Control buttons - positioned to avoid search bar overlap */}
@@ -250,10 +258,9 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
               className={`
                 text-slate-600 hover:text-slate-800
                 bg-white/90 hover:bg-white
-                backdrop-blur-sm
                 border border-slate-200/50 hover:border-slate-300
                 shadow-sm hover:shadow-md
-                p-2 rounded-lg
+                p-1.5 rounded-lg
                 transition-all duration-200
                 hover:scale-105
                 focus:outline-none focus:ring-2 focus:ring-slate-400/50
@@ -261,18 +268,18 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
               onClick={() => setIsMinimized(!isMinimized)}
               title={isMinimized ? "Expand menu" : "Minimize menu"}
             >
-              {isMinimized ? <ChevronRightIcon className="w-4 h-4" /> : <ChevronLeftIcon className="w-4 h-4" />}
+              {isMinimized ? <ChevronRightIcon className="w-3 h-3" /> : <ChevronLeftIcon className="w-3 h-3" />}
             </button>
           )}
         </div>
         
         {/* Close button - Distinctive red X floating at the tip */}
         <button
-          className="absolute -top-1 -right-1 z-30 text-red-600 hover:text-red-800 hover:bg-red-100 p-2 rounded-full bg-white shadow-lg border border-red-200 transition-all duration-200 hover:scale-110 hover:shadow-xl"
+          className="absolute -top-1 -right-1 z-30 text-red-600 hover:text-red-800 hover:bg-red-100 p-1.5 rounded-full bg-white shadow-lg border border-red-200 transition-all duration-200 hover:scale-110 hover:shadow-xl"
           onClick={onClose}
           title="Close sidebar"
         >
-          <XIcon className="w-4 h-4" />
+          <XIcon className="w-3 h-3" />
         </button>
         
         {/* Search bar - hidden when minimized */}
@@ -284,13 +291,14 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
               onChange={e => setSearch(e.target.value)}
               placeholder={t('common:search')}
               className={`
-                w-full rounded-lg bg-white/80 backdrop-blur-sm 
+                w-full rounded-lg bg-white/80
                 border ${moduleStyle.border} 
                 ${moduleStyle.accent} 
                 px-3 py-1.5 
                 focus:outline-none focus:ring-2 focus:ring-current focus:ring-opacity-50
                 placeholder-slate-500
                 shadow-sm
+                text-sm
               `}
             />
           </div>
@@ -311,8 +319,8 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                         ${moduleStyle.accent} font-bold 
                         focus:outline-none ${moduleStyle.hover} 
                         rounded transition-colors
-                        backdrop-blur-sm bg-white/10
-                        ${isMinimized ? 'min-h-[2.5rem]' : ''}
+                        bg-white/10
+                        ${isMinimized ? 'min-h-[2rem]' : ''}
                       `}
                       title={isMinimized ? t(item.name) : undefined}
                     >
@@ -322,15 +330,15 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                           moduleKey={moduleKey} 
                           isMinimized={isMinimized}
                         />
-                        {!isMinimized && <span className="truncate">{t(item.name)}</span>}
+                        {!isMinimized && <span className="truncate text-xs">{t(item.name)}</span>}
                       </span>
-                      {!isMinimized && <span className="flex-shrink-0">{openGroups[item.name] ? '\u25be' : '\u25b8'}</span>}
+                      {!isMinimized && <span className="flex-shrink-0 text-xs">{openGroups[item.name] ? '▼' : '▶'}</span>}
                     </button>
                     {/* Tooltip for group items */}
-                    {(isMinimized || (item.name && t(item.name).length > 15)) && (
-                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                    {isMinimized && (
+                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
                         {t(item.name)}
-                        <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-orange-500"></div>
+                        <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-r-[6px] border-t-transparent border-b-transparent border-r-slate-800"></div>
                       </div>
                     )}
                     {openGroups[item.name] && !isMinimized && (
@@ -340,7 +348,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                             <NavLink
                               to={child.path}
                               className={({ isActive, isPending }) =>
-                                `flex items-center gap-3 px-3 py-2 border border-transparent transition-all duration-200 rounded-lg backdrop-blur-sm ${
+                                `flex items-center gap-2 px-3 py-1.5 border border-transparent transition-all duration-200 rounded-lg ${
                                   isActive
                                     ? `${moduleStyle.activeLink} font-semibold shadow-sm`
                                     : isPending
@@ -365,7 +373,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                     <NavLink
                       to={item.path}
                       className={({ isActive, isPending }) =>
-                        `flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : 'gap-3 px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg backdrop-blur-sm ${
+                        `flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2rem]' : 'gap-2 px-3 py-1.5'} border border-transparent transition-all duration-200 rounded-lg ${
                           isActive
                             ? `${moduleStyle.activeLink} font-semibold shadow-sm`
                             : isPending
@@ -382,10 +390,10 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                       />
                       {!isMinimized && <span className="font-medium text-sm truncate">{t(item.name)}</span>}
                     </NavLink>
-                    {(isMinimized || (item.name && t(item.name).length > 15)) && (
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-gradient-to-r from-slate-800 to-slate-900 text-white text-sm font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                    {isMinimized && (
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
                           {t(item.name)}
-                          <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-slate-800"></div>
+                          <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-r-[6px] border-t-transparent border-b-transparent border-r-slate-800"></div>
                         </div>
                       )}
                   </div>
@@ -398,51 +406,20 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         <style>{`
           .custom-scrollbar {
             scrollbar-width: thin;
-            scrollbar-color: rgba(100, 116, 139, 0.8) rgba(241, 245, 249, 0.2);
+            scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
           }
           .custom-scrollbar::-webkit-scrollbar {
-            width: 10px;
-            background: rgba(241, 245, 249, 0.2);
-            border-radius: 10px;
+            width: 6px;
           }
           .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(241, 245, 249, 0.3);
-            border-radius: 10px;
-            margin: 4px 0;
-            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: transparent;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg,
-              rgba(100, 116, 139, 0.7) 0%,
-              rgba(71, 85, 105, 0.8) 50%,
-              rgba(51, 65, 85, 0.9) 100%
-            );
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg,
-              rgba(71, 85, 105, 0.8) 0%,
-              rgba(51, 65, 85, 0.9) 50%,
-              rgba(30, 41, 59, 1) 100%
-            );
-            border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-            transform: scaleX(1.2);
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:active {
-            background: linear-gradient(135deg,
-              rgba(51, 65, 85, 0.9) 0%,
-              rgba(30, 41, 59, 1) 50%,
-              rgba(15, 23, 42, 1) 100%
-            );
-            transform: scaleX(1.3);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-          }
-          .custom-scrollbar::-webkit-scrollbar-corner {
-            background: transparent;
+            background-color: rgba(156, 163, 175, 0.7);
           }
         `}</style>
       </aside>

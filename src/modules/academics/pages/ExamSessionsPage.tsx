@@ -23,12 +23,13 @@ type PaperSettingFormData = Omit<Partial<ExamPaperSetting>, 'id' | 'exam_session
 
 
 const ExamSessionsPage: React.FC = () => {
+  const { t } = useTranslation('academics');
   const { 
     examSessions, 
     schoolPeriods, 
     subjectPapers, 
     loading, 
-  } = useAppData(); 
+  } = useAppData();
 
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [isPaperSettingModalOpen, setIsPaperSettingModalOpen] = useState(false);

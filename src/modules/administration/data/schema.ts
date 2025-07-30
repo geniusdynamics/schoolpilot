@@ -8,7 +8,7 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const partnerSchema: RxJsonSchema<types.AdminPartnerType> = createEntitySchema<types.AdminPartnerType>(
     'partner',
     {
-        id: { type: 'string', maxLength: 100 },
+        id: { type: 'string', maxLength: 100, final: true },
         name: { type: 'string', maxLength: 200 },
         partner_type: { type: 'string', enum: Object.values(types.PartnerType) },
         contact_person: { type: ['string', 'null'] },
@@ -18,7 +18,7 @@ export const partnerSchema: RxJsonSchema<types.AdminPartnerType> = createEntityS
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
     },
-    { key: 'id', type: 'string', final: true, maxLength: 100 },
+    { key: 'id', type: 'string' },
     ['id', 'name', 'partner_type', 'created_at', 'updated_at'],
     ['name', 'partner_type']
 );
