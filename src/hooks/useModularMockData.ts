@@ -530,6 +530,14 @@ export const useModularMockData = (): AppDataContextType => {
     addStudent: async (data: any) => { /* implementation */ },
     updateStudent: async (id: string, data: any) => { /* implementation */ },
     deleteStudent: async (id: string) => { /* implementation */ },
+    // Student Payment CRUD operations
+    addStudentPayment,
+    updateStudentPayment,
+    deleteStudentPayment,
+    // Fee Adjustment CRUD operations
+    addFeeAdjustment,
+    updateFeeAdjustment,
+    deleteFeeAdjustment,
     // Add other CRUD operations as needed
   };
 };
