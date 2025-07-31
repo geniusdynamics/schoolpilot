@@ -6,11 +6,10 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import './i18n/i18n'; // Import your i18n configuration, this initializes i18next
-import { detectOptimalConfiguration, updateAppConfig } from './config/appConfig';
+import { initializeUnifiedConfig } from './config/unifiedConfig';
 
-// Initialize optimal configuration based on browser capabilities
-const optimalConfig = detectOptimalConfiguration();
-updateAppConfig(optimalConfig);
+// Initialize unified configuration
+initializeUnifiedConfig();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

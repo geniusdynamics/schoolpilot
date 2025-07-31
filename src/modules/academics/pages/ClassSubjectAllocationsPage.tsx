@@ -21,7 +21,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     classStreams,
     subjects,
     academicYears,
-    loading
+    loading,
     addClassSubjectAllocation, 
     updateClassSubjectAllocation, 
     deleteClassSubjectAllocation 

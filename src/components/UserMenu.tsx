@@ -7,14 +7,14 @@ import { useTranslation } from 'react-i18next';
 import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
 import { SyncStatusComponent } from './OfflineCapability';
-import { getAppConfig } from '../config/appConfig';
+import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 
 const UserMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout, isDemoMode } = useAuth();
   const { t } = useTranslation('common');
-  const appConfig = getAppConfig();
-  const currentMode = appConfig.mode;
+  const { config } = useUnifiedConfig();
+  const currentMode = config.dataMode === 'demo' ? 'demo' : 'production';
 
   const handleLogout = async () => {
     await logout();
@@ -114,4 +114,4 @@ const UserMenu: React.FC = () => {
   );
 };
 
-export default UserMenu; 
+export default UserMenu;

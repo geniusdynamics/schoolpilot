@@ -4,8 +4,8 @@
 // ABOUTME: Includes enhanced features like network status, sync capabilities, and offline support.
 
 import React, { createContext, useContext, ReactNode, useMemo, useEffect, useState, useCallback } from 'react';
-import { APP_MODE } from './config';
-import { appConfigManager, AppConfig, CONFIG_PRESETS } from '../config/appConfig';
+import { useUnifiedConfig, useConfig } from './UnifiedConfigContext';
+import { unifiedConfigManager, DataMode } from '../config/unifiedConfig';
 import { useModularMockData, rawInitialData as modularMockDataContentForProdSeed } from '../hooks/useModularMockData';
 import { NetworkStateManager, NetworkState } from '../services/NetworkStateManager';
 import { DataStrategyManager, DataStrategy, DataOperation } from '../services/DataStrategyManager';
@@ -189,13 +189,9 @@ function mapRbacRoleToLegacyRole(rbacRole: RbacRole, idx: number): Role {
 }
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [appConfig, setAppConfig] = useState<AppConfig | null>(null);
+  const { config, isLoading: configLoading, error: configError } = useUnifiedConfig();
   // Original mock data hook
   const mockDataHookResult = useModularMockData();
-
-  useEffect(() => {
-    setAppConfig(appConfigManager.getConfig());
-  }, []);
   
   // Enhanced state management
   const [networkState, setNetworkState] = useState<NetworkState>(() => {
@@ -205,8 +201,17 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   
   const [dataStrategy, setDataStrategy] = useState<DataStrategy>(() => {
     const env = process.env.NODE_ENV || 'development';
-    return DATA_STRATEGY_CONFIGS[APP_MODE] || DATA_STRATEGY_CONFIGS[env] || DATA_STRATEGY_CONFIGS.development;
+    const appMode = config?.mode || env;
+    return DATA_STRATEGY_CONFIGS[appMode] || DATA_STRATEGY_CONFIGS[env] || DATA_STRATEGY_CONFIGS.development;
   });
+
+  // Update data strategy when config changes
+  useEffect(() => {
+    if (config?.mode) {
+      const newStrategy = DATA_STRATEGY_CONFIGS[config.mode] || DATA_STRATEGY_CONFIGS.development;
+      setDataStrategy(newStrategy);
+    }
+  }, [config?.mode]);
   
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     state: 'idle',
@@ -270,7 +275,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       }
     };
 
-    if (appConfig && appConfig.features.enhancedDataLayer) {
+    if (config && config.features.enhancedDataLayer) {
       loadRxDB();
     } else {
       setIsProdDepsLoaded(true); // Not using RxDB, so dependencies are 'loaded'
@@ -279,18 +284,18 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => {
       isMounted = false;
     };
-  }, [appConfig]);
+  }, [config]);
 
   const currentDataMode = useMemo(() => {
     if (dataStrategy.mode === 'demo') return 'mock';
-    if (APP_MODE === 'production' && isProdDepsLoaded && !prodDepsError && UseRxDBData) {
+    if (config?.mode === 'production' && isProdDepsLoaded && !prodDepsError && UseRxDBData) {
       if (networkState.backendAvailable && dataStrategy.mode === 'online-first') {
         return 'backend';
       }
       return networkState.backendAvailable ? 'hybrid' : 'rxdb';
     }
     return 'mock';
-  }, [dataStrategy.mode, isProdDepsLoaded, prodDepsError, networkState.backendAvailable, UseRxDBData]);
+  }, [config?.mode, dataStrategy.mode, isProdDepsLoaded, prodDepsError, networkState.backendAvailable, UseRxDBData]);
 
   const RxDBWrapper = useCallback(({ children }: { children: ReactNode }) => {
     if (!UseRxDBData) return null; // Should not happen if called correctly
@@ -307,12 +312,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     dataStrategyManager,
     backendAPI,
     currentDataMode,
-    isRxDBModeActive: APP_MODE === 'production' && !prodDepsError,
+    isRxDBModeActive: config?.mode === 'production' && !prodDepsError,
     initializationError: prodDepsError,
     // Include all other enhanced context properties
   }), [hookResult, networkState, dataStrategy, syncStatus, dataStrategyManager, backendAPI, currentDataMode, prodDepsError]);
 
-  if (APP_MODE === 'production') {
+  if (config?.mode === 'production') {
     if (!isProdDepsLoaded) {
       return <Spinner message="Loading application data (Production Mode - Loading Database Modules)..." />;
     }
@@ -650,7 +655,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [contextValue, dataStrategyManager]);
 
   // Loading states
-  if (APP_MODE === 'production' && !isProdDepsLoaded) {
+  if (config?.mode === 'production' && !isProdDepsLoaded) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -693,7 +698,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   return (
     <AppDataContext.Provider value={contextValue}>
       {/* Network status warnings */}
-      {APP_MODE === 'production' && prodDepsError && (
+      {config?.mode === 'production' && prodDepsError && (
         <div style={{
           position: 'fixed', 
           bottom: '10px', 

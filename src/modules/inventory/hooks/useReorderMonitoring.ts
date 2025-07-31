@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  reorderMonitoringService, 
-  ReorderAlert, 
-  ReorderMonitoringResult 
+import {
+  checkReorderRequirements,
+  ReorderAlert,
+  ReorderMonitoringResult
 } from '../services/reorderMonitoringService';
 
 export interface UseReorderMonitoringReturn {
@@ -37,12 +37,12 @@ export const useReorderMonitoring = (): UseReorderMonitoringReturn => {
   /**
    * Check all items for reorder requirements
    */
-  const checkReorderRequirements = useCallback(async () => {
+  const checkReorderRequirementsAction = useCallback(async (items, stockLevels) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const result = await reorderMonitoringService.checkReorderRequirements();
+      const result = checkReorderRequirements(items, stockLevels);
       setMonitoringResult(result);
       setAlerts(result.alerts);
     } catch (err) {
@@ -55,15 +55,16 @@ export const useReorderMonitoring = (): UseReorderMonitoringReturn => {
   }, []);
 
   /**
-   * Get active reorder alerts
+   * Get active reorder alerts - placeholder implementation
    */
   const getActiveAlerts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const activeAlerts = await reorderMonitoringService.getActiveReorderAlerts();
-      setAlerts(activeAlerts);
+      // For now, just return current alerts since we don't have persistent storage
+      // In a real implementation, this would fetch from a database or API
+      console.log('Getting active alerts (placeholder)');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get active alerts';
       setError(errorMessage);
@@ -81,9 +82,10 @@ export const useReorderMonitoring = (): UseReorderMonitoringReturn => {
     setError(null);
     
     try {
-      await reorderMonitoringService.dismissReorderAlert(itemId);
-      // Remove the dismissed alert from local state
+      // In a real implementation, this would update the database
+      // For now, just remove from local state
       setAlerts(prevAlerts => prevAlerts.filter(alert => alert.item_id !== itemId));
+      console.log(`Alert dismissed for item: ${itemId}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to dismiss alert';
       setError(errorMessage);
@@ -119,7 +121,7 @@ export const useReorderMonitoring = (): UseReorderMonitoringReturn => {
     error,
     
     // Actions
-    checkReorderRequirements,
+    checkReorderRequirements: checkReorderRequirementsAction,
     getActiveAlerts,
     dismissAlert,
     refreshAlerts,

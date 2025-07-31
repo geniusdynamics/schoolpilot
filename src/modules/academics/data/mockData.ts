@@ -21,15 +21,15 @@ export const initialMockSubjects: Subject[] = [
     { id: 7, subject_code: '311', abbreviation: 'HIS', name: 'History', department_id: 'DEPT004', grouping: SubjectGrouping.GROUP_3_HUMANITIES, department_name: 'Humanities', papers: [] },
     { id: 8, subject_code: '312', abbreviation: 'GEO', name: 'Geography', department_id: 'DEPT004', grouping: SubjectGrouping.GROUP_3_HUMANITIES, department_name: 'Humanities', papers: [] },
     { id: 9, subject_code: '313', abbreviation: 'CRE', name: 'Christian Religious Education', department_id: 'DEPT004', grouping: SubjectGrouping.GROUP_3_HUMANITIES, department_name: 'Humanities', papers: [] },
-    { id: 10, subject_code: '411', abbreviation: 'BUS', name: 'Business Studies', department_id: 'DEPT006', grouping: SubjectGrouping.GROUP_4_TECHNICAL, department_name: 'Business Studies', papers: [] },
-    { id: 11, subject_code: '412', abbreviation: 'COMP', name: 'Computer Studies', department_id: 'DEPT006', grouping: SubjectGrouping.GROUP_4_TECHNICAL, department_name: 'Technology', papers: [] },
-    { id: 12, subject_code: '413', abbreviation: 'AGR', name: 'Agriculture', department_id: 'DEPT007', grouping: SubjectGrouping.GROUP_4_TECHNICAL, department_name: 'Agriculture', papers: [] },
-    { id: 13, subject_code: '511', abbreviation: 'FRE', name: 'French', department_id: 'DEPT005', grouping: SubjectGrouping.GROUP_5_LANGUAGES, department_name: 'Languages & Literature', papers: [] },
-    { id: 14, subject_code: '512', abbreviation: 'GER', name: 'German', department_id: 'DEPT005', grouping: SubjectGrouping.GROUP_5_LANGUAGES, department_name: 'Languages & Literature', papers: [] },
-    { id: 15, subject_code: '611', abbreviation: 'ART', name: 'Art & Design', department_id: 'DEPT008', grouping: SubjectGrouping.GROUP_6_APPLIED, department_name: 'Creative Arts', papers: [] },
-    { id: 16, subject_code: '612', abbreviation: 'MUS', name: 'Music', department_id: 'DEPT008', grouping: SubjectGrouping.GROUP_6_APPLIED, department_name: 'Creative Arts', papers: [] },
-    { id: 17, subject_code: '613', abbreviation: 'HME', name: 'Home Science', department_id: 'DEPT009', grouping: SubjectGrouping.GROUP_6_APPLIED, department_name: 'Home Science', papers: [] },
-    { id: 18, subject_code: '614', abbreviation: 'PE', name: 'Physical Education', department_id: 'DEPT010', grouping: SubjectGrouping.GROUP_6_APPLIED, department_name: 'Physical Education', papers: [] }
+{ id: 10, subject_code: '411', abbreviation: 'BUS', name: 'Business Studies', department_id: 'DEPT006', grouping: SubjectGrouping.GROUP_4_TECHNICALS, department_name: 'Business Studies', papers: [] },
+  { id: 11, subject_code: '412', abbreviation: 'COMP', name: 'Computer Studies', department_id: 'DEPT006', grouping: SubjectGrouping.GROUP_4_TECHNICALS, department_name: 'Technology', papers: [] },
+  { id: 12, subject_code: '413', abbreviation: 'AGR', name: 'Agriculture', department_id: 'DEPT007', grouping: SubjectGrouping.GROUP_4_TECHNICALS, department_name: 'Agriculture', papers: [] },
+  { id: 13, subject_code: '511', abbreviation: 'FRE', name: 'French', department_id: 'DEPT005', grouping: SubjectGrouping.GROUP_5_LANGUAGES, department_name: 'Languages & Literature', papers: [] },
+  { id: 14, subject_code: '512', abbreviation: 'GER', name: 'German', department_id: 'DEPT005', grouping: SubjectGrouping.GROUP_5_LANGUAGES, department_name: 'Languages & Literature', papers: [] },
+  { id: 15, subject_code: '611', abbreviation: 'ART', name: 'Art & Design', department_id: 'DEPT008', grouping: SubjectGrouping.OTHER, department_name: 'Creative Arts', papers: [] },
+  { id: 16, subject_code: '612', abbreviation: 'MUS', name: 'Music', department_id: 'DEPT008', grouping: SubjectGrouping.OTHER, department_name: 'Creative Arts', papers: [] },
+  { id: 17, subject_code: '613', abbreviation: 'HME', name: 'Home Science', department_id: 'DEPT009', grouping: SubjectGrouping.OTHER, department_name: 'Home Science', papers: [] },
+  { id: 18, subject_code: '614', abbreviation: 'PE', name: 'Physical Education', department_id: 'DEPT010', grouping: SubjectGrouping.OTHER, department_name: 'Physical Education', papers: [] }
 ];
 
 export const initialMockSubjectPapers: SubjectPaper[] = [

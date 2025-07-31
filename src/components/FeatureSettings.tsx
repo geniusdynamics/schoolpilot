@@ -14,7 +14,7 @@ import {
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { useAppData } from '../contexts/AppDataContext';
-import { getAppConfig, updateAppConfig, isFeatureEnabled } from '../config/appConfig';
+import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 import { 
   SyncStatusComponent, 
   NetworkStatusIndicator, 
@@ -38,12 +38,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'memory' | 'ui-components'>('overview');
   const [showConflictModal, setShowConflictModal] = useState(false);
-  const [config, setConfig] = useState(() => {
-    // Force refresh configuration to ensure new feature flags are loaded
-    const currentConfig = getAppConfig();
-    console.log('FeatureSettings loaded config with features:', Object.keys(currentConfig.features));
-    return currentConfig;
-  });
+  const { config, updateConfig } = useUnifiedConfig();
+  console.log('FeatureSettings loaded config with features:', Object.keys(config.features));
   
   const { 
     isOnline, 
@@ -74,14 +70,15 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
         [feature]: !config.features[feature]
       }
     };
-    setConfig(newConfig);
-    updateAppConfig(newConfig);
+    updateConfig(newConfig);
   };
 
   const handleModeChange = (mode: 'demo' | 'production') => {
-    const newConfig = { ...config, mode };
-    setConfig(newConfig);
-    updateAppConfig(newConfig);
+    if (mode === 'demo') {
+      updateConfig({ ...config, dataMode: 'demo' });
+    } else {
+      updateConfig({ ...config, dataMode: 'production' });
+    }
   };
 
   const getStatusBadge = (status: boolean, label: string) => (
@@ -164,7 +161,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Offline Capabilities</span>
-            {getStatusBadge(config.enableOfflineCapabilities, config.enableOfflineCapabilities ? 'Enabled' : 'Disabled')}
+            {getStatusBadge(config.features.enableOfflineMode, config.features.enableOfflineMode ? 'Enabled' : 'Disabled')}
           </div>
         </div>
       </Card>
@@ -209,7 +206,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                 type="radio"
                 name="mode"
                 value="demo"
-                checked={config.mode === 'demo'}
+                checked={config.dataMode === 'demo'}
                 onChange={() => handleModeChange('demo')}
                 className="mr-2"
               />
@@ -220,7 +217,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                 type="radio"
                 name="mode"
                 value="production"
-                checked={config.mode === 'production'}
+                checked={config.dataMode === 'backend'}
                 onChange={() => handleModeChange('production')}
                 className="mr-2"
               />
@@ -274,18 +271,16 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
               <button
                 onClick={() => {
                   // Force add missing feature flag
-                  const currentConfig = getAppConfig();
                   const updatedConfig = {
-                    ...currentConfig,
+                    ...config,
                     features: {
-                      ...currentConfig.features,
-                      performanceMonitorWidget: false // Add the missing flag
+                      ...config.features,
+                      enablePerformanceMonitoring: false // Add the missing flag
                     }
                   };
                   
                   // Update both global config and local state
-                  updateAppConfig(updatedConfig);
-                  setConfig(updatedConfig);
+                  updateConfig(updatedConfig);
                   
                   // Also force localStorage update
                   localStorage.setItem('app-config', JSON.stringify(updatedConfig));
@@ -312,18 +307,16 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                     performanceMonitorWidget: false, // This is the missing one
                   };
                   
-                  const currentConfig = getAppConfig();
                   const updatedConfig = {
-                    ...currentConfig,
+                    ...config,
                     features: {
-                      ...currentConfig.features,
+                      ...config.features,
                       ...defaultFeatures // Merge with defaults to ensure all flags exist
                     }
                   };
                   
                   // Update everything
-                  updateAppConfig(updatedConfig);
-                  setConfig(updatedConfig);
+                  updateConfig(updatedConfig);
                   localStorage.setItem('app-config', JSON.stringify(updatedConfig));
                   localStorage.setItem('app-config-version', '1.2.0');
                   
@@ -342,8 +335,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                   console.log('=== DEBUG INFO ===');
                   console.log('Config version:', version);
                   console.log('Stored config:', stored ? JSON.parse(stored) : 'None');
-                  console.log('Current config:', getAppConfig());
-                  console.log('Feature flags:', Object.keys(getAppConfig().features));
+                  console.log('Current config:', config);
+                  console.log('Feature flags:', Object.keys(config.features));
                   alert('Check console for debug info');
                 }}
                 className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded transition-colors"
@@ -389,8 +382,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={config.enableOfflineCapabilities}
-                onChange={(e) => setConfig(prev => ({ ...prev, enableOfflineCapabilities: e.target.checked }))}
+                checked={config.features.enableOfflineMode}
+                onChange={() => handleFeatureToggle('enableOfflineMode')}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -404,8 +397,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={config.enableBackendIntegration}
-                onChange={(e) => setConfig(prev => ({ ...prev, enableBackendIntegration: e.target.checked }))}
+                checked={config.backend.available}
+                onChange={() => console.log('Backend integration cannot be toggled directly')}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>

@@ -4,7 +4,7 @@
 
 import { moduleDataRegistry, RegisteredModuleData } from './ModuleDataRegistry';
 import { DataOperation } from './DataStrategyManager';
-import { getAllDataHooks } from '../globalProvidersRegistry';
+// import { getAllDataHooks } from '../globalProvidersRegistry'; // Removed - no longer used to prevent React hooks violations
 
 // Interface for data context integration options
 export interface DataContextIntegrationOptions {
@@ -16,7 +16,7 @@ export interface DataContextIntegrationOptions {
 
 // Default options
 const DEFAULT_OPTIONS: DataContextIntegrationOptions = {
-  enableAutoSync: true,
+  enableAutoSync: false, // Disabled to prevent React hooks violations
   syncInterval: 30000, // 30 seconds
   logDataOperations: false,
   validateDataIntegrity: true
@@ -170,35 +170,19 @@ export class DataContextIntegrationService {
   }
   
   // Sync all module data
+  // NOTE: Direct hook execution removed to prevent React hooks violations
+  // Hooks can only be called inside React components, not in service classes
   public async syncAllModuleData(): Promise<void> {
-    // Get all data hooks (await the async function)
-    const dataHooks = await getAllDataHooks();
-    
-    // Ensure dataHooks is an array
-    if (!Array.isArray(dataHooks)) {
-      console.warn('[DataContextIntegration] getAllDataHooks did not return an array:', dataHooks);
-      return;
+    if (this.options.logDataOperations) {
+      console.log('[DataContextIntegration] Sync requested - data operations should be handled through React components');
     }
     
-    // Call refresh on each hook
-    const syncPromises = dataHooks.map(hook => {
-      try {
-        const hookInstance = hook();
-        if (hookInstance && typeof hookInstance.refresh === 'function') {
-          return hookInstance.refresh();
-        }
-        return Promise.resolve();
-      } catch (error) {
-        console.error('[DataContextIntegration] Error syncing data hook:', error);
-        return Promise.resolve();
-      }
-    });
+    // Instead of calling hooks directly, we rely on:
+    // 1. React components to manage their own data through hooks
+    // 2. AppDataContext's dataStrategyManager for data operations
+    // 3. Natural React re-rendering cycles for data updates
     
-    return Promise.all(syncPromises).then(() => {
-      if (this.options.logDataOperations) {
-        console.log(`[DataContextIntegration] Synced ${syncPromises.length} data hooks`);
-      }
-    });
+    return Promise.resolve();
   }
   
   // Validate data integrity across all modules

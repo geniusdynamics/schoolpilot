@@ -1,5 +1,5 @@
 // Import required types from core
-import { Student, InvoiceStatus, ParentsGuardian } from '@/core/types';
+import { Student, InvoiceStatus, ParentsGuardian } from '../../../core/types';
 
 export interface ExamSchedule {
   id: string;
@@ -336,3 +336,19 @@ export interface EducationSystemConfiguration {
   created_at?: string;
   updated_at?: string;
 }
+
+// Type aliases for schema compatibility
+export type ExamScheduleEntity = ExamSchedule;
+export type AcademicsSubjectType = Subject;
+export type AcademicsSubjectPaperType = SubjectPaper;
+export type AcademicsExamPaperSettingType = ExamPaperSetting;
+export type AcademicsExamSessionType = ExamSession;
+export type AcademicsGradingSchemeLevelType = GradingSchemeLevel;
+export type AcademicsGradingSchemeType = GradingScheme;
+export type AcademicsStudentPaperMarkWithDetailsType = StudentPaperMarkWithDetails;
+export type AcademicsStudentExamResultWithDetailsType = StudentExamResultWithDetails;
+export type AcademicsClassSubjectAllocationType = ClassSubjectAllocation;
+export type AcademicsTeacherSubjectAssignmentType = TeacherSubjectAssignment;
+export type AcademicsStudentSubjectEnrollmentType = StudentSubjectEnrollment;
+export type AcademicsTimetablePeriodDefType = any; // Define this if needed
+export type AcademicsTimetableEntryType = TimetableEntry;

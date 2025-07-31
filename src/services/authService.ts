@@ -5,7 +5,7 @@ import { useAppData } from '../contexts/AppDataContext';
 import * as rxdbService from './rxdbService';
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../core/rbacService';
-import { APP_MODE } from '../contexts/config';
+import { unifiedConfigManager } from '../config/unifiedConfig';
 
 // Authentication Types
 export interface AuthUser {
@@ -56,10 +56,9 @@ class AuthService {
   private sessionKey = 'schoolpilot_auth_session';
 
   constructor() {
-    // Check if RxDB is available to determine mode
-    rxdbService.getDatabase()
-      .then(() => { this.isDemoMode = false; })
-      .catch(() => { this.isDemoMode = true; });
+    // Use unified configuration to determine mode
+    const config = unifiedConfigManager.getConfig();
+    this.isDemoMode = config.mode === 'demo';
     
     // Restore session from localStorage
     this.restoreSession();
@@ -439,4 +438,4 @@ export const useAuth = () => {
     getUserRoles: authService.getUserRoles.bind(authService),
     isDemoMode: !isRxDBModeActive
   };
-}; 
+};

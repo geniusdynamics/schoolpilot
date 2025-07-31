@@ -13,7 +13,7 @@ import { useRBAC } from './hooks/useRBAC';
 import Spinner from './components/ui/Spinner';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
-import { getAppConfig, subscribeToConfig, AppConfig } from './config/appConfig';
+import { UnifiedConfigProvider, useUnifiedConfig, UnifiedAppConfig } from './contexts/UnifiedConfigContext';
 import { moduleRegistry } from './core/moduleRegistry';
 import { initializeModulesOptimized } from './core/optimizedModuleLoader';
 import { initializeTheme } from './hooks/useTheme';
@@ -241,7 +241,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
 };
 
 // Enhanced app content with feature flag support
-const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> = ({ modulesInitialized, config }) => {
+const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConfig }> = ({ modulesInitialized, config }) => {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
   const { restoreRouteIfNeeded } = useRoutePersistence();
@@ -294,7 +294,7 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> =
       </div>
       
       {/* Global notifications (if enabled) */}
-      {config.features.globalNotifications && config.useEnhancedFeatures && (
+      {config.features.enableNotifications && config.environment !== 'demo' && (
         <Suspense fallback={null}>
           <GlobalNotifications />
         </Suspense>
@@ -307,8 +307,8 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> =
 };
 
 // Data provider wrapper - uses the consolidated AppDataProvider which supports both modes
-const DataProviderWrapper: React.FC<{ config: AppConfig; children: React.ReactNode }> = ({ config, children }) => {
-  debugLog('🚀 [App] Using Consolidated Data Provider with enhanced features:', config.useEnhancedFeatures);
+const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.ReactNode }> = ({ config, children }) => {
+  debugLog('🚀 [App] Using Consolidated Data Provider with environment:', config.environment, 'dataMode:', config.dataMode);
   
   // The AppDataProvider already supports both standard and enhanced features
   // It automatically switches based on configuration and available services
@@ -341,8 +341,8 @@ import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from './hooks/useMemoryManagement';
 
 // Main consolidated App component
-const App: React.FC = () => {
-  const [config, setConfig] = useState<AppConfig>(getAppConfig());
+const AppInner: React.FC = () => {
+  const { config } = useUnifiedConfig();
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
   
@@ -363,12 +363,6 @@ const App: React.FC = () => {
     trackLifecycle: true,
     enableAlerts: false // Disable alerts in main app to reduce noise
   });
-
-  // Subscribe to configuration changes
-  useEffect(() => {
-    const unsubscribe = subscribeToConfig(setConfig);
-    return unsubscribe;
-  }, []);
 
   // Initialize modules with improved error handling
   useEffect(() => {
@@ -461,8 +455,8 @@ const App: React.FC = () => {
   }
 
   debugLog('🚀 [App] Rendering with config:', {
-    mode: config.mode,
-    useEnhancedFeatures: config.useEnhancedFeatures,
+    environment: config.environment,
+    dataMode: config.dataMode,
     enabledFeatures: Object.entries(config.features).filter(([, enabled]) => enabled).map(([name]) => name)
   });
 
@@ -489,7 +483,7 @@ const App: React.FC = () => {
       </HashRouter>
       
       {/* Performance Monitor Widget (Feature Flag Controlled) */}
-      {config.features.performanceMonitorWidget && (
+      {config.features.enablePerformanceMonitoring && (
         <PerformanceMonitorWidget 
           position="bottom-right"
           showDetails={true}
@@ -497,6 +491,15 @@ const App: React.FC = () => {
         />
       )}
     </ApplicationErrorBoundary>
+  );
+};
+
+// Main App component with unified config provider
+const App: React.FC = () => {
+  return (
+    <UnifiedConfigProvider>
+      <AppInner />
+    </UnifiedConfigProvider>
   );
 };
 

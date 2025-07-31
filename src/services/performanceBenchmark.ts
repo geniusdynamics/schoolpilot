@@ -2,13 +2,13 @@
 // ABOUTME: Provides automated performance regression testing and optimization recommendations
 
 import { performanceMonitor, PerformanceReport } from './performanceMonitor';
-import { getAppConfig, AppConfig } from '../config/appConfig';
+import { getCurrentUnifiedConfig, UnifiedAppConfig } from '../config/unifiedConfig';
 
 export interface PerformanceBenchmark {
   id: string;
   name: string;
   timestamp: number;
-  configuration: AppConfig;
+  configuration: UnifiedAppConfig;
   metrics: {
     startupTime: number;
     moduleLoadingTime: number;
@@ -183,7 +183,7 @@ class PerformanceBenchmarkService {
     try {
       // Get current performance report
       const report = performanceMonitor.getPerformanceReport();
-      const config = getAppConfig();
+      const config = getCurrentUnifiedConfig();
       
       const baseline: PerformanceBenchmark = {
         id: this.generateId(),
@@ -224,7 +224,7 @@ class PerformanceBenchmarkService {
     try {
       // Get current performance report
       const report = performanceMonitor.getPerformanceReport();
-      const config = getAppConfig();
+      const config = getCurrentUnifiedConfig();
       
       const benchmark: PerformanceBenchmark = {
         id: this.generateId(),

@@ -9,11 +9,13 @@ import { usePerformanceEvents } from '../services/performanceEventManager';
 interface PerformanceMonitorProps {
   className?: string;
   refreshInterval?: number;
+  showDetails?: boolean;
 }
 
 const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   className = '',
-  refreshInterval = 15000 // 15 seconds (reduced frequency to prevent flickering)
+  refreshInterval = 15000, // 15 seconds (reduced frequency to prevent flickering)
+  showDetails = false
 }) => {
   const [report, setReport] = useState<PerformanceReport | null>(null);
   const [isVisible, setIsVisible] = useState(false);

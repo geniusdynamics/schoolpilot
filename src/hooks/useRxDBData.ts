@@ -195,43 +195,58 @@ export const useRxDBData = (
       if (!studentDoc) return null;
       const studentBase = studentDoc.toJSON();
       
-  // Subject CRUD operations
-  const addSubject = useCallback(async (data: Omit<Subject, 'id'>): Promise<Subject> => {
-    if (!dbInstance) {
-      throw new Error("Database not initialized");
-    }
-    
-    const newSubject: Subject = {
-      id: Date.now().toString(),
-      ...data
-    };
-    
-    await dbInstance.subjects.insert(newSubject);
-    return newSubject;
+      // For now, return basic student data - more complex profile building would go here
+      return {
+        ...studentBase,
+        guardians: [], // Would populate from relationships
+        examResults: [], // Would populate from exam results
+        financialSummary: null // Would populate from financial data
+      } as allTypes.StudentDetailProfile;
   }, [dbInstance]);
 
-  const updateSubject = useCallback(async (id: string, data: Partial<Subject>): Promise<Subject | null> => {
-    if (!dbInstance) {
-      throw new Error("Database not initialized");
-    }
-    
-    const doc = await dbInstance.subjects.findOne(id).exec();
-    if (!doc) return null;
-    
-    await doc.patch(data);
-    return doc.toJSON();
+
+  const getStudentFinancialDetailsById = useCallback(async (studentId: string): Promise<allTypes.StudentDetailProfile | null> => {
+      return getStudentDetailsById(studentId); // Alias for now
+  }, [getStudentDetailsById]);
+
+
+  const updateSchoolDetails = useCallback(async (details: Partial<allTypes.SchoolDetails>) => {
+    if (!dbInstance) return null;
+    const doc = await dbInstance.school_details.findOne(1).exec();
+    const finalDetails = { ...doc?.toJSON(), ...details, updated_at: new Date().toISOString() };
+    await doc?.patch(finalDetails);
+    return finalDetails as allTypes.SchoolDetails;
   }, [dbInstance]);
 
-  const deleteSubject = useCallback(async (id: string): Promise<boolean> => {
-    if (!dbInstance) {
-      throw new Error("Database not initialized");
-    }
-    
-    const doc = await dbInstance.subjects.findOne(id).exec();
-    if (!doc) return false;
-    
-    await doc.remove();
-    return true;
+  const addGeneric = useCallback(async <T extends Record<string, any>>(collectionName: keyof SchoolDatabaseCollections, docData: Omit<T, 'id' | 'created_at' | 'updated_at'>, idField: keyof T = 'id'): Promise<T> => {
+      if (!dbInstance) throw new Error("DB not ready");
+      const collection = dbInstance[collectionName] as RxCollection<T>;
+      const isNumericId = collection.schema.jsonSchema.properties[idField as string].type === 'number';
+      const newDoc = {
+          ...docData,
+          [idField]: isNumericId ? generateNumericId() : generateId(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+      };
+      const inserted = await collection.insert(newDoc as RxDocumentData<T>);
+      return inserted.toJSON() as T;
+  }, [dbInstance]);
+
+  const updateGeneric = useCallback(async <T extends Record<string, any>>(collectionName: keyof SchoolDatabaseCollections, updatedDocData: T, idField: keyof T = 'id'): Promise<T> => {
+      if (!dbInstance) throw new Error("DB not ready");
+      const collection = dbInstance[collectionName] as RxCollection<T>;
+      const doc = await collection.findOne({selector: {[idField]: updatedDocData[idField]}}).exec();
+      if (!doc) throw new Error("Document not found");
+      const finalData = { ...updatedDocData, updated_at: new Date().toISOString() };
+      await doc.patch(finalData as Partial<T>);
+      return finalData;
+  }, [dbInstance]);
+  
+  const deleteGeneric = useCallback(async (collectionName: keyof SchoolDatabaseCollections, id: string | number) => {
+    if (!dbInstance) throw new Error("DB not ready");
+    const collection = dbInstance[collectionName] as RxCollection<any>;
+    const doc = await collection.findOne(id).exec();
+    if(doc) await doc.remove();
   }, [dbInstance]);
 
   // SubjectPaper CRUD operations
@@ -4483,58 +4498,6 @@ export const useRxDBData = (
     
     await doc.remove();
     return true;
-  }, [dbInstance]);
-return {
-          ...studentBase,
-          financial_summary: { totalFees: 0, totalPaid: 0, currentBalance: 0, totalDiscount:0, totalFine:0 },
-          invoices_charges: [],
-          payment_history: [],
-          enrolled_subjects: []
-      };
-  }, [dbInstance]);
-
-  const getStudentFinancialDetailsById = useCallback(async (studentId: string): Promise<allTypes.StudentDetailProfile | null> => {
-      return getStudentDetailsById(studentId); // Alias for now
-  }, [getStudentDetailsById]);
-
-
-  const updateSchoolDetails = useCallback(async (details: Partial<allTypes.SchoolDetails>) => {
-    if (!dbInstance) return null;
-    const doc = await dbInstance.school_details.findOne(1).exec();
-    const finalDetails = { ...doc?.toJSON(), ...details, updated_at: new Date().toISOString() };
-    await doc?.patch(finalDetails);
-    return finalDetails as allTypes.SchoolDetails;
-  }, [dbInstance]);
-
-  const addGeneric = useCallback(async <T extends Record<string, any>>(collectionName: keyof SchoolDatabaseCollections, docData: Omit<T, 'id' | 'created_at' | 'updated_at'>, idField: keyof T = 'id'): Promise<T> => {
-      if (!dbInstance) throw new Error("DB not ready");
-      const collection = dbInstance[collectionName] as RxCollection<T>;
-      const isNumericId = collection.schema.jsonSchema.properties[idField as string].type === 'number';
-      const newDoc = {
-          ...docData,
-          [idField]: isNumericId ? generateNumericId() : generateId(),
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-      };
-      const inserted = await collection.insert(newDoc as RxDocumentData<T>);
-      return inserted.toJSON() as T;
-  }, [dbInstance]);
-
-  const updateGeneric = useCallback(async <T extends Record<string, any>>(collectionName: keyof SchoolDatabaseCollections, updatedDocData: T, idField: keyof T = 'id'): Promise<T> => {
-      if (!dbInstance) throw new Error("DB not ready");
-      const collection = dbInstance[collectionName] as RxCollection<T>;
-      const doc = await collection.findOne({selector: {[idField]: updatedDocData[idField]}}).exec();
-      if (!doc) throw new Error("Document not found");
-      const finalData = { ...updatedDocData, updated_at: new Date().toISOString() };
-      await doc.patch(finalData as Partial<T>);
-      return finalData;
-  }, [dbInstance]);
-  
-  const deleteGeneric = useCallback(async (collectionName: keyof SchoolDatabaseCollections, id: string | number) => {
-    if (!dbInstance) throw new Error("DB not ready");
-    const collection = dbInstance[collectionName] as RxCollection<any>;
-    const doc = await collection.findOne(id).exec();
-    if(doc) await doc.remove();
   }, [dbInstance]);
 
 

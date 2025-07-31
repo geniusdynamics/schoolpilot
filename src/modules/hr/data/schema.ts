@@ -10,13 +10,13 @@ export const payrollPeriodsSchema: RxJsonSchema<types.HRPayrollPeriodType> = cre
     {
         id: { type: 'number' },
         name: { type: 'string', maxLength: 100 },
-        start_date: { type: 'string', format: 'date' },
-        end_date: { type: 'string', format: 'date' },
+        start_date: { type: 'string', format: 'date', maxLength: 20 },
+        end_date: { type: 'string', format: 'date', maxLength: 20 },
         financial_year_id: { type: 'number', ref: 'financial_years' },
         school_period_id: { type: ['number', 'null'], ref: 'school_periods' },
         status: { type: ['string', 'null'], enum: [...Object.values(types.HRPayrollPeriodStatusEnum), null] },
-        financial_year_name: { type: ['string', 'null'] },
-        school_period_name: { type: ['string', 'null'] },
+        financial_year_name: { type: ['string', 'null'], maxLength: 100 },
+        school_period_name: { type: ['string', 'null'], maxLength: 100 },
     },
     { key: 'id', type: 'number' },
     ['id', 'name', 'start_date', 'end_date', 'financial_year_id'],
@@ -28,12 +28,12 @@ export const payrollItemTypesSchema: RxJsonSchema<types.HRPayrollItemTypeType> =
     {
         id: { type: 'number' },
         name: { type: 'string', maxLength: 100 },
-        category: { type: 'string', enum: Object.values(types.HRPayrollItemCategoryEnum) },
-        tax_implication: { type: 'string', enum: Object.values(types.HRPayrollTaxImplicationEnum) },
+        category: { type: 'string', enum: Object.values(types.HRPayrollItemCategoryEnum), maxLength: 50 },
+        tax_implication: { type: 'string', enum: Object.values(types.HRPayrollTaxImplicationEnum), maxLength: 50 },
         gl_account_expense_id: { type: ['number', 'null'], ref: 'chart_of_accounts' },
         gl_account_liability_id: { type: ['number', 'null'], ref: 'chart_of_accounts' },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
+        created_at: { type: 'string', format: 'date-time', maxLength: 50 },
+        updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
     },
     { key: 'id', type: 'number' },
     ['id', 'name', 'category', 'tax_implication', 'created_at', 'updated_at'],
@@ -42,11 +42,11 @@ export const payrollItemTypesSchema: RxJsonSchema<types.HRPayrollItemTypeType> =
 
 export const staffRecurringItemProperties: RxJsonSchema<types.HRStaffRecurringItemType>['properties'] = {
     id: { type: 'string', maxLength: 100, final: true },
-    staff_salary_setting_id: { type: 'string' }, // No ref, nested
+    staff_salary_setting_id: { type: 'string', maxLength: 100 }, // No ref, nested
     item_type_id: { type: 'number', ref: 'payroll_item_types' },
     amount: { type: 'number' },
-    created_at: { type: ['string', 'null'], format: 'date-time' },
-    item_type_name: { type: ['string', 'null'] },
+    created_at: { type: ['string', 'null'], format: 'date-time', maxLength: 50 },
+    item_type_name: { type: ['string', 'null'], maxLength: 100 },
     item_category: { type: ['string', 'null'], enum: [...Object.values(types.HRPayrollItemCategoryEnum), null] as any[] },
 };
 
@@ -54,15 +54,15 @@ export const staffSalarySettingsSchema: RxJsonSchema<types.HRStaffSalarySettingT
     'staff_salary_setting',
     {
         id: { type: 'string', maxLength: 100, final: true },
-        staff_id: { type: 'string', ref: 'staff', final: true }, // staff_id should be unique for settings
+        staff_id: { type: 'string', ref: 'staff', final: true, maxLength: 100 }, // staff_id should be unique for settings
         basic_salary: { type: 'number' },
-        payment_bank: { type: ['string', 'null'] },
-        bank_account_no: { type: ['string', 'null'] },
+        payment_bank: { type: ['string', 'null'], maxLength: 100 },
+        bank_account_no: { type: ['string', 'null'], maxLength: 50 },
         max_advance_amount: { type: ['number', 'null'] },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
+        created_at: { type: 'string', format: 'date-time', maxLength: 50 },
+        updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
         recurring_items: { type: ['array', 'null'], default: [], items: { type: 'object', properties: staffRecurringItemProperties } },
-        staff_name: { type: ['string', 'null'] },
+        staff_name: { type: ['string', 'null'], maxLength: 200 },
     },
     { key: 'id', type: 'string' }, 
     ['id', 'staff_id', 'basic_salary', 'created_at', 'updated_at'],
@@ -71,11 +71,11 @@ export const staffSalarySettingsSchema: RxJsonSchema<types.HRStaffSalarySettingT
 
 export const payslipItemProperties: RxJsonSchema<types.HRPayslipItemType>['properties'] = {
     id: { type: 'string', maxLength: 100, final: true },
-    payslip_id: { type: 'string' }, // No ref, nested
+    payslip_id: { type: 'string', maxLength: 100 }, // No ref, nested
     item_type_id: { type: 'number', ref: 'payroll_item_types' },
-    description: { type: ['string', 'null'] },
+    description: { type: ['string', 'null'], maxLength: 500 },
     amount: { type: ['number', 'null'] },
-    item_type_name: { type: ['string', 'null'] },
+    item_type_name: { type: ['string', 'null'], maxLength: 100 },
     item_category: { type: ['string', 'null'], enum: [...Object.values(types.HRPayrollItemCategoryEnum), null] as any[] },
 };
 
@@ -83,7 +83,7 @@ export const payslipsSchema: RxJsonSchema<types.HRPayslipType> = createEntitySch
     'payslip',
     {
         id: { type: 'string', maxLength: 100, final: true },
-        staff_id: { type: 'string', ref: 'staff' },
+        staff_id: { type: 'string', ref: 'staff', maxLength: 100 },
         payroll_period_id: { type: 'number', ref: 'payroll_periods' },
         gross_salary: { type: ['number', 'null'] },
         total_deductions: { type: ['number', 'null'] },
@@ -91,11 +91,11 @@ export const payslipsSchema: RxJsonSchema<types.HRPayslipType> = createEntitySch
         status: { type: ['string', 'null'], enum: [...Object.values(types.HRPayslipStatusEnum), null] },
         processed_at: { type: ['string', 'null'], format: 'date-time' },
         paid_at: { type: ['string', 'null'], format: 'date-time' },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
+        created_at: { type: 'string', format: 'date-time', maxLength: 50 },
+        updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
         items: { type: ['array', 'null'], default: [], items: { type: 'object', properties: payslipItemProperties } },
-        staff_name: { type: ['string', 'null'] },
-        payroll_period_name: { type: ['string', 'null'] },
+        staff_name: { type: ['string', 'null'], maxLength: 200 },
+        payroll_period_name: { type: ['string', 'null'], maxLength: 100 },
     },
     { key: 'id', type: 'string' },
     ['id', 'staff_id', 'payroll_period_id', 'status', 'created_at', 'updated_at'],

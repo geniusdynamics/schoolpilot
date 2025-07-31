@@ -5,9 +5,8 @@ import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import { useAppData } from '@/contexts/AppDataContext';
 import { CogIcon, ArchiveIcon, DeleteIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@/components/ui/icons'; // Changed TrashIcon to DeleteIcon
-import { APP_MODE } from '@/contexts/config';
 import { useTranslation } from 'react-i18next';
-import { getAppConfig } from '@/config/appConfig';
+import { useUnifiedConfig } from '@/contexts/UnifiedConfigContext';
 
 const DatabaseSettingsPage: React.FC = () => {
   const { 
@@ -18,8 +17,8 @@ const DatabaseSettingsPage: React.FC = () => {
     initializationError 
   } = useAppData();
   
-  const appConfig = getAppConfig();
-  const currentMode = appConfig.mode;
+  const { config } = useUnifiedConfig();
+  const currentMode = config.dataMode === 'demo' ? 'demo' : 'production';
 
   const [isSeeding, setIsSeeding] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
