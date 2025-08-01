@@ -8,14 +8,14 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const mealPlanSchema: RxJsonSchema<types.MealPlan> = createEntitySchema<types.MealPlan>(
     'meal_plan',
     {
-        id: { type: 'number', final: true },
+        id: { type: 'string', final: true },
         name: { type: 'string', maxLength: 150 },
         description: { type: ['string', 'null'], maxLength: 500 },
         cost_per_period: { type: ['number', 'null'] },
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
     },
-    { key: 'id', type: 'number' },
+    { key: 'id', type: 'string' },
     ['id', 'name', 'created_at', 'updated_at'],
     ['name']
 );
@@ -25,8 +25,8 @@ export const studentMealPlanSchema: RxJsonSchema<types.StudentMealPlan> = create
     {
         id: { type: 'string', maxLength: 100, final: true },
         student_id: { type: 'string', ref: 'students', maxLength: 100 },
-        school_period_id: { type: 'number', ref: 'school_periods' },
-        meal_plan_id: { type: 'number', ref: 'meal_plans' },
+        school_period_id: { type: 'string', ref: 'school_periods' },
+        meal_plan_id: { type: 'string', ref: 'meal_plans' },
         status: { type: 'string', enum: Object.values(types.NutrStudentMealPlanStatusEnum), maxLength: 50 },
         start_date: { type: ['string', 'null'], format: 'date', maxLength: 20 },
         end_date: { type: ['string', 'null'], format: 'date', maxLength: 20 },
@@ -78,14 +78,14 @@ export const mealConsumptionLogSchema: RxJsonSchema<types.MealConsumptionLog> = 
 export const merchantSchema: RxJsonSchema<types.Merchant> = createEntitySchema<types.Merchant>(
     'merchant',
     {
-        id: { type: 'number', final: true },
+        id: { type: 'string', final: true },
         name: { type: 'string', maxLength: 150 },
-        gl_account_id: { type: ['number', 'null'], ref: 'chart_of_accounts' },
+        gl_account_id: { type: ['string', 'null'], ref: 'chart_of_accounts' },
         gl_account_name: { type: ['string', 'null'], maxLength: 200 },
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
     },
-    { key: 'id', type: 'number' },
+    { key: 'id', type: 'string' },
     ['id', 'name', 'created_at', 'updated_at'],
     ['name']
 );

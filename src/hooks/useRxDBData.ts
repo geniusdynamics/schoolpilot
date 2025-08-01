@@ -4500,7 +4500,6 @@ export const useRxDBData = (
     return true;
   }, [dbInstance]);
 
-
   const contextValue: AppDataContextType = useMemo(() => ({
     ...(data as any),
     loading,

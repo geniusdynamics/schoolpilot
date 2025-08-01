@@ -8,10 +8,10 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const bookCategorySchema: RxJsonSchema<types.LibBookCategoryType> = createEntitySchema<types.LibBookCategoryType>(
     'book_category',
     {
-        id: { type: 'number' },
+        id: { type: 'string' },
         name: { type: 'string', maxLength: 100 },
     },
-    { key: 'id', type: 'number' },
+    { key: 'id', type: 'string' },
     ['id', 'name'],
     ['name']
 );
@@ -20,7 +20,7 @@ export const bookSchema: RxJsonSchema<types.LibBookType> = createEntitySchema<ty
     'book',
     {
         id: { type: 'string', maxLength: 100, final: true },
-        category_id: { type: ['number', 'null'], ref: 'book_categories' },
+        category_id: { type: ['string', 'null'], ref: 'book_categories' },
         title: { type: 'string', maxLength: 255 },
         author: { type: ['string', 'null'], maxLength: 200 },
         publisher: { type: ['string', 'null'], maxLength: 200 },

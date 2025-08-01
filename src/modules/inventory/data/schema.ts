@@ -8,7 +8,7 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const warehouseSchema: RxJsonSchema<types.InvWarehouseType> = createEntitySchema<types.InvWarehouseType>(
     'warehouse',
     {
-        id: { type: 'number', final: true },
+        id: { type: 'string', final: true },
         name: { type: 'string', maxLength: 100 },
         location: { type: ['string', 'null'], maxLength: 200 },
     },
@@ -20,7 +20,7 @@ export const warehouseSchema: RxJsonSchema<types.InvWarehouseType> = createEntit
 export const itemCategoryInvSchema: RxJsonSchema<types.InvItemCategoryType> = createEntitySchema<types.InvItemCategoryType>(
     'item_category_inv',
     {
-        id: { type: 'number', final: true },
+        id: { type: 'string', final: true },
         name: { type: 'string', maxLength: 100 },
     },
     'id',
@@ -34,7 +34,7 @@ export const itemInvSchema: RxJsonSchema<types.InvItemType> = createEntitySchema
         id: { type: 'string', maxLength: 100, final: true },
         name: { type: 'string', maxLength: 200 },
         description: { type: ['string', 'null'], maxLength: 500 },
-        category_id: { type: ['number', 'null'], ref: 'item_categories_inv' },
+        category_id: { type: ['string', 'null'], ref: 'item_categories_inv' },
         unit_of_measure: { type: 'string', maxLength: 50 },
         item_type: { type: 'string', enum: Object.values(types.InvItemTypeEnum), maxLength: 50 },
         current_price: { type: ['number', 'null'] },
@@ -99,7 +99,7 @@ export const stockLevelSchema: RxJsonSchema<types.InvStockLevelType> = createEnt
     {
         compositeId: { type: 'string', final: true, maxLength: 200 }, // PK
         item_id: { type: 'string', ref: 'items_inv', maxLength: 100 },
-        warehouse_id: { type: 'number', ref: 'warehouses' },
+        warehouse_id: { type: 'string', ref: 'warehouses' },
         quantity: { type: 'number' },
         batch_number: { type: ['string', 'null'], maxLength: 100 },
         expiry_date: { type: ['string', 'null'], format: 'date', maxLength: 20 },
@@ -120,7 +120,7 @@ export const stockTransactionSchema: RxJsonSchema<types.InvStockTransactionType>
     {
         id: { type: 'string', maxLength: 100, final: true },
         item_id: { type: 'string', ref: 'items_inv', maxLength: 100 },
-        warehouse_id: { type: 'number', ref: 'warehouses' },
+        warehouse_id: { type: 'string', ref: 'warehouses' },
         transaction_type: { type: 'string', enum: Object.values(types.InvStockTransactionType), maxLength: 50 },
         quantity: { type: 'number' },
         batch_number: { type: ['string', 'null'], maxLength: 100 },
@@ -182,7 +182,7 @@ export const purchaseOrderSchema: RxJsonSchema<types.InvPurchaseOrderType> = cre
     'purchase_order',
     {
         id: { type: 'string', maxLength: 100, final: true },
-        supplier_id: { type: 'number', ref: 'suppliers' }, 
+        supplier_id: { type: 'string', ref: 'suppliers' }, 
         order_date: { type: 'string', format: 'date', maxLength: 20 },
         expected_delivery_date: { type: ['string', 'null'], format: 'date', maxLength: 20 },
         status: { type: 'string', enum: Object.values(types.InvPurchaseOrderStatusEnum), maxLength: 50 },
@@ -219,7 +219,7 @@ export const rfqSchema: RxJsonSchema<types.InvRFQType> = createEntitySchema<type
 export const supplierSchema: RxJsonSchema<types.InvSupplierType> = createEntitySchema<types.InvSupplierType>(
     'supplier',
     {
-        id: { type: 'number', final: true },
+        id: { type: 'string', final: true },
         name: { type: 'string', maxLength: 200 },
         contact_person: { type: ['string', 'null'], maxLength: 100 },
         email: { type: ['string', 'null'], maxLength: 100 },
@@ -243,7 +243,7 @@ export const supplierContractSchema: RxJsonSchema<types.InvSupplierContractType>
     'supplier_contract',
     {
         id: { type: 'string', maxLength: 100, final: true },
-        supplier_id: { type: 'number', ref: 'suppliers' },
+        supplier_id: { type: 'string', ref: 'suppliers' },
         contract_number: { type: 'string', maxLength: 100 },
         title: { type: 'string', maxLength: 255 },
         description: { type: ['string', 'null'], maxLength: 1000 },
@@ -266,7 +266,7 @@ export const stockAlertSchema: RxJsonSchema<types.InvStockAlertType> = createEnt
     {
         id: { type: 'string', maxLength: 100, final: true },
         item_id: { type: 'string', ref: 'items_inv', maxLength: 100 },
-        warehouse_id: { type: 'number', ref: 'warehouses' },
+        warehouse_id: { type: 'string', ref: 'warehouses' },
         alert_type: { type: 'string', enum: ['LOW_STOCK', 'OVERSTOCK', 'EXPIRY_WARNING', 'EXPIRED'], maxLength: 50 },
         current_quantity: { type: 'number' },
         threshold_value: { type: ['number', 'null'] },

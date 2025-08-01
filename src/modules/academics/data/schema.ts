@@ -10,8 +10,8 @@ export const examScheduleSchema: RxJsonSchema<types.ExamScheduleEntity> = create
     {
         id: { type: 'string', maxLength: 100, final: true },
         exam_id: { type: 'string', ref: 'exam_sessions', maxLength: 100 },
-        period_id: { type: 'number', ref: 'timetable_period_definitions' },
-        class_stream_id: { type: 'number', ref: 'class_streams' },
+        period_id: { type: 'string', ref: 'timetable_period_definitions' },
+        class_stream_id: { type: 'string', ref: 'class_streams' },
         invigilator_id: { type: 'string', ref: 'staff', maxLength: 100 },
         room_number: { type: 'string', maxLength: 50 },
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
@@ -56,7 +56,7 @@ export const resultApprovalSchema: RxJsonSchema<types.ResultApprovalEntity> = cr
 
 export const subjectPaperProperties: RxJsonSchema<types.AcademicsSubjectPaperType>['properties'] = {
     id: { type: 'number', final: true },
-    subject_id: { type: 'number', ref: 'subjects' }, 
+    subject_id: { type: 'string', ref: 'subjects' }, 
     name: { type: 'string', maxLength: 150 },
     created_at: { type: 'string', format: 'date-time', maxLength: 50 },
     updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
@@ -69,7 +69,7 @@ export const subjectSchema: RxJsonSchema<types.AcademicsSubjectType> = createEnt
         subject_code: { type: 'string', maxLength: 20, final: true },
         abbreviation: { type: 'string', maxLength: 10 },
         name: { type: 'string', maxLength: 100 },
-        department_id: { type: ['number', 'null'], ref: 'departments' }, 
+        department_id: { type: ['string', 'null'], ref: 'departments' }, 
         is_compulsory: { type: 'boolean', default: false },
         grouping: { type: 'string', enum: Object.values(types.SubjectGrouping), maxLength: 50 },
         department_name: { type: ['string', 'null'], maxLength: 100 },
@@ -91,7 +91,7 @@ export const subjectPaperSchema: RxJsonSchema<types.AcademicsSubjectPaperType> =
 export const examPaperSettingProperties: RxJsonSchema<types.AcademicsExamPaperSettingType>['properties'] = {
     id: { type: 'string', maxLength: 100, final: true },
     exam_session_id: { type: 'string', ref: 'exam_sessions', maxLength: 100 },
-    subject_paper_id: { type: 'number', ref: 'subject_papers' },
+    subject_paper_id: { type: 'string', ref: 'subject_papers' },
     marks_out_of: { type: 'number' },
     weight_percentage: { type: 'number' },
     created_at: { type: 'string', format: 'date-time', maxLength: 50 },
@@ -114,7 +114,7 @@ export const examSessionSchema: RxJsonSchema<types.AcademicsExamSessionType> = c
     {
         id: { type: 'string', maxLength: 100, final: true },
         name: { type: 'string', maxLength: 150 },
-        school_period_id: { type: 'number', ref: 'school_periods' }, 
+        school_period_id: { type: 'string', ref: 'school_periods' }, 
         status: { type: 'string', enum: Object.values(types.ExamSessionStatus), maxLength: 50 },
         result_publication_date: { type: ['string', 'null'], format: 'date-time', maxLength: 50 },
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
@@ -191,9 +191,9 @@ export const classSubjectAllocationSchema: RxJsonSchema<types.AcademicsClassSubj
     'class_subject_allocation',
     {
         id: { type: 'string', maxLength: 100, final: true },
-        class_stream_id: { type: 'number', ref: 'class_streams' }, 
-        subject_id: { type: 'number', ref: 'subjects' },
-        academic_year_id: { type: 'number', ref: 'academic_years' }, 
+        class_stream_id: { type: 'string', ref: 'class_streams' }, 
+        subject_id: { type: 'string', ref: 'subjects' },
+        academic_year_id: { type: 'string', ref: 'academic_years' }, 
         class_stream_name: { type: ['string', 'null'], maxLength: 150 },
         subject_name: { type: ['string', 'null'], maxLength: 100 },
         academic_year_name: { type: ['string', 'null'], maxLength: 100 },
@@ -260,10 +260,10 @@ export const timetableEntrySchema: RxJsonSchema<types.AcademicsTimetableEntryTyp
     'timetable_entry',
     {
         id: { type: 'string', maxLength: 100, final: true },
-        class_stream_id: { type: 'number', ref: 'class_streams' }, 
+        class_stream_id: { type: 'string', ref: 'class_streams' }, 
         day_of_week: { type: 'string', enum: Object.values(types.DayOfWeek), maxLength: 20 },
-        period_id: { type: 'number', ref: 'timetable_period_definitions' },
-        subject_id: { type: 'number', ref: 'subjects' },
+        period_id: { type: 'string', ref: 'timetable_period_definitions' },
+        subject_id: { type: 'string', ref: 'subjects' },
         teacher_id: { type: 'string', ref: 'staff', maxLength: 100 }, 
         class_stream_name: { type: ['string', 'null'], maxLength: 150 },
         period_name: { type: ['string', 'null'], maxLength: 100 },
