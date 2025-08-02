@@ -245,18 +245,43 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const loadRxDB = async () => {
       try {
+        // Check if RxDB is available before loading
+        const hasIndexedDB = typeof window !== 'undefined' && window.indexedDB;
+        if (!hasIndexedDB) {
+          console.warn('IndexedDB not available, skipping RxDB initialization');
+          if (isMounted) {
+            setProdDepsError(new Error('IndexedDB not available'));
+            setIsProdDepsLoaded(true);
+          }
+          return;
+        }
+
         const [{ useRxDBData }, serviceModule] = await Promise.all([
           import('../hooks/useRxDBData'),
           import('../services/rxdbService'),
         ]);
 
         if (isMounted) {
+          // Check if database is actually available
+          const dbAvailable = serviceModule.isDatabaseAvailable?.() || serviceModule.initializationError === undefined;
+          
+          if (!dbAvailable) {
+            console.warn('RxDB database not available, falling back to mock mode');
+            setProdDepsError(new Error('RxDB database initialization failed'));
+            setIsProdDepsLoaded(true);
+            return;
+          }
+
           const urlParams = new URLSearchParams(window.location.search);
           if (urlParams.get('reset') === 'true') {
             console.log('Reset parameter detected, clearing database...');
-            const db = await serviceModule.getDatabase();
-            await serviceModule.clearDatabase(db);
-            console.log('Database cleared successfully.');
+            try {
+              const db = await serviceModule.getDatabase();
+              await serviceModule.clearDatabase(db);
+              console.log('Database cleared successfully.');
+            } catch (clearError) {
+              console.warn('Failed to clear database:', clearError);
+            }
             // Remove the query param to avoid re-clearing on hot-reload
             window.history.replaceState({}, document.title, window.location.pathname);
           }

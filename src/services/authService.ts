@@ -54,14 +54,96 @@ class AuthService {
   private isDemoMode: boolean = true;
   private currentSession: AuthSession | null = null;
   private sessionKey = 'schoolpilot_auth_session';
+  private rxDBAvailable: boolean = false;
+  private initializationComplete: boolean = false;
 
   constructor() {
-    // Use unified configuration to determine mode
-    const config = unifiedConfigManager.getConfig();
-    this.isDemoMode = config.mode === 'demo';
-    
-    // Restore session from localStorage
-    this.restoreSession();
+    // Initialize immediately
+    this.initialize();
+  }
+
+  private async initialize() {
+    try {
+      // Check RxDB availability using the new service methods
+      const hasIndexedDB = typeof window !== 'undefined' && window.indexedDB;
+      
+      if (!hasIndexedDB) {
+        console.warn('IndexedDB not available, forcing demo mode');
+        this.isDemoMode = true;
+        this.rxDBAvailable = false;
+        this.initializationComplete = true;
+        this.restoreSession();
+        return;
+      }
+
+      // Try to access RxDB with timeout
+      try {
+        const dbPromise = rxdbService.getDatabase();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('RxDB initialization timeout')), 5000)
+        );
+        
+        await Promise.race([dbPromise, timeoutPromise]);
+        this.rxDBAvailable = rxdbService.isDatabaseAvailable?.() || true;
+        console.log('RxDB is available:', this.rxDBAvailable);
+      } catch (error) {
+        console.warn('RxDB initialization failed, forcing demo mode:', error);
+        this.rxDBAvailable = false;
+      }
+
+      // Use unified configuration to determine mode
+      const config = unifiedConfigManager.getConfig();
+      
+      // Force demo mode if RxDB is not available
+      if (!this.rxDBAvailable) {
+        console.warn('RxDB not available, forcing demo mode');
+        this.isDemoMode = true;
+        unifiedConfigManager.switchToDemo();
+      } else {
+        this.isDemoMode = config.mode === 'demo';
+      }
+      
+      this.initializationComplete = true;
+      console.log(`AuthService initialized: Demo mode = ${this.isDemoMode}, RxDB available = ${this.rxDBAvailable}`);
+      
+      // Restore session from localStorage
+      this.restoreSession();
+      
+    } catch (error) {
+      console.error('AuthService initialization failed:', error);
+      // Force demo mode on any initialization error
+      this.isDemoMode = true;
+      this.initializationComplete = true;
+      this.restoreSession();
+    }
+  }
+
+  private async checkRxDBAvailability(): Promise<boolean> {
+    try {
+      // Check if RxDB modules can be loaded
+      await import('../services/rxdbService');
+      
+      // Check if IndexedDB is available
+      if (typeof window !== 'undefined' && window.indexedDB) {
+        const test = indexedDB.open('_rxdb_test');
+        await new Promise((resolve, reject) => {
+          test.onerror = () => reject(new Error('IndexedDB not available'));
+          test.onsuccess = () => {
+            indexedDB.deleteDatabase('_rxdb_test');
+            resolve(true);
+          };
+        });
+        this.rxDBAvailable = true;
+        return true;
+      }
+      
+      this.rxDBAvailable = false;
+      return false;
+    } catch (error) {
+      console.warn('RxDB availability check failed:', error);
+      this.rxDBAvailable = false;
+      return false;
+    }
   }
 
   // ===== SESSION MANAGEMENT =====
@@ -109,6 +191,11 @@ class AuthService {
   }
 
   public getCurrentSession(): AuthSession | null {
+    if (!this.initializationComplete) {
+      console.warn('AuthService not fully initialized');
+      return null;
+    }
+    
     if (!this.currentSession) {
       return this.restoreSession();
     }
@@ -116,14 +203,28 @@ class AuthService {
   }
 
   public isAuthenticated(): boolean {
+    if (!this.initializationComplete) {
+      return false;
+    }
+    
     const session = this.getCurrentSession();
     return session !== null && session.expiresAt > new Date();
+  }
+
+  public isInitialized(): boolean {
+    return this.initializationComplete;
   }
 
   // ===== AUTHENTICATION METHODS =====
 
   async login(credentials: LoginCredentials): Promise<AuthResult> {
     try {
+      // Wait for initialization if not complete
+      if (!this.initializationComplete) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        return this.login(credentials);
+      }
+
       if (this.isDemoMode) {
         return this.loginDemo(credentials);
       } else {
@@ -293,6 +394,14 @@ class AuthService {
   // ===== PRODUCTION MODE AUTHENTICATION =====
 
   private async loginProduction(credentials: LoginCredentials): Promise<AuthResult> {
+    if (!this.rxDBAvailable) {
+      return {
+        success: false,
+        message: 'Database not available. Please contact system administrator.',
+        errors: ['Database initialization failed']
+      };
+    }
+
     try {
       const db = await rxdbService.getDatabase();
       

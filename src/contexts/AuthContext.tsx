@@ -36,6 +36,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         setIsLoading(true);
         
+        // Wait for auth service initialization
+        const maxWaitTime = 5000; // 5 seconds max wait
+        const startTime = Date.now();
+        
+        while (!authService.isInitialized() && (Date.now() - startTime) < maxWaitTime) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        if (!authService.isInitialized()) {
+          console.warn('AuthService initialization timeout, proceeding with available state');
+        }
+        
         // Check if user is already authenticated
         if (authService.isAuthenticated()) {
           const currentUser = await authService.getCurrentUser();
@@ -144,4 +156,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

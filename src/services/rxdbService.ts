@@ -288,67 +288,74 @@ export type SchoolDatabaseCollections = {
 export type SchoolDatabase = RxDatabase<SchoolDatabaseCollections>;
 
 let dbPromise: Promise<SchoolDatabase> | null = null;
+let initializationError: Error | null = null;
+let isInitialized = false;
 
 export const initializeDatabase = async (): Promise<SchoolDatabase> => {
   console.log("RxDB: Initializing database...");
   
-  // Debug module collections before merging
-  console.log("RxDB: Checking module collections...");
-  console.log("academicsCollections:", academicsCollections);
-  console.log("administrationCollections:", administrationCollections);
-  console.log("financeCollections:", financeCollections);
-  console.log("hrCollections:", hrCollections);
-  console.log("inventoryCollections:", inventoryCollections);
-  console.log("libraryCollections:", libraryCollections);
-  console.log("nutritionCollections:", nutritionCollections);
-  
-  const db = await createRxDatabase<SchoolDatabaseCollections>({
-    name: RXDB_DB_NAME,
-    storage: wrappedValidateAjvStorage({
-      storage: getRxStorageDexie()
-    }),
-    multiInstance: !RXDB_LEADER_ELECTION_DISABLED,
-  });
-  console.log("RxDB: Database created.");
-  
-  const finalCollectionsDefinition: Record<string, { schema: RxJsonSchema<any>}> = {};
-  for (const key in collectionsDefinition) {
-    if (Object.prototype.hasOwnProperty.call(collectionsDefinition, key)) {
-        const collectionDef = collectionsDefinition[key];
-        try {
-          console.log(`RxDB: Processing collection: ${key}`);
-          if (!collectionDef || !collectionDef.schema) {
-            console.error(`RxDB: Collection '${key}' has undefined schema:`, collectionDef);
-            throw new Error(`Collection '${key}' has undefined schema`);
-          }
-          if (!collectionDef.schema.type) {
-            console.error(`RxDB: Collection '${key}' schema missing 'type' property:`, collectionDef.schema);
-            throw new Error(`Collection '${key}' schema missing 'type' property`);
-          }
-          finalCollectionsDefinition[key] = { schema: collectionDef.schema };
-          console.log(`RxDB: Successfully processed collection: ${key}`);
-        } catch (error) {
-          console.error(`RxDB: Failed to process collection '${key}':`, error);
-          console.error(`RxDB: Collection definition:`, collectionDef);
-          throw error;
-        }
-    }
-  }
-
   try {
-    console.log(`RxDB: Adding ${Object.keys(finalCollectionsDefinition).length} collections to database`);
-    await db.addCollections(finalCollectionsDefinition);
-    console.log(`RxDB: Successfully added all collections`);
+    // Check if IndexedDB is available
+    if (!window.indexedDB) {
+      throw new Error('IndexedDB is not available in this browser');
+    }
+    
+    // Debug module collections before merging
+    console.log("RxDB: Checking module collections...");
+    
+    const db = await createRxDatabase<SchoolDatabaseCollections>({
+      name: RXDB_DB_NAME,
+      storage: wrappedValidateAjvStorage({
+        storage: getRxStorageDexie()
+      }),
+      multiInstance: !RXDB_LEADER_ELECTION_DISABLED,
+    });
+    console.log("RxDB: Database created.");
+    
+    const finalCollectionsDefinition: Record<string, { schema: RxJsonSchema<any>}> = {};
+    for (const key in collectionsDefinition) {
+      if (Object.prototype.hasOwnProperty.call(collectionsDefinition, key)) {
+          const collectionDef = collectionsDefinition[key];
+          try {
+            console.log(`RxDB: Processing collection: ${key}`);
+            if (!collectionDef || !collectionDef.schema) {
+              console.error(`RxDB: Collection '${key}' has undefined schema:`, collectionDef);
+              throw new Error(`Collection '${key}' has undefined schema`);
+            }
+            if (!collectionDef.schema.type) {
+              console.error(`RxDB: Collection '${key}' schema missing 'type' property:`, collectionDef.schema);
+              throw new Error(`Collection '${key}' schema missing 'type' property`);
+            }
+            finalCollectionsDefinition[key] = { schema: collectionDef.schema };
+            console.log(`RxDB: Successfully processed collection: ${key}`);
+          } catch (error) {
+            console.error(`RxDB: Failed to process collection '${key}':`, error);
+            throw error;
+          }
+      }
+    }
+
+    try {
+      console.log(`RxDB: Adding ${Object.keys(finalCollectionsDefinition).length} collections to database`);
+      await db.addCollections(finalCollectionsDefinition);
+      console.log(`RxDB: Successfully added all collections`);
+    } catch (error) {
+      console.error(`RxDB: Failed to add collections to database:`, error);
+      throw error;
+    }
+    console.log("RxDB: Collections added.");
+    
+    if (typeof window !== 'undefined') {
+      (window as any).APP_DB = db;
+    }
+    
+    isInitialized = true;
+    return db;
   } catch (error) {
-    console.error(`RxDB: Failed to add collections to database:`, error);
+    console.error('RxDB: Database initialization failed:', error);
+    initializationError = error as Error;
     throw error;
   }
-  console.log("RxDB: Collections added.");
-  
-  if (typeof window !== 'undefined') {
-    (window as any).APP_DB = db;
-  }
-  return db;
 };
 
 export const getDatabase = (): Promise<SchoolDatabase> => {
@@ -356,6 +363,14 @@ export const getDatabase = (): Promise<SchoolDatabase> => {
     dbPromise = initializeDatabase();
   }
   return dbPromise;
+};
+
+export const isDatabaseAvailable = (): boolean => {
+  return isInitialized && !initializationError;
+};
+
+export const getDatabaseError = (): Error | null => {
+  return initializationError;
 };
 
 export const seedDatabaseWithMockData = async (db: SchoolDatabase, mockData: allTypes.RawInitialData): Promise<void> => {
