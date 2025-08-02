@@ -207,24 +207,24 @@ export const preNAsMarksSchema: RxJsonSchema<types.AdminPreNAsMarksType> = creat
         student_id: { type: ['string', 'null'], ref: 'students' },
         application_id: { type: ['string', 'null'], ref: 'admissions_applications' },
         index_number: { type: 'string', maxLength: 20 },
-        year: { type: 'number' },
+        year: { type: 'number', multipleOf: 1, minimum: 1900, maximum: 2100 },
         assessment_type: { type: 'string', enum: ['KCPE', 'CBC', 'Other'], default: 'KCPE', maxLength: 20 },
         
         // Core Subject Marks
-        english: { type: 'number', minimum: 0, maximum: 100 },
-        kiswahili: { type: 'number', minimum: 0, maximum: 100 },
-        mathematics: { type: 'number', minimum: 0, maximum: 100 },
-        science: { type: 'number', minimum: 0, maximum: 100 },
-        social_studies: { type: 'number', minimum: 0, maximum: 100 },
+        english: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 100 },
+        kiswahili: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 100 },
+        mathematics: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 100 },
+        science: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 100 },
+        social_studies: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 100 },
         
         // Additional CBC subjects (optional)
-        integrated_science: { type: ['number', 'null'], minimum: 0, maximum: 100 },
-        pre_technical_studies: { type: ['number', 'null'], minimum: 0, maximum: 100 },
-        creative_arts: { type: ['number', 'null'], minimum: 0, maximum: 100 },
+        integrated_science: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 100 },
+        pre_technical_studies: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 100 },
+        creative_arts: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 100 },
         
         // Calculated Fields
-        total_marks: { type: 'number' },
-        mean_grade: { type: 'number' },
+        total_marks: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
+        mean_grade: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 100 },
         overall_grade: { type: 'string', maxLength: 5 },
         
         // Meta
@@ -250,8 +250,8 @@ export const applicationReviewSchema: RxJsonSchema<types.AdminApplicationReviewT
         review_stage: { type: 'string', enum: Object.values(types.ReviewStage), maxLength: 50 },
         
         // Review Criteria
-        academic_score: { type: ['number', 'null'], minimum: 1, maximum: 100 },
-        interview_score: { type: ['number', 'null'], minimum: 1, maximum: 100 },
+        academic_score: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 100 },
+        interview_score: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 100 },
         behavioral_assessment: { type: ['string', 'null'], maxLength: 1000 },
         recommendation: { type: 'string', enum: Object.values(types.ReviewDecision), maxLength: 50 },
         
@@ -286,7 +286,7 @@ export const applicationDocumentSchema: RxJsonSchema<types.AdminApplicationDocum
         original_filename: { type: 'string', maxLength: 255 },
         stored_filename: { type: 'string', maxLength: 255 },
         file_path: { type: 'string', maxLength: 500 },
-        file_size: { type: 'number' },
+        file_size: { type: 'number', multipleOf: 1, minimum: 0, maximum: 999999999 },
         mime_type: { type: 'string', maxLength: 100 },
         
         // Verification
@@ -317,7 +317,7 @@ export const applicationInterviewSchema: RxJsonSchema<types.AdminApplicationInte
         // Scheduling
         scheduled_date: { type: 'string', format: 'date', maxLength: 20 },
         scheduled_time: { type: 'string', maxLength: 20 },
-        duration_minutes: { type: 'number', default: 30 },
+        duration_minutes: { type: 'number', default: 30, multipleOf: 1, minimum: 0, maximum: 999999 },
         location: { type: ['string', 'null'], maxLength: 200 },
         interview_type: { type: 'string', enum: Object.values(types.InterviewType), maxLength: 50 },
         
@@ -326,9 +326,9 @@ export const applicationInterviewSchema: RxJsonSchema<types.AdminApplicationInte
         attendance: { type: 'string', enum: Object.values(types.AttendanceType), maxLength: 50 },
         
         // Scoring
-        communication_score: { type: ['number', 'null'], minimum: 1, maximum: 10 },
-        confidence_score: { type: ['number', 'null'], minimum: 1, maximum: 10 },
-        academic_readiness_score: { type: ['number', 'null'], minimum: 1, maximum: 10 },
+        communication_score: { type: ['number', 'null'], multipleOf: 0.01, minimum: 1, maximum: 10 },
+        confidence_score: { type: ['number', 'null'], multipleOf: 0.01, minimum: 1, maximum: 10 },
+        academic_readiness_score: { type: ['number', 'null'], multipleOf: 0.01, minimum: 1, maximum: 10 },
         overall_impression: { type: ['string', 'null'], maxLength: 1000 },
         
         // Recommendations
@@ -396,9 +396,9 @@ export const smsCampaignSchema: RxJsonSchema<types.AdminSMSCampaignType> = creat
         
         // Status
         status: { type: 'string', enum: ['Draft', 'Scheduled', 'Sending', 'Sent', 'Failed'], maxLength: 50 },
-        total_recipients: { type: ['number', 'null'] },
-        successful_sends: { type: ['number', 'null'] },
-        failed_sends: { type: ['number', 'null'] },
+        total_recipients: { type: ['number', 'null'], multipleOf: 1, minimum: 0, maximum: 999999999 },
+        successful_sends: { type: ['number', 'null'], multipleOf: 1, minimum: 0, maximum: 999999999 },
+        failed_sends: { type: ['number', 'null'], multipleOf: 1, minimum: 0, maximum: 999999999 },
         
         // System
         created_by: { type: 'string', ref: 'users', maxLength: 100 },
@@ -423,10 +423,10 @@ export const bulkImportSchema: RxJsonSchema<types.AdminBulkImportType> = createE
         
         // Status
         status: { type: 'string', enum: ['Pending', 'Processing', 'Completed', 'Failed'], maxLength: 50 },
-        total_records: { type: 'number' },
-        processed_records: { type: 'number' },
-        successful_records: { type: 'number' },
-        failed_records: { type: 'number' },
+        total_records: { type: 'number', multipleOf: 1, minimum: 0, maximum: 999999999 },
+        processed_records: { type: 'number', multipleOf: 1, minimum: 0, maximum: 999999999 },
+        successful_records: { type: 'number', multipleOf: 1, minimum: 0, maximum: 999999999 },
+        failed_records: { type: 'number', multipleOf: 1, minimum: 0, maximum: 999999999 },
         
         // Results
         error_log: { type: ['string', 'null'], maxLength: 2000 },

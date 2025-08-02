@@ -26,9 +26,9 @@ export const bookSchema: RxJsonSchema<types.LibBookType> = createEntitySchema<ty
         publisher: { type: ['string', 'null'], maxLength: 200 },
         isbn: { type: ['string', 'null'], maxLength: 20 },
         accession_no: { type: 'string', maxLength: 50, final: true }, // Often unique
-        publication_year: { type: ['number', 'null'] },
+        publication_year: { type: ['number', 'null'], multipleOf: 1, minimum: 1000, maximum: 9999 },
         edition: { type: ['string', 'null'], maxLength: 50 },
-        purchase_cost: { type: ['number', 'null'] },
+        purchase_cost: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
         status: { type: 'string', enum: Object.values(types.LibBookStatusEnum), maxLength: 50 },
         location_shelf: { type: ['string', 'null'], maxLength: 100 },
         is_digital: { type: 'boolean', default: false }, // New field for digital resources
@@ -75,7 +75,7 @@ export const fineSchema: RxJsonSchema<types.LibFineType> = createEntitySchema<ty
     {
         id: { type: 'string', maxLength: 100, final: true },
         loan_id: { type: 'string', ref: 'loans', maxLength: 100 },
-        amount: { type: 'number' },
+        amount: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
         status: { type: 'string', enum: Object.values(types.LibFineStatusEnum), maxLength: 50 },
         reason: { type: ['string', 'null'], maxLength: 500 },
         fee_adjustment_id: { type: ['string', 'null'], maxLength: 100 /* ref: 'fee_adjustments' */ }, // If linking to finance

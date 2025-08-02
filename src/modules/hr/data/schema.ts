@@ -44,7 +44,7 @@ export const staffRecurringItemProperties: RxJsonSchema<types.HRStaffRecurringIt
     id: { type: 'string', maxLength: 100, final: true },
     staff_salary_setting_id: { type: 'string', maxLength: 100 }, // No ref, nested
     item_type_id: { type: 'string', ref: 'payroll_item_types' },
-    amount: { type: 'number' },
+    amount: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
     created_at: { type: ['string', 'null'], format: 'date-time', maxLength: 50 },
     item_type_name: { type: ['string', 'null'], maxLength: 100 },
     item_category: { type: ['string', 'null'], enum: [...Object.values(types.HRPayrollItemCategoryEnum), null] as any[] },
@@ -55,10 +55,10 @@ export const staffSalarySettingsSchema: RxJsonSchema<types.HRStaffSalarySettingT
     {
         id: { type: 'string', maxLength: 100, final: true },
         staff_id: { type: 'string', ref: 'staff', final: true, maxLength: 100 }, // staff_id should be unique for settings
-        basic_salary: { type: 'number' },
+        basic_salary: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
         payment_bank: { type: ['string', 'null'], maxLength: 100 },
         bank_account_no: { type: ['string', 'null'], maxLength: 50 },
-        max_advance_amount: { type: ['number', 'null'] },
+        max_advance_amount: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
         recurring_items: { type: ['array', 'null'], default: [], items: { type: 'object', properties: staffRecurringItemProperties } },
@@ -74,7 +74,7 @@ export const payslipItemProperties: RxJsonSchema<types.HRPayslipItemType>['prope
     payslip_id: { type: 'string', maxLength: 100 }, // No ref, nested
     item_type_id: { type: 'string', ref: 'payroll_item_types' },
     description: { type: ['string', 'null'], maxLength: 500 },
-    amount: { type: ['number', 'null'] },
+    amount: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
     item_type_name: { type: ['string', 'null'], maxLength: 100 },
     item_category: { type: ['string', 'null'], enum: [...Object.values(types.HRPayrollItemCategoryEnum), null] as any[] },
 };
@@ -85,9 +85,9 @@ export const payslipsSchema: RxJsonSchema<types.HRPayslipType> = createEntitySch
         id: { type: 'string', maxLength: 100, final: true },
         staff_id: { type: 'string', ref: 'staff', maxLength: 100 },
         payroll_period_id: { type: 'string', ref: 'payroll_periods' },
-        gross_salary: { type: ['number', 'null'] },
-        total_deductions: { type: ['number', 'null'] },
-        net_salary: { type: ['number', 'null'] },
+        gross_salary: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
+        total_deductions: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
+        net_salary: { type: ['number', 'null'], multipleOf: 0.01, minimum: -999999.99, maximum: 999999.99 },
         status: { type: ['string', 'null'], enum: [...Object.values(types.HRPayslipStatusEnum), null] },
         processed_at: { type: ['string', 'null'], format: 'date-time' },
         paid_at: { type: ['string', 'null'], format: 'date-time' },

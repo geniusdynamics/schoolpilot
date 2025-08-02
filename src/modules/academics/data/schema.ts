@@ -55,7 +55,7 @@ export const resultApprovalSchema: RxJsonSchema<types.ResultApprovalEntity> = cr
 // ABOUTME: This file outlines entities, relations, and methods related to the academic data.
 
 export const subjectPaperProperties: RxJsonSchema<types.AcademicsSubjectPaperType>['properties'] = {
-    id: { type: 'number', final: true },
+    id: { type: 'number', multipleOf: 1, minimum: 1, maximum: 999999999, final: true },
     subject_id: { type: 'string', ref: 'subjects' }, 
     name: { type: 'string', maxLength: 150 },
     created_at: { type: 'string', format: 'date-time', maxLength: 50 },
@@ -65,7 +65,7 @@ export const subjectPaperProperties: RxJsonSchema<types.AcademicsSubjectPaperTyp
 export const subjectSchema: RxJsonSchema<types.AcademicsSubjectType> = createEntitySchema<types.AcademicsSubjectType>(
     'subject',
     {
-        id: { type: 'number', final: true },
+        id: { type: 'number', multipleOf: 1, minimum: 1, maximum: 999999999, final: true },
         subject_code: { type: 'string', maxLength: 20, final: true },
         abbreviation: { type: 'string', maxLength: 10 },
         name: { type: 'string', maxLength: 100 },
@@ -92,8 +92,8 @@ export const examPaperSettingProperties: RxJsonSchema<types.AcademicsExamPaperSe
     id: { type: 'string', maxLength: 100, final: true },
     exam_session_id: { type: 'string', ref: 'exam_sessions', maxLength: 100 },
     subject_paper_id: { type: 'string', ref: 'subject_papers' },
-    marks_out_of: { type: 'number' },
-    weight_percentage: { type: 'number' },
+    marks_out_of: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
+    weight_percentage: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 100 },
     created_at: { type: 'string', format: 'date-time', maxLength: 50 },
     updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
     subject_paper_name: { type: ['string', 'null'], maxLength: 150 },
@@ -129,18 +129,18 @@ export const examSessionSchema: RxJsonSchema<types.AcademicsExamSessionType> = c
 );
 
 export const gradingSchemeLevelProperties: RxJsonSchema<types.AcademicsGradingSchemeLevelType>['properties'] = {
-    id: { type: 'number', final: true },
-    scheme_id: { type: 'number' }, 
+    id: { type: 'number', multipleOf: 1, minimum: 1, maximum: 999999999, final: true },
+    scheme_id: { type: 'number', multipleOf: 1, minimum: 1, maximum: 999999999 }, 
     grade: { type: 'string', maxLength: 10 },
-    min_score: { type: 'number' },
-    max_score: { type: ['number', 'null'] },
-    points: { type: ['number', 'null'] },
+    min_score: { type: 'number', multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
+    max_score: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
+    points: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
     comment: { type: ['string', 'null'], maxLength: 200 },
 };
 export const gradingSchemeSchema: RxJsonSchema<types.AcademicsGradingSchemeType> = createEntitySchema<types.AcademicsGradingSchemeType>(
     'grading_scheme',
     {
-        id: { type: 'number', final: true },
+        id: { type: 'number', multipleOf: 1, minimum: 1, maximum: 999999999, final: true },
         name: { type: 'string', maxLength: 100 },
         is_default: { type: 'boolean', default: false },
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
@@ -157,10 +157,10 @@ export const studentPaperMarkProperties: RxJsonSchema<types.AcademicsStudentPape
     id: { type: 'string', maxLength: 100, final: true }, 
     student_exam_result_id: { type: 'string', ref: 'student_exam_results', maxLength: 100 },
     paper_setting_id: { type: 'string', maxLength: 100 }, 
-    score: { type: ['number', 'null'] },
+    score: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
     subject_paper_name: { type: ['string', 'null'], maxLength: 150 },
     subject_name: { type: ['string', 'null'], maxLength: 100 },
-    marks_out_of: { type: ['number', 'null'] },
+    marks_out_of: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
 };
 export const studentExamResultSchema: RxJsonSchema<types.AcademicsStudentExamResultWithDetailsType> = createEntitySchema<types.AcademicsStudentExamResultWithDetailsType>(
     'student_exam_result',
@@ -168,10 +168,10 @@ export const studentExamResultSchema: RxJsonSchema<types.AcademicsStudentExamRes
         id: { type: 'string', maxLength: 100, final: true },
         student_id: { type: 'string', ref: 'students', maxLength: 100 }, 
         exam_session_id: { type: 'string', ref: 'exam_sessions', maxLength: 100 },
-        total_marks: { type: ['number', 'null'] },
+        total_marks: { type: ['number', 'null'], multipleOf: 0.01, minimum: 0, maximum: 999999.99 },
         mean_grade: { type: ['string', 'null'], maxLength: 10 },
-        class_rank: { type: ['number', 'null'] },
-        stream_rank: { type: ['number', 'null'] },
+        class_rank: { type: ['number', 'null'], multipleOf: 1, minimum: 1, maximum: 999999999 },
+        stream_rank: { type: ['number', 'null'], multipleOf: 1, minimum: 1, maximum: 999999999 },
         overall_comment: { type: ['string', 'null'], maxLength: 1000 },
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
@@ -245,7 +245,7 @@ export const studentSubjectEnrollmentSchema: RxJsonSchema<types.AcademicsStudent
 export const timetablePeriodDefSchema: RxJsonSchema<types.AcademicsTimetablePeriodDefType> = createEntitySchema<types.AcademicsTimetablePeriodDefType>(
     'timetable_period_definition', 
     {
-        id: { type: 'number' },
+        id: { type: 'number', multipleOf: 1, minimum: 1, maximum: 999999999 },
         period_name: { type: 'string', maxLength: 50 },
         start_time: { type: 'string', pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$', maxLength: 20 }, 
         end_time: { type: 'string', pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$', maxLength: 20 },   
