@@ -16,6 +16,7 @@ import { globalDataSyncMonitoringService, SyncStatus as DetailedSyncStatus } fro
 
 import type { AppDataContextType, RbacRole, Role } from '../core/types';
 import Spinner from '../components/ui/Spinner';
+import DismissibleBanner from '../components/DismissibleBanner';
 
 // Sync settings interface
 export interface SyncSettings {
@@ -744,37 +745,19 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       )}
       
       {!networkState.isOnline && (
-        <div style={{
-          position: 'fixed', 
-          top: '10px', 
-          right: '10px',
-          backgroundColor: 'rgba(239, 68, 68, 0.95)', 
-          color: 'white',
-          padding: '8px 15px', 
-          borderRadius: '8px', 
-          zIndex: 10000,
-          fontSize: '0.85em', 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-        }}>
-          <strong>Offline:</strong> Working in offline mode
-        </div>
+        <DismissibleBanner 
+          id="offline-banner"
+          message="Offline: Working in offline mode" 
+          type="error" 
+        />
       )}
       
       {networkState.isOnline && !networkState.backendAvailable && (
-        <div style={{
-          position: 'fixed', 
-          top: '10px', 
-          right: '10px',
-          backgroundColor: 'rgba(245, 158, 11, 0.95)', 
-          color: 'white',
-          padding: '8px 15px', 
-          borderRadius: '8px', 
-          zIndex: 10000,
-          fontSize: '0.85em', 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-        }}>
-          <strong>Backend Unavailable:</strong> Using local data
-        </div>
+        <DismissibleBanner 
+          id="backend-unavailable-banner"
+          message="Backend Unavailable: Using local data" 
+          type="warning" 
+        />
       )}
       
       {children}
