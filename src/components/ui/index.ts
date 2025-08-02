@@ -68,7 +68,7 @@ export { default as Card, CardHeader, CardTitle, CardDescription, CardContent } 
 export type { CardVariant, CardSize } from './Card';
 export { default as Table } from './Table';
 export { TableBody, TableCell, TableHead, TableHeader, TableRow, TableRoot } from './TableComponents';
-export { default as Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
+export { TabsRoot as Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export { default as Spinner } from './Spinner';
 export { default as Badge } from './Badge';
 export { Alert, AlertDescription } from './Alert';

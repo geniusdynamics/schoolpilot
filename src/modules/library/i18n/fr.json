@@ -1,4 +1,20 @@
 {
+  "navigation": {
+    "library": {
+      "title": "Bibliothèque",
+      "description": "Gérer le catalogue de livres, suivre les prêts et retours, gérer les amendes et superviser les ressources de la bibliothèque.",
+      "dashboard": "Tableau de Bord",
+      "books": "Livres",
+      "bookCategories": "Catégories de Livres",
+      "bookLoans": "Prêts de Livres",
+      "fines": "Amendes",
+      "userPortal": "Portail Utilisateur",
+      "digitalResources": "Ressources Numériques",
+      "damagedLostBooks": "Livres Endommagés/Perdus",
+      "importBooks": "Importer Livres",
+      "settings": "Paramètres"
+    }
+  },
   "dashboard": {
     "title": "TB Bibliothèque",
     "totalBooks": "Total Livres",
