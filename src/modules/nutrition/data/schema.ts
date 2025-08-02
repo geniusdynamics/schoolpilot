@@ -8,7 +8,7 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const mealPlanSchema: RxJsonSchema<types.MealPlan> = createEntitySchema<types.MealPlan>(
     'meal_plan',
     {
-        id: { type: 'string', final: true },
+        id: { type: 'string', maxLength: 100, final: true },
         name: { type: 'string', maxLength: 150 },
         description: { type: ['string', 'null'], maxLength: 500 },
         cost_per_period: { type: ['number', 'null'] },
@@ -78,7 +78,7 @@ export const mealConsumptionLogSchema: RxJsonSchema<types.MealConsumptionLog> = 
 export const merchantSchema: RxJsonSchema<types.Merchant> = createEntitySchema<types.Merchant>(
     'merchant',
     {
-        id: { type: 'string', final: true },
+        id: { type: 'string', maxLength: 100, final: true },
         name: { type: 'string', maxLength: 150 },
         gl_account_id: { type: ['string', 'null'], ref: 'chart_of_accounts' },
         gl_account_name: { type: ['string', 'null'], maxLength: 200 },

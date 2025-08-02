@@ -8,7 +8,7 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const bookCategorySchema: RxJsonSchema<types.LibBookCategoryType> = createEntitySchema<types.LibBookCategoryType>(
     'book_category',
     {
-        id: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
         name: { type: 'string', maxLength: 100 },
     },
     { key: 'id', type: 'string' },
@@ -20,7 +20,7 @@ export const bookSchema: RxJsonSchema<types.LibBookType> = createEntitySchema<ty
     'book',
     {
         id: { type: 'string', maxLength: 100, final: true },
-        category_id: { type: ['string', 'null'], ref: 'book_categories' },
+        category_id: { type: 'string', ref: 'book_categories', maxLength: 100 },
         title: { type: 'string', maxLength: 255 },
         author: { type: ['string', 'null'], maxLength: 200 },
         publisher: { type: ['string', 'null'], maxLength: 200 },
@@ -37,7 +37,7 @@ export const bookSchema: RxJsonSchema<types.LibBookType> = createEntitySchema<ty
         availability_status: { type: 'string', enum: Object.values(types.LibBookAvailabilityStatusEnum), default: 'available', maxLength: 50 }, // New field for advanced search (e.g., 'available', 'on-loan', 'reserved')
         damaged_status: { type: 'boolean', default: false }, // New field for damaged books
         lost_status: { type: 'boolean', default: false }, // New field for lost books
-        branch_id: { type: ['string', 'null'], maxLength: 100 }, // New field for branch association
+        branch_id: { type: 'string', maxLength: 100 }, // New field for branch association
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
         deleted_at: { type: ['string', 'null'], format: 'date-time', maxLength: 50 },
@@ -57,9 +57,9 @@ export const loanSchema: RxJsonSchema<types.LibLoanType> = createEntitySchema<ty
         userType: { type: 'string', enum: ['Staff', 'Student', 'Parent', 'Supplier'], maxLength: 50 },
         loan_date: { type: 'string', format: 'date', maxLength: 20 },
         due_date: { type: 'string', format: 'date', maxLength: 20 },
-        return_date: { type: ['string', 'null'], format: 'date', maxLength: 20 },
+        return_date: { type: 'string', format: 'date', maxLength: 20 },
         extended_due_date: { type: ['string', 'null'], format: 'date', maxLength: 20 },
-        branch_id: { type: ['string', 'null'], maxLength: 100 }, // New field for branch association
+        branch_id: { type: 'string', maxLength: 100 }, // New field for branch association
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
         book_title: { type: ['string', 'null'], maxLength: 255 },

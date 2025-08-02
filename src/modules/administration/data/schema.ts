@@ -26,10 +26,10 @@ export const partnerSchema: RxJsonSchema<types.AdminPartnerType> = createEntityS
 export const clubAndSocietySchema: RxJsonSchema<types.AdminClubAndSocietyType> = createEntitySchema<types.AdminClubAndSocietyType>(
     'club', // collection name remains 'club'
     {
-        id: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
         name: { type: 'string', maxLength: 150 },
         type: { type: 'string', enum: Object.values(types.ClubType), maxLength: 50 },
-        patron_id: { type: ['string', 'null'], ref: 'staff' }, 
+        patron_id: { type: 'string', ref: 'staff', maxLength: 100 }, 
         description: { type: ['string', 'null'], maxLength: 500 },
         patron_name: { type: ['string', 'null'], maxLength: 200 },
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
@@ -43,7 +43,7 @@ export const clubAndSocietySchema: RxJsonSchema<types.AdminClubAndSocietyType> =
 export const customerSchema: RxJsonSchema<types.AdminCustomerType> = createEntitySchema<types.AdminCustomerType>(
     'customer',
     {
-        id: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
         name: { type: 'string', maxLength: 200 },
         phone: { type: ['string', 'null'], maxLength: 20 },
         email: { type: ['string', 'null'], format: 'email', maxLength: 100 },
@@ -95,7 +95,7 @@ export const studentAttendanceSchema: RxJsonSchema<types.AdminStudentAttendanceT
 export const templateCommSchema: RxJsonSchema<types.AdminTemplateCommType> = createEntitySchema<types.AdminTemplateCommType>(
     'communication_template', // Collection name
     {
-        id: { type: 'string' },
+        id: { type: 'string', maxLength: 100 },
         name: { type: 'string', maxLength: 150 },
         type: { type: 'string', enum: Object.values(types.TemplateType), maxLength: 50 },
         subject: { type: ['string', 'null'], maxLength: 200 },
@@ -113,7 +113,7 @@ export const campaignSchema: RxJsonSchema<types.AdminCampaignType> = createEntit
     {
         id: { type: 'string', maxLength: 100 },
         name: { type: 'string', maxLength: 200 },
-        template_id: { type: ['string', 'null'], ref: 'communication_templates' },
+        template_id: { type: 'string', ref: 'communication_templates', maxLength: 100 },
         subject: { type: ['string', 'null'], maxLength: 200 },
         body: { type: ['string', 'null'], maxLength: 2000 }, 
         status: { type: 'string', enum: Object.values(types.CampaignStatus), maxLength: 50 },
@@ -122,7 +122,7 @@ export const campaignSchema: RxJsonSchema<types.AdminCampaignType> = createEntit
         scheduled_for: { type: ['string', 'null'], format: 'date-time', maxLength: 50 },
         sent_at: { type: ['string', 'null'], format: 'date-time', maxLength: 50 },
         created_by: { type: 'string', ref: 'users', maxLength: 100 }, 
-        approved_by: { type: ['string', 'null'], ref: 'users', maxLength: 100 }, 
+        approved_by: { type: 'string', ref: 'users', maxLength: 100 }, 
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
         template_name: { type: ['string', 'null'], maxLength: 150 },
@@ -204,8 +204,8 @@ export const preNAsMarksSchema: RxJsonSchema<types.AdminPreNAsMarksType> = creat
     'pre_nas_marks',
     {
         id: { type: 'string', maxLength: 100 },
-        student_id: { type: ['string', 'null'], ref: 'students' },
-        application_id: { type: ['string', 'null'], ref: 'admissions_applications' },
+        student_id: { type: 'string', ref: 'students', maxLength: 100 },
+        application_id: { type: 'string', ref: 'admissions_applications', maxLength: 100 },
         index_number: { type: 'string', maxLength: 20 },
         year: { type: 'number', multipleOf: 1, minimum: 1900, maximum: 2100 },
         assessment_type: { type: 'string', enum: ['KCPE', 'CBC', 'Other'], default: 'KCPE', maxLength: 20 },
@@ -353,7 +353,7 @@ export const applicationApprovalSchema: RxJsonSchema<types.AdminApplicationAppro
     {
         id: { type: 'string', maxLength: 100 },
         application_id: { type: 'string', ref: 'admissions_applications', maxLength: 100 },
-        review_id: { type: ['string', 'null'], ref: 'application_reviews' },
+        review_id: { type: 'string', ref: 'application_reviews', maxLength: 100 },
         approved_by: { type: 'string', ref: 'users', maxLength: 100 },
         approval_date: { type: 'string', format: 'date-time', maxLength: 50 },
         final_decision: { type: 'string', enum: Object.values(types.ApprovalDecision), maxLength: 50 },

@@ -69,7 +69,7 @@ export const subjectSchema: RxJsonSchema<types.AcademicsSubjectType> = createEnt
         subject_code: { type: 'string', maxLength: 20, final: true },
         abbreviation: { type: 'string', maxLength: 10 },
         name: { type: 'string', maxLength: 100 },
-        department_id: { type: ['string', 'null'], ref: 'departments' }, 
+        department_id: { type: 'string', ref: 'departments', maxLength: 100 }, 
         is_compulsory: { type: 'boolean', default: false },
         grouping: { type: 'string', enum: Object.values(types.SubjectGrouping), maxLength: 50 },
         department_name: { type: ['string', 'null'], maxLength: 100 },
@@ -120,7 +120,7 @@ export const examSessionSchema: RxJsonSchema<types.AcademicsExamSessionType> = c
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
         school_period_name: { type: ['string', 'null'], maxLength: 100 },
-        education_system_id: { type: ['string', 'null'], ref: 'education_system_configurations', maxLength: 100 },
+        education_system_id: { type: 'string', ref: 'education_system_configurations', maxLength: 100 },
         paper_settings: { type: ['array', 'null'], default: [], items: { type: 'object', properties: examPaperSettingProperties } },
     },
     { key: 'id', type: 'string' },
@@ -146,7 +146,7 @@ export const gradingSchemeSchema: RxJsonSchema<types.AcademicsGradingSchemeType>
         created_at: { type: 'string', format: 'date-time', maxLength: 50 },
         updated_at: { type: 'string', format: 'date-time', maxLength: 50 },
         levels: { type: 'array', items: { type: 'object', properties: gradingSchemeLevelProperties } },
-        education_system_id: { type: ['string', 'null'], ref: 'education_system_configurations', maxLength: 100 }
+        education_system_id: { type: 'string', ref: 'education_system_configurations', maxLength: 100 }
     },
     { key: 'id', type: 'number' },
     ['id', 'name', 'is_default', 'created_at', 'updated_at'],
