@@ -483,7 +483,7 @@ const AppInner: React.FC = () => {
       </HashRouter>
       
       {/* Performance Monitor Widget (Feature Flag Controlled) */}
-      {config.features.enablePerformanceMonitoring && (
+      {config.features.performanceMonitorWidget && (
         <PerformanceMonitorWidget 
           position="bottom-right"
           showDetails={true}
