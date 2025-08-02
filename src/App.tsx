@@ -300,8 +300,10 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
         </Suspense>
       )}
       
-      {/* Performance Monitor (development only) */}
-      <PerformanceMonitor showDetails={true} />
+      {/* Performance Monitor (Feature Flag Controlled) */}
+      {config.features.performanceMonitorWidget && (
+        <PerformanceMonitor showDetails={true} />
+      )}
     </Layout>
   );
 };

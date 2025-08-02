@@ -21,6 +21,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
   const [report, setReport] = useState<PerformanceReport | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false); // Auto-refresh toggle, default OFF
   
   const { trackUserInteraction } = usePerformanceMonitoring({
     componentName: 'PerformanceMonitorWidget'
@@ -44,9 +45,14 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
     }
   }, []);
 
-  // Initial load and periodic updates
+  // Initial load and optional auto-refresh
   useEffect(() => {
     updateReport();
+  }, [updateReport]);
+
+  // Optional auto-refresh (only if explicitly enabled by user)
+  useEffect(() => {
+    if (!autoRefresh || !isVisible) return;
     
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible' && isVisible) {
@@ -55,7 +61,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
     }, refreshInterval);
 
     return () => clearInterval(interval);
-  }, [refreshInterval, isVisible, updateReport]);
+  }, [refreshInterval, isVisible, autoRefresh, updateReport]);
 
   // Handle toggle expansion
   const handleToggleExpanded = () => {
@@ -160,6 +166,19 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
                   ×
                 </button>
               </div>
+            </div>
+
+            {/* Auto-refresh toggle */}
+            <div className="mb-3">
+              <label className="flex items-center text-xs text-gray-600">
+                <input
+                  type="checkbox"
+                  checked={autoRefresh}
+                  onChange={(e) => setAutoRefresh(e.target.checked)}
+                  className="mr-2 h-3 w-3 text-blue-600 rounded"
+                />
+                Auto-refresh (may cause flickering)
+              </label>
             </div>
 
             {/* Performance metrics */}
