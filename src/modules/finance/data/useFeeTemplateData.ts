@@ -2,18 +2,18 @@
 // ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '../../../core/types';
+import { initialMockFeeTemplates } from './mockData';
+import { FinFeeTemplateType as FeeTemplate } from '@/types';
 
 const useFeeTemplateData = () => {
-  const [feeTemplates, setFeeTemplates] = useState<any[]>([]);
+  const [feeTemplates, setFeeTemplates] = useState<FeeTemplate[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
       // Simulate fetching data from a mock source
-      setFeeTemplates(initialMockUsers);
+      setFeeTemplates(initialMockFeeTemplates);
       setIsLoading(false);
     } catch (e) {
       setError('Failed to fetch fee templates');
@@ -21,19 +21,19 @@ const useFeeTemplateData = () => {
     }
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
+  const create = async (newItem: Partial<FeeTemplate>) => {
+    const newDataItem: FeeTemplate = {
       ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as any;
-    setFeeTemplates((prev: any[]) => [...prev, newDataItem]);
+    } as FeeTemplate;
+    setFeeTemplates((prev: FeeTemplate[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setFeeTemplates((prev: any[]) => prev.map((item: any) =>
+  const update = async (id: number, updatedData: Partial<FeeTemplate>) => {
+    setFeeTemplates((prev: FeeTemplate[]) => prev.map((item: FeeTemplate) =>
       item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
@@ -41,7 +41,7 @@ const useFeeTemplateData = () => {
   };
 
   const remove = async (id: number) => {
-    setFeeTemplates((prev: any[]) => prev.filter((item: any) => item.id !== id));
+    setFeeTemplates((prev: FeeTemplate[]) => prev.filter((item: FeeTemplate) => item.id !== id));
   };
 
   return {
