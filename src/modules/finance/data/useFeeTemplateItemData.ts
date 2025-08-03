@@ -2,18 +2,18 @@
 // ABOUTME: Provides CRUD operations for any without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '../../../core/types';
+import { initialMockFeeTemplateItems } from './mockData';
+import { FinFeeTemplateItemType } from '@/types';
 
 const useFeeTemplateItemData = () => {
-  const [feeTemplateItems, setFeeTemplateItems] = useState<any[]>([]);
+  const [feeTemplateItems, setFeeTemplateItems] = useState<FinFeeTemplateItemType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
       // Simulate fetching data from a mock source
-      setFeeTemplateItems(initialMockUsers);
+      setFeeTemplateItems(initialMockFeeTemplateItems);
       setIsLoading(false);
     } catch (e) {
       setError('Failed to fetch fee template items');
@@ -21,19 +21,19 @@ const useFeeTemplateItemData = () => {
     }
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
+  const create = async (newItem: Partial<FinFeeTemplateItemType>) => {
+    const newDataItem: FinFeeTemplateItemType = {
       ...newItem,
       id: Date.now(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as any;
-    setFeeTemplateItems((prev: any[]) => [...prev, newDataItem]);
+    } as FinFeeTemplateItemType;
+    setFeeTemplateItems((prev: FinFeeTemplateItemType[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setFeeTemplateItems((prev: any[]) => prev.map((item: any) =>
+  const update = async (id: number, updatedData: Partial<FinFeeTemplateItemType>) => {
+    setFeeTemplateItems((prev: FinFeeTemplateItemType[]) => prev.map((item: FinFeeTemplateItemType) =>
       item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
@@ -41,7 +41,7 @@ const useFeeTemplateItemData = () => {
   };
 
   const remove = async (id: number) => {
-    setFeeTemplateItems((prev: any[]) => prev.filter((item: any) => item.id !== id));
+    setFeeTemplateItems((prev: FinFeeTemplateItemType[]) => prev.filter((item: FinFeeTemplateItemType) => item.id !== id));
   };
 
   return {
