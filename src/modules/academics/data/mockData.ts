@@ -3,10 +3,11 @@ import {
   Subject, SubjectPaper, ExamSession, ExamPaperSetting, GradingScheme, GradingSchemeLevel,
   StudentExamResult, StudentPaperMark, ClassSubjectAllocation, TeacherSubjectAssignment,
   StudentSubjectEnrollment, TimetablePeriodDef, TimetableEntry, StudentExamResultWithDetails,
-  DayOfWeek
+  DayOfWeek, ExamSchedule
 } from '../../../core/types';
 import {
-  SubjectGrouping, ExamSessionStatus, StudentEnrollmentStatus
+  SubjectGrouping, ExamSessionStatus, StudentEnrollmentStatus, EducationSystemType, 
+  GradingSystemType, AcademicPeriodType, AssessmentType
 } from './types';
 
 const generateId = (prefix: string = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -359,6 +360,221 @@ export const initialMockTimetableEntries: TimetableEntry[] = [
     {id: 'TTE024', class_stream_id: 3, day_of_week: DayOfWeek.MONDAY, period_id: 10, subject_id: 6, teacher_id: 'STF007', class_stream_name: 'Form 2 A', period_name: 'Lesson 8', subject_name: 'Chemistry', teacher_name: 'Stanley Hudson'}
 ];
 
+// Education System Configuration Mock Data
+export const educationSystemConfigurations: EducationSystemConfiguration[] = [
+  {
+    id: 'ESC001',
+    name: 'Kenya CBC Primary System',
+    system_type: EducationSystemType.CBC,
+    grading_system_type: GradingSystemType.PERCENTAGE,
+    description: 'Kenya Competency Based Curriculum for primary education',
+    country: 'Kenya',
+    min_grade_level: 1,
+    max_grade_level: 6,
+    grading_system: {
+      system_type: GradingSystemType.PERCENTAGE,
+      passing_threshold: 40,
+      grade_ranges: [
+        { grade: 'A', min: 80, max: 100, description: 'Excellent' },
+        { grade: 'B', min: 65, max: 79, description: 'Good' },
+        { grade: 'C', min: 50, max: 64, description: 'Satisfactory' },
+        { grade: 'D', min: 40, max: 49, description: 'Needs Improvement' },
+        { grade: 'E', min: 0, max: 39, description: 'Below Expectation' }
+      ]
+    },
+    assessment_rules: [
+      {
+        assessment_type: AssessmentType.CONTINUOUS_ASSESSMENT,
+        weight: 60,
+        min_assessments: 3,
+        max_assessments: 5,
+        description: 'Continuous Assessment Tests'
+      },
+      {
+        assessment_type: AssessmentType.END_TERM_EXAM,
+        weight: 40,
+        min_assessments: 1,
+        max_assessments: 1,
+        description: 'End of Term Examination'
+      }
+    ],
+    academic_periods: [
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 1',
+        start_month: 1,
+        end_month: 4,
+        order: 1
+      },
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 2',
+        start_month: 5,
+        end_month: 8,
+        order: 2
+      },
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 3',
+        start_month: 9,
+        end_month: 12,
+        order: 3
+      }
+    ],
+    subjects: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'ESC002',
+    name: 'Kenya CBC Secondary System',
+    system_type: EducationSystemType.CBC,
+    grading_system_type: GradingSystemType.PERCENTAGE,
+    description: 'Kenya Competency Based Curriculum for secondary education',
+    country: 'Kenya',
+    min_grade_level: 7,
+    max_grade_level: 12,
+    grading_system: {
+      system_type: GradingSystemType.PERCENTAGE,
+      passing_threshold: 50,
+      grade_ranges: [
+        { grade: 'A', min: 80, max: 100, description: 'Excellent' },
+        { grade: 'A-', min: 75, max: 79, description: 'Very Good' },
+        { grade: 'B+', min: 70, max: 74, description: 'Good Plus' },
+        { grade: 'B', min: 65, max: 69, description: 'Good' },
+        { grade: 'B-', min: 60, max: 64, description: 'Good Minus' },
+        { grade: 'C+', min: 55, max: 59, description: 'Above Average' },
+        { grade: 'C', min: 50, max: 54, description: 'Average' },
+        { grade: 'C-', min: 45, max: 49, description: 'Below Average' },
+        { grade: 'D+', min: 40, max: 44, description: 'Needs Improvement' },
+        { grade: 'D', min: 35, max: 39, description: 'Poor' },
+        { grade: 'E', min: 0, max: 34, description: 'Very Poor' }
+      ]
+    },
+    assessment_rules: [
+      {
+        assessment_type: AssessmentType.CONTINUOUS_ASSESSMENT,
+        weight: 30,
+        min_assessments: 2,
+        max_assessments: 4,
+        description: 'Continuous Assessment Tests'
+      },
+      {
+        assessment_type: AssessmentType.MID_TERM_EXAM,
+        weight: 30,
+        min_assessments: 1,
+        max_assessments: 1,
+        description: 'Mid Term Examination'
+      },
+      {
+        assessment_type: AssessmentType.END_TERM_EXAM,
+        weight: 40,
+        min_assessments: 1,
+        max_assessments: 1,
+        description: 'End of Term Examination'
+      }
+    ],
+    academic_periods: [
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 1',
+        start_month: 1,
+        end_month: 4,
+        order: 1
+      },
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 2',
+        start_month: 5,
+        end_month: 8,
+        order: 2
+      },
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 3',
+        start_month: 9,
+        end_month: 12,
+        order: 3
+      }
+    ],
+    subjects: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'ESC003',
+    name: 'Kenya 8-4-4 System',
+    system_type: EducationSystemType.TRADITIONAL,
+    grading_system_type: GradingSystemType.PERCENTAGE,
+    description: 'Traditional 8-4-4 education system',
+    country: 'Kenya',
+    min_grade_level: 1,
+    max_grade_level: 12,
+    grading_system: {
+      system_type: GradingSystemType.PERCENTAGE,
+      passing_threshold: 40,
+      grade_ranges: [
+        { grade: 'A', min: 80, max: 100, description: 'Excellent' },
+        { grade: 'A-', min: 75, max: 79, description: 'Very Good' },
+        { grade: 'B+', min: 70, max: 74, description: 'Good Plus' },
+        { grade: 'B', min: 65, max: 69, description: 'Good' },
+        { grade: 'B-', min: 60, max: 64, description: 'Good Minus' },
+        { grade: 'C+', min: 55, max: 59, description: 'Above Average' },
+        { grade: 'C', min: 50, max: 54, description: 'Average' },
+        { grade: 'C-', min: 45, max: 49, description: 'Below Average' },
+        { grade: 'D+', min: 40, max: 44, description: 'Needs Improvement' },
+        { grade: 'D', min: 35, max: 39, description: 'Poor' },
+        { grade: 'E', min: 0, max: 34, description: 'Very Poor' }
+      ]
+    },
+    assessment_rules: [
+      {
+        assessment_type: AssessmentType.CONTINUOUS_ASSESSMENT,
+        weight: 30,
+        min_assessments: 2,
+        max_assessments: 4,
+        description: 'Continuous Assessment Tests'
+      },
+      {
+        assessment_type: AssessmentType.END_TERM_EXAM,
+        weight: 70,
+        min_assessments: 1,
+        max_assessments: 1,
+        description: 'End of Term Examination'
+      }
+    ],
+    academic_periods: [
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 1',
+        start_month: 1,
+        end_month: 4,
+        order: 1
+      },
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 2',
+        start_month: 5,
+        end_month: 8,
+        order: 2
+      },
+      {
+        period_type: AcademicPeriodType.TERM,
+        name: 'Term 3',
+        start_month: 9,
+        end_month: 12,
+        order: 3
+      }
+    ],
+    subjects: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
 // Ensure all AppDataType keys for academics are exported
 export const subjects = initialMockSubjects;
 export const subjectPapers = initialMockSubjectPapers;
@@ -368,3 +584,42 @@ export const gradingSchemes = initialMockGradingSchemes;
 export const classSubjectAllocations = initialMockClassSubjectAllocations;
 export const teacherSubjectAssignments = initialMockTeacherSubjectAssignments;
 export const studentExamResults = initialMockStudentExamResults;
+
+// Exam Schedules
+export const initialMockExamSchedules: ExamSchedule[] = [
+  {
+    id: '1',
+    exam_session_id: '1',
+    class_stream_id: '1',
+    period_id: '1',
+    room: 'Room 101',
+    invigilator: 'Mr. Smith',
+    date: '2024-01-15',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '2',
+    exam_session_id: '1',
+    class_stream_id: '2',
+    period_id: '2',
+    room: 'Room 102',
+    invigilator: 'Ms. Johnson',
+    date: '2024-01-15',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: '3',
+    exam_session_id: '2',
+    class_stream_id: '1',
+    period_id: '1',
+    room: 'Room 201',
+    invigilator: 'Mr. Williams',
+    date: '2024-01-16',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+export const examSchedules = initialMockExamSchedules;

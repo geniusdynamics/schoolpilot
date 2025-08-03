@@ -16,6 +16,7 @@ import type {
   FinTransportRouteType,
   FinStudentTransportAssignmentType
 } from '../modules/finance/data/types';
+import type { EducationSystemConfiguration } from '../modules/academics/data/types';
 
 // --- Chart Data Types ---
 export interface ChartData {
@@ -141,6 +142,19 @@ export enum SubjectGrouping {
   GROUP_4_TECHNICALS = 'Group 4 (Technicals)',
   GROUP_5_LANGUAGES = 'Group 5 (Foreign Languages)',
   OTHER = 'Other/Optional'
+}
+
+// Exam Scheduling Types
+export interface ExamSchedule {
+  id: string;
+  exam_session_id: string;
+  class_stream_id: number;
+  period_id: number;
+  room: string;
+  invigilator: string;
+  date: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export enum StudentEnrollmentStatus {
@@ -1541,6 +1555,7 @@ export type AppDataType = {
   generalPayments: FinGeneralPaymentType[];
   generalLedgerEntries: FinGeneralLedgerEntryType[];
   rfqs: RFQ[];
+  educationSystemConfigurations: EducationSystemConfiguration[];
 };
 
 // Loading states should only map over the data types
@@ -1618,6 +1633,14 @@ export type AppDataContextType = AppDataType & {
   deleteRole: (id: string) => Promise<void>;
   assignRoleToUser: (userRole: UserRole) => Promise<void>;
   removeRoleFromUser: (userId: string, roleId: string) => Promise<void>;
+  // Education System Configuration CRUD
+  addEducationSystemConfiguration: (config: Partial<EducationSystemConfiguration>) => Promise<void>;
+  updateEducationSystemConfiguration: (config: EducationSystemConfiguration) => Promise<void>;
+  deleteEducationSystemConfiguration: (id: string) => Promise<void>;
+  // Exam Schedule CRUD
+  addExamSchedule: (schedule: Partial<ExamSchedule>) => Promise<void>;
+  updateExamSchedule: (schedule: ExamSchedule) => Promise<void>;
+  deleteExamSchedule: (id: string) => Promise<void>;
 };
 
 // Navigation and Module Types

@@ -7,6 +7,7 @@ import { AppDataContextType, AppDataLoadingStates } from '../types';
 // Import all module hooks
 import { useAcademicYearData } from '../modules/academics/data/useAcademicYearData';
 import { useClassSubjectAllocationData } from '../modules/academics/data/useClassSubjectAllocationData';
+import { useEducationSystemData } from '../modules/academics/data/useEducationSystemData';
 import { useExamPaperSettingData } from '../modules/academics/data/useExamPaperSettingData';
 import { useExamSessionData } from '../modules/academics/data/useExamSessionData';
 import { useGradingSchemeData } from '../modules/academics/data/useGradingSchemeData';
@@ -127,6 +128,7 @@ const createLoadingStates = (): AppDataLoadingStates => ({
   schoolPeriods: true,
   academicYearStructures: true,
   academicPeriodDefinitions: true,
+  educationSystemConfigurations: true,
   financialYears: true,
   classStreams: true,
   parentsGuardians: true,
@@ -195,9 +197,10 @@ export const useModularMockData = (): AppDataContextType => {
   const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
   const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
   const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
-  const { data: timetableperioddefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
+  const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
   const { data: academicperioddefinitions, create: addAcademicPeriodDefinition, update: updateAcademicPeriodDefinition, remove: deleteAcademicPeriodDefinition } = useAcademicPeriodDefinitionData();
   const { data: academicyearstructures, create: addAcademicYearStructure, update: updateAcademicYearStructure, remove: deleteAcademicYearStructure } = useAcademicYearStructureData();
+  const { data: educationSystemConfigurations, create: addEducationSystemConfiguration, update: updateEducationSystemConfiguration, remove: deleteEducationSystemConfiguration } = useEducationSystemData();
   const { data: campaigns, create: addCampaign, update: updateCampaign, remove: deleteCampaign } = useCampaignData();
   const { data: classs, create: addClass, update: updateClass, remove: deleteClass } = useClassData();
   const { data: classstreams, create: addClassStream, update: updateClassStream, remove: deleteClassStream } = useClassStreamData();
@@ -403,9 +406,11 @@ export const useModularMockData = (): AppDataContextType => {
     subjectPapers: subjectpapers,
     teacherSubjectAssignments: teachersubjectassignments,
     timetableEntries: timetableentrys,
-    timetablePeriodDefs: timetableperioddefs,
+    timetablePeriodDefs: timetablePeriodDefs,
     academicPeriodDefinitions: academicperioddefinitions,
     academicYearStructures: academicyearstructures,
+    educationSystemConfigurations: educationSystemConfigurations,
+    examSchedules: rawInitialData.examSchedules || [],
     
     // Administration data with correct naming
     campaigns: campaigns,
@@ -538,6 +543,22 @@ export const useModularMockData = (): AppDataContextType => {
     addFeeAdjustment,
     updateFeeAdjustment,
     deleteFeeAdjustment,
-    // Add other CRUD operations as needed
+    // Education System CRUD operations
+    addEducationSystemConfiguration,
+    updateEducationSystemConfiguration,
+    deleteEducationSystemConfiguration,
+    // Exam Schedule CRUD operations
+    addExamSchedule: async (schedule: any) => {
+      // Mock implementation - would connect to API
+      console.log('Adding exam schedule:', schedule);
+    },
+    updateExamSchedule: async (schedule: any) => {
+      // Mock implementation - would connect to API
+      console.log('Updating exam schedule:', schedule);
+    },
+    deleteExamSchedule: async (id: string) => {
+      // Mock implementation - would connect to API
+      console.log('Deleting exam schedule:', id);
+    },
   };
 };

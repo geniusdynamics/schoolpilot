@@ -28,7 +28,7 @@ const EducationSystemsPage: React.FC = () => {
     { 
       key: 'grading_system_type', 
       header: 'Grading System',
-      render: (value) => value.replace('_', ' ')
+      render: (value) => value?.replace('_', ' ') || 'N/A'
     },
     {
       key: 'is_default',
