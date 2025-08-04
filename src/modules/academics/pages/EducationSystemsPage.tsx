@@ -11,8 +11,8 @@ import EducationSystemConfigPage from './EducationSystemConfigPage';
 
 const EducationSystemsPage: React.FC = () => {
   const { 
-    educationSystemConfigurations, 
-    loading, 
+    educationSystemConfigurations = [], 
+    loading = false, 
     addEducationSystemConfiguration,
     updateEducationSystemConfiguration,
     deleteEducationSystemConfiguration 

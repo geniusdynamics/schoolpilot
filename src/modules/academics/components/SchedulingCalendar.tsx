@@ -23,10 +23,10 @@ interface ScheduleEvent {
 
 const SchedulingCalendar: React.FC = () => {
   const {
-    examSessions,
-    classStreams,
-    timetablePeriodDefs,
-    staffMembers,
+    examSessions = [],
+    classStreams = [],
+    timetablePeriodDefs = [],
+    staffMembers = [],
     examSchedules = [],
     addExamSchedule,
     updateExamSchedule,
