@@ -1,10 +1,7 @@
 # TODO:
 
-- [x] analyze_issues: Analyze current secondary sidebar mobile issues and create improvement plan (priority: High)
-- [x] mobile_positioning: Improve mobile positioning and spacing for better touch interaction (priority: High)
-- [x] touch_targets: Enhance touch targets and accessibility for mobile devices (priority: High)
-- [x] visual_hierarchy: Optimize visual hierarchy and content layout for small screens (priority: Medium)
-- [x] backdrop_overlay: Improve backdrop and overlay behavior for mobile (priority: Medium)
-- [x] animations: Add smoother animations and transitions optimized for mobile (priority: Medium)
-- [x] test_mobile: Test improvements across different mobile screen sizes (priority: Medium)
-- [x] update_docs: Update documentation with mobile enhancements (priority: Low)
+- [x] 1: Create missing useStaffData hook in administration module with addStaffMember, updateStaffMember, deleteStaffMember methods (priority: High)
+- [x] 2: Integrate useStaffData hook into useModularMockData to make staff CRUD operations available (priority: High)
+- [x] 3: Fix ExamSchedulingPage method name mismatches - change getAll() to getAllExamSchedules(), create() to createExamSchedule(), update() to updateExamSchedule(), delete() to deleteExamSchedule() (priority: Medium)
+- [x] 4: Fix Button components using invalid 'icon' prop - change to 'leftIcon' or 'rightIcon' (priority: Medium)
+- [x] 5: Fix components using 'startIcon' prop - change to 'leftIcon' (priority: Medium)

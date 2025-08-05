@@ -17,7 +17,7 @@ function getFallbackIcon(moduleKey: string) {
   }
 }
 
-// Enhanced icon wrapper component with improved mobile sizing
+// Enhanced icon wrapper component with improved mobile sizing and background blur for better visibility
 const IconWrapper: React.FC<{ 
   icon?: React.ComponentType<any>; 
   moduleKey: string; 
@@ -34,14 +34,17 @@ const IconWrapper: React.FC<{
       ${wrapperSize} 
       flex items-center justify-center 
       flex-shrink-0
+      backdrop-blur-sm bg-white/20 rounded-md
+      border border-white/10 shadow-sm
+      transition-all duration-200
       ${className}
     `}>
       {icon 
         ? React.createElement(icon, { 
-            className: `${iconSize} transition-all duration-200` 
+            className: `${iconSize} transition-all duration-200 relative z-10` 
           })
         : React.cloneElement(getFallbackIcon(moduleKey), {
-            className: `${iconSize} transition-all duration-200`
+            className: `${iconSize} transition-all duration-200 relative z-10`
           })
       }
     </div>
@@ -271,19 +274,19 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   // Enhanced sidebar width and positioning for mobile optimization
   const sidebarWidth = isMinimized ? 'w-14' : 'w-52';
   const sidebarClasses = isMobile
-    ? 'w-52 sm:w-48 fixed inset-y-0 left-14 sm:left-16 md:left-20 z-40 shadow-2xl' // Mobile: improved responsive positioning
+    ? 'w-44 sm:w-24 fixed inset-y-0 left-14 sm:left-16 md:left-20 z-40 shadow-2xl' // Mobile: compact responsive positioning
     : `${sidebarWidth} relative transition-all duration-300 ease-in-out`; // Desktop: smoother transitions
 
   return (
     <>
-      {/* Enhanced mobile backdrop with improved visual feedback */}
+      {/* Mobile backdrop for click-to-close functionality without screen dimming */}
       {isMobile && (
         <div 
           className={`
             fixed inset-0 left-14 sm:left-16 md:left-20 z-30 transition-all duration-300 ease-in-out
             ${isOpen 
-              ? 'bg-black/40 backdrop-blur-sm opacity-100 pointer-events-auto mobile-fade-in' 
-              : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none mobile-fade-out'
+              ? 'bg-transparent opacity-100 pointer-events-auto mobile-fade-in' 
+              : 'bg-transparent opacity-0 pointer-events-none mobile-fade-out'
             }
           `}
           onClick={isOpen ? onClose : undefined}
@@ -301,10 +304,6 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
               e.preventDefault();
               onClose();
             }
-          }}
-          style={{
-            backdropFilter: isOpen ? 'blur(4px)' : 'blur(0px)',
-            WebkitBackdropFilter: isOpen ? 'blur(4px)' : 'blur(0px)'
           }}
         />
       )}

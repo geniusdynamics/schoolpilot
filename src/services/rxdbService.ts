@@ -270,6 +270,7 @@ export const initializeDatabase = async (): Promise<SchoolDatabase> => {
         storage: getRxStorageDexie()
       }),
       multiInstance: !RXDB_LEADER_ELECTION_DISABLED,
+      ignoreDuplicate: true, // Allow duplicate instances in development (React strict mode)
     });
     console.log("RxDB: Database created.");
     
