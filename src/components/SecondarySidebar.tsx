@@ -17,16 +17,17 @@ function getFallbackIcon(moduleKey: string) {
   }
 }
 
-// Optimized icon wrapper component for better visual balance
+// Enhanced icon wrapper component with improved mobile sizing
 const IconWrapper: React.FC<{ 
   icon?: React.ComponentType<any>; 
   moduleKey: string; 
   className?: string;
   isMinimized?: boolean;
-}> = ({ icon, moduleKey, className = "", isMinimized = false }) => {
-  // Reduced icon sizing for better visual balance
-  const iconSize = "w-4 h-4";
-  const wrapperSize = isMinimized ? "w-5 h-5" : "w-5 h-5";
+  isMobile?: boolean;
+}> = ({ icon, moduleKey, className = "", isMinimized = false, isMobile = false }) => {
+  // Enhanced icon sizing for better mobile readability
+  const iconSize = isMobile ? "w-5 h-5" : "w-4 h-4";
+  const wrapperSize = isMinimized ? "w-5 h-5" : isMobile ? "w-6 h-6" : "w-5 h-5";
   
   return (
     <div className={`
@@ -160,6 +161,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
 
   // Find the selected main module from dynamic navigation items
@@ -168,17 +170,26 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const moduleKey = selectedModuleKey.split(':')[1]?.split('.')[0] || '';
   const moduleStyle = getModuleStyle(moduleKey);
 
-  // Improved responsive behavior with better breakpoints
+  // Enhanced responsive behavior with improved mobile breakpoints
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      // More granular mobile detection for better UX
       setIsMobile(width < 1024); // lg breakpoint
       
       // Auto-minimize on medium screens (768-1200px) for better space utilization
+      // Also consider device orientation and screen height for mobile devices
       if (width >= 768 && width < 1200) {
         setIsMinimized(true);
       } else if (width >= 1200) {
         setIsMinimized(false);
+      }
+      
+      // For very small screens or landscape mobile, force minimize
+      if (width < 640 || (width < 900 && height < 600)) {
+        setIsMinimized(true);
       }
     };
 
@@ -186,6 +197,41 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Enhanced keyboard navigation for accessibility
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) return;
+    
+    const items = filterItems(subMenus);
+    const maxIndex = items.length - 1;
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex(prev => prev < maxIndex ? prev + 1 : 0);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex(prev => prev > 0 ? prev - 1 : maxIndex);
+        break;
+      case 'Escape':
+        e.preventDefault();
+        if (isMobile) {
+          onClose();
+        }
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex <= maxIndex) {
+          const item = items[focusedIndex];
+          if (item.children) {
+            toggleGroup(item.name);
+          }
+        }
+        break;
+    }
+  };
 
   // Auto-close on mobile when clicking outside or on route change
   useEffect(() => {
@@ -222,19 +268,44 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     return null;
   }
 
-  // Optimized sidebar width for better visual balance
-  const sidebarWidth = isMinimized ? 'w-12' : 'w-48';
+  // Enhanced sidebar width and positioning for mobile optimization
+  const sidebarWidth = isMinimized ? 'w-14' : 'w-52';
   const sidebarClasses = isMobile
-    ? 'w-48 fixed inset-y-0 left-16 sm:left-20 z-30 shadow-2xl' // Mobile: fixed overlay positioning with offset for primary sidebar
-    : `${sidebarWidth} relative transition-all duration-300`; // Desktop: responsive width
+    ? 'w-52 sm:w-48 fixed inset-y-0 left-14 sm:left-16 md:left-20 z-40 shadow-2xl' // Mobile: improved responsive positioning
+    : `${sidebarWidth} relative transition-all duration-300 ease-in-out`; // Desktop: smoother transitions
 
   return (
     <>
-      {/* Mobile backdrop - reduced blur for better performance */}
-      {isMobile && isOpen && (
-        <div
-          className="fixed inset-0 left-16 sm:left-20 bg-black/20 z-20"
-          onClick={onClose}
+      {/* Enhanced mobile backdrop with improved visual feedback */}
+      {isMobile && (
+        <div 
+          className={`
+            fixed inset-0 left-14 sm:left-16 md:left-20 z-30 transition-all duration-300 ease-in-out
+            ${isOpen 
+              ? 'bg-black/40 backdrop-blur-sm opacity-100 pointer-events-auto mobile-fade-in' 
+              : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none mobile-fade-out'
+            }
+          `}
+          onClick={isOpen ? onClose : undefined}
+          onTouchStart={(e) => {
+            if (isOpen) {
+              e.preventDefault();
+              onClose();
+            }
+          }}
+          role={isOpen ? "button" : undefined}
+          aria-label={isOpen ? "Close sidebar" : undefined}
+          tabIndex={isOpen ? 0 : -1}
+          onKeyDown={(e) => {
+            if (isOpen && (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape')) {
+              e.preventDefault();
+              onClose();
+            }
+          }}
+          style={{
+            backdropFilter: isOpen ? 'blur(4px)' : 'blur(0px)',
+            WebkitBackdropFilter: isOpen ? 'blur(4px)' : 'blur(0px)'
+          }}
         />
       )}
 
@@ -242,14 +313,20 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         id="secondary-sidebar"
         className={`
           ${sidebarClasses}
-          ${isOpen ? 'block' : 'hidden'}
+          ${isOpen ? 'block transform translate-x-0 mobile-slide-in' : 'hidden transform -translate-x-full mobile-slide-out'}
           flex flex-col shadow-xl border-l ${moduleStyle.border}
           px-2 py-4
           ${moduleStyle.background}
           ${isMobile ? 'bg-white/98' : 'bg-white/95'}
           h-screen
           max-h-screen
+          transition-transform duration-300 ease-in-out
         `}
+        style={{
+          willChange: isMobile ? 'transform' : 'auto'
+        }}
+        onKeyDown={handleKeyDown}
+        tabIndex={-1}
       >
         {/* Control buttons - positioned to avoid search bar overlap */}
         <div className="absolute top-4 right-2 z-20 flex flex-col gap-1">
@@ -273,18 +350,31 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           )}
         </div>
         
-        {/* Close button - Distinctive red X floating at the tip */}
+        {/* Enhanced close button with better mobile touch targets */}
         <button
-          className="absolute -top-1 -right-1 z-30 text-red-600 hover:text-red-800 hover:bg-red-100 p-1.5 rounded-full bg-white shadow-lg border border-red-200 transition-all duration-200 hover:scale-110 hover:shadow-xl"
+          className={`
+            absolute ${isMobile ? '-top-2 -right-2 w-10 h-10 p-2' : '-top-1 -right-1 w-8 h-8 p-1.5'} 
+            z-40 text-red-600 hover:text-red-800 active:text-red-900
+            hover:bg-red-100 active:bg-red-200
+            rounded-full bg-white shadow-lg border border-red-200 
+            transition-all duration-200 hover:scale-110 hover:shadow-xl
+            focus:outline-none focus:ring-2 focus:ring-red-400/50
+            touch-manipulation
+          `}
           onClick={onClose}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            onClose();
+          }}
           title="Close sidebar"
+          aria-label="Close sidebar"
         >
-          <XIcon className="w-3 h-3" />
+          <XIcon className={`${isMobile ? 'w-5 h-5' : 'w-3 h-3'}`} />
         </button>
         
-        {/* Search bar - hidden when minimized */}
+        {/* Enhanced search bar with better mobile hierarchy */}
         {!isMinimized && (
-          <div className="mb-4 flex-shrink-0 relative z-10">
+          <div className="mb-3 sm:mb-4 flex-shrink-0 relative z-10">
             <input
               type="text"
               value={search}
@@ -294,74 +384,90 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                 w-full rounded-lg bg-white/80
                 border ${moduleStyle.border} 
                 ${moduleStyle.accent} 
-                px-3 py-1.5 
+                ${isMobile ? 'px-4 py-4 text-base font-medium' : 'px-3 py-1.5 text-sm'}
                 focus:outline-none focus:ring-2 focus:ring-current focus:ring-opacity-50
+                focus:bg-white/90 focus:placeholder-slate-600
                 placeholder-slate-500
-                shadow-sm
-                text-sm
+                ${isMobile ? 'shadow-lg' : 'shadow-sm'}
+                transition-all duration-200
+                touch-manipulation
               `}
+              autoComplete="off"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck="false"
             />
           </div>
         )}
         
-        {/* Navigation content - Scrollable area for menu items */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 relative z-10 min-h-0">
-          <ul className={`space-y-1 ${isMinimized ? 'items-center' : ''} pb-4`}>
+        {/* Enhanced navigation content with mobile-optimized scrolling */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 sm:pr-2 relative z-10 min-h-0">
+          <ul className={`${isMobile ? 'space-y-2' : 'space-y-1'} ${isMinimized ? 'items-center' : ''} pb-4 sm:pb-6`}>
             {filterItems(subMenus).map(item => (
               <li key={item.name}>
                 {item.isGroup && item.children ? (
                   <div className="relative group">
                     <button
                       onClick={() => !isMinimized && toggleGroup(item.name)}
+                      onFocus={() => setFocusedIndex(filterItems(subMenus).indexOf(item))}
                       className={`
-                        flex items-center ${isMinimized ? 'justify-center w-full px-1 py-2' : 'justify-between w-full px-2 py-1'} 
-                        text-xs uppercase tracking-wider 
+                        flex items-center ${isMinimized ? 'justify-center w-full px-1 py-2' : 'justify-between w-full px-3 py-2'} 
+                        ${isMobile ? 'min-h-[3rem] text-sm' : 'text-xs'} uppercase tracking-wider 
                         ${moduleStyle.accent} font-bold 
                         focus:outline-none ${moduleStyle.hover} 
-                        rounded transition-colors
-                        bg-white/10
-                        ${isMinimized ? 'min-h-[2rem]' : ''}
+                        rounded transition-all duration-200
+                        bg-white/10 hover:bg-white/20
+                        ${isMinimized ? 'min-h-[2.5rem]' : ''}
+                        touch-manipulation
+                        focus:ring-2 focus:ring-current focus:ring-opacity-50
+                        focus:bg-white/25 focus:scale-105
+                        ${focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''}
                       `}
                       title={isMinimized ? t(item.name) : undefined}
+                      tabIndex={0}
                     >
                       <span className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-2'}`}>
                         <IconWrapper 
                           icon={item.icon} 
                           moduleKey={moduleKey} 
                           isMinimized={isMinimized}
+                          isMobile={isMobile}
                         />
                         {!isMinimized && <span className="truncate text-xs">{t(item.name)}</span>}
                       </span>
                       {!isMinimized && <span className="flex-shrink-0 text-xs">{openGroups[item.name] ? '▼' : '▶'}</span>}
                     </button>
-                    {/* Tooltip for group items */}
-                    {isMinimized && (
-                      <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
-                        {t(item.name)}
-                        <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-r-[6px] border-t-transparent border-b-transparent border-r-slate-800"></div>
-                      </div>
-                    )}
+                    {/* Enhanced tooltip for group items - hidden on mobile to avoid touch conflicts */}
+                    {isMinimized && !isMobile && (
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
+                          {t(item.name)}
+                          <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-r-[6px] border-t-transparent border-b-transparent border-r-slate-800"></div>
+                        </div>
+                      )}
                     {openGroups[item.name] && !isMinimized && (
                       <ul className="space-y-1 mt-1">
                         {item.children.map((child: any) => (
                           <li key={child.name}>
                             <NavLink
                               to={child.path}
+                              onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
                               className={({ isActive, isPending }) =>
-                                `flex items-center gap-2 px-3 py-1.5 border border-transparent transition-all duration-200 rounded-lg ${
+                                `flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg ${
                                   isActive
                                     ? `${moduleStyle.activeLink} font-semibold shadow-sm`
                                     : isPending
                                       ? `${moduleStyle.hoverLink} bg-white/20`
                                       : `text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20`
-                                }`
+                                } touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105`
                               }
+                              tabIndex={0}
                             >
                               <IconWrapper 
                                 icon={child.icon} 
                                 moduleKey={moduleKey}
+                                isMobile={isMobile}
                               />
-                              <span className="font-medium text-sm truncate">{t(child.name)}</span>
+                              <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(child.name)}</span>
                             </NavLink>
                           </li>
                         ))}
@@ -372,25 +478,31 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                   <div className="relative group">
                     <NavLink
                       to={item.path}
+                      onFocus={() => setFocusedIndex(filterItems(subMenus).indexOf(item))}
                       className={({ isActive, isPending }) =>
-                        `flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2rem]' : 'gap-2 px-3 py-1.5'} border border-transparent transition-all duration-200 rounded-lg ${
+                        `flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg ${
                           isActive
                             ? `${moduleStyle.activeLink} font-semibold shadow-sm`
                             : isPending
                               ? `${moduleStyle.hoverLink} bg-white/20`
                               : `text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20`
+                        } touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 ${
+                          focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''
                         }`
                       }
                       title={isMinimized ? t(item.name) : undefined}
+                      tabIndex={0}
                     >
                       <IconWrapper 
                         icon={item.icon} 
                         moduleKey={moduleKey} 
                         isMinimized={isMinimized}
+                        isMobile={isMobile}
                       />
-                      {!isMinimized && <span className="font-medium text-sm truncate">{t(item.name)}</span>}
+                      {!isMinimized && <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(item.name)}</span>}
                     </NavLink>
-                    {isMinimized && (
+                    {/* Enhanced tooltip for standalone items - hidden on mobile */}
+                    {isMinimized && !isMobile && (
                         <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
                           {t(item.name)}
                           <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-b-[4px] border-r-[6px] border-t-transparent border-b-transparent border-r-slate-800"></div>
@@ -409,17 +521,90 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
             scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
           }
           .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
+            width: ${isMobile ? '8px' : '6px'};
           }
           .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(156, 163, 175, 0.5);
-            border-radius: 3px;
+            background-color: rgba(156, 163, 175, ${isMobile ? '0.6' : '0.5'});
+            border-radius: ${isMobile ? '4px' : '3px'};
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background-color: rgba(156, 163, 175, 0.7);
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:active {
+            background-color: rgba(156, 163, 175, 0.8);
+          }
+          
+          /* Enhanced touch scrolling and animations for mobile */
+          @media (max-width: 1024px) {
+            .custom-scrollbar {
+              -webkit-overflow-scrolling: touch;
+              scroll-behavior: smooth;
+            }
+            
+            /* Mobile-optimized animations */
+            .mobile-slide-in {
+              animation: slideInFromLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
+            
+            .mobile-slide-out {
+              animation: slideOutToLeft 0.25s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+            }
+            
+            .mobile-fade-in {
+              animation: fadeIn 0.2s ease-out;
+            }
+            
+            .mobile-fade-out {
+              animation: fadeOut 0.15s ease-in;
+            }
+          }
+          
+          /* Keyframes for mobile animations */
+          @keyframes slideInFromLeft {
+            from {
+              transform: translateX(-100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+          
+          @keyframes slideOutToLeft {
+            from {
+              transform: translateX(0);
+              opacity: 1;
+            }
+            to {
+              transform: translateX(-100%);
+              opacity: 0;
+            }
+          }
+          
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          
+          @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+          
+          /* Reduce motion for users who prefer it */
+          @media (prefers-reduced-motion: reduce) {
+            .custom-scrollbar,
+            .mobile-slide-in,
+            .mobile-slide-out,
+            .mobile-fade-in,
+            .mobile-fade-out {
+              animation: none !important;
+              transition: none !important;
+            }
           }
         `}</style>
       </aside>

@@ -8,7 +8,7 @@ import { createEntitySchema } from '../../../utils/schemaUtils';
 export const warehouseSchema: RxJsonSchema<types.InvWarehouseType> = createEntitySchema<types.InvWarehouseType>(
     'warehouse',
     {
-        id: { type: 'string', final: true },
+        id: { type: 'string', final: true, maxLength: 100 },
         name: { type: 'string', maxLength: 100 },
         location: { type: ['string', 'null'], maxLength: 200 },
     },
@@ -20,7 +20,7 @@ export const warehouseSchema: RxJsonSchema<types.InvWarehouseType> = createEntit
 export const itemCategoryInvSchema: RxJsonSchema<types.InvItemCategoryType> = createEntitySchema<types.InvItemCategoryType>(
     'item_category_inv',
     {
-        id: { type: 'string', final: true },
+        id: { type: 'string', final: true, maxLength: 100 },
         name: { type: 'string', maxLength: 100 },
     },
     'id',
