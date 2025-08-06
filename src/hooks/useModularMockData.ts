@@ -62,6 +62,7 @@ import { usePayslipData } from '../modules/hr/data/usePayslipData';
 import { usePayslipItemData } from '../modules/hr/data/usePayslipItemData';
 import { useStaffRecurringItemData } from '../modules/hr/data/useStaffRecurringItemData';
 import { useStaffSalarySettingData } from '../modules/hr/data/useStaffSalarySettingData';
+import { useStaffData } from '../modules/administration/data/useStaffData';
 import { useAssetDepreciationLogData } from '../modules/inventory/data/useAssetDepreciationLogData';
 import { useFixedAssetData } from '../modules/inventory/data/useFixedAssetData';
 import { useItemCategoryData } from '../modules/inventory/data/useItemCategoryData';
@@ -241,6 +242,7 @@ export const useModularMockData = (): AppDataContextType => {
   const { data: payslipitems, create: addPayslipItem, update: updatePayslipItem, remove: deletePayslipItem } = usePayslipItemData();
   const { data: staffrecurringitems, create: addStaffRecurringItem, update: updateStaffRecurringItem, remove: deleteStaffRecurringItem } = useStaffRecurringItemData();
   const { data: staffsalarysettings, create: addStaffSalarySetting, update: updateStaffSalarySetting, remove: deleteStaffSalarySetting } = useStaffSalarySettingData();
+  const { data: staff, addStaffMember, updateStaffMember, deleteStaffMember } = useStaffData();
   const { data: assetdepreciationlogs, create: addAssetDepreciationLog, update: updateAssetDepreciationLog, remove: deleteAssetDepreciationLog } = useAssetDepreciationLogData();
   const { data: fixedassets, create: addFixedAsset, update: updateFixedAsset, remove: deleteFixedAsset } = useFixedAssetData();
   const { data: itemcategorys, create: addItemCategory, update: updateItemCategory, remove: deleteItemCategory } = useItemCategoryData();
@@ -457,6 +459,7 @@ export const useModularMockData = (): AppDataContextType => {
     payslipItems: payslipitems,
     staffRecurringItems: staffrecurringitems,
     staffSalarySettings: staffsalarysettings,
+    staff: staff,
     
     // Inventory data with correct naming
     assetDepreciationLogs: assetdepreciationlogs,
@@ -560,5 +563,9 @@ export const useModularMockData = (): AppDataContextType => {
       // Mock implementation - would connect to API
       console.log('Deleting exam schedule:', id);
     },
+    // Staff CRUD operations
+    addStaffMember,
+    updateStaffMember,
+    deleteStaffMember,
   };
 };

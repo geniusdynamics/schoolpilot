@@ -41,7 +41,7 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
       if (examSessionId) {
         allSchedules = await scheduleManager.getByExamSession(parseInt(examSessionId));
       } else {
-        allSchedules = await scheduleManager.getAll();
+        allSchedules = await scheduleManager.getAllExamSchedules();
       }
       
       setSchedules(allSchedules);
@@ -72,7 +72,7 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
 
   const handleCreateSchedule = async (schedule: ExamSchedule) => {
     try {
-      const newSchedule = await scheduleManager.create(schedule);
+      const newSchedule = await scheduleManager.createExamSchedule(schedule);
       if (newSchedule) {
         setSchedules(prev => [...prev, newSchedule]);
         setShowCreateModal(false);
@@ -84,7 +84,7 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
 
   const handleUpdateSchedule = async (schedule: ExamSchedule) => {
     try {
-      const updated = await scheduleManager.update(schedule.id, schedule);
+      const updated = await scheduleManager.updateExamSchedule(schedule.id, schedule);
       if (updated) {
         setSchedules(prev => 
           prev.map(s => s.id === schedule.id ? updated : s)
@@ -102,7 +102,7 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
     }
 
     try {
-      const success = await scheduleManager.delete(scheduleId);
+      const success = await scheduleManager.deleteExamSchedule(scheduleId);
       if (success) {
         setSchedules(prev => prev.filter(s => s.id !== scheduleId));
       }

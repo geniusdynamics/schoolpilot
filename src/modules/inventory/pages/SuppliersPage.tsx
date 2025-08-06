@@ -274,7 +274,7 @@ const SuppliersPage: React.FC = () => {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          leftIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
         >
           {t('inventory.suppliers.add')}
