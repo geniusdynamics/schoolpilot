@@ -107,41 +107,57 @@ const rbacRoleSchema: RxJsonSchema<allTypes.RbacRole> = createEntitySchema<allTy
 const userRoleSchema: RxJsonSchema<allTypes.UserRole> = createEntitySchema<allTypes.UserRole>('user_role', { id: { type: 'string', maxLength: 100 }, user_id: { type: 'string', ref: 'users', maxLength: 100 }, role_id: { type: 'string', ref: 'rbac_roles', maxLength: 100 }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' }, }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'user_id', 'role_id', 'created_at', 'updated_at']);
 
 // --- Master Collections Definition (to be dynamically populated) ---
+// TEMPORARY: Reduced to 16 collections to stay within RxDB open-source limit
+// TODO: Purchase RxDB Premium or implement collection consolidation strategy
 export const collectionsDefinition: Record<string, { schema: RxJsonSchema<any>}> = { 
-  app_settings: { schema: appSettingsSchema },
-  school_details: { schema: schoolDetailsSchema },
+  // Core Essential Collections (16 total) - MVP for school management
   users: { schema: userSchema },
-  roles: { schema: roleSchema },
-  academic_year_structures: { schema: academicYearStructureSchema },
-  academic_period_definitions: { schema: academicPeriodDefinitionSchema },
-  academic_years: { schema: academicYearSchema },
-  workflows: { schema: workflowSchema },
-  workflow_states: { schema: workflowStateSchema },
-  education_system_configurations: { schema: educationSystemConfigurationSchema },
-  audit_logs: { schema: auditLogSchema },
-  parents_guardians: { schema: parentGuardianSchema },
   students: { schema: studentSchema },
-  student_guardian_relationships: { schema: studentGuardianRelationshipSchema },
   staff: { schema: staffSchema },
-  departments: { schema: departmentSchema },
-  designations: { schema: designationSchema },
-  student_categories: { schema: studentCategorySchema },
-  dormitories: { schema: dormitorySchema },
   classes: { schema: classSchema },
-  class_streams: { schema: classStreamSchema },
-  student_invoice_items: { schema: studentInvoiceItemSchema }, 
-  
-  // Module collections are merged below
-  ...academicsCollections,
-  ...administrationCollections,
-  ...financeCollections,
-  ...hrCollections,
-  ...inventoryCollections,
-  ...libraryCollections,
-  ...nutritionCollections,
+  academic_years: { schema: academicYearSchema },
+  departments: { schema: departmentSchema },
   permissions: { schema: permissionSchema },
   rbac_roles: { schema: rbacRoleSchema },
-  user_roles: { schema: userRoleSchema },
+  
+  // Essential module collections (8 remaining slots)
+  subjects: academicsCollections.subjects,
+  student_exam_results: academicsCollections.student_exam_results,
+  student_attendance: administrationCollections.student_attendance,
+  fee_templates: financeCollections.fee_templates,
+  student_invoices: financeCollections.student_invoices,
+  student_payments: financeCollections.student_payments,
+  books: libraryCollections.books,
+  loans: libraryCollections.loans,
+  
+  // DISABLED COLLECTIONS (72 total) - Temporarily commented out
+  // Core collections disabled:
+  // app_settings: { schema: appSettingsSchema },
+  // school_details: { schema: schoolDetailsSchema },
+  // roles: { schema: roleSchema },
+  // academic_year_structures: { schema: academicYearStructureSchema },
+  // academic_period_definitions: { schema: academicPeriodDefinitionSchema },
+  // workflows: { schema: workflowSchema },
+  // workflow_states: { schema: workflowStateSchema },
+  // education_system_configurations: { schema: educationSystemConfigurationSchema },
+  // audit_logs: { schema: auditLogSchema },
+  // parents_guardians: { schema: parentGuardianSchema },
+  // student_guardian_relationships: { schema: studentGuardianRelationshipSchema },
+  // designations: { schema: designationSchema },
+  // student_categories: { schema: studentCategorySchema },
+  // dormitories: { schema: dormitorySchema },
+  // class_streams: { schema: classStreamSchema },
+  // student_invoice_items: { schema: studentInvoiceItemSchema },
+  // user_roles: { schema: userRoleSchema },
+  
+  // Module collections disabled:
+  // Most of ...academicsCollections (9 collections)
+  // Most of ...administrationCollections (7 collections)
+  // Most of ...financeCollections (14 collections)
+  // All of ...hrCollections (4 collections)
+  // All of ...inventoryCollections (10 collections)
+  // Most of ...libraryCollections (2 collections)
+  // All of ...nutritionCollections (7 collections)
 };
 
 // Type for the database instance, mapping collection names to RxCollection types
@@ -209,6 +225,8 @@ export type SchoolDatabaseCollections = {
   subjects: RxCollection<academicTypes.AcademicsSubjectType>;
   subject_papers: RxCollection<academicTypes.AcademicsSubjectPaperType>;
   exam_sessions: RxCollection<academicTypes.AcademicsExamSessionType>;
+  exam_schedules: RxCollection<academicTypes.ExamScheduleEntity>;
+  result_approvals: RxCollection<academicTypes.ResultApprovalEntity>;
   grading_schemes: RxCollection<academicTypes.AcademicsGradingSchemeType>;
   student_exam_results: RxCollection<academicTypes.AcademicsStudentExamResultWithDetailsType>;
   class_subject_allocations: RxCollection<academicTypes.AcademicsClassSubjectAllocationType>;
@@ -288,6 +306,11 @@ export const initializeDatabase = async (): Promise<SchoolDatabase> => {
               console.error(`RxDB: Collection '${key}' schema missing 'type' property:`, collectionDef.schema);
               throw new Error(`Collection '${key}' schema missing 'type' property`);
             }
+            // Additional validation for schema structure
+            if (typeof collectionDef.schema !== 'object') {
+              console.error(`RxDB: Collection '${key}' schema is not an object:`, typeof collectionDef.schema);
+              throw new Error(`Collection '${key}' schema is not an object`);
+            }
             finalCollectionsDefinition[key] = { schema: collectionDef.schema };
             console.log(`RxDB: Successfully processed collection: ${key}`);
           } catch (error) {
@@ -299,7 +322,21 @@ export const initializeDatabase = async (): Promise<SchoolDatabase> => {
 
     try {
       console.log(`RxDB: Adding ${Object.keys(finalCollectionsDefinition).length} collections to database`);
-      await db.addCollections(finalCollectionsDefinition);
+      console.log(`RxDB: Collection names to be added:`, Object.keys(finalCollectionsDefinition));
+      
+      // Try adding collections one by one to identify the problematic one
+      for (const [collectionName, collectionDef] of Object.entries(finalCollectionsDefinition)) {
+        try {
+          console.log(`RxDB: Adding collection: ${collectionName}`);
+          await db.addCollections({ [collectionName]: collectionDef });
+          console.log(`RxDB: Successfully added collection: ${collectionName}`);
+        } catch (collectionError) {
+          console.error(`RxDB: Failed to add collection '${collectionName}':`, collectionError);
+          console.error(`RxDB: Collection definition for '${collectionName}':`, JSON.stringify(collectionDef, null, 2));
+          throw new Error(`Failed to add collection '${collectionName}': ${collectionError}`);
+        }
+      }
+      
       console.log(`RxDB: Successfully added all collections`);
     } catch (error) {
       console.error(`RxDB: Failed to add collections to database:`, error);
