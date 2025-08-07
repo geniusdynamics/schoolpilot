@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import { CogIcon, ArchiveIcon, DeleteIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@/components/ui/icons'; // Changed TrashIcon to DeleteIcon
 import { useTranslation } from 'react-i18next';
 import { useUnifiedConfig } from '@/contexts/UnifiedConfigContext';

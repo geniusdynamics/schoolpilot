@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { StudentWallet, WalletTransaction, Student, WalletTransactionType, StudentStatus } from '@/types';
 import { Card, DataGrid, Button, Modal, Input, Select, Textarea, Toast, Spinner } from '@/components/ui';
 import { PlusIcon, EyeIcon, CreditCardIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 
 type WalletTransactionFormData = {

@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Subscription } from 'rxjs';
 import { RxCollection, RxDocumentData } from 'rxdb';
 import type { SchoolDatabase, SchoolDatabaseCollections } from '../services/rxdbService';
-import { getDatabase, seedDatabaseWithMockData, clearDatabase as clearDbFnFromService, getUsingDummyDataFlag as getDummyFlagFnFromService, generateId, generateNumericId } from '../services/rxdbService';
+import { getDatabase, seedDatabaseWithMockData, clearDatabase as clearDbFnFromService, getUsingDummyDataFlag as getDummyFlagFnFromService, generateId, generateNumericId } from '../services/databaseService';
 import * as allTypes from '../types';
 import type { AppDataLoadingStates, RawInitialData, AppDataContextType } from '../types';
 import { rbacService } from '../core/rbacService';

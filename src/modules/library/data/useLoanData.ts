@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for loan without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { getDatabase } from '../../../services/rxdbService';
+import { getDatabase } from '../../../services/databaseService';
 import { LibLoanType } from './types';
 import { useToast } from '../../../hooks/useToast';
 

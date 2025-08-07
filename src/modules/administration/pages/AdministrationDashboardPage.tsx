@@ -1,7 +1,7 @@
 import React from 'react';
 import Card from '@/components/ui/Card';
 import { CogIcon, AcademicCapIcon, CalendarDaysIcon, UserGroupIcon, UsersIcon, PuzzlePieceIcon, BriefcaseIcon, BuildingOffice2Icon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { Link } from 'react-router-dom';
 import Button from '@/components/ui/Button';

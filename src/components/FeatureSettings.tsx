@@ -13,7 +13,7 @@ import {
   ArrowPathIcon,
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 import { 
   SyncStatusComponent, 

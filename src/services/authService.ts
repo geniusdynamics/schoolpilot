@@ -1,8 +1,8 @@
 // ABOUTME: Authentication service for user login, logout, and session management
 // ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (RxDB)
 
-import { useAppData } from '../contexts/AppDataContext';
-import * as rxdbService from './rxdbService';
+import { useAppData } from '../hooks/useAppData';
+import * as rxdbService from './databaseService';
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../core/rbacService';
 import { unifiedConfigManager } from '../config/unifiedConfig';
@@ -121,7 +121,7 @@ class AuthService {
   private async checkRxDBAvailability(): Promise<boolean> {
     try {
       // Check if RxDB modules can be loaded
-      await import('../services/rxdbService');
+      await import('../services/databaseService');
       
       // Check if IndexedDB is available
       if (typeof window !== 'undefined' && window.indexedDB) {

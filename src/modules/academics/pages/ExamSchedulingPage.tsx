@@ -6,7 +6,7 @@ import { ExamSchedule } from '../data/types';
 import { ExamScheduleManager } from '../services/ExamScheduleManager';
 import { ExamSchedulingUI } from '../components/ExamSchedulingUI';
 import SchedulingCalendar from '../components/SchedulingCalendar';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 
 interface ExamSchedulingPageProps {
   examSessionId?: string;

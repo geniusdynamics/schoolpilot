@@ -10,7 +10,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon as ClubsIcon } from '@/components/ui/icons';
 import { useClubAndSocietyData } from '@/modules/administration/data/useClubAndSocietyData';
-import { useAppData } from '@/contexts/AppDataContext'; // For staff data only
+import { useAppData } from '@/hooks/useAppData'; // For staff data only
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 

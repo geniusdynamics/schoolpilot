@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Subject, SubjectGrouping } from '@/core/types';
 import { useTranslation } from 'react-i18next';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 
 import Card from '@/components/ui/Card';

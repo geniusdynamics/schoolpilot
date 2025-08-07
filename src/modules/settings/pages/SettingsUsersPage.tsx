@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import { UserGroupIcon, PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import { User, Role } from '@/types';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';

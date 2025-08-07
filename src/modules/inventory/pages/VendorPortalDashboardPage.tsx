@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/icons';
 import { InvPurchaseOrderType, InvPurchaseOrderStatusEnum, InvRFQType, InvRFQStatusEnum } from '../data/types';
 import { FinSupplierInvoiceStatusEnum } from '../../finance/data/types';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 import PortalSidebar, { PortalNavItem } from '@/components/ui/PortalSidebar';
 

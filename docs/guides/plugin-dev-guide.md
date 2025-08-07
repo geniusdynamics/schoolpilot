@@ -2,7 +2,7 @@
 
 ## 1. Current Status
 
-Currently, the School Management System **does not have a formal plugin architecture or system**. The application is built as a single, modular frontend application.
+Currently, SchoolPilot **does not have a formal plugin architecture or system**. The application is built as a single, modular frontend application.
 
 ## 2. Extending the Application (The "Plugin" Pattern)
 

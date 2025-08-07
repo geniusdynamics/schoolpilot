@@ -96,7 +96,7 @@ const LoginPage: React.FC = () => {
             <LockClosedIcon className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">SchoolPilot</h1>
-          <p className="text-gray-600">School Management System</p>
+          <p className="text-gray-600">SchoolPilot</p>
         </div>
 
         {/* Login Form */}
@@ -240,4 +240,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage; 
+export default LoginPage;

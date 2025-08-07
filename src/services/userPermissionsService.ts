@@ -1,8 +1,8 @@
 // ABOUTME: User permissions service for managing users, user types, and permissions
 // ABOUTME: Works with both demo mode (mock data) and production mode (RxDB)
 
-import { useAppData } from '../contexts/AppDataContext';
-import * as rxdbService from './rxdbService';
+import { useAppData } from '../hooks/useAppData';
+import * as rxdbService from './databaseService';
 import type { RbacRole } from '../core/types';
 
 // Types for User Permissions System

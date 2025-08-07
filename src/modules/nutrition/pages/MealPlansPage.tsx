@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MealPlan } from '@/types';
 import { Card, DataGrid, Button, Modal, Input, Textarea, Toast, Spinner } from '@/components/ui';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 
 type MealPlanFormData = Omit<Partial<MealPlan>, 'id' | 'created_at' | 'updated_at'>;

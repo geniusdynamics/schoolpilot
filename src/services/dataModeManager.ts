@@ -54,7 +54,7 @@ export class DataModeManager {
   private async initializeServices(): Promise<void> {
     try {
       // Dynamically import RxDB service
-      const rxdbModule = await import('../services/rxdbService');
+      const rxdbModule = await import('../services/databaseService');
       this.rxdbService = rxdbModule.rxdbService || rxdbModule.default || rxdbModule;
 
       // Dynamically import mock data

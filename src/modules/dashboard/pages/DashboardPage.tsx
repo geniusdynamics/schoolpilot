@@ -3,7 +3,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import Card from '@/components/ui/Card';
 import { UsersIcon, UserGroupIcon, AcademicCapIcon, BookOpenIcon, IconProps, TicketIcon, ChartPieIcon as ExamIcon } from '@/components/ui/icons';
 // import { useMockData } from '@/hooks/useMockData'; // Switch
-import { useAppData } from '@/contexts/AppDataContext'; // Use
+import { useAppData } from '@/hooks/useAppData'; // Use
 import { StudentStatus, PersonGender, ChartData, BarChartData } from '@/types';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';

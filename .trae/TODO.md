@@ -1,7 +1,8 @@
 # TODO:
 
-- [x] 1: Check browser console for module collections debug logs to identify undefined collections (priority: High)
-- [x] 2: Count total collections in collectionsDefinition and identify which ones exceed the 16 limit (priority: High)
-- [ ] 3: Implement collection reduction strategy to stay under 16 collection limit (need to reduce from 88 to 16) (**IN PROGRESS**) (priority: High)
-- [ ] 4: Test database initialization after reducing collections (priority: High)
-- [ ] 5: Verify all critical functionality still works with reduced collections (priority: Medium)
+- [x] 1: Search for all references to 'schooll_management' database name in the codebase (priority: High)
+- [x] 2: Replace 'schooll_management' with 'schoolpilot' in all configuration files (priority: High)
+- [x] 3: Test the login functionality in demo mode to identify specific issues (priority: High)
+- [x] 4: Fix AppDataContext export error causing endless loading screen (priority: High)
+- [x] 5: Update all documentation references from 'School Management System' to 'SchoolPilot' (priority: High)
+- [ ] 6: Verify both database renaming and login fixes work correctly (**IN PROGRESS**) (priority: Medium)
