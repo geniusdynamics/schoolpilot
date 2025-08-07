@@ -1,7 +1,7 @@
 // Test script to verify the enhanced app integration
-import { NetworkStateManager } from './src/services/NetworkStateManager.js';
-import { BackendAPIService } from './src/services/BackendAPIService.js';
-import { DataStrategyManager } from './src/services/DataStrategyManager.js';
+import { NetworkStateManager } from '../../src/services/NetworkStateManager.js';
+import { BackendAPIService } from '../../src/services/BackendAPIService.js';
+import { DataStrategyManager } from '../../src/services/DataStrategyManager.js';
 
 console.log('🧪 Testing Enhanced App Integration - July 2025...\n');
 
