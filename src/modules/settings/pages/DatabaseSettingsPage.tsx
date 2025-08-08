@@ -10,10 +10,10 @@ import { useUnifiedConfig } from '@/contexts/UnifiedConfigContext';
 
 const DatabaseSettingsPage: React.FC = () => {
   const { 
-    isRxDBModeActive, 
-    isUsingRxDBDummyData, 
-    triggerSeedRxDB, 
-    triggerClearRxDB,
+    isRxDBModeActive: isDatabaseModeActive, 
+    isUsingRxDBDummyData: isUsingDatabaseDummyData, 
+    triggerSeedRxDB: triggerSeedDatabase, 
+    triggerClearRxDB: triggerClearDatabase,
     initializationError 
   } = useAppData();
   
@@ -25,17 +25,17 @@ const DatabaseSettingsPage: React.FC = () => {
   const [actionMessage, setActionMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   const handleSeedDatabase = async () => {
-    if (!triggerSeedRxDB) return;
-    if (!window.confirm("Are you sure you want to import dummy data? This will overwrite existing data in RxDB if any.")) {
+    if (!triggerSeedDatabase) return;
+    if (!window.confirm("Are you sure you want to import dummy data? This will overwrite existing data in the local database if any.")) {
       return;
     }
     setIsSeeding(true);
     setActionMessage(null);
     try {
-      await triggerSeedRxDB();
-      setActionMessage({ type: 'success', text: 'Dummy data successfully imported into RxDB.' });
+      await triggerSeedDatabase();
+      setActionMessage({ type: 'success', text: 'Dummy data successfully imported into local database.' });
     } catch (error: any) {
-      console.error("Error seeding RxDB:", error);
+      console.error("Error seeding database:", error);
       setActionMessage({ type: 'error', text: `Failed to import dummy data: ${error.message}` });
     } finally {
       setIsSeeding(false);
@@ -43,17 +43,17 @@ const DatabaseSettingsPage: React.FC = () => {
   };
 
   const handleClearDatabase = async () => {
-    if (!triggerClearRxDB) return;
-    if (!window.confirm("ARE YOU SURE you want to clear ALL data from RxDB? This action cannot be undone.")) {
+    if (!triggerClearDatabase) return;
+    if (!window.confirm("ARE YOU SURE you want to clear ALL data from the local database? This action cannot be undone.")) {
       return;
     }
     setIsClearing(true);
     setActionMessage(null);
     try {
-      await triggerClearRxDB();
-      setActionMessage({ type: 'success', text: 'All data successfully cleared from RxDB.' });
+      await triggerClearDatabase();
+      setActionMessage({ type: 'success', text: 'All data successfully cleared from local database.' });
     } catch (error: any) {
-      console.error("Error clearing RxDB:", error);
+      console.error("Error clearing database:", error);
       setActionMessage({ type: 'error', text: `Failed to clear data: ${error.message}` });
     } finally {
       setIsClearing(false);
@@ -78,7 +78,7 @@ const DatabaseSettingsPage: React.FC = () => {
       <Card title="Database Settings">
         <div className="p-6 text-center">
           <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-red-700">RxDB Initialization Failed</h3>
+          <h3 className="text-lg font-semibold text-red-700">Database Initialization Failed</h3>
           <p className="text-red-600 mt-1">The application is currently running in fallback mode using mock data.</p>
           <p className="text-sm text-gray-500 mt-2">Error: {initializationError.message}</p>
         </div>
@@ -86,12 +86,12 @@ const DatabaseSettingsPage: React.FC = () => {
     );
   }
   
-  if (!isRxDBModeActive && currentMode === 'production') {
+  if (!isDatabaseModeActive && currentMode === 'production') {
      return (
       <Card title="Database Settings">
         <div className="p-6 text-center">
           <Spinner />
-          <p className="text-gray-600 mt-2">Initializing RxDB service... Please wait.</p>
+          <p className="text-gray-600 mt-2">Initializing database service... Please wait.</p>
         </div>
       </Card>
     );
@@ -100,11 +100,11 @@ const DatabaseSettingsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="RxDB Database Management">
+      <Card title="Local Database Management">
         <div className="p-6 space-y-4">
-          <div className={`p-3 rounded-md text-sm ${isUsingRxDBDummyData ? 'bg-yellow-100 text-yellow-700' : (isUsingRxDBDummyData === false ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700')}`}>
+          <div className={`p-3 rounded-md text-sm ${isUsingDatabaseDummyData ? 'bg-yellow-100 text-yellow-700' : (isUsingDatabaseDummyData === false ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700')}`}>
             <strong>Current Status:</strong> 
-            {isUsingRxDBDummyData === null ? ' Checking...' : (isUsingRxDBDummyData ? ' RxDB is currently using imported dummy data.' : ' RxDB is using live data or is empty (not using dummy data).')}
+            {isUsingDatabaseDummyData === null ? ' Checking...' : (isUsingDatabaseDummyData ? ' Local database is currently using imported dummy data.' : ' Local database is using live data or is empty (not using dummy data).')}
           </div>
 
           <div className="space-x-4">
@@ -113,7 +113,7 @@ const DatabaseSettingsPage: React.FC = () => {
               disabled={isSeeding || isClearing} 
               leftIcon={isSeeding ? <Spinner size="sm"/> : <ArchiveIcon className="w-5 h-5"/>}
             >
-              {isSeeding ? 'Importing...' : 'Import Dummy Data to RxDB'}
+              {isSeeding ? 'Importing...' : 'Import Dummy Data to Database'}
             </Button>
             <Button 
               onClick={handleClearDatabase} 
@@ -121,7 +121,7 @@ const DatabaseSettingsPage: React.FC = () => {
               variant="danger"
               leftIcon={isClearing ? <Spinner size="sm"/> : <DeleteIcon className="w-5 h-5"/>}
             >
-              {isClearing ? 'Clearing...' : 'Clear All RxDB Data'}
+              {isClearing ? 'Clearing...' : 'Clear All Database Data'}
             </Button>
           </div>
           {actionMessage && (
@@ -130,7 +130,7 @@ const DatabaseSettingsPage: React.FC = () => {
             </div>
           )}
           <p className="text-xs text-gray-500 mt-2">
-            Note: 'Import Dummy Data' will clear existing RxDB data before populating. 'Clear All RxDB Data' is irreversible.
+            Note: 'Import Dummy Data' will clear existing database data before populating. 'Clear All Database Data' is irreversible.
           </p>
         </div>
       </Card>

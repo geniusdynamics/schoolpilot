@@ -2,7 +2,7 @@
 // ABOUTME: in exam schedules including room, invigilator, and student conflicts
 
 import { ExamSchedule } from '../data/types';
-import { RxDatabase } from 'rxdb';
+import { databaseService } from '../../../services/databaseService';
 
 export interface ConflictDetectionOptions {
   excludeScheduleId?: string;
@@ -13,11 +13,10 @@ export interface ConflictDetectionOptions {
 }
 
 export class ConflictDetectionEngine {
-  private db: RxDatabase;
   private defaultTimeWindow = 120; // 2 hours default
 
-  constructor(db?: RxDatabase) {
-    this.db = db;
+  constructor() {
+    // Database access is now handled through databaseService
   }
 
   async detect(schedule: ExamSchedule, options: ConflictDetectionOptions = {}): Promise<string[]> {
@@ -59,19 +58,19 @@ export class ConflictDetectionEngine {
 
   private async detectRoomConflict(schedule: ExamSchedule, options: ConflictDetectionOptions): Promise<string | null> {
     try {
-      if (!this.db || !schedule.room_number) return null;
+      if (!schedule.room_number) return null;
 
-      const collection = this.db.collections['exam_schedules'];
-      if (!collection) return null;
+      const db = await databaseService.getDatabase();
+      if (!db.exam_schedules) return null;
 
       // Find conflicting schedules for the same room
-      const conflictingSchedules = await collection.find({
+      const conflictingSchedules = await db.exam_schedules.find({
         selector: {
           room_number: schedule.room_number,
           period_id: schedule.period_id,
           ...(options.excludeScheduleId && { id: { $ne: options.excludeScheduleId } })
         }
-      }).exec();
+      }) || [];
 
       if (conflictingSchedules.length > 0) {
         return `Room ${schedule.room_number} is already scheduled for this period`;
@@ -86,19 +85,19 @@ export class ConflictDetectionEngine {
 
   private async detectInvigilatorConflict(schedule: ExamSchedule, options: ConflictDetectionOptions): Promise<string | null> {
     try {
-      if (!this.db || !schedule.invigilator_id) return null;
+      if (!schedule.invigilator_id) return null;
 
-      const collection = this.db.collections['exam_schedules'];
-      if (!collection) return null;
+      const db = await databaseService.getDatabase();
+      if (!db.exam_schedules) return null;
 
       // Find conflicting schedules for the same invigilator
-      const conflictingSchedules = await collection.find({
+      const conflictingSchedules = await db.exam_schedules.find({
         selector: {
           invigilator_id: schedule.invigilator_id,
           period_id: schedule.period_id,
           ...(options.excludeScheduleId && { id: { $ne: options.excludeScheduleId } })
         }
-      }).exec();
+      }) || [];
 
       if (conflictingSchedules.length > 0) {
         return `Invigilator ${schedule.invigilator_id} is already assigned to another exam at this time`;
@@ -113,21 +112,16 @@ export class ConflictDetectionEngine {
 
   private async detectStudentConflict(schedule: ExamSchedule, options: ConflictDetectionOptions): Promise<string | null> {
     try {
-      if (!this.db) return null;
+      const db = await databaseService.getDatabase();
 
       // For now, student conflicts would require knowing which students are in each class stream
       // This is a placeholder for more sophisticated student conflict detection
       
       // Get students in the class stream
-      const classStreamCollection = this.db.collections['class_streams'];
-      const studentCollection = this.db.collections['students'];
-      
-      if (!classStreamCollection || !studentCollection) return null;
+      if (!db.class_streams || !db.students) return null;
 
       // Find students in this class stream
-      const classStream = await classStreamCollection.findOne({
-        selector: { id: schedule.class_stream_id }
-      }).exec();
+      const classStream = await db.class_streams.findById(schedule.class_stream_id.toString());
 
       if (!classStream) return null;
 
@@ -148,22 +142,21 @@ export class ConflictDetectionEngine {
 
   private async getConflictingStudents(schedule: ExamSchedule, options: ConflictDetectionOptions): Promise<string[]> {
     try {
-      if (!this.db) return [];
+      const db = await databaseService.getDatabase();
 
       // This is a simplified implementation
       // In a real system, you'd need to check student enrollments and existing schedules
       
-      const collection = this.db.collections['exam_schedules'];
-      if (!collection) return [];
+      if (!db.exam_schedules) return [];
 
       // Find other schedules for the same class stream at the same time
-      const conflictingSchedules = await collection.find({
+      const conflictingSchedules = await db.exam_schedules.find({
         selector: {
           class_stream_id: schedule.class_stream_id,
           period_id: schedule.period_id,
           ...(options.excludeScheduleId && { id: { $ne: options.excludeScheduleId } })
         }
-      }).exec();
+      }) || [];
 
       // Return student IDs that would be affected (simplified)
       // In practice, you'd need to query actual student enrollment data

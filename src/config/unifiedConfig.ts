@@ -188,7 +188,7 @@ export const BACKEND_STATUS_CACHE_KEY = 'backend_status_cache';
 export const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // RxDB Constants (migrated from config.ts)
-export const RXDB_DB_NAME = 'school_management_db';
+export const RXDB_DB_NAME = 'schoolpilot';
 export const RXDB_LEADER_ELECTION_DISABLED = true;
 export const RXDB_SETTINGS_COLLECTION_NAME = 'app_settings';
 export const RXDB_DUMMY_DATA_FLAG_ID = 'using_dummy_data';

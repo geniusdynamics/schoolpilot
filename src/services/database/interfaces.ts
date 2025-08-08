@@ -2,7 +2,6 @@
 // Based on dual_database_architecture_master_reference.md
 
 import { Observable } from 'rxjs';
-import { RxJsonSchema } from 'rxdb';
 
 // Core database configuration
 export interface DatabaseConfig {

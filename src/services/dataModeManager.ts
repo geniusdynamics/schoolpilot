@@ -5,8 +5,8 @@
 
 import { unifiedConfigManager, DataMode } from '../config/unifiedConfig';
 
-// Import types for RxDB operations
-interface RxDBService {
+// Import types for database operations
+interface DatabaseService {
   seedDatabaseWithMockData: () => Promise<void>;
   clearDatabase: () => Promise<void>;
   getUsingDummyDataFlag: () => Promise<boolean>;
@@ -34,7 +34,7 @@ const DEFAULT_OPTIONS: Required<DataModeManagerOptions> = {
 export class DataModeManager {
   private static instance: DataModeManager;
   private listeners: Set<(mode: DataMode, isDemo: boolean) => void> = new Set();
-  private rxdbService: RxDBService | null = null;
+  private databaseService: DatabaseService | null = null;
   private mockData: ModularMockData | null = null;
 
   private constructor() {
@@ -53,9 +53,9 @@ export class DataModeManager {
    */
   private async initializeServices(): Promise<void> {
     try {
-      // Dynamically import RxDB service
-      const rxdbModule = await import('../services/databaseService');
-      this.rxdbService = rxdbModule.rxdbService || rxdbModule.default || rxdbModule;
+      // Dynamically import database service
+      const databaseModule = await import('../services/databaseService');
+      this.databaseService = databaseModule.rxdbService || databaseModule.default || databaseModule;
 
       // Dynamically import mock data
       const mockDataModule = await import('../hooks/useModularMockData');
@@ -106,20 +106,20 @@ export class DataModeManager {
       }
 
       // Ensure services are initialized
-      if (!this.rxdbService || !this.mockData) {
+      if (!this.databaseService || !this.mockData) {
         await this.initializeServices();
       }
 
-      if (!this.rxdbService) {
+      if (!this.databaseService) {
         return {
           success: false,
-          message: 'RxDB service not available. Cannot switch to demo mode.',
+          message: 'Database service not available. Cannot switch to demo mode.',
         };
       }
 
       // Clear existing data and seed with mock data
-      await this.rxdbService.clearDatabase();
-      await this.rxdbService.seedDatabaseWithMockData();
+      await this.databaseService.clearDatabase();
+      await this.databaseService.seedDatabaseWithMockData();
 
       // Update configuration
       await unifiedConfigManager.switchToDemo();
@@ -176,13 +176,13 @@ export class DataModeManager {
       }
 
       // Ensure services are initialized
-      if (!this.rxdbService) {
+      if (!this.databaseService) {
         await this.initializeServices();
       }
 
       // Clear demo data if active
-      if (config.demo.active && this.rxdbService) {
-        await this.rxdbService.clearDatabase();
+      if (config.demo.active && this.databaseService) {
+        await this.databaseService.clearDatabase();
       }
 
       // Update configuration
@@ -212,18 +212,18 @@ export class DataModeManager {
    */
   public async clearDemoData(): Promise<{ success: boolean; message: string }> {
     try {
-      if (!this.rxdbService) {
+      if (!this.databaseService) {
         await this.initializeServices();
       }
 
-      if (!this.rxdbService) {
+      if (!this.databaseService) {
         return {
           success: false,
-          message: 'RxDB service not available.',
+          message: 'Database service not available.',
         };
       }
 
-      const isDemoActive = await this.rxdbService.getUsingDummyDataFlag();
+      const isDemoActive = await this.databaseService.getUsingDummyDataFlag();
       
       if (!isDemoActive) {
         return {
@@ -232,7 +232,7 @@ export class DataModeManager {
         };
       }
 
-      await this.rxdbService.clearDatabase();
+      await this.databaseService.clearDatabase();
 
       return {
         success: true,
@@ -253,15 +253,15 @@ export class DataModeManager {
    */
   public async isDemoDataActive(): Promise<boolean> {
     try {
-      if (!this.rxdbService) {
+      if (!this.databaseService) {
         await this.initializeServices();
       }
 
-      if (!this.rxdbService) {
+      if (!this.databaseService) {
         return false;
       }
 
-      return await this.rxdbService.getUsingDummyDataFlag();
+      return await this.databaseService.getUsingDummyDataFlag();
     } catch (error) {
       console.error('Failed to check demo data status:', error);
       return false;
@@ -342,19 +342,19 @@ export class DataModeManager {
    * Validate that required services are available
    */
   public async validateServices(): Promise<{
-    rxdbAvailable: boolean;
+    databaseAvailable: boolean;
     mockDataAvailable: boolean;
     allServicesReady: boolean;
   }> {
     await this.initializeServices();
     
-    const rxdbAvailable = this.rxdbService !== null;
+    const databaseAvailable = this.databaseService !== null;
     const mockDataAvailable = this.mockData !== null;
     
     return {
-      rxdbAvailable,
+      databaseAvailable,
       mockDataAvailable,
-      allServicesReady: rxdbAvailable && mockDataAvailable,
+      allServicesReady: databaseAvailable && mockDataAvailable,
     };
   }
 
@@ -362,12 +362,12 @@ export class DataModeManager {
    * Get service status for debugging
    */
   public getServiceStatus(): {
-    rxdbService: boolean;
+    databaseService: boolean;
     mockData: boolean;
     listeners: number;
   } {
     return {
-      rxdbService: this.rxdbService !== null,
+      databaseService: this.databaseService !== null,
       mockData: this.mockData !== null,
       listeners: this.listeners.size,
     };

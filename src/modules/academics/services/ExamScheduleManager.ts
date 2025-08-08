@@ -3,7 +3,7 @@
 
 import { ExamSchedule } from '../data/types';
 import { ConflictDetectionEngine } from './ConflictDetectionEngine';
-import { RxDatabase } from 'rxdb';
+import { databaseService, generateId } from '../../../services/databaseService';
 
 export interface CreateExamScheduleDto {
   exam_id: string;
@@ -40,11 +40,9 @@ export interface ConflictCheckResult {
 }
 
 export class ExamScheduleManager {
-  private db: RxDatabase;
   private conflictDetector: ConflictDetectionEngine;
 
-  constructor(db: RxDatabase) {
-    this.db = db;
+  constructor() {
     this.conflictDetector = new ConflictDetectionEngine();
   }
 
@@ -66,7 +64,7 @@ export class ExamScheduleManager {
       }
 
       // Generate unique ID
-      const id = this.generateId();
+      const id = generateId();
       
       const newSchedule: ExamSchedule = {
         id,
@@ -76,8 +74,8 @@ export class ExamScheduleManager {
       };
 
       // Save to database
-      const collection = this.db.collections['exam_schedules'];
-      await collection.insert(newSchedule);
+      const db = await databaseService.getDatabase();
+      await db.exam_schedules?.insert(newSchedule);
 
       return newSchedule;
     } catch (error) {
@@ -88,9 +86,9 @@ export class ExamScheduleManager {
 
   async getExamSchedule(id: string): Promise<ExamSchedule | null> {
     try {
-      const collection = this.db.collections['exam_schedules'];
-      const schedule = await collection.findOne({ selector: { id } }).exec();
-      return schedule ? schedule.toJSON() : null;
+      const db = await databaseService.getDatabase();
+      const schedule = await db.exam_schedules?.findById(id);
+      return schedule || null;
     } catch (error) {
       console.error('Error fetching exam schedule:', error);
       throw error;
@@ -99,7 +97,7 @@ export class ExamScheduleManager {
 
   async getAllExamSchedules(query?: ExamScheduleQuery): Promise<ExamSchedule[]> {
     try {
-      const collection = this.db.collections['exam_schedules'];
+      const db = await databaseService.getDatabase();
       let selector: any = {};
 
       if (query) {
@@ -117,8 +115,8 @@ export class ExamScheduleManager {
         }
       }
 
-      const schedules = await collection.find({ selector }).exec();
-      return schedules.map(doc => doc.toJSON());
+      const schedules = await db.exam_schedules?.find({ selector }) || [];
+      return schedules;
     } catch (error) {
       console.error('Error fetching exam schedules:', error);
       throw error;
@@ -146,10 +144,8 @@ export class ExamScheduleManager {
       }
 
       // Update in database
-      const collection = this.db.collections['exam_schedules'];
-      await collection.findOne({ selector: { id } }).update({
-        $set: updatedSchedule
-      });
+      const db = await databaseService.getDatabase();
+      await db.exam_schedules?.update(id, updatedSchedule);
 
       return updatedSchedule;
     } catch (error) {
@@ -160,8 +156,8 @@ export class ExamScheduleManager {
 
   async deleteExamSchedule(id: string): Promise<boolean> {
     try {
-      const collection = this.db.collections['exam_schedules'];
-      const result = await collection.findOne({ selector: { id } }).remove();
+      const db = await databaseService.getDatabase();
+      const result = await db.exam_schedules?.remove(id);
       return !!result;
     } catch (error) {
       console.error('Error deleting exam schedule:', error);

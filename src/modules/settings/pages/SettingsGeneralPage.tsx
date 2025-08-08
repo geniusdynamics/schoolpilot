@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 const SettingsGeneralPage: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
-  const { schoolDetails, users, isRxDBModeActive } = useAppData();
+  const { schoolDetails, users, isRxDBModeActive: isDatabaseModeActive } = useAppData();
 
   return (
     <div className="space-y-6">
@@ -194,7 +194,7 @@ const SettingsGeneralPage: React.FC = () => {
               Data Mode
             </label>
             <p className="text-gray-900">
-              {isRxDBModeActive ? 'Local Database (RxDB)' : 'Mock Data'}
+              {isDatabaseModeActive ? 'Local Database' : 'Mock Data'}
             </p>
           </div>
           <div>
