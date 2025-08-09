@@ -1,5 +1,16 @@
 // Import required types from core
 import { Student, InvoiceStatus, ParentsGuardian } from '../../../core/types';
+import * as enums from './enums';
+
+// Re-export all enums for use by other files
+export { 
+  ResultState,
+  BreakType,
+  EducationSystemType,
+  GradingSystemType,
+  AcademicPeriodType,
+  AssessmentType
+} from './enums';
 
 export interface ExamSchedule {
   id: string;
@@ -13,28 +24,19 @@ export interface ExamSchedule {
 }
 
 
-export enum ResultState {
-  DRAFT = 'Draft',
-  SUBMITTED = 'Submitted',
-  REVIEWED = 'Reviewed',
-  APPROVED = 'Approved',
-  REJECTED = 'Rejected',
-  PUBLISHED = 'Published'
-}
-
 export interface AuditLog {
   timestamp: string;
   user_id: string;
   action: string;
-  previous_state: ResultState;
-  new_state: ResultState;
+  previous_state: enums.ResultState;
+  new_state: enums.ResultState;
 }
 
 export interface ResultApprovalEntity {
   id: string;
   result_id: string;
   result?: StudentExamResult;
-  state: ResultState;
+  state: enums.ResultState;
   created_by: string;
   updated_by: string;
   created_at: string;
@@ -73,7 +75,7 @@ export interface Subject {
   name: string;
   department_id?: string | null;
   is_compulsory?: boolean | null;
-  grouping: SubjectGrouping;
+  grouping: enums.SubjectGrouping;
   department_name?: string | null;
   papers?: SubjectPaper[];
 }
@@ -103,7 +105,7 @@ export interface StudentSubjectEnrollment {
   student_id: string;
   class_subject_allocation_id: string;
   enrollment_date: string;
-  status: StudentEnrollmentStatus;
+  status: enums.StudentEnrollmentStatus;
   created_at: string;
   updated_at: string;
   student_name?: string | null;
@@ -158,7 +160,7 @@ export interface ExamSession {
   id: string;
   name: string;
   school_period_id: number;
-  status: ExamSessionStatus;
+  status: enums.ExamSessionStatus;
   created_at: string;
   updated_at: string;
   school_period_name?: string | null;
@@ -188,7 +190,7 @@ export interface StudentExamResult {
 export interface TimetableEntry {
   id: string;
   class_stream_id: number;
-  day_of_week: DayOfWeek;
+  day_of_week: enums.DayOfWeek;
   period_id: number;
   subject_id: number;
   teacher_id: string;
@@ -264,48 +266,17 @@ export interface StudentExamResultWithDetails extends StudentExamResult {
 }
 
 // === EDUCATION SYSTEM CONFIGURATION TYPES ===
-
-export enum EducationSystemType {
-  PRIMARY = 'Primary',
-  SECONDARY = 'Secondary',
-  UNIVERSITY = 'University',
-  COLLEGE = 'College',
-  TECHNICAL = 'Technical',
-  VOCATIONAL = 'Vocational'
-}
-
-export enum GradingSystemType {
-  LETTER_GRADES = 'Letter Grades',
-  PERCENTAGE = 'Percentage',
-  COMPETENCY_BASED = 'Competency Based',
-  POINTS = 'Points/GPA',
-  PASS_FAIL = 'Pass/Fail'
-}
-
-export enum AcademicPeriodType {
-  TERM = 'Term',
-  SEMESTER = 'Semester',
-  QUARTER = 'Quarter',
-  TRIMESTER = 'Trimester'
-}
-
-export enum AssessmentType {
-  FORMATIVE = 'Formative',
-  SUMMATIVE = 'Summative',
-  COMPETENCY = 'Competency',
-  PROJECT_BASED = 'Project Based',
-  PRACTICAL = 'Practical'
-}
+// Note: These enums are already re-exported from './enums' at the top of this file
 
 export interface EducationSystemConfiguration {
   id?: string;
   name: string;
   country_code: string;
-  system_type: EducationSystemType;
-  grading_system_type: GradingSystemType;
+  system_type: enums.EducationSystemType;
+  grading_system_type: enums.GradingSystemType;
   min_grade_level?: number;
   max_grade_level?: number;
-  academic_period_type: AcademicPeriodType;
+  academic_period_type: enums.AcademicPeriodType;
   periods_per_year: number;
   
   // Grading Configuration
@@ -314,7 +285,7 @@ export interface EducationSystemConfiguration {
   grade_precision?: number;
   
   // Assessment Configuration
-  assessment_types: AssessmentType[];
+  assessment_types: enums.AssessmentType[];
   continuous_assessment_weight?: number;
   final_exam_weight?: number;
   

@@ -121,7 +121,7 @@ schoolpilot3/
    ```
 
 4. **Access the application:**
-   Open [http://localhost:5173](http://localhost:5173) in your browser
+   Open [http://localhost:5200](http://localhost:5200) in your browser
 
 ## 👨‍💻 Developer Experience
 

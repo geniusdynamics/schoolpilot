@@ -9,28 +9,26 @@ import {
   PrimaryKeyDefinition 
 } from './databaseAgnosticSchema';
 
-// Re-export for backward compatibility
-export { DatabaseSchema, PropertyDefinition, PrimaryKeyDefinition } from './databaseAgnosticSchema';
-
 /**
  * Legacy createEntitySchema function for backward compatibility
  * Uses the new database-agnostic schema system under the hood
  */
-export const createEntitySchema = <T extends { [key: string]: any }>(
+export const createEntitySchema = (
   title: string,
-  propertiesInput: Record<string, PropertyDefinition>,
-  primaryKeyDefinition: PrimaryKeyDefinition | string,
-  requiredFields: string[],
-  indexes?: string[] | string[][]
-): any => {
+  properties: { [key: string]: PropertyDefinition },
+  primaryKey: PrimaryKeyDefinition,
+  required?: string[],
+  indexes?: string[]
+): DatabaseSchema => {
+  console.warn('createEntitySchema from schemaUtils is deprecated. Use createDatabaseSchema from databaseAgnosticSchema instead.');
   // Create database-agnostic schema
-  const agnosticSchema = createDatabaseSchema<T>(
+  const agnosticSchema = createDatabaseSchema({
     title,
-    propertiesInput,
-    primaryKeyDefinition,
-    requiredFields,
-    indexes
-  );
+    properties,
+    primaryKey,
+    required,
+    indexes,
+  });
   
   // Convert to RxDB format for backward compatibility
   return convertToRxDBSchema(agnosticSchema);

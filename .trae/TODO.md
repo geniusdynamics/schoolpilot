@@ -8,6 +8,8 @@
 - [x] 10: Remove direct RxDB type imports from service files and use abstracted interfaces (priority: High)
 - [x] 11: Fix validation logic to properly handle minLength constraints for empty required fields (priority: High)
 - [x] 12: Resolve dataValidationConsistency.test.ts failures and ensure all validation tests pass (priority: High)
+- [x] 13: Add missing date helper methods (date, dateField, dateTimeField) to SchemaHelpers class (priority: High)
+- [x] 14: Test the schema imports to ensure all missing exports are resolved (priority: High)
 - [x] 4: Ensure PouchDB implementation handles all data points that mock data was managing (priority: Medium)
 - [x] 6: Validate data consistency across all entity operations in useDatabaseData (priority: Medium)
 - [x] 7: Test the complete dual-database architecture with all CRUD operations functional (priority: Medium)

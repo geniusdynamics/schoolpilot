@@ -291,6 +291,29 @@ export class RxDBIntegrationHelper {
     databaseName: string = 'schoolpilot'
   ): Promise<void> {
     try {
+      console.log('🔍 [RxDBIntegrationHelper] Starting initialization...');
+      console.log('🔍 [RxDBIntegrationHelper] collectionsDefinition type:', typeof collectionsDefinition);
+      console.log('🔍 [RxDBIntegrationHelper] collectionsDefinition is null?', collectionsDefinition === null);
+      console.log('🔍 [RxDBIntegrationHelper] collectionsDefinition is undefined?', collectionsDefinition === undefined);
+      
+      // Add guard for undefined or null collectionsDefinition
+      if (!collectionsDefinition || typeof collectionsDefinition !== 'object') {
+        const errorMsg = `collectionsDefinition is invalid: ${typeof collectionsDefinition}`;
+        console.error('❌ [RxDBIntegrationHelper]', errorMsg);
+        throw new Error(errorMsg);
+      }
+      
+      // Try to safely get Object.entries
+      let entries;
+      try {
+        entries = Object.entries(collectionsDefinition);
+        console.log('🔍 [RxDBIntegrationHelper] Successfully got entries, count:', entries.length);
+      } catch (entriesError) {
+        console.error('❌ [RxDBIntegrationHelper] Failed to get Object.entries:', entriesError);
+        console.error('❌ [RxDBIntegrationHelper] collectionsDefinition value:', collectionsDefinition);
+        throw new Error(`Cannot get entries from collectionsDefinition: ${entriesError.message}`);
+      }
+      
       const config: DatabaseConfig = {
         name: databaseName,
         version: 1,
@@ -300,12 +323,13 @@ export class RxDBIntegrationHelper {
       const collectionConfigs: CollectionConfig[] = [];
       
       // Convert RxDB collection definitions to our format
-      for (const [name, schema] of Object.entries(collectionsDefinition)) {
+      for (const [name, schema] of entries) {
+        console.log(`🔍 [RxDBIntegrationHelper] Processing collection: ${name}`);
         collectionConfigs.push({
           name,
           schema: convertRxDBSchema(schema),
           requirements: {
-            collectionsCount: Object.keys(collectionsDefinition).length,
+            collectionsCount: entries.length,
             offlineFirst: true,
             syncRequired: false,
             reactiveQueries: true,

@@ -121,7 +121,7 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data/DataGrid';
 6. Validate in browser
 
 ### 4. Development Server Management
-- Monitor port availability (5173-5176 range)
+- Monitor port availability (5200-5203 range)
 - Use appropriate wait times for async commands
 - Leverage HMR for immediate feedback
 

@@ -1,12 +1,18 @@
 // ABOUTME: Defines database-agnostic schemas for entities specific to the Academics module.
 // ABOUTME: These schemas are used by both RxDB and PouchDB services to create collections.
 
-import * as types from './types';
+import { 
+  ResultState, 
+  SubjectGrouping, 
+  ExamSessionStatus, 
+  StudentEnrollmentStatus, 
+  BreakType 
+} from './enums';
 import { 
   createDatabaseSchema, 
-  DatabaseSchema, 
-  DatabaseProperty, 
-  SchemaHelpers 
+  SchemaHelpers,
+  type DatabaseSchema, 
+  type DatabaseProperty, 
 } from '../../../utils/databaseAgnosticSchema';
 
 export const examScheduleSchema: DatabaseSchema = createDatabaseSchema({
@@ -32,7 +38,7 @@ export const resultApprovalSchema: DatabaseSchema = createDatabaseSchema({
     properties: {
         id: SchemaHelpers.string({ description: 'Unique identifier', maxLength: 100 }),
         result_id: SchemaHelpers.ref('student_exam_results', { description: 'Reference to student exam result', maxLength: 100 }),
-        state: SchemaHelpers.string({ description: 'Approval state', enum: Object.values(types.ResultState), maxLength: 50 }),
+        state: SchemaHelpers.string({ description: 'Approval state', enum: Object.values(ResultState), maxLength: 50 }),
         created_by: SchemaHelpers.ref('users', { description: 'User who created the approval', maxLength: 100 }),
         updated_by: SchemaHelpers.ref('users', { description: 'User who last updated the approval', maxLength: 100 }),
         created_at: SchemaHelpers.timestamp({ description: 'Creation timestamp' }),
@@ -42,8 +48,8 @@ export const resultApprovalSchema: DatabaseSchema = createDatabaseSchema({
                 timestamp: SchemaHelpers.timestamp({ description: 'Action timestamp' }),
                 user_id: SchemaHelpers.ref('users', { description: 'User who performed the action', maxLength: 100 }),
                 action: SchemaHelpers.string({ description: 'Action performed', maxLength: 100 }),
-                previous_state: SchemaHelpers.string({ description: 'Previous state', enum: Object.values(types.ResultState), maxLength: 50 }),
-                new_state: SchemaHelpers.string({ description: 'New state', enum: Object.values(types.ResultState), maxLength: 50 }),
+                previous_state: SchemaHelpers.string({ description: 'Previous state', enum: Object.values(ResultState), maxLength: 50 }),
+                new_state: SchemaHelpers.string({ description: 'New state', enum: Object.values(ResultState), maxLength: 50 }),
             }),
             { description: 'Audit trail of approval changes' }
         )
@@ -73,7 +79,7 @@ export const subjectSchema: DatabaseSchema = createDatabaseSchema({
         name: SchemaHelpers.string({ description: 'Subject name', maxLength: 100 }),
         department_id: SchemaHelpers.ref('departments', { description: 'Reference to department', maxLength: 100 }),
         is_compulsory: SchemaHelpers.boolean({ description: 'Whether subject is compulsory', default: false }),
-        grouping: SchemaHelpers.string({ description: 'Subject grouping', enum: Object.values(types.SubjectGrouping), maxLength: 50 }),
+        grouping: SchemaHelpers.string({ description: 'Subject grouping', enum: Object.values(SubjectGrouping), maxLength: 50 }),
         department_name: SchemaHelpers.string({ description: 'Department name (computed)', maxLength: 100 }),
         papers: SchemaHelpers.array(
             SchemaHelpers.object(subjectPaperProperties),
@@ -120,7 +126,7 @@ export const examSessionSchema: DatabaseSchema = createDatabaseSchema({
         id: SchemaHelpers.string({ description: 'Unique identifier', maxLength: 100 }),
         name: SchemaHelpers.string({ description: 'Exam session name', maxLength: 150 }),
         school_period_id: SchemaHelpers.ref('school_periods', { description: 'Reference to school period' }),
-        status: SchemaHelpers.string({ description: 'Exam session status', enum: Object.values(types.ExamSessionStatus), maxLength: 50 }),
+        status: SchemaHelpers.string({ description: 'Exam session status', enum: Object.values(ExamSessionStatus), maxLength: 50 }),
         result_publication_date: SchemaHelpers.timestamp({ description: 'Result publication date' }),
         created_at: SchemaHelpers.timestamp({ description: 'Creation timestamp' }),
         updated_at: SchemaHelpers.timestamp({ description: 'Last update timestamp' }),
@@ -241,7 +247,7 @@ export const studentSubjectEnrollmentSchema: DatabaseSchema = createDatabaseSche
         student_id: SchemaHelpers.ref('students', { description: 'Reference to student', maxLength: 100 }),
         class_subject_allocation_id: SchemaHelpers.ref('class_subject_allocations', { description: 'Reference to class subject allocation', maxLength: 100 }),
         enrollment_date: SchemaHelpers.string({ description: 'Enrollment date', format: 'date', maxLength: 20 }),
-        status: SchemaHelpers.string({ description: 'Enrollment status', enum: Object.values(types.StudentEnrollmentStatus), maxLength: 50 }),
+        status: SchemaHelpers.string({ description: 'Enrollment status', enum: Object.values(StudentEnrollmentStatus), maxLength: 50 }),
         created_at: SchemaHelpers.timestamp({ description: 'Creation timestamp' }),
         updated_at: SchemaHelpers.timestamp({ description: 'Last update timestamp' }),
         student_name: SchemaHelpers.string({ description: 'Student name (computed)', maxLength: 200 }),
@@ -281,7 +287,7 @@ export const timetableEntrySchema: DatabaseSchema = createDatabaseSchema({
         teacher_id: SchemaHelpers.ref('staff', { description: 'Reference to teacher', maxLength: 100 }),
         room_id: SchemaHelpers.ref('rooms', { description: 'Reference to room', maxLength: 100 }),
         is_break: SchemaHelpers.boolean({ description: 'Is this a break period', default: false }),
-        break_type: SchemaHelpers.string({ description: 'Type of break', enum: [...Object.values(types.BreakType), null], maxLength: 50 }),
+        break_type: SchemaHelpers.string({ description: 'Type of break', enum: [...Object.values(BreakType), null], maxLength: 50 }),
         created_at: SchemaHelpers.timestamp({ description: 'Creation timestamp' }),
         updated_at: SchemaHelpers.timestamp({ description: 'Last update timestamp' }),
         class_name: SchemaHelpers.string({ description: 'Class name (computed)', maxLength: 100 }),

@@ -32,12 +32,20 @@ export interface DatabaseProperty {
   ref?: string; // For references to other collections
 }
 
+// Backward-compatible type alias
+export type PropertyDefinition = DatabaseProperty;
+
 // Database schema interface that works with both RxDB and PouchDB
+export type PrimaryKey = string | { key: string; fields: string[]; separator?: string };
+
+// Backward-compatible type alias
+export type PrimaryKeyDefinition = PrimaryKey;
+
 export interface DatabaseSchema {
   title: string;
   description?: string;
   version: number;
-  primaryKey: string | { key: string; fields: string[]; separator?: string };
+  primaryKey: PrimaryKey;
   type: 'object';
   properties: Record<string, DatabaseProperty>;
   required?: string[];
@@ -100,7 +108,7 @@ export class DatabaseSchemaConverter {
     const converted: Record<string, any> = {};
     
     for (const [key, prop] of Object.entries(properties)) {
-      converted[key] = {
+      const convertedProp: any = {
         type: this.mapTypeToRxDB(prop.type),
         description: prop.description,
         default: prop.default,
@@ -115,13 +123,15 @@ export class DatabaseSchemaConverter {
       };
 
       if (prop.type === 'array' && prop.items) {
-        converted[key].items = this.convertPropertyToRxDB(prop.items);
+        convertedProp.items = this.convertPropertyToRxDB(prop.items);
       }
 
       if (prop.type === 'object' && prop.properties) {
-        converted[key].properties = this.convertPropertiesToRxDB(prop.properties);
-        converted[key].required = prop.required || [];
+        convertedProp.properties = this.convertPropertiesToRxDB(prop.properties);
+        convertedProp.required = prop.required || [];
       }
+
+      converted[key] = convertedProp;
 
       // Remove undefined values
       Object.keys(converted[key]).forEach(k => {
@@ -141,19 +151,21 @@ export class DatabaseSchemaConverter {
     const converted: Record<string, any> = {};
     
     for (const [key, prop] of Object.entries(properties)) {
-      converted[key] = {
+      const convertedProp: any = {
         type: this.mapTypeToPouchDB(prop.type),
         description: prop.description,
         default: prop.default
       };
 
       if (prop.type === 'array' && prop.items) {
-        converted[key].items = this.convertPropertyToPouchDB(prop.items);
+        convertedProp.items = this.convertPropertyToPouchDB(prop.items);
       }
 
       if (prop.type === 'object' && prop.properties) {
-        converted[key].properties = this.convertPropertiesToPouchDB(prop.properties);
+        convertedProp.properties = this.convertPropertiesToPouchDB(prop.properties);
       }
+
+      converted[key] = convertedProp;
 
       // Remove undefined values
       Object.keys(converted[key]).forEach(k => {
@@ -459,6 +471,41 @@ export class SchemaHelpers {
   }
 
   /**
+   * Create a date property
+   */
+  static date(options: {
+    description?: string;
+    default?: string;
+  } = {}): DatabaseProperty {
+    return {
+      type: 'date',
+      description: options.description,
+      format: 'date',
+      default: options.default
+    };
+  }
+
+  /**
+   * Create a date field property (alias for date)
+   */
+  static dateField(options: {
+    description?: string;
+    default?: string;
+  } = {}): DatabaseProperty {
+    return this.date(options);
+  }
+
+  /**
+   * Create a date-time field property (alias for timestamp)
+   */
+  static dateTimeField(options: {
+    description?: string;
+    default?: string;
+  } = {}): DatabaseProperty {
+    return this.timestamp(options);
+  }
+
+  /**
    * Create an ID property (primary key)
    */
   static id(options: {
@@ -474,6 +521,116 @@ export class SchemaHelpers {
     } else {
       return this.string({ description: options.description || 'Unique identifier' });
     }
+  }
+
+  // Field alias methods for backward compatibility
+  /**
+   * Create a string field property (alias for string)
+   */
+  static stringField(options: {
+    description?: string;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    enum?: string[];
+    default?: string;
+  } = {}): DatabaseProperty {
+    return this.string(options);
+  }
+
+  /**
+   * Create a number field property (alias for number)
+   */
+  static numberField(options: {
+    description?: string;
+    minimum?: number;
+    maximum?: number;
+    default?: number;
+  } = {}): DatabaseProperty {
+    return this.number(options);
+  }
+
+  /**
+   * Create an integer field property (alias for integer)
+   */
+  static integerField(options: {
+    description?: string;
+    minimum?: number;
+    maximum?: number;
+    default?: number;
+  } = {}): DatabaseProperty {
+    return this.integer(options);
+  }
+
+  /**
+   * Create a boolean field property (alias for boolean)
+   */
+  static booleanField(options: {
+    description?: string;
+    default?: boolean;
+  } = {}): DatabaseProperty {
+    return this.boolean(options);
+  }
+
+  /**
+   * Create an array field property (alias for array)
+   */
+  static arrayField(items: DatabaseProperty, options: {
+    description?: string;
+    default?: any[];
+  } = {}): DatabaseProperty {
+    return this.array(items, options);
+  }
+
+  /**
+   * Create an object field property (alias for object)
+   */
+  static objectField(properties: Record<string, DatabaseProperty>, options: {
+    description?: string;
+    required?: string[];
+    default?: any;
+  } = {}): DatabaseProperty {
+    return this.object(properties, options);
+  }
+
+  /**
+   * Create a timestamp field property (alias for timestamp)
+   */
+  static timestampField(options: {
+    description?: string;
+    default?: string;
+  } = {}): DatabaseProperty {
+    return this.timestamp(options);
+  }
+
+  /**
+   * Create a UUID field property (alias for uuid)
+   */
+  static uuidField(options: {
+    description?: string;
+    default?: string;
+  } = {}): DatabaseProperty {
+    return this.uuid(options);
+  }
+
+  /**
+   * Create a reference field property (alias for ref)
+   */
+  static refField(collectionName: string, options: {
+    description?: string;
+    default?: string;
+  } = {}): DatabaseProperty {
+    return this.ref(collectionName, options);
+  }
+
+  /**
+   * Create an ID field property (alias for id)
+   */
+  static idField(options: {
+    description?: string;
+    type?: 'uuid' | 'string' | 'number';
+  } = {}): DatabaseProperty {
+    return this.id(options);
   }
 }
 
@@ -502,8 +659,8 @@ export function createDatabaseSchema(config: {
 }
 
 // Export conversion functions for backward compatibility
-export const convertToRxDBSchema = DatabaseSchemaConverter.convertToRxDBSchema;
-export const convertToPouchDBSchema = DatabaseSchemaConverter.convertToPouchDBSchema;
+export const convertToRxDBSchema = (schema: DatabaseSchema) => DatabaseSchemaConverter.convertToRxDBSchema(schema);
+export const convertToPouchDBSchema = (schema: DatabaseSchema) => DatabaseSchemaConverter.convertToPouchDBSchema(schema);
 
 // Deprecated function for backward compatibility
 /**

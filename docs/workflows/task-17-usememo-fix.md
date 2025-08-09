@@ -5,7 +5,7 @@ When trying to add new students, the application was showing an error:
 ```
 Error: useMemo is not defined
 Error ID: page-error-1753255675365-c3s8jp2
-ReferenceError: useMemo is not defined at TabbedForm (http://localhost:5173/src/components/ui/forms/TabbedForm.tsx:177:20)
+ReferenceError: useMemo is not defined at TabbedForm (http://localhost:5200/src/components/ui/forms/TabbedForm.tsx:177:20)
 ```
 
 ## Root Cause

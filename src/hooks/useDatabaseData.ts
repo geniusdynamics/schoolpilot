@@ -97,7 +97,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
     const initializeDatabase = async () => {
       try {
         // Initialize the database service
-        await databaseService.initialize();
+        await databaseService.initializeDatabase();
         
         if (isMounted) {
           // Set dummy data flag

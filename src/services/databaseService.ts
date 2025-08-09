@@ -155,9 +155,27 @@ const initializeDatabase = async (): Promise<MockDatabase> => {
       throw new Error('IndexedDB is not available in this browser');
     }
 
+    // Debug: Log collectionsDefinition
+    console.log('🔍 [DEBUG] collectionsDefinition type:', typeof collectionsDefinition);
+    console.log('🔍 [DEBUG] collectionsDefinition is null?', collectionsDefinition === null);
+    console.log('🔍 [DEBUG] collectionsDefinition is undefined?', collectionsDefinition === undefined);
+    console.log('🔍 [DEBUG] collectionsDefinition keys:', collectionsDefinition ? Object.keys(collectionsDefinition).length : 'N/A');
+    
+    // Add guards for undefined collectionsDefinition
+    if (!collectionsDefinition || typeof collectionsDefinition !== 'object') {
+      console.error('❌ [ERROR] collectionsDefinition is undefined or not an object:', collectionsDefinition);
+      throw new Error('collectionsDefinition is undefined or invalid');
+    }
+
     const integrationHelper = getRxDBIntegrationHelper();
+    console.log('🔍 [DEBUG] integrationHelper obtained:', !!integrationHelper);
     
     // Initialize with all 88 collections using PouchDB provider
+    console.log('🔍 [DEBUG] About to call initializeWithRxDBCollections with:', {
+      collectionsDefinition: collectionsDefinition ? 'defined' : 'undefined',
+      dbName: RXDB_DB_NAME
+    });
+    
     await integrationHelper.initializeWithRxDBCollections(
       collectionsDefinition,
       RXDB_DB_NAME
@@ -368,10 +386,7 @@ export { collectionsDefinition };
 // Export databaseService as alias for rxdbService for compatibility
 export const databaseService = rxdbService;
 
-// Initialize database on module load with proper error handling
-rxdbService.initializeDatabase().catch(error => {
-  console.error('PouchDB: Failed to initialize database:', error);
-  // Don't throw here as it would prevent the module from loading
-});
+// Removed auto-initialization at module load to prevent race conditions
+// Database will be initialized explicitly when needed by useDatabaseData hook
 
 console.log('PouchDB: Database service loaded successfully');
