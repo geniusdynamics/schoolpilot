@@ -469,14 +469,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         return dataStrategyManager.executeOperation(operation, { id });
       },
 
-      // Financial operations (require backend)
+      // Financial operations (allow offline for demo)
       generateInvoices: async (params: any) => {
         const operation: DataOperation = {
           type: 'write',
           entity: 'invoices',
           priority: 'critical',
-          requiresBackend: true,
-          allowOffline: false
+          requiresBackend: false,
+          allowOffline: true
         };
         return dataStrategyManager.executeOperation(operation, params);
       },
@@ -487,8 +487,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           type: 'write',
           entity: 'invoices',
           priority: 'critical',
-          requiresBackend: true,
-          allowOffline: false
+          requiresBackend: false,
+          allowOffline: true
         };
         const params = { feeTemplateId, schoolPeriodId, studentCriteria };
         return dataStrategyManager.executeOperation(operation, params);
