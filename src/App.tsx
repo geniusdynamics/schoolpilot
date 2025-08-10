@@ -28,6 +28,12 @@ const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 // Lazy load the dashboard page
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 
+// Error tracking test component
+const ErrorTrackingTest = lazy(() => import('./components/ErrorTrackingTest'));
+
+// Login test page component
+const LoginTestPage = lazy(() => import('./pages/LoginTestPage'));
+
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 // Using eager: true to avoid runtime module loading issues
 const pageModules = {
@@ -144,6 +150,44 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
               </div>
             }>
               <DashboardPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Error Tracking Test Route */}
+      <Route
+        path="/error-test"
+        element={
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading error test...</p>
+                </div>
+              </div>
+            }>
+              <ErrorTrackingTest />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Login Test Route */}
+      <Route
+        path="/login-test"
+        element={
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading login test...</p>
+                </div>
+              </div>
+            }>
+              <LoginTestPage />
             </Suspense>
           </ProtectedRoute>
         }

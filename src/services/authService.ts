@@ -5,6 +5,7 @@ import * as rxdbService from './databaseService';
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../core/rbacService';
 import { unifiedConfigManager } from '../config/unifiedConfig';
+import { reportError } from '../config/errorTracking';
 
 // Authentication Types
 export interface AuthUser {
@@ -55,10 +56,11 @@ class AuthService {
   private sessionKey = 'schoolpilot_auth_session';
   private rxDBAvailable: boolean = false;
   private initializationComplete: boolean = false;
+  private initializationPromise: Promise<void> | null = null;
 
   constructor() {
-    // Initialize immediately
-    this.initialize();
+    // Start initialization immediately but don't wait
+    this.initializationPromise = this.initialize();
   }
 
   private async initialize() {
@@ -203,9 +205,10 @@ class AuthService {
     return this.currentSession;
   }
 
-  public isAuthenticated(): boolean {
-    if (!this.initializationComplete) {
-      return false;
+  public async isAuthenticated(): Promise<boolean> {
+    // Wait for initialization if needed
+    if (!this.initializationComplete && this.initializationPromise) {
+      await this.initializationPromise;
     }
     
     const session = this.getCurrentSession();
@@ -219,22 +222,28 @@ class AuthService {
   // ===== AUTHENTICATION METHODS =====
 
   async login(credentials: LoginCredentials): Promise<AuthResult> {
-    console.log('🔐 [AuthService] login() called for user:', credentials.username);
     try {
       // Wait for initialization if not complete
-      if (!this.initializationComplete) {
-        console.log('🔐 [AuthService] Waiting for initialization to complete...');
-        await new Promise(resolve => setTimeout(resolve, 100));
-        return this.login(credentials);
+      if (!this.initializationComplete && this.initializationPromise) {
+        await this.initializationPromise;
       }
 
-      console.log('🔐 [AuthService] Login mode:', this.isDemoMode ? 'DEMO' : 'PRODUCTION');
       if (this.isDemoMode) {
         return this.loginDemo(credentials);
       } else {
         return this.loginProduction(credentials);
       }
     } catch (error) {
+      console.error('AuthService login error:', error);
+      
+      // Report login error to Bugsink
+      reportError(error instanceof Error ? error : new Error('Unknown login error'), {
+        username: credentials.username,
+        loginType: this.isDemoMode ? 'demo' : 'production',
+        errorContext: 'authentication_failure',
+        timestamp: new Date().toISOString()
+      });
+      
       return {
         success: false,
         message: 'Login failed',
@@ -359,7 +368,18 @@ class AuthService {
     };
 
     const user = demoUsers[credentials.username];
+    
     if (!user) {
+      // Report demo login failure to Bugsink
+      const loginError = new Error('Demo login failed: Invalid username');
+      reportError(loginError, {
+        username: credentials.username,
+        loginType: 'demo',
+        errorContext: 'invalid_username',
+        availableUsers: Object.keys(demoUsers),
+        timestamp: new Date().toISOString()
+      });
+      
       return {
         success: false,
         message: 'Invalid username or password'
@@ -368,6 +388,15 @@ class AuthService {
 
     // In demo mode, accept any password
     if (credentials.password.length < 1) {
+      // Report demo login failure to Bugsink
+      const loginError = new Error('Demo login failed: Password required');
+      reportError(loginError, {
+        username: credentials.username,
+        loginType: 'demo',
+        errorContext: 'empty_password',
+        timestamp: new Date().toISOString()
+      });
+      
       return {
         success: false,
         message: 'Password is required'
@@ -412,6 +441,15 @@ class AuthService {
       // Find user by username
       const userDoc = await db.users.findOne({ selector: { username: credentials.username } }).exec();
       if (!userDoc) {
+        // Report production login failure to Bugsink
+        const loginError = new Error('Production login failed: User not found');
+        reportError(loginError, {
+          username: credentials.username,
+          loginType: 'production',
+          errorContext: 'user_not_found',
+          timestamp: new Date().toISOString()
+        });
+        
         return {
           success: false,
           message: 'Invalid username or password'
@@ -422,6 +460,16 @@ class AuthService {
       
       // Check if user is active
       if (!user.is_active) {
+        // Report production login failure to Bugsink
+        const loginError = new Error('Production login failed: Account deactivated');
+        reportError(loginError, {
+          username: credentials.username,
+          userId: user.id,
+          loginType: 'production',
+          errorContext: 'account_deactivated',
+          timestamp: new Date().toISOString()
+        });
+        
         return {
           success: false,
           message: 'Account is deactivated'
@@ -431,6 +479,16 @@ class AuthService {
       // TODO: Add password hashing and verification
       // For now, accept any password in production mode
       if (credentials.password.length < 1) {
+        // Report production login failure to Bugsink
+        const loginError = new Error('Production login failed: Password required');
+        reportError(loginError, {
+          username: credentials.username,
+          userId: user.id,
+          loginType: 'production',
+          errorContext: 'empty_password',
+          timestamp: new Date().toISOString()
+        });
+        
         return {
           success: false,
           message: 'Password is required'
@@ -491,6 +549,14 @@ class AuthService {
         message: 'Login successful'
       };
     } catch (error) {
+      // Report production login error to Bugsink
+      reportError(error instanceof Error ? error : new Error('Unknown production login error'), {
+        username: credentials.username,
+        loginType: 'production',
+        errorContext: 'database_error',
+        timestamp: new Date().toISOString()
+      });
+      
       return {
         success: false,
         message: 'Login failed',

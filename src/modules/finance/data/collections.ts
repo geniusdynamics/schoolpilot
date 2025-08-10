@@ -6,7 +6,7 @@ import * as schemas from './schema';
 
 export const financeCollections = {
   financial_years: { // Assuming schema is in finance/data/schema.ts or imported
-    schema: schemas.financialYearSchema, 
+    schema: schemas.financialYearsSchema, 
   },
   school_periods: { // Assuming schema is in finance/data/schema.ts or imported and finance-related
     schema: schemas.schoolPeriodSchema,

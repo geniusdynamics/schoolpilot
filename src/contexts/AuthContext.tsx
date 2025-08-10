@@ -30,48 +30,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const [isDemoMode, setIsDemoMode] = useState(true);
 
-  console.log('🔐 [AuthContext] Component rendered, state:', { user: !!user, isLoading, isDemoMode });
-
   // Initialize authentication state
   useEffect(() => {
-    console.log('🔐 [AuthContext] useEffect triggered for initialization');
     const initializeAuth = async () => {
       try {
-        console.log('🔐 [AuthContext] Starting auth initialization...');
         setIsLoading(true);
         
         // Wait for auth service initialization
         const maxWaitTime = 5000; // 5 seconds max wait
         const startTime = Date.now();
         
-        console.log('🔐 [AuthContext] Waiting for authService initialization...');
         while (!authService.isInitialized() && (Date.now() - startTime) < maxWaitTime) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         
-        const isServiceInit = authService.isInitialized();
-        console.log('🔐 [AuthContext] authService.isInitialized():', isServiceInit);
-        
-        if (!isServiceInit) {
-          console.warn('🔐 [AuthContext] AuthService initialization timeout, proceeding with available state');
-        }
-        
         // Check if user is already authenticated
-        const isUserAuth = authService.isAuthenticated();
-        console.log('🔐 [AuthContext] authService.isAuthenticated():', isUserAuth);
+        const isUserAuth = await authService.isAuthenticated();
         
         if (isUserAuth) {
           const currentUser = await authService.getCurrentUser();
-          console.log('🔐 [AuthContext] Current user found:', currentUser?.username);
           setUser(currentUser);
-        } else {
-          console.log('🔐 [AuthContext] No authenticated user found');
         }
         
         // Determine if we're in demo mode
         const session = authService.getCurrentSession();
         const demoMode = session?.isDemo || true;
-        console.log('🔐 [AuthContext] Demo mode:', demoMode, 'Session:', !!session);
         setIsDemoMode(demoMode);
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -96,6 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       return result;
     } catch (error) {
+      console.error('AuthContext login error:', error);
       return {
         success: false,
         message: 'Login failed',

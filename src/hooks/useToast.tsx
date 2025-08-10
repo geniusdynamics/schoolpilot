@@ -1,8 +1,9 @@
-// ABOUTME: Toast notification management hook with stacking and auto-dismiss functionality
-// ABOUTME: Provides methods to show, dismiss, and manage toast notifications with proper cleanup
+// ABOUTME: Enhanced toast notification management hook with spring animations, gestures, and modern features
+// ABOUTME: Provides methods to show, dismiss, and manage toast notifications with stacking, themes, and accessibility
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence } from 'framer-motion';
 import Toast, { ToastProps, ToastVariant } from '../components/ui/feedback/Toast';
 
 export interface ToastOptions {
@@ -12,6 +13,10 @@ export interface ToastOptions {
   duration?: number;
   progress?: number;
   showProgress?: boolean;
+  pauseOnHover?: boolean;
+  swipeToDismiss?: boolean;
+  soundEnabled?: boolean;
+  theme?: 'light' | 'dark' | 'auto';
   action?: {
     label: string;
     onClick: () => void;
@@ -40,12 +45,20 @@ interface ToastProviderProps {
   children: ReactNode;
   maxToasts?: number;
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+  theme?: 'light' | 'dark' | 'auto';
+  defaultPauseOnHover?: boolean;
+  defaultSwipeToDismiss?: boolean;
+  defaultSoundEnabled?: boolean;
 }
 
 export const ToastProvider: React.FC<ToastProviderProps> = ({
   children,
   maxToasts = 5,
   position = 'top-right',
+  theme = 'auto',
+  defaultPauseOnHover = true,
+  defaultSwipeToDismiss = true,
+  defaultSoundEnabled = false,
 }) => {
   const [toasts, setToasts] = useState<ToastProps[]>([]);
 
@@ -57,6 +70,11 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     const id = generateId();
     const newToast: ToastProps = {
       id,
+      pauseOnHover: defaultPauseOnHover,
+      swipeToDismiss: defaultSwipeToDismiss,
+      soundEnabled: defaultSoundEnabled,
+      theme,
+      position,
       ...options,
       onDismiss: (toastId: string) => dismissToast(toastId),
     };
@@ -68,7 +86,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     });
 
     return id;
-  }, [generateId, maxToasts]);
+  }, [generateId, maxToasts, theme, position, defaultPauseOnHover, defaultSwipeToDismiss, defaultSoundEnabled]);
 
   const dismissToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
@@ -118,19 +136,16 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
       {children}
       {typeof document !== 'undefined' && createPortal(
         <div className={getPositionStyles()}>
-          {toasts.map((toast, index) => (
-            <div
-              key={toast.id}
-              className="pointer-events-auto"
-              style={{
-                zIndex: 1000 - index, // Stack toasts properly
-                marginTop: position.includes('bottom') ? undefined : index * 4,
-                marginBottom: position.includes('bottom') ? index * 4 : undefined,
-              }}
-            >
-              <Toast {...toast} />
-            </div>
-          ))}
+          <AnimatePresence mode="popLayout">
+            {toasts.map((toast, index) => (
+              <Toast
+                key={toast.id}
+                {...toast}
+                stackIndex={index}
+                totalStacked={toasts.length}
+              />
+            ))}
+          </AnimatePresence>
         </div>,
         document.body
       )}

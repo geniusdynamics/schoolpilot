@@ -76,6 +76,7 @@ const LoginPage: React.FC = () => {
         setError(result.message);
       }
     } catch (error) {
+      console.error('Demo login error:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);

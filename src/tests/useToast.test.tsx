@@ -2,9 +2,9 @@
 // ABOUTME: Tests toast management, stacking, progress operations, and helper functions
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { useToast, useToastHelpers, useProgressToast, ToastProvider } from '../hooks/useToast';
+import { useToast, ToastProvider, useToastHelpers, useProgressToast } from '../hooks/useToast';
 
 // Test component that uses the toast hook
 const TestComponent: React.FC = () => {
@@ -67,15 +67,9 @@ const renderWithProvider = (maxToasts = 5, position = 'top-right' as const) => {
 };
 
 describe('useToast Hook', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    // Clear any existing toasts
-    document.body.innerHTML = '';
-  });
-
   afterEach(() => {
-    vi.clearAllTimers();
-    vi.useRealTimers();
+    // Properly cleanup React components and DOM
+    cleanup();
   });
 
   it('throws error when used outside ToastProvider', () => {
@@ -153,7 +147,7 @@ describe('useToast Hook', () => {
     });
   });
 
-  it.skip('clears all toasts', async () => {
+  it('clears all toasts', async () => {
     renderWithProvider();
 
     fireEvent.click(screen.getByText('Show Toast'));
@@ -171,7 +165,7 @@ describe('useToast Hook', () => {
     });
   });
 
-  it.skip('updates existing toasts', async () => {
+  it('updates existing toasts', async () => {
     renderWithProvider();
 
     fireEvent.click(screen.getByText('Show Toast'));
@@ -188,7 +182,7 @@ describe('useToast Hook', () => {
     });
   });
 
-  it.skip('handles progress toasts', async () => {
+  it('handles progress toasts', async () => {
     renderWithProvider();
 
     fireEvent.click(screen.getByText('Show Progress'));
@@ -197,21 +191,13 @@ describe('useToast Hook', () => {
       expect(screen.getByText('Processing...')).toBeInTheDocument();
     }, { timeout: 1000 });
 
-    // Advance timers to trigger progress updates
-    act(() => {
-      vi.advanceTimersByTime(100);
-    });
-
-    act(() => {
-      vi.advanceTimersByTime(100);
-    });
-
+    // Wait for the progress updates to complete
     await waitFor(() => {
       expect(screen.getByText('Done!')).toBeInTheDocument();
     }, { timeout: 1000 });
   });
 
-  it.skip('shows toast with dismiss functionality', async () => {
+  it('shows toast with dismiss functionality', async () => {
     renderWithProvider();
 
     fireEvent.click(screen.getByText('Show Success'));
@@ -264,7 +250,7 @@ describe('useToast Hook', () => {
     expect(container).toHaveClass('bottom-4', 'left-4', 'flex-col-reverse');
   });
 
-  it.skip('stacks multiple toasts correctly', async () => {
+  it('stacks multiple toasts correctly', async () => {
     renderWithProvider();
 
     fireEvent.click(screen.getByText('Show Toast'));
