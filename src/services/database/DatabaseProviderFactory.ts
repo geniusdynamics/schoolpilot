@@ -13,6 +13,7 @@ import {
   DatabaseError
 } from './interfaces';
 import { PouchDBProvider } from './PouchDBProvider';
+import { RxDBProvider } from './RxDBProvider';
 
 // Provider Types
 export type ProviderType = 'pouchdb' | 'rxdb' | 'hybrid';
@@ -227,12 +228,29 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     this.initializeProviders();
   }
 
-  private initializeProviders(): void {
-    // Register PouchDB provider
-    this.providers.set('pouchdb', new PouchDBProvider());
+  private registerProvider(provider: IDatabaseProvider): void {
+    const providerType = this.getProviderType(provider);
+    this.providers.set(providerType, provider);
+    console.log(`Registered database provider: ${providerType}`);
+  }
+
+  private getProviderType(provider: IDatabaseProvider): ProviderType {
+    // Determine provider type based on constructor name or other identifying features
+    const constructorName = provider.constructor.name;
     
-    // Note: RxDB provider would be registered here when implemented
-    // this.providers.set('rxdb', new RxDBProvider());
+    if (constructorName.includes('PouchDB')) {
+      return 'pouchdb';
+    } else if (constructorName.includes('RxDB')) {
+      return 'rxdb';
+    } else {
+      throw new Error(`Unknown provider type: ${constructorName}`);
+    }
+  }
+
+  private initializeProviders(): void {
+    // Register available providers
+    this.registerProvider(new PouchDBProvider());
+    this.registerProvider(new RxDBProvider());
     
     console.log('Database providers initialized:', Array.from(this.providers.keys()));
   }

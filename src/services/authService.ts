@@ -1,7 +1,8 @@
 // ABOUTME: Authentication service for user login, logout, and session management
 // ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (RxDB)
 
-import * as rxdbService from './databaseService';
+import { databaseService } from './database/databaseService';
+import * as rxdbService from './rxdbService';
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../core/rbacService';
 import { unifiedConfigManager } from '../config/unifiedConfig';
@@ -57,6 +58,7 @@ class AuthService {
   private rxDBAvailable: boolean = false;
   private initializationComplete: boolean = false;
   private initializationPromise: Promise<void> | null = null;
+  private detectedProvider: 'pouchdb' | 'rxdb' | 'unknown' = 'unknown';
 
   constructor() {
     // Start initialization immediately but don't wait
@@ -66,7 +68,7 @@ class AuthService {
   private async initialize() {
     console.log('🔐 [AuthService] initialize() called');
     try {
-      // Check RxDB availability using the new service methods
+      // Check if IndexedDB is available
       const hasIndexedDB = typeof window !== 'undefined' && window.indexedDB;
       console.log('🔐 [AuthService] IndexedDB available?', hasIndexedDB);
       
@@ -79,27 +81,30 @@ class AuthService {
         return;
       }
 
-      // Try to access RxDB with timeout
+      // Try to initialize the dynamic database service
       try {
-        const dbPromise = rxdbService.getDatabase();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('RxDB initialization timeout')), 5000)
-        );
+        await databaseService.initialize({
+          name: 'schoolpilot_db',
+          multiInstance: true,
+          ignoreDuplicate: true
+        });
         
-        await Promise.race([dbPromise, timeoutPromise]);
-        this.rxDBAvailable = rxdbService.isDatabaseAvailable?.() || true;
-        console.log('RxDB is available:', this.rxDBAvailable);
+        this.rxDBAvailable = databaseService.isServiceInitialized();
+        this.detectedProvider = databaseService.getDetectedProviderType() || 'unknown';
+        
+        console.log(`Database service initialized: Provider = ${this.detectedProvider}, Available = ${this.rxDBAvailable}`);
       } catch (error) {
-        console.warn('RxDB initialization failed, forcing demo mode:', error);
+        console.warn('Database service initialization failed, forcing demo mode:', error);
         this.rxDBAvailable = false;
+        this.detectedProvider = 'unknown';
       }
 
       // Use unified configuration to determine mode
       const config = unifiedConfigManager.getConfig();
       
-      // Force demo mode if RxDB is not available
+      // Force demo mode if database is not available
       if (!this.rxDBAvailable) {
-        console.warn('RxDB not available, forcing demo mode');
+        console.warn('Database not available, forcing demo mode');
         this.isDemoMode = true;
         unifiedConfigManager.switchToDemo();
       } else {
@@ -107,7 +112,7 @@ class AuthService {
       }
       
       this.initializationComplete = true;
-      console.log(`AuthService initialized: Demo mode = ${this.isDemoMode}, RxDB available = ${this.rxDBAvailable}`);
+      console.log(`AuthService initialized: Demo mode = ${this.isDemoMode}, DB available = ${this.rxDBAvailable}, Provider = ${this.detectedProvider}`);
       
       // Restore session from localStorage
       this.restoreSession();
@@ -121,33 +126,8 @@ class AuthService {
     }
   }
 
-  private async checkRxDBAvailability(): Promise<boolean> {
-    try {
-      // Check if RxDB modules can be loaded
-      await import('../services/databaseService');
-      
-      // Check if IndexedDB is available
-      if (typeof window !== 'undefined' && window.indexedDB) {
-        const test = indexedDB.open('_rxdb_test');
-        await new Promise((resolve, reject) => {
-          test.onerror = () => reject(new Error('IndexedDB not available'));
-          test.onsuccess = () => {
-            indexedDB.deleteDatabase('_rxdb_test');
-            resolve(true);
-          };
-        });
-        this.rxDBAvailable = true;
-        return true;
-      }
-      
-      this.rxDBAvailable = false;
-      return false;
-    } catch (error) {
-      console.warn('RxDB availability check failed:', error);
-      this.rxDBAvailable = false;
-      return false;
-    }
-  }
+  // ===== DATABASE PROVIDER DETECTION (Legacy - now handled by dynamic service) =====
+  // Note: These methods are kept for backward compatibility but are no longer used
 
   // ===== SESSION MANAGEMENT =====
 
@@ -436,11 +416,43 @@ class AuthService {
     }
 
     try {
-      const db = await rxdbService.getDatabase();
+      // Get database provider from the dynamic service
+      const provider = databaseService.getProvider();
+      if (!provider) {
+        throw new Error('Database provider not available');
+      }
+      
+      // Get users collection
+      const usersCollection = databaseService.getCollection('users');
+      if (!usersCollection) {
+        throw new Error('Users collection not available');
+      }
+      
+      // Check if any users exist in the database
+      const allUsers = await usersCollection.find({ selector: {} });
+      if (!allUsers || allUsers.length === 0) {
+        console.log('🔐 [AuthService] No users found in production database, switching to demo mode');
+        
+        // Switch to demo mode automatically
+        await unifiedConfigManager.switchToDemo();
+        this.isDemoMode = true;
+        
+        // Log the fallback to demo mode
+        console.warn('🔐 [AuthService] Automatically switched to demo mode due to empty user database');
+        reportError(new Error('Production database empty - switched to demo mode'), {
+          username: credentials.username,
+          loginType: 'production_fallback_to_demo',
+          errorContext: 'empty_database_fallback',
+          timestamp: new Date().toISOString()
+        });
+        
+        // Use demo login instead
+        return this.loginDemo(credentials);
+      }
       
       // Find user by username
-      const userDoc = await db.users.findOne({ selector: { username: credentials.username } }).exec();
-      if (!userDoc) {
+      const user = await usersCollection.findOne({ selector: { username: credentials.username } });
+      if (!user) {
         // Report production login failure to Bugsink
         const loginError = new Error('Production login failed: User not found');
         reportError(loginError, {
@@ -455,8 +467,6 @@ class AuthService {
           message: 'Invalid username or password'
         };
       }
-
-      const user = userDoc.toJSON();
       
       // Check if user is active
       if (!user.is_active) {
@@ -498,19 +508,23 @@ class AuthService {
       // Get user permissions
       const permissions = await userPermissionsService.getUserPermissions(user.id);
       
-      // Get user roles and module access
-      const userRoles = await db.user_roles.find({ selector: { userId: user.id } }).exec();
+      // Get user roles and module access using collections
+      const userRolesCollection = databaseService.getCollection('user_roles');
+      const rolesCollection = databaseService.getCollection('rbac_roles');
+      
+      const userRoles = userRolesCollection ? await userRolesCollection.find({ selector: { userId: user.id } }) : [];
       const moduleAccess: string[] = [];
       
       for (const userRole of userRoles) {
-        const roleDoc = await db.rbac_roles.findOne({ selector: { id: userRole.roleId } }).exec();
-        if (roleDoc) {
-          const role = roleDoc.toJSON();
-          Object.keys(role.moduleAccess || {}).forEach(moduleId => {
-            if (role.moduleAccess[moduleId].enabled && !moduleAccess.includes(moduleId)) {
-              moduleAccess.push(moduleId);
-            }
-          });
+        if (rolesCollection) {
+          const role = await rolesCollection.findOne({ selector: { id: userRole.roleId } });
+          if (role) {
+            Object.keys(role.moduleAccess || {}).forEach(moduleId => {
+              if (role.moduleAccess[moduleId].enabled && !moduleAccess.includes(moduleId)) {
+                moduleAccess.push(moduleId);
+              }
+            });
+          }
         }
       }
 
@@ -539,8 +553,15 @@ class AuthService {
 
       this.saveSession(session);
 
-      // Update last login
-      await userDoc.atomicPatch({ last_login_at: new Date().toISOString() });
+      // Update last login using collection
+      if (usersCollection && user.id) {
+        try {
+          await usersCollection.update(user.id, { last_login_at: new Date().toISOString() });
+        } catch (updateError) {
+          console.warn('Failed to update last login time:', updateError);
+          // Don't fail the login process if we can't update last login
+        }
+      }
 
       return {
         success: true,
