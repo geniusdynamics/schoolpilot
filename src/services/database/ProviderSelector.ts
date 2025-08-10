@@ -9,7 +9,8 @@ import {
   CollectionSchema,
   CollectionRequirements,
   ProviderStatus,
-  DatabaseError
+  DatabaseError,
+  IndexDefinition
 } from './interfaces';
 import {
   DatabaseProviderFactory,
@@ -46,10 +47,11 @@ export class DatabaseManager {
       // Determine requirements based on collection count and features
       const requirements: CollectionRequirements = {
         collectionsCount: collectionConfigs.length,
-        offlineFirst: true,
-        syncRequired: false,
-        reactiveQueries: true,
-        complexQueries: false
+        requiresOffline: true,
+        requiresSync: false,
+        requiresReactivity: true,
+        performanceLevel: 'standard',
+        storageQuota: 100 * 1024 * 1024 // 100MB default
       };
 
       // Create provider using factory
@@ -257,10 +259,22 @@ export function resetDatabaseManager(): void {
 }
 
 // Helper function to convert RxDB schema to our interface
-export function convertRxDBSchema(rxdbSchema: any): CollectionSchema {
+export function convertRxDBSchema(rxdbSchemaOrWrapper: any): CollectionSchema {
+  // Handle both raw schema and { schema: ... } wrapper form
+  const rxdbSchema = rxdbSchemaOrWrapper && typeof rxdbSchemaOrWrapper === 'object' && 'schema' in rxdbSchemaOrWrapper 
+    ? rxdbSchemaOrWrapper.schema 
+    : rxdbSchemaOrWrapper;
+  
+  // Validate that we have a valid schema object
+  if (!rxdbSchema || typeof rxdbSchema !== 'object') {
+    console.error('Invalid schema provided to convertRxDBSchema:', rxdbSchema);
+    throw new Error(`Invalid schema: expected object, got ${typeof rxdbSchema}`);
+  }
+  
   const properties: Record<string, any> = {};
   
-  if (rxdbSchema.properties) {
+  // Safely handle properties
+  if (rxdbSchema.properties && typeof rxdbSchema.properties === 'object') {
     for (const [key, value] of Object.entries(rxdbSchema.properties)) {
       properties[key] = {
         type: (value as any).type || 'string',
@@ -270,10 +284,50 @@ export function convertRxDBSchema(rxdbSchema: any): CollectionSchema {
     }
   }
   
+  // Normalize indexes - RxDB can have string or array formats
+  const normalizedIndexes: IndexDefinition[] = [];
+  if (rxdbSchema.indexes) {
+    const indexes = Array.isArray(rxdbSchema.indexes) ? rxdbSchema.indexes : [rxdbSchema.indexes];
+    
+    for (const index of indexes) {
+      if (typeof index === 'string') {
+        // Single field index as string
+        normalizedIndexes.push({
+          name: `idx_${index}`,
+          fields: [index],
+          unique: false
+        });
+      } else if (Array.isArray(index)) {
+        // Compound index as array of field names
+        normalizedIndexes.push({
+          name: `idx_${index.join('_')}`,
+          fields: index,
+          unique: false
+        });
+      } else if (typeof index === 'object' && index !== null) {
+        // Full index definition object
+        normalizedIndexes.push({
+          name: index.name || `idx_${index.fields?.join('_') || 'unknown'}`,
+          fields: Array.isArray(index.fields) ? index.fields : [index.fields || index],
+          unique: index.unique || false,
+          sparse: index.sparse || false,
+          background: index.background || false
+        });
+      }
+    }
+  }
+  
+  // Add version and type if not present (required by CollectionSchema interface)
+  const version = rxdbSchema.version || 0;
+  const type = rxdbSchema.type || 'object';
+  
   return {
+    version,
+    type,
     properties,
     required: rxdbSchema.required || [],
-    indexes: rxdbSchema.indexes || []
+    indexes: normalizedIndexes,
+    primaryKey: rxdbSchema.primaryKey || 'id'
   };
 }
 
@@ -323,19 +377,40 @@ export class RxDBIntegrationHelper {
       const collectionConfigs: CollectionConfig[] = [];
       
       // Convert RxDB collection definitions to our format
-      for (const [name, schema] of entries) {
+      for (const [name, def] of entries) {
         console.log(`🔍 [RxDBIntegrationHelper] Processing collection: ${name}`);
-        collectionConfigs.push({
-          name,
-          schema: convertRxDBSchema(schema),
-          requirements: {
-            collectionsCount: entries.length,
-            offlineFirst: true,
-            syncRequired: false,
-            reactiveQueries: true,
-            complexQueries: false
-          }
-        });
+        
+        // Derive the actual schema source - handle both { schema: ... } and raw schema forms
+        const schemaSource = def && typeof def === 'object' && 'schema' in def ? def.schema : def;
+        
+        // Validate schemaSource is an object
+        if (!schemaSource || typeof schemaSource !== 'object') {
+          const errorMsg = `Invalid schema for collection '${name}': expected object, got ${typeof schemaSource}`;
+          console.error('❌ [RxDBIntegrationHelper]', errorMsg);
+          console.error('❌ [RxDBIntegrationHelper] Schema source value:', schemaSource);
+          throw new Error(errorMsg);
+        }
+        
+        try {
+          const convertedSchema = convertRxDBSchema(schemaSource);
+          console.log(`✅ [RxDBIntegrationHelper] Successfully converted schema for collection '${name}'`);
+          
+          collectionConfigs.push({
+            name,
+            schema: convertedSchema,
+            requirements: {
+              collectionsCount: entries.length,
+              requiresOffline: true,
+              requiresSync: false,
+              requiresReactivity: true,
+              performanceLevel: 'standard',
+              storageQuota: 100 * 1024 * 1024 // 100MB default
+            }
+          });
+        } catch (conversionError) {
+          console.error(`❌ [RxDBIntegrationHelper] Failed to convert schema for collection '${name}':`, conversionError);
+          throw new Error(`Failed to convert schema for collection '${name}': ${conversionError.message}`);
+        }
       }
 
       await this.databaseManager.initialize(config, collectionConfigs);

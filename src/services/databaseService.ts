@@ -19,6 +19,16 @@ import {
 // Import the same collections definition from rxdbService
 import { collectionsDefinition } from './rxdbService';
 
+// Validate collectionsDefinition at module load time
+if (!collectionsDefinition) {
+  console.error('❌ [CRITICAL] collectionsDefinition is undefined at import time!');
+  console.error('Please ensure collectionsDefinition is properly exported from rxdbService.ts');
+} else if (typeof collectionsDefinition !== 'object') {
+  console.error('❌ [CRITICAL] collectionsDefinition is not an object:', typeof collectionsDefinition);
+} else {
+  console.log('✅ [DEBUG] collectionsDefinition imported successfully with', Object.keys(collectionsDefinition).length, 'collections');
+}
+
 // ID Generation (same as rxdbService)
 export const generateId = (): string => crypto.randomUUID();
 let numericIdCounter = Date.now();
@@ -37,97 +47,34 @@ class MockDatabase {
 
   constructor(collections: Map<string, ICollection<any>>) {
     this.collectionsMap = collections;
+    
+    // Use Proxy to handle dynamic property access for collections
+    return new Proxy(this, {
+      get(target, prop, receiver) {
+        // If the property exists on the class, use it
+        if (prop in target) {
+          return Reflect.get(target, prop, receiver);
+        }
+        
+        // If it's a string property name, try to get it as a collection
+        if (typeof prop === 'string') {
+          const collection = target.collectionsMap.get(prop);
+          if (collection) {
+            return collection;
+          }
+        }
+        
+        // Return undefined for unknown properties
+        return undefined;
+      }
+    }) as MockDatabase;
   }
 
-  // Provide collection access similar to RxDB
-  get app_settings() {
-    return this.getCollection('app_settings');
-  }
+  // Note: Individual getters are no longer needed due to Proxy implementation
+  // The Proxy in the constructor handles all dynamic property access
+  // Keeping this comment for clarity on how collection access works
 
-  get school_details() {
-    return this.getCollection('school_details');
-  }
-
-  get users() {
-    return this.getCollection('users');
-  }
-
-  get roles() {
-    return this.getCollection('roles');
-  }
-
-  get students() {
-    return this.getCollection('students');
-  }
-
-  get staff() {
-    return this.getCollection('staff');
-  }
-
-  get departments() {
-    return this.getCollection('departments');
-  }
-
-  get designations() {
-    return this.getCollection('designations');
-  }
-
-  get classes() {
-    return this.getCollection('classes');
-  }
-
-  get class_streams() {
-    return this.getCollection('class_streams');
-  }
-
-  get dormitories() {
-    return this.getCollection('dormitories');
-  }
-
-  get student_categories() {
-    return this.getCollection('student_categories');
-  }
-
-  get parents_guardians() {
-    return this.getCollection('parents_guardians');
-  }
-
-  get student_guardian_relationships() {
-    return this.getCollection('student_guardian_relationships');
-  }
-
-  get academic_years() {
-    return this.getCollection('academic_years');
-  }
-
-  get academic_year_structures() {
-    return this.getCollection('academic_year_structures');
-  }
-
-  get academic_period_definitions() {
-    return this.getCollection('academic_period_definitions');
-  }
-
-  get workflows() {
-    return this.getCollection('workflows');
-  }
-
-  get workflow_states() {
-    return this.getCollection('workflow_states');
-  }
-
-  get education_system_configurations() {
-    return this.getCollection('education_system_configurations');
-  }
-
-  get audit_logs() {
-    return this.getCollection('audit_logs');
-  }
-
-  // Dynamic collection access
-  [key: string]: any;
-
-  private getCollection(name: string): ICollection<any> | null {
+  getCollection(name: string): ICollection<any> | null {
     const collection = this.collectionsMap.get(name);
     if (!collection) {
       console.warn(`Collection '${name}' not found in PouchDB provider`);
@@ -232,7 +179,7 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
     if (Object.prototype.hasOwnProperty.call(collectionsDefinition, collectionName)) {
       const rawDataKey = `initialMock${collectionName.charAt(0).toUpperCase() + collectionName.slice(1).replace(/Inv$/, 'Inv')}`;
       const mockDataArray = mockData[rawDataKey as keyof allTypes.RawInitialData];
-      const collection = (db as any)[collectionName] as ICollection<any>;
+      const collection = db.collections[collectionName] as ICollection<any>;
 
       if (collection) {
         try {
@@ -241,7 +188,7 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
           const existingDocs = await collection.find();
           for (const doc of existingDocs) {
             if (doc.id) {
-              await collection.delete(doc.id);
+              await collection.remove(doc.id);
             }
           }
 
@@ -255,7 +202,19 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
             await collection.insert(mockDataArray);
           } else if (collectionName === RXDB_SETTINGS_COLLECTION_NAME && mockDataArray) {
             console.log(`PouchDB: Upserting ${collectionName} data...`);
-            await collection.upsert(mockDataArray.id, mockDataArray);
+            // Use upsert for settings collection
+            const settingsCol = collection as any;
+            if (settingsCol.upsert) {
+              await settingsCol.upsert(mockDataArray.id, mockDataArray);
+            } else {
+              // Fallback: check if exists and update or insert
+              const existing = await collection.findById(mockDataArray.id);
+              if (existing) {
+                await collection.update(mockDataArray.id, mockDataArray);
+              } else {
+                await collection.insert(mockDataArray);
+              }
+            }
           }
         } catch (error) {
           console.error(`PouchDB: Error seeding collection ${collectionName}:`, error);
@@ -267,12 +226,23 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
   }
 
   // Set dummy data flag
-  const settingsCollection = (db as any)[RXDB_SETTINGS_COLLECTION_NAME] as ICollection<any>;
+  const settingsCollection = db.collections[RXDB_SETTINGS_COLLECTION_NAME] as ICollection<any>;
   if (settingsCollection) {
-    await settingsCollection.upsert(RXDB_DUMMY_DATA_FLAG_ID, {
-      id: RXDB_DUMMY_DATA_FLAG_ID,
-      using_dummy_data: true
-    });
+    // Use upsert for settings collection
+    if ((settingsCollection as any).upsert) {
+      await (settingsCollection as any).upsert(RXDB_DUMMY_DATA_FLAG_ID, {
+        id: RXDB_DUMMY_DATA_FLAG_ID,
+        using_dummy_data: true
+      });
+    } else {
+      // Fallback: check if exists and update or insert
+      const existing = await settingsCollection.findById(RXDB_DUMMY_DATA_FLAG_ID);
+      if (existing) {
+        await settingsCollection.update(RXDB_DUMMY_DATA_FLAG_ID, { using_dummy_data: true });
+      } else {
+        await settingsCollection.insert({ using_dummy_data: true });
+      }
+    }
     console.log('PouchDB: Dummy data flag set to true.');
   }
   
@@ -287,7 +257,7 @@ export const clearDatabase = async (db: MockDatabase): Promise<void> => {
       const docs = await collection.find();
       for (const doc of docs) {
         if (doc.id) {
-          await collection.delete(doc.id);
+          await collection.remove(doc.id);
         }
       }
       console.log(`PouchDB: Cleared collection ${collectionName}`);
@@ -297,12 +267,23 @@ export const clearDatabase = async (db: MockDatabase): Promise<void> => {
   }
 
   // Set dummy data flag to false
-  const settingsCollection = (db as any)[RXDB_SETTINGS_COLLECTION_NAME] as ICollection<any>;
+  const settingsCollection = db.collections[RXDB_SETTINGS_COLLECTION_NAME] as ICollection<any>;
   if (settingsCollection) {
-    await settingsCollection.upsert(RXDB_DUMMY_DATA_FLAG_ID, {
-      id: RXDB_DUMMY_DATA_FLAG_ID,
-      using_dummy_data: false
-    });
+    // Use upsert for settings collection
+    if ((settingsCollection as any).upsert) {
+      await (settingsCollection as any).upsert(RXDB_DUMMY_DATA_FLAG_ID, {
+        id: RXDB_DUMMY_DATA_FLAG_ID,
+        using_dummy_data: false
+      });
+    } else {
+      // Fallback: check if exists and update or insert
+      const existing = await settingsCollection.findById(RXDB_DUMMY_DATA_FLAG_ID);
+      if (existing) {
+        await settingsCollection.update(RXDB_DUMMY_DATA_FLAG_ID, { using_dummy_data: false });
+      } else {
+        await settingsCollection.insert({ using_dummy_data: false });
+      }
+    }
     console.log('PouchDB: Dummy data flag set to false.');
   }
   
@@ -310,10 +291,10 @@ export const clearDatabase = async (db: MockDatabase): Promise<void> => {
 };
 
 export const getUsingDummyDataFlag = async (db: MockDatabase): Promise<boolean> => {
-  const settingsCollection = (db as any)[RXDB_SETTINGS_COLLECTION_NAME] as ICollection<any>;
+  const settingsCollection = db.collections[RXDB_SETTINGS_COLLECTION_NAME] as ICollection<any>;
   if (settingsCollection) {
     try {
-      const doc = await settingsCollection.findOne(RXDB_DUMMY_DATA_FLAG_ID);
+      const doc = await settingsCollection.findById(RXDB_DUMMY_DATA_FLAG_ID);
       return !!doc?.using_dummy_data;
     } catch (error) {
       console.warn('PouchDB: Could not retrieve dummy data flag:', error);

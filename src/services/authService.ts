@@ -1,7 +1,6 @@
 // ABOUTME: Authentication service for user login, logout, and session management
 // ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (RxDB)
 
-import { useAppData } from '../hooks/useAppData';
 import * as rxdbService from './databaseService';
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../core/rbacService';
@@ -63,12 +62,14 @@ class AuthService {
   }
 
   private async initialize() {
+    console.log('🔐 [AuthService] initialize() called');
     try {
       // Check RxDB availability using the new service methods
       const hasIndexedDB = typeof window !== 'undefined' && window.indexedDB;
+      console.log('🔐 [AuthService] IndexedDB available?', hasIndexedDB);
       
       if (!hasIndexedDB) {
-        console.warn('IndexedDB not available, forcing demo mode');
+        console.warn('🔐 [AuthService] IndexedDB not available, forcing demo mode');
         this.isDemoMode = true;
         this.rxDBAvailable = false;
         this.initializationComplete = true;
@@ -218,13 +219,16 @@ class AuthService {
   // ===== AUTHENTICATION METHODS =====
 
   async login(credentials: LoginCredentials): Promise<AuthResult> {
+    console.log('🔐 [AuthService] login() called for user:', credentials.username);
     try {
       // Wait for initialization if not complete
       if (!this.initializationComplete) {
+        console.log('🔐 [AuthService] Waiting for initialization to complete...');
         await new Promise(resolve => setTimeout(resolve, 100));
         return this.login(credentials);
       }
 
+      console.log('🔐 [AuthService] Login mode:', this.isDemoMode ? 'DEMO' : 'PRODUCTION');
       if (this.isDemoMode) {
         return this.loginDemo(credentials);
       } else {
@@ -532,19 +536,5 @@ class AuthService {
 // Export singleton instance
 export const authService = new AuthService();
 
-// Export React hooks for easy use in components
-export const useAuth = () => {
-  const { isRxDBModeActive } = useAppData();
-  
-  return {
-    login: authService.login.bind(authService),
-    logout: authService.logout.bind(authService),
-    getCurrentUser: authService.getCurrentUser.bind(authService),
-    refreshSession: authService.refreshSession.bind(authService),
-    isAuthenticated: authService.isAuthenticated.bind(authService),
-    hasPermission: authService.hasPermission.bind(authService),
-    hasModuleAccess: authService.hasModuleAccess.bind(authService),
-    getUserRoles: authService.getUserRoles.bind(authService),
-    isDemoMode: !isRxDBModeActive
-  };
-};
+// Note: useAuth hook is exported from AuthContext.tsx to avoid circular dependencies
+// Import { useAuth } from '@/contexts/AuthContext' instead

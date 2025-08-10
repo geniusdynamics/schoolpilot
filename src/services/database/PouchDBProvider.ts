@@ -167,17 +167,6 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
     }
   }
 
-  async findOne(query: QueryOptions): Promise<T | null> {
-    try {
-      const results = await this.find({ ...query, limit: 1 });
-      return results.length > 0 ? results[0] : null;
-    } catch (error) {
-      throw new CollectionError(
-        `Failed to find document in ${this.name}: ${error.message}`,
-        this.name
-      );
-    }
-  }
 
   async findById(id: string): Promise<T | null> {
     try {
@@ -310,6 +299,59 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
         `Failed to remove multiple documents from ${this.name}: ${error.message}`,
         this.name
       );
+    }
+  }
+
+  // Upsert operation (update or insert)
+  async upsert(id: string, doc: Partial<T>): Promise<UpdateResult<T> | InsertResult<T>> {
+    try {
+      const existing = await this.findById(id);
+      if (existing) {
+        // Update existing document
+        return await this.update(id, doc);
+      } else {
+        // Insert new document
+        const docWithId = { ...doc, id } as Omit<T, 'id'>;
+        return await this.insert(docWithId);
+      }
+    } catch (error) {
+      throw new CollectionError(
+        `Failed to upsert document in ${this.name}: ${error.message}`,
+        this.name
+      );
+    }
+  }
+
+  // RxDB Compatibility Aliases
+  // These methods provide compatibility with RxDB-like API expectations
+  
+  /**
+   * Alias for remove() to match RxDB API
+   * @param id Document ID to delete
+   */
+  async delete(id: string): Promise<DeleteResult> {
+    return this.remove(id);
+  }
+
+  /**
+   * Enhanced findOne that accepts either ID string or query options
+   * @param idOrQuery Either a document ID string or query options
+   */
+  async findOne(idOrQuery: string | QueryOptions): Promise<T | null> {
+    if (typeof idOrQuery === 'string') {
+      // If string, treat as ID and use findById
+      return this.findById(idOrQuery);
+    } else {
+      // If object, use existing findOne with query options
+      try {
+        const results = await this.find({ ...idOrQuery, limit: 1 });
+        return results.length > 0 ? results[0] : null;
+      } catch (error) {
+        throw new CollectionError(
+          `Failed to find document in ${this.name}: ${error.message}`,
+          this.name
+        );
+      }
     }
   }
 

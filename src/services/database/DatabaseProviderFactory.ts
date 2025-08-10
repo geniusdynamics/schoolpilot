@@ -34,12 +34,12 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
     // - Simple to moderate complexity queries
     // - Better IndexedDB integration
     
-    if (requirements.offlineFirst || requirements.syncRequired) {
+    if (requirements.requiresOffline || requirements.requiresSync) {
       return 'pouchdb';
     }
     
     // Use RxDB only for specific advanced reactive requirements
-    if (requirements.reactiveQueries && requirements.complexQueries) {
+    if (requirements.requiresReactivity && requirements.performanceLevel === 'high') {
       return 'rxdb';
     }
     
@@ -305,10 +305,11 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       // Create new provider
       const provider = await this.createProvider(config, {
         collectionsCount: 88, // Support all collections
-        offlineFirst: true,
-        syncRequired: false,
-        reactiveQueries: false,
-        complexQueries: false
+        requiresOffline: true,
+        requiresSync: false,
+        requiresReactivity: false,
+        performanceLevel: 'standard',
+        storageQuota: 100 * 1024 * 1024 // 100MB default
       });
 
       return provider;

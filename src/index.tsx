@@ -11,6 +11,34 @@ import { initializeUnifiedConfig } from './config/unifiedConfig';
 // Initialize unified configuration
 initializeUnifiedConfig();
 
+// Add global debug helpers
+if (typeof window !== 'undefined') {
+  (window as any).debugAuth = async () => {
+    const { authService } = await import('./services/authService');
+    return {
+      initialized: authService.isInitialized(),
+      authenticated: authService.isAuthenticated(),
+      session: authService.getCurrentSession(),
+      user: await authService.getCurrentUser()
+    };
+  };
+  
+  (window as any).testLogin = async (username: string = 'admin', password: string = 'admin123') => {
+    const { authService } = await import('./services/authService');
+    const result = await authService.login({ username, password });
+    console.log('Login result:', result);
+    if (result.success) {
+      console.log('Login successful! Refreshing page...');
+      setTimeout(() => location.reload(), 1000);
+    }
+    return result;
+  };
+  
+  console.log('🎉 Debug helpers available:');
+  console.log('  - window.debugAuth() - Check auth status');
+  console.log('  - window.testLogin(username, password) - Test login');
+}
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");

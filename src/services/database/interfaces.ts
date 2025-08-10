@@ -140,13 +140,17 @@ export interface ICollection<T> {
   // CRUD Operations
   insert(doc: Omit<T, 'id'>): Promise<InsertResult<T>>;
   insertMany(docs: Omit<T, 'id'>[]): Promise<BulkResult<T>>;
-  findOne(query: QueryOptions): Promise<T | null>;
+  findOne(idOrQuery: string | QueryOptions): Promise<T | null>; // Enhanced to accept ID or query
   findById(id: string): Promise<T | null>;
   find(query?: QueryOptions): Promise<T[]>;
   update(id: string, update: Partial<T>): Promise<UpdateResult<T>>;
   updateMany(query: QueryOptions, update: Partial<T>): Promise<UpdateResult<T>[]>;
   remove(id: string): Promise<DeleteResult>;
   removeMany(query: QueryOptions): Promise<DeleteResult[]>;
+  
+  // RxDB-compatible methods (optional - providers can implement as aliases)
+  upsert?(id: string, doc: Partial<T>): Promise<UpdateResult<T> | InsertResult<T>>;
+  delete?(id: string): Promise<DeleteResult>;
   
   // Reactive Operations
   subscribe(query?: QueryOptions): Observable<T[]>;

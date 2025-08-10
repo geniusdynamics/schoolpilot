@@ -243,13 +243,21 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
 // Enhanced app content with feature flag support
 const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConfig }> = ({ modulesInitialized, config }) => {
   const location = useLocation();
-  const { isAuthenticated, isLoading } = useAuth();
+  const authContext = useAuth();
+  const { isAuthenticated, isLoading } = authContext;
   const { restoreRouteIfNeeded } = useRoutePersistence();
 
   // Debug authentication state
   useEffect(() => {
-    debugLog('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
-  }, [isAuthenticated, isLoading, location.pathname]);
+    console.log('🔍 [AppContent] Auth state:', authContext);
+    debugLog('🔍 [AppContent] Auth state details:', { 
+      isAuthenticated, 
+      isLoading, 
+      pathname: location.pathname,
+      user: authContext.user,
+      isDemoMode: authContext.isDemoMode 
+    });
+  }, [isAuthenticated, isLoading, location.pathname, authContext]);
 
   // Restore route after authentication is complete and modules are initialized
   useEffect(() => {
