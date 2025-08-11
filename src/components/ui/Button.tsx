@@ -79,6 +79,8 @@ const Button = forwardRef(<C extends ElementType = "button">(
   }: PolymorphicButtonProps<C>,
   ref: React.Ref<any>
 ) => {
+  // Extract leftIcon and rightIcon from rest to prevent them from being passed to DOM
+  const { leftIcon: _, rightIcon: __, ...domProps } = rest as any;
   const Component = as || 'button';
   const buttonId = generateId('button');
   const isDisabled = disabled || loading;
@@ -215,7 +217,7 @@ const Button = forwardRef(<C extends ElementType = "button">(
       aria-label={ariaLabel}
       aria-describedby={ariaDescribedBy}
       aria-busy={loading}
-      {...rest}
+      {...domProps}
     >
       {buttonContent}
     </Component>

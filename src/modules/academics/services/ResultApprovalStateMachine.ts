@@ -1,6 +1,7 @@
 // src/modules/academics/services/ResultApprovalStateMachine.ts
 
 import { ResultApprovalEntity, ResultState, AuditLog } from '../data/types';
+import { GradingEngineService } from './GradingEngineService';
 
 export class ResultApprovalStateMachine {
   private currentState: ResultState;
@@ -37,8 +38,6 @@ export class ResultApprovalStateMachine {
     this.entity.updated_at = new Date().toISOString();
     this.entity.updated_by = userId;
   }
-
-import { GradingEngineService } from './GradingEngineService';
 
   private logAuditTrail(userId: string, newState: ResultState) {
     const log: AuditLog = {

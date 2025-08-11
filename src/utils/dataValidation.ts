@@ -135,10 +135,15 @@ export class DataValidator {
         code: 'REQUIRED_FIELD',
         severity: 'error'
       });
-      return errors; // Skip other validations if required field is missing
+      // Continue with other validations for empty strings to catch length constraints
     }
 
     // Skip other validations if value is null/undefined and not required
+    if ((value === null || value === undefined) && !rule.required) {
+      return errors;
+    }
+
+    // Skip other validations if value is null/undefined but continue for empty strings
     if (value === null || value === undefined) {
       return errors;
     }

@@ -1,8 +1,8 @@
-# School Management System - Architecture Overview
+# SchoolPilot - Architecture Overview
 
 ## 1. Introduction
 
-This document outlines the high-level architecture of the School Management System (SMS). The SMS is a frontend-only React application designed to be robust, maintainable, and scalable. It features a mode-based data layer allowing it to operate with mock data for demonstration and development, or with a local RxDB database for persistent storage in a production-like environment.
+This document outlines the high-level architecture of SchoolPilot (SMS). SchoolPilot is a frontend-only React application designed to be robust, maintainable, and scalable. It features a mode-based data layer allowing it to operate with mock data for demonstration and development, or with a local RxDB database for persistent storage in a production-like environment.
 
 ## 2. Core Technologies
 

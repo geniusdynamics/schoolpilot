@@ -1,4 +1,4 @@
-# School Management System - "API" Specification (AppDataContext)
+# SchoolPilot - "API" Specification (AppDataContext)
 
 ## 1. Introduction
 

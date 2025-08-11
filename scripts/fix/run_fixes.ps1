@@ -132,7 +132,7 @@ Write-Host "Backup files are available in: $backupDir" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "To test the application:" -ForegroundColor Cyan
 Write-Host "1. Run: npm run dev" -ForegroundColor White
-Write-Host "2. Open: http://localhost:5173" -ForegroundColor White
+Write-Host "2. Open: http://localhost:5200" -ForegroundColor White
 Write-Host "3. Test both demo and production modes" -ForegroundColor White
 Write-Host ""
 Write-Host "To switch to production mode:" -ForegroundColor Cyan
@@ -141,4 +141,4 @@ Write-Host "2. Change APP_MODE to 'production'" -ForegroundColor White
 Write-Host "3. Restart the development server" -ForegroundColor White
 Write-Host ""
 Write-Host "Press Enter to exit..." -ForegroundColor Yellow
-Read-Host 
+Read-Host

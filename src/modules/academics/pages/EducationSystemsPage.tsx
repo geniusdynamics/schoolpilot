@@ -6,7 +6,7 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { PlusIcon, EditIcon, CopyIcon, EyeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import EducationSystemConfigPage from './EducationSystemConfigPage';
 
 const EducationSystemsPage: React.FC = () => {

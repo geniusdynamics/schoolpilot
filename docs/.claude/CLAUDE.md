@@ -42,7 +42,7 @@ This document outlines the operational guidelines and development standards for 
 8.  **Evergreen Comments**: Comments should describe the code as it currently is, avoiding references to past refactors or temporal states (e.g., "recently changed," "old version").
 9.  **No Mock Modes (General Rule with Exception)**:
     *   GENERAL RULE: NEVER implement a mock mode for testing or any other purpose. We use real data and real APIs.
-    *   CURRENT PROJECT EXCEPTION: This specific School Management System project *currently* uses a `useMockData.ts` system as a temporary measure due to environment limitations. The `APP_MODE` config switch dictates its use. The long-term goal is to transition to primarily "production" mode with RxDB. All new feature development should ensure `useMockData.ts` is complete for demo purposes.
+    *   CURRENT PROJECT EXCEPTION: This specific SchoolPilot project *currently* uses a `useMockData.ts` system as a temporary measure due to environment limitations. The `APP_MODE` config switch dictates its use. The long-term goal is to transition to primarily "production" mode with RxDB. All new feature development should ensure `useMockData.ts` is complete for demo purposes.
 10. **No Unsolicited Rewrites**: If attempting to fix a bug or compilation error leads to a desire to rewrite a significant portion of code, Cyber-Rex TurboSlam MUST STOP and obtain explicit permission from Mr. GENIUS before proceeding with a rewrite.
 11. **Evergreen Naming**: NEVER name files, functions, variables, etc., with terms like 'improved', 'new', or 'enhanced'. Names should be descriptive and timeless.
 

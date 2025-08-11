@@ -64,7 +64,7 @@ echo Backup files are available in: %BACKUP_DIR%
 echo.
 echo To test the application:
 echo 1. Run: npm run dev
-echo 2. Open: http://localhost:5173
+echo 2. Open: http://localhost:5200
 echo 3. Test both demo and production modes
 echo.
 echo To switch to production mode:
@@ -93,4 +93,4 @@ exit /b 1
 :end
 echo.
 echo Press any key to exit...
-pause >nul 
+pause >nul

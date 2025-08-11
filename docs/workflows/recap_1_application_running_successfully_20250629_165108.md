@@ -9,7 +9,7 @@ Today, we successfully configured and started the SchoolPilot application. This 
 3. **Vite and TypeScript Configurations**: Correctly mapped and aliased paths within `vite.config.ts` and `tsconfig.json` to ensure seamless module resolution.
 4. **Types Centralization**: Created `src/types.ts` as a single access point for all type definitions to streamline imports and fix resolution errors.
 5. **Import Path Adjustments**: Fixed specific import discrepancies in key files (`StudentsListPage.tsx`) to align with the new types centralization strategy.
-6. **Development Server Launch**: Successfully started the app on http://localhost:5173/ with no errors.
+6. **Development Server Launch**: Successfully started the app on http://localhost:5200/ with no errors.
 
 **Commands Executed:**
 - `wsl npm run dev`

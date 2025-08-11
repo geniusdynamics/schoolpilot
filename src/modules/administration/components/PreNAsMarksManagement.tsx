@@ -19,7 +19,7 @@ import {
   FunnelIcon,
   ArrowUpTrayIcon
 } from '../../../components/ui/icons';
-import { useAppData } from '../../../contexts/AppDataContext';
+import { useAppData } from '../../../hooks/useAppData';
 import Spinner from '../../../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../hooks/useToast';

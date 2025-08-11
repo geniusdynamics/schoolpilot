@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { 
@@ -12,6 +12,7 @@ import {
   ChartBarIcon,
   AcademicCapIcon
 } from '@/components/ui/icons';
+import Spinner from '@/components/ui/Spinner';
 
 interface ModuleSection {
   id: string;
@@ -38,6 +39,18 @@ const AcademicModuleStatus: React.FC = () => {
     timetableEntries,
     loading 
   } = useAppData();
+
+  const dataStatus = useMemo(() => {
+    return {
+      subjects: subjects?.length || 0,
+      examSessions: examSessions?.length || 0,
+      gradingSchemes: gradingSchemes?.length || 0,
+      classSubjectAllocations: classSubjectAllocations?.length || 0,
+      teacherSubjectAssignments: teacherSubjectAssignments?.length || 0,
+      studentSubjectEnrollments: studentSubjectEnrollments?.length || 0,
+      timetableEntries: timetableEntries?.length || 0,
+    };
+  }, [subjects, examSessions, gradingSchemes, classSubjectAllocations, teacherSubjectAssignments, studentSubjectEnrollments, timetableEntries]);
 
   const sections: ModuleSection[] = [
     {
@@ -113,24 +126,19 @@ const AcademicModuleStatus: React.FC = () => {
     }
   };
 
-  const getDataStatus = () => {
-    return {
-      subjects: subjects?.length || 0,
-      examSessions: examSessions?.length || 0,
-      gradingSchemes: gradingSchemes?.length || 0,
-      classSubjectAllocations: classSubjectAllocations?.length || 0,
-      teacherSubjectAssignments: teacherSubjectAssignments?.length || 0,
-      studentSubjectEnrollments: studentSubjectEnrollments?.length || 0,
-      timetableEntries: timetableEntries?.length || 0,
-    };
-  };
-
-  const dataStatus = getDataStatus();
-  const totalPages = sections.reduce((sum, section) => sum + section.pages.length, 0);
-  const implementedPages = sections.reduce(
+  const totalPages = useMemo(() => sections.reduce((sum, section) => sum + section.pages.length, 0), [sections]);
+  const implementedPages = useMemo(() => sections.reduce(
     (sum, section) => sum + section.pages.filter(page => page.implemented).length, 
     0
-  );
+  ), [sections]);
+
+  if (loading.all) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spinner message="Loading academic module status..." />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

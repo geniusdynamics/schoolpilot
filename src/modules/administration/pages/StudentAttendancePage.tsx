@@ -8,7 +8,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, ClockIcon, MinusCircleIcon } from '@/components/ui/icons';
 import { useStudentAttendanceData } from '@/modules/administration/data/useStudentAttendanceData';
-import { useAppData } from '@/contexts/AppDataContext'; // For other data sources
+import { useAppData } from '@/hooks/useAppData'; // For other data sources
 import Spinner from '@/components/ui/Spinner';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { useTranslation } from 'react-i18next';

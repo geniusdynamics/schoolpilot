@@ -430,7 +430,7 @@ const TabbedFormDemo: React.FC = () => {
                 content: (
                   <div className="text-center space-y-4">
                     <h3 className="text-xl font-medium">Welcome to SchoolPilot3!</h3>
-                    <p className="text-gray-600">Let's get your school management system set up in just a few steps.</p>
+                    <p className="text-gray-600">Let's get your SchoolPilot system set up in just a few steps.</p>
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <p className="text-blue-800">This wizard will guide you through the initial configuration.</p>
                     </div>
@@ -480,7 +480,7 @@ const TabbedFormDemo: React.FC = () => {
                       </svg>
                     </div>
                     <h3 className="text-xl font-medium">Setup Complete!</h3>
-                    <p className="text-gray-600">Your school management system is ready to use.</p>
+                    <p className="text-gray-600">Your SchoolPilot system is ready to use.</p>
                   </div>
                 ),
               },

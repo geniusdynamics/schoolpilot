@@ -1,6 +1,6 @@
 # SchoolPilot - Feature List
 
-This document provides a comprehensive list of the features implemented in the School Management System, categorized by module. It also includes potential future additions for each feature.
+This document provides a comprehensive list of the features implemented in SchoolPilot, categorized by module. It also includes potential future additions for each feature.
 
 ---
 

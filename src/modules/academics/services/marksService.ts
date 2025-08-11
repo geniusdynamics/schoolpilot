@@ -1,4 +1,4 @@
-// src/services/marksService.ts
+// src/modules/academics/services/marksService.ts
 
 import { StudentPaperMark } from '@/modules/academics/data/types';
 

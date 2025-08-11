@@ -2,7 +2,7 @@
 // ABOUTME: with the school timetable system and checking for timetable conflicts
 
 import { ExamSchedule } from '../data/types';
-import { RxDatabase } from 'rxdb';
+import { databaseService } from '../../../services/databaseService';
 
 export interface TimetableSlot {
   id: string;
@@ -24,29 +24,18 @@ export interface IntegrationResult {
 }
 
 export class TimetableIntegrationService {
-  private db: RxDatabase;
-
-  constructor(db?: RxDatabase) {
-    this.db = db;
+  constructor() {
+    // No longer need to pass database instance
   }
 
   async checkTimetableConflicts(examSchedule: ExamSchedule): Promise<IntegrationResult> {
     try {
-      if (!this.db) {
-        return {
-          canSchedule: true,
-          conflicts: [],
-          suggestedSlots: [],
-          warnings: ['Database not available']
-        };
-      }
-
+      const db = await databaseService.getDatabase();
       const conflicts: string[] = [];
       const warnings: string[] = [];
 
       // Check for existing timetable slots
-      const timetableCollection = this.db.collections['timetable_slots'];
-      if (!timetableCollection) {
+      if (!db.timetable_slots) {
         return {
           canSchedule: true,
           conflicts: [],
@@ -56,7 +45,7 @@ export class TimetableIntegrationService {
       }
 
       // Find conflicting timetable slots
-      const conflictingSlots = await timetableCollection.find({
+      const conflictingSlots = await db.timetable_slots.find({
         selector: {
           period_id: examSchedule.period_id,
           $or: [
@@ -64,7 +53,7 @@ export class TimetableIntegrationService {
             { class_stream_id: examSchedule.class_stream_id }
           ]
         }
-      }).exec();
+      }) || [];
 
       if (conflictingSlots.length > 0) {
         conflicts.push(
@@ -104,18 +93,18 @@ export class TimetableIntegrationService {
     const conflicts: string[] = [];
     
     try {
-      if (!this.db || !examSchedule.room_number) return conflicts;
+      if (!examSchedule.room_number) return conflicts;
 
-      const timetableCollection = this.db.collections['timetable_slots'];
-      if (!timetableCollection) return conflicts;
+      const db = await databaseService.getDatabase();
+      if (!db.timetable_slots) return conflicts;
 
       // Check if room is already booked
-      const roomSlots = await timetableCollection.find({
+      const roomSlots = await db.timetable_slots.find({
         selector: {
           room: examSchedule.room_number,
           period_id: examSchedule.period_id
         }
-      }).exec();
+      }) || [];
 
       if (roomSlots.length > 0) {
         conflicts.push(
@@ -134,18 +123,16 @@ export class TimetableIntegrationService {
     const conflicts: string[] = [];
     
     try {
-      if (!this.db) return conflicts;
-
-      const timetableCollection = this.db.collections['timetable_slots'];
-      if (!timetableCollection) return conflicts;
+      const db = await databaseService.getDatabase();
+      if (!db.timetable_slots) return conflicts;
 
       // Check if class stream has existing timetable
-      const classSlots = await timetableCollection.find({
+      const classSlots = await db.timetable_slots.find({
         selector: {
           class_stream_id: examSchedule.class_stream_id,
           period_id: examSchedule.period_id
         }
-      }).exec();
+      }) || [];
 
       if (classSlots.length > 0) {
         conflicts.push(
@@ -162,7 +149,8 @@ export class TimetableIntegrationService {
 
   private async generateSuggestedSlots(examSchedule: ExamSchedule): Promise<TimetableSlot[]> {
     try {
-      if (!this.db) return [];
+      const db = await databaseService.getDatabase();
+      if (!db.timetable_slots) return [];
 
       // Generate suggested time slots based on availability
       const suggestedSlots: TimetableSlot[] = [];
@@ -197,12 +185,8 @@ export class TimetableIntegrationService {
     error?: string;
   }> {
     try {
-      if (!this.db) {
-        return { success: false, error: 'Database not available' };
-      }
-
-      const timetableCollection = this.db.collections['timetable_slots'];
-      if (!timetableCollection) {
+      const db = await databaseService.getDatabase();
+      if (!db.timetable_slots) {
         return { success: false, error: 'Timetable collection not available' };
       }
 
@@ -229,7 +213,7 @@ export class TimetableIntegrationService {
         exam_schedule_id: examSchedule.id
       };
 
-      await timetableCollection.insert(timetableSlot);
+      await db.timetable_slots.insert(timetableSlot);
 
       return { success: true, slotId };
     } catch (error) {
@@ -240,20 +224,18 @@ export class TimetableIntegrationService {
 
   async releaseTimetableSlot(examScheduleId: string): Promise<boolean> {
     try {
-      if (!this.db) return false;
-
-      const timetableCollection = this.db.collections['timetable_slots'];
-      if (!timetableCollection) return false;
+      const db = await databaseService.getDatabase();
+      if (!db.timetable_slots) return false;
 
       // Find and remove exam timetable slots
-      const examSlots = await timetableCollection.find({
+      const examSlots = await db.timetable_slots.find({
         selector: {
           exam_schedule_id: examScheduleId
         }
-      }).exec();
+      }) || [];
 
       for (const slot of examSlots) {
-        await slot.remove();
+        await db.timetable_slots.remove(slot.id);
       }
 
       return true;
@@ -265,16 +247,14 @@ export class TimetableIntegrationService {
 
   async getTimetableConflictsForPeriod(periodId: number): Promise<TimetableSlot[]> {
     try {
-      if (!this.db) return [];
+      const db = await databaseService.getDatabase();
+      if (!db.timetable_slots) return [];
 
-      const timetableCollection = this.db.collections['timetable_slots'];
-      if (!timetableCollection) return [];
-
-      const slots = await timetableCollection.find({
+      const slots = await db.timetable_slots.find({
         selector: { period_id: periodId }
-      }).exec();
+      }) || [];
 
-      return slots.map(doc => doc.toJSON());
+      return slots;
     } catch (error) {
       console.error('Error getting timetable conflicts:', error);
       return [];

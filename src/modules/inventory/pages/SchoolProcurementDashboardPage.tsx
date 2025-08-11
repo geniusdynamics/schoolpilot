@@ -8,7 +8,7 @@ import { DataGrid, DataGridColumn } from '@/components/ui';
 import DonutChart from '@/components/ui/DonutChart';
 import HorizontalBarChart from '@/components/ui/BarChart';
 import { KanbanBoard, KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import { PurchaseOrder, Requisition, RequisitionStatus, PurchaseOrderStatus, Supplier, ChartData } from '@/types';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';

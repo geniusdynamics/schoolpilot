@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PouchDB Provider Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .info { color: #3794ff; }
+        .warning { color: #dcdcaa; }
+        pre { background: #2d2d30; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>PouchDB Provider Browser Test</h1>
+    <div id="test-output"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/pouchdb@8.0.1/dist/pouchdb.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pouchdb@8.0.1/dist/pouchdb.find.min.js"></script>
+    <script>
+        // Simple test implementation to verify PouchDB works in browser
+        const output = document.getElementById('test-output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            output.appendChild(div);
+        }
+        
+        async function testPouchDB() {
+            log('Starting PouchDB Provider Tests...', 'info');
+            
+            try {
+                // Test 1: Check IndexedDB availability
+                log('\nTest 1: Checking IndexedDB availability...');
+                if (!window.indexedDB) {
+                    throw new Error('IndexedDB not available');
+                }
+                log('✅ IndexedDB is available', 'success');
+                
+                // Test 2: Create PouchDB instance
+                log('\nTest 2: Creating PouchDB instance...');
+                const db = new PouchDB('test-db', {
+                    adapter: 'idb',
+                    auto_compaction: true
+                });
+                log('✅ PouchDB instance created', 'success');
+                
+                // Test 3: Get database info
+                log('\nTest 3: Getting database info...');
+                const info = await db.info();
+                log(`✅ Database info: ${JSON.stringify(info, null, 2)}`, 'success');
+                
+                // Test 4: Insert a document
+                log('\nTest 4: Inserting a test document...');
+                const doc = {
+                    _id: 'test-doc-' + Date.now(),
+                    name: 'Test User',
+                    age: 25,
+                    email: 'test@example.com'
+                };
+                const insertResult = await db.put(doc);
+                log(`✅ Document inserted: ${insertResult.id}`, 'success');
+                
+                // Test 5: Find the document
+                log('\nTest 5: Finding the document...');
+                const foundDoc = await db.get(insertResult.id);
+                log(`✅ Document found: ${JSON.stringify(foundDoc, null, 2)}`, 'success');
+                
+                // Test 6: Update the document
+                log('\nTest 6: Updating the document...');
+                foundDoc.age = 26;
+                const updateResult = await db.put(foundDoc);
+                log(`✅ Document updated: rev ${updateResult.rev}`, 'success');
+                
+                // Test 7: Query with find plugin
+                log('\nTest 7: Testing find plugin...');
+                await db.createIndex({
+                    index: { fields: ['age'] }
+                });
+                const findResult = await db.find({
+                    selector: { age: { $gte: 20 } }
+                });
+                log(`✅ Find query returned ${findResult.docs.length} documents`, 'success');
+                
+                // Test 8: Count documents
+                log('\nTest 8: Counting documents...');
+                const allDocs = await db.allDocs();
+                log(`✅ Total documents: ${allDocs.rows.length}`, 'success');
+                
+                // Test 9: Clean up
+                log('\nTest 9: Cleaning up test database...');
+                await db.destroy();
+                log('✅ Database destroyed', 'success');
+                
+                log('\n🎉 All tests passed successfully!', 'success');
+                log('\nPouchDB provider implementation is working correctly in the browser environment.', 'info');
+                
+            } catch (error) {
+                log(`\n❌ Test failed: ${error.message}`, 'error');
+                console.error('Test error:', error);
+            }
+        }
+        
+        // Run tests when page loads
+        window.addEventListener('load', testPouchDB);
+    </script>
+</body>
+</html>

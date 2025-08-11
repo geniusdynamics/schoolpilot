@@ -1,7 +1,7 @@
 // src/modules/academics/components/SchedulingCalendar.tsx
 
 import React, { useState, useEffect } from 'react';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import { ExamSession, ClassStream, TimetablePeriodDef, ExamSchedule } from '@/core/types';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';

@@ -44,18 +44,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         
-        if (!authService.isInitialized()) {
-          console.warn('AuthService initialization timeout, proceeding with available state');
-        }
-        
         // Check if user is already authenticated
-        if (authService.isAuthenticated()) {
+        const isUserAuth = await authService.isAuthenticated();
+        
+        if (isUserAuth) {
           const currentUser = await authService.getCurrentUser();
           setUser(currentUser);
         }
         
         // Determine if we're in demo mode
-        setIsDemoMode(authService.getCurrentSession()?.isDemo || true);
+        const session = authService.getCurrentSession();
+        const demoMode = session?.isDemo || true;
+        setIsDemoMode(demoMode);
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
@@ -79,6 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       return result;
     } catch (error) {
+      console.error('AuthContext login error:', error);
       return {
         success: false,
         message: 'Login failed',

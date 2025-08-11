@@ -1,7 +1,7 @@
 // Test script to verify the enhanced app integration
-import { NetworkStateManager } from './src/services/NetworkStateManager.js';
-import { BackendAPIService } from './src/services/BackendAPIService.js';
-import { DataStrategyManager } from './src/services/DataStrategyManager.js';
+import { NetworkStateManager } from '../../src/services/NetworkStateManager.js';
+import { BackendAPIService } from '../../src/services/BackendAPIService.js';
+import { DataStrategyManager } from '../../src/services/DataStrategyManager.js';
 
 console.log('🧪 Testing Enhanced App Integration - July 2025...\n');
 
@@ -52,7 +52,7 @@ try {
 console.log('\n🎉 Enhanced App Integration Tests Complete!');
 console.log('\n📋 Next Steps:');
 console.log('1. Start your development server: npm run dev');
-console.log('2. Open http://localhost:5173 in your browser');
+console.log('2. Open http://localhost:5200 in your browser');
 console.log('3. Check the browser console for network and sync status');
 console.log('4. Test offline functionality by disconnecting from the internet');
 console.log('5. Monitor the sync queue and data strategy switching');

@@ -19,6 +19,7 @@ type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'u
 };
 
 const SchoolPeriodsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
   const { academicYears } = useAcademicYearData();
   const { academicPeriodDefinitions } = useAcademicPeriodDefinitionData();

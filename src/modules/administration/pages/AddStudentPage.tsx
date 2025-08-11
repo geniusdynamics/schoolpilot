@@ -9,7 +9,7 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Button from '../../../components/ui/Button';
 import { UserCircleIcon, UsersIcon, AcademicCapIcon, ArrowLeftIcon } from '../../../components/ui/icons';
-import { useAppData } from '../../../contexts/AppDataContext';
+import { useAppData } from '../../../hooks/useAppData';
 import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
 // Removed useFormValidation import to fix infinite loop issue
 

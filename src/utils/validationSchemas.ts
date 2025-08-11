@@ -328,6 +328,41 @@ const studentInvoiceSchema: EntityValidationSchema = {
   ]
 };
 
+// School Period validation schema
+const schoolPeriodSchema: EntityValidationSchema = {
+  entityName: 'schoolPeriods',
+  fields: {
+    id: { required: true, type: 'number' },
+    name: { required: true, type: 'string', minLength: 1, maxLength: 200 },
+    start_date: { type: 'string' },
+    end_date: { type: 'string' },
+    academic_year_id: { type: 'number' },
+    status: { type: 'string' }
+  },
+  businessRules: [
+    {
+      name: 'unique_period_name',
+      description: 'School period name must be unique within academic year',
+      validate: (period, context) => {
+        if (context && context.allSchoolPeriods) {
+          const duplicate = context.allSchoolPeriods.find((p: any) => 
+            p.name === period.name && p.id !== period.id && p.academic_year_id === period.academic_year_id
+          );
+          if (duplicate) {
+            return {
+              field: 'name',
+              message: `School period name '${period.name}' is already in use for this academic year`,
+              code: 'DUPLICATE_PERIOD_NAME',
+              severity: 'error'
+            };
+          }
+        }
+        return null;
+      }
+    }
+  ]
+};
+
 // Exam Session validation schema
 const examSessionSchema: EntityValidationSchema = {
   entityName: 'examSessions',
@@ -463,6 +498,7 @@ export function registerCoreValidationSchemas(): void {
   globalDataValidator.registerSchema(staffSchema);
   globalDataValidator.registerSchema(financialYearSchema);
   globalDataValidator.registerSchema(studentInvoiceSchema);
+  globalDataValidator.registerSchema(schoolPeriodSchema);
   globalDataValidator.registerSchema(examSessionSchema);
 
   globalDataValidator.registerConsistencyCheck(studentFinancialConsistency);
@@ -476,6 +512,7 @@ export {
   staffSchema,
   financialYearSchema,
   studentInvoiceSchema,
+  schoolPeriodSchema,
   examSessionSchema,
   studentFinancialConsistency,
   academicEnrollmentConsistency,

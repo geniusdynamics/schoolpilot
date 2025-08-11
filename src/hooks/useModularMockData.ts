@@ -567,5 +567,13 @@ export const useModularMockData = (): AppDataContextType => {
     addStaffMember,
     updateStaffMember,
     deleteStaffMember,
+    // Finance CRUD operations
+    addFeeTemplate,
+    updateFeeTemplate,
+    deleteFeeTemplate,
+    addStudentOpeningBalance,
+    updateStudentOpeningBalance,
+    deleteStudentOpeningBalance,
+    updateStaffSalarySetting,
   };
 };

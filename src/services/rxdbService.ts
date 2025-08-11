@@ -107,57 +107,59 @@ const rbacRoleSchema: RxJsonSchema<allTypes.RbacRole> = createEntitySchema<allTy
 const userRoleSchema: RxJsonSchema<allTypes.UserRole> = createEntitySchema<allTypes.UserRole>('user_role', { id: { type: 'string', maxLength: 100 }, user_id: { type: 'string', ref: 'users', maxLength: 100 }, role_id: { type: 'string', ref: 'rbac_roles', maxLength: 100 }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' }, }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'user_id', 'role_id', 'created_at', 'updated_at']);
 
 // --- Master Collections Definition (to be dynamically populated) ---
-// TEMPORARY: Reduced to 16 collections to stay within RxDB open-source limit
-// TODO: Purchase RxDB Premium or implement collection consolidation strategy
+// STRATEGY UPDATE: This collection reduction approach is DEPRECATED
+// NEW PLAN: Implement PouchDB provider to support all 88 collections without limits
+// PouchDB Full Implementation - All 88 collections enabled
+// See: pouchdb_full_implementation_plan.md for migration strategy
 export const collectionsDefinition: Record<string, { schema: RxJsonSchema<any>}> = { 
-  // Core Essential Collections (16 total) - MVP for school management
+  // Core Collections (24 total)
+  app_settings: { schema: appSettingsSchema },
+  school_details: { schema: schoolDetailsSchema },
   users: { schema: userSchema },
-  students: { schema: studentSchema },
-  staff: { schema: staffSchema },
-  classes: { schema: classSchema },
+  roles: { schema: roleSchema },
+  academic_year_structures: { schema: academicYearStructureSchema },
+  academic_period_definitions: { schema: academicPeriodDefinitionSchema },
   academic_years: { schema: academicYearSchema },
+  workflows: { schema: workflowSchema },
+  workflow_states: { schema: workflowStateSchema },
+  education_system_configurations: { schema: educationSystemConfigurationSchema },
+  audit_logs: { schema: auditLogSchema },
+  parents_guardians: { schema: parentGuardianSchema },
+  students: { schema: studentSchema },
+  student_guardian_relationships: { schema: studentGuardianRelationshipSchema },
+  staff: { schema: staffSchema },
   departments: { schema: departmentSchema },
+  designations: { schema: designationSchema },
+  student_categories: { schema: studentCategorySchema },
+  dormitories: { schema: dormitorySchema },
+  classes: { schema: classSchema },
+  class_streams: { schema: classStreamSchema },
+  student_invoice_items: { schema: studentInvoiceItemSchema },
   permissions: { schema: permissionSchema },
   rbac_roles: { schema: rbacRoleSchema },
+  user_roles: { schema: userRoleSchema },
   
-  // Essential module collections (8 remaining slots)
-  subjects: academicsCollections.subjects,
-  student_exam_results: academicsCollections.student_exam_results,
-  student_attendance: administrationCollections.student_attendance,
-  fee_templates: financeCollections.fee_templates,
-  student_invoices: financeCollections.student_invoices,
-  student_payments: financeCollections.student_payments,
-  books: libraryCollections.books,
-  loans: libraryCollections.loans,
+  // Module Collections (64 total) - All enabled with PouchDB
+  // Academics Collections
+  ...academicsCollections,
   
-  // DISABLED COLLECTIONS (72 total) - Temporarily commented out
-  // Core collections disabled:
-  // app_settings: { schema: appSettingsSchema },
-  // school_details: { schema: schoolDetailsSchema },
-  // roles: { schema: roleSchema },
-  // academic_year_structures: { schema: academicYearStructureSchema },
-  // academic_period_definitions: { schema: academicPeriodDefinitionSchema },
-  // workflows: { schema: workflowSchema },
-  // workflow_states: { schema: workflowStateSchema },
-  // education_system_configurations: { schema: educationSystemConfigurationSchema },
-  // audit_logs: { schema: auditLogSchema },
-  // parents_guardians: { schema: parentGuardianSchema },
-  // student_guardian_relationships: { schema: studentGuardianRelationshipSchema },
-  // designations: { schema: designationSchema },
-  // student_categories: { schema: studentCategorySchema },
-  // dormitories: { schema: dormitorySchema },
-  // class_streams: { schema: classStreamSchema },
-  // student_invoice_items: { schema: studentInvoiceItemSchema },
-  // user_roles: { schema: userRoleSchema },
+  // Administration Collections  
+  ...administrationCollections,
   
-  // Module collections disabled:
-  // Most of ...academicsCollections (9 collections)
-  // Most of ...administrationCollections (7 collections)
-  // Most of ...financeCollections (14 collections)
-  // All of ...hrCollections (4 collections)
-  // All of ...inventoryCollections (10 collections)
-  // Most of ...libraryCollections (2 collections)
-  // All of ...nutritionCollections (7 collections)
+  // Finance Collections
+  ...financeCollections,
+  
+  // HR Collections
+  ...hrCollections,
+  
+  // Inventory Collections
+  ...inventoryCollections,
+  
+  // Library Collections
+  ...libraryCollections,
+  
+  // Nutrition Collections
+  ...nutritionCollections,
 };
 
 // Type for the database instance, mapping collection names to RxCollection types
@@ -497,7 +499,8 @@ export const rxdbService = {
 };
 
 // Initialize database on module load with proper error handling
-rxdbService.initializeDatabase().catch(error => {
-  console.error('RxDB: Failed to initialize database:', error);
-  // Don't throw here as it would prevent the module from loading
-});
+// DISABLED: Commented out to prevent conflicts with new databaseService.ts
+// rxdbService.initializeDatabase().catch(error => {
+//   console.error('RxDB: Failed to initialize database:', error);
+//   // Don't throw here as it would prevent the module from loading
+// });

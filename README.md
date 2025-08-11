@@ -4,7 +4,7 @@ A comprehensive education management system built with React, TypeScript, and Vi
 
 ## 🎯 Overview
 
-SchoolPilot3 is an enterprise-grade school management system that handles all aspects of educational administration, from student management to financial operations. Built with modern web technologies, it features a sophisticated dual-mode architecture that supports both development (mock data) and production (local database) environments.
+SchoolPilot3 is an enterprise-grade SchoolPilot that handles all aspects of educational administration, from student management to financial operations. Built with modern web technologies, it features a sophisticated dual-mode architecture that supports both development (mock data) and production (local database) environments.
 
 ## 🔬 Technical Innovations
 
@@ -121,7 +121,7 @@ schoolpilot3/
    ```
 
 4. **Access the application:**
-   Open [http://localhost:5173](http://localhost:5173) in your browser
+   Open [http://localhost:5200](http://localhost:5200) in your browser
 
 ## 👨‍💻 Developer Experience
 

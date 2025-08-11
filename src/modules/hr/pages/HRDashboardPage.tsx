@@ -2,7 +2,7 @@
 import React from 'react';
 import Card from '@/components/ui/Card';
 import { BriefcaseIcon, UsersIcon, ListBulletIcon, CalendarDaysIcon, CogIcon, WalletIcon, IconProps } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 import { ChartData, Staff } from '@/types';
 import DonutChart from '@/components/ui/DonutChart'; 

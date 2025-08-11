@@ -168,7 +168,7 @@ All scripts create automatic backups:
    ```
 
 2. **Test demo mode** (default):
-   - Open http://localhost:5173
+   - Open http://localhost:5200
    - Verify all pages load correctly
    - Test CRUD operations
    - Check data persistence

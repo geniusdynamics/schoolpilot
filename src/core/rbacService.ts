@@ -3,6 +3,7 @@
 
 import { ModuleDefinition } from './types';
 import type { SchoolDatabase } from '../services/rxdbService';
+import { rxdbService } from '../services/databaseService';
 import type { RbacRole } from './types';
 import { isDemo } from '../config/unifiedConfig';
 
@@ -402,4 +403,4 @@ export class RBACService {
 }
 
 // Export singleton instance
-export const rbacService = new RBACService(); 
+export const rbacService = new RBACService();
