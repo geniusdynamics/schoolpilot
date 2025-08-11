@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { FinBankType as Bank, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BanknotesIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -75,21 +75,75 @@ const BanksPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Bank },
-    { header: 'Bank Name', accessor: 'name' as keyof Bank },
-    { header: 'Account No.', accessor: 'account_no' as keyof Bank },
-    { header: 'GL Account', accessor: 'gl_account_name' as keyof Bank }, // Resolved name
+  const columns: DataGridColumn<Bank>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof Bank,
-      render: (item: Bank) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'id',
+      header: 'ID',
+      sortable: true,
+      width: 80,
+      sticky: 'left'
     },
+    {
+      key: 'name',
+      header: 'Bank Name',
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value) => (
+        <span className="font-medium text-gray-900">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'account_no',
+      header: 'Account No.',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value) => (
+        <span className="font-mono text-sm">
+          {value || 'N/A'}
+        </span>
+      )
+    },
+    {
+      key: 'gl_account_name',
+      header: 'GL Account',
+      sortable: true,
+      filterable: true,
+      width: 250,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {value || 'Not linked'}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 180,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDelete(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
   if ((loading.banks || loading.chartOfAccounts) && !isModalOpen) {
@@ -110,7 +164,24 @@ const BanksPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           Manage the school's bank accounts. Each bank account must be linked to an Asset account in the Chart of Accounts.
         </p>
-        <Table columns={columns} data={(banks || [])} isLoading={loading.banks && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={(banks || [])} 
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <BanknotesIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No bank accounts found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by adding your first bank account.</p>
+              <div className="mt-6">
+                <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                  Add Bank Account
+                </Button>
+              </div>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingBank ? 'Edit Bank Account' : 'Add New Bank Account'} size="lg"

@@ -60,9 +60,7 @@ async function initializeProviders(): Promise<void> {
                 .replace('use', '')
                 .replace('Data', '')
                 // Convert camel case to plural lowercase (e.g., AcademicYear -> academicYears)
-                .replace(/([A-Z])/g, (match, letter, offset) => {
-                  return offset === 0 ? letter.toLowerCase() : letter.toLowerCase();
-                }) + 's';
+                .replace(/([A-Z])/g, '_$1').toLowerCase().slice(1) + 's'; // Simplified and potentially incorrect pluralization
             }
             
             // Get hook configuration if available

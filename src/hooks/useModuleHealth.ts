@@ -29,7 +29,7 @@ interface UseModuleHealthReturn {
 export const useModuleHealth = (options: UseModuleHealthOptions = {}): UseModuleHealthReturn => {
   const { 
     moduleId, 
-    autoRefresh = true, 
+    autoRefresh = false, 
     refreshInterval = 60000 // 1 minute
   } = options;
   

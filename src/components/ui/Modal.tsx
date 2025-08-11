@@ -1,75 +1,174 @@
 
-import React, { ReactNode, useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { XIcon } from './icons'; // Assuming you have an XIcon
+// ABOUTME: Enhanced Modal component for the SchoolPilot3 design system
+// ABOUTME: Modern modal with animations, focus management, and responsive design
 
-interface ModalProps {
+import React, { ReactNode, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
+import { XIcon } from './icons';
+
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl'; // Added more sizes
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  variant?: 'default' | 'centered' | 'drawer';
+  closeOnBackdrop?: boolean;
+  closeOnEscape?: boolean;
+  showCloseButton?: boolean;
   footer?: ReactNode;
+  loading?: boolean;
+  preventClose?: boolean;
   bodyClassName?: string;
+  headerClassName?: string;
+  footerClassName?: string;
+  overlayClassName?: string;
+  className?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md', footer, bodyClassName = '' }) => {
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  variant = 'default',
+  closeOnBackdrop = true,
+  closeOnEscape = true,
+  showCloseButton = true,
+  footer,
+  loading = false,
+  preventClose = false,
+  bodyClassName = '',
+  headerClassName = '',
+  footerClassName = '',
+  overlayClassName = '',
+  className = '',
+}) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+
+  // Handle modal state changes (simplified)
   useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [isOpen]);
+
+  // Handle escape key
+  useEffect(() => {
+    if (!isOpen || !closeOnEscape || preventClose) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        event.preventDefault();
         onClose();
       }
     };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleEsc);
-    } else {
-      document.body.style.overflow = 'unset';
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, closeOnEscape, preventClose, onClose]);
+
+  // Handle backdrop click
+  const handleBackdropClick = (event: React.MouseEvent) => {
+    if (!closeOnBackdrop || preventClose) return;
+    
+    if (event.target === backdropRef.current) {
+      onClose();
     }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
-      window.removeEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  }, []);
 
   if (!isOpen) return null;
 
-  const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-    '3xl': 'max-w-3xl',
-    '4xl': 'max-w-4xl',
-    '5xl': 'max-w-5xl',
+  // Size classes
+  const getSizeClasses = () => {
+    return {
+      xs: 'max-w-xs',
+      sm: 'max-w-sm',
+      md: 'max-w-md',
+      lg: 'max-w-lg',
+      xl: 'max-w-xl',
+      full: 'max-w-full',
+    };
   };
 
-  return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ease-in-out p-4">
-      <div className={`bg-white rounded-lg shadow-xl transform transition-all sm:my-8 sm:w-full ${sizeClasses[size]} m-4 flex flex-col max-h-[90vh]`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
-          <h3 className="text-lg font-medium leading-6 text-gray-900">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none"
-            aria-label="Close modal"
-          >
-            <XIcon className="w-6 h-6" />
-          </button>
+  const sizeClasses = getSizeClasses();
+
+  // Render default/centered variant (simplified)
+  const renderModal = () => (
+    <div
+      ref={backdropRef}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${overlayClassName}`}
+      onClick={handleBackdropClick}
+      style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      }}
+    >
+      <div
+        ref={modalRef}
+        className={`
+          bg-white rounded-lg shadow-2xl w-full
+          ${sizeClasses[size]}
+          flex flex-col max-h-[90vh]
+          ${className}
+        `}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className={`flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0 ${headerClassName}`}>
+          <h2 id="modal-title" className="text-lg font-semibold text-gray-900">
+            {title}
+          </h2>
+          {showCloseButton && !preventClose && (
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="Close modal"
+              disabled={loading}
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+          )}
         </div>
-        <div className={`px-6 py-4 overflow-y-auto flex-grow ${bodyClassName}`}>
-          {children}
+
+        {/* Body */}
+        <div className={`flex-1 overflow-y-auto px-6 py-4 ${bodyClassName}`}>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading...</span>
+            </div>
+          ) : (
+            children
+          )}
         </div>
+
+        {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 text-right space-x-2 rounded-b-lg flex-shrink-0">
+          <div className={`px-6 py-4 bg-gray-50 border-t border-gray-200 flex-shrink-0 ${footerClassName}`}>
             {footer}
           </div>
         )}
       </div>
-    </div>,
-    document.body
+    </div>
   );
+
+  const modalContent = renderModal();
+
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default Modal;

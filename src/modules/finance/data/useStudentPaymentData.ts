@@ -1,19 +1,19 @@
-// ABOUTME: Self-contained hook for any data management
-// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
+// ABOUTME: Self-contained hook for student payment data management
+// ABOUTME: Provides CRUD operations for student payments without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '../../../core/types';
+import { initialMockStudentPayments } from './mockData';
+import { StudentPayment } from '../../../core/types';
 
 const useStudentPaymentData = () => {
-  const [studentPayments, setStudentPayments] = useState<any[]>([]);
+  const [studentPayments, setStudentPayments] = useState<StudentPayment[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
       // Simulate fetching data from a mock source
-      setStudentPayments(initialMockUsers);
+      setStudentPayments(initialMockStudentPayments);
       setIsLoading(false);
     } catch (e) {
       setError('Failed to fetch student payments');
@@ -21,27 +21,27 @@ const useStudentPaymentData = () => {
     }
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
+  const create = async (newItem: Partial<StudentPayment>) => {
+    const newDataItem: StudentPayment = {
       ...newItem,
-      id: Date.now(),
+      id: `SPAY${Date.now()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as any;
-    setStudentPayments((prev: any[]) => [...prev, newDataItem]);
+    } as StudentPayment;
+    setStudentPayments((prev) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setStudentPayments((prev: any[]) => prev.map((item: any) =>
+  const update = async (id: string, updatedData: Partial<StudentPayment>) => {
+    setStudentPayments((prev) => prev.map((item) =>
       item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
-    setStudentPayments((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  const remove = async (id: string) => {
+    setStudentPayments((prev) => prev.filter((item) => item.id !== id));
   };
 
   return {

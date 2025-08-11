@@ -1,156 +1,383 @@
-// ABOUTME: Defines RxDB JSON schemas for entities specific to the Finance module.
-// ABOUTME: These schemas are used by rxdbService.ts to create collections.
+// ABOUTME: Defines database-agnostic schemas for entities specific to the Finance module.
+// ABOUTME: These schemas are used by both RxDB and PouchDB services to create collections.
 
-import { RxJsonSchema } from 'rxdb';
-import * as FinTypes from './types'; // Use alias to avoid conflict
-import { createEntitySchema } from '../../../utils/schemaUtils';
-import { SchoolPeriod } from '../../../types'; // Import SchoolPeriod from core types
+import * as types from './types';
+import {
+  createDatabaseSchema,
+  SchemaHelpers,
+  type DatabaseSchema,
+} from '../../../utils/databaseAgnosticSchema';
 
-export const financialYearSchema: RxJsonSchema<FinTypes.FinFinancialYearType> = createEntitySchema<FinTypes.FinFinancialYearType>(
-    'financial_year', 
-    { 
-        id: { type: 'number' }, 
-        name: { type: 'string' }, 
-        start_date: { type: 'string', format: 'date' }, 
-        end_date: { type: 'string', format: 'date' }, 
-        status: { type: 'string', enum: Object.values(FinTypes.FinFinancialYearStatusEnum) }, 
-        created_at: { type: 'string', format: 'date-time' }, 
-        updated_at: { type: 'string', format: 'date-time' }, 
-    }, 
-    { key: 'id', type: 'number' }, 
-    ['id', 'name', 'start_date', 'end_date', 'status', 'created_at', 'updated_at']
-);
+export const financialYearsSchema: DatabaseSchema = createDatabaseSchema({
+  title: 'financial_years',
+  primaryKey: 'id',
+  properties: {
+    id: SchemaHelpers.string({ maxLength: 100 }),
+    name: SchemaHelpers.string({ maxLength: 100 }),
+    start_date: SchemaHelpers.date(),
+    end_date: SchemaHelpers.date(),
+    status: SchemaHelpers.string({ enum: Object.values(types.FinFinancialYearStatusEnum) }),
+    created_at: SchemaHelpers.timestamp(),
+    updated_at: SchemaHelpers.timestamp(),
+  },
+  required: ['id', 'name', 'start_date', 'end_date', 'status', 'created_at', 'updated_at'],
+});
 
-export const schoolPeriodSchema: RxJsonSchema<SchoolPeriod> = createEntitySchema<SchoolPeriod>(
-    'school_period', 
-    { 
-        id: { type: 'number' }, 
-        academic_year_id: { type: 'number', ref: 'academic_years' }, 
-        period_definition_id: { type: 'number', ref: 'academic_period_definitions' }, 
-        financial_year_id: { type: 'number', ref: 'financial_years' }, 
-        start_date: { type: 'string', format: 'date' }, 
-        end_date: { type: 'string', format: 'date' }, 
-        is_active: { type: 'boolean' }, 
-        mid_break_start: { type: ['string', 'null'], format: 'date' }, 
-        mid_break_end: { type: ['string', 'null'], format: 'date' }, 
-        name: { type: ['string', 'null'] }, 
-        academic_year_name: { type: ['string', 'null'] }, 
-        period_definition_name: { type: ['string', 'null'] }, 
-        financial_year_name: { type: ['string', 'null'] }, 
-        created_at: { type: 'string', format: 'date-time' }, 
-        updated_at: { type: 'string', format: 'date-time' }, 
-    }, 
-    { key: 'id', type: 'number' }, 
-    ['id', 'academic_year_id', 'period_definition_id', 'financial_year_id', 'start_date', 'end_date', 'is_active', 'created_at', 'updated_at']
-);
-
-
-export const chartOfAccountsSchema: RxJsonSchema<FinTypes.FinChartOfAccountType> = createEntitySchema<FinTypes.FinChartOfAccountType>(
-    'chart_of_account',
-    {
-        id: { type: 'number' },
-        account_code: { type: 'string', maxLength: 50 },
-        name: { type: 'string', maxLength: 150 },
-        type: { type: 'string', enum: Object.values(FinTypes.FinAccountTypeEnum) },
-        template_type: { type: 'string', enum: Object.values(FinTypes.FinAccountTemplateTypeEnum) },
-        is_active: { type: 'boolean' },
-        expense_category_id: { type: ['number', 'null'], ref: 'expense_categories' },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
-        expense_category_name: { type: ['string', 'null'] },
+export const schoolPeriodSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'school_period',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        academic_year_id: SchemaHelpers.string({ maxLength: 100 }),
+        period_definition_id: SchemaHelpers.string({ maxLength: 100 }),
+        financial_year_id: SchemaHelpers.string({ maxLength: 100 }),
+        start_date: SchemaHelpers.date(),
+        end_date: SchemaHelpers.date(),
+        is_active: SchemaHelpers.boolean(),
+        mid_break_start: SchemaHelpers.date(),
+        mid_break_end: SchemaHelpers.date(),
+        name: SchemaHelpers.string({ maxLength: 100 }),
+        academic_year_name: SchemaHelpers.string({ maxLength: 100 }),
+        period_definition_name: SchemaHelpers.string({ maxLength: 100 }),
+        financial_year_name: SchemaHelpers.string({ maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
     },
-    { key: 'id', type: 'number' },
-    ['id', 'account_code', 'name', 'type', 'template_type', 'is_active', 'created_at', 'updated_at'],
-    ['account_code', 'name', 'type']
-);
+    required: ['id', 'academic_year_id', 'period_definition_id', 'financial_year_id', 'start_date', 'end_date', 'is_active', 'created_at', 'updated_at'],
+});
 
-export const expenseCategoriesSchema: RxJsonSchema<FinTypes.FinExpenseCategoryType> = createEntitySchema<FinTypes.FinExpenseCategoryType>(
-    'expense_category',
-    {
-        id: { type: 'number' },
-        name: { type: 'string', maxLength: 100 },
+
+export const chartOfAccountsSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'chart_of_account',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        account_code: SchemaHelpers.string({ maxLength: 50 }),
+        name: SchemaHelpers.string({ maxLength: 150 }),
+        type: SchemaHelpers.string({ enum: Object.values(types.FinAccountTypeEnum) }),
+        template_type: SchemaHelpers.string({ enum: Object.values(types.FinAccountTemplateTypeEnum) }),
+        is_active: SchemaHelpers.boolean(),
+        expense_category_id: SchemaHelpers.string({ maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+        expense_category_name: SchemaHelpers.string({ maxLength: 100 }),
     },
-    { key: 'id', type: 'number' },
-    ['id', 'name'],
-    ['name']
-);
+    required: ['id', 'account_code', 'name', 'type', 'template_type', 'is_active', 'created_at', 'updated_at'],
+});
 
-export const banksSchema: RxJsonSchema<FinTypes.FinBankType> = createEntitySchema<FinTypes.FinBankType>(
-    'bank',
-    {
-        id: { type: 'number' },
-        name: { type: 'string', maxLength: 100 },
-        account_no: { type: ['string', 'null'] },
-        gl_account_id: { type: 'number', ref: 'chart_of_accounts' },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
-        gl_account_name: { type: ['string', 'null'] },
+export const expenseCategoriesSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'expense_category',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        name: SchemaHelpers.string({ maxLength: 100 }),
     },
-    { key: 'id', type: 'number' },
-    ['id', 'name', 'gl_account_id', 'created_at', 'updated_at'],
-    ['name']
-);
+    required: ['id', 'name'],
+});
 
-export const suppliersSchema: RxJsonSchema<FinTypes.FinSupplierType> = createEntitySchema<FinTypes.FinSupplierType>(
-    'supplier',
-    {
-        id: { type: 'number' },
-        name: { type: 'string', maxLength: 200 },
-        phone: { type: ['string', 'null'] },
-        email: { type: ['string', 'null'], format: 'email' },
-        address: { type: ['string', 'null'] },
-        contact_person: { type: ['string', 'null'] },
-        kra_pin: { type: ['string', 'null'] },
-        contract_expiry_date: { type: ['string', 'null'], format: 'date' },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
+export const banksSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'bank',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        name: SchemaHelpers.string({ maxLength: 100 }),
+        account_no: SchemaHelpers.string({ maxLength: 50 }),
+        gl_account_id: SchemaHelpers.string({ maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+        gl_account_name: SchemaHelpers.string({ maxLength: 200 }),
     },
-    { key: 'id', type: 'number' },
-    ['id', 'name', 'created_at', 'updated_at'],
-    ['name']
-);
+    required: ['id', 'name', 'gl_account_id', 'created_at', 'updated_at'],
+});
 
-export const feeTemplateItemProperties: RxJsonSchema<FinTypes.FinFeeTemplateItemType>['properties'] = {
-    id: { type: 'string' },
-    fee_template_id: { type: 'number' },
-    description: { type: 'string' },
-    amount: { type: 'number' },
-    revenue_account_id: { type: 'number' },
-    linked_expense_category_id: { type: ['number', 'null'] },
-    linked_meal_plan_id: { type: ['number', 'null'] },
-    linked_transport_route_id: { type: ['number', 'null'] },
-    revenue_account_name: { type: ['string', 'null'] },
-    linked_expense_category_name: { type: ['string', 'null'] },
+export const suppliersSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'supplier',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        name: SchemaHelpers.string({ maxLength: 200 }),
+        phone: SchemaHelpers.string({ maxLength: 20 }),
+        email: SchemaHelpers.string({ maxLength: 100, format: 'email' }),
+        address: SchemaHelpers.string({ maxLength: 500 }),
+        contact_person: SchemaHelpers.string({ maxLength: 200 }),
+        kra_pin: SchemaHelpers.string({ maxLength: 20 }),
+        contract_expiry_date: SchemaHelpers.date(),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'name', 'created_at', 'updated_at'],
+});
+
+export const feeTemplateItemProperties = {
+    id: SchemaHelpers.string({ maxLength: 100 }),
+    fee_template_id: SchemaHelpers.string({ maxLength: 100 }),
+    description: SchemaHelpers.string({ maxLength: 500 }),
+    amount: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+    revenue_account_id: SchemaHelpers.string({ maxLength: 100 }),
+    linked_expense_category_id: SchemaHelpers.string({ maxLength: 100 }),
+    linked_meal_plan_id: SchemaHelpers.string({ maxLength: 100 }),
+    linked_transport_route_id: SchemaHelpers.string({ maxLength: 100 }),
+    revenue_account_name: SchemaHelpers.string({ maxLength: 200 }),
+    linked_expense_category_name: SchemaHelpers.string({ maxLength: 200 }),
 };
-export const feeTemplatesSchema: RxJsonSchema<FinTypes.FinFeeTemplateType> = createEntitySchema<FinTypes.FinFeeTemplateType>('fee_template', { id: { type: 'number' }, name: { type: 'string' }, school_period_id: { type: 'number', ref: 'school_periods' }, student_category_id: { type: ['number', 'null'], ref: 'student_categories' }, school_period_name: { type: ['string', 'null'] }, student_category_name: { type: ['string', 'null'] }, items: { type: ['array', 'null'], default: [], items: { type: 'object', properties: feeTemplateItemProperties } }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' }, }, { key: 'id', type: 'number' }, ['id', 'name', 'school_period_id', 'created_at', 'updated_at']);
-export const expenseClaimsSchema: RxJsonSchema<FinTypes.FinExpenseClaimType> = createEntitySchema<FinTypes.FinExpenseClaimType>('expense_claim', { id: { type: 'string' }, claimant_type: { type: 'string', enum: Object.values(FinTypes.FinExpenseClaimantTypeEnum) }, claimant_id: { type: 'string' }, claim_date: { type: 'string', format: 'date' }, description: { type: 'string' }, amount: { type: 'number' }, expense_category_id: { type: 'number', ref: 'expense_categories' }, workflow_state_id: { type: ['number', 'null'], ref: 'workflow_states' }, workflow_status_name: { type: ['string', 'null'] }, approved_by: { type: ['string', 'null'], ref: 'users' }, paid_date: { type: ['string', 'null'], format: 'date' }, payment_reference: { type: ['string', 'null'] }, claimant_name: { type: ['string', 'null'] }, expense_category_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'claimant_type', 'claimant_id', 'claim_date', 'description', 'amount', 'expense_category_id', 'created_at', 'updated_at']);
-export const studentOpeningBalancesSchema: RxJsonSchema<FinTypes.FinStudentOpeningBalanceType> = createEntitySchema<FinTypes.FinStudentOpeningBalanceType>('student_opening_balance', { id: { type: 'string' }, student_id: { type: 'string', ref: 'students' }, balance_type: { type: 'string', enum: Object.values(FinTypes.FinOpeningBalanceTypeEnum) }, amount: { type: 'number' }, as_of_date: { type: 'string', format: 'date' }, is_billed: { type: 'boolean' }, student_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'student_id', 'balance_type', 'amount', 'as_of_date', 'created_at', 'updated_at']);
-export const feeAdjustmentsSchema: RxJsonSchema<FinTypes.FinFeeAdjustmentType> = createEntitySchema<FinTypes.FinFeeAdjustmentType>('fee_adjustment', { id: { type: 'string' }, student_id: { type: 'string', ref: 'students' }, school_period_id: { type: 'number', ref: 'school_periods' }, adjustment_type: { type: 'string', enum: Object.values(FinTypes.FinFeeAdjustmentTypeEnum) }, amount: { type: 'number' }, reason: { type: ['string', 'null'] }, applied_invoice_id: { type: ['string', 'null'], ref: 'student_invoices' }, student_name: { type: ['string', 'null'] }, school_period_name: { type: ['string', 'null'] }, created_at: { type: ['string', 'null'], format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'student_id', 'school_period_id', 'adjustment_type', 'amount']);
-export const transportRoutesSchema: RxJsonSchema<FinTypes.FinTransportRouteType> = createEntitySchema<FinTypes.FinTransportRouteType>('transport_route', { id: { type: 'number' }, name: { type: 'string' }, cost_per_period: { type: 'number' }, gl_revenue_account_id: { type: 'number', ref: 'chart_of_accounts' }, gl_revenue_account_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'number' }, ['id', 'name', 'cost_per_period', 'gl_revenue_account_id', 'created_at', 'updated_at']);
-export const studentTransportAssignmentsSchema: RxJsonSchema<FinTypes.FinStudentTransportAssignmentType> = createEntitySchema<FinTypes.FinStudentTransportAssignmentType>('student_transport_assignment', { id: { type: 'string' }, student_id: { type: 'string', ref: 'students' }, route_id: { type: 'number', ref: 'transport_routes' }, school_period_id: { type: 'number', ref: 'school_periods' }, status: { type: 'string', enum: Object.values(FinTypes.FinTransportAssignmentStatusEnum) }, invoice_id: { type: ['string', 'null'], ref: 'student_invoices' }, cost_override: { type: ['number', 'null'] }, student_name: { type: ['string', 'null'] }, route_name: { type: ['string', 'null'] }, school_period_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'student_id', 'route_id', 'school_period_id', 'status', 'created_at', 'updated_at']);
-const studentInvoiceItemProperties: RxJsonSchema<FinTypes.FinStudentInvoiceItemType>['properties'] = { id: { type: 'string' }, invoice_id: { type: 'string' }, description: { type: 'string' }, amount: { type: 'number' }, fee_template_item_id: { type: ['string', 'null'] }, student_transport_assignment_id: { type: ['string', 'null'] }, fine_id: { type: ['string', 'null'] } };
-export const studentInvoicesSchema: RxJsonSchema<FinTypes.FinStudentInvoiceType> = createEntitySchema<FinTypes.FinStudentInvoiceType>('student_invoice', { id: { type: 'string' }, student_id: { type: 'string', ref: 'students' }, invoice_number: { type: 'string' }, school_period_id: { type: 'number', ref: 'school_periods' }, issue_date: { type: 'string', format: 'date' }, due_date: { type: 'string', format: 'date' }, total_amount_billed: { type: 'number' }, amount_paid: { type: 'number', default: 0 }, status: { type: 'string', enum: Object.values(FinTypes.FinInvoiceStatusEnum) }, items: { type: ['array', 'null'], default: [], items: { type: 'object', properties: studentInvoiceItemProperties } }, student_name: { type: ['string', 'null'] }, school_period_name: { type: ['string', 'null'] }, deleted_at: { type: ['string', 'null'], format: 'date-time' }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'student_id', 'invoice_number', 'school_period_id', 'issue_date', 'status', 'created_at', 'updated_at']);
-export const studentPaymentsSchema: RxJsonSchema<FinTypes.FinStudentPaymentType> = createEntitySchema<FinTypes.FinStudentPaymentType>('student_payment', { id: { type: 'string' }, student_id: { type: 'string', ref: 'students' }, receipt_no: { type: 'string' }, total_amount_paid: { type: 'number' }, payment_method: { type: ['string', 'null'] }, transaction_date: { type: 'string', format: 'date-time' }, reference_no: { type: ['string', 'null'] }, notes: { type: ['string', 'null'] }, student_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'student_id', 'receipt_no', 'total_amount_paid', 'transaction_date', 'created_at', 'updated_at']);
-export const invoicePaymentApplicationsSchema: RxJsonSchema<FinTypes.FinInvoicePaymentApplicationType> = createEntitySchema<FinTypes.FinInvoicePaymentApplicationType>('invoice_payment_application', { id: { type: 'string' }, payment_id: { type: 'string', ref: 'student_payments' }, invoice_item_id: { type: 'string', ref: 'student_invoice_items' }, amount_applied: { type: 'number' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'payment_id', 'invoice_item_id', 'amount_applied']);
-const customerInvoiceItemProperties: RxJsonSchema<FinTypes.FinCustomerInvoiceItemType>['properties'] = { id: { type: 'string' }, invoice_id: { type: 'string' }, description: { type: ['string', 'null'] }, quantity: { type: ['number', 'null'] }, unit_price: { type: ['number', 'null'] }, amount: { type: ['number', 'null'] }, revenue_account_id: { type: ['number', 'null'] }, revenue_account_name: { type: ['string', 'null'] } };
-export const customerInvoicesSchema: RxJsonSchema<FinTypes.FinCustomerInvoiceType> = createEntitySchema<FinTypes.FinCustomerInvoiceType>('customer_invoice', { id: { type: 'string' }, customer_id: { type: 'number', ref: 'customers' }, invoice_number: { type: 'string' }, issue_date: { type: 'string', format: 'date' }, due_date: { type: ['string', 'null'], format: 'date' }, total_amount: { type: ['number', 'null'] }, status: { type: ['string', 'null'], enum: Object.values(FinTypes.FinCustomerInvoiceStatusEnum) }, notes: { type: ['string', 'null'] }, items: { type: ['array', 'null'], default: [], items: { type: 'object', properties: customerInvoiceItemProperties } }, customer_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'customer_id', 'invoice_number', 'issue_date', 'status', 'created_at', 'updated_at']);
-export const supplierInvoicesSchema: RxJsonSchema<FinTypes.FinSupplierInvoiceType> = createEntitySchema<FinTypes.FinSupplierInvoiceType>('supplier_invoice', { id: { type: 'string' }, supplier_id: { type: 'number', ref: 'suppliers' }, invoice_number: { type: 'string' }, invoice_date: { type: 'string', format: 'date' }, due_date: { type: ['string', 'null'], format: 'date' }, total_amount: { type: 'number' }, amount_paid: { type: ['number', 'null'] }, status: { type: ['string', 'null'], enum: Object.values(FinTypes.FinSupplierInvoiceStatusEnum) }, purchase_order_id: { type: ['string', 'null'], ref: 'purchase_orders' }, notes: { type: ['string', 'null'] }, supplier_name: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'supplier_id', 'invoice_number', 'invoice_date', 'total_amount', 'status', 'created_at', 'updated_at']);
-const generalPaymentItemProperties: RxJsonSchema<FinTypes.FinGeneralPaymentItemType>['properties'] = { id: { type: 'string' }, general_payment_id: { type: 'string' }, description: { type: 'string' }, amount: { type: 'number' }, revenue_account_id: { type: 'number' }, revenue_account_name: { type: ['string', 'null'] } };
-export const generalPaymentsSchema: RxJsonSchema<FinTypes.FinGeneralPaymentType> = createEntitySchema<FinTypes.FinGeneralPaymentType>('general_payment', { id: { type: 'string' }, payer_type: { type: 'string', enum: Object.values(FinTypes.FinGeneralPayerTypeEnum) }, payer_id: { type: ['string', 'null'] }, payer_name_external: { type: ['string', 'null'] }, payment_date: { type: 'string', format: 'date-time' }, total_amount_paid: { type: 'number' }, payment_method: { type: ['string', 'null'] }, reference_no: { type: ['string', 'null'] }, notes: { type: ['string', 'null'] }, items: { type: 'array', default: [], items: { type: 'object', properties: generalPaymentItemProperties } }, payer_name_resolved: { type: ['string', 'null'] }, created_at: { type: 'string', format: 'date-time' }, updated_at: { type: 'string', format: 'date-time' } }, { key: 'id', type: 'string', final: true, maxLength: 100 }, ['id', 'payer_type', 'payment_date', 'total_amount_paid', 'created_at', 'updated_at']);
-export const generalLedgerEntriesSchema: RxJsonSchema<FinTypes.FinGeneralLedgerEntryType> = createEntitySchema<FinTypes.FinGeneralLedgerEntryType>(
-  'general_ledger_entry', 
-  { 
-    id: { type: 'string' }, 
-    transaction_date: { type: 'string', format: 'date-time' }, 
-    effective_date: { type: 'string', format: 'date' },
-    financial_year_id: { type: 'number', ref: 'financial_years' }, 
-    account_id: { type: 'number', ref: 'chart_of_accounts' },
-    debit: { type: ['number', 'null'] },
-    credit: { type: ['number', 'null'] },
-    description: { type: 'string' },
-    source_table: { type: ['string', 'null'] },
-    source_id: { type: ['string', 'null'] }
-  }, 
-  { key: 'id', type: 'string', final: true, maxLength: 100 }, 
-  ['id', 'transaction_date', 'effective_date', 'financial_year_id', 'account_id', 'description']
-);
+export const feeTemplatesSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'fee_template',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        name: SchemaHelpers.string({ maxLength: 200 }),
+        school_period_id: SchemaHelpers.string({ maxLength: 100 }),
+        student_category_id: SchemaHelpers.string({ maxLength: 100 }),
+        school_period_name: SchemaHelpers.string({ maxLength: 100 }),
+        student_category_name: SchemaHelpers.string({ maxLength: 100 }),
+        items: SchemaHelpers.array(SchemaHelpers.object(feeTemplateItemProperties)),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'name', 'school_period_id', 'created_at', 'updated_at'],
+});
+export const expenseClaimsSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'expense_claim',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        claimant_type: SchemaHelpers.string({ enum: Object.values(types.FinExpenseClaimantTypeEnum) }),
+        claimant_id: SchemaHelpers.string({ maxLength: 100 }),
+        claim_date: SchemaHelpers.date(),
+        description: SchemaHelpers.string({ maxLength: 500 }),
+        amount: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        expense_category_id: SchemaHelpers.string({ maxLength: 100 }),
+        workflow_state_id: SchemaHelpers.string({ maxLength: 100 }),
+        workflow_status_name: SchemaHelpers.string({ maxLength: 100 }),
+        approved_by: SchemaHelpers.string({ maxLength: 100 }),
+        paid_date: SchemaHelpers.date(),
+        payment_reference: SchemaHelpers.string({ maxLength: 100 }),
+        claimant_name: SchemaHelpers.string({ maxLength: 200 }),
+        expense_category_name: SchemaHelpers.string({ maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'claimant_type', 'claimant_id', 'claim_date', 'description', 'amount', 'expense_category_id', 'created_at', 'updated_at'],
+});
+export const studentOpeningBalancesSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_opening_balance',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        student_id: SchemaHelpers.string({ maxLength: 100 }),
+        balance_type: SchemaHelpers.string({ enum: Object.values(types.FinOpeningBalanceTypeEnum) }),
+        amount: SchemaHelpers.number({ minimum: -999999.99, maximum: 999999.99 }),
+        as_of_date: SchemaHelpers.date(),
+        is_billed: SchemaHelpers.boolean(),
+        student_name: SchemaHelpers.string({ maxLength: 200 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'student_id', 'balance_type', 'amount', 'as_of_date', 'created_at', 'updated_at'],
+});
+export const feeAdjustmentsSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'fee_adjustment',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        student_id: SchemaHelpers.string({ maxLength: 100 }),
+        school_period_id: SchemaHelpers.string({ maxLength: 100 }),
+        adjustment_type: SchemaHelpers.string({ enum: Object.values(types.FinFeeAdjustmentTypeEnum) }),
+        amount: SchemaHelpers.number({ minimum: -999999.99, maximum: 999999.99 }),
+        reason: SchemaHelpers.string({ maxLength: 500 }),
+        applied_invoice_id: SchemaHelpers.string({ maxLength: 100 }),
+        student_name: SchemaHelpers.string({ maxLength: 200 }),
+        school_period_name: SchemaHelpers.string({ maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'student_id', 'school_period_id', 'adjustment_type', 'amount'],
+});
+export const transportRoutesSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'transport_route',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        route_name: SchemaHelpers.string({ maxLength: 200 }),
+        pickup_location: SchemaHelpers.string({ maxLength: 300 }),
+        dropoff_location: SchemaHelpers.string({ maxLength: 300 }),
+        monthly_fee: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        is_active: SchemaHelpers.boolean(),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'route_name', 'pickup_location', 'dropoff_location', 'monthly_fee', 'is_active', 'created_at', 'updated_at'],
+});
+export const studentTransportAssignmentsSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_transport_assignment',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        student_id: SchemaHelpers.string({ maxLength: 100 }),
+        route_id: SchemaHelpers.string({ maxLength: 100 }),
+        school_period_id: SchemaHelpers.string({ maxLength: 100 }),
+        status: SchemaHelpers.string({ enum: Object.values(types.FinTransportAssignmentStatusEnum) }),
+        invoice_id: SchemaHelpers.string({ maxLength: 100 }),
+        cost_override: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        student_name: SchemaHelpers.string({ maxLength: 200 }),
+        route_name: SchemaHelpers.string({ maxLength: 200 }),
+        school_period_name: SchemaHelpers.string({ maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'student_id', 'route_id', 'school_period_id', 'status', 'created_at', 'updated_at'],
+});
+const studentInvoiceItemProperties = {
+    id: SchemaHelpers.string({ maxLength: 100 }),
+    invoice_id: SchemaHelpers.string({ maxLength: 100 }),
+    description: SchemaHelpers.string({ maxLength: 500 }),
+    amount: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+    fee_template_item_id: SchemaHelpers.string({ maxLength: 100 }),
+    student_transport_assignment_id: SchemaHelpers.string({ maxLength: 100 }),
+    fine_id: SchemaHelpers.string({ maxLength: 100 }),
+};
+export const studentInvoicesSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_invoice',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        student_id: SchemaHelpers.string({ maxLength: 100 }),
+        invoice_number: SchemaHelpers.string({ maxLength: 50 }),
+        school_period_id: SchemaHelpers.string({ maxLength: 100 }),
+        issue_date: SchemaHelpers.date(),
+        due_date: SchemaHelpers.date(),
+        total_amount_billed: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        amount_paid: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        status: SchemaHelpers.string({ enum: Object.values(types.FinInvoiceStatusEnum) }),
+        items: SchemaHelpers.array(SchemaHelpers.object(studentInvoiceItemProperties)),
+        student_name: SchemaHelpers.string({ maxLength: 200 }),
+        school_period_name: SchemaHelpers.string({ maxLength: 100 }),
+        deleted_at: SchemaHelpers.timestamp(),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'student_id', 'invoice_number', 'school_period_id', 'issue_date', 'status', 'created_at', 'updated_at'],
+});
+export const studentPaymentsSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_payment',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        student_id: SchemaHelpers.string({ maxLength: 100 }),
+        receipt_no: SchemaHelpers.string({ maxLength: 50 }),
+        total_amount_paid: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        payment_method: SchemaHelpers.string({ maxLength: 50 }),
+        transaction_date: SchemaHelpers.timestamp(),
+        reference_no: SchemaHelpers.string({ maxLength: 100 }),
+        notes: SchemaHelpers.string({ maxLength: 500 }),
+        student_name: SchemaHelpers.string({ maxLength: 200 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'student_id', 'receipt_no', 'total_amount_paid', 'transaction_date', 'created_at', 'updated_at'],
+});
+export const invoicePaymentApplicationsSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'invoice_payment_application',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        payment_id: SchemaHelpers.string({ maxLength: 100 }),
+        invoice_item_id: SchemaHelpers.string({ maxLength: 100 }),
+        amount_applied: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+    },
+    required: ['id', 'payment_id', 'invoice_item_id', 'amount_applied'],
+});
+const customerInvoiceItemProperties = {
+    id: SchemaHelpers.string({ maxLength: 100 }),
+    invoice_id: SchemaHelpers.string({ maxLength: 100 }),
+    description: SchemaHelpers.string({ maxLength: 500 }),
+    quantity: SchemaHelpers.number({ minimum: 1, maximum: 999999999 }),
+    unit_price: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+    amount: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+    revenue_account_id: SchemaHelpers.string({ maxLength: 100 }),
+    revenue_account_name: SchemaHelpers.string({ maxLength: 200 }),
+};
+export const customerInvoicesSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'customer_invoice',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        customer_id: SchemaHelpers.string({ maxLength: 100 }),
+        invoice_number: SchemaHelpers.string({ maxLength: 50 }),
+        issue_date: SchemaHelpers.date(),
+        due_date: SchemaHelpers.date(),
+        total_amount: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        status: SchemaHelpers.string({ enum: Object.values(types.FinCustomerInvoiceStatusEnum) }),
+        notes: SchemaHelpers.string({ maxLength: 500 }),
+        items: SchemaHelpers.array(SchemaHelpers.object(customerInvoiceItemProperties)),
+        customer_name: SchemaHelpers.string({ maxLength: 200 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'customer_id', 'invoice_number', 'issue_date', 'status', 'created_at', 'updated_at']
+});
+export const supplierInvoicesSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'supplier_invoice',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        supplier_id: SchemaHelpers.string({ maxLength: 100 }),
+        invoice_number: SchemaHelpers.string({ maxLength: 50 }),
+        invoice_date: SchemaHelpers.date(),
+        due_date: SchemaHelpers.date(),
+        total_amount: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        amount_paid: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        status: SchemaHelpers.string({ enum: Object.values(types.FinSupplierInvoiceStatusEnum) }),
+        purchase_order_id: SchemaHelpers.string({ maxLength: 100 }),
+        notes: SchemaHelpers.string({ maxLength: 500 }),
+        supplier_name: SchemaHelpers.string({ maxLength: 200 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'supplier_id', 'invoice_number', 'invoice_date', 'total_amount', 'status', 'created_at', 'updated_at']
+});
+const generalPaymentItemProperties = {
+    id: SchemaHelpers.string({ maxLength: 100 }),
+    general_payment_id: SchemaHelpers.string({ maxLength: 100 }),
+    description: SchemaHelpers.string({ maxLength: 500 }),
+    amount: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+    revenue_account_id: SchemaHelpers.string({ maxLength: 100 }),
+    revenue_account_name: SchemaHelpers.string({ maxLength: 200 }),
+};
+export const generalPaymentsSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'general_payment',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        payer_type: SchemaHelpers.string({ enum: Object.values(types.FinGeneralPayerTypeEnum) }),
+        payer_id: SchemaHelpers.string({ maxLength: 100 }),
+        payer_name_external: SchemaHelpers.string({ maxLength: 200 }),
+        payment_date: SchemaHelpers.timestamp(),
+        total_amount_paid: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        payment_method: SchemaHelpers.string({ maxLength: 50 }),
+        reference_no: SchemaHelpers.string({ maxLength: 100 }),
+        notes: SchemaHelpers.string({ maxLength: 500 }),
+        items: SchemaHelpers.array(SchemaHelpers.object(generalPaymentItemProperties)),
+        payer_name_resolved: SchemaHelpers.string({ maxLength: 200 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'payer_type', 'payment_date', 'total_amount_paid', 'created_at', 'updated_at']
+});
+
+export const generalLedgerEntriesSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'general_ledger_entry',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        transaction_date: SchemaHelpers.timestamp(),
+        effective_date: SchemaHelpers.date(),
+        financial_year_id: SchemaHelpers.string({ maxLength: 100 }),
+        account_id: SchemaHelpers.string({ maxLength: 100 }),
+        debit: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        credit: SchemaHelpers.number({ minimum: 0.01, maximum: 999999.99 }),
+        description: SchemaHelpers.string({ maxLength: 500 }),
+        source_table: SchemaHelpers.string({ maxLength: 100 }),
+        source_id: SchemaHelpers.string({ maxLength: 100 }),
+    },
+    required: ['id', 'transaction_date', 'effective_date', 'financial_year_id', 'account_id', 'description']
+});

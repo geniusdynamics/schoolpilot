@@ -6,7 +6,7 @@ import { MODULE_ORDER } from '../moduleOrder';
 import { moduleConfigService } from '../services/moduleConfigService';
 
 // Helper to identify core modules
-const CORE_MODULE_IDS = ['core', 'dashboard', 'settings', 'reports'];
+const CORE_MODULE_IDS = ['dashboard', 'settings', 'reports'];
 
 // Module Registry Class
 class ModuleRegistry {

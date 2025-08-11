@@ -285,5 +285,181 @@
     "save": "common:save",
     "true": "T",
     "active": "a"
+  },
+  "admissions": {
+    "title": "Admissions",
+    "description": "Student admissions management and application processing",
+    "applications": {
+      "title": "Applications",
+      "description": "Student admission applications and submissions"
+    },
+    "reviews": {
+      "title": "Reviews",
+      "description": "Application reviews and evaluation"
+    },
+    "approvals": {
+      "title": "Approvals",
+      "description": "Final admission decisions and approvals"
+    },
+    "application": {
+      "applicantFirstName": "First Name",
+      "applicantMiddleName": "Middle Name",
+      "applicantLastName": "Last Name",
+      "applicantEmail": "Email Address",
+      "applicantPhone": "Phone Number",
+      "dateOfBirth": "Date of Birth",
+      "gender": "Gender",
+      "applicationDate": "Application Date",
+      "intendedClass": "Intended Class",
+      "previousSchool": "Previous School",
+      "guardianName": "Guardian Name",
+      "guardianPhone": "Guardian Phone",
+      "guardianEmail": "Guardian Email",
+      "guardianRelationship": "Relationship to Student",
+      "address": "Address",
+      "status": "Application Status",
+      "submittedDocuments": "Submitted Documents",
+      "remarks": "Remarks",
+      "pending": "Pending",
+      "underreview": "Under Review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "deferred": "Deferred"
+    },
+    "review": {
+      "reviewedBy": "Reviewed By",
+      "reviewDate": "Review Date",
+      "decision": "Review Decision",
+      "comments": "Comments",
+      "score": "Score",
+      "criteriaEvaluations": "Criteria Evaluations",
+      "recommendApproval": "Recommend Approval",
+      "recommendRejection": "Recommend Rejection",
+      "requestMoreInfo": "Request More Information",
+      "defer": "Defer"
+    },
+    "approval": {
+      "approvedBy": "Approved By",
+      "approvalDate": "Approval Date",
+      "finalDecision": "Final Decision",
+      "assignedClass": "Assigned Class",
+      "assignedStream": "Assigned Stream",
+      "startDate": "Start Date",
+      "conditions": "Conditions",
+      "finalComments": "Final Comments",
+      "admissionNumber": "Admission Number",
+      "waitlisted": "Waitlisted"
+    },
+    "actions": {
+      "submit": "Submit Application",
+      "review": "Review Application",
+      "approve": "Approve",
+      "reject": "Reject",
+      "defer": "Defer",
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewDetails": "View Details",
+      "downloadDocument": "Download Document",
+      "uploadDocument": "Upload Document"
+    },
+    "filters": {
+      "allApplications": "All Applications",
+      "byStatus": "Filter by Status",
+      "byClass": "Filter by Intended Class",
+      "byDateRange": "Filter by Date Range",
+      "searchApplicant": "Search Applicant"
+    },
+    "reports": {
+      "title": "Admission Reports",
+      "applicationSummary": "Application Summary",
+      "statusDistribution": "Status Distribution",
+      "admissionsByClass": "Admissions by Class",
+      "reviewerPerformance": "Reviewer Performance"
+    },
+    "messages": {
+      "applicationSubmitted": "Application submitted successfully",
+      "reviewCompleted": "Review completed successfully",
+      "approvalProcessed": "Approval processed successfully",
+      "documentUploaded": "Document uploaded successfully",
+      "confirmDelete": "Are you sure you want to delete this application?",
+      "noApplicationsFound": "No applications found",
+      "loadingApplications": "Loading applications...",
+      "validationError": "Please fill in all required fields"
+    },
+    "criteria": {
+      "academicPerformance": "Academic Performance",
+      "behaviorRecord": "Behavior Record",
+      "recommendations": "Recommendations",
+      "interviews": "Interview Performance",
+      "extraCurricular": "Extra-curricular Activities",
+      "specialNeeds": "Special Needs Accommodation"
+    }
+  },
+  "preNAsMarks": {
+    "title": "PreNAs Marks Management",
+    "description": "Manage Previous National Assessment marks for students and applicants",
+    "indexNumber": "Index Number",
+    "studentName": "Student Name",
+    "year": "Year",
+    "assessmentType": "Assessment Type",
+    "totalMarks": "Total Marks",
+    "overallGrade": "Overall Grade",
+    "verified": "Verified",
+    "search": "Search",
+    "searchPlaceholder": "Search by index number or name...",
+    "filterAssessmentType": "Filter by Assessment Type",
+    "filterYear": "Filter by Year",
+    "filterVerified": "Filter by Verification Status",
+    "allAssessmentTypes": "All Assessment Types",
+    "allYears": "All Years",
+    "allVerificationStatus": "All Verification Status",
+    "tabs": {
+      "basicInfo": "Basic Information",
+      "coreSubjects": "Core Subjects",
+      "additionalSubjects": "Additional Subjects"
+    },
+    "subjects": {
+      "english": "English",
+      "kiswahili": "Kiswahili",
+      "mathematics": "Mathematics",
+      "science": "Science",
+      "socialStudies": "Social Studies",
+      "integratedScience": "Integrated Science",
+      "preTechnicalStudies": "Pre-Technical Studies",
+      "creativeArts": "Creative Arts"
+    },
+    "additionalSubjectsNote": "Additional subjects are optional and primarily used for CBC assessments.",
+    "actions": {
+      "addMarks": "Add Marks",
+      "editMarks": "Edit Marks",
+      "edit": "Edit",
+      "delete": "Delete",
+      "verify": "Verify",
+      "unverify": "Unverify",
+      "bulkImport": "Bulk Import"
+    },
+    "messages": {
+      "validationError": "Please fill in all required fields",
+      "marksAdded": "Marks added successfully",
+      "marksUpdated": "Marks updated successfully",
+      "marksDeleted": "Marks deleted successfully",
+      "marksVerified": "Marks verified successfully",
+      "saveError": "Error saving marks",
+      "confirmDelete": "Are you sure you want to delete these marks?",
+      "noMarksFound": "No marks found"
+    },
+    "bulkImport": {
+      "title": "Bulk Import Marks",
+      "description": "Upload a CSV or Excel file to import multiple marks records at once.",
+      "selectFile": "Select File to Upload"
+    }
+  },
+  "common": {
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "clearFilters": "Clear Filters",
+    "addMarks": "Add Marks",
+    "updateMarks": "Update Marks",
+    "cancel": "Cancel"
   }
 }

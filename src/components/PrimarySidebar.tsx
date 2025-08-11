@@ -105,7 +105,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
     if (isLoading) return;
 
     if (navigationItems.length === 0) {
-      console.warn('⚠️ [PrimarySidebar] No navigation items found');
+      console.log('🔄 [PrimarySidebar] Navigation items still loading...');
     }
   }, [isLoading, navigationItems.length]);
 
@@ -133,19 +133,21 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
 
   return (
     <aside className={`
-      flex flex-col items-center min-h-full w-20
-      bg-gradient-to-b from-slate-900/80 via-slate-800/70 to-slate-900/80
-      backdrop-blur-xl
+      flex flex-col items-center min-h-full
+      w-16 sm:w-20
+      bg-gradient-to-b from-slate-900/95 via-slate-800/90 to-slate-900/95
+      lg:backdrop-blur-xl md:backdrop-blur-sm
       border-r border-white/10
       shadow-2xl shadow-black/20
       rounded-r-3xl
-      py-6
+      py-4 sm:py-6
       relative
       before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:rounded-r-3xl before:pointer-events-none
+      transition-all duration-300 ease-out
       ${isMouseNearSidebar ? 'sidebar-active' : 'sidebar-inactive'}
     `}>
-      {/* Content container - no internal scrolling */}
-      <div className="flex flex-col gap-3 w-full items-center relative z-10 px-2">
+      {/* Content container - responsive spacing and scrolling */}
+      <div className="flex flex-col gap-2 sm:gap-3 w-full items-center relative z-10 max-h-full">
         {mainModules.map(item => {
           const isSelected = selectedModuleKey === item.name;
           const isHovered = hoveredModule === item.name;
@@ -160,14 +162,15 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
               onMouseEnter={() => handleModuleMouseEnter(item.name)}
               onMouseLeave={handleModuleMouseLeave}
             >
-              {/* Badge/Label - with smart visibility based on mouse proximity */}
+              {/* Badge/Label - responsive positioning and mobile-friendly */}
               <div className={`
-                absolute bottom-12 left-1/2 transform -translate-x-1/2 -translate-y-2
-                px-2 py-1 rounded-md text-xs font-medium whitespace-nowrap
+                absolute bottom-10 sm:bottom-12 left-1/2 transform -translate-x-1/2 -translate-y-2
+                px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium whitespace-nowrap
                 backdrop-blur-md border
                 shadow-lg shadow-black/20
                 transition-all duration-500 ease-out
                 pointer-events-none z-30
+                max-w-[120px] sm:max-w-none truncate
                 ${badgeColor}
                 ${(() => {
                   if (isSelected) {
@@ -175,11 +178,11 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
                     if (isAnotherModuleHovered) {
                       return 'opacity-0 translate-y-1 scale-95';
                     }
-                    // Normal selected state based on mouse proximity
-                    return `opacity-100 translate-y-0 scale-100 ${isMouseNearSidebar ? '' : 'opacity-30'}`;
+                    // Normal selected state - always visible on mobile, mouse-dependent on desktop
+                    return `opacity-100 translate-y-0 scale-100 ${window.innerWidth >= 1024 ? (isMouseNearSidebar ? '' : 'opacity-30') : ''}`;
                   } else {
-                    // Non-selected badge: show only when this specific module is hovered
-                    if (isHovered && isMouseNearSidebar) {
+                    // Non-selected badge: show on hover for desktop, tap for mobile
+                    if ((isHovered && isMouseNearSidebar) || (window.innerWidth < 1024 && isHovered)) {
                       return 'opacity-100 -translate-y-2 scale-100';
                     }
                     return 'opacity-0 translate-y-1 scale-95';
@@ -214,19 +217,24 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
 
               <button
                 onClick={() => onModuleSelect(item.name)}
+                onTouchStart={() => handleModuleMouseEnter(item.name)}
+                onTouchEnd={() => handleModuleMouseLeave()}
                 className={`
                   group relative flex items-center justify-center
-                  w-14 h-14 rounded-2xl
+                  w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl
                   backdrop-blur-md
                   ${backgroundStyle}
                   border
                   shadow-lg shadow-black/10
                   hover:shadow-xl hover:shadow-black/20
+                  active:scale-95 sm:active:scale-100
                   transition-all duration-300 ease-out
                   focus:outline-none focus:ring-2 focus:ring-white/30
+                  touch-manipulation
                   ${isSelected ? 'shadow-xl scale-105' : 'hover:scale-105'}
                 `}
                 title={displayName}
+                aria-label={displayName}
               >
                 {/* Enhanced glass overlay for selected state */}
                 {isSelected && (
@@ -238,19 +246,19 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
                   <div className="absolute inset-0 rounded-2xl ring-2 ring-white/30 ring-offset-2 ring-offset-transparent pointer-events-none" />
                 )}
 
-                {/* Icon with dynamic coloring */}
+                {/* Icon with dynamic coloring - responsive sizing */}
                 <span className={`
                   relative z-10 transition-all duration-300
-                  group-hover:scale-110 ${iconColor}
+                  group-hover:scale-110 group-active:scale-95 ${iconColor}
                   ${isSelected ? 'drop-shadow-lg' : 'drop-shadow-sm'}
                 `}>
                   {item.icon
                     ? React.createElement(item.icon, {
-                        className: `w-7 h-7 transition-all duration-300 ${
+                        className: `w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${
                           isSelected ? 'filter brightness-110' : 'group-hover:text-white'
                         }`
                       })
-                    : <span className="w-7 h-7 bg-gray-500 rounded-full" />
+                    : <span className="w-5 h-5 sm:w-7 sm:h-7 bg-gray-500 rounded-full" />
                   }
                 </span>
 
@@ -260,6 +268,7 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
           );
         })}
       </div>
+      
     </aside>
   );
 };

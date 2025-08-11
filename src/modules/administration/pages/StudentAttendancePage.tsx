@@ -8,9 +8,9 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, ClockIcon, MinusCircleIcon } from '@/components/ui/icons';
 import { useStudentAttendanceData } from '@/modules/administration/data/useStudentAttendanceData';
-import { useAppData } from '@/contexts/AppDataContext'; // For other data sources
+import { useAppData } from '@/hooks/useAppData'; // For other data sources
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { useTranslation } from 'react-i18next';
 
 interface AttendanceData {
@@ -18,6 +18,7 @@ interface AttendanceData {
 }
 
 const StudentAttendancePage: React.FC = () => {
+  const { t } = useTranslation();
   const { studentAttendance, addStudentAttendance } = useStudentAttendanceData();
   const {
     students = [],
@@ -95,13 +96,30 @@ const StudentAttendancePage: React.FC = () => {
     alert(t('messages.attendanceSavedSuccessfully'));
   };
   
-  const attendanceColumns = [
-    { header: 'Adm No.', accessor: 'admission_no' as keyof Student },
-    { header: 'Student Name', accessor: ((item: Student) => `${item.first_name} ${item.last_name}`) },
+  const attendanceColumns: DataGridColumn<Student>[] = [
+    { 
+      key: 'admission_no',
+      header: 'Adm No.', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => item.admission_no
+    },
+    { 
+      key: 'student_name',
+      header: 'Student Name', 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => `${item.first_name} ${item.last_name}`
+    },
     {
+      key: 'status',
       header: 'Status',
-      accessor: 'id' as keyof Student,
-      render: (student: Student) => (
+      sortable: false,
+      filterable: false,
+      width: 400,
+      render: (value, student) => (
         <div className="flex space-x-2 items-center">
           {Object.values(AttendanceStatus).map(status => (
             <label key={status} className="flex items-center space-x-1 cursor-pointer text-sm">
@@ -161,7 +179,19 @@ const StudentAttendancePage: React.FC = () => {
         ) : selectedDate && selectedClassStreamId && selectedPeriodId ? (
           studentsInSelectedStream.length > 0 ? (
             <>
-              <Table columns={attendanceColumns} data={studentsInSelectedStream} />
+              <DataGrid 
+                columns={attendanceColumns} 
+                data={studentsInSelectedStream}
+                sortable
+                filterable
+                emptyState={
+                  <div className="text-center py-12">
+                    <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">No students found</h3>
+                    <p className="mt-1 text-sm text-gray-500">No students are enrolled in the selected class stream.</p>
+                  </div>
+                }
+              />
               <div className="mt-6 text-right">
                 <Button onClick={handleSaveAttendance} disabled={saving} leftIcon={saving ? <Spinner size="sm"/> : undefined}>
                   {saving ? 'Saving...' : 'Save Attendance'}

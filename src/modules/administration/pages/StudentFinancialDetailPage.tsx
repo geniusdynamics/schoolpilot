@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import { StudentDetailProfile, StudentFinancialSummary, StudentInvoiceChargeItem, StudentPaymentLogItem, InvoiceStatus } from '@/types';
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Tabs from '@/components/ui/Tabs';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { UserCircleIcon, CurrencyDollarIcon, DownloadIcon, PrinterIcon, EyeIcon } from '@/components/ui/icons';
 
@@ -45,13 +45,46 @@ const StudentFinancialDetailPage: React.FC = () => {
 
   const fullName = `${first_name} ${last_name}`;
 
-  const invoiceColumns = [
-    { header: 'Invoice ID', accessor: 'invoiceId' as keyof StudentInvoiceChargeItem },
-    { header: 'Description', accessor: 'feeTypeDescription' as keyof StudentInvoiceChargeItem },
-    { header: 'Due Date', accessor: 'dueDate' as keyof StudentInvoiceChargeItem, render: (item: StudentInvoiceChargeItem) => new Date(item.dueDate).toLocaleDateString() },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof StudentInvoiceChargeItem, render: (item: StudentInvoiceChargeItem) => item.amount.toFixed(2) },
-    { header: 'Status', accessor: 'status' as keyof StudentInvoiceChargeItem,
-      render: (item: StudentInvoiceChargeItem) => {
+  const invoiceColumns: DataGridColumn<StudentInvoiceChargeItem>[] = [
+    { 
+      key: 'invoiceId',
+      header: 'Invoice ID', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => item.invoiceId
+    },
+    { 
+      key: 'feeTypeDescription',
+      header: 'Description', 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => item.feeTypeDescription
+    },
+    { 
+      key: 'dueDate',
+      header: 'Due Date', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => new Date(item.dueDate).toLocaleDateString()
+    },
+    { 
+      key: 'amount',
+      header: 'Amount (KES)', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => item.amount.toFixed(2)
+    },
+    { 
+      key: 'status',
+      header: 'Status', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => {
         let colorClass = '';
         if (item.status === InvoiceStatus.PAID) colorClass = 'bg-green-100 text-green-800';
         else if (item.status === InvoiceStatus.DUE) colorClass = 'bg-yellow-100 text-yellow-800';
@@ -62,16 +95,67 @@ const StudentFinancialDetailPage: React.FC = () => {
         return <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
       }
     },
-    { header: 'Action', accessor: 'id' as keyof StudentInvoiceChargeItem, render: (item: StudentInvoiceChargeItem) => <Button size="sm" variant="ghost" leftIcon={<EyeIcon className="w-4 h-4"/>}>View</Button> },
+    { 
+      key: 'actions',
+      header: 'Action', 
+      sortable: false,
+      filterable: false,
+      width: 100,
+      sticky: 'right',
+      render: (value, item) => <Button size="sm" variant="ghost" leftIcon={<EyeIcon className="w-4 h-4"/>}>View</Button>
+    },
   ];
 
-  const paymentLogColumns = [
-    { header: 'Transaction ID', accessor: 'transactionId' as keyof StudentPaymentLogItem },
-    { header: 'Payment Date', accessor: 'paymentDate' as keyof StudentPaymentLogItem, render: (item: StudentPaymentLogItem) => new Date(item.paymentDate).toLocaleDateString() },
-    { header: 'Amount Paid (KES)', accessor: 'amount' as keyof StudentPaymentLogItem, render: (item: StudentPaymentLogItem) => item.amount.toFixed(2) },
-    { header: 'Payment Method', accessor: 'paymentMethod' as keyof StudentPaymentLogItem },
-    { header: 'Description/Notes', accessor: 'description' as keyof StudentPaymentLogItem },
-    { header: 'Action', accessor: 'id' as keyof StudentPaymentLogItem, render: (item: StudentPaymentLogItem) => <Button size="sm" variant="ghost" leftIcon={<PrinterIcon className="w-4 h-4"/>}>Receipt</Button> },
+  const paymentLogColumns: DataGridColumn<StudentPaymentLogItem>[] = [
+    { 
+      key: 'transactionId',
+      header: 'Transaction ID', 
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, item) => item.transactionId
+    },
+    { 
+      key: 'paymentDate',
+      header: 'Payment Date', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => new Date(item.paymentDate).toLocaleDateString()
+    },
+    { 
+      key: 'amount',
+      header: 'Amount Paid (KES)', 
+      sortable: true,
+      filterable: true,
+      width: 140,
+      render: (value, item) => item.amount.toFixed(2)
+    },
+    { 
+      key: 'paymentMethod',
+      header: 'Payment Method', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => item.paymentMethod
+    },
+    { 
+      key: 'description',
+      header: 'Description/Notes', 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => item.description
+    },
+    { 
+      key: 'actions',
+      header: 'Action', 
+      sortable: false,
+      filterable: false,
+      width: 100,
+      sticky: 'right',
+      render: (value, item) => <Button size="sm" variant="ghost" leftIcon={<PrinterIcon className="w-4 h-4"/>}>Receipt</Button>
+    },
   ];
 
   const getBalanceColor = (balance: number = 0) => {
@@ -149,12 +233,36 @@ const StudentFinancialDetailPage: React.FC = () => {
               tabs={[
                 { label: 'Invoices & Charges', content: (
                   <Card title="All Invoices & Charges">
-                    <Table columns={invoiceColumns} data={invoices_charges || []} emptyStateMessage="No invoices or charges found." />
+                    <DataGrid 
+                      columns={invoiceColumns} 
+                      data={invoices_charges || []} 
+                      loading={false}
+                      sortable={true}
+                      filterable={true}
+                      emptyState={
+                        <div className="text-center py-8">
+                          <CurrencyDollarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500">No invoices or charges found.</p>
+                        </div>
+                      }
+                    />
                   </Card>
                 )},
                 { label: 'Payment History', content: (
                   <Card title="All Received Payments">
-                    <Table columns={paymentLogColumns} data={payment_history || []} emptyStateMessage="No payment history found."/>
+                    <DataGrid 
+                      columns={paymentLogColumns} 
+                      data={payment_history || []} 
+                      loading={false}
+                      sortable={true}
+                      filterable={true}
+                      emptyState={
+                        <div className="text-center py-8">
+                          <CurrencyDollarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500">No payment history found.</p>
+                        </div>
+                      }
+                    />
                   </Card>
                 )},
               ]}

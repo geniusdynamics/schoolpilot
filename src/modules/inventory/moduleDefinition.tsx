@@ -15,6 +15,7 @@ import {
   TruckIcon,
   ArchiveIcon,
   ChartPieIcon,
+  BellIcon,
 } from '@/components/ui/icons';
 import { inventoryPermissions, inventoryDefaultRoles } from './rbac';
 
@@ -31,9 +32,14 @@ export const inventoryModule: ModuleDefinition = {
     { name: 'navigation:inventory.items', path: '/inventory/items', icon: CubeIcon, page: 'ItemsPage' },
     { name: 'navigation:inventory.itemCategories', path: '/inventory/item-categories', icon: DocumentTextIcon, page: 'ItemCategoriesPage' },
     { name: 'navigation:inventory.stockLevels', path: '/inventory/stock-levels', icon: ChartBarIcon, page: 'StockLevelsPage' },
+    { name: 'navigation:inventory.reorderAlerts', path: '/inventory/reorder-alerts', icon: BellIcon, page: 'ReorderAlertsPage' },
+    { name: 'navigation:inventory.stockReception', path: '/inventory/stock-reception', icon: ArchiveIcon, page: 'StockReceptionPage' },
+    { name: 'navigation:inventory.stockReturns', path: '/inventory/stock-returns', icon: TruckIcon, page: 'StockReturnsPage' },
     { name: 'navigation:inventory.requisitions', path: '/inventory/requisitions', icon: ClipboardDocumentListIcon, page: 'RequisitionsPage' },
     { name: 'navigation:inventory.purchaseOrders', path: '/inventory/purchase-orders', icon: DocumentDuplicateIcon, page: 'PurchaseOrdersPage' },
     { name: 'navigation:inventory.stockIssuance', path: '/inventory/stock-issuance', icon: TruckIcon, page: 'StockIssuancePage' },
+    { name: 'navigation:inventory.suppliers', path: '/inventory/suppliers', icon: UserGroupIcon, page: 'SuppliersPage' },
+    { name: 'navigation:inventory.supplierContracts', path: '/inventory/supplier-contracts', icon: DocumentTextIcon, page: 'SupplierContractsPage' },
     { name: 'navigation:inventory.fixedAssets', path: '/inventory/fixed-assets', icon: BuildingOffice2Icon, page: 'FixedAssetsPage' },
     { name: 'navigation:inventory.warehouses', path: '/inventory/warehouses', icon: BuildingOffice2Icon, page: 'WarehousesPage' },
     { name: 'navigation:inventory.schoolProcurementDashboard', path: '/inventory/school-procurement-dashboard', icon: ChartBarIcon, page: 'SchoolProcurementDashboardPage' },
@@ -65,4 +71,4 @@ export const inventoryModule: ModuleDefinition = {
   defaultRoles: inventoryDefaultRoles,
 };
 
-export default inventoryModule; 
+export default inventoryModule;

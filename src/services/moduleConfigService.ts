@@ -121,7 +121,7 @@ class ModuleConfigService {
 
   isModuleEnabled(moduleId: string): boolean {
     // Core modules are always enabled
-    const coreModules = ['core', 'dashboard', 'settings', 'reports'];
+    const coreModules = ['dashboard', 'settings', 'reports'];
     if (coreModules.includes(moduleId)) {
       console.log(`[ModuleConfigService] DEBUG: isModuleEnabled(${moduleId}) = true (core module)`);
       return true;
@@ -136,7 +136,7 @@ class ModuleConfigService {
 
   getEnabledModules(): string[] {
     // Always include core modules
-    const coreModules = ['core', 'dashboard', 'settings', 'reports'];
+    const coreModules = ['dashboard', 'settings', 'reports'];
     
     // Get explicitly configured modules that are enabled
     const configuredEnabled = Array.from(this.configs.entries())
@@ -218,7 +218,7 @@ class ModuleConfigService {
   getAllModuleInfo(): ModuleInfo[] {
     console.log('[ModuleConfigService] Getting all module info...');
     const allModules = moduleRegistry.getAllModules();
-    const coreModules = ['core', 'dashboard', 'settings', 'reports'];
+    const coreModules = ['dashboard', 'settings', 'reports'];
     
     return allModules.map(module => {
       const config = this.configs.get(module.id);

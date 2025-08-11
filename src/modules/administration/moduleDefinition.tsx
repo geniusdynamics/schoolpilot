@@ -19,6 +19,9 @@ import {
   PuzzlePieceIcon, 
   DocumentDuplicateIcon, 
   ClockIcon,
+  DocumentAddIcon,
+  DocumentSearchIcon,
+  CheckBadgeIcon,
 } from '@/components/ui/icons';
 
 export const administrationModule: ModuleDefinition = {
@@ -31,6 +34,8 @@ export const administrationModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     { name: 'navigation:administration.dashboard', path: '/administration/dashboard', icon: AcademicCapIcon, page: 'AdministrationDashboardPage' },
+    { name: 'navigation:administration.applications', path: '/administration/applications', icon: DocumentAddIcon, page: 'ApplicationsPage' },
+    { name: 'navigation:administration.preNAsMarks', path: '/administration/prenas-marks', icon: DocumentSearchIcon, page: 'PreNAsMarksPage' },
     { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentsListPage' },
     { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffListPage' },
     { name: 'navigation:administration.partners', path: '/administration/partners', icon: UserCircleIcon, page: 'PartnersPage' },
@@ -50,9 +55,12 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.academicPeriodDefinitions', path: '/administration/academic-period-definitions', icon: DocumentDuplicateIcon, page: 'AcademicPeriodDefinitionsPage' },
     { name: 'navigation:administration.schoolPeriods', path: '/administration/school-periods', icon: ClockIcon, page: 'SchoolPeriodsPage' },
   ],
-  features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance'],
+  features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance', 'admissions-management'],
   routes: [
+    { path: '/administration/applications', page: 'ApplicationsPage' },
+    { path: '/administration/prenas-marks', page: 'PreNAsMarksPage' },
     { path: '/administration/students', page: 'StudentsListPage' },
+    { path: '/administration/students/add', page: 'AddStudentPage' },
     { path: '/administration/students/:studentId', page: 'StudentDetailPage' },
     { path: '/administration/students/:studentId/financial', page: 'StudentFinancialDetailPage' }
   ],
@@ -71,6 +79,16 @@ export const administrationModule: ModuleDefinition = {
       },
       {
         key: 'attendanceTracking',
+        type: 'boolean',
+        defaultValue: true
+      },
+      {
+        key: 'enableAdmissionsManagement',
+        type: 'boolean',
+        defaultValue: true
+      },
+      {
+        key: 'admissionsRequireApproval',
         type: 'boolean',
         defaultValue: true
       }

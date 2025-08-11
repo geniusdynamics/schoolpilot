@@ -97,5 +97,29 @@
     "billed": "Billed",
     "paid": "Paid",
     "waived": "Waived"
+  },
+  "userPortal": {
+    "title": "My Library Portal",
+    "description": "View and manage your personal library loans, renewals, and reservations.",
+    "renewButton": "Renew",
+    "returnButton": "Return",
+    "overdueAlert": "Overdue!",
+    "noLoansMessage": "You have no active loans.",
+    "renewSuccess": "Loan renewed successfully!",
+    "returnSuccess": "Book returned successfully!",
+    "renewError": "Failed to renew loan.",
+    "returnError": "Failed to return book."
+  },
+  "digitalResources": {
+    "title": "Digital Resources",
+    "description": "Manage digital books, e-journals, and online resources."
+  },
+  "damagedLostBooks": {
+    "title": "Damaged & Lost Books",
+    "description": "Manage books with damaged or lost status."
+  },
+  "importBooks": {
+    "title": "Import Books",
+    "description": "Bulk import books from CSV or Excel files."
   }
 }

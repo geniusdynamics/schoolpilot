@@ -2,13 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { Student } from '@/types';
 import { AdminStudentHealthRecordType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { EditIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
 import { useStudentHealthRecordData } from '@/modules/administration/data/useStudentHealthRecordData';
-import { useAppData } from '@/contexts/AppDataContext'; // For students data only
+import { useAppData } from '@/hooks/useAppData'; // For students data only
 import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
 import { useTranslation } from 'react-i18next';
@@ -78,13 +78,38 @@ const StudentHealthRecordsPage: React.FC = () => {
     closeModal();
   };
 
-  const studentColumns = [
-    { header: 'Adm No', accessor: 'admission_no' as keyof Student },
-    { header: 'Name', accessor: ((item: Student) => `${item.first_name} ${item.last_name}`) },
-    { header: 'Class', accessor: 'current_class_name' as keyof Student },
-    { header: 'Health Record Status', 
-      accessor: 'id' as keyof Student, 
-      render: (item: Student) => {
+  const studentColumns: DataGridColumn<Student>[] = [
+    { 
+      key: 'admission_no',
+      header: 'Adm No', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => item.admission_no
+    },
+    { 
+      key: 'name',
+      header: 'Name', 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => `${item.first_name} ${item.last_name}`
+    },
+    { 
+      key: 'current_class_name',
+      header: 'Class', 
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, item) => item.current_class_name
+    },
+    { 
+      key: 'health_record_status',
+      header: 'Health Record Status', 
+      sortable: true,
+      filterable: true,
+      width: 180,
+      render: (value, item) => {
         const hasRecord = (studentHealthRecords || []).some(hr => hr.student_id === item.id);
         return hasRecord ? 
           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Record Exists</span> : 
@@ -92,9 +117,13 @@ const StudentHealthRecordsPage: React.FC = () => {
       }
     },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof Student,
-      render: (item: Student) => (
+      sortable: false,
+      filterable: false,
+      width: 200,
+      sticky: 'right',
+      render: (value, item) => (
         <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
           Manage Health Record
         </Button>
@@ -108,7 +137,19 @@ const StudentHealthRecordsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage health records for each student, including blood type, allergies, medical conditions, and emergency contact overrides.
         </p>
-        <Table columns={studentColumns} data={students} />
+        <DataGrid 
+          columns={studentColumns} 
+          data={students}
+          sortable
+          filterable
+          emptyState={
+            <div className="text-center py-12">
+              <ClipboardDocumentListIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No students found</h3>
+              <p className="mt-1 text-sm text-gray-500">No students are currently enrolled in the system.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal

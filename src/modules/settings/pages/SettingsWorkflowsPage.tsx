@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import { ArrowsRightLeftIcon, PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -138,12 +138,12 @@ const SettingsWorkflowsPage: React.FC = () => {
   };
 
   const workflowColumns = [
-    { header: t('tableHeaders.id'), accessor: 'id' as keyof Workflow },
-    { header: t('tableHeaders.workflowName'), accessor: 'name' as keyof Workflow },
-    { header: t('tableHeaders.states'), accessor: ((item: Workflow) => item.states?.length || 0) as (item:Workflow)=>React.ReactNode},
+    { header: t('tableHeaders.id'), key: 'id' as keyof Workflow },
+    { header: t('tableHeaders.workflowName'), key: 'name' as keyof Workflow },
+    { header: t('tableHeaders.states'), key: ((item: Workflow) => item.states?.length || 0) as (item:Workflow)=>React.ReactNode},
     {
-      header: t('tableHeaders.actions'), accessor: 'id' as keyof Workflow,
-      render: (item: Workflow) => (
+      header: t('tableHeaders.actions'), key: 'id' as keyof Workflow,
+      render: (value: any, item: Workflow) => (
         <div className="space-x-1">
           {canUpdateWorkflows && (
             <Button size="sm" variant="ghost" onClick={() => openWorkflowModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>{t('common:edit')}</Button>
@@ -160,12 +160,12 @@ const SettingsWorkflowsPage: React.FC = () => {
   ];
 
   const stateColumns = [
-    { header: t('tableHeaders.id'), accessor: 'id' as keyof WorkflowState },
-    { header: t('tableHeaders.stateName'), accessor: 'name' as keyof WorkflowState },
-    { header: t('tableHeaders.order'), accessor: 'sequence_order' as keyof WorkflowState },
+    { header: t('tableHeaders.id'), key: 'id' as keyof WorkflowState },
+    { header: t('tableHeaders.stateName'), key: 'name' as keyof WorkflowState },
+    { header: t('tableHeaders.order'), key: 'sequence_order' as keyof WorkflowState },
     {
-      header: t('tableHeaders.actions'), accessor: 'id' as keyof WorkflowState,
-      render: (item: WorkflowState) => (
+      header: t('tableHeaders.actions'), key: 'id' as keyof WorkflowState,
+      render: (value: any, item: WorkflowState) => (
         <div className="space-x-1">
           {canManageWorkflowStates && (
             <>

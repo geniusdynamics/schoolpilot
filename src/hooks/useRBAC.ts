@@ -5,7 +5,7 @@ import React, { useCallback, useMemo } from 'react';
 import { rbacService, SYSTEM_ROLES } from '../core/rbacService';
 import { getEnabledModules } from '../core/moduleLoader';
 import type { RbacRole } from '../core/types';
-import { APP_MODE } from '../contexts/config';
+import { unifiedConfigManager, isDemo } from '../config/unifiedConfig';
 
 export interface RBACHookReturn {
   // Permission checks
@@ -39,7 +39,7 @@ export interface RBACHookReturn {
 export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   // Get user roles
   const userRoles = useMemo((): string[] => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, regardless of whether a userId is provided,
       // we treat the current session as having SUPER_ADMIN privileges
       // until a proper login system is implemented.
@@ -72,7 +72,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Permission checks
   const hasPermission = useCallback((permissionId: string): boolean => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, super admin has all permissions
       return true;
     }
@@ -81,7 +81,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   }, [userId]);
 
   const hasModuleAccess = useCallback((moduleId: string): boolean => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, all modules are accessible
       return true;
     }
@@ -90,7 +90,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   }, [userId]);
 
   const hasFeatureAccess = useCallback((moduleId: string, feature: string): boolean => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, all features are accessible
       return true;
     }
@@ -118,7 +118,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Module access
   const accessibleModules = useMemo(() => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, return all available modules regardless of userId
       const modules = getEnabledModules().map(module => module.id);
       console.log('🔍 [useRBAC] Demo mode - accessible modules:', modules);
@@ -147,7 +147,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   // Resource-based permission checks
   const canCreate = useCallback((resource: string): boolean => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
@@ -157,7 +157,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   }, [userId]);
 
   const canRead = useCallback((resource: string): boolean => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
@@ -167,7 +167,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   }, [userId]);
 
   const canUpdate = useCallback((resource: string): boolean => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
@@ -177,7 +177,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   }, [userId]);
 
   const canDelete = useCallback((resource: string): boolean => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
@@ -187,7 +187,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   }, [userId]);
 
   const canExecute = useCallback((resource: string): boolean => {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }

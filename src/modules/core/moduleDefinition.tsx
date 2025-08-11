@@ -11,6 +11,7 @@ import {
   IdentificationIcon,
   UsersIcon,
   ArrowsRightLeftIcon,
+  CubeIcon,
 } from '@/components/ui/icons';
 
 // Dashboard Module (Core System)
@@ -39,6 +40,7 @@ export const settingsModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
+    { name: 'navigation:settings.features', path: '/settings/features', icon: CogIcon, page: 'FeatureSettingsPage' },
     { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
     { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
     { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon, page: 'DatabaseSettingsPage' },
@@ -101,6 +103,8 @@ export const reportsModule: ModuleDefinition = {
     { name: 'navigation:reports.studentMasterlist', path: '/reports/student-masterlist', icon: DocumentReportIcon, page: 'StudentMasterlistPage' },
     { name: 'navigation:reports.studentVoteheadStatement', path: '/reports/student-votehead-statement', icon: DocumentReportIcon, page: 'StudentVoteheadStatementPage' },
     { name: 'navigation:reports.teacherAssignments', path: '/reports/teacher-assignments', icon: DocumentReportIcon, page: 'TeacherAssignmentsPage' },
+    { name: 'navigation:reports.overdueBooks', path: '/reports/overdue-books', icon: ClockIcon, page: 'OverdueReportPage' },
+    { name: 'navigation:reports.inventoryStatus', path: '/reports/inventory-status', icon: CubeIcon, page: 'InventoryStatusReportPage' },
   ],
   features: ['reporting', 'analytics', 'data-export']
 };

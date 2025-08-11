@@ -7,11 +7,14 @@ import { useTranslation } from 'react-i18next';
 import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
 import { SyncStatusComponent } from './OfflineCapability';
+import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 
 const UserMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout, isDemoMode } = useAuth();
   const { t } = useTranslation('common');
+  const { config } = useUnifiedConfig();
+  const currentMode = config.dataMode === 'demo' ? 'demo' : 'production';
 
   const handleLogout = async () => {
     await logout();
@@ -54,15 +57,19 @@ const UserMenu: React.FC = () => {
               </div>
             </div>
             
-            {/* Demo Mode Indicator */}
-            {isDemoMode && (
-              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></div>
-                  <span className="text-xs text-yellow-800 font-medium">Demo Mode</span>
-                </div>
+            {/* Mode Indicator */}
+            <div className="mt-3 p-2 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="flex items-center">
+                <div className={`w-2 h-2 rounded-full mr-2 ${
+                  currentMode === 'demo' ? 'bg-yellow-400' : 'bg-green-400'
+                }`}></div>
+                <span className={`text-xs font-medium ${
+                  currentMode === 'demo' ? 'text-yellow-800' : 'text-green-800'
+                }`}>
+                  {currentMode === 'demo' ? 'Demo Mode' : 'Production Mode'}
+                </span>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Sync Status Section */}
@@ -107,4 +114,4 @@ const UserMenu: React.FC = () => {
   );
 };
 
-export default UserMenu; 
+export default UserMenu;

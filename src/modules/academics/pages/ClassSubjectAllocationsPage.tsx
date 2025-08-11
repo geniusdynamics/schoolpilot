@@ -2,12 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { ClassStream, AcademicYear } from '@/types';
 import { ClassSubjectAllocation, Subject } from '@/modules/academics/data/types'; // Corrected imports
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { Subject as CoreSubject } from '@/core/types';
@@ -21,10 +21,10 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     classStreams,
     subjects,
     academicYears,
-    loading
-    // addClassSubjectAllocation, 
-    // updateClassSubjectAllocation, 
-    // deleteClassSubjectAllocation 
+    loading,
+    addClassSubjectAllocation, 
+    updateClassSubjectAllocation, 
+    deleteClassSubjectAllocation 
   } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,30 +86,35 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     };
 
     if (editingAllocation) {
-      // await updateClassSubjectAllocation({ ...editingAllocation, ...payload });
+      await updateClassSubjectAllocation({ ...editingAllocation, ...payload });
     } else {
-      // await addClassSubjectAllocation(payload);
+      await addClassSubjectAllocation(payload);
     }
     closeModal();
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this subject allocation?')) {
-      // await deleteClassSubjectAllocation(id);
+      try {
+        await deleteClassSubjectAllocation(id);
+      } catch (error) {
+        console.error('Error deleting allocation:', error);
+        alert('Error deleting allocation');
+      }
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof ClassSubjectAllocation },
-    { header: 'Class Stream', accessor: 'class_stream_name' as keyof ClassSubjectAllocation },
-    { header: 'Subject', accessor: 'subject_name' as keyof ClassSubjectAllocation },
-    { header: 'Academic Year', accessor: 'academic_year_name' as keyof ClassSubjectAllocation },
+  const columns: DataGridColumn<ClassSubjectAllocation>[] = [
+    { header: 'ID', key: 'id' },
+    { header: 'Class Stream', key: 'class_stream_name' },
+    { header: 'Subject', key: 'subject_name' },
+    { header: 'Academic Year', key: 'academic_year_name' },
     {
       header: 'Actions',
-      accessor: 'id' as keyof ClassSubjectAllocation,
-      render: (item: ClassSubjectAllocation) => (
+      key: 'id',
+      render: (value: any, item: ClassSubjectAllocation) => (
         <div className="space-x-2">
-          {/* <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button> */}
+          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
@@ -134,7 +139,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Assign subjects to specific class streams for a given academic year.
         </p>
-        <Table columns={columns} data={classSubjectAllocations} isLoading={loading.classSubjectAllocations} />
+        <DataGrid columns={columns} data={classSubjectAllocations} loading={loading.classSubjectAllocations} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAllocation ? t('classSubjectAllocations.modalEditTitle') : t('classSubjectAllocations.modalAddTitle')} size="lg"

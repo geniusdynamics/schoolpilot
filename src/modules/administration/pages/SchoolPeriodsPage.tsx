@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { SchoolPeriod, AcademicYear, AcademicPeriodDefinition, FinancialYear } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -19,6 +19,7 @@ type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'u
 };
 
 const SchoolPeriodsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
   const { academicYears } = useAcademicYearData();
   const { academicPeriodDefinitions } = useAcademicPeriodDefinitionData();
@@ -117,19 +118,79 @@ const SchoolPeriodsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof SchoolPeriod },
-    { header: 'Name', accessor: 'name' as keyof SchoolPeriod },
-    { header: 'Academic Year', accessor: 'academic_year_name' as keyof SchoolPeriod },
-    { header: 'Period Definition', accessor: 'period_definition_name' as keyof SchoolPeriod },
-    { header: 'Financial Year', accessor: 'financial_year_name' as keyof SchoolPeriod },
-    { header: 'Start Date', accessor: 'start_date' as keyof SchoolPeriod, render: (item: SchoolPeriod) => new Date(item.start_date).toLocaleDateString() },
-    { header: 'End Date', accessor: 'end_date' as keyof SchoolPeriod, render: (item: SchoolPeriod) => new Date(item.end_date).toLocaleDateString() },
-    { header: 'Active', accessor: 'is_active' as keyof SchoolPeriod },
+  const columns: DataGridColumn<SchoolPeriod>[] = [
+    { 
+      key: 'id',
+      header: 'ID', 
+      sortable: true,
+      filterable: true,
+      width: 80,
+      render: (value, item) => item.id
+    },
+    { 
+      key: 'name',
+      header: 'Name', 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => item.name
+    },
+    { 
+      key: 'academic_year_name',
+      header: 'Academic Year', 
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, item) => item.academic_year_name
+    },
+    { 
+      key: 'period_definition_name',
+      header: 'Period Definition', 
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, item) => item.period_definition_name
+    },
+    { 
+      key: 'financial_year_name',
+      header: 'Financial Year', 
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value, item) => item.financial_year_name
+    },
+    { 
+      key: 'start_date',
+      header: 'Start Date', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => new Date(item.start_date).toLocaleDateString()
+    },
+    { 
+      key: 'end_date',
+      header: 'End Date', 
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => new Date(item.end_date).toLocaleDateString()
+    },
+    { 
+      key: 'is_active',
+      header: 'Active', 
+      sortable: true,
+      filterable: true,
+      width: 80,
+      render: (value, item) => item.is_active ? 'Yes' : 'No'
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof SchoolPeriod,
-      render: (item: SchoolPeriod) => (
+      sortable: false,
+      filterable: false,
+      width: 200,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -149,7 +210,19 @@ const SchoolPeriodsPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           Define specific school terms or semesters within an academic year. Link them to financial years and academic period definitions (e.g., "Term 1").
         </p>
-        <Table columns={columns} data={schoolPeriods || []} />
+        <DataGrid 
+          columns={columns} 
+          data={schoolPeriods || []} 
+          loading={false}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-8">
+              <CalendarDaysIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No school periods found. Create your first period to get started.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPeriod ? 'Edit School Period' : 'Add New School Period'} size="xl"

@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { AcademicPeriodDefinition, AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,8 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     updateAcademicPeriodDefinition, 
     deleteAcademicPeriodDefinition 
   } = useAppData();
+  
+  const { t } = useTranslation('administration');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDefinition, setEditingDefinition] = useState<AcademicPeriodDefinition | null>(null);
@@ -97,15 +99,47 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof AcademicPeriodDefinition },
-    { header: 'Definition Name', accessor: 'name' as keyof AcademicPeriodDefinition },
-    { header: 'Structure', accessor: 'structure_name' as keyof AcademicPeriodDefinition },
-    { header: 'Sequence Order', accessor: 'sequence_order' as keyof AcademicPeriodDefinition },
+  const columns: DataGridColumn<AcademicPeriodDefinition>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, item) => value
+    },
+    { 
+      key: 'name', 
+      header: 'Definition Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, item) => value
+    },
+    { 
+      key: 'structure_name', 
+      header: 'Structure', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, item) => value
+    },
+    { 
+      key: 'sequence_order', 
+      header: 'Sequence Order', 
+      sortable: true, 
+      filterable: true, 
+      width: 140,
+      render: (value, item) => value
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof AcademicPeriodDefinition,
-      render: (item: AcademicPeriodDefinition) => (
+      sortable: false,
+      filterable: false,
+      width: 160,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -138,7 +172,20 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
           Define the individual periods within an Academic Year Structure (e.g., "Term 1", "Term 2", "Semester 1"). 
           Set their sequence order within the structure.
         </p>
-        <Table columns={columns} data={sortedDefinitions} isLoading={loading.academicPeriodDefinitions && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={sortedDefinitions} 
+          loading={loading.academicPeriodDefinitions && isModalOpen}
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <DocumentDuplicateIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No period definitions found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating your first academic period definition.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDefinition ? 'Edit Period Definition' : 'Add New Period Definition'} size="lg"

@@ -32,10 +32,10 @@ export const useSchoolPeriodData = () => {
   };
 
   return {
-    data,
-    create,
-    update,
-    remove
+    schoolPeriods: data,
+    addSchoolPeriod: create,
+    updateSchoolPeriod: update,
+    deleteSchoolPeriod: remove
   };
 };
 

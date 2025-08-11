@@ -36,6 +36,15 @@ export const inventoryCollections = {
   rfqs: {
     schema: schemas.rfqSchema,
   },
+  suppliers: {
+    schema: schemas.supplierSchema,
+  },
+  supplier_contracts: {
+    schema: schemas.supplierContractSchema,
+  },
+  stock_alerts: {
+    schema: schemas.stockAlertSchema,
+  },
 };
 
 // Type helper for consumers of this module's collections (optional)

@@ -5,13 +5,13 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { SchoolPeriod } from '@/types';
 import { ExamSession, SubjectPaper, ExamPaperSetting, ExamSessionStatus } from '@/core/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, ChartPieIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -23,12 +23,13 @@ type PaperSettingFormData = Omit<Partial<ExamPaperSetting>, 'id' | 'exam_session
 
 
 const ExamSessionsPage: React.FC = () => {
+  const { t } = useTranslation('academics');
   const { 
     examSessions, 
     schoolPeriods, 
     subjectPapers, 
     loading, 
-  } = useAppData(); 
+  } = useAppData();
 
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [isPaperSettingModalOpen, setIsPaperSettingModalOpen] = useState(false);
@@ -158,12 +159,12 @@ const ExamSessionsPage: React.FC = () => {
       }
   };
 
-  const sessionColumns = [
-    { header: 'ID', accessor: 'id' as keyof ExamSession },
-    { header: 'Exam Session Name', accessor: 'name' as keyof ExamSession },
-    { header: 'School Period', accessor: 'school_period_name' as keyof ExamSession },
-    { header: 'Status', accessor: 'status' as keyof ExamSession, 
-        render: (item: ExamSession) => {
+  const sessionColumns: DataGridColumn<ExamSession>[] = [
+    { key: 'id', header: 'ID' },
+    { key: 'name', header: 'Exam Session Name' },
+    { key: 'school_period_name', header: 'School Period' },
+    { key: 'status', header: 'Status', 
+        render: (value: any, item: ExamSession) => {
             let colorClass = 'bg-gray-200 text-gray-800';
             if (item.status === ExamSessionStatus.PLANNING) colorClass = 'bg-blue-100 text-blue-800';
             else if (item.status === ExamSessionStatus.MARKS_ENTRY_OPEN) colorClass = 'bg-yellow-100 text-yellow-800';
@@ -171,11 +172,11 @@ const ExamSessionsPage: React.FC = () => {
             return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
         }
     },
-    { header: 'Papers Configured', accessor: 'id' as keyof ExamSession, render: (item: ExamSession) => item.paper_settings?.length || 0 },
+    { key: 'id', header: 'Papers Configured', render: (value: any, item: ExamSession) => item.paper_settings?.length || 0 },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof ExamSession,
-      render: (item: ExamSession) => (
+      render: (value: any, item: ExamSession) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openSessionModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="secondary" onClick={() => openPaperSettingModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Papers</Button>
@@ -185,15 +186,15 @@ const ExamSessionsPage: React.FC = () => {
     },
   ];
 
-  const paperSettingColumns = [
-    { header: 'Subject', accessor: 'subject_name' as keyof ExamPaperSetting},
-    { header: 'Paper', accessor: 'subject_paper_name' as keyof ExamPaperSetting},
-    { header: 'Marks Out Of', accessor: 'marks_out_of' as keyof ExamPaperSetting },
-    { header: 'Weight (%)', accessor: 'weight_percentage' as keyof ExamPaperSetting },
+  const paperSettingColumns: DataGridColumn<ExamPaperSetting>[] = [
+    { key: 'subject_name', header: 'Subject'},
+    { key: 'subject_paper_name', header: 'Paper'},
+    { key: 'marks_out_of', header: 'Marks Out Of' },
+    { key: 'weight_percentage', header: 'Weight (%)' },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof ExamPaperSetting,
-      render: (item: ExamPaperSetting) => (
+      render: (value: any, item: ExamPaperSetting) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openPaperSettingModal(currentSessionForPapers!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeletePaperSetting(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
@@ -218,7 +219,7 @@ const ExamSessionsPage: React.FC = () => {
           Add Exam Session
         </Button>
       }>
-        <Table columns={sessionColumns} data={examSessions} isLoading={loading.examSessions && isSessionModalOpen} />
+        <DataGrid columns={sessionColumns} data={examSessions} />
       </Card>
 
       {/* Session Modal */}
@@ -291,11 +292,9 @@ const ExamSessionsPage: React.FC = () => {
             </Card>
             
             <h4 className="text-md font-semibold text-gray-700 mt-6">Configured Papers for this Session</h4>
-            <Table 
+            <DataGrid 
               columns={paperSettingColumns} 
               data={currentSessionForPapers.paper_settings || []} 
-              isLoading={loading.examSessions && isPaperSettingModalOpen}
-              emptyStateMessage="No papers configured for this exam session yet."
             />
           </div>
         )}

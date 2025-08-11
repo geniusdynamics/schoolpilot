@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { FixedAsset, ItemInv, Staff, ItemTypeInv, DepreciationMethod } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -113,23 +113,68 @@ const FixedAssetsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Asset Tag', accessor: 'asset_tag' as keyof FixedAsset },
-    { header: 'Item Name', accessor: 'item_name' as keyof FixedAsset },
-    { header: 'Serial No.', accessor: 'serial_number' as keyof FixedAsset },
-    { header: 'Purchase Date', accessor: 'purchase_date' as keyof FixedAsset, render: (item: FixedAsset) => item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : 'N/A' },
-    { header: 'Purchase Cost', accessor: 'purchase_cost' as keyof FixedAsset, render: (item: FixedAsset) => item.purchase_cost?.toFixed(2) || 'N/A' },
-    { header: 'Current Value', accessor: 'current_value' as keyof FixedAsset, render: (item: FixedAsset) => item.current_value?.toFixed(2) || 'N/A' },
-    { header: 'Assigned To', accessor: 'assigned_to_staff_name' as keyof FixedAsset },
+  const columns: DataGridColumn<FixedAsset>[] = [
+    { 
+      key: 'asset_tag', 
+      header: 'Asset Tag', 
+      sortable: true,
+      filterable: true,
+      width: '120px'
+    },
+    { 
+      key: 'item_name', 
+      header: 'Item Name', 
+      sortable: true,
+      filterable: true,
+      width: '200px'
+    },
+    { 
+      key: 'serial_number', 
+      header: 'Serial No.', 
+      sortable: true,
+      filterable: true,
+      width: '140px'
+    },
+    { 
+      key: 'purchase_date', 
+      header: 'Purchase Date', 
+      render: (value: any, item: FixedAsset) => item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : 'N/A',
+      sortable: true,
+      filterable: true,
+      width: '130px'
+    },
+    { 
+      key: 'purchase_cost', 
+      header: 'Purchase Cost', 
+      render: (value: any, item: FixedAsset) => item.purchase_cost ? `Ksh ${item.purchase_cost.toFixed(2)}` : 'N/A',
+      sortable: true,
+      width: '130px'
+    },
+    { 
+      key: 'current_value', 
+      header: 'Current Value', 
+      render: (value: any, item: FixedAsset) => item.current_value ? `Ksh ${item.current_value.toFixed(2)}` : 'N/A',
+      sortable: true,
+      width: '130px'
+    },
+    { 
+      key: 'assigned_to_staff_name', 
+      header: 'Assigned To', 
+      sortable: true,
+      filterable: true,
+      width: '150px'
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof FixedAsset,
-      render: (item: FixedAsset) => (
+      render: (value: any, item: FixedAsset) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
+      sticky: 'right',
+      width: '160px'
     },
   ];
 
@@ -151,7 +196,17 @@ const FixedAssetsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Track fixed assets, including asset tags, purchase details, depreciation, and assignment to staff.
         </p>
-        <Table columns={columns} data={fixedAssets} isLoading={loading.fixedAssets && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={fixedAssets} 
+          sortable
+          filterable
+          emptyState={{
+            icon: <CubeIcon className="w-8 h-8 text-gray-400" />,
+            title: "No fixed assets found",
+            description: "Start by adding your first fixed asset."
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAsset ? 'Edit Fixed Asset' : 'Add New Fixed Asset'} size="2xl"

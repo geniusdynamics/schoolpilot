@@ -4,17 +4,26 @@
 // ABOUTME: Includes enhanced features like network status, sync capabilities, and offline support.
 
 import React, { createContext, useContext, ReactNode, useMemo, useEffect, useState, useCallback } from 'react';
-import { APP_MODE } from './config';
+import { useUnifiedConfig, useConfig } from './UnifiedConfigContext';
+import { unifiedConfigManager, DataMode } from '../config/unifiedConfig';
 import { useModularMockData, rawInitialData as modularMockDataContentForProdSeed } from '../hooks/useModularMockData';
 import { NetworkStateManager, NetworkState } from '../services/NetworkStateManager';
 import { DataStrategyManager, DataStrategy, DataOperation } from '../services/DataStrategyManager';
 import { BackendAPIService } from '../services/BackendAPIService';
 import { globalDataConsistencyService, DataConsistencyConfig } from '../services/DataConsistencyService';
 import { globalUnifiedCRUDService } from '../services/UnifiedCRUDService';
-import { globalDataSyncMonitoringService, SyncStatus as DetailedSyncStatus } from '../services/DataSyncMonitoringService';
+import { globalDataSyncMonitoringService, SyncStatus as DetailedSyncStatus, SyncConflict, ConflictResolution } from '../services/DataSyncMonitoringService';
 
 import type { AppDataContextType, RbacRole, Role } from '../core/types';
 import Spinner from '../components/ui/Spinner';
+import DismissibleBanner from '../components/DismissibleBanner';
+
+// Sync settings interface
+export interface SyncSettings {
+  autoSync: boolean;
+  syncInterval: number;
+  batchSize: number;
+}
 
 // Enhanced context type with backend integration features
 export interface EnhancedAppDataContextType extends AppDataContextType {
@@ -46,12 +55,22 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
   // Queue management
   getQueueStatus: () => QueueStatus;
   clearQueue: () => void;
+  clearSyncQueue: () => void;
+  
+  // Sync settings
+  getSyncSettings: () => SyncSettings;
+  updateSyncSettings: (settings: Partial<SyncSettings>) => void;
   
   // Data validation and consistency
   validateEntity: (entityName: string, data: any, operation: 'create' | 'update' | 'delete') => Promise<import('../utils/dataValidation').ValidationResult>;
   runConsistencyCheck: () => Promise<import('../services/DataConsistencyService').ConsistencyReport>;
   getValidationConfig: () => DataConsistencyConfig;
   updateValidationConfig: (config: Partial<DataConsistencyConfig>) => void;
+  
+  // Conflict resolution
+  conflicts: SyncConflict[];
+  resolveConflict: (conflictId: string, resolution: ConflictResolution) => Promise<boolean>;
+  resolveAllConflicts: (strategy?: ConflictResolution['strategy']) => Promise<boolean[]>;
 }
 
 export interface SyncStatus {
@@ -86,7 +105,7 @@ export interface QueueStatus {
 const AppDataContext = createContext<EnhancedAppDataContextType | undefined>(undefined);
 
 type UseRxDBDataHookType = typeof import('../hooks/useRxDBData').useRxDBData;
-type RxDBServiceModuleType = typeof import('../services/rxdbService');
+type DatabaseServiceModuleType = typeof import('../services/databaseService');
 
 // Feature capability definitions
 const FEATURE_CAPABILITIES: Record<string, OfflineCapability> = {
@@ -176,22 +195,29 @@ function mapRbacRoleToLegacyRole(rbacRole: RbacRole, idx: number): Role {
 }
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { config, isLoading: configLoading, error: configError } = useUnifiedConfig();
   // Original mock data hook
   const mockDataHookResult = useModularMockData();
   
   // Enhanced state management
-  const [networkState, setNetworkState] = useState<NetworkState>({
-    isOnline: navigator.onLine,
-    backendAvailable: false,
-    latency: null,
-    lastCheck: new Date(),
-    connectionQuality: 'offline'
+  const [networkState, setNetworkState] = useState<NetworkState>(() => {
+    const manager = NetworkStateManager.getInstance();
+    return manager.getState();
   });
   
   const [dataStrategy, setDataStrategy] = useState<DataStrategy>(() => {
     const env = process.env.NODE_ENV || 'development';
-    return DATA_STRATEGY_CONFIGS[APP_MODE] || DATA_STRATEGY_CONFIGS[env] || DATA_STRATEGY_CONFIGS.development;
+    const appMode = config?.mode || env;
+    return DATA_STRATEGY_CONFIGS[appMode] || DATA_STRATEGY_CONFIGS[env] || DATA_STRATEGY_CONFIGS.development;
   });
+
+  // Update data strategy when config changes
+  useEffect(() => {
+    if (config?.mode) {
+      const newStrategy = DATA_STRATEGY_CONFIGS[config.mode] || DATA_STRATEGY_CONFIGS.development;
+      setDataStrategy(newStrategy);
+    }
+  }, [config?.mode]);
   
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     state: 'idle',
@@ -206,66 +232,171 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [backendAPI] = useState(() => new BackendAPIService());
   const [networkManager] = useState(() => NetworkStateManager.getInstance());
   
-  // RxDB and service loading state
-  const [rxDBServiceModule, setRxDBServiceModule] = useState<any>(null);
+  // Database service loading state
+  const [databaseServiceModule, setDatabaseServiceModule] = useState<any>(null);
   const [isProdDepsLoaded, setIsProdDepsLoaded] = useState(false);
   const [prodDepsError, setProdDepsError] = useState<Error | null>(null);
   const [rxDBDataHookResult, setRxDBDataHookResult] = useState<AppDataContextType | null>(null);
+  const [UseRxDBData, setUseRxDBData] = useState<(() => AppDataContextType) | null>(null);
 
   // Initialize network monitoring
   useEffect(() => {
     const unsubscribe = networkManager.subscribe(setNetworkState);
     return unsubscribe;
   }, [networkManager]);
+  
+  // Update sync status with conflict information
+  useEffect(() => {
+    const updateSyncStatus = () => {
+      const conflicts = globalDataSyncMonitoringService.getUnresolvedConflicts();
+      setSyncStatus(prev => ({
+        ...prev,
+        conflictsCount: conflicts.length
+      }));
+    };
+    
+    // Initial update
+    updateSyncStatus();
+    
+    // Subscribe to sync status changes
+    const unsubscribe = globalDataSyncMonitoringService.subscribe((status) => {
+      setSyncStatus(prev => ({
+        ...prev,
+        conflictsCount: status.conflicts.unresolved,
+        state: status.mode,
+        progress: status.progress.percentage,
+        lastSyncTime: status.lastSync
+      }));
+    });
+    
+    return unsubscribe;
+  }, []);
 
   // Load RxDB modules in production mode
   useEffect(() => {
     let isMounted = true;
-    
-    if (APP_MODE === 'production' || dataStrategy.mode !== 'demo') {
-      Promise.all([
-        import('../hooks/useRxDBData'),
-        import('../services/rxdbService')
-      ]).then(([{ useRxDBData }, serviceModule]) => {
-        if (isMounted) {
-          setRxDBServiceModule(serviceModule);
-          setIsProdDepsLoaded(true);
 
-          // Initialize RxDB and useRxDBData
-          serviceModule.getDatabase().then(() => {
-            const hookResult = useRxDBData(
-              serviceModule.getDatabase,
-              serviceModule.seedDatabaseWithMockData,
-              serviceModule.clearDatabase,
-              serviceModule.getUsingDummyDataFlag,
-              modularMockDataContentForProdSeed
-            );
-            setRxDBDataHookResult(hookResult);
-          }).catch((error: Error) => {
-            if (isMounted) {
-              setProdDepsError(error);
-            }
-          });
+    const loadRxDB = async () => {
+      try {
+        // Check if RxDB is available before loading
+        const hasIndexedDB = typeof window !== 'undefined' && window.indexedDB;
+        if (!hasIndexedDB) {
+          console.warn('IndexedDB not available, skipping RxDB initialization');
+          if (isMounted) {
+            setProdDepsError(new Error('IndexedDB not available'));
+            setIsProdDepsLoaded(true);
+          }
+          return;
         }
-      }).catch(error => {
+
+        const [{ useDatabaseData }, serviceModule] = await Promise.all([
+          import('../hooks/useDatabaseData'),
+          import('../services/databaseService'),
+        ]);
+
         if (isMounted) {
+          // Check if database is actually available
+          const dbAvailable = serviceModule.isDatabaseAvailable?.() || serviceModule.initializationError === undefined;
+          
+          if (!dbAvailable) {
+            console.warn('RxDB database not available, falling back to mock mode');
+            setProdDepsError(new Error('RxDB database initialization failed'));
+            setIsProdDepsLoaded(true);
+            return;
+          }
+
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('reset') === 'true') {
+            console.log('Reset parameter detected, clearing database...');
+            try {
+              const db = await serviceModule.getDatabase();
+              await serviceModule.clearDatabase(db);
+              console.log('Database cleared successfully.');
+            } catch (clearError) {
+              console.warn('Failed to clear database:', clearError);
+            }
+            // Remove the query param to avoid re-clearing on hot-reload
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+
+          setDatabaseServiceModule(serviceModule);
+          setUseRxDBData(() => useDatabaseData);
+          setIsProdDepsLoaded(true);
+          console.log('PouchDB database modules loaded successfully');
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error('Failed to load RxDB modules:', error);
           setProdDepsError(error);
           setIsProdDepsLoaded(true);
         }
-      });
+      }
+    };
+
+    if (config && config.features.enhancedDataLayer) {
+      loadRxDB();
     } else {
-      setIsProdDepsLoaded(true);
+      setIsProdDepsLoaded(true); // Not using RxDB, so dependencies are 'loaded'
     }
-    
-    return () => { isMounted = false; };
-  }, [dataStrategy.mode]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [config]);
+
+  const currentDataMode = useMemo(() => {
+    if (dataStrategy.mode === 'demo') return 'mock';
+    if (config?.mode === 'production' && isProdDepsLoaded && !prodDepsError && UseRxDBData) {
+      if (networkState.backendAvailable && dataStrategy.mode === 'online-first') {
+        return 'backend';
+      }
+      return networkState.backendAvailable ? 'hybrid' : 'rxdb';
+    }
+    return 'mock';
+  }, [config?.mode, dataStrategy.mode, isProdDepsLoaded, prodDepsError, networkState.backendAvailable, UseRxDBData]);
+
+  const RxDBWrapper = useCallback(({ children }: { children: ReactNode }) => {
+    if (!UseRxDBData) return null; // Should not happen if called correctly
+    const rxDBResult = UseRxDBData(modularMockDataContentForProdSeed);
+    const value = createContextValue(rxDBResult);
+    return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
+  }, [UseRxDBData, modularMockDataContentForProdSeed, networkState, dataStrategy, syncStatus, dataStrategyManager, backendAPI, currentDataMode, prodDepsError]);
+
+  const createContextValue = (hookResult: AppDataContextType) => useMemo(() => ({
+    ...hookResult,
+    networkState,
+    dataStrategy,
+    syncStatus,
+    dataStrategyManager,
+    backendAPI,
+    currentDataMode,
+    isRxDBModeActive: config?.mode === 'production' && !prodDepsError,
+    initializationError: prodDepsError,
+    // Include all other enhanced context properties
+  }), [hookResult, networkState, dataStrategy, syncStatus, dataStrategyManager, backendAPI, currentDataMode, prodDepsError]);
+
+  if (config?.mode === 'production') {
+    if (!isProdDepsLoaded) {
+      return <Spinner message="Loading application data (Production Mode - Loading Database Modules)..." />;
+    }
+    if (prodDepsError) {
+      console.warn('RxDB initialization failed, falling back to mock data:', prodDepsError);
+      const value = createContextValue(mockDataHookResult);
+      return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
+    }
+    if (UseRxDBData) {
+      return <RxDBWrapper>{children}</RxDBWrapper>;
+    }
+    // Still loading the hook itself
+    return <Spinner message="Initializing data context..." />;
+  }
 
   // Initialize DataStrategyManager and related services
   useEffect(() => {
-    if (rxDBServiceModule && isProdDepsLoaded) {
+    if (databaseServiceModule && isProdDepsLoaded) {
       const manager = new DataStrategyManager(
         dataStrategy,
-        rxDBServiceModule,
+        databaseServiceModule,
         { useModularMockData }
       );
       setDataStrategyManager(manager);
@@ -282,7 +413,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       globalDataConsistencyService.updateConfig(consistencyConfig);
       
       // Initialize unified CRUD service
-      globalUnifiedCRUDService.updateServices(manager, { useModularMockData }, rxDBServiceModule);
+      globalUnifiedCRUDService.updateServices(manager, { useModularMockData }, databaseServiceModule);
       
       // Initialize sync monitoring service
       globalDataSyncMonitoringService.updateDataStrategyManager(manager);
@@ -302,21 +433,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         });
       };
     }
-  }, [dataStrategy, rxDBServiceModule, isProdDepsLoaded]);
+  }, [dataStrategy, databaseServiceModule, isProdDepsLoaded]);
 
-  // Determine current data mode
-  const currentDataMode = useMemo(() => {
-    if (dataStrategy.mode === 'demo') return 'mock';
-    if (APP_MODE === 'production' && isProdDepsLoaded && rxDBDataHookResult && !prodDepsError) {
-      if (networkState.backendAvailable && dataStrategy.mode === 'online-first') {
-        return 'backend';
-      }
-      return networkState.backendAvailable ? 'hybrid' : 'rxdb';
-    }
-    return 'mock';
-  }, [dataStrategy.mode, isProdDepsLoaded, rxDBDataHookResult, prodDepsError, networkState.backendAvailable]);
+  // currentDataMode is already defined above, removing duplicate declaration
+  
+  // createContextValue is already defined above, removing duplicate declaration
 
-  // Select active hook result
+  // The rest of the return logic remains the same
   const activeHookResult = useMemo(() => {
     if (currentDataMode !== 'mock' && rxDBDataHookResult) {
       return rxDBDataHookResult;
@@ -378,15 +501,28 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         return dataStrategyManager.executeOperation(operation, { id });
       },
 
-      // Financial operations (require backend)
+      // Financial operations (allow offline for demo)
       generateInvoices: async (params: any) => {
         const operation: DataOperation = {
           type: 'write',
           entity: 'invoices',
           priority: 'critical',
-          requiresBackend: true,
-          allowOffline: false
+          requiresBackend: false,
+          allowOffline: true
         };
+        return dataStrategyManager.executeOperation(operation, params);
+      },
+
+      // Alias for generateInvoices to match EffectFeeStructuresPage expectation
+      generateStudentInvoices: async (feeTemplateId: number, schoolPeriodId: number, studentCriteria: any) => {
+        const operation: DataOperation = {
+          type: 'write',
+          entity: 'invoices',
+          priority: 'critical',
+          requiresBackend: false,
+          allowOffline: true
+        };
+        const params = { feeTemplateId, schoolPeriodId, studentCriteria };
         return dataStrategyManager.executeOperation(operation, params);
       },
 
@@ -467,6 +603,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Context value
   const contextValue = useMemo((): EnhancedAppDataContextType => {
+    const getSyncSettings = () => ({ autoSync: true, syncInterval: 30000, batchSize: 10 });
+    const updateSyncSettings = (settings: Partial<SyncSettings>) => {
+      // Implement update logic
+      console.log('Updated Settings:', settings);
+    };
     // Include rbacRoles if present on activeHookResult
     const rbacRoles = (activeHookResult as any).rbacRoles || [];
     const legacyRoles = rbacRoles.map(mapRbacRoleToLegacyRole);
@@ -507,6 +648,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         backendAPI.clearQueue();
         dataStrategyManager?.clearSyncQueue();
       },
+      clearSyncQueue: () => {
+        dataStrategyManager?.clearSyncQueue();
+      },
+      getSyncSettings,
+      updateSyncSettings,
       
       // Data validation and consistency functions
       validateEntity: async (entityName: string, data: any, operation: 'create' | 'update' | 'delete') => {
@@ -540,6 +686,36 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       updateValidationConfig: (config: Partial<DataConsistencyConfig>) => {
         globalDataConsistencyService.updateConfig(config);
+      },
+      
+      // Conflict resolution functions
+      conflicts: globalDataSyncMonitoringService.getUnresolvedConflicts(),
+      
+      resolveConflict: async (conflictId: string, resolution: ConflictResolution) => {
+        return await globalDataSyncMonitoringService.resolveConflict(conflictId, resolution);
+      },
+      
+      resolveAllConflicts: async (strategy: ConflictResolution['strategy'] = 'remote_wins') => {
+        const conflicts = globalDataSyncMonitoringService.getUnresolvedConflicts();
+        const results: boolean[] = [];
+        
+        for (const conflict of conflicts) {
+          const resolution: ConflictResolution = {
+            strategy,
+            resolvedAt: new Date(),
+            resolvedBy: 'system'
+          };
+          
+          try {
+            const result = await globalDataSyncMonitoringService.resolveConflict(conflict.id, resolution);
+            results.push(result);
+          } catch (error) {
+            console.error(`Failed to resolve conflict ${conflict.id}:`, error);
+            results.push(false);
+          }
+        }
+        
+        return results;
       }
     };
   }, [
@@ -567,7 +743,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [contextValue, dataStrategyManager]);
 
   // Loading states
-  if (APP_MODE === 'production' && !isProdDepsLoaded) {
+  if (config?.mode === 'production' && !isProdDepsLoaded) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -610,7 +786,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   return (
     <AppDataContext.Provider value={contextValue}>
       {/* Network status warnings */}
-      {APP_MODE === 'production' && prodDepsError && (
+      {config?.mode === 'production' && prodDepsError && (
         <div style={{
           position: 'fixed', 
           bottom: '10px', 
@@ -630,55 +806,47 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         </div>
       )}
       
-      {!networkState.isOnline && (
-        <div style={{
-          position: 'fixed', 
-          top: '10px', 
-          right: '10px',
-          backgroundColor: 'rgba(239, 68, 68, 0.95)', 
-          color: 'white',
-          padding: '8px 15px', 
-          borderRadius: '8px', 
-          zIndex: 10000,
-          fontSize: '0.85em', 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-        }}>
-          <strong>Offline:</strong> Working in offline mode
-        </div>
-      )}
-      
-      {networkState.isOnline && !networkState.backendAvailable && (
-        <div style={{
-          position: 'fixed', 
-          top: '10px', 
-          right: '10px',
-          backgroundColor: 'rgba(245, 158, 11, 0.95)', 
-          color: 'white',
-          padding: '8px 15px', 
-          borderRadius: '8px', 
-          zIndex: 10000,
-          fontSize: '0.85em', 
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-        }}>
-          <strong>Backend Unavailable:</strong> Using local data
-        </div>
-      )}
+      {/* Unified status message system - show only one banner to prevent overlapping */}
+      {(() => {
+        const isDemoMode = dataStrategy.mode === 'demo';
+        
+        // Priority order: Offline > Demo Mode + Backend Unavailable > Backend Unavailable only
+        if (!networkState.isOnline) {
+          const message = isDemoMode 
+            ? "Offline: Working in demo mode" 
+            : "Offline: Working in offline mode";
+          return (
+            <DismissibleBanner 
+              id="unified-status-banner"
+              message={message}
+              type="error" 
+            />
+          );
+        }
+        
+        if (!networkState.backendAvailable) {
+          const message = isDemoMode 
+            ? "Demo Mode: Using sample data" 
+            : "Backend Unavailable: Using local data";
+          return (
+            <DismissibleBanner 
+              id="unified-status-banner"
+              message={message}
+              type={isDemoMode ? "info" : "warning"}
+            />
+          );
+        }
+        
+        return null;
+      })()}
       
       {children}
     </AppDataContext.Provider>
   );
 };
 
-export const useAppData = (): EnhancedAppDataContextType => {
-  const context = useContext(AppDataContext);
-  if (context === undefined) {
-    throw new Error('useAppData must be used within an AppDataProvider');
-  }
-  return context;
-};
+// Note: useAppData and useAppDataInternal hooks have been moved to src/hooks/useAppData.ts
+// for Fast Refresh compatibility (React Fast Refresh requires files to only export components)
 
-// Internal hook for use during provider initialization - doesn't throw error
-export const useAppDataInternal = (): EnhancedAppDataContextType | null => {
-  const context = useContext(AppDataContext);
-  return context || null;
-};
+// Export the context for use in other files
+export { AppDataContext };

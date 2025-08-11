@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
 import { MealPlan } from '@/types';
-import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import Textarea from '@/components/ui/Textarea';
+import { Card, DataGrid, Button, Modal, Input, Textarea, Toast, Spinner } from '@/components/ui';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
-import Spinner from '@/components/ui/Spinner';
+import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 
 type MealPlanFormData = Omit<Partial<MealPlan>, 'id' | 'created_at' | 'updated_at'>;
@@ -21,6 +15,8 @@ const MealPlansPage: React.FC = () => {
   const [editingPlan, setEditingPlan] = useState<MealPlan | null>(null);
   const initialFormData: MealPlanFormData = { name: '', description: '', cost_per_period: 0 };
   const [formData, setFormData] = useState<MealPlanFormData>(initialFormData);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const openModal = (plan?: MealPlan) => {
     setEditingPlan(plan || null);
@@ -44,7 +40,7 @@ const MealPlansPage: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Meal plan name is required.");
+      setToast({ message: "Meal plan name is required.", type: 'error' });
       return;
     }
     const payload: Omit<MealPlan, 'id' | 'created_at' | 'updated_at'> = {
@@ -53,34 +49,87 @@ const MealPlansPage: React.FC = () => {
       cost_per_period: Number(formData.cost_per_period) || 0, // Default to 0 if undefined/NaN
     };
 
-    if (editingPlan) {
-      await updateMealPlan({ ...editingPlan, ...payload });
-    } else {
-      await addMealPlan(payload);
+    try {
+      if (editingPlan) {
+        await updateMealPlan({ ...editingPlan, ...payload });
+        setToast({ message: `Meal plan "${formData.name}" updated successfully!`, type: 'success' });
+      } else {
+        await addMealPlan(payload);
+        setToast({ message: `Meal plan "${formData.name}" created successfully!`, type: 'success' });
+      }
+      closeModal();
+    } catch (error) {
+      setToast({ message: 'Failed to save meal plan. Please try again.', type: 'error' });
     }
-    closeModal();
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this meal plan?')) {
-      await deleteMealPlan(id);
+      try {
+        await deleteMealPlan(id);
+        setToast({ message: 'Meal plan deleted successfully!', type: 'success' });
+      } catch (error) {
+        setToast({ message: 'Failed to delete meal plan. Please try again.', type: 'error' });
+      }
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedRows.length === 0) {
+      setToast({ message: 'Please select meal plans to delete.', type: 'info' });
+      return;
+    }
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedRows.length} meal plan(s)?`)) {
+      try {
+        for (const id of selectedRows) {
+          await deleteMealPlan(parseInt(id));
+        }
+        setToast({ message: `${selectedRows.length} meal plan(s) deleted successfully!`, type: 'success' });
+        setSelectedRows([]);
+      } catch (error) {
+        setToast({ message: 'Failed to delete some meal plans. Please try again.', type: 'error' });
+      }
     }
   };
 
   const columns = [
-    { header: 'ID', accessor: 'id' as keyof MealPlan },
-    { header: 'Plan Name', accessor: 'name' as keyof MealPlan },
-    { header: 'Description', accessor: 'description' as keyof MealPlan, render: (item: MealPlan) => <p className="truncate max-w-xs">{item.description || '-'}</p> },
-    { header: 'Cost per Period (KES)', accessor: 'cost_per_period' as keyof MealPlan, render: (item: MealPlan) => item.cost_per_period?.toFixed(2) || '0.00' },
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true,
+      width: 80
+    },
+    { 
+      key: 'name', 
+      header: 'Plan Name', 
+      sortable: true,
+      searchable: true
+    },
+    { 
+      key: 'description', 
+      header: 'Description', 
+      render: (item: MealPlan) => <p className="truncate max-w-xs">{item.description || '-'}</p>,
+      searchable: true
+    },
+    { 
+      key: 'cost_per_period', 
+      header: 'Cost per Period (KES)', 
+      render: (item: MealPlan) => item.cost_per_period?.toFixed(2) || '0.00',
+      sortable: true,
+      align: 'right' as const
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof MealPlan,
       render: (item: MealPlan) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
+      width: 200
     },
   ];
 
@@ -95,15 +144,47 @@ const MealPlansPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card title={t('mealPlans.managementTitle')} actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          {t('mealPlans.addMealPlan')}
-        </Button>
+        <div className="flex space-x-2">
+          {selectedRows.length > 0 && (
+            <Button 
+              variant="danger" 
+              onClick={handleBulkDelete}
+              leftIcon={<DeleteIcon className="w-4 h-4" />}
+            >
+              Delete Selected ({selectedRows.length})
+            </Button>
+          )}
+          <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            {t('mealPlans.addMealPlan')}
+          </Button>
+        </div>
       }>
         <p className="text-sm text-gray-600 mb-4">
           {t('mealPlans.managementDescription')}
         </p>
-        <Table columns={columns} data={mealPlans} isLoading={loading.mealPlans && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={mealPlans} 
+          loading={loading.mealPlans && isModalOpen}
+          selectable
+          selectedRows={selectedRows}
+          onSelectionChange={setSelectedRows}
+          searchable
+          sortable
+          pagination
+          pageSize={10}
+        />
       </Card>
+
+      {/* Toast Notifications */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+          duration={4000}
+        />
+      )}
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPlan ? t('mealPlans.editMealPlan') : t('mealPlans.addNewMealPlan')} size="lg"
         footer={

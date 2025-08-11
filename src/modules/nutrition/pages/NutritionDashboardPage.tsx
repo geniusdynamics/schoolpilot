@@ -1,7 +1,7 @@
 import React from 'react';
 import Card from '@/components/ui/Card';
 import { CakeIcon, UsersIcon, ListBulletIcon, BuildingStorefrontIcon, WalletIcon, IconProps } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { StudentMealPlanStatus, ChartData, StudentWallet, Merchant, StudentMealPlan } from '@/types';
 import DonutChart from '@/components/ui/DonutChart';

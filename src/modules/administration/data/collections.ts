@@ -25,6 +25,32 @@ export const administrationCollections = {
   message_campaigns: { // Renamed from campaign for consistency
     schema: schemas.campaignSchema,
   },
+  
+  // === ADMISSIONS SYSTEM COLLECTIONS ===
+  admissions_applications: {
+    schema: schemas.applicationSchema,
+  },
+  pre_nas_marks: {
+    schema: schemas.preNAsMarksSchema,
+  },
+  application_reviews: {
+    schema: schemas.applicationReviewSchema,
+  },
+  application_documents: {
+    schema: schemas.applicationDocumentSchema,
+  },
+  application_interviews: {
+    schema: schemas.applicationInterviewSchema,
+  },
+  application_approvals: {
+    schema: schemas.applicationApprovalSchema,
+  },
+  sms_campaigns: {
+    schema: schemas.smsCampaignSchema,
+  },
+  bulk_imports: {
+    schema: schemas.bulkImportSchema,
+  },
 };
 
 // Type helper for consumers of this module's collections (optional)

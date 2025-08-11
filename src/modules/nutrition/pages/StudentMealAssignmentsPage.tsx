@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { StudentMealPlan, Student, MealPlan, SchoolPeriod, StudentMealPlanStatus, StudentStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, UsersIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -109,22 +109,41 @@ const StudentMealAssignmentsPage: React.FC = () => {
     closeModal();
   };
 
-  const studentAssignmentColumns = [
-    { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name} (${item.admission_no})` },
-    { header: 'Class', accessor: 'current_class_stream_name' as keyof Student},
-    { header: 'Assigned Meal Plan', 
-      accessor: (item: Student) => {
-        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === item.id);
+  const studentAssignmentColumns: DataGridColumn<Student>[] = [
+    { 
+      key: 'first_name', 
+      header: 'Student Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => `${row.first_name} ${row.last_name} (${row.admission_no})`
+    },
+    { 
+      key: 'current_class_stream_name', 
+      header: 'Class', 
+      sortable: true, 
+      filterable: true, 
+      width: 150
+    },
+    { 
+      key: 'id', 
+      header: 'Assigned Meal Plan', 
+      sortable: false, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => {
+        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === row.id);
         return assignment ? (mealPlans || []).find(mp => mp.id === assignment.meal_plan_id)?.name || 'N/A' : 'Not Assigned';
       }
     },
-    { header: 'Status', 
-      accessor: (item: Student) => {
-        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === item.id);
-        return assignment?.status || '-';
-      },
-      render: (item: Student) => {
-        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === item.id);
+    { 
+      key: 'id', 
+      header: 'Status', 
+      sortable: false, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => {
+        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === row.id);
         if (!assignment) return <span className="text-xs text-gray-500">Not Assigned</span>;
         return <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
             assignment.status === StudentMealPlanStatus.ACTIVE ? 'bg-green-100 text-green-800' :
@@ -134,12 +153,16 @@ const StudentMealAssignmentsPage: React.FC = () => {
       }
     },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Student,
-      render: (item: Student) => {
-        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === item.id);
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => {
+        const assignment = (assignmentsForSelectedPeriod || []).find(smp => smp.student_id === row.id);
         return (
-          <Button size="sm" variant="ghost" onClick={() => openModal(assignment, item)} leftIcon={<EditIcon className="w-4 h-4" />}>
+          <Button size="sm" variant="ghost" onClick={() => openModal(assignment, row)} leftIcon={<EditIcon className="w-4 h-4" />}>
             {assignment ? 'Edit Assignment' : 'Assign Plan'}
           </Button>
         );
@@ -172,7 +195,19 @@ const StudentMealAssignmentsPage: React.FC = () => {
             </Select>
         </div>
         {selectedSchoolPeriodId ? (
-             <Table columns={studentAssignmentColumns} data={activeStudents} isLoading={loading.studentMealPlans && isModalOpen} />
+             <DataGrid 
+               columns={studentAssignmentColumns} 
+               data={activeStudents || []} 
+               isLoading={loading.studentMealPlans && isModalOpen}
+               sortable
+               filterable
+               emptyState={{
+                 icon: <UsersIcon className="w-12 h-12 text-gray-400" />,
+                 title: "No students found",
+                 description: "No active students available for meal plan assignments in the selected period.",
+                 action: undefined
+               }}
+             />
         ) : (
             <p className="text-center text-gray-500 py-4">Please select a school period to view and manage assignments.</p>
         )}

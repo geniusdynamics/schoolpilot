@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AdminPartnerType as Partner, PartnerType } from '../data/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -92,17 +92,63 @@ const PartnersPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Partner },
-    { header: 'Partner Name', accessor: 'name' as keyof Partner },
-    { header: 'Type', accessor: 'partner_type' as keyof Partner },
-    { header: 'Contact Person', accessor: 'contact_person' as keyof Partner },
-    { header: 'Email', accessor: 'email' as keyof Partner },
-    { header: 'Phone', accessor: 'phone' as keyof Partner },
+  const columns: DataGridColumn<Partner>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, item) => value
+    },
+    { 
+      key: 'name', 
+      header: 'Partner Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, item) => value
+    },
+    { 
+      key: 'partner_type', 
+      header: 'Type', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, item) => value
+    },
+    { 
+      key: 'contact_person', 
+      header: 'Contact Person', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, item) => value || '-'
+    },
+    { 
+      key: 'email', 
+      header: 'Email', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, item) => value || '-'
+    },
+    { 
+      key: 'phone', 
+      header: 'Phone', 
+      sortable: true, 
+      filterable: true, 
+      width: 130,
+      render: (value, item) => value || '-'
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof Partner,
-      render: (item: Partner) => (
+      sortable: false,
+      filterable: false,
+      width: 160,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -124,7 +170,19 @@ const PartnersPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage school partners such as sponsors, board members, service providers, and government agencies.
         </p>
-        <Table columns={columns} data={partners} />
+        <DataGrid 
+          columns={columns} 
+          data={partners} 
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <PartnersIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No partners found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by adding your first partner.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPartner ? 'Edit Partner' : 'Add New Partner'} size="xl"

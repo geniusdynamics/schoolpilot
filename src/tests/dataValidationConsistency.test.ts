@@ -374,6 +374,7 @@ describe('Data Consistency Service', () => {
     expect(report).toBeDefined();
     expect(report.totalEntities).toBe(3);
     expect(report.totalRecords).toBe(4);
+    
     expect(report.summary.isConsistent).toBe(true);
   });
 
@@ -404,11 +405,32 @@ describe('Unified CRUD Service', () => {
 
   beforeEach(() => {
     // Create a mock data service for testing
+    const mockDataStore = new Map();
+    
     const mockDataService = {
-      create: vi.fn().mockResolvedValue({ success: true }),
-      read: vi.fn().mockResolvedValue({ success: true }),
-      update: vi.fn().mockResolvedValue({ success: true }),
-      delete: vi.fn().mockResolvedValue({ success: true })
+      create: vi.fn().mockImplementation(async (entityName: string, data: any) => {
+        const id = data.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const entity = { ...data, id };
+        mockDataStore.set(`${entityName}:${id}`, entity);
+        return { success: true, data: entity };
+      }),
+      read: vi.fn().mockImplementation(async (entityName: string, id: string) => {
+        const entity = mockDataStore.get(`${entityName}:${id}`);
+        return { success: true, data: entity };
+      }),
+      update: vi.fn().mockImplementation(async (entityName: string, id: string, updates: any) => {
+        const existing = mockDataStore.get(`${entityName}:${id}`);
+        if (existing) {
+          const updated = { ...existing, ...updates, updated_at: new Date().toISOString() };
+          mockDataStore.set(`${entityName}:${id}`, updated);
+          return { success: true, data: updated };
+        }
+        return { success: false, error: 'Entity not found' };
+      }),
+      delete: vi.fn().mockImplementation(async (entityName: string, id: string) => {
+        const deleted = mockDataStore.delete(`${entityName}:${id}`);
+        return { success: deleted };
+      })
     };
     
     crudService = new UnifiedCRUDService(undefined, mockDataService);

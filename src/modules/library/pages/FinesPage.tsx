@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Fine, Loan, FineStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, SparklesIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -89,32 +89,74 @@ const FinesPage: React.FC = () => {
   };
 
 
-  const columns = [
-    { header: 'Fine ID', accessor: 'id' as keyof Fine },
-    { header: 'Book Title', accessor: 'book_title' as keyof Fine },
-    { header: 'User Name', accessor: 'user_name' as keyof Fine },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof Fine, render: (item: Fine) => item.amount.toFixed(2) },
-    { header: 'Reason', accessor: 'reason' as keyof Fine },
-    { header: 'Status', accessor: 'status' as keyof Fine,
-        render: (item: Fine) => (
-             <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                item.status === FineStatus.PAID ? 'bg-green-100 text-green-800' :
-                item.status === FineStatus.PENDING ? 'bg-yellow-100 text-yellow-800' :
-                item.status === FineStatus.BILLED ? 'bg-blue-100 text-blue-800' :
-                item.status === FineStatus.WAIVED ? 'bg-gray-100 text-gray-700' :
-                'bg-red-100 text-red-800' // For other potential statuses or error
-            }`}>{item.status}</span>
-        )
+  const columns: DataGridColumn<Fine>[] = [
+    {
+      key: 'id',
+      header: 'Fine ID',
+      sortable: true,
+      filterable: true,
+      sticky: true,
+      width: 120
     },
     {
+      key: 'book_title',
+      header: 'Book Title',
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'user_name',
+      header: 'User Name',
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'amount',
+      header: 'Amount (KES)',
+      sortable: true,
+      filterable: true,
+      width: 140,
+      render: (value, item) => `${item.amount.toFixed(2)}`
+    },
+    {
+      key: 'reason',
+      header: 'Reason',
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value, item) => (
+        <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+          item.status === FineStatus.PAID ? 'bg-green-100 text-green-800' :
+          item.status === FineStatus.PENDING ? 'bg-yellow-100 text-yellow-800' :
+          item.status === FineStatus.BILLED ? 'bg-blue-100 text-blue-800' :
+          item.status === FineStatus.WAIVED ? 'bg-gray-100 text-gray-700' :
+          'bg-red-100 text-red-800' // For other potential statuses or error
+        }`}>
+          {item.status}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof Fine,
-      render: (item: Fine) => (
-        <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
+      width: 150,
+      render: (_, item) => (
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          onClick={() => openModal(item)} 
+          leftIcon={<EditIcon className="w-4 h-4" />}
+        >
           Update Status
         </Button>
-      ),
-    },
+      )
+    }
   ];
 
   if ((loading.fines || loading.loans) && !isModalOpen) {
@@ -135,7 +177,19 @@ const FinesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           View and manage library fines. Fines for overdue books are often generated automatically upon return.
         </p>
-        <Table columns={columns} data={(fines || [])} isLoading={loading.fines && isModalOpen} />
+        <DataGrid
+          columns={columns}
+          data={fines || []}
+          loading={loading.fines && isModalOpen}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-8">
+              <SparklesIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No fines found</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingFine ? 'Update Fine Status' : 'Add Manual Fine'} size="lg"

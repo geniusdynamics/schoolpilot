@@ -1,16 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { FeeAdjustment, Student, SchoolPeriod, FeeAdjustmentType, StudentStatus } from '@/types';
-import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon, ReceiptPercentIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
-import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { FinFeeAdjustmentType as FeeAdjustment, Student, SchoolPeriod, FinFeeAdjustmentTypeEnum as FeeAdjustmentType, StudentStatus } from '../../../types';
+import Card from '../../../components/ui/Card';
+import { DataGrid, DataGridColumn } from '@/components/ui';
+import Button from '../../../components/ui/Button';
+import Modal from '../../../components/ui/Modal';
+import Input from '../../../components/ui/Input';
+import Select from '../../../components/ui/Select';
+import Textarea from '../../../components/ui/Textarea';
+import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '../../../components/ui/icons';
+import { useAppData } from '../../../hooks/useAppData';
+import Spinner from '../../../components/ui/Spinner';
+import { useToast } from '../../../hooks/useToast';
 
 type FeeAdjustmentFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'student_name' | 'school_period_name' | 'adjustment_type'> & {
     adjustment_type: FeeAdjustmentType;
@@ -21,11 +21,12 @@ const FeeAdjustmentsPage: React.FC = () => {
     feeAdjustments, 
     students,
     schoolPeriods,
-    loading, 
-    addFeeAdjustment, 
-    updateFeeAdjustment, 
-    deleteFeeAdjustment 
+    loading,
+    addFeeAdjustment,
+    updateFeeAdjustment,
+    deleteFeeAdjustment
   } = useAppData();
+  const { showToast } = useToast();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAdjustment, setEditingAdjustment] = useState<FeeAdjustment | null>(null);
@@ -77,46 +78,95 @@ const FeeAdjustmentsPage: React.FC = () => {
   
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.school_period_id || formData.amount === undefined || !formData.adjustment_type) {
-      alert("Student, School Period, Adjustment Type, and Amount are required.");
+      showToast("Student, School Period, Adjustment Type, and Amount are required.", "error");
       return;
     }
-    const payload: Omit<FeeAdjustment, 'id'|'created_at'|'student_name'|'school_period_name'> = {
-      student_id: formData.student_id!,
-      school_period_id: Number(formData.school_period_id!),
-      adjustment_type: formData.adjustment_type,
-      amount: Number(formData.amount),
-      reason: formData.reason || undefined,
-      applied_invoice_id: formData.applied_invoice_id || undefined,
-    };
-
-    if (editingAdjustment) {
-      await updateFeeAdjustment({ ...editingAdjustment, ...payload });
-    } else {
-      await addFeeAdjustment(payload);
+    
+    try {
+      if (editingAdjustment) {
+        await updateFeeAdjustment(editingAdjustment.id, formData);
+        showToast("Fee adjustment updated successfully", "success");
+      } else {
+        await addFeeAdjustment(formData);
+        showToast("Fee adjustment added successfully", "success");
+      }
+      closeModal();
+    } catch (error) {
+      showToast("Failed to save fee adjustment", "error");
     }
-    closeModal();
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this fee adjustment?')) {
-      await deleteFeeAdjustment(id);
+      try {
+        await deleteFeeAdjustment(id);
+        showToast("Fee adjustment deleted successfully", "success");
+      } catch (error) {
+        showToast("Failed to delete fee adjustment", "error");
+      }
     }
   };
 
-  const columns = [
-    { header: 'Student Name', accessor: 'student_name' as keyof FeeAdjustment },
-    { header: 'School Period', accessor: 'school_period_name' as keyof FeeAdjustment },
-    { header: 'Type', accessor: 'adjustment_type' as keyof FeeAdjustment },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof FeeAdjustment, render: (item: FeeAdjustment) => item.amount.toFixed(2) },
-    { header: 'Reason', accessor: 'reason' as keyof FeeAdjustment },
-    { header: 'Applied to Invoice', accessor: 'applied_invoice_id' as keyof FeeAdjustment },
+  const columns: DataGridColumn<FeeAdjustment>[] = [
+    { 
+      key: 'student_name', 
+      header: 'Student Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'school_period_name', 
+      header: 'School Period', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="text-blue-600">{value}</span>
+    },
+    { 
+      key: 'adjustment_type', 
+      header: 'Type', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className="text-purple-600 font-medium">{value}</span>
+    },
+    { 
+      key: 'amount', 
+      header: 'Amount (KES)', 
+      sortable: true, 
+      filterable: true, 
+      width: 130,
+      render: (value, row) => <span className="font-mono text-green-600">{`KES ${row.amount?.toFixed(2) || '0.00'}`}</span>
+    },
+    { 
+      key: 'reason', 
+      header: 'Reason', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="text-gray-700">{value}</span>
+    },
+    { 
+      key: 'applied_invoice_id', 
+      header: 'Applied to Invoice', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="font-mono text-sm">{value || 'N/A'}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof FeeAdjustment,
-      render: (item: FeeAdjustment) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -139,10 +189,29 @@ const FeeAdjustmentsPage: React.FC = () => {
           Add Adjustment
         </Button>
       }>
-        <Table columns={columns} data={feeAdjustments} isLoading={loading.feeAdjustments && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={feeAdjustments || []} 
+          isLoading={loading.feeAdjustments}
+          sortable
+          filterable
+          emptyState={{
+            icon: <DocumentDuplicateIcon className="w-12 h-12 text-gray-400" />,
+            title: "No Fee Adjustments Found",
+            description: "Create your first fee adjustment to manage student fee exemptions, discounts, or penalties.",
+            action: {
+              label: "Add Adjustment",
+              onClick: () => openModal()
+            }
+          }}
+        />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAdjustment ? 'Edit Fee Adjustment' : 'Add New Fee Adjustment'} size="xl"
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        title={editingAdjustment ? 'Edit Fee Adjustment' : 'Add New Fee Adjustment'} 
+        size="xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -153,20 +222,28 @@ const FeeAdjustmentsPage: React.FC = () => {
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select name="student_id" label="Student" value={formData.student_id || ''} onChange={handleInputChange} required>
-                <option value="">Select Student</option>
-                {activeStudents.map((student: Student) => (<option key={student.id} value={student.id}>{student.first_name} {student.last_name} ({student.admission_no})</option>))}
-            </Select>
-            <Select name="school_period_id" label="School Period" value={formData.school_period_id || ''} onChange={handleInputChange} required>
-                <option value="">Select School Period</option>
-                {schoolPeriods.map((period: SchoolPeriod) => (<option key={period.id} value={period.id}>{period.name}</option>))}
-            </Select>
-            <Select name="adjustment_type" label="Adjustment Type" value={formData.adjustment_type} onChange={handleInputChange} required>
-                {Object.values(FeeAdjustmentType).map(type => (<option key={type} value={type}>{type}</option>))}
-            </Select>
-            <Input name="amount" label="Amount (KES)" type="number" step="0.01" value={formData.amount || ''} onChange={handleInputChange} required placeholder="Negative for discount/scholarship, positive for penalty"/>
-            <Input name="applied_invoice_id" label="Applied Invoice ID (Optional)" value={formData.applied_invoice_id || ''} onChange={handleInputChange} placeholder="e.g., SINV123"/>
-             <Textarea name="reason" label="Reason for Adjustment" value={formData.reason || ''} onChange={handleInputChange} rows={3} containerClassName="md:col-span-2"/>
+          <Select name="student_id" label="Student" value={formData.student_id || ''} onChange={handleInputChange} required>
+            <option value="">Select Student</option>
+            {activeStudents.map((student: Student) => (
+              <option key={student.id} value={student.id}>
+                {student.first_name} {student.last_name} ({student.admission_no})
+              </option>
+            ))}
+          </Select>
+          <Select name="school_period_id" label="School Period" value={formData.school_period_id || ''} onChange={handleInputChange} required>
+            <option value="">Select School Period</option>
+            {schoolPeriods.map((period: SchoolPeriod) => (
+              <option key={period.id} value={period.id}>{period.name}</option>
+            ))}
+          </Select>
+          <Select name="adjustment_type" label="Adjustment Type" value={formData.adjustment_type} onChange={handleInputChange} required>
+            {Object.values(FeeAdjustmentType).map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </Select>
+          <Input name="amount" label="Amount (KES)" type="number" step="0.01" value={formData.amount || ''} onChange={handleInputChange} required placeholder="Negative for discount/scholarship, positive for penalty"/>
+          <Input name="applied_invoice_id" label="Applied Invoice ID (Optional)" value={formData.applied_invoice_id || ''} onChange={handleInputChange} placeholder="e.g., SINV123"/>
+          <Textarea name="reason" label="Reason for Adjustment" value={formData.reason || ''} onChange={handleInputChange} rows={3} containerClassName="md:col-span-2"/>
         </div>
       </Modal>
     </div>

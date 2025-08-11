@@ -11,6 +11,8 @@ import SecondarySidebar from './SecondarySidebar';
 import SettingsPopup from './SettingsPopup';
 import BreadcrumbNavigation from './BreadcrumbNavigation';
 import NavigationErrorBoundary from './NavigationErrorBoundary';
+import { useRoutePersistence } from '../hooks/useRoutePersistence';
+import { useInteractionTracking } from '../hooks/usePerformanceMonitoring';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { getMainModules, isLoading } = useDynamicNavigation(true);
@@ -19,6 +21,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
   const [showScrollHelpers, setShowScrollHelpers] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { getStoredRoute } = useRoutePersistence();
+  const { trackNavigation } = useInteractionTracking('Layout');
 
   // Track scroll position to show/hide scroll helpers
   useEffect(() => {
@@ -31,20 +36,42 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Set default module when navigation loads
+  // Set default module when navigation loads, but respect current route
   useEffect(() => {
     if (!isLoading) {
       const mainModules = getMainModules();
       
       if (mainModules.length > 0 && !selectedModuleKey) {
-        setSelectedModuleKey(mainModules[0].name);
-        // If the first module is Dashboard, navigate to /dashboard
-        if (mainModules[0].name === 'navigation:dashboard') {
+        // Determine the appropriate module based on current path
+        const currentPath = location.pathname;
+        
+        // Find module that matches current path
+        let matchingModule = null;
+        for (const module of mainModules) {
+          if (module.children) {
+            for (const child of module.children) {
+              if (child.path === currentPath) {
+                matchingModule = module.name;
+                break;
+              }
+            }
+          }
+          if (matchingModule) break;
+        }
+        
+        // If we found a matching module, use it; otherwise use the first module
+        const moduleToSelect = matchingModule || mainModules[0].name;
+        setSelectedModuleKey(moduleToSelect);
+        
+        // Only navigate to dashboard if we're on the root path AND the first module is dashboard
+        // AND there's no stored route from a previous session
+        const storedRoute = getStoredRoute();
+        if (currentPath === '/' && mainModules[0].name === 'navigation:dashboard' && !storedRoute) {
           navigate('/dashboard', { replace: true });
         }
       }
     }
-  }, [isLoading, getMainModules, selectedModuleKey, navigate]);
+  }, [isLoading, getMainModules, selectedModuleKey, navigate, location.pathname]);
 
   const handleModuleSelect = (moduleKey: string) => {
     if (moduleKey === selectedModuleKey) {
@@ -54,7 +81,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       setIsSubmenuOpen(true); // open submenu for new module
       // If Dashboard is selected, navigate to /dashboard
       if (moduleKey === 'navigation:dashboard') {
+        const trackNav = trackNavigation(location.pathname, '/dashboard');
         navigate('/dashboard');
+        // Track navigation completion after a brief delay
+        setTimeout(trackNav, 100);
       }
     }
   };

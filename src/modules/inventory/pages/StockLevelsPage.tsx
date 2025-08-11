@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { StockLevel, Warehouse, ItemCategoryInv } from '@/types'; // Assuming ItemInv has category_id
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Select from '@/components/ui/Select';
 import { TableCellsIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -29,11 +29,28 @@ const StockLevelsPage: React.FC = () => {
     });
   }, [stockLevels, selectedWarehouseId, selectedItemCategoryId, itemsInv]);
 
-  const columns = [
-    { header: 'Item Name', accessor: 'item_name' as keyof StockLevel },
-    { header: 'Warehouse', accessor: 'warehouse_name' as keyof StockLevel },
-    { header: 'Quantity on Hand', accessor: 'quantity' as keyof StockLevel },
-    // Could add Item Category here if needed by joining/resolving
+  const columns: DataGridColumn<StockLevel>[] = [
+    { 
+      key: 'item_name', 
+      header: 'Item Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200
+    },
+    { 
+      key: 'warehouse_name', 
+      header: 'Warehouse', 
+      sortable: true, 
+      filterable: true, 
+      width: 150
+    },
+    { 
+      key: 'quantity', 
+      header: 'Quantity on Hand', 
+      sortable: true, 
+      filterable: true, 
+      width: 150
+    },
   ];
 
   if ((loading.stockLevels || loading.warehouses || loading.itemsInv || loading.itemCategoriesInv)) {
@@ -68,7 +85,19 @@ const StockLevelsPage: React.FC = () => {
                 {itemCategoriesInv.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
             </Select>
         </div>
-        <Table columns={columns} data={filteredStockLevels} isLoading={loading.stockLevels} emptyStateMessage="No stock levels found for the current filter."/>
+        <DataGrid 
+          columns={columns} 
+          data={filteredStockLevels || []} 
+          isLoading={loading.stockLevels}
+          sortable
+          filterable
+          emptyState={{
+            icon: <TableCellsIcon className="w-12 h-12 text-gray-400" />,
+            title: "No stock levels found",
+            description: "No stock levels found for the current filter. Try adjusting your filter criteria.",
+            action: undefined
+          }}
+        />
       </Card>
     </div>
   );

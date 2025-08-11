@@ -1,47 +1,47 @@
-// ABOUTME: Self-contained hook for any data management
-// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
+// ABOUTME: Self-contained hook for general payment data management
+// ABOUTME: Provides CRUD operations for general payments without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '../../../core/types';
+import { initialMockGeneralPayments } from './mockData';
+import { FinGeneralPaymentType } from './types';
 
 const useGeneralPaymentData = () => {
-  const [generalPayments, setGeneralPayments] = useState<any[]>([]);
+  const [generalPayments, setGeneralPayments] = useState<FinGeneralPaymentType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
       // Simulate fetching data from a mock source
-      setGeneralPayments(initialMockUsers);
+      setGeneralPayments(initialMockGeneralPayments);
       setIsLoading(false);
     } catch (e) {
-      setError('Failed to fetch general payments');
+      setError('Failed to fetch GeneralPayments');
       setIsLoading(false);
     }
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
+  const create = async (newItem: Partial<FinGeneralPaymentType>) => {
+    const newDataItem: FinGeneralPaymentType = {
       ...newItem,
-      id: Date.now(),
+      id: Date.now().toString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as any;
-    setGeneralPayments((prev: any[]) => [...prev, newDataItem]);
+    } as FinGeneralPaymentType;
+    setGeneralPayments((prev: FinGeneralPaymentType[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setGeneralPayments((prev: any[]) => prev.map((item: any) =>
+  const update = async (id: string, updatedData: Partial<FinGeneralPaymentType>) => {
+    setGeneralPayments((prev: FinGeneralPaymentType[]) => prev.map((item: FinGeneralPaymentType) =>
       item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
-    setGeneralPayments((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  const remove = async (id: string) => {
+    setGeneralPayments((prev: FinGeneralPaymentType[]) => prev.filter((item: FinGeneralPaymentType) => item.id !== id));
   };
 
   return {

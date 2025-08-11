@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { MealConsumptionLog, Menu, Student, MealType, StudentStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import { ClipboardDocumentListIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -65,11 +65,38 @@ const MealConsumptionLogPage: React.FC = () => {
   [mealConsumptionLogs]);
 
 
-  const logColumns = [
-    { header: 'Student Name', accessor: 'student_name' as keyof MealConsumptionLog },
-    { header: 'Menu', accessor: (item: MealConsumptionLog) => `${item.menu_description} (${item.menu_meal_type} - ${new Date(item.menu_date!).toLocaleDateString()})` },
-    { header: 'Time', accessor: 'consumption_time' as keyof MealConsumptionLog, render: (item: MealConsumptionLog) => new Date(item.consumption_time).toLocaleTimeString() },
-    { header: 'Amount Charged (KES)', accessor: 'charged_amount' as keyof MealConsumptionLog, render: (item: MealConsumptionLog) => item.charged_amount?.toFixed(2) || '0.00 (Plan)' },
+  const logColumns: DataGridColumn<MealConsumptionLog>[] = [
+    { 
+      key: 'student_name', 
+      header: 'Student Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200
+    },
+    { 
+      key: 'menu_description', 
+      header: 'Menu', 
+      sortable: true, 
+      filterable: true, 
+      width: 300,
+      render: (value, row) => `${row.menu_description} (${row.menu_meal_type} - ${new Date(row.menu_date!).toLocaleDateString()})`
+    },
+    { 
+      key: 'consumption_time', 
+      header: 'Time', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => new Date(row.consumption_time).toLocaleTimeString()
+    },
+    { 
+      key: 'charged_amount', 
+      header: 'Amount Charged (KES)', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => row.charged_amount?.toFixed(2) || '0.00 (Plan)'
+    },
   ];
 
   if ((loading.mealConsumptionLogs || loading.menus || loading.students)) {
@@ -146,7 +173,19 @@ const MealConsumptionLogPage: React.FC = () => {
       </Card>
 
       <Card title="Recent Meal Consumption Logs">
-        <Table columns={logColumns} data={recentLogs} isLoading={loading.mealConsumptionLogs} emptyStateMessage="No meal consumption logs recorded yet."/>
+        <DataGrid 
+          columns={logColumns} 
+          data={recentLogs || []} 
+          isLoading={loading.mealConsumptionLogs}
+          sortable
+          filterable
+          emptyState={{
+            icon: <ClipboardDocumentListIcon className="w-12 h-12 text-gray-400" />,
+            title: "No meal consumption logs",
+            description: "No meal consumption logs recorded yet. Start logging student meals to track consumption.",
+            action: undefined
+          }}
+        />
       </Card>
     </div>
   );

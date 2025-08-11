@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Menu, MealType } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CakeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -74,17 +74,41 @@ const MenusPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Date', accessor: 'menu_date' as keyof Menu, render: (item: Menu) => new Date(item.menu_date).toLocaleDateString() },
-    { header: 'Meal Type', accessor: 'meal_type' as keyof Menu },
-    { header: 'Description / Items', accessor: 'description' as keyof Menu, render: (item:Menu) => <p className="max-w-md truncate">{item.description}</p> },
+  const columns: DataGridColumn<Menu>[] = [
+    { 
+      key: 'menu_date', 
+      header: 'Date', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => new Date(row.menu_date).toLocaleDateString()
+    },
+    { 
+      key: 'meal_type', 
+      header: 'Meal Type', 
+      sortable: true, 
+      filterable: true, 
+      width: 120
+    },
+    { 
+      key: 'description', 
+      header: 'Description / Items', 
+      sortable: true, 
+      filterable: true, 
+      width: 300,
+      render: (value, row) => <p className="max-w-md truncate">{row.description}</p>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Menu,
-      render: (item: Menu) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
+        <div className="space-x-1">
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -108,7 +132,22 @@ const MenusPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('menus.management.description')}
         </p>
-        <Table columns={columns} data={(menus || [])} isLoading={loading.menus && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={menus || []} 
+          isLoading={loading.menus && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <CakeIcon className="w-12 h-12 text-gray-400" />,
+            title: "No menus found",
+            description: "Create meal menus to plan and track student nutrition throughout the academic period.",
+            action: {
+              label: "Add Menu",
+              onClick: () => openModal()
+            }
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingMenu ? t('menus.edit.title') : t('menus.add.title')} size="lg"

@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, PuzzlePieceIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 type AcademicStructureFormData = Omit<Partial<AcademicYearStructure>, 'id'>;
 
 const AcademicStructurePage: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     academicYearStructures, 
     loading, 
@@ -64,13 +65,31 @@ const AcademicStructurePage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof AcademicYearStructure },
-    { header: 'Structure Name', accessor: 'name' as keyof AcademicYearStructure },
+  const columns: DataGridColumn<AcademicYearStructure>[] = [
+    { 
+      key: 'id',
+      header: 'ID', 
+      sortable: true,
+      filterable: true,
+      width: 80,
+      render: (value, item) => item.id
+    },
+    { 
+      key: 'name',
+      header: 'Structure Name', 
+      sortable: true,
+      filterable: true,
+      width: 300,
+      render: (value, item) => item.name
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof AcademicYearStructure,
-      render: (item: AcademicYearStructure) => (
+      sortable: false,
+      filterable: false,
+      width: 200,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -98,7 +117,20 @@ const AcademicStructurePage: React.FC = () => {
           Define the overall structure of an academic year (e.g., "Standard 3-Term System", "Semester System"). 
           Academic Period Definitions will be linked to these structures.
         </p>
-        <Table columns={columns} data={academicYearStructures} isLoading={loading.academicYearStructures && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={academicYearStructures} 
+          loading={loading.academicYearStructures && isModalOpen}
+          sortable
+          filterable
+          emptyState={
+            <div className="text-center py-12">
+              <PuzzlePieceIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No academic structures found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating your first academic year structure.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingStructure ? 'Edit Academic Year Structure' : 'Add New Academic Year Structure'}

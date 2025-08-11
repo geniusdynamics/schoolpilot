@@ -104,6 +104,11 @@ export interface StudentMealPlan {
   meal_plan_name?: string | null;
 }
 
+// Add missing type aliases for compatibility
+export type MealType = NutrMealTypeEnum;
+export type StudentMealPlanStatus = NutrStudentMealPlanStatusEnum;
+export type WalletTransactionType = NutrWalletTransactionType;
+
 export interface Menu {
   id: string;
   menu_date: string;

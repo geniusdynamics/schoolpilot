@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Supplier } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 
 type SupplierFormData = Omit<Partial<Supplier>, 'id' | 'created_at' | 'updated_at'>;
@@ -79,20 +79,66 @@ const SuppliersPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Supplier },
-    { header: 'Supplier Name', accessor: 'name' as keyof Supplier },
-    { header: 'Phone', accessor: 'phone' as keyof Supplier, render: (item: Supplier) => item.phone || '-' },
-    { header: 'Email', accessor: 'email' as keyof Supplier, render: (item: Supplier) => item.email || '-' },
-    { header: 'Address', accessor: 'address' as keyof Supplier, render: (item: Supplier) => item.address || '-' },
-    { header: 'Contract Expiry', accessor: 'contract_expiry_date' as keyof Supplier, render: (item: Supplier) => item.contract_expiry_date ? new Date(item.contract_expiry_date).toLocaleDateString() : '-' },
+  const columns: DataGridColumn<Supplier>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, row) => <span className="font-mono text-sm">{value}</span>
+    },
+    { 
+      key: 'name', 
+      header: 'Supplier Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'phone', 
+      header: 'Phone', 
+      sortable: true, 
+      filterable: true, 
+      width: 130,
+      render: (value, row) => <span className="text-blue-600">{row.phone || '-'}</span>
+    },
+    { 
+      key: 'email', 
+      header: 'Email', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, row) => <span className="text-purple-600">{row.email || '-'}</span>
+    },
+    { 
+      key: 'address', 
+      header: 'Address', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="text-gray-700">{row.address || '-'}</span>
+    },
+    { 
+      key: 'contract_expiry_date', 
+      header: 'Contract Expiry', 
+      sortable: true, 
+      filterable: true, 
+      width: 130,
+      render: (value, row) => <span className="text-orange-600">{row.contract_expiry_date ? new Date(row.contract_expiry_date).toLocaleDateString() : '-'}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Supplier,
-      render: (item: Supplier) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -118,11 +164,21 @@ const SuppliersPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Maintain a database of school suppliers for inventory, services, and other procurement needs.
         </p>
-        <Table 
+        <DataGrid 
             columns={columns} 
             data={suppliers} 
-            isLoading={loading.suppliers && !isModalOpen} 
-            emptyStateMessage="No suppliers found. Click 'Add Supplier' to get started."
+            isLoading={loading.suppliers && !isModalOpen}
+            sortable
+            filterable
+            emptyState={{
+              icon: <BuildingStorefrontIcon className="w-12 h-12 text-gray-400" />,
+              title: "No suppliers found",
+              description: "Start building your supplier database by adding your first supplier. Track contact information, contracts, and manage procurement relationships.",
+              action: {
+                label: "Add Supplier",
+                onClick: () => openModal()
+              }
+            }}
         />
       </Card>
 

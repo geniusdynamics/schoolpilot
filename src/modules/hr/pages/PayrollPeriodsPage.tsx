@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { PayrollPeriod, FinancialYear, SchoolPeriod, PayrollPeriodStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -102,30 +102,88 @@ const PayrollPeriodsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof PayrollPeriod },
-    { header: 'Period Name', accessor: 'name' as keyof PayrollPeriod },
-    { header: 'Start Date', accessor: 'start_date' as keyof PayrollPeriod, render: (item: PayrollPeriod) => new Date(item.start_date).toLocaleDateString() },
-    { header: 'End Date', accessor: 'end_date' as keyof PayrollPeriod, render: (item: PayrollPeriod) => new Date(item.end_date).toLocaleDateString() },
-    { header: 'Financial Year', accessor: 'financial_year_name' as keyof PayrollPeriod },
-    { header: 'School Period (Optional)', accessor: 'school_period_name' as keyof PayrollPeriod },
-    { header: 'Status', accessor: 'status' as keyof PayrollPeriod, 
-      render: (item: PayrollPeriod) => (
-        <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${item.status === PayrollPeriodStatus.OPEN ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-            {item.status}
+  const columns: DataGridColumn<PayrollPeriod>[] = [
+    {
+      key: 'id',
+      header: 'ID',
+      sortable: true,
+      width: 80,
+      sticky: true
+    },
+    {
+      key: 'name',
+      header: 'Period Name',
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'start_date',
+      header: 'Start Date',
+      sortable: true,
+      width: 120,
+      render: (value) => new Date(value).toLocaleDateString()
+    },
+    {
+      key: 'end_date',
+      header: 'End Date',
+      sortable: true,
+      width: 120,
+      render: (value) => new Date(value).toLocaleDateString()
+    },
+    {
+      key: 'financial_year_name',
+      header: 'Financial Year',
+      sortable: true,
+      filterable: true,
+      width: 150
+    },
+    {
+      key: 'school_period_name',
+      header: 'School Period',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value) => value || 'N/A'
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value) => (
+        <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+          value === PayrollPeriodStatus.OPEN ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {value}
         </span>
       )
     },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof PayrollPeriod,
-      render: (item: PayrollPeriod) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+      width: 180,
+      render: (_, row) => (
+        <div className="flex space-x-2">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDelete(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
         </div>
-      ),
-    },
+      )
+    }
   ];
 
   const isLoadingPageData = loading.payrollPeriods || loading.financialYears || loading.schoolPeriods;
@@ -148,7 +206,28 @@ const PayrollPeriodsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Define payroll periods for processing staff salaries. Link them to financial years and optionally to school periods.
         </p>
-        <Table columns={columns} data={payrollPeriods} isLoading={loading.payrollPeriods && isModalOpen} />
+        <DataGrid
+          columns={columns}
+          data={payrollPeriods || []}
+          loading={loading.payrollPeriods && isModalOpen}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-12">
+              <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No payroll periods found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Get started by creating your first payroll period for processing staff salaries.
+              </p>
+              <div className="mt-6">
+                <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-4 h-4" />}>
+                  Add Payroll Period
+                </Button>
+              </div>
+            </div>
+          }
+          className="mt-4"
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPeriod ? 'Edit Payroll Period' : 'Add New Payroll Period'} size="lg"

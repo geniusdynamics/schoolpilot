@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { AdminTemplateCommType as TemplateComm, TemplateType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon, EnvelopeIcon } from '@/components/ui/icons';
+import { PlusIcon, PencilIcon, TrashIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import { useTemplateCommData } from '../data/useTemplateCommData'; // Use module-specific hook
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
@@ -18,10 +18,10 @@ type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updat
 
 const CommunicationTemplatesPage: React.FC = () => {
   const {
-    templateComms,
-    addTemplateComm,
-    updateTemplateComm,
-    deleteTemplateComm
+    data: templateComms,
+    create: addTemplateComm,
+    update: updateTemplateComm,
+    remove: deleteTemplateComm
   } = useTemplateCommData(); // Use module-specific hook
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,18 +90,69 @@ const CommunicationTemplatesPage: React.FC = () => {
   };
 
   const columns = [
-    { header: 'ID', accessor: 'id' as keyof TemplateComm },
-    { header: 'Template Name', accessor: 'name' as keyof TemplateComm },
-    { header: 'Type', accessor: 'type' as keyof TemplateComm },
-    { header: 'Subject', accessor: 'subject' as keyof TemplateComm, render: (item: TemplateComm) => item.subject || '-' },
-    { header: 'Body Preview', accessor: 'body_template' as keyof TemplateComm, render: (item: TemplateComm) => <p className="truncate max-w-xs">{item.body_template}</p> },
+    { 
+      key: 'id' as keyof TemplateComm, 
+      header: 'ID',
+      sortable: true,
+      width: '80px'
+    },
+    { 
+      key: 'name' as keyof TemplateComm, 
+      header: 'Template Name',
+      sortable: true,
+      filterable: true
+    },
+    { 
+      key: 'type' as keyof TemplateComm, 
+      header: 'Type',
+      sortable: true,
+      filterable: true,
+      width: '120px'
+    },
+    { 
+      key: 'subject' as keyof TemplateComm, 
+      header: 'Subject',
+      sortable: true,
+      filterable: true,
+      render: (value: any, item: TemplateComm) => item.subject || '-'
+    },
+    { 
+      key: 'body_template' as keyof TemplateComm, 
+      header: 'Body Preview',
+      render: (value: any, item: TemplateComm) => (
+        <p className="truncate max-w-xs" title={item.body_template}>
+          {item.body_template}
+        </p>
+      )
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof TemplateComm,
-      render: (item: TemplateComm) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+      width: '200px',
+      render: (value: any, item: TemplateComm) => (
+        <div className="flex space-x-2">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={(e) => {
+              e.stopPropagation();
+              openModal(item);
+            }} 
+            leftIcon={<PencilIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(item.id);
+            }} 
+            leftIcon={<TrashIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
         </div>
       ),
     },
@@ -120,7 +171,28 @@ const CommunicationTemplatesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Create and manage templates for SMS, Email, and Push Notifications. Use placeholders like {"{{student_name}}"}, {"{{parent_name}}"}, {"{{balance}}"} in the body/subject.
         </p>
-        <Table columns={columns} data={templateComms} />
+        <DataGrid
+          columns={columns}
+          data={templateComms}
+          sortable={true}
+          filterable={true}
+          selectable={false}
+          emptyState={
+            <div className="text-center py-12">
+              <EnvelopeIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No templates found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Get started by creating your first communication template.
+              </p>
+              <div className="mt-6">
+                <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                  Add Template
+                </Button>
+              </div>
+            </div>
+          }
+          className="mt-4"
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingTemplate ? 'Edit Template' : 'Add New Template'} size="xl"

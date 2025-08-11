@@ -5,7 +5,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { ChartPieIcon, PrinterIcon, DownloadIcon as ExportIcon } from '@/components/ui/icons'; 
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
@@ -63,16 +63,16 @@ const ExamResultsHorizontalPage: React.FC = () => {
       const paperSettings = (currentSession?.paper_settings || []); 
 
       const newDynamicColumns = [
-          { header: t('tableHeaders.admNo'), accessor: 'admissionNo' as keyof ReportRow },
-          { header: t('tableHeaders.studentName'), accessor: 'studentName' as keyof ReportRow },
+          { header: t('tableHeaders.admNo'), key: 'admissionNo' as keyof ReportRow },
+          { header: t('tableHeaders.studentName'), key: 'studentName' as keyof ReportRow },
           ...(paperSettings || []).map(ps => ({
               header: `${(ps.subject_name || 'N/A').substring(0,5)} - ${(ps.subject_paper_name || 'N/A').substring(0,7)} (${ps.marks_out_of || 'N/A'})`, 
-              accessor: `paper_${ps.id}` as keyof ReportRow, 
+              key: `paper_${ps.id}` as keyof ReportRow, 
               id: `paper_${ps.id}`, 
           })),
-          { header: t('tableHeaders.totalMarks'), accessor: 'totalMarks' as keyof ReportRow },
-          { header: t('tableHeaders.meanGrade'), accessor: 'meanGrade' as keyof ReportRow },
-          { header: t('tableHeaders.rank'), accessor: 'rank' as keyof ReportRow }, 
+          { header: t('tableHeaders.totalMarks'), key: 'totalMarks' as keyof ReportRow },
+          { header: t('tableHeaders.meanGrade'), key: 'meanGrade' as keyof ReportRow },
+          { header: t('tableHeaders.rank'), key: 'rank' as keyof ReportRow }, 
       ];
       setDynamicColumns(newDynamicColumns);
 

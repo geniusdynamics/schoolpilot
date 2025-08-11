@@ -1,4 +1,20 @@
 {
+  "navigation": {
+    "library": {
+      "title": "Bibliothèque",
+      "description": "Gérer le catalogue de livres, suivre les prêts et retours, gérer les amendes et superviser les ressources de la bibliothèque.",
+      "dashboard": "Tableau de Bord",
+      "books": "Livres",
+      "bookCategories": "Catégories de Livres",
+      "bookLoans": "Prêts de Livres",
+      "fines": "Amendes",
+      "userPortal": "Portail Utilisateur",
+      "digitalResources": "Ressources Numériques",
+      "damagedLostBooks": "Livres Endommagés/Perdus",
+      "importBooks": "Importer Livres",
+      "settings": "Paramètres"
+    }
+  },
   "dashboard": {
     "title": "TB Bibliothèque",
     "totalBooks": "Total Livres",
@@ -97,5 +113,29 @@
     "billed": "Facturée",
     "paid": "Payée",
     "waived": "Annulée"
+  },
+  "userPortal": {
+    "title": "Mon Portail Bibliothèque",
+    "description": "Consultez et gérez vos prêts de bibliothèque personnels, renouvellements et réservations.",
+    "renewButton": "Renouveler",
+    "returnButton": "Retourner",
+    "overdueAlert": "En retard!",
+    "noLoansMessage": "Vous n'avez aucun prêt actif.",
+    "renewSuccess": "Prêt renouvelé avec succès!",
+    "returnSuccess": "Livre retourné avec succès!",
+    "renewError": "Échec du renouvellement du prêt.",
+    "returnError": "Échec du retour du livre."
+  },
+  "digitalResources": {
+    "title": "Ressources Numériques",
+    "description": "Gérer les livres numériques, e-journaux et ressources en ligne."
+  },
+  "damagedLostBooks": {
+    "title": "Livres Endommagés et Perdus",
+    "description": "Gérer les livres avec statut endommagé ou perdu."
+  },
+  "importBooks": {
+    "title": "Importer Livres",
+    "description": "Importation en lot de livres depuis CSV ou fichiers Excel."
   }
 }

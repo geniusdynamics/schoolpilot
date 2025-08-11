@@ -2,11 +2,11 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { ClassStream, Student, AcademicYear, SchoolPeriod } from '@/types';
 import { AcademicsExamSessionType as ExamSession, AcademicsStudentExamResultWithDetailsType as StudentExamResultWithDetails, AcademicsSubjectPaperType as SubjectPaper, AcademicsExamPaperSettingType as ExamPaperSetting, AcademicsClassSubjectAllocationType as ClassSubjectAllocation, AcademicsSubjectType as Subject } from '@/types'; 
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import { ChartPieIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -21,6 +21,7 @@ interface SubjectAnalysisData {
 }
 
 const ExamAnalysisPage: React.FC = () => {
+  const { t } = useTranslation();
   const {
     examSessions,
     classStreams,
@@ -129,12 +130,12 @@ const ExamAnalysisPage: React.FC = () => {
     setIsAnalyzing(false);
   }, [selectedExamSessionId, selectedClassStreamId, examSessions, schoolPeriods, academicYears, classSubjectAllocations, subjects, students, studentExamResults, subjectPapers]);
 
-  const analysisTableColumns = [
-    { header: 'Subject Name', accessor: 'subjectName' as keyof SubjectAnalysisData },
-    { header: 'Students Sat', accessor: 'studentsSat' as keyof SubjectAnalysisData },
-    { header: 'Highest Score', accessor: 'highestScore' as keyof SubjectAnalysisData, render: (item:SubjectAnalysisData) => `${item.highestScore.toFixed(1)} / ${item.totalMarksPossible.toFixed(0)}` },
-    { header: 'Lowest Score', accessor: 'lowestScore' as keyof SubjectAnalysisData, render: (item:SubjectAnalysisData) => `${item.lowestScore.toFixed(1)} / ${item.totalMarksPossible.toFixed(0)}` },
-    { header: 'Average Score', accessor: 'averageScore' as keyof SubjectAnalysisData, render: (item:SubjectAnalysisData) => `${item.averageScore.toFixed(2)} / ${item.totalMarksPossible.toFixed(0)}` },
+  const analysisTableColumns: DataGridColumn<SubjectAnalysisData>[] = [
+    { header: 'Subject Name', key: 'subjectName' },
+    { header: 'Students Sat', key: 'studentsSat' },
+    { header: 'Highest Score', key: 'highestScore', render: (value: any, item: SubjectAnalysisData) => `${item.highestScore.toFixed(1)} / ${item.totalMarksPossible.toFixed(0)}` },
+    { header: 'Lowest Score', key: 'lowestScore', render: (value: any, item: SubjectAnalysisData) => `${item.lowestScore.toFixed(1)} / ${item.totalMarksPossible.toFixed(0)}` },
+    { header: 'Average Score', key: 'averageScore', render: (value: any, item: SubjectAnalysisData) => `${item.averageScore.toFixed(2)} / ${item.totalMarksPossible.toFixed(0)}` },
   ];
   
   const isLoadingPage = loading.examSessions || loading.classStreams || loading.students || loading.studentExamResults || loading.subjects || loading.subjectPapers || loading.classSubjectAllocations || loading.academicYears || loading.schoolPeriods;
@@ -183,7 +184,7 @@ const ExamAnalysisPage: React.FC = () => {
             <Spinner /> <span className="ml-2">Processing exam data...</span>
           </div>
         ) : analysisData.length > 0 ? (
-          <Table columns={analysisTableColumns} data={analysisData} />
+          <DataGrid columns={analysisTableColumns} data={analysisData} />
         ) : (
           <p className="text-center text-gray-500 py-4">
             Select an exam session and class stream, then click "Load Analysis" to view results.

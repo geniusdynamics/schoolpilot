@@ -1,19 +1,21 @@
 
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Staff } from '@/types';
 import { TeacherSubjectAssignment, ClassSubjectAllocation } from '@/modules/academics/data/types'; // Corrected imports
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 
 type AssignmentFormData = Omit<Partial<TeacherSubjectAssignment>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name' | 'teacher_name'>;
 
 const TeacherSubjectAssignmentPage: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     teacherSubjectAssignments, 
     classSubjectAllocations,
@@ -96,16 +98,16 @@ const TeacherSubjectAssignmentPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof TeacherSubjectAssignment },
-    { header: 'Teacher', accessor: 'teacher_name' as keyof TeacherSubjectAssignment },
-    { header: 'Class Stream', accessor: 'class_stream_name' as keyof TeacherSubjectAssignment },
-    { header: 'Subject', accessor: 'subject_name' as keyof TeacherSubjectAssignment },
-    { header: 'Academic Year', accessor: 'academic_year_name' as keyof TeacherSubjectAssignment },
+  const columns: DataGridColumn<TeacherSubjectAssignment>[] = [
+    { header: 'ID', key: 'id' },
+    { header: 'Teacher', key: 'teacher_name' },
+    { header: 'Class Stream', key: 'class_stream_name' },
+    { header: 'Subject', key: 'subject_name' },
+    { header: 'Academic Year', key: 'academic_year_name' },
     {
       header: 'Actions',
-      accessor: 'id' as keyof TeacherSubjectAssignment,
-      render: (item: TeacherSubjectAssignment) => (
+      key: 'id',
+      render: (value: any, item: TeacherSubjectAssignment) => (
         <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
       ),
     },
@@ -131,7 +133,7 @@ const TeacherSubjectAssignmentPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Assign teachers to the subjects that have been allocated to class streams for specific academic years.
         </p>
-        <Table columns={columns} data={teacherSubjectAssignments} isLoading={loading.teacherSubjectAssignments && isModalOpen} />
+        <DataGrid columns={columns} data={teacherSubjectAssignments} loading={loading.teacherSubjectAssignments && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAssignment ? 'Edit Teacher Assignment' : 'Assign Teacher to Subject'} size="lg"

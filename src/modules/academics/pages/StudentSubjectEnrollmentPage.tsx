@@ -3,13 +3,13 @@ import { Student, AcademicYear, SchoolPeriod, Class as SchoolClass, ClassStream,
 import { StudentSubjectEnrollment } from '@/core/types';
 import { StudentEnrollmentStatus, Subject } from '@/modules/academics/data/types'; // Corrected imports
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input'; 
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -159,24 +159,24 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     }
   };
   
-  const columnsForListing = [
-    { header: 'ID', accessor: 'id' as keyof StudentSubjectEnrollment },
-    { header: 'Student', accessor: 'student_name' as keyof StudentSubjectEnrollment },
-    { header: 'Class-Stream', accessor: (item: StudentSubjectEnrollment) => `${item.class_name || ''} - ${item.stream_name || ''}`},
-    { header: 'Subject', accessor: 'subject_name' as keyof StudentSubjectEnrollment },
-    { header: 'Academic Year', accessor: 'academic_year_name' as keyof StudentSubjectEnrollment },
-    { header: 'Enrollment Date', accessor: 'enrollment_date' as keyof StudentSubjectEnrollment, render: (item: StudentSubjectEnrollment) => new Date(item.enrollment_date).toLocaleDateString() },
-    { header: 'Status', accessor: 'enrollment_status_display' as keyof StudentSubjectEnrollment, 
-      render: (item: StudentSubjectEnrollment) => (
+  const columnsForListing: DataGridColumn<StudentSubjectEnrollment>[] = [
+    { key: 'id', header: 'ID' },
+    { key: 'student_name', header: 'Student' },
+    { key: 'class_stream', header: 'Class-Stream', render: (value: any, item: StudentSubjectEnrollment) => `${item.class_name || ''} - ${item.stream_name || ''}`},
+    { key: 'subject_name', header: 'Subject' },
+    { key: 'academic_year_name', header: 'Academic Year' },
+    { key: 'enrollment_date', header: 'Enrollment Date', render: (value: any, item: StudentSubjectEnrollment) => new Date(item.enrollment_date).toLocaleDateString() },
+    { key: 'status', header: 'Status', 
+      render: (value: any, item: StudentSubjectEnrollment) => (
         <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${item.status === StudentEnrollmentStatus.ENROLLED ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
             {item.status}
         </span>
       )
     },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof StudentSubjectEnrollment,
-      render: (item: StudentSubjectEnrollment) => (
+      render: (value: any, item: StudentSubjectEnrollment) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit Status</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -187,11 +187,11 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
   const gridColumns = useMemo(() => {
     if (!showEnrollmentGrid) return [];
-    const studentCol = { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name}` };
+    const studentCol = { header: 'Student Name', key: 'student_name', render: (value: any, item: Student) => `${item.first_name} ${item.last_name}` };
     const subjectCols = (subjectsForGrid || []).map(csa => ({
       header: csa.subject_name || 'Unknown Subject',
-      accessor: 'id' as keyof Student, // Use student ID to look up enrollment
-      render: (student: Student) => {
+      key: 'id', // Use student ID to look up enrollment
+      render: (value: any, student: Student) => {
         const isEnrolled = (studentSubjectEnrollments || []).some(
           e => e.student_id === student.id && e.class_subject_allocation_id === csa.id && e.status === StudentEnrollmentStatus.ENROLLED
         );
@@ -267,7 +267,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         {showEnrollmentGrid && studentsForGrid.length > 0 && subjectsForGrid.length > 0 && (
             <Card title={`Enrollment Grid for ${(classStreams || []).find(cs=>cs.id === selectedStreamId)?.name} - ${(academicYears || []).find(ay=>ay.id === selectedAcademicYearId)?.name}`} className="mt-4">
                 <p className="text-xs text-gray-500 mb-2">Check to enroll, uncheck to unenroll. Changes are saved immediately.</p>
-                <Table columns={gridColumns} data={studentsForGrid} isLoading={loading.studentSubjectEnrollments} />
+                <DataGrid columns={gridColumns} data={studentsForGrid} loading={loading.studentSubjectEnrollments} />
             </Card>
         )}
          {showEnrollmentGrid && (studentsForGrid.length === 0 || subjectsForGrid.length === 0) && (
@@ -276,7 +276,7 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
 
 
         <h3 className="text-lg font-semibold mt-8 mb-2">All Enrollment Records</h3>
-        <Table columns={columnsForListing} data={(studentSubjectEnrollments || [])} isLoading={loading.studentSubjectEnrollments && isModalOpen} />
+        <DataGrid columns={columnsForListing} data={(studentSubjectEnrollments || [])} loading={loading.studentSubjectEnrollments && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingEnrollment ? 'Edit Enrollment Status' : 'Enroll Student in Subject'} size="lg"

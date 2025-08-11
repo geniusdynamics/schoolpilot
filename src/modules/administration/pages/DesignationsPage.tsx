@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Designation } from '@/types'; // Designation is a core type
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -61,13 +61,31 @@ const DesignationsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Designation },
-    { header: 'Designation Title', accessor: 'title' as keyof Designation },
+  const columns: DataGridColumn<Designation>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, item) => <span className="font-mono text-sm">{value}</span>
+    },
+    { 
+      key: 'title', 
+      header: 'Designation Title', 
+      sortable: true, 
+      filterable: true, 
+      width: 250,
+      render: (value, item) => <span className="font-medium">{value}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Designation,
-      render: (item: Designation) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -91,7 +109,19 @@ const DesignationsPage: React.FC = () => {
           {t('designations.addDesignation')}
         </Button>
       }>
-        <Table columns={columns} data={designations} isLoading={loading.designations && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={designations || []} 
+          loading={loading.designations}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-8">
+              <IdentificationIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No designations found. Create your first designation to get started.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDesignation ? t('designations.editDesignation') : t('designations.addNewDesignation')}

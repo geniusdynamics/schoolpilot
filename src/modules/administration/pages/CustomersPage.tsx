@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Customer } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -63,15 +63,47 @@ const CustomersPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Customer },
-    { header: 'Customer Name', accessor: 'name' as keyof Customer },
-    { header: 'Phone', accessor: 'phone' as keyof Customer },
-    { header: 'Email', accessor: 'email' as keyof Customer },
+  const columns: DataGridColumn<Customer>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80,
+      render: (value, item) => value
+    },
+    { 
+      key: 'name', 
+      header: 'Customer Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, item) => value
+    },
+    { 
+      key: 'phone', 
+      header: 'Phone', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, item) => value || '-'
+    },
+    { 
+      key: 'email', 
+      header: 'Email', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, item) => value || '-'
+    },
     {
+      key: 'actions',
       header: 'Actions',
-      accessor: 'id' as keyof Customer,
-      render: (item: Customer) => (
+      sortable: false,
+      filterable: false,
+      width: 160,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -90,7 +122,19 @@ const CustomersPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           {t('customers.managementDescription')}
         </p>
-        <Table columns={columns} data={customers} />
+        <DataGrid 
+          columns={columns} 
+          data={customers} 
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <CustomersIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No customers found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by adding your first customer.</p>
+            </div>
+          }
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={t(editingCustomer ? 'customers.editCustomer' : 'customers.addNewCustomer')} size="lg"

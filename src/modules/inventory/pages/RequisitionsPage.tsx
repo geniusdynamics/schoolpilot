@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Requisition, RequisitionItem, RequisitionStatus, Staff, ItemInv } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon, QueueListIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { PlusIcon, EditIcon, DeleteIcon, QueueListIcon, ListBulletIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -193,53 +193,189 @@ const RequisitionsPage: React.FC = () => {
       }
   };
 
-  const requisitionColumns = [
-    { header: 'Req ID', accessor: 'id' as keyof Requisition },
-    { header: 'Requesting Staff', accessor: 'requesting_staff_name' as keyof Requisition },
-    { header: 'Department', accessor: 'department_name' as keyof Requisition },
-    { header: 'Request Date', accessor: 'request_date' as keyof Requisition, render: (item: Requisition) => new Date(item.request_date).toLocaleDateString() },
-    { header: 'Status', accessor: 'status' as keyof Requisition, 
-        render: (item: Requisition) => {
-            let colorClass = 'bg-gray-200 text-gray-800';
-            if (item.status === RequisitionStatus.PENDING_APPROVAL) colorClass = 'bg-yellow-100 text-yellow-800';
-            else if (item.status === RequisitionStatus.APPROVED) colorClass = 'bg-green-100 text-green-800';
-            else if (item.status === RequisitionStatus.REJECTED) colorClass = 'bg-red-100 text-red-800';
-            else if (item.status === RequisitionStatus.ORDERED) colorClass = 'bg-blue-100 text-blue-800';
-            else if (item.status === RequisitionStatus.FULFILLED) colorClass = 'bg-purple-100 text-purple-800';
-            return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
-        }
-    },
-    { header: 'Items', accessor: 'id' as keyof Requisition, render: (item: Requisition) => item.items?.length || 0 },
-    { header: 'Total Value', accessor: 'total_requested_value' as keyof Requisition, render: (item: Requisition) => item.total_requested_value?.toFixed(2) || '0.00'},
+  const requisitionColumns: DataGridColumn<Requisition>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof Requisition,
-      render: (item: Requisition) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openRequisitionModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="secondary" onClick={() => openItemModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Items</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteReq(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'id',
+      header: 'Req ID',
+      sortable: true,
+      width: 100,
+      sticky: true
     },
+    {
+      key: 'requesting_staff_name',
+      header: 'Requesting Staff',
+      sortable: true,
+      filterable: true,
+      width: 180
+    },
+    {
+      key: 'department_name',
+      header: 'Department',
+      sortable: true,
+      filterable: true,
+      width: 150
+    },
+    {
+      key: 'request_date',
+      header: 'Request Date',
+      sortable: true,
+      width: 120,
+      render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value) => {
+        let colorClass = 'bg-gray-200 text-gray-800';
+        if (value === RequisitionStatus.PENDING_APPROVAL) colorClass = 'bg-yellow-100 text-yellow-800';
+        else if (value === RequisitionStatus.APPROVED) colorClass = 'bg-green-100 text-green-800';
+        else if (value === RequisitionStatus.REJECTED) colorClass = 'bg-red-100 text-red-800';
+        else if (value === RequisitionStatus.ORDERED) colorClass = 'bg-blue-100 text-blue-800';
+        else if (value === RequisitionStatus.FULFILLED) colorClass = 'bg-purple-100 text-purple-800';
+        return (
+          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>
+            {value}
+          </span>
+        );
+      }
+    },
+    {
+      key: 'items',
+      header: 'Items',
+      sortable: true,
+      width: 80,
+      render: (_, row) => (
+        <span className="text-center font-medium">
+          {row.items?.length || 0}
+        </span>
+      )
+    },
+    {
+      key: 'total_requested_value',
+      header: 'Total Value',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="font-mono">
+          KES {value?.toFixed(2) || '0.00'}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 220,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openRequisitionModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            onClick={() => openItemModal(row)} 
+            leftIcon={<ListBulletIcon className="w-4 h-4" />}
+          >
+            Items
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDeleteReq(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
-  const reqItemColumns = [
-    { header: 'Item Name', accessor: 'item_name' as keyof RequisitionItem },
-    { header: 'Qty Requested', accessor: 'quantity_requested' as keyof RequisitionItem },
-    { header: 'Unit Price', accessor: 'unit_price' as keyof RequisitionItem, render: (item: RequisitionItem) => item.unit_price?.toFixed(2) || 'N/A' },
-    { header: 'Line Total', accessor: 'line_total' as keyof RequisitionItem, render: (item: RequisitionItem) => item.line_total?.toFixed(2) || 'N/A' },
-    { header: 'Qty Issued', accessor: 'quantity_issued' as keyof RequisitionItem },
+  const reqItemColumns: DataGridColumn<RequisitionItem>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof RequisitionItem,
-      render: (item: RequisitionItem) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openItemModal(currentRequisitionForItems!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteItem(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
-        </div>
-      ),
+      key: 'item_name',
+      header: 'Item Name',
+      sortable: true,
+      filterable: true,
+      width: 200
     },
+    {
+      key: 'quantity_requested',
+      header: 'Qty Requested',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="text-center font-medium">
+          {value || 0}
+        </span>
+      )
+    },
+    {
+      key: 'unit_price',
+      header: 'Unit Price',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="font-mono">
+          KES {value?.toFixed(2) || 'N/A'}
+        </span>
+      )
+    },
+    {
+      key: 'line_total',
+      header: 'Line Total',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="font-mono font-semibold">
+          KES {value?.toFixed(2) || 'N/A'}
+        </span>
+      )
+    },
+    {
+      key: 'quantity_issued',
+      header: 'Qty Issued',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="text-center font-medium">
+          {value || 0}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 180,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openItemModal(currentRequisitionForItems!, row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDeleteItem(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Del
+          </Button>
+        </div>
+      )
+    }
   ];
   
   const isLoadingPage = loading.requisitions || loading.staff || loading.itemsInv;
@@ -259,7 +395,24 @@ const RequisitionsPage: React.FC = () => {
           New Requisition
         </Button>
       }>
-        <Table columns={requisitionColumns} data={requisitions} isLoading={loading.requisitions && (isRequisitionModalOpen || isItemModalOpen)} />
+        <DataGrid 
+          columns={requisitionColumns} 
+          data={requisitions} 
+          sortable 
+          filterable 
+          emptyState={
+            <div className="text-center py-12">
+              <ClipboardDocumentListIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No requisitions found</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating a new requisition.</p>
+              <div className="mt-6">
+                <Button onClick={() => openRequisitionModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                  New Requisition
+                </Button>
+              </div>
+            </div>
+          }
+        />
       </Card>
 
       {/* Requisition Modal */}
@@ -313,11 +466,18 @@ const RequisitionsPage: React.FC = () => {
             </Card>
             
             <h4 className="text-md font-semibold text-gray-700 mt-6">Items in this Requisition</h4>
-            <Table 
+            <DataGrid 
               columns={reqItemColumns} 
               data={currentRequisitionForItems.items || []} 
-              isLoading={loading.requisitions && isItemModalOpen} // Re-use requisitions loading flag
-              emptyStateMessage="No items added to this requisition yet."
+              sortable 
+              filterable 
+              emptyState={
+                <div className="text-center py-8">
+                  <ListBulletIcon className="mx-auto h-8 w-8 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No items added</h3>
+                  <p className="mt-1 text-sm text-gray-500">Add items to this requisition using the form above.</p>
+                </div>
+              }
             />
           </div>
         )}

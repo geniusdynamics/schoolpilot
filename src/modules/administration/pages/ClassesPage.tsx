@@ -5,13 +5,13 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Class as SchoolClass, ClassStream, Staff } from '@/types'; 
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 
 interface ClassFormData extends Partial<Omit<SchoolClass, 'id' | 'streams'>> {}
@@ -130,14 +130,38 @@ const ClassesPage: React.FC = () => {
   };
 
 
-  const classColumns = [
-    { header: t('tableHeaders.id'), accessor: 'id' as keyof SchoolClass},
-    { header: t('tableHeaders.className'), accessor: 'name' as keyof SchoolClass },
-    { header: t('tableHeaders.streamCount'), accessor: ((item: SchoolClass) => item.streams?.length || resolvedClassStreams.filter(cs => cs.class_id === item.id).length) as (item: SchoolClass) => React.ReactNode },
+  const classColumns: DataGridColumn<SchoolClass>[] = [
+    { 
+      key: 'id',
+      header: t('tableHeaders.id'), 
+      sortable: true,
+      filterable: true,
+      width: 80,
+      render: (value, item) => item.id
+    },
+    { 
+      key: 'name',
+      header: t('tableHeaders.className'), 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => item.name
+    },
+    { 
+      key: 'streamCount',
+      header: t('tableHeaders.streamCount'), 
+      sortable: true,
+      width: 120,
+      render: (value, item) => item.streams?.length || resolvedClassStreams.filter(cs => cs.class_id === item.id).length
+    },
     {
+      key: 'actions',
       header: t('common:actions'),
-      accessor: 'id' as keyof SchoolClass,
-      render: (item: SchoolClass) => (
+      sortable: false,
+      filterable: false,
+      width: 300,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openClassModal(item)} leftIcon={<EditIcon className="w-4 h-4"/>}>{t('common:edit')}</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteClass(item.id)} leftIcon={<DeleteIcon className="w-4 h-4"/>}>{t('common:delete')}</Button>
@@ -149,14 +173,39 @@ const ClassesPage: React.FC = () => {
     },
   ];
 
-  const streamColumns = [
-    { header: t('tableHeaders.id'), accessor: 'id'as keyof ClassStream},
-    { header: t('tableHeaders.streamName'), accessor: 'name'as keyof ClassStream},
-    { header: t('tableHeaders.classTeacher'), accessor: 'class_teacher_name'as keyof ClassStream},
+  const streamColumns: DataGridColumn<ClassStream>[] = [
+    { 
+      key: 'id',
+      header: t('tableHeaders.id'), 
+      sortable: true,
+      filterable: true,
+      width: 80,
+      render: (value, item) => item.id
+    },
+    { 
+      key: 'name',
+      header: t('tableHeaders.streamName'), 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => item.name
+    },
+    { 
+      key: 'class_teacher_name',
+      header: t('tableHeaders.classTeacher'), 
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value, item) => item.class_teacher_name
+    },
     {
+      key: 'actions',
       header: t('common:actions'),
-      accessor: 'id'as keyof ClassStream,
-      render: (item: ClassStream) => (
+      sortable: false,
+      filterable: false,
+      width: 200,
+      sticky: 'right',
+      render: (value, item) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openStreamModal(item, selectedClassForStream || undefined)} leftIcon={<EditIcon className="w-4 h-4"/>}>{t('common:edit')}</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteStream(item.id)} leftIcon={<DeleteIcon className="w-4 h-4"/>}>{t('common:delete')}</Button>
@@ -178,14 +227,38 @@ const ClassesPage: React.FC = () => {
       <Card title={t('classes.title')} actions={
           <Button onClick={() => openClassModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classes.addClassButton')}</Button>
       }>
-        <Table columns={classColumns} data={classes || []} isLoading={loading.classes} />
+        <DataGrid 
+          columns={classColumns} 
+          data={classes || []} 
+          loading={loading.classes}
+          sortable={true}
+          filterable={true}
+          emptyState={
+            <div className="text-center py-8">
+              <PlusIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No classes found. Create your first class to get started.</p>
+            </div>
+          }
+        />
       </Card>
 
       {selectedClassForStream && (
         <Card title={t('classes.streamsTitle', {className: selectedClassForStream.name})} actions={
             <Button onClick={() => openStreamModal(undefined, selectedClassForStream)} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classes.addStreamButton')}</Button>
         }>
-          <Table columns={streamColumns} data={streamsForSelectedClass} isLoading={loading.classStreams} emptyStateMessage={t('classes.noStreamsMessage')}/>
+          <DataGrid 
+            columns={streamColumns} 
+            data={streamsForSelectedClass} 
+            loading={loading.classStreams}
+            sortable={true}
+            filterable={true}
+            emptyState={
+              <div className="text-center py-8">
+                <PlusIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">{t('classes.noStreamsMessage')}</p>
+              </div>
+            }
+          />
         </Card>
       )}
 

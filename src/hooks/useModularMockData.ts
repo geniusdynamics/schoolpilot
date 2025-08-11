@@ -7,6 +7,7 @@ import { AppDataContextType, AppDataLoadingStates } from '../types';
 // Import all module hooks
 import { useAcademicYearData } from '../modules/academics/data/useAcademicYearData';
 import { useClassSubjectAllocationData } from '../modules/academics/data/useClassSubjectAllocationData';
+import { useEducationSystemData } from '../modules/academics/data/useEducationSystemData';
 import { useExamPaperSettingData } from '../modules/academics/data/useExamPaperSettingData';
 import { useExamSessionData } from '../modules/academics/data/useExamSessionData';
 import { useGradingSchemeData } from '../modules/academics/data/useGradingSchemeData';
@@ -61,6 +62,7 @@ import { usePayslipData } from '../modules/hr/data/usePayslipData';
 import { usePayslipItemData } from '../modules/hr/data/usePayslipItemData';
 import { useStaffRecurringItemData } from '../modules/hr/data/useStaffRecurringItemData';
 import { useStaffSalarySettingData } from '../modules/hr/data/useStaffSalarySettingData';
+import { useStaffData } from '../modules/administration/data/useStaffData';
 import { useAssetDepreciationLogData } from '../modules/inventory/data/useAssetDepreciationLogData';
 import { useFixedAssetData } from '../modules/inventory/data/useFixedAssetData';
 import { useItemCategoryData } from '../modules/inventory/data/useItemCategoryData';
@@ -127,6 +129,7 @@ const createLoadingStates = (): AppDataLoadingStates => ({
   schoolPeriods: true,
   academicYearStructures: true,
   academicPeriodDefinitions: true,
+  educationSystemConfigurations: true,
   financialYears: true,
   classStreams: true,
   parentsGuardians: true,
@@ -195,9 +198,10 @@ export const useModularMockData = (): AppDataContextType => {
   const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
   const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
   const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
-  const { data: timetableperioddefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
+  const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
   const { data: academicperioddefinitions, create: addAcademicPeriodDefinition, update: updateAcademicPeriodDefinition, remove: deleteAcademicPeriodDefinition } = useAcademicPeriodDefinitionData();
   const { data: academicyearstructures, create: addAcademicYearStructure, update: updateAcademicYearStructure, remove: deleteAcademicYearStructure } = useAcademicYearStructureData();
+  const { data: educationSystemConfigurations, create: addEducationSystemConfiguration, update: updateEducationSystemConfiguration, remove: deleteEducationSystemConfiguration } = useEducationSystemData();
   const { data: campaigns, create: addCampaign, update: updateCampaign, remove: deleteCampaign } = useCampaignData();
   const { data: classs, create: addClass, update: updateClass, remove: deleteClass } = useClassData();
   const { data: classstreams, create: addClassStream, update: updateClassStream, remove: deleteClassStream } = useClassStreamData();
@@ -238,6 +242,7 @@ export const useModularMockData = (): AppDataContextType => {
   const { data: payslipitems, create: addPayslipItem, update: updatePayslipItem, remove: deletePayslipItem } = usePayslipItemData();
   const { data: staffrecurringitems, create: addStaffRecurringItem, update: updateStaffRecurringItem, remove: deleteStaffRecurringItem } = useStaffRecurringItemData();
   const { data: staffsalarysettings, create: addStaffSalarySetting, update: updateStaffSalarySetting, remove: deleteStaffSalarySetting } = useStaffSalarySettingData();
+  const { data: staff, addStaffMember, updateStaffMember, deleteStaffMember } = useStaffData();
   const { data: assetdepreciationlogs, create: addAssetDepreciationLog, update: updateAssetDepreciationLog, remove: deleteAssetDepreciationLog } = useAssetDepreciationLogData();
   const { data: fixedassets, create: addFixedAsset, update: updateFixedAsset, remove: deleteFixedAsset } = useFixedAssetData();
   const { data: itemcategorys, create: addItemCategory, update: updateItemCategory, remove: deleteItemCategory } = useItemCategoryData();
@@ -403,9 +408,11 @@ export const useModularMockData = (): AppDataContextType => {
     subjectPapers: subjectpapers,
     teacherSubjectAssignments: teachersubjectassignments,
     timetableEntries: timetableentrys,
-    timetablePeriodDefs: timetableperioddefs,
+    timetablePeriodDefs: timetablePeriodDefs,
     academicPeriodDefinitions: academicperioddefinitions,
     academicYearStructures: academicyearstructures,
+    educationSystemConfigurations: educationSystemConfigurations,
+    examSchedules: rawInitialData.examSchedules || [],
     
     // Administration data with correct naming
     campaigns: campaigns,
@@ -452,6 +459,7 @@ export const useModularMockData = (): AppDataContextType => {
     payslipItems: payslipitems,
     staffRecurringItems: staffrecurringitems,
     staffSalarySettings: staffsalarysettings,
+    staff: staff,
     
     // Inventory data with correct naming
     assetDepreciationLogs: assetdepreciationlogs,
@@ -507,6 +515,15 @@ export const useModularMockData = (): AppDataContextType => {
     addTimetableEntry: addTimetableEntry,
     updateTimetableEntry: updateTimetableEntry,
     deleteTimetableEntry: deleteTimetableEntry,
+    addClassSubjectAllocation: addClassSubjectAllocation,
+    updateClassSubjectAllocation: updateClassSubjectAllocation,
+    deleteClassSubjectAllocation: deleteClassSubjectAllocation,
+    addTeacherSubjectAssignment: addTeacherSubjectAssignment,
+    updateTeacherSubjectAssignment: updateTeacherSubjectAssignment,
+    deleteTeacherSubjectAssignment: deleteTeacherSubjectAssignment,
+    addStudentSubjectEnrollment: addStudentSubjectEnrollment,
+    updateStudentSubjectEnrollment: updateStudentSubjectEnrollment,
+    deleteStudentSubjectEnrollment: deleteStudentSubjectEnrollment,
     getTimetableEntries: (classStreamId: number) => {
       return (timetableentrys || []).filter((entry: any) => entry.class_stream_id === classStreamId);
     }
@@ -521,6 +538,42 @@ export const useModularMockData = (): AppDataContextType => {
     addStudent: async (data: any) => { /* implementation */ },
     updateStudent: async (id: string, data: any) => { /* implementation */ },
     deleteStudent: async (id: string) => { /* implementation */ },
-    // Add other CRUD operations as needed
+    // Student Payment CRUD operations
+    addStudentPayment,
+    updateStudentPayment,
+    deleteStudentPayment,
+    // Fee Adjustment CRUD operations
+    addFeeAdjustment,
+    updateFeeAdjustment,
+    deleteFeeAdjustment,
+    // Education System CRUD operations
+    addEducationSystemConfiguration,
+    updateEducationSystemConfiguration,
+    deleteEducationSystemConfiguration,
+    // Exam Schedule CRUD operations
+    addExamSchedule: async (schedule: any) => {
+      // Mock implementation - would connect to API
+      console.log('Adding exam schedule:', schedule);
+    },
+    updateExamSchedule: async (schedule: any) => {
+      // Mock implementation - would connect to API
+      console.log('Updating exam schedule:', schedule);
+    },
+    deleteExamSchedule: async (id: string) => {
+      // Mock implementation - would connect to API
+      console.log('Deleting exam schedule:', id);
+    },
+    // Staff CRUD operations
+    addStaffMember,
+    updateStaffMember,
+    deleteStaffMember,
+    // Finance CRUD operations
+    addFeeTemplate,
+    updateFeeTemplate,
+    deleteFeeTemplate,
+    addStudentOpeningBalance,
+    updateStudentOpeningBalance,
+    deleteStudentOpeningBalance,
+    updateStaffSalarySetting,
   };
 };

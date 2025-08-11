@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { BeakerIcon, BookOpenIcon, ShieldCheckIcon, ChartPieIcon as ExamIcon, IconProps } from '@/components/ui/icons';
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 import { Department, BarChartData, AcademicsSubjectType as Subject } from '@/types'; 
 

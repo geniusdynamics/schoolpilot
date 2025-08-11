@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { FinCustomerInvoiceType as CustomerInvoice, FinCustomerInvoiceItemType as CustomerInvoiceItem, Customer, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinCustomerInvoiceStatusEnum } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea'; // Assuming Textarea exists
 import { PlusIcon, EditIcon, DeleteIcon, ReceiptRefundIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -178,40 +178,178 @@ const CustomerInvoicesPage: React.FC = () => {
       }
   };
 
-  const invoiceColumns = [
-    { header: 'Invoice #', accessor: 'invoice_number' as keyof CustomerInvoice },
-    { header: 'Customer', accessor: 'customer_name' as keyof CustomerInvoice },
-    { header: 'Issue Date', accessor: 'issue_date' as keyof CustomerInvoice, render: (item: CustomerInvoice) => new Date(item.issue_date).toLocaleDateString() },
-    { header: 'Due Date', accessor: 'due_date' as keyof CustomerInvoice, render: (item: CustomerInvoice) => item.due_date ? new Date(item.due_date).toLocaleDateString() : '-' },
-    { header: 'Total (KES)', accessor: 'total_amount' as keyof CustomerInvoice, render: (item: CustomerInvoice) => item.total_amount?.toFixed(2) || '0.00' },
-    { header: 'Status', accessor: 'status' as keyof CustomerInvoice },
+  const invoiceColumns: DataGridColumn<CustomerInvoice>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof CustomerInvoice,
-      render: (item: CustomerInvoice) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openInvoiceModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="secondary" onClick={() => openItemModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Items</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteInvoice(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'invoice_number',
+      header: 'Invoice #',
+      sortable: true,
+      filterable: true,
+      width: 140,
+      sticky: 'left',
+      render: (value) => (
+        <span className="font-mono font-medium text-gray-900">
+          {value}
+        </span>
+      )
     },
+    {
+      key: 'customer_name',
+      header: 'Customer',
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value) => (
+        <span className="font-medium text-gray-900">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'issue_date',
+      header: 'Issue Date',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {new Date(value).toLocaleDateString()}
+        </span>
+      )
+    },
+    {
+      key: 'due_date',
+      header: 'Due Date',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {value ? new Date(value).toLocaleDateString() : '-'}
+        </span>
+      )
+    },
+    {
+      key: 'total_amount',
+      header: 'Total (KES)',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="font-medium text-green-600">
+          {value?.toFixed(2) || '0.00'}
+        </span>
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      filterable: true,
+      width: 100,
+      render: (value) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+          value === FinCustomerInvoiceStatusEnum.PAID ? 'bg-green-100 text-green-800' :
+          value === FinCustomerInvoiceStatusEnum.DUE ? 'bg-yellow-100 text-yellow-800' :
+          value === FinCustomerInvoiceStatusEnum.OVERDUE ? 'bg-red-100 text-red-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 220,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openInvoiceModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            onClick={() => openItemModal(row)} 
+            leftIcon={<ListBulletIcon className="w-4 h-4" />}
+          >
+            Items
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDeleteInvoice(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
-  const itemColumns = [
-    { header: 'Description', accessor: 'description' as keyof CustomerInvoiceItem },
-    { header: 'Amount (KES)', accessor: 'amount' as keyof CustomerInvoiceItem, render: (item: CustomerInvoiceItem) => item.amount?.toFixed(2) || '0.00' },
-    { header: 'Revenue Account', accessor: 'revenue_account_name' as keyof CustomerInvoiceItem },
+  const itemColumns: DataGridColumn<CustomerInvoiceItem>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof CustomerInvoiceItem,
-      render: (item: CustomerInvoiceItem) => (
-        <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openItemModal(currentInvoiceForItems!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteItem(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
-        </div>
-      ),
+      key: 'description',
+      header: 'Description',
+      sortable: true,
+      filterable: true,
+      width: 300,
+      render: (value) => (
+        <span className="text-sm text-gray-900">
+          {value}
+        </span>
+      )
     },
+    {
+      key: 'amount',
+      header: 'Amount (KES)',
+      sortable: true,
+      width: 120,
+      render: (value) => (
+        <span className="font-medium text-green-600">
+          {value?.toFixed(2) || '0.00'}
+        </span>
+      )
+    },
+    {
+      key: 'revenue_account_name',
+      header: 'Revenue Account',
+      sortable: true,
+      filterable: true,
+      width: 200,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 140,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openItemModal(currentInvoiceForItems!, row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDeleteItem(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Del
+          </Button>
+        </div>
+      )
+    }
   ];
   
   const isLoadingData = loading.customerInvoices || loading.customers || loading.chartOfAccounts;
@@ -234,7 +372,26 @@ const CustomerInvoicesPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Manage invoices for services provided to external customers.
         </p>
-        <Table columns={invoiceColumns} data={customerInvoices} isLoading={loading.customerInvoices && (isInvoiceModalOpen || isItemModalOpen)} />
+        <DataGrid 
+          columns={invoiceColumns} 
+          data={customerInvoices || []} 
+          isLoading={loading.customerInvoices && (isInvoiceModalOpen || isItemModalOpen)}
+          sortable
+          filterable
+          emptyState={{
+            icon: <ReceiptRefundIcon className="w-12 h-12 text-gray-400" />,
+            title: "No Customer Invoices Found",
+            description: "Get started by creating your first customer invoice for external services.",
+            action: (
+              <Button 
+                onClick={() => openInvoiceModal()} 
+                leftIcon={<PlusIcon className="w-5 h-5" />}
+              >
+                New Customer Invoice
+              </Button>
+            )
+          }}
+        />
       </Card>
 
       <Modal isOpen={isInvoiceModalOpen} onClose={closeInvoiceModal} title={editingInvoice ? 'Edit Customer Invoice' : 'Add New Customer Invoice'} size="lg"
@@ -287,11 +444,18 @@ const CustomerInvoicesPage: React.FC = () => {
             </Card>
             
             <h4 className="text-md font-semibold text-gray-700 mt-6">Items in this Invoice</h4>
-            <Table 
+            <DataGrid 
               columns={itemColumns} 
               data={currentInvoiceForItems.items || []} 
               isLoading={loading.customerInvoices && isItemModalOpen}
-              emptyStateMessage="No items added to this invoice yet."
+              sortable
+              filterable
+              emptyState={{
+                icon: <ListBulletIcon className="w-8 h-8 text-gray-400" />,
+                title: "No Items Added",
+                description: "No items have been added to this invoice yet. Add items using the form above.",
+                action: null
+              }}
             />
           </div>
         )}

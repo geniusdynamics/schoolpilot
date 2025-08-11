@@ -1,3 +1,49 @@
+// Import required types from core
+import { Student, InvoiceStatus, ParentsGuardian } from '../../../core/types';
+import * as enums from './enums';
+
+// Re-export all enums for use by other files
+export { 
+  ResultState,
+  BreakType,
+  EducationSystemType,
+  GradingSystemType,
+  AcademicPeriodType,
+  AssessmentType
+} from './enums';
+
+export interface ExamSchedule {
+  id: string;
+  exam_id: string;
+  period_id: number;
+  class_stream_id: number;
+  invigilator_id: string;
+  room_number: string;
+  created_at: string;
+  updated_at: string;
+}
+
+
+export interface AuditLog {
+  timestamp: string;
+  user_id: string;
+  action: string;
+  previous_state: enums.ResultState;
+  new_state: enums.ResultState;
+}
+
+export interface ResultApprovalEntity {
+  id: string;
+  result_id: string;
+  result?: StudentExamResult;
+  state: enums.ResultState;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+  audit_trail: AuditLog[];
+}
+
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Academics module.
 // ABOUTME: It ensures all academic-related data structures are managed in one place.
 
@@ -29,7 +75,7 @@ export interface Subject {
   name: string;
   department_id?: string | null;
   is_compulsory?: boolean | null;
-  grouping: SubjectGrouping;
+  grouping: enums.SubjectGrouping;
   department_name?: string | null;
   papers?: SubjectPaper[];
 }
@@ -59,7 +105,7 @@ export interface StudentSubjectEnrollment {
   student_id: string;
   class_subject_allocation_id: string;
   enrollment_date: string;
-  status: StudentEnrollmentStatus;
+  status: enums.StudentEnrollmentStatus;
   created_at: string;
   updated_at: string;
   student_name?: string | null;
@@ -114,7 +160,7 @@ export interface ExamSession {
   id: string;
   name: string;
   school_period_id: number;
-  status: ExamSessionStatus;
+  status: enums.ExamSessionStatus;
   created_at: string;
   updated_at: string;
   school_period_name?: string | null;
@@ -144,7 +190,7 @@ export interface StudentExamResult {
 export interface TimetableEntry {
   id: string;
   class_stream_id: number;
-  day_of_week: DayOfWeek;
+  day_of_week: enums.DayOfWeek;
   period_id: number;
   subject_id: number;
   teacher_id: string;
@@ -218,3 +264,62 @@ export interface StudentExamResultWithDetails extends StudentExamResult {
   exam_session_name?: string | null;
   marks?: StudentPaperMarkWithDetails[];
 }
+
+// === EDUCATION SYSTEM CONFIGURATION TYPES ===
+// Note: These enums are already re-exported from './enums' at the top of this file
+
+export interface EducationSystemConfiguration {
+  id?: string;
+  name: string;
+  country_code: string;
+  system_type: enums.EducationSystemType;
+  grading_system_type: enums.GradingSystemType;
+  min_grade_level?: number;
+  max_grade_level?: number;
+  academic_period_type: enums.AcademicPeriodType;
+  periods_per_year: number;
+  
+  // Grading Configuration
+  passing_grade?: number;
+  max_grade_value?: number;
+  grade_precision?: number;
+  
+  // Assessment Configuration
+  assessment_types: enums.AssessmentType[];
+  continuous_assessment_weight?: number;
+  final_exam_weight?: number;
+  
+  // Competency-Based Configuration
+  uses_competency_tracking?: boolean;
+  competency_levels?: string[];
+  
+  // Credit Hour Configuration (for universities/colleges)
+  uses_credit_hours?: boolean;
+  min_credits_per_course?: number;
+  max_credits_per_course?: number;
+  min_credits_for_graduation?: number;
+  
+  // System Rules
+  allows_grade_modification?: boolean;
+  requires_external_moderation?: boolean;
+  supports_remedial_exams?: boolean;
+  
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Type aliases for schema compatibility
+export type ExamScheduleEntity = ExamSchedule;
+export type AcademicsSubjectType = Subject;
+export type AcademicsSubjectPaperType = SubjectPaper;
+export type AcademicsExamPaperSettingType = ExamPaperSetting;
+export type AcademicsExamSessionType = ExamSession;
+export type AcademicsGradingSchemeLevelType = GradingSchemeLevel;
+export type AcademicsGradingSchemeType = GradingScheme;
+export type AcademicsStudentPaperMarkWithDetailsType = StudentPaperMarkWithDetails;
+export type AcademicsStudentExamResultWithDetailsType = StudentExamResultWithDetails;
+export type AcademicsClassSubjectAllocationType = ClassSubjectAllocation;
+export type AcademicsTeacherSubjectAssignmentType = TeacherSubjectAssignment;
+export type AcademicsStudentSubjectEnrollmentType = StudentSubjectEnrollment;
+export type AcademicsTimetablePeriodDefType = any; // Define this if needed
+export type AcademicsTimetableEntryType = TimetableEntry;

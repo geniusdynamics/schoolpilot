@@ -155,6 +155,7 @@
   "accessDeniedMessage": "You do not have permission to view the settings page.",
   "navigation:settings.title": "Settings",
   "navigation:settings.general": "General",
+  "navigation:settings.features": "Feature Settings",
   "navigation:settings.modules": "Module Management",
   "navigation:settings.auditLog": "Audit Log",
   "navigation:settings.databaseSettings": "Database Settings",

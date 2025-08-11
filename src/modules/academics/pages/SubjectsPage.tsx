@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Subject, SubjectGrouping } from '@/core/types';
 import { useTranslation } from 'react-i18next';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -93,17 +93,17 @@ const SubjectsPage: React.FC = () => {
   };
 
 
-  const columns: Array<{ header: string; accessor: keyof Subject | ((item: Subject) => React.ReactNode); render?: (item: Subject) => React.ReactNode }> = [
-    { header: t('subjects.code'), accessor: 'subject_code' },
-    { header: t('subjects.abbreviation'), accessor: 'abbreviation' },
-    { header: t('subjects.name'), accessor: 'name' },
-    { header: t('subjects.department'), accessor: 'department_name' },
-    { header: t('subjects.grouping'), accessor: 'grouping' },
-    { header: t('subjects.isCompulsory'), accessor: 'is_compulsory', render: (item: Subject) => item.is_compulsory ? t('common:yes') : t('common:no') },
+  const columns: DataGridColumn<Subject>[] = [
+    { key: 'subject_code', header: t('subjects.code') },
+    { key: 'abbreviation', header: t('subjects.abbreviation') },
+    { key: 'name', header: t('subjects.name') },
+    { key: 'department_name', header: t('subjects.department') },
+    { key: 'grouping', header: t('subjects.grouping') },
+    { key: 'is_compulsory', header: t('subjects.isCompulsory'), render: (value: any, item: Subject) => item.is_compulsory ? t('common:yes') : t('common:no') },
     {
+      key: 'actions',
       header: t('common:actions'),
-      accessor: 'id',
-      render: (item: Subject) => (
+      render: (value: any, item: Subject) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>{t('common:edit')}</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>{t('common:delete')}</Button>
@@ -121,7 +121,7 @@ const SubjectsPage: React.FC = () => {
       <Card title={t('subjects.management')} actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>Add Subject</Button>
       }>
-        <Table columns={columns} data={subjectsState || []} isLoading={loading.subjects && isModalOpen} />
+        <DataGrid columns={columns} data={subjectsState || []} loading={loading.subjects && isModalOpen} />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={t(editingSubject ? 'subjects.edit' : 'subjects.addNew')} size="lg"

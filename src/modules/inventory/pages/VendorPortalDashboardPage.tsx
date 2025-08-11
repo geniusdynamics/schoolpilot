@@ -1,16 +1,27 @@
 import React, { useState, useMemo } from 'react';
-import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-import { SchoolIcon, HomeIcon, DocumentReportIcon as DocumentTextIcon, ShoppingCartIcon, ReceiptRefundIcon, UserCircleIcon, BellIcon, PlusIcon } from '@/components/ui/icons'; 
-import { InvPurchaseOrderType, InvPurchaseOrderStatusEnum, InvRFQType, InvRFQStatusEnum } from '@/modules/inventory/data/types';
-import { FinSupplierInvoiceStatusEnum } from '@/modules/finance/data/types';
-import Spinner from '@/components/ui/Spinner';
-import { useAppData } from '@/contexts/AppDataContext';
+import {
+  Card,
+  CardContent,
+  Table,
+  Button,
+  Modal,
+  Input,
+  Select,
+  Textarea,
+  Spinner
+} from '@/components/ui';
+import {
+  HomeIcon,
+  DocumentTextIcon,
+  ShoppingCartIcon,
+  ReceiptRefundIcon,
+  UserCircleIcon,
+  BellIcon,
+  PlusIcon
+} from '@/components/ui/icons';
+import { InvPurchaseOrderType, InvPurchaseOrderStatusEnum, InvRFQType, InvRFQStatusEnum } from '../data/types';
+import { FinSupplierInvoiceStatusEnum } from '../../finance/data/types';
+import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 import PortalSidebar, { PortalNavItem } from '@/components/ui/PortalSidebar';
 
@@ -126,45 +137,45 @@ const VendorPortalDashboardPage: React.FC = () => {
   const mockRecentActivity = [
     ...vendorInvoices.map(inv => ({
       id: `inv-${inv.id}`,
-      text: t('vendor.activity.invoice', { invoice: inv.invoice_number, status: inv.status }),
-      time: inv.updated_at
+      text: t('vendor.activity.invoice', { invoice: inv.invoice_number || 'N/A', status: inv.status || 'Unknown' }),
+      time: inv.updated_at || ''
     })),
     ...vendorPOs.map(po => ({
       id: `po-${po.id}`,
-      text: t('vendor.activity.po', { po: po.id, status: po.status }),
-      time: po.updated_at
+      text: t('vendor.activity.po', { po: po.id || 'N/A', status: po.status || 'Unknown' }),
+      time: po.updated_at || ''
     }))
   ].sort((a, b) => (b.time || '').localeCompare(a.time || ''));
 
   const poColumns = [
-    { header: 'PO Number', accessor: 'id' as keyof InvPurchaseOrderType },
-    { header: 'Issue Date', accessor: 'order_date' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => new Date(item.order_date).toLocaleDateString() },
-    { header: 'Amount', accessor: 'total_value' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => `Ksh ${item.total_value?.toFixed(2)}` },
-    { header: 'Status', accessor: 'status' as keyof InvPurchaseOrderType, 
-      render: (item: InvPurchaseOrderType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+    { header: 'PO Number', key: 'id', render: (value: any, item: InvPurchaseOrderType) => value },
+    { header: 'Issue Date', key: 'order_date', render: (value: any, item: InvPurchaseOrderType) => (item.order_date) ? new Date(item.order_date).toLocaleDateString() : 'N/A' },
+    { header: 'Amount', key: 'total_value', render: (value: any, item: InvPurchaseOrderType) => `Ksh ${item.total_value?.toFixed(2) || '0.00'}` },
+    { header: 'Status', key: 'status', 
+      render: (value: any, item: InvPurchaseOrderType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
         item.status === InvPurchaseOrderStatusEnum.APPROVED ? 'bg-blue-100 text-blue-800' :
         item.status === InvPurchaseOrderStatusEnum.SENT_TO_SUPPLIER ? 'bg-yellow-100 text-yellow-800' :
         item.status === InvPurchaseOrderStatusEnum.FULLY_RECEIVED || item.status === InvPurchaseOrderStatusEnum.PARTIALLY_RECEIVED ? 'bg-green-100 text-green-800' :
         'bg-gray-100 text-gray-800'
       }`}>{item.status}</span>
     },
-    { header: 'Action', accessor: 'id' as keyof InvPurchaseOrderType, render: (item: InvPurchaseOrderType) => <Button size="sm" variant="ghost">View Details</Button> }
+    { header: 'Action', key: 'id', render: (value: any, item: InvPurchaseOrderType) => <Button size="sm" variant="ghost">View Details</Button> }
   ];
 
   const rfqColumns = [
-    { header: 'RFQ ID', accessor: 'id' as keyof InvRFQType },
-    { header: 'Title', accessor: 'title' as keyof InvRFQType },
-    { header: 'Issue Date', accessor: 'issue_date' as keyof InvRFQType, render: (item: InvRFQType) => new Date(item.issue_date).toLocaleDateString() },
-    { header: 'Closing Date', accessor: 'closing_date' as keyof InvRFQType, render: (item: InvRFQType) => new Date(item.closing_date).toLocaleDateString() },
-    { header: 'Status', accessor: 'status' as keyof InvRFQType,
-        render: (item: InvRFQType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+    { header: 'RFQ ID', key: 'id', render: (value: any, item: InvRFQType) => value },
+    { header: 'Title', key: 'title', render: (value: any, item: InvRFQType) => value || 'N/A' },
+    { header: 'Issue Date', key: 'issue_date', render: (value: any, item: InvRFQType) => ((item as any).issue_date) ? new Date((item as any).issue_date).toLocaleDateString() : 'N/A' },
+    { header: 'Closing Date', key: 'closing_date', render: (value: any, item: InvRFQType) => (item.closing_date) ? new Date(item.closing_date).toLocaleDateString() : 'N/A' },
+    { header: 'Status', key: 'status',
+        render: (value: any, item: InvRFQType) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
             item.status === InvRFQStatusEnum.OPEN ? 'bg-green-100 text-green-800' : 
             item.status === InvRFQStatusEnum.CLOSED ? 'bg-gray-100 text-gray-700' :
             item.status === InvRFQStatusEnum.AWARDED ? 'bg-blue-100 text-blue-800' :
             'bg-red-100 text-red-700' // Cancelled
         }`}>{item.status}</span>
     },
-    { header: 'Action', accessor: 'id' as keyof InvRFQType, render: (item: InvRFQType) => (
+    { header: 'Action', key: 'id', render: (value: any, item: InvRFQType) => (
         <div className="space-x-1">
             <Button size="sm" variant="ghost">View Details</Button>
             {item.status === InvRFQStatusEnum.OPEN && <Button size="sm" variant="primary">Submit Bid</Button>}
@@ -173,12 +184,12 @@ const VendorPortalDashboardPage: React.FC = () => {
   ];
 
   const invoiceColumns = [
-    { header: t('vendor.invoice.number'), accessor: 'invoice_number' as keyof typeof vendorInvoices[0] },
-    { header: t('vendor.invoice.po'), accessor: 'purchase_order_id' as keyof typeof vendorInvoices[0] },
-    { header: t('vendor.invoice.amount'), accessor: 'total_amount' as keyof typeof vendorInvoices[0], render: (item: typeof vendorInvoices[0]) => `Ksh ${item.total_amount?.toFixed(2)}` },
-    { header: t('vendor.invoice.dueDate'), accessor: 'due_date' as keyof typeof vendorInvoices[0] },
-    { header: t('vendor.invoice.status'), accessor: 'status' as keyof typeof vendorInvoices[0],
-      render: (item: typeof vendorInvoices[0]) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
+    { header: t('vendor.invoice.number'), key: 'invoice_number', render: (value: any, item: typeof vendorInvoices[0]) => value || 'N/A' },
+    { header: t('vendor.invoice.po'), key: 'purchase_order_id', render: (value: any, item: typeof vendorInvoices[0]) => value || 'N/A' },
+    { header: t('vendor.invoice.amount'), key: 'total_amount', render: (value: any, item: typeof vendorInvoices[0]) => `Ksh ${(item.total_amount || 0).toFixed(2)}` },
+    { header: t('vendor.invoice.dueDate'), key: 'due_date', render: (value: any, item: typeof vendorInvoices[0]) => value || 'N/A' },
+    { header: t('vendor.invoice.status'), key: 'status',
+      render: (value: any, item: typeof vendorInvoices[0]) => <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
         item.status === FinSupplierInvoiceStatusEnum.PAID ? 'bg-green-100 text-green-800' :
         item.status === FinSupplierInvoiceStatusEnum.UNPAID ? 'bg-yellow-100 text-yellow-800' :
         item.status === FinSupplierInvoiceStatusEnum.PARTIALLY_PAID ? 'bg-blue-100 text-blue-800' :
@@ -187,7 +198,7 @@ const VendorPortalDashboardPage: React.FC = () => {
         'bg-gray-100 text-gray-800'
       }`}>{item.status}</span>
     },
-    { header: t('vendor.invoice.action'), accessor: 'id' as keyof typeof vendorInvoices[0], render: (item: typeof vendorInvoices[0]) => <Button size="sm" variant="ghost" title={t('vendor.invoice.viewUpload')}>{t('vendor.invoice.viewUpload')}</Button> }
+    { header: t('vendor.invoice.action'), key: 'id', render: (value: any, item: typeof vendorInvoices[0]) => <Button size="sm" variant="ghost" title={t('vendor.invoice.viewUpload')}>{t('vendor.invoice.viewUpload')}</Button> }
   ];
 
   if (loading.purchaseOrders || loading.rfqs) { 
@@ -232,7 +243,7 @@ const VendorPortalDashboardPage: React.FC = () => {
                     {mockRecentActivity.map(activity => (
                         <li key={activity.id} className="text-sm border-b pb-2">
                             <p className="text-gray-700">{activity.text}</p>
-                            <p className="text-xs text-gray-500">{activity.time}</p>
+                            <p className="text-xs text-gray-500">{activity.time || 'Unknown time'}</p>
                         </li>
                     ))}
                 </ul>
@@ -335,7 +346,7 @@ const VendorPortalDashboardPage: React.FC = () => {
             <Select name="po_number" label="Associated PO Number" value={invoiceFormData.po_number} onChange={handleInvoiceFormChange} required>
                 <option value="">Select PO</option>
                 {canonicalVendorPOs.filter(po => po.status !== InvPurchaseOrderStatusEnum.INVOICED && po.status !== InvPurchaseOrderStatusEnum.CANCELLED && po.status !== InvPurchaseOrderStatusEnum.DRAFT && po.status !== InvPurchaseOrderStatusEnum.PENDING_APPROVAL).map(po => (
-                    <option key={po.id} value={po.id}>{po.id} - Ksh {po.total_value?.toFixed(2)}</option>
+                    <option key={po.id} value={po.id}>{po.id || 'N/A'} - Ksh {po.total_value?.toFixed(2) || '0.00'}</option>
                 ))}
             </Select>
             <Input name="invoice_date" label="Invoice Date" type="date" value={invoiceFormData.invoice_date} onChange={handleInvoiceFormChange} required />

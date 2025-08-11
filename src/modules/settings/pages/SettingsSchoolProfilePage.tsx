@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import { IdentificationIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; 
+import { useAppData } from '@/hooks/useAppData'; 
 import { SchoolDetails } from '@/types';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';

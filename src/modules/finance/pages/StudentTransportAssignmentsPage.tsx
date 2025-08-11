@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { FinStudentTransportAssignmentType as StudentTransportAssignment, Student, FinTransportRouteType as TransportRoute, SchoolPeriod, FinTransportAssignmentStatusEnum as TransportAssignmentStatus, StudentStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TruckIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -92,18 +92,54 @@ const StudentTransportAssignmentsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Student Name', accessor: 'student_name' as keyof StudentTransportAssignment },
-    { header: 'Route', accessor: 'route_name' as keyof StudentTransportAssignment },
-    { header: 'School Period', accessor: 'school_period_name' as keyof StudentTransportAssignment },
-    { header: 'Status', accessor: 'status' as keyof StudentTransportAssignment },
+  const columns: DataGridColumn<StudentTransportAssignment>[] = [
+    { 
+      key: 'student_name', 
+      header: 'Student Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200,
+      render: (value, row) => <span className="font-medium">{value}</span>
+    },
+    { 
+      key: 'route_name', 
+      header: 'Route', 
+      sortable: true, 
+      filterable: true, 
+      width: 180,
+      render: (value, row) => <span className="text-blue-600">{value}</span>
+    },
+    { 
+      key: 'school_period_name', 
+      header: 'School Period', 
+      sortable: true, 
+      filterable: true, 
+      width: 150,
+      render: (value, row) => <span className="text-purple-600">{value}</span>
+    },
+    { 
+      key: 'status', 
+      header: 'Status', 
+      sortable: true, 
+      filterable: true, 
+      width: 120,
+      render: (value, row) => <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+        row.status === TransportAssignmentStatus.ACTIVE ? 'bg-green-100 text-green-800' :
+        row.status === TransportAssignmentStatus.INACTIVE ? 'bg-gray-100 text-gray-800' :
+        'bg-red-100 text-red-800'
+      }`}>{value}</span>
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof StudentTransportAssignment,
-      render: (item: StudentTransportAssignment) => (
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -126,7 +162,23 @@ const StudentTransportAssignmentsPage: React.FC = () => {
           Assign Student to Route
         </Button>
       }>
-        <Table columns={columns} data={studentTransportAssignments} isLoading={loading.studentTransportAssignments && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={studentTransportAssignments} 
+          isLoading={loading.studentTransportAssignments && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <TruckIcon className="w-12 h-12 text-gray-400" />,
+            title: "No Transport Assignments",
+            description: "No students have been assigned to transport routes yet. Start by assigning students to available routes.",
+            action: (
+              <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                Assign Student to Route
+              </Button>
+            )
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAssignment ? 'Edit Transport Assignment' : 'Assign Student to Transport Route'} size="lg"

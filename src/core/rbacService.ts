@@ -3,8 +3,9 @@
 
 import { ModuleDefinition } from './types';
 import type { SchoolDatabase } from '../services/rxdbService';
+import { rxdbService } from '../services/databaseService';
 import type { RbacRole } from './types';
-import { APP_MODE } from '../contexts/config';
+import { isDemo } from '../config/unifiedConfig';
 
 // RBAC Types
 export interface Permission {
@@ -322,7 +323,7 @@ export class RBACService {
   }
 
   public initializeSuperAdminRole() {
-    if (APP_MODE === 'demo') {
+    if (isDemo()) {
       const allPermissionIds = Array.from(this.permissions.keys());
       console.log('[RBAC DEBUG] All available permissions:', allPermissionIds);
       
@@ -402,4 +403,4 @@ export class RBACService {
 }
 
 // Export singleton instance
-export const rbacService = new RBACService(); 
+export const rbacService = new RBACService();

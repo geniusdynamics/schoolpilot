@@ -1,205 +1,287 @@
-// ABOUTME: Defines RxDB JSON schemas for entities specific to the Inventory module.
-// ABOUTME: These schemas are used by rxdbService.ts to create collections.
+// ABOUTME: Defines database-agnostic schemas for entities specific to the Inventory module.
+// ABOUTME: These schemas are used by database services to create collections.
 
-import { RxJsonSchema } from 'rxdb';
 import * as types from './types';
-import { createEntitySchema } from '../../../utils/schemaUtils';
+import { createDatabaseSchema, SchemaHelpers } from '../../../utils/databaseAgnosticSchema';
+import type { DatabaseSchema, DatabaseProperty } from '../../../utils/databaseAgnosticSchema';
 
-export const warehouseSchema: RxJsonSchema<types.InvWarehouseType> = createEntitySchema<types.InvWarehouseType>(
-    'warehouse',
-    {
-        id: { type: 'number' },
-        name: { type: 'string', maxLength: 100 },
-        location: { type: ['string', 'null'] },
+export const warehouseSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'warehouse',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the warehouse'),
+        name: SchemaHelpers.string('Warehouse name', { maxLength: 100 }),
+        location: SchemaHelpers.string('Warehouse location', { maxLength: 200, nullable: true }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp')
     },
-    { key: 'id', type: 'number' },
-    ['id', 'name'],
-    ['name']
-);
+    required: ['id', 'name'],
+    indexes: ['name']
+});
 
-export const itemCategoryInvSchema: RxJsonSchema<types.InvItemCategoryType> = createEntitySchema<types.InvItemCategoryType>(
-    'item_category_inv',
-    {
-        id: { type: 'number' },
-        name: { type: 'string', maxLength: 100 },
+export const itemCategoryInvSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'item_category_inv',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the item category'),
+        name: SchemaHelpers.string('Category name', { maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp')
     },
-    { key: 'id', type: 'number' },
-    ['id', 'name'],
-    ['name']
-);
+    required: ['id', 'name'],
+    indexes: ['name']
+});
 
-export const itemInvSchema: RxJsonSchema<types.InvItemType> = createEntitySchema<types.InvItemType>(
-    'item_inv',
-    {
-        id: { type: 'string', maxLength: 100, final: true },
-        name: { type: 'string', maxLength: 200 },
-        description: { type: ['string', 'null'] },
-        category_id: { type: ['number', 'null'], ref: 'item_categories_inv' },
-        unit_of_measure: { type: 'string', maxLength: 50 },
-        item_type: { type: 'string', enum: Object.values(types.InvItemTypeEnum) },
-        current_price: { type: ['number', 'null'] },
-        reorder_level: { type: ['number', 'null'] },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
-        category_name: { type: ['string', 'null'] },
+export const itemInvSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'item_inv',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the item'),
+        name: SchemaHelpers.string('Item name', { maxLength: 200 }),
+        description: SchemaHelpers.string('Item description', { maxLength: 500, nullable: true }),
+        category_id: SchemaHelpers.string('Reference to item category', { maxLength: 100 }),
+        unit_of_measure: SchemaHelpers.string('Unit of measure', { maxLength: 50 }),
+        item_type: SchemaHelpers.string('Type of item', { maxLength: 50, enum: Object.values(types.InvItemTypeEnum) }),
+        current_price: SchemaHelpers.number('Current price', { nullable: true, minimum: 0, maximum: 999999.99 }),
+        reorder_level: SchemaHelpers.number('Reorder level', { nullable: true, minimum: 0, maximum: 999999999, integer: true }),
+        reorder_point: SchemaHelpers.number('Reorder point', { nullable: true, minimum: 0, maximum: 999999999, integer: true }),
+        reorder_quantity: SchemaHelpers.number('Reorder quantity', { nullable: true, minimum: 0, maximum: 999999999, integer: true }),
+        max_stock_level: SchemaHelpers.number('Maximum stock level', { nullable: true, minimum: 0, maximum: 999999999, integer: true }),
+        barcode: SchemaHelpers.string('Item barcode', { maxLength: 100 }),
+        batch_tracking_enabled: SchemaHelpers.boolean('Whether batch tracking is enabled', { nullable: true, default: false }),
+        expiry_tracking_enabled: SchemaHelpers.boolean('Whether expiry tracking is enabled', { nullable: true, default: false }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp'),
+        category_name: SchemaHelpers.string('Category name (computed)', { maxLength: 100, nullable: true })
     },
-    { key: 'id', type: 'string' },
-    ['id', 'name', 'item_type', 'created_at', 'updated_at'],
-    ['name', 'category_id', 'item_type']
-);
+    required: ['id', 'name', 'item_type', 'created_at', 'updated_at'],
+    indexes: ['name', 'category_id', 'item_type', 'barcode']
+});
 
-export const fixedAssetSchema: RxJsonSchema<types.InvFixedAssetType> = createEntitySchema<types.InvFixedAssetType>(
-    'fixed_asset',
-    {
-        id: { type: 'string', maxLength: 100, final: true },
-        item_id: { type: 'string', ref: 'items_inv' },
-        asset_tag: { type: 'string', maxLength: 50, final: true },
-        serial_number: { type: ['string', 'null'] },
-        purchase_date: { type: ['string', 'null'], format: 'date' },
-        purchase_cost: { type: ['number', 'null'] },
-        current_value: { type: ['number', 'null'] },
-        depreciation_method: { type: ['string', 'null'], enum: [...Object.values(types.InvDepreciationMethod), null] as any[] },
-        depreciation_rate_pa: { type: ['number', 'null'] },
-        useful_life_years: { type: ['number', 'null'] },
-        assigned_to_staff_id: { type: ['string', 'null'], ref: 'staff' },
-        location: { type: ['string', 'null'] },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
-        deleted_at: { type: ['string', 'null'], format: 'date-time' },
-        item_name: { type: ['string', 'null'] },
-        assigned_to_staff_name: { type: ['string', 'null'] },
+export const fixedAssetSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'fixed_asset',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the fixed asset'),
+        item_id: SchemaHelpers.string('Reference to inventory item', { maxLength: 100 }),
+        asset_tag: SchemaHelpers.string('Asset tag identifier', { maxLength: 50 }),
+        serial_number: SchemaHelpers.string('Serial number', { maxLength: 100, nullable: true }),
+        purchase_date: SchemaHelpers.string('Purchase date', { nullable: true, format: 'date' }),
+        purchase_cost: SchemaHelpers.number('Purchase cost', { nullable: true, minimum: 0, maximum: 999999.99 }),
+        current_value: SchemaHelpers.number('Current value', { nullable: true, minimum: 0, maximum: 999999.99 }),
+        depreciation_method: SchemaHelpers.string('Depreciation method', { maxLength: 50, nullable: true, enum: Object.values(types.InvDepreciationMethod) }),
+        depreciation_rate_pa: SchemaHelpers.number('Depreciation rate per annum', { nullable: true, minimum: 0, maximum: 100 }),
+        useful_life_years: SchemaHelpers.number('Useful life in years', { nullable: true, minimum: 1, maximum: 100, integer: true }),
+        assigned_to_staff_id: SchemaHelpers.string('Staff member assigned to', { maxLength: 100 }),
+        location: SchemaHelpers.string('Asset location', { maxLength: 200, nullable: true }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp'),
+        deleted_at: SchemaHelpers.timestamp('Record deletion timestamp', { nullable: true }),
+        item_name: SchemaHelpers.string('Item name (computed)', { maxLength: 200, nullable: true }),
+        assigned_to_staff_name: SchemaHelpers.string('Assigned staff name (computed)', { maxLength: 200, nullable: true })
     },
-    { key: 'id', type: 'string' },
-    ['id', 'item_id', 'asset_tag', 'created_at', 'updated_at'],
-    ['asset_tag', 'item_id', 'assigned_to_staff_id']
-);
+    required: ['id', 'item_id', 'asset_tag', 'created_at', 'updated_at'],
+    indexes: ['asset_tag', 'item_id', 'assigned_to_staff_id']
+});
 
-export const assetDepreciationLogSchema: RxJsonSchema<types.InvAssetDepreciationLogType> = createEntitySchema<types.InvAssetDepreciationLogType>(
-    'asset_depreciation_log',
-    {
-        id: { type: 'string', maxLength: 100, final: true },
-        asset_id: { type: 'string', ref: 'fixed_assets' },
-        depreciation_date: { type: 'string', format: 'date' },
-        amount_depreciated: { type: 'number' },
-        book_value_after: { type: 'number' },
+export const assetDepreciationLogSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'asset_depreciation_log',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the depreciation log entry'),
+        asset_id: SchemaHelpers.string('Reference to fixed asset', { maxLength: 100 }),
+        depreciation_date: SchemaHelpers.string('Date of depreciation', { format: 'date' }),
+        amount_depreciated: SchemaHelpers.number('Amount depreciated', { minimum: 0, maximum: 999999.99 }),
+        book_value_after: SchemaHelpers.number('Book value after depreciation', { minimum: 0, maximum: 999999.99 })
     },
-    { key: 'id', type: 'string' },
-    ['id', 'asset_id', 'depreciation_date', 'amount_depreciated', 'book_value_after'],
-    ['asset_id']
-);
+    required: ['id', 'asset_id', 'depreciation_date', 'amount_depreciated', 'book_value_after'],
+    indexes: ['asset_id']
+});
 
-export const stockLevelSchema: RxJsonSchema<types.InvStockLevelType> = createEntitySchema<types.InvStockLevelType>(
-    'stock_level',
-    {
-        compositeId: { type: 'string', final: true, maxLength: 200 }, // PK
-        item_id: { type: 'string', ref: 'items_inv' },
-        warehouse_id: { type: 'number', ref: 'warehouses' },
-        quantity: { type: 'number' },
-        last_updated: { type: ['string', 'null'], format: 'date-time' },
-        item_name: { type: ['string', 'null'] },
-        warehouse_name: { type: ['string', 'null'] },
-        category_name: { type: ['string', 'null'] },
+export const stockLevelSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'stock_level',
+    primaryKey: 'compositeId',
+    properties: {
+        compositeId: SchemaHelpers.id('Composite primary key for stock level'),
+        item_id: SchemaHelpers.string('Reference to inventory item', { maxLength: 100 }),
+        warehouse_id: SchemaHelpers.string('Reference to warehouse', { maxLength: 100 }),
+        quantity: SchemaHelpers.number('Current stock quantity', { minimum: 0, maximum: 999999999, integer: true }),
+        batch_number: SchemaHelpers.string('Batch number', { maxLength: 100 }),
+        expiry_date: SchemaHelpers.string('Expiry date', { format: 'date' }),
+        last_updated: SchemaHelpers.timestamp('Last update timestamp', { nullable: true }),
+        item_name: SchemaHelpers.string('Item name (computed)', { maxLength: 200, nullable: true }),
+        warehouse_name: SchemaHelpers.string('Warehouse name (computed)', { maxLength: 100, nullable: true }),
+        category_name: SchemaHelpers.string('Category name (computed)', { maxLength: 100, nullable: true }),
+        reorder_level: SchemaHelpers.number('Reorder level (computed)', { nullable: true, minimum: 0, maximum: 999999999, integer: true }),
+        max_stock_level: SchemaHelpers.number('Maximum stock level (computed)', { nullable: true, minimum: 0, maximum: 999999999, integer: true })
     },
-    { key: 'compositeId', type: 'string' },
-    ['compositeId', 'item_id', 'warehouse_id', 'quantity'],
-    [['item_id', 'warehouse_id']] // Composite index
-);
+    required: ['compositeId', 'item_id', 'warehouse_id', 'quantity'],
+    indexes: [['item_id', 'warehouse_id'], ['expiry_date'], ['batch_number']]
+});
 
-export const stockTransactionSchema: RxJsonSchema<types.InvStockTransactionType> = createEntitySchema<types.InvStockTransactionType>(
-    'stock_transaction',
-    {
-        id: { type: 'string', maxLength: 100, final: true },
-        item_id: { type: 'string', ref: 'items_inv' },
-        warehouse_id: { type: 'number', ref: 'warehouses' },
-        transaction_type: { type: 'string', enum: Object.values(types.InvStockTransactionType) },
-        quantity: { type: 'number' },
-        source_table: { type: ['string', 'null'] },
-        source_id: { type: ['string', 'null'] },
-        transaction_date: { type: ['string', 'null'], format: 'date-time' },
-        notes: { type: ['string', 'null'] },
-        item_name: { type: ['string', 'null'] },
-        warehouse_name: { type: ['string', 'null'] },
+export const stockTransactionSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'stock_transaction',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the stock transaction'),
+        item_id: SchemaHelpers.string('Reference to inventory item', { maxLength: 100 }),
+        warehouse_id: SchemaHelpers.string('Reference to warehouse', { maxLength: 100 }),
+        transaction_type: SchemaHelpers.string('Type of transaction', { maxLength: 50, enum: Object.values(types.InvStockTransactionType) }),
+        quantity: SchemaHelpers.number('Transaction quantity', { minimum: -999999999, maximum: 999999999, integer: true }),
+        batch_number: SchemaHelpers.string('Batch number', { maxLength: 100 }),
+        expiry_date: SchemaHelpers.string('Expiry date', { format: 'date' }),
+        source_table: SchemaHelpers.string('Source table reference', { maxLength: 100, nullable: true }),
+        source_id: SchemaHelpers.string('Source record ID', { maxLength: 100, nullable: true }),
+        transaction_date: SchemaHelpers.timestamp('Transaction date and time'),
+        notes: SchemaHelpers.string('Transaction notes', { maxLength: 500, nullable: true }),
+        item_name: SchemaHelpers.string('Item name (computed)', { maxLength: 200, nullable: true }),
+        warehouse_name: SchemaHelpers.string('Warehouse name (computed)', { maxLength: 100, nullable: true })
     },
-    { key: 'id', type: 'string' },
-    ['id', 'item_id', 'warehouse_id', 'transaction_type', 'quantity'],
-    ['item_id', 'warehouse_id', 'transaction_date']
-);
+    required: ['id', 'item_id', 'warehouse_id', 'transaction_type', 'quantity'],
+    indexes: ['item_id', 'warehouse_id', 'transaction_date', 'batch_number']
+});
 
-const requisitionItemProperties: RxJsonSchema<types.InvRequisitionItemType>['properties'] = {
-    id: { type: 'string', maxLength: 100, final: true },
-    requisition_id: { type: 'string' }, // No ref here, nested
-    item_id: { type: 'string', ref: 'items_inv' },
-    quantity_requested: { type: 'number' },
-    unit_price: { type: ['number', 'null'] },
-    quantity_issued: { type: ['number', 'null'], default: 0 },
-    fulfillment_stock_transaction_id: { type: ['string', 'null'] },
-    item_name: { type: ['string', 'null'] },
-    line_total: { type: ['number', 'null'] },
+const requisitionItemProperties: Record<string, DatabaseProperty> = {
+    id: SchemaHelpers.id('Unique identifier for the requisition item'),
+    requisition_id: SchemaHelpers.string('Reference to requisition', { maxLength: 100 }),
+    item_id: SchemaHelpers.string('Reference to inventory item', { maxLength: 100 }),
+    quantity_requested: SchemaHelpers.number('Quantity requested', { minimum: 0, maximum: 999999999, integer: true }),
+    unit_price: SchemaHelpers.number('Unit price', { nullable: true, minimum: 0, maximum: 999999.99 }),
+    quantity_issued: SchemaHelpers.number('Quantity issued', { nullable: true, minimum: 0, maximum: 999999999, integer: true, default: 0 }),
+    fulfillment_stock_transaction_id: SchemaHelpers.string('Fulfillment transaction ID', { maxLength: 100, nullable: true }),
+    item_name: SchemaHelpers.string('Item name (computed)', { maxLength: 200, nullable: true }),
+    line_total: SchemaHelpers.number('Line total (computed)', { nullable: true, minimum: 0, maximum: 999999.99 })
 };
-export const requisitionSchema: RxJsonSchema<types.InvRequisitionType> = createEntitySchema<types.InvRequisitionType>(
-    'requisition',
-    {
-        id: { type: 'string', maxLength: 100, final: true },
-        requesting_staff_id: { type: 'string', ref: 'staff' },
-        request_date: { type: 'string', format: 'date' },
-        status: { type: 'string', enum: Object.values(types.InvRequisitionStatusEnum) },
-        notes: { type: ['string', 'null'] },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
-        items: { type: ['array', 'null'], default: [], items: { type: 'object', properties: requisitionItemProperties } },
-        requesting_staff_name: { type: ['string', 'null'] },
-        department_name: { type: ['string', 'null'] },
-        total_requested_value: { type: ['number', 'null'] },
+export const requisitionSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'requisition',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the requisition'),
+        requesting_staff_id: SchemaHelpers.string('Reference to requesting staff', { maxLength: 100 }),
+        request_date: SchemaHelpers.string('Request date', { format: 'date' }),
+        status: SchemaHelpers.string('Requisition status', { maxLength: 50, enum: Object.values(types.InvRequisitionStatusEnum) }),
+        notes: SchemaHelpers.string('Requisition notes', { maxLength: 500, nullable: true }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp'),
+        items: SchemaHelpers.array('Requisition items', { nullable: true, default: [], items: SchemaHelpers.object('Requisition item', { properties: requisitionItemProperties }) }),
+        requesting_staff_name: SchemaHelpers.string('Requesting staff name (computed)', { maxLength: 200, nullable: true }),
+        department_name: SchemaHelpers.string('Department name (computed)', { maxLength: 100, nullable: true }),
+        total_requested_value: SchemaHelpers.number('Total requested value (computed)', { nullable: true, minimum: 0, maximum: 999999.99 })
     },
-    { key: 'id', type: 'string' },
-    ['id', 'requesting_staff_id', 'request_date', 'status', 'created_at', 'updated_at'],
-    ['requesting_staff_id', 'status', 'request_date']
-);
+    required: ['id', 'requesting_staff_id', 'request_date', 'status', 'created_at', 'updated_at'],
+    indexes: ['requesting_staff_id', 'status', 'request_date']
+});
 
-const purchaseOrderItemProperties: RxJsonSchema<types.InvPurchaseOrderItemType>['properties'] = {
-    id: { type: 'string', maxLength: 100, final: true },
-    purchase_order_id: { type: 'string' }, // No ref here, nested
-    item_id: { type: 'string', ref: 'items_inv' },
-    quantity_ordered: { type: 'number' },
-    unit_price: { type: 'number' },
-    quantity_received: { type: ['number', 'null'], default: 0 },
-    item_name: { type: ['string', 'null'] },
-    line_total: { type: ['number', 'null'] },
+const purchaseOrderItemProperties: Record<string, DatabaseProperty> = {
+    id: SchemaHelpers.id('Unique identifier for the purchase order item'),
+    purchase_order_id: SchemaHelpers.string('Reference to purchase order', { maxLength: 100 }),
+    item_id: SchemaHelpers.string('Reference to inventory item', { maxLength: 100 }),
+    quantity_ordered: SchemaHelpers.number('Quantity ordered', { minimum: 0, maximum: 999999999, integer: true }),
+    unit_price: SchemaHelpers.number('Unit price', { minimum: 0, maximum: 999999.99 }),
+    quantity_received: SchemaHelpers.number('Quantity received', { nullable: true, minimum: 0, maximum: 999999999, integer: true, default: 0 }),
+    item_name: SchemaHelpers.string('Item name (computed)', { maxLength: 200, nullable: true }),
+    line_total: SchemaHelpers.number('Line total (computed)', { nullable: true, minimum: 0, maximum: 999999.99 })
 };
-export const purchaseOrderSchema: RxJsonSchema<types.InvPurchaseOrderType> = createEntitySchema<types.InvPurchaseOrderType>(
-    'purchase_order',
-    {
-        id: { type: 'string', maxLength: 100, final: true },
-        supplier_id: { type: 'number', ref: 'suppliers' }, 
-        order_date: { type: 'string', format: 'date' },
-        expected_delivery_date: { type: ['string', 'null'], format: 'date' },
-        status: { type: 'string', enum: Object.values(types.InvPurchaseOrderStatusEnum) },
-        notes: { type: ['string', 'null'] },
-        requisition_id: { type: ['string', 'null'], ref: 'requisitions' },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
-        items: { type: ['array', 'null'], default: [], items: { type: 'object', properties: purchaseOrderItemProperties } },
-        supplier_name: { type: ['string', 'null'] },
-        total_value: { type: ['number', 'null'] },
+export const purchaseOrderSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'purchase_order',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the purchase order'),
+        supplier_id: SchemaHelpers.string('Reference to supplier', { maxLength: 100 }),
+        order_date: SchemaHelpers.string('Order date', { format: 'date' }),
+        expected_delivery_date: SchemaHelpers.string('Expected delivery date', { nullable: true, format: 'date' }),
+        status: SchemaHelpers.string('Purchase order status', { maxLength: 50, enum: Object.values(types.InvPurchaseOrderStatusEnum) }),
+        notes: SchemaHelpers.string('Purchase order notes', { maxLength: 500, nullable: true }),
+        requisition_id: SchemaHelpers.string('Reference to requisition', { maxLength: 100, nullable: true }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp'),
+        items: SchemaHelpers.array('Purchase order items', { nullable: true, default: [], items: SchemaHelpers.object('Purchase order item', { properties: purchaseOrderItemProperties }) }),
+        supplier_name: SchemaHelpers.string('Supplier name (computed)', { maxLength: 200, nullable: true }),
+        total_value: SchemaHelpers.number('Total value (computed)', { nullable: true, minimum: 0, maximum: 999999.99 })
     },
-    { key: 'id', type: 'string' },
-    ['id', 'supplier_id', 'order_date', 'status', 'created_at', 'updated_at'],
-    ['supplier_id', 'status', 'order_date']
-);
+    required: ['id', 'supplier_id', 'order_date', 'status', 'created_at', 'updated_at'],
+    indexes: ['supplier_id', 'status', 'order_date']
+});
 
-export const rfqSchema: RxJsonSchema<types.InvRFQType> = createEntitySchema<types.InvRFQType>(
-    'rfq',
-    {
-        id: { type: 'string', maxLength: 100, final: true },
-        title: { type: 'string', maxLength: 255 },
-        description: { type: ['string', 'null'] },
-        issue_date: { type: 'string', format: 'date' },
-        closing_date: { type: 'string', format: 'date' },
-        status: { type: 'string', enum: Object.values(types.InvRFQStatusEnum) },
-        created_at: { type: 'string', format: 'date-time' },
-        updated_at: { type: 'string', format: 'date-time' },
+export const rfqSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'rfq',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the RFQ'),
+        title: SchemaHelpers.string('RFQ title', { maxLength: 255 }),
+        description: SchemaHelpers.string('RFQ description', { maxLength: 1000, nullable: true }),
+        issue_date: SchemaHelpers.string('Issue date', { format: 'date' }),
+        closing_date: SchemaHelpers.string('Closing date', { format: 'date' }),
+        status: SchemaHelpers.string('RFQ status', { maxLength: 50, enum: Object.values(types.InvRFQStatusEnum) }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp')
     },
-    { key: 'id', type: 'string' },
-    ['id', 'title', 'issue_date', 'closing_date', 'status', 'created_at', 'updated_at'],
-    ['status', 'closing_date']
-);
+    required: ['id', 'title', 'issue_date', 'closing_date', 'status', 'created_at', 'updated_at'],
+    indexes: ['status', 'closing_date']
+});
+
+export const supplierSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'supplier',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the supplier'),
+        name: SchemaHelpers.string('Supplier name', { maxLength: 200 }),
+        contact_person: SchemaHelpers.string('Contact person', { maxLength: 100, nullable: true }),
+        email: SchemaHelpers.string('Email address', { maxLength: 100, nullable: true }),
+        phone: SchemaHelpers.string('Phone number', { maxLength: 50, nullable: true }),
+        address: SchemaHelpers.string('Address', { maxLength: 500, nullable: true }),
+        tax_id: SchemaHelpers.string('Tax ID', { maxLength: 50, nullable: true }),
+        registration_number: SchemaHelpers.string('Registration number', { maxLength: 50, nullable: true }),
+        status: SchemaHelpers.string('Supplier status', { maxLength: 50, enum: Object.values(types.InvSupplierStatusEnum) }),
+        payment_terms: SchemaHelpers.string('Payment terms', { maxLength: 100, nullable: true }),
+        credit_limit: SchemaHelpers.number('Credit limit', { nullable: true, minimum: 0, maximum: 999999.99 }),
+        performance_rating: SchemaHelpers.number('Performance rating', { nullable: true, minimum: 1, maximum: 5 }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp')
+    },
+    required: ['id', 'name', 'status', 'created_at', 'updated_at'],
+    indexes: ['name', 'status', 'email']
+});
+
+export const supplierContractSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'supplier_contract',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the supplier contract'),
+        supplier_id: SchemaHelpers.string('Reference to supplier', { maxLength: 100 }),
+        contract_number: SchemaHelpers.string('Contract number', { maxLength: 100 }),
+        title: SchemaHelpers.string('Contract title', { maxLength: 255 }),
+        description: SchemaHelpers.string('Contract description', { maxLength: 1000, nullable: true }),
+        start_date: SchemaHelpers.string('Start date', { format: 'date' }),
+        end_date: SchemaHelpers.string('End date', { format: 'date' }),
+        status: SchemaHelpers.string('Contract status', { maxLength: 50, enum: Object.values(types.InvContractStatusEnum) }),
+        contract_value: SchemaHelpers.number('Contract value', { nullable: true, minimum: 0, maximum: 999999.99 }),
+        renewal_notice_days: SchemaHelpers.number('Renewal notice days', { nullable: true, minimum: 1, maximum: 365, integer: true }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp'),
+        supplier_name: SchemaHelpers.string('Supplier name (computed)', { maxLength: 200, nullable: true })
+    },
+    required: ['id', 'supplier_id', 'contract_number', 'start_date', 'end_date', 'status', 'created_at', 'updated_at'],
+    indexes: ['supplier_id', 'status', 'end_date', 'contract_number']
+});
+
+export const stockAlertSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'stock_alert',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the stock alert'),
+        item_id: SchemaHelpers.string('Reference to inventory item', { maxLength: 100 }),
+        warehouse_id: SchemaHelpers.string('Reference to warehouse', { maxLength: 100 }),
+        alert_type: SchemaHelpers.string('Type of alert', { maxLength: 50, enum: ['LOW_STOCK', 'OVERSTOCK', 'EXPIRY_WARNING', 'EXPIRED'] }),
+        current_quantity: SchemaHelpers.number('Current quantity', { minimum: 0, maximum: 999999999, integer: true }),
+        threshold_value: SchemaHelpers.number('Threshold value', { nullable: true, minimum: 0, maximum: 999999999, integer: true }),
+        expiry_date: SchemaHelpers.string('Expiry date', { nullable: true, format: 'date' }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        acknowledged_at: SchemaHelpers.timestamp('Acknowledgment timestamp'),
+        acknowledged_by: SchemaHelpers.string('Acknowledged by staff member', { maxLength: 100, nullable: true }),
+        item_name: SchemaHelpers.string('Item name (computed)', { maxLength: 200, nullable: true }),
+        warehouse_name: SchemaHelpers.string('Warehouse name (computed)', { maxLength: 100, nullable: true })
+    },
+    required: ['id', 'item_id', 'warehouse_id', 'alert_type', 'created_at'],
+    indexes: ['item_id', 'warehouse_id', 'alert_type', 'acknowledged_at']
+});

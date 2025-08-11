@@ -84,7 +84,12 @@
     "requisitions": "Demandes",
     "purchaseOrders": "Bons de commande",
     "stockIssuance": "Sorties de stock",
-    "stockLevels": "Niveaux de stock"
+    "stockLevels": "Niveaux de Stock",
+      "reorderAlerts": "Alertes de Réapprovisionnement",
+      "stockReception": "Réception de Stock",
+      "stockReturns": "Retours de Stock",
+      "suppliers": "Fournisseurs",
+      "supplierContracts": "Contrats Fournisseurs"
   },
   "library": {
     "title": "Bibliothèque",

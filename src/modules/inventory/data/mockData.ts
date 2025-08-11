@@ -17,8 +17,30 @@ import {
     DepreciationMethod,
     StockTransactionType,
     RequisitionStatus,
-    PurchaseOrderStatus
+    PurchaseOrderStatus,
+    RFQ,
+    RFQStatus
 } from '../../../core/types';
+import { suppliers } from '../../../globalMockData';
+import { InvSupplierType, InvSupplierStatusEnum } from './types';
+
+// Map global suppliers to InvSupplierType for inventory module use
+export const initialMockSuppliers: InvSupplierType[] = suppliers.map(supplier => ({
+  id: supplier.id,
+  name: supplier.name,
+  contact_person: supplier.name, // Default to supplier name
+  email: supplier.email || undefined,
+  phone: supplier.phone || undefined,
+  address: supplier.address || undefined,
+  tax_id: undefined,
+  registration_number: undefined,
+  status: InvSupplierStatusEnum.ACTIVE,
+  payment_terms: 'Net 30',
+  credit_limit: 100000,
+  performance_rating: 4,
+  created_at: supplier.created_at,
+  updated_at: supplier.updated_at
+}));
 
 export const initialMockWarehouses: Warehouse[] = [
   { id: 1, name: 'Main Store' },
@@ -80,14 +102,14 @@ export const initialMockItemsInv: ItemInv[] = [
 ];
 
 export const initialMockFixedAssets: FixedAsset[] = [
-  { id: 'FA001', item_id: 'INV021', asset_tag: 'DESK001', purchase_date: '2023-01-15', purchase_cost: 3500, current_value: 3200, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Student Desk', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA002', item_id: 'INV022', asset_tag: 'STOOL001', purchase_date: '2023-01-15', purchase_cost: 1500, current_value: 1350, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Lab Stool', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA003', item_id: 'INV018', asset_tag: 'MICRO001', purchase_date: '2023-02-20', purchase_cost: 45000, current_value: 40500, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Microscope Student Grade', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA004', item_id: 'INV019', asset_tag: 'SCALE001', purchase_date: '2023-02-20', purchase_cost: 8500, current_value: 7650, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Digital Scale 0.1g', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA005', item_id: 'INV023', asset_tag: 'CHAIR001', purchase_date: '2023-03-10', purchase_cost: 4500, current_value: 4050, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Teacher Chair', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA006', item_id: 'INV024', asset_tag: 'TABLE001', purchase_date: '2023-03-10', purchase_cost: 8500, current_value: 7650, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Office Table', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA007', item_id: 'INV025', asset_tag: 'CABINET001', purchase_date: '2023-04-05', purchase_cost: 12000, current_value: 10800, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Filing Cabinet', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: 'FA008', item_id: 'INV026', asset_tag: 'BOARD001', purchase_date: '2023-04-05', purchase_cost: 6500, current_value: 5850, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Whiteboard 4x6 ft', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+  { id: 'FA001', item_id: 'INV021', asset_tag: 'DESK001', serial_number: 'SN-DESK-001', purchase_date: '2023-01-15', purchase_cost: 3500, current_value: 3200, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Student Desk', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'FA002', item_id: 'INV022', asset_tag: 'STOOL001', serial_number: 'SN-STOOL-001', purchase_date: '2023-01-15', purchase_cost: 1500, current_value: 1350, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Lab Stool', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'FA003', item_id: 'INV018', asset_tag: 'MICRO001', serial_number: 'SN-MICRO-001', purchase_date: '2023-02-20', purchase_cost: 45000, current_value: 40500, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Microscope Student Grade', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'FA004', item_id: 'INV019', asset_tag: 'SCALE001', serial_number: 'SN-SCALE-001', purchase_date: '2023-02-20', purchase_cost: 8500, current_value: 7650, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Digital Scale 0.1g', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'FA005', item_id: 'INV023', asset_tag: 'CHAIR001', serial_number: 'SN-CHAIR-001', purchase_date: '2023-03-10', purchase_cost: 4500, current_value: 4050, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Teacher Chair', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'FA006', item_id: 'INV024', asset_tag: 'TABLE001', serial_number: 'SN-TABLE-001', purchase_date: '2023-03-10', purchase_cost: 8500, current_value: 7650, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Office Table', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'FA007', item_id: 'INV025', asset_tag: 'CABINET001', serial_number: 'SN-CABINET-001', purchase_date: '2023-04-05', purchase_cost: 12000, current_value: 10800, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Filing Cabinet', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'FA008', item_id: 'INV026', asset_tag: 'BOARD001', serial_number: 'SN-BOARD-001', purchase_date: '2023-04-05', purchase_cost: 6500, current_value: 5850, depreciation_method: DepreciationMethod.STRAIGHT_LINE, depreciation_rate_pa: 10, item_name: 'Whiteboard 4x6 ft', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
 ];
 
 export const initialMockAssetDepreciationLogs: AssetDepreciationLog[] = [
@@ -136,26 +158,26 @@ export const initialMockStockLevels: StockLevel[] = [
 
 export const initialMockStockTransactions: StockTransaction[] = [
     // Stock Receipts
-    { id: 'STK-T001', item_id: 'INV001', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 100, transaction_date: '2024-01-10', notes: 'Initial stock from Text Book Centre' },
-    { id: 'STK-T002', item_id: 'INV002', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 50, transaction_date: '2024-01-10', notes: 'Initial stock from Office Depot' },
-    { id: 'STK-T003', item_id: 'INV011', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 50, transaction_date: '2024-01-15', notes: 'Form 1 textbooks from KLB' },
-    { id: 'STK-T004', item_id: 'INV012', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 45, transaction_date: '2024-01-15', notes: 'Mathematics books from Longhorn' },
-    { id: 'STK-T005', item_id: 'INV031', warehouse_id: 3, transaction_type: StockTransactionType.RECEIVE, quantity: 20, transaction_date: '2024-01-20', notes: 'Maize flour for kitchen' },
-    { id: 'STK-T006', item_id: 'INV032', warehouse_id: 3, transaction_type: StockTransactionType.RECEIVE, quantity: 15, transaction_date: '2024-01-20', notes: 'Rice for kitchen' },
-    { id: 'STK-T007', item_id: 'INV016', warehouse_id: 2, transaction_type: StockTransactionType.RECEIVE, quantity: 20, transaction_date: '2024-01-25', notes: 'Lab equipment from Scientific Equipment Ltd' },
-    { id: 'STK-T008', item_id: 'INV017', warehouse_id: 2, transaction_type: StockTransactionType.RECEIVE, quantity: 15, transaction_date: '2024-01-25', notes: 'Beakers for chemistry lab' },
+    { id: 'STK-T001', item_id: 'INV001', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 100, transaction_date: '2024-01-10', notes: 'Initial stock from Text Book Centre', item_name: 'A4 Ream Paper', warehouse_name: 'Main Store' },
+    { id: 'STK-T002', item_id: 'INV002', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 50, transaction_date: '2024-01-10', notes: 'Initial stock from Office Depot', item_name: 'Blue Bic Pen', warehouse_name: 'Main Store' },
+    { id: 'STK-T003', item_id: 'INV011', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 50, transaction_date: '2024-01-15', notes: 'Form 1 textbooks from KLB', item_name: 'English Form 1 Student Book', warehouse_name: 'Main Store' },
+    { id: 'STK-T004', item_id: 'INV012', warehouse_id: 1, transaction_type: StockTransactionType.RECEIVE, quantity: 45, transaction_date: '2024-01-15', notes: 'Mathematics books from Longhorn', item_name: 'Mathematics Form 1 Student Book', warehouse_name: 'Main Store' },
+    { id: 'STK-T005', item_id: 'INV031', warehouse_id: 3, transaction_type: StockTransactionType.RECEIVE, quantity: 20, transaction_date: '2024-01-20', notes: 'Maize flour for kitchen', item_name: 'Maize Flour', warehouse_name: 'Kitchen Store' },
+    { id: 'STK-T006', item_id: 'INV032', warehouse_id: 3, transaction_type: StockTransactionType.RECEIVE, quantity: 15, transaction_date: '2024-01-20', notes: 'Rice for kitchen', item_name: 'Rice', warehouse_name: 'Kitchen Store' },
+    { id: 'STK-T007', item_id: 'INV016', warehouse_id: 2, transaction_type: StockTransactionType.RECEIVE, quantity: 20, transaction_date: '2024-01-25', notes: 'Lab equipment from Scientific Equipment Ltd', item_name: 'Test Tubes', warehouse_name: 'Science Lab Store' },
+    { id: 'STK-T008', item_id: 'INV017', warehouse_id: 2, transaction_type: StockTransactionType.RECEIVE, quantity: 15, transaction_date: '2024-01-25', notes: 'Beakers for chemistry lab', item_name: 'Beakers 250ml', warehouse_name: 'Science Lab Store' },
     // Stock Issues
-    { id: 'STK-T009', item_id: 'INV001', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -50, transaction_date: '2024-02-05', notes: 'Issued to Admin Department' },
-    { id: 'STK-T010', item_id: 'INV002', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -25, transaction_date: '2024-02-08', notes: 'Issued to Teaching Staff' },
-    { id: 'STK-T011', item_id: 'INV011', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -5, transaction_date: '2024-02-10', notes: 'Distributed to Form 1A students' },
-    { id: 'STK-T012', item_id: 'INV012', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -7, transaction_date: '2024-02-10', notes: 'Distributed to Form 1A students' },
-    { id: 'STK-T013', item_id: 'INV031', warehouse_id: 3, transaction_type: StockTransactionType.ISSUE, quantity: -10, transaction_date: '2024-02-15', notes: 'Kitchen consumption - Term 1' },
-    { id: 'STK-T014', item_id: 'INV032', warehouse_id: 3, transaction_type: StockTransactionType.ISSUE, quantity: -7, transaction_date: '2024-02-15', notes: 'Kitchen consumption - Term 1' },
-    { id: 'STK-T015', item_id: 'INV016', warehouse_id: 2, transaction_type: StockTransactionType.ISSUE, quantity: -5, transaction_date: '2024-02-20', notes: 'Chemistry practical classes' },
-    { id: 'STK-T016', item_id: 'INV017', warehouse_id: 2, transaction_type: StockTransactionType.ISSUE, quantity: -3, transaction_date: '2024-02-20', notes: 'Biology practical classes' },
+    { id: 'STK-T009', item_id: 'INV001', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -50, transaction_date: '2024-02-05', notes: 'Issued to Admin Department', item_name: 'A4 Ream Paper', warehouse_name: 'Main Store' },
+    { id: 'STK-T010', item_id: 'INV002', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -25, transaction_date: '2024-02-08', notes: 'Issued to Teaching Staff', item_name: 'Blue Bic Pen', warehouse_name: 'Main Store' },
+    { id: 'STK-T011', item_id: 'INV011', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -5, transaction_date: '2024-02-10', notes: 'Distributed to Form 1A students', item_name: 'English Form 1 Student Book', warehouse_name: 'Main Store' },
+    { id: 'STK-T012', item_id: 'INV012', warehouse_id: 1, transaction_type: StockTransactionType.ISSUE, quantity: -7, transaction_date: '2024-02-10', notes: 'Distributed to Form 1A students', item_name: 'Mathematics Form 1 Student Book', warehouse_name: 'Main Store' },
+    { id: 'STK-T013', item_id: 'INV031', warehouse_id: 3, transaction_type: StockTransactionType.ISSUE, quantity: -10, transaction_date: '2024-02-15', notes: 'Kitchen consumption - Term 1', item_name: 'Maize Flour', warehouse_name: 'Kitchen Store' },
+    { id: 'STK-T014', item_id: 'INV032', warehouse_id: 3, transaction_type: StockTransactionType.ISSUE, quantity: -7, transaction_date: '2024-02-15', notes: 'Kitchen consumption - Term 1', item_name: 'Rice', warehouse_name: 'Kitchen Store' },
+    { id: 'STK-T015', item_id: 'INV016', warehouse_id: 2, transaction_type: StockTransactionType.ISSUE, quantity: -5, transaction_date: '2024-02-20', notes: 'Chemistry practical classes', item_name: 'Test Tubes', warehouse_name: 'Science Lab Store' },
+    { id: 'STK-T016', item_id: 'INV017', warehouse_id: 2, transaction_type: StockTransactionType.ISSUE, quantity: -3, transaction_date: '2024-02-20', notes: 'Biology practical classes', item_name: 'Beakers 250ml', warehouse_name: 'Science Lab Store' },
     // Stock Adjustments
-    { id: 'STK-T017', item_id: 'INV006', warehouse_id: 1, transaction_type: StockTransactionType.ADJUSTMENT, quantity: -2, transaction_date: '2024-03-01', notes: 'Damaged exercise books - write off' },
-    { id: 'STK-T018', item_id: 'INV027', warehouse_id: 1, transaction_type: StockTransactionType.ADJUSTMENT, quantity: 5, transaction_date: '2024-03-05', notes: 'Stock count adjustment - found extra' }
+    { id: 'STK-T017', item_id: 'INV006', warehouse_id: 1, transaction_type: StockTransactionType.ADJUSTMENT, quantity: -2, transaction_date: '2024-03-01', notes: 'Damaged exercise books - write off', item_name: 'Exercise Books 40 Pages', warehouse_name: 'Main Store' },
+    { id: 'STK-T018', item_id: 'INV027', warehouse_id: 1, transaction_type: StockTransactionType.ADJUSTMENT, quantity: 5, transaction_date: '2024-03-05', notes: 'Stock count adjustment - found extra', item_name: 'Toilet Paper Roll', warehouse_name: 'Main Store' }
 ];
 
 export const initialMockRequisitions: Requisition[] = [
@@ -214,6 +236,14 @@ export const initialMockPurchaseOrderItems: PurchaseOrderItem[] = [
     { id: 'POI015', purchase_order_id: 'PO004', item_id: 'INV025', quantity_ordered: 1, unit_price: 11500, quantity_received: 0, item_name: 'Filing Cabinet' }
 ];
 
+export const initialMockRFQs: RFQ[] = [
+  { id: 'RFQ001', title: 'Laboratory Equipment Procurement', description: 'Request for quotations for chemistry and biology laboratory equipment', issue_date: '2024-06-01', closing_date: '2024-06-15', status: RFQStatus.CLOSED, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'RFQ002', title: 'Office Furniture Supply', description: 'Procurement of desks, chairs, and filing cabinets for administrative offices', issue_date: '2024-06-10', closing_date: '2024-06-25', status: RFQStatus.AWARDED, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'RFQ003', title: 'Textbook Supply for Academic Year 2024/2025', description: 'Supply of textbooks for all forms and subjects', issue_date: '2024-07-01', closing_date: '2024-07-20', status: RFQStatus.OPEN, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'RFQ004', title: 'Kitchen Equipment Upgrade', description: 'Procurement of modern kitchen equipment and appliances', issue_date: '2024-07-05', closing_date: '2024-07-25', status: RFQStatus.OPEN, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'RFQ005', title: 'ICT Infrastructure Enhancement', description: 'Supply and installation of computers, projectors, and networking equipment', issue_date: '2024-05-15', closing_date: '2024-05-30', status: RFQStatus.CANCELLED, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+];
+
 // Ensure all AppDataType keys for inventory are exported
 export const warehouses = initialMockWarehouses;
 export const itemCategoriesInv = initialMockItemCategoriesInv;
@@ -226,3 +256,4 @@ export const purchaseOrderItems = initialMockPurchaseOrderItems;
 export const stockLevels = initialMockStockLevels;
 export const stockTransactions = initialMockStockTransactions;
 export const assetDepreciationLogs = initialMockAssetDepreciationLogs;
+export const rfqs = initialMockRFQs;

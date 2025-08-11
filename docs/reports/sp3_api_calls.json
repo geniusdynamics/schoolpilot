@@ -1,0 +1,238 @@
+{
+  "metadata": {
+    "application": "SchoolPilot 3",
+    "scan_date": "2025-01-27T08:30:00Z",
+    "architecture": "React + RxDB (Local-first)",
+    "summary": "This application is primarily designed as a local-first system using RxDB for data storage. Most operations are local data manipulations rather than network API calls."
+  },
+  "api_calls": [
+    {
+      "file": "services/BackendAPIService.ts",
+      "line": 140,
+      "HTTP_verb": "fetch",
+      "full_URL": "${baseURL}${endpoint}",
+      "base_url": "/api/v1",
+      "description": "Configurable backend API service - supports GET, POST, PUT, DELETE, PATCH with offline queueing",
+      "domain": "core",
+      "feature_area": "API Infrastructure"
+    },
+    {
+      "file": "services/NetworkStateManager.ts",
+      "line": 90,
+      "HTTP_verb": "GET",
+      "full_URL": "/api/health",
+      "base_url": "/api",
+      "description": "Backend health check endpoint - monitors system availability",
+      "domain": "core",
+      "feature_area": "System Health Monitoring"
+    },
+    {
+      "file": "core/rbacService.ts",
+      "line": 93,
+      "HTTP_verb": "local",
+      "full_URL": "RxDB Collections (permissions, rbac_roles, user_roles)",
+      "base_url": "local",
+      "description": "RBAC data operations - permissions, roles, and user assignments via RxDB",
+      "domain": "core",
+      "feature_area": "Authentication & Authorization"
+    },
+    {
+      "file": "hooks/useRxDBData.ts",
+      "line": 194,
+      "HTTP_verb": "local",
+      "full_URL": "RxDB Database Operations",
+      "base_url": "local",
+      "description": "Local database operations for all modules - students, staff, academics, finance, etc.",
+      "domain": "data",
+      "feature_area": "Local Data Management"
+    },
+    {
+      "file": "services/moduleHealthMonitor.ts",
+      "line": 326,
+      "HTTP_verb": "local",
+      "full_URL": "Module Health Checks",
+      "base_url": "local",
+      "description": "Internal module health monitoring - no external API calls",
+      "domain": "core",
+      "feature_area": "Module Health Monitoring"
+    },
+    {
+      "file": "contexts/AppDataContext.tsx",
+      "line": 502,
+      "HTTP_verb": "local",
+      "full_URL": "RxDB Context Provider",
+      "base_url": "local",
+      "description": "Application data context - provides RxDB data to all components",
+      "domain": "core",
+      "feature_area": "Data Context Management"
+    },
+    {
+      "file": "api/students.ts",
+      "line": 5,
+      "HTTP_verb": "helper",
+      "full_URL": "Helper Functions (No Network Calls)",
+      "base_url": "local",
+      "description": "Student data access helpers - filters local data, no API calls",
+      "domain": "administration",
+      "feature_area": "Student Management"
+    },
+    {
+      "file": "utils/api.ts",
+      "line": 5,
+      "HTTP_verb": "helper",
+      "full_URL": "Utility Functions (No Network Calls)",
+      "base_url": "local",
+      "description": "Data filtering and processing utilities - works with local data only",
+      "domain": "core",
+      "feature_area": "Data Utilities"
+    }
+  ],
+  "module_breakdown": {
+    "academics": {
+      "description": "Academic management module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["Subjects", "Exams", "Grading", "Timetables", "Class Allocations"]
+    },
+    "administration": {
+      "description": "School administration module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["Students", "Staff", "Classes", "Academic Calendar", "Communications"]
+    },
+    "finance": {
+      "description": "Financial management module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["Fee Management", "Accounting", "Transport", "Suppliers"]
+    },
+    "hr": {
+      "description": "Human resources module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["Payroll", "Staff Management"]
+    },
+    "inventory": {
+      "description": "Inventory management module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["Stock Management", "Procurement", "Fixed Assets"]
+    },
+    "library": {
+      "description": "Library management module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["Catalog Management", "Book Loans", "Fines"]
+    },
+    "nutrition": {
+      "description": "Nutrition and wallet module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["Meal Plans", "Student Wallet", "Consumption Logging"]
+    },
+    "reports": {
+      "description": "Reporting module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["Student Reports", "Financial Reports", "Academic Reports"]
+    },
+    "settings": {
+      "description": "System settings module",
+      "api_calls": 0,
+      "data_source": "RxDB Local Storage",
+      "features": ["School Profile", "User Management", "System Configuration"]
+    }
+  },
+  "technical_notes": {
+    "architecture_type": "Local-First Application",
+    "primary_data_store": "RxDB (IndexedDB-based)",
+    "network_dependency": "Minimal - only for health checks and optional backend sync",
+    "offline_capability": "Full offline functionality",
+    "api_framework": "Custom BackendAPIService with offline queueing",
+    "data_sync": "RxDB handles data synchronization and persistence"
+  },
+  "error_boundary_architecture": {
+    "implementation_quality": "Advanced Multi-layered System",
+    "boundaries_implemented": [
+      {
+        "name": "ApplicationErrorBoundary",
+        "level": "Application",
+        "features": ["Retry mechanism (3 attempts)", "Error ID generation", "Page reload option", "Custom error logging", "Technical details collapsible view"],
+        "recovery_options": ["Try Again", "Reload Page"]
+      },
+      {
+        "name": "ModuleErrorBoundary",
+        "level": "Module",
+        "features": ["Module isolation", "Custom fallback components", "Module-specific error logging", "Single retry"],
+        "recovery_options": ["Retry Module"]
+      },
+      {
+        "name": "PageErrorBoundary",
+        "level": "Page",
+        "features": ["Page-specific error tracking", "Navigation alternatives", "Error ID generation"],
+        "recovery_options": ["Try Again", "Refresh Page", "Go Back", "Go to Dashboard"]
+      },
+      {
+        "name": "NavigationErrorBoundary",
+        "level": "Navigation",
+        "features": ["Route recovery", "Last working route tracking", "Fallback routes", "Navigation suggestions", "Exponential backoff"],
+        "recovery_options": ["Try Again", "Go to Dashboard", "Go Back", "Reload Page", "Fallback Routes"]
+      },
+      {
+        "name": "ErrorBoundary",
+        "level": "Generic",
+        "features": ["Basic error catching", "Component stack display", "External service logging hook"],
+        "recovery_options": ["Display error message only"]
+      }
+    ],
+    "integration_points": {
+      "app_level": "ApplicationErrorBoundary wraps entire application with 3 retry attempts",
+      "module_level": "ModuleErrorBoundary isolates each core module",
+      "page_level": "PageErrorBoundary wraps dynamic route components",
+      "navigation_level": "NavigationErrorBoundary handles route resolution failures",
+      "component_level": "Generic ErrorBoundary for individual components"
+    },
+    "error_tracking": {
+      "error_ids": "Generated for application and page-level errors",
+      "logging": "Console logging with structured error data",
+      "user_agent_tracking": "Navigation errors include user agent",
+      "route_tracking": "Last working route persistence",
+      "retry_counts": "Tracked across all boundary levels"
+    },
+    "recovery_mechanisms": {
+      "automatic_retry": "ApplicationErrorBoundary (3 attempts), NavigationErrorBoundary (2 attempts)",
+      "manual_retry": "All boundaries provide manual retry buttons",
+      "navigation_recovery": "Smart fallback routes and last working route restoration",
+      "page_reload": "Available at application and page levels",
+      "graceful_degradation": "Module isolation prevents cascade failures"
+    },
+    "strengths": [
+      "Comprehensive multi-layered approach",
+      "Module isolation prevents cascade failures",
+      "Advanced navigation error recovery",
+      "User-friendly error messages and recovery options",
+      "Detailed error tracking and logging",
+      "Configurable retry mechanisms",
+      "Fallback route system",
+      "Last working route persistence"
+    ],
+    "areas_for_improvement": [
+      "External error service integration (commented out)",
+      "Error analytics and reporting",
+      "User error feedback collection",
+      "Error boundary performance monitoring",
+      "Centralized error configuration"
+    ]
+  },
+  "summary": {
+    "total_network_calls": 2,
+    "actual_api_endpoints": [
+      "/api/v1/*",
+      "/api/health"
+    ],
+    "primary_architecture": "Local-first with optional backend connectivity",
+    "error_handling_quality": "Enterprise-grade multi-layered error boundary system",
+    "key_finding": "This application combines minimal external API dependencies with sophisticated error handling, featuring 5 distinct error boundary types providing comprehensive failure recovery."
+  }
+}
+

@@ -7,10 +7,12 @@ import LanguageSwitcher from './ui/LanguageSwitcher';
 import UserMenu from './UserMenu';
 import { NetworkStatusIndicator } from './OfflineCapability';
 import ModuleHealthIndicator from './ModuleHealthIndicator';
+import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 
 const notifications = 3; // Example notification count
 
 const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
+  const { config } = useUnifiedConfig();
   const [showHeader, setShowHeader] = useState(true);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const lastScrollY = useRef(0);
@@ -35,7 +37,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/70 backdrop-blur shadow-md border-b border-slate-100`}
+      className={`fixed top-0 left-0 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/90 lg:backdrop-blur-md shadow-md border-b border-slate-100`}
       style={{ height: '64px' }}
     >
       <div className="max-w-full mx-auto flex items-center justify-between h-16 px-3 sm:px-6">
@@ -47,13 +49,20 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block">schoolpilot</span>
         </div>
         
-        {/* Center: Search Bar - Hidden on mobile, responsive on tablet+ */}
+        {/* Center: Compact Search Bar - Hidden on mobile, responsive on tablet+ */}
         <div className="hidden md:flex flex-1 justify-center mx-4">
-          <input
-            type="text"
-            placeholder="Search students, classes, reports..."
-            className="w-full max-w-md lg:max-w-lg xl:max-w-xl px-4 py-2 rounded-xl bg-white/60 border border-slate-200 shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-400 text-slate-700 placeholder-slate-400 text-sm"
-          />
+          <div className="relative max-w-sm lg:max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search"
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-50/80 border border-slate-200/50 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 text-slate-700 placeholder-slate-400 text-sm transition-all duration-200 hover:bg-white/60"
+            />
+          </div>
         </div>
         
         {/* Right: Actions - Responsive layout */}
@@ -70,14 +79,18 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           </button>
           
           {/* Network Status Indicator - Between search and notifications */}
-          <div className="hidden sm:block">
-            <NetworkStatusIndicator className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white/90 shadow text-xs" />
-          </div>
+          {config.features.networkStatusIndicator && (
+            <div className="hidden sm:block">
+              <NetworkStatusIndicator className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white/90 shadow text-xs" />
+            </div>
+          )}
           
           {/* Module Health Indicator */}
-          <div className="hidden sm:block">
-            <ModuleHealthIndicator className="rounded-lg bg-white/70 hover:bg-white/90 shadow" showCount={true} />
-          </div>
+          {config.features.moduleHealthIndicator && (
+            <div className="hidden sm:block">
+              <ModuleHealthIndicator className="rounded-lg bg-white/70 hover:bg-white/90 shadow" showCount={true} />
+            </div>
+          )}
           
           {/* Notifications */}
           <div className="relative">
@@ -106,7 +119,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
       
       {/* Mobile Search Bar - Only shows when toggled */}
       {showMobileSearch && (
-        <div className="md:hidden border-t border-slate-200/50 bg-white/80 backdrop-blur px-3 py-2">
+        <div className="md:hidden border-t border-slate-200/50 bg-white/95 lg:backdrop-blur-sm px-3 py-2">
           <div className="flex items-center gap-2">
             <input
               type="text"

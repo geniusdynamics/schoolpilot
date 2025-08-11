@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Merchant, ChartOfAccount, AccountType } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -76,17 +76,40 @@ const MerchantsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof Merchant },
-    { header: 'Merchant Name', accessor: 'name' as keyof Merchant },
-    { header: 'Sales GL Account', accessor: 'gl_account_name' as keyof Merchant, render: (item: Merchant) => item.gl_account_name || 'N/A' },
+  const columns: DataGridColumn<Merchant>[] = [
+    { 
+      key: 'id', 
+      header: 'ID', 
+      sortable: true, 
+      filterable: true, 
+      width: 80
+    },
+    { 
+      key: 'name', 
+      header: 'Merchant Name', 
+      sortable: true, 
+      filterable: true, 
+      width: 200
+    },
+    { 
+      key: 'gl_account_name', 
+      header: 'Sales GL Account', 
+      sortable: true, 
+      filterable: true, 
+      width: 250,
+      render: (value, row) => row.gl_account_name || 'N/A'
+    },
     {
+      key: 'id',
       header: 'Actions',
-      accessor: 'id' as keyof Merchant,
-      render: (item: Merchant) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+      sortable: false,
+      filterable: false,
+      width: 150,
+      sticky: 'right',
+      render: (value, row) => (
+        <div className="space-x-1">
+          <Button size="sm" variant="ghost" onClick={() => openModal(row)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     },
@@ -110,7 +133,22 @@ const MerchantsPage: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           Define merchants where students can make purchases using their wallets. Link to a revenue GL account.
         </p>
-        <Table columns={columns} data={merchants} isLoading={loading.merchants && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={merchants || []} 
+          isLoading={loading.merchants && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <BuildingStorefrontIcon className="w-12 h-12 text-gray-400" />,
+            title: "No merchants found",
+            description: "Add merchants where students can make purchases using their wallets.",
+            action: {
+              label: "Add Merchant",
+              onClick: () => openModal()
+            }
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingMerchant ? 'Edit Merchant' : 'Add New Merchant'} size="lg"

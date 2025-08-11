@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { PayrollItemType, PayrollItemCategory, PayrollTaxImplication } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -83,21 +83,76 @@ const PayrollItemTypesPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'ID', accessor: 'id' as keyof PayrollItemType },
-    { header: 'Item Name', accessor: 'name' as keyof PayrollItemType },
-    { header: 'Category', accessor: 'category' as keyof PayrollItemType },
-    { header: 'Tax Implication', accessor: 'tax_implication' as keyof PayrollItemType },
+  const columns: DataGridColumn<PayrollItemType>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof PayrollItemType,
-      render: (item: PayrollItemType) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'id',
+      header: 'ID',
+      sortable: true,
+      width: 80,
+      sticky: true
     },
+    {
+      key: 'name',
+      header: 'Item Name',
+      sortable: true,
+      filterable: true
+    },
+    {
+      key: 'category',
+      header: 'Category',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          value === PayrollItemCategory.EARNING ? 'bg-green-100 text-green-800' :
+          value === PayrollItemCategory.DEDUCTION ? 'bg-red-100 text-red-800' :
+          'bg-blue-100 text-blue-800' // CONTRIBUTION
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'tax_implication',
+      header: 'Tax Implication',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          value === PayrollTaxImplication.TAXABLE ? 'bg-orange-100 text-orange-800' :
+          'bg-gray-100 text-gray-800' // NON_TAXABLE
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 180,
+      render: (_, row) => (
+        <div className="flex space-x-2">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDelete(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
   if (loading.payrollItemTypes && !isModalOpen) {
@@ -119,7 +174,28 @@ const PayrollItemTypesPage: React.FC = () => {
           <p className="text-sm text-gray-600 mb-4">
             Define various types of payroll items such as earnings, deductions, and contributions.
           </p>
-          <Table columns={columns} data={payrollItemTypes} isLoading={loading.payrollItemTypes && isModalOpen} />
+          <DataGrid
+            columns={columns}
+            data={payrollItemTypes || []}
+            loading={loading.payrollItemTypes && isModalOpen}
+            sortable={true}
+            filterable={true}
+            emptyState={
+              <div className="text-center py-12">
+                <ListBulletIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No payroll item types found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Get started by defining your first payroll item type for earnings, deductions, or contributions.
+                </p>
+                <div className="mt-6">
+                  <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-4 h-4" />}>
+                    Add Item Type
+                  </Button>
+                </div>
+              </div>
+            }
+            className="mt-4"
+          />
         </React.Fragment>
       </Card>
 

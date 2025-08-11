@@ -153,6 +153,26 @@
     "performanceTrends": "Tendances de Performance",
     "subjectComparison": "Comparaison des Matières"
   },
+  "navigation": {
+    "academics": {
+      "title": "Académique",
+      "description": "Gérer les matières académiques, les classes et les examens",
+      "dashboard": "Tableau de bord",
+      "subjects": "Matières",
+      "timetablePeriods": "Périodes d'emploi du temps",
+      "timetableEntries": "Entrées d'emploi du temps",
+      "examScheduling": "Planification des examens",
+      "subjectPapers": "Épreuves des matières",
+      "classSubjectAllocations": "Affectations des matières par classe",
+      "teacherSubjectAssignments": "Affectations des enseignants aux matières",
+      "studentSubjectEnrollment": "Inscription des élèves aux matières",
+      "examSessions": "Sessions d'examen",
+      "examAnalysis": "Analyse des examens",
+      "studentExamResultsEntry": "Saisie des résultats d'examen des élèves",
+      "gradingSchemes": "Systèmes de notation",
+      "educationSystems": "Systèmes éducatifs"
+    }
+  },
   "tableHeaders": {
     "id": "ID",
     "code": "Code",

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinAccountTemplateTypeEnum, FinExpenseCategoryType } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, CircleStackIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { PlusIcon, EditIcon, DeleteIcon, CircleStackIcon, BanknotesIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -100,23 +100,116 @@ const ChartOfAccountsPage: React.FC = () => {
     }
   };
 
-  const columns = [
-    { header: 'Code', accessor: 'account_code' as keyof ChartOfAccount },
-    { header: 'Account Name', accessor: 'name' as keyof ChartOfAccount },
-    { header: 'Type', accessor: 'type' as keyof ChartOfAccount },
-    { header: 'Template', accessor: 'template_type' as keyof ChartOfAccount },
-    { header: 'Expense Category', accessor: 'expense_category_name' as keyof ChartOfAccount },
-    { header: 'Active', accessor: 'is_active' as keyof ChartOfAccount },
+  const columns: DataGridColumn<ChartOfAccount>[] = [
     {
-      header: 'Actions',
-      accessor: 'id' as keyof ChartOfAccount,
-      render: (item: ChartOfAccount) => (
-        <div className="space-x-2">
-          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
-        </div>
-      ),
+      key: 'account_code',
+      header: 'Code',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      sticky: 'left',
+      render: (value) => (
+        <span className="font-mono font-medium text-gray-900">
+          {value}
+        </span>
+      )
     },
+    {
+      key: 'name',
+      header: 'Account Name',
+      sortable: true,
+      filterable: true,
+      width: 250,
+      render: (value) => (
+        <span className="font-medium text-gray-900">
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+          value === FinAccountTypeEnum.ASSET ? 'bg-green-100 text-green-800' :
+          value === FinAccountTypeEnum.LIABILITY ? 'bg-red-100 text-red-800' :
+          value === FinAccountTypeEnum.EQUITY ? 'bg-blue-100 text-blue-800' :
+          value === FinAccountTypeEnum.REVENUE ? 'bg-purple-100 text-purple-800' :
+          value === FinAccountTypeEnum.EXPENSE ? 'bg-orange-100 text-orange-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'template_type',
+      header: 'Template',
+      sortable: true,
+      filterable: true,
+      width: 120,
+      render: (value) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+          value === FinAccountTemplateTypeEnum.SYSTEM ? 'bg-indigo-100 text-indigo-800' :
+          'bg-gray-100 text-gray-800'
+        }`}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'expense_category_name',
+      header: 'Expense Category',
+      sortable: true,
+      filterable: true,
+      width: 150,
+      render: (value) => (
+        <span className="text-sm text-gray-600">
+          {value || 'N/A'}
+        </span>
+      )
+    },
+    {
+      key: 'is_active',
+      header: 'Active',
+      sortable: true,
+      width: 80,
+      render: (value) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+          value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        }`}>
+          {value ? 'Yes' : 'No'}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 180,
+      render: (_, row) => (
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => openModal(row)} 
+            leftIcon={<EditIcon className="w-4 h-4" />}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={() => handleDelete(row.id)} 
+            leftIcon={<DeleteIcon className="w-4 h-4" />}
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    }
   ];
 
   if ((loading.chartOfAccounts || loading.expenseCategories) && !isModalOpen) {
@@ -137,7 +230,26 @@ const ChartOfAccountsPage: React.FC = () => {
          <p className="text-sm text-gray-600 mb-4">
           Manage the school's chart of accounts. Define accounts for assets, liabilities, equity, revenue, and expenses.
         </p>
-        <Table columns={columns} data={chartOfAccounts || []} isLoading={loading.chartOfAccounts && isModalOpen} />
+        <DataGrid 
+          columns={columns} 
+          data={chartOfAccounts || []} 
+          isLoading={loading.chartOfAccounts && isModalOpen}
+          sortable
+          filterable
+          emptyState={{
+            icon: <BanknotesIcon className="w-12 h-12 text-gray-400" />,
+            title: "No Chart of Accounts Found",
+            description: "Get started by adding your first account to the chart of accounts.",
+            action: (
+              <Button 
+                onClick={() => openModal()} 
+                leftIcon={<PlusIcon className="w-5 h-5" />}
+              >
+                Add Account
+              </Button>
+            )
+          }}
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAccount ? 'Edit Account' : 'Add New Account'} size="xl"

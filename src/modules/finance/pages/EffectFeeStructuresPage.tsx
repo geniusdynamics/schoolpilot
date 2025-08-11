@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { CogIcon, CheckCircleIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';

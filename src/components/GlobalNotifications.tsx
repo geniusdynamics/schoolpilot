@@ -1,6 +1,6 @@
 // Global notification system for enhanced features
 import React, { useState, useEffect } from 'react';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 
 interface Notification {
   id: string;

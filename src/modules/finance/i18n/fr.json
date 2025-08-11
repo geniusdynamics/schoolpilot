@@ -1,4 +1,26 @@
 {
+  "navigation": {
+    "finance": {
+      "title": "Finance",
+      "description": "Gérer tous les aspects financiers de l'école, y compris les frais scolaires, les paiements, les dépenses et la comptabilité.",
+      "dashboard": "Tableau de Bord",
+      "chartOfAccounts": "Plan Comptable",
+      "feeTemplates": "Modèles de Frais",
+      "effectFeeStructures": "Structures de Frais Effectives",
+      "feeAdjustments": "Ajustements de Frais",
+      "studentPayments": "Paiements Étudiants",
+      "studentOpeningBalances": "Soldes d'Ouverture Étudiants",
+      "feeCollectionSummary": "Résumé de Collecte des Frais",
+      "generalReceipts": "Recettes Générales",
+      "customerInvoices": "Factures Clients",
+      "supplierInvoices": "Factures Fournisseurs",
+      "expenses": "Dépenses",
+      "banks": "Banques",
+      "suppliers": "Fournisseurs",
+      "transportRoutes": "Routes de Transport",
+      "studentTransportAssignments": "Affectations Transport Étudiants"
+    }
+  },
   "dashboard": {
     "title": "Tableau de Bord des Finances",
     "totalIncome": "Revenu Total (Fictif)",
@@ -58,5 +80,21 @@
     "template": "Modèle",
     "expenseCategory": "Catégorie de Dépense",
     "active": "Actif"
+  },
+  "feeTemplates": {
+    "title": "Gestion des Modèles de Frais",
+    "description": "Créer et gérer des modèles de frais réutilisables pour les frais scolaires, l'inscription, les activités et autres charges.",
+    "addButton": "Ajouter Modèle de Frais",
+    "modalAddTitle": "Ajouter Nouveau Modèle de Frais",
+    "modalEditTitle": "Modifier Modèle de Frais",
+    "nameLabel": "Nom du Modèle",
+    "descriptionLabel": "Description",
+    "amountLabel": "Montant (KES)",
+    "accountLabel": "Compte GL",
+    "selectAccountOption": "Sélectionner Compte GL",
+    "frequencyLabel": "Fréquence",
+    "categoryLabel": "Catégorie",
+    "applicableToLabel": "Applicable À",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce modèle de frais ? Cela pourrait affecter les frais existants."
   }
 }
