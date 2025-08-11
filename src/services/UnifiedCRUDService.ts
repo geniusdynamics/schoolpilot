@@ -635,6 +635,38 @@ export class UnifiedCRUDService {
     this.cache.invalidateEntity(entityName);
   }
 
+  // Connection testing
+  async testConnection(): Promise<boolean> {
+    try {
+      if (this.dataStrategyManager) {
+        // Test RxDB connection by attempting a simple operation
+        const testOperation: DataOperation = {
+          type: 'read',
+          entity: 'test',
+          priority: 'low',
+          requiresBackend: false,
+          allowOffline: true
+        };
+        
+        // This will test if the data strategy manager is working
+        await this.dataStrategyManager.executeOperation(testOperation, { id: 'test' });
+        return true;
+      } else if (this.mockDataService) {
+        // Test mock data service
+        return typeof this.mockDataService.getAll === 'function';
+      } else if (this.rxdbService) {
+        // Test RxDB service directly
+        return this.rxdbService.isReady && this.rxdbService.isReady();
+      }
+      
+      // If no services are available, consider it as working (fallback mode)
+      return true;
+    } catch (error) {
+      console.warn('Connection test failed:', error);
+      return false;
+    }
+  }
+
   // Utility methods
   private generateId(): string {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;

@@ -28,6 +28,7 @@ import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 import TooltipDemo from './TooltipDemo';
+import BackendConfiguration from './BackendConfiguration';
 
 interface FeatureSettingsProps {
   className?: string;
@@ -217,7 +218,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                 type="radio"
                 name="mode"
                 value="production"
-                checked={config.dataMode === 'backend'}
+                checked={config.dataMode === 'production'}
                 onChange={() => handleModeChange('production')}
                 className="mr-2"
               />
@@ -406,6 +407,9 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           </div>
         </div>
       </Card>
+
+      {/* Backend Configuration */}
+      <BackendConfiguration />
 
       {/* Feature Availability */}
       <FeatureAvailabilityIndicator 

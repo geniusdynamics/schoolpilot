@@ -154,7 +154,7 @@ export class DataModeManager {
 
     try {
       // Check if already in production mode
-      if (!config.demo.active && config.dataMode === 'backend') {
+      if (!config.demo.active && config.dataMode === 'production') {
         return {
           success: true,
           message: 'Already in production mode.',
@@ -190,7 +190,7 @@ export class DataModeManager {
 
       // Notify listeners
       if (opts.notifyOnChange) {
-        this.notifyListeners('backend', false);
+        this.notifyListeners('production', false);
       }
 
       return {
@@ -283,7 +283,7 @@ export class DataModeManager {
       mode: config.dataMode,
       isDemo: config.demo.active,
       canSwitchToDemo: config.demo.available && !config.demo.active,
-      canSwitchToProduction: config.demo.active || config.dataMode !== 'backend',
+      canSwitchToProduction: config.demo.active || config.dataMode !== 'production',
     };
   }
 
