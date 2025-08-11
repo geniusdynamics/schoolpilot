@@ -1,7 +1,7 @@
 # Current Admissions Capability Report
 
 **Date:** January 26, 2025  
-**System:** SchoolPilot3 School Management System  
+**System:** SchoolPilot3 SchoolPilot  
 **Purpose:** Phase 1 - Current System Audit for Migration to EduGenOS
 
 ---

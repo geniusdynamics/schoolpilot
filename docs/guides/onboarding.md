@@ -1,6 +1,6 @@
-# School Management System - Developer Onboarding Guide
+# SchoolPilot - Developer Onboarding Guide
 
-Welcome, new developer! This guide will get you up to speed on the School Management System (SMS) project, also known as **SchoolPilot**.
+Welcome, new developer! This guide will get you up to speed on SchoolPilot (SMS) project, also known as **SchoolPilot**.
 
 ## 1. Project Goal
 

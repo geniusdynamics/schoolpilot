@@ -1,40 +1,14 @@
-// ABOUTME: Self-contained hook for supplierinvoice data management
-// ABOUTME: Provides CRUD operations for supplierinvoice without depending on AppDataContext
+// ABOUTME: Provides a data hook for managing supplier invoice data through the global data context.
+// ABOUTME: This hook centralizes supplier invoice data access and manipulation for consistency.
 
-import { useState, useEffect } from 'react';
-import { supplierInvoices } from '../../finance/data/mockData';
+import { useDataHook } from '../../../hooks/useDataHook';
 import { SupplierInvoice } from '../../../core/types';
 
+/**
+ * @description Hook for accessing and managing supplier invoice data.
+ * @returns An object with data, and methods for CRUD operations.
+ */
 export const useSupplierInvoiceData = () => {
-  const [data, setData] = useState<SupplierInvoice[]>(supplierInvoices);
-
-  const create = async (newItem: Partial<SupplierInvoice>) => {
-    const newDataItem: SupplierInvoice = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as SupplierInvoice;
-    setData((prev: SupplierInvoice[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
-
-  const update = async (id: number, updatedData: Partial<SupplierInvoice>) => {
-    setData((prev: SupplierInvoice[]) => prev.map((item: SupplierInvoice) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
-
-  const remove = async (id: number) => {
-    setData((prev: SupplierInvoice[]) => prev.filter((item: SupplierInvoice) => item.id !== id));
-  };
-
-  return {
-    data,
-    create,
-    update,
-    remove
-  };
+  const dataHook = useDataHook<SupplierInvoice>('supplierinvoices');
+  return dataHook;
 };

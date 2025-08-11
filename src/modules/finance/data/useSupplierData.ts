@@ -1,40 +1,14 @@
-// ABOUTME: Self-contained hook for supplier data management
-// ABOUTME: Provides CRUD operations for supplier without depending on AppDataContext
+// ABOUTME: Provides a data hook for managing supplier data through the global data context.
+// ABOUTME: This hook centralizes supplier data access and manipulation, ensuring consistency.
 
-import { useState, useEffect } from 'react';
-import { suppliers } from '../../finance/data/mockData';
+import { useDataHook } from '../../../hooks/useDataHook';
 import { Supplier } from '../../../core/types';
 
+/**
+ * @description Hook for accessing and managing supplier data.
+ * @returns An object with data, and methods for CRUD operations.
+ */
 export const useSupplierData = () => {
-  const [data, setData] = useState<Supplier[]>(suppliers);
-
-  const create = async (newItem: Partial<Supplier>) => {
-    const newDataItem: Supplier = {
-      ...newItem,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as Supplier;
-    setData((prev: Supplier[]) => [...prev, newDataItem]);
-    return newDataItem;
-  };
-
-  const update = async (id: number, updatedData: Partial<Supplier>) => {
-    setData((prev: Supplier[]) => prev.map((item: Supplier) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
-  };
-
-  const remove = async (id: number) => {
-    setData((prev: Supplier[]) => prev.filter((item: Supplier) => item.id !== id));
-  };
-
-  return {
-    data,
-    create,
-    update,
-    remove
-  };
+  const dataHook = useDataHook<Supplier>('suppliers');
+  return dataHook;
 };

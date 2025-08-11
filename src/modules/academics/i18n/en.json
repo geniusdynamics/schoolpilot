@@ -153,6 +153,26 @@
     "performanceTrends": "Performance Trends",
     "subjectComparison": "Subject Comparison"
   },
+  "navigation": {
+    "academics": {
+      "title": "Academics",
+      "description": "Manage academic subjects, classes, and examinations",
+      "dashboard": "Dashboard",
+      "subjects": "Subjects",
+      "timetablePeriods": "Timetable Periods",
+      "timetableEntries": "Timetable Entries",
+      "examScheduling": "Exam Scheduling",
+      "subjectPapers": "Subject Papers",
+      "classSubjectAllocations": "Class Subject Allocations",
+      "teacherSubjectAssignments": "Teacher Subject Assignments",
+      "studentSubjectEnrollment": "Student Subject Enrollment",
+      "examSessions": "Exam Sessions",
+      "examAnalysis": "Exam Analysis",
+      "studentExamResultsEntry": "Student Exam Results Entry",
+      "gradingSchemes": "Grading Schemes",
+      "educationSystems": "Education Systems"
+    }
+  },
   "tableHeaders": {
     "id": "ID",
     "code": "Code",

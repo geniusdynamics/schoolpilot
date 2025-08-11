@@ -1,7 +1,7 @@
 # EdugenOS Mock Data Implementation Workflow Log
 
 ## Overview
-This document tracks the progress of implementing comprehensive mock data across all modules in the EdugenOS school management system.
+This document tracks the progress of implementing comprehensive mock data across all modules in the EdugenOS SchoolPilot.
 
 ## Completed Phases
 

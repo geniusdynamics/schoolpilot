@@ -3,7 +3,7 @@
 // ABOUTME: Ensures all module data hooks follow the same pattern and interface
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useAppDataInternal } from '../contexts/AppDataContext';
+import { useAppDataInternal } from './useAppData';
 import { DataOperation } from '../services/DataStrategyManager';
 import { globalDataConsistencyService } from '../services/DataConsistencyService';
 import { ValidationResult } from '../utils/dataValidation';

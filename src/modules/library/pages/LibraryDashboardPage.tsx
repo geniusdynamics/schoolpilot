@@ -1,7 +1,7 @@
 import React from 'react';
 import Card from '@/components/ui/Card';
 import { LibraryIcon, BookOpenIcon, ArrowsRightLeftIcon, SparklesIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { ChartData, BookStatus, FineStatus } from '@/types';
 import DonutChart from '@/components/ui/DonutChart'; // Ensure you have this component

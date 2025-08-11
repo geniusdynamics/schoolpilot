@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This guide provides an overview of the data layer in the School Management System. Understanding this layer is crucial for fetching, displaying, and manipulating data throughout the application.
+This guide provides an overview of the data layer in SchoolPilot. Understanding this layer is crucial for fetching, displaying, and manipulating data throughout the application.
 
 The application employs a flexible data layer strategy that supports two modes:
 *   **Demo Mode**: Uses in-memory mock data. Ideal for UI development, testing, and running in environments without persistent storage capabilities.

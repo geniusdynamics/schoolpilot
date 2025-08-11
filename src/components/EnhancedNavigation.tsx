@@ -1,7 +1,7 @@
 // Enhanced navigation component with network status and sync indicators
 import React from 'react';
-import { useAppData } from '../contexts/AppDataContext';
-import { APP_MODE } from '../contexts/config';
+import { useAppData } from '../hooks/useAppData';
+import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 
 const EnhancedNavigation: React.FC = () => {
   const {
@@ -12,6 +12,9 @@ const EnhancedNavigation: React.FC = () => {
     syncStatus,
     pendingSyncCount
   } = useAppData();
+  
+  const { config } = useUnifiedConfig();
+  const currentMode = config.dataMode === 'demo' ? 'demo' : 'production';
 
   const getStatusColor = () => {
     if (!isOnline) return 'text-red-500';
@@ -48,8 +51,8 @@ const EnhancedNavigation: React.FC = () => {
 
             {/* Mode indicator */}
             <div className="text-sm text-gray-500">
-              {APP_MODE === 'demo' && '(Demo Mode)'}
-              {APP_MODE === 'production' && '(Production)'}
+              {currentMode === 'demo' && '(Demo Mode)'}
+              {currentMode === 'production' && '(Production)'}
             </div>
           </div>
 

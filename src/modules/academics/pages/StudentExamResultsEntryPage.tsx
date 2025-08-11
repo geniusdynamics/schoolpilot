@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import { ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { getStudentsForExamEntry } from '@/api/students';
@@ -113,7 +113,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
 
   const handleSaveAllMarks = async () => {
     if (!selectedExamSessionId || !selectedClassStreamId || studentsForEntry.length === 0) {
-      alert(t('validation.pleaseSelectAnExamSessionClassStreamAndEnsureStudentsAreLoaded'));
+      alert('Please select an exam session, class stream and ensure students are loaded.');
       return;
     }
     setSaving(true);

@@ -8,8 +8,9 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Textarea from '../../../components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '../../../components/ui/icons';
-import { useAppData } from '../../../contexts/AppDataContext';
+import { useAppData } from '../../../hooks/useAppData';
 import Spinner from '../../../components/ui/Spinner';
+import { useToast } from '../../../hooks/useToast';
 
 type FeeAdjustmentFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'student_name' | 'school_period_name' | 'adjustment_type'> & {
     adjustment_type: FeeAdjustmentType;
@@ -20,8 +21,12 @@ const FeeAdjustmentsPage: React.FC = () => {
     feeAdjustments, 
     students,
     schoolPeriods,
-    loading
+    loading,
+    addFeeAdjustment,
+    updateFeeAdjustment,
+    deleteFeeAdjustment
   } = useAppData();
+  const { showToast } = useToast();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAdjustment, setEditingAdjustment] = useState<FeeAdjustment | null>(null);
@@ -73,18 +78,32 @@ const FeeAdjustmentsPage: React.FC = () => {
   
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.school_period_id || formData.amount === undefined || !formData.adjustment_type) {
-      alert("Student, School Period, Adjustment Type, and Amount are required.");
+      showToast("Student, School Period, Adjustment Type, and Amount are required.", "error");
       return;
     }
     
-    // For now, just close the modal since we don't have the actual CRUD operations
-    alert(editingAdjustment ? "Fee adjustment would be updated" : "Fee adjustment would be added");
-    closeModal();
+    try {
+      if (editingAdjustment) {
+        await updateFeeAdjustment(editingAdjustment.id, formData);
+        showToast("Fee adjustment updated successfully", "success");
+      } else {
+        await addFeeAdjustment(formData);
+        showToast("Fee adjustment added successfully", "success");
+      }
+      closeModal();
+    } catch (error) {
+      showToast("Failed to save fee adjustment", "error");
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this fee adjustment?')) {
-      alert("Fee adjustment would be deleted");
+      try {
+        await deleteFeeAdjustment(id);
+        showToast("Fee adjustment deleted successfully", "success");
+      } catch (error) {
+        showToast("Failed to delete fee adjustment", "error");
+      }
     }
   };
 

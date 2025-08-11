@@ -1,7 +1,7 @@
 // Data strategy management and intelligent operation routing
 import { NetworkStateManager, NetworkState } from './NetworkStateManager';
 import { BackendAPIService, RequestOptions, APIResponse } from './BackendAPIService';
-import { generateId } from './rxdbService';
+import { generateId } from './databaseService';
 
 export interface DataStrategy {
   mode: 'offline-first' | 'online-first' | 'hybrid' | 'demo';

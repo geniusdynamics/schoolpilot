@@ -8,7 +8,7 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { EditIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
 import { useStudentHealthRecordData } from '@/modules/administration/data/useStudentHealthRecordData';
-import { useAppData } from '@/contexts/AppDataContext'; // For students data only
+import { useAppData } from '@/hooks/useAppData'; // For students data only
 import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
 import { useTranslation } from 'react-i18next';

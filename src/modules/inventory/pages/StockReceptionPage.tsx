@@ -272,7 +272,7 @@ const StockReceptionPage: React.FC = () => {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          leftIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
           disabled={loading}
         >
@@ -407,7 +407,7 @@ const StockReceptionPage: React.FC = () => {
                   <Typography variant="h6">Items to Receive</Typography>
                   <Button
                     variant="outlined"
-                    startIcon={<AddIcon />}
+                    leftIcon={<AddIcon />}
                     onClick={handleAddItem}
                   >
                     Add Item
@@ -519,13 +519,13 @@ const StockReceptionPage: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} startIcon={<CancelIcon />}>
+          <Button onClick={handleCloseDialog} leftIcon={<CancelIcon />}>
             Cancel
           </Button>
           <Button
             onClick={handleSaveReception}
             variant="contained"
-            startIcon={<SaveIcon />}
+            leftIcon={<SaveIcon />}
             disabled={loading || !editingReception?.items.length}
           >
             {loading ? 'Saving...' : 'Save Reception'}

@@ -1,37 +1,35 @@
-// ABOUTME: Schema utility functions for RxDB schema creation
-// ABOUTME: Extracted from rxdbService to break circular dependencies
+// ABOUTME: Schema utility functions for database-agnostic schema creation
+// ABOUTME: Provides backward compatibility while supporting dual-database architecture
 
-import { RxJsonSchema, toTypedRxJsonSchema, PrimaryKey } from 'rxdb';
+import { 
+  createDatabaseSchema, 
+  convertToRxDBSchema, 
+  DatabaseSchema, 
+  PropertyDefinition, 
+  PrimaryKeyDefinition 
+} from './databaseAgnosticSchema';
 
-export const createEntitySchema = <T extends { [key: string]: any }>(
+/**
+ * Legacy createEntitySchema function for backward compatibility
+ * Uses the new database-agnostic schema system under the hood
+ */
+export const createEntitySchema = (
   title: string,
-  propertiesInput: RxJsonSchema<T>['properties'],
-  primaryKeyDefinition: { key: keyof T & string; type: 'string' | 'number'; final?: boolean; maxLength?: number },
-  requiredFields: ReadonlyArray<Extract<keyof T, string>>,
-  indexes?: ReadonlyArray<Extract<keyof T, string>> | ReadonlyArray<ReadonlyArray<Extract<keyof T, string>>>
-): RxJsonSchema<T> => {
-  const properties: RxJsonSchema<T>['properties'] = { ...propertiesInput };
-  const pkName = primaryKeyDefinition.key;
-
-  (properties as any)[pkName] = {
-    type: primaryKeyDefinition.type,
-    ...(primaryKeyDefinition.type === 'string' && primaryKeyDefinition.final !== undefined && { final: primaryKeyDefinition.final }),
-    ...(primaryKeyDefinition.maxLength !== undefined && { maxLength: primaryKeyDefinition.maxLength }),
-    ...((properties as any)[pkName] || {}),
-  };
-
-  const schemaDefinitionInternal: RxJsonSchema<T> = {
-    title: `${title} schema`,
-    version: 0,
-    primaryKey: pkName as PrimaryKey<T>,
-    type: 'object' as const,
+  properties: { [key: string]: PropertyDefinition },
+  primaryKey: PrimaryKeyDefinition,
+  required?: string[],
+  indexes?: string[]
+): DatabaseSchema => {
+  console.warn('createEntitySchema from schemaUtils is deprecated. Use createDatabaseSchema from databaseAgnosticSchema instead.');
+  // Create database-agnostic schema
+  const agnosticSchema = createDatabaseSchema({
+    title,
     properties,
-    required: [...requiredFields] as (Extract<keyof T, string>)[],
-    indexes: indexes ? (
-        Array.isArray(indexes[0])
-            ? (indexes as ReadonlyArray<ReadonlyArray<Extract<keyof T, string>>>).map(idx => [...idx])
-            : [...(indexes as ReadonlyArray<Extract<keyof T, string>>)]
-      ) : []
-  };
-  return toTypedRxJsonSchema(schemaDefinitionInternal as any);
-}; 
+    primaryKey,
+    required,
+    indexes,
+  });
+  
+  // Convert to RxDB format for backward compatibility
+  return convertToRxDBSchema(agnosticSchema);
+};

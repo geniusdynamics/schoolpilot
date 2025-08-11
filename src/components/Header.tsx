@@ -7,11 +7,12 @@ import LanguageSwitcher from './ui/LanguageSwitcher';
 import UserMenu from './UserMenu';
 import { NetworkStatusIndicator } from './OfflineCapability';
 import ModuleHealthIndicator from './ModuleHealthIndicator';
-import { isFeatureEnabled } from '../config/appConfig';
+import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 
 const notifications = 3; // Example notification count
 
 const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
+  const { config } = useUnifiedConfig();
   const [showHeader, setShowHeader] = useState(true);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const lastScrollY = useRef(0);
@@ -78,14 +79,14 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
           </button>
           
           {/* Network Status Indicator - Between search and notifications */}
-          {isFeatureEnabled('networkStatusIndicator') && (
+          {config.features.networkStatusIndicator && (
             <div className="hidden sm:block">
               <NetworkStatusIndicator className="px-2 py-1 rounded-lg bg-white/70 hover:bg-white/90 shadow text-xs" />
             </div>
           )}
           
           {/* Module Health Indicator */}
-          {isFeatureEnabled('moduleHealthIndicator') && (
+          {config.features.moduleHealthIndicator && (
             <div className="hidden sm:block">
               <ModuleHealthIndicator className="rounded-lg bg-white/70 hover:bg-white/90 shadow" showCount={true} />
             </div>

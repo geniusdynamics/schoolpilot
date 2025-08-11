@@ -185,7 +185,7 @@ const executionUtils = {
       // Import and run the application test
       const testPath = path.join('scripts', 'test_application_functionality.js');
       if (fileOps.exists(testPath)) {
-        const testUtils = require('./test_application_functionality.js');
+        const testUtils = require('./test/test_application_functionality.js');
         const success = testUtils.runTests();
         if (success) {
           log('✅ Application testing completed successfully');

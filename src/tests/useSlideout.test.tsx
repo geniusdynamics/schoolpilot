@@ -11,15 +11,17 @@ vi.mock('../utils/accessibility', () => ({
   announceToScreenReader: vi.fn(),
 }));
 
+// Get the mocked function for assertions
+const { announceToScreenReader } = await import('../utils/accessibility');
+
 describe('useSlideout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.clearAllTimers();
     vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.runOnlyPendingTimers();
+    vi.clearAllTimers();
     vi.useRealTimers();
   });
 
@@ -556,7 +558,6 @@ describe('useSlideout', () => {
 
   describe('Screen Reader Announcements', () => {
     it('should announce when slideout opens', () => {
-      const { announceToScreenReader } = require('../utils/accessibility');
       const { result } = renderHook(() => useSlideout());
       
       act(() => {
@@ -567,7 +568,6 @@ describe('useSlideout', () => {
     });
 
     it('should announce when slideout closes', () => {
-      const { announceToScreenReader } = require('../utils/accessibility');
       const { result } = renderHook(() => useSlideout());
       
       act(() => {
@@ -582,8 +582,7 @@ describe('useSlideout', () => {
     });
 
     it('should announce successful save', async () => {
-      const { announceToScreenReader } = require('../utils/accessibility');
-      const onSave = jest.fn().mockResolvedValue(undefined);
+      const onSave = vi.fn().mockResolvedValue(undefined);
       const { result } = renderHook(() => useSlideout({ onSave }));
       
       act(() => {
@@ -598,8 +597,8 @@ describe('useSlideout', () => {
     });
 
     it('should announce save failure', async () => {
-      const { announceToScreenReader } = require('../utils/accessibility');
-      const onSave = jest.fn().mockRejectedValue(new Error('Save failed'));
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const onSave = vi.fn().mockRejectedValue(new Error('Save failed'));
       const { result } = renderHook(() => useSlideout({ onSave }));
       
       act(() => {
@@ -611,6 +610,7 @@ describe('useSlideout', () => {
       });
       
       expect(announceToScreenReader).toHaveBeenCalledWith('Save failed', 'assertive');
+      consoleSpy.mockRestore();
     });
   });
 });

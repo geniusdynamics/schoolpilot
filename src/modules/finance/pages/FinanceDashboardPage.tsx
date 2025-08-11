@@ -2,7 +2,7 @@ import React from 'react';
 import Card from '@/components/ui/Card';
 import { CurrencyDollarIcon, BanknotesIcon, CircleStackIcon, BuildingStorefrontIcon, TicketIcon, IconProps, PlusIcon, ReceiptRefundIcon } from '@/components/ui/icons';
 import BarChart from '@/components/ui/BarChart'; // Using the existing BarChart component
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { BarChartData } from '@/types'; 
 import Button from '@/components/ui/Button';

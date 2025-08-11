@@ -13,6 +13,12 @@ export const academicsCollections = {
   exam_sessions: {
     schema: schemas.examSessionSchema,
   },
+  exam_schedules: {
+    schema: schemas.examScheduleSchema,
+  },
+  result_approvals: {
+    schema: schemas.resultApprovalSchema,
+  },
   // exam_paper_settings are nested within exam_sessions and do not need a separate top-level collection.
   // If direct querying of all paper settings across all sessions is needed, a separate collection could be considered,
   // but it would require denormalization or careful data management. For now, access them via exam_sessions.

@@ -11,7 +11,7 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, MegaphoneIcon } from '@/components/ui/icons';
 import { useCampaignData } from '@/modules/administration/data/useCampaignData';
 import { useTemplateCommData } from '@/modules/administration/data/useTemplateCommData';
-import { useAppData } from '@/contexts/AppDataContext'; // For classStreams only
+import { useAppData } from '@/hooks/useAppData'; // For classStreams only
 import Spinner from '@/components/ui/Spinner';
 import { useUser } from '@/contexts/UserContext'; // Import useUser
 import { useTranslation } from 'react-i18next';

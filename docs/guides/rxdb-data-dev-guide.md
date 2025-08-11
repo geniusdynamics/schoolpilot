@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This guide is for developers working with the RxDB data layer in the School Management System. RxDB is used in "production" mode (`APP_MODE = 'production'`) to provide persistent, reactive, client-side storage.
+This guide is for developers working with the RxDB data layer in SchoolPilot. RxDB is used in "production" mode (`APP_MODE = 'production'`) to provide persistent, reactive, client-side storage.
 
 **Key Files:**
 

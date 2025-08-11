@@ -327,7 +327,7 @@ const StockReturnsPage: React.FC = () => {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          leftIcon={<AddIcon />}
           onClick={() => handleOpenDialog()}
           disabled={loading}
         >
@@ -482,7 +482,7 @@ const StockReturnsPage: React.FC = () => {
                   <Typography variant="h6">Items to Return</Typography>
                   <Button
                     variant="outlined"
-                    startIcon={<AddIcon />}
+                    leftIcon={<AddIcon />}
                     onClick={handleAddItem}
                   >
                     Add Item
@@ -613,13 +613,13 @@ const StockReturnsPage: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} startIcon={<CancelIcon />}>
+          <Button onClick={handleCloseDialog} leftIcon={<CancelIcon />}>
             Cancel
           </Button>
           <Button
             onClick={handleSaveReturn}
             variant="contained"
-            startIcon={<SaveIcon />}
+            leftIcon={<SaveIcon />}
             disabled={loading || !editingReturn?.items.length}
           >
             {loading ? 'Saving...' : 'Save Return'}

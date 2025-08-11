@@ -9,7 +9,7 @@ import Select from '../../../components/ui/Select';
 import Card from '../../../components/ui/Card';
 import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon, UsersIcon, AcademicCapIcon, CogIcon } from '../../../components/ui/icons';
 // import { useMockData } from '../../../hooks/useMockData'; // Switch to useAppData
-import { useAppData } from '../../../contexts/AppDataContext'; // Import useAppData
+import { useAppData } from '../../../hooks/useAppData'; // Import useAppData
 import Spinner from '../../../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';

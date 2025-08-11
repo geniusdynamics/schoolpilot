@@ -182,8 +182,13 @@ export class UnifiedCRUDService {
         source = 'rxdb'; // DataStrategyManager typically uses RxDB
       } else if (this.mockDataService) {
         // Use mock data service
-        result = entity; // Mock service would handle this
-        source = 'mock';
+        const mockResult = await this.mockDataService.create(entityName, entity);
+        if (mockResult.success) {
+          result = entity;
+          source = 'mock';
+        } else {
+          throw new Error('Mock data service create failed');
+        }
       } else {
         throw new Error('No data service available');
       }
@@ -193,9 +198,6 @@ export class UnifiedCRUDService {
         const cacheKey = `${entityName}:${result.id}`;
         this.cache.set(cacheKey, result, entityName, source);
       }
-
-      // Invalidate related cache entries
-      this.cache.invalidateEntity(entityName);
 
       return {
         success: true,
@@ -257,8 +259,14 @@ export class UnifiedCRUDService {
         source = 'rxdb';
       } else if (this.mockDataService) {
         // Use mock data service
-        result = null; // Mock service would handle this
-        source = 'mock';
+        const mockResult = await this.mockDataService.read(entityName, id);
+        if (mockResult.success) {
+          result = mockResult.data || null;
+          source = 'mock';
+        } else {
+          result = null;
+          source = 'mock';
+        }
       }
 
       if (!result) {
@@ -334,8 +342,16 @@ export class UnifiedCRUDService {
         source = 'rxdb';
       } else if (this.mockDataService) {
         // Use mock data service
-        result = []; // Mock service would handle this
-        source = 'mock';
+        const mockResult = await this.mockDataService.query ? 
+          await this.mockDataService.query(entityName, queryOptions) :
+          { success: true, data: [] };
+        if (mockResult.success) {
+          result = mockResult.data || [];
+          source = 'mock';
+        } else {
+          result = [];
+          source = 'mock';
+        }
       }
 
       // Cache the result
@@ -425,8 +441,13 @@ export class UnifiedCRUDService {
         result = await this.dataStrategyManager.executeOperation<T>(operation, updatedEntity);
         source = 'rxdb';
       } else if (this.mockDataService) {
-        result = updatedEntity;
-        source = 'mock';
+        const mockResult = await this.mockDataService.update(entityName, id, updatedEntity);
+        if (mockResult.success) {
+          result = updatedEntity;
+          source = 'mock';
+        } else {
+          throw new Error('Mock data service update failed');
+        }
       } else {
         throw new Error('No data service available');
       }
@@ -514,8 +535,13 @@ export class UnifiedCRUDService {
         result = await this.dataStrategyManager.executeOperation<boolean>(operation, { id });
         source = 'rxdb';
       } else if (this.mockDataService) {
-        result = true;
-        source = 'mock';
+        const mockResult = await this.mockDataService.delete(entityName, id);
+        if (mockResult.success) {
+          result = true;
+          source = 'mock';
+        } else {
+          throw new Error('Mock data service delete failed');
+        }
       } else {
         throw new Error('No data service available');
       }
@@ -607,6 +633,38 @@ export class UnifiedCRUDService {
 
   invalidateEntityCache(entityName: string): void {
     this.cache.invalidateEntity(entityName);
+  }
+
+  // Connection testing
+  async testConnection(): Promise<boolean> {
+    try {
+      if (this.dataStrategyManager) {
+        // Test RxDB connection by attempting a simple operation
+        const testOperation: DataOperation = {
+          type: 'read',
+          entity: 'test',
+          priority: 'low',
+          requiresBackend: false,
+          allowOffline: true
+        };
+        
+        // This will test if the data strategy manager is working
+        await this.dataStrategyManager.executeOperation(testOperation, { id: 'test' });
+        return true;
+      } else if (this.mockDataService) {
+        // Test mock data service
+        return typeof this.mockDataService.getAll === 'function';
+      } else if (this.rxdbService) {
+        // Test RxDB service directly
+        return this.rxdbService.isReady && this.rxdbService.isReady();
+      }
+      
+      // If no services are available, consider it as working (fallback mode)
+      return true;
+    } catch (error) {
+      console.warn('Connection test failed:', error);
+      return false;
+    }
   }
 
   // Utility methods

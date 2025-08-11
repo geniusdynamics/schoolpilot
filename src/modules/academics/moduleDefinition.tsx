@@ -32,6 +32,7 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.subjects', path: '/academics/subjects', icon: BookOpenIcon, page: 'SubjectsPage' },
     { name: 'navigation:academics.timetablePeriods', path: '/academics/timetable-periods', icon: ClockIcon, page: 'TimetablePeriodsPage' },
     { name: 'navigation:academics.timetableEntries', path: '/academics/timetable-entries', icon: CalendarDaysIcon, page: 'TimetableEntriesPage' },
+    { name: 'navigation:academics.examScheduling', path: '/academics/exam-scheduling', icon: CalendarDaysIcon, page: 'ExamSchedulingPage' },
     { name: 'navigation:academics.subjectPapers', path: '/academics/subject-papers', icon: DocumentTextIcon, page: 'SubjectPapersManagementPage' },
     { name: 'navigation:academics.classSubjectAllocations', path: '/academics/class-subject-allocations', icon: PuzzlePieceIcon, page: 'ClassSubjectAllocationsPage' },
     { name: 'navigation:academics.teacherSubjectAssignments', path: '/academics/teacher-subject-assignments', icon: UsersIcon, page: 'TeacherSubjectAssignmentPage' },
@@ -40,6 +41,7 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.examAnalysis', path: '/academics/exam-analysis', icon: ChartBarIcon, page: 'ExamAnalysisPage' },
     { name: 'navigation:academics.studentExamResultsEntry', path: '/academics/student-exam-results-entry', icon: ClipboardDocumentListIcon, page: 'StudentExamResultsEntryPage' },
     { name: 'navigation:academics.gradingSchemes', path: '/academics/grading-schemes', icon: ListBulletIcon, page: 'GradingSchemesPage' },
+    { name: 'navigation:academics.educationSystems', path: '/academics/education-systems', icon: ChartBarIcon, page: 'EducationSystemsPage' },
   ],
   features: ['subject-management', 'class-management', 'timetable', 'exam-management', 'grading'],
   dependencies: ['administration'],
@@ -67,4 +69,4 @@ export const academicsModule: ModuleDefinition = {
   defaultRoles: academicsDefaultRoles,
 };
 
-export default academicsModule; 
+export default academicsModule;

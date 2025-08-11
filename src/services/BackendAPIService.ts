@@ -338,4 +338,63 @@ export class BackendAPIService {
   private logError(message: string, error: Error): void {
     console.error(`[BackendAPIService] ${message}:`, error);
   }
+
+  // CRUD Operations for BackendServiceAdapter compatibility
+  async create<T = any>(entity: string, data: any): Promise<T> {
+    const response = await this.request<T>(`/${entity}`, {
+      method: 'POST',
+      body: data,
+      requiresAuth: true
+    });
+    return response.data;
+  }
+
+  async read<T = any>(entity: string, id: string | number): Promise<T> {
+    const response = await this.request<T>(`/${entity}/${id}`, {
+      method: 'GET',
+      requiresAuth: true
+    });
+    return response.data;
+  }
+
+  async update<T = any>(entity: string, id: string | number, data: any): Promise<T> {
+    const response = await this.request<T>(`/${entity}/${id}`, {
+      method: 'PUT',
+      body: data,
+      requiresAuth: true
+    });
+    return response.data;
+  }
+
+  async delete<T = any>(entity: string, id: string | number): Promise<T> {
+    const response = await this.request<T>(`/${entity}/${id}`, {
+      method: 'DELETE',
+      requiresAuth: true
+    });
+    return response.data;
+  }
+
+  async list<T = any>(entity: string, options?: any): Promise<T[]> {
+    const queryParams = options ? new URLSearchParams(options).toString() : '';
+    const endpoint = queryParams ? `/${entity}?${queryParams}` : `/${entity}`;
+    
+    const response = await this.request<T[]>(endpoint, {
+      method: 'GET',
+      requiresAuth: true
+    });
+    return response.data;
+  }
+
+  async search<T = any>(entity: string, query: string, options?: any): Promise<T[]> {
+    const searchParams = new URLSearchParams({
+      q: query,
+      ...options
+    }).toString();
+    
+    const response = await this.request<T[]>(`/${entity}/search?${searchParams}`, {
+      method: 'GET',
+      requiresAuth: true
+    });
+    return response.data;
+  }
 }

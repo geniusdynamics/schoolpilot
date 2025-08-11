@@ -7,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext'; // Updated
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { Subject as CoreSubject } from '@/core/types';
@@ -21,10 +21,10 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     classStreams,
     subjects,
     academicYears,
-    loading
-    // addClassSubjectAllocation, 
-    // updateClassSubjectAllocation, 
-    // deleteClassSubjectAllocation 
+    loading,
+    addClassSubjectAllocation, 
+    updateClassSubjectAllocation, 
+    deleteClassSubjectAllocation 
   } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,16 +86,21 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     };
 
     if (editingAllocation) {
-      // await updateClassSubjectAllocation({ ...editingAllocation, ...payload });
+      await updateClassSubjectAllocation({ ...editingAllocation, ...payload });
     } else {
-      // await addClassSubjectAllocation(payload);
+      await addClassSubjectAllocation(payload);
     }
     closeModal();
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this subject allocation?')) {
-      // await deleteClassSubjectAllocation(id);
+      try {
+        await deleteClassSubjectAllocation(id);
+      } catch (error) {
+        console.error('Error deleting allocation:', error);
+        alert('Error deleting allocation');
+      }
     }
   };
 
@@ -109,7 +114,7 @@ const ClassSubjectAllocationsPage: React.FC = () => {
       key: 'id',
       render: (value: any, item: ClassSubjectAllocation) => (
         <div className="space-x-2">
-          {/* <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button> */}
+          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),

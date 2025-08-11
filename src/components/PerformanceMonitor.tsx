@@ -9,16 +9,18 @@ import { usePerformanceEvents } from '../services/performanceEventManager';
 interface PerformanceMonitorProps {
   className?: string;
   refreshInterval?: number;
+  showDetails?: boolean;
 }
 
 const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   className = '',
-  refreshInterval = 15000 // 15 seconds (reduced frequency to prevent flickering)
+  refreshInterval = 15000, // 15 seconds (reduced frequency to prevent flickering)
+  showDetails = false
 }) => {
   const [report, setReport] = useState<PerformanceReport | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'modules' | 'data' | 'interactions'>('overview');
-  const [autoRefresh, setAutoRefresh] = useState(false); // Auto-refresh toggle
+  const [autoRefresh, setAutoRefresh] = useState(false); // Auto-refresh toggle (default OFF)
   
   const { trackUserInteraction } = usePerformanceMonitoring({
     componentName: 'PerformanceMonitor'

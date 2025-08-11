@@ -17,21 +17,23 @@ export default defineConfig(({ mode }) => {
       },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        global: 'globalThis'
       },
       build: {
         rollupOptions: {
           output: {
             manualChunks: {
               'react-vendor': ['react', 'react-dom'],
-              'router-vendor': ['react-router-dom']
+              'router-vendor': ['react-router-dom'],
+              'pouchdb-vendor': ['pouchdb', 'pouchdb-find']
             }
           }
         },
         chunkSizeWarningLimit: 1000
       },
       optimizeDeps: {
-        include: ['react', 'react-dom', 'react-router-dom'],
+        include: ['react', 'react-dom', 'react-router-dom', 'rxjs', 'rxdb', 'pouchdb', 'pouchdb-find'],
         exclude: []
       }
     };

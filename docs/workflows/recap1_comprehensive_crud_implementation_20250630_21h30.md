@@ -6,7 +6,7 @@
 
 ## Summary
 
-Successfully implemented comprehensive CRUD operations across all modules in the School Management System, ensuring every page that requires data manipulation has fully functional create, read, update, and delete operations.
+Successfully implemented comprehensive CRUD operations across all modules in SchoolPilot, ensuring every page that requires data manipulation has fully functional create, read, update, and delete operations.
 
 ## What Was Accomplished
 

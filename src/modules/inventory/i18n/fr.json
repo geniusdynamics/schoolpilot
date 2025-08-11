@@ -187,6 +187,74 @@
     "uploadLabel": "Télécharger Facture PDF",
     "uploadHelpText": "Espace réservé pour la logique de téléchargement de fichier."
   },
+  "suppliers": {
+    "title": "Gestion des Fournisseurs",
+    "description": "Gérer les fournisseurs et leurs informations de contact pour les achats et les commandes.",
+    "addButton": "Ajouter Fournisseur",
+    "modalAddTitle": "Ajouter Nouveau Fournisseur",
+    "modalEditTitle": "Modifier Fournisseur",
+    "nameLabel": "Nom du Fournisseur",
+    "contactPersonLabel": "Personne de Contact",
+    "emailLabel": "Email",
+    "phoneLabel": "Téléphone",
+    "addressLabel": "Adresse",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce fournisseur ? Cela pourrait affecter les bons de commande existants.",
+    "alertRequiredFields": "Le nom du fournisseur est requis."
+  },
+  "reorderAlerts": {
+    "title": "Alertes de Réapprovisionnement",
+    "description": "Surveiller et gérer les alertes automatiques de réapprovisionnement pour les articles d'inventaire.",
+    "activeAlerts": "Alertes Actives",
+    "summary": {
+      "activeAlerts": "Alertes Actives",
+      "totalMonitored": "Total Surveillé"
+    },
+    "tabs": {
+      "high": "Haute Priorité",
+      "medium": "Priorité Moyenne",
+      "low": "Priorité Faible"
+    },
+    "analytics": {
+      "trends": "Tendances de Réapprovisionnement",
+      "trendsDescription": "Suivre les modèles et la fréquence de réapprovisionnement au fil du temps",
+      "performance": "Performance des Alertes",
+      "performanceDescription": "Surveiller la précision des alertes et les temps de réponse"
+    }
+  },
+  "stockReception": {
+    "title": "Réception de Stock",
+    "description": "Enregistrer les articles reçus des fournisseurs. Cela mettra à jour les niveaux de stock.",
+    "receiveStockButton": "Recevoir Stock",
+    "modalTitle": "Recevoir Article du Stock",
+    "poLabel": "Bon de Commande Associé",
+    "selectPOOption": "Sélectionner BC",
+    "itemLabel": "Article à Recevoir",
+    "selectItemOption": "Sélectionner Article",
+    "warehouseLabel": "Recevoir dans l'Entrepôt",
+    "selectWarehouseOption": "Sélectionner Entrepôt",
+    "qtyReceivedLabel": "Quantité Reçue",
+    "dateLabel": "Date de Réception",
+    "notesLabel": "Notes (ex: N° BC, N° Facture)",
+    "receiveItemButton": "Recevoir Article",
+    "alertRequiredFields": "Article, Entrepôt, Quantité valide et Date de transaction sont requis.",
+    "emptyStateMessage": "Aucun enregistrement de réception de stock trouvé."
+  },
+  "stockReturns": {
+    "title": "Retours de Stock",
+    "description": "Gérer les retours d'articles aux fournisseurs ou le transfert entre entrepôts.",
+    "returnStockButton": "Retourner Stock",
+    "modalTitle": "Retourner Article du Stock",
+    "itemLabel": "Article à Retourner",
+    "selectItemOption": "Sélectionner Article",
+    "warehouseLabel": "Retourner de l'Entrepôt",
+    "selectWarehouseOption": "Sélectionner Entrepôt",
+    "qtyLabel": "Quantité à Retourner",
+    "dateLabel": "Date de Retour",
+    "reasonLabel": "Raison du Retour",
+    "returnItemButton": "Retourner Article",
+    "alertRequiredFields": "Article, Entrepôt, Quantité valide, Raison et Date de transaction sont requis.",
+    "emptyStateMessage": "Aucun enregistrement de retour de stock trouvé."
+  },
   "tableHeaders": {
     "id": "ID",
     "name": "Nom",

@@ -13,8 +13,8 @@ import {
   ArrowPathIcon,
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
-import { useAppData } from '../contexts/AppDataContext';
-import { getAppConfig, updateAppConfig, isFeatureEnabled } from '../config/appConfig';
+import { useAppData } from '../hooks/useAppData';
+import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 import { 
   SyncStatusComponent, 
   NetworkStatusIndicator, 
@@ -28,6 +28,7 @@ import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 import TooltipDemo from './TooltipDemo';
+import { BackendConfiguration } from './BackendConfiguration';
 
 interface FeatureSettingsProps {
   className?: string;
@@ -38,12 +39,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'memory' | 'ui-components'>('overview');
   const [showConflictModal, setShowConflictModal] = useState(false);
-  const [config, setConfig] = useState(() => {
-    // Force refresh configuration to ensure new feature flags are loaded
-    const currentConfig = getAppConfig();
-    console.log('FeatureSettings loaded config with features:', Object.keys(currentConfig.features));
-    return currentConfig;
-  });
+  const { config, updateConfig } = useUnifiedConfig();
+  console.log('FeatureSettings loaded config with features:', Object.keys(config.features));
   
   const { 
     isOnline, 
@@ -51,12 +48,40 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     syncStatus, 
     pendingSyncCount,
     conflicts = [],
-    resolveConflict,
-    resolveAllConflicts,
+    resolveConflict: resolveConflictFn,
+    resolveAllConflicts: resolveAllConflictsFn,
     getQueueStatus,
     forceSync,
     clearSyncQueue
   } = useAppData() || {};
+
+  // Transform conflicts data structure to match ConflictResolutionComponent interface
+  const transformedConflicts = conflicts.map((conflict: any) => ({
+    id: conflict.id,
+    entityName: conflict.entityName,
+    entityId: conflict.entityId,
+    localData: conflict.localData,
+    serverData: conflict.remoteData, // Map remoteData to serverData
+    timestamp: conflict.timestamp,
+    conflictType: conflict.conflictType
+  }));
+
+  // Wrapper functions to handle conflict resolution
+  const resolveConflict = (conflictId: string, resolution: 'local' | 'server' | 'merge', mergedData?: any) => {
+    if (resolveConflictFn) {
+      // Map resolution strategy to match DataSyncMonitoringService interface
+      const strategy = resolution === 'local' ? 'local_wins' : 
+                      resolution === 'server' ? 'remote_wins' : 'merge';
+      resolveConflictFn(conflictId, { strategy, mergedData });
+    }
+  };
+
+  const resolveAllConflicts = (resolution: 'local' | 'server') => {
+    if (resolveAllConflictsFn) {
+      const strategy = resolution === 'local' ? 'local_wins' : 'remote_wins';
+      resolveAllConflictsFn(strategy);
+    }
+  };
 
   // Safely get queue status with comprehensive fallback
   const queueStatus = (getQueueStatus && typeof getQueueStatus === 'function') 
@@ -74,14 +99,15 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
         [feature]: !config.features[feature]
       }
     };
-    setConfig(newConfig);
-    updateAppConfig(newConfig);
+    updateConfig(newConfig);
   };
 
   const handleModeChange = (mode: 'demo' | 'production') => {
-    const newConfig = { ...config, mode };
-    setConfig(newConfig);
-    updateAppConfig(newConfig);
+    if (mode === 'demo') {
+      updateConfig({ ...config, dataMode: 'demo' });
+    } else {
+      updateConfig({ ...config, dataMode: 'production' });
+    }
   };
 
   const getStatusBadge = (status: boolean, label: string) => (
@@ -129,7 +155,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
             <div className="text-sm text-gray-600">Pending Sync</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-amber-600">{Array.isArray(conflicts) ? conflicts.length : 0}</div>
+            <div className="text-2xl font-bold text-amber-600">{transformedConflicts.length}</div>
             <div className="text-sm text-gray-600">Conflicts</div>
           </div>
           <div className="text-center">
@@ -164,19 +190,19 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Offline Capabilities</span>
-            {getStatusBadge(config.enableOfflineCapabilities, config.enableOfflineCapabilities ? 'Enabled' : 'Disabled')}
+            {getStatusBadge(config.features.enableOfflineMode, config.features.enableOfflineMode ? 'Enabled' : 'Disabled')}
           </div>
         </div>
       </Card>
 
       {/* Conflicts Alert */}
-      {conflicts.length > 0 && (
+      {transformedConflicts.length > 0 && (
         <Card title="Attention Required" className="border-red-200 bg-red-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
               <span className="text-sm font-medium text-red-900">
-                {conflicts.length} sync conflict{conflicts.length > 1 ? 's' : ''} need resolution
+                {transformedConflicts.length} sync conflict{transformedConflicts.length > 1 ? 's' : ''} need resolution
               </span>
             </div>
             <Button 
@@ -209,7 +235,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                 type="radio"
                 name="mode"
                 value="demo"
-                checked={config.mode === 'demo'}
+                checked={config.dataMode === 'demo'}
                 onChange={() => handleModeChange('demo')}
                 className="mr-2"
               />
@@ -220,7 +246,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                 type="radio"
                 name="mode"
                 value="production"
-                checked={config.mode === 'production'}
+                checked={config.dataMode === 'production'}
                 onChange={() => handleModeChange('production')}
                 className="mr-2"
               />
@@ -274,18 +300,16 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
               <button
                 onClick={() => {
                   // Force add missing feature flag
-                  const currentConfig = getAppConfig();
                   const updatedConfig = {
-                    ...currentConfig,
+                    ...config,
                     features: {
-                      ...currentConfig.features,
-                      performanceMonitorWidget: false // Add the missing flag
+                      ...config.features,
+                      enablePerformanceMonitoring: false // Add the missing flag
                     }
                   };
                   
                   // Update both global config and local state
-                  updateAppConfig(updatedConfig);
-                  setConfig(updatedConfig);
+                  updateConfig(updatedConfig);
                   
                   // Also force localStorage update
                   localStorage.setItem('app-config', JSON.stringify(updatedConfig));
@@ -312,18 +336,16 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                     performanceMonitorWidget: false, // This is the missing one
                   };
                   
-                  const currentConfig = getAppConfig();
                   const updatedConfig = {
-                    ...currentConfig,
+                    ...config,
                     features: {
-                      ...currentConfig.features,
+                      ...config.features,
                       ...defaultFeatures // Merge with defaults to ensure all flags exist
                     }
                   };
                   
                   // Update everything
-                  updateAppConfig(updatedConfig);
-                  setConfig(updatedConfig);
+                  updateConfig(updatedConfig);
                   localStorage.setItem('app-config', JSON.stringify(updatedConfig));
                   localStorage.setItem('app-config-version', '1.2.0');
                   
@@ -342,8 +364,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
                   console.log('=== DEBUG INFO ===');
                   console.log('Config version:', version);
                   console.log('Stored config:', stored ? JSON.parse(stored) : 'None');
-                  console.log('Current config:', getAppConfig());
-                  console.log('Feature flags:', Object.keys(getAppConfig().features));
+                  console.log('Current config:', config);
+                  console.log('Feature flags:', Object.keys(config.features));
                   alert('Check console for debug info');
                 }}
                 className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-2 py-1 rounded transition-colors"
@@ -389,8 +411,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={config.enableOfflineCapabilities}
-                onChange={(e) => setConfig(prev => ({ ...prev, enableOfflineCapabilities: e.target.checked }))}
+                checked={config.features.enableOfflineMode}
+                onChange={() => handleFeatureToggle('enableOfflineMode')}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -404,8 +426,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={config.enableBackendIntegration}
-                onChange={(e) => setConfig(prev => ({ ...prev, enableBackendIntegration: e.target.checked }))}
+                checked={config.backend.available}
+                onChange={() => console.log('Backend integration cannot be toggled directly')}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -413,6 +435,9 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           </div>
         </div>
       </Card>
+
+      {/* Backend Configuration */}
+      <BackendConfiguration />
 
       {/* Feature Availability */}
       <FeatureAvailabilityIndicator 
@@ -424,9 +449,9 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 
   const renderConflictsTab = () => (
     <div className="space-y-6">
-      {conflicts.length > 0 ? (
+      {transformedConflicts.length > 0 ? (
         <ConflictResolutionComponent
-          conflicts={conflicts}
+          conflicts={transformedConflicts}
           onResolve={resolveConflict}
           onResolveAll={resolveAllConflicts}
           className="!shadow-none !bg-transparent border border-gray-200"
@@ -463,7 +488,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     { id: 'overview', label: 'Overview', icon: CogIcon },
     { id: 'sync', label: 'Sync Management', icon: ArrowPathIcon },
     { id: 'features', label: 'Feature Flags', icon: Cog6ToothIcon },
-    { id: 'conflicts', label: `Conflicts ${conflicts.length > 0 ? `(${conflicts.length})` : ''}`, icon: ExclamationTriangleIcon },
+    { id: 'conflicts', label: `Conflicts ${transformedConflicts.length > 0 ? `(${transformedConflicts.length})` : ''}`, icon: ExclamationTriangleIcon },
     { id: 'performance', label: 'Performance', icon: ClockIcon },
     { id: 'memory', label: 'Memory', icon: ServerIcon },
     { id: 'ui-components', label: 'UI Components', icon: Cog6ToothIcon }

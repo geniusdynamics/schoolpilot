@@ -2,6 +2,7 @@
 // ABOUTME: Provides recovery mechanisms and prevents complete application crashes
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { reportError } from '../config/errorTracking';
 
 interface Props {
   children: ReactNode;
@@ -50,6 +51,21 @@ class ApplicationErrorBoundary extends Component<Props, State> {
       stack: error.stack,
       componentStack: errorInfo.componentStack
     });
+
+    // Report error to Bugsink
+    try {
+      reportError(error, {
+        errorId,
+        componentStack: errorInfo.componentStack,
+        errorBoundary: 'ApplicationErrorBoundary',
+        retryCount: this.state.retryCount,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href
+      });
+    } catch (reportingError) {
+      console.error('Failed to report error to Bugsink:', reportingError);
+    }
 
     if (onError) {
       onError(error, errorInfo, errorId);

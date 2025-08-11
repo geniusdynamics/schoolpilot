@@ -7,7 +7,8 @@ import Modal from '../../../components/ui/Modal';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CreditCardIcon } from '../../../components/ui/icons';
-import { useAppData } from '../../../contexts/AppDataContext';
+import { useAppData } from '../../../hooks/useAppData';
+import { useToast } from '../../../hooks/useToast';
 import Spinner from '../../../components/ui/Spinner';
 
 type StudentPaymentFormData = Omit<Partial<StudentPayment>, 'id' | 'created_at' | 'updated_at' | 'student_name'>;
@@ -16,9 +17,13 @@ const StudentPaymentsPage: React.FC = () => {
   const {
     studentPayments,
     students,
-    loading
+    loading,
+    addStudentPayment,
+    updateStudentPayment,
+    deleteStudentPayment
   } = useAppData();
 
+  const { showToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState<StudentPayment | null>(null);
 
@@ -61,19 +66,42 @@ const StudentPaymentsPage: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    // Validate required fields
     if (!paymentFormData.student_id || !paymentFormData.receipt_no || (paymentFormData.total_amount_paid || 0) <= 0 || !paymentFormData.transaction_date) {
-      alert("Student, Receipt No, valid Amount Paid, and Transaction Date are required.");
+      showToast('Student, Receipt No, valid Amount Paid, and Transaction Date are required.', 'error');
       return;
     }
 
-    // For now, just close the modal since we don't have the actual CRUD operations
-    alert(editingPayment ? "Payment would be updated" : "Payment would be recorded");
-    closeModal();
+    try {
+      if (editingPayment) {
+        // Update existing payment
+        await updateStudentPayment(editingPayment.id, paymentFormData);
+        showToast('Student payment updated successfully!', 'success');
+      } else {
+        // Add new payment
+        await addStudentPayment(paymentFormData);
+        showToast('Student payment added successfully!', 'success');
+      }
+      setIsModalOpen(false);
+      setEditingPayment(null);
+      setPaymentFormData(initialPaymentFormData);
+    } catch (error) {
+      showToast('Failed to save student payment. Please try again.', 'error');
+      console.error('Error saving student payment:', error);
+    }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this payment record?')) {
-      alert("Payment would be deleted");
+  const handleDelete = async (paymentId: string) => {
+    if (!window.confirm('Are you sure you want to delete this payment record?')) {
+      return;
+    }
+    
+    try {
+      await deleteStudentPayment(paymentId);
+      showToast('Student payment deleted successfully!', 'success');
+    } catch (error) {
+      showToast('Failed to delete student payment. Please try again.', 'error');
+      console.error('Error deleting student payment:', error);
     }
   };
 

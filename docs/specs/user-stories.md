@@ -1,6 +1,6 @@
 # SchoolPilot - User Stories
 
-This document outlines user stories for the School Management System, categorized by user role and organized in a logical, chronological flow from initial setup to daily operations.
+This document outlines user stories for SchoolPilot, categorized by user role and organized in a logical, chronological flow from initial setup to daily operations.
 
 ## User Roles
 

@@ -1,5 +1,5 @@
 # Comprehensive Data Generation Plan and Testing Guide
-# EduGen OS - School Management System
+# EduGen OS - SchoolPilot
 
 **Version:** 1.0  
 **Date:** 2025-06-30  
@@ -22,7 +22,7 @@
 
 ## Overview
 
-This document provides a comprehensive plan for generating realistic, interconnected mock data for the EduGen OS school management system. The goal is to ensure complete end-to-end functionality testing with no empty dropdowns, forms, or missing dependencies across all modules.
+This document provides a comprehensive plan for generating realistic, interconnected mock data for the EduGen OS SchoolPilot. The goal is to ensure complete end-to-end functionality testing with no empty dropdowns, forms, or missing dependencies across all modules.
 
 ### Success Criteria
 - Every combobox, dropdown, and selection field has relevant data

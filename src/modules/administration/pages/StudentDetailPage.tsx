@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import { StudentDetailProfile, StudentPaymentLogItem } from '@/types';
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';

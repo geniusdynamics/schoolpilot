@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin: 10px 0; }
+        input { padding: 8px; margin: 5px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .result { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>SchoolPilot Login Test</h1>
+    
+    <div class="form-group">
+        <label>Username:</label>
+        <input type="text" id="username" value="admin" placeholder="admin, teacher, finance, or student">
+    </div>
+    
+    <div class="form-group">
+        <label>Password:</label>
+        <input type="password" id="password" value="test" placeholder="any password">
+    </div>
+    
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="checkAuthStatus()">Check Auth Status</button>
+    
+    <div id="result" class="result" style="display: none;"></div>
+    
+    <script>
+        // Simple test to check if the application is accessible
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // Test if the main application is accessible
+                const response = await fetch('http://localhost:5200/');
+                if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
+                
+                resultDiv.innerHTML = `
+                    <h3>Application Status: ✅ Running</h3>
+                    <p>Server is responding on port 5200</p>
+                    <p>Username: ${username}</p>
+                    <p>Password: ${password ? '***' : 'empty'}</p>
+                    <p><strong>Next:</strong> Try logging in through the main application at <a href="http://localhost:5200/" target="_blank">http://localhost:5200/</a></p>
+                `;
+                resultDiv.className = 'result success';
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Application Status: ❌ Error</h3>
+                    <p>Error: ${error.message}</p>
+                    <p>Make sure the development server is running with 'npm run dev'</p>
+                `;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+            }
+        }
+        
+        async function checkAuthStatus() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // Check if there's any stored session
+                const session = localStorage.getItem('schoolpilot_auth_session');
+                
+                resultDiv.innerHTML = `
+                    <h3>Authentication Status</h3>
+                    <p><strong>Stored Session:</strong> ${session ? 'Found' : 'None'}</p>
+                    ${session ? `<pre>${JSON.stringify(JSON.parse(session), null, 2)}</pre>` : ''}
+                `;
+                resultDiv.className = 'result';
+                resultDiv.style.display = 'block';
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Error checking auth status</h3>
+                    <p>${error.message}</p>
+                `;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+            }
+        }
+        
+        // Auto-check on load
+        window.onload = function() {
+            checkAuthStatus();
+        };
+    </script>
+</body>
+</html>

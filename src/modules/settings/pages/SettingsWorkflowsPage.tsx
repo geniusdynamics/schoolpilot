@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import { ArrowsRightLeftIcon, PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';

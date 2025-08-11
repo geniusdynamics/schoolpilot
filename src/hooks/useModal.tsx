@@ -49,17 +49,21 @@ export const useModal = (
   const open = useCallback(() => {
     if (isOpen || preventClose) return;
     
-    previousActiveElement.current = document.activeElement;
+    if (typeof document !== 'undefined') {
+      previousActiveElement.current = document.activeElement;
+    }
     setIsAnimating(true);
     setIsOpen(true);
     onOpen?.();
     
     // Prevent body scroll
-    document.body.style.overflow = 'hidden';
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'hidden';
+    }
     
     // Focus management after animation
     setTimeout(() => {
-      if (modalRef.current) {
+      if (modalRef.current && typeof document !== 'undefined') {
         trapFocus(modalRef.current);
       }
       setIsAnimating(false);
@@ -79,10 +83,14 @@ export const useModal = (
       setIsAnimating(false);
       
       // Restore body scroll
-      document.body.style.overflow = 'unset';
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = 'unset';
+      }
       
       // Restore focus
-      restoreFocus(previousActiveElement.current);
+      if (typeof document !== 'undefined') {
+        restoreFocus(previousActiveElement.current);
+      }
       onAfterClose?.();
     }, 150); // Match animation duration
   }, [isOpen, preventClose, onClose, onAfterClose, restoreFocus]);
@@ -98,7 +106,7 @@ export const useModal = (
 
   // Handle escape key
   useEffect(() => {
-    if (!isOpen || !closeOnEscape) return;
+    if (!isOpen || !closeOnEscape || typeof document === 'undefined') return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -138,7 +146,9 @@ export const useModal = (
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      document.body.style.overflow = 'unset';
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = 'unset';
+      }
     };
   }, []);
 

@@ -36,14 +36,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         setIsLoading(true);
         
+        // Wait for auth service initialization
+        const maxWaitTime = 5000; // 5 seconds max wait
+        const startTime = Date.now();
+        
+        while (!authService.isInitialized() && (Date.now() - startTime) < maxWaitTime) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
         // Check if user is already authenticated
-        if (authService.isAuthenticated()) {
+        const isUserAuth = await authService.isAuthenticated();
+        
+        if (isUserAuth) {
           const currentUser = await authService.getCurrentUser();
           setUser(currentUser);
         }
         
         // Determine if we're in demo mode
-        setIsDemoMode(authService.getCurrentSession()?.isDemo || true);
+        const session = authService.getCurrentSession();
+        const demoMode = session?.isDemo || true;
+        setIsDemoMode(demoMode);
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
@@ -67,6 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       return result;
     } catch (error) {
+      console.error('AuthContext login error:', error);
       return {
         success: false,
         message: 'Login failed',
@@ -144,4 +157,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

@@ -13,7 +13,7 @@ import { useRBAC } from './hooks/useRBAC';
 import Spinner from './components/ui/Spinner';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
-import { getAppConfig, subscribeToConfig, AppConfig } from './config/appConfig';
+import { UnifiedConfigProvider, useUnifiedConfig, UnifiedAppConfig } from './contexts/UnifiedConfigContext';
 import { moduleRegistry } from './core/moduleRegistry';
 import { initializeModulesOptimized } from './core/optimizedModuleLoader';
 import { initializeTheme } from './hooks/useTheme';
@@ -27,6 +27,12 @@ const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 
 // Lazy load the dashboard page
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
+
+// Error tracking test component
+const ErrorTrackingTest = lazy(() => import('./components/ErrorTrackingTest'));
+
+// Login test page component
+const LoginTestPage = lazy(() => import('./pages/LoginTestPage'));
 
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 // Using eager: true to avoid runtime module loading issues
@@ -149,6 +155,44 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
         }
       />
       
+      {/* Error Tracking Test Route */}
+      <Route
+        path="/error-test"
+        element={
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading error test...</p>
+                </div>
+              </div>
+            }>
+              <ErrorTrackingTest />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Login Test Route */}
+      <Route
+        path="/login-test"
+        element={
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading login test...</p>
+                </div>
+              </div>
+            }>
+              <LoginTestPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      
       {/* Register custom/dynamic routes from all enabled modules */}
       {moduleRegistry.getEnabledModules().flatMap(module =>
         (module.routes || []).map(route => {
@@ -241,15 +285,23 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
 };
 
 // Enhanced app content with feature flag support
-const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> = ({ modulesInitialized, config }) => {
+const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConfig }> = ({ modulesInitialized, config }) => {
   const location = useLocation();
-  const { isAuthenticated, isLoading } = useAuth();
+  const authContext = useAuth();
+  const { isAuthenticated, isLoading } = authContext;
   const { restoreRouteIfNeeded } = useRoutePersistence();
 
   // Debug authentication state
   useEffect(() => {
-    debugLog('🔍 [AppContent] Auth state:', { isAuthenticated, isLoading, pathname: location.pathname });
-  }, [isAuthenticated, isLoading, location.pathname]);
+    console.log('🔍 [AppContent] Auth state:', authContext);
+    debugLog('🔍 [AppContent] Auth state details:', { 
+      isAuthenticated, 
+      isLoading, 
+      pathname: location.pathname,
+      user: authContext.user,
+      isDemoMode: authContext.isDemoMode 
+    });
+  }, [isAuthenticated, isLoading, location.pathname, authContext]);
 
   // Restore route after authentication is complete and modules are initialized
   useEffect(() => {
@@ -294,21 +346,23 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: AppConfig }> =
       </div>
       
       {/* Global notifications (if enabled) */}
-      {config.features.globalNotifications && config.useEnhancedFeatures && (
+      {config.features.enableNotifications && config.environment !== 'demo' && (
         <Suspense fallback={null}>
           <GlobalNotifications />
         </Suspense>
       )}
       
-      {/* Performance Monitor (development only) */}
-      <PerformanceMonitor showDetails={true} />
+      {/* Performance Monitor (Feature Flag Controlled) */}
+      {config.features.performanceMonitorWidget && (
+        <PerformanceMonitor showDetails={true} />
+      )}
     </Layout>
   );
 };
 
 // Data provider wrapper - uses the consolidated AppDataProvider which supports both modes
-const DataProviderWrapper: React.FC<{ config: AppConfig; children: React.ReactNode }> = ({ config, children }) => {
-  debugLog('🚀 [App] Using Consolidated Data Provider with enhanced features:', config.useEnhancedFeatures);
+const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.ReactNode }> = ({ config, children }) => {
+  debugLog('🚀 [App] Using Consolidated Data Provider with environment:', config.environment, 'dataMode:', config.dataMode);
   
   // The AppDataProvider already supports both standard and enhanced features
   // It automatically switches based on configuration and available services
@@ -341,8 +395,8 @@ import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from './hooks/useMemoryManagement';
 
 // Main consolidated App component
-const App: React.FC = () => {
-  const [config, setConfig] = useState<AppConfig>(getAppConfig());
+const AppInner: React.FC = () => {
+  const { config } = useUnifiedConfig();
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
   
@@ -363,12 +417,6 @@ const App: React.FC = () => {
     trackLifecycle: true,
     enableAlerts: false // Disable alerts in main app to reduce noise
   });
-
-  // Subscribe to configuration changes
-  useEffect(() => {
-    const unsubscribe = subscribeToConfig(setConfig);
-    return unsubscribe;
-  }, []);
 
   // Initialize modules with improved error handling
   useEffect(() => {
@@ -461,8 +509,8 @@ const App: React.FC = () => {
   }
 
   debugLog('🚀 [App] Rendering with config:', {
-    mode: config.mode,
-    useEnhancedFeatures: config.useEnhancedFeatures,
+    environment: config.environment,
+    dataMode: config.dataMode,
     enabledFeatures: Object.entries(config.features).filter(([, enabled]) => enabled).map(([name]) => name)
   });
 
@@ -497,6 +545,15 @@ const App: React.FC = () => {
         />
       )}
     </ApplicationErrorBoundary>
+  );
+};
+
+// Main App component with unified config provider
+const App: React.FC = () => {
+  return (
+    <UnifiedConfigProvider>
+      <AppInner />
+    </UnifiedConfigProvider>
   );
 };
 

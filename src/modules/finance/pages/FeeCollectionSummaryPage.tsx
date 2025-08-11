@@ -5,7 +5,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { CurrencyDollarIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons'; 
-import { useAppData } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Select from '@/components/ui/Select';
