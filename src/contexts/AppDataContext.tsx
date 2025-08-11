@@ -12,7 +12,7 @@ import { DataStrategyManager, DataStrategy, DataOperation } from '../services/Da
 import { BackendAPIService } from '../services/BackendAPIService';
 import { globalDataConsistencyService, DataConsistencyConfig } from '../services/DataConsistencyService';
 import { globalUnifiedCRUDService } from '../services/UnifiedCRUDService';
-import { globalDataSyncMonitoringService, SyncStatus as DetailedSyncStatus } from '../services/DataSyncMonitoringService';
+import { globalDataSyncMonitoringService, SyncStatus as DetailedSyncStatus, SyncConflict, ConflictResolution } from '../services/DataSyncMonitoringService';
 
 import type { AppDataContextType, RbacRole, Role } from '../core/types';
 import Spinner from '../components/ui/Spinner';
@@ -66,6 +66,11 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
   runConsistencyCheck: () => Promise<import('../services/DataConsistencyService').ConsistencyReport>;
   getValidationConfig: () => DataConsistencyConfig;
   updateValidationConfig: (config: Partial<DataConsistencyConfig>) => void;
+  
+  // Conflict resolution
+  conflicts: SyncConflict[];
+  resolveConflict: (conflictId: string, resolution: ConflictResolution) => Promise<boolean>;
+  resolveAllConflicts: (strategy?: ConflictResolution['strategy']) => Promise<boolean[]>;
 }
 
 export interface SyncStatus {
@@ -239,6 +244,33 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const unsubscribe = networkManager.subscribe(setNetworkState);
     return unsubscribe;
   }, [networkManager]);
+  
+  // Update sync status with conflict information
+  useEffect(() => {
+    const updateSyncStatus = () => {
+      const conflicts = globalDataSyncMonitoringService.getUnresolvedConflicts();
+      setSyncStatus(prev => ({
+        ...prev,
+        conflictsCount: conflicts.length
+      }));
+    };
+    
+    // Initial update
+    updateSyncStatus();
+    
+    // Subscribe to sync status changes
+    const unsubscribe = globalDataSyncMonitoringService.subscribe((status) => {
+      setSyncStatus(prev => ({
+        ...prev,
+        conflictsCount: status.conflicts.unresolved,
+        state: status.mode,
+        progress: status.progress.percentage,
+        lastSyncTime: status.lastSync
+      }));
+    });
+    
+    return unsubscribe;
+  }, []);
 
   // Load RxDB modules in production mode
   useEffect(() => {
@@ -654,6 +686,36 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       updateValidationConfig: (config: Partial<DataConsistencyConfig>) => {
         globalDataConsistencyService.updateConfig(config);
+      },
+      
+      // Conflict resolution functions
+      conflicts: globalDataSyncMonitoringService.getUnresolvedConflicts(),
+      
+      resolveConflict: async (conflictId: string, resolution: ConflictResolution) => {
+        return await globalDataSyncMonitoringService.resolveConflict(conflictId, resolution);
+      },
+      
+      resolveAllConflicts: async (strategy: ConflictResolution['strategy'] = 'remote_wins') => {
+        const conflicts = globalDataSyncMonitoringService.getUnresolvedConflicts();
+        const results: boolean[] = [];
+        
+        for (const conflict of conflicts) {
+          const resolution: ConflictResolution = {
+            strategy,
+            resolvedAt: new Date(),
+            resolvedBy: 'system'
+          };
+          
+          try {
+            const result = await globalDataSyncMonitoringService.resolveConflict(conflict.id, resolution);
+            results.push(result);
+          } catch (error) {
+            console.error(`Failed to resolve conflict ${conflict.id}:`, error);
+            results.push(false);
+          }
+        }
+        
+        return results;
       }
     };
   }, [

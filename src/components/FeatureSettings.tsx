@@ -28,7 +28,7 @@ import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 import TooltipDemo from './TooltipDemo';
-import BackendConfiguration from './BackendConfiguration';
+import { BackendConfiguration } from './BackendConfiguration';
 
 interface FeatureSettingsProps {
   className?: string;
@@ -48,12 +48,40 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     syncStatus, 
     pendingSyncCount,
     conflicts = [],
-    resolveConflict,
-    resolveAllConflicts,
+    resolveConflict: resolveConflictFn,
+    resolveAllConflicts: resolveAllConflictsFn,
     getQueueStatus,
     forceSync,
     clearSyncQueue
   } = useAppData() || {};
+
+  // Transform conflicts data structure to match ConflictResolutionComponent interface
+  const transformedConflicts = conflicts.map((conflict: any) => ({
+    id: conflict.id,
+    entityName: conflict.entityName,
+    entityId: conflict.entityId,
+    localData: conflict.localData,
+    serverData: conflict.remoteData, // Map remoteData to serverData
+    timestamp: conflict.timestamp,
+    conflictType: conflict.conflictType
+  }));
+
+  // Wrapper functions to handle conflict resolution
+  const resolveConflict = (conflictId: string, resolution: 'local' | 'server' | 'merge', mergedData?: any) => {
+    if (resolveConflictFn) {
+      // Map resolution strategy to match DataSyncMonitoringService interface
+      const strategy = resolution === 'local' ? 'local_wins' : 
+                      resolution === 'server' ? 'remote_wins' : 'merge';
+      resolveConflictFn(conflictId, { strategy, mergedData });
+    }
+  };
+
+  const resolveAllConflicts = (resolution: 'local' | 'server') => {
+    if (resolveAllConflictsFn) {
+      const strategy = resolution === 'local' ? 'local_wins' : 'remote_wins';
+      resolveAllConflictsFn(strategy);
+    }
+  };
 
   // Safely get queue status with comprehensive fallback
   const queueStatus = (getQueueStatus && typeof getQueueStatus === 'function') 
@@ -127,7 +155,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
             <div className="text-sm text-gray-600">Pending Sync</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-amber-600">{Array.isArray(conflicts) ? conflicts.length : 0}</div>
+            <div className="text-2xl font-bold text-amber-600">{transformedConflicts.length}</div>
             <div className="text-sm text-gray-600">Conflicts</div>
           </div>
           <div className="text-center">
@@ -168,13 +196,13 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
       </Card>
 
       {/* Conflicts Alert */}
-      {conflicts.length > 0 && (
+      {transformedConflicts.length > 0 && (
         <Card title="Attention Required" className="border-red-200 bg-red-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
               <span className="text-sm font-medium text-red-900">
-                {conflicts.length} sync conflict{conflicts.length > 1 ? 's' : ''} need resolution
+                {transformedConflicts.length} sync conflict{transformedConflicts.length > 1 ? 's' : ''} need resolution
               </span>
             </div>
             <Button 
@@ -421,9 +449,9 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 
   const renderConflictsTab = () => (
     <div className="space-y-6">
-      {conflicts.length > 0 ? (
+      {transformedConflicts.length > 0 ? (
         <ConflictResolutionComponent
-          conflicts={conflicts}
+          conflicts={transformedConflicts}
           onResolve={resolveConflict}
           onResolveAll={resolveAllConflicts}
           className="!shadow-none !bg-transparent border border-gray-200"
@@ -460,7 +488,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     { id: 'overview', label: 'Overview', icon: CogIcon },
     { id: 'sync', label: 'Sync Management', icon: ArrowPathIcon },
     { id: 'features', label: 'Feature Flags', icon: Cog6ToothIcon },
-    { id: 'conflicts', label: `Conflicts ${conflicts.length > 0 ? `(${conflicts.length})` : ''}`, icon: ExclamationTriangleIcon },
+    { id: 'conflicts', label: `Conflicts ${transformedConflicts.length > 0 ? `(${transformedConflicts.length})` : ''}`, icon: ExclamationTriangleIcon },
     { id: 'performance', label: 'Performance', icon: ClockIcon },
     { id: 'memory', label: 'Memory', icon: ServerIcon },
     { id: 'ui-components', label: 'UI Components', icon: Cog6ToothIcon }
