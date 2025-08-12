@@ -38,9 +38,9 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/90 lg:backdrop-blur-md shadow-md border-b border-slate-100`}
-      style={{ height: '64px' }}
+      style={{ height: '48px' }}
     >
-      <div className="max-w-full mx-auto flex items-center justify-between h-16 px-3 sm:px-6">
+      <div className="max-w-full mx-auto flex items-center justify-between h-12 px-3 sm:px-6">
         {/* Left: Logo & App Name */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-md select-none">

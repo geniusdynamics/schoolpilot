@@ -135,7 +135,8 @@
     "database": "Gestion Base de Données",
     "databaseSettings": "Paramètres Base de Données",
     "settings": "Paramètres Généraux",
-    "users": "Gestion Utilisateurs"
+    "users": "Gestion Utilisateurs",
+    "tabbedWorkspaceTest": "Test Espace de Travail à Onglets"
   },
   "sidebarNavigation": "Navigation principale",
   "sidebarNavigationMobile": "Navigation mobile",

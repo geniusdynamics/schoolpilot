@@ -149,7 +149,103 @@ export class RBACService {
   }
 
   constructor() {
-    // No default feature module permissions/roles
+    // Initialize with required modules for the tabbed workspace
+    this.initializeRequiredModules();
+  }
+
+  // Initialize required modules for the application
+  private initializeRequiredModules(): void {
+    // Register academics module
+    const academicsModule: ModuleDefinition = {
+      id: 'academics',
+      name: 'Academics',
+      description: 'Academic management module',
+      version: '1.0.0',
+      dependencies: [],
+      features: ['student-dashboard', 'course-management', 'grades', 'attendance'],
+      rbacPermissions: [
+        {
+          id: 'academics.read',
+          name: 'Read Academics',
+          description: 'View academic information',
+          resource: 'academics',
+          action: 'read',
+          moduleId: 'academics'
+        },
+        {
+          id: 'academics.write',
+          name: 'Write Academics',
+          description: 'Modify academic information',
+          resource: 'academics',
+          action: 'create',
+          moduleId: 'academics'
+        }
+      ]
+    };
+
+    // Register finance module
+    const financeModule: ModuleDefinition = {
+      id: 'finance',
+      name: 'Finance',
+      description: 'Financial management module',
+      version: '1.0.0',
+      dependencies: [],
+      features: ['financial-reports', 'payments', 'billing'],
+      rbacPermissions: [
+        {
+          id: 'finance.read',
+          name: 'Read Finance',
+          description: 'View financial information',
+          resource: 'finance',
+          action: 'read',
+          moduleId: 'finance'
+        },
+        {
+          id: 'finance.write',
+          name: 'Write Finance',
+          description: 'Modify financial information',
+          resource: 'finance',
+          action: 'create',
+          moduleId: 'finance'
+        }
+      ]
+    };
+
+    // Register library module
+    const libraryModule: ModuleDefinition = {
+      id: 'library',
+      name: 'Library',
+      description: 'Library management module',
+      version: '1.0.0',
+      dependencies: [],
+      features: ['catalog', 'borrowing', 'inventory'],
+      rbacPermissions: [
+        {
+          id: 'library.read',
+          name: 'Read Library',
+          description: 'View library information',
+          resource: 'library',
+          action: 'read',
+          moduleId: 'library'
+        },
+        {
+          id: 'library.write',
+          name: 'Write Library',
+          description: 'Modify library information',
+          resource: 'library',
+          action: 'create',
+          moduleId: 'library'
+        }
+      ]
+    };
+
+    // Register all modules
+    this.registerModule(academicsModule);
+    this.registerModule(financeModule);
+    this.registerModule(libraryModule);
+
+    // Initialize super admin role after modules are registered
+    this.initializeSuperAdminRole();
   }
 
   // Register a module with its permissions
@@ -399,6 +495,34 @@ export class RBACService {
         userPermissions.includes(permission)
       );
     });
+  }
+
+  // Methods required by tabStore
+  public async getCurrentUserRole(): Promise<string> {
+    // For demo purposes, return 'super_admin'. In production, this would get the current user's role
+    if (isDemo()) {
+      return SYSTEM_ROLES.SUPER_ADMIN;
+    }
+    // In production, this would get the current authenticated user's role
+    return 'guest';
+  }
+
+  public async getUserPermissions(): Promise<string[]> {
+    // For demo purposes, get super admin permissions. In production, this would get current user's permissions
+    if (isDemo()) {
+      const superAdminRole = this.roles.get(SYSTEM_ROLES.SUPER_ADMIN);
+      return superAdminRole?.permissions || [];
+    }
+    // In production, this would get the current authenticated user's permissions
+    return [];
+  }
+
+  public async checkModuleAccess(userRole: string, moduleId: string): Promise<boolean> {
+    const role = this.roles.get(userRole);
+    if (!role || !role.isActive) {
+      return false;
+    }
+    return role.moduleAccess[moduleId]?.enabled || false;
   }
 }
 

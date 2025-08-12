@@ -49,30 +49,50 @@ class DynamicModuleLoader {
 
   async initializeDynamicModules(): Promise<void> {
     console.log('🚀 [DynamicModuleLoader] Initializing dynamic modules...');
-    return this.loadModules();
+    
+    // Actually discover and load module definitions
+    await this.discoverAndLoadModules();
+    
+    // Mark as completed
+    this.isCompleted = true;
+    this.isLoading = false;
   }
 
   async discoverAndLoadModules(): Promise<any[]> {
     console.log('🚀 [DynamicModuleLoader] Discovering and loading modules...');
     
-    // Discover modules dynamically
-    const availableModules = await this.discoverAvailableModules();
+    // Import moduleRegistry to register modules
+    const { moduleRegistry } = await import('../core/moduleRegistry');
     
-    // Return basic module definitions to prevent hanging
-    const basicModules = availableModules.map(moduleId => ({
-      id: moduleId,
-      name: moduleId.charAt(0).toUpperCase() + moduleId.slice(1),
-      version: '1.0.0',
-      enabled: true,
-      routes: [],
-      permissions: [],
-      dependencies: []
-    }));
-
-    // Simulate loading time
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return basicModules;
+    try {
+      // Use import.meta.glob to discover and load module definitions
+      const moduleFiles = import.meta.glob('../modules/*/moduleDefinition.tsx', { eager: true });
+      
+      console.log('📁 [DynamicModuleLoader] Found module files:', Object.keys(moduleFiles));
+      
+      // Load and register each module
+      for (const [path, moduleExport] of Object.entries(moduleFiles)) {
+        try {
+          const moduleDefinition = (moduleExport as any).default;
+          if (moduleDefinition && moduleDefinition.id) {
+            console.log(`📦 [DynamicModuleLoader] Registering module: ${moduleDefinition.id}`);
+            moduleRegistry.registerModule(moduleDefinition);
+          }
+        } catch (error) {
+          console.error(`❌ [DynamicModuleLoader] Error loading module from ${path}:`, error);
+        }
+      }
+      
+      // Get all registered modules
+      const registeredModules = moduleRegistry.getAllModules();
+      console.log(`✅ [DynamicModuleLoader] Successfully registered ${registeredModules.length} modules`);
+      
+      return registeredModules;
+      
+    } catch (error) {
+      console.error('❌ [DynamicModuleLoader] Error during module loading:', error);
+      return [];
+    }
   }
 
   // Dynamically discover available modules using Vite's import.meta.glob
