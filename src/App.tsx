@@ -15,7 +15,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 import { UnifiedConfigProvider, useUnifiedConfig, UnifiedAppConfig } from './contexts/UnifiedConfigContext';
 import { moduleRegistry } from './core/moduleRegistry';
-import { initializeModulesOptimized } from './core/optimizedModuleLoader';
+import { initializeModules } from './core/moduleLoader';
 import { initializeTheme } from './hooks/useTheme';
 import { ToastProvider } from './hooks/useToast';
 
@@ -33,6 +33,9 @@ const ErrorTrackingTest = lazy(() => import('./components/ErrorTrackingTest'));
 
 // Login test page component
 const LoginTestPage = lazy(() => import('./pages/LoginTestPage'));
+
+// Tabbed workspace test page component
+const TabbedWorkspaceTestPage = lazy(() => import('./modules/settings/pages/TabbedWorkspaceTestPage'));
 
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 // Using eager: true to avoid runtime module loading issues
@@ -188,6 +191,25 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
               </div>
             }>
               <LoginTestPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Tabbed Workspace Test Route */}
+      <Route
+        path="/tabbed-workspace-test"
+        element={
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading tabbed workspace test...</p>
+                </div>
+              </div>
+            }>
+              <TabbedWorkspaceTestPage />
             </Suspense>
           </ProtectedRoute>
         }
@@ -436,7 +458,7 @@ const AppInner: React.FC = () => {
           
           // Try to initialize modules, but don't block the app if it fails
           const initPromise = measureAsync(
-            () => initializeModulesOptimized(),
+            () => initializeModules(),
             'module_initialization'
           );
           const timeoutPromise = new Promise<void>((resolve) => {

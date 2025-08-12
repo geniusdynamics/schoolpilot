@@ -332,7 +332,7 @@ const ApplicationManagement: React.FC = () => {
           {activeView === 'applications' && (
             <Button
               onClick={() => openModal()}
-              icon={PlusIcon}
+              leftIcon={<PlusIcon className="w-4 h-4" />}
               variant="primary"
             >
               {t('admissions.actions.submit')}

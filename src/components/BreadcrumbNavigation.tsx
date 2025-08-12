@@ -170,22 +170,22 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
   }
 
   return (
-    <nav className={`flex items-center space-x-1 text-sm text-gray-500 ${className}`} aria-label="Breadcrumb">
-      <ol className="flex items-center space-x-1">
+    <nav className={`flex items-center space-x-0.5 text-xs text-gray-500 ${className}`} aria-label="Breadcrumb">
+      <ol className="flex items-center space-x-0.5">
         {breadcrumbs.map((item, index) => (
           <li key={`${item.path}-${index}`} className="flex items-center">
             {index > 0 && (
-              <ChevronRightIcon className="w-4 h-4 mx-1 text-gray-400" />
+              <ChevronRightIcon className="w-3 h-3 mx-0.5 text-gray-400" />
             )}
             
             {item.label === '...' ? (
-              <span className="px-2 py-1 text-gray-400">...</span>
+              <span className="px-1 py-0.5 text-gray-400">...</span>
             ) : item.isActive ? (
               <span className="font-medium text-gray-900 flex items-center">
                 {item.hasError && (
-                  <ExclamationTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
+                  <ExclamationTriangleIcon className="w-3 h-3 mr-0.5 text-orange-500" />
                 )}
-                {index === 0 && showHome && <HomeIcon className="w-4 h-4 mr-1" />}
+                {index === 0 && showHome && <HomeIcon className="w-3 h-3 mr-0.5" />}
                 {item.label}
               </span>
             ) : (
@@ -193,7 +193,7 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
                 <button
                   onClick={() => handleNavigate(item.path)}
                   className={`
-                    flex items-center px-2 py-1 rounded hover:bg-gray-100 transition-colors
+                    flex items-center px-1 py-0.5 rounded hover:bg-gray-100 transition-colors
                     ${item.isAccessible 
                       ? 'text-blue-600 hover:text-blue-800' 
                       : 'text-gray-400 cursor-not-allowed'
@@ -210,9 +210,9 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
                   }
                 >
                   {item.hasError && (
-                    <ExclamationTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
+                    <ExclamationTriangleIcon className="w-3 h-3 mr-0.5 text-orange-500" />
                   )}
-                  {index === 0 && showHome && <HomeIcon className="w-4 h-4 mr-1" />}
+                  {index === 0 && showHome && <HomeIcon className="w-3 h-3 mr-0.5" />}
                   {item.label}
                 </button>
                 

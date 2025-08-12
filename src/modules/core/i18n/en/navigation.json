@@ -146,7 +146,8 @@
     "auditLog": "Audit Log",
     "database": "Database Management",
     "databaseSettings": "Database Settings",
-    "users": "User Management"
+    "users": "User Management",
+    "tabbedWorkspaceTest": "Tabbed Workspace Test"
   },
   "sidebarNavigation": "Main Navigation",
   "sidebarNavigationMobile": "Mobile Navigation",

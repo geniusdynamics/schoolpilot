@@ -51,4 +51,4 @@ const SettingsPopup: React.FC<SettingsPopupProps> = ({ open, onClose }) => {
   );
 };
 
-export default SettingsPopup; 
+export default SettingsPopup;

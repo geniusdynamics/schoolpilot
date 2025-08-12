@@ -117,8 +117,8 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
       default: // md
         return {
           card: 'rounded-xl',
-          header: 'px-4 py-5 sm:px-6',
-          body: 'px-4 py-5 sm:p-6'
+          header: 'px-4 py-3 sm:px-6',
+          body: 'px-4 py-3 sm:p-6'
         };
     }
   };
@@ -190,7 +190,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
               </span>
             )}
             {title && (
-              <h3 className="text-lg leading-6 font-semibold text-gray-900 truncate group-hover:text-gray-800 transition-colors duration-200">
+              <h3 className="text-base leading-5 font-semibold text-gray-900 truncate group-hover:text-gray-800 transition-colors duration-200">
                 {title}
               </h3>
             )}
@@ -219,13 +219,13 @@ Card.displayName = 'Card';
 
 // Shadcn-ui style sub-components for compatibility
 export const CardHeader: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`p-6 pb-4 ${className}`}>
+  <div className={`p-4 pb-2 ${className}`}>
     {children}
   </div>
 );
 
 export const CardTitle: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>
+  <h3 className={`text-base font-semibold text-gray-900 ${className}`}>
     {children}
   </h3>
 );
@@ -237,7 +237,7 @@ export const CardDescription: React.FC<{ children: ReactNode; className?: string
 );
 
 export const CardContent: React.FC<{ children: ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`p-6 pt-0 ${className}`}>
+  <div className={`p-4 pt-0 ${className}`}>
     {children}
   </div>
 );

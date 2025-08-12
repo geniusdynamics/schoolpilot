@@ -103,12 +103,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <div className="flex flex-1 pt-16 md:pt-16">
         <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
         <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
-        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-hidden">
+        <main className="flex-1 p-2 sm:p-3 lg:p-4 overflow-hidden">
           <div className="h-full overflow-y-auto">
             {/* Breadcrumb Navigation */}
-            <div className="mb-4">
+            <div className="mb-2">
               <BreadcrumbNavigation 
-                className="mb-2"
+                className="mb-1"
                 onNavigationError={(path, error) => {
                   console.error(`Navigation error for ${path}:`, error);
                 }}
