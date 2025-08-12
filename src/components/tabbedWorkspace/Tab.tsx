@@ -2,10 +2,13 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Pin, Copy, ExternalLink, MoreVertical, AlertCircle } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { Tab as TabType } from '../../types/tabbedWorkspace';
+import { HierarchicalTab, SubTab } from '../../types/hierarchical';
 import { getIcon } from '../../utils/iconMap';
 import { useTabStore } from '../../stores/tabStore';
+import { SubTabNavigation } from '../SubTabNavigation';
 
-interface TabProps {
+// Legacy TabProps for backward compatibility
+interface LegacyTabProps {
   tab: TabType;
   isActive: boolean;
   isPinned: boolean;
@@ -17,6 +20,34 @@ interface TabProps {
   onDuplicate: () => void;
   onOpenInNewWindow?: () => void;
   showContextMenu?: boolean;
+}
+
+// Enhanced TabProps with hierarchical support
+interface HierarchicalTabProps {
+  tab: HierarchicalTab;
+  isActive: boolean;
+  isPinned: boolean;
+  isDragging?: boolean;
+  className?: string;
+  onClick: () => void;
+  onClose: (event: React.MouseEvent) => void;
+  onPin: () => void;
+  onDuplicate: () => void;
+  onOpenInNewWindow?: () => void;
+  showContextMenu?: boolean;
+  // Hierarchical features
+  enableHierarchicalMode?: boolean;
+  onSubTabChange?: (tabId: string, subTabId: string) => void;
+  showCloseButton?: boolean;
+  tabStyle?: 'legacy' | 'modern';
+}
+
+// Union type for enhanced compatibility
+type TabProps = LegacyTabProps | HierarchicalTabProps;
+
+// Type guard to check if props are hierarchical
+function isHierarchicalTabProps(props: TabProps): props is HierarchicalTabProps {
+  return 'enableHierarchicalMode' in props;
 }
 
 interface ContextMenuProps {
@@ -38,12 +69,12 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onDuplicate,
   onOpenInNewWindow
 }) => {
-  const { closeAllTabs, closeTabsToRight, closeTabsToLeft, closeAllExceptPinned } = useTabStore();
+  const { closeAllTabs, closeTabsToRight, closeTabsToLeft, closeAllExceptPinned, closeOtherTabs } = useTabStore();
   
   const handleAction = (action: string) => {
     switch (action) {
       case 'close-others':
-        closeAllExceptPinned();
+        closeOtherTabs(tab.id);
         break;
       case 'close-to-right':
         closeTabsToRight(tab.id);
@@ -185,19 +216,27 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   );
 };
 
-export const Tab: React.FC<TabProps> = ({
-  tab,
-  isActive,
-  isPinned,
-  isDragging = false,
-  className,
-  onClick,
-  onClose,
-  onPin,
-  onDuplicate,
-  onOpenInNewWindow,
-  showContextMenu = true
-}) => {
+export const Tab: React.FC<TabProps> = (props) => {
+  const {
+    tab,
+    isActive,
+    isPinned,
+    isDragging = false,
+    className,
+    onClick,
+    onClose,
+    onPin,
+    onDuplicate,
+    onOpenInNewWindow,
+    showContextMenu = true
+  } = props;
+  
+  // Extract hierarchical props if available
+  const isHierarchical = isHierarchicalTabProps(props);
+  const enableHierarchicalMode = isHierarchical ? props.enableHierarchicalMode : false;
+  const onSubTabChange = isHierarchical ? props.onSubTabChange : undefined;
+  const showCloseButton = isHierarchical ? props.showCloseButton : undefined;
+  const tabStyle = isHierarchical ? props.tabStyle || 'legacy' : 'legacy';
   const [contextMenu, setContextMenu] = useState<{
     isVisible: boolean;
     position: { x: number; y: number };
@@ -268,7 +307,12 @@ export const Tab: React.FC<TabProps> = ({
   const getStatusIndicator = () => {
     if (tab.isLoading) {
       return (
-        <div className="w-3 h-3 border-2 border-green-300 border-t-green-600 rounded-full animate-spin" />
+        <div className={cn(
+          'w-3 h-3 border-2 rounded-full animate-spin',
+          tabStyle === 'modern'
+            ? 'border-gray-300 border-t-gray-600'
+            : 'border-green-300 border-t-green-600'
+        )} />
       );
     }
     
@@ -290,27 +334,54 @@ export const Tab: React.FC<TabProps> = ({
     return null;
   };
 
+  // Get tab styling based on style mode
+  const getTabStyling = () => {
+    if (tabStyle === 'modern') {
+      return {
+        base: 'bg-white border-gray-200 text-gray-700',
+        active: 'bg-white border-blue-500 text-blue-800 shadow-sm',
+        inactive: 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-700',
+        pinned: 'bg-gray-100 border-gray-300',
+        error: 'bg-red-50 border-red-300',
+        loading: 'bg-blue-50 border-blue-300'
+      };
+    }
+    
+    // Legacy styling
+    return {
+      base: 'bg-green-50 border-green-200 text-green-700',
+      active: 'bg-white border-green-500 text-green-800 shadow-sm',
+      inactive: 'bg-green-50 border-transparent text-gray-600 hover:bg-green-100 hover:text-green-700',
+      pinned: 'bg-green-100 border-green-300',
+      error: 'bg-red-50 border-red-300',
+      loading: 'bg-blue-50 border-blue-300'
+    };
+  };
+
+  const styling = getTabStyling();
+
   return (
     <>
       <div
         ref={tabRef}
         className={cn(
-          'relative flex items-center cursor-pointer transition-all duration-200',
+          'relative cursor-pointer transition-all duration-200',
           'border-b-2 select-none group',
           getTabWidth(),
+          enableHierarchicalMode ? 'flex flex-col' : 'flex items-center',
           {
             // Active state
-            'bg-white border-green-500 text-green-800 shadow-sm': isActive,
+            [styling.active]: isActive,
             // Inactive state
-            'bg-green-50 border-transparent text-gray-600 hover:bg-green-100 hover:text-green-700': !isActive,
+            [styling.inactive]: !isActive && !isPinned && !tab.hasError && !tab.isLoading,
             // Pinned state
-            'bg-green-100 border-green-300': isPinned && !isActive,
+            [styling.pinned]: isPinned && !isActive,
             // Dragging state
             'opacity-50 scale-95': isDragging,
             // Error state
-            'bg-red-50 border-red-300': tab.hasError,
+            [styling.error]: tab.hasError,
             // Loading state
-            'bg-blue-50 border-blue-300': tab.isLoading
+            [styling.loading]: tab.isLoading
           },
           className
         )}
@@ -330,13 +401,15 @@ export const Tab: React.FC<TabProps> = ({
           <div className="absolute -top-1 -left-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
         )}
 
-        {/* Tab content */}
+        {/* Main tab content */}
         <div className="flex items-center gap-2 px-3 py-2 min-w-0 flex-1">
           {/* Icon */}
           {tab.icon && (
             <span className={cn(
               'flex-shrink-0 text-sm',
-              isActive ? 'text-green-600' : 'text-gray-500'
+              isActive 
+                ? (tabStyle === 'modern' ? 'text-blue-600' : 'text-green-600')
+                : 'text-gray-500'
             )}>
               {(() => {
                 const IconComponent = getIcon(tab.icon);
@@ -349,7 +422,9 @@ export const Tab: React.FC<TabProps> = ({
           {!isPinned && (
             <span className={cn(
               'truncate text-sm font-medium min-w-0',
-              isActive ? 'text-green-800' : 'text-gray-700'
+              isActive 
+                ? (tabStyle === 'modern' ? 'text-blue-800' : 'text-green-800')
+                : 'text-gray-700'
             )}>
               {tab.title}
             </span>
@@ -361,7 +436,7 @@ export const Tab: React.FC<TabProps> = ({
           </div>
 
           {/* Close button */}
-          {!isPinned && (isHovered || isActive) && (
+          {!isPinned && (showCloseButton !== false) && (isHovered || isActive) && (
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -369,8 +444,11 @@ export const Tab: React.FC<TabProps> = ({
                 onClose(e);
               }}
               className={cn(
-                'flex-shrink-0 p-0.5 rounded hover:bg-green-200 transition-colors',
-                'text-gray-500 hover:text-red-600 ml-1'
+                'flex-shrink-0 p-0.5 rounded transition-colors ml-1',
+                'text-gray-500 hover:text-red-600',
+                tabStyle === 'modern'
+                  ? 'hover:bg-gray-200'
+                  : 'hover:bg-green-200'
               )}
               aria-label={`Close ${tab.title} tab`}
               tabIndex={-1}
@@ -380,15 +458,32 @@ export const Tab: React.FC<TabProps> = ({
           )}
         </div>
 
+        {/* Hierarchical sub-tabs */}
+        {enableHierarchicalMode && isHierarchical && isActive && (tab as HierarchicalTab).subTabs && (
+          <div className="px-2 pb-2">
+            <SubTabNavigation
+              subTabs={(tab as HierarchicalTab).subTabs}
+              activeSubTabId={(tab as HierarchicalTab).activeSubTabId}
+              onSubTabClick={(subTabId) => onSubTabChange?.(tab.id, subTabId)}
+              canAddSubTab={false}
+            />
+          </div>
+        )}
+
         {/* Active tab indicator */}
         {isActive && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500" />
+          <div className={cn(
+            'absolute bottom-0 left-0 right-0 h-0.5',
+            tabStyle === 'modern' ? 'bg-blue-500' : 'bg-green-500'
+          )} />
         )}
 
         {/* Keyboard focus indicator */}
         <div className={cn(
           'absolute inset-0 rounded-t border-2 border-transparent transition-colors',
-          'focus-within:border-green-400 focus-within:shadow-sm'
+          tabStyle === 'modern'
+            ? 'focus-within:border-blue-400 focus-within:shadow-sm'
+            : 'focus-within:border-green-400 focus-within:shadow-sm'
         )} />
       </div>
 

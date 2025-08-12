@@ -3,6 +3,7 @@ export { TabbedWorkspace } from './TabbedWorkspace';
 export { TabBar } from './TabBar';
 export { Tab } from './Tab';
 export { ActionBar } from './ActionBar';
+export { SubTabNavigation } from './SubTabNavigation';
 
 // Types
 export type {
