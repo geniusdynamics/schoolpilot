@@ -182,6 +182,60 @@
   }
 }
 
+/* TabbedWorkspace mobile and compact view enhancements */
+@media (max-width: 768px) {
+  .tabbed-workspace-mobile {
+    /* Ensure full width utilization on mobile */
+    width: 100vw;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .tab-content-mobile {
+    /* Optimized padding for mobile screens */
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .tab-title-mobile {
+    /* Responsive title sizing */
+    font-size: 1.25rem;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 475px) {
+  .tab-content-compact {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  
+  .tab-title-compact {
+    font-size: 1.125rem;
+    margin-bottom: 8px;
+  }
+  
+  .tab-iframe-compact {
+    height: 200px;
+    min-height: 200px;
+  }
+}
+
+/* Landscape orientation optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+  .tab-content-landscape {
+    padding: 4px 8px;
+  }
+  
+  .tab-title-landscape {
+    font-size: 1rem;
+    margin-bottom: 6px;
+  }
+}
+
 /* Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   * {

@@ -150,13 +150,23 @@ export interface TabComponentProps {
 export interface TabBarProps {
   tabs: Tab[];
   activeTabId: string | null;
-  onTabActivate: (tabId: string) => void;
+  onTabClick: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
   onTabReorder: (fromIndex: number, toIndex: number) => void;
   onTabPin: (tabId: string) => void;
+  onTabUnpin: (tabId: string) => void;
   onTabDuplicate: (tabId: string) => void;
+  onNewTab: (tabData?: any) => void;
   maxTabs?: number;
-  showSearch?: boolean;
+  enableTabGroups?: boolean;
+  theme?: string;
+  userRole?: string;
+  userPermissions?: string[];
+  // Hierarchical features
+  enableHierarchicalMode?: boolean;
+  tabStyle?: 'legacy' | 'modern';
+  showCloseButton?: boolean;
+  onSubTabChange?: (tabId: string, subTabId: string) => void;
 }
 
 // Action bar component props
@@ -170,10 +180,27 @@ export interface ActionBarProps {
 
 // Tabbed workspace component props
 export interface TabbedWorkspaceProps {
-  children: React.ReactNode;
-  defaultTab?: Omit<Tab, 'id' | 'lastAccessed'>;
-  maxTabs?: number;
-  enableSearch?: boolean;
-  enableGrouping?: boolean;
   className?: string;
+  showActionBar?: boolean;
+  showSettings?: boolean;
+  onTabContentRender?: (tab: Tab) => React.ReactNode;
+  onSettingsClick?: () => void;
+  maxTabs?: number;
+  enableTabGroups?: boolean;
+  enableTabPersistence?: boolean;
+  theme?: string;
+  userRole?: string;
+  userPermissions?: string[];
+  moduleContext?: string;
+  onTabChange?: (tab: Tab) => void;
+  onTabClose?: (tab: Tab) => void;
+  onTabCreate?: (tab: Tab) => void;
+  onError?: (error: string) => void;
+  // Hierarchical features
+  enableHierarchicalMode?: boolean;
+  showBreadcrumbs?: boolean;
+  tabStyle?: 'legacy' | 'modern';
+  showCloseButton?: boolean;
+  onBreadcrumbClick?: (breadcrumb: any) => void;
+  onSubTabChange?: (tabId: string, subTabId: string) => void;
 }

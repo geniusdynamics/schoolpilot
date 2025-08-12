@@ -1,13 +1,15 @@
-// ABOUTME: Breadcrumb navigation component with error state handling
-// ABOUTME: Provides navigation context and recovery options when routes fail
+// ABOUTME: Enhanced breadcrumb navigation component with hierarchical support
+// ABOUTME: Provides navigation context, recovery options, and hierarchical path management
 
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon, HomeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { BreadcrumbItem, BreadcrumbNavigationProps } from '../types/hierarchical';
 
-interface BreadcrumbItem {
+// Legacy interface for backward compatibility
+interface LegacyBreadcrumbItem {
   label: string;
   path: string;
   isActive: boolean;
@@ -15,32 +17,43 @@ interface BreadcrumbItem {
   hasError?: boolean;
 }
 
-interface BreadcrumbNavigationProps {
-  className?: string;
-  showHome?: boolean;
-  maxItems?: number;
+// Enhanced props interface extending the hierarchical types
+interface EnhancedBreadcrumbNavigationProps extends BreadcrumbNavigationProps {
   onNavigationError?: (path: string, error: Error) => void;
+  customItems?: BreadcrumbItem[];
+  enableHierarchicalMode?: boolean;
 }
 
-const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
+const BreadcrumbNavigation: React.FC<EnhancedBreadcrumbNavigationProps> = ({
+  items: customItems,
+  onNavigate: customOnNavigate,
   className = '',
   showHome = true,
   maxItems = 5,
-  onNavigationError
+  separator,
+  onNavigationError,
+  enableHierarchicalMode = false
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems, isLoading } = useDynamicNavigation(true);
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
+  const [breadcrumbs, setBreadcrumbs] = useState<LegacyBreadcrumbItem[]>([]);
+  const [hierarchicalBreadcrumbs, setHierarchicalBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [navigationErrors, setNavigationErrors] = useState<Set<string>>(new Set());
 
-  // Build breadcrumb items from current path
+  // Build breadcrumb items from current path or custom items
   useEffect(() => {
+    // If custom items are provided and hierarchical mode is enabled, use them
+    if (customItems && enableHierarchicalMode) {
+      setHierarchicalBreadcrumbs(customItems);
+      return;
+    }
+
     if (isLoading || navigationItems.length === 0) return;
 
     const pathSegments = location.pathname.split('/').filter(Boolean);
-    const items: BreadcrumbItem[] = [];
+    const items: LegacyBreadcrumbItem[] = [];
 
     // Add home breadcrumb
     if (showHome) {
@@ -94,7 +107,7 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
     if (maxItems && items.length > maxItems) {
       const startItems = items.slice(0, 1); // Keep home
       const endItems = items.slice(-(maxItems - 2)); // Keep last items
-      const ellipsisItem: BreadcrumbItem = {
+      const ellipsisItem: LegacyBreadcrumbItem = {
         label: '...',
         path: '',
         isActive: false,
@@ -104,7 +117,7 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
     } else {
       setBreadcrumbs(items);
     }
-  }, [location.pathname, navigationItems, isLoading, showHome, maxItems, navigationErrors, t]);
+  }, [location.pathname, navigationItems, isLoading, showHome, maxItems, navigationErrors, t, customItems, enableHierarchicalMode]);
 
   // Find navigation item by path
   const findNavigationItem = (items: any[], targetPath: string): any => {
@@ -140,7 +153,12 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
         return newErrors;
       });
 
-      navigate(path);
+      // Use custom navigation handler if provided (for hierarchical mode)
+      if (customOnNavigate && enableHierarchicalMode) {
+        customOnNavigate(path);
+      } else {
+        navigate(path);
+      }
     } catch (error) {
       const navError = error as Error;
       console.error(`🧭 [BreadcrumbNavigation] Navigation failed for path: ${path}`, navError);
@@ -165,27 +183,38 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
     handleNavigate(path);
   };
 
-  if (isLoading || breadcrumbs.length === 0) {
+  // Determine which breadcrumbs to render
+  const currentBreadcrumbs = enableHierarchicalMode && hierarchicalBreadcrumbs.length > 0 
+    ? hierarchicalBreadcrumbs 
+    : breadcrumbs;
+
+  if (isLoading || currentBreadcrumbs.length === 0) {
     return null;
   }
 
+  // Custom separator or default
+  const separatorElement = separator || <ChevronRightIcon className="w-3 h-3 mx-0.5 text-gray-400" />;
+
   return (
-    <nav className={`flex items-center space-x-0.5 text-xs text-gray-500 ${className}`} aria-label="Breadcrumb">
+    <nav className={`flex items-center space-x-0.5 text-sm text-gray-600 ${className}`} aria-label="Breadcrumb">
       <ol className="flex items-center space-x-0.5">
-        {breadcrumbs.map((item, index) => (
+        {currentBreadcrumbs.map((item, index) => (
           <li key={`${item.path}-${index}`} className="flex items-center">
             {index > 0 && (
-              <ChevronRightIcon className="w-3 h-3 mx-0.5 text-gray-400" />
+              <span className="flex items-center">{separatorElement}</span>
             )}
             
             {item.label === '...' ? (
               <span className="px-1 py-0.5 text-gray-400">...</span>
             ) : item.isActive ? (
-              <span className="font-medium text-gray-900 flex items-center">
-                {item.hasError && (
-                  <ExclamationTriangleIcon className="w-3 h-3 mr-0.5 text-orange-500" />
+              <span className="font-semibold text-gray-900 flex items-center px-2 py-1 bg-gray-100 rounded-md">
+                {('hasError' in item && item.hasError) && (
+                  <ExclamationTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
                 )}
-                {index === 0 && showHome && <HomeIcon className="w-3 h-3 mr-0.5" />}
+                {index === 0 && showHome && <HomeIcon className="w-4 h-4 mr-1" />}
+                {('icon' in item && item.icon) && (
+                  <span className="mr-1">{item.icon}</span>
+                )}
                 {item.label}
               </span>
             ) : (
@@ -193,37 +222,40 @@ const BreadcrumbNavigation: React.FC<BreadcrumbNavigationProps> = ({
                 <button
                   onClick={() => handleNavigate(item.path)}
                   className={`
-                    flex items-center px-1 py-0.5 rounded hover:bg-gray-100 transition-colors
-                    ${item.isAccessible 
-                      ? 'text-blue-600 hover:text-blue-800' 
+                    flex items-center px-2 py-1 rounded-md hover:bg-gray-100 transition-colors duration-200
+                    ${('isAccessible' in item ? item.isAccessible : true)
+                      ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50' 
                       : 'text-gray-400 cursor-not-allowed'
                     }
-                    ${item.hasError ? 'text-orange-600' : ''}
+                    ${('hasError' in item && item.hasError) ? 'text-orange-600' : ''}
                   `}
-                  disabled={!item.isAccessible}
+                  disabled={('isAccessible' in item) ? !item.isAccessible : false}
                   title={
-                    item.hasError 
+                    ('hasError' in item && item.hasError)
                       ? 'This page had an error. Click to retry.' 
-                      : item.isAccessible 
+                      : ('isAccessible' in item ? item.isAccessible : true)
                         ? `Navigate to ${item.label}` 
                         : 'Page not accessible'
                   }
                 >
-                  {item.hasError && (
-                    <ExclamationTriangleIcon className="w-3 h-3 mr-0.5 text-orange-500" />
+                  {('hasError' in item && item.hasError) && (
+                    <ExclamationTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
                   )}
-                  {index === 0 && showHome && <HomeIcon className="w-3 h-3 mr-0.5" />}
+                  {index === 0 && showHome && <HomeIcon className="w-4 h-4 mr-1" />}
+                  {('icon' in item && item.icon) && (
+                    <span className="mr-1">{item.icon}</span>
+                  )}
                   {item.label}
                 </button>
                 
                 {/* Retry button for failed navigation */}
-                {item.hasError && (
+                {('hasError' in item && item.hasError) && (
                   <button
                     onClick={() => handleRetryNavigation(item.path)}
-                    className="ml-1 p-1 text-orange-500 hover:text-orange-700 hover:bg-orange-50 rounded transition-colors"
+                    className="ml-2 p-1 text-orange-500 hover:text-orange-700 hover:bg-orange-50 rounded transition-colors"
                     title="Retry navigation"
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                   </button>

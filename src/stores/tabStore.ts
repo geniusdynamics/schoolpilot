@@ -7,12 +7,32 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { Tab, TabState, TabStore } from '../types/tabbedWorkspace';
+import { HierarchicalTab, BreadcrumbItem } from '../types/hierarchical';
 import { rbacService } from '../core/rbacService';
 
 interface TabStoreState extends TabStore {
   // Internal state
   _initialized: boolean;
   _lastTabId: number;
+  // Hierarchical state
+  hierarchicalTabs: HierarchicalTab[];
+  breadcrumbs: BreadcrumbItem[];
+  currentPath: string;
+  enableHierarchicalMode: boolean;
+  
+  // Additional tab operations
+  closeOtherTabs: (tabId: string) => void;
+  
+  // Hierarchical operations
+  setHierarchicalMode: (enabled: boolean) => void;
+  updateBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
+  setCurrentPath: (path: string) => void;
+  addHierarchicalTab: (tab: HierarchicalTab) => void;
+  updateHierarchicalTab: (tabId: string, updates: Partial<HierarchicalTab>) => void;
+  removeHierarchicalTab: (tabId: string) => void;
+  getHierarchicalTab: (tabId: string) => HierarchicalTab | null;
+  navigateToPath: (path: string) => void;
+  generateBreadcrumbsFromPath: (path: string) => BreadcrumbItem[];
 }
 
 // Generate unique tab ID
@@ -37,10 +57,15 @@ export const useTabStore = create<TabStoreState>()
       activeTabId: null,
       pinnedTabs: [],
       recentlyClosedTabs: [],
-      maxTabs: 20,
+      maxTabs: 15,
       tabGroups: {},
       currentUserRole: 'guest',
       userPermissions: [],
+      // Hierarchical state
+      hierarchicalTabs: [],
+      breadcrumbs: [],
+      currentPath: '',
+      enableHierarchicalMode: false,
       
       // Internal state
       _initialized: false,
@@ -273,8 +298,44 @@ export const useTabStore = create<TabStoreState>()
         });
       },
       
+      closeOtherTabs: (tabId: string) => {
+        const state = get();
+        const tabsToClose = state.tabs.filter(tab => 
+          tab.id !== tabId && // Don't close the specified tab (usually active)
+          tab.canClose && 
+          !tab.pinned // Don't close pinned tabs
+        );
+        
+        set((draft) => {
+          // Add to recently closed
+          draft.recentlyClosedTabs = [...tabsToClose, ...draft.recentlyClosedTabs].slice(0, 10);
+          // Remove the tabs to close
+          draft.tabs = draft.tabs.filter(tab => 
+            tab.id === tabId || // Keep the specified tab
+            tab.pinned || // Keep pinned tabs
+            !tab.canClose // Keep tabs that can't be closed
+          );
+        });
+      },
+
       closeAllExceptPinned: () => {
-        get().closeAllTabs();
+        const state = get();
+        const tabsToClose = state.tabs.filter(tab => tab.canClose && !tab.pinned);
+        
+        set((draft) => {
+          // Add to recently closed
+          draft.recentlyClosedTabs = [...tabsToClose, ...draft.recentlyClosedTabs].slice(0, 10);
+          // Keep only pinned tabs
+          draft.tabs = draft.tabs.filter(tab => tab.pinned || !tab.canClose);
+          // Update active tab if the current active tab was closed
+          if (draft.activeTabId && !draft.tabs.find(t => t.id === draft.activeTabId)) {
+            if (draft.tabs.length > 0) {
+              draft.activeTabId = draft.tabs[0].id;
+            } else {
+              draft.activeTabId = null;
+            }
+          }
+        });
       },
       
       closeTabsToRight: (tabId: string) => {
@@ -381,6 +442,85 @@ export const useTabStore = create<TabStoreState>()
             tab.state = undefined;
           }
         });
+      },
+      
+      // Hierarchical operations
+      setHierarchicalMode: (enabled: boolean) => {
+        set((draft) => {
+          draft.enableHierarchicalMode = enabled;
+        });
+      },
+      
+      updateBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => {
+        set((draft) => {
+          draft.breadcrumbs = breadcrumbs;
+        });
+      },
+      
+      setCurrentPath: (path: string) => {
+        set((draft) => {
+          draft.currentPath = path;
+          // Auto-generate breadcrumbs from path
+          draft.breadcrumbs = get().generateBreadcrumbsFromPath(path);
+        });
+      },
+      
+      addHierarchicalTab: (tab: HierarchicalTab) => {
+        set((draft) => {
+          const existingIndex = draft.hierarchicalTabs.findIndex(t => t.id === tab.id);
+          if (existingIndex >= 0) {
+            draft.hierarchicalTabs[existingIndex] = tab;
+          } else {
+            draft.hierarchicalTabs.push(tab);
+          }
+        });
+      },
+      
+      updateHierarchicalTab: (tabId: string, updates: Partial<HierarchicalTab>) => {
+        set((draft) => {
+          const tab = draft.hierarchicalTabs.find(t => t.id === tabId);
+          if (tab) {
+            Object.assign(tab, updates);
+          }
+        });
+      },
+      
+      removeHierarchicalTab: (tabId: string) => {
+        set((draft) => {
+          draft.hierarchicalTabs = draft.hierarchicalTabs.filter(t => t.id !== tabId);
+        });
+      },
+      
+      getHierarchicalTab: (tabId: string) => {
+        const state = get();
+        return state.hierarchicalTabs.find(t => t.id === tabId) || null;
+      },
+      
+      navigateToPath: (path: string) => {
+        set((draft) => {
+          draft.currentPath = path;
+          draft.breadcrumbs = get().generateBreadcrumbsFromPath(path);
+        });
+      },
+      
+      generateBreadcrumbsFromPath: (path: string) => {
+        if (!path) return [];
+        
+        const segments = path.split('/').filter(Boolean);
+        const breadcrumbs: BreadcrumbItem[] = [];
+        
+        let currentPath = '';
+        segments.forEach((segment, index) => {
+          currentPath += `/${segment}`;
+          breadcrumbs.push({
+            id: `breadcrumb-${index}`,
+            label: segment.charAt(0).toUpperCase() + segment.slice(1),
+            path: currentPath,
+            isActive: index === segments.length - 1
+          });
+        });
+        
+        return breadcrumbs;
       },
     })),
     {

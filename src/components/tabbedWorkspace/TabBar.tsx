@@ -4,8 +4,10 @@ import { ChevronLeft, ChevronRight, Plus, X, MoreHorizontal } from 'lucide-react
 import { useTabStore } from '../../stores/tabStore';
 import { Tab as TabComponent } from './Tab';
 import { cn } from '../../utils/cn';
+import { HierarchicalTabBarProps, HierarchicalTab } from '../../types/hierarchical';
 
-interface TabBarProps {
+// Legacy interface for backward compatibility
+interface LegacyTabBarProps {
   tabs?: any[];
   activeTabId?: string;
   className?: string;
@@ -26,7 +28,10 @@ interface TabBarProps {
   userPermissions?: string[];
 }
 
-export const TabBar: React.FC<TabBarProps> = ({
+// Enhanced props that support both legacy and hierarchical modes
+type EnhancedTabBarProps = LegacyTabBarProps & Partial<HierarchicalTabBarProps>;
+
+export const TabBar: React.FC<EnhancedTabBarProps> = ({
   tabs: propTabs,
   activeTabId: propActiveTabId,
   className,
@@ -44,7 +49,14 @@ export const TabBar: React.FC<TabBarProps> = ({
   enableTabGroups,
   theme,
   userRole,
-  userPermissions
+  userPermissions,
+  // Hierarchical props
+  hierarchicalTabs,
+  enableHierarchicalMode = false,
+  onSubTabChange,
+  showCloseButtons = true,
+  tabStyle = 'modern',
+  enableTabGroups: enableHierarchicalTabGroups = false
 }) => {
   const {
     tabs: storeTabs,
@@ -59,9 +71,20 @@ export const TabBar: React.FC<TabBarProps> = ({
     validateTabAccess
   } = useTabStore();
   
-  // Use props if provided, otherwise fall back to store
-  const tabs = propTabs || storeTabs;
+  // Use hierarchical tabs if in hierarchical mode, otherwise use legacy tabs
+  const tabs = enableHierarchicalMode ? (hierarchicalTabs || []) : (propTabs || storeTabs);
   const activeTabId = propActiveTabId || storeActiveTabId;
+  
+  // Convert legacy tabs to hierarchical format if needed
+  const processedTabs: HierarchicalTab[] = enableHierarchicalMode 
+    ? tabs as HierarchicalTab[]
+    : (tabs as any[]).map(tab => ({
+        ...tab,
+        subTabs: [],
+        activeSubTabId: null,
+        canClose: tab.canClose !== false,
+        hierarchyLevel: 0
+      }));
 
   const [scrollPosition, setScrollPosition] = useState(0);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
@@ -74,8 +97,8 @@ export const TabBar: React.FC<TabBarProps> = ({
   const overflowButtonRef = useRef<HTMLButtonElement>(null);
 
   // Calculate visible tabs and overflow
-  const visibleTabs = tabs.slice(0, maxVisibleTabs);
-  const hiddenTabs = tabs.slice(maxVisibleTabs);
+  const visibleTabs = processedTabs.slice(0, maxVisibleTabs);
+  const hiddenTabs = processedTabs.slice(maxVisibleTabs);
 
   // Update scroll indicators
   const updateScrollIndicators = useCallback(() => {
@@ -122,12 +145,24 @@ export const TabBar: React.FC<TabBarProps> = ({
     if (onTabClick) {
       onTabClick(tabId);
     } else {
-      const tab = tabs.find(t => t.id === tabId);
+      const tab = processedTabs.find(t => t.id === tabId);
       if (tab && validateTabAccess(tab.id)) {
         activateTab(tabId);
       }
     }
-  }, [onTabClick, tabs, validateTabAccess, activateTab]);
+  }, [onTabClick, processedTabs, validateTabAccess, activateTab]);
+  
+  // Handle sub-tab change for hierarchical tabs
+  const handleSubTabChange = useCallback((tabId: string, subTabId: string) => {
+    if (onSubTabChange) {
+      onSubTabChange(tabId, subTabId);
+    }
+    // Update the active sub-tab in the tab
+    const updatedTabs = processedTabs.map(tab => 
+      tab.id === tabId ? { ...tab, activeSubTabId: subTabId } : tab
+    );
+    // Note: In a real implementation, you'd update the store here
+  }, [onSubTabChange, processedTabs]);
 
   // Handle tab close
   const handleTabClose = useCallback((tabId: string, event: React.MouseEvent) => {
@@ -211,22 +246,42 @@ export const TabBar: React.FC<TabBarProps> = ({
     }
   }, [showOverflowDropdown]);
 
+  // Get tab bar styling based on style mode
+  const getTabBarStyling = () => {
+    const baseClasses = 'flex items-center overflow-hidden';
+    
+    if (tabStyle === 'modern') {
+      return cn(
+        baseClasses,
+        'bg-gradient-to-r from-gray-50 to-white border-b border-gray-200',
+        'min-h-[52px] max-h-[52px] shadow-sm backdrop-blur-sm',
+        className
+      );
+    }
+    
+    // Legacy styling
+    return cn(
+      baseClasses,
+      'bg-white border-b border-green-200 shadow-sm',
+      'min-h-[48px] max-h-[48px]',
+      className
+    );
+  };
+
   return (
     <div 
       ref={tabBarRef}
-      className={cn(
-        'flex items-center bg-white border-b border-green-200 shadow-sm',
-        'min-h-[48px] max-h-[48px] overflow-hidden',
-        className
-      )}
+      className={getTabBarStyling()}
     >
       {/* Left scroll button */}
       {showLeftScroll && (
         <button
           onClick={() => handleScroll('left')}
           className={cn(
-            'flex-shrink-0 p-2 hover:bg-green-50 transition-colors',
-            'border-r border-green-200 text-green-600 hover:text-green-700'
+            'flex-shrink-0 p-2 transition-colors',
+            tabStyle === 'modern'
+              ? 'hover:bg-gray-100 border-r border-gray-200 text-gray-600 hover:text-gray-700'
+              : 'hover:bg-green-50 border-r border-green-200 text-green-600 hover:text-green-700'
           )}
           aria-label="Scroll tabs left"
         >
@@ -269,10 +324,18 @@ export const TabBar: React.FC<TabBarProps> = ({
                           isPinned={pinnedTabs.includes(tab.id)}
                           isDragging={snapshot.isDragging}
                           onClick={() => handleTabClick(tab.id)}
-                          onClose={(e) => handleTabClose(tab.id, e)}
+                          onClose={showCloseButtons && tab.canClose !== false ? (e) => handleTabClose(tab.id, e) : undefined}
                           onPin={() => handleTabPin(tab.id)}
                           onDuplicate={() => handleTabDuplicate(tab.id)}
-                          className="border-r border-green-200 last:border-r-0"
+                          onSubTabChange={enableHierarchicalMode ? (subTabId) => handleSubTabChange(tab.id, subTabId) : undefined}
+                          showCloseButton={showCloseButtons && tab.canClose !== false}
+                          tabStyle={tabStyle}
+                          enableHierarchicalMode={enableHierarchicalMode}
+                          className={cn(
+                            tabStyle === 'modern' 
+                              ? 'border-r border-gray-200 last:border-r-0' 
+                              : 'border-r border-green-200 last:border-r-0'
+                          )}
                         />
                       </div>
                     )}
@@ -290,8 +353,10 @@ export const TabBar: React.FC<TabBarProps> = ({
         <button
           onClick={() => handleScroll('right')}
           className={cn(
-            'flex-shrink-0 p-2 hover:bg-green-50 transition-colors',
-            'border-l border-green-200 text-green-600 hover:text-green-700'
+            'flex-shrink-0 p-2 transition-colors',
+            tabStyle === 'modern'
+              ? 'hover:bg-gray-100 border-l border-gray-200 text-gray-600 hover:text-gray-700'
+              : 'hover:bg-green-50 border-l border-green-200 text-green-600 hover:text-green-700'
           )}
           aria-label="Scroll tabs right"
         >
@@ -306,8 +371,10 @@ export const TabBar: React.FC<TabBarProps> = ({
             ref={overflowButtonRef}
             onClick={() => setShowOverflowDropdown(!showOverflowDropdown)}
             className={cn(
-              'p-2 hover:bg-green-50 transition-colors border-l border-green-200',
-              'text-green-600 hover:text-green-700 relative'
+              'p-2 transition-colors relative',
+              tabStyle === 'modern'
+                ? 'hover:bg-gray-100 border-l border-gray-200 text-gray-600 hover:text-gray-700'
+                : 'hover:bg-green-50 border-l border-green-200 text-green-600 hover:text-green-700'
             )}
             aria-label={`${hiddenTabs.length} more tabs`}
           >
@@ -369,8 +436,10 @@ export const TabBar: React.FC<TabBarProps> = ({
         <button
           onClick={handleAddTab}
           className={cn(
-            'flex-shrink-0 p-2 hover:bg-green-50 transition-colors',
-            'border-l border-green-200 text-green-600 hover:text-green-700'
+            'flex-shrink-0 p-2 transition-colors',
+            tabStyle === 'modern'
+              ? 'hover:bg-gray-100 border-l border-gray-200 text-gray-600 hover:text-gray-700'
+              : 'hover:bg-green-50 border-l border-green-200 text-green-600 hover:text-green-700'
           )}
           aria-label="Add new tab"
         >

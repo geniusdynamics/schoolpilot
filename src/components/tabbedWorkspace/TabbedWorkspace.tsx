@@ -3,9 +3,11 @@ import { DragDropContext } from 'react-beautiful-dnd';
 import { Settings, AlertCircle, RefreshCw } from 'lucide-react';
 import { TabBar } from './TabBar';
 import { ActionBar } from './ActionBar';
+import { BreadcrumbNavigation } from '../BreadcrumbNavigation';
 import { useTabStore } from '../../stores/tabStore';
 import { useActionRegistry } from '../../services/actionRegistry';
 import type { TabbedWorkspaceProps, Tab } from '../../types/tabbedWorkspace';
+import type { HierarchicalTab, BreadcrumbItem } from '../../types/hierarchical';
 
 export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   className = '',
@@ -23,7 +25,14 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   onTabChange,
   onTabClose,
   onTabCreate,
-  onError
+  onError,
+  // Hierarchical features
+  enableHierarchicalMode = false,
+  showBreadcrumbs = true,
+  tabStyle = 'legacy',
+  showCloseButton = true,
+  onBreadcrumbClick,
+  onSubTabChange
 }) => {
   console.log('🔥 TabbedWorkspace: Component rendering with props:', {
     showActionBar,
@@ -56,6 +65,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   const { registerAction, getActionsByContext } = useActionRegistry();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const initializationRef = useRef({ userRole: null, userPermissions: null });
   const isInitializedRef = useRef(false);
 
@@ -141,15 +151,27 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }
   }, [userPermissions]);
 
-  // Handle tab changes
+  // Handle tab changes and update breadcrumbs
   useEffect(() => {
     if (activeTabId) {
       const activeTab = tabs.find(tab => tab.id === activeTabId);
       if (activeTab) {
         onTabChange?.(activeTab);
+        
+        // Update breadcrumbs for hierarchical tabs
+        if (enableHierarchicalMode && activeTab.path) {
+          const pathSegments = activeTab.path.split('/').filter(Boolean);
+          const newBreadcrumbs: BreadcrumbItem[] = pathSegments.map((segment, index) => ({
+            id: `breadcrumb-${index}`,
+            label: segment.charAt(0).toUpperCase() + segment.slice(1),
+            path: '/' + pathSegments.slice(0, index + 1).join('/'),
+            isActive: index === pathSegments.length - 1
+          }));
+          setBreadcrumbs(newBreadcrumbs);
+        }
       }
     }
-  }, [activeTabId, tabs]); // Removed onTabChange from dependencies to prevent flickering
+  }, [activeTabId, tabs, enableHierarchicalMode]); // Removed onTabChange from dependencies to prevent flickering
 
   // Handle drag and drop for tab reordering
   const handleDragEnd = useCallback((result: any) => {
@@ -204,12 +226,25 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }
   }, [tabs, closeTab, onTabClose, onError]);
 
+  // Handle breadcrumb clicks
+  const handleBreadcrumbClick = useCallback((breadcrumb: BreadcrumbItem) => {
+    onBreadcrumbClick?.(breadcrumb);
+    // Optionally navigate to the breadcrumb path
+    // This could involve creating a new tab or updating the current tab
+  }, [onBreadcrumbClick]);
+
+  // Handle sub-tab changes
+  const handleSubTabChange = useCallback((tabId: string, subTabId: string) => {
+    onSubTabChange?.(tabId, subTabId);
+    // Update the tab's active sub-tab in the store if needed
+  }, [onSubTabChange]);
+
   // Render tab content
   const renderTabContent = useCallback(() => {
     if (!activeTabId) {
       return (
         <div className="flex-1 flex items-center justify-center bg-gray-50 text-gray-500">
-          <div className="text-center">
+          <div className="text-center px-4">
             <div className="text-4xl mb-4">📋</div>
             <p className="text-lg font-medium mb-2">No tabs open</p>
             <p className="text-sm">Create a new tab to get started</p>
@@ -222,7 +257,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     if (!activeTab) {
       return (
         <div className="flex-1 flex items-center justify-center bg-red-50 text-red-600">
-          <div className="text-center">
+          <div className="text-center px-4">
             <AlertCircle className="w-12 h-12 mx-auto mb-4" />
             <p className="text-lg font-medium mb-2">Tab not found</p>
             <p className="text-sm">The requested tab could not be loaded</p>
@@ -235,7 +270,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     if (!validateTabAccess(activeTab.id)) {
       return (
         <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-700">
-          <div className="text-center">
+          <div className="text-center px-4">
             <AlertCircle className="w-12 h-12 mx-auto mb-4" />
             <p className="text-lg font-medium mb-2">Access Denied</p>
             <p className="text-sm">You don't have permission to view this tab</p>
@@ -253,30 +288,32 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       );
     }
 
-    // Default content rendering based on tab type
+    // Default content rendering based on tab type with responsive design
     return (
-      <div className="flex-1 p-6 overflow-auto bg-white">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">{activeTab.title}</h1>
+      <div className="flex-1 px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 overflow-auto bg-white">
+        <div className="w-full">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{activeTab.title}</h1>
           {activeTab.content.type === 'component' && activeTab.content.component && (
-            <activeTab.content.component {...(activeTab.content.props || {})} />
+            <div className="w-full">
+              <activeTab.content.component {...(activeTab.content.props || {})} />
+            </div>
           )}
           {activeTab.content.type === 'url' && activeTab.content.url && (
             <iframe
               src={activeTab.content.url}
-              className="w-full h-96 border border-gray-300 rounded-lg"
+              className="w-full h-64 sm:h-80 md:h-96 border border-gray-300 rounded-lg"
               title={activeTab.title}
             />
           )}
           {activeTab.content.type === 'html' && activeTab.content.html && (
-            <div dangerouslySetInnerHTML={{ __html: activeTab.content.html }} />
+            <div className="w-full" dangerouslySetInnerHTML={{ __html: activeTab.content.html }} />
           )}
           {activeTab.content.type === 'text' && activeTab.content.text && (
-            <div className="whitespace-pre-wrap text-gray-700">{activeTab.content.text}</div>
+            <div className="whitespace-pre-wrap text-gray-700 w-full text-sm sm:text-base">{activeTab.content.text}</div>
           )}
           {activeTab.content.type === 'empty' && (
-            <div className="text-center text-gray-500 py-12">
-              <p>This tab is empty. Add some content to get started.</p>
+            <div className="text-center text-gray-500 py-8 sm:py-12">
+              <p className="text-sm sm:text-base">This tab is empty. Add some content to get started.</p>
             </div>
           )}
         </div>
@@ -317,42 +354,59 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex flex-col h-full bg-gray-50">
-        {/* Tab Bar */}
-        <TabBar
-          tabs={tabs}
-          activeTabId={activeTabId}
-          onTabClick={activateTab}
-          onTabClose={handleTabClose}
-          onTabReorder={reorderTabs}
-          onTabPin={pinTab}
-          onTabUnpin={unpinTab}
-          onTabDuplicate={duplicateTab}
-          onNewTab={handleTabCreate}
-          maxTabs={maxTabs}
-          enableTabGroups={enableTabGroups}
-          theme={theme}
-          userRole={userRole}
-          userPermissions={userPermissions}
-        />
-        
-        {/* Action Bar */}
-        {showActionBar && (
-          <ActionBar
-            moduleContext={moduleContext}
-            userRole={userRole}
-            userPermissions={userPermissions}
-            onSettingsClick={showSettings ? onSettingsClick : undefined}
+      <div className="flex flex-col h-full bg-gray-50 w-full tabbed-workspace-mobile">
+        {/* Breadcrumb Navigation */}
+        {enableHierarchicalMode && showBreadcrumbs && breadcrumbs.length > 0 && (
+          <BreadcrumbNavigation
+            items={breadcrumbs}
+            onItemClick={handleBreadcrumbClick}
+            className="border-b border-gray-200 bg-white flex-shrink-0"
           />
         )}
         
-        {/* Tab Content */}
-        <div className="flex-1 overflow-hidden">
+        {/* Tab Bar */}
+        <div className="flex-shrink-0">
+          <TabBar
+            tabs={tabs}
+            activeTabId={activeTabId}
+            onTabClick={activateTab}
+            onTabClose={handleTabClose}
+            onTabReorder={reorderTabs}
+            onTabPin={pinTab}
+            onTabUnpin={unpinTab}
+            onTabDuplicate={duplicateTab}
+            onNewTab={handleTabCreate}
+            maxTabs={maxTabs}
+            enableTabGroups={enableTabGroups}
+            theme={theme}
+            userRole={userRole}
+            userPermissions={userPermissions}
+            enableHierarchicalMode={enableHierarchicalMode}
+            tabStyle={tabStyle}
+            showCloseButton={showCloseButton}
+            onSubTabChange={handleSubTabChange}
+          />
+        </div>
+        
+        {/* Action Bar */}
+        {showActionBar && (
+          <div className="flex-shrink-0">
+            <ActionBar
+              moduleContext={moduleContext}
+              userRole={userRole}
+              userPermissions={userPermissions}
+              onSettingsClick={showSettings ? onSettingsClick : undefined}
+            />
+          </div>
+        )}
+        
+        {/* Tab Content - Responsive container */}
+        <div className="flex-1 overflow-hidden w-full min-h-0">
           {renderTabContent()}
         </div>
       </div>
     </DragDropContext>
-  );
+   );
 };
 
 export default TabbedWorkspace;
