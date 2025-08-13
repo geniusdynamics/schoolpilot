@@ -13,6 +13,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
+import { usePageActions } from '@/hooks/usePageActions';
 
 interface ClassFormData extends Partial<Omit<SchoolClass, 'id' | 'streams'>> {}
 interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | 'class_teacher_name' | 'class_name'>> {
@@ -34,13 +35,30 @@ const ClassesPage: React.FC = () => {
     deleteClassStream,
   } = useAppData(); 
 
-
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
   const [isStreamModalOpen, setIsStreamModalOpen] = useState(false);
   
   const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
   const [editingStream, setEditingStream] = useState<ClassStream | null>(null);
   const [selectedClassForStream, setSelectedClassForStream] = useState<SchoolClass | null>(null);
+
+  // Register page actions dynamically based on selected class
+  usePageActions([
+    {
+      id: 'add-class',
+      label: t('classes.addClassButton'),
+      icon: PlusIcon,
+      onClick: () => openClassModal(),
+      variant: 'primary'
+    },
+    ...(selectedClassForStream ? [{
+      id: 'add-stream',
+      label: t('classes.addStreamButton'),
+      icon: PlusIcon,
+      onClick: () => openStreamModal(undefined, selectedClassForStream),
+      variant: 'secondary'
+    }] : [])
+  ], [selectedClassForStream]);
 
   const [classFormData, setClassFormData] = useState<ClassFormData>({ name: '' });
   const [streamFormData, setStreamFormData] = useState<StreamFormData>({ name: '' });
@@ -224,9 +242,7 @@ const ClassesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title={t('classes.title')} actions={
-          <Button onClick={() => openClassModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classes.addClassButton')}</Button>
-      }>
+      <Card title={t('classes.title')}>
         <DataGrid 
           columns={classColumns} 
           data={classes || []} 
@@ -243,9 +259,7 @@ const ClassesPage: React.FC = () => {
       </Card>
 
       {selectedClassForStream && (
-        <Card title={t('classes.streamsTitle', {className: selectedClassForStream.name})} actions={
-            <Button onClick={() => openStreamModal(undefined, selectedClassForStream)} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classes.addStreamButton')}</Button>
-        }>
+        <Card title={t('classes.streamsTitle', {className: selectedClassForStream.name})}>
           <DataGrid 
             columns={streamColumns} 
             data={streamsForSelectedClass} 

@@ -9,6 +9,7 @@ import { NavLink, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { APP_NAME_KEY } from '../constants';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useTabNavigation } from '../hooks/useTabNavigation';
 import { NavItem } from '../core/types';
 import { 
   SchoolIcon, 
@@ -62,6 +63,7 @@ interface Notification {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems } = useDynamicNavigation(true);
+  const { navigateToModule, navigateToUrl } = useTabNavigation();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -332,11 +334,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
             aria-label={translatedName} 
             aria-expanded={isOpen} 
           >
-            <Link 
-              to={groupPath} 
-              className="flex items-center space-x-3 flex-grow" 
+            <div 
+              className="flex items-center space-x-3 flex-grow cursor-pointer" 
               onClick={(e) => {
                 e.stopPropagation(); 
+                navigateToModule(item.name, groupPath);
                 if(window.innerWidth < 1024) toggleSidebar();
               }}
             >
@@ -362,7 +364,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
               `}>
                 {translatedName}
               </span>
-            </Link>
+            </div>
             <ChevronDownIcon 
               className={`
                 nav-group-chevron
@@ -395,9 +397,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
     return (
       <li className={`my-1 ${collapsed ? 'flex justify-center' : ''}`}> 
         <Tooltip text={collapsed ? translatedName : ''}>
-          <NavLink
-            to={item.path}
-            className={({ isActive }) => `
+          <button
+            onClick={() => {
+              navigateToUrl(item.path, translatedName);
+              if(window.innerWidth < 1024) toggleSidebar();
+            }}
+            className={`
               flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all duration-300
               ${collapsed ? 'justify-center' : ''}
               ${isActive ? 'bg-gradient-to-r from-blue-400/80 to-blue-600/80 text-white shadow-lg shadow-blue-500/20' : 'text-slate-300 hover:bg-slate-600/20 hover:text-slate-100'}
@@ -409,7 +414,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
               {item.icon}
             </span>
             {!collapsed && <span className="font-medium text-base truncate">{translatedName}</span>}
-          </NavLink>
+          </button>
         </Tooltip>
       </li>
     );

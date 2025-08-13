@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon, HomeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useTabNavigation } from '../hooks/useTabNavigation';
 import { BreadcrumbItem, BreadcrumbNavigationProps } from '../types/hierarchical';
 
 // Legacy interface for backward compatibility
@@ -38,6 +39,7 @@ const BreadcrumbNavigation: React.FC<EnhancedBreadcrumbNavigationProps> = ({
   const navigate = useNavigate();
   const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems, isLoading } = useDynamicNavigation(true);
+  const { navigateToUrl } = useTabNavigation();
   const [breadcrumbs, setBreadcrumbs] = useState<LegacyBreadcrumbItem[]>([]);
   const [hierarchicalBreadcrumbs, setHierarchicalBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [navigationErrors, setNavigationErrors] = useState<Set<string>>(new Set());
@@ -157,7 +159,8 @@ const BreadcrumbNavigation: React.FC<EnhancedBreadcrumbNavigationProps> = ({
       if (customOnNavigate && enableHierarchicalMode) {
         customOnNavigate(path);
       } else {
-        navigate(path);
+        // Use tab navigation instead of direct navigation
+        navigateToUrl(path);
       }
     } catch (error) {
       const navError = error as Error;

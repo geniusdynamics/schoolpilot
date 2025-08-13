@@ -2,7 +2,9 @@
 export { TabbedWorkspace } from './TabbedWorkspace';
 export { TabBar } from './TabBar';
 export { Tab } from './Tab';
+export { TabContent } from './TabContent';
 export { ActionBar } from './ActionBar';
+export { ContextualActionBar } from './ContextualActionBar';
 export { SubTabNavigation } from './SubTabNavigation';
 
 // Types
