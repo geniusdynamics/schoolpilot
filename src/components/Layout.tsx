@@ -13,6 +13,8 @@ import BreadcrumbNavigation from './BreadcrumbNavigation';
 import NavigationErrorBoundary from './NavigationErrorBoundary';
 import { useRoutePersistence } from '../hooks/useRoutePersistence';
 import { useInteractionTracking } from '../hooks/usePerformanceMonitoring';
+import { TabbedWorkspace } from './tabbedWorkspace';
+import { useTabStore } from '../stores/tabStore';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { getMainModules, isLoading } = useDynamicNavigation(true);
@@ -24,6 +26,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const { getStoredRoute } = useRoutePersistence();
   const { trackNavigation } = useInteractionTracking('Layout');
+  const { user } = useAuth();
+  
+  // Tab store for managing tabbed workspace
+  const { tabs, activeTabId, createTab } = useTabStore();
+  
+  // Determine if we should show tabbed workspace mode
+  const isTabMode = tabs.length > 0;
 
   // Track scroll position to show/hide scroll helpers
   useEffect(() => {
@@ -103,30 +112,73 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <div className="flex flex-1 pt-16 md:pt-16">
         <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
         <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
-        <main className="flex-1 p-2 sm:p-3 lg:p-4 overflow-hidden">
-          <div className="h-full overflow-y-auto">
-            {/* Breadcrumb Navigation */}
-            <div className="mb-2">
-              <BreadcrumbNavigation 
-                className="mb-1"
-                onNavigationError={(path, error) => {
-                  console.error(`Navigation error for ${path}:`, error);
-                }}
-              />
-            </div>
-            
-            {/* Main content wrapped with navigation error boundary */}
-            <NavigationErrorBoundary
-              onError={(error, errorInfo, currentRoute) => {
-                console.error(`Navigation boundary caught error on ${currentRoute}:`, error);
+        <main className="flex-1 overflow-hidden">
+          {isTabMode ? (
+            /* Tabbed Workspace Mode - Full page tabs with integrated breadcrumbs */
+            <TabbedWorkspace
+              className="h-full"
+              showActionBar={true}
+              showSettings={true}
+              onSettingsClick={() => setShowSettings(true)}
+              maxTabs={20}
+              enableTabGroups={false}
+              enableTabPersistence={true}
+              theme="default"
+              userRole={user?.role || 'guest'}
+              userPermissions={user?.permissions || []}
+              moduleContext={selectedModuleKey || 'dashboard'}
+              onTabContentRender={(tab) => {
+                // Custom content renderer for tabs
+                return (
+                  <NavigationErrorBoundary
+                    onError={(error, errorInfo, currentRoute) => {
+                      console.error(`Tab navigation error on ${currentRoute}:`, error);
+                    }}
+                    maxRetries={2}
+                    enableFallbackRoutes={true}
+                    fallbackRoutes={['/dashboard', '/reports', '/administration']}
+                  >
+                    {tab.content.type === 'component' && tab.content.component ? (
+                      <tab.content.component {...(tab.content.props || {})} />
+                    ) : (
+                      children
+                    )}
+                  </NavigationErrorBoundary>
+                );
               }}
-              maxRetries={2}
-              enableFallbackRoutes={true}
-              fallbackRoutes={['/dashboard', '/reports', '/administration']}
-            >
-              {children}
-            </NavigationErrorBoundary>
-          </div>
+              enableHierarchicalMode={true}
+              showBreadcrumbs={true}
+              tabStyle="modern"
+              showCloseButton={true}
+            />
+          ) : (
+            /* Traditional Layout Mode - Standard layout with breadcrumbs */
+            <div className="h-full p-2 sm:p-3 lg:p-4">
+              <div className="h-full overflow-y-auto">
+                {/* Breadcrumb Navigation */}
+                <div className="mb-2">
+                  <BreadcrumbNavigation 
+                    className="mb-1"
+                    onNavigationError={(path, error) => {
+                      console.error(`Navigation error for ${path}:`, error);
+                    }}
+                  />
+                </div>
+                
+                {/* Main content wrapped with navigation error boundary */}
+                <NavigationErrorBoundary
+                  onError={(error, errorInfo, currentRoute) => {
+                    console.error(`Navigation boundary caught error on ${currentRoute}:`, error);
+                  }}
+                  maxRetries={2}
+                  enableFallbackRoutes={true}
+                  fallbackRoutes={['/dashboard', '/reports', '/administration']}
+                >
+                  {children}
+                </NavigationErrorBoundary>
+              </div>
+            </div>
+          )}
         </main>
         <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />
       </div>

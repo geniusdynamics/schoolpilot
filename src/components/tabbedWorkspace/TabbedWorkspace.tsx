@@ -59,7 +59,8 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     updateUserPermissions,
     validateTabAccess,
     initializeStore,
-    initialize
+    initialize,
+    clearCorruptedData
   } = useTabStore();
 
   const { registerAction, getActionsByContext } = useActionRegistry();
@@ -69,31 +70,31 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   const initializationRef = useRef({ userRole: null, userPermissions: null });
   const isInitializedRef = useRef(false);
 
-  // Initialize workspace on mount
+  // Initialize workspace on mount - memoized to prevent re-runs
   useEffect(() => {
+    let isMounted = true;
+    
     const initializeWorkspace = async () => {
+      if (!isMounted || isInitializedRef.current) return;
+      
       try {
         console.log('TabbedWorkspace: Starting initialization');
         setIsLoading(true);
         
+        // Clear any corrupted data from localStorage first
+        clearCorruptedData();
+        
         // Initialize RBAC and tab store only once
-        if (!isInitializedRef.current) {
-          console.log('TabbedWorkspace: Initializing store');
-          await initialize();
-          isInitializedRef.current = true;
-          console.log('TabbedWorkspace: Store initialized');
-        }
+        await initialize();
         
         // Initialize store with persistence settings
-        console.log('TabbedWorkspace: Initializing store settings');
         initializeStore({
           maxTabs,
           enablePersistence: enableTabPersistence,
           enableTabGroups
         });
-        console.log('TabbedWorkspace: Store settings initialized');
 
-        // Register default workspace actions
+        // Register default workspace actions only once
         registerAction({
           id: 'workspace.refresh',
           label: 'Refresh Workspace',
@@ -118,21 +119,31 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
           }
         });
 
+        isInitializedRef.current = true;
         console.log('TabbedWorkspace: Initialization completed successfully');
-        setError(null);
+        if (isMounted) {
+          setError(null);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to initialize workspace';
         console.error('TabbedWorkspace: Initialization failed:', err);
-        setError(errorMessage);
-        onError?.(errorMessage);
+        if (isMounted) {
+          setError(errorMessage);
+          onError?.(errorMessage);
+        }
       } finally {
-        console.log('TabbedWorkspace: Setting loading to false');
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     initializeWorkspace();
-  }, []);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [maxTabs, enableTabPersistence, enableTabGroups]);
 
   // Handle user role changes separately to prevent infinite loops
   useEffect(() => {
@@ -140,7 +151,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       setUserRole(userRole);
       initializationRef.current.userRole = userRole;
     }
-  }, [userRole]);
+  }, [userRole, setUserRole]);
 
   // Handle user permissions changes separately to prevent infinite loops
   useEffect(() => {
@@ -149,7 +160,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       updateUserPermissions(userPermissions);
       initializationRef.current.userPermissions = userPermissions;
     }
-  }, [userPermissions]);
+  }, [userPermissions, updateUserPermissions]);
 
   // Handle tab changes and update breadcrumbs
   useEffect(() => {

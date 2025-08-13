@@ -14,7 +14,7 @@ import Spinner from '../../../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
 import SlideoutForm from '../../../components/ui/forms/SlideoutForm';
-
+import { usePageActions } from '../../../hooks/usePageActions';
 
 import { useToast } from '../../../hooks/useToast';
 
@@ -61,6 +61,17 @@ const StudentsListPage: React.FC = () => {
   } = useAppData(); // Use useAppData
   
   const { showToast } = useToast();
+  
+  // Register page actions
+  usePageActions([
+    {
+      id: 'add-student',
+      label: 'Add Student',
+      icon: PlusIcon,
+      onClick: handleAddStudent,
+      variant: 'primary'
+    }
+  ]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -646,9 +657,6 @@ const StudentsListPage: React.FC = () => {
           >
             Quick Edit Settings
           </Button>
-          <Button onClick={handleAddStudent} leftIcon={<PlusIcon className="w-5 h-5" />}>
-            Add Student
-          </Button>
         </div>
       }>
         <DataGrid
@@ -668,13 +676,8 @@ const StudentsListPage: React.FC = () => {
               <UserCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No students found</h3>
               <p className="mt-1 text-sm text-gray-500">
-                Get started by adding a new student.
+                Get started by adding a new student using the Add Student action above.
               </p>
-              <div className="mt-6">
-                <Button onClick={handleAddStudent} leftIcon={<PlusIcon className="w-5 h-5" />}>
-                  Add Student
-                </Button>
-              </div>
             </div>
           }
           className="mt-4"

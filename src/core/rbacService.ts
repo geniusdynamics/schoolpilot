@@ -239,10 +239,177 @@ export class RBACService {
       ]
     };
 
+    // Register nutrition module
+    const nutritionModule: ModuleDefinition = {
+      id: 'nutrition',
+      name: 'Nutrition',
+      description: 'Nutrition and meal management module',
+      version: '1.0.0',
+      dependencies: ['administration'],
+      features: ['meal-planning', 'menu-management', 'student-nutrition', 'wallet-management'],
+      rbacPermissions: [
+        {
+          id: 'nutrition.read',
+          name: 'Read Nutrition',
+          description: 'View nutrition information',
+          resource: 'nutrition',
+          action: 'read',
+          moduleId: 'nutrition'
+        },
+        {
+          id: 'nutrition.write',
+          name: 'Write Nutrition',
+          description: 'Modify nutrition information',
+          resource: 'nutrition',
+          action: 'create',
+          moduleId: 'nutrition'
+        },
+        {
+          id: 'nutrition.meals.read',
+          name: 'View Meals',
+          description: 'View meal information',
+          resource: 'nutrition.meals',
+          action: 'read',
+          moduleId: 'nutrition'
+        },
+        {
+          id: 'nutrition.meals.create',
+          name: 'Create Meals',
+          description: 'Create meal plans',
+          resource: 'nutrition.meals',
+          action: 'create',
+          moduleId: 'nutrition'
+        }
+      ]
+    };
+
+    // Register hr module
+    const hrModule: ModuleDefinition = {
+      id: 'hr',
+      name: 'Human Resources',
+      description: 'Human resources management module',
+      version: '1.0.0',
+      dependencies: ['administration'],
+      features: ['employee-management', 'payroll', 'attendance', 'performance', 'recruitment'],
+      rbacPermissions: [
+        {
+          id: 'hr.read',
+          name: 'Read HR',
+          description: 'View HR information',
+          resource: 'hr',
+          action: 'read',
+          moduleId: 'hr'
+        },
+        {
+          id: 'hr.write',
+          name: 'Write HR',
+          description: 'Modify HR information',
+          resource: 'hr',
+          action: 'create',
+          moduleId: 'hr'
+        },
+        {
+          id: 'hr.employees.read',
+          name: 'View Employees',
+          description: 'View employee information',
+          resource: 'hr.employees',
+          action: 'read',
+          moduleId: 'hr'
+        },
+        {
+          id: 'hr.employees.create',
+          name: 'Create Employees',
+          description: 'Create employee records',
+          resource: 'hr.employees',
+          action: 'create',
+          moduleId: 'hr'
+        },
+        {
+          id: 'hr.payroll.read',
+          name: 'View Payroll',
+          description: 'View payroll information',
+          resource: 'hr.payroll',
+          action: 'read',
+          moduleId: 'hr'
+        },
+        {
+          id: 'hr.payroll.create',
+          name: 'Manage Payroll',
+          description: 'Manage payroll operations',
+          resource: 'hr.payroll',
+          action: 'create',
+          moduleId: 'hr'
+        }
+      ]
+    };
+
+    // Register administration module
+    const administrationModule: ModuleDefinition = {
+      id: 'administration',
+      name: 'Administration',
+      description: 'Core administration and system management module',
+      version: '1.0.0',
+      dependencies: [],
+      features: ['user-management', 'system-settings', 'reports', 'audit-logs', 'school-management'],
+      rbacPermissions: [
+        {
+          id: 'administration.read',
+          name: 'Read Administration',
+          description: 'View administration information',
+          resource: 'administration',
+          action: 'read',
+          moduleId: 'administration'
+        },
+        {
+          id: 'administration.write',
+          name: 'Write Administration',
+          description: 'Modify administration settings',
+          resource: 'administration',
+          action: 'create',
+          moduleId: 'administration'
+        },
+        {
+          id: 'administration.users.read',
+          name: 'View Users',
+          description: 'View user information',
+          resource: 'administration.users',
+          action: 'read',
+          moduleId: 'administration'
+        },
+        {
+          id: 'administration.users.create',
+          name: 'Manage Users',
+          description: 'Create and manage user accounts',
+          resource: 'administration.users',
+          action: 'create',
+          moduleId: 'administration'
+        },
+        {
+          id: 'administration.settings.read',
+          name: 'View Settings',
+          description: 'View system settings',
+          resource: 'administration.settings',
+          action: 'read',
+          moduleId: 'administration'
+        },
+        {
+          id: 'administration.settings.create',
+          name: 'Manage Settings',
+          description: 'Modify system settings',
+          resource: 'administration.settings',
+          action: 'create',
+          moduleId: 'administration'
+        }
+      ]
+    };
+
     // Register all modules
+    this.registerModule(administrationModule);
     this.registerModule(academicsModule);
     this.registerModule(financeModule);
     this.registerModule(libraryModule);
+    this.registerModule(nutritionModule);
+    this.registerModule(hrModule);
 
     // Initialize super admin role after modules are registered
     this.initializeSuperAdminRole();

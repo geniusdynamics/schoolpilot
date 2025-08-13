@@ -22,73 +22,87 @@ const TabbedWorkspaceTestPage: React.FC = () => {
         // Register all module actions
         registerAllModuleActions(registerAction);
 
-        // Create some sample tabs for testing
+        // Create some sample tabs for testing with minimal permissions
         const sampleTabs: Partial<Tab>[] = [
           {
-            title: 'Student Dashboard',
+            title: 'Welcome Tab',
             content: {
               type: 'text',
-              text: 'Welcome to the Student Dashboard! This tab shows student information and academic progress.'
+              text: 'Welcome to the Tabbed Workspace! This is a demonstration of the tab system.'
             },
-            module: 'academics',
-            permissions: ['academics.students.read'],
-            icon: 'Users'
+            module: 'general',
+            permissions: [],
+            icon: 'Home'
           },
           {
-            title: 'Course Management',
+            title: 'Test Tab 1',
             content: {
               type: 'text',
-              text: 'Course Management System - Create, edit, and manage academic courses.'
+              text: 'This is the first test tab. You can interact with it to test the workspace functionality.'
             },
-            module: 'academics',
-            permissions: ['academics.courses.manage'],
-            icon: 'BookOpen'
+            module: 'general',
+            permissions: [],
+            icon: 'FileText'
           },
           {
-            title: 'Financial Reports',
+            title: 'Test Tab 2',
             content: {
               type: 'text',
-              text: 'Financial reporting dashboard with charts and analytics.'
+              text: 'This is the second test tab. Try dragging, pinning, and closing tabs to test the features.'
             },
-            module: 'finance',
-            permissions: ['finance.reports.read'],
-            icon: 'DollarSign'
-          },
-          {
-            title: 'Library Catalog',
-            content: {
-              type: 'text',
-              text: 'Browse and manage the library catalog, check out books, and track returns.'
-            },
-            module: 'library',
-            permissions: ['library.catalog.read'],
-            icon: 'Library'
+            module: 'general',
+            permissions: [],
+            icon: 'Settings'
           }
         ];
 
-        // Create tabs with a delay to demonstrate the system
-        sampleTabs.forEach((tabData, index) => {
-          setTimeout(async () => {
-            try {
-              console.log('Creating tab:', tabData.title);
-              const tabId = await createTab({
-                title: tabData.title || 'New Tab',
-                content: tabData.content || { type: 'empty' },
-                module: tabData.module,
-                permissions: tabData.permissions || [],
-                icon: tabData.icon,
-                path: `/${tabData.module}/${tabData.title?.toLowerCase().replace(/\s+/g, '-')}`,
-                pinned: false,
-                isDirty: false,
-                canClose: true,
-                metadata: {}
-              });
-              console.log('Tab created successfully:', tabId);
-            } catch (error) {
-              console.error('Failed to create tab:', tabData.title, error);
-            }
-          }, index * 500);
-        });
+        // Create tabs synchronously to avoid re-render loops
+        let successfulTabs = 0;
+        for (const tabData of sampleTabs) {
+          try {
+            console.log('Creating tab:', tabData.title);
+            const tabId = await createTab({
+              title: tabData.title || 'New Tab',
+              content: tabData.content || { type: 'empty' },
+              module: tabData.module || 'general',
+              permissions: tabData.permissions || [],
+              icon: tabData.icon || 'FileText',
+              canClose: true,
+              isPinned: false,
+              isDirty: false
+            });
+            console.log('Tab created with ID:', tabId);
+            successfulTabs++;
+          } catch (error) {
+            console.error('Failed to create tab:', tabData.title, error);
+            // Continue with next tab even if one fails
+          }
+        }
+        
+        console.log(`Successfully created ${successfulTabs} out of ${sampleTabs.length} tabs`);
+        
+        // If no tabs were created successfully, create a fallback tab
+        if (successfulTabs === 0) {
+          try {
+            console.log('Creating fallback tab...');
+            await createTab({
+              title: 'Fallback Tab',
+              content: {
+                type: 'text',
+                text: 'This is a fallback tab created when other tabs failed to load due to permission restrictions.'
+              },
+              module: 'general',
+              permissions: [],
+              icon: 'AlertCircle',
+              canClose: true,
+              isPinned: false,
+              isDirty: false
+            });
+            console.log('Fallback tab created successfully');
+          } catch (fallbackError) {
+            console.error('Failed to create fallback tab:', fallbackError);
+          }
+        }
       } catch (error) {
         console.error('Failed to initialize workspace:', error);
       }

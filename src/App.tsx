@@ -357,28 +357,30 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   debugLog('🔍 [AppContent] User authenticated, showing layout');
   
   return (
-    <Layout>
+    <ActionProvider>
+      <Layout>
 
-      
-      {/* Main content with error boundary */}
-      <div className="flex-1">
-        <ErrorBoundary key={location.pathname}>
-          <DynamicRoutes modulesInitialized={modulesInitialized} />
-        </ErrorBoundary>
-      </div>
-      
-      {/* Global notifications (if enabled) */}
-      {config.features.enableNotifications && config.environment !== 'demo' && (
-        <Suspense fallback={null}>
-          <GlobalNotifications />
-        </Suspense>
-      )}
-      
-      {/* Performance Monitor (Feature Flag Controlled) */}
-      {config.features.performanceMonitorWidget && (
-        <PerformanceMonitor showDetails={true} />
-      )}
-    </Layout>
+        
+        {/* Main content with error boundary */}
+        <div className="flex-1">
+          <ErrorBoundary key={location.pathname}>
+            <DynamicRoutes modulesInitialized={modulesInitialized} />
+          </ErrorBoundary>
+        </div>
+        
+        {/* Global notifications (if enabled) */}
+        {config.features.enableNotifications && config.environment !== 'demo' && (
+          <Suspense fallback={null}>
+            <GlobalNotifications />
+          </Suspense>
+        )}
+        
+        {/* Performance Monitor (Feature Flag Controlled) */}
+        {config.features.performanceMonitorWidget && (
+          <PerformanceMonitor showDetails={true} />
+        )}
+      </Layout>
+    </ActionProvider>
   );
 };
 
@@ -415,6 +417,7 @@ import PerformanceMonitorWidget from './components/PerformanceMonitorWidget';
 import { performanceMonitor } from './services/performanceMonitor';
 import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from './hooks/useMemoryManagement';
+import { ActionProvider } from './contexts/ActionProvider';
 
 // Main consolidated App component
 const AppInner: React.FC = () => {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
+import { useTabNavigation } from '../hooks/useTabNavigation';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon, InformationCircleIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -160,12 +160,45 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const { navigationItems } = useDynamicNavigation(true); // Use dynamic navigation
   const { accessibleModules } = useRBAC();
   const { user } = useAuth();
+  const { navigateToTab } = useTabNavigation();
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
+
+  // Handle navigation click
+  const handleNavigationClick = async (item: any, event: React.MouseEvent) => {
+    event.preventDefault();
+    
+    if (item.path) {
+      try {
+        // Extract the actual module from the path (e.g., '/settings/general' -> 'settings')
+        const pathModule = item.path.split('/')[1] || '';
+        
+
+        
+        await navigateToTab(item.path, {
+          title: t(item.name),
+          icon: item.icon,
+          module: pathModule, // Use the module extracted from the path instead of moduleKey
+          submodule: item.submodule,
+          metadata: {
+            source: 'secondary-sidebar',
+            moduleKey: selectedModuleKey
+          }
+        });
+        
+        // Close sidebar on mobile after navigation
+        if (isMobile) {
+          onClose();
+        }
+      } catch (error) {
+        console.error('Failed to navigate to tab:', error);
+      }
+    }
+  };
 
   // Find the selected main module from dynamic navigation items
   const selectedModule = navigationItems.find(item => item.name === selectedModuleKey && item.isGroup);
@@ -447,18 +480,10 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                       <ul className="space-y-1 mt-1">
                         {item.children.map((child: any) => (
                           <li key={child.name}>
-                            <NavLink
-                              to={child.path}
+                            <button
+                              onClick={(e) => handleNavigationClick(child, e)}
                               onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
-                              className={({ isActive, isPending }) =>
-                                `flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg ${
-                                  isActive
-                                    ? `${moduleStyle.activeLink} font-semibold shadow-sm`
-                                    : isPending
-                                      ? `${moduleStyle.hoverLink} bg-white/20`
-                                      : `text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20`
-                                } touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105`
-                              }
+                              className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left`}
                               tabIndex={0}
                             >
                               <IconWrapper 
@@ -467,7 +492,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                                 isMobile={isMobile}
                               />
                               <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(child.name)}</span>
-                            </NavLink>
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -475,20 +500,10 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                   </div>
                 ) : (
                   <div className="relative group">
-                    <NavLink
-                      to={item.path}
+                    <button
+                      onClick={(e) => handleNavigationClick(item, e)}
                       onFocus={() => setFocusedIndex(filterItems(subMenus).indexOf(item))}
-                      className={({ isActive, isPending }) =>
-                        `flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg ${
-                          isActive
-                            ? `${moduleStyle.activeLink} font-semibold shadow-sm`
-                            : isPending
-                              ? `${moduleStyle.hoverLink} bg-white/20`
-                              : `text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20`
-                        } touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 ${
-                          focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''
-                        }`
-                      }
+                      className={`flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 ${focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''} w-full text-left`}
                       title={isMinimized ? t(item.name) : undefined}
                       tabIndex={0}
                     >
@@ -499,7 +514,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
                         isMobile={isMobile}
                       />
                       {!isMinimized && <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(item.name)}</span>}
-                    </NavLink>
+                    </button>
                     {/* Enhanced tooltip for standalone items - hidden on mobile */}
                     {isMinimized && !isMobile && (
                         <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-800 text-white text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-50">
