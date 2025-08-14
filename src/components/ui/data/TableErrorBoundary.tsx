@@ -2,7 +2,7 @@
 // ABOUTME: Provides graceful fallbacks and error recovery for DataGrid components
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { AlertTriangleIcon, RefreshCwIcon } from '../../icons';
 import Button from '../Button';
 
 interface Props {
@@ -73,7 +73,7 @@ export class TableErrorBoundary extends Component<Props, State> {
       return (
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 m-4">
           <div className="flex items-start space-x-3">
-            <ExclamationTriangleIcon className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
+            <AlertTriangleIcon className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-red-800 mb-2">
                 Table Loading Error
@@ -112,7 +112,7 @@ export class TableErrorBoundary extends Component<Props, State> {
                   onClick={this.handleRetry}
                   variant="secondary"
                   size="sm"
-                  leftIcon={<ArrowPathIcon className="h-4 w-4" />}
+                  leftIcon={<RefreshCwIcon className="h-4 w-4" />}
                 >
                   Retry Loading
                 </Button>

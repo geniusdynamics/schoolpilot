@@ -1,7 +1,7 @@
 // ABOUTME: Custom hook for dynamic navigation management
 // ABOUTME: Provides real-time navigation updates and module management
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { NavItem } from '../core/types';
 import { 
   getDynamicNavigationItems, 
@@ -20,7 +20,10 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load navigation items
+  // Memoize autoLoad to prevent unnecessary re-renders
+  const stableAutoLoad = useMemo(() => autoLoad, [autoLoad]);
+
+  // Load navigation items with stable implementation
   const loadNavigationItems = useCallback(() => {
     setIsLoading(true);
     try {
@@ -34,6 +37,9 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
       console.log('[useDynamicNavigation] enabledModules:', modules);
     } catch (error) {
       console.error('Error loading navigation items:', error);
+      // Provide fallback empty arrays to maintain hook stability
+      setNavigationItems([]);
+      setEnabledModules([]);
     } finally {
       setIsLoading(false);
     }
@@ -67,20 +73,24 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
     return checkModuleDependencies(moduleId);
   }, []);
 
-  // Get main modules (top-level groups)
+  // Memoize navigation items to prevent unnecessary recalculations
+  const memoizedNavigationItems = useMemo(() => navigationItems, [navigationItems]);
+  const memoizedEnabledModules = useMemo(() => enabledModules, [enabledModules]);
+
+  // Get main modules (top-level groups) with stable memoization
   const getMainModules = useCallback(() => {
-    return navigationItems.filter(item => item.isGroup);
-  }, [navigationItems]);
+    return memoizedNavigationItems.filter(item => item.isGroup);
+  }, [memoizedNavigationItems]);
 
-  // Get sub-navigation for a specific module
+  // Get sub-navigation for a specific module with stable memoization
   const getModuleNavigation = useCallback((moduleName: string) => {
-    const module = navigationItems.find(item => item.name === moduleName && item.isGroup);
+    const module = memoizedNavigationItems.find(item => item.name === moduleName && item.isGroup);
     return module?.children || [];
-  }, [navigationItems]);
+  }, [memoizedNavigationItems]);
 
-  // Search navigation items
+  // Search navigation items with stable memoization
   const searchNavigation = useCallback((query: string) => {
-    if (!query.trim()) return navigationItems;
+    if (!query.trim()) return memoizedNavigationItems;
 
     const searchTerm = query.toLowerCase();
     const results: NavItem[] = [];
@@ -99,20 +109,21 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
       });
     };
 
-    searchInItems(navigationItems);
+    searchInItems(memoizedNavigationItems);
     return results;
-  }, [navigationItems]);
+  }, [memoizedNavigationItems]);
 
-  // Initialize on mount
+  // Initialize on mount with stable dependencies
   useEffect(() => {
-    if (autoLoad) {
+    if (stableAutoLoad) {
       loadNavigationItems();
     }
-  }, [autoLoad]);
+  }, [stableAutoLoad, loadNavigationItems]);
 
-  return {
-    navigationItems,
-    enabledModules,
+  // Memoize the return object to prevent unnecessary re-renders
+  return useMemo(() => ({
+    navigationItems: memoizedNavigationItems,
+    enabledModules: memoizedEnabledModules,
     isLoading,
     getMainModules,
     getModuleNavigation,
@@ -122,7 +133,7 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
     isModuleEnabled: checkModuleStatus,
     checkDependencies,
     refresh: loadNavigationItems
-  };
+  }), [memoizedNavigationItems, memoizedEnabledModules, isLoading, getMainModules, getModuleNavigation, searchNavigation, enableModuleById, disableModuleById, checkModuleStatus, checkDependencies, loadNavigationItems]);
 };
 
 export default useDynamicNavigation;

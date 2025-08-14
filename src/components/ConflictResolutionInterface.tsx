@@ -3,7 +3,6 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  ExclamationTriangleIcon,
   CheckCircleIcon,
   XCircleIcon,
   ArrowLeftIcon,
@@ -13,6 +12,7 @@ import {
   CodeBracketIcon,
   ClockIcon
 } from '@heroicons/react/24/outline';
+import { AlertTriangleIcon } from './ui/icons';
 import { useAppData } from '../hooks/useAppData';
 import Card from './ui/Card';
 import Button from './ui/Button';
@@ -77,7 +77,7 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
       case 'deletion':
         return <XCircleIcon className="w-5 h-5 text-red-500" />;
       default:
-        return <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />;
+        return <AlertTriangleIcon className="w-5 h-5 text-amber-500" />;
     }
   };
 

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDownIcon } from './icons';
+import { ChevronDownIcon, GlobeAltIcon } from './icons';
+import HookErrorBoundary from '../HookErrorBoundary';
 
 const LanguageSwitcher: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,21 +17,29 @@ const LanguageSwitcher: React.FC = () => {
     { code: 'nl', name: 'Nederlands', flag: '🇳🇱' }
   ];
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
-
-  const handleLanguageChange = async (langCode: string) => {
+  const handleLanguageChange = useCallback(async (langCode: string) => {
     try {
       await i18n.changeLanguage(langCode);
       setIsOpen(false);
     } catch (error) {
       console.error('Failed to change language:', error);
     }
-  };
+  }, []); // i18n.changeLanguage is stable, no dependencies needed
+
+  const toggleDropdown = useCallback(() => {
+    setIsOpen(prev => !prev);
+  }, []); // No dependencies needed for state setter function
+
+  // Memoize current language to prevent unnecessary recalculations
+  const currentLanguage = useMemo(() => {
+    return languages.find(lang => lang.code === i18n.language) || languages[0];
+  }, [i18n.language, languages]);
 
   return (
-    <div className="relative">
+    <HookErrorBoundary>
+      <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleDropdown}
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-slate-300 transition-colors"
       >
         <span className="text-sm">{currentLanguage.flag}</span>
@@ -54,7 +63,8 @@ const LanguageSwitcher: React.FC = () => {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </HookErrorBoundary>
   );
 };
 

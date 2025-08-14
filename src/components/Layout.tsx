@@ -18,6 +18,7 @@ import { useRoutePersistence } from '../hooks/useRoutePersistence';
 import { useInteractionTracking } from '../hooks/usePerformanceMonitoring';
 import { TabbedWorkspace } from './tabbedWorkspace';
 import { useTabStore } from '../stores/tabStore';
+import { extractModuleId } from '../utils/moduleUtils';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { getMainModules, isLoading } = useDynamicNavigation(true);
@@ -192,7 +193,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               theme="default"
               userRole={user?.role || 'guest'}
               userPermissions={user?.permissions || []}
-              moduleContext={selectedModuleKey || 'dashboard'}
+              moduleContext={extractModuleId(selectedModuleKey || 'dashboard')}
               onTabContentRender={handleTabContentRender}
               enableHierarchicalMode={true}
               showBreadcrumbs={true}

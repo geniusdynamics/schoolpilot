@@ -99,11 +99,11 @@ const StudentsListPage: React.FC = () => {
 
 
   // Navigate to add student page
-  const handleAddStudent = () => {
+  const handleAddStudent = useCallback(() => {
     navigate('/administration/students/add');
-  };
+  }, [navigate]);
 
-  const openModal = (student?: Student) => {
+  const openModal = useCallback((student?: Student) => {
     setEditingStudent(student || null);
     setActiveTab(0); // Reset to first tab
     
@@ -135,17 +135,17 @@ const StudentsListPage: React.FC = () => {
       setFormData(initialFormData);
     }
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingStudent(null);
     setFormData(initialFormData);
     setActiveTab(0);
-  };
+  }, []);
 
   // Handle form field changes with proper type conversion
-  const handleFieldChange = (name: string, value: any) => {
+  const handleFieldChange = useCallback((name: string, value: any) => {
     const safeParseInt = (val: string): number | undefined => {
         const num = parseInt(val, 10);
         return isNaN(num) ? undefined : num;
@@ -162,9 +162,9 @@ const StudentsListPage: React.FC = () => {
     }
     
     setFormData(prev => ({ ...prev, [name]: processedValue }));
-  };
+  }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     // Simple validation
     if (!formData.admission_no || !formData.first_name || !formData.last_name) {
       alert('Please fill in all required fields (Admission No, First Name, Last Name)');
@@ -252,9 +252,9 @@ const StudentsListPage: React.FC = () => {
         message: 'Failed to save student information. Please try again.',
       });
     }
-  };
+  }, [editingStudent, formData, updateStudent, addStudent, closeModal, showToast]);
   
-  const handleDelete = async (studentId: string) => {
+  const handleDelete = useCallback(async (studentId: string) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
       try {
         await mockDeleteStudent(studentId);
@@ -271,15 +271,15 @@ const StudentsListPage: React.FC = () => {
         });
       }
     }
-  };
+  }, [mockDeleteStudent, showToast]);
 
   // Quick edit functionality
-  const handleQuickEdit = (student: Student) => {
+  const handleQuickEdit = useCallback((student: Student) => {
     setQuickEditStudent(student);
-  };
+  }, []);
 
   // Create form tabs
-  const createFormTabs = (): FormTab[] => {
+  const createFormTabs = useCallback((): FormTab[] => {
     
     return [
       {
@@ -521,12 +521,12 @@ const StudentsListPage: React.FC = () => {
         ),
       },
     ];
-  };
+  }, [formData, handleFieldChange, classStreams, studentCategories, dormitories]);
 
   // Use students directly since DataGrid handles filtering
   const studentsData = students || [];
 
-  const columns = [
+  const columns = useMemo(() => [
     { 
       key: 'admission_no' as keyof Student, 
       header: 'Adm No',
@@ -638,7 +638,7 @@ const StudentsListPage: React.FC = () => {
         </div>
       ),
     },
-  ];
+  ], [handleQuickEdit, openModal, handleDelete, navigate]);
   
   // Using a more specific loading state key if available, else fallback to `all` or `students`
   const pageIsLoading = loading.students || loading.all;

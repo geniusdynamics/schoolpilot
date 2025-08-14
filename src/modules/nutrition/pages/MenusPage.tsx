@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Menu, MealType } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
@@ -29,27 +29,27 @@ const MenusPage: React.FC = () => {
   };
   const [formData, setFormData] = useState<MenuFormData>(initialFormData);
 
-  const openModal = (menu?: Menu) => {
+  const openModal = useCallback((menu?: Menu) => {
     setEditingMenu(menu || null);
     setFormData(menu ? 
       { menu_date: menu.menu_date, meal_type: menu.meal_type, description: menu.description } : 
       initialFormData
     );
     setIsModalOpen(true);
-  };
+  }, [initialFormData]);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingMenu(null);
     setFormData(initialFormData);
-  };
+  }, [initialFormData]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!formData.menu_date || !formData.meal_type || !formData.description) {
       alert("Menu Date, Meal Type, and Description are required.");
       return;
@@ -66,15 +66,15 @@ const MenusPage: React.FC = () => {
       await addMenu(payload);
     }
     closeModal();
-  };
+  }, [formData, editingMenu, updateMenu, addMenu, closeModal]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (window.confirm('Are you sure you want to delete this menu? This might affect consumption logs.')) {
       await deleteMenu(id);
     }
-  };
+  }, [deleteMenu]);
 
-  const columns: DataGridColumn<Menu>[] = [
+  const columns: DataGridColumn<Menu>[] = useMemo(() => [
     { 
       key: 'menu_date', 
       header: 'Date', 
@@ -112,7 +112,7 @@ const MenusPage: React.FC = () => {
         </div>
       ),
     },
-  ];
+  ], [openModal, handleDelete]);
 
   if (loading.menus && !isModalOpen) {
     return (

@@ -1,13 +1,14 @@
 // ABOUTME: User menu component for displaying user info and logout functionality
 // ABOUTME: Shows user role, demo mode indicator, and logout option
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
 import { SyncStatusComponent } from './OfflineCapability';
 import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
+import HookErrorBoundary from './HookErrorBoundary';
 
 const UserMenu: React.FC = () => {
   const { user, logout, isDemoMode } = useAuth();
@@ -15,21 +16,42 @@ const UserMenu: React.FC = () => {
   const { t } = useTranslation('common');
   const { config } = useUnifiedConfig();
   
+
+  
   if (!user) {
     return null;
   }
-  const currentMode = config.dataMode === 'demo' ? 'demo' : 'production';
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await logout();
     setIsOpen(false);
-  };
+  }, [logout]); // logout function is stable from AuthContext
+
+  const toggleDropdown = useCallback(() => {
+    setIsOpen(prev => !prev);
+  }, []); // No dependencies needed for state setter function
+
+  const handleSettingsClick = useCallback(() => {
+    setIsOpen(false);
+    // Navigate to settings
+    window.location.hash = '#/settings';
+  }, []); // No dependencies needed for navigation
+
+  const handleBackdropClick = useCallback(() => {
+    setIsOpen(false);
+  }, []); // No dependencies needed for state setter function
+
+  // Memoize current mode to prevent unnecessary recalculations
+  const memoizedCurrentMode = useMemo(() => {
+    return config.dataMode === 'demo' ? 'demo' : 'production';
+  }, [config.dataMode]);
 
   return (
-    <div className="relative">
+    <HookErrorBoundary>
+      <div className="relative">
       {/* User Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleDropdown}
         className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
       >
         <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
@@ -61,12 +83,12 @@ const UserMenu: React.FC = () => {
             <div className="mt-3 p-2 bg-gray-50 border border-gray-200 rounded-lg">
               <div className="flex items-center">
                 <div className={`w-2 h-2 rounded-full mr-2 ${
-                  currentMode === 'demo' ? 'bg-yellow-400' : 'bg-green-400'
+                  memoizedCurrentMode === 'demo' ? 'bg-yellow-400' : 'bg-green-400'
                 }`}></div>
                 <span className={`text-xs font-medium ${
-                  currentMode === 'demo' ? 'text-yellow-800' : 'text-green-800'
+                  memoizedCurrentMode === 'demo' ? 'text-yellow-800' : 'text-green-800'
                 }`}>
-                  {currentMode === 'demo' ? 'Demo Mode' : 'Production Mode'}
+                  {memoizedCurrentMode === 'demo' ? 'Demo Mode' : 'Production Mode'}
                 </span>
               </div>
             </div>
@@ -80,11 +102,7 @@ const UserMenu: React.FC = () => {
           <div className="p-2">
             {/* Settings Link */}
             <button
-              onClick={() => {
-                setIsOpen(false);
-                // Navigate to settings
-                window.location.hash = '#/settings';
-              }}
+              onClick={handleSettingsClick}
               className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <CogIcon className="w-4 h-4 mr-3 text-gray-400" />
@@ -107,10 +125,11 @@ const UserMenu: React.FC = () => {
       {isOpen && (
         <div
           className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
+          onClick={handleBackdropClick}
         />
       )}
-    </div>
+      </div>
+    </HookErrorBoundary>
   );
 };
 

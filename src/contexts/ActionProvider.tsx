@@ -211,16 +211,17 @@ export const useActionProvider = (): ActionProviderContextType => {
 // Hook for action execution with automatic context
 export const useActionExecution = () => {
   const { executeAction, currentContext } = useActionProvider();
+  const actionRegistry = useActionRegistry();
   
   return {
     executeAction,
     canExecuteAction: (actionId: string) => {
       if (!currentContext) return false;
       
-      const action = useActionRegistry.getState().getActionById(actionId);
+      const action = actionRegistry.getActionById(actionId);
       if (!action) return false;
       
-      return useActionRegistry.getState().hasPermission(
+      return actionRegistry.hasPermission(
         action,
         currentContext.user.permissions,
         currentContext.user.role

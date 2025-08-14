@@ -297,21 +297,13 @@ export const useTabStore = create<TabStoreState>()
         }
         
         set((draft) => {
-          // Initialize the tab first, then update store
+          // Add the new tab with proper initialization
           draft.tabs.push({
             ...newTab,
-            isLoading: true // Add loading state
+            isLoading: false // Tab is ready immediately
           });
-          // Set active tab ID after ensuring tab is properly initialized
-          requestAnimationFrame(() => {
-            set((draft) => {
-              const tab = draft.tabs.find(t => t.id === newTab.id);
-              if (tab) {
-                tab.isLoading = false;
-              }
-              draft.activeTabId = newTab.id;
-            });
-          });
+          // Set as active tab
+          draft.activeTabId = newTab.id;
         });
         
         return newTab.id;
