@@ -10,8 +10,13 @@ import { SyncStatusComponent } from './OfflineCapability';
 import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 
 const UserMenu: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const { user, logout, isDemoMode } = useAuth();
+  
+  if (!user) {
+    return null;
+  }
+  
+  const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation('common');
   const { config } = useUnifiedConfig();
   const currentMode = config.dataMode === 'demo' ? 'demo' : 'production';
@@ -20,10 +25,6 @@ const UserMenu: React.FC = () => {
     await logout();
     setIsOpen(false);
   };
-
-  if (!user) {
-    return null;
-  }
 
   return (
     <div className="relative">

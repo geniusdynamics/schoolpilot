@@ -573,11 +573,20 @@ const AppInner: React.FC = () => {
   );
 };
 
-// Main App component with unified config provider
+// Main App component with unified config provider and i18n Suspense
 const App: React.FC = () => {
   return (
     <UnifiedConfigProvider>
-      <AppInner />
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <Spinner size="lg" />
+            <p className="mt-4 text-gray-600">Loading translations...</p>
+          </div>
+        </div>
+      }>
+        <AppInner />
+      </Suspense>
     </UnifiedConfigProvider>
   );
 };
