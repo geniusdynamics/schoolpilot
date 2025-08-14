@@ -11,12 +11,14 @@ interface SettingsPopupProps {
 
 const SettingsPopup: React.FC<SettingsPopupProps> = ({ open, onClose }) => {
   const { t } = useTranslation(['navigation', 'common']);
-  const { navigationItems } = useDynamicNavigation(true);
+  const { navigationItems } = useDynamicNavigation();
+  
   // Find the settings module group dynamically
   const settingsModule = navigationItems.find(item => item.modulePath === '/settings' && item.isGroup);
   const settingsMenu = settingsModule?.children || [];
 
   if (!open) return null;
+  
   return (
     <div className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/30 backdrop-blur-sm">
       {/* Drawer */}

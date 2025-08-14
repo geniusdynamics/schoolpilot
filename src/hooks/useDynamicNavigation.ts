@@ -1,7 +1,7 @@
 // ABOUTME: Custom hook for dynamic navigation management
 // ABOUTME: Provides real-time navigation updates and module management
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { NavItem } from '../core/types';
 import { 
   getDynamicNavigationItems, 
@@ -15,7 +15,7 @@ import {
 // NOTE: getEnabledModules now always includes core modules (dashboard, settings, reports)
 // so navigationItems will always include these regardless of config.
 
-export const useDynamicNavigation = (modulesInitialized: boolean) => {
+export const useDynamicNavigation = (autoLoad: boolean = true) => {
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([]);
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +37,7 @@ export const useDynamicNavigation = (modulesInitialized: boolean) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, []); // Empty dependency array since getDynamicNavigationItems and getEnabledModules are stable
 
   // Enable a module
   const enableModuleById = useCallback((moduleId: string) => {
@@ -105,10 +105,10 @@ export const useDynamicNavigation = (modulesInitialized: boolean) => {
 
   // Initialize on mount
   useEffect(() => {
-    if (modulesInitialized) {
+    if (autoLoad) {
       loadNavigationItems();
     }
-  }, [loadNavigationItems, modulesInitialized]);
+  }, [autoLoad]);
 
   return {
     navigationItems,
@@ -125,4 +125,4 @@ export const useDynamicNavigation = (modulesInitialized: boolean) => {
   };
 };
 
-export default useDynamicNavigation; 
+export default useDynamicNavigation;
