@@ -1,4 +1,4 @@
-import { moduleRegistry } from '@/core/moduleRegistry';
+import { moduleRegistry } from '../core/moduleRegistry';
 
 interface ModuleConfig {
   id: string;

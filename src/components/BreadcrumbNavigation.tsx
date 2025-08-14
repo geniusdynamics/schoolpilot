@@ -25,7 +25,7 @@ interface EnhancedBreadcrumbNavigationProps extends BreadcrumbNavigationProps {
   enableHierarchicalMode?: boolean;
 }
 
-const BreadcrumbNavigation: React.FC<EnhancedBreadcrumbNavigationProps> = ({
+const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps> = ({
   items: customItems,
   onNavigate: customOnNavigate,
   className = '',
@@ -272,5 +272,23 @@ const BreadcrumbNavigation: React.FC<EnhancedBreadcrumbNavigationProps> = ({
   );
 };
 
-export { BreadcrumbNavigation };
+// Memoize BreadcrumbNavigation to prevent unnecessary re-renders
+export const BreadcrumbNavigation = React.memo(BreadcrumbNavigationComponent, (prevProps, nextProps) => {
+  // Custom comparison function for optimization
+  return (
+    JSON.stringify(prevProps.items) === JSON.stringify(nextProps.items) &&
+    prevProps.className === nextProps.className &&
+    prevProps.showHome === nextProps.showHome &&
+    prevProps.maxItems === nextProps.maxItems &&
+    prevProps.separator === nextProps.separator &&
+    prevProps.enableHierarchicalMode === nextProps.enableHierarchicalMode &&
+    prevProps.onNavigate === nextProps.onNavigate &&
+    prevProps.onItemClick === nextProps.onItemClick &&
+    prevProps.onNavigationError === nextProps.onNavigationError &&
+    JSON.stringify(prevProps.customItems) === JSON.stringify(nextProps.customItems)
+  );
+});
+
+BreadcrumbNavigation.displayName = 'BreadcrumbNavigation';
+
 export default BreadcrumbNavigation;

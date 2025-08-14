@@ -1,8 +1,14 @@
 {
-  "dashboard": "Tableau de bord",
+  "dashboard": {
+    "title": "Tableau de bord",
+    "description": "Vue d'ensemble principale et statistiques du système"
+  },
   "administration": {
     "title": "Administration",
+    "description": "Gérer les élèves, le personnel, les classes et les opérations administratives",
     "dashboard": "TB Admin",
+    "applications": "Candidatures",
+    "preNAsMarks": "Notes PreNAs",
     "students": "Élèves",
     "staff": "Personnel",
     "classes": "Classes & Filières",
@@ -24,6 +30,7 @@
   },
   "academics": {
     "title": "Académique",
+    "description": "Programme académique, examens, matières et gestion éducative",
     "dashboard": "TB Académique",
     "subjects": "Matières",
     "subjectPapers": "Épreuves",
@@ -42,6 +49,7 @@
   },
   "finance": {
     "title": "Finance",
+    "description": "Gestion financière, facturation et opérations comptables",
     "dashboard": "TB Finance",
     "banks": "Banques",
     "chartOfAccounts": "Plan comptable",
@@ -63,6 +71,7 @@
   },
   "hr": {
     "title": "Ressources Humaines",
+    "description": "Gestion du personnel, paie et opérations des ressources humaines",
     "dashboard": "TB RH",
     "payrollPeriods": "Périodes de paie",
     "payrollItemTypes": "Types d'éléments paie",
@@ -72,6 +81,7 @@
   },
   "inventory": {
     "title": "Inventaire",
+    "description": "Gestion des stocks, achats et contrôle des inventaires",
     "dashboard": "TB Inventaire",
     "procurementDashboard": "TB Achats",
     "schoolProcurementDashboard": "TB Achats École",
@@ -85,14 +95,15 @@
     "purchaseOrders": "Bons de commande",
     "stockIssuance": "Sorties de stock",
     "stockLevels": "Niveaux de Stock",
-      "reorderAlerts": "Alertes de Réapprovisionnement",
-      "stockReception": "Réception de Stock",
-      "stockReturns": "Retours de Stock",
-      "suppliers": "Fournisseurs",
-      "supplierContracts": "Contrats Fournisseurs"
+    "reorderAlerts": "Alertes de Réapprovisionnement",
+    "stockReception": "Réception de Stock",
+    "stockReturns": "Retours de Stock",
+    "suppliers": "Fournisseurs",
+    "supplierContracts": "Contrats Fournisseurs"
   },
   "library": {
     "title": "Bibliothèque",
+    "description": "Gestion de bibliothèque, prêts de livres et catalogage",
     "dashboard": "TB Bibliothèque",
     "bookCategories": "Catégories de livres",
     "books": "Livres",
@@ -101,6 +112,7 @@
   },
   "nutrition": {
     "title": "Nutrition et Portefeuille",
+    "description": "Planification des repas, gestion nutritionnelle et système de portefeuille étudiant",
     "dashboard": "TB Nutrition",
     "mealPlans": "Plans de repas",
     "menus": "Menus",
@@ -111,6 +123,7 @@
   },
   "reports": {
     "title": "Rapports",
+    "description": "Rapports système, analyses et visualisation de données",
     "studentMasterlist": "Liste principale élèves",
     "examResults": "Résultats examens",
     "studentFinancials": "Finances élèves",
@@ -123,10 +136,9 @@
     "studentFinancialSummary": "Résumé Financier Élève",
     "studentVoteheadStatement": "Relevé Poste Élève"
   },
-  "settings": "Paramètres",
-  "settings.description": "Configuration et gestion du système",
   "settings": {
     "title": "Paramètres",
+    "description": "Configuration et gestion du système",
     "general": "Paramètres généraux",
     "schoolProfile": "Profil de l'école",
     "userManagement": "Gestion utilisateurs",
@@ -134,7 +146,6 @@
     "auditLog": "Journal d'audit",
     "database": "Gestion Base de Données",
     "databaseSettings": "Paramètres Base de Données",
-    "settings": "Paramètres Généraux",
     "users": "Gestion Utilisateurs",
     "tabbedWorkspaceTest": "Test Espace de Travail à Onglets"
   },

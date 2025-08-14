@@ -40,6 +40,7 @@ interface TabNavigationOptions {
   replaceCurrentTab?: boolean;
   insertAfterCurrent?: boolean;
   activateImmediately?: boolean;
+  forceCreate?: boolean; // Add this line
 }
 
 // Tab navigation result
@@ -336,25 +337,19 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
   
   // Navigate to tab (create if doesn't exist)
   const navigateToTab = useCallback(async (path: string, options: TabNavigationOptions = {}): Promise<TabNavigationResult> => {
-    // Extract current and target module information
-    const currentModuleInfo = extractModuleFromPath(location.pathname);
+    // Extract module information from target path
     const targetModuleInfo = extractModuleFromPath(path);
     
-    // Determine if this is cross-module navigation
-    const isCrossModuleNavigation = currentModuleInfo.module !== targetModuleInfo.module;
-    
     console.log('🚀 Navigation Decision:', {
-      isCrossModuleNavigation,
-      willUseStandardRouting: isCrossModuleNavigation,
-      willUseTabSystem: !isCrossModuleNavigation
+      targetPath: path,
+      targetModule: targetModuleInfo.module,
+      willUseTabSystem: true // Always use tab system for internal navigation
     });
     
-    // For cross-module navigation, use standard React Router navigation
-    if (isCrossModuleNavigation) {
-      navigate(path);
-      setModuleContext(targetModuleInfo.module, targetModuleInfo.submodule, targetModuleInfo.feature);
-      
-      // Return a result indicating no tab was created/activated
+    // Check if this is an external URL
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      // For external URLs, use React Router navigation
+      window.open(path, '_blank');
       return {
         tabId: '',
         tab: {} as Tab,
@@ -363,23 +358,25 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
       };
     }
     
-    // For same-module navigation, use tab system
+    // Always use tab system for internal navigation
     
-    // Check if tab already exists
-    const existingTab = tabs?.find(tab => tab.path === path);
-    
-    if (existingTab) {
-      storeActivateTab(existingTab.id);
+    // Check if tab already exists, unless forceCreate is true
+    if (!options.forceCreate) {
+      const existingTab = tabs?.find(tab => tab.path === path);
       
-      const moduleInfo = extractModuleFromPath(path);
-      setModuleContext(moduleInfo.module, moduleInfo.submodule, moduleInfo.feature);
-      
-      return {
-        tabId: existingTab.id,
-        tab: existingTab,
-        wasCreated: false,
-        wasActivated: true
-      };
+      if (existingTab) {
+        storeActivateTab(existingTab.id);
+        
+        const moduleInfo = extractModuleFromPath(path);
+        setModuleContext(moduleInfo.module, moduleInfo.submodule, moduleInfo.feature);
+        
+        return {
+          tabId: existingTab.id,
+          tab: existingTab,
+          wasCreated: false,
+          wasActivated: true
+        };
+      }
     }
     
     // Create new tab for same-module navigation
@@ -423,18 +420,17 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
     storeActivateTab(tabId);
     const tab = getTabById(tabId);
     if (tab?.path) {
-      // Determine if we're in tab mode (tabs exist)
-      const isTabMode = tabs && tabs.length > 0;
-      
-      // Only navigate with React Router if we're NOT in tab mode
-      if (!isTabMode) {
-        navigate(tab.path);
-      }
-      
+      // Always update module context when activating a tab
       const moduleInfo = extractModuleFromPath(tab.path);
       setModuleContext(moduleInfo.module, moduleInfo.submodule, moduleInfo.feature);
+      
+      // Navigate with React Router only if we need to update the URL
+      // This ensures the URL stays in sync with the active tab
+      if (location.pathname !== tab.path) {
+        navigate(tab.path);
+      }
     }
-  }, [storeActivateTab, getTabById, navigate, setModuleContext, tabs]);
+  }, [storeActivateTab, getTabById, navigate, setModuleContext, location.pathname]);
   
   const closeTab = useCallback((tabId: string) => {
     storeCloseTab(tabId);

@@ -15,6 +15,7 @@ export interface Tab {
   isDirty: boolean;
   canClose: boolean;
   lastAccessed: number;
+  isLoading?: boolean;
   metadata: Record<string, any>;
   state?: TabState;
   permissions?: string[]; // Required permissions for this tab

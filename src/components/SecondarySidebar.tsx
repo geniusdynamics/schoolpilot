@@ -3,6 +3,7 @@ import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useTabNavigation } from '../hooks/useTabNavigation';
+import { useToastHelpers } from '../hooks/useToast';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon, InformationCircleIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -156,11 +157,12 @@ const getModuleStyle = (moduleKey: string) => {
 };
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
-  const { t } = useTranslation(['navigation', 'common']);
+const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems } = useDynamicNavigation(true); // Use dynamic navigation
   const { accessibleModules } = useRBAC();
   const { user } = useAuth();
   const { navigateToTab } = useTabNavigation();
+  const { showInfo, showError, showWarning } = useToastHelpers();
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const [isMinimized, setIsMinimized] = useState(false);
@@ -168,35 +170,90 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
 
-  // Handle navigation click
+  // Handle navigation click with enhanced validation and error handling
   const handleNavigationClick = async (item: any, event: React.MouseEvent) => {
     event.preventDefault();
     
-    if (item.path) {
-      try {
-        // Extract the actual module from the path (e.g., '/settings/general' -> 'settings')
-        const pathModule = item.path.split('/')[1] || '';
-        
+    if (!item.path) {
+      showWarning('Missing navigation path. Please report this issue.');
+      return;
+    }
 
-        
-        await navigateToTab(item.path, {
-          title: t(item.name),
-          icon: item.icon,
-          module: pathModule, // Use the module extracted from the path instead of moduleKey
-          submodule: item.submodule,
-          metadata: {
-            source: 'secondary-sidebar',
-            moduleKey: selectedModuleKey
-          }
-        });
-        
-        // Close sidebar on mobile after navigation
-        if (isMobile) {
-          onClose();
-        }
-      } catch (error) {
-        console.error('Failed to navigate to tab:', error);
+    try {
+      // Extract module info from path
+      const pathSegments = item.path.split('/');
+      const pathModule = pathSegments[1] || '';
+      const submodule = pathSegments[2] || undefined;
+
+      // Basic path validation
+      if (!pathModule) {
+        throw new Error('Invalid navigation path structure');
       }
+
+      // Check if the user has permission for this module
+      const canAccessModule = accessibleModules.includes(pathModule);
+      if (!canAccessModule) {
+        throw new Error(`You don't have permission to access ${pathModule}`);
+      }
+
+      // Try to create and navigate to tab
+      const result = await navigateToTab(item.path, {
+        title: t(item.name),
+        icon: item.icon,
+        module: pathModule,
+        submodule,
+        metadata: {
+          source: 'secondary-sidebar',
+          moduleKey: selectedModuleKey,
+          userId: user?.id,
+          timestamp: new Date().toISOString()
+        },
+        forceCreate: true
+      });
+
+      // Log successful navigation
+      console.info('Tab navigation successful:', {
+        path: item.path,
+        module: pathModule,
+        submodule,
+        tabId: result.tabId,
+        wasCreated: result.wasCreated
+      });
+      
+      // Close sidebar on mobile after successful navigation
+      if (isMobile) {
+        onClose();
+      }
+      
+      // Show success feedback if a new tab was created
+      if (result.wasCreated) {
+        showInfo(`Opened ${t(item.name)} in new tab`);
+      }
+      
+    } catch (error) {
+      // Handle specific error types
+      console.error('Navigation failed:', error);
+      
+      if (error.message.includes('Maximum tab limit')) {
+        showError('Tab limit reached. Please close some tabs before opening new ones.');
+      } else if (error.message.includes('permission')) {
+        showError('Access denied. You do not have permission to view this section.');
+      } else if (error.message.includes('not initialized')) {
+        showError('System is still initializing. Please try again in a moment.');
+      } else {
+        showError('Failed to open tab. Please try again or contact support.');
+      }
+      
+      // Log detailed error for debugging
+      console.error('Detailed navigation error:', {
+        error,
+        context: {
+          path: item.path,
+          module: pathModule,
+          user: user?.id,
+          timestamp: new Date().toISOString()
+        }
+      });
     }
   };
 
