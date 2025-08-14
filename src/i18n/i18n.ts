@@ -1,39 +1,37 @@
-// ABOUTME: This file configures and initializes the i18next internationalization library.
-// ABOUTME: It sets up language detection, namespaces, and translation resources.
+// ABOUTME: This file initializes the i18next library for internationalization.
+// ABOUTME: It configures language detection, loads translations, and sets up React integration.
 
-import i18next from 'i18next';
+import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import { loadModularTranslations } from './modularLoader'; // Import the modular loader
+import { loadModularTranslations } from './modularLoader';
 
-i18next
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    debug: process.env.NODE_ENV === 'development', // Enable debug logs in development
-    fallbackLng: 'en', // Fallback language if detected language is not available
-    supportedLngs: ['en', 'fr'], // Explicitly list supported languages
-    
-    defaultNS: 'common', 
-    ns: ['common', 'navigation', 'dashboard', 'reports', 'settings', 
-         'academics', 'administration', 'finance', 'hr', 'inventory', 'library',
-         'nutrition' 
-        // Add other namespaces as they are created for modules like:
-        // 'studentDetails'
-    ],
+// Asynchronous initialization
+(async () => {
+  try {
+    const modularResources = await loadModularTranslations();
 
-    interpolation: {
-      escapeValue: false, // React already safes from xss
-    },
+    await i18n
+      .use(LanguageDetector)
+      .use(initReactI18next)
+      .init({
+        debug: true,
+        fallbackLng: 'en',
+        interpolation: {
+          escapeValue: false, // not needed for react as it escapes by default
+        },
+        resources: modularResources,
+        // Default namespace
+        defaultNS: 'common',
+        // Namespaces to load initially
+        ns: ['common', 'navigation', 'dashboard', 'academics', 'administration', 'finance', 'hr', 'inventory', 'library', 'settings', 'student', 'teacher'],
+      });
 
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      lookupLocalStorage: 'i18nextLng',
-      caches: ['localStorage'],
-    },
-  });
+    console.log("i18next initialized successfully.");
 
-// Load translations using the modular loader
-loadModularTranslations(i18next);
+  } catch (error) {
+    console.error("i18next initialization failed:", error);
+  }
+})();
 
-export default i18next;
+export default i18n;

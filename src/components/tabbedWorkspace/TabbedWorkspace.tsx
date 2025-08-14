@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo, memo } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { Settings, AlertCircle, RefreshCw } from 'lucide-react';
+import { TabWorkspaceErrorBoundary } from './TabWorkspaceErrorBoundary';
 import { TabBar } from './TabBar';
 import { ActionBar } from './ActionBar';
 import { BreadcrumbNavigation } from '../BreadcrumbNavigation';
@@ -8,6 +9,7 @@ import { useTabStore } from '../../stores/tabStore';
 import { useActionRegistry } from '../../services/actionRegistry';
 import type { TabbedWorkspaceProps, Tab } from '../../types/tabbedWorkspace';
 import type { HierarchicalTab, BreadcrumbItem } from '../../types/hierarchical';
+import { resolveTabContent } from './resolveTabContent';
 
 export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   className = '',
@@ -34,17 +36,11 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   onBreadcrumbClick,
   onSubTabChange
 }) => {
-  console.log('🔥 TabbedWorkspace: Component rendering with props:', {
-    showActionBar,
-    showSettings,
-    maxTabs,
-    enableTabGroups,
-    enableTabPersistence,
-    theme,
-    userRole,
-    userPermissions,
-    moduleContext
-  });
+  // Remove excessive console logging to prevent performance issues
+  // Only log in development mode with a flag
+  if (process.env.NODE_ENV === 'development' && process.env.DEBUG_TABS) {
+    console.log('TabbedWorkspace: Rendering');
+  }
   const {
     tabs,
     activeTabId,
@@ -67,61 +63,94 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
-  const initializationRef = useRef({ userRole: null, userPermissions: null });
+  const prevUserRoleRef = useRef(userRole);
+  const prevUserPermissionsRef = useRef(userPermissions);
   const isInitializedRef = useRef(false);
+  const onTabChangeRef = useRef(onTabChange);
+  const prevActiveTabIdRef = useRef<string | null>(null);
+  const permissionsHashRef = useRef<string>('');
+  
+  // Memoize store configuration to prevent unnecessary reinitializations
+  const storeConfig = useMemo(() => ({
+    maxTabs,
+    enablePersistence: enableTabPersistence,
+    enableTabGroups
+  }), [maxTabs, enableTabPersistence, enableTabGroups]);
 
-  // Initialize workspace on mount - memoized to prevent re-runs
+  // Keep onTabChange ref up to date without triggering effects
+  useEffect(() => {
+    onTabChangeRef.current = onTabChange;
+    
+    // Clear onTabChange ref on unmount
+    return () => {
+      onTabChangeRef.current = undefined;
+    };
+  }, [onTabChange]);
+  
+  // Memoized onTabChange wrapper with proper dependencies
+  const handleTabChange = useCallback((tab: Tab) => {
+    // Only call onTabChange when activeTab actually changes
+    if (tab && tab.id !== prevActiveTabIdRef.current) {
+      prevActiveTabIdRef.current = tab.id;
+      onTabChangeRef.current?.(tab);
+    }
+  }, []);
+
+  // Initialize workspace on mount with cleanup flag
   useEffect(() => {
     let isMounted = true;
+    let settingsClickHandler: (() => void) | undefined;
     
     const initializeWorkspace = async () => {
       if (!isMounted || isInitializedRef.current) return;
       
       try {
-        console.log('TabbedWorkspace: Starting initialization');
         setIsLoading(true);
         
-        // Clear any corrupted data from localStorage first
-        clearCorruptedData();
-        
-        // Initialize RBAC and tab store only once
-        await initialize();
-        
-        // Initialize store with persistence settings
-        initializeStore({
-          maxTabs,
-          enablePersistence: enableTabPersistence,
-          enableTabGroups
-        });
+        // Use Promise.all for parallel initialization where possible
+        await Promise.all([
+          initialize(),
+          new Promise<void>(resolve => {
+            initializeStore(storeConfig);
+            resolve();
+          })
+        ]);
+
+        // Clear corrupted data after initialization - only run once
+        if (!isInitializedRef.current) {
+          clearCorruptedData();
+        }
 
         // Register default workspace actions only once
-        registerAction({
-          id: 'workspace.refresh',
-          label: 'Refresh Workspace',
-          icon: RefreshCw,
-          category: 'workspace',
-          context: ['workspace'],
-          permissions: ['workspace.refresh'],
-          execute: async () => {
-            window.location.reload();
-          }
-        });
-
-        registerAction({
-          id: 'workspace.settings',
-          label: 'Workspace Settings',
-          icon: Settings,
-          category: 'workspace',
-          context: ['workspace'],
-          permissions: ['workspace.settings'],
-          execute: async () => {
-            onSettingsClick?.();
-          }
-        });
-
-        isInitializedRef.current = true;
-        console.log('TabbedWorkspace: Initialization completed successfully');
         if (isMounted) {
+          // Cache onSettingsClick to avoid dependency on prop
+          settingsClickHandler = onSettingsClick;
+          
+          registerAction({
+            id: 'workspace.refresh',
+            label: 'Refresh Workspace',
+            icon: RefreshCw,
+            category: 'workspace',
+            context: ['workspace'],
+            permissions: ['workspace.refresh'],
+            execute: async () => {
+              window.location.reload();
+            }
+          });
+
+          registerAction({
+            id: 'workspace.settings',
+            label: 'Workspace Settings',
+            icon: Settings,
+            category: 'workspace',
+            context: ['workspace'],
+            permissions: ['workspace.settings'],
+            execute: async () => {
+              settingsClickHandler?.();
+            }
+          });
+
+          isInitializedRef.current = true;
           setError(null);
         }
       } catch (err) {
@@ -142,47 +171,95 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     
     return () => {
       isMounted = false;
+      // Cleanup actions on unmount
+      setError(null);
+      setIsLoading(false);
+      isInitializedRef.current = false;
+      settingsClickHandler = undefined;
+      
+      // Clear any stored tab states
+      tabs.forEach(tab => {
+        if (tab.state) {
+          clearTabState(tab.id);
+        }
+      });
     };
-  }, [maxTabs, enableTabPersistence, enableTabGroups]);
+  }, [storeConfig, registerAction, initialize, initializeStore, onError, onSettingsClick]); // Include stable dependencies
 
-  // Handle user role changes separately to prevent infinite loops
+  // Handle user role changes with primitive comparison
   useEffect(() => {
-    if (userRole && initializationRef.current.userRole !== userRole) {
+    // Use primitive comparison instead of object reference
+    if (userRole && userRole !== prevUserRoleRef.current) {
+      prevUserRoleRef.current = userRole;
       setUserRole(userRole);
-      initializationRef.current.userRole = userRole;
     }
   }, [userRole, setUserRole]);
 
-  // Handle user permissions changes separately to prevent infinite loops
+  // Abort controller for async operations
+  const abortControllerRef = useRef<AbortController>();
+
+  // Initialize abort controller
   useEffect(() => {
-    if (userPermissions && userPermissions.length > 0 && 
-        JSON.stringify(initializationRef.current.userPermissions) !== JSON.stringify(userPermissions)) {
+    abortControllerRef.current = new AbortController();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  // Handle user permissions changes with hash comparison for efficiency
+  useEffect(() => {
+    // Create a hash of permissions for faster comparison
+    const createPermissionsHash = (perms: string[]): string => {
+      if (!perms || perms.length === 0) return '';
+      // Sort to ensure consistent hash regardless of order
+      return perms.slice().sort().join('|');
+    };
+    
+    const currentHash = createPermissionsHash(userPermissions);
+    
+    // Only update if hash has changed
+    if (currentHash && currentHash !== permissionsHashRef.current) {
+      permissionsHashRef.current = currentHash;
+      prevUserPermissionsRef.current = userPermissions;
       updateUserPermissions(userPermissions);
-      initializationRef.current.userPermissions = userPermissions;
     }
   }, [userPermissions, updateUserPermissions]);
 
-  // Handle tab changes and update breadcrumbs
+  // Memoized breadcrumb generation logic
+  const generateBreadcrumbs = useCallback((tab: Tab): BreadcrumbItem[] => {
+    if (!enableHierarchicalMode || !tab.path) return [];
+    
+    const pathSegments = tab.path.split('/').filter(Boolean);
+    return pathSegments.map((segment, index) => ({
+      id: `breadcrumb-${index}`,
+      label: segment.charAt(0).toUpperCase() + segment.slice(1),
+      path: '/' + pathSegments.slice(0, index + 1).join('/'),
+      isActive: index === pathSegments.length - 1
+    }));
+  }, [enableHierarchicalMode]);
+
+  // Handle tab changes and update breadcrumbs with proper change detection
   useEffect(() => {
     if (activeTabId) {
       const activeTab = tabs.find(tab => tab.id === activeTabId);
       if (activeTab) {
-        onTabChange?.(activeTab);
+        // Use the memoized handler that checks for actual changes
+        handleTabChange(activeTab);
         
         // Update breadcrumbs for hierarchical tabs
         if (enableHierarchicalMode && activeTab.path) {
-          const pathSegments = activeTab.path.split('/').filter(Boolean);
-          const newBreadcrumbs: BreadcrumbItem[] = pathSegments.map((segment, index) => ({
-            id: `breadcrumb-${index}`,
-            label: segment.charAt(0).toUpperCase() + segment.slice(1),
-            path: '/' + pathSegments.slice(0, index + 1).join('/'),
-            isActive: index === pathSegments.length - 1
-          }));
-          setBreadcrumbs(newBreadcrumbs);
+          const newBreadcrumbs = generateBreadcrumbs(activeTab);
+          setBreadcrumbs(prevBreadcrumbs => {
+            // Only update if breadcrumbs actually changed
+            if (JSON.stringify(prevBreadcrumbs) === JSON.stringify(newBreadcrumbs)) {
+              return prevBreadcrumbs;
+            }
+            return newBreadcrumbs;
+          });
         }
       }
     }
-  }, [activeTabId, tabs, enableHierarchicalMode]); // Removed onTabChange from dependencies to prevent flickering
+  }, [activeTabId, tabs, enableHierarchicalMode, handleTabChange, generateBreadcrumbs]);
 
   // Handle drag and drop for tab reordering
   const handleDragEnd = useCallback((result: any) => {
@@ -196,7 +273,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }
   }, [reorderTabs]);
 
-  // Handle tab creation
+  // Memoized tab creation handler
   const handleTabCreate = useCallback((tabData?: Partial<Tab>) => {
     try {
       const newTab = createTab({
@@ -222,7 +299,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }
   }, [createTab, moduleContext, onTabCreate, onError]);
 
-  // Handle tab closing
+  // Memoized tab closing handler
   const handleTabClose = useCallback((tabId: string) => {
     try {
       const tab = tabs.find(t => t.id === tabId);
@@ -237,20 +314,20 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }
   }, [tabs, closeTab, onTabClose, onError]);
 
-  // Handle breadcrumb clicks
+  // Memoized breadcrumb click handler
   const handleBreadcrumbClick = useCallback((breadcrumb: BreadcrumbItem) => {
     onBreadcrumbClick?.(breadcrumb);
     // Optionally navigate to the breadcrumb path
     // This could involve creating a new tab or updating the current tab
   }, [onBreadcrumbClick]);
 
-  // Handle sub-tab changes
+  // Memoized sub-tab change handler
   const handleSubTabChange = useCallback((tabId: string, subTabId: string) => {
     onSubTabChange?.(tabId, subTabId);
     // Update the tab's active sub-tab in the store if needed
   }, [onSubTabChange]);
 
-  // Render tab content
+  // Memoized tab content renderer
   const renderTabContent = useCallback(() => {
     if (!activeTabId) {
       return (
@@ -304,33 +381,81 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       <div className="flex-1 px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 overflow-auto bg-white">
         <div className="w-full">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{activeTab.title}</h1>
-          {activeTab.content.type === 'component' && activeTab.content.component && (
-            <div className="w-full">
-              <activeTab.content.component {...(activeTab.content.props || {})} />
-            </div>
-          )}
-          {activeTab.content.type === 'url' && activeTab.content.url && (
-            <iframe
-              src={activeTab.content.url}
-              className="w-full h-64 sm:h-80 md:h-96 border border-gray-300 rounded-lg"
-              title={activeTab.title}
-            />
-          )}
-          {activeTab.content.type === 'html' && activeTab.content.html && (
-            <div className="w-full" dangerouslySetInnerHTML={{ __html: activeTab.content.html }} />
-          )}
-          {activeTab.content.type === 'text' && activeTab.content.text && (
-            <div className="whitespace-pre-wrap text-gray-700 w-full text-sm sm:text-base">{activeTab.content.text}</div>
-          )}
-          {activeTab.content.type === 'empty' && (
-            <div className="text-center text-gray-500 py-8 sm:py-12">
-              <p className="text-sm sm:text-base">This tab is empty. Add some content to get started.</p>
-            </div>
-          )}
+          {resolveTabContent(activeTab)}
         </div>
       </div>
     );
   }, [activeTabId, tabs, validateTabAccess, onTabContentRender]);
+  
+  // Memoize the active tab to prevent unnecessary lookups
+  const activeTab = useMemo(() => {
+    return tabs.find(tab => tab.id === activeTabId);
+  }, [activeTabId, tabs]);
+
+  // Memoize filtered and sorted tabs for better performance
+  const sortedTabs = useMemo(() => {
+    // Sort pinned tabs first, then by last accessed time
+    const pinned = tabs.filter(tab => tab.pinned).sort((a, b) => a.order - b.order);
+    const unpinned = tabs.filter(tab => !tab.pinned).sort((a, b) => a.order - b.order);
+    return [...pinned, ...unpinned];
+  }, [tabs]);
+
+  // Memoize module style calculations
+  const moduleStyles = useMemo(() => {
+    const baseStyles = 'flex flex-col h-full bg-gray-50 w-full tabbed-workspace-mobile';
+    const themeStyles = theme === 'dark' ? 'dark:bg-gray-900' : '';
+    const modeStyles = enableHierarchicalMode ? 'hierarchical-mode' : 'legacy-mode';
+    return `${baseStyles} ${themeStyles} ${modeStyles}`.trim();
+  }, [theme, enableHierarchicalMode]);
+
+  // Memoize action bar props to prevent unnecessary re-renders
+  const actionBarProps = useMemo(() => ({
+    moduleContext,
+    userRole,
+    userPermissions,
+    onSettingsClick: showSettings ? onSettingsClick : undefined
+  }), [moduleContext, userRole, userPermissions, showSettings, onSettingsClick]);
+
+  // Memoize tab bar props to prevent unnecessary re-renders
+  const tabBarProps = useMemo(() => ({
+    tabs: sortedTabs,
+    activeTabId,
+    onTabClick: activateTab,
+    onTabClose: handleTabClose,
+    onTabReorder: reorderTabs,
+    onTabPin: pinTab,
+    onTabUnpin: unpinTab,
+    onTabDuplicate: duplicateTab,
+    onNewTab: handleTabCreate,
+    maxTabs,
+    enableTabGroups,
+    theme,
+    userRole,
+    userPermissions,
+    enableHierarchicalMode,
+    tabStyle,
+    showCloseButton,
+    onSubTabChange: handleSubTabChange
+  }), [
+    sortedTabs,
+    activeTabId,
+    activateTab,
+    handleTabClose,
+    reorderTabs,
+    pinTab,
+    unpinTab,
+    duplicateTab,
+    handleTabCreate,
+    maxTabs,
+    enableTabGroups,
+    theme,
+    userRole,
+    userPermissions,
+    enableHierarchicalMode,
+    tabStyle,
+    showCloseButton,
+    handleSubTabChange
+  ]);
 
   if (isLoading) {
     return (
@@ -361,11 +486,15 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     );
   }
 
-  console.log('🔥 TabbedWorkspace: About to render JSX with tabs:', tabs.length, 'activeTabId:', activeTabId);
+  // Remove excessive console logging
+  if (process.env.NODE_ENV === 'development' && process.env.DEBUG_TABS) {
+    console.log('TabbedWorkspace: Rendering JSX with tabs:', tabs.length);
+  }
   
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex flex-col h-full bg-gray-50 w-full tabbed-workspace-mobile">
+    <TabWorkspaceErrorBoundary onError={(error, errorInfo) => onError?.(error.message)}>
+      <DragDropContext onDragEnd={handleDragEnd}>
+      <div className={moduleStyles}>
         {/* Breadcrumb Navigation */}
         {enableHierarchicalMode && showBreadcrumbs && breadcrumbs.length > 0 && (
           <BreadcrumbNavigation
@@ -377,37 +506,13 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
         
         {/* Tab Bar */}
         <div className="flex-shrink-0">
-          <TabBar
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabClick={activateTab}
-            onTabClose={handleTabClose}
-            onTabReorder={reorderTabs}
-            onTabPin={pinTab}
-            onTabUnpin={unpinTab}
-            onTabDuplicate={duplicateTab}
-            onNewTab={handleTabCreate}
-            maxTabs={maxTabs}
-            enableTabGroups={enableTabGroups}
-            theme={theme}
-            userRole={userRole}
-            userPermissions={userPermissions}
-            enableHierarchicalMode={enableHierarchicalMode}
-            tabStyle={tabStyle}
-            showCloseButton={showCloseButton}
-            onSubTabChange={handleSubTabChange}
-          />
+          <TabBar {...tabBarProps} />
         </div>
         
         {/* Action Bar */}
         {showActionBar && (
           <div className="flex-shrink-0">
-            <ActionBar
-              moduleContext={moduleContext}
-              userRole={userRole}
-              userPermissions={userPermissions}
-              onSettingsClick={showSettings ? onSettingsClick : undefined}
-            />
+            <ActionBar {...actionBarProps} />
           </div>
         )}
         
@@ -417,6 +522,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
         </div>
       </div>
     </DragDropContext>
+    </TabWorkspaceErrorBoundary>
    );
 };
 

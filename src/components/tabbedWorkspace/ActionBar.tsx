@@ -213,7 +213,7 @@ const ActionGroupComponent: React.FC<ActionGroupComponentProps> = ({
   );
 };
 
-export const ActionBar: React.FC<ActionBarProps> = ({
+const ActionBarComponent: React.FC<ActionBarProps & AdditionalProps> = ({
   className,
   showSearch = true,
   showGrouping = true,
@@ -494,5 +494,26 @@ export const ActionBar: React.FC<ActionBarProps> = ({
     </div>
   );
 };
+
+// Memoize ActionBar to prevent unnecessary re-renders
+export const ActionBar = React.memo(ActionBarComponent, (prevProps, nextProps) => {
+  // Custom comparison function for optimization
+  return (
+    prevProps.className === nextProps.className &&
+    prevProps.showSearch === nextProps.showSearch &&
+    prevProps.showGrouping === nextProps.showGrouping &&
+    prevProps.showFilter === nextProps.showFilter &&
+    prevProps.maxVisibleActions === nextProps.maxVisibleActions &&
+    prevProps.orientation === nextProps.orientation &&
+    prevProps.size === nextProps.size &&
+    prevProps.variant === nextProps.variant &&
+    prevProps.moduleContext === nextProps.moduleContext &&
+    prevProps.userRole === nextProps.userRole &&
+    JSON.stringify(prevProps.userPermissions) === JSON.stringify(nextProps.userPermissions) &&
+    prevProps.onSettingsClick === nextProps.onSettingsClick
+  );
+});
+
+ActionBar.displayName = 'ActionBar';
 
 export type { ActionBarProps };

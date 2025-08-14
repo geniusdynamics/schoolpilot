@@ -37,8 +37,8 @@ export const TabContent: React.FC<TabContentProps> = ({
 
   // Handle content loading states
   const isLoading = useMemo(() => {
-    return tab.content?.type === 'component' && !tab.content.component;
-  }, [tab.content]);
+    return tab.isLoading || (tab.content?.type === 'component' && !tab.content.component);
+  }, [tab.isLoading, tab.content]);
 
   // Render access denied state
   const renderAccessDenied = useCallback(() => (

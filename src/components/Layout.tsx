@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+// ABOUTME: Main layout component for the application
+// ABOUTME: Handles navigation, tab management, and overall app structure
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
@@ -8,6 +10,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
+import LoadingScreen from './LoadingScreen';
 import SettingsPopup from './SettingsPopup';
 import BreadcrumbNavigation from './BreadcrumbNavigation';
 import NavigationErrorBoundary from './NavigationErrorBoundary';
@@ -29,10 +32,59 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   
   // Tab store for managing tabbed workspace
-  const { tabs, activeTabId, createTab } = useTabStore();
+  const { tabs, activeTabId, createTab, initialize, isStoreInitialized } = useTabStore();
+  const [isTabSystemReady, setIsTabSystemReady] = useState(false);
+
+  // Move useCallback hooks to top level to prevent React hooks rule violation
+  const handleSettingsClick = useCallback(() => setShowSettings(true), []);
+  const handleTabContentRender = useCallback((tab) => {
+    // Custom content renderer for tabs
+    return (
+      <NavigationErrorBoundary
+        onError={(error, errorInfo, currentRoute) => {
+          console.error(`Tab navigation error on ${currentRoute}:`, error);
+        }}
+        maxRetries={2}
+        enableFallbackRoutes={true}
+        fallbackRoutes={['/dashboard', '/reports', '/administration']}
+      >
+        {tab.content.type === 'component' && tab.content.component ? (
+          <tab.content.component {...(tab.content.props || {})} />
+        ) : (
+          children
+        )}
+      </NavigationErrorBoundary>
+    );
+  }, [children]);
+
+  // Initialize tab store on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeTabSystem = async () => {
+      try {
+        await initialize();
+        if (isMounted) {
+          setIsTabSystemReady(true);
+        }
+      } catch (error) {
+        console.error('Failed to initialize tab system:', error);
+        if (isMounted) {
+          setIsTabSystemReady(false);
+        }
+      }
+    };
+
+    initializeTabSystem();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialize]);
   
-  // Determine if we should show tabbed workspace mode
-  const isTabMode = tabs.length > 0;
+  // Always use tab mode when TabbedWorkspace is available
+  // This ensures tabs are properly created from the start
+  const isTabMode = true; // Always enable tab mode for consistent navigation
 
   // Track scroll position to show/hide scroll helpers
   useEffect(() => {
@@ -106,6 +158,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Only proceed when both the store is initialized and tab system is ready
+  const isAppReady = isStoreInitialized && isTabSystemReady;
+
+  // Show loading screen while initializing
+  if (!isAppReady) {
+    return (
+      <LoadingScreen 
+        message="Initializing tab system..."
+        spinner={true}
+        overlay={true}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen w-screen bg-slate-100">
       <Header onSettings={() => setShowSettings(true)} />
@@ -119,7 +185,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               className="h-full"
               showActionBar={true}
               showSettings={true}
-              onSettingsClick={() => setShowSettings(true)}
+              onSettingsClick={handleSettingsClick}
               maxTabs={20}
               enableTabGroups={false}
               enableTabPersistence={true}
@@ -127,25 +193,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               userRole={user?.role || 'guest'}
               userPermissions={user?.permissions || []}
               moduleContext={selectedModuleKey || 'dashboard'}
-              onTabContentRender={(tab) => {
-                // Custom content renderer for tabs
-                return (
-                  <NavigationErrorBoundary
-                    onError={(error, errorInfo, currentRoute) => {
-                      console.error(`Tab navigation error on ${currentRoute}:`, error);
-                    }}
-                    maxRetries={2}
-                    enableFallbackRoutes={true}
-                    fallbackRoutes={['/dashboard', '/reports', '/administration']}
-                  >
-                    {tab.content.type === 'component' && tab.content.component ? (
-                      <tab.content.component {...(tab.content.props || {})} />
-                    ) : (
-                      children
-                    )}
-                  </NavigationErrorBoundary>
-                );
-              }}
+              onTabContentRender={handleTabContentRender}
               enableHierarchicalMode={true}
               showBreadcrumbs={true}
               tabStyle="modern"

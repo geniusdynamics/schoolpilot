@@ -31,7 +31,7 @@ interface LegacyTabBarProps {
 // Enhanced props that support both legacy and hierarchical modes
 type EnhancedTabBarProps = LegacyTabBarProps & Partial<HierarchicalTabBarProps>;
 
-export const TabBar: React.FC<EnhancedTabBarProps> = ({
+const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
   tabs: propTabs,
   activeTabId: propActiveTabId,
   className,
@@ -461,5 +461,37 @@ const scrollbarHideStyles = `
   display: none;
 }
 `;
+
+// Memoize TabBar to prevent unnecessary re-renders
+export const TabBar = React.memo(TabBarComponent, (prevProps, nextProps) => {
+  // Custom comparison function for optimization
+  return (
+    prevProps.activeTabId === nextProps.activeTabId &&
+    prevProps.className === nextProps.className &&
+    prevProps.showAddButton === nextProps.showAddButton &&
+    prevProps.showOverflowMenu === nextProps.showOverflowMenu &&
+    prevProps.maxVisibleTabs === nextProps.maxVisibleTabs &&
+    prevProps.maxTabs === nextProps.maxTabs &&
+    prevProps.enableTabGroups === nextProps.enableTabGroups &&
+    prevProps.theme === nextProps.theme &&
+    prevProps.userRole === nextProps.userRole &&
+    prevProps.enableHierarchicalMode === nextProps.enableHierarchicalMode &&
+    prevProps.showCloseButtons === nextProps.showCloseButtons &&
+    prevProps.tabStyle === nextProps.tabStyle &&
+    JSON.stringify(prevProps.tabs) === JSON.stringify(nextProps.tabs) &&
+    JSON.stringify(prevProps.hierarchicalTabs) === JSON.stringify(nextProps.hierarchicalTabs) &&
+    JSON.stringify(prevProps.userPermissions) === JSON.stringify(nextProps.userPermissions) &&
+    prevProps.onTabClick === nextProps.onTabClick &&
+    prevProps.onTabClose === nextProps.onTabClose &&
+    prevProps.onTabReorder === nextProps.onTabReorder &&
+    prevProps.onTabPin === nextProps.onTabPin &&
+    prevProps.onTabUnpin === nextProps.onTabUnpin &&
+    prevProps.onTabDuplicate === nextProps.onTabDuplicate &&
+    prevProps.onNewTab === nextProps.onNewTab &&
+    prevProps.onSubTabChange === nextProps.onSubTabChange
+  );
+});
+
+TabBar.displayName = 'TabBar';
 
 export { scrollbarHideStyles };

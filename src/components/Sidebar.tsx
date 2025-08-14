@@ -338,7 +338,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
               className="flex items-center space-x-3 flex-grow cursor-pointer" 
               onClick={(e) => {
                 e.stopPropagation(); 
-                navigateToModule(item.name, groupPath);
+                navigateToModule(item.path, groupPath);
                 if(window.innerWidth < 1024) toggleSidebar();
               }}
             >

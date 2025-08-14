@@ -12,8 +12,9 @@ import { rbacService } from '../core/rbacService';
 
 interface TabStoreState extends TabStore {
   // Internal state
-  _initialized: boolean;
+  isStoreInitialized: boolean;
   _lastTabId: number;
+  persistenceEnabled: boolean;
   // Hierarchical state
   hierarchicalTabs: HierarchicalTab[];
   breadcrumbs: BreadcrumbItem[];
@@ -150,16 +151,44 @@ export const useTabStore = create<TabStoreState>()
       enableHierarchicalMode: false,
       
       // Internal state
-      _initialized: false,
+      isStoreInitialized: false,
       _lastTabId: 0,
+      persistenceEnabled: true,
       
       // Initialize store with user context - optimized to prevent re-render loops
       initialize: async (retryCount = 0) => {
         const state = get();
-        if (state._initialized) return;
+        if (state.isStoreInitialized) return;
         
         try {
-          // First, check for and clean any corrupted data
+          // Check if persistence is enabled and we have stored data
+          if (state.persistenceEnabled) {
+            const storageKey = 'tabbed-workspace-storage';
+            const storedData = localStorage.getItem(storageKey);
+            
+            if (!storedData && state.tabs.length === 0) {
+              // Create default welcome tab if no stored tabs exist
+              const welcomeTab: Tab = {
+                id: generateTabId(),
+                title: 'Welcome',
+                module: 'dashboard',
+                path: '/dashboard',
+                content: {
+                  type: 'component',
+                  component: 'WelcomeComponent'
+                },
+                lastAccessed: Date.now(),
+                canClose: true,
+                pinned: false
+              };
+              set((draft) => {
+                draft.tabs = [welcomeTab];
+                draft.activeTabId = welcomeTab.id;
+              });
+            }
+          }
+
+          // Check for and clean any corrupted data
           console.log('Checking for corrupted tab data...');
           const currentTabs = state.tabs || [];
           const validTabs = currentTabs.filter(validateTabData);
@@ -190,9 +219,9 @@ export const useTabStore = create<TabStoreState>()
           }
           
           set((draft) => {
-            draft.currentUserRole = userRole || 'guest';
-            draft.userPermissions = userPermissions || [];
-            draft._initialized = true;
+          draft.currentUserRole = userRole || 'guest';
+          draft.userPermissions = userPermissions || [];
+          draft.isStoreInitialized = true;
           });
           
           console.log(`TabStore initialized with role: ${userRole || 'guest'}, permissions: ${userPermissions?.length || 0}`);
@@ -203,9 +232,9 @@ export const useTabStore = create<TabStoreState>()
           // Final fallback - no retries to prevent loops
           console.warn('RBAC initialization failed, falling back to guest mode');
           set((draft) => {
-            draft.currentUserRole = 'guest';
-            draft.userPermissions = [];
-            draft._initialized = true;
+          draft.currentUserRole = 'guest';
+          draft.userPermissions = [];
+          draft.isStoreInitialized = true;
           });
         }
       },
@@ -226,7 +255,7 @@ export const useTabStore = create<TabStoreState>()
         const state = get();
         
         // Ensure store is initialized before proceeding
-        if (!state._initialized) {
+        if (!state.isStoreInitialized) {
           console.warn('TabStore not initialized, attempting to initialize...');
           await get().initialize();
         }
@@ -268,8 +297,21 @@ export const useTabStore = create<TabStoreState>()
         }
         
         set((draft) => {
-          draft.tabs.push(newTab);
-          draft.activeTabId = newTab.id;
+          // Initialize the tab first, then update store
+          draft.tabs.push({
+            ...newTab,
+            isLoading: true // Add loading state
+          });
+          // Set active tab ID after ensuring tab is properly initialized
+          requestAnimationFrame(() => {
+            set((draft) => {
+              const tab = draft.tabs.find(t => t.id === newTab.id);
+              if (tab) {
+                tab.isLoading = false;
+              }
+              draft.activeTabId = newTab.id;
+            });
+          });
         });
         
         return newTab.id;
