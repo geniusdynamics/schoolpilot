@@ -11,14 +11,13 @@ import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 
 const UserMenu: React.FC = () => {
   const { user, logout, isDemoMode } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation('common');
+  const { config } = useUnifiedConfig();
   
   if (!user) {
     return null;
   }
-  
-  const [isOpen, setIsOpen] = useState(false);
-  const { t } = useTranslation('common');
-  const { config } = useUnifiedConfig();
   const currentMode = config.dataMode === 'demo' ? 'demo' : 'production';
 
   const handleLogout = async () => {

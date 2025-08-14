@@ -157,7 +157,7 @@ const getModuleStyle = (moduleKey: string) => {
 };
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
-const { t } = useTranslation(['navigation', 'common']);
+  const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems } = useDynamicNavigation(true); // Use dynamic navigation
   const { accessibleModules } = useRBAC();
   const { user } = useAuth();
