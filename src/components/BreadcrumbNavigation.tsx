@@ -4,7 +4,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronRightIcon, HomeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { AlertTriangleIcon } from './ui/icons';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useTabNavigation } from '../hooks/useTabNavigation';
 import { BreadcrumbItem, BreadcrumbNavigationProps } from '../types/hierarchical';
@@ -212,7 +213,7 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
             ) : item.isActive ? (
               <span className="font-semibold text-gray-900 flex items-center px-2 py-1 bg-gray-100 rounded-md">
                 {('hasError' in item && item.hasError) && (
-                  <ExclamationTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
+                  <AlertTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
                 )}
                 {index === 0 && showHome && <HomeIcon className="w-4 h-4 mr-1" />}
                 {('icon' in item && item.icon) && (
@@ -242,7 +243,7 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
                   }
                 >
                   {('hasError' in item && item.hasError) && (
-                    <ExclamationTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
+                    <AlertTriangleIcon className="w-4 h-4 mr-1 text-orange-500" />
                   )}
                   {index === 0 && showHome && <HomeIcon className="w-4 h-4 mr-1" />}
                   {('icon' in item && item.icon) && (

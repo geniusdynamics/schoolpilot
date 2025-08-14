@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,6 +6,8 @@ import { useTabNavigation } from '../hooks/useTabNavigation';
 import { useToastHelpers } from '../hooks/useToast';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon, InformationCircleIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
+import HookErrorBoundary from './HookErrorBoundary';
+import { SidebarSkeleton } from './ModuleLoadingFallback';
 
 function getFallbackIcon(moduleKey: string) {
   switch (moduleKey) {
@@ -158,7 +160,7 @@ const getModuleStyle = (moduleKey: string) => {
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
   const { t } = useTranslation(['navigation', 'common']);
-  const { navigationItems } = useDynamicNavigation(true); // Use dynamic navigation
+  const { navigationItems, isLoading } = useDynamicNavigation(true); // Use dynamic navigation
   const { accessibleModules } = useRBAC();
   const { user } = useAuth();
   const { navigateToTab } = useTabNavigation();
@@ -168,10 +170,12 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const toggleGroup = (key: string) => setOpenGroups(g => ({ ...g, [key]: !g[key] }));
+  const toggleGroup = useCallback((key: string) => {
+    setOpenGroups(g => ({ ...g, [key]: !g[key] }));
+  }, []); // No dependencies needed for state setter function
 
   // Handle navigation click with enhanced validation and error handling
-  const handleNavigationClick = async (item: any, event: React.MouseEvent) => {
+  const handleNavigationClick = useCallback(async (item: any, event: React.MouseEvent) => {
     event.preventDefault();
     
     if (!item.path) {
@@ -255,18 +259,28 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         }
       });
     }
-  };
+  }, [accessibleModules, navigateToTab, t, user?.id, isMobile, onClose, showWarning, showInfo, showError]); // Stable dependencies
 
-  // Find the selected main module from dynamic navigation items
-  const selectedModule = navigationItems.find(item => item.name === selectedModuleKey && item.isGroup);
-  const subMenus = selectedModule && selectedModule.children ? selectedModule.children : [];
-  const moduleKey = selectedModuleKey.split(':')[1]?.split('.')[0] || '';
-  const moduleStyle = getModuleStyle(moduleKey);
+  // Memoize selected module and related data to prevent unnecessary recalculations
+  const selectedModule = useMemo(() => {
+    return navigationItems.find(item => item.name === selectedModuleKey && item.isGroup);
+  }, [navigationItems, selectedModuleKey]);
+  
+  const subMenus = useMemo(() => {
+    return selectedModule && selectedModule.children ? selectedModule.children : [];
+  }, [selectedModule]);
+  
+  const moduleKey = useMemo(() => {
+    return selectedModuleKey.split(':')[1]?.split('.')[0] || '';
+  }, [selectedModuleKey]);
+  
+  const moduleStyle = useMemo(() => {
+    return getModuleStyle(moduleKey);
+  }, [moduleKey]);
 
   // Enhanced responsive behavior with improved mobile breakpoints
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
+  const handleResize = useCallback(() => {
+    const width = window.innerWidth;
       const height = window.innerHeight;
       
       // More granular mobile detection for better UX
@@ -284,15 +298,16 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       if (width < 640 || (width < 900 && height < 600)) {
         setIsMinimized(true);
       }
-    };
+  }, []);
 
+  useEffect(() => {
     handleResize(); // Check initial size
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [handleResize]);
 
   // Enhanced keyboard navigation for accessibility
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (!isOpen) return;
     
     const items = filterItems(subMenus);
@@ -324,7 +339,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         }
         break;
     }
-  };
+  }, [isOpen, subMenus, focusedIndex, isMobile, onClose, toggleGroup]); // Stable dependencies
 
   // Auto-close on mobile when clicking outside or on route change
   useEffect(() => {
@@ -350,12 +365,12 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     }
   }, [isOpen, selectedModule, selectedModuleKey]);
 
-  // Filtered navigation based on search
-  const filterItems = (items: any[]) =>
+  // Filtered navigation based on search - memoized to prevent hook dependency issues
+  const filterItems = useCallback((items: any[]) =>
     items.filter(item =>
       t(item.name).toLowerCase().includes(search.toLowerCase()) ||
       (item.children && item.children.some((child: any) => t(child.name).toLowerCase().includes(search.toLowerCase())))
-    );
+    ), [search, t]); // Include t in dependencies
 
   if (!selectedModule || !isOpen) {
     return null;
@@ -367,8 +382,13 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     ? 'w-44 sm:w-24 fixed inset-y-0 left-14 sm:left-16 md:left-20 z-40 shadow-2xl' // Mobile: compact responsive positioning
     : `${sidebarWidth} relative transition-all duration-300 ease-in-out`; // Desktop: smoother transitions
 
+  // Show loading fallback if modules are still loading
+  if (isLoading || !navigationItems.length) {
+    return <SidebarSkeleton />;
+  }
+
   return (
-    <>
+    <HookErrorBoundary>
       {/* Mobile backdrop for click-to-close functionality without screen dimming */}
       {isMobile && (
         <div 
@@ -679,7 +699,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
           }
         `}</style>
       </aside>
-    </>
+    </HookErrorBoundary>
   );
 };
 

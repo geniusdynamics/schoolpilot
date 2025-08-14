@@ -1,7 +1,6 @@
 // UI components for offline capability management and network status
 import React from 'react';
 import { 
-  ExclamationTriangleIcon, 
   WifiIcon, 
   ServerIcon, 
   ClockIcon, 
@@ -10,6 +9,7 @@ import {
   SignalIcon,
   SignalSlashIcon
 } from '@heroicons/react/24/outline';
+import { AlertTriangleIcon } from './ui/icons';
 import { useAppData } from '../hooks/useAppData';
 
 // Component to wrap features that may not be available offline
@@ -41,7 +41,7 @@ export const OfflineCapableComponent: React.FC<OfflineCapableComponentProps> = (
         {fallback || (
           <div className="flex items-center justify-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
             <div className="text-center">
-              <ExclamationTriangleIcon className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+              <AlertTriangleIcon className="w-12 h-12 text-amber-500 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Feature Unavailable</h3>
               <p className="text-gray-600 mb-4">
                 {capability?.reason || 'This feature requires an internet connection'}

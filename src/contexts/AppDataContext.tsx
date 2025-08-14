@@ -196,10 +196,12 @@ function mapRbacRoleToLegacyRole(rbacRole: RbacRole, idx: number): Role {
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { config, isLoading: configLoading, error: configError } = useUnifiedConfig();
-  // Original mock data hook
+  
+  // CRITICAL: All hooks must be called in the same order every time
+  // Original mock data hook - ALWAYS called
   const mockDataHookResult = useModularMockData();
   
-  // Enhanced state management
+  // Enhanced state management - ALWAYS initialized with stable defaults
   const [networkState, setNetworkState] = useState<NetworkState>(() => {
     const manager = NetworkStateManager.getInstance();
     return manager.getState();
@@ -227,12 +229,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     lastSyncTime: null
   });
   
-  // Service instances
+  // Service instances - ALWAYS initialized
   const [dataStrategyManager, setDataStrategyManager] = useState<DataStrategyManager | null>(null);
   const [backendAPI] = useState(() => new BackendAPIService());
   const [networkManager] = useState(() => NetworkStateManager.getInstance());
   
-  // Database service loading state
+  // Database service loading state - ALWAYS initialized
   const [databaseServiceModule, setDatabaseServiceModule] = useState<any>(null);
   const [isProdDepsLoaded, setIsProdDepsLoaded] = useState(false);
   const [prodDepsError, setProdDepsError] = useState<Error | null>(null);
@@ -327,13 +329,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       } catch (error) {
         if (isMounted) {
           console.error('Failed to load RxDB modules:', error);
-          setProdDepsError(error);
+          setProdDepsError(error as Error);
           setIsProdDepsLoaded(true);
         }
       }
     };
 
-    if (config && config.features.enhancedDataLayer) {
+    if (config && config.features?.enhancedDataLayer) {
       loadRxDB();
     } else {
       setIsProdDepsLoaded(true); // Not using RxDB, so dependencies are 'loaded'
@@ -342,7 +344,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => {
       isMounted = false;
     };
-  }, [config]);
+  }, [config?.features?.enhancedDataLayer]); // FIXED: Proper dependency array
 
   const currentDataMode = useMemo(() => {
     if (dataStrategy.mode === 'demo') return 'mock';
@@ -360,9 +362,33 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const rxDBResult = UseRxDBData(modularMockDataContentForProdSeed);
     const value = createContextValue(rxDBResult);
     return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
-  }, [UseRxDBData, modularMockDataContentForProdSeed, networkState, dataStrategy, syncStatus, dataStrategyManager, backendAPI, currentDataMode, prodDepsError]);
+  }, [UseRxDBData, modularMockDataContentForProdSeed]);
 
-  const createContextValue = (hookResult: AppDataContextType) => useMemo(() => ({
+  // CRITICAL: Always call all hooks before any conditional returns
+  // This ensures hook order consistency across all renders
+  
+  // Always execute the RxDB hook if available, but handle the result conditionally
+  const rxDBHookResult = useMemo(() => {
+    if (UseRxDBData && config?.mode === 'production' && isProdDepsLoaded && !prodDepsError) {
+      try {
+        return UseRxDBData();
+      } catch (error) {
+        console.error('RxDB hook execution failed:', error);
+        return null;
+      }
+    }
+    return null;
+  }, [UseRxDBData, config?.mode, isProdDepsLoaded, prodDepsError]);
+
+  // Always determine the active hook result consistently
+  const activeHookResult = useMemo(() => {
+    if (config?.mode === 'production' && isProdDepsLoaded && !prodDepsError && rxDBHookResult) {
+      return rxDBHookResult;
+    }
+    return mockDataHookResult;
+  }, [config?.mode, isProdDepsLoaded, prodDepsError, rxDBHookResult, mockDataHookResult]);
+
+  const createContextValue = useCallback((hookResult: AppDataContextType) => ({
     ...hookResult,
     networkState,
     dataStrategy,
@@ -373,23 +399,22 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     isRxDBModeActive: config?.mode === 'production' && !prodDepsError,
     initializationError: prodDepsError,
     // Include all other enhanced context properties
-  }), [hookResult, networkState, dataStrategy, syncStatus, dataStrategyManager, backendAPI, currentDataMode, prodDepsError]);
+  }), [networkState, dataStrategy, syncStatus, dataStrategyManager, backendAPI, currentDataMode, config?.mode, prodDepsError]);
 
-  if (config?.mode === 'production') {
-    if (!isProdDepsLoaded) {
-      return <Spinner message="Loading application data (Production Mode - Loading Database Modules)..." />;
-    }
-    if (prodDepsError) {
-      console.warn('RxDB initialization failed, falling back to mock data:', prodDepsError);
-      const value = createContextValue(mockDataHookResult);
-      return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
-    }
-    if (UseRxDBData) {
-      return <RxDBWrapper>{children}</RxDBWrapper>;
-    }
-    // Still loading the hook itself
-    return <Spinner message="Initializing data context..." />;
+  // Create the context value using the active hook result
+  const contextValue = useMemo(() => createContextValue(activeHookResult), [createContextValue, activeHookResult]);
+
+  // Handle loading states without early returns that change hook order
+  if (config?.mode === 'production' && !isProdDepsLoaded) {
+    return <Spinner message="Loading application data (Production Mode - Loading Database Modules)..." />;
   }
+
+  if (config?.mode === 'production' && prodDepsError) {
+    console.warn('RxDB initialization failed, falling back to mock data:', prodDepsError);
+  }
+
+  // Always return the same component structure
+  return <AppDataContext.Provider value={contextValue}>{children}</AppDataContext.Provider>;
 
   // Initialize DataStrategyManager and related services
   useEffect(() => {
@@ -435,17 +460,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [dataStrategy, databaseServiceModule, isProdDepsLoaded]);
 
-  // currentDataMode is already defined above, removing duplicate declaration
-  
-  // createContextValue is already defined above, removing duplicate declaration
-
-  // The rest of the return logic remains the same
-  const activeHookResult = useMemo(() => {
-    if (currentDataMode !== 'mock' && rxDBDataHookResult) {
-      return rxDBDataHookResult;
-    }
-    return mockDataHookResult;
-  }, [currentDataMode, mockDataHookResult, rxDBDataHookResult]);
+  // All hook definitions and context value creation are handled above
+  // The following are additional computed values for the context
 
   // Determine offline capabilities
   const offlineCapabilities = useMemo((): OfflineCapability[] => {
@@ -601,22 +617,19 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [dataStrategy.mode, isProdDepsLoaded, prodDepsError, currentDataMode]);
 
-  // Context value
-  const contextValue = useMemo((): EnhancedAppDataContextType => {
+  // Enhanced context value with all additional properties
+  const enhancedContextValue = useMemo((): EnhancedAppDataContextType => {
     const getSyncSettings = () => ({ autoSync: true, syncInterval: 30000, batchSize: 10 });
     const updateSyncSettings = (settings: Partial<SyncSettings>) => {
-      // Implement update logic
       console.log('Updated Settings:', settings);
     };
-    // Include rbacRoles if present on activeHookResult
+    
     const rbacRoles = (activeHookResult as any).rbacRoles || [];
     const legacyRoles = rbacRoles.map(mapRbacRoleToLegacyRole);
-    
     const queueStatus = getQueueStatus();
     
     return {
-      // Original context properties
-      ...activeHookResult,
+      ...activeHookResult, // Use the active hook result as base
       roles: legacyRoles,
       ...(rbacRoles.length > 0 ? { rbacRoles } : {}),
       
@@ -664,8 +677,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       runConsistencyCheck: async () => {
         const dataContext: Record<string, any[]> = {};
-        
-        // Collect all entity data from the active hook result
         const entityKeys = ['students', 'staff', 'financialYears', 'studentInvoices', 'examSessions', 
                            'classStreams', 'subjects', 'departments', 'designations', 'studentCategories', 
                            'dormitories', 'parentsGuardians', 'academicYears', 'schoolPeriods'];
@@ -680,17 +691,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         return await globalDataConsistencyService.runConsistencyCheck(dataContext, currentDataMode as any);
       },
       
-      getValidationConfig: () => {
-        return globalDataConsistencyService.getConfig();
-      },
-      
+      getValidationConfig: () => globalDataConsistencyService.getConfig(),
       updateValidationConfig: (config: Partial<DataConsistencyConfig>) => {
         globalDataConsistencyService.updateConfig(config);
       },
       
       // Conflict resolution functions
       conflicts: globalDataSyncMonitoringService.getUnresolvedConflicts(),
-      
       resolveConflict: async (conflictId: string, resolution: ConflictResolution) => {
         return await globalDataSyncMonitoringService.resolveConflict(conflictId, resolution);
       },
@@ -727,20 +734,20 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     disabledFeatures, 
     dataStrategy,
     dataStrategyManager,
+    backendAPI,
     enhancedOperations,
     syncControls,
-    getQueueStatus,
-    backendAPI
+    getQueueStatus
   ]);
   
   // Initialize DataContextIntegrationService with the context value
   useEffect(() => {
-    if (contextValue && dataStrategyManager) {
+    if (enhancedContextValue && dataStrategyManager) {
       import('../services/DataContextIntegrationService').then(({ dataContextIntegrationService }) => {
-        dataContextIntegrationService.initialize(contextValue);
+        dataContextIntegrationService.initialize(enhancedContextValue);
       });
     }
-  }, [contextValue, dataStrategyManager]);
+  }, [enhancedContextValue, dataStrategyManager]);
 
   // Loading states
   if (config?.mode === 'production' && !isProdDepsLoaded) {
@@ -784,7 +791,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }
 
   return (
-    <AppDataContext.Provider value={contextValue}>
+    <AppDataContext.Provider value={enhancedContextValue}>
       {/* Network status warnings */}
       {config?.mode === 'production' && prodDepsError && (
         <div style={{

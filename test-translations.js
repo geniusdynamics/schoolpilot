@@ -21,3 +21,5 @@ setTimeout(() => {
   console.log('navigation:administration.title:', i18next.t('navigation:administration.title'));
   console.log('navigation:administration.students.title:', i18next.t('navigation:administration.students.title'));
   console.log('navigation:academics.title:', i18next.t('navigation:academics.title'));
+  console.log('navigation:finance.title:', i18next.t('navigation:finance.title'));
+}, 1000);
