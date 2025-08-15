@@ -112,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   };
   
   useEffect(() => {
-    navigationItems.forEach(item => {
+    navigationItems?.forEach(item => {
       if (item.isGroup && item.children) {
         const isModuleActive = item.modulePath && location.pathname.startsWith(item.modulePath);
         const groupKey = item.name; 
@@ -129,7 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   }, [location.pathname]);
 
   // Dynamically generate quick actions for all modules
-  const defaultQuickActions: QuickAction[] = navigationItems.map(item => {
+  const defaultQuickActions: QuickAction[] = navigationItems?.map(item => {
     let iconElement: React.ReactElement = <CogIcon />;
     if (typeof item.icon === 'function') {
       const Icon = item.icon as React.FC<any>;
@@ -141,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       icon: iconElement,
       path: item.path
     };
-  });
+  }) || [];
 
   // Combined quick actions (default + custom)
   const allQuickActions = [...defaultQuickActions, ...customQuickActions];
@@ -455,9 +455,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden mt-2">
         <ul className="space-y-1 pr-1">
-          {navigationItems.map((item: NavItem, idx: number) => (
+          {navigationItems?.map((item: NavItem, idx: number) => (
             <NavItemLink key={item.name} item={item} index={idx} />
-          ))}
+          )) || []}
         </ul>
       </nav>
       {/* Footer: fixed settings icon */}

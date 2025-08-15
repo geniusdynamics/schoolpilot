@@ -161,7 +161,7 @@ const getModuleStyle = (moduleKey: string) => {
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
   const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems, isLoading } = useDynamicNavigation(true); // Use dynamic navigation
-  const { accessibleModules } = useRBAC();
+  const { accessibleModules, hasModuleAccess } = useRBAC();
   const { user } = useAuth();
   const { navigateToTab } = useTabNavigation();
   const { showInfo, showError, showWarning } = useToastHelpers();
@@ -195,7 +195,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       }
 
       // Check if the user has permission for this module
-      const canAccessModule = accessibleModules.includes(pathModule);
+      const canAccessModule = hasModuleAccess(pathModule);
       if (!canAccessModule) {
         throw new Error(`You don't have permission to access ${pathModule}`);
       }
@@ -259,11 +259,11 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         }
       });
     }
-  }, [accessibleModules, navigateToTab, t, user?.id, isMobile, onClose, showWarning, showInfo, showError]); // Stable dependencies
+  }, [hasModuleAccess, navigateToTab, t, user?.id, isMobile, onClose, showWarning, showInfo, showError]); // Stable dependencies
 
   // Memoize selected module and related data to prevent unnecessary recalculations
   const selectedModule = useMemo(() => {
-    return navigationItems.find(item => item.name === selectedModuleKey && item.isGroup);
+    return navigationItems?.find(item => item.name === selectedModuleKey && item.isGroup);
   }, [navigationItems, selectedModuleKey]);
   
   const subMenus = useMemo(() => {
