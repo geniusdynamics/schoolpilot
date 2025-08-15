@@ -1,5 +1,6 @@
 // Global notification system for enhanced features
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAppData } from '../hooks/useAppData';
 
 interface Notification {
@@ -10,6 +11,7 @@ interface Notification {
 }
 
 const GlobalNotifications: React.FC = () => {
+  const { t } = useTranslation('common');
   const { 
     isOnline, 
     backendAvailable, 
@@ -28,7 +30,7 @@ const GlobalNotifications: React.FC = () => {
       newNotifications.push({
         id: 'offline',
         type: 'warning',
-        message: 'You are currently offline. Some features may be limited.',
+        message: t('notifications.offline'),
         persistent: true
       });
     }
@@ -38,7 +40,7 @@ const GlobalNotifications: React.FC = () => {
       newNotifications.push({
         id: 'backend-unavailable',
         type: 'info',
-        message: 'Backend server is unavailable. Working with local data.',
+        message: t('notifications.backendUnavailable'),
         persistent: true
       });
     }
@@ -48,7 +50,7 @@ const GlobalNotifications: React.FC = () => {
       newNotifications.push({
         id: 'sync-error',
         type: 'error',
-        message: `Sync failed: ${syncStatus.lastError?.message || 'Unknown error'}`,
+        message: t('notifications.syncError', { error: syncStatus.lastError?.message || t('notifications.unknownError') }),
         persistent: false
       });
     }
@@ -58,7 +60,7 @@ const GlobalNotifications: React.FC = () => {
       newNotifications.push({
         id: 'pending-sync',
         type: 'info',
-        message: `${pendingSyncCount} items waiting to sync`,
+        message: t('notifications.pendingSync', { count: pendingSyncCount }),
         persistent: false
       });
     }

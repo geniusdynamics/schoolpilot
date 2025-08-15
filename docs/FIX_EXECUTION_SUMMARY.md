@@ -136,7 +136,7 @@ const fullData: any = {
    ```
 
 2. **Test demo mode** (default):
-   - Open http://localhost:5173
+   - Open http://localhost:5200
    - Verify all pages load correctly
    - Test CRUD operations
    - Check data persistence
@@ -260,4 +260,4 @@ The comprehensive fix execution was **successful** and achieved all intended goa
 
 The application is now ready for both development and production use with proper modular architecture and complete RxDB integration. All fixes were applied systematically with automatic backups created for safety.
 
-**Status**: 🟢 **READY FOR TESTING AND PRODUCTION USE** 
+**Status**: 🟢 **READY FOR TESTING AND PRODUCTION USE**

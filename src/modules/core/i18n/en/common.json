@@ -44,5 +44,12 @@
   "welcomeMessage": "Welcome, {{name}}",
   "welcomeMessageGuest": "Welcome",
   "expand": "Expand",
-  "collapse": "Collapse"
-} 
+  "collapse": "Collapse",
+  "notifications": {
+    "offline": "You are currently offline. Some features may be limited.",
+    "backendUnavailable": "Backend server is unavailable. Working with local data.",
+    "syncError": "Sync failed: {{error}}",
+    "pendingSync": "{{count}} items waiting to sync",
+    "unknownError": "Unknown error"
+  }
+}

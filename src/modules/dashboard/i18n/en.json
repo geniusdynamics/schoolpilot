@@ -1,4 +1,7 @@
 {
+  "welcomeBack": "Welcome back, {name}!",
+  "welcomeBackDefault": "Welcome back, User!",
+  "happeningToday": "Here's what's happening in your school today.",
   "totalStudents": "Total Students",
   "totalStaff": "Total Staff",
   "totalClasses": "Total Classes",

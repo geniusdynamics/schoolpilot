@@ -106,10 +106,10 @@ const DashboardPage: React.FC = () => {
       {/* Welcome Message */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.fullName || 'User'}!
+          {user?.fullName ? t('welcomeBack', { name: user.fullName }) : t('welcomeBackDefault')}
         </h1>
         <p className="text-gray-600">
-          Here's what's happening in your school today.
+          {t('happeningToday')}
         </p>
       </div>
 

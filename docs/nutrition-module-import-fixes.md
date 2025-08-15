@@ -6,7 +6,7 @@ Mr GENIUS reported two critical import errors in the nutrition module:
 1. **StudentWalletPage Error:**
    ```
    Failed to load page: navigation:nutrition.studentWallet
-   Error: Failed to fetch dynamically imported module: http://localhost:5173/src/modules/nutrition/pages/StudentWalletPage.tsx
+   Error: Failed to fetch dynamically imported module: http://localhost:5200/src/modules/nutrition/pages/StudentWalletPage.tsx
    ```
 
 2. **MealPlansPage Error:**
@@ -108,7 +108,7 @@ src/components/ui/
 ## Verification
 
 ### 1. Development Server
-- ✅ Server starts successfully on `http://localhost:5175/`
+- ✅ Server starts successfully on `http://localhost:5200/`
 - ✅ No compilation errors
 - ✅ No runtime import errors
 
