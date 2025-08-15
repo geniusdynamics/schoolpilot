@@ -1,0 +1,16 @@
+{
+  "title": "Raporo",
+  "navigation": {
+    "reports": {
+      "title": "Raporo",
+      "description": "Gukora no kureba raporo zitandukanye n'isesengura",
+      "accountLedger": "Igitabo cy'Amakonti",
+      "examResultsHorizontal": "Ibisubizo by'Ibizamini Bitambitse",
+      "feeCollectionSummary": "Incamake y'Ikusanyiriza ry'Amafaranga",
+      "studentFinancialSummary": "Incamake y'Imari y'Umunyeshuri",
+      "studentMasterlist": "Urutonde Rukuru rw'Abanyeshuri",
+      "studentVoteheadStatement": "Raporo y'Umutwe w'Amajwi w'Umunyeshuri",
+      "teacherAssignments": "Gutanga Inshingano ku Barimu"
+    }
+  }
+}

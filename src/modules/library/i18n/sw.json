@@ -1,0 +1,19 @@
+{
+  "title": "Maktaba",
+  "navigation": {
+    "library": {
+      "title": "Maktaba",
+      "description": "Simamia vitabu, mikopo, faini, na rasilimali za kidijitali",
+      "dashboard": "Dashibodi",
+      "books": "Vitabu",
+      "bookCategories": "Makundi ya Vitabu",
+      "bookLoans": "Mikopo ya Vitabu",
+      "fines": "Faini",
+      "userPortal": "Mlango wa Mtumiaji",
+      "digitalResources": "Rasilimali za Kidijitali",
+      "damagedLostBooks": "Vitabu Vilivyoharibika/Kupotea",
+      "importBooks": "Ingiza Vitabu",
+      "settings": "Mipangilio"
+    }
+  }
+}

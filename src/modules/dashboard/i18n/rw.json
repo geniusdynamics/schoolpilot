@@ -1,0 +1,13 @@
+{
+  "totalStudents": "Abanyeshuri bose",
+  "totalStaff": "Abakozi bose",
+  "totalClasses": "Amaklasi yose",
+  "totalSubjects": "Amasomo yose",
+  "activeFeeStructures": "Imiterere y'amafaranga y'ishuri ikora",
+  "analyzedExams": "Ibizamini byasuzumwe",
+  "studentGenderDistribution": "Igabana ry'igitsina cy'abanyeshuri",
+  "studentStatusOverview": "Incamake y'imiterere y'abanyeshuri",
+  "feeCollectionOverview": "Incamake y'ukusanya amafaranga y'ishuri (Amakuru y'urugero)",
+  "paidAmount": "Amafaranga yishyuwe",
+  "billedAmount": "Amafaranga yatanzwe mu ifakitiri"
+}

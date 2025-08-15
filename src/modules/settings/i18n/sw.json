@@ -1,0 +1,18 @@
+{
+  "title": "Mipangilio",
+  "navigation": {
+    "settings": {
+      "title": "Mipangilio",
+      "description": "Sanidi mipangilio ya mfumo, moduli, na usimamizi wa watumiaji",
+      "general": "Jumla",
+      "features": "Vipengele",
+      "modules": "Moduli",
+      "auditLog": "Kumbukumbu ya Ukaguzi",
+      "databaseSettings": "Mipangilio ya Hifadhidata",
+      "schoolProfile": "Wasifu wa Shule",
+      "users": "Watumiaji",
+      "workflows": "Mtiririko wa Kazi",
+      "tabbedWorkspaceTest": "Jaribio la Nafasi ya Kazi ya Vichupo"
+    }
+  }
+}

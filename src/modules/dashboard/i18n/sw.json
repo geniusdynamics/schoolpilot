@@ -1,0 +1,13 @@
+{
+  "totalStudents": "Jumla ya Wanafunzi",
+  "totalStaff": "Jumla ya Wafanyakazi",
+  "totalClasses": "Jumla ya Madarasa",
+  "totalSubjects": "Jumla ya Masomo",
+  "activeFeeStructures": "Miundo ya Ada Inayofanya Kazi",
+  "analyzedExams": "Mitihani Iliyochambuliwa",
+  "studentGenderDistribution": "Mgawanyo wa Jinsia wa Wanafunzi",
+  "studentStatusOverview": "Muhtasari wa Hali ya Wanafunzi",
+  "feeCollectionOverview": "Muhtasari wa Ukusanyaji wa Ada (Data ya Mfano)",
+  "paidAmount": "Kiasi Kilicholipwa",
+  "billedAmount": "Kiasi Kilichotolewa Bili"
+}
