@@ -1,165 +1,18 @@
 {
   "title": "Settings",
-  "general": {
-    "title": "General Settings",
-    "appSettingsHeader": "Application Settings",
-    "appSettingsDescription": "Manage school details, academic years, user roles, and system preferences."
-  },
-  "schoolProfile": {
-    "title": "School Profile Management",
-    "header": "Update School Information",
-    "description": "Manage the core details of your school.",
-    "loadingDetails": "Loading school details...",
-    "nameLabel": "School Name",
-    "codeLabel": "School Code (System)",
-    "codePlaceholder": "e.g. GHI001",
-    "emailLabel": "Email Address",
-    "telephoneLabel": "Telephone",
-    "postalAddressLabel": "Postal Address",
-    "townCityLabel": "Town/City",
-    "headTeacherLabel": "Head Teacher Name",
-    "genderLabel": "School Gender",
-    "selectGenderOption": "Select Gender Type",
-    "genderMixed": "Mixed",
-    "genderBoys": "Boys Only",
-    "genderGirls": "Girls Only",
-    "typeLabel": "School Type",
-    "selectClassificationOption": "Select Classification",
-    "typePublic": "Public",
-    "typePrivate": "Private",
-    "typeInternational": "International",
-    "typeReligious": "Religious",
-    "typeCommunity": "Community",
-    "mottoLabel": "School Motto",
-    "saveButton": "Save School Details",
-    "saveSuccess": "School details saved successfully!",
-    "saveError": "Failed to save school details.",
-    "notConfigured": "Not Configured",
-    "noCode": "No school code set",
-    "manageProfile": "Manage Profile"
-  },
-  "userManagement": {
-    "title": "User Accounts Management",
-    "header": "Manage System Users",
-    "descriptionPage": "Create, edit, and manage user accounts and their roles.",
-    "description": "A brief overview of system users. Full user management is available under <1>User Management</1>.",
-    "addUserButton": "Add User",
-    "loadingUsers": "Loading users...",
-    "rolesTitle": "Roles Management",
-    "addRoleButton": "Add Role",
-    "loadingRoles": "Loading roles...",
-    "totalUsers": "Total Users",
-    "quickOverview": "System user overview",
-    "manageUsers": "Manage Users",
-    "recentUsers": "Recent Users",
-    "previewDescription": "Showing the 5 most recent users. View all users for complete management.",
-    "viewAllUsers": "View All Users",
-    "userModal": {
-      "addTitle": "Add New User",
-      "editTitle": "Edit User",
-      "usernameLabel": "Username"
+  "navigation": {
+    "settings": {
+      "title": "Settings",
+      "description": "Configure system settings, modules, and user management",
+      "general": "General",
+      "features": "Features",
+      "modules": "Modules",
+      "auditLog": "Audit Log",
+      "databaseSettings": "Database Settings",
+      "schoolProfile": "School Profile",
+      "users": "Users",
+      "workflows": "Workflows",
+      "tabbedWorkspaceTest": "Tabbed Workspace Test"
     }
-  },
-  "workflows": {
-    "title": "Workflow Management",
-    "description": "Configure approval workflows and business processes",
-    "manageWorkflows": "Manage Workflows"
-  },
-  "auditLog": {
-    "title": "System Audit Log",
-    "description": "Track system activities and user actions",
-    "viewLogs": "View Audit Logs"
-  },
-  "database": {
-    "title": "Database Management",
-    "description": "Manage local database settings and synchronization",
-    "manageDatabase": "Database Settings",
-    "linkToSettings": "Go to Database Settings"
-  },
-  "academicCalendar": {
-    "setupTitle": "Academic Calendar Setup",
-    "description": "Define Financial Years, Academic Year Structures (e.g., 3-Term System), Academic Years, and School Periods (Terms/Semesters). Detailed management available under the Administration module:",
-    "linkAcademicStructures": "Academic Structures",
-    "linkAcademicPeriodDefinitions": "Academic Period Definitions",
-    "linkAcademicYears": "Academic Years",
-    "linkSchoolPeriods": "School Periods"
-  },
-  "rolesPermissions": {
-    "title": "Roles & Permissions",
-    "description": "Define system roles (e.g., Teacher, Accountant, Admin) and manage user assignments. Full management available under <1>User Management</1> and <2>Workflows</2> for approval processes."
-  },
-  "moduleManagement": {
-    "title": "Module Management",
-    "header": "System Module Management",
-    "description": "Enable, disable, and configure system modules to customize your school management experience.",
-    "filtersTitle": "Search & Filters",
-    "searchLabel": "Search Modules",
-    "searchPlaceholder": "Search by name or description...",
-    "categoryLabel": "Category",
-    "modulesListTitle": "Available Modules",
-    "noModulesFound": "No modules found matching your criteria.",
-    "configureModule": "Configure {{name}}",
-    "modulePermissions": "{{name}} Permissions",
-    "moduleDependencies": "{{name}} Dependencies",
-    "viewDependencies": "Dependencies",
-    "moduleId": "Module ID",
-    "moduleVersion": "Version",
-    "moduleFeatures": "Features",
-    "permissionsDescription": "This module requires the following permissions to function properly:",
-    "dependenciesDescription": "This module depends on the following modules:",
-    "required": "Required",
-    "featuresCount": "features",
-    "toggleError": "Failed to toggle module status. Please try again.",
-    "dependencyError": "Cannot enable module. Missing dependencies: {{dependencies}}",
-    "disableDependencyWarning": "Disabling this module will affect the following dependent modules: {{dependents}}. Do you want to continue?",
-    "columns": {
-      "name": "Module Name",
-      "version": "Version",
-      "category": "Category",
-      "status": "Status",
-      "features": "Features"
-    },
-    "status": {
-      "enabled": "Enabled",
-      "disabled": "Disabled",
-      "active": "Active"
-    },
-    "stats": {
-      "total": "Total Modules",
-      "enabled": "Enabled",
-      "active": "Active",
-      "categories": "Categories"
-    }
-  },
-  "tableHeaders": {
-    "username": "Username",
-    "email": "Email",
-    "userType": "User Type",
-    "role": "Role",
-    "status": "Status",
-    "actions": "Actions",
-    "id": "ID",
-    "roleName": "Role Name",
-    "description": "Description",
-    "workflowName": "Workflow Name",
-    "states": "States",
-    "stateName": "State Name",
-    "order": "Order",
-    "timestamp": "Timestamp",
-    "user": "User",
-    "action": "Action",
-    "entity": "Entity",
-    "recordId": "Record ID"
-  },
-  "accessDeniedTitle": "Access Denied",
-  "accessDeniedMessage": "You do not have permission to view the settings page.",
-  "navigation:settings.title": "Settings",
-  "navigation:settings.general": "General",
-  "navigation:settings.features": "Feature Settings",
-  "navigation:settings.modules": "Module Management",
-  "navigation:settings.auditLog": "Audit Log",
-  "navigation:settings.databaseSettings": "Database Settings",
-  "navigation:settings.schoolProfile": "School Profile",
-  "navigation:settings.users": "User Management",
-  "navigation:settings.workflows": "Workflows"
+  }
 }

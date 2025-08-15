@@ -24,16 +24,26 @@ export const loadModularTranslations = async () => {
 
   for (const lang of languages) {
     // Initialize namespaces for each language
-    resources[lang] = {};
+    resources[lang] = {
+      navigation: {} // Initialize unified navigation namespace
+    };
 
     for (const path in modules) {
       const moduleName = path.split('/')[2];
       if (path.includes(`/${lang}.json`)) {
         const module = await (modules[path] as () => Promise<{ default: any }>)();
+        const moduleData = module.default || module;
+        
+        // Create module-specific namespace
         if (!resources[lang][moduleName]) {
           resources[lang][moduleName] = {};
         }
-        resources[lang][moduleName] = module.default || module;
+        resources[lang][moduleName] = moduleData;
+        
+        // Extract navigation translations and merge into unified navigation namespace
+        if (moduleData.navigation) {
+          Object.assign(resources[lang].navigation, moduleData.navigation);
+        }
       }
     }
 
@@ -41,10 +51,18 @@ export const loadModularTranslations = async () => {
       const coreModuleName = path.split('/')[4].replace('.json', '');
       if (path.includes(`/${lang}/`)) {
         const module = await (coreModules[path] as () => Promise<{ default: any }>)();
+        const moduleData = module.default || module;
+        
+        // Create core module-specific namespace
         if (!resources[lang][coreModuleName]) {
           resources[lang][coreModuleName] = {};
         }
-        resources[lang][coreModuleName] = module.default || module;
+        resources[lang][coreModuleName] = moduleData;
+        
+        // Extract navigation translations and merge into unified navigation namespace
+        if (moduleData.navigation) {
+          Object.assign(resources[lang].navigation, moduleData.navigation);
+        }
       }
     }
   }

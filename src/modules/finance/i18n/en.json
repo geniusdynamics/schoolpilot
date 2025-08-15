@@ -1,4 +1,32 @@
 {
+  "navigation": {
+    "finance": {
+      "title": "Finance",
+      "description": "Manage financial operations, accounting, and budgeting",
+      "dashboard": "Dashboard",
+      "banks": "Banks",
+      "chartOfAccounts": "Chart of Accounts",
+      "budgets": "Budgets",
+      "transactions": "Transactions",
+      "reports": "Reports",
+      "invoices": "Invoices",
+      "payments": "Payments",
+      "expenses": "Expenses",
+      "revenue": "Revenue",
+      "feeTemplates": "Fee Templates",
+      "effectFeeStructures": "Effect Fee Structures",
+      "feeAdjustments": "Fee Adjustments",
+      "studentPayments": "Student Payments",
+      "studentOpeningBalances": "Student Opening Balances",
+      "feeCollectionSummary": "Fee Collection Summary",
+      "generalReceipts": "General Receipts",
+      "customerInvoices": "Customer Invoices",
+      "supplierInvoices": "Supplier Invoices",
+      "suppliers": "Suppliers",
+      "transportRoutes": "Transport Routes",
+      "studentTransportAssignments": "Student Transport Assignments"
+    }
+  },
   "dashboard": {
     "title": "Finance Dashboard",
     "totalIncome": "Total Income (Mock)",
