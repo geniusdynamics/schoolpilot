@@ -1,0 +1,14 @@
+{
+  "title": "Rasilimali za Kibinadamu",
+  "navigation": {
+    "hr": {
+      "title": "Rasilimali za Kibinadamu",
+      "description": "Simamia rasilimali za kibinadamu, mishahara, na malipo ya wafanyakazi",
+      "dashboard": "Dashibodi",
+      "payrollItemTypes": "Aina za Vipengele vya Mishahara",
+      "payrollPeriods": "Vipindi vya Mishahara",
+      "payslips": "Vipeperushi vya Mishahara",
+      "staffSalarySettings": "Mipangilio ya Mishahara ya Wafanyakazi"
+    }
+  }
+}

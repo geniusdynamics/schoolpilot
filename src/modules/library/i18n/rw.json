@@ -1,0 +1,19 @@
+{
+  "title": "Isomero",
+  "navigation": {
+    "library": {
+      "title": "Isomero",
+      "description": "Gucunga ibitabo, inguzanyo, ihazabu, n'ibikoresho bya digitale",
+      "dashboard": "Ikibaho",
+      "books": "Ibitabo",
+      "bookCategories": "Ibyiciro by'Ibitabo",
+      "bookLoans": "Inguzanyo z'Ibitabo",
+      "fines": "Ihazabu",
+      "userPortal": "Urubuga rw'Umukoresha",
+      "digitalResources": "Ibikoresho bya Digitale",
+      "damagedLostBooks": "Ibitabo Byangiritse/Byabuze",
+      "importBooks": "Kwinjiza Ibitabo",
+      "settings": "Amategeko"
+    }
+  }
+}

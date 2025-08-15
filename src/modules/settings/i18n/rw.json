@@ -1,0 +1,18 @@
+{
+  "title": "Amategeko",
+  "navigation": {
+    "settings": {
+      "title": "Amategeko",
+      "description": "Gushyiraho amategeko ya sisitemu, moduli, n'ubuyobozi bw'abakoresha",
+      "general": "Rusange",
+      "features": "Ibiranga",
+      "modules": "Moduli",
+      "auditLog": "Inyandiko y'Igenzura",
+      "databaseSettings": "Amategeko y'Ububiko bw'Amakuru",
+      "schoolProfile": "Umwirondoro w'Ishuri",
+      "users": "Abakoresha",
+      "workflows": "Inzira z'Akazi",
+      "tabbedWorkspaceTest": "Ikizamini cy'Ahantu h'Akazi h'Amatabi"
+    }
+  }
+}
