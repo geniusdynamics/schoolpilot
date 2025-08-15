@@ -1,5 +1,32 @@
 {
   "title": "Administration",
+  "navigation": {
+    "administration": {
+      "title": "Administration",
+      "description": "Manage students, staff, academic structure, and school operations",
+      "dashboard": "Dashboard",
+      "applications": "Applications",
+      "preNAsMarks": "Pre-NAs Marks",
+      "students": "Students",
+      "staff": "Staff",
+      "partners": "Partners",
+      "departments": "Departments",
+      "designations": "Designations",
+      "studentCategories": "Student Categories",
+      "dormitories": "Dormitories",
+      "clubs": "Clubs & Societies",
+      "customers": "Customers",
+      "classes": "Classes",
+      "studentHealth": "Student Health",
+      "studentAttendance": "Student Attendance",
+      "commTemplates": "Communication Templates",
+      "messageCampaigns": "Message Campaigns",
+      "academicStructures": "Academic Structures",
+      "academicYears": "Academic Years",
+      "academicPeriodDefinitions": "Academic Period Definitions",
+      "schoolPeriods": "School Periods"
+    }
+  },
   "dashboard": {
     "title": "Administration Dashboard",
     "students": "Total Students",

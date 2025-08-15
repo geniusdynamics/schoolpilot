@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon, GlobeAltIcon } from './icons';
 import HookErrorBoundary from '../HookErrorBoundary';
@@ -7,7 +7,8 @@ const LanguageSwitcher: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t, i18n } = useTranslation();
   
-  const languages = [
+  // Static languages array to prevent dependency issues
+  const languages = useMemo(() => [
     { code: 'en', name: 'English', flag: '🇺🇸' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
     { code: 'es', name: 'Español', flag: '🇪🇸' },
@@ -15,7 +16,7 @@ const LanguageSwitcher: React.FC = () => {
     { code: 'it', name: 'Italiano', flag: '🇮🇹' },
     { code: 'pt', name: 'Português', flag: '🇵🇹' },
     { code: 'nl', name: 'Nederlands', flag: '🇳🇱' }
-  ];
+  ], []);
 
   const handleLanguageChange = useCallback(async (langCode: string) => {
     try {
@@ -24,11 +25,11 @@ const LanguageSwitcher: React.FC = () => {
     } catch (error) {
       console.error('Failed to change language:', error);
     }
-  }, []); // i18n.changeLanguage is stable, no dependencies needed
+  }, [i18n]);
 
   const toggleDropdown = useCallback(() => {
     setIsOpen(prev => !prev);
-  }, []); // No dependencies needed for state setter function
+  }, []);
 
   // Memoize current language to prevent unnecessary recalculations
   const currentLanguage = useMemo(() => {

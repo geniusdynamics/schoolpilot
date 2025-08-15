@@ -1,44 +1,16 @@
 {
-  "mealPlans": {
-    "managementTitle": "Meal Plans Management",
-    "managementDescription": "Define and manage meal plans offered by the school.",
-    "addMealPlan": "Add Meal Plan",
-    "addNewMealPlan": "Add New Meal Plan",
-    "editMealPlan": "Edit Meal Plan",
-    "planName": "Plan Name",
-    "description": "Description (Optional)",
-    "costPerPeriod": "Cost per Period (KES)",
-    "cancel": "Cancel",
-    "saveChanges": "Save Changes",
-    "addPlan": "Add Plan"
-  },
-  "menus": {
-    "management": {
-      "title": "Daily/Weekly Menus Management",
-      "description": "Create and manage menus for different meal types on specific dates."
-    },
-    "add": {
-      "button": "Add Menu",
-      "title": "Add New Menu"
-    },
-    "edit": {
-      "title": "Edit Menu"
-    },
-    "date": {
-      "label": "Menu Date"
-    },
-    "mealType": {
-      "label": "Meal Type"
-    },
-    "description": {
-      "label": "Menu Description / Items",
-      "placeholder": "e.g., Rice, Beef Stew, Cabbage, and a Banana"
-    },
-    "cancel": {
-      "button": "Cancel"
-    },
-    "save": {
-      "button": "Save Changes"
+  "title": "Nutrition",
+  "navigation": {
+    "nutrition": {
+      "title": "Nutrition",
+      "description": "Manage meal plans, menus, and student nutrition programs",
+      "dashboard": "Dashboard",
+      "mealPlans": "Meal Plans",
+      "menus": "Menus",
+      "merchants": "Merchants",
+      "studentMealAssignments": "Student Meal Assignments",
+      "mealConsumptionLog": "Meal Consumption Log",
+      "studentWallet": "Student Wallet"
     }
   }
 }
