@@ -27,13 +27,13 @@ This document summarizes the comprehensive testing implementation for SchoolPilo
 ## 🧪 Testing Methods Available
 
 ### Method 1: UI Test Page (Recommended)
-1. Navigate to `http://localhost:5173/#/login-test`
+1. Navigate to `http://localhost:5200/#/login-test`
 2. Click "Run All Tests" button
 3. Monitor real-time test results and logs
 4. View detailed test summary and statistics
 
 ### Method 2: Browser Console Testing
-1. Go to `http://localhost:5173/#/login`
+1. Go to `http://localhost:5200/#/login`
 2. Open Developer Tools (F12) → Console tab
 3. Load the test script from `browser-login-test.js`
 4. Run `runAllTests()` in the console
@@ -98,7 +98,7 @@ This document summarizes the comprehensive testing implementation for SchoolPilo
 npm run dev
 
 # 2. Navigate to the test page
-# Go to: http://localhost:5173/#/login-test
+# Go to: http://localhost:5200/#/login-test
 
 # 3. Click "Run All Tests" and monitor results
 ```
@@ -106,7 +106,7 @@ npm run dev
 ### Manual Testing
 ```bash
 # 1. Go to login page
-# http://localhost:5173/#/login
+# http://localhost:5200/#/login
 
 # 2. Test each demo user:
 # - admin/admin123

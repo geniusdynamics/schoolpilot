@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface LoadingScreenProps {
   message?: string;
@@ -7,10 +8,12 @@ interface LoadingScreenProps {
 }
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({
-  message = 'Loading...',
+  message,
   spinner = true,
   overlay = false,
 }) => {
+  const { t } = useTranslation('common');
+  const defaultMessage = message || t('loading');
   const overlayClasses = overlay
     ? 'fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50'
     : 'w-full h-full';
@@ -33,7 +36,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
           ${overlay ? 'text-slate-700' : 'text-slate-600'}
           animate-pulse
         `}>
-          {message}
+          {defaultMessage}
         </p>
       </div>
     </div>

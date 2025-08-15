@@ -1,4 +1,7 @@
 {
+  "welcomeBack": "Karibu tena, {name}!",
+  "welcomeBackDefault": "Karibu tena, Mtumiaji!",
+  "happeningToday": "Hapa kuna kinachoendelea shuleni mwako leo.",
   "totalStudents": "Jumla ya Wanafunzi",
   "totalStaff": "Jumla ya Wafanyakazi",
   "totalClasses": "Jumla ya Madarasa",

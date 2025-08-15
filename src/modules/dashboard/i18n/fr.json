@@ -1,4 +1,7 @@
 {
+  "welcomeBack": "Bon retour, {name}!",
+  "welcomeBackDefault": "Bon retour, Utilisateur!",
+  "happeningToday": "Voici ce qui se passe dans votre école aujourd'hui.",
   "totalStudents": "Total Étudiants",
   "totalStaff": "Total Personnel",
   "totalClasses": "Total Classes",

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 // Enhanced module-specific styling with badge/label support
 const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
@@ -82,21 +83,20 @@ const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
   };
 };
 
-// Helper function to extract display name from navigation key
-const getDisplayName = (navigationKey: string): string => {
-  // Remove 'navigation:' prefix and '.title' suffix, then format
+// Helper function to get module key from navigation key
+const getModuleKey = (navigationKey: string): string => {
+  // Extract module key from navigation key (e.g., 'navigation:dashboard.title' -> 'dashboard')
   return navigationKey
     .replace('navigation:', '')
     .replace('.title', '')
-    .split('.')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .split('.')[0];
 };
 
 const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key: string) => void }> = ({ selectedModuleKey, onModuleSelect }) => {
   const { navigationItems, isLoading } = useDynamicNavigation(true);
   const { accessibleModules } = useRBAC();
   const { user } = useAuth();
+  const { t } = useTranslation('navigation');
   const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
   const [hoveredModule, setHoveredModule] = useState<string | null>(null);
   const mainModules = navigationItems.filter(item => item.isGroup);
@@ -153,7 +153,8 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
           const isHovered = hoveredModule === item.name;
           const isAnotherModuleHovered = hoveredModule && hoveredModule !== item.name;
           const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(item.name, isSelected);
-          const displayName = getDisplayName(item.name);
+          const moduleKey = getModuleKey(item.name);
+          const displayName = t(`${moduleKey}.title`, { defaultValue: moduleKey.charAt(0).toUpperCase() + moduleKey.slice(1) });
 
           return (
             <div

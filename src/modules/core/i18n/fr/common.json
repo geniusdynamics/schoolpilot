@@ -44,5 +44,12 @@
   "welcomeMessage": "Bienvenue, {{name}}",
   "welcomeMessageGuest": "Bienvenue",
   "expand": "Développer",
-  "collapse": "Réduire"
+  "collapse": "Réduire",
+  "notifications": {
+    "offline": "Vous êtes actuellement hors ligne. Certaines fonctionnalités peuvent être limitées.",
+    "backendUnavailable": "Le serveur backend n'est pas disponible. Travail avec les données locales.",
+    "syncError": "Échec de la synchronisation : {{error}}",
+    "pendingSync": "{{count}} éléments en attente de synchronisation",
+    "unknownError": "Erreur inconnue"
+  }
 }

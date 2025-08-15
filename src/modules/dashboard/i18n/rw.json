@@ -1,4 +1,7 @@
 {
+  "welcomeBack": "Murakaza neza, {name}!",
+  "welcomeBackDefault": "Murakaza neza, Ukoresha!",
+  "happeningToday": "Dore ibintu bibera mu ishuri ryawe uyu munsi.",
   "totalStudents": "Abanyeshuri bose",
   "totalStaff": "Abakozi bose",
   "totalClasses": "Amaklasi yose",
