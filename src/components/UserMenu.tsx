@@ -11,16 +11,14 @@ import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 import HookErrorBoundary from './HookErrorBoundary';
 
 const UserMenu: React.FC = () => {
+  const { t } = useTranslation('common');
   const { user, logout, isDemoMode } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const { t } = useTranslation('common');
   const { config } = useUnifiedConfig();
   
 
   
-  if (!user) {
-    return null;
-  }
+
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -45,6 +43,10 @@ const UserMenu: React.FC = () => {
   const memoizedCurrentMode = useMemo(() => {
     return config.dataMode === 'demo' ? 'demo' : 'production';
   }, [config.dataMode]);
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <HookErrorBoundary>

@@ -53,7 +53,7 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
       return;
     }
 
-    if (isLoading || navigationItems.length === 0) return;
+    if (isLoading || !navigationItems || navigationItems.length === 0) return;
 
     const pathSegments = location.pathname.split('/').filter(Boolean);
     const items: LegacyBreadcrumbItem[] = [];

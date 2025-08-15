@@ -4,8 +4,8 @@ import { ChevronDownIcon, GlobeAltIcon } from './icons';
 import HookErrorBoundary from '../HookErrorBoundary';
 
 const LanguageSwitcher: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const { t, i18n } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
   
   // Static languages array to prevent dependency issues
   const languages = useMemo(() => [

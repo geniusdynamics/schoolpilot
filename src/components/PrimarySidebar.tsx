@@ -99,15 +99,17 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
   const { t } = useTranslation('navigation');
   const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
   const [hoveredModule, setHoveredModule] = useState<string | null>(null);
-  const mainModules = navigationItems.filter(item => item.isGroup);
+  
+  // Safely filter navigation items with null check
+  const mainModules = navigationItems?.filter(item => item.isGroup) || [];
 
   useEffect(() => {
     if (isLoading) return;
 
-    if (navigationItems.length === 0) {
+    if (!navigationItems || navigationItems.length === 0) {
       console.log('🔄 [PrimarySidebar] Navigation items still loading...');
     }
-  }, [isLoading, navigationItems.length]);
+  }, [isLoading, navigationItems]);
 
 
   // Track mouse position to determine if user is near sidebar area

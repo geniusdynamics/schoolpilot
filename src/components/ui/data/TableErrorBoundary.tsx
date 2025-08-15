@@ -2,7 +2,7 @@
 // ABOUTME: Provides graceful fallbacks and error recovery for DataGrid components
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangleIcon, RefreshCwIcon } from '../../icons';
+import { AlertTriangleIcon, RefreshCwIcon } from "../icons";
 import Button from '../Button';
 
 interface Props {
