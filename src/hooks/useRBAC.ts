@@ -6,6 +6,7 @@ import { rbacService, SYSTEM_ROLES } from '../core/rbacService';
 import { getEnabledModules } from '../core/moduleLoader';
 import type { RbacRole } from '../core/types';
 import { unifiedConfigManager, isDemo } from '../config/unifiedConfig';
+import { safeDeps, validateDeps, HookErrorHandler } from '../utils/hookUtils';
 
 export interface RBACHookReturn {
   // Permission checks
@@ -59,7 +60,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
       return ['student'];
     }
     return ['administrator'];
-  }, [userId, userType]);
+  }, safeDeps([userId, userType]));
 
   // Assign roles to user if not already assigned
   useMemo(() => {
@@ -76,45 +77,72 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
       // In demo mode, super admin has all permissions
       return true;
     }
+    
+    if (!permissionId || typeof permissionId !== 'string') {
+      console.warn('[useRBAC] Invalid permissionId provided:', permissionId);
+      return false;
+    }
+    
     if (!userId) return false;
     return rbacService.hasPermission(userId, permissionId);
-  }, [userId]);
+  }, safeDeps([userId]));
 
   const hasModuleAccess = useCallback((moduleId: string): boolean => {
     if (isDemo()) {
       // In demo mode, all modules are accessible
       return true;
     }
+    
+    if (!moduleId || typeof moduleId !== 'string') {
+      console.warn('[useRBAC] Invalid moduleId provided:', moduleId);
+      return false;
+    }
+    
     if (!userId) return false;
     return rbacService.hasModuleAccess(userId, moduleId);
-  }, [userId]);
+  }, safeDeps([userId]));
 
   const hasFeatureAccess = useCallback((moduleId: string, feature: string): boolean => {
     if (isDemo()) {
       // In demo mode, all features are accessible
       return true;
     }
+    
+    if (!moduleId || typeof moduleId !== 'string') {
+      console.warn('[useRBAC] Invalid moduleId provided:', moduleId);
+      return false;
+    }
+    
+    if (!feature || typeof feature !== 'string') {
+      console.warn('[useRBAC] Invalid feature provided:', feature);
+      return false;
+    }
+    
     if (!userId) return false;
     const features = rbacService.getUserModuleFeatures(userId, moduleId);
     return features.includes(feature);
-  }, [userId]);
+  }, safeDeps([userId]));
 
   // Role checks
   const isSuperAdmin = useMemo(() => {
-    return userRoles.includes('super_admin');
-  }, [userRoles]);
+    const roles = Array.isArray(userRoles) ? userRoles : [];
+    return roles.includes('super_admin');
+  }, safeDeps([userRoles]));
 
   const isAdministrator = useMemo(() => {
-    return userRoles.includes('administrator') || isSuperAdmin;
-  }, [userRoles, isSuperAdmin]);
+    const roles = Array.isArray(userRoles) ? userRoles : [];
+    return roles.includes('administrator') || isSuperAdmin;
+  }, safeDeps([userRoles, isSuperAdmin]));
 
   const isTeacher = useMemo(() => {
-    return userRoles.includes('teacher') || isAdministrator;
-  }, [userRoles, isAdministrator]);
+    const roles = Array.isArray(userRoles) ? userRoles : [];
+    return roles.includes('teacher') || isAdministrator;
+  }, safeDeps([userRoles, isAdministrator]));
 
   const isStudent = useMemo(() => {
-    return userRoles.includes('student');
-  }, [userRoles]);
+    const roles = Array.isArray(userRoles) ? userRoles : [];
+    return roles.includes('student');
+  }, safeDeps([userRoles]));
 
   // Module access
   const accessibleModules = useMemo(() => {
@@ -126,24 +154,44 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
     }
     
     if (!userId) return [];
-    return rbacService.getUserModules(userId);
-  }, [userId]);
+    return rbacService.getUserModules(userId) || [];
+  }, safeDeps([userId]));
 
   const getUserModulePermissions = useCallback((moduleId: string): string[] => {
+    if (!moduleId || typeof moduleId !== 'string') {
+      console.warn('[useRBAC] Invalid moduleId provided to getUserModulePermissions:', moduleId);
+      return [];
+    }
+    
     if (!userId) return [];
-    return rbacService.getUserModulePermissions(userId, moduleId);
-  }, [userId]);
+    return rbacService.getUserModulePermissions(userId, moduleId) || [];
+  }, safeDeps([userId]));
 
   const getUserModuleFeatures = useCallback((moduleId: string): string[] => {
+    if (!moduleId || typeof moduleId !== 'string') {
+      console.warn('[useRBAC] Invalid moduleId provided to getUserModuleFeatures:', moduleId);
+      return [];
+    }
+    
     if (!userId) return [];
-    return rbacService.getUserModuleFeatures(userId, moduleId);
-  }, [userId]);
+    return rbacService.getUserModuleFeatures(userId, moduleId) || [];
+  }, safeDeps([userId]));
 
   // Navigation filtering
   const filterNavigationItems = useCallback((moduleId: string, navigationItems: any[]): any[] => {
+    if (!moduleId || typeof moduleId !== 'string') {
+      console.warn('[useRBAC] Invalid moduleId provided to filterNavigationItems:', moduleId);
+      return [];
+    }
+    
+    if (!Array.isArray(navigationItems)) {
+      console.warn('[useRBAC] Invalid navigationItems array provided to filterNavigationItems:', navigationItems);
+      return [];
+    }
+    
     if (!userId) return [];
-    return rbacService.filterNavigationItems(userId, moduleId, navigationItems);
-  }, [userId]);
+    return rbacService.filterNavigationItems(userId, moduleId, navigationItems) || [];
+  }, safeDeps([userId]));
 
   // Resource-based permission checks
   const canCreate = useCallback((resource: string): boolean => {
@@ -151,50 +199,55 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
+    if (!resource || typeof resource !== 'string') return false;
     if (!userId) return false;
     const permissionId = `${resource}.create`;
     return rbacService.hasPermission(userId, permissionId);
-  }, [userId]);
+  }, safeDeps([userId]));
 
   const canRead = useCallback((resource: string): boolean => {
     if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
+    if (!resource || typeof resource !== 'string') return false;
     if (!userId) return false;
     const permissionId = `${resource}.read`;
     return rbacService.hasPermission(userId, permissionId);
-  }, [userId]);
+  }, safeDeps([userId]));
 
   const canUpdate = useCallback((resource: string): boolean => {
     if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
+    if (!resource || typeof resource !== 'string') return false;
     if (!userId) return false;
     const permissionId = `${resource}.update`;
     return rbacService.hasPermission(userId, permissionId);
-  }, [userId]);
+  }, safeDeps([userId]));
 
   const canDelete = useCallback((resource: string): boolean => {
     if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
+    if (!resource || typeof resource !== 'string') return false;
     if (!userId) return false;
     const permissionId = `${resource}.delete`;
     return rbacService.hasPermission(userId, permissionId);
-  }, [userId]);
+  }, safeDeps([userId]));
 
   const canExecute = useCallback((resource: string): boolean => {
     if (isDemo()) {
       // In demo mode, all CRUD operations are allowed
       return true;
     }
+    if (!resource || typeof resource !== 'string') return false;
     if (!userId) return false;
     const permissionId = `${resource}.execute`;
     return rbacService.hasPermission(userId, permissionId);
-  }, [userId]);
+  }, safeDeps([userId]));
 
   return {
     hasPermission,
@@ -233,4 +286,4 @@ export const useModuleGate = (moduleId: string, userId?: string, userType?: stri
 export const useFeatureGate = (moduleId: string, feature: string, userId?: string, userType?: string) => {
   const { hasFeatureAccess } = useRBAC(userId, userType);
   return hasFeatureAccess(moduleId, feature);
-}; 
+};

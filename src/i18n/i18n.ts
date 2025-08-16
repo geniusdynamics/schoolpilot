@@ -3,8 +3,11 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { loadModularTranslations } from './modularLoader';
 
+// Track initialization state
+export let i18nReady = false;
+
 // Initialize i18next
-const initI18n = async () => {
+const initializeI18n = async () => {
   try {
     const resources = await loadModularTranslations();
     
@@ -16,6 +19,7 @@ const initI18n = async () => {
         fallbackLng: 'en',
         debug: process.env.NODE_ENV === 'development',
         defaultNS: 'common',
+        returnNull: false, // Ensure empty strings instead of null
         ns: [
           'common',
           'navigation',
@@ -46,6 +50,7 @@ const initI18n = async () => {
       });
     
     console.log('i18n: Successfully initialized');
+    i18nReady = true;
   } catch (error) {
     console.error('i18n: Failed to initialize:', error);
     // Fallback to basic initialization
@@ -72,10 +77,11 @@ const initI18n = async () => {
         interpolation: { escapeValue: false },
         react: { useSuspense: true },
       });
+    i18nReady = true;
   }
 };
 
 // Initialize immediately
-initI18n();
+initializeI18n();
 
 export default i18next;

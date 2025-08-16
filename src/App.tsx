@@ -14,6 +14,7 @@ import Spinner from './components/ui/Spinner';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 import { UnifiedConfigProvider, useUnifiedConfig, UnifiedAppConfig } from './contexts/UnifiedConfigContext';
+import { getCurrentUnifiedConfig } from './config/unifiedConfig';
 import { moduleRegistry } from './core/moduleRegistry';
 import { initializeModules } from './core/moduleLoader';
 import { initializeTheme } from './hooks/useTheme';
@@ -421,9 +422,26 @@ import { ActionProvider } from './contexts/ActionProvider';
 
 // Main consolidated App component
 const AppInner: React.FC = () => {
-  const { config } = useUnifiedConfig();
+  const { config, applyPreset } = useUnifiedConfig();
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
+
+  // TEMPORARY: Apply demo preset to test mock data path
+  useEffect(() => {
+    console.log('🧪 [App] TESTING: Applying demo preset to test mock data path');
+    applyPreset('demo');
+    
+    // Log current config after applying preset
+    setTimeout(() => {
+      const currentConfig = getCurrentUnifiedConfig();
+      console.log('Current unified config after demo preset:', {
+        dataMode: currentConfig.dataMode,
+        enhancedDataLayer: currentConfig.features.enhancedDataLayer,
+        environment: currentConfig.environment,
+        demo: currentConfig.demo
+      });
+    }, 1000);
+  }, [applyPreset]);
   
   // Initialize theme system on app startup
   useEffect(() => {
@@ -447,47 +465,26 @@ const AppInner: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       if (!initializedRef.current) {
-        debugLog('🚀 [App] Initializing modules with config:', config);
+        debugLog('🚀 [App] Initializing modules...');
         initializedRef.current = true;
         
-        // Set a shorter safety timeout to prevent infinite loading
-        const safetyTimeout = setTimeout(() => {
-          console.warn('⚠️ [App] Module initialization safety timeout triggered - proceeding anyway');
-          setModulesInitialized(true);
-        }, 5000); // Reduced to 5 seconds
-        
         try {
-          // Track module initialization performance with measureAsync
-          
-          // Try to initialize modules, but don't block the app if it fails
-          const initPromise = measureAsync(
+          await measureAsync(
             () => initializeModules(),
             'module_initialization'
           );
-          const timeoutPromise = new Promise<void>((resolve) => {
-            setTimeout(() => {
-              console.warn('⚠️ [App] Module initialization taking too long, proceeding...');
-              resolve();
-            }, 3000); // 3 second timeout for module init
-          });
-          
-          await Promise.race([initPromise, timeoutPromise]);
           debugLog('✅ [App] Modules initialized successfully');
         } catch (error) {
           console.error('❌ [App] Module initialization failed:', error);
-          // Continue anyway - app should work with basic functionality
+          // In a real app, you might want to show an error screen here
         } finally {
-          clearTimeout(safetyTimeout);
           setModulesInitialized(true);
-          
-          // Application startup completed - modules initialized
         }
       }
     };
     
-    // Start initialization immediately, don't wait for config changes
     init();
-  }, []); // Remove config dependency to prevent re-initialization
+  }, [measureAsync]); // Add measureAsync to dependency array
 
   // Show loading screen while modules initialize
   if (!modulesInitialized) {
@@ -575,6 +572,7 @@ const AppInner: React.FC = () => {
 
 // Main App component with unified config provider and i18n Suspense
 const App: React.FC = () => {
+
   return (
     <UnifiedConfigProvider>
       <Suspense fallback={

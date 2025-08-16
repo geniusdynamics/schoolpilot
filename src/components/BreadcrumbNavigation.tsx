@@ -120,7 +120,7 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
     } else {
       setBreadcrumbs(items);
     }
-  }, [location.pathname, navigationItems, isLoading, showHome, maxItems, navigationErrors, t, customItems, enableHierarchicalMode]);
+  }, [location.pathname, isLoading, showHome, maxItems, navigationErrors, customItems, enableHierarchicalMode]); // Removed unstable dependencies
 
   // Find navigation item by path
   const findNavigationItem = (items: any[], targetPath: string): any => {

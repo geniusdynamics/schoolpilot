@@ -1,7 +1,8 @@
 // Global notification system for enhanced features
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppData } from '../hooks/useAppData';
+import { useNetwork } from '../contexts/NetworkContext';
+import { useSync } from '../contexts/SyncContext';
 
 interface Notification {
   id: string;
@@ -12,12 +13,8 @@ interface Notification {
 
 const GlobalNotifications: React.FC = () => {
   const { t } = useTranslation('common');
-  const { 
-    isOnline, 
-    backendAvailable, 
-    syncStatus, 
-    pendingSyncCount 
-  } = useAppData();
+  const { isOnline, backendAvailable } = useNetwork();
+  const { syncStatus, pendingSyncCount } = useSync();
   
   const [notifications, setNotifications] = useState<Notification[]>([]);
   
@@ -66,7 +63,7 @@ const GlobalNotifications: React.FC = () => {
     }
     
     setNotifications(newNotifications);
-  }, [isOnline, backendAvailable, syncStatus, pendingSyncCount]);
+  }, [isOnline, backendAvailable, syncStatus, pendingSyncCount, t]);
   
   // Auto-dismiss non-persistent notifications
   useEffect(() => {

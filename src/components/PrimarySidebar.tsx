@@ -1,8 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useTabNavigation } from '../hooks/useTabNavigation';
+import { useToastHelpers } from '../hooks/useToast';
+import { useNavigate } from 'react-router-dom';
+import { i18nReady } from '../i18n/i18n';
+
+// Error boundary for PrimarySidebar
+class PrimarySidebarErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('🔥 [PrimarySidebar] Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <aside className="flex flex-col items-center min-h-full w-16 sm:w-20 bg-slate-900/95 border-r border-white/10 py-4">
+          <div className="text-red-400 text-xs text-center p-4">Sidebar Error</div>
+        </aside>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Enhanced module-specific styling with badge/label support
 const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
@@ -85,56 +119,277 @@ const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
 
 // Helper function to get module key from navigation key
 const getModuleKey = (navigationKey: string): string => {
-  // Extract module key from navigation key (e.g., 'navigation:dashboard.title' -> 'dashboard')
+  if (!navigationKey || typeof navigationKey !== 'string') return 'unknown';
   return navigationKey
     .replace('navigation:', '')
     .replace('.title', '')
-    .split('.')[0];
+    .split('.')[0] || 'unknown';
 };
 
-const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key: string) => void }> = ({ selectedModuleKey, onModuleSelect }) => {
-  const { navigationItems, isLoading } = useDynamicNavigation(true);
-  const { accessibleModules } = useRBAC();
-  const { user } = useAuth();
-  const { t } = useTranslation('navigation');
+// Safe module click handler that loads module dashboard in current tab
+const handleModuleClick = async (moduleKey: string, onModuleSelect: (key: string) => void, navigate: any, showInfo: any, showError: any) => {
+  try {
+    console.log('🔄 [PrimarySidebar] Loading module dashboard:', moduleKey);
+    
+    // Extract the actual module name from navigation key
+    const actualModuleName = getModuleKey(moduleKey);
+    
+    // Create a proper path for the module dashboard
+    const modulePath = `/${actualModuleName}`;
+    
+    // Use router navigation to load module dashboard in current tab
+    navigate(modulePath);
+    
+    console.log('✅ [PrimarySidebar] Module dashboard loaded:', actualModuleName);
+    showInfo(`Loaded ${actualModuleName} dashboard`, {
+      title: 'Module Loaded',
+      duration: 2000
+    });
+    
+    // Update the current selection
+    onModuleSelect(moduleKey);
+  } catch (error) {
+    console.error('🔥 [PrimarySidebar] Error loading module:', error);
+    showError('Failed to load module. Please try again.');
+    // Fallback to basic selection
+    onModuleSelect(moduleKey);
+  }
+};
+
+// Main component with fixed hook order
+const PrimarySidebarContent: React.FC<{ 
+  selectedModuleKey: string; 
+  onModuleSelect: (key: string) => void; 
+}> = ({ selectedModuleKey, onModuleSelect }) => {
+  // CRITICAL: All hooks MUST be called in the exact same order every render
+  // No conditional hooks, no early returns before all hooks are called
+  
+  // 1. Custom hooks (always called first)
+  const { navigationItems = [], isLoading = true } = useDynamicNavigation(true) || {};
+  const { accessibleModules = [] } = useRBAC() || {};
+  const { user = null } = useAuth() || {};
+  const { t } = useTranslation('navigation', { useSuspense: false });
+  const navigate = useNavigate();
+  const { showInfo, showError } = useToastHelpers();
+  
+  // 2. State hooks (always called in same order)
   const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
   const [hoveredModule, setHoveredModule] = useState<string | null>(null);
+  const [windowWidth, setWindowWidth] = useState(1024); // SSR-safe default
+  const [isClient, setIsClient] = useState(false);
   
-  // Safely filter navigation items with null check
-  const mainModules = navigationItems?.filter(item => item.isGroup) || [];
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (!navigationItems || navigationItems.length === 0) {
-      console.log('🔄 [PrimarySidebar] Navigation items still loading...');
+  // 3. Memoized values (always called in same order)
+  const safeNavigationItems = useMemo(() => {
+    return Array.isArray(navigationItems) ? navigationItems : [];
+  }, [navigationItems]);
+  
+  const mainModules = useMemo(() => {
+    return safeNavigationItems.filter(item => 
+      item && 
+      typeof item === 'object' && 
+      item.isGroup && 
+      item.name
+    );
+  }, [safeNavigationItems]);
+  
+  const isTranslationReady = useMemo(() => {
+    return Boolean(i18nReady) && typeof t === 'function';
+  }, [t]);
+  
+  // 4. Callback functions (always called in same order)
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isClient) return;
+    const isNear = e.clientX <= 300;
+    setIsMouseNearSidebar(isNear);
+  }, [isClient]);
+  
+  const handleWindowResize = useCallback(() => {
+    if (!isClient) return;
+    setWindowWidth(window.innerWidth);
+  }, [isClient]);
+  
+  const handleModuleMouseEnter = useCallback((moduleKey: string) => {
+    setHoveredModule(moduleKey);
+  }, []);
+  
+  const handleModuleMouseLeave = useCallback(() => {
+    setHoveredModule(null);
+  }, []);
+  
+  const handleModuleSelection = useCallback((moduleKey: string) => {
+    if (typeof moduleKey === 'string' && moduleKey.length > 0 && 
+        typeof onModuleSelect === 'function' && 
+        typeof navigate === 'function' && 
+        typeof showInfo === 'function' && 
+        typeof showError === 'function') {
+      handleModuleClick(moduleKey, onModuleSelect, navigate, showInfo, showError);
     }
-  }, [isLoading, navigationItems]);
-
-
-  // Track mouse position to determine if user is near sidebar area
+  }, [onModuleSelect, navigate, showInfo, showError]);
+  
+  // 5. Effects (always called in same order)
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      // Consider mouse "near sidebar" if within 300px from left edge
-      const isNearSidebar = e.clientX <= 300;
-      setIsMouseNearSidebar(isNearSidebar);
-    };
-
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      setWindowWidth(window.innerWidth);
+    }
+  }, []);
+  
+  useEffect(() => {
+    if (!isClient) return;
+    
     document.addEventListener('mousemove', handleMouseMove);
     return () => document.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [handleMouseMove, isClient]);
+  
+  useEffect(() => {
+    if (!isClient) return;
+    
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, [handleWindowResize, isClient]);
+  
+  // 6. Render functions (always called in same order)
+  const renderModuleItem = useCallback((item: any, index: number) => {
+    // Safe property access with null checks
+    const itemName = item?.name || `unknown-${index}`;
+    const isSelected = selectedModuleKey === itemName;
+    const isHovered = hoveredModule === itemName;
+    
+    const moduleKey = getModuleKey(itemName);
+    const fallbackName = moduleKey.charAt(0).toUpperCase() + moduleKey.slice(1);
+    
+    let displayName = fallbackName;
+    if (isTranslationReady) {
+      try {
+        const translated = t(`${moduleKey}.title`, { defaultValue: fallbackName });
+        displayName = translated || fallbackName;
+      } catch (error) {
+        console.warn('Translation error for:', moduleKey, error);
+        displayName = fallbackName;
+      }
+    }
+    
+    const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(itemName, isSelected);
+    
+    // Badge visibility logic (simplified)
+    const badgeVisible = isSelected || (isHovered && isMouseNearSidebar) || (windowWidth < 1024 && isHovered);
+    const badgeClasses = badgeVisible 
+      ? 'opacity-100 translate-y-0 scale-100' 
+      : 'opacity-0 translate-y-1 scale-95';
+    
+    // Border color logic (simplified)
+    const getBorderColor = () => {
+      const colorMap: Record<string, string> = {
+        'bg-blue': 'border-t-blue-500',
+        'bg-purple': 'border-t-purple-500',
+        'bg-green': 'border-t-green-500',
+        'bg-yellow': 'border-t-yellow-500',
+        'bg-red': 'border-t-red-500',
+        'bg-orange': 'border-t-orange-500',
+        'bg-teal': 'border-t-teal-500',
+        'bg-pink': 'border-t-pink-500',
+        'bg-indigo': 'border-t-indigo-500',
+        'bg-gray': 'border-t-gray-500',
+        'bg-slate': 'border-t-slate-500'
+      };
+      
+      for (const [key, value] of Object.entries(colorMap)) {
+        if (badgeColor.includes(key)) return value;
+      }
+      return 'border-t-gray-500';
+    };
 
-  // Handle module hover states
-  const handleModuleMouseEnter = (moduleKey: string) => {
-    setHoveredModule(moduleKey);
-  };
+    return (
+      <div
+        key={itemName}
+        className="relative group/item flex-shrink-0"
+        onMouseEnter={() => handleModuleMouseEnter(itemName)}
+        onMouseLeave={handleModuleMouseLeave}
+      >
+        {/* Badge/Label - responsive positioning and mobile-friendly */}
+        <div className={`
+          absolute bottom-10 sm:bottom-12 left-1/2 transform -translate-x-1/2 -translate-y-2
+          px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium whitespace-nowrap
+          backdrop-blur-md border
+          shadow-lg shadow-black/20
+          transition-all duration-500 ease-out
+          pointer-events-none z-30
+          max-w-[120px] sm:max-w-none truncate
+          ${badgeColor}
+          ${badgeClasses}
+        `}>
+          {displayName}
 
-  const handleModuleMouseLeave = () => {
-    setHoveredModule(null);
-  };
+          {/* Arrow pointing down to the icon - adjusted for new position */}
+          <div className={`
+            absolute top-full left-1/2 transform -translate-x-1/2 translate-y-1
+            w-0 h-0 border-l-3 border-r-3 border-t-3
+            border-l-transparent border-r-transparent
+            transition-opacity duration-500
+            ${getBorderColor()}
+          `} style={{
+            borderLeftWidth: '3px',
+            borderRightWidth: '3px',
+            borderTopWidth: '3px'
+          }} />
+        </div>
 
-  return (
-    <aside className={`
+        <button
+          onClick={() => handleModuleSelection(itemName)}
+          onTouchStart={() => handleModuleMouseEnter(itemName)}
+          onTouchEnd={() => handleModuleMouseLeave()}
+          className={`
+            group relative flex items-center justify-center
+            w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl
+            backdrop-blur-md
+            ${backgroundStyle}
+            border
+            shadow-lg shadow-black/10
+            hover:shadow-xl hover:shadow-black/20
+            active:scale-95 sm:active:scale-100
+            transition-all duration-300 ease-out
+            focus:outline-none focus:ring-2 focus:ring-white/30
+            touch-manipulation
+            ${isSelected ? 'shadow-xl scale-105' : 'hover:scale-105'}
+          `}
+          title={displayName}
+          aria-label={displayName}
+          type="button"
+        >
+          {/* Enhanced glass overlay for selected state */}
+          {isSelected && (
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 to-transparent pointer-events-none" />
+          )}
+
+          {/* Selection indicator - subtle glow ring */}
+          {isSelected && (
+            <div className="absolute inset-0 rounded-2xl ring-2 ring-white/30 ring-offset-2 ring-offset-transparent pointer-events-none" />
+          )}
+
+          {/* Icon with dynamic coloring - responsive sizing */}
+          <span className={`
+            relative z-10 transition-all duration-300
+            group-hover:scale-110 group-active:scale-95 ${iconColor || 'text-white/70'}
+            ${isSelected ? 'drop-shadow-lg' : 'drop-shadow-sm'}
+          `}>
+            {item.icon && typeof item.icon === 'function'
+              ? React.createElement(item.icon, {
+                  className: `w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${
+                    isSelected ? 'filter brightness-110' : 'group-hover:text-white'
+                  }`
+                })
+              : <span className="w-5 h-5 sm:w-7 sm:h-7 bg-gray-500 rounded-full" />
+            }
+          </span>
+
+          <span className="sr-only">{displayName}</span>
+        </button>
+      </div>
+    );
+  }, [selectedModuleKey, hoveredModule, handleModuleMouseEnter, handleModuleMouseLeave, handleModuleSelection, windowWidth, isMouseNearSidebar, isTranslationReady]);
+  
+  const sidebarClassName = useMemo(() => {
+    return `
       flex flex-col items-center min-h-full
       w-16 sm:w-20
       bg-gradient-to-b from-slate-900/95 via-slate-800/90 to-slate-900/95
@@ -147,132 +402,44 @@ const PrimarySidebar: React.FC<{ selectedModuleKey: string; onModuleSelect: (key
       before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:rounded-r-3xl before:pointer-events-none
       transition-all duration-300 ease-out
       ${isMouseNearSidebar ? 'sidebar-active' : 'sidebar-inactive'}
-    `}>
+    `;
+  }, [isMouseNearSidebar]);
+
+  // Loading state (no early return before all hooks)
+  if (isLoading || !isClient) {
+    return (
+      <aside className={sidebarClassName}>
+        <div className="flex flex-col gap-2 sm:gap-3 w-full items-center animate-pulse">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl" />
+          ))}
+        </div>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className={sidebarClassName}>
       {/* Content container - responsive spacing and scrolling */}
       <div className="flex flex-col gap-2 sm:gap-3 w-full items-center relative z-10 max-h-full">
-        {mainModules.map(item => {
-          const isSelected = selectedModuleKey === item.name;
-          const isHovered = hoveredModule === item.name;
-          const isAnotherModuleHovered = hoveredModule && hoveredModule !== item.name;
-          const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(item.name, isSelected);
-          const moduleKey = getModuleKey(item.name);
-          const displayName = t(`${moduleKey}.title`, { defaultValue: moduleKey.charAt(0).toUpperCase() + moduleKey.slice(1) });
-
-          return (
-            <div
-              key={item.name}
-              className="relative group/item flex-shrink-0"
-              onMouseEnter={() => handleModuleMouseEnter(item.name)}
-              onMouseLeave={handleModuleMouseLeave}
-            >
-              {/* Badge/Label - responsive positioning and mobile-friendly */}
-              <div className={`
-                absolute bottom-10 sm:bottom-12 left-1/2 transform -translate-x-1/2 -translate-y-2
-                px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium whitespace-nowrap
-                backdrop-blur-md border
-                shadow-lg shadow-black/20
-                transition-all duration-500 ease-out
-                pointer-events-none z-30
-                max-w-[120px] sm:max-w-none truncate
-                ${badgeColor}
-                ${(() => {
-                  if (isSelected) {
-                    // Selected badge: hide when another module is hovered
-                    if (isAnotherModuleHovered) {
-                      return 'opacity-0 translate-y-1 scale-95';
-                    }
-                    // Normal selected state - always visible on mobile, mouse-dependent on desktop
-                    return `opacity-100 translate-y-0 scale-100 ${window.innerWidth >= 1024 ? (isMouseNearSidebar ? '' : 'opacity-30') : ''}`;
-                  } else {
-                    // Non-selected badge: show on hover for desktop, tap for mobile
-                    if ((isHovered && isMouseNearSidebar) || (window.innerWidth < 1024 && isHovered)) {
-                      return 'opacity-100 -translate-y-2 scale-100';
-                    }
-                    return 'opacity-0 translate-y-1 scale-95';
-                  }
-                })()}
-              `}>
-                {displayName}
-
-                {/* Arrow pointing down to the icon - adjusted for new position */}
-                <div className={`
-                  absolute top-full left-1/2 transform -translate-x-1/2 translate-y-1
-                  w-0 h-0 border-l-3 border-r-3 border-t-3
-                  border-l-transparent border-r-transparent
-                  transition-opacity duration-500
-                  ${badgeColor.includes('bg-blue') ? 'border-t-blue-500' : ''}
-                  ${badgeColor.includes('bg-purple') ? 'border-t-purple-500' : ''}
-                  ${badgeColor.includes('bg-green') ? 'border-t-green-500' : ''}
-                  ${badgeColor.includes('bg-yellow') ? 'border-t-yellow-500' : ''}
-                  ${badgeColor.includes('bg-red') ? 'border-t-red-500' : ''}
-                  ${badgeColor.includes('bg-orange') ? 'border-t-orange-500' : ''}
-                  ${badgeColor.includes('bg-teal') ? 'border-t-teal-500' : ''}
-                  ${badgeColor.includes('bg-pink') ? 'border-t-pink-500' : ''}
-                  ${badgeColor.includes('bg-indigo') ? 'border-t-indigo-500' : ''}
-                  ${badgeColor.includes('bg-gray') ? 'border-t-gray-500' : ''}
-                  ${badgeColor.includes('bg-slate') ? 'border-t-slate-500' : ''}
-                `} style={{
-                  borderLeftWidth: '3px',
-                  borderRightWidth: '3px',
-                  borderTopWidth: '3px'
-                }} />
-              </div>
-
-              <button
-                onClick={() => onModuleSelect(item.name)}
-                onTouchStart={() => handleModuleMouseEnter(item.name)}
-                onTouchEnd={() => handleModuleMouseLeave()}
-                className={`
-                  group relative flex items-center justify-center
-                  w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl
-                  backdrop-blur-md
-                  ${backgroundStyle}
-                  border
-                  shadow-lg shadow-black/10
-                  hover:shadow-xl hover:shadow-black/20
-                  active:scale-95 sm:active:scale-100
-                  transition-all duration-300 ease-out
-                  focus:outline-none focus:ring-2 focus:ring-white/30
-                  touch-manipulation
-                  ${isSelected ? 'shadow-xl scale-105' : 'hover:scale-105'}
-                `}
-                title={displayName}
-                aria-label={displayName}
-              >
-                {/* Enhanced glass overlay for selected state */}
-                {isSelected && (
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 to-transparent pointer-events-none" />
-                )}
-
-                {/* Selection indicator - subtle glow ring */}
-                {isSelected && (
-                  <div className="absolute inset-0 rounded-2xl ring-2 ring-white/30 ring-offset-2 ring-offset-transparent pointer-events-none" />
-                )}
-
-                {/* Icon with dynamic coloring - responsive sizing */}
-                <span className={`
-                  relative z-10 transition-all duration-300
-                  group-hover:scale-110 group-active:scale-95 ${iconColor}
-                  ${isSelected ? 'drop-shadow-lg' : 'drop-shadow-sm'}
-                `}>
-                  {item.icon
-                    ? React.createElement(item.icon, {
-                        className: `w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${
-                          isSelected ? 'filter brightness-110' : 'group-hover:text-white'
-                        }`
-                      })
-                    : <span className="w-5 h-5 sm:w-7 sm:h-7 bg-gray-500 rounded-full" />
-                  }
-                </span>
-
-                <span className="sr-only">{displayName}</span>
-              </button>
-            </div>
-          );
-        })}
+        {Array.isArray(mainModules) && mainModules.length > 0 
+          ? mainModules.map((module, index) => renderModuleItem(module, index))
+          : <div className="text-white/50 text-xs text-center p-4">Loading modules...</div>
+        }
       </div>
-      
     </aside>
+  );
+};
+
+// Main component with error boundary
+const PrimarySidebar: React.FC<{ 
+  selectedModuleKey: string; 
+  onModuleSelect: (key: string) => void; 
+}> = (props) => {
+  return (
+    <PrimarySidebarErrorBoundary>
+      <PrimarySidebarContent {...props} />
+    </PrimarySidebarErrorBoundary>
   );
 };
 
