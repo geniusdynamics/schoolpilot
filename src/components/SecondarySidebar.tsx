@@ -378,19 +378,28 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
   }, [isOpen, selectedModule, selectedModuleKey]);
 
   // Filtered navigation based on search - memoized to prevent hook dependency issues
-  const filterItems = useCallback((items: any[]) =>
-    items.filter(item => {
+  const filterItems = useCallback((items: any[]) => {
+    return items.filter(item => {
       const itemName = typeof item.name === 'string' ? item.name : '';
-      const itemLabel = t(itemName);
-      const searchLower = search.toLowerCase();
-      
-      return (typeof itemLabel === 'string' && itemLabel.toLowerCase().includes(searchLower)) ||
-        (item.children && item.children.some((child: any) => {
-          const childName = typeof child.name === 'string' ? child.name : '';
-          const childLabel = t(childName);
-          return typeof childLabel === 'string' && childLabel.toLowerCase().includes(searchLower);
-        }));
-    }), [search]); // Removed unstable 't' dependency
+      try {
+        const itemLabel = t(itemName);
+        const searchLower = search.toLowerCase();
+        
+        return (typeof itemLabel === 'string' && itemLabel.toLowerCase().includes(searchLower)) ||
+          (item.children && item.children.some((child: any) => {
+            const childName = typeof child.name === 'string' ? child.name : '';
+            try {
+              const childLabel = t(childName);
+              return typeof childLabel === 'string' && childLabel.toLowerCase().includes(searchLower);
+            } catch (e) {
+              return false;
+            }
+          }));
+      } catch (e) {
+        return false;
+      }
+    });
+  }, [search, t]);
 
   if (!selectedModule || !isOpen) {
     return null;

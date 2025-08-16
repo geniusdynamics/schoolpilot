@@ -1,45 +1,87 @@
-// ABOUTME: Utility functions for module operations
-// ABOUTME: Handles module ID extraction and navigation key processing
+// ABOUTME: Utility functions for module identification and path handling
+// ABOUTME: Helps with consistent module identification across the application
 
 /**
- * Extracts the actual module ID from a navigation key
- * @param navigationKey - The navigation key (e.g., 'navigation:finance.title')
- * @returns The module ID (e.g., 'finance')
+ * Extract module ID from a module name or path
+ * @param moduleIdentifier - Module name or path
+ * @returns Clean module ID
  */
-export function extractModuleId(navigationKey: string): string {
-  // Handle special cases
-  if (navigationKey === 'navigation:dashboard') {
-    return 'dashboard';
+export const extractModuleId = (moduleIdentifier: string): string => {
+  if (!moduleIdentifier) return 'dashboard';
+  
+  // Handle navigation: prefix
+  if (moduleIdentifier.startsWith('navigation:')) {
+    return moduleIdentifier.replace('navigation:', '');
   }
   
-  // Extract module ID from navigation keys like 'navigation:finance.title'
-  const match = navigationKey.match(/^navigation:([^.]+)/);
-  if (match) {
-    return match[1];
+  // Handle module paths like /administration, /academics, etc.
+  if (moduleIdentifier.startsWith('/')) {
+    return moduleIdentifier.substring(1);
   }
   
-  // If it's already a simple module ID, return as is
-  return navigationKey;
-}
+  // Handle module: prefix
+  if (moduleIdentifier.startsWith('module:')) {
+    return moduleIdentifier.replace('module:', '');
+  }
+  
+  return moduleIdentifier;
+};
 
 /**
- * Converts a module ID to its corresponding navigation key
- * @param moduleId - The module ID (e.g., 'finance')
- * @returns The navigation key (e.g., 'navigation:finance.title')
+ * Get module path from module ID
+ * @param moduleId - Module ID
+ * @returns Module path
  */
-export function moduleIdToNavigationKey(moduleId: string): string {
-  if (moduleId === 'dashboard') {
-    return 'navigation:dashboard';
+export const getModulePath = (moduleId: string): string => {
+  if (!moduleId) return '/dashboard';
+  
+  // Ensure path starts with /
+  if (!moduleId.startsWith('/')) {
+    return `/${moduleId}`;
   }
   
-  return `navigation:${moduleId}.title`;
-}
+  return moduleId;
+};
 
 /**
- * Checks if a string is a navigation key
- * @param key - The key to check
- * @returns True if it's a navigation key, false otherwise
+ * Check if a path belongs to a specific module
+ * @param path - Path to check
+ * @param moduleId - Module ID to check against
+ * @returns Boolean indicating if path belongs to module
  */
-export function isNavigationKey(key: string): boolean {
-  return key.startsWith('navigation:');
-}
+export const isPathInModule = (path: string, moduleId: string): boolean => {
+  if (!path || !moduleId) return false;
+  
+  const cleanModuleId = extractModuleId(moduleId);
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  
+  // Special case for dashboard
+  if (cleanModuleId === 'dashboard') {
+    return cleanPath === '/dashboard' || cleanPath === '/';
+  }
+  
+  return cleanPath.startsWith(`/${cleanModuleId}`);
+};
+
+/**
+ * Get dashboard path for a module
+ * @param moduleId - Module ID
+ * @returns Dashboard path for the module
+ */
+export const getModuleDashboardPath = (moduleId: string): string => {
+  const cleanModuleId = extractModuleId(moduleId);
+  
+  // Special case for dashboard
+  if (cleanModuleId === 'dashboard') {
+    return '/dashboard';
+  }
+  
+  return `/${cleanModuleId}`;
+};
+
+export default {
+  extractModuleId,
+  getModulePath,
+  isPathInModule,
+  getModuleDashboardPath
+};

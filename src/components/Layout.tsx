@@ -19,21 +19,30 @@ import { useInteractionTracking } from '../hooks/usePerformanceMonitoring';
 import { TabbedWorkspace } from './tabbedWorkspace';
 import { useTabStore } from '../stores/tabStore';
 import { extractModuleId } from '../utils/moduleUtils';
+import { TabbedWorkspaceManager } from './tabbedWorkspace/TabbedWorkspaceManager';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // ALL HOOKS MUST BE CALLED IN THE SAME ORDER EVERY RENDER
+  // No conditional hooks or early returns before all hooks are called
+  
+  // Custom hooks (always called first)
   const { getMainModules, isLoading } = useDynamicNavigation(true);
+  const { trackNavigation } = useInteractionTracking('Layout');
+  const { getStoredRoute } = useRoutePersistence();
+  const { user } = useAuth();
+  
+  // Router hooks
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Tab store for managing tabbed workspace
+  const { tabs, activeTabId, createTab, initialize, isStoreInitialized } = useTabStore();
+  
+  // State hooks (always in same order)
   const [showSettings, setShowSettings] = useState(false);
   const [selectedModuleKey, setSelectedModuleKey] = useState('');
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
   const [showScrollHelpers, setShowScrollHelpers] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { getStoredRoute } = useRoutePersistence();
-  const { trackNavigation } = useInteractionTracking('Layout');
-  const { user } = useAuth();
-  
-  // Tab store for managing tabbed workspace
-  const { tabs, activeTabId, createTab, initialize, isStoreInitialized } = useTabStore();
   const [isTabSystemReady, setIsTabSystemReady] = useState(false);
 
   // Move useCallback hooks to top level to prevent React hooks rule violation
@@ -49,7 +58,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         enableFallbackRoutes={true}
         fallbackRoutes={['/dashboard', '/reports', '/administration']}
       >
-        {tab.content.type === 'component' && tab.content.component ? (
+        {tab.content.type === 'component' && tab.content.component === 'DynamicPageComponent' ? (
+          // For route-based tabs, render the actual route content
+          <div className="route-content-wrapper h-full">
+            {children}
+          </div>
+        ) : tab.content.type === 'component' && tab.content.component ? (
           <tab.content.component {...(tab.content.props || {})} />
         ) : (
           children
@@ -83,10 +97,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
   }, [initialize]);
   
-  // Always use tab mode when TabbedWorkspace is available
-  // This ensures tabs are properly created from the start
-  const isTabMode = true; // Always enable tab mode for consistent navigation
-
   // Track scroll position to show/hide scroll helpers
   useEffect(() => {
     const handleScroll = () => {
@@ -133,18 +143,23 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
       }
     }
-  }, [isLoading, getMainModules, selectedModuleKey, navigate, location.pathname]);
+  }, [isLoading, getMainModules, selectedModuleKey, navigate, location.pathname, getStoredRoute]);
 
-  const handleModuleSelect = (moduleKey: string) => {
+  const handleModuleSelect = async (moduleKey: string) => {
     if (moduleKey === selectedModuleKey) {
       setIsSubmenuOpen((open: boolean) => !open); // toggle submenu
     } else {
       setSelectedModuleKey(moduleKey);
       setIsSubmenuOpen(true); // open submenu for new module
-      // If Dashboard is selected, navigate to /dashboard
-      if (moduleKey === 'navigation:dashboard') {
-        const trackNav = trackNavigation(location.pathname, '/dashboard');
-        navigate('/dashboard');
+      
+      // Find the module dashboard path
+      const module = getMainModules().find(m => m.name === moduleKey);
+      if (module) {
+        // Navigate to the module's dashboard or main path
+        const modulePath = module.path || `/dashboard`;
+        const trackNav = trackNavigation(location.pathname, modulePath);
+        navigate(modulePath);
+        
         // Track navigation completion after a brief delay
         setTimeout(trackNav, 100);
       }
@@ -174,14 +189,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen w-screen bg-slate-100">
-      <Header onSettings={() => setShowSettings(true)} />
-      <div className="flex flex-1 pt-16 md:pt-16">
-        <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
-        <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
-        <main className="flex-1 overflow-hidden">
-          {isTabMode ? (
-            /* Tabbed Workspace Mode - Full page tabs with integrated breadcrumbs */
+    <TabbedWorkspaceManager>
+      <div className="flex flex-col min-h-screen w-screen bg-slate-100">
+        <Header onSettings={() => setShowSettings(true)} />
+        <div className="flex flex-1 pt-16 md:pt-16">
+          <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
+          <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
+          <main className="flex-1 overflow-hidden">
+            {/* Tabbed Workspace Mode - Full page tabs with integrated breadcrumbs */}
             <TabbedWorkspace
               className="h-full"
               showActionBar={true}
@@ -200,88 +215,61 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               tabStyle="modern"
               showCloseButton={true}
             />
-          ) : (
-            /* Traditional Layout Mode - Standard layout with breadcrumbs */
-            <div className="h-full p-2 sm:p-3 lg:p-4">
-              <div className="h-full overflow-y-auto">
-                {/* Breadcrumb Navigation */}
-                <div className="mb-2">
-                  <BreadcrumbNavigation 
-                    className="mb-1"
-                    onNavigationError={(path, error) => {
-                      console.error(`Navigation error for ${path}:`, error);
-                    }}
-                  />
-                </div>
-                
-                {/* Main content wrapped with navigation error boundary */}
-                <NavigationErrorBoundary
-                  onError={(error, errorInfo, currentRoute) => {
-                    console.error(`Navigation boundary caught error on ${currentRoute}:`, error);
-                  }}
-                  maxRetries={2}
-                  enableFallbackRoutes={true}
-                  fallbackRoutes={['/dashboard', '/reports', '/administration']}
-                >
-                  {children}
-                </NavigationErrorBoundary>
-              </div>
+          </main>
+          <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />
+        </div>
+
+        {/* Floating Navigation Helpers - appear when scrolled down */}
+        {showScrollHelpers && (
+          <>
+            {/* Navigation Button - positioned on the left where navigation is */}
+            <div className="fixed bottom-6 left-6 z-50">
+              <button
+                onClick={scrollToNavigation}
+                className="
+                  group flex items-center gap-2 px-3 py-2
+                  bg-white/80 hover:bg-white/90
+                  backdrop-blur-md
+                  text-slate-600 hover:text-slate-800
+                  rounded-lg shadow-sm hover:shadow-md
+                  border border-slate-200/50 hover:border-slate-300/70
+                  transition-all duration-300 ease-out
+                  hover:scale-105 focus:scale-105
+                  focus:outline-none focus:ring-2 focus:ring-slate-400/30
+                  opacity-80 hover:opacity-100
+                "
+                title="Back to Navigation"
+              >
+                <Bars3Icon className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
+                <span className="text-xs font-medium whitespace-nowrap">Menu</span>
+              </button>
             </div>
-          )}
-        </main>
-        <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />
+
+            {/* Back to Top Button - remains on the right */}
+            <div className="fixed bottom-6 right-6 z-50">
+              <button
+                onClick={scrollToTop}
+                className="
+                  group flex items-center justify-center
+                  w-12 h-12
+                  bg-blue-600/90 hover:bg-blue-500/95
+                  backdrop-blur-md
+                  text-white
+                  rounded-full shadow-lg hover:shadow-xl
+                  border border-blue-400/20 hover:border-blue-300/30
+                  transition-all duration-300 ease-out
+                  hover:scale-110 focus:scale-110
+                  focus:outline-none focus:ring-2 focus:ring-blue-400/50
+                "
+                title="Back to Top"
+              >
+                <ChevronUpIcon className="w-6 h-6 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5" />
+              </button>
+            </div>
+          </>
+        )}
       </div>
-
-      {/* Floating Navigation Helpers - appear when scrolled down */}
-      {showScrollHelpers && (
-        <>
-          {/* Navigation Button - positioned on the left where navigation is */}
-          <div className="fixed bottom-6 left-6 z-50">
-            <button
-              onClick={scrollToNavigation}
-              className="
-                group flex items-center gap-2 px-3 py-2
-                bg-white/80 hover:bg-white/90
-                backdrop-blur-md
-                text-slate-600 hover:text-slate-800
-                rounded-lg shadow-sm hover:shadow-md
-                border border-slate-200/50 hover:border-slate-300/70
-                transition-all duration-300 ease-out
-                hover:scale-105 focus:scale-105
-                focus:outline-none focus:ring-2 focus:ring-slate-400/30
-                opacity-80 hover:opacity-100
-              "
-              title="Back to Navigation"
-            >
-              <Bars3Icon className="w-4 h-4 transition-transform duration-300 group-hover:scale-110" />
-              <span className="text-xs font-medium whitespace-nowrap">Menu</span>
-            </button>
-          </div>
-
-          {/* Back to Top Button - remains on the right */}
-          <div className="fixed bottom-6 right-6 z-50">
-            <button
-              onClick={scrollToTop}
-              className="
-                group flex items-center justify-center
-                w-12 h-12
-                bg-blue-600/90 hover:bg-blue-500/95
-                backdrop-blur-md
-                text-white
-                rounded-full shadow-lg hover:shadow-xl
-                border border-blue-400/20 hover:border-blue-300/30
-                transition-all duration-300 ease-out
-                hover:scale-110 focus:scale-110
-                focus:outline-none focus:ring-2 focus:ring-blue-400/50
-              "
-              title="Back to Top"
-            >
-              <ChevronUpIcon className="w-6 h-6 transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5" />
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+    </TabbedWorkspaceManager>
   );
 };
 
