@@ -377,14 +377,24 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }
 
     // Default content rendering based on tab type with responsive design
-    return (
-      <div className="flex-1 px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 overflow-auto bg-white">
-        <div className="w-full">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{activeTab.title}</h1>
-          {resolveTabContent(activeTab)}
+      // For route-based tabs, we render the actual route content
+      return (
+        <div className="flex-1 px-2 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 overflow-auto bg-white">
+          <div className="w-full">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{activeTab.title}</h1>
+            {/* For route-based tabs, we render the actual route content */}
+            {activeTab.content.type === 'component' && activeTab.content.component === 'DynamicPageComponent' ? (
+              <div className="route-content-container">
+                {/* The actual route content will be rendered by React Router */}
+                {/* We provide a placeholder that will be filled by the Layout's children */}
+                <div className="route-content-placeholder" />
+              </div>
+            ) : (
+              resolveTabContent(activeTab)
+            )}
+          </div>
         </div>
-      </div>
-    );
+      );
   }, [activeTabId, tabs, validateTabAccess, onTabContentRender]);
   
   // Memoize the active tab to prevent unnecessary lookups

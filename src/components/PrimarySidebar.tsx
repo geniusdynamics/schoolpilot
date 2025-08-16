@@ -168,7 +168,7 @@ const PrimarySidebarContent: React.FC<{
   const { navigationItems = [], isLoading = true } = useDynamicNavigation(true) || {};
   const { accessibleModules = [] } = useRBAC() || {};
   const { user = null } = useAuth() || {};
-  const { t } = useTranslation('navigation', { useSuspense: false });
+  const { t, i18n } = useTranslation('navigation', { useSuspense: false });
   const navigate = useNavigate();
   const { showInfo, showError } = useToastHelpers();
   
