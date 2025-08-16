@@ -218,13 +218,15 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         icon: item.icon,
         module: pathModule,
         submodule,
+        contentType: 'component',
+        component: 'DynamicPageComponent',
         metadata: {
           source: 'secondary-sidebar',
           moduleKey: selectedModuleKey,
           userId: user?.id,
           timestamp: new Date().toISOString()
         },
-        forceCreate: true
+        forceCreate: false // Allow activation of existing tabs
       });
 
       // Log successful navigation

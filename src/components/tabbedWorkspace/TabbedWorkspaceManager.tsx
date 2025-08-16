@@ -88,7 +88,16 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
 
       // Determine if this is a module dashboard or a child page
       const isModuleDashboard = !child;
-      const pageTitle = child ? child.name : (module.name || 'Dashboard');
+      // For module dashboards, use a more appropriate title
+      let pageTitle = 'Dashboard';
+      if (child) {
+        pageTitle = child.name;
+      } else if (module.name) {
+        // Extract a readable name from the module name
+        const moduleName = module.name.replace('navigation:', '').replace('.title', '');
+        // Capitalize first letter
+        pageTitle = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
+      }
       
       console.log('🔍 [TabbedWorkspaceManager] Creating new tab:', { 
         isModuleDashboard, 

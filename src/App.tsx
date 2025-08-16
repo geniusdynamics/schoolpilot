@@ -19,6 +19,8 @@ import { moduleRegistry } from './core/moduleRegistry';
 import { initializeModules } from './core/moduleLoader';
 import { initializeTheme } from './hooks/useTheme';
 import { ToastProvider } from './hooks/useToast';
+import { SyncProvider } from './contexts/SyncContext';
+import { NetworkProvider } from './contexts/NetworkContext';
 
 // Enhanced components (lazy loaded to avoid bundle bloat when not needed)
 const GlobalNotifications = lazy(() => import('./components/GlobalNotifications'));
@@ -85,6 +87,32 @@ const getPageComponent = (nav: any) => {
   
   // Since modules are eagerly loaded, access the default export directly
   return moduleExport.default || moduleExport;
+};
+
+// Module Dashboard Placeholder Component
+const ModuleDashboardPlaceholder: React.FC<{ moduleName: string }> = ({ moduleName }) => {
+  const moduleNameClean = moduleName.replace('navigation:', '').replace('.title', '');
+  const formattedName = moduleNameClean.charAt(0).toUpperCase() + moduleNameClean.slice(1);
+  
+  return (
+    <div className="flex items-center justify-center h-full bg-gray-50">
+      <div className="text-center p-8 max-w-md">
+        <div className="text-6xl mb-4">📋</div>
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">{formattedName} Dashboard</h1>
+        <p className="text-gray-600 mb-6">
+          Welcome to the {formattedName} module. Select an option from the sidebar to get started.
+        </p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+          <h2 className="font-semibold text-blue-800 mb-2">Quick Tips:</h2>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• Use the sidebar to navigate through {formattedName} features</li>
+            <li>• Tabs allow you to work on multiple pages simultaneously</li>
+            <li>• Your work is automatically saved as you go</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // Simplified routing component
@@ -208,10 +236,13 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           let PageComponent = null;
           if (moduleDir) {
             const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
-            const modularImportFn = pageModules[modularKey];
-            if (modularImportFn) {
-              // Fix: Create a proper lazy component that calls the import function
-              PageComponent = lazy(() => modularImportFn());
+            const moduleExport = pageModules[modularKey];
+            if (moduleExport) {
+              // Since modules are eagerly loaded, create a component that returns the default export
+              PageComponent = () => {
+                const Component = moduleExport.default || moduleExport;
+                return <Component />;
+              };
             }
           }
           
@@ -247,6 +278,36 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           );
         }).filter(Boolean)
       )}
+      
+      {/* Module base path routes - for module dashboards */}
+      {moduleRegistry.getEnabledModules().map(module => {
+        // Only create route if module has a path and it's not already covered by navigation items
+        if (!module.path) return null;
+        
+        // Check if this path is already covered by navigation items
+        const isPathCovered = navigationItems.some(navItem => 
+          navItem.path === module.path || 
+          (navItem.children && navItem.children.some(child => child.path === module.path))
+        );
+        
+        // If path is already covered, don't create a duplicate route
+        if (isPathCovered) return null;
+        
+        const moduleName = module.id;
+        const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
+        
+        return (
+          <Route
+            key={module.path}
+            path={module.path}
+            element={
+              <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
+                <ModuleDashboardPlaceholder moduleName={module.name} />
+              </ProtectedRoute>
+            }
+          />
+        );
+      }).filter(Boolean)}
       
       {/* Dynamic navigation routes */}
       {navigationItems
@@ -529,9 +590,13 @@ const AppInner: React.FC = () => {
           <UserProvider>
             <ToastProvider maxToasts={5} position="top-right">
               <DataProviderWrapper config={config}>
-                <ModuleErrorBoundary moduleName="Core Application">
-                  <AppContent modulesInitialized={modulesInitialized} config={config} />
-                </ModuleErrorBoundary>
+                <NetworkProvider>
+                  <SyncProvider>
+                    <ModuleErrorBoundary moduleName="Core Application">
+                      <AppContent modulesInitialized={modulesInitialized} config={config} />
+                    </ModuleErrorBoundary>
+                  </SyncProvider>
+                </NetworkProvider>
               </DataProviderWrapper>
             </ToastProvider>
           </UserProvider>
