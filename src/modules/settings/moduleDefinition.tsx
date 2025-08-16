@@ -13,6 +13,7 @@ const settingsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
+    { name: 'navigation:settings.dashboard', path: '/settings/dashboard', icon: CogIcon, page: 'SettingsDashboardPage' },
     { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
     { name: 'navigation:settings.features', path: '/settings/features', icon: CogIcon, page: 'FeatureSettingsPage' },
     { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
