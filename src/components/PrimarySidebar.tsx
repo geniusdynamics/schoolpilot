@@ -135,7 +135,7 @@ const handleModuleClick = async (moduleKey: string, onModuleSelect: (key: string
     const actualModuleName = getModuleKey(moduleKey);
     
     // Create a proper path for the module dashboard
-    const modulePath = `/${actualModuleName}`;
+    const modulePath = `/${actualModuleName}/dashboard`;
     
     // Use router navigation to load module dashboard in current tab
     navigate(modulePath);

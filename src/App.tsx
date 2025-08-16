@@ -41,8 +41,8 @@ const TabbedWorkspaceTestPage = lazy(() => import('./modules/settings/pages/Tabb
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 // Using eager: true to avoid runtime module loading issues
 const pageModules = {
-  ...import.meta.glob('./modules/*/pages/*.tsx', { eager: false }),
-  ...import.meta.glob('./modules/*/pages/**/*.tsx', { eager: false }),
+  ...import.meta.glob('./modules/*/pages/*.tsx', { eager: true }),
+  ...import.meta.glob('./modules/*/pages/**/*.tsx', { eager: true }),
 };
 
 // Debug logging helper
@@ -73,9 +73,9 @@ const getPageComponent = (nav: any) => {
 
   const moduleDir = pathSegments[0];
   const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
-  const modularImportFn = pageModules[modularKey];
+  const moduleExport = pageModules[modularKey];
   
-  if (!modularImportFn) {
+  if (!moduleExport) {
     console.log('❌ [getPageComponent] No component found for key:', modularKey);
     console.log('Available keys:', Object.keys(pageModules).filter(key => key.includes(moduleDir)));
     return null;
@@ -83,29 +83,8 @@ const getPageComponent = (nav: any) => {
 
   console.log('✅ [getPageComponent] Found component for:', modularKey);
   
-  // Return a component with comprehensive error handling using PageComponentLoader
-  return React.memo(() => (
-    <PageComponentLoader
-      pageName={nav.name || nav.page || nav.path}
-      componentLoader={async () => {
-        // Use the static import function we found
-        const module = await modularImportFn();
-        return module;
-      }}
-      enableCaching={true}
-      loadingTimeout={10000}
-      retryAttempts={3}
-      onLoadStart={() => {
-        debugLog('🔄 [PageComponent] Starting to load:', nav.name || nav.page);
-      }}
-      onLoadComplete={(loadTime, fromCache) => {
-        debugLog('✅ [PageComponent] Loaded:', nav.name || nav.page, `(${loadTime}ms, cached: ${fromCache})`);
-      }}
-      onLoadError={(error) => {
-        debugLog('❌ [PageComponent] Failed to load:', nav.name || nav.page, error.message);
-      }}
-    />
-  ));
+  // Since modules are eagerly loaded, access the default export directly
+  return moduleExport.default || moduleExport;
 };
 
 // Simplified routing component
@@ -231,7 +210,8 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
             const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
             const modularImportFn = pageModules[modularKey];
             if (modularImportFn) {
-              PageComponent = lazy(modularImportFn as any);
+              // Fix: Create a proper lazy component that calls the import function
+              PageComponent = lazy(() => modularImportFn());
             }
           }
           

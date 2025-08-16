@@ -14,6 +14,7 @@ const reportsModule: ModuleDefinition = {
   version: '1.0.0',
   dependencies: ['administration', 'academics', 'finance'],
   navigation: [
+    { name: 'navigation:reports.dashboard', path: '/reports/dashboard', icon: DocumentReportIcon, page: 'ReportsDashboardPage' },
     { name: 'navigation:reports.title', path: '/reports', icon: DocumentReportIcon, page: 'ReportsPage' },
     { name: 'navigation:reports.accountLedger', path: '/reports/account-ledger', icon: BookOpenIcon as React.FC<any>, page: 'AccountLedgerPage' },
     { name: 'navigation:reports.examResultsHorizontal', path: '/reports/exam-results-horizontal', icon: ChartPieIcon as React.FC<any>, page: 'ExamResultsHorizontalPage' },
@@ -26,4 +27,4 @@ const reportsModule: ModuleDefinition = {
   features: ['reporting', 'analytics', 'data-export']
 };
 
-export default reportsModule; 
+export default reportsModule;

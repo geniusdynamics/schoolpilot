@@ -116,4 +116,4 @@ export const coreModules: ModuleDefinition[] = [
   reportsModule
 ];
 
-export default coreModules; 
+export default coreModules;
