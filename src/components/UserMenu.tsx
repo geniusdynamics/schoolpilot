@@ -9,8 +9,14 @@ import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons
 import { SyncStatusComponent } from './OfflineCapability';
 import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 import HookErrorBoundary from './HookErrorBoundary';
+import { safeDeps, HookErrorHandler } from '../utils/hookUtils';
+import { HookErrorBoundary as ErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 
-const UserMenu: React.FC = () => {
+interface UserMenuProps {
+  onSettingsClick?: () => void;
+}
+
+const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
   const { t } = useTranslation('common');
   const { user, logout, isDemoMode } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -21,28 +27,60 @@ const UserMenu: React.FC = () => {
 
 
   const handleLogout = useCallback(async () => {
-    await logout();
-    setIsOpen(false);
-  }, [logout]); // logout function is stable from AuthContext
+    try {
+      if (!logout || typeof logout !== 'function') {
+        console.error('[UserMenu] Logout function not available');
+        return;
+      }
+      
+      await logout();
+      setIsOpen(false);
+    } catch (error) {
+      console.error('[UserMenu] Logout failed:', error);
+    }
+  }, safeDeps([logout]));
 
   const toggleDropdown = useCallback(() => {
-    setIsOpen(prev => !prev);
-  }, []); // No dependencies needed for state setter function
+    try {
+      setIsOpen(prev => !prev);
+    } catch (error) {
+      console.error('[UserMenu] Error in toggleDropdown:', error);
+    }
+  }, safeDeps([]));
 
   const handleSettingsClick = useCallback(() => {
-    setIsOpen(false);
-    // Navigate to settings
-    window.location.hash = '#/settings';
-  }, []); // No dependencies needed for navigation
+    try {
+      if (onSettingsClick && typeof onSettingsClick === 'function') {
+        onSettingsClick();
+      } else {
+        // Navigate to settings
+        window.location.hash = '#/settings';
+      }
+      setIsOpen(false);
+    } catch (error) {
+      console.error('[UserMenu] Error in handleSettingsClick:', error);
+    }
+  }, safeDeps([onSettingsClick]));
 
-  const handleBackdropClick = useCallback(() => {
-    setIsOpen(false);
-  }, []); // No dependencies needed for state setter function
+  const handleBackdropClick = useCallback((e?: React.MouseEvent) => {
+    try {
+      if (!e || e.target === e.currentTarget) {
+        setIsOpen(false);
+      }
+    } catch (error) {
+      console.error('[UserMenu] Error in handleBackdropClick:', error);
+    }
+  }, safeDeps([]));
 
   // Memoize current mode to prevent unnecessary recalculations
   const memoizedCurrentMode = useMemo(() => {
-    return config.dataMode === 'demo' ? 'demo' : 'production';
-  }, [config.dataMode]);
+    try {
+      return config?.dataMode === 'demo' ? 'demo' : 'production';
+    } catch (error) {
+      console.error('[UserMenu] Error getting current mode:', error);
+      return 'demo';
+    }
+  }, safeDeps([config?.dataMode]));
 
   if (!user) {
     return null;
@@ -132,6 +170,14 @@ const UserMenu: React.FC = () => {
       )}
       </div>
     </HookErrorBoundary>
+  );
+};
+
+const UserMenu: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
+  return (
+    <ErrorBoundary componentName="UserMenu">
+      <UserMenuContent onSettingsClick={onSettingsClick} />
+    </ErrorBoundary>
   );
 };
 

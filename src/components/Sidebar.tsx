@@ -120,13 +120,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           location.pathname === child.path || (child.path !== '/' && location.pathname.startsWith(child.path))
         );
         
-        if ((isModuleActive || isChildActive) && !openGroups[groupKey]) {
+        if ((isModuleActive || isChildActive)) {
            setOpenGroups(prev => ({ ...prev, [groupKey]: true }));
         }
       }
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [location.pathname, navigationItems]); // Removed openGroups from dependencies
 
   // Dynamically generate quick actions for all modules
   const defaultQuickActions: QuickAction[] = navigationItems?.map(item => {

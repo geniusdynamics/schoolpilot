@@ -79,7 +79,6 @@ const DashboardPage: React.FC = () => {
   const COLORS_GENDER = ['#0088FE', '#00C49F', '#FFBB28'];
   const COLORS_STATUS = ['#FF8042', '#00C49F', '#FFBB28', '#0088FE', '#AF19FF', '#FF4560'];
 
-
   const feeCollectionData: BarChartData[] = [
     { name: 'Term 1', uv: 400000, pv: 350000 },
     { name: 'Term 2', uv: 300000, pv: 280000 },
@@ -164,7 +163,6 @@ const DashboardPage: React.FC = () => {
           </BarChart>
         </ResponsiveContainer>
       </Card>
-      
     </div>
   );
 };

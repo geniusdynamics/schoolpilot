@@ -5,6 +5,26 @@ import { moduleRegistry } from './moduleRegistry';
 import { initializeDynamicModules, getAvailableModules } from '../services/dynamicModuleLoader';
 
 // Initialize all modules using the new dynamic system
+const loadedModules = new Map<string, Promise<any>>();
+
+const loadModule = async (moduleId: string) => {
+  const existing = loadedModules.get(moduleId);
+  if (existing) return existing;
+
+  const loadPromise = (async () => {
+    try {
+      const module = await import(`../modules/${moduleId}`);
+      return module;
+    } catch (error) {
+      loadedModules.delete(moduleId);
+      throw new Error(`Failed to load module ${moduleId}: ${error}`);
+    }
+  })();
+
+  loadedModules.set(moduleId, loadPromise);
+  return loadPromise;
+};
+
 export const initializeModules = async (): Promise<void> => {
   console.log('🚀 Initializing modules with dynamic loader...');
   
@@ -62,4 +82,4 @@ export const checkModuleDependencies = (moduleId: string) => {
 };
 
 // Export the registry for direct access if needed
-export { moduleRegistry }; 
+export { moduleRegistry };

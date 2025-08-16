@@ -174,14 +174,26 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     setOpenGroups(g => ({ ...g, [key]: !g[key] }));
   }, []); // No dependencies needed for state setter function
 
+  // Pre-translate error messages to avoid hook violations
+  const errorMessages = useMemo(() => ({
+    tabLimit: 'Tab limit reached. Please close some tabs before opening new ones.',
+    accessDenied: 'Access denied. You do not have permission to view this section.',
+    notInitialized: 'System is still initializing. Please try again in a moment.',
+    generalError: 'Failed to open tab. Please try again or contact support.',
+    missingPath: 'Missing navigation path. Please report this issue.'
+  }), []);
+
   // Handle navigation click with enhanced validation and error handling
   const handleNavigationClick = useCallback(async (item: any, event: React.MouseEvent) => {
     event.preventDefault();
     
     if (!item.path) {
-      showWarning('Missing navigation path. Please report this issue.');
+      showWarning(errorMessages.missingPath);
       return;
     }
+
+    // Pre-translate item name to avoid hook violation in try-catch
+    const itemTitle = t(item.name);
 
     try {
       // Extract module info from path
@@ -202,7 +214,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
 
       // Try to create and navigate to tab
       const result = await navigateToTab(item.path, {
-        title: t(item.name),
+        title: itemTitle,
         icon: item.icon,
         module: pathModule,
         submodule,
@@ -231,7 +243,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       
       // Show success feedback if a new tab was created
       if (result.wasCreated) {
-        showInfo(`Opened ${t(item.name)} in new tab`);
+        showInfo(`Opened ${itemTitle} in new tab`);
       }
       
     } catch (error) {
@@ -239,13 +251,13 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       console.error('Navigation failed:', error);
       
       if (error.message.includes('Maximum tab limit')) {
-        showError('Tab limit reached. Please close some tabs before opening new ones.');
+        showError(errorMessages.tabLimit);
       } else if (error.message.includes('permission')) {
-        showError('Access denied. You do not have permission to view this section.');
+        showError(errorMessages.accessDenied);
       } else if (error.message.includes('not initialized')) {
-        showError('System is still initializing. Please try again in a moment.');
+        showError(errorMessages.notInitialized);
       } else {
-        showError('Failed to open tab. Please try again or contact support.');
+        showError(errorMessages.generalError);
       }
       
       // Log detailed error for debugging
@@ -259,7 +271,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         }
       });
     }
-  }, [hasModuleAccess, navigateToTab, t, user?.id, isMobile, onClose, showWarning, showInfo, showError]); // Stable dependencies
+  }, [hasModuleAccess, navigateToTab, t, user?.id, isMobile, onClose, showWarning, showInfo, showError, errorMessages]); // Stable dependencies
 
   // Memoize selected module and related data to prevent unnecessary recalculations
   const selectedModule = useMemo(() => {
@@ -304,7 +316,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     handleResize(); // Check initial size
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [handleResize]);
+  }, []); // Empty dependency array - handleResize is stable
 
   // Enhanced keyboard navigation for accessibility
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -339,7 +351,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
         }
         break;
     }
-  }, [isOpen, subMenus, focusedIndex, isMobile, onClose, toggleGroup]); // Stable dependencies
+  }, [isOpen, subMenus, isMobile, onClose, toggleGroup]); // Removed focusedIndex from dependencies
 
   // Auto-close on mobile when clicking outside or on route change
   useEffect(() => {
@@ -367,10 +379,18 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
 
   // Filtered navigation based on search - memoized to prevent hook dependency issues
   const filterItems = useCallback((items: any[]) =>
-    items.filter(item =>
-      t(item.name).toLowerCase().includes(search.toLowerCase()) ||
-      (item.children && item.children.some((child: any) => t(child.name).toLowerCase().includes(search.toLowerCase())))
-    ), [search, t]); // Include t in dependencies
+    items.filter(item => {
+      const itemName = typeof item.name === 'string' ? item.name : '';
+      const itemLabel = t(itemName);
+      const searchLower = search.toLowerCase();
+      
+      return (typeof itemLabel === 'string' && itemLabel.toLowerCase().includes(searchLower)) ||
+        (item.children && item.children.some((child: any) => {
+          const childName = typeof child.name === 'string' ? child.name : '';
+          const childLabel = t(childName);
+          return typeof childLabel === 'string' && childLabel.toLowerCase().includes(searchLower);
+        }));
+    }), [search]); // Removed unstable 't' dependency
 
   if (!selectedModule || !isOpen) {
     return null;

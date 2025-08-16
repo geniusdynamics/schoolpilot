@@ -1,42 +1,76 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDownIcon, GlobeAltIcon } from './icons';
-import HookErrorBoundary from '../HookErrorBoundary';
+import { ChevronDown, Globe } from 'lucide-react';
+import { safeDeps, HookErrorHandler } from '../../utils/hookUtils';
+import { HookErrorBoundary } from '../ErrorBoundary/HookErrorBoundary';
 
-const LanguageSwitcher: React.FC = () => {
-  const { t, i18n } = useTranslation();
+const LanguageSwitcherContent: React.FC = () => {
+  const { i18n, t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   
-  // Static languages array to prevent dependency issues
-  const languages = useMemo(() => [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-    { code: 'pt', name: 'Português', flag: '🇵🇹' },
-    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-    { code: 'sw', name: 'Kiswahili', flag: '🇰🇪' },
-    { code: 'rw', name: 'Kinyarwanda', flag: '🇷🇼' }
-  ], []);
-
-  const handleLanguageChange = useCallback(async (langCode: string) => {
+  // Define available languages with stable reference
+  const languages = useMemo(() => {
     try {
-      await i18n.changeLanguage(langCode);
+      return [
+        { code: 'en', name: 'English', flag: '🇺🇸' },
+        { code: 'fr', name: 'Français', flag: '🇫🇷' },
+        { code: 'es', name: 'Español', flag: '🇪🇸' },
+        { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+        { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+        { code: 'pt', name: 'Português', flag: '🇵🇹' },
+        { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+        { code: 'sw', name: 'Kiswahili', flag: '🇹🇿' },
+        { code: 'rw', name: 'Kinyarwanda', flag: '🇷🇼' }
+      ];
+    } catch (error) {
+      console.error('[LanguageSwitcher] Error creating languages array:', error);
+      return [];
+    }
+  }, safeDeps([]));
+
+  const handleLanguageChange = useCallback((languageCode: string) => {
+    try {
+      if (!languageCode || typeof languageCode !== 'string') {
+        console.warn('[LanguageSwitcher] Invalid language code:', languageCode);
+        return;
+      }
+      
+      if (!i18n || typeof i18n.changeLanguage !== 'function') {
+        console.error('[LanguageSwitcher] i18n not properly initialized');
+        return;
+      }
+      
+      i18n.changeLanguage(languageCode).catch(error => {
+        console.error('[LanguageSwitcher] Failed to change language:', error);
+      });
       setIsOpen(false);
     } catch (error) {
-      console.error('Failed to change language:', error);
+      console.error('[LanguageSwitcher] Error in handleLanguageChange:', error);
     }
-  }, [i18n]);
+  }, safeDeps([i18n]));
 
   const toggleDropdown = useCallback(() => {
-    setIsOpen(prev => !prev);
-  }, []);
+    try {
+      setIsOpen(prev => !prev);
+    } catch (error) {
+      console.error('[LanguageSwitcher] Error in toggleDropdown:', error);
+    }
+  }, safeDeps([]));
 
-  // Memoize current language to prevent unnecessary recalculations
   const currentLanguage = useMemo(() => {
-    return languages.find(lang => lang.code === i18n.language) || languages[0];
-  }, [i18n.language, languages]);
+    try {
+      if (!i18n || !i18n.language) {
+        console.warn('[LanguageSwitcher] i18n.language not available, using default');
+        return languages[0] || { code: 'en', name: 'English', flag: '🇺🇸' };
+      }
+      
+      const foundLanguage = languages.find(lang => lang && lang.code === i18n.language);
+      return foundLanguage || languages[0] || { code: 'en', name: 'English', flag: '🇺🇸' };
+    } catch (error) {
+      console.error('[LanguageSwitcher] Error finding current language:', error);
+      return { code: 'en', name: 'English', flag: '🇺🇸' };
+    }
+  }, safeDeps([i18n?.language, languages]));
 
   return (
     <HookErrorBoundary>
@@ -47,7 +81,7 @@ const LanguageSwitcher: React.FC = () => {
       >
         <span className="text-sm">{currentLanguage.flag}</span>
         <span className="text-sm font-medium">{currentLanguage.name}</span>
-        <ChevronDownIcon className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
@@ -67,6 +101,14 @@ const LanguageSwitcher: React.FC = () => {
         </div>
       )}
       </div>
+    </HookErrorBoundary>
+  );
+};
+
+const LanguageSwitcher: React.FC = () => {
+  return (
+    <HookErrorBoundary componentName="LanguageSwitcher">
+      <LanguageSwitcherContent />
     </HookErrorBoundary>
   );
 };

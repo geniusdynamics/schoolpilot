@@ -11,6 +11,7 @@ import {
   getEnabledModules,
   checkModuleDependencies
 } from '../core/moduleLoader';
+import { safeDeps, validateDeps, HookErrorHandler } from '../utils/hookUtils';
 
 // NOTE: getEnabledModules now always includes core modules (dashboard, settings, reports)
 // so navigationItems will always include these regardless of config.
@@ -19,54 +20,69 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([]);
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   // Memoize autoLoad to prevent unnecessary re-renders
-  const stableAutoLoad = useMemo(() => autoLoad, [autoLoad]);
+  const stableAutoLoad = useMemo(() => autoLoad, safeDeps([autoLoad]));
 
   // Load navigation items with stable implementation
   const loadNavigationItems = useCallback(() => {
     setIsLoading(true);
+    setError(null);
     try {
       const items = getDynamicNavigationItems();
-      setNavigationItems(items);
+      setNavigationItems(Array.isArray(items) ? items : []);
       console.log('[useDynamicNavigation] navigationItems:', items);
       
       // Get enabled module IDs
       const modules = getEnabledModules();
       setEnabledModules(modules.map(m => m.id));
       console.log('[useDynamicNavigation] enabledModules:', modules);
-    } catch (error) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Error loading navigation items');
       console.error('Error loading navigation items:', error);
+      setError(error);
       // Provide fallback empty arrays to maintain hook stability
       setNavigationItems([]);
       setEnabledModules([]);
     } finally {
       setIsLoading(false);
     }
-  }, []); // Empty dependency array since getDynamicNavigationItems and getEnabledModules are stable
+  }, safeDeps([])); // Empty dependency array since getDynamicNavigationItems and getEnabledModules are stable
 
   // Enable a module
   const enableModuleById = useCallback((moduleId: string) => {
+    if (!moduleId || typeof moduleId !== 'string') {
+      console.warn('[useDynamicNavigation] Invalid moduleId provided to enableModule:', moduleId);
+      return false;
+    }
     const success = enableModule(moduleId);
     if (success) {
       loadNavigationItems(); // Reload navigation
     }
     return success;
-  }, [loadNavigationItems]);
+  }, safeDeps([loadNavigationItems]));
 
   // Disable a module
   const disableModuleById = useCallback((moduleId: string) => {
+    if (!moduleId || typeof moduleId !== 'string') {
+      console.warn('[useDynamicNavigation] Invalid moduleId provided to disableModule:', moduleId);
+      return false;
+    }
     const success = disableModule(moduleId);
     if (success) {
       loadNavigationItems(); // Reload navigation
     }
     return success;
-  }, [loadNavigationItems]);
+  }, safeDeps([loadNavigationItems]));
 
   // Check if a module is enabled
   const checkModuleStatus = useCallback((moduleId: string) => {
+    if (!moduleId || typeof moduleId !== 'string') {
+      return false;
+    }
     return isModuleEnabled(moduleId);
-  }, []);
+  }, safeDeps([]));
 
   // Check module dependencies
   const checkDependencies = useCallback((moduleId: string) => {
@@ -74,8 +90,17 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
   }, []);
 
   // Memoize navigation items to prevent unnecessary recalculations
-  const memoizedNavigationItems = useMemo(() => navigationItems, [navigationItems]);
-  const memoizedEnabledModules = useMemo(() => enabledModules, [enabledModules]);
+  const memoizedNavigationItems = useMemo(() => {
+    try {
+      return Array.isArray(navigationItems) ? navigationItems : [];
+    } catch (err) {
+      console.error('[useDynamicNavigation] Error memoizing navigation items:', err);
+      return [];
+    }
+  }, safeDeps([navigationItems]));
+  const memoizedEnabledModules = useMemo(() => {
+    return Array.isArray(enabledModules) ? enabledModules : [];
+  }, safeDeps([enabledModules]));
 
   // Get main modules (top-level groups) with stable memoization
   const getMainModules = useCallback(() => {
@@ -116,15 +141,20 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
   // Initialize on mount with stable dependencies
   useEffect(() => {
     if (stableAutoLoad) {
-      loadNavigationItems();
+      try {
+        loadNavigationItems();
+      } catch (err) {
+        console.error('[useDynamicNavigation] Auto-load failed:', err);
+      }
     }
-  }, [stableAutoLoad, loadNavigationItems]);
+  }, safeDeps([stableAutoLoad, loadNavigationItems]));
 
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(() => ({
     navigationItems: memoizedNavigationItems,
     enabledModules: memoizedEnabledModules,
     isLoading,
+    error,
     getMainModules,
     getModuleNavigation,
     searchNavigation,
@@ -133,7 +163,7 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
     isModuleEnabled: checkModuleStatus,
     checkDependencies,
     refresh: loadNavigationItems
-  }), [memoizedNavigationItems, memoizedEnabledModules, isLoading, getMainModules, getModuleNavigation, searchNavigation, enableModuleById, disableModuleById, checkModuleStatus, checkDependencies, loadNavigationItems]);
+  }), safeDeps([memoizedNavigationItems, memoizedEnabledModules, isLoading, error, getMainModules, getModuleNavigation, searchNavigation, enableModuleById, disableModuleById, checkModuleStatus, checkDependencies, loadNavigationItems]));
 };
 
 export default useDynamicNavigation;
