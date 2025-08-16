@@ -5,28 +5,23 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTabStore } from '../../../stores/tabStore';
 import { useDynamicNavigation } from '../../../hooks/useDynamicNavigation';
+import { useTabNavigation } from '../../../hooks/useTabNavigation';
 
 const TabbedWorkspaceTestPage: React.FC = () => {
   const navigate = useNavigate();
-  const { tabs, createTab, activateTab, closeTab } = useTabStore();
+  const { tabs } = useTabStore();
   const { navigationItems } = useDynamicNavigation(true);
+  const { navigateToTab } = useTabNavigation();
 
-  // Test creating tabs
+  // Test creating tabs using the proper navigation mechanism
   const testCreateTab = async () => {
     try {
-      const tabId = await createTab({
+      const result = await navigateToTab('/test', {
         title: 'Test Tab',
         module: 'dashboard',
-        path: '/test',
-        content: {
-          type: 'component',
-          component: 'DynamicPageComponent'
-        },
-        permissions: [],
-        canClose: true,
-        pinned: false
+        forceCreate: true
       });
-      console.log('✅ Created test tab:', tabId);
+      console.log('✅ Created test tab:', result.tabId);
     } catch (error) {
       console.error('❌ Error creating test tab:', error);
     }
@@ -35,6 +30,8 @@ const TabbedWorkspaceTestPage: React.FC = () => {
   // Test activating a tab
   const testActivateTab = async (tabId: string) => {
     try {
+      // Use the proper tab activation mechanism
+      const { activateTab } = useTabStore.getState();
       await activateTab(tabId);
       console.log('✅ Activated tab:', tabId);
     } catch (error) {
@@ -45,6 +42,7 @@ const TabbedWorkspaceTestPage: React.FC = () => {
   // Test closing a tab
   const testCloseTab = (tabId: string) => {
     try {
+      const { closeTab } = useTabStore.getState();
       closeTab(tabId);
       console.log('✅ Closed tab:', tabId);
     } catch (error) {

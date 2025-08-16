@@ -155,8 +155,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       // Find the module dashboard path
       const module = getMainModules().find(m => m.name === moduleKey);
       if (module) {
-        // Navigate to the module's dashboard or main path
-        const modulePath = module.path || `/dashboard`;
+        // Navigate to the module's dashboard
+        // For most modules, the base path is the dashboard
+        // But we need to ensure we're creating a proper tab for it
+        const modulePath = module.path || '/dashboard';
         const trackNav = trackNavigation(location.pathname, modulePath);
         navigate(modulePath);
         

@@ -13,8 +13,15 @@ interface Notification {
 
 const GlobalNotifications: React.FC = () => {
   const { t } = useTranslation('common');
-  const { isOnline, backendAvailable } = useNetwork();
-  const { syncStatus, pendingSyncCount } = useSync();
+  const networkContext = useNetwork();
+  const syncContext = useSync();
+  
+  // Handle case where contexts might be undefined
+  const { isOnline, backendAvailable } = networkContext || { isOnline: true, backendAvailable: true };
+  const { syncStatus, pendingSyncCount } = syncContext || { 
+    syncStatus: { state: 'idle', progress: 0, lastError: null, conflictsCount: 0, lastSyncTime: null },
+    pendingSyncCount: 0 
+  };
   
   const [notifications, setNotifications] = useState<Notification[]>([]);
   
