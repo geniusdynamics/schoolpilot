@@ -1,5 +1,5 @@
 // Test script to verify PouchDB provider implementation
-const { PouchDBProvider } = require('./src/services/database/PouchDBProvider.ts');
+const { PouchDBProvider } = require('../../src/services/database/PouchDBProvider.ts');
 
 async function testPouchDBProvider() {
   console.log('Testing PouchDB Provider Implementation...\n');

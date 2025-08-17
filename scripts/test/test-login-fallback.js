@@ -11,7 +11,7 @@ setTimeout(async () => {
       console.log('⚠️ authService not available on window, trying to access from modules...');
       
       // Try to get authService from the application
-      const authServiceModule = await import('./src/services/authService.js');
+      const authServiceModule = await import('../../src/services/authService.js');
       window.authService = authServiceModule.authService;
     }
     

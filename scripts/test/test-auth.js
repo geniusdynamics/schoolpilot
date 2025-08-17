@@ -52,7 +52,7 @@ async function testAuthFlow() {
   console.log('\nTest 5: Attempting to get current user...');
   try {
     // Check if authService is available through imports
-    const authServiceModule = await import('./src/services/authService.ts');
+    const authServiceModule = await import('../../src/services/authService.ts');
     const authService = authServiceModule.authService;
     
     if (authService) {
@@ -76,7 +76,7 @@ async function testAuthFlow() {
   // Test 6: Try demo login
   console.log('\nTest 6: Attempting demo login...');
   try {
-    const authServiceModule = await import('./src/services/authService.ts');
+    const authServiceModule = await import('../../src/services/authService.ts');
     const authService = authServiceModule.authService;
     
     if (authService) {

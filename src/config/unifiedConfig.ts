@@ -135,8 +135,66 @@ export interface UnifiedAppConfig {
   // Production Demo Integration
   productionDemo: ProductionDemoConfigIntegration;
   
-  // Feature Configuration
-  features: FeatureConfig;
+  // Feature flags for experimental functionality
+  features: {
+    // Enhanced features
+    enhancedDataLayer: false,
+    enhancedUI: false,
+    performanceMonitorWidget: false,
+    enableErrorReporting: true,
+    enableLogging: true,
+    
+    // Module-specific features
+    enableAcademicsModule: true,
+    enableAdministrationModule: true,
+    enableFinanceModule: true,
+    enableHrModule: true,
+    enableInventoryModule: true,
+    enableLibraryModule: true,
+    enableNutritionModule: true,
+    enableReportsModule: true,
+    enableSettingsModule: true,
+    enableAdmissionsModule: true,
+    
+    // Feature-specific flags
+    globalNotifications: true,
+    enableAccessibility: true,
+    enableDarkMode: true,
+    enableMultiLanguage: true,
+    enableOfflineMode: true,
+    enableAuditTrail: true,
+    enableDataExport: true,
+    enableCustomFields: true,
+    enableWorkflowEngine: true,
+    enableDocumentManagement: true,
+    enableCommunicationCenter: true,
+    enableAnalyticsDashboard: true,
+    
+    // Tabbed mode feature flags
+    enableTabbedMode: true,
+    enablePerModuleControl: true,
+    tabbedModeModuleOverrides: {
+      'dashboard': true,
+      'settings': true,
+      'reports': true,
+      'academics': false,
+      'administration': false,
+      'finance': false,
+      'hr': false,
+      'inventory': false,
+      'library': false,
+      'nutrition': false,
+      'admissions': false,
+      'audit': false,
+    },
+    
+    // Demo/Test mode features
+    demoMode: false,
+    testMode: false,
+    enableTestDataGeneration: false,
+    showDebugInfo: false,
+    enableTestLogin: false,
+  },
   
   // Development Configuration
   development: DevelopmentConfig;

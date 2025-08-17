@@ -16,6 +16,8 @@ const settingsModule: ModuleDefinition = {
     { name: 'navigation:settings.dashboard', path: '/settings/dashboard', icon: CogIcon, page: 'SettingsDashboardPage' },
     { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
     { name: 'navigation:settings.features', path: '/settings/features', icon: CogIcon, page: 'FeatureSettingsPage' },
+    { name: 'navigation:settings.tabbedMode', path: '/settings/tabbed-mode', icon: ArrowsRightLeftIcon, page: 'TabbedModeSettingsPage' },
+    { name: 'navigation:settings.tabbedModeTest', path: '/settings/tabbed-mode-test', icon: ArrowsRightLeftIcon, page: 'TabbedModeTestPage' },
     { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
     { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
     { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon, page: 'DatabaseSettingsPage' },
