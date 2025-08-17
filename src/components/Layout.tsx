@@ -1,6 +1,6 @@
 // ABOUTME: Main layout component for the application
 // ABOUTME: Handles navigation, tab management, and overall app structure
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
@@ -20,6 +20,7 @@ import { TabbedWorkspace } from './tabbedWorkspace';
 import { useTabStore } from '../stores/tabStore';
 import { extractModuleId } from '../utils/moduleUtils';
 import { TabbedWorkspaceManager } from './tabbedWorkspace/TabbedWorkspaceManager';
+import { isTabbedModeEnabled } from '../services/tabbedModeFeatureFlag';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // ALL HOOKS MUST BE CALLED IN THE SAME ORDER EVERY RENDER
@@ -176,6 +177,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Check if tabbed mode is enabled for the current module
+  const isTabbedMode = useMemo(() => {
+    const currentModule = extractModuleId(selectedModuleKey || 'dashboard');
+    return isTabbedModeEnabled(currentModule);
+  }, [selectedModuleKey]);
+
   // Only proceed when both the store is initialized and tab system is ready
   const isAppReady = isStoreInitialized && isTabSystemReady;
 
@@ -183,7 +190,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (!isAppReady) {
     return (
       <LoadingScreen 
-        message="Initializing tab system..."
+        message="Initializing system..."
         spinner={true}
         overlay={true}
       />
@@ -198,25 +205,54 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
           <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
           <main className="flex-1 overflow-hidden">
-            {/* Tabbed Workspace Mode - Full page tabs with integrated breadcrumbs */}
-            <TabbedWorkspace
-              className="h-full"
-              showActionBar={true}
-              showSettings={true}
-              onSettingsClick={handleSettingsClick}
-              maxTabs={20}
-              enableTabGroups={false}
-              enableTabPersistence={true}
-              theme="default"
-              userRole={user?.role || 'guest'}
-              userPermissions={user?.permissions || []}
-              moduleContext={extractModuleId(selectedModuleKey || 'dashboard')}
-              onTabContentRender={handleTabContentRender}
-              enableHierarchicalMode={true}
-              showBreadcrumbs={true}
-              tabStyle="modern"
-              showCloseButton={true}
-            />
+            {isTabbedMode ? (
+              /* Tabbed Workspace Mode - Full page tabs with integrated breadcrumbs */
+              <TabbedWorkspace
+                className="h-full"
+                showActionBar={true}
+                showSettings={true}
+                onSettingsClick={handleSettingsClick}
+                maxTabs={20}
+                enableTabGroups={false}
+                enableTabPersistence={true}
+                theme="default"
+                userRole={user?.role || 'guest'}
+                userPermissions={user?.permissions || []}
+                moduleContext={extractModuleId(selectedModuleKey || 'dashboard')}
+                onTabContentRender={handleTabContentRender}
+                enableHierarchicalMode={true}
+                showBreadcrumbs={true}
+                tabStyle="modern"
+                showCloseButton={true}
+              />
+            ) : (
+              /* Traditional Layout Mode - Standard layout with breadcrumbs */
+              <div className="h-full p-2 sm:p-3 lg:p-4">
+                <div className="h-full overflow-y-auto">
+                  {/* Breadcrumb Navigation */}
+                  <div className="mb-2">
+                    <BreadcrumbNavigation 
+                      className="mb-1"
+                      onNavigationError={(path, error) => {
+                        console.error(`Navigation error for ${path}:`, error);
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Main content wrapped with navigation error boundary */}
+                  <NavigationErrorBoundary
+                    onError={(error, errorInfo, currentRoute) => {
+                      console.error(`Navigation boundary caught error on ${currentRoute}:`, error);
+                    }}
+                    maxRetries={2}
+                    enableFallbackRoutes={true}
+                    fallbackRoutes={['/dashboard', '/reports', '/administration']}
+                  >
+                    {children}
+                  </NavigationErrorBoundary>
+                </div>
+              </div>
+            )}
           </main>
           <SettingsPopup open={showSettings} onClose={() => setShowSettings(false)} />
         </div>

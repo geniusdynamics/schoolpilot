@@ -19,7 +19,7 @@ async function testAllDemoUsers() {
     
     try {
       // Import authService dynamically
-      const { authService } = await import('./src/services/authService.js');
+      const { authService } = await import('../../src/services/authService.js');
       
       // Clear any existing session
       authService.logout();
@@ -72,7 +72,7 @@ async function testInvalidCredentials() {
     try {
       console.log(`🔐 Testing invalid: ${test.username || '[empty]'} / ${test.password || '[empty]'}`);
       
-      const { authService } = await import('./src/services/authService.js');
+      const { authService } = await import('../../src/services/authService.js');
       const result = await authService.login({
         username: test.username,
         password: test.password
@@ -95,7 +95,7 @@ function testErrorReporting() {
   
   try {
     // Import error tracking
-    import('./src/config/errorTracking.js').then(({ reportError, reportMessage }) => {
+    import('../../src/config/errorTracking.js').then(({ reportError, reportMessage }) => {
       // Test manual error reporting
       const testError = new Error('Test login error for Bugsink verification');
       reportError(testError, {

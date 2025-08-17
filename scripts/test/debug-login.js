@@ -5,7 +5,7 @@ console.log('=== LOGIN DEBUG TEST ===');
 
 // Test authService import
 try {
-  const authServiceModule = await import('./src/services/authService.js');
+  const authServiceModule = await import('../../src/services/authService.js');
   console.log('✅ authService imported successfully');
   
   // Test login with admin credentials
@@ -28,7 +28,7 @@ try {
 
 // Test 2: Check AuthContext
 try {
-  const authContextModule = await import('./src/contexts/AuthContext.tsx');
+  const authContextModule = await import('../../src/contexts/AuthContext.tsx');
   console.log('✅ AuthContext imported successfully');
 } catch (error) {
   console.error('❌ Error importing AuthContext:', error);

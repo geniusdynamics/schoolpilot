@@ -12,7 +12,7 @@ async function testDemoLogin() {
   console.log('🧪 Starting demo login tests...');
   
   // Import authService dynamically
-  const { authService } = await import('./src/services/authService.js');
+  const { authService } = await import('../../src/services/authService.js');
   
   let passedTests = 0;
   let totalTests = demoUsers.length;
