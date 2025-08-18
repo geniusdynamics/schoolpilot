@@ -89,14 +89,14 @@ const SettingsGeneralPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('userManagement.totalUsers')}
                 </label>
-                <p className="text-2xl font-semibold text-gray-900">{users.length}</p>
+                <p className="text-2xl font-semibold text-gray-900">{users ? users.length : 0}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Active Users
                 </label>
                 <p className="text-2xl font-semibold text-green-600">
-                  {users.filter(user => user.isActive).length}
+                  {users ? users.filter(user => user.isActive).length : 0}
                 </p>
               </div>
               <div>
@@ -104,7 +104,7 @@ const SettingsGeneralPage: React.FC = () => {
                   Inactive Users
                 </label>
                 <p className="text-2xl font-semibold text-red-600">
-                  {users.filter(user => !user.isActive).length}
+                  {users ? users.filter(user => !user.isActive).length : 0}
                 </p>
               </div>
             </div>

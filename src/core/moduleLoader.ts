@@ -13,7 +13,8 @@ const loadModule = async (moduleId: string) => {
 
   const loadPromise = (async () => {
     try {
-      const module = await import(`../modules/${moduleId}`);
+      // Using @vite-ignore because this is an intentional dynamic import
+      const module = await import(/* @vite-ignore */ `../modules/${moduleId}`);
       return module;
     } catch (error) {
       loadedModules.delete(moduleId);

@@ -1,19 +1,11 @@
 /// <reference types="react" />
 // ABOUTME: This file provides the main data context for the application, managing data sources and state
-// ABOUTME: Simplified implementation that eliminates hook order violations and infinite re-renders
+// ABOUTME: Enhanced implementation that provides necessary properties for settings pages
 
 import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { getCurrentUnifiedConfig } from '../config/unifiedConfig';
-// Simple inline mock data to replace broken import
-const mockData = {
-  academic: [{ id: 'mock-test-1', name: '🧪 MOCK DATA TEST - Academic Module', type: 'test' }],
-  administration: [{ id: 'mock-test-2', name: '🧪 MOCK DATA TEST - Admin Module', type: 'test' }],
-  finance: [{ id: 'mock-test-3', name: '🧪 MOCK DATA TEST - Finance Module', type: 'test' }],
-  inventory: [{ id: 'mock-test-4', name: '🧪 MOCK DATA TEST - Inventory Module', type: 'test' }],
-  library: [{ id: 'mock-test-5', name: '🧪 MOCK DATA TEST - Library Module', type: 'test' }],
-  nutrition: [{ id: 'mock-test-6', name: '🧪 MOCK DATA TEST - Nutrition Module', type: 'test' }]
-};
 import { useRxDBData } from '../hooks/useRxDBData';
+import { useModularMockData } from '../hooks/useModularMockData';
 import { NetworkProvider, useNetwork } from './NetworkContext';
 import { SyncProvider, useSync } from './SyncContext';
 import { DataSourceProvider, useDataSource } from './DataSourceContext';
@@ -22,29 +14,8 @@ import type { AppDataContextType, RbacRole, Role } from '../core/types';
 import Spinner from '../components/ui/Spinner';
 import DismissibleBanner from '../components/DismissibleBanner';
 
-export interface AppDataContextType {
-  // Core data
-  data: any;
-  loading: boolean;
-  error: Error | null;
-  
-  // Refresh functionality
-  refresh: () => Promise<void>;
-}
-
+// Create the context with a default undefined value
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
-
-// Simple role mapping utility
-function mapRbacRoleToLegacyRole(rbacRole: string): string {
-  const roleMapping: Record<string, string> = {
-    'super_admin': 'admin',
-    'school_admin': 'admin',
-    'teacher': 'teacher',
-    'student': 'student',
-    'parent': 'parent'
-  };
-  return roleMapping[rbacRole] || 'student';
-}
 
 // Internal component that uses the split contexts
 const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -60,15 +31,8 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
   // Always call useRxDBData hook unconditionally
   const rxdbResult = useRxDBData();
   
-  // Create mock result
-  const mockResult = useMemo(() => ({
-    data: mockData,
-    loading: false,
-    error: null,
-    refresh: async () => {
-      console.log('Mock refresh called');
-    }
-  }), []);
+  // Always call useModularMockData hook unconditionally
+  const mockResult = useModularMockData();
 
   // Get current unified config to determine data source
   const shouldUseEnhancedData = currentConfig.features?.enhancedDataLayer;
@@ -85,32 +49,38 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
   const selectedData = shouldUseEnhancedData ? rxdbResult : mockResult;
   
   console.log('📊 [AppDataContext] Data source selected:', {
-    source: shouldUseEnhancedData ? 'RxDB/Enhanced' : 'Mock Data',
+    source: shouldUseEnhancedData ? 'RxDB/Enhanced' : 'Modular Mock Data',
     loading: selectedData.loading,
-    hasData: Object.keys(selectedData.data || {}).length > 0
+    hasData: Object.keys(selectedData).length > 0
   });
 
-  // Choose which result to use based on config
-  const activeHookResult = useMemo(() => {
-    return selectedData;
-  }, [selectedData]);
-
-  // Context value creation
-  const contextValue = useMemo((): AppDataContextType => ({
-    // Core data
-    data: activeHookResult.data,
-    loading: activeHookResult.loading,
-    error: activeHookResult.error,
-    refresh: activeHookResult.refresh
-  }), [
-    activeHookResult.data,
-    activeHookResult.loading,
-    activeHookResult.error,
-    activeHookResult.refresh
-  ]);
+  // Create context value with all necessary properties
+  const contextValue = useMemo((): AppDataContextType => {
+    // Extract the properties we need for settings pages
+    const schoolDetails = selectedData.schoolDetails || null;
+    const users = selectedData.users || [];
+    const isRxDBModeActive = !!shouldUseEnhancedData;
+    
+    return {
+      // Core data from selected data source
+      ...selectedData,
+      
+      // Settings page specific properties
+      schoolDetails,
+      users,
+      isRxDBModeActive,
+      
+      // Loading and error states
+      loading: selectedData.loading || false,
+      error: selectedData.error || null,
+      
+      // Refresh function
+      refresh: selectedData.refresh || (async () => {})
+    };
+  }, [selectedData, shouldUseEnhancedData]);
 
   // Loading state
-  if (activeHookResult.loading) {
+  if (contextValue.loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -120,7 +90,7 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
   }
 
   // Production mode error handling
-  if (currentConfig.environment === 'production' && activeHookResult.error) {
+  if (currentConfig.environment === 'production' && contextValue.error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-red-50">
         <div className="text-center p-6">

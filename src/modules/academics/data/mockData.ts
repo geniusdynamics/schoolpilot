@@ -7,7 +7,7 @@ import {
 } from '../../../core/types';
 import {
   SubjectGrouping, ExamSessionStatus, StudentEnrollmentStatus, EducationSystemType, 
-  GradingSystemType, AcademicPeriodType, AssessmentType
+  GradingSystemType, AcademicPeriodType, AssessmentType, EducationSystemConfiguration
 } from './types';
 
 const generateId = (prefix: string = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;

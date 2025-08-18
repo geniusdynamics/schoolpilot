@@ -1,18 +1,30 @@
 {
-  "title": "Amategeko",
+  "title": "Igenamiterere",
   "navigation": {
     "settings": {
-      "title": "Amategeko",
-      "description": "Gushyiraho amategeko ya sisitemu, moduli, n'ubuyobozi bw'abakoresha",
+      "title": "Igenamiterere",
+      "description": "Shiraho igenamiterere rya sisitemu, modules, no gucunga abakoresha",
       "general": "Rusange",
-      "features": "Ibiranga",
-      "modules": "Moduli",
-      "auditLog": "Inyandiko y'Igenzura",
-      "databaseSettings": "Amategeko y'Ububiko bw'Amakuru",
-      "schoolProfile": "Umwirondoro w'Ishuri",
+      "features": "Ibintu byihariye",
+      "modules": "Modules",
+      "auditLog": "Inyandiko y'igenzura",
+      "databaseSettings": "Igenamiterere ry'ububiko",
+      "schoolProfile": "Umwirondoro w'ishuri",
       "users": "Abakoresha",
-      "workflows": "Inzira z'Akazi",
-      "tabbedWorkspaceTest": "Ikizamini cy'Ahantu h'Akazi h'Amatabi"
+      "workflows": "Imirimo",
+      "tabs": "Igenamiterere ry'amatabure",
+      "tabbedWorkspaceTest": "Igeragezwa ry'umwanya de akazi",
+      "dashboard": "Kibaho"
     }
+  },
+  "tabs": {
+    "pageTitle": "Igenamiterere ry'amatabure",
+    "pageDescription": "Shiraho igenamiterere ry'interface y'amatabure kandi ugerageze imikorere y'umwanya de akazi",
+    "settingsTab": "Igenamiterere",
+    "workspaceTab": "Igeragezwa ry'umwanya de akazi"
+  },
+  "tabbedWorkspaceTest": {
+    "pageTitle": "Igeragezwa ry'umwanya de akazi",
+    "pageDescription": "Gerageza kandi ugenzure imikorere y'umwanya de akazi."
   }
 }
