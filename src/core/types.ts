@@ -1744,6 +1744,51 @@ export interface ModuleDefinition {
   publicAccess?: boolean; // Whether module can be accessed without authentication
 }
 
+// Enhanced ModuleDependency structure for versioned dependencies
+export interface ModuleDependency {
+  moduleId: string;
+  version: string; // Semver range (e.g., "^1.2.0", "~1.2.3")
+  required: boolean;
+  optional?: boolean;
+}
+
+// Enhanced ModuleDefinition with versioned dependencies
+export interface ModuleDefinition {
+  id: string;
+  name: string; // Translation key for module name
+  description?: string; // Translation key for module description
+  icon: React.ComponentType<any>;
+  path: string; // Base path for the module
+  isActive: boolean; // Whether the module is enabled
+  version: string;
+  dependencies?: ModuleDependency[]; // Required and optional dependencies with version constraints
+  navigation: NavItem[]; // Navigation items for this module
+  features?: string[]; // List of features this module provides
+  routes?: Array<{ path: string; page: string }>; // Custom/dynamic routes for this module
+  settings?: {
+    category: string; // Settings category
+    items: Array<{
+      key: string;
+      type: 'boolean' | 'string' | 'number' | 'select';
+      defaultValue: any;
+      options?: Array<{ value: any; label: string }>;
+    }>;
+  };
+  // RBAC-specific properties
+  rbacPermissions?: Permission[];
+  defaultRoles?: string[]; // Roles that have access by default
+  requiresAuthentication?: boolean;
+  publicAccess?: boolean; // Whether module can be accessed without authentication
+}
+
+// Enhanced ModuleDependency structure for versioned dependencies
+export interface ModuleDependency {
+  moduleId: string;
+  version: string; // Semver range (e.g., "^1.2.0", "~1.2.3")
+  required: boolean;
+  optional?: boolean;
+}
+
 // RBAC Role for the new permission system
 export interface RbacRole {
   id: string;

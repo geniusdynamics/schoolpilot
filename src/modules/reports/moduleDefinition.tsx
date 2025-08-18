@@ -12,7 +12,23 @@ const reportsModule: ModuleDefinition = {
   path: '/reports',
   isActive: true,
   version: '1.0.0',
-  dependencies: ['administration', 'academics', 'finance'],
+  dependencies: [
+    {
+      moduleId: 'administration',
+      version: '^1.0.0',
+      required: true
+    },
+    {
+      moduleId: 'academics',
+      version: '^1.0.0',
+      required: true
+    },
+    {
+      moduleId: 'finance',
+      version: '^1.0.0',
+      required: true
+    }
+  ],
   navigation: [
     { name: 'navigation:reports.dashboard', path: '/reports/dashboard', icon: DocumentReportIcon, page: 'ReportsDashboardPage' },
     { name: 'navigation:reports.title', path: '/reports', icon: DocumentReportIcon, page: 'ReportsPage' },

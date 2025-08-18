@@ -7,6 +7,7 @@
       "general": "General",
       "features": "Features",
       "modules": "Modules",
+      "dependencyReport": "Dependency Report",
       "auditLog": "Audit Log",
       "databaseSettings": "Database Settings",
       "schoolProfile": "School Profile",
@@ -68,5 +69,25 @@
   "tabbedWorkspaceTest": {
     "pageTitle": "Tabbed Workspace Test",
     "pageDescription": "Test and verify the functionality of the tabbed workspace."
+  },
+  "dependencyReport": {
+    "title": "Module Dependency Report",
+    "refresh": "Refresh Report",
+    "loading": "Generating dependency report...",
+    "totalModules": "Total Modules",
+    "modulesWithIssues": "Modules with Issues",
+    "totalIssues": "Total Issues",
+    "issuesFound": "Issues Found",
+    "issueTypes": {
+      "missing": "Missing Dependency",
+      "version": "Version Mismatch",
+      "circular": "Circular Dependency"
+    },
+    "dependencyGraph": "Dependency Graph",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "dependencies": "Dependencies",
+    "noDependencies": "No dependencies",
+    "rawData": "Raw Report Data"
   }
 }

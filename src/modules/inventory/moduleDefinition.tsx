@@ -46,7 +46,13 @@ export const inventoryModule: ModuleDefinition = {
     { name: 'navigation:inventory.vendorPortalDashboard', path: '/inventory/vendor-portal-dashboard', icon: UserGroupIcon, page: 'VendorPortalDashboardPage' },
   ],
   features: ['inventory-management', 'procurement', 'asset-tracking', 'stock-control'],
-  dependencies: ['administration'],
+  dependencies: [
+    {
+      moduleId: 'administration',
+      version: '^1.0.0',
+      required: true
+    }
+  ],
   settings: {
     category: 'inventory',
     items: [

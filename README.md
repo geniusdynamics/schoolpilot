@@ -252,6 +252,15 @@ modules/{module-name}/
 └── README.md             # Module documentation
 ```
 
+### Module Dependency Management
+Modules declare their dependencies on other modules with version constraints:
+- **Explicit Dependencies**: Modules declare required and optional dependencies
+- **Version Constraints**: Semantic versioning support (^, ~, exact versions)
+- **Validation**: Automatic validation of dependency compatibility
+- **Visualization**: Tools to visualize module relationships
+
+See [Module Dependency System Documentation](docs/module-dependency-system.md) for details.
+
 ## 🗄️ Database Architecture
 
 ### RxDB Implementation

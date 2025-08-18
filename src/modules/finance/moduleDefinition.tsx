@@ -45,7 +45,13 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.studentTransportAssignments', path: '/finance/student-transport-assignments', icon: TruckIcon, page: 'StudentTransportAssignmentsPage' },
   ],
   features: ['fee-management', 'payment-processing', 'accounting', 'expense-tracking', 'transport-finance'],
-  dependencies: ['administration'],
+  dependencies: [
+    {
+      moduleId: 'administration',
+      version: '^1.0.0',
+      required: true
+    }
+  ],
   settings: {
     category: 'finance',
     items: [

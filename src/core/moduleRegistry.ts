@@ -128,11 +128,27 @@ class ModuleRegistry {
       return { satisfied: true, missing: [] };
     }
 
-    const missing = module.dependencies.filter(dep => !this.isModuleEnabled(dep)); // Use the updated isModuleEnabled
+    const dependencies = module.dependencies.map(dep => 
+      typeof dep === 'string' ? dep : dep.moduleId
+    );
+    
+    const missing = dependencies.filter(depId => !this.isModuleEnabled(depId));
     return {
       satisfied: missing.length === 0,
       missing
     };
+  }
+
+  // Validate module dependencies with version checking
+  async validateModuleDependencies(moduleId: string): Promise<boolean> {
+    const module = this.modules.get(moduleId);
+    if (!module) {
+      return false;
+    }
+    
+    // Use dynamic import to avoid circular dependency issues
+    const { ModuleDependencyValidator } = await import('./services/ModuleDependencyValidator');
+    return ModuleDependencyValidator.validateDependencies(module, this);
   }
 
   // Get modules by feature
@@ -176,4 +192,4 @@ export const getNavigationItems = (): NavItem[] => {
 };
 
 // Export the registry instance
-export default moduleRegistry; 
+export default moduleRegistry;

@@ -241,6 +241,7 @@
   "navigation:settings.workflows": "Flux de Travail",
   "navigation:settings.dashboard": "Tableau de bord",
   "navigation:settings.tabbedWorkspaceTest": "Test de l'espace de travail à onglets",
+  "navigation:settings.dependencyReport": "Rapport des Dépendances",
   "tabs": {
     "pageTitle": "Paramètres des onglets",
     "pageDescription": "Configurer les paramètres de l'interface à onglets et tester la fonctionnalité de l'espace de travail",
@@ -250,5 +251,25 @@
   "tabbedWorkspaceTest": {
     "pageTitle": "Test de l'espace de travail à onglets",
     "pageDescription": "Testez et vérifiez la fonctionnalité de l'espace de travail à onglets."
+  },
+  "dependencyReport": {
+    "title": "Rapport des Dépendances entre Modules",
+    "refresh": "Actualiser le Rapport",
+    "loading": "Génération du rapport des dépendances...",
+    "totalModules": "Total des Modules",
+    "modulesWithIssues": "Modules avec Problèmes",
+    "totalIssues": "Total des Problèmes",
+    "issuesFound": "Problèmes Trouvés",
+    "issueTypes": {
+      "missing": "Dépendance Manquante",
+      "version": "Incompatibilité de Version",
+      "circular": "Dépendance Circulaire"
+    },
+    "dependencyGraph": "Graphe des Dépendances",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "dependencies": "Dépendances",
+    "noDependencies": "Aucune dépendance",
+    "rawData": "Données Brutes du Rapport"
   }
 }

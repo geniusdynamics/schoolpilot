@@ -31,7 +31,13 @@ export const nutritionModule: ModuleDefinition = {
     { name: 'navigation:nutrition.studentWallet', path: '/nutrition/student-wallet', icon: CurrencyDollarIcon, page: 'StudentWalletPage' },
   ],
   features: ['meal-planning', 'menu-management', 'student-nutrition', 'wallet-management'],
-  dependencies: ['administration'],
+  dependencies: [
+    {
+      moduleId: 'administration',
+      version: '^1.0.0',
+      required: true
+    }
+  ],
   settings: {
     category: 'nutrition',
     items: [

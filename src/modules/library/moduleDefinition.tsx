@@ -46,7 +46,13 @@ export const libraryModule: ModuleDefinition = {
     { path: '/library/settings', page: 'LibrarySettingsPage' }
   ],
   features: ['book-management', 'loan-tracking', 'fine-management'],
-  dependencies: ['administration'],
+  dependencies: [
+    {
+      moduleId: 'administration',
+      version: '^1.0.0',
+      required: true
+    }
+  ],
   settings: {
     category: 'library',
     items: [

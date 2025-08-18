@@ -516,9 +516,79 @@ const AppInner: React.FC = () => {
             () => initializeModules(),
             'module_initialization'
           );
+          
+          // Verify modules are properly registered
+          const registeredModules = moduleRegistry.getAllModules();
+          const enabledModules = moduleRegistry.getEnabledModules();
+          
+          console.log('✅ [App] Modules initialized successfully');
+          console.log('📦 [App] Registered modules:', registeredModules.map(m => ({ id: m.id, name: m.name, version: m.version })));
+          console.log('🟢 [App] Enabled modules:', enabledModules.map(m => ({ id: m.id, name: m.name })));
+          
+          // Verify navigation items are available
+          const navigationItems = moduleRegistry.getNavigationItems();
+          console.log('🧭 [App] Navigation items:', navigationItems.map(item => ({ name: item.name, path: item.path, isActive: item.isActive })));
+          
+          // Additional verification
+          console.log(`📊 [App] Module verification complete: ${registeredModules.length} total, ${enabledModules.length} enabled, ${navigationItems.length} nav items`);
+          
+          // Add visible verification for debugging
+          const verificationDiv = document.createElement('div');
+          verificationDiv.id = 'module-verification-status';
+          verificationDiv.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #4CAF50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 9999;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 300px;
+          `;
+          verificationDiv.innerHTML = `
+            <strong>Module Verification ✅</strong><br/>
+            Registered: ${registeredModules.length}<br/>
+            Enabled: ${enabledModules.length}<br/>
+            Nav Items: ${navigationItems.length}<br/>
+            <small>Modules: ${enabledModules.map(m => m.id).join(', ')}</small>
+          `;
+          document.body.appendChild(verificationDiv);
+          
+          // Remove after 10 seconds
+          setTimeout(() => {
+            const elem = document.getElementById('module-verification-status');
+            if (elem) elem.remove();
+          }, 10000);
+          
           debugLog('✅ [App] Modules initialized successfully');
+          debugLog('📦 [App] Registered modules:', registeredModules.map(m => ({ id: m.id, name: m.name, version: m.version })));
+          debugLog('🟢 [App] Enabled modules:', enabledModules.map(m => ({ id: m.id, name: m.name })));
+          debugLog('🧭 [App] Navigation items:', navigationItems.map(item => ({ name: item.name, path: item.path, isActive: item.isActive })));
+          
+          // Expose module registry to global scope for testing
+          (window as any).moduleRegistry = moduleRegistry;
+          (window as any).moduleTestData = {
+            registeredModules,
+            enabledModules,
+            navigationItems,
+            initializationComplete: true,
+            timestamp: new Date().toISOString()
+          };
+          
         } catch (error) {
           console.error('❌ [App] Module initialization failed:', error);
+          // Expose error state for testing
+          (window as any).moduleTestData = {
+            registeredModules: [],
+            enabledModules: [],
+            navigationItems: [],
+            initializationComplete: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+          };
           // In a real app, you might want to show an error screen here
         } finally {
           setModulesInitialized(true);

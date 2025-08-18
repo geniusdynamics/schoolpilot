@@ -28,7 +28,13 @@ export const hrModule: ModuleDefinition = {
     { name: 'navigation:hr.staffSalarySettings', path: '/hr/staff-salary-settings', icon: CurrencyDollarIcon, page: 'StaffSalarySettingsPage' },
   ],
   features: ['payroll-management', 'staff-compensation', 'hr-records'],
-  dependencies: ['administration'],
+  dependencies: [
+    {
+      moduleId: 'administration',
+      version: '^1.0.0',
+      required: true
+    }
+  ],
   settings: {
     category: 'hr',
     items: [
