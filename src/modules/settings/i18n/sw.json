@@ -11,8 +11,20 @@
       "databaseSettings": "Mipangilio ya Hifadhidata",
       "schoolProfile": "Wasifu wa Shule",
       "users": "Watumiaji",
-      "workflows": "Mtiririko wa Kazi",
-      "tabbedWorkspaceTest": "Jaribio la Nafasi ya Kazi ya Vichupo"
+      "workflows": "Mtiririko wa kazi",
+      "tabs": "Mipangilio ya Vichupo",
+      "tabbedWorkspaceTest": "Jaribio la Nafasi ya Kazi ya Vichupo",
+      "dashboard": "Dashibodi"
     }
+  },
+  "tabs": {
+    "pageTitle": "Mipangilio ya Vichupo",
+    "pageDescription": "Sanidi mipangilio ya kiolesura cha vichupo na ujaribu utendakazi wa nafasi ya kazi",
+    "settingsTab": "Mipangilio",
+    "workspaceTab": "Jaribio la Nafasi ya Kazi"
+  },
+  "tabbedWorkspaceTest": {
+    "pageTitle": "Jaribio la Nafasi ya Kazi ya Vichupo",
+    "pageDescription": "Jaribu na uhakikishe utendakazi wa nafasi ya kazi ya vichupo."
   }
 }

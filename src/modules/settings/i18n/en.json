@@ -12,7 +12,61 @@
       "schoolProfile": "School Profile",
       "users": "Users",
       "workflows": "Workflows",
-      "tabbedWorkspaceTest": "Tabbed Workspace Test"
+      "tabs": "Tab Settings",
+      "tabbedWorkspaceTest": "Tabbed Workspace Test",
+      "dashboard": "Dashboard"
     }
+  },
+  "tabs": {
+    "pageTitle": "Tab Settings",
+    "pageDescription": "Configure tabbed interface settings and test workspace functionality",
+    "settingsTab": "Settings",
+    "workspaceTab": "Workspace Test"
+  },
+  "tabbedMode": {
+    "title": "Tabbed Mode Configuration",
+    "description": "Configure tabbed mode feature flags and module-specific overrides",
+    "currentStatus": "Current Status",
+    "configuration": "Configuration",
+    "testPageTitle": "Tabbed Mode Test",
+    "testPageDescription": "Test tabbed mode functionality and verify configuration",
+    "selectModule": "Select Module",
+    "tabbedModeStatus": "Tabbed Mode Status",
+    "evaluationLogic": "Evaluation Logic",
+    "globalCheck": "Global Enabled",
+    "perModuleCheck": "Per-Module Control",
+    "moduleOverrideCheck": "Module Override",
+    "globalSettings": "Global Settings",
+    "enableGlobal": "Enable Tabbed Mode Globally",
+    "enableGlobalDescription": "Enables tabbed mode interface across all modules",
+    "perModuleControl": "Per-Module Control",
+    "enablePerModuleControl": "Enable Per-Module Control",
+    "enablePerModuleControlDescription": "Allows enabling/disabling tabbed mode for individual modules",
+    "moduleOverrides": "Module Overrides",
+    "toggleModuleOverride": "Toggle {{module}} module override",
+    "noModulesAvailable": "No modules available",
+    "helpTitle": "Help Information",
+    "helpGlobalToggle": "Global Toggle",
+    "helpGlobalToggleDescription": "Enables or disables tabbed mode globally across all modules",
+    "helpPerModuleControl": "Per-Module Control",
+    "helpPerModuleControlDescription": "Allows fine-grained control of tabbed mode on a per-module basis",
+    "helpModuleOverrides": "Module Overrides",
+    "helpModuleOverridesDescription": "Explicitly enable or disable tabbed mode for specific modules",
+    "globalEnabledUpdated": "Global tabbed mode setting updated successfully",
+    "globalEnabledUpdateFailed": "Failed to update global tabbed mode setting",
+    "perModuleControlUpdated": "Per-module control setting updated successfully",
+    "perModuleControlUpdateFailed": "Failed to update per-module control setting",
+    "moduleOverrideUpdated": "{{module}} module override updated successfully",
+    "moduleOverrideUpdateFailed": "Failed to update {{module}} module override",
+    "resetToDefaultsSuccess": "Configuration reset to defaults successfully",
+    "resetToDefaultsFailed": "Failed to reset configuration to defaults",
+    "globalEnabled": "Global enabled",
+    "perModuleControlEnabled": "Per-module control enabled",
+    "moduleOverridesCount": "{{count}} module overrides",
+    "helpAndSupport": "Help and Support"
+  },
+  "tabbedWorkspaceTest": {
+    "pageTitle": "Tabbed Workspace Test",
+    "pageDescription": "Test and verify the functionality of the tabbed workspace."
   }
 }

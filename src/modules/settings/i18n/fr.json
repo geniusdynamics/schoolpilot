@@ -238,5 +238,17 @@
   "navigation:settings.settings": "Paramètres Généraux",
   "navigation:settings.schoolProfile": "Profil de l'École",
   "navigation:settings.users": "Gestion des Utilisateurs",
-  "navigation:settings.workflows": "Flux de Travail"
+  "navigation:settings.workflows": "Flux de Travail",
+  "navigation:settings.dashboard": "Tableau de bord",
+  "navigation:settings.tabbedWorkspaceTest": "Test de l'espace de travail à onglets",
+  "tabs": {
+    "pageTitle": "Paramètres des onglets",
+    "pageDescription": "Configurer les paramètres de l'interface à onglets et tester la fonctionnalité de l'espace de travail",
+    "settingsTab": "Paramètres",
+    "workspaceTab": "Test de l'espace de travail"
+  },
+  "tabbedWorkspaceTest": {
+    "pageTitle": "Test de l'espace de travail à onglets",
+    "pageDescription": "Testez et vérifiez la fonctionnalité de l'espace de travail à onglets."
+  }
 }

@@ -184,20 +184,60 @@ const createLoadingStates = (): AppDataLoadingStates => ({
 });
 
 export const useModularMockData = (): AppDataContextType => {
-  // Use module-specific hooks for live data
-  const { data: academicyears, create: addAcademicYear, update: updateAcademicYear, remove: deleteAcademicYear } = useAcademicYearData();
-  const { data: classsubjectallocations, create: addClassSubjectAllocation, update: updateClassSubjectAllocation, remove: deleteClassSubjectAllocation } = useClassSubjectAllocationData();
-  const { data: exampapersettings, create: addExamPaperSetting, update: updateExamPaperSetting, remove: deleteExamPaperSetting } = useExamPaperSettingData();
-  const { data: examsessions, create: addExamSession, update: updateExamSession, remove: deleteExamSession } = useExamSessionData();
-  const { data: gradingschemes, create: addGradingScheme, update: updateGradingScheme, remove: deleteGradingScheme } = useGradingSchemeData();
-  const { data: gradingschemelevels, create: addGradingSchemeLevel, update: updateGradingSchemeLevel, remove: deleteGradingSchemeLevel } = useGradingSchemeLevelData();
-  const { data: studentexamresults, create: addStudentExamResult, update: updateStudentExamResult, remove: deleteStudentExamResult } = useStudentExamResultData();
-  const { data: studentpapermarks, create: addStudentPaperMark, update: updateStudentPaperMark, remove: deleteStudentPaperMark } = useStudentPaperMarkData();
-  const { data: studentsubjectenrollments, create: addStudentSubjectEnrollment, update: updateStudentSubjectEnrollment, remove: deleteStudentSubjectEnrollment } = useStudentSubjectEnrollmentData();
-  const { data: subjects, create: addSubject, update: updateSubject, remove: deleteSubject } = useSubjectData();
-  const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
-  const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
-  const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
+  console.log('🔧 [useModularMockData] Starting initialization...');
+  
+  try {
+    // Use module-specific hooks for live data
+    console.log('🔧 [useModularMockData] Loading academic year data...');
+    const { data: academicyears, create: addAcademicYear, update: updateAcademicYear, remove: deleteAcademicYear } = useAcademicYearData();
+    console.log('✅ [useModularMockData] Academic year data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading class subject allocation data...');
+    const { data: classsubjectallocations, create: addClassSubjectAllocation, update: updateClassSubjectAllocation, remove: deleteClassSubjectAllocation } = useClassSubjectAllocationData();
+    console.log('✅ [useModularMockData] Class subject allocation data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading exam paper setting data...');
+    const { data: exampapersettings, create: addExamPaperSetting, update: updateExamPaperSetting, remove: deleteExamPaperSetting } = useExamPaperSettingData();
+    console.log('✅ [useModularMockData] Exam paper setting data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading exam session data...');
+    const { data: examsessions, create: addExamSession, update: updateExamSession, remove: deleteExamSession } = useExamSessionData();
+    console.log('✅ [useModularMockData] Exam session data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading grading scheme data...');
+    const { data: gradingschemes, create: addGradingScheme, update: updateGradingScheme, remove: deleteGradingScheme } = useGradingSchemeData();
+    console.log('✅ [useModularMockData] Grading scheme data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading grading scheme level data...');
+    const { data: gradingschemelevels, create: addGradingSchemeLevel, update: updateGradingSchemeLevel, remove: deleteGradingSchemeLevel } = useGradingSchemeLevelData();
+    console.log('✅ [useModularMockData] Grading scheme level data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading student exam result data...');
+    const { data: studentexamresults, create: addStudentExamResult, update: updateStudentExamResult, remove: deleteStudentExamResult } = useStudentExamResultData();
+    console.log('✅ [useModularMockData] Student exam result data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading student paper mark data...');
+    const { data: studentpapermarks, create: addStudentPaperMark, update: updateStudentPaperMark, remove: deleteStudentPaperMark } = useStudentPaperMarkData();
+    console.log('✅ [useModularMockData] Student paper mark data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading student subject enrollment data...');
+    const { data: studentsubjectenrollments, create: addStudentSubjectEnrollment, update: updateStudentSubjectEnrollment, remove: deleteStudentSubjectEnrollment } = useStudentSubjectEnrollmentData();
+    console.log('✅ [useModularMockData] Student subject enrollment data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading subject data...');
+    const { data: subjects, create: addSubject, update: updateSubject, remove: deleteSubject } = useSubjectData();
+    console.log('✅ [useModularMockData] Subject data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading subject paper data...');
+    const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
+    console.log('✅ [useModularMockData] Subject paper data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading teacher subject assignment data...');
+    const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
+    console.log('✅ [useModularMockData] Teacher subject assignment data loaded');
+    
+    console.log('🔧 [useModularMockData] Loading timetable entry data...');
+    const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
   const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
   const { data: academicperioddefinitions, create: addAcademicPeriodDefinition, update: updateAcademicPeriodDefinition, remove: deleteAcademicPeriodDefinition } = useAcademicPeriodDefinitionData();
   const { data: academicyearstructures, create: addAcademicYearStructure, update: updateAcademicYearStructure, remove: deleteAcademicYearStructure } = useAcademicYearStructureData();
@@ -264,22 +304,28 @@ export const useModularMockData = (): AppDataContextType => {
   const { data: menus, create: addMenu, update: updateMenu, remove: deleteMenu } = useMenuData();
   const { data: merchants, create: addMerchant, update: updateMerchant, remove: deleteMerchant } = useMerchantData();
   const { data: studentmealplans, create: addStudentMealPlan, update: updateStudentMealPlan, remove: deleteStudentMealPlan } = useStudentMealPlanData();
-  const { data: studentwallets, create: addStudentWallet, update: updateStudentWallet, remove: deleteStudentWallet } = useStudentWalletData();
+  const { data: studentwallets, create: addStudentWallet, update: updateStudentWallet, remove: deleteStudentWallet } = useWalletTransactionData();
   const { data: wallettransactions, create: addWalletTransaction, update: updateWalletTransaction, remove: deleteWalletTransaction } = useWalletTransactionData();
 
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
 
   useEffect(() => {
+    console.log('🔧 [useModularMockData] Starting loading state timer...');
     const timer = setTimeout(() => {
+      console.log('🔧 [useModularMockData] Setting loading state to false...');
       setLoading(prev => {
         const newLoading = { ...prev };
         Object.keys(newLoading).forEach(key => {
           newLoading[key as keyof AppDataLoadingStates] = false;
         });
+        console.log('✅ [useModularMockData] Loading state set to false');
         return newLoading;
       });
     }, 100);
-    return () => clearTimeout(timer);
+    return () => {
+      console.log('🔧 [useModularMockData] Cleaning up timer...');
+      clearTimeout(timer);
+    };
   }, []);
 
   const getStudentDetailsById = async (studentId: string) => {
@@ -526,14 +572,7 @@ export const useModularMockData = (): AppDataContextType => {
     deleteStudentSubjectEnrollment: deleteStudentSubjectEnrollment,
     getTimetableEntries: (classStreamId: number) => {
       return (timetableentrys || []).filter((entry: any) => entry.class_stream_id === classStreamId);
-    }
-  };
-
-  return {
-    ...fullData,
-    loading,
-    getStudentDetailsById,
-    getStudentFinancialDetailsById,
+    },
     // Add CRUD operations
     addStudent: async (data: any) => { /* implementation */ },
     updateStudent: async (id: string, data: any) => { /* implementation */ },
@@ -576,4 +615,104 @@ export const useModularMockData = (): AppDataContextType => {
     deleteStudentOpeningBalance,
     updateStaffSalarySetting,
   };
-};
+
+  return {
+    ...fullData,
+    loading,
+    getStudentDetailsById,
+    getStudentFinancialDetailsById,
+  };
+} catch (error) {
+  console.error('Error in useModularMockData:', error);
+  return {
+    ...createLoadingStates(), // Return initial loading states
+    loading: { ...createLoadingStates(), all: false }, // Set all to false as an error occurred
+    getStudentDetailsById: async () => null,
+    getStudentFinancialDetailsById: async () => null,
+    // Provide no-op functions for all CRUD operations on error
+    addAcademicYear: async () => { }, updateAcademicYear: async () => { }, removeAcademicYear: async () => { },
+    addClassSubjectAllocation: async () => { }, updateClassSubjectAllocation: async () => { }, removeClassSubjectAllocation: async () => { },
+    addExamPaperSetting: async () => { }, updateExamPaperSetting: async () => { }, removeExamPaperSetting: async () => { },
+    addExamSession: async () => { }, updateExamSession: async () => { }, removeExamSession: async () => { },
+    addGradingScheme: async () => { }, updateGradingScheme: async () => { }, removeGradingScheme: async () => { },
+    addGradingSchemeLevel: async () => { }, updateGradingSchemeLevel: async () => { }, removeGradingSchemeLevel: async () => { },
+    addStudentExamResult: async () => { }, updateStudentExamResult: async () => { }, removeStudentExamResult: async () => { },
+    addStudentPaperMark: async () => { }, updateStudentPaperMark: async () => { }, removeStudentPaperMark: async () => { },
+    addStudentSubjectEnrollment: async () => { }, updateStudentSubjectEnrollment: async () => { }, removeStudentSubjectEnrollment: async () => { },
+    addSubject: async () => { }, updateSubject: async () => { }, removeSubject: async () => { },
+    addSubjectPaper: async () => { }, updateSubjectPaper: async () => { }, removeSubjectPaper: async () => { },
+    addTeacherSubjectAssignment: async () => { }, updateTeacherSubjectAssignment: async () => { }, removeTeacherSubjectAssignment: async () => { },
+    addTimetableEntry: async () => { }, updateTimetableEntry: async () => { }, removeTimetableEntry: async () => { },
+    addTimetablePeriodDef: async () => { }, updateTimetablePeriodDef: async () => { }, removeTimetablePeriodDef: async () => { },
+    addAcademicPeriodDefinition: async () => { }, updateAcademicPeriodDefinition: async () => { }, removeAcademicPeriodDefinition: async () => { },
+    addAcademicYearStructure: async () => { }, updateAcademicYearStructure: async () => { }, removeAcademicYearStructure: async () => { },
+    addEducationSystemConfiguration: async () => { }, updateEducationSystemConfiguration: async () => { }, removeEducationSystemConfiguration: async () => { },
+    addCampaign: async () => { }, updateCampaign: async () => { }, removeCampaign: async () => { },
+    addClass: async () => { }, updateClass: async () => { }, removeClass: async () => { },
+    addClassStream: async () => { }, updateClassStream: async () => { }, removeClassStream: async () => { },
+    addClubAndSociety: async () => { }, updateClubAndSociety: async () => { }, removeClubAndSociety: async () => { },
+    addCustomer: async () => { }, updateCustomer: async () => { }, removeCustomer: async () => { },
+    addDepartment: async () => { }, updateDepartment: async () => { }, removeDepartment: async () => { },
+    addDesignation: async () => { }, updateDesignation: async () => { }, removeDesignation: async () => { },
+    addDormitory: async () => { }, updateDormitory: async () => { }, removeDormitory: async () => { },
+    addPartner: async () => { }, updatePartner: async () => { }, removePartner: async () => { },
+    addSchoolPeriod: async () => { }, updateSchoolPeriod: async () => { }, removeSchoolPeriod: async () => { },
+    addStudentAttendance: async () => { }, updateStudentAttendance: async () => { }, removeStudentAttendance: async () => { },
+    addStudentCategory: async () => { }, updateStudentCategory: async () => { }, removeStudentCategory: async () => { },
+    addStudentHealthRecord: async () => { }, updateStudentHealthRecord: async () => { }, removeStudentHealthRecord: async () => { },
+    addTemplateComm: async () => { }, updateTemplateComm: async () => { }, removeTemplateComm: async () => { },
+    addBank: async () => { }, updateBank: async () => { }, removeBank: async () => { },
+    addChartOfAccount: async () => { }, updateChartOfAccount: async () => { }, removeChartOfAccount: async () => { },
+    addCustomerInvoice: async () => { }, updateCustomerInvoice: async () => { }, removeCustomerInvoice: async () => { },
+    addExpenseCategory: async () => { }, updateExpenseCategory: async () => { }, removeExpenseCategory: async () => { },
+    addExpenseClaim: async () => { }, updateExpenseClaim: async () => { }, removeExpenseClaim: async () => { },
+    addFeeAdjustment: async () => { }, updateFeeAdjustment: async () => { }, removeFeeAdjustment: async () => { },
+    addFeeTemplate: async () => { }, updateFeeTemplate: async () => { }, removeFeeTemplate: async () => { },
+    addFeeTemplateItem: async () => { }, updateFeeTemplateItem: async () => { }, removeFeeTemplateItem: async () => { },
+    addFinancialYear: async () => { }, updateFinancialYear: async () => { }, removeFinancialYear: async () => { },
+    addGeneralLedgerEntry: async () => { }, updateGeneralLedgerEntry: async () => { }, removeGeneralLedgerEntry: async () => { },
+    addGeneralPayment: async () => { }, updateGeneralPayment: async () => { }, removeGeneralPayment: async () => { },
+    addInvoicePaymentApplication: async () => { }, updateInvoicePaymentApplication: async () => { }, removeInvoicePaymentApplication: async () => { },
+    addStudentInvoice: async () => { }, updateStudentInvoice: async () => { }, removeStudentInvoice: async () => { },
+    addStudentInvoiceItem: async () => { }, updateStudentInvoiceItem: async () => { }, removeStudentInvoiceItem: async () => { },
+    addStudentOpeningBalance: async () => { }, updateStudentOpeningBalance: async () => { }, removeStudentOpeningBalance: async () => { },
+    addStudentPayment: async () => { }, updateStudentPayment: async () => { }, removeStudentPayment: async () => { },
+    addStudentTransportAssignment: async () => { }, updateStudentTransportAssignment: async () => { }, removeStudentTransportAssignment: async () => { },
+    addSupplier: async () => { }, updateSupplier: async () => { }, removeSupplier: async () => { },
+    addSupplierInvoice: async () => { }, updateSupplierInvoice: async () => { }, removeSupplierInvoice: async () => { },
+    addTransportRoute: async () => { }, updateTransportRoute: async () => { }, removeTransportRoute: async () => { },
+    addPayrollItemType: async () => { }, updatePayrollItemType: async () => { }, removePayrollItemType: async () => { },
+    addPayrollPeriod: async () => { }, updatePayrollPeriod: async () => { }, removePayrollPeriod: async () => { },
+    addPayslip: async () => { }, updatePayslip: async () => { }, removePayslip: async () => { },
+    addPayslipItem: async () => { }, updatePayslipItem: async () => { }, removePayslipItem: async () => { },
+    addStaffRecurringItem: async () => { }, updateStaffRecurringItem: async () => { }, removeStaffRecurringItem: async () => { },
+    addStaffSalarySetting: async () => { }, updateStaffSalarySetting: async () => { }, removeStaffSalarySetting: async () => { },
+    addStaffMember: async () => { }, updateStaffMember: async () => { }, deleteStaffMember: async () => { },
+    addAssetDepreciationLog: async () => { }, updateAssetDepreciationLog: async () => { }, removeAssetDepreciationLog: async () => { },
+    addFixedAsset: async () => { }, updateFixedAsset: async () => { }, removeFixedAsset: async () => { },
+    addItemCategory: async () => { }, updateItemCategory: async () => { }, removeItemCategory: async () => { },
+    addItem: async () => { }, updateItem: async () => { }, removeItem: async () => { },
+    addPurchaseOrder: async () => { }, updatePurchaseOrder: async () => { }, removePurchaseOrder: async () => { },
+    addPurchaseOrderItem: async () => { }, updatePurchaseOrderItem: async () => { }, removePurchaseOrderItem: async () => { },
+    addRequisition: async () => { }, updateRequisition: async () => { }, removeRequisition: async () => { },
+    addRequisitionItem: async () => { }, updateRequisitionItem: async () => { }, removeRequisitionItem: async () => { },
+    addRFQ: async () => { }, updateRFQ: async () => { }, removeRFQ: async () => { },
+    addStockLevel: async () => { }, updateStockLevel: async () => { }, removeStockLevel: async () => { },
+    addStockTransaction: async () => { }, updateStockTransaction: async () => { }, removeStockTransaction: async () => { },
+    addWarehouse: async () => { }, updateWarehouse: async () => { }, removeWarehouse: async () => { },
+    addBookCategory: async () => { }, updateBookCategory: async () => { }, removeBookCategory: async () => { },
+    addBook: async () => { }, updateBook: async () => { }, removeBook: async () => { },
+    addFine: async () => { }, updateFine: async () => { }, removeFine: async () => { },
+    addLoan: async () => { }, updateLoan: async () => { }, removeLoan: async () => { },
+    addMealConsumptionLog: async () => { }, updateMealConsumptionLog: async () => { }, removeMealConsumptionLog: async () => { },
+    addMealPlan: async () => { }, updateMealPlan: async () => { }, removeMealPlan: async () => { },
+    addMenu: async () => { }, updateMenu: async () => { }, removeMenu: async () => { },
+    addMerchant: async () => { }, updateMerchant: async () => { }, removeMerchant: async () => { },
+    addStudentMealPlan: async () => { }, updateStudentMealPlan: async () => { }, removeStudentMealPlan: async () => { },
+    addStudentWallet: async () => { }, updateStudentWallet: async () => { }, removeStudentWallet: async () => { },
+    addWalletTransaction: async () => { }, updateWalletTransaction: async () => { }, removeWalletTransaction: async () => { },
+    getTimetableEntries: async () => [],
+    addStudent: async () => { }, updateStudent: async () => { }, deleteStudent: async () => { },
+    addExamSchedule: async () => { }, updateExamSchedule: async () => { }, deleteExamSchedule: async () => { },
+  };
+}}

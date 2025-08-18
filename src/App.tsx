@@ -40,8 +40,7 @@ const LoginTestPage = lazy(() => import('./pages/LoginTestPage'));
 // Tabbed workspace test page component
 const TabbedWorkspaceTestPage = lazy(() => import('./modules/settings/pages/TabbedWorkspaceTestPage'));
 
-// Tabbed mode test page component
-const TabbedModeTestPage = lazy(() => import('./modules/settings/pages/TabbedModeTestPage'));
+
 
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 // Using eager: true to avoid runtime module loading issues
