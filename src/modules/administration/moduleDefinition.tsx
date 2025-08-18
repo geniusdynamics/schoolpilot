@@ -56,6 +56,19 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.schoolPeriods', path: '/administration/school-periods', icon: ClockIcon, page: 'SchoolPeriodsPage' },
   ],
   features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance', 'admissions-management'],
+  dependencies: [],
+  optionalDependencies: [
+    {
+      moduleId: 'finance',
+      version: '^1.0.0',
+      required: false
+    },
+    {
+      moduleId: 'hr',
+      version: '^1.0.0',
+      required: false
+    }
+  ],
   routes: [
     { path: '/administration/applications', page: 'ApplicationsPage' },
     { path: '/administration/prenas-marks', page: 'PreNAsMarksPage' },
@@ -96,4 +109,4 @@ export const administrationModule: ModuleDefinition = {
   }
 };
 
-export default administrationModule; 
+export default administrationModule;

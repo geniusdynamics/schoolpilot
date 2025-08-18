@@ -1,7 +1,8 @@
-// ABOUTME: Module loading progress indicator with timeout handling
-// ABOUTME: Provides visual feedback during module initialization
+// ABOUTME: Module loading progress indicator with real module loading tracking
+// ABOUTME: Provides visual feedback during actual module initialization
 
 import React, { useState, useEffect } from 'react';
+import { dynamicModuleLoader } from '../services/dynamicModuleLoader';
 
 interface ModuleLoadingProgressProps {
   showDetails?: boolean;
@@ -19,52 +20,71 @@ const ModuleLoadingProgress: React.FC<ModuleLoadingProgressProps> = ({
   const [progress, setProgress] = useState(0);
   const [currentModule, setCurrentModule] = useState('Initializing...');
   const [isTimedOut, setIsTimedOut] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
-    // Simulate module loading progress
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        const newProgress = prev + Math.random() * 15;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          if (onComplete) {
-            setTimeout(onComplete, 500);
-          }
-          return 100;
+    let progressInterval: NodeJS.Timeout;
+    let timeoutHandle: NodeJS.Timeout;
+    let checkInterval: NodeJS.Timeout;
+
+    const startLoading = () => {
+      // Check if module loading is already complete
+      if (dynamicModuleLoader.isLoadingComplete()) {
+        setProgress(100);
+        setCurrentModule('Complete!');
+        setIsCompleted(true);
+        if (onComplete) {
+          setTimeout(onComplete, 100);
         }
-        return newProgress;
-      });
-    }, 200);
-
-    // Simulate module names
-    const moduleNames = [
-      'Core modules...',
-      'Authentication...',
-      'Navigation system...',
-      'Data layer...',
-      'UI components...',
-      'Module registry...',
-      'Finalizing...'
-    ];
-
-    const moduleInterval = setInterval(() => {
-      setCurrentModule(moduleNames[Math.floor(Math.random() * moduleNames.length)]);
-    }, 800);
-
-    // Timeout handler
-    const timeout = setTimeout(() => {
-      setIsTimedOut(true);
-      if (onTimeout) {
-        onTimeout();
+        return;
       }
-    }, timeoutMs);
+
+      // Start progress simulation while checking real status
+      setCurrentModule('Loading modules...');
+      
+      // Simulate smooth progress while waiting for real completion
+      progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (dynamicModuleLoader.isLoadingComplete()) {
+            return 100;
+          }
+          // Slow progress simulation that doesn't reach 100% until real loading is done
+          const newProgress = prev + Math.random() * 5;
+          return Math.min(newProgress, 95); // Cap at 95% until real loading completes
+        });
+      }, 300);
+
+      // Check for real completion every 100ms
+      checkInterval = setInterval(() => {
+        if (dynamicModuleLoader.isLoadingComplete() && !isCompleted) {
+          setProgress(100);
+          setCurrentModule('Complete!');
+          setIsCompleted(true);
+          clearInterval(progressInterval);
+          clearInterval(checkInterval);
+          if (onComplete) {
+            setTimeout(onComplete, 200);
+          }
+        }
+      }, 100);
+
+      // Timeout handler
+      timeoutHandle = setTimeout(() => {
+        setIsTimedOut(true);
+        if (onTimeout) {
+          onTimeout();
+        }
+      }, timeoutMs);
+    };
+
+    startLoading();
 
     return () => {
-      clearInterval(interval);
-      clearInterval(moduleInterval);
-      clearTimeout(timeout);
+      if (progressInterval) clearInterval(progressInterval);
+      if (checkInterval) clearInterval(checkInterval);
+      if (timeoutHandle) clearTimeout(timeoutHandle);
     };
-  }, [timeoutMs, onComplete, onTimeout]);
+  }, [timeoutMs, onComplete, onTimeout, isCompleted]);
 
   return (
     <div className="w-full">

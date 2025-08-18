@@ -175,7 +175,7 @@ export const useRxDBData = (): Partial<AppDataContextType> => {
   
   // Return simplified context value
   return useMemo(() => ({
-    loading: loading.all, // CRITICAL FIX: Return boolean instead of AppDataLoadingStates object
+    loading: loading, // FIXED: Return AppDataLoadingStates object instead of boolean
     initializationError,
     isRxDBModeActive: true,
     isUsingRxDBDummyData,
@@ -288,7 +288,7 @@ export const useRxDBData = (): Partial<AppDataContextType> => {
     updateStaffMember: async () => {},
     deleteStaffMember: async () => {},
   }), [
-    loading.all, // Updated to match the boolean loading property
+    loading, // Updated to match the AppDataLoadingStates object
     initializationError,
     isUsingRxDBDummyData,
     schoolDetails,

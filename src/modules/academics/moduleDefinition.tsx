@@ -44,7 +44,23 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.educationSystems', path: '/academics/education-systems', icon: ChartBarIcon, page: 'EducationSystemsPage' },
   ],
   features: ['subject-management', 'class-management', 'timetable', 'exam-management', 'grading'],
-  dependencies: ['administration'],
+  dependencies: [
+    {
+      moduleId: 'administration',
+      version: '^1.0.0',
+      required: true
+    },
+    {
+      moduleId: 'finance',
+      version: '^1.0.0',
+      required: false
+    },
+    {
+      moduleId: 'reports',
+      version: '^1.0.0',
+      required: false
+    }
+  ],
   settings: {
     category: 'academics',
     items: [

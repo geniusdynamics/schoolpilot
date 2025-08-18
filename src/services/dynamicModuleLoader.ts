@@ -50,6 +50,10 @@ class DynamicModuleLoader {
   async initializeDynamicModules(): Promise<void> {
     console.log('🚀 [DynamicModuleLoader] Initializing dynamic modules...');
     
+    // Mark as loading started
+    this.isLoading = true;
+    this.isCompleted = false;
+    
     // Actually discover and load module definitions
     await this.discoverAndLoadModules();
     
@@ -83,8 +87,24 @@ class DynamicModuleLoader {
         }
       }
       
-      // Get all registered modules
+      // Validate module dependencies
       const registeredModules = moduleRegistry.getAllModules();
+      console.log(`📦 [DynamicModuleLoader] Validating dependencies for ${registeredModules.length} modules`);
+      
+      for (const module of registeredModules) {
+        try {
+          console.log(`🔍 [DynamicModuleLoader] Validating dependencies for module: ${module.id}`);
+          const isValid = await moduleRegistry.validateModuleDependencies(module.id);
+          if (!isValid) {
+            console.warn(`⚠️ [DynamicModuleLoader] Module ${module.id} has dependency issues`);
+          } else {
+            console.log(`✅ [DynamicModuleLoader] Module ${module.id} dependencies validated successfully`);
+          }
+        } catch (error) {
+          console.error(`❌ [DynamicModuleLoader] Error validating dependencies for module ${module.id}:`, error);
+        }
+      }
+      
       console.log(`✅ [DynamicModuleLoader] Successfully registered ${registeredModules.length} modules`);
       
       return registeredModules;

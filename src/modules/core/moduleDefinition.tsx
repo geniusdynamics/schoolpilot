@@ -94,7 +94,23 @@ export const reportsModule: ModuleDefinition = {
   path: '/reports',
   isActive: true,
   version: '1.0.0',
-  dependencies: ['administration', 'academics', 'finance'],
+  dependencies: [
+    {
+      moduleId: 'administration',
+      version: '^1.0.0',
+      required: true
+    },
+    {
+      moduleId: 'academics',
+      version: '^1.0.0',
+      required: true
+    },
+    {
+      moduleId: 'finance',
+      version: '^1.0.0',
+      required: true
+    }
+  ],
   navigation: [
     { name: 'navigation:reports.title', path: '/reports', icon: DocumentReportIcon, page: 'ReportsPage' },
     { name: 'navigation:reports.accountLedger', path: '/reports/account-ledger', icon: DocumentReportIcon, page: 'AccountLedgerPage' },
