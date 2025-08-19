@@ -54,10 +54,24 @@ class DynamicModuleLoader {
     this.isLoading = true;
     this.isCompleted = false;
     
-    // Actually discover and load module definitions
-    await this.discoverAndLoadModules();
+    try {
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Module loading timeout')), 5000);
+      });
+      
+      // Race between module loading and timeout
+      await Promise.race([
+        this.discoverAndLoadModules(),
+        timeoutPromise
+      ]);
+    } catch (error) {
+      console.warn('⚠️ [DynamicModuleLoader] Module loading failed, using fallback:', error);
+      // Use fallback modules if discovery fails
+      this.useFallbackModules();
+    }
     
-    // Mark as completed
+    // Always mark as completed to prevent infinite loading
     this.isCompleted = true;
     this.isLoading = false;
   }
@@ -174,6 +188,38 @@ class DynamicModuleLoader {
     console.warn('🚨 [DynamicModuleLoader] Force completing module loading');
     this.isCompleted = true;
     this.isLoading = false;
+  }
+
+  private async useFallbackModules(): Promise<void> {
+    console.log('🔄 [DynamicModuleLoader] Using fallback modules...');
+    
+    // Import moduleRegistry to register modules
+    const { moduleRegistry } = await import('../core/moduleRegistry');
+    
+    // Register fallback modules as basic modules without full definition
+    for (const moduleId of this.FALLBACK_MODULES) {
+      try {
+        const fallbackModule = {
+          id: moduleId,
+          name: moduleId.charAt(0).toUpperCase() + moduleId.slice(1),
+          description: `${moduleId} module`,
+          icon: 'Grid3X3',
+          path: `/${moduleId}`,
+          version: '1.0.0',
+          navigation: [],
+          features: [],
+          dependencies: [],
+          settings: {},
+          rbacPermissions: [],
+          defaultRoles: []
+        };
+        
+        moduleRegistry.registerModule(fallbackModule);
+        console.log(`✅ [DynamicModuleLoader] Registered fallback module: ${moduleId}`);
+      } catch (error) {
+        console.error(`❌ [DynamicModuleLoader] Failed to register fallback module ${moduleId}:`, error);
+      }
+    }
   }
 
   isLoadingComplete(): boolean {

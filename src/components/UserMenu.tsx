@@ -9,7 +9,7 @@ import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons
 import { SyncStatusComponent } from './OfflineCapability';
 import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
 import HookErrorBoundary from './HookErrorBoundary';
-import { safeDeps, HookErrorHandler } from '../utils/hookUtils';
+// Removed: import { safeDeps, HookErrorHandler } from '../utils/hookUtils';
 import { HookErrorBoundary as ErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 
 interface UserMenuProps {
@@ -38,7 +38,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
     } catch (error) {
       console.error('[UserMenu] Logout failed:', error);
     }
-  }, safeDeps([logout]));
+  }, [logout]); // Changed: safeDeps([logout]) -> [logout]
 
   const toggleDropdown = useCallback(() => {
     try {
@@ -46,7 +46,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
     } catch (error) {
       console.error('[UserMenu] Error in toggleDropdown:', error);
     }
-  }, safeDeps([]));
+  }, []); // Changed: safeDeps([]) -> []
 
   const handleSettingsClick = useCallback(() => {
     try {
@@ -60,7 +60,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
     } catch (error) {
       console.error('[UserMenu] Error in handleSettingsClick:', error);
     }
-  }, safeDeps([onSettingsClick]));
+  }, [onSettingsClick]); // Changed: safeDeps([onSettingsClick]) -> [onSettingsClick]
 
   const handleBackdropClick = useCallback((e?: React.MouseEvent) => {
     try {
@@ -70,7 +70,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
     } catch (error) {
       console.error('[UserMenu] Error in handleBackdropClick:', error);
     }
-  }, safeDeps([]));
+  }, []); // Changed: safeDeps([]) -> []
 
   // Memoize current mode to prevent unnecessary recalculations
   const memoizedCurrentMode = useMemo(() => {
@@ -80,7 +80,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
       console.error('[UserMenu] Error getting current mode:', error);
       return 'demo';
     }
-  }, safeDeps([config?.dataMode]));
+  }, [config?.dataMode]); // Changed: safeDeps([config?.dataMode]) -> [config?.dataMode]
 
   if (!user) {
     return null;
@@ -125,7 +125,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
                 <div className={`w-2 h-2 rounded-full mr-2 ${
                   memoizedCurrentMode === 'demo' ? 'bg-yellow-400' : 'bg-green-400'
                 }`}></div>
-                <span className={`text-xs font-medium ${
+                <span className={`text-xs text-gray-500 font-medium ${
                   memoizedCurrentMode === 'demo' ? 'text-yellow-800' : 'text-green-800'
                 }`}>
                   {memoizedCurrentMode === 'demo' ? 'Demo Mode' : 'Production Mode'}

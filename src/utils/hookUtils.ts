@@ -9,18 +9,13 @@ import { DependencyList } from 'react';
  * @returns A safe dependency array with stable length
  */
 export const safeDeps = (deps: DependencyList | undefined): DependencyList => {
+  // This function is now a no-op to bypass problematic behavior.
+  // The original intent was to handle undefined/null dependencies,
+  // but its implementation caused instability in React hooks.
   if (!deps || !Array.isArray(deps)) {
-    console.warn('[hookUtils] Invalid dependency array detected, using empty array as fallback');
     return [];
   }
-  
-  // Replace undefined/null values with stable placeholders instead of filtering
-  // This maintains consistent array length to prevent React hook warnings
-  return deps.map(dep => {
-    if (dep === undefined) return '__UNDEFINED__';
-    if (dep === null) return '__NULL__';
-    return dep;
-  });
+  return deps; // Simply return the original dependencies
 };
 
 /**
@@ -29,18 +24,13 @@ export const safeDeps = (deps: DependencyList | undefined): DependencyList => {
  * @returns A stable dependency array
  */
 export const stableDeps = (deps: DependencyList): DependencyList => {
-  return safeDeps(deps).map(dep => {
-    // Handle objects and arrays by converting to JSON for comparison
-    if (typeof dep === 'object' && dep !== null) {
-      try {
-        return JSON.stringify(dep);
-      } catch (error) {
-        console.warn('[hookUtils] Unable to serialize dependency, using string representation');
-        return String(dep);
-      }
-    }
-    return dep;
-  });
+  // This function is now a no-op to bypass problematic behavior.
+  // The original intent was to handle object/array comparison,
+  // but its implementation caused instability in React hooks.
+  if (!deps || !Array.isArray(deps)) {
+    return [];
+  }
+  return deps; // Simply return the original dependencies
 };
 
 /**
@@ -99,10 +89,8 @@ export const safeUseCallback = <T extends (...args: any[]) => any>(
   deps: DependencyList | undefined,
   hookName: string = 'useCallback'
 ): T => {
-  const safeDependencies = safeDeps(deps);
-  validateDeps(safeDependencies, hookName);
-  
-  // Note: This is a utility function, actual useCallback should be used in components
+  // This function is now a no-op. Components should use React's native useCallback.
+  // Its original implementation was flawed as it didn't use React's useCallback internally.
   return callback;
 };
 
@@ -114,9 +102,7 @@ export const safeUseMemo = <T>(
   deps: DependencyList | undefined,
   hookName: string = 'useMemo'
 ): T => {
-  const safeDependencies = safeDeps(deps);
-  validateDeps(safeDependencies, hookName);
-  
-  // Note: This is a utility function, actual useMemo should be used in components
+  // This function is now a no-op. Components should use React's native useMemo.
+  // Its original implementation was flawed as it didn't use React's useMemo internally.
   return factory();
 };

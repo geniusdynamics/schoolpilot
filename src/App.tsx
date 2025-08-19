@@ -512,8 +512,13 @@ const AppInner: React.FC = () => {
         initializedRef.current = true;
         
         try {
+          // Add emergency timeout for module initialization
+          const emergencyTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Emergency module loading timeout')), 8000);
+          });
+          
           await measureAsync(
-            () => initializeModules(),
+            () => Promise.race([initializeModules(), emergencyTimeout]),
             'module_initialization'
           );
           
@@ -580,6 +585,53 @@ const AppInner: React.FC = () => {
           
         } catch (error) {
           console.error('❌ [App] Module initialization failed:', error);
+          console.warn('⚠️ [App] Forcing module loading completion for emergency access...');
+          
+          // Force complete module loading to allow app access
+          try {
+            const { moduleRegistry } = await import('./core/moduleRegistry');
+            
+            // Register minimal core modules for basic functionality
+            const coreModules = [
+              {
+                id: 'dashboard',
+                name: 'Dashboard',
+                description: 'Main dashboard',
+                icon: 'LayoutDashboard',
+                path: '/dashboard',
+                version: '1.0.0',
+                navigation: [],
+                features: [],
+                dependencies: [],
+                settings: {},
+                rbacPermissions: [],
+                defaultRoles: []
+              },
+              {
+                id: 'settings',
+                name: 'Settings',
+                description: 'System settings',
+                icon: 'Settings',
+                path: '/settings',
+                version: '1.0.0',
+                navigation: [],
+                features: [],
+                dependencies: [],
+                settings: {},
+                rbacPermissions: [],
+                defaultRoles: []
+              }
+            ];
+            
+            coreModules.forEach(module => {
+              moduleRegistry.registerModule(module);
+              console.log(`✅ [App] Emergency registered module: ${module.id}`);
+            });
+            
+          } catch (registryError) {
+            console.error('❌ [App] Emergency module registration failed:', registryError);
+          }
+          
           // Expose error state for testing
           (window as any).moduleTestData = {
             registeredModules: [],
@@ -589,7 +641,7 @@ const AppInner: React.FC = () => {
             error: error.message,
             timestamp: new Date().toISOString()
           };
-          // In a real app, you might want to show an error screen here
+          
         } finally {
           setModulesInitialized(true);
         }
