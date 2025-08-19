@@ -367,6 +367,26 @@
             <div id="live-app" class="tab-content">
                 <div class="test-section">
                     <h3>🖥️ Live Application Preview</h3>
+                    
+                    <!-- URL Configuration Section -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 15px; color: #495057;">🔗 Application Configuration</h4>
+                        <div style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+                            <div style="flex: 2;">
+                                <label for="app-url" style="display: block; margin-bottom: 5px; font-weight: 500;">URL:</label>
+                                <input type="text" id="app-url" value="http://localhost" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="app-port" style="display: block; margin-bottom: 5px; font-weight: 500;">Port:</label>
+                                <input type="number" id="app-port" value="5201" min="1" max="65535" style="width: 100%; padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;">
+                            </div>
+                            <button class="btn btn-primary" onclick="saveUrlConfig()">Save Config</button>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #6c757d;">
+                            Current: <span id="current-config">http://localhost:5201</span>
+                        </div>
+                    </div>
+                    
                     <div class="test-controls">
                         <button class="btn btn-primary" onclick="loadApp()">Load App</button>
                         <button class="btn btn-success" onclick="refreshApp()">Refresh</button>
@@ -432,6 +452,7 @@
         function initializeDashboard() {
             updateTimestamp();
             setInterval(updateTimestamp, 1000);
+            loadUrlConfig(); // Load saved URL configuration
         }
 
         function updateTimestamp() {
@@ -569,7 +590,7 @@
         async function loadAppForTesting() {
             return new Promise((resolve, reject) => {
                 const appFrame = document.getElementById('app-frame');
-                appFrame.src = 'http://localhost:5202';
+                appFrame.src = getAppUrl();
                 
                 appFrame.onload = () => {
                     setTimeout(resolve, 2000); // Give extra time for module loading
@@ -941,10 +962,50 @@
             document.getElementById('console-output').textContent = 'Logs cleared...';
         }
 
+        // URL Configuration
+        function getAppUrl() {
+            const url = document.getElementById('app-url').value || 'http://localhost';
+            const port = document.getElementById('app-port').value || '5201';
+            
+            // Ensure URL starts with http:// or https://
+            let fullUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                fullUrl = 'http://' + url;
+            }
+            
+            // Remove trailing slash if present
+            fullUrl = fullUrl.replace(/\/$/, '');
+            
+            return `${fullUrl}:${port}`;
+        }
+
+        function saveUrlConfig() {
+            const url = document.getElementById('app-url').value || 'http://localhost';
+            const port = document.getElementById('app-port').value || '5201';
+            
+            // Save to localStorage for persistence
+            localStorage.setItem('test-dashboard-url', url);
+            localStorage.setItem('test-dashboard-port', port);
+            
+            // Update current config display
+            document.getElementById('current-config').textContent = getAppUrl();
+            
+            showNotification('Configuration saved successfully!', 'success');
+        }
+
+        function loadUrlConfig() {
+            const savedUrl = localStorage.getItem('test-dashboard-url') || 'http://localhost';
+            const savedPort = localStorage.getItem('test-dashboard-port') || '5201';
+            
+            document.getElementById('app-url').value = savedUrl;
+            document.getElementById('app-port').value = savedPort;
+            document.getElementById('current-config').textContent = getAppUrl();
+        }
+
         // Live app functions
         function loadApp() {
             const appFrame = document.getElementById('app-frame');
-            appFrame.src = 'http://localhost:5202';
+            appFrame.src = getAppUrl();
         }
 
         function refreshApp() {
@@ -953,7 +1014,7 @@
         }
 
         function openInNewTab() {
-            window.open('http://localhost:5202', '_blank');
+            window.open(getAppUrl(), '_blank');
         }
 
         // System info functions
