@@ -4,7 +4,7 @@ A comprehensive education management system built with React, TypeScript, and Vi
 
 ## 🎯 Overview
 
-SchoolPilot3 is an enterprise-grade SchoolPilot that handles all aspects of educational administration, from student management to financial operations. Built with modern web technologies, it features a sophisticated dual-mode architecture that supports both development (mock data) and production (local database) environments.
+SchoolPilot3 is an enterprise-grade SchoolPilot that handles all aspects of educational administration, from student management to financial operations. Built with modern web technologies, it features a sophisticated dual-mode architecture that supports both development (persistent SQLite database) and production (PouchDB/local database) environments.
 
 ## 🔬 Technical Innovations
 
@@ -36,9 +36,9 @@ The [`AppDataContext`](src/contexts/AppDataContext.tsx) acts as a sophisticated 
 - **Type Safety**: Full TypeScript coverage across all data operations with runtime validation
 
 ### Dual-Mode Data Layer
-- **Demo Mode**: Rich mock data for development and demonstrations
-- **Production Mode**: RxDB local database with IndexedDB persistence
-- **Graceful Fallback**: Automatic fallback to mock data if database fails
+- **Development Mode**: SQLite OPFS persistent storage for realistic development
+- **Production Mode**: PouchDB local database with IndexedDB persistence
+- **Demo Mode**: Rich mock data for quick demonstrations (deprecated, will be removed)
 - **Unified API**: Single interface regardless of data source
 
 ### Reactive Data Architecture
@@ -136,15 +136,24 @@ npm run dev  # Runs in demo mode by default - no database setup needed!
 ### Mode Switching
 Toggle between development and production with a single configuration change:
 ```typescript
-// src/contexts/config.ts
-export const APP_MODE: 'demo' | 'production' = 'demo';
+// src/config/dataLayerConfig.ts
+export const DATA_LAYER_CONFIG: DataLayerConfig = {
+  development: {
+    provider: 'sqlite', // Uses SQLite OPFS for persistent storage
+    options: { /* ... */ }
+  },
+  production: {
+    provider: 'pouchdb', // Uses PouchDB for offline support
+    options: { /* ... */ }
+  }
+};
 ```
 
 ### Rich Development Data
-- **1,998 lines** of comprehensive mock data with realistic relationships
-- **Full CRUD operations** without database setup or external dependencies
+- **Persistent SQLite storage** with realistic data relationships
+- **Full CRUD operations** with true database persistence
 - **Consistent data patterns** across all 8 modules with referential integrity
-- **Realistic delays** simulating actual API response times
+- **No data loss** between development sessions
 
 ### Type-Driven Development
 - **IntelliSense everywhere**: Full autocomplete for all data structures and operations
@@ -220,9 +229,38 @@ export const APP_MODE: 'demo' | 'production' = 'demo';
 - **Styling**: Tailwind CSS for utility-first styling
 - **Routing**: React Router DOM v6 with hash routing
 - **State Management**: React Context API with custom hooks
-- **Database**: RxDB (Reactive Database) with Dexie.js adapter
+- **Database**: Dual-mode with SQLite OPFS (development) and PouchDB (production)
 - **Internationalization**: i18next with react-i18next
 - **Charts**: Recharts for data visualization
+- **AI Enhancement**: MCP (Model Context Protocol) servers for extended capabilities
+
+### Data Layer Modernization
+The application is currently undergoing a data layer modernization:
+1. **Phase 1 Complete**: SQLite OPFS implementation for persistent development storage
+2. **Phase 2 Upcoming**: WASM SQLite with true OPFS integration
+3. **Phase 3 Planned**: Data migration from mock data to SQLite
+4. **Phase 4 Planned**: LiveStore integration as alternative to PouchDB
+5. **Phase 5 Planned**: Complete removal of legacy mock data system
+
+See [Data Layer Modernization Plan](docs/database/DATA-layer-modernization-plan.md) for complete details.
+
+### MCP Servers
+This project includes several MCP servers that extend Qwen Code's capabilities:
+
+1. **Puppeteer Server** - For web automation and scraping
+2. **Sequential Thinking Server** - For complex multi-step reasoning tasks
+3. **Deep Web Research Server** - For comprehensive web research
+4. **Firecrawl Server** - For web crawling and content extraction
+
+To use these servers:
+1. Ensure the `.mcp.servers.json` file is in your project root
+2. Set the `FIRECRAWL_API_KEY` environment variable for the Firecrawl server
+3. Qwen Code should automatically detect and use these servers
+
+You can verify the MCP server configuration by running:
+```bash
+npm run verify-mcp-servers
+```
 
 ### Data Layer Architecture
 

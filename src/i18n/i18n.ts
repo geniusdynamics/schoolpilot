@@ -6,12 +6,15 @@ import { loadModularTranslations } from './modularLoader';
 // Track initialization state
 export let i18nReady = false;
 
+// Create the i18next instance with react-i18next
+const i18n = i18next.createInstance();
+
 // Initialize i18next
 const initializeI18n = async () => {
   try {
     const resources = await loadModularTranslations();
     
-    await i18next
+    await i18n
       .use(LanguageDetector)
       .use(initReactI18next)
       .init({
@@ -54,7 +57,7 @@ const initializeI18n = async () => {
   } catch (error) {
     console.error('i18n: Failed to initialize:', error);
     // Fallback to basic initialization
-    await i18next
+    await i18n
       .use(LanguageDetector)
       .use(initReactI18next)
       .init({
@@ -84,4 +87,4 @@ const initializeI18n = async () => {
 // Initialize immediately
 initializeI18n();
 
-export default i18next;
+export default i18n;

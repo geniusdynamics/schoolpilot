@@ -152,7 +152,7 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
         path: '/dashboard',
         content: {
           type: 'component',
-          component: 'DashboardPage'
+          component: 'DynamicPageComponent'
         },
         permissions: [],
         canClose: false, // Dashboard should not be closable

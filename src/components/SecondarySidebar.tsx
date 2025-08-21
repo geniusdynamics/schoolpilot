@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTabNavigation } from '../hooks/useTabNavigation';
 import { useToastHelpers } from '../hooks/useToast';
 import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon, InformationCircleIcon } from './ui/icons';
-// import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import HookErrorBoundary from './HookErrorBoundary';
 import { SidebarSkeleton } from './ModuleLoadingFallback';
 
@@ -159,7 +159,7 @@ const getModuleStyle = (moduleKey: string) => {
 };
 
 const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
-  const t = useCallback((key: string) => key, []); // Dummy t function
+  const { t } = useTranslation();
   const { navigationItems, isLoading } = useDynamicNavigation(true); // Use dynamic navigation
   const { accessibleModules, hasModuleAccess } = useRBAC();
   const { user } = useAuth();

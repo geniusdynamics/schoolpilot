@@ -14,6 +14,11 @@ import type { AppDataContextType, RbacRole, Role } from '../core/types';
 import Spinner from '../components/ui/Spinner';
 import DismissibleBanner from '../components/DismissibleBanner';
 
+// Enhanced context type that includes additional properties for settings pages
+export interface EnhancedAppDataContextType extends AppDataContextType {
+  isDatabaseModeActive?: boolean;
+}
+
 // Create the context with a default undefined value
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
@@ -61,6 +66,9 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
     const users = selectedData.users || [];
     const isRxDBModeActive = !!shouldUseEnhancedData;
     
+    // Check if database is available (either RxDB or our new SQLite implementation)
+    const isDatabaseModeActive = isRxDBModeActive || (currentConfig.dataMode === 'production' && !selectedData.loading);
+    
     return {
       // Core data from selected data source
       ...selectedData,
@@ -69,6 +77,7 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
       schoolDetails,
       users,
       isRxDBModeActive,
+      isDatabaseModeActive, // Add this for our database settings page
       
       // Loading and error states
       loading: selectedData.loading || false,
@@ -77,7 +86,7 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
       // Refresh function
       refresh: selectedData.refresh || (async () => {})
     };
-  }, [selectedData, shouldUseEnhancedData]);
+  }, [selectedData, shouldUseEnhancedData, currentConfig.dataMode]);
 
   // Loading state
   if (contextValue.loading) {
@@ -148,12 +157,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 };
 
-export const useAppData = (): AppDataContextType => {
+export const useAppData = (): EnhancedAppDataContextType => {
   const context = useContext(AppDataContext);
   if (context === undefined) {
     throw new Error('useAppData must be used within an AppDataProvider');
   }
-  return context;
+  return context as EnhancedAppDataContextType;
 };
 
 // Export the context for use in other files

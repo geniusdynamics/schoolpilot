@@ -63,6 +63,11 @@ export interface FeatureConfig {
   performanceOptimizations: boolean;
   advancedErrorBoundaries: boolean;
   performanceMonitorWidget: boolean;
+  
+  // Tabbed Mode Features
+  enableTabbedMode: boolean;
+  enablePerModuleControl: boolean;
+  tabbedModeModuleOverrides: Record<string, boolean>;
 }
 
 // Development Settings
@@ -224,6 +229,11 @@ const DEFAULT_FEATURES: FeatureConfig = {
   performanceOptimizations: true,
   advancedErrorBoundaries: true,
   performanceMonitorWidget: false,
+  
+  // Tabbed Mode Features (enabled by default for testing)
+  enableTabbedMode: true,
+  enablePerModuleControl: true,
+  tabbedModeModuleOverrides: {}
 };
 
 // Default Development Configuration

@@ -86,13 +86,30 @@ class DynamicModuleLoader {
       // Use import.meta.glob to discover and load module definitions
       const moduleFiles = import.meta.glob('../modules/*/moduleDefinition.tsx', { eager: true });
       
-      console.log('📁 [DynamicModuleLoader] Found module files:', Object.keys(moduleFiles));
+      // Also load core modules explicitly
+      const coreModuleFiles = import.meta.glob('../modules/core/moduleDefinition.tsx', { eager: true });
+      
+      // Combine all module files
+      const allModuleFiles = { ...moduleFiles, ...coreModuleFiles };
+      
+      console.log('📁 [DynamicModuleLoader] Found module files:', Object.keys(allModuleFiles));
       
       // Load and register each module
-      for (const [path, moduleExport] of Object.entries(moduleFiles)) {
+      for (const [path, moduleExport] of Object.entries(allModuleFiles)) {
         try {
           const moduleDefinition = (moduleExport as any).default;
-          if (moduleDefinition && moduleDefinition.id) {
+          
+          // Handle both single modules and arrays of modules (like core modules)
+          if (Array.isArray(moduleDefinition)) {
+            // Handle array of modules (like core modules)
+            for (const module of moduleDefinition) {
+              if (module && module.id) {
+                console.log(`📦 [DynamicModuleLoader] Registering core module: ${module.id}`);
+                moduleRegistry.registerModule(module);
+              }
+            }
+          } else if (moduleDefinition && moduleDefinition.id) {
+            // Handle single module
             console.log(`📦 [DynamicModuleLoader] Registering module: ${moduleDefinition.id}`);
             moduleRegistry.registerModule(moduleDefinition);
           }
@@ -136,14 +153,18 @@ class DynamicModuleLoader {
       
       // Use import.meta.glob to discover module directories with moduleDefinition.tsx files
       const moduleDirectories = import.meta.glob('../modules/*/moduleDefinition.tsx', { eager: true });
+      const coreModuleDirectories = import.meta.glob('../modules/core/moduleDefinition.tsx', { eager: true });
+      
+      // Combine all discovered modules
+      const allModuleDirectories = { ...moduleDirectories, ...coreModuleDirectories };
       
       // Extract module IDs from paths
-      const moduleIds = Object.keys(moduleDirectories).map(path => {
+      const moduleIds = Object.keys(allModuleDirectories).map(path => {
         const match = path.match(/\.\.\/modules\/([^/]+)\/moduleDefinition\.tsx$/);
         return match ? match[1] : null;
       }).filter(Boolean) as string[];
       
-      console.log(`[DynamicModuleLoader] Discovered module files:`, Object.keys(moduleDirectories));
+      console.log(`[DynamicModuleLoader] Discovered module files:`, Object.keys(allModuleDirectories));
       console.log(`[DynamicModuleLoader] Extracted module IDs:`, moduleIds);
       
       // Always include core modules

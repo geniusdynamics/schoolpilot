@@ -2,12 +2,13 @@
 // ABOUTME: Consolidates tabbed mode settings and workspace test in a single interface
 
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { 
   CogIcon,
-  WrenchIcon
+  WrenchIcon,
+  BeakerIcon
 } from '@heroicons/react/24/outline';
 import TabbedModeSettingsPanel from '../modules/settings/components/TabbedModeSettingsPanel';
+import TabbedWorkspaceTestPage from '../modules/settings/pages/TabbedWorkspaceTestPage';
 import TabbedModeTestPage from '../modules/settings/pages/TabbedModeTestPage';
 
 interface TabSettingsProps {
@@ -17,12 +18,13 @@ interface TabSettingsProps {
 const TabSettings: React.FC<TabSettingsProps> = ({
   className = ''
 }) => {
-  const { t } = useTranslation(['settings', 'common']);
-  const [activeTab, setActiveTab] = useState<'settings' | 'workspace'>('settings');
+  // const { t } = useTranslation(['settings', 'common']);
+  const [activeTab, setActiveTab] = useState<'settings' | 'workspace' | 'test'>('settings');
 
   const tabs = [
-    { id: 'settings', label: t('settings:tabs.settingsTab'), icon: CogIcon },
-    { id: 'workspace', label: t('settings:tabs.workspaceTab'), icon: WrenchIcon }
+    { id: 'settings', label: 'Settings', icon: CogIcon },
+    { id: 'workspace', label: 'Workspace Test', icon: WrenchIcon },
+    { id: 'test', label: 'Mode Test', icon: BeakerIcon }
   ];
 
   return (
@@ -50,7 +52,8 @@ const TabSettings: React.FC<TabSettingsProps> = ({
       {/* Tab Content */}
       <div className="min-h-96">
         {activeTab === 'settings' && <TabbedModeSettingsPanel />}
-        {activeTab === 'workspace' && <TabbedModeTestPage />}
+        {activeTab === 'workspace' && <TabbedWorkspaceTestPage />}
+        {activeTab === 'test' && <TabbedModeTestPage />}
       </div>
     </div>
   );

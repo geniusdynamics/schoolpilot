@@ -2,18 +2,27 @@
 // ABOUTME: Provides UI for configuring tab-related features with internal tabs
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import TabSettings from '../../../components/TabSettings';
 import BreadcrumbNavigation from '../../../components/BreadcrumbNavigation';
 
 const TabSettingsPage: React.FC = () => {
-  const { t } = useTranslation(['settings', 'common']);
+  // const { t } = useTranslation(['settings', 'common']);
   
   return (
     <div className="h-full flex flex-col">
       {/* Breadcrumb Navigation - handled automatically by BreadcrumbNavigation component */}
       <div className="mb-4">
         <BreadcrumbNavigation />
+      </div>
+      
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Tabbed Mode Settings
+        </h1>
+        <p className="text-gray-600">
+          Configure and manage tabbed mode functionality
+        </p>
       </div>
       
       {/* Main Content */}

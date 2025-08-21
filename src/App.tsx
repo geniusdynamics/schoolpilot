@@ -3,7 +3,7 @@
 // ABOUTME: Simplified to resolve continuous loading issues
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { useRoutePersistence } from './hooks/useRoutePersistence';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
@@ -34,11 +34,12 @@ const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage
 // Error tracking test component
 const ErrorTrackingTest = lazy(() => import('./components/ErrorTrackingTest'));
 
-// Login test page component
-const LoginTestPage = lazy(() => import('./pages/LoginTestPage'));
-
 // Tabbed workspace test page component
 const TabbedWorkspaceTestPage = lazy(() => import('./modules/settings/pages/TabbedWorkspaceTestPage'));
+// Tabbed mode test page component
+const TabbedModeTestPage = lazy(() => import('./modules/settings/pages/TabbedModeTestPage'));
+// Login test page component
+const LoginTestPage = lazy(() => import('./pages/LoginTestPage'));
 
 
 
@@ -225,7 +226,24 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
         }
       />
       
-      {/* Register custom/dynamic routes from all enabled modules */}
+      {/* Tabbed Mode Test Route */}
+      <Route
+        path="/tabbed-mode-test"
+        element={
+          <ProtectedRoute requiredModule="dashboard" requiredPermission="dashboard.view">
+            <Suspense fallback={
+              <div className="flex items-center justify-center h-screen">
+                <div className="text-center">
+                  <Spinner size="lg" />
+                  <p className="mt-4 text-gray-600">Loading tabbed mode test...</p>
+                </div>
+              </div>
+            }>
+              <TabbedModeTestPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
       {moduleRegistry.getEnabledModules().flatMap(module =>
         (module.routes || []).map(route => {
           const pathSegments = route.path.split('/').filter(Boolean);
