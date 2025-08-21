@@ -6,7 +6,7 @@
 // Environment Types
 export type Environment = 'development' | 'staging' | 'production';
 export type DataMode = 'demo' | 'production';
-export type DatabaseProvider = 'rxdb' | 'pouchdb' | 'memory';
+export type DatabaseProvider = 'rxdb' | 'pouchdb' | 'sqlite' | 'memory';
 
 // Environment Configuration
 export interface EnvironmentConfig {
@@ -33,8 +33,8 @@ const ENVIRONMENT_MATRIX: Record<Environment, EnvironmentConfig> = {
     name: 'development',
     allowedDataModes: ['demo', 'production'],
     defaultDataMode: 'demo',
-    allowedDatabaseProviders: ['rxdb', 'pouchdb', 'memory'],
-    defaultDatabaseProvider: 'memory',
+    allowedDatabaseProviders: ['rxdb', 'pouchdb', 'sqlite', 'memory'],
+    defaultDatabaseProvider: 'sqlite',
     canSwitchDataModes: true,
     requiresConfirmation: false,
     features: {

@@ -2,16 +2,16 @@
 // ABOUTME: Allows administrators to enable/disable tabbed mode per module
 
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { TabbedModeFeatureFlag, tabbedModeFeatureFlag, setTabbedModeModuleOverride, updateTabbedModeConfig } from '../../../services/tabbedModeFeatureFlag';
 import { moduleRegistry } from '../../../core/moduleRegistry';
 import { default as Card } from '../../../components/ui/Card';
 import { default as Checkbox } from '../../../components/ui/Checkbox';
 import { default as Button } from '../../../components/ui/Button';
 import { useToastHelpers } from '../../../hooks/useToast';
+import TabbedModeDemo from './TabbedModeDemo';
 
 const TabbedModeSettingsPanel: React.FC = () => {
-  const { t } = useTranslation(['settings', 'common']);
+  // const { t } = useTranslation(['settings', 'common']);
   const { showSuccess, showError } = useToastHelpers();
   
   const [globalEnabled, setGlobalEnabled] = useState(tabbedModeFeatureFlag.isGloballyEnabled());
@@ -200,6 +200,9 @@ const TabbedModeSettingsPanel: React.FC = () => {
           </div>
         </div>
       </Card>
+      
+      {/* Tabbed Mode Demo */}
+      <TabbedModeDemo />
       
       {/* Help Information */}
       <Card title={t('common:helpAndSupport')} className="shadow-sm">

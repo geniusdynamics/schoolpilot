@@ -2,7 +2,7 @@
 // ABOUTME: Exports the module definition for the settings module
 
 import { ModuleDefinition } from '@/core/types';
-import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon } from '@/components/ui/icons';
+import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon } from '@/components/ui/icons';
 
 const settingsModule: ModuleDefinition = {
   id: 'settings',
@@ -21,10 +21,12 @@ const settingsModule: ModuleDefinition = {
     { name: 'navigation:settings.dependencyReport', path: '/settings/dependency-report', icon: CircleStackIcon, page: 'ModuleDependencyReportPage' },
     { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
     { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon, page: 'DatabaseSettingsPage' },
+    { name: 'navigation:settings.backupSettings', path: '/settings/backup-settings', icon: DownloadIcon, page: 'BackupSettingsPage' },
     { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
     { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage' },
     { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage' },
     { name: 'navigation:settings.tabbedWorkspaceTest', path: '/settings/tabbed-workspace-test', icon: ViewColumnsIcon, page: 'TabbedWorkspaceTestPage' },
+    { name: 'navigation:settings.tabbedModeTest', path: '/settings/tabbed-mode-test', icon: ViewColumnsIcon, page: 'TabbedModeTestPage' },
   ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [

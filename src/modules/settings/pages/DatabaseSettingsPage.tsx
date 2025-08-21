@@ -10,8 +10,8 @@ import { useUnifiedConfig } from '@/contexts/UnifiedConfigContext';
 
 const DatabaseSettingsPage: React.FC = () => {
   const { 
-    isRxDBModeActive: isDatabaseModeActive, 
-    isUsingRxDBDummyData: isUsingDatabaseDummyData, 
+    isDatabaseModeActive, 
+    isUsingRxDBDummyData, 
     triggerSeedRxDB: triggerSeedDatabase, 
     triggerClearRxDB: triggerClearDatabase,
     initializationError 
@@ -102,9 +102,9 @@ const DatabaseSettingsPage: React.FC = () => {
     <div className="space-y-6">
       <Card title="Local Database Management">
         <div className="p-6 space-y-4">
-          <div className={`p-3 rounded-md text-sm ${isUsingDatabaseDummyData ? 'bg-yellow-100 text-yellow-700' : (isUsingDatabaseDummyData === false ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700')}`}>
+          <div className={`p-3 rounded-md text-sm ${isUsingRxDBDummyData ? 'bg-yellow-100 text-yellow-700' : (isUsingRxDBDummyData === false ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700')}`}>
             <strong>Current Status:</strong> 
-            {isUsingDatabaseDummyData === null ? ' Checking...' : (isUsingDatabaseDummyData ? ' Local database is currently using imported dummy data.' : ' Local database is using live data or is empty (not using dummy data).')}
+            {isUsingRxDBDummyData === null ? ' Checking...' : (isUsingRxDBDummyData ? ' Local database is currently using imported dummy data.' : ' Local database is using live data or is empty (not using dummy data).')}
           </div>
 
           <div className="space-x-4">

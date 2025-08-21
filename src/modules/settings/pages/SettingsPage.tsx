@@ -18,7 +18,7 @@ const SettingsPage: React.FC = () => {
     users, 
     loading: usersLoading, 
     schoolDetails, 
-    isRxDBModeActive 
+    isDatabaseModeActive 
   } = useAppData(); 
   
   const userColumns = [
@@ -127,7 +127,7 @@ const SettingsPage: React.FC = () => {
         </Card>
 
         {/* Database Settings Card - Only show in RxDB mode */}
-        {isRxDBModeActive && (
+        {isDatabaseModeActive && (
           <Card title={t('navigation:settings.databaseSettings')}>
             <div className="text-center py-6">
               <CircleStackIcon className="w-12 h-12 text-orange-500 mx-auto mb-3" />

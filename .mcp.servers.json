@@ -1,0 +1,60 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer@latest"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "sequentialThinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking@latest"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "sequentialthinking"
+      ]
+    },
+    "deepWebResearch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-deepwebresearch@latest",
+        "--no-sandbox"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "firecrawl-mcp@latest"
+      ],
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {},
+      "working_directory": null,
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

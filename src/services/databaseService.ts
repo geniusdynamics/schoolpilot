@@ -1,5 +1,5 @@
-// ABOUTME: New database service that uses PouchDB-first dual-database architecture
-// ABOUTME: Provides same interface as rxdbService.ts but eliminates RxDB initialization errors
+// ABOUTME: New database service that uses the correct database provider based on environment configuration
+// ABOUTME: Provides same interface as rxdbService.ts but uses the DataServiceFactory
 
 import { Observable, BehaviorSubject } from 'rxjs';
 import {
@@ -15,6 +15,7 @@ import {
   RXDB_SETTINGS_COLLECTION_NAME,
   RXDB_DUMMY_DATA_FLAG_ID
 } from '../config/unifiedConfig';
+import { DataServiceFactory } from './DataServiceFactory';
 
 // Import the same collections definition from rxdbService
 import { collectionsDefinition } from './rxdbService';
@@ -77,7 +78,7 @@ class MockDatabase {
   getCollection(name: string): ICollection<any> | null {
     const collection = this.collectionsMap.get(name);
     if (!collection) {
-      console.warn(`Collection '${name}' not found in PouchDB provider`);
+      console.warn(`Collection '${name}' not found in database provider`);
       return null;
     }
     return collection;
@@ -92,46 +93,28 @@ class MockDatabase {
   }
 }
 
-// Initialize database using PouchDB provider
+// Initialize database using the correct provider based on environment
 const initializeDatabase = async (): Promise<MockDatabase> => {
-  console.log('PouchDB: Initializing database with dual-database architecture...');
+  console.log('DatabaseService: Initializing database with environment-specific provider...');
   
   try {
-    // Check if IndexedDB is available
-    if (!window.indexedDB) {
-      throw new Error('IndexedDB is not available in this browser');
+    // Get current unified configuration
+    const config = unifiedConfigManager.getConfig();
+    console.log('🔍 [DEBUG] Current environment:', config.environment);
+    console.log('🔍 [DEBUG] Current data mode:', config.dataMode);
+    console.log('🔍 [DEBUG] Current database provider:', config.database.provider);
+    
+    // Create data service using DataServiceFactory
+    const provider = await DataServiceFactory.createDataService(config.environment);
+    
+    if (!provider) {
+      throw new Error('Failed to create database provider');
     }
 
-    // Debug: Log collectionsDefinition
-    console.log('🔍 [DEBUG] collectionsDefinition type:', typeof collectionsDefinition);
-    console.log('🔍 [DEBUG] collectionsDefinition is null?', collectionsDefinition === null);
-    console.log('🔍 [DEBUG] collectionsDefinition is undefined?', collectionsDefinition === undefined);
-    console.log('🔍 [DEBUG] collectionsDefinition keys:', collectionsDefinition ? Object.keys(collectionsDefinition).length : 'N/A');
-    
-    // Add guards for undefined collectionsDefinition
-    if (!collectionsDefinition || typeof collectionsDefinition !== 'object') {
-      console.error('❌ [ERROR] collectionsDefinition is undefined or not an object:', collectionsDefinition);
-      throw new Error('collectionsDefinition is undefined or invalid');
-    }
-
-    const integrationHelper = getRxDBIntegrationHelper();
-    console.log('🔍 [DEBUG] integrationHelper obtained:', !!integrationHelper);
-    
-    // Initialize with all 88 collections using PouchDB provider
-    console.log('🔍 [DEBUG] About to call initializeWithRxDBCollections with:', {
-      collectionsDefinition: collectionsDefinition ? 'defined' : 'undefined',
-      dbName: RXDB_DB_NAME
-    });
-    
-    await integrationHelper.initializeWithRxDBCollections(
-      collectionsDefinition,
-      RXDB_DB_NAME
-    );
-
-    const databaseManager = integrationHelper.getDatabaseManager();
+    const databaseManager = getDatabaseManager();
     const allCollections = databaseManager.getAllCollections();
 
-    console.log(`PouchDB: Successfully initialized ${allCollections.size} collections`);
+    console.log(`DatabaseService: Successfully initialized ${allCollections.size} collections using ${provider.name}`);
     
     // Create mock database interface
     const mockDb = new MockDatabase(allCollections);
@@ -146,10 +129,10 @@ const initializeDatabase = async (): Promise<MockDatabase> => {
     isInitialized = true;
     initializationError = null;
     
-    console.log('PouchDB: Database initialization completed successfully');
+    console.log('DatabaseService: Database initialization completed successfully');
     return mockDb;
   } catch (error) {
-    console.error('PouchDB: Database initialization failed:', error);
+    console.error('DatabaseService: Database initialization failed:', error);
     initializationError = error as Error;
     isInitialized = false;
     throw error;
@@ -173,7 +156,7 @@ export const getDatabaseError = (): Error | null => {
 };
 
 export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTypes.RawInitialData): Promise<void> => {
-  console.log('PouchDB: Demo mode - Seeding database with mock data...');
+  console.log('DatabaseService: Demo mode - Seeding database with mock data...');
   
   for (const collectionName in collectionsDefinition) {
     if (Object.prototype.hasOwnProperty.call(collectionsDefinition, collectionName)) {
@@ -183,7 +166,7 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
 
       if (collection) {
         try {
-          console.log(`PouchDB: Clearing collection ${collectionName}...`);
+          console.log(`DatabaseService: Clearing collection ${collectionName}...`);
           // Clear existing data
           const existingDocs = await collection.find();
           for (const doc of existingDocs) {
@@ -193,15 +176,15 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
           }
 
           if (mockDataArray && Array.isArray(mockDataArray) && mockDataArray.length > 0) {
-            console.log(`PouchDB: Seeding ${collectionName} with ${mockDataArray.length} items...`);
+            console.log(`DatabaseService: Seeding ${collectionName} with ${mockDataArray.length} items...`);
             for (const item of mockDataArray) {
               await collection.insert(item);
             }
           } else if (mockDataArray && !Array.isArray(mockDataArray) && mockDataArray !== null && collectionName !== RXDB_SETTINGS_COLLECTION_NAME) {
-            console.log(`PouchDB: Seeding ${collectionName} with 1 item...`);
+            console.log(`DatabaseService: Seeding ${collectionName} with 1 item...`);
             await collection.insert(mockDataArray);
           } else if (collectionName === RXDB_SETTINGS_COLLECTION_NAME && mockDataArray) {
-            console.log(`PouchDB: Upserting ${collectionName} data...`);
+            console.log(`DatabaseService: Upserting ${collectionName} data...`);
             // Use upsert for settings collection
             const settingsCol = collection as any;
             if (settingsCol.upsert) {
@@ -217,10 +200,10 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
             }
           }
         } catch (error) {
-          console.error(`PouchDB: Error seeding collection ${collectionName}:`, error);
+          console.error(`DatabaseService: Error seeding collection ${collectionName}:`, error);
         }
       } else {
-        console.warn(`PouchDB: Collection ${collectionName} not found in DB instance during seeding.`);
+        console.warn(`DatabaseService: Collection ${collectionName} not found in DB instance during seeding.`);
       }
     }
   }
@@ -243,14 +226,14 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
         await settingsCollection.insert({ using_dummy_data: true });
       }
     }
-    console.log('PouchDB: Dummy data flag set to true.');
+    console.log('DatabaseService: Dummy data flag set to true.');
   }
   
-  console.log('PouchDB: Database seeding complete.');
+  console.log('DatabaseService: Database seeding complete.');
 };
 
 export const clearDatabase = async (db: MockDatabase): Promise<void> => {
-  console.log('PouchDB: Clearing all collections...');
+  console.log('DatabaseService: Clearing all collections...');
   
   for (const [collectionName, collection] of Object.entries(db.collections)) {
     try {
@@ -260,9 +243,9 @@ export const clearDatabase = async (db: MockDatabase): Promise<void> => {
           await collection.remove(doc.id);
         }
       }
-      console.log(`PouchDB: Cleared collection ${collectionName}`);
+      console.log(`DatabaseService: Cleared collection ${collectionName}`);
     } catch (error) {
-      console.error(`PouchDB: Error clearing collection ${collectionName}:`, error);
+      console.error(`DatabaseService: Error clearing collection ${collectionName}:`, error);
     }
   }
 
@@ -284,10 +267,10 @@ export const clearDatabase = async (db: MockDatabase): Promise<void> => {
         await settingsCollection.insert({ using_dummy_data: false });
       }
     }
-    console.log('PouchDB: Dummy data flag set to false.');
+    console.log('DatabaseService: Dummy data flag set to false.');
   }
   
-  console.log('PouchDB: All collections cleared.');
+  console.log('DatabaseService: All collections cleared.');
 };
 
 export const getUsingDummyDataFlag = async (db: MockDatabase): Promise<boolean> => {
@@ -297,7 +280,7 @@ export const getUsingDummyDataFlag = async (db: MockDatabase): Promise<boolean> 
       const doc = await settingsCollection.findById(RXDB_DUMMY_DATA_FLAG_ID);
       return !!doc?.using_dummy_data;
     } catch (error) {
-      console.warn('PouchDB: Could not retrieve dummy data flag:', error);
+      console.warn('DatabaseService: Could not retrieve dummy data flag:', error);
       return false;
     }
   }
@@ -370,4 +353,4 @@ export const databaseService = rxdbService;
 // Removed auto-initialization at module load to prevent race conditions
 // Database will be initialized explicitly when needed by useDatabaseData hook
 
-console.log('PouchDB: Database service loaded successfully');
+console.log('DatabaseService: Database service loaded successfully');

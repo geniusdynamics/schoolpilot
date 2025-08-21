@@ -14,9 +14,11 @@ import {
 } from './interfaces';
 import { PouchDBProvider } from './PouchDBProvider';
 import { RxDBProvider } from './RxDBProvider';
+import { SQLiteProvider } from './SQLiteProvider';
+import { SQLiteWASMProvider } from './LiveStoreProvider';
 
 // Provider Types
-export type ProviderType = 'pouchdb' | 'rxdb' | 'hybrid';
+export type ProviderType = 'pouchdb' | 'rxdb' | 'sqlite' | 'livestore' | 'hybrid';
 
 // Provider Selection Strategy
 export interface ProviderSelectionStrategy {
@@ -26,14 +28,35 @@ export interface ProviderSelectionStrategy {
 // Default Provider Selection Strategy
 export class DefaultProviderSelectionStrategy implements ProviderSelectionStrategy {
   selectProvider(requirements: CollectionRequirements): ProviderType {
-    // PouchDB-first strategy: Use PouchDB as primary provider for all collections
-    // This eliminates the artificial 16-collection limit and leverages PouchDB's capabilities
+    // Enhanced provider selection strategy with LiveStore support
+    
+    // LiveStore is preferred for:
+    // - Modern web applications requiring real-time sync
+    // - SQLite WASM with OPFS for offline-first applications
+    // - Cross-tab persistence and better performance
+    // - Production environments requiring advanced features
     
     // PouchDB is preferred for:
     // - All collection counts (no artificial limits)
-    // - Offline-first applications
+    // - Offline-first applications (fallback)
     // - Simple to moderate complexity queries
     // - Better IndexedDB integration
+    
+    // SQLite is preferred for:
+    // - Development environments with persistent storage
+    // - Better performance with large datasets
+    // - Closer to production environment for testing
+    
+    // Check if we're in a development environment and want persistent storage
+    const isDevelopment = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+    if (isDevelopment && requirements.requiresOffline) {
+      return 'sqlite';
+    }
+    
+    // Use LiveStore for production environments with sync requirements
+    if (requirements.requiresSync && requirements.performanceLevel === 'high') {
+      return 'livestore';
+    }
     
     if (requirements.requiresOffline || requirements.requiresSync) {
       return 'pouchdb';
@@ -242,6 +265,10 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       return 'pouchdb';
     } else if (constructorName.includes('RxDB')) {
       return 'rxdb';
+    } else if (constructorName.includes('SQLite')) {
+      return 'sqlite';
+    } else if (constructorName.includes('LiveStore') || constructorName.includes('SQLiteWASM')) {
+      return 'livestore';
     } else {
       throw new Error(`Unknown provider type: ${constructorName}`);
     }
@@ -251,6 +278,8 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     // Register available providers
     this.registerProvider(new PouchDBProvider());
     this.registerProvider(new RxDBProvider());
+    this.registerProvider(new SQLiteProvider());
+    this.registerProvider(new SQLiteWASMProvider());
     
     console.log('Database providers initialized:', Array.from(this.providers.keys()));
   }

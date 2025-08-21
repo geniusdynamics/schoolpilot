@@ -1,268 +1,207 @@
-// ABOUTME: Simple test component to verify tabbed mode feature flag functionality
-// ABOUTME: Shows current tabbed mode status and allows toggling for testing
+// ABOUTME: Tabbed mode test page component
+// ABOUTME: Provides UI for testing tabbed mode functionality
 
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { isTabbedModeEnabled, setTabbedModeModuleOverride, updateTabbedModeConfig, tabbedModeFeatureFlag } from '../../../services/tabbedModeFeatureFlag';
+import React, { useState } from 'react';
 import Card from '../../../components/ui/Card';
-import { default as Checkbox } from '../../../components/ui/Checkbox';
 import Button from '../../../components/ui/Button';
-import { extractModuleId } from '../../../utils/moduleUtils';
+import Input from '../../../components/ui/Input';
+import { useTabNavigation } from '../../../hooks/useTabNavigation';
+import { isTabbedModeEnabled, setTabbedModeModuleOverride, updateTabbedModeConfig } from '../../../services/tabbedModeFeatureFlag';
 
 const TabbedModeTestPage: React.FC = () => {
-  const { t } = useTranslation(['settings', 'common']);
-  const [currentModule, setCurrentModule] = useState('dashboard');
-  const [isTabbedMode, setIsTabbedMode] = useState(isTabbedModeEnabled('dashboard'));
-  const [globalEnabled, setGlobalEnabled] = useState(tabbedModeFeatureFlag.isGloballyEnabled());
-  const [perModuleControl, setPerModuleControl] = useState(tabbedModeFeatureFlag.isPerModuleControlEnabled());
-  const [moduleOverrides, setModuleOverrides] = useState<Record<string, boolean>>(tabbedModeFeatureFlag.getModuleOverrides());
+  // const { t } = useTranslation(['settings', 'common']);
+  const { navigateToTab, tabs } = useTabNavigation();
+  const [testPath, setTestPath] = useState('/academics/dashboard');
+  const [testTitle, setTestTitle] = useState('Academics Dashboard');
+  const [testModule, setTestModule] = useState('academics');
+  const [testResults, setTestResults] = useState<string[]>([]);
 
-  // Update state when feature flag config changes
-  useEffect(() => {
-    const updateState = () => {
-      setIsTabbedMode(isTabbedModeEnabled(currentModule));
-      setGlobalEnabled(tabbedModeFeatureFlag.isGloballyEnabled());
-      setPerModuleControl(tabbedModeFeatureFlag.isPerModuleControlEnabled());
-      setModuleOverrides({ ...tabbedModeFeatureFlag.getModuleOverrides() });
-    };
-
-    updateState();
-  }, [currentModule]);
-
-  // Handle module change
-  const handleModuleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCurrentModule(e.target.value);
+  const logResult = (message: string) => {
+    setTestResults(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
   };
 
-  // Handle global toggle
-  const handleGlobalToggle = (enabled: boolean) => {
+  const testBasicNavigation = async () => {
     try {
-      updateTabbedModeConfig({
-        globalEnabled: enabled
+      logResult('Testing basic tabbed navigation...');
+      
+      const result = await navigateToTab(testPath, {
+        title: testTitle,
+        module: testModule,
+        contentType: 'url',
+        activateImmediately: true
       });
-      setGlobalEnabled(enabled);
+      
+      logResult(`✓ Success: Created tab ${result.tabId} for ${testPath}`);
     } catch (error) {
-      console.error('Failed to update global setting:', error);
+      logResult(`✗ Failed: ${error.message}`);
+      console.error('Basic navigation test failed:', error);
     }
   };
 
-  // Handle per-module control toggle
-  const handlePerModuleControlToggle = (enabled: boolean) => {
+  const testFeatureFlag = () => {
     try {
+      logResult('Testing tabbed mode feature flag...');
+      
+      const globalEnabled = isTabbedModeEnabled('global');
+      const moduleEnabled = isTabbedModeEnabled(testModule);
+      
+      logResult(`✓ Global tabbed mode enabled: ${globalEnabled}`);
+      logResult(`✓ Module ${testModule} tabbed mode enabled: ${moduleEnabled}`);
+    } catch (error) {
+      logResult(`✗ Feature flag test failed: ${error.message}`);
+      console.error('Feature flag test failed:', error);
+    }
+  };
+
+  const testConfiguration = () => {
+    try {
+      logResult('Testing tabbed mode configuration...');
+      
+      // This is just a test - in a real implementation we would have proper config
       updateTabbedModeConfig({
-        enablePerModuleControl: enabled
+        globalEnabled: true,
+        enablePerModuleControl: true
       });
-      setPerModuleControl(enabled);
+      
+      setTabbedModeModuleOverride(testModule, true);
+      
+      logResult('✓ Configuration updated successfully');
     } catch (error) {
-      console.error('Failed to update per-module control setting:', error);
+      logResult(`✗ Configuration test failed: ${error.message}`);
+      console.error('Configuration test failed:', error);
     }
   };
 
-  // Handle module override toggle
-  const handleModuleOverrideToggle = (moduleId: string, enabled: boolean) => {
-    try {
-      setTabbedModeModuleOverride(moduleId, enabled);
-      setModuleOverrides(prev => ({
-        ...prev,
-        [moduleId]: enabled
-      }));
-      // Update current module status if it matches
-      if (moduleId === currentModule) {
-        setIsTabbedMode(enabled);
-      }
-    } catch (error) {
-      console.error(`Failed to update module override for ${moduleId}:`, error);
-    }
+  const clearResults = () => {
+    setTestResults([]);
   };
-
-  // Test modules
-  const testModules = [
-    'dashboard',
-    'settings',
-    'reports',
-    'academics',
-    'administration',
-    'finance',
-    'hr',
-    'inventory',
-    'library',
-    'nutrition',
-    'admissions',
-    'audit'
-  ];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">
-        {t('settings:tabbedMode.testPageTitle')}
-      </h1>
-      <p className="text-gray-600 mb-8">
-        {t('settings:tabbedMode.testPageDescription')}
-      </p>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Current Status Card */}
-        <Card title={t('settings:tabbedMode.currentStatus')} className="shadow-sm">
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('settings:tabbedMode.selectModule')}
-              </label>
-              <select
-                value={currentModule}
-                onChange={handleModuleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {testModules.map(module => (
-                  <option key={module} value={module}>
-                    {module.charAt(0).toUpperCase() + module.slice(1)}
-                  </option>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Tabbed Mode Test
+        </h1>
+        <p className="text-gray-600">
+          Test tabbed mode functionality
+        </p>
+      </div>
+      
+      {/* Test Configuration */}
+      <Card title="Test Configuration" className="shadow-sm">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              label="Path"
+              value={testPath}
+              onChange={(e) => setTestPath(e.target.value)}
+              placeholder="/academics/dashboard"
+            />
+            <Input
+              label="Title"
+              value={testTitle}
+              onChange={(e) => setTestTitle(e.target.value)}
+              placeholder="Academics Dashboard"
+            />
+            <Input
+              label="Module"
+              value={testModule}
+              onChange={(e) => setTestModule(e.target.value)}
+              placeholder="academics"
+            />
+          </div>
+        </div>
+      </Card>
+      
+      {/* Test Controls */}
+      <Card title="Test Controls" className="shadow-sm">
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-4">
+            <Button onClick={testBasicNavigation} variant="primary">
+              Test Basic Navigation
+            </Button>
+            <Button onClick={testFeatureFlag} variant="secondary">
+              Test Feature Flag
+            </Button>
+            <Button onClick={testConfiguration} variant="warning">
+              Test Configuration
+            </Button>
+            <Button onClick={clearResults} variant="danger">
+              Clear Results
+            </Button>
+          </div>
+        </div>
+      </Card>
+      
+      {/* Test Results */}
+      <Card title="Test Results" className="shadow-sm">
+        <div className="space-y-2">
+          {testResults.length > 0 ? (
+            <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+              {testResults.map((result, index) => (
+                <div 
+                  key={index} 
+                  className={`font-mono text-sm ${result.includes('✓') ? 'text-green-600' : result.includes('✗') ? 'text-red-600' : 'text-gray-600'}`}
+                >
+                  {result}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No test results yet
+            </div>
+          )}
+        </div>
+      </Card>
+      
+      {/* Current Tabs */}
+      <Card title="Current Tabs" className="shadow-sm">
+        <div className="space-y-2">
+          {tabs && tabs.length > 0 ? (
+            <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+              <ul className="space-y-2">
+                {tabs.map((tab) => (
+                  <li key={tab.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{tab.title}</div>
+                      <div className="text-sm text-gray-500">{tab.path}</div>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {tab.module && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{tab.module}</span>}
+                    </div>
+                  </li>
                 ))}
-              </select>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {t('settings:tabbedMode.tabbedModeStatus')}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {currentModule.charAt(0).toUpperCase() + currentModule.slice(1)} Module
-                  </p>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  isTabbedMode 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {isTabbedMode ? t('common:enabled') : t('common:disabled')}
-                </div>
-              </div>
-            </div>
-
-            <div className="text-sm text-gray-600">
-              <p className="mb-2">
-                <strong>{t('settings:tabbedMode.evaluationLogic')}:</strong>
-              </p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>{t('settings:tabbedMode.globalCheck')}: {globalEnabled ? '✓' : '✗'}</li>
-                <li>{t('settings:tabbedMode.perModuleCheck')}: {perModuleControl ? '✓' : '✗'}</li>
-                <li>{t('settings:tabbedMode.moduleOverrideCheck')}: {moduleOverrides[currentModule] !== undefined ? (moduleOverrides[currentModule] ? '✓' : '✗') : 'N/A'}</li>
               </ul>
             </div>
-          </div>
-        </Card>
-
-        {/* Configuration Card */}
-        <Card title={t('settings:tabbedMode.configuration')} className="shadow-sm">
-          <div className="space-y-6">
-            {/* Global Settings */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
-                {t('settings:tabbedMode.globalSettings')}
-              </h3>
-              
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                <div>
-                  <h4 className="font-medium text-gray-900">
-                    {t('settings:tabbedMode.enableGlobal')}
-                  </h4>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t('settings:tabbedMode.enableGlobalDescription')}
-                  </p>
-                </div>
-                <Checkbox
-                  checked={globalEnabled}
-                  onChange={(e) => handleGlobalToggle(e.target.checked)}
-                  aria-label={t('settings:tabbedMode.enableGlobal')}
-                />
-              </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No tabs are currently open
             </div>
-
-            {/* Per-Module Control */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-3">
-                {t('settings:tabbedMode.perModuleControl')}
-              </h3>
-              
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                <div>
-                  <h4 className="font-medium text-gray-900">
-                    {t('settings:tabbedMode.enablePerModuleControl')}
-                  </h4>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t('settings:tabbedMode.enablePerModuleControlDescription')}
-                  </p>
-                </div>
-                <Checkbox
-                  checked={perModuleControl}
-                  onChange={(e) => handlePerModuleControlToggle(e.target.checked)}
-                  aria-label={t('settings:tabbedMode.enablePerModuleControl')}
-                />
-              </div>
-            </div>
-
-            {/* Module Overrides */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {t('settings:tabbedMode.moduleOverrides')}
-                </h3>
-                <span className="text-sm text-gray-500">
-                  {Object.keys(moduleOverrides).filter(id => moduleOverrides[id]).length} {t('common:enabled')}
-                </span>
-              </div>
-              
-              <div className="max-h-60 overflow-y-auto space-y-2">
-                {testModules.map(module => (
-                  <div 
-                    key={module} 
-                    className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
-                  >
-                    <div>
-                      <h4 className="font-medium text-gray-900 capitalize">
-                        {module}
-                      </h4>
-                    </div>
-                    <Checkbox
-                      checked={moduleOverrides[module] ?? false}
-                      onChange={(e) => handleModuleOverrideToggle(module, e.target.checked)}
-                      aria-label={t('settings:tabbedMode.toggleModuleOverride', { module })}
-                      disabled={!perModuleControl}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Test Actions */}
-      <div className="mt-8 flex justify-end space-x-3">
-        <Button
-          variant="secondary"
-          onClick={() => {
-            tabbedModeFeatureFlag.resetConfig();
-            setGlobalEnabled(tabbedModeFeatureFlag.isGloballyEnabled());
-            setPerModuleControl(tabbedModeFeatureFlag.isPerModuleControlEnabled());
-            setModuleOverrides({ ...tabbedModeFeatureFlag.getModuleOverrides() });
-            setIsTabbedMode(isTabbedModeEnabled(currentModule));
-          }}
-        >
-          {t('common:resetToDefaults')}
-        </Button>
-        <Button
-          variant="primary"
-          onClick={() => {
-            // Force refresh the current status
-            setIsTabbedMode(isTabbedModeEnabled(currentModule));
-          }}
-        >
-          {t('common:refresh')}
-        </Button>
-      </div>
+          )}
+        </div>
+      </Card>
+      
+      {/* Help Information */}
+      <Card title="Help and Support" className="shadow-sm">
+        <div className="prose max-w-none">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            Tabbed Mode Test Help
+          </h3>
+          <ul className="space-y-2 text-gray-600">
+            <li>
+              <strong>Basic Navigation Test:</strong> Test basic tabbed navigation by creating tabs with different paths and titles
+            </li>
+            <li>
+              <strong>Feature Flag Test:</strong> Verify that tabbed mode feature flags are working correctly for different modules
+            </li>
+            <li>
+              <strong>Configuration Test:</strong> Test tabbed mode configuration updates and module-specific overrides
+            </li>
+          </ul>
+        </div>
+      </Card>
     </div>
   );
 };

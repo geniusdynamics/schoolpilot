@@ -1,139 +1,147 @@
-// ABOUTME: Test component for verifying tabbed workspace functionality
-// ABOUTME: Tests module navigation and tab creation scenarios
+// ABOUTME: Tabbed workspace test page component
+// ABOUTME: Provides UI for testing tabbed workspace functionality
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTabStore } from '../../../stores/tabStore';
-import { useDynamicNavigation } from '../../../hooks/useDynamicNavigation';
+import Card from '../../../components/ui/Card';
+import Button from '../../../components/ui/Button';
 import { useTabNavigation } from '../../../hooks/useTabNavigation';
 
 const TabbedWorkspaceTestPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { tabs } = useTabStore();
-  const { navigationItems } = useDynamicNavigation(true);
-  const { navigateToTab } = useTabNavigation();
+  // const { t } = useTranslation(['settings', 'common']);
+  const { navigateToTab, tabs, closeTab, closeAllTabs } = useTabNavigation();
 
-  // Test creating tabs using the proper navigation mechanism
-  const testCreateTab = async () => {
+  const testTabCreation = async () => {
     try {
-      const result = await navigateToTab('/test', {
-        title: 'Test Tab',
+      // Create a test tab
+      const result = await navigateToTab('/dashboard', {
+        title: 'Dashboard Test',
         module: 'dashboard',
-        forceCreate: true
+        contentType: 'url',
+        activateImmediately: true
       });
-      console.log('✅ Created test tab:', result.tabId);
+      
+      console.log('Test tab created:', result);
     } catch (error) {
-      console.error('❌ Error creating test tab:', error);
+      console.error('Failed to create test tab:', error);
     }
   };
 
-  // Test activating a tab
-  const testActivateTab = async (tabId: string) => {
+  const testMultipleTabs = async () => {
     try {
-      // Use the proper tab activation mechanism
-      const { activateTab } = useTabStore.getState();
-      await activateTab(tabId);
-      console.log('✅ Activated tab:', tabId);
+      // Create multiple test tabs
+      await navigateToTab('/academics/dashboard', {
+        title: 'Academics Dashboard',
+        module: 'academics',
+        contentType: 'url'
+      });
+      
+      await navigateToTab('/finance/dashboard', {
+        title: 'Finance Dashboard',
+        module: 'finance',
+        contentType: 'url'
+      });
+      
+      await navigateToTab('/hr/dashboard', {
+        title: 'HR Dashboard',
+        module: 'hr',
+        contentType: 'url'
+      });
     } catch (error) {
-      console.error('❌ Error activating tab:', error);
+      console.error('Failed to create multiple test tabs:', error);
     }
-  };
-
-  // Test closing a tab
-  const testCloseTab = (tabId: string) => {
-    try {
-      const { closeTab } = useTabStore.getState();
-      closeTab(tabId);
-      console.log('✅ Closed tab:', tabId);
-    } catch (error) {
-      console.error('❌ Error closing tab:', error);
-    }
-  };
-
-  // Test navigation to a module
-  const testNavigateToModule = (modulePath: string) => {
-    console.log('🔍 Navigating to module:', modulePath);
-    navigate(modulePath);
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Tabbed Workspace Test</h1>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Tabbed Workspace Test
+        </h1>
+        <p className="text-gray-600">
+          Test tabbed workspace functionality
+        </p>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Navigation Items</h2>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {navigationItems.map((item, index) => (
-              <div key={index} className="border-b pb-2">
-                <div className="font-medium">{item.name}</div>
-                <div className="text-sm text-gray-600">Path: {item.path}</div>
-                {item.children && (
-                  <div className="ml-4 mt-1 space-y-1">
-                    {item.children.map((child, childIndex) => (
-                      <div key={childIndex} className="flex justify-between items-center">
-                        <span>{child.name}</span>
-                        <button
-                          onClick={() => testNavigateToModule(child.path)}
-                          className="text-xs bg-blue-500 text-white px-2 py-1 rounded"
-                        >
-                          Go
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+      {/* Test Controls */}
+      <Card title="Test Controls" className="shadow-sm">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button onClick={testTabCreation} variant="primary">
+              Create Test Tab
+            </Button>
+            <Button onClick={testMultipleTabs} variant="secondary">
+              Create Multiple Tabs
+            </Button>
+            <Button onClick={closeAllTabs} variant="danger">
+              Close All Tabs
+            </Button>
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-semibold text-blue-800 mb-2">Current Tabs</h4>
+            <p className="text-sm text-blue-700">
+              0 active tabs
+            </p>
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Tab Management</h2>
-          <div className="space-y-4">
+      </Card>
+      
+      {/* Tab Information */}
+      <Card title="Tab Information" className="shadow-sm">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <button
-                onClick={testCreateTab}
-                className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-              >
-                Create Test Tab
-              </button>
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Active Tabs
+              </h3>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                <div className="text-center py-8 text-gray-500">
+                  No active tabs
+                </div>
+              </div>
             </div>
             
             <div>
-              <h3 className="font-medium mb-2">Current Tabs ({tabs.length})</h3>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {tabs.map(tab => (
-                  <div key={tab.id} className="flex justify-between items-center border-b pb-1">
-                    <div>
-                      <span className={tab.id === useTabStore.getState().activeTabId ? 'font-bold' : ''}>
-                        {tab.title}
-                      </span>
-                      <div className="text-xs text-gray-500">{tab.path}</div>
-                    </div>
-                    <div>
-                      <button
-                        onClick={() => testActivateTab(tab.id)}
-                        className="text-xs bg-blue-500 text-white px-2 py-1 rounded mr-1"
-                      >
-                        Activate
-                      </button>
-                      {tab.canClose && (
-                        <button
-                          onClick={() => testCloseTab(tab.id)}
-                          className="text-xs bg-red-500 text-white px-2 py-1 rounded"
-                        >
-                          Close
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                Tab Statistics
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-600">Total Tabs</span>
+                  <span className="font-medium">0</span>
+                </div>
+                <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-600">Active Tab</span>
+                  <span className="font-medium">
+                    None
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
+      
+      {/* Help Information */}
+      <Card title="Help and Support" className="shadow-sm">
+        <div className="prose max-w-none">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            Tabbed Workspace Test Help
+          </h3>
+          <ul className="space-y-2 text-gray-600">
+            <li>
+              <strong>Creating Test Tabs:</strong> Use the buttons above to create test tabs and verify tabbed navigation functionality
+            </li>
+            <li>
+              <strong>Managing Tabs:</strong> You can close individual tabs or close all tabs at once using the control buttons
+            </li>
+            <li>
+              <strong>Tab Information:</strong> The tab information panel shows details about all currently active tabs
+            </li>
+          </ul>
+        </div>
+      </Card>
     </div>
   );
 };

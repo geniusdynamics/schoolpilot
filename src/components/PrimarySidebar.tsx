@@ -3,7 +3,6 @@ import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { useTabNavigation } from '../hooks/useTabNavigation';
 import { useToastHelpers } from '../hooks/useToast';
 import { useNavigate } from 'react-router-dom';
 import { i18nReady } from '../i18n/i18n';
