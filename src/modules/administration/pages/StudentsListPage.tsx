@@ -62,6 +62,11 @@ const StudentsListPage: React.FC = () => {
   
   const { showToast } = useToast();
   
+  // Navigate to add student page - moved before usePageActions to fix temporal dead zone
+  const handleAddStudent = useCallback(() => {
+    navigate('/administration/students/add');
+  }, [navigate]);
+  
   // Register page actions
   usePageActions([
     {
@@ -98,10 +103,7 @@ const StudentsListPage: React.FC = () => {
 
 
 
-  // Navigate to add student page
-  const handleAddStudent = useCallback(() => {
-    navigate('/administration/students/add');
-  }, [navigate]);
+  // handleAddStudent moved above to fix temporal dead zone error
 
   const openModal = useCallback((student?: Student) => {
     setEditingStudent(student || null);

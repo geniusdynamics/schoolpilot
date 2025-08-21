@@ -50,6 +50,10 @@ const pageModules = {
   ...import.meta.glob('./modules/*/pages/**/*.tsx', { eager: true }),
 };
 
+// Debug: Log all available page modules
+console.log('📦 [pageModules] All loaded modules:', Object.keys(pageModules));
+console.log('📦 [pageModules] Academics modules:', Object.keys(pageModules).filter(key => key.includes('academics')));
+
 // Debug logging helper
 const debugLog = (message: string, ...args: any[]) => {
   // Simplified debug logging to avoid config dependency issues
@@ -78,18 +82,51 @@ const getPageComponent = (nav: any) => {
 
   const moduleDir = pathSegments[0];
   const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
+  console.log('🔍 [getPageComponent] Looking for key:', modularKey);
+  console.log('🔍 [getPageComponent] Available pageModules keys:', Object.keys(pageModules));
+  console.log('🔍 [getPageComponent] Academics specific keys:', Object.keys(pageModules).filter(key => key.includes('academics')));
+  
   const moduleExport = pageModules[modularKey];
+  console.log('🔍 [getPageComponent] moduleExport for key:', modularKey, ':', moduleExport);
   
   if (!moduleExport) {
     console.log('❌ [getPageComponent] No component found for key:', modularKey);
-    console.log('Available keys:', Object.keys(pageModules).filter(key => key.includes(moduleDir)));
+    console.log('Available keys for module:', Object.keys(pageModules).filter(key => key.includes(moduleDir)));
+    
+    // Try alternative key patterns
+    const altKey1 = `./modules/${moduleDir}/pages/${nav.page}/index.tsx`;
+    const altKey2 = `./modules/${moduleDir}/pages/index.ts`;
+    console.log('🔍 [getPageComponent] Trying alternative keys:', altKey1, altKey2);
+    
+    const altExport1 = pageModules[altKey1];
+    const altExport2 = pageModules[altKey2];
+    
+    if (altExport1) {
+      console.log('✅ [getPageComponent] Found component with alternative key:', altKey1);
+      return altExport1.default || altExport1;
+    }
+    
+    if (altExport2) {
+      console.log('✅ [getPageComponent] Found component with alternative key:', altKey2);
+      const indexExports = altExport2.default || altExport2;
+      console.log('🔍 [getPageComponent] indexExports:', indexExports);
+      if (indexExports && indexExports[nav.page]) {
+        console.log('✅ [getPageComponent] Found component in index exports:', nav.page);
+        return indexExports[nav.page];
+      }
+    }
+    
     return null;
   }
 
   console.log('✅ [getPageComponent] Found component for:', modularKey);
+  console.log('🔍 [getPageComponent] moduleExport.default:', moduleExport.default);
+  console.log('🔍 [getPageComponent] moduleExport keys:', Object.keys(moduleExport));
   
   // Since modules are eagerly loaded, access the default export directly
-  return moduleExport.default || moduleExport;
+  const component = moduleExport.default || moduleExport;
+  console.log('🔍 [getPageComponent] Final component:', component);
+  return component;
 };
 
 // Module Dashboard Placeholder Component
@@ -188,6 +225,25 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
         }
       />
       
+      {/* Test Route for Academics Dashboard */}
+      <Route
+        path="/academics/dashboard"
+        element={
+          <ProtectedRoute requiredModule="academics" requiredPermission="academics.view">
+            <div className="p-8">
+              <h1 className="text-2xl font-bold mb-4">Academics Dashboard Test</h1>
+              <p>This is a test route to verify academics routing is working.</p>
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
+                <h2 className="font-semibold">Debug Info:</h2>
+                <p>Route: /academics/dashboard</p>
+                <p>Module: academics</p>
+                <p>Permission: academics.view</p>
+              </div>
+            </div>
+          </ProtectedRoute>
+        }
+      />
+      
       {/* Login Test Route */}
       <Route
         path="/login-test"
@@ -244,48 +300,108 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           </ProtectedRoute>
         }
       />
-      {moduleRegistry.getEnabledModules().flatMap(module =>
-        (module.routes || []).map(route => {
-          const pathSegments = route.path.split('/').filter(Boolean);
-          let moduleDir = '';
-
-          if (pathSegments.length > 0) {
-            moduleDir = pathSegments[0];
-          }
+      {/* Dynamic routes from navigation items */}
+      {navigationItems.flatMap(navItem => {
+        // Handle group items (modules) with children
+        if (navItem.isGroup && navItem.children) {
+          console.log('🔍 [DynamicRoutes] Processing group:', navItem.name, 'with', navItem.children.length, 'children');
+          return navItem.children.map(childNav => {
+            const pathSegments = childNav.path.split('/').filter(Boolean);
+            const moduleDir = pathSegments[0] || '';
+            
+            console.log('🔍 [DynamicRoutes] Processing child nav:', childNav.name, 'path:', childNav.path, 'page:', childNav.page);
+            
+            let PageComponent = null;
+            if (moduleDir && childNav.page) {
+              const modularKey = `./modules/${moduleDir}/pages/${childNav.page}.tsx`;
+              const moduleExport = pageModules[modularKey];
+              if (moduleExport) {
+                PageComponent = () => {
+                  const Component = moduleExport.default || moduleExport;
+                  return <Component />;
+                };
+                console.log('✅ [DynamicRoutes] Found component for:', childNav.path);
+              } else {
+                console.log('❌ [DynamicRoutes] No component found for key:', modularKey);
+                console.log('Available keys:', Object.keys(pageModules).filter(key => key.includes(moduleDir)));
+              }
+            }
+            
+            if (!PageComponent) {
+              console.log('❌ [DynamicRoutes] No component found for nav item:', childNav.name);
+              return null;
+            }
+            
+            const moduleName = moduleDir || navItem.name.toLowerCase();
+            const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
+            
+            return (
+              <Route
+                key={childNav.path}
+                path={childNav.path}
+                element={
+                  <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
+                    <PageErrorBoundary pageName={childNav.page || childNav.path}>
+                      <Suspense fallback={
+                        <div className="flex items-center justify-center h-screen">
+                          <div className="text-center">
+                            <Spinner size="lg" />
+                            <p className="mt-4 text-gray-600">Loading {childNav.name}...</p>
+                          </div>
+                        </div>
+                      }>
+                        <PageComponent />
+                      </Suspense>
+                    </PageErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+            );
+          });
+        }
+        
+        // Handle direct navigation items (non-group)
+        if (!navItem.isGroup && navItem.path && navItem.page) {
+          const pathSegments = navItem.path.split('/').filter(Boolean);
+          const moduleDir = pathSegments[0] || '';
+          
+          console.log('🔍 [DynamicRoutes] Processing direct nav:', navItem.name, 'path:', navItem.path, 'page:', navItem.page);
           
           let PageComponent = null;
-          if (moduleDir) {
-            const modularKey = `./modules/${moduleDir}/pages/${route.page}.tsx`;
+          if (moduleDir && navItem.page) {
+            const modularKey = `./modules/${moduleDir}/pages/${navItem.page}.tsx`;
             const moduleExport = pageModules[modularKey];
             if (moduleExport) {
-              // Since modules are eagerly loaded, create a component that returns the default export
               PageComponent = () => {
                 const Component = moduleExport.default || moduleExport;
                 return <Component />;
               };
+              console.log('✅ [DynamicRoutes] Found component for:', navItem.path);
+            } else {
+              console.log('❌ [DynamicRoutes] No component found for key:', modularKey);
             }
           }
           
           if (!PageComponent) {
-            debugLog('❌ [DynamicRoutes] No component found for route:', route.path);
+            console.log('❌ [DynamicRoutes] No component found for nav item:', navItem.name);
             return null;
           }
           
-          const moduleName = moduleDir || module.id;
+          const moduleName = moduleDir || 'dashboard';
           const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
           
           return (
             <Route
-              key={route.path}
-              path={route.path}
+              key={navItem.path}
+              path={navItem.path}
               element={
                 <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
-                  <PageErrorBoundary pageName={route.page || route.path}>
+                  <PageErrorBoundary pageName={navItem.page || navItem.path}>
                     <Suspense fallback={
                       <div className="flex items-center justify-center h-screen">
                         <div className="text-center">
                           <Spinner size="lg" />
-                          <p className="mt-4 text-gray-600">Loading page...</p>
+                          <p className="mt-4 text-gray-600">Loading {navItem.name}...</p>
                         </div>
                       </div>
                     }>
@@ -296,74 +412,73 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
               }
             />
           );
-        }).filter(Boolean)
-      )}
+        }
+        
+        return null;
+      }).filter(Boolean)}
       
       {/* Module base path routes - for module dashboards */}
       {moduleRegistry.getEnabledModules().map(module => {
-        // Only create route if module has a path and it's not already covered by navigation items
-        if (!module.path) return null;
-        
-        // Check if this path is already covered by navigation items
-        const isPathCovered = navigationItems.some(navItem => 
-          navItem.path === module.path || 
-          (navItem.children && navItem.children.some(child => child.path === module.path))
-        );
-        
-        // If path is already covered, don't create a duplicate route
-        if (isPathCovered) return null;
-        
         const moduleName = module.id;
         const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
         
-        return (
-          <Route
-            key={module.path}
-            path={module.path}
-            element={
-              <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
-                <ModuleDashboardPlaceholder moduleName={module.name} />
-              </ProtectedRoute>
+        // Create a route for the module base path that redirects to the dashboard
+        if (module.path) {
+          // Check if this is the academics module and create a redirect to its dashboard
+          if (moduleName === 'academics') {
+            const dashboardKey = `./modules/academics/pages/AcademicsDashboardPage.tsx`;
+            const dashboardExport = pageModules[dashboardKey];
+            
+            if (dashboardExport) {
+              const DashboardComponent = () => {
+                const Component = dashboardExport.default || dashboardExport;
+                return <Component />;
+              };
+              
+              return (
+                <Route
+                  key={module.path}
+                  path={module.path}
+                  element={
+                    <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
+                      <PageErrorBoundary pageName="AcademicsDashboardPage">
+                        <Suspense fallback={
+                          <div className="flex items-center justify-center h-screen">
+                            <div className="text-center">
+                              <Spinner size="lg" />
+                              <p className="mt-4 text-gray-600">Loading Academics Dashboard...</p>
+                            </div>
+                          </div>
+                        }>
+                          <DashboardComponent />
+                        </Suspense>
+                      </PageErrorBoundary>
+                    </ProtectedRoute>
+                  }
+                />
+              );
             }
-          />
-        );
+          }
+          
+          // For other modules, use the placeholder
+          return (
+            <Route
+              key={module.path}
+              path={module.path}
+              element={
+                <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
+                  <ModuleDashboardPlaceholder moduleName={module.name} />
+                </ProtectedRoute>
+              }
+            />
+          );
+        }
+        
+        return null;
       }).filter(Boolean)}
-      
-      {/* Dynamic navigation routes */}
-      {navigationItems
-        .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
-        .flatMap(module => {
-          debugLog('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
-          return (module.children || []).map(nav => {
-            debugLog('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
-            const PageComponent = getPageComponent(nav);
-            if (!PageComponent) {
-              debugLog('❌ [DynamicRoutes] No page component found for nav item:', nav.name);
-              return null;
-            }
-            
-            const modulePath = nav.modulePath?.replace('/', '') || '';
-            const moduleName = modulePath || nav.path.split('/')[1] || '';
-            const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
-            
-            debugLog('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission);
-            
-            return (
-              <Route
-                key={nav.path}
-                path={nav.path}
-                element={
-                  <ProtectedRoute
-                    requiredPermission={requiredPermission}
-                    requiredModule={moduleName}
-                  >
-                    <PageComponent />
-                  </ProtectedRoute>
-                }
-              />
-            );
-          });
-        }).filter(Boolean)}
+        
+        {/* Catch-all route for unmatched paths */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };
@@ -372,8 +487,15 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
 const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConfig }> = ({ modulesInitialized, config }) => {
   const location = useLocation();
   const authContext = useAuth();
-  const { isAuthenticated, isLoading } = authContext;
+  const { isAuthenticated, isLoading, user } = authContext;
   const { restoreRouteIfNeeded } = useRoutePersistence();
+  
+  // Debug current user and authentication state
+  useEffect(() => {
+    console.log('🔍 [App] Current user:', user);
+    console.log('🔍 [App] Is authenticated:', isAuthenticated);
+    console.log('🔍 [App] Is loading:', isLoading);
+  }, [user, isAuthenticated, isLoading]);
 
   // Debug authentication state
   useEffect(() => {

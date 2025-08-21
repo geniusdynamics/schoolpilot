@@ -11,16 +11,11 @@ export const loadModularTranslations = async () => {
   const resources: any = {
     en: { translation: {} },
     fr: { translation: {} },
-    es: { translation: {} },
-    de: { translation: {} },
-    it: { translation: {} },
-    pt: { translation: {} },
-    nl: { translation: {} },
     sw: { translation: {} },
     rw: { translation: {} }
   };
 
-  const languages = ['en', 'fr', 'es', 'de', 'it', 'pt', 'nl', 'sw', 'rw'];
+  const languages = ['en', 'fr', 'sw', 'rw'];
 
   for (const lang of languages) {
     // Initialize namespaces for each language
