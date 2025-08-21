@@ -10,10 +10,40 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import './i18n/i18n'; // Import your i18n configuration, this initializes i18next
+import { i18nReady } from './i18n/i18n';
 import { initializeUnifiedConfig } from './config/unifiedConfig';
 
 // Initialize unified configuration
 initializeUnifiedConfig();
+
+// Wait for i18n to be ready before rendering
+const initializeApp = async () => {
+  // Poll for i18n readiness
+  const waitForI18n = () => {
+    return new Promise<void>((resolve) => {
+      const checkReady = () => {
+        if (i18nReady) {
+          console.log('✅ i18n initialized successfully');
+          resolve();
+        } else {
+          setTimeout(checkReady, 50); // Check every 50ms
+        }
+      };
+      checkReady();
+    });
+  };
+  
+  try {
+    await waitForI18n();
+  } catch (error) {
+    console.warn('⚠️ i18n initialization failed, continuing with fallback:', error);
+  }
+  
+  // Render the app after i18n is ready
+  renderApp();
+};
+
+const renderApp = () => {
 
 // Add global debug helpers
 if (typeof window !== 'undefined') {
@@ -174,27 +204,31 @@ if (typeof window !== 'undefined') {
   console.log('  - window.testAuthState() - Test authentication state management');
 }
 
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    throw new Error("Could not find root element to mount to");
+  }
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <Suspense fallback={
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] w-12 h-12 border-4 text-indigo-600" role="status">
-            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
-              Loading...
-            </span>
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(
+    <React.StrictMode>
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] w-12 h-12 border-4 text-indigo-600" role="status">
+              <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+                Loading...
+              </span>
+            </div>
+            <p className="mt-4 text-gray-600">Loading translations...</p>
           </div>
-          <p className="mt-4 text-gray-600">Loading translations...</p>
         </div>
-      </div>
-    }>
-      <App />
-    </Suspense>
-  </React.StrictMode>
-);
+      }>
+        <App />
+      </Suspense>
+    </React.StrictMode>
+  );
+};
+
+// Initialize the app
+initializeApp();

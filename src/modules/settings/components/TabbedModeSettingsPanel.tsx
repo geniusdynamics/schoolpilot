@@ -2,7 +2,8 @@
 // ABOUTME: Allows administrators to enable/disable tabbed mode per module
 
 import React, { useState, useEffect } from 'react';
-import { TabbedModeFeatureFlag, tabbedModeFeatureFlag, setTabbedModeModuleOverride, updateTabbedModeConfig } from '../../../services/tabbedModeFeatureFlag';
+import { useTranslation } from 'react-i18next';
+import { TabbedModeConfig, tabbedModeFeatureFlag, setTabbedModeModuleOverride, updateTabbedModeConfig } from '../../../services/tabbedModeFeatureFlag';
 import { moduleRegistry } from '../../../core/moduleRegistry';
 import { default as Card } from '../../../components/ui/Card';
 import { default as Checkbox } from '../../../components/ui/Checkbox';
@@ -11,7 +12,7 @@ import { useToastHelpers } from '../../../hooks/useToast';
 import TabbedModeDemo from './TabbedModeDemo';
 
 const TabbedModeSettingsPanel: React.FC = () => {
-  // const { t } = useTranslation(['settings', 'common']);
+  const { t } = useTranslation(['settings', 'common']);
   const { showSuccess, showError } = useToastHelpers();
   
   const [globalEnabled, setGlobalEnabled] = useState(tabbedModeFeatureFlag.isGloballyEnabled());
@@ -118,7 +119,7 @@ const TabbedModeSettingsPanel: React.FC = () => {
                 </div>
                 <Checkbox
                   checked={globalEnabled}
-                  onChange={(e) => handleGlobalToggle(e.target.checked)}
+                  onChange={(checked) => handleGlobalToggle(checked)}
                   aria-label={t('settings:tabbedMode.enableGlobal')}
                 />
               </div>
@@ -134,7 +135,7 @@ const TabbedModeSettingsPanel: React.FC = () => {
                 </div>
                 <Checkbox
                   checked={perModuleControl}
-                  onChange={(e) => handlePerModuleControlToggle(e.target.checked)}
+                  onChange={(checked) => handlePerModuleControlToggle(checked)}
                   aria-label={t('settings:tabbedMode.enablePerModuleControl')}
                 />
               </div>
@@ -167,7 +168,7 @@ const TabbedModeSettingsPanel: React.FC = () => {
                     </div>
                     <Checkbox
                       checked={moduleOverrides[module.id] ?? false}
-                      onChange={(e) => handleModuleOverrideToggle(module.id, e.target.checked)}
+                      onChange={(checked) => handleModuleOverrideToggle(module.id, checked)}
                       aria-label={t('settings:tabbedMode.toggleModuleOverride', { 
                         module: module.name.replace('navigation:', '').replace('.title', '') 
                       })}

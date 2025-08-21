@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { XIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { safeDeps, HookErrorHandler } from '../utils/hookUtils';
+// Removed unused HookErrorHandler import
 import { HookErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 import { SettingsSkeleton } from './ModuleLoadingFallback';
 
@@ -29,7 +29,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
       console.error('[SettingsPopup] Error finding settings module:', error);
       return null;
     }
-  }, safeDeps([navigationItems]));
+  }, [navigationItems]);
   
   const settingsMenu = useMemo(() => {
     try {
@@ -38,7 +38,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
       console.error('[SettingsPopup] Error getting settings menu:', error);
       return [];
     }
-  }, safeDeps([settingsModule]));
+  }, [settingsModule]);
   
   // Memoize the close handler to prevent unnecessary re-renders
   const handleClose = useCallback(() => {
@@ -49,7 +49,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
     } catch (error) {
       console.error('[SettingsPopup] Error in handleClose:', error);
     }
-  }, safeDeps([onClose]));
+  }, [onClose]);
   
   const handleLinkClick = useCallback(() => {
     try {
@@ -59,7 +59,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
     } catch (error) {
       console.error('[SettingsPopup] Error in handleLinkClick:', error);
     }
-  }, safeDeps([onClose]));
+  }, [onClose]);
 
   // Conditional return after all hooks are called
   if (!open) return null;

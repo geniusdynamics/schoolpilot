@@ -4,7 +4,7 @@ import { ChevronDown, Globe } from 'lucide-react';
 import { HookErrorBoundary } from '../ErrorBoundary/HookErrorBoundary';
 
 const LanguageSwitcherContent: React.FC = () => {
-  const { i18n, t } = useTranslation();
+  const { i18n, t, ready } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   
   // Define available languages with stable reference
@@ -58,18 +58,24 @@ const LanguageSwitcherContent: React.FC = () => {
 
   const currentLanguage = useMemo(() => {
     try {
-      if (!i18n || !i18n.language) {
-        console.warn('[LanguageSwitcher] i18n.language not available, using default');
-        return languages[0] || { code: 'en', name: 'English', flag: '🇺🇸' };
-      }
-      
-      const foundLanguage = languages.find(lang => lang && lang.code === i18n.language);
+      const currentLang = (ready && i18n?.language) || 'en';
+      const foundLanguage = languages.find(lang => lang && lang.code === currentLang);
       return foundLanguage || languages[0] || { code: 'en', name: 'English', flag: '🇺🇸' };
     } catch (error) {
       console.error('[LanguageSwitcher] Error finding current language:', error);
       return { code: 'en', name: 'English', flag: '🇺🇸' };
     }
-  }, [i18n?.language, languages]);
+  }, [ready, i18n?.language, languages]);
+
+  // Show loading state if i18n is not ready - moved after all hooks
+  if (!ready || !i18n) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700">
+        <Globe className="w-4 h-4" />
+        <span className="text-sm font-medium">Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
