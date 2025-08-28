@@ -4,6 +4,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { useTabNavigation } from '../hooks/useTabNavigation';
 import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
 import { SyncStatusComponent } from './OfflineCapability';
@@ -19,6 +21,8 @@ interface UserMenuProps {
 const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
   const { t } = useTranslation('common');
   const { user, logout, isDemoMode } = useAuth();
+  const navigate = useNavigate();
+  const { navigateToTab } = useTabNavigation();
   const [isOpen, setIsOpen] = useState(false);
   const { config } = useUnifiedConfig();
   
@@ -48,19 +52,32 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
     }
   }, []); // Changed: safeDeps([]) -> []
 
-  const handleSettingsClick = useCallback(() => {
+  const handleSettingsClick = useCallback(async () => {
     try {
       if (onSettingsClick && typeof onSettingsClick === 'function') {
         onSettingsClick();
       } else {
-        // Navigate to settings
-        window.location.hash = '#/settings';
+        // Use tab navigation to create a settings tab
+        await navigateToTab('/settings', {
+          title: 'Settings',
+          icon: 'CogIcon',
+          module: 'settings',
+          contentType: 'component',
+          component: 'DynamicPageComponent',
+          metadata: {
+            source: 'user-menu',
+            timestamp: new Date().toISOString()
+          }
+        });
       }
       setIsOpen(false);
     } catch (error) {
       console.error('[UserMenu] Error in handleSettingsClick:', error);
+      // Fallback to regular navigation if tab navigation fails
+      navigate('/settings');
+      setIsOpen(false);
     }
-  }, [onSettingsClick]); // Changed: safeDeps([onSettingsClick]) -> [onSettingsClick]
+  }, [onSettingsClick, navigateToTab, navigate]); // Changed: safeDeps([onSettingsClick]) -> [onSettingsClick]
 
   const handleBackdropClick = useCallback((e?: React.MouseEvent) => {
     try {

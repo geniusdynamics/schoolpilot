@@ -10,6 +10,7 @@ import { useActionRegistry } from '../../services/actionRegistry';
 import type { TabbedWorkspaceProps, Tab } from '../../types/tabbedWorkspace';
 import type { HierarchicalTab, BreadcrumbItem } from '../../types/hierarchical';
 import { resolveTabContent } from './resolveTabContent';
+import DynamicPageComponent from '../DynamicPageComponent';
 
 export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   className = '',
@@ -384,11 +385,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{activeTab.title}</h1>
             {/* For route-based tabs, we render the actual route content */}
             {activeTab.content.type === 'component' && activeTab.content.component === 'DynamicPageComponent' ? (
-              <div className="route-content-container">
-                {/* The actual route content will be rendered by React Router */}
-                {/* We provide a placeholder that will be filled by the Layout's children */}
-                <div className="route-content-placeholder" />
-              </div>
+              <DynamicPageComponent path={activeTab.path} />
             ) : (
               resolveTabContent(activeTab)
             )}

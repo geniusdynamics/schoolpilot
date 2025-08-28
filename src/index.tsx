@@ -9,8 +9,7 @@ import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import './i18n/i18n'; // Import your i18n configuration, this initializes i18next
-import { i18nReady } from './i18n/i18n';
+import i18n, { initializeI18n } from './i18n/i18n'; // Import your i18n configuration
 import { initializeUnifiedConfig } from './config/unifiedConfig';
 
 // Initialize unified configuration
@@ -18,23 +17,10 @@ initializeUnifiedConfig();
 
 // Wait for i18n to be ready before rendering
 const initializeApp = async () => {
-  // Poll for i18n readiness
-  const waitForI18n = () => {
-    return new Promise<void>((resolve) => {
-      const checkReady = () => {
-        if (i18nReady) {
-          console.log('✅ i18n initialized successfully');
-          resolve();
-        } else {
-          setTimeout(checkReady, 50); // Check every 50ms
-        }
-      };
-      checkReady();
-    });
-  };
-  
   try {
-    await waitForI18n();
+    // Wait for i18n to be ready
+    await initializeI18n();
+    console.log('✅ i18n initialized successfully');
   } catch (error) {
     console.warn('⚠️ i18n initialization failed, continuing with fallback:', error);
   }

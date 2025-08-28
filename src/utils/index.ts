@@ -15,3 +15,6 @@ export * from './animations';
 
 // Theme management
 export { useTheme, ThemeProvider, useThemeContext, initializeTheme } from '../hooks/useTheme';
+
+// Logging utilities
+export * from './logging';

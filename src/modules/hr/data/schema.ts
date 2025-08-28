@@ -2,6 +2,7 @@
 // ABOUTME: These schemas are used by both RxDB and PouchDB services to create collections.
 
 import * as types from './types';
+import { HRPayrollPeriodStatusEnum } from '../../../core/types';
 import { createDatabaseSchema, SchemaHelpers } from '../../../utils/databaseAgnosticSchema'; 
 import type { DatabaseSchema, DatabaseProperty } from '../../../utils/databaseAgnosticSchema';
 
@@ -15,7 +16,7 @@ export const payrollPeriodsSchema: DatabaseSchema = createDatabaseSchema({
         end_date: SchemaHelpers.string({ description: 'End date', format: 'date', maxLength: 20 }),
         financial_year_id: SchemaHelpers.ref('financial_years', { description: 'Reference to financial year', maxLength: 100 }),
         school_period_id: SchemaHelpers.ref('school_periods', { description: 'Reference to school period', maxLength: 100 }),
-        status: SchemaHelpers.string({ description: 'Payroll period status', enum: Object.values(types.HRPayrollPeriodStatusEnum), maxLength: 50 }),
+        status: SchemaHelpers.string({ description: 'Payroll period status', enum: Object.values(HRPayrollPeriodStatusEnum), maxLength: 50 }),
         financial_year_name: SchemaHelpers.string({ description: 'Financial year name (computed)', maxLength: 100 }),
         school_period_name: SchemaHelpers.string({ description: 'School period name (computed)', maxLength: 100 }),
     },

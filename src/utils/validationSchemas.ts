@@ -13,10 +13,12 @@ import {
   PersonGender, 
   StudentStatus, 
   FinancialYearStatus, 
-  InvoiceStatus,
+  InvoiceStatus
+} from '../core/types';
+import { 
   ExamSessionStatus,
   StudentEnrollmentStatus 
-} from '../core/types';
+} from '../modules/academics/data/enums';
 
 // Student validation schema
 const studentSchema: EntityValidationSchema = {

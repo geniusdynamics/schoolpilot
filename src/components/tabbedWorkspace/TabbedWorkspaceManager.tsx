@@ -1,11 +1,13 @@
 // ABOUTME: Tabbed workspace manager for handling module navigation and tab creation
 // ABOUTME: Ensures proper tab creation when switching between modules and pages
+// ABOUTME: Enhanced with TabStateManager for improved module dashboard detection and platform adaptation
 
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTabStore } from '../../stores/tabStore';
 import { useDynamicNavigation } from '../../hooks/useDynamicNavigation';
 import { extractModuleId } from '../../utils/moduleUtils';
+import { TabStateManager, defaultTabStateConfig } from '../../services/TabStateManager';
 
 interface TabbedWorkspaceManagerProps {
   children: React.ReactNode;
@@ -27,6 +29,21 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
   // Refs to prevent infinite loops
   const previousPathRef = useRef<string>(location.pathname);
   const isProcessingRef = useRef<boolean>(false);
+  
+  // Initialize TabStateManager
+  const tabStateManager = useRef<TabStateManager>(new TabStateManager(defaultTabStateConfig));
+  
+  // Initialize TabStateManager with store reference
+  useEffect(() => {
+    tabStateManager.current.setStore({ tabs, createTab, activateTab, closeTab: (id: string) => {} });
+    
+    // Set platform information for adaptive behavior
+    const platform = window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'web' : 'desktop';
+    const touchDevice = 'ontouchstart' in window;
+    tabStateManager.current.setPlatformInfo({ platform, touchDevice });
+    
+    console.log('🔧 [TabbedWorkspaceManager] TabStateManager initialized for platform:', platform);
+  }, [tabs, createTab, activateTab]);
 
   // Find the module and navigation item for the current path
   const findNavigationItemForPath = useCallback((path: string) => {
@@ -47,7 +64,7 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
     return null;
   }, [navigationItems]);
 
-  // Create or activate tab for the current route
+  // Create or activate tab for the current route using TabStateManager
   const handleRouteChange = useCallback(async () => {
     // Prevent infinite loops
     if (isProcessingRef.current || previousPathRef.current === location.pathname) {
@@ -67,71 +84,26 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
         return;
       }
 
-      const { module, child } = navigationItem;
-      const moduleId = extractModuleId(module.name);
-      
-      console.log('🔍 [TabbedWorkspaceManager] Found navigation item:', { moduleId, module, child });
+      console.log('🔍 [TabbedWorkspaceManager] Found navigation item:', navigationItem);
 
-      // Check if we already have a tab for this path
-      const existingTab = tabs.find(tab => tab.path === location.pathname);
+      // Use TabStateManager for enhanced tab creation with proper dashboard detection
+      const result = await tabStateManager.current.createModuleTab(navigationItem, location);
       
-      if (existingTab) {
-        // Activate existing tab
-        console.log('✅ [TabbedWorkspaceManager] Activating existing tab:', existingTab.id);
-        try {
-          await activateTab(existingTab.id);
-        } catch (error) {
-          console.error('❌ [TabbedWorkspaceManager] Error activating tab:', error);
-        }
-        return;
-      }
-
-      // Determine if this is a module dashboard or a child page
-      const isModuleDashboard = !child;
-      // For module dashboards, use a more appropriate title
-      let pageTitle = 'Dashboard';
-      if (child) {
-        pageTitle = child.name;
-      } else if (module.name) {
-        // Extract a readable name from the module name
-        const moduleName = module.name.replace('navigation:', '').replace('.title', '');
-        // Capitalize first letter
-        pageTitle = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
+      if (result.action === 'created') {
+        console.log('✅ [TabbedWorkspaceManager] Created new tab via TabStateManager:', result.tabId);
+      } else if (result.action === 'activated') {
+        console.log('✅ [TabbedWorkspaceManager] Activated existing tab via TabStateManager:', result.tabId);
+      } else if (result.action === 'error') {
+        console.error('❌ [TabbedWorkspaceManager] Error from TabStateManager:', result.message);
       }
       
-      console.log('🔍 [TabbedWorkspaceManager] Creating new tab:', { 
-        isModuleDashboard, 
-        pageTitle, 
-        path: location.pathname,
-        moduleId
-      });
-
-      try {
-        // Create a new tab
-        const newTabId = await createTab({
-          title: pageTitle,
-          module: moduleId,
-          path: location.pathname,
-          content: {
-            type: 'component',
-            component: 'DynamicPageComponent' // Placeholder, will be rendered by TabbedWorkspace
-          },
-          permissions: [], // Will be checked by ProtectedRoute
-          canClose: true,
-          pinned: false
-        });
-        
-        console.log('✅ [TabbedWorkspaceManager] Created new tab:', newTabId);
-      } catch (error) {
-        console.error('❌ [TabbedWorkspaceManager] Error creating tab:', error);
-      }
     } finally {
       // Reset processing flag after a short delay to ensure stability
       setTimeout(() => {
         isProcessingRef.current = false;
       }, 100);
     }
-  }, [location.pathname, tabs, createTab, activateTab, findNavigationItemForPath]);
+  }, [location.pathname, tabs, findNavigationItemForPath]);
 
   // Handle route changes
   useEffect(() => {
@@ -145,7 +117,7 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
       
       isProcessingRef.current = true;
       
-      // Create initial dashboard tab
+      // Create initial dashboard tab with proper module dashboard settings
       createTab({
         title: 'Dashboard',
         module: 'dashboard',
@@ -156,7 +128,13 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
         },
         permissions: [],
         canClose: false, // Dashboard should not be closable
-        pinned: true
+        pinned: true,    // Dashboard should be pinned
+        metadata: {
+          moduleContext: 'dashboard',
+          isModuleDashboard: true,
+          createdAt: Date.now(),
+          platform: window.innerWidth < 768 ? 'mobile' : 'web'
+        }
       }).then(tabId => {
         console.log('✅ [TabbedWorkspaceManager] Created initial dashboard tab:', tabId);
         // Navigate to dashboard if not already there
@@ -173,6 +151,16 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
       });
     }
   }, [tabs.length, createTab, navigate, location.pathname]);
+  
+  // Log tab statistics periodically for debugging
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const stats = tabStateManager.current.getTabStatistics();
+      console.log('📊 [TabbedWorkspaceManager] Tab Statistics:', stats);
+    }, 30000); // Every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
 
   return <>{children}</>;
 };

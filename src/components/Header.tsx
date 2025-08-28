@@ -107,8 +107,8 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
             <LanguageSwitcher />
           </div>
           
-          {/* Settings - Hidden on small mobile */}
-          <button className="hidden sm:block p-1.5 sm:p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600" title="Settings" onClick={onSettings}>
+          {/* Settings - Always visible */}
+          <button className="p-1.5 sm:p-2 rounded-xl bg-white/70 hover:bg-white/90 shadow text-slate-600" title="Settings" onClick={onSettings}>
             <CogIcon className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
           

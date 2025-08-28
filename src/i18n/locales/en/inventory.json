@@ -1,0 +1,16 @@
+{
+  "title": "Inventory",
+  "items": "Items",
+  "categories": "Categories",
+  "stock": "Stock Management",
+  "suppliers": "Suppliers",
+  "orders": "Purchase Orders",
+  "receiving": "Receiving",
+  "tracking": "Asset Tracking",
+  "maintenance": "Maintenance",
+  "disposal": "Disposal",
+  "reports": "Inventory Reports",
+  "audit": "Stock Audit",
+  "alerts": "Low Stock Alerts",
+  "valuation": "Inventory Valuation"
+}

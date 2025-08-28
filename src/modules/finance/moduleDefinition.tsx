@@ -76,4 +76,4 @@ export const financeModule: ModuleDefinition = {
   defaultRoles: financeDefaultRoles,
 };
 
-export default financeModule; 
+export default financeModule;

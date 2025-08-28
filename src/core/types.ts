@@ -132,49 +132,18 @@ export interface HRPayrollPeriodType {
 }
 
 // === MERGED/EXPANDED FROM ACADEMICS MODULE ===
-export enum SubjectGrouping {
-  CORE = 'Core',
-  ELECTIVE = 'Elective',
-  OPTIONAL = 'Optional',
-  GROUP_1_COMPULSORY = 'Group 1 (Compulsory)',
-  GROUP_2_SCIENCES = 'Group 2 (Sciences)',
-  GROUP_3_HUMANITIES = 'Group 3 (Humanities)',
-  GROUP_4_TECHNICALS = 'Group 4 (Technicals)',
-  GROUP_5_LANGUAGES = 'Group 5 (Foreign Languages)',
-  OTHER = 'Other/Optional'
-}
+// SubjectGrouping enum moved to academics module to resolve conflicts
+// This enum is now exported from src/modules/academics/data/types.ts
 
 // Exam Scheduling Types
-export interface ExamSchedule {
-  id: string;
-  exam_session_id: string;
-  class_stream_id: number;
-  period_id: number;
-  room: string;
-  invigilator: string;
-  date: string;
-  created_at: string;
-  updated_at: string;
-}
+// ExamSchedule interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
-export enum StudentEnrollmentStatus {
-    ACTIVE = 'Active',
-    DROPPED = 'Dropped',
-    GRADUATED = 'Graduated',
-    ENROLLED = 'Enrolled',
-    WITHDRAWN = 'Withdrawn'
-}
+// StudentEnrollmentStatus enum moved to academics module to resolve conflicts
+// This enum is now exported from src/modules/academics/data/types.ts
 
-export enum ExamSessionStatus {
-    OPEN = 'Open',
-    CLOSED = 'Closed',
-    RESULTS_PENDING = 'Results Pending',
-    RESULTS_RELEASED = 'Results Released',
-    PLANNING = 'Planning',
-    MARKS_ENTRY_OPEN = 'Marks Entry Open',
-    PUBLISHED = 'Published',
-    ARCHIVED = 'Archived'
-}
+// ExamSessionStatus enum moved to academics module to resolve conflicts
+// This enum is now exported from src/modules/academics/data/types.ts
 
 export enum AccountType {
   ASSET = 'Asset',
@@ -546,18 +515,7 @@ export interface ClassStream {
     class_teacher_name?: string | null;
 }
 
-export interface Subject {
-  id: number;
-  subject_code: string;
-  abbreviation: string;
-  name: string;
-  department_id?: string | null;
-  is_compulsory?: boolean | null;
-  grouping: SubjectGrouping;
-  // Denormalized
-  department_name?: string | null;
-  papers?: SubjectPaper[];
-}
+// Subject interface moved to academics module to avoid conflicts
 
 export interface Department {
     id: string;
@@ -940,15 +898,7 @@ export interface TimetablePeriodDef {
 
 // TemplateComm and Campaign interfaces moved to administration module to avoid conflicts
 
-export interface SubjectPaper {
-    id: number;
-    subject_id: number;
-    name: string;
-    created_at: string;
-    updated_at: string;
-    // Denormalized
-    subject_name?: string | null;
-}
+// SubjectPaper interface moved to academics module to avoid conflicts
 
 export interface ClassSubjectAllocation {
     id: string;
@@ -962,51 +912,15 @@ export interface ClassSubjectAllocation {
     is_enrolled?: boolean | null;
 }
 
-export interface StudentSubjectEnrollment {
-    id: string;
-    student_id: string;
-    class_subject_allocation_id: string;
-    enrollment_date: string;
-    status: StudentEnrollmentStatus;
-    created_at: string;
-    updated_at: string;
-    // Denormalized
-    student_name?: string | null;
-    class_name?: string | null;
-    stream_name?: string | null;
-    subject_name?: string | null;
-    academic_year_name?: string | null;
-    enrollment_status_display?: string | null;
-}
+// StudentSubjectEnrollment interface moved to academics module to avoid conflicts
 
-export interface TeacherSubjectAssignment {
-    id: string;
-    allocation_id: string;
-    teacher_id: string;
-    // Denormalized
-    class_stream_name?: string | null;
-    subject_name?: string | null;
-    academic_year_name?: string | null;
-    teacher_name?: string | null;
-}
+// TeacherSubjectAssignment interface moved to academics module to avoid conflicts
 
-export interface GradingSchemeLevel {
-    id: number;
-    scheme_id: number;
-    grade: string;
-    min_score: number;
-    points?: number | null;
-    comment?: string | null;
-}
+// GradingSchemeLevel interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
-export interface GradingScheme {
-    id: number;
-    name: string;
-    is_default: boolean;
-    created_at: string;
-    updated_at: string;
-    levels?: GradingSchemeLevel[];
-}
+// GradingScheme interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
 export interface ExamPaperSetting {
     id: string;
@@ -1021,51 +935,16 @@ export interface ExamPaperSetting {
     subject_name?: string | null;
 }
 
-export interface ExamSession {
-    id: string;
-    name: string;
-    school_period_id: number;
-    status: ExamSessionStatus;
-    created_at: string;
-    updated_at: string;
-    // Denormalized
-    school_period_name?: string | null;
-    paper_settings?: ExamPaperSetting[];
-}
+// ExamSession interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
-export interface StudentPaperMark {
-    id: string;
-    student_exam_result_id: string;
-    paper_setting_id: string;
-    score?: number | null;
-}
+// StudentPaperMark interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
-export interface StudentExamResult {
-    id: string;
-    student_id: string;
-    exam_session_id: string;
-    total_marks?: number | null;
-    mean_grade?: string | null;
-    class_rank?: number | null;
-    stream_rank?: number | null;
-    created_at: string;
-    updated_at: string;
-    marks?: StudentPaperMark[];
-}
+// StudentExamResult interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
-export interface TimetableEntry {
-    id: string;
-    class_stream_id: number;
-    day_of_week: DayOfWeek;
-    period_id: number;
-    subject_id: number;
-    teacher_id: string;
-    // Denormalized
-    class_stream_name?: string | null;
-    period_name?: string | null;
-    subject_name?: string | null;
-    teacher_name?: string | null;
-}
+// TimetableEntry interface moved to academics module to avoid conflicts
 
 // --- HR Interfaces ---
 
@@ -1422,60 +1301,23 @@ export interface ExamResultSummary {
   total_marks?: number | null;
 }
 
-export interface StudentDetailProfile extends Student {
-    primary_guardian?: ParentsGuardian | null;
-    financial_summary: StudentFinancialSummary;
-    invoices_charges: StudentInvoiceChargeItem[];
-    payment_history: StudentPaymentLogItem[];
-    enrolled_subjects: StudentEnrolledSubject[];
-}
+// StudentDetailProfile interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
-export interface StudentFinancialSummary {
-    totalFees: number;
-    totalPaid: number;
-    totalDiscount: number;
-    totalFine: number;
-    currentBalance: number;
-}
+// StudentFinancialSummary interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
-export interface StudentInvoiceChargeItem {
-    id: string;
-    invoiceId: string;
-    feeTypeDescription: string;
-    dueDate: string;
-    amount: number;
-    status: InvoiceStatus;
-}
+// StudentInvoiceChargeItem and StudentPaymentLogItem moved to academics module to resolve conflicts
+// These types are now exported from src/modules/academics/data/types.ts
 
-export interface StudentPaymentLogItem {
-    id: string;
-    transactionId: string;
-    paymentDate: string;
-    amount: number;
-    paymentMethod: string;
-    description: string;
-}
+// StudentEnrolledSubject interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
-export interface StudentEnrolledSubject {
-    courseName: string;
-    professorInstructorName: string;
-    status: string;
-}
+// StudentPaperMarkWithDetails moved to academics module to resolve conflicts
+// This type is now exported from src/modules/academics/data/types.ts
 
-export interface StudentPaperMarkWithDetails extends StudentPaperMark {
-    subject_paper_name?: string | null;
-    subject_name?: string | null;
-    marks_out_of?: number | null;
-}
-
-export interface StudentExamResultWithDetails extends StudentExamResult {
-    student_name?: string | null;
-    admission_no?: string | null;
-    class_name?: string | null;
-    stream_name?: string | null;
-    exam_session_name?: string | null;
-    marks?: StudentPaperMarkWithDetails[];
-}
+// StudentExamResultWithDetails interface moved to academics module to resolve conflicts
+// This interface is now exported from src/modules/academics/data/types.ts
 
 // Define a base type for all data arrays
 export type AppDataType = {

@@ -1,0 +1,15 @@
+{
+  "title": "Rapports",
+  "generate": "Générer un rapport",
+  "export": "Exporter",
+  "filter": "Filtrer",
+  "dateRange": "Plage de dates",
+  "academic": "Rapports académiques",
+  "financial": "Rapports financiers",
+  "attendance": "Rapports de présence",
+  "performance": "Rapports de performance",
+  "custom": "Rapports personnalisés",
+  "schedule": "Programmer un rapport",
+  "download": "Télécharger",
+  "print": "Imprimer"
+}

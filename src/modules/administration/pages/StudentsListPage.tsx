@@ -137,14 +137,14 @@ const StudentsListPage: React.FC = () => {
       setFormData(initialFormData);
     }
     setIsModalOpen(true);
-  }, []);
+  }, [initialFormData]);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingStudent(null);
     setFormData(initialFormData);
     setActiveTab(0);
-  }, []);
+  }, [initialFormData]);
 
   // Handle form field changes with proper type conversion
   const handleFieldChange = useCallback((name: string, value: any) => {
@@ -165,6 +165,11 @@ const StudentsListPage: React.FC = () => {
     
     setFormData(prev => ({ ...prev, [name]: processedValue }));
   }, []);
+
+  // Memoized navigation callback to prevent infinite re-renders
+  const handleStudentDetailsClick = useCallback((studentId: string) => {
+    navigate(`/administration/students/${studentId}`);
+  }, [navigate]);
 
   const handleSubmit = useCallback(async () => {
     // Simple validation
@@ -256,6 +261,12 @@ const StudentsListPage: React.FC = () => {
     }
   }, [editingStudent, formData, updateStudent, addStudent, closeModal, showToast]);
   
+  // Quick edit functionality - memoized to prevent column re-creation
+  const handleQuickEdit = useCallback((student: Student) => {
+    setQuickEditStudent(student);
+  }, []);
+
+  // Memoized delete handler to prevent column re-creation
   const handleDelete = useCallback(async (studentId: string) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
       try {
@@ -274,11 +285,6 @@ const StudentsListPage: React.FC = () => {
       }
     }
   }, [mockDeleteStudent, showToast]);
-
-  // Quick edit functionality
-  const handleQuickEdit = useCallback((student: Student) => {
-    setQuickEditStudent(student);
-  }, []);
 
   // Create form tabs
   const createFormTabs = useCallback((): FormTab[] => {
@@ -528,6 +534,8 @@ const StudentsListPage: React.FC = () => {
   // Use students directly since DataGrid handles filtering
   const studentsData = students || [];
 
+
+
   const columns = useMemo(() => [
     { 
       key: 'admission_no' as keyof Student, 
@@ -640,7 +648,7 @@ const StudentsListPage: React.FC = () => {
         </div>
       ),
     },
-  ], [handleQuickEdit, openModal, handleDelete, navigate]);
+  ], [handleQuickEdit, openModal, handleDelete]);
   
   // Using a more specific loading state key if available, else fallback to `all` or `students`
   const pageIsLoading = loading.students || loading.all;
@@ -668,7 +676,7 @@ const StudentsListPage: React.FC = () => {
           sortable={true}
           filterable={true}
           selectable={true}
-          onRowClick={(student) => navigate(`/administration/students/${student.id}`)}
+          onRowClick={(student) => handleStudentDetailsClick(student.id)}
           onSelectionChange={(selected) => {
             // Handle bulk operations here if needed
             console.log('Selected students:', selected);

@@ -1,0 +1,16 @@
+{
+  "title": "Inventaire",
+  "items": "Articles",
+  "categories": "Catégories",
+  "stock": "Gestion des stocks",
+  "suppliers": "Fournisseurs",
+  "orders": "Bons de commande",
+  "receiving": "Réception",
+  "tracking": "Suivi des actifs",
+  "maintenance": "Maintenance",
+  "disposal": "Élimination",
+  "reports": "Rapports d'inventaire",
+  "audit": "Audit des stocks",
+  "alerts": "Alertes de stock faible",
+  "valuation": "Évaluation de l'inventaire"
+}
