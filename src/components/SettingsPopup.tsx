@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { XIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
@@ -18,6 +18,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
   const { t } = useTranslation('settings');
   const { navigationItems, isLoading } = useDynamicNavigation();
   const { enhancedNavigate } = useEnhancedNavigation();
+  const navigate = useNavigate();
   
   // Check if tabbed mode is enabled for settings
   const isTabbedModeEnabled = tabbedModeFeatureFlag.isTabbedModeEnabled('settings');
@@ -26,6 +27,12 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
     isTabbedModeEnabled,
     globalEnabled: tabbedModeFeatureFlag.isGloballyEnabled(),
     perModuleControl: tabbedModeFeatureFlag.isPerModuleControlEnabled()
+  });
+  
+  console.log('🔍 [SettingsPopup] Navigation setup:', {
+    hasEnhancedNavigate: !!enhancedNavigate,
+    hasNavigate: !!navigate,
+    componentLoaded: true
   });
   
   // Memoize settings module and menu to prevent unnecessary recalculations
@@ -67,29 +74,40 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
     }
   }, [onClose]);
   
-  const handleLinkClick = useCallback((path: string, title: string) => {
+  const handleLinkClick = useCallback(async (path: string, title: string) => {
     try {
+      console.log('🚀 [SettingsPopup] Navigating to:', { path, title, isTabbedModeEnabled });
+      
       if (isTabbedModeEnabled) {
         console.log('🚀 [SettingsPopup] Using enhanced navigation for:', { path, title });
-        enhancedNavigate(path, {
-          title,
-          module: 'settings',
-          useTabbedMode: true,
-          showFeedback: false
-        });
+        try {
+          await enhancedNavigate(path, {
+            title,
+            module: 'settings',
+            useTabbedMode: true,
+            showFeedback: false
+          });
+        } catch (tabError) {
+          console.warn('🚀 [SettingsPopup] Enhanced navigation failed, falling back to standard navigation:', tabError);
+          navigate(path);
+        }
       } else {
         console.log('🚀 [SettingsPopup] Using standard navigation for:', { path, title });
-        // For non-tabbed mode, we let the Link component handle navigation naturally
-        // Just close the popup - the Link's 'to' prop will handle the navigation
+        navigate(path);
       }
       
+      // Close the popup after navigation
       if (onClose && typeof onClose === 'function') {
         onClose();
       }
     } catch (error) {
       console.error('[SettingsPopup] Error in handleLinkClick:', error);
+      // Close popup even if navigation fails
+      if (onClose && typeof onClose === 'function') {
+        onClose();
+      }
     }
-  }, [onClose, isTabbedModeEnabled, enhancedNavigate]);
+  }, [onClose, isTabbedModeEnabled, enhancedNavigate, navigate]);
 
   // Conditional return after all hooks are called
   if (!open) return null;
@@ -109,20 +127,13 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
             <ul className="space-y-2">
               {settingsMenu.map((item: any) => (
                 <li key={item.name}>
-                  {isTabbedModeEnabled ? (
-                    <button 
-                      onClick={() => handleLinkClick(item.path, t(item.name))} 
-                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all text-left"
-                    >
-                      {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : null}
-                      <span className="font-medium text-base">{t(item.name)}</span>
-                    </button>
-                  ) : (
-                    <Link to={item.path} className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all" onClick={handleClose}>
-                      {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : null}
-                      <span className="font-medium text-base">{t(item.name)}</span>
-                    </Link>
-                  )}
+                  <button 
+                    onClick={() => handleLinkClick(item.path, t(item.name))} 
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all text-left"
+                  >
+                    {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : null}
+                    <span className="font-medium text-base">{t(item.name)}</span>
+                  </button>
                 </li>
               ))}
             </ul>
