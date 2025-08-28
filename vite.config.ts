@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
         // livestoreDevtoolsPlugin({ schemaPath: './src/livestore/schema.ts' })
       ],
       server: {
-        port: 5200,
+        port: 5201,
         host: true,
         fs: { strict: false },
         headers: {

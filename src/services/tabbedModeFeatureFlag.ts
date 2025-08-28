@@ -25,14 +25,19 @@ class TabbedModeFeatureFlag {
   // Load configuration from unified config
   private loadConfig(): TabbedModeConfig {
     try {
+      console.log('TabbedModeFeatureFlag: Loading configuration...');
       const unifiedConfig = getCurrentUnifiedConfig();
+      console.log('TabbedModeFeatureFlag: Unified config:', unifiedConfig);
       
-      return {
+      const config = {
         globalEnabled: unifiedConfig.features?.enableTabbedMode ?? false,
         moduleOverrides: unifiedConfig.features?.tabbedModeModuleOverrides || {},
         enableTabbedMode: unifiedConfig.features?.enableTabbedMode ?? false,
         enablePerModuleControl: unifiedConfig.features?.enablePerModuleControl ?? false
       };
+      
+      console.log('TabbedModeFeatureFlag: Loaded config:', config);
+      return config;
     } catch (error) {
       console.warn('Failed to load tabbed mode config, using defaults:', error);
       

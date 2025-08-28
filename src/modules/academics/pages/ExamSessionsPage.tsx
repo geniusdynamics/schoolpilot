@@ -3,7 +3,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { SchoolPeriod } from '@/types';
-import { ExamSession, SubjectPaper, ExamPaperSetting, ExamSessionStatus } from '@/core/types';
+import { ExamSession, SubjectPaper, ExamPaperSetting } from '@/core/types';
+import { ExamSessionStatus } from '../data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';

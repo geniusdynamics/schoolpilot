@@ -62,4 +62,4 @@ export const nutritionModule: ModuleDefinition = {
   defaultRoles: nutritionDefaultRoles,
 };
 
-export default nutritionModule; 
+export default nutritionModule;

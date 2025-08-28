@@ -1,0 +1,16 @@
+{
+  "title": "Finance",
+  "fees": "Gestion des frais",
+  "payments": "Paiements",
+  "invoices": "Factures",
+  "receipts": "Reçus",
+  "budget": "Budget",
+  "expenses": "Dépenses",
+  "revenue": "Revenus",
+  "accounts": "Comptes",
+  "transactions": "Transactions",
+  "reports": "Rapports financiers",
+  "audit": "Audit",
+  "reconciliation": "Réconciliation",
+  "payroll": "Paie"
+}

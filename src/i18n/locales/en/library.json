@@ -1,0 +1,16 @@
+{
+  "title": "Library",
+  "books": "Books",
+  "catalog": "Catalog",
+  "borrowing": "Borrowing",
+  "returns": "Returns",
+  "reservations": "Reservations",
+  "members": "Library Members",
+  "fines": "Fines",
+  "search": "Search Books",
+  "digital": "Digital Resources",
+  "reports": "Library Reports",
+  "maintenance": "Book Maintenance",
+  "acquisition": "Book Acquisition",
+  "circulation": "Circulation"
+}

@@ -314,7 +314,7 @@ export const createAnimation = (
   const preset = animationPresets[name];
   const duration = options.duration || preset.duration;
   const easing = options.easing || preset.easing;
-  const delay = options.delay || preset.delay || '0ms';
+  const delay = options.delay || ('delay' in preset ? preset.delay : '0ms');
   
   return `${name} ${duration} ${easing} ${delay} both`;
 };
@@ -363,7 +363,7 @@ export const getAnimationStyles = (
     animation: createAnimation(animationName, options),
     animationDuration: options.duration || preset.duration,
     animationTimingFunction: options.easing || preset.easing,
-    animationDelay: options.delay || preset.delay || '0ms',
+    animationDelay: options.delay || ('delay' in preset ? preset.delay : '0ms'),
     animationFillMode: 'both',
   };
 };
@@ -579,7 +579,7 @@ export const usePageTransition = (config: Partial<PageTransitionConfig> = {}) =>
 
 // Performance optimization utilities
 export const usePerformantAnimation = () => {
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | undefined>(undefined);
   const [isAnimating, setIsAnimating] = useState(false);
   
   const startAnimation = useCallback((callback: (progress: number) => void, duration: number = 300) => {
@@ -714,7 +714,7 @@ export const useStaggeredAnimation = (
   baseDelay: number = 50
 ) => {
   const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set());
-  const observerRef = useRef<IntersectionObserver>();
+  const observerRef = useRef<IntersectionObserver | undefined>(undefined);
   const prefersReducedMotion = useReducedMotion();
   
   const createObserver = useCallback(() => {

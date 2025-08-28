@@ -6,7 +6,7 @@ import { DocumentReportIcon, BookOpenIcon, ChartPieIcon, CurrencyDollarIcon, Wal
 
 const reportsModule: ModuleDefinition = {
   id: 'reports',
-  name: 'navigation:reports.title',
+  name: 'reports',
   description: 'navigation:reports.description',
   icon: DocumentReportIcon,
   path: '/reports',

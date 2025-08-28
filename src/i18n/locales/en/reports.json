@@ -1,0 +1,15 @@
+{
+  "title": "Reports",
+  "generate": "Generate Report",
+  "export": "Export",
+  "filter": "Filter",
+  "dateRange": "Date Range",
+  "academic": "Academic Reports",
+  "financial": "Financial Reports",
+  "attendance": "Attendance Reports",
+  "performance": "Performance Reports",
+  "custom": "Custom Reports",
+  "schedule": "Schedule Report",
+  "download": "Download",
+  "print": "Print"
+}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Subject, SubjectGrouping } from '@/core/types';
+import { Subject } from '@/core/types';
+import { SubjectGrouping } from '../data/enums';
 import { useTranslation } from 'react-i18next';
 import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';

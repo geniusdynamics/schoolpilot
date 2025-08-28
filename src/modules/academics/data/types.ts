@@ -1,5 +1,5 @@
 // Import required types from core
-import { Student, InvoiceStatus, ParentsGuardian } from '../../../core/types';
+import { Student, InvoiceStatus, ParentsGuardian, Subject, SubjectPaper, StudentSubjectEnrollment, TeacherSubjectAssignment, TimetableEntry } from '../../../core/types';
 import * as enums from './enums';
 
 // Re-export all enums for use by other files
@@ -68,26 +68,27 @@ export enum ExamSessionStatus {
     PLANNING = 'Planning', MARKS_ENTRY_OPEN = 'Marks Entry Open', PUBLISHED = 'Published', CLOSED = 'Closed', ARCHIVED = 'Archived'
 }
 
-export interface Subject {
-  id: number;
-  subject_code: string;
-  abbreviation: string;
-  name: string;
-  department_id?: string | null;
-  is_compulsory?: boolean | null;
-  grouping: enums.SubjectGrouping;
-  department_name?: string | null;
-  papers?: SubjectPaper[];
-}
+// Subject and SubjectPaper types moved to core/types to resolve conflicts
+// export interface Subject {
+//   id: number;
+//   subject_code: string;
+//   abbreviation: string;
+//   name: string;
+//   department_id?: string | null;
+//   is_compulsory?: boolean | null;
+//   grouping: enums.SubjectGrouping;
+//   department_name?: string | null;
+//   papers?: SubjectPaper[];
+// }
 
-export interface SubjectPaper {
-  id: number;
-  subject_id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-  subject_name?: string | null;
-}
+// export interface SubjectPaper {
+//   id: number;
+//   subject_id: number;
+//   name: string;
+//   created_at: string;
+//   updated_at: string;
+//   subject_name?: string | null;
+// }
 
 export interface ClassSubjectAllocation {
   id: string;
@@ -100,31 +101,32 @@ export interface ClassSubjectAllocation {
   is_enrolled?: boolean | null;
 }
 
-export interface StudentSubjectEnrollment {
-  id: string;
-  student_id: string;
-  class_subject_allocation_id: string;
-  enrollment_date: string;
-  status: enums.StudentEnrollmentStatus;
-  created_at: string;
-  updated_at: string;
-  student_name?: string | null;
-  class_name?: string | null;
-  stream_name?: string | null;
-  subject_name?: string | null;
-  academic_year_name?: string | null;
-  enrollment_status_display?: string | null;
-}
+// StudentSubjectEnrollment and TeacherSubjectAssignment types moved to core/types to resolve conflicts
+// export interface StudentSubjectEnrollment {
+//   id: string;
+//   student_id: string;
+//   class_subject_allocation_id: string;
+//   enrollment_date: string;
+//   status: enums.StudentEnrollmentStatus;
+//   created_at: string;
+//   updated_at: string;
+//   student_name?: string | null;
+//   class_name?: string | null;
+//   stream_name?: string | null;
+//   subject_name?: string | null;
+//   academic_year_name?: string | null;
+//   enrollment_status_display?: string | null;
+// }
 
-export interface TeacherSubjectAssignment {
-  id: string;
-  allocation_id: string;
-  teacher_id: string;
-  class_stream_name?: string | null;
-  subject_name?: string | null;
-  academic_year_name?: string | null;
-  teacher_name?: string | null;
-}
+// export interface TeacherSubjectAssignment {
+//   id: string;
+//   allocation_id: string;
+//   teacher_id: string;
+//   class_stream_name?: string | null;
+//   subject_name?: string | null;
+//   academic_year_name?: string | null;
+//   teacher_name?: string | null;
+// }
 
 export interface GradingSchemeLevel {
   id: number;

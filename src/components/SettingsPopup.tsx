@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { XIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useEnhancedNavigation } from '../hooks/useEnhancedNavigation';
+import { tabbedModeFeatureFlag } from '../services/tabbedModeFeatureFlag';
 // Removed unused HookErrorHandler import
 import { HookErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 import { SettingsSkeleton } from './ModuleLoadingFallback';
@@ -13,27 +15,41 @@ interface SettingsPopupProps {
 }
 
 const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) => {
-  // All hooks must be called before any conditional returns
-  const { t } = useTranslation(['navigation', 'common']);
+  const { t } = useTranslation('settings');
   const { navigationItems, isLoading } = useDynamicNavigation();
+  const { enhancedNavigate } = useEnhancedNavigation();
+  
+  // Check if tabbed mode is enabled for settings
+  const isTabbedModeEnabled = tabbedModeFeatureFlag.isTabbedModeEnabled('settings');
+  
+  console.log('🔍 [SettingsPopup] Tabbed mode status:', {
+    isTabbedModeEnabled,
+    globalEnabled: tabbedModeFeatureFlag.isGloballyEnabled(),
+    perModuleControl: tabbedModeFeatureFlag.isPerModuleControlEnabled()
+  });
   
   // Memoize settings module and menu to prevent unnecessary recalculations
   const settingsModule = useMemo(() => {
-    try {
-      if (!navigationItems || !Array.isArray(navigationItems)) {
-        console.warn('[SettingsPopup] navigationItems not available or not an array');
-        return null;
-      }
-      return navigationItems.find(item => item && item.modulePath === '/settings' && item.isGroup);
-    } catch (error) {
-      console.error('[SettingsPopup] Error finding settings module:', error);
-      return null;
-    }
+    console.log('🔍 [SettingsPopup] All navigation items:', navigationItems);
+    const module = navigationItems.find((item: any) => {
+      console.log('🔍 [SettingsPopup] Checking item:', {
+        name: item.name,
+        path: item.path,
+        modulePath: item.modulePath,
+        isGroup: item.isGroup,
+        matches: item.modulePath === '/settings' && item.isGroup
+      });
+      return item.modulePath === '/settings' && item.isGroup;
+    });
+    console.log('🔍 [SettingsPopup] Found settings module:', module);
+    return module;
   }, [navigationItems]);
   
   const settingsMenu = useMemo(() => {
     try {
-      return settingsModule?.children || [];
+      const menu = settingsModule?.children || [];
+      console.log('🔍 [SettingsPopup] Settings menu items:', menu);
+      return menu;
     } catch (error) {
       console.error('[SettingsPopup] Error getting settings menu:', error);
       return [];
@@ -51,15 +67,29 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
     }
   }, [onClose]);
   
-  const handleLinkClick = useCallback(() => {
+  const handleLinkClick = useCallback((path: string, title: string) => {
     try {
+      if (isTabbedModeEnabled) {
+        console.log('🚀 [SettingsPopup] Using enhanced navigation for:', { path, title });
+        enhancedNavigate(path, {
+          title,
+          module: 'settings',
+          useTabbedMode: true,
+          showFeedback: false
+        });
+      } else {
+        console.log('🚀 [SettingsPopup] Using standard navigation for:', { path, title });
+        // For non-tabbed mode, we let the Link component handle navigation naturally
+        // Just close the popup - the Link's 'to' prop will handle the navigation
+      }
+      
       if (onClose && typeof onClose === 'function') {
         onClose();
       }
     } catch (error) {
       console.error('[SettingsPopup] Error in handleLinkClick:', error);
     }
-  }, [onClose]);
+  }, [onClose, isTabbedModeEnabled, enhancedNavigate]);
 
   // Conditional return after all hooks are called
   if (!open) return null;
@@ -79,10 +109,20 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
             <ul className="space-y-2">
               {settingsMenu.map((item: any) => (
                 <li key={item.name}>
-                  <Link to={item.path} className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all" onClick={handleLinkClick}>
-                    {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : null}
-                    <span className="font-medium text-base">{t(item.name)}</span>
-                  </Link>
+                  {isTabbedModeEnabled ? (
+                    <button 
+                      onClick={() => handleLinkClick(item.path, t(item.name))} 
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all text-left"
+                    >
+                      {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : null}
+                      <span className="font-medium text-base">{t(item.name)}</span>
+                    </button>
+                  ) : (
+                    <Link to={item.path} className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all" onClick={handleClose}>
+                      {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : null}
+                      <span className="font-medium text-base">{t(item.name)}</span>
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

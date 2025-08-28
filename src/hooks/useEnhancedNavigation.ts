@@ -5,6 +5,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTabNavigation } from './useTabNavigation';
 import { useToastHelpers } from './useToast';
+import { tabbedModeFeatureFlag } from '../services/tabbedModeFeatureFlag';
 
 export const useEnhancedNavigation = () => {
   const navigate = useNavigate();
@@ -31,9 +32,16 @@ export const useEnhancedNavigation = () => {
       showFeedback = true
     } = options;
 
-    // For now, always use standard navigation since we're having import issues
-    // In a real implementation, we would check if tabbed mode is enabled
-    const isTabbedMode = false; // useTabbedMode && isTabbedModeEnabled(module || 'global');
+    // Check if tabbed mode is enabled for this module
+    const isTabbedMode = useTabbedMode && tabbedModeFeatureFlag.isTabbedModeEnabled(module || 'global');
+    
+    console.log('🔍 [useEnhancedNavigation] Navigation decision:', {
+      path,
+      module: module || 'global',
+      useTabbedMode,
+      isTabbedModeEnabled: tabbedModeFeatureFlag.isTabbedModeEnabled(module || 'global'),
+      finalDecision: isTabbedMode
+    });
 
     if (isTabbedMode) {
       try {

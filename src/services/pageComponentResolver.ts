@@ -138,10 +138,16 @@ class PageComponentResolver {
     const moduleDir = pathSegments[0];
     const modularPath = `../modules/${moduleDir}/pages/${nav.page}.tsx`;
     
+    console.log(`🔍 [PageComponentResolver] Trying modular path strategy: ${modularPath}`);
+    console.log(`🔍 [PageComponentResolver] Navigation info:`, { path: nav.path, page: nav.page, moduleDir });
+    
     try {
       const module = await import(/* @vite-ignore */ modularPath);
+      console.log(`✅ [PageComponentResolver] Successfully loaded module from: ${modularPath}`);
       return module.default;
     } catch (error) {
+      console.warn(`❌ [PageComponentResolver] Failed to load from ${modularPath}:`, error);
+      
       // Try with different file extensions or paths
       const alternativePaths = [
         `../modules/${moduleDir}/pages/${nav.page}/index.tsx`,
@@ -151,9 +157,12 @@ class PageComponentResolver {
 
       for (const altPath of alternativePaths) {
         try {
+          console.log(`🔍 [PageComponentResolver] Trying alternative path: ${altPath}`);
           const module = await import(/* @vite-ignore */ altPath);
+          console.log(`✅ [PageComponentResolver] Successfully loaded module from alternative path: ${altPath}`);
           return module.default;
-        } catch {
+        } catch (altError) {
+          console.warn(`❌ [PageComponentResolver] Failed to load from ${altPath}:`, altError);
           continue;
         }
       }

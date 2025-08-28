@@ -21,13 +21,21 @@ const TabbedModeSettingsPanel: React.FC = () => {
   
   // Update state when feature flag config changes
   useEffect(() => {
-    const updateState = () => {
-      setGlobalEnabled(tabbedModeFeatureFlag.isGloballyEnabled());
-      setPerModuleControl(tabbedModeFeatureFlag.isPerModuleControlEnabled());
-      setModuleOverrides({ ...tabbedModeFeatureFlag.getModuleOverrides() });
-    };
+    // Load current configuration
+    console.log('TabbedModeSettingsPanel: Loading configuration...');
+    const globalEnabled = tabbedModeFeatureFlag.isGloballyEnabled();
+    const perModuleControl = tabbedModeFeatureFlag.isPerModuleControlEnabled();
+    const moduleOverrides = tabbedModeFeatureFlag.getModuleOverrides();
     
-    updateState();
+    console.log('TabbedModeSettingsPanel: Current config:', {
+      globalEnabled,
+      perModuleControl,
+      moduleOverrides
+    });
+    
+    setGlobalEnabled(globalEnabled);
+    setPerModuleControl(perModuleControl);
+    setModuleOverrides({ ...moduleOverrides });
     
     // Listen for config changes (if implemented)
     // For now, we'll just update on component mount

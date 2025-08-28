@@ -18,9 +18,10 @@ import { useRoutePersistence } from '../hooks/useRoutePersistence';
 import { useInteractionTracking } from '../hooks/usePerformanceMonitoring';
 import { TabbedWorkspace } from './tabbedWorkspace';
 import { useTabStore } from '../stores/tabStore';
-import { extractModuleId } from '../utils/moduleUtils';
+import { extractModuleId, getModuleDashboardPath } from '../utils/moduleUtils';
 import { TabbedWorkspaceManager } from './tabbedWorkspace/TabbedWorkspaceManager';
 import { isTabbedModeEnabled } from '../services/tabbedModeFeatureFlag';
+import DynamicPageComponent from './DynamicPageComponent';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // ALL HOOKS MUST BE CALLED IN THE SAME ORDER EVERY RENDER
@@ -60,10 +61,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         fallbackRoutes={['/dashboard', '/reports', '/administration']}
       >
         {tab.content.type === 'component' && tab.content.component === 'DynamicPageComponent' ? (
-          // For route-based tabs, render the actual route content
-          <div className="route-content-wrapper h-full">
-            {children}
-          </div>
+          // For route-based tabs, render the actual dynamic page component
+          <DynamicPageComponent path={tab.path} />
         ) : tab.content.type === 'component' && tab.content.component ? (
           <tab.content.component {...(tab.content.props || {})} />
         ) : (
@@ -153,19 +152,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       setSelectedModuleKey(moduleKey);
       setIsSubmenuOpen(true); // open submenu for new module
       
-      // Find the module dashboard path
-      const module = getMainModules().find(m => m.name === moduleKey);
-      if (module) {
-        // Navigate to the module's dashboard
-        // For most modules, the base path is the dashboard
-        // But we need to ensure we're creating a proper tab for it
-        const modulePath = module.path || '/dashboard';
-        const trackNav = trackNavigation(location.pathname, modulePath);
-        navigate(modulePath);
-        
-        // Track navigation completion after a brief delay
-        setTimeout(trackNav, 100);
-      }
+      // Generate the correct dashboard path for the module
+      const modulePath = getModuleDashboardPath(moduleKey);
+      const trackNav = trackNavigation(location.pathname, modulePath);
+      navigate(modulePath);
+      
+      // Track navigation completion after a brief delay
+      setTimeout(trackNav, 100);
     }
   };
 

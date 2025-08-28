@@ -54,4 +54,4 @@ export const hrModule: ModuleDefinition = {
   defaultRoles: hrDefaultRoles,
 };
 
-export default hrModule; 
+export default hrModule;

@@ -1,6 +1,8 @@
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Library module.
 // ABOUTME: It ensures all library-related data structures are managed in one place.
 
+import { Loan, Book, BookCategory, Fine } from '../../core/types';
+
 export enum LibBookStatusEnum {
     AVAILABLE = 'Available',
     ON_LOAN = 'On Loan',
@@ -86,68 +88,11 @@ export interface LibFineType {
   loan_due_date?: string;
 }
 
-// MOVED FROM core/types.ts (module-specific):
-export interface BookCategory {
-  id: number;
-  name: string;
-}
+// Note: BookCategory and Book interfaces are now imported from core/types to avoid conflicts
 
-export interface Book {
-  id: string;
-  category_id?: number | null;
-  title: string;
-  author?: string | null;
-  publisher?: string | null;
-  isbn?: string | null;
-  accession_no: string;
-  purchase_cost?: number | null;
-  status: LibBookStatusEnum;
-  location_shelf?: string | null;
-  is_digital?: boolean;
-  digital_access_url?: string | null;
-  digital_format?: string | null;
-  availability_status?: LibBookAvailabilityStatusEnum;
-  damaged_status?: boolean;
-  lost_status?: boolean;
-  branch_id?: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string | null;
-  // Denormalized
-  category_name?: string | null;
-}
+// Note: Loan interface is now imported from core/types to avoid conflicts
 
-export interface Loan {
-  id: string;
-  book_id: string;
-  user_id: string;
-  loan_date: string;
-  due_date: string;
-  return_date?: string | null;
-  extended_due_date?: string | null;
-  userType: string;
-  branch_id?: string | null;
-  created_at: string;
-  updated_at: string;
-  // Denormalized
-  book_title?: string | null;
-  user_name?: string | null;
-}
-
-export interface Fine {
-  id: string;
-  loan_id: string;
-  amount: number;
-  status: LibFineStatusEnum;
-  reason?: string | null;
-  fee_adjustment_id?: string | null;
-  created_at: string;
-  updated_at: string;
-  // Denormalized
-  book_title?: string | null;
-  user_name?: string | null;
-  loan_due_date?: string | null;
-}
+// Note: Fine interface is now imported from core/types to avoid conflicts
 
 export interface LibrarySettingsType {
   id: string;

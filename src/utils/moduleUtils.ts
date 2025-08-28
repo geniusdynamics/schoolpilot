@@ -9,22 +9,29 @@
 export const extractModuleId = (moduleIdentifier: string): string => {
   if (!moduleIdentifier) return 'dashboard';
   
-  // Handle navigation: prefix
-  if (moduleIdentifier.startsWith('navigation:')) {
-    return moduleIdentifier.replace('navigation:', '');
-  }
+  let cleanId = moduleIdentifier;
   
-  // Handle module paths like /administration, /academics, etc.
-  if (moduleIdentifier.startsWith('/')) {
-    return moduleIdentifier.substring(1);
+  // Handle navigation: prefix
+  if (cleanId.startsWith('navigation:')) {
+    cleanId = cleanId.replace('navigation:', '');
   }
   
   // Handle module: prefix
-  if (moduleIdentifier.startsWith('module:')) {
-    return moduleIdentifier.replace('module:', '');
+  if (cleanId.startsWith('module:')) {
+    cleanId = cleanId.replace('module:', '');
   }
   
-  return moduleIdentifier;
+  // Handle .title suffix (from i18n keys)
+  if (cleanId.endsWith('.title')) {
+    cleanId = cleanId.replace('.title', '');
+  }
+  
+  // Handle module paths like /administration, /academics, etc.
+  if (cleanId.startsWith('/')) {
+    cleanId = cleanId.substring(1);
+  }
+  
+  return cleanId;
 };
 
 /**
@@ -76,7 +83,7 @@ export const getModuleDashboardPath = (moduleId: string): string => {
     return '/dashboard';
   }
   
-  return `/${cleanModuleId}`;
+  return `/${cleanModuleId}/dashboard`;
 };
 
 export default {

@@ -13,7 +13,7 @@ export type {
 export type {
   PerformanceReport,
   PerformanceMetric,
-  ModuleLoadMetric,
+  ModuleLoadingMetric,
   DataOperationMetric,
   UserInteractionMetric
 } from '../services/performanceMonitor';
