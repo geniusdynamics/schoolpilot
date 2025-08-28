@@ -45,6 +45,8 @@ export const useEnhancedNavigation = () => {
 
     if (isTabbedMode) {
       try {
+        console.log('🚀 [useEnhancedNavigation] Attempting tabbed navigation:', { path, title, module });
+        
         // Use tabbed navigation
         const result = await navigateToTab(path, {
           title,
@@ -52,6 +54,8 @@ export const useEnhancedNavigation = () => {
           contentType: 'url',
           activateImmediately: true
         });
+
+        console.log('✅ [useEnhancedNavigation] Tabbed navigation successful:', result);
 
         if (showFeedback && result.wasCreated) {
           showInfo(`Opened ${title} in new tab`, {
@@ -62,10 +66,16 @@ export const useEnhancedNavigation = () => {
 
         return result;
       } catch (tabError) {
-        console.error('Failed to create tab, falling back to standard navigation:', tabError);
+        console.error('❌ [useEnhancedNavigation] Tabbed navigation failed, falling back to standard navigation:', tabError);
         
         // Fallback to standard navigation
-        navigate(path);
+        try {
+          navigate(path);
+          console.log('✅ [useEnhancedNavigation] Standard navigation fallback successful:', path);
+        } catch (navError) {
+          console.error('❌ [useEnhancedNavigation] Standard navigation also failed:', navError);
+          throw new Error(`Navigation failed for path: ${path}`);
+        }
         
         if (showFeedback) {
           showWarning('Tabbed mode unavailable, using standard navigation');
@@ -79,8 +89,16 @@ export const useEnhancedNavigation = () => {
         };
       }
     } else {
+      console.log('🚀 [useEnhancedNavigation] Using standard navigation (tabbed mode disabled):', path);
+      
       // Use standard navigation
-      navigate(path);
+      try {
+        navigate(path);
+        console.log('✅ [useEnhancedNavigation] Standard navigation successful:', path);
+      } catch (navError) {
+        console.error('❌ [useEnhancedNavigation] Standard navigation failed:', navError);
+        throw new Error(`Navigation failed for path: ${path}`);
+      }
       
       return {
         tabId: '',
