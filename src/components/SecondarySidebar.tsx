@@ -245,7 +245,7 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
       
       // Show success feedback if a new tab was created
       if (result.wasCreated) {
-        showInfo(`Opened ${itemTitle} in new tab`);
+        showInfo(`Opened ${itemTitle} in new tab`, { size: 'compact' });
       }
       
     } catch (error) {

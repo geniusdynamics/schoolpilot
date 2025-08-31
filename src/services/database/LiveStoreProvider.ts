@@ -35,6 +35,7 @@ import {
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm';
 import type { Database } from '@sqlite.org/sqlite-wasm';
 import { schema } from '../livestore/schema';
+import { SchemaConverter } from './SchemaConverter';
 
 // SQLite WASM Collection Implementation
 export class SQLiteCollectionWrapper<T extends { id?: string }> implements ICollection<T> {
@@ -59,32 +60,27 @@ export class SQLiteCollectionWrapper<T extends { id?: string }> implements IColl
   }
 
   private createTable(): void {
-    const columns = Object.entries(this.schema.properties)
-      .map(([key, prop]) => {
-        let sqlType = 'TEXT';
-        if (prop.type === 'number') sqlType = 'REAL';
-        if (prop.type === 'integer') sqlType = 'INTEGER';
-        if (prop.type === 'boolean') sqlType = 'BOOLEAN';
-        return `${key} ${sqlType}`;
-      })
-      .join(', ');
-
-    const sql = `CREATE TABLE IF NOT EXISTS ${this.tableName} (
-      id TEXT PRIMARY KEY,
-      ${columns},
-      created_at INTEGER DEFAULT (strftime('%s', 'now')),
-      updated_at INTEGER DEFAULT (strftime('%s', 'now'))
-    )`;
-
-    this.db.exec(sql);
-
-    // Create indexes
-    if (this.schema.indexes) {
-      this.schema.indexes.forEach(index => {
-        const indexName = `idx_${this.tableName}_${index.fields.join('_')}`;
-        const indexSql = `CREATE INDEX IF NOT EXISTS ${indexName} ON ${this.tableName} (${index.fields.join(', ')})`;
-        this.db.exec(indexSql);
+    try {
+      // Use schema converter to generate proper SQLite schema
+      const conversionResult = SchemaConverter.convertRxDBToSQLite(this.name, this.schema);
+      
+      // Generate CREATE TABLE SQL
+      const createTableSQL = SchemaConverter.generateCreateTableSQL(conversionResult.sqlSchema);
+      console.log(`[SQLiteCollection] Creating table ${this.tableName} with SQL:`, createTableSQL);
+      
+      this.db.exec(createTableSQL);
+      
+      // Create indexes
+      const indexSQLs = SchemaConverter.generateCreateIndexSQL(this.tableName, conversionResult.indexes);
+      indexSQLs.forEach(indexSQL => {
+        console.log(`[SQLiteCollection] Creating index with SQL:`, indexSQL);
+        this.db.exec(indexSQL);
       });
+      
+      console.log(`[SQLiteCollection] ✅ Successfully created table ${this.tableName} with ${conversionResult.indexes.length} indexes`);
+    } catch (error) {
+      console.error(`[SQLiteCollection] ❌ Failed to create table ${this.tableName}:`, error);
+      throw error;
     }
   }
 

@@ -143,7 +143,7 @@ export interface UnifiedAppConfig {
   // Feature flags for experimental functionality
   features: {
     // Enhanced features
-    enhancedDataLayer: false,
+    enhancedDataLayer: true,
     enhancedUI: false,
     performanceMonitorWidget: false,
     enableErrorReporting: true,

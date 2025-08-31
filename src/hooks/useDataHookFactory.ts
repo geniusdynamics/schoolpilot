@@ -95,27 +95,23 @@ export function createDataHook<T extends EntityData>(
     // During initialization, appData might be null/undefined, so default to local state
     const useGlobalContext = appData?.dataSource !== 'mock' && appData?.dataSource !== undefined;
     
-    // Initialize data from global context if available
+    // Effect to synchronize data from global context, preventing infinite loops.
     useEffect(() => {
-      const initializeData = async () => {
-        try {
-          setLoading(true);
-          
-          // If we're using the global context and it has this entity data
-          if (useGlobalContext && appData[entityName as keyof typeof appData]) {
-            const globalData = appData[entityName as keyof typeof appData] as T[];
-            setData(globalData);
-          }
-          
-          setLoading(false);
-        } catch (err) {
-          setError(err instanceof Error ? err : new Error(String(err)));
-          setLoading(false);
+      if (useGlobalContext) {
+        const globalEntityData = appData?.[entityName as keyof typeof appData] as T[] | undefined;
+
+        if (globalEntityData) {
+          setData(currentData => {
+            if (JSON.stringify(currentData) !== JSON.stringify(globalEntityData)) {
+              return globalEntityData;
+            }
+            return currentData;
+          });
         }
-      };
-      
-      initializeData();
-    }, [useGlobalContext, appData, entityName]);
+      }
+      setLoading(false);
+    // The dependency array now watches the specific slice of data, but stringified to ensure stability.
+    }, [useGlobalContext, entityName, JSON.stringify(appData?.[entityName as keyof typeof appData])]);
     
     // Create operation
     const create = useCallback(async (item: Partial<T>): Promise<T> => {
@@ -203,8 +199,16 @@ export function createDataHook<T extends EntityData>(
     const update = useCallback(async (id: T['id'], updates: Partial<T>): Promise<T> => {
       const startTime = performance.now();
       try {
-        // Find existing item for validation
-        const existingItem = data.find(item => item.id === id);
+        // Find existing item for validation using functional update to get current state
+        let existingItem: T | undefined;
+        let currentData: T[] = [];
+        
+        setData(prev => {
+          currentData = prev;
+          existingItem = prev.find(item => item.id === id);
+          return prev; // No state change, just accessing current value
+        });
+        
         if (!existingItem) {
           throw new Error(`Entity with ID ${id} not found`);
         }
@@ -218,7 +222,7 @@ export function createDataHook<T extends EntityData>(
           updatedItem,
           'update',
           {
-            dataContext: { [entityName]: data },
+            dataContext: { [entityName]: currentData },
             allData: appData || {} // Provide fallback during initialization
           }
         );
@@ -259,7 +263,7 @@ export function createDataHook<T extends EntityData>(
           )
         );
         
-        const finalUpdatedItem = data.find(item => item.id === id) as T;
+        const finalUpdatedItem = currentData.find(item => item.id === id) as T;
         
         // Record successful operation
         const duration = performance.now() - startTime;
@@ -288,14 +292,22 @@ export function createDataHook<T extends EntityData>(
         setError(err instanceof Error ? err : new Error(String(err)));
         throw err;
       }
-    }, [useGlobalContext, appData, data, entityName, requiresBackend, allowOffline, syncPriority]);
+    }, [useGlobalContext, appData, entityName, requiresBackend, allowOffline, syncPriority]);
     
     // Remove operation
     const remove = useCallback(async (id: T['id']): Promise<boolean> => {
       const startTime = performance.now();
       try {
-        // Find existing item for validation
-        const existingItem = data.find(item => item.id === id);
+        // Find existing item for validation using functional update to get current state
+        let existingItem: T | undefined;
+        let currentData: T[] = [];
+        
+        setData(prev => {
+          currentData = prev;
+          existingItem = prev.find(item => item.id === id);
+          return prev; // No state change, just accessing current value
+        });
+        
         if (!existingItem) {
           throw new Error(`Entity with ID ${id} not found`);
         }
@@ -306,7 +318,7 @@ export function createDataHook<T extends EntityData>(
           existingItem,
           'delete',
           {
-            dataContext: { [entityName]: data },
+            dataContext: { [entityName]: currentData },
             allData: appData
           }
         );

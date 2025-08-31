@@ -490,7 +490,7 @@ export const AdaptiveTabs: React.FC<AdaptiveTabsProps> = ({
     if (draggable && !platformInfo.isMobile) {
       return (
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="tabs" direction="horizontal">
+          <Droppable droppableId="tabs" direction="horizontal" ignoreContainerClipping={false}>
             {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef}>
                 <div className="flex items-center">

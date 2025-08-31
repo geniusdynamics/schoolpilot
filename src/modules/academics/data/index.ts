@@ -36,7 +36,7 @@ export {
 };
 
 // Export data hook configurations for registration
-export { useAcademicYearDataConfig } from './useAcademicYearData';
+
 
 // Export types
 export * from './types';

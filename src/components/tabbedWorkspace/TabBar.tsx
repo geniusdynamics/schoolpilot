@@ -296,7 +296,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="tabs" direction="horizontal" isDropDisabled={false} isCombineEnabled={false}>
+          <Droppable droppableId="tabs" direction="horizontal" isDropDisabled={false} isCombineEnabled={false} ignoreContainerClipping={false}>
             {(provided, snapshot) => (
               <div
                 ref={provided.innerRef}

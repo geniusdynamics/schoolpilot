@@ -4,6 +4,13 @@
 import { ModuleDefinition } from '@/core/types';
 import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon } from '@/components/ui/icons';
 
+// Simple database icon component
+const DatabaseIcon: React.FC<{className?: string}> = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+  </svg>
+);
+
 const settingsModule: ModuleDefinition = {
   id: 'settings',
   name: 'navigation:settings.title',
@@ -20,6 +27,7 @@ const settingsModule: ModuleDefinition = {
     { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
     { name: 'navigation:settings.dependencyReport', path: '/settings/dependency-report', icon: CircleStackIcon, page: 'ModuleDependencyReportPage' },
     { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
+    { name: 'navigation:settings.databaseProvider', path: '/settings/database-provider', icon: DatabaseIcon, page: 'DatabaseProviderSettingsPage' },
     { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon, page: 'DatabaseSettingsPage' },
     { name: 'navigation:settings.backupSettings', path: '/settings/backup-settings', icon: DownloadIcon, page: 'BackupSettingsPage' },
     { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
@@ -30,13 +38,62 @@ const settingsModule: ModuleDefinition = {
   ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [
-    { id: 'settings.view', name: 'View Settings', description: 'Can view settings pages' },
-    { id: 'settings.manage', name: 'Manage Settings', description: 'Can modify system settings' },
-    { id: 'settings.configure', name: 'Configure Settings', description: 'Can configure advanced settings' },
-    { id: 'modules.view', name: 'View Modules', description: 'Can view module configurations' },
-    { id: 'modules.manage', name: 'Manage Modules', description: 'Can enable/disable modules' },
-    { id: 'modules.configure', name: 'Configure Modules', description: 'Can configure module settings' },
-    { id: 'permissions.view', name: 'View Permissions', description: 'Can view permission configurations' },
+    { 
+      id: 'settings.view', 
+      name: 'View Settings', 
+      description: 'Can view settings pages',
+      resource: 'settings',
+      action: 'view',
+      moduleId: 'settings'
+    },
+    { 
+      id: 'settings.manage', 
+      name: 'Manage Settings', 
+      description: 'Can modify system settings',
+      resource: 'settings',
+      action: 'manage',
+      moduleId: 'settings'
+    },
+    { 
+      id: 'settings.configure', 
+      name: 'Configure Settings', 
+      description: 'Can configure advanced settings',
+      resource: 'settings',
+      action: 'configure',
+      moduleId: 'settings'
+    },
+    { 
+      id: 'modules.view', 
+      name: 'View Modules', 
+      description: 'Can view module configurations',
+      resource: 'modules',
+      action: 'view',
+      moduleId: 'settings'
+    },
+    { 
+      id: 'modules.manage', 
+      name: 'Manage Modules', 
+      description: 'Can enable/disable modules',
+      resource: 'modules',
+      action: 'manage',
+      moduleId: 'settings'
+    },
+    { 
+      id: 'modules.configure', 
+      name: 'Configure Modules', 
+      description: 'Can configure module settings',
+      resource: 'modules',
+      action: 'configure',
+      moduleId: 'settings'
+    },
+    { 
+      id: 'permissions.view', 
+      name: 'View Permissions', 
+      description: 'Can view permission configurations',
+      resource: 'permissions',
+      action: 'view',
+      moduleId: 'settings'
+    },
   ],
   settings: {
     category: 'system',

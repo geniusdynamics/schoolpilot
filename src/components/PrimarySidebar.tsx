@@ -142,7 +142,8 @@ const handleModuleClick = async (moduleKey: string, onModuleSelect: (key: string
     console.log('✅ [PrimarySidebar] Module dashboard loaded:', actualModuleName);
     showInfo(`Loaded ${actualModuleName} dashboard`, {
       title: 'Module Loaded',
-      duration: 2000
+      duration: 2000,
+      size: 'compact'
     });
     
     // Update the current selection

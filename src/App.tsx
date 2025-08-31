@@ -399,23 +399,6 @@ const AppInner: React.FC = () => {
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
 
-  // TEMPORARY: Apply demo preset to test mock data path
-  useEffect(() => {
-    console.log('🧪 [App] TESTING: Applying demo preset to test mock data path');
-    applyPreset('demo');
-    
-    // Log current config after applying preset
-    setTimeout(() => {
-      const currentConfig = getCurrentUnifiedConfig();
-      console.log('Current unified config after demo preset:', {
-        dataMode: currentConfig.dataMode,
-        enhancedDataLayer: currentConfig.features.enhancedDataLayer,
-        environment: currentConfig.environment,
-        demo: currentConfig.demo
-      });
-    }, 1000);
-  }, [applyPreset]);
-  
   // Initialize theme system on app startup
   useEffect(() => {
     initializeTheme();
