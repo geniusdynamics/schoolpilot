@@ -11,7 +11,7 @@ export interface DataLayerConfig {
     options: Record<string, any>;
   };
   demo: {
-    provider: 'livestore' | 'pouchdb' | 'mock';
+    provider: 'livestore' | 'pouchdb' | 'sqlite' | 'mock';
     options: Record<string, any>;
   };
 }
@@ -35,7 +35,7 @@ export const DATA_LAYER_CONFIG: DataLayerConfig = {
     }
   },
   demo: {
-    provider: 'livestore',
+    provider: 'sqlite', // Changed to SQLite for demo mode as requested
     options: {
       sync: false,
       offlineSupport: true,

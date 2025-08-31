@@ -648,7 +648,7 @@ const StudentsListPage: React.FC = () => {
         </div>
       ),
     },
-  ], [handleQuickEdit, openModal, handleDelete]);
+  ], []);
   
   // Using a more specific loading state key if available, else fallback to `all` or `students`
   const pageIsLoading = loading.students || loading.all;

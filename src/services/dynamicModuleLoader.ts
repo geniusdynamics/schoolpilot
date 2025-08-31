@@ -83,28 +83,45 @@ class DynamicModuleLoader {
     const { moduleRegistry } = await import('../core/moduleRegistry');
     
     try {
-      // Use import.meta.glob to discover and load module definitions
+      // First, load core modules explicitly
+      console.log('📦 [DynamicModuleLoader] Loading core modules...');
+      try {
+        const coreModulesImport = await import('../modules/core/moduleDefinition');
+        const coreModules = coreModulesImport.coreModules || coreModulesImport.default;
+        
+        if (Array.isArray(coreModules)) {
+          for (const module of coreModules) {
+            if (module && module.id) {
+              console.log(`📦 [DynamicModuleLoader] Registering core module: ${module.id}`);
+              moduleRegistry.registerModule(module);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ [DynamicModuleLoader] Error loading core modules:', error);
+      }
+      
+      // Then, use import.meta.glob to discover and load other module definitions
       const moduleFiles = import.meta.glob('../modules/*/moduleDefinition.tsx', { eager: true });
       
-      // Also load core modules explicitly
-      const coreModuleFiles = import.meta.glob('../modules/core/moduleDefinition.tsx', { eager: true });
-      
-      // Combine all module files
-      const allModuleFiles = { ...moduleFiles, ...coreModuleFiles };
-      
-      console.log('📁 [DynamicModuleLoader] Found module files:', Object.keys(allModuleFiles));
+      console.log('📁 [DynamicModuleLoader] Found module files:', Object.keys(moduleFiles));
       
       // Load and register each module
-      for (const [path, moduleExport] of Object.entries(allModuleFiles)) {
+      for (const [path, moduleExport] of Object.entries(moduleFiles)) {
         try {
+          // Skip core modules as they're already loaded
+          if (path.includes('/core/')) {
+            continue;
+          }
+          
           const moduleDefinition = (moduleExport as any).default;
           
-          // Handle both single modules and arrays of modules (like core modules)
+          // Handle both single modules and arrays of modules
           if (Array.isArray(moduleDefinition)) {
-            // Handle array of modules (like core modules)
+            // Handle array of modules
             for (const module of moduleDefinition) {
               if (module && module.id) {
-                console.log(`📦 [DynamicModuleLoader] Registering core module: ${module.id}`);
+                console.log(`📦 [DynamicModuleLoader] Registering module: ${module.id}`);
                 moduleRegistry.registerModule(module);
               }
             }

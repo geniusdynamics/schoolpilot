@@ -60,7 +60,8 @@ export const useEnhancedNavigation = () => {
         if (showFeedback && result.wasCreated) {
           showInfo(`Opened ${title} in new tab`, {
             title: 'Tab Created',
-            duration: 2000
+            duration: 2000,
+            size: 'compact'
           });
         }
 

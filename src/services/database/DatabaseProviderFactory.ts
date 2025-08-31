@@ -265,9 +265,14 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       return 'pouchdb';
     } else if (constructorName.includes('RxDB')) {
       return 'rxdb';
+    } else if (constructorName.includes('SQLiteWASM')) {
+      // SQLiteWASMProvider is the LiveStore implementation using SQLite WASM
+      return 'livestore';
     } else if (constructorName.includes('SQLite')) {
+      // Other SQLite providers
       return 'sqlite';
-    } else if (constructorName.includes('LiveStore') || constructorName.includes('SQLiteWASM')) {
+    } else if (constructorName.includes('LiveStore')) {
+      // Direct LiveStore providers
       return 'livestore';
     } else {
       throw new Error(`Unknown provider type: ${constructorName}`);

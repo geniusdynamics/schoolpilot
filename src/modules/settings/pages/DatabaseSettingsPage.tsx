@@ -4,7 +4,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import { useAppData } from '@/hooks/useAppData';
-import { CogIcon, ArchiveIcon, DeleteIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@/components/ui/icons'; // Changed TrashIcon to DeleteIcon
+import { CogIcon, ArchiveIcon, DeleteIcon, CheckCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@/components/ui/icons'; // Changed TrashIcon to DeleteIcon
 import { useTranslation } from 'react-i18next';
 import { useUnifiedConfig } from '@/contexts/UnifiedConfigContext';
 
@@ -132,6 +132,27 @@ const DatabaseSettingsPage: React.FC = () => {
           <p className="text-xs text-gray-500 mt-2">
             Note: 'Import Dummy Data' will clear existing database data before populating. 'Clear All Database Data' is irreversible.
           </p>
+        </div>
+      </Card>
+
+      {/* Mock Data Information */}
+      <Card title="Mock Data Information">
+        <div className="p-6">
+          <div className="flex items-start">
+            <InformationCircleIcon className="w-5 h-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-medium text-blue-800">Mock Data Handling</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                When the application successfully migrates from mock data to the local database, 
+                the mock data is automatically handled. The system will continue working with 
+                the migrated data even if mock data is removed.
+              </p>
+              <p className="text-xs text-blue-600 mt-2">
+                If you remove mock data, the application will continue to function normally 
+                using the data stored in your local database.
+              </p>
+            </div>
+          </div>
         </div>
       </Card>
     </div>

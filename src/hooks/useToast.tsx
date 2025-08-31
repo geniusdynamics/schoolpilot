@@ -17,6 +17,7 @@ export interface ToastOptions {
   swipeToDismiss?: boolean;
   soundEnabled?: boolean;
   theme?: 'light' | 'dark' | 'auto';
+  size?: 'normal' | 'compact';
   action?: {
     label: string;
     onClick: () => void;

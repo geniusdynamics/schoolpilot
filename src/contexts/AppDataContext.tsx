@@ -6,6 +6,7 @@ import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { getCurrentUnifiedConfig } from '../config/unifiedConfig';
 import { useRxDBData } from '../hooks/useRxDBData';
 import { useModularMockData } from '../hooks/useModularMockData';
+import { useDatabaseProvider } from '../hooks/useDatabaseProvider';
 import { NetworkProvider, useNetwork } from './NetworkContext';
 import { SyncProvider, useSync } from './SyncContext';
 import { DataSourceProvider, useDataSource } from './DataSourceContext';
@@ -33,11 +34,14 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
     return getCurrentUnifiedConfig();
   }, []);
 
-  // Always call useRxDBData hook unconditionally
+  // Always call useRxDBData hook unconditionally (legacy)
   const rxdbResult = useRxDBData();
   
   // Always call useModularMockData hook unconditionally
   const mockResult = useModularMockData();
+  
+  // Always call useDatabaseProvider hook unconditionally (new SQLite system)
+  const databaseResult = useDatabaseProvider();
 
   // Get current unified config to determine data source
   const shouldUseEnhancedData = currentConfig.features?.enhancedDataLayer;
@@ -47,16 +51,20 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
     enhancedDataLayer: currentConfig.features?.enhancedDataLayer,
     dataMode: currentConfig.dataMode,
     shouldUseEnhancedData,
+    databaseProvider: currentConfig.database?.provider,
+    usingDatabase: shouldUseEnhancedData,
     usingMockData: !shouldUseEnhancedData
   });
   
-  // Select appropriate data source based on enhanced data layer setting
-  const selectedData = shouldUseEnhancedData ? rxdbResult : mockResult;
+  // Select appropriate data source: Database providers (SQLite/LiveStore) or Mock data
+  const selectedData = shouldUseEnhancedData ? databaseResult : mockResult;
   
   console.log('📊 [AppDataContext] Data source selected:', {
-    source: shouldUseEnhancedData ? 'RxDB/Enhanced' : 'Modular Mock Data',
+    source: shouldUseEnhancedData ? 'Database Provider (SQLite/LiveStore)' : 'Modular Mock Data',
     loading: selectedData.loading,
-    hasData: Object.keys(selectedData).length > 0
+    hasData: Object.keys(selectedData).length > 0,
+    provider: shouldUseEnhancedData ? databaseResult.provider?.name : 'Mock Data',
+    migrationStatus: shouldUseEnhancedData ? databaseResult.migrationStatus : 'N/A'
   });
 
   // Create context value with all necessary properties

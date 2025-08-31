@@ -110,48 +110,6 @@ export const TabbedWorkspaceManager: React.FC<TabbedWorkspaceManagerProps> = ({ 
     handleRouteChange();
   }, [handleRouteChange]);
 
-  // Ensure we always have at least the dashboard tab
-  useEffect(() => {
-    if (tabs.length === 0 && !isProcessingRef.current) {
-      console.log('🔍 [TabbedWorkspaceManager] No tabs found, creating initial dashboard tab');
-      
-      isProcessingRef.current = true;
-      
-      // Create initial dashboard tab with proper module dashboard settings
-      createTab({
-        title: 'Dashboard',
-        module: 'dashboard',
-        path: '/dashboard',
-        content: {
-          type: 'component',
-          component: 'DynamicPageComponent'
-        },
-        permissions: [],
-        canClose: false, // Dashboard should not be closable
-        pinned: true,    // Dashboard should be pinned
-        metadata: {
-          moduleContext: 'dashboard',
-          isModuleDashboard: true,
-          createdAt: Date.now(),
-          platform: window.innerWidth < 768 ? 'mobile' : 'web'
-        }
-      }).then(tabId => {
-        console.log('✅ [TabbedWorkspaceManager] Created initial dashboard tab:', tabId);
-        // Navigate to dashboard if not already there
-        if (location.pathname !== '/dashboard') {
-          navigate('/dashboard');
-        }
-      }).catch(error => {
-        console.error('❌ [TabbedWorkspaceManager] Error creating initial dashboard tab:', error);
-      }).finally(() => {
-        // Reset processing flag after a short delay
-        setTimeout(() => {
-          isProcessingRef.current = false;
-        }, 100);
-      });
-    }
-  }, [tabs.length, createTab, navigate, location.pathname]);
-  
   // Log tab statistics periodically for debugging
   useEffect(() => {
     const interval = setInterval(() => {

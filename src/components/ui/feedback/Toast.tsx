@@ -6,12 +6,14 @@ import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from '
 import { designTokens } from '../../../utils/designTokens';
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info' | 'progress';
+export type ToastSize = 'normal' | 'compact';
 
 export interface ToastProps {
   id: string;
   title?: string;
   message: string;
   variant?: ToastVariant;
+  size?: ToastSize;
   duration?: number;
   progress?: number;
   showProgress?: boolean;
@@ -36,7 +38,8 @@ const Toast: React.FC<ToastProps> = ({
   title,
   message,
   variant = 'info',
-  duration = 5000,
+  size = 'normal',
+  duration,
   progress,
   showProgress = false,
   onDismiss,
@@ -51,9 +54,12 @@ const Toast: React.FC<ToastProps> = ({
   stackIndex = 0,
   totalStacked = 1,
 }) => {
+  // Set default duration based on size
+  const defaultDuration = size === 'compact' ? 1500 : 5000;
+  const toastDuration = duration !== undefined ? duration : defaultDuration;
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(duration);
+  const [timeLeft, setTimeLeft] = useState(toastDuration);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout>();
   const progressRef = useRef<HTMLDivElement>(null);
@@ -112,7 +118,7 @@ const Toast: React.FC<ToastProps> = ({
 
   // Auto-dismiss timer with pause support
   useEffect(() => {
-    if (duration > 0 && variant !== 'progress' && isVisible && !isPaused) {
+    if (toastDuration > 0 && variant !== 'progress' && isVisible && !isPaused) {
       const dismissTimer = setTimeout(() => {
         handleDismiss();
       }, timeLeft);
@@ -125,11 +131,11 @@ const Toast: React.FC<ToastProps> = ({
         }
       };
     }
-  }, [duration, variant, isVisible, isPaused, timeLeft]);
+  }, [toastDuration, variant, isVisible, isPaused, timeLeft]);
 
   // Progress timer
   useEffect(() => {
-    if (duration > 0 && variant !== 'progress' && isVisible && !isPaused) {
+    if (toastDuration > 0 && variant !== 'progress' && isVisible && !isPaused) {
       const progressTimer = setInterval(() => {
         setTimeLeft(prev => {
           const newTime = Math.max(0, prev - 100);
@@ -139,7 +145,7 @@ const Toast: React.FC<ToastProps> = ({
 
       return () => clearInterval(progressTimer);
     }
-  }, [duration, variant, isVisible, isPaused]);
+  }, [toastDuration, variant, isVisible, isPaused]);
 
   const handleDismiss = () => {
     setIsExiting(true);
@@ -189,7 +195,7 @@ const Toast: React.FC<ToastProps> = ({
     const stackOpacity = Math.max(0.7, 1 - (stackIndex * 0.15));
     
     const baseStyles = `
-      relative overflow-hidden rounded-lg border shadow-lg backdrop-blur-sm
+      relative overflow-hidden rounded-lg border backdrop-blur-sm
       transition-all duration-300 ease-out cursor-pointer
       ${swipeToDismiss ? 'select-none' : ''}
     `;
@@ -228,7 +234,7 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   const getIcon = () => {
-    const iconClass = "w-5 h-5 flex-shrink-0";
+    const iconClass = size === 'compact' ? "w-4 h-4 flex-shrink-0" : "w-5 h-5 flex-shrink-0";
     
     switch (variant) {
       case 'success':
@@ -266,7 +272,7 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   const progressPercentage = progress !== undefined ? progress : 
-    (duration > 0 && variant !== 'progress') ? ((duration - timeLeft) / duration) * 100 : 0;
+    (toastDuration > 0 && variant !== 'progress') ? ((toastDuration - timeLeft) / toastDuration) * 100 : 0;
 
   // Animation variants for spring physics
   const toastVariants = {
@@ -312,9 +318,17 @@ const Toast: React.FC<ToastProps> = ({
     },
   };
 
+  // Get size-specific classes
+  const getSizeClasses = () => {
+    if (size === 'compact') {
+      return 'w-64 max-w-xs p-2 shadow-md';
+    }
+    return 'w-80 max-w-sm p-4 shadow-lg';
+  };
+
   return (
     <motion.div
-      className={`${getVariantStyles()} ${className} w-80 max-w-sm p-4`}
+      className={`${getVariantStyles()} ${className} ${getSizeClasses()}`}
       role="alert"
       aria-live={variant === 'error' ? 'assertive' : 'polite'}
       aria-atomic="true"
@@ -351,23 +365,23 @@ const Toast: React.FC<ToastProps> = ({
         </div>
       )}
 
-      <div className="flex items-start space-x-3">
+      <div className={`flex items-start ${size === 'compact' ? 'space-x-2' : 'space-x-3'}`}>
         {getIcon()}
         
         <div className="flex-1 min-w-0">
-          {title && (
+          {title && size !== 'compact' && (
             <h4 className="text-sm font-semibold mb-1 truncate">
               {title}
             </h4>
           )}
-          <p className="text-sm leading-relaxed">
+          <p className={`${size === 'compact' ? 'text-xs' : 'text-sm'} leading-relaxed`}>
             {message}
           </p>
           
           {action && (
             <button
               onClick={action.onClick}
-              className="mt-2 text-sm font-medium underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current rounded"
+              className={`mt-2 ${size === 'compact' ? 'text-xs' : 'text-sm'} font-medium underline hover:no-underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current rounded`}
             >
               {action.label}
             </button>
@@ -377,10 +391,10 @@ const Toast: React.FC<ToastProps> = ({
         {/* Dismiss button */}
         <button
           onClick={handleDismiss}
-          className="flex-shrink-0 p-1 rounded-md hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current transition-colors"
+          className={`flex-shrink-0 ${size === 'compact' ? 'p-0.5' : 'p-1'} rounded-md hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current transition-colors`}
           aria-label="Dismiss notification"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className={`${size === 'compact' ? 'w-3 h-3' : 'w-4 h-4'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>

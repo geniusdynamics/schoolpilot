@@ -2,31 +2,36 @@
 // ABOUTME: Ensures consistent data hook registration and discovery
 // ABOUTME: Provides automatic integration with AppDataContext
 
-import { useEffect } from 'react';
-import { DataHookConfig } from './useDataHookFactory';
+import { useEffect, useMemo } from 'react';
+import { DataHookConfig, EntityData } from './useDataHookFactory';
 import { moduleDataRegistry, registerDataHook } from '../services/ModuleDataRegistry';
 
 /**
- * Hook for registering a data hook with the global context
- * @param config Configuration for the data hook
+ * Hook for registering module data hooks with the global context
+ * Ensures consistent data hook registration and discovery
+ * Provides automatic integration with AppDataContext
  */
-export function useDataHookRegistration<T>(config: DataHookConfig<T>): void {
-  // Don't call useAppData during initialization to avoid circular dependency
-  // The registration happens independently of the AppDataProvider
+export function useDataHookRegistration<T extends EntityData>(
+  config: DataHookConfig<T>
+): void {
+  // Memoize the registration key to prevent unnecessary re-registrations
+  const registrationKey = useMemo(() => {
+    return `${config.entityModule}:${config.entityName}`;
+  }, [config.entityModule, config.entityName]);
 
-  // Register the data hook with the registry
   useEffect(() => {
-    console.log(`Registering data hook for ${config.entityName} from ${config.entityModule} module`);
-    registerDataHook(config);
-
-    // Return cleanup function
-    return () => {
-      // Cleanup logic if needed
-    };
-  }, [config.entityName, config.entityModule]);
-
-  // Note: We don't call useAppData here to avoid circular dependency during AppDataProvider initialization
-  // The data integration happens later when the AppDataProvider is fully initialized
+    console.log(`🔧 [useDataHookRegistration] Registering data hook for ${config.entityName} in ${config.entityModule}`);
+    
+    // Register the data hook with the global registry
+    moduleDataRegistry.register({
+      entityName: config.entityName,
+      moduleName: config.entityModule,
+      hookName: `use${config.entityName.charAt(0).toUpperCase() + config.entityName.slice(1)}Data`,
+      requiresBackend: config.requiresBackend || false,
+      allowOffline: config.allowOffline || true,
+      syncPriority: config.syncPriority || 'medium'
+    });
+  }, [registrationKey]); // Use the memoized key instead of individual properties
 }
 
 /**
