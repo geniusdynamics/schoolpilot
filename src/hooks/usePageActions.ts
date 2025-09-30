@@ -1,7 +1,7 @@
 // ABOUTME: Hook for pages to register their actions with the ActionRegistry
 // ABOUTME: Provides a simple interface for pages to define contextual actions that appear in the ActionBar
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useActionRegistry, ActionDefinition, ActionGroup } from '../services/actionRegistry';
 import { useTabStore } from '../stores/tabStore';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,7 +73,7 @@ export const usePageActions = (
   const feature = options.feature || activeTab?.feature;
   
   // Track registered action IDs for cleanup
-  const registeredActionIds = new Set<string>();
+  const registeredActionIds = useRef(new Set<string>());
   
   // Register a single action
   const registerAction = useCallback((action: PageActionDefinition) => {
@@ -92,7 +92,7 @@ export const usePageActions = (
     };
     
     storeRegisterActions(module, submodule, [fullAction]);
-    registeredActionIds.add(action.id);
+    registeredActionIds.current.add(action.id);
   }, [module, submodule, feature, storeRegisterActions]);
   
   // Register multiple actions
@@ -112,7 +112,7 @@ export const usePageActions = (
     }));
     
     storeRegisterActions(module, submodule, fullActions);
-    actionsToRegister.forEach(action => registeredActionIds.add(action.id));
+    actionsToRegister.forEach(action => registeredActionIds.current.add(action.id));
   }, [module, submodule, feature, storeRegisterActions]);
   
   // Register an action group
@@ -136,23 +136,23 @@ export const usePageActions = (
     };
     
     storeRegisterActionGroup(module, submodule, fullGroup);
-    group.actions.forEach(action => registeredActionIds.add(action.id));
+    group.actions.forEach(action => registeredActionIds.current.add(action.id));
   }, [module, submodule, feature, storeRegisterActionGroup]);
   
   // Unregister a single action
   const unregisterAction = useCallback((actionId: string) => {
     // Note: The ActionRegistry doesn't have an unregister method yet
     // This would need to be implemented in the store
-    registeredActionIds.delete(actionId);
+    registeredActionIds.current.delete(actionId);
     console.warn('Action unregistration not yet implemented in ActionRegistry');
   }, []);
   
   // Unregister all actions registered by this hook
   const unregisterAllActions = useCallback(() => {
-    registeredActionIds.forEach(actionId => {
+    registeredActionIds.current.forEach(actionId => {
       unregisterAction(actionId);
     });
-    registeredActionIds.clear();
+    registeredActionIds.current.clear();
   }, [unregisterAction]);
   
   // Update an existing action
@@ -163,7 +163,7 @@ export const usePageActions = (
   
   // Check if an action is registered
   const isActionRegistered = useCallback((actionId: string) => {
-    return registeredActionIds.has(actionId);
+    return registeredActionIds.current.has(actionId);
   }, []);
   
   // Auto-register actions on mount if enabled
@@ -178,7 +178,7 @@ export const usePageActions = (
         unregisterAllActions();
       }
     };
-  }, [actions, options.autoRegister, registerActions, unregisterAllActions]);
+  }, [options.autoRegister]); // Remove actions from dependencies to prevent infinite loops
   
   return {
     registerAction,
@@ -220,7 +220,7 @@ export const useSimplePageActions = (
     if (actions.length > 0) {
       registerActions(actions);
     }
-  }, [registerActions, ...deps]);
+  }, deps); // Use only the provided deps, not registerActions
 };
 
 export default usePageActions;

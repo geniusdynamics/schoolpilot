@@ -12,7 +12,7 @@ const logger = createLogger('DataLoader');
 async function loadData() {
   try {
     logger.info('Initializing RxDB connection...');
-    const db = await rxdbService; // Initialize RxDB
+    const db = await rxdbService.getDatabase(); // Initialize RxDB
     databaseManager.setRxDBInstance(db);
 
     logger.info('Reading transformed data...');
@@ -30,9 +30,9 @@ async function loadData() {
 
     logger.info('Loading examinations...');
     await migrationManager.processInChunks(examinations, async (batch) => {
-      return batch.map(exam => ({
+      return batch.map((exam: any) => ({
         id: exam.id,
-        collectionName: 'examsessions',
+        collectionName: 'exam_sessions',
         data: exam,
         operation: 'insert' as const
       }));
@@ -40,7 +40,7 @@ async function loadData() {
 
     logger.info('Loading subjects...');
     await migrationManager.processInChunks(subjects, async (batch) => {
-      return batch.map(subject => ({
+      return batch.map((subject: any) => ({
         id: subject.id,
         collectionName: 'subjects',
         data: subject,
@@ -50,9 +50,9 @@ async function loadData() {
 
     logger.info('Loading exam results...');
     await migrationManager.processInChunks(examResults, async (batch) => {
-      return batch.map(result => ({
+      return batch.map((result: any) => ({
         id: result.id,
-        collectionName: 'studentexamresults',
+        collectionName: 'student_exam_results',
         data: result,
         operation: 'insert' as const
       }));

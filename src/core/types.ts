@@ -333,6 +333,11 @@ export interface SchoolDetails {
   school_type?: string | null;
   head_teacher_name?: string | null;
   school_code?: string | null;
+  // Additional properties for settings pages
+  address?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  principal?: string | null;
 }
 
 export interface User {
@@ -1409,6 +1414,11 @@ export type AppDataLoadingStates = {
 export type AppDataContextType = AppDataType & {
   loading: AppDataLoadingStates;
   rawInitialData: any;
+  // Database management functions
+  triggerSeedRxDB?: () => Promise<void>;
+  triggerClearRxDB?: () => Promise<void>;
+  isUsingRxDBDummyData?: boolean;
+  initializationError?: Error | null;
   // Student Detail Functions
   getStudentDetailsById: (id: string) => Promise<StudentDetailProfile | null>;
   getStudentFinancialDetailsById: (id: string) => Promise<StudentDetailProfile | null>;
@@ -1496,6 +1506,7 @@ export interface NavItem {
   permissions?: string[]; // Optional permissions required
   isActive?: boolean; // Whether this module/feature is active
   page?: string; // Optional explicit page component name for dynamic import
+  deprecated?: boolean; // Mark item as deprecated; UI should hide or redirect
 }
 
 export interface ModuleDefinition {

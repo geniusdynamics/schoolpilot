@@ -697,7 +697,9 @@ export const useProgressiveAnimation = (animationName: keyof typeof animationPre
     if (!canAnimate || !isPerformant()) {
       return {};
     }
-    return getAnimationStyles(animationName);
+    // Return animation styles based on the animation name
+    const preset = animationPresets[animationName];
+    return preset ? { animation: preset.animation } : {};
   }, [canAnimate, isPerformant, animationName]);
   
   return {

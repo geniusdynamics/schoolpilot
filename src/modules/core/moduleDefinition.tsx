@@ -2,6 +2,7 @@
 // ABOUTME: Contains only essential system modules that are always available
 
 import { ModuleDefinition } from '@/core/types';
+import { corePermissions } from './rbac';
 import {
   HomeIcon,
   CogIcon,
@@ -26,64 +27,14 @@ export const dashboardModule: ModuleDefinition = {
   navigation: [
     { name: 'navigation:dashboard', path: '/dashboard', icon: HomeIcon, page: 'DashboardPage' }
   ],
-  features: ['core', 'dashboard', 'overview']
+  features: ['core', 'dashboard', 'overview'],
+  rbacPermissions: [
+    { id: 'dashboard.view', name: 'View Dashboard', description: 'View the main dashboard and its widgets', resource: 'dashboard', action: 'read', moduleId: 'dashboard' }
+  ]
 };
 
-// Settings Module (Core System)
-export const settingsModule: ModuleDefinition = {
-  id: 'settings',
-  name: 'navigation:settings',
-  description: 'navigation:settings.description',
-  icon: CogIcon,
-  path: '/settings',
-  isActive: true,
-  version: '1.0.0',
-  navigation: [
-    { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
-    { name: 'navigation:settings.features', path: '/settings/features', icon: CogIcon, page: 'FeatureSettingsPage' },
-    { name: 'navigation:settings.tabs', path: '/settings/tabs', icon: ArrowsRightLeftIcon, page: 'TabSettingsPage' },
-    { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
-    { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
-    { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon, page: 'DatabaseSettingsPage' },
-    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
-    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage' },
-    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage' },
-  ],
-  features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
-  rbacPermissions: [
-    { id: 'settings.view', name: 'View Settings', description: 'Can view settings pages', resource: 'settings', action: 'read', moduleId: 'settings' },
-    { id: 'settings.manage', name: 'Manage Settings', description: 'Can modify system settings', resource: 'settings', action: 'update', moduleId: 'settings' },
-    { id: 'settings.configure', name: 'Configure Settings', description: 'Can configure advanced settings', resource: 'settings', action: 'execute', moduleId: 'settings' },
-    { id: 'modules.view', name: 'View Modules', description: 'Can view module configurations', resource: 'modules', action: 'read', moduleId: 'settings' },
-    { id: 'modules.manage', name: 'Manage Modules', description: 'Can enable/disable modules', resource: 'modules', action: 'update', moduleId: 'settings' },
-    { id: 'modules.configure', name: 'Configure Modules', description: 'Can configure module settings', resource: 'modules', action: 'execute', moduleId: 'settings' },
-    { id: 'permissions.view', name: 'View Permissions', description: 'Can view permission configurations', resource: 'permissions', action: 'read', moduleId: 'settings' },
-  ],
-  settings: {
-    category: 'system',
-    items: [
-      {
-        key: 'theme',
-        type: 'select',
-        defaultValue: 'dark',
-        options: [
-          { value: 'light', label: 'Light' },
-          { value: 'dark', label: 'Dark' },
-          { value: 'auto', label: 'Auto' }
-        ]
-      },
-      {
-        key: 'language',
-        type: 'select',
-        defaultValue: 'en',
-        options: [
-          { value: 'en', label: 'English' },
-          { value: 'fr', label: 'French' }
-        ]
-      }
-    ]
-  }
-};
+// Note: Settings module is now handled by the dedicated settings module
+// The core module should not define settings routes to avoid conflicts
 
 // Reports Module (Core System)
 export const reportsModule: ModuleDefinition = {
@@ -129,7 +80,6 @@ export const reportsModule: ModuleDefinition = {
 // Export core modules
 export const coreModules: ModuleDefinition[] = [
   dashboardModule,
-  settingsModule,
   reportsModule
 ];
 

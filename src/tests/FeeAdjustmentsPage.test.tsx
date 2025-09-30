@@ -8,19 +8,18 @@ import FeeAdjustmentsPage from '../modules/finance/pages/FeeAdjustmentsPage';
 import { AppDataContext } from '../contexts/AppDataContext';
 import { FeeAdjustment, Student, SchoolPeriod, FeeAdjustmentType } from '../types';
 
-// Mock the hooks
-jest.mock('../hooks/useToast', () => ({
+// Mock hooks
+vi.mock('../hooks/useToast', () => ({
   useToast: () => ({
-    showToast: jest.fn()
-  })
+    showToast: vi.fn(),
+  }),
 }));
 
-jest.mock('../hooks/useSlideout', () => ({
+vi.mock('../hooks/useSlideout', () => ({
   useSlideout: () => ({
-    isOpen: false,
-    open: jest.fn(),
-    close: jest.fn()
-  })
+    openSlideout: vi.fn(),
+    closeSlideout: vi.fn(),
+  }),
 }));
 
 const mockFeeAdjustments: FeeAdjustment[] = [

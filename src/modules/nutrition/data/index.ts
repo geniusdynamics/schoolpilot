@@ -22,7 +22,7 @@ export {
 };
 
 // Export data hook configurations for registration
-export { useMealPlanDataConfig } from './useMealPlanData';
+// Note: Configuration is handled internally by the data hook factory
 
 // Export types
 export * from './types';

@@ -1,7 +1,8 @@
 // ABOUTME: ActionProvider context for managing contextual actions across the application
 // ABOUTME: Provides React context wrapper around the action registry system with tab integration
 
-import React, { createContext, useContext, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, ReactNode, useRef, useCallback } from 'react';
+import { isEqual } from 'lodash'; // Add this import for deep equality check
 import { useActionRegistry, ActionDefinition, ActionGroup, ActionContext } from '../services/actionRegistry';
 import { useTabStore } from '../stores/tabStore';
 import { useAuth } from './AuthContext';
@@ -51,7 +52,24 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
   defaultFeature
 }) => {
   const { user } = useAuth();
-  const { activeTabId, tabs, getTabById } = useTabStore();
+  const { activeTabId, getTabById } = useTabStore();
+  
+  // Get selected tab IDs separately to avoid dependency on entire tabs array
+  // Use a stable selector to prevent unnecessary re-renders
+  const selectedTabIds = useTabStore(
+    useCallback(
+      (state) => {
+        const ids = state.tabs.filter(tab => tab.selected).map(tab => tab.id);
+        return ids;
+      },
+      []
+    ),
+    (prev, next) => {
+      // Custom equality check for array of IDs
+      if (prev.length !== next.length) return false;
+      return prev.every((id, index) => id === next[index]);
+    }
+  );
   const {
     registerAction,
     registerActionGroup,
@@ -95,7 +113,7 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
         feature: activeTab.feature,
         metadata: activeTab.metadata
       } : undefined,
-      selectedTabs: tabs.filter(tab => tab.selected).map(tab => tab.id),
+      selectedTabs: selectedTabIds,
       module,
       submodule,
       feature,
@@ -112,7 +130,7 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
       data: metadata,
       moduleData: activeTab?.moduleData
     };
-  }, [user, activeTabId, tabs, getTabById, defaultModule, defaultSubmodule, defaultFeature]);
+  }, [user, activeTabId, selectedTabIds, getTabById, defaultModule, defaultSubmodule, defaultFeature]);
 
   // Get contextual actions and groups
   const contextualActions = useMemo(() => {
@@ -124,9 +142,27 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
   }, [actionContext, getActionGroupsForContext]);
 
   // Update action registry context when our context changes
+  const prevContextRef = useRef<ActionContext | null>(null);
+  const isUpdatingContext = useRef(false);
+  
   useEffect(() => {
-    if (actionContext) {
-      setCurrentContext(actionContext);
+    if (actionContext && 
+        !isUpdatingContext.current && 
+        (!prevContextRef.current || !isEqual(actionContext, prevContextRef.current))) {
+      
+      isUpdatingContext.current = true;
+      
+      // Use a timeout to prevent synchronous updates that could cause loops
+      const timeoutId = setTimeout(() => {
+        setCurrentContext(actionContext);
+        prevContextRef.current = actionContext;
+        isUpdatingContext.current = false;
+      }, 0);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        isUpdatingContext.current = false;
+      };
     }
   }, [actionContext, setCurrentContext]);
 

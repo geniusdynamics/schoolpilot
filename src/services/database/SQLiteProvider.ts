@@ -1,19 +1,32 @@
 // ABOUTME: SQLite Provider Factory for database abstraction layer
-// ABOUTME: Integrates SQLite OPFS implementation with existing provider system
+// ABOUTME: Supports multiple storage types (OPFS, file, memory) based on configuration
 
 import { IDatabaseProvider, DatabaseConfig, CollectionSchema } from '../database/interfaces';
 import { SQLiteOPFSService } from '../sqlite/SQLiteOPFSService';
+import { SQLiteFileService } from '../sqlite/SQLiteFileService';
+
+type SQLiteStorageType = 'file' | 'opfs' | 'memory';
 
 export class SQLiteProvider implements IDatabaseProvider {
-  public readonly name = 'SQLiteOPFS';
+  public readonly name = 'SQLite';
   public readonly version = '1.0.0';
   
-  private sqliteService: SQLiteOPFSService;
+  private sqliteService: SQLiteOPFSService | SQLiteFileService;
   private isInitialized = false;
   private config: DatabaseConfig | null = null;
+  private storageType: SQLiteStorageType = 'opfs';
 
-  constructor() {
-    this.sqliteService = new SQLiteOPFSService();
+  constructor(config?: DatabaseConfig) {
+    // Determine storage type from config
+    this.storageType = (config?.options?.storageType as SQLiteStorageType) || 'opfs';
+    
+    // Initialize appropriate service based on storage type
+    if (this.storageType === 'file') {
+      this.sqliteService = new SQLiteFileService(config);
+    } else {
+      // Default to OPFS for 'opfs' and 'memory' types
+      this.sqliteService = new SQLiteOPFSService();
+    }
   }
 
   async initialize(config: DatabaseConfig): Promise<void> {

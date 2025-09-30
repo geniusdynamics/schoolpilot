@@ -1,5 +1,6 @@
 {
-  "title": "Mipangilio",
+  "title": "Mipangilio ya Muungano",
+  "description": "Simamia mipangilio yote ya mfumo na usanidi katika kiolesura kimoja cha muungano",
   "navigation": {
     "settings": {
       "title": "Mipangilio",
@@ -8,6 +9,8 @@
       "features": "Vipengele",
       "modules": "Moduli",
       "auditLog": "Kumbukumbu ya Ukaguzi",
+      "dataLayer": "Safu ya Data",
+      "databaseProvider": "Mtoa Huduma wa Hifadhidata",
       "databaseSettings": "Mipangilio ya Hifadhidata",
       "schoolProfile": "Wasifu wa Shule",
       "users": "Watumiaji",
@@ -21,7 +24,12 @@
     "pageTitle": "Mipangilio ya Vichupo",
     "pageDescription": "Sanidi mipangilio ya kiolesura cha vichupo na ujaribu utendakazi wa nafasi ya kazi",
     "settingsTab": "Mipangilio",
-    "workspaceTab": "Jaribio la Nafasi ya Kazi"
+    "workspaceTab": "Jaribio la Nafasi ya Kazi",
+    "system": "Mfumo",
+    "users": "Watumiaji",
+    "features": "Vipengele",
+    "sync": "Usawazishaji",
+    "workflows": "Mtiririko wa kazi"
   },
   "tabbedWorkspaceTest": {
     "pageTitle": "Jaribio la Nafasi ya Kazi ya Vichupo",

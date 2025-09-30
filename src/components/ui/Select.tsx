@@ -71,6 +71,7 @@ export interface SelectProps {
   name?: string;
   'aria-label'?: string;
   'aria-describedby'?: string;
+  'data-testid'?: string;
   
   // Callbacks
   onFocus?: (event: FocusEvent<HTMLDivElement>) => void;
@@ -122,6 +123,7 @@ const Select: React.FC<SelectProps> = ({
   name,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
+  'data-testid': dataTestId,
   onFocus,
   onBlur,
   onSearch,
@@ -590,6 +592,7 @@ const Select: React.FC<SelectProps> = ({
             error ? fieldIds.error : undefined,
           ])}
           aria-invalid={getAriaInvalid(!!error)}
+          data-testid={dataTestId}
           className={[
             'w-full rounded-md shadow-sm border',
             'focus:outline-none focus:ring-2 focus:ring-offset-0',
@@ -657,6 +660,7 @@ const Select: React.FC<SelectProps> = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           style={transitionStyles}
+          data-testid={dataTestId}
         >
           <div className="flex items-center justify-between min-h-[1.5rem]">
             <div className="flex-1 min-w-0 pr-2">

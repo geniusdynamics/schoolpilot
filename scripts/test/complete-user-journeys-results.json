@@ -1,0 +1,112 @@
+{
+  "journeys": [
+    {
+      "name": "Admin Complete Workflow",
+      "success": true,
+      "steps": [
+        "Application loaded in 9007ms",
+        "Login form submitted with admin credentials",
+        "Students link not found",
+        "Teachers link not found",
+        "Classes link not found",
+        "Reports link not found",
+        "No forms found on current page",
+        "Tested tablet viewport",
+        "Tested mobile viewport"
+      ],
+      "errors": []
+    },
+    {
+      "name": "Teacher Workflow",
+      "success": true,
+      "steps": [
+        "Login form elements not found, proceeding with current page",
+        "My Classes link not found (may not be implemented)",
+        "Gradebook link not found (may not be implemented)",
+        "Assignments link not found (may not be implemented)"
+      ],
+      "errors": []
+    },
+    {
+      "name": "Student Workflow",
+      "success": true,
+      "steps": [
+        "Login form elements not found, proceeding with current page",
+        "My Courses link not found (may not be implemented)",
+        "Grades link not found (may not be implemented)",
+        "Schedule link not found (may not be implemented)"
+      ],
+      "errors": []
+    }
+  ],
+  "screenshots": [
+    {
+      "filename": "journey-01-admin-01-initial-load.png",
+      "description": "Admin journey - Initial application load",
+      "timestamp": "2025-09-03T07:58:26.610Z"
+    },
+    {
+      "filename": "journey-02-admin-02-login-submitted.png",
+      "description": "Admin journey - Login submitted",
+      "timestamp": "2025-09-03T07:58:34.105Z"
+    },
+    {
+      "filename": "journey-03-admin-05-tablet-view.png",
+      "description": "Admin journey - Tablet responsive view",
+      "timestamp": "2025-09-03T07:58:35.896Z"
+    },
+    {
+      "filename": "journey-04-admin-06-mobile-view.png",
+      "description": "Admin journey - Mobile responsive view",
+      "timestamp": "2025-09-03T07:58:39.210Z"
+    }
+  ],
+  "errors": [],
+  "performance": [
+    {
+      "action": "Initial Load",
+      "timestamp": "2025-09-03T07:58:26.629Z",
+      "jsHeapUsedSize": 28162960,
+      "jsHeapTotalSize": 37904384,
+      "scriptDuration": 1.258855,
+      "taskDuration": 2.959975
+    },
+    {
+      "action": "Login Submission",
+      "timestamp": "2025-09-03T07:58:34.211Z",
+      "jsHeapUsedSize": 27355544,
+      "jsHeapTotalSize": 44298240,
+      "scriptDuration": 4.146298,
+      "taskDuration": 7.112289
+    },
+    {
+      "action": "Responsive Testing",
+      "timestamp": "2025-09-03T07:58:39.288Z",
+      "jsHeapUsedSize": 29294900,
+      "jsHeapTotalSize": 44298240,
+      "scriptDuration": 4.272171,
+      "taskDuration": 7.446575
+    },
+    {
+      "action": "Teacher Navigation",
+      "timestamp": "2025-09-03T07:58:48.592Z",
+      "jsHeapUsedSize": 36856216,
+      "jsHeapTotalSize": 50327552,
+      "scriptDuration": 4.93043,
+      "taskDuration": 9.254704
+    },
+    {
+      "action": "Student Navigation",
+      "timestamp": "2025-09-03T07:58:55.201Z",
+      "jsHeapUsedSize": 30977396,
+      "jsHeapTotalSize": 40890368,
+      "scriptDuration": 5.53175,
+      "taskDuration": 10.85118
+    }
+  ],
+  "summary": {
+    "totalJourneys": 3,
+    "successfulJourneys": 3,
+    "failedJourneys": 0
+  }
+}

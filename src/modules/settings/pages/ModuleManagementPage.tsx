@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '../../../components/ui/icons';
 import Button from '@/components/ui/Button';
 import DataGrid from '@/components/ui/data/DataGrid';
 import type { DataGridColumn } from '@/components/ui/data/DataGrid';

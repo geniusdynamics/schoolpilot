@@ -7,7 +7,7 @@ initializeErrorTracking();
 
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './app';
 import './index.css';
 import i18n, { initializeI18n } from './i18n/i18n'; // Import your i18n configuration
 import { initializeUnifiedConfig } from './config/unifiedConfig';
@@ -30,10 +30,9 @@ const initializeApp = async () => {
 };
 
 const renderApp = () => {
-
-// Add global debug helpers
-if (typeof window !== 'undefined') {
-  (window as any).debugAuth = async () => {
+  // Add global debug helpers
+  if (typeof window !== 'undefined') {
+    (window as any).debugAuth = async () => {
     const { authService } = await import('./services/authService');
     return {
       initialized: authService.isInitialized(),
@@ -183,12 +182,12 @@ if (typeof window !== 'undefined') {
     }
   };
   
-  console.log('🎉 Debug helpers available:');
-  console.log('  - window.debugAuth() - Check auth status');
-  console.log('  - window.testLogin(username, password) - Test login');
-  console.log('  - window.testAllDemoUsers() - Test all demo user credentials');
-  console.log('  - window.testAuthState() - Test authentication state management');
-}
+    console.log('🎉 Debug helpers available:');
+    console.log('  - window.debugAuth() - Check auth status');
+    console.log('  - window.testLogin(username, password) - Test login');
+    console.log('  - window.testAllDemoUsers() - Test all demo user credentials');
+    console.log('  - window.testAuthState() - Test authentication state management');
+  }
 
   const rootElement = document.getElementById('root');
   if (!rootElement) {
@@ -216,5 +215,7 @@ if (typeof window !== 'undefined') {
   );
 };
 
-// Initialize the app
-initializeApp();
+// Initialize the app only if not in test environment
+if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+  initializeApp();
+}

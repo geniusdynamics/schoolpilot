@@ -7,7 +7,7 @@ import Card from '@/components/ui/Card';
 import { CurrencyDollarIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons'; 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { DataGrid, DataGridColumn } from '@/components/ui';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { SchoolPeriod, Class as SchoolClass } from '@/types'; 

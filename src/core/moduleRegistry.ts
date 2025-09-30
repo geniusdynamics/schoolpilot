@@ -8,6 +8,39 @@ import { moduleConfigService } from '../services/moduleConfigService';
 // Helper to identify core modules
 const CORE_MODULE_IDS = ['dashboard', 'settings', 'reports'];
 
+// Recursive function to filter out deprecated navigation items and prune empty groups
+const filterDeprecatedNavItems = (navItems: NavItem[]): NavItem[] => {
+  const filtered: NavItem[] = [];
+  
+  for (const item of navItems) {
+    // Skip deprecated items
+    if (item.deprecated) {
+      continue;
+    }
+    
+    // Process children recursively if they exist
+    let filteredChildren: NavItem[] = [];
+    if (item.children && item.children.length > 0) {
+      filteredChildren = filterDeprecatedNavItems(item.children);
+    }
+    
+    // If this is a group (has children) and all children were filtered out, skip it
+    if (item.isGroup && filteredChildren.length === 0) {
+      continue;
+    }
+    
+    // Create new item with filtered children
+    const filteredItem: NavItem = {
+      ...item,
+      children: filteredChildren
+    };
+    
+    filtered.push(filteredItem);
+  }
+  
+  return filtered;
+};
+
 // Module Registry Class
 class ModuleRegistry {
   private modules: Map<string, ModuleDefinition> = new Map();
@@ -93,13 +126,22 @@ class ModuleRegistry {
         isActive: this.isModuleEnabled(module.id)
       });
       
+      // Filter deprecated items from module navigation
+      const filteredNavigation = module.navigation ? filterDeprecatedNavItems(module.navigation) : [];
+      
+      // Skip modules that have no active navigation items after filtering
+      if (module.navigation && module.navigation.length > 0 && filteredNavigation.length === 0) {
+        console.log(`[ModuleRegistry] DEBUG: Skipping module ${module.id} - no active navigation items after filtering`);
+        return;
+      }
+      
       const mainNavItem: NavItem = {
         name: module.name,
         path: module.path,
         icon: module.icon,
-        isGroup: (module.navigation?.length || 0) > 0,
+        isGroup: filteredNavigation.length > 0,
         modulePath: module.path,
-        children: module.navigation || [],
+        children: filteredNavigation,
         isActive: this.isModuleEnabled(module.id) // Use the updated isModuleEnabled
       };
       navigationItems.push(mainNavItem);

@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-09-28T21:19:44.308Z",
+  "totalDuration": 3373,
+  "totalTests": 5,
+  "passedTests": 5,
+  "failedTests": 0,
+  "results": [
+    {
+      "generator": "AdministrationGenerator",
+      "success": true,
+      "duration": 2437,
+      "dataCount": {
+        "students": 500,
+        "staff": 100,
+        "parents": 300,
+        "classes": 16,
+        "departments": 14,
+        "roles": 10
+      },
+      "errors": [],
+      "warnings": [],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    },
+    {
+      "generator": "LibraryGenerator",
+      "success": true,
+      "duration": 342,
+      "dataCount": {
+        "books": 1000,
+        "authors": 200,
+        "categories": 30,
+        "loans": 923,
+        "fines": 110,
+        "inventory": 3077
+      },
+      "errors": [],
+      "warnings": [],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    },
+    {
+      "generator": "FinanceGenerator",
+      "success": true,
+      "duration": 292,
+      "dataCount": {
+        "chart_of_accounts": 45,
+        "voteheads": 15,
+        "suppliers": 100,
+        "fee_templates": 15,
+        "fee_template_items": 75,
+        "student_wallet_transactions": 1000,
+        "procurement_records": 200,
+        "payment_vouchers": 150
+      },
+      "errors": [],
+      "warnings": [
+        "Expected 50+ chart of accounts, got 45"
+      ],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    },
+    {
+      "generator": "AcademicsGenerator",
+      "success": true,
+      "duration": 153,
+      "dataCount": {
+        "subjects": 232,
+        "grading_schemes": 3,
+        "exam_sessions": 0,
+        "timetables": 880,
+        "teacher_subject_assignments": 100,
+        "curriculum_structures": 20
+      },
+      "errors": [],
+      "warnings": [
+        "Expected 5+ grading schemes, got 3"
+      ],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    },
+    {
+      "generator": "ClubsGenerator",
+      "success": true,
+      "duration": 147,
+      "dataCount": {
+        "clubs": 25,
+        "club_members": 771,
+        "club_activities": 246,
+        "club_events": 100,
+        "club_budgets": 75,
+        "club_achievements": 71
+      },
+      "errors": [],
+      "warnings": [],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    }
+  ],
+  "summary": "Generator Test Suite completed: 5/5 tests passed in 3.37s"
+}

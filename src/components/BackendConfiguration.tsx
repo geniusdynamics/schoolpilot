@@ -8,7 +8,7 @@ import {
   BackendConfig, 
   BackendCapabilities 
 } from '../config/backendArchitecture';
-import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
+import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 
 interface BackendConfigurationProps {
   className?: string;

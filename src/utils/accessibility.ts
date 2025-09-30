@@ -188,15 +188,31 @@ export const useReducedMotion = (): boolean => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
+    // Check if matchMedia is available and properly mocked
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return;
+    }
 
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches);
-    };
+    try {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      
+      // Ensure mediaQuery is valid and has matches property
+      if (!mediaQuery || typeof mediaQuery.matches === 'undefined') {
+        return;
+      }
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+      setPrefersReducedMotion(mediaQuery.matches);
+
+      const handleChange = (event: MediaQueryListEvent) => {
+        setPrefersReducedMotion(event.matches);
+      };
+
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } catch (error) {
+      // Silently handle any matchMedia errors in test environment
+      console.warn('matchMedia not available:', error);
+    }
   }, []);
 
   return prefersReducedMotion;

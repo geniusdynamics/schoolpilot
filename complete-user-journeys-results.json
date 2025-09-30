@@ -1,0 +1,53 @@
+{
+  "journeys": [
+    {
+      "name": "Admin Complete Workflow",
+      "success": false,
+      "steps": [
+        "Application loaded in 18480ms"
+      ],
+      "errors": [
+        "Critical error: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button[onclick=\"selectRole(\"admin\")\"]' is not a valid selector."
+      ]
+    },
+    {
+      "name": "Teacher Workflow",
+      "success": false,
+      "steps": [],
+      "errors": [
+        "Critical error: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button[onclick=\"selectRole(\"teacher\")\"]' is not a valid selector."
+      ]
+    },
+    {
+      "name": "Student Workflow",
+      "success": false,
+      "steps": [],
+      "errors": [
+        "Critical error: SyntaxError: Failed to execute 'querySelector' on 'Document': 'button[onclick=\"selectRole(\"student\")\"]' is not a valid selector."
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "filename": "journey-01-admin-01-initial-load.png",
+      "description": "Admin journey - Initial application load",
+      "timestamp": "2025-09-03T07:53:48.830Z"
+    }
+  ],
+  "errors": [],
+  "performance": [
+    {
+      "action": "Initial Load",
+      "timestamp": "2025-09-03T07:53:48.936Z",
+      "jsHeapUsedSize": 27462084,
+      "jsHeapTotalSize": 37380096,
+      "scriptDuration": 0.958352,
+      "taskDuration": 4.40245
+    }
+  ],
+  "summary": {
+    "totalJourneys": 3,
+    "successfulJourneys": 0,
+    "failedJourneys": 3
+  }
+}

@@ -6,17 +6,17 @@ import { useNavigate } from 'react-router-dom';
 import { useTabNavigation } from '../hooks/useTabNavigation';
 
 // Mock React Router hooks
-jest.mock('react-router-dom', () => ({
-  useNavigate: jest.fn(),
-  useLocation: jest.fn(() => ({ pathname: '/test' })),
+vi.mock('react-router-dom', () => ({
+  useNavigate: vi.fn(),
+  useLocation: vi.fn(() => ({ pathname: '/test' })),
 }));
 
 describe('Tab Navigation Tests', () => {
-  const mockNavigate = jest.fn();
+  const mockNavigate = vi.fn();
 
   beforeEach(() => {
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    jest.clearAllMocks();
+    (useNavigate as any).mockReturnValue(mockNavigate);
+    vi.clearAllMocks();
   });
 
   test('Tabs are created when navigating to new routes', () => {

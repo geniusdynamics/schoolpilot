@@ -7,6 +7,7 @@ import { getCurrentUnifiedConfig } from '../config/unifiedConfig';
 import { useRxDBData } from '../hooks/useRxDBData';
 import { useModularMockData } from '../hooks/useModularMockData';
 import { useDatabaseProvider } from '../hooks/useDatabaseProvider';
+import { useDatabaseData } from '../hooks/useDatabaseData';
 import { NetworkProvider, useNetwork } from './NetworkContext';
 import { SyncProvider, useSync } from './SyncContext';
 import { DataSourceProvider, useDataSource } from './DataSourceContext';
@@ -18,6 +19,8 @@ import DismissibleBanner from '../components/DismissibleBanner';
 // Enhanced context type that includes additional properties for settings pages
 export interface EnhancedAppDataContextType extends AppDataContextType {
   isDatabaseModeActive?: boolean;
+  isOnline: boolean;
+  appVersion: string;
 }
 
 // Create the context with a default undefined value
@@ -42,6 +45,9 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
   
   // Always call useDatabaseProvider hook unconditionally (new SQLite system)
   const databaseResult = useDatabaseProvider();
+  
+  // Always call useDatabaseData hook unconditionally (unified database functions)
+  const unifiedDatabaseResult = useDatabaseData();
 
   // Get current unified config to determine data source
   const shouldUseEnhancedData = currentConfig.features?.enhancedDataLayer;
@@ -74,8 +80,12 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
     const users = selectedData.users || [];
     const isRxDBModeActive = !!shouldUseEnhancedData;
     
-    // Check if database is available (either RxDB or our new SQLite implementation)
-    const isDatabaseModeActive = isRxDBModeActive || (currentConfig.dataMode === 'production' && !selectedData.loading);
+    // Check if database is available and properly initialized
+    // For enhanced data layer: check if provider is initialized, not loading, and migration is complete
+    // For legacy mode: check if production mode is active and data is loaded
+    const isDatabaseModeActive = shouldUseEnhancedData 
+      ? (databaseResult.provider !== null && !databaseResult.loading && databaseResult.migrationStatus === 'complete')
+      : (currentConfig.dataMode === 'production' && !selectedData.loading);
     
     return {
       // Core data from selected data source
@@ -86,6 +96,14 @@ const AppDataProviderInternal: React.FC<{ children: ReactNode }> = ({ children }
       users,
       isRxDBModeActive,
       isDatabaseModeActive, // Add this for our database settings page
+      isOnline, // Network status from NetworkContext
+      appVersion: '1.0.0', // Application version
+      
+      // Database management functions from unified hook
+      triggerSeedRxDB: unifiedDatabaseResult.triggerSeedRxDB,
+      triggerClearRxDB: unifiedDatabaseResult.triggerClearRxDB,
+      isUsingRxDBDummyData: unifiedDatabaseResult.isUsingRxDBDummyData,
+      initializationError: unifiedDatabaseResult.initializationError,
       
       // Loading and error states
       loading: selectedData.loading || false,

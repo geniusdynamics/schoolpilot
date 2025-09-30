@@ -4,7 +4,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { CogIcon, IdentificationIcon, UserGroupIcon, ArrowsRightLeftIcon, ClockIcon, CircleStackIcon } from '@/components/ui/icons'; 
+import { CogIcon, IdentificationIcon, UserGroupIcon, ArrowsRightLeftIcon, ClockIcon, CircleStackIcon } from '../../../components/ui/icons'; 
 import { useAppData } from '@/hooks/useAppData'; 
 import { User } from '@/types'; 
 import Table from '@/components/ui/Table';
@@ -126,18 +126,18 @@ const SettingsPage: React.FC = () => {
           </div>
         </Card>
 
-        {/* Database Settings Card - Only show in RxDB mode */}
+        {/* Data Management Card - Only show in RxDB mode */}
         {isDatabaseModeActive && (
-          <Card title={t('navigation:settings.databaseSettings')}>
+          <Card title={t('navigation:settings.dataManagement')}>
             <div className="text-center py-6">
               <CircleStackIcon className="w-12 h-12 text-orange-500 mx-auto mb-3" />
-              <h3 className="font-medium text-gray-900 mb-2">{t('database.title')}</h3>
-              <p className="text-sm text-gray-500 mb-4">{t('database.description')}</p>
+              <h3 className="font-medium text-gray-900 mb-2">{t('dataManagement.title')}</h3>
+              <p className="text-sm text-gray-500 mb-4">{t('dataManagement.description')}</p>
               <Link 
-                to="/settings/database-settings" 
+                to="/settings/data-management" 
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
               >
-                {t('database.manageDatabase')}
+                {t('dataManagement.manage')}
               </Link>
             </div>
           </Card>

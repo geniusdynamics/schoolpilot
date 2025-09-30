@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FinStudentTransportAssignmentType as StudentTransportAssignment, Student, FinTransportRouteType as TransportRoute, SchoolPeriod, FinTransportAssignmentStatusEnum as TransportAssignmentStatus, StudentStatus } from '@/types';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';

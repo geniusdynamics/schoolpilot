@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { UnifiedConfigProvider, useUnifiedConfig } from './contexts/UnifiedConfigContext';
+import { UnifiedConfigProvider } from './contexts/UnifiedConfigContext';
+import { useUnifiedConfig } from './hooks/useUnifiedConfig';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
 import { initializeModules } from './core/moduleLoader';
@@ -39,46 +40,69 @@ const pageModules = {
   ...import.meta.glob('./modules/*/pages/*.tsx'),
   ...import.meta.glob('./modules/*/pages/**/*.tsx'),
 };
+// Module loading completed
 
 // Dashboard modules for dynamic loading
 const dashboardModules = {
   ...import.meta.glob('./modules/*/pages/*Dashboard*.tsx'),
 };
 
-const getPageComponent = (nav: any) => {
-  console.log('🔍 [getPageComponent] Looking for page:', nav.page, 'for path:', nav.path);
+const getPageComponent = (navItem: any) => {
+  console.error('🔍 [App] Looking up page component for:', navItem.page, 'path:', navItem.path);
+  console.error('🔍 [App] Available keys:', Object.keys(pageModules));
   
-  if (!nav.page) {
-    console.log('❌ [getPageComponent] No page property found for nav item');
+  if (!navItem.page) {
+    console.log('❌ [App] No page specified for nav item:', navItem);
     return null;
   }
 
-  const pathSegments = nav.path.split('/').filter(Boolean);
-  if (pathSegments.length === 0) {
-    console.log('❌ [getPageComponent] No path segments found');
-    return null;
+  // Split path to determine module directory
+  const pathSegments = navItem.path.split('/').filter(Boolean);
+  const moduleDir = pathSegments[0] || 'dashboard';
+  
+  // Construct the modular key
+  const modularKey = `./modules/${moduleDir}/pages/${navItem.page}.tsx`;
+  console.log('🔍 [App] Checking modular key:', modularKey);
+  console.log('🔍 [App] Key exists in pageModules:', modularKey in pageModules);
+  
+  if (pageModules[modularKey]) {
+    console.log('✅ [App] Found component via modular key:', modularKey);
+    return React.lazy(pageModules[modularKey]);
   }
 
-  const moduleDir = pathSegments[0];
-  const modularKey = `./modules/${moduleDir}/pages/${nav.page}.tsx`;
-  console.log('🔍 [getPageComponent] Looking for key:', modularKey);
-  console.log('🔍 [getPageComponent] Available pageModules keys:', Object.keys(pageModules));
-  console.log('🔍 [getPageComponent] Academics specific keys:', Object.keys(pageModules).filter(key => key.includes('academics')));
-  
-  const modularImportFn = pageModules[modularKey];
-  if (modularImportFn) {
-    console.log('✅ [getPageComponent] Found modular key:', modularKey);
-    return lazy(modularImportFn as any);
-  } else {
-    console.log('❌ [getPageComponent] Key not found:', modularKey);
-    console.log('Available keys that match module:', Object.keys(pageModules).filter(key => key.includes(moduleDir)));
-  }
-  
-  console.warn('⚠️ [getPageComponent] No page component found for:', nav.page);
+  console.log('❌ [App] Component not found for:', navItem.page);
+  console.log('❌ [App] Tried key:', modularKey);
   return null;
 };
 
 const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
+  console.log('🔍 [DynamicRoutes] Component is rendering! modulesInitialized:', modulesInitialized);
+  console.log('🔍 [DynamicRoutes] Modules initialized:', modulesInitialized);
+  // Helper function to generate deprecated route redirects dynamically
+  const generateDeprecatedRouteRedirects = (): React.ReactElement[] => {
+    const deprecatedRoutes: React.ReactElement[] = [];
+    
+    // Get all enabled modules
+    const enabledModules = moduleRegistry.getEnabledModules();
+    
+    enabledModules.forEach(module => {
+      if (module.navigation) {
+        module.navigation.forEach(navItem => {
+          if (navItem.deprecated && navItem.path) {
+            deprecatedRoutes.push(
+              <Route 
+                key={navItem.path} 
+                path={navItem.path} 
+                element={<Navigate to="/settings/data-management" replace />} 
+              />
+            );
+          }
+        });
+      }
+    });
+    
+    return deprecatedRoutes;
+  };
   const { navigationItems } = useDynamicNavigation(true);
   const { accessibleModules } = useRBAC();
   const { t } = useTranslation();
@@ -154,18 +178,17 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           </Suspense>
         }
       />
-      
+
+      {/* Dynamic Deprecated Routes -> Redirect to Data Management */}
+      {generateDeprecatedRouteRedirects()}
+
       {/* Dynamic Module Dashboard Routes */}
       {moduleRegistry.getEnabledModules().map(module => {
         const dashboardPath = `/${module.id}/dashboard`;
         const dashboardKey = `./modules/${module.id}/pages/${module.id.charAt(0).toUpperCase() + module.id.slice(1)}DashboardPage.tsx`;
         
-        console.log('🔍 [DynamicRoutes] Checking dashboard for module:', module.id, 'key:', dashboardKey);
-        
         const dashboardExport = dashboardModules[dashboardKey];
         if (dashboardExport) {
-          console.log('✅ [DynamicRoutes] Found dashboard for module:', module.id);
-          
           const DashboardComponent = () => {
             const Component = dashboardExport.default || dashboardExport;
             return <Component />;
@@ -192,7 +215,6 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
             />
           );
         } else {
-          console.log('❌ [DynamicRoutes] No dashboard found for module:', module.id);
           return null;
         }
       })}
@@ -244,20 +266,15 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       {navigationItems
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
         .flatMap(module => {
-          console.log('🔍 [DynamicRoutes] Processing module:', module.name, 'with children:', module.children?.length || 0);
           return (module.children || []).map(nav => {
-            console.log('🔍 [DynamicRoutes] Processing nav item:', nav.name, 'path:', nav.path, 'page:', nav.page);
             const PageComponent = getPageComponent(nav);
             if (!PageComponent) {
-              console.log('❌ [DynamicRoutes] No component found for nav item:', nav.name);
               return null;
             }
             
             const modulePath = nav.modulePath?.replace('/', '') || '';
             const moduleName = modulePath || nav.path.split('/')[1] || '';
             const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
-            
-            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with permission:', requiredPermission, 'moduleName:', moduleName);
             
             return (
               <Route
@@ -296,16 +313,8 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   const { isAuthenticated, isLoading, user } = authContext;
   const { restoreRouteIfNeeded } = useRoutePersistence();
   
-  // Debug current user and authentication state
-  useEffect(() => {
-    console.log('🔍 [App] Current user:', user);
-    console.log('🔍 [App] Is authenticated:', isAuthenticated);
-    console.log('🔍 [App] Is loading:', isLoading);
-  }, [user, isAuthenticated, isLoading]);
-
   // Debug authentication state
   useEffect(() => {
-    console.log('🔍 [AppContent] Auth state:', authContext);
     debugLog('🔍 [AppContent] Auth state details:', { 
       isAuthenticated, 
       isLoading, 
@@ -340,7 +349,21 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   // If not authenticated, show login page
   if (!isAuthenticated) {
     debugLog('🔍 [AppContent] User not authenticated, showing login page');
-    return <LoginPage />;
+    // Ensure lazy-loaded LoginPage renders with a proper fallback to avoid blank screen
+    return (
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center h-screen">
+            <div className="text-center">
+              <Spinner size="lg" />
+              <p className="mt-4 text-gray-600">Loading login page...</p>
+            </div>
+          </div>
+        }
+      >
+        <LoginPage />
+      </Suspense>
+    );
   }
 
   debugLog('🔍 [AppContent] User authenticated, showing layout');
@@ -437,12 +460,7 @@ const AppInner: React.FC = () => {
           const registeredModules = moduleRegistry.getAllModules();
           const enabledModules = moduleRegistry.getEnabledModules();
           
-          console.log('✅ [App] Modules initialized successfully');
-          console.log('📦 [App] Registered modules:', registeredModules.map(m => ({ id: m.id, name: m.name, version: m.version })));
-          console.log('🟢 [App] Enabled modules:', enabledModules.map(m => ({ id: m.id, name: m.name })));
-          
           const navigationItems = moduleRegistry.getNavigationItems();
-          console.log('🧭 [App] Navigation items:', navigationItems.map(item => ({ name: item.name, path: item.path, isActive: item.isActive })));
           
           console.log(`📊 [App] Module verification complete: ${registeredModules.length} total, ${enabledModules.length} enabled, ${navigationItems.length} nav items`);
           

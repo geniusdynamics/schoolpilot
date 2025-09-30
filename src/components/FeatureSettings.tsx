@@ -14,7 +14,7 @@ import {
   Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { useAppData } from '../hooks/useAppData';
-import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
+import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 import { 
   SyncStatusComponent, 
   NetworkStatusIndicator, 
@@ -29,6 +29,7 @@ import Button from './ui/Button';
 import Modal from './ui/Modal';
 import TooltipDemo from './TooltipDemo';
 import { BackendConfiguration } from './BackendConfiguration';
+import { UnifiedModeSwitch } from './UnifiedModeSwitch';
 
 interface FeatureSettingsProps {
   className?: string;
@@ -102,13 +103,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     updateConfig(newConfig);
   };
 
-  const handleModeChange = (mode: 'demo' | 'production') => {
-    if (mode === 'demo') {
-      updateConfig({ ...config, dataMode: 'demo' });
-    } else {
-      updateConfig({ ...config, dataMode: 'production' });
-    }
-  };
+
 
   const getStatusBadge = (status: boolean, label: string) => (
     <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -229,33 +224,11 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
       {/* Application Mode */}
       <Card title="Application Mode">
         <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="mode"
-                value="demo"
-                checked={config.dataMode === 'demo'}
-                onChange={() => handleModeChange('demo')}
-                className="mr-2"
-              />
-              Demo Mode
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="mode"
-                value="production"
-                checked={config.dataMode === 'production'}
-                onChange={() => handleModeChange('production')}
-                className="mr-2"
-              />
-              Production Mode
-            </label>
-          </div>
-          <p className="text-sm text-gray-600">
-            Demo mode uses mock data, while production mode uses RxDB with real data persistence.
-          </p>
+          <UnifiedModeSwitch 
+            variant="radio" 
+            showDescription={true}
+            onModeChange={(mode) => updateConfig({ ...config, dataMode: mode })}
+          />
         </div>
       </Card>
 

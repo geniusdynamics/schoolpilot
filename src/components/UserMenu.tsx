@@ -9,7 +9,7 @@ import { useTabNavigation } from '../hooks/useTabNavigation';
 import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
 import { SyncStatusComponent } from './OfflineCapability';
-import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
+import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 import HookErrorBoundary from './HookErrorBoundary';
 // Removed: import { safeDeps, HookErrorHandler } from '../utils/hookUtils';
 import { HookErrorBoundary as ErrorBoundary } from './ErrorBoundary/HookErrorBoundary';

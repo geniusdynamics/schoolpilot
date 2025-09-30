@@ -1,0 +1,72 @@
+{
+  "dashboard": {
+    "title": "Ikibaho",
+    "description": "Ikibaho gikuru cy'igenzura"
+  },
+  "administration": {
+    "title": "Ubuyobozi",
+    "description": "Gucunga abanyeshuri n'abakozi",
+    "dashboard": "Ikibaho cy'Ubuyobozi",
+    "applications": "Ibyifuzo",
+    "students": "Abanyeshuri",
+    "staff": "Abakozi",
+    "partners": "Abafatanyabikorwa",
+    "departments": "Amashami",
+    "designations": "Imyanya",
+    "classes": "Amasomo",
+    "clubs": "Amatsinda"
+  },
+  "academics": {
+    "title": "Amasomo",
+    "description": "Gucunga amasomo n'ibizamini",
+    "dashboard": "Ikibaho cy'Amasomo",
+    "subjects": "Ingingo z'amasomo",
+    "examTypes": "Ubwoko bw'ibizamini",
+    "timetable": "Gahunda y'amasomo",
+    "results": "Ibisubizo"
+  },
+  "finance": {
+    "title": "Imari",
+    "description": "Gucunga imari n'amafaranga",
+    "dashboard": "Ikibaho cy'Imari",
+    "fees": "Amafaranga y'ishuri",
+    "payments": "Kwishyura",
+    "expenses": "Amafaranga yakoreshejwe",
+    "banks": "Amabanki"
+  },
+  "hr": {
+    "title": "Umutungo w'Abantu",
+    "description": "Gucunga abakozi n'imishahara",
+    "dashboard": "Ikibaho cy'Umutungo w'Abantu",
+    "payroll": "Imishahara",
+    "attendance": "Kwitabira"
+  },
+  "library": {
+    "title": "Isomero",
+    "description": "Gucunga isomero n'ibikoresho",
+    "dashboard": "Ikibaho cy'Isomero",
+    "books": "Ibitabo",
+    "loans": "Inguzanyo z'ibitabo"
+  },
+  "nutrition": {
+    "title": "Intungamubiri",
+    "description": "Gutegura ibiryo no gucunga intungamubiri",
+    "dashboard": "Ikibaho cy'Intungamubiri",
+    "mealPlans": "Gahunda z'ibiryo",
+    "menus": "Urutonde rw'ibiryo"
+  },
+  "settings": {
+    "title": "Amategeko",
+    "description": "Amategeko y'igenzura n'iboneza",
+    "dashboard": "Ikibaho cy'Amategeko",
+    "general": "Amategeko Rusange",
+    "features": "Amategeko y'Ibiranga",
+    "modules": "Gucunga Ibice",
+    "dataManagement": "Gucunga Amakuru",
+    "databaseSettings": "Amategeko ya Database",
+    "backupSettings": "Amategeko yo Kubika",
+    "dataLayerSettings": "Amategeko y'Urwego rw'Amakuru",
+    "databaseProvider": "Uutanga Database",
+    "schoolProfile": "Umwirondoro w'Ishuri",
+    "users": "Gucunga Abakoresha"
+  }

@@ -392,8 +392,20 @@ export const useActionRegistry = create<ActionRegistryStore>()(subscribeWithSele
     
     // Context management
     setCurrentContext: (context) => {
+      const state = get();
+      
+      // Only update if context actually changed
+      if (state.currentContext && 
+          JSON.stringify(state.currentContext) === JSON.stringify(context)) {
+        return;
+      }
+      
       set({ currentContext: context });
-      get().updateContextualActions();
+      
+      // Use setTimeout to prevent synchronous updates that could cause loops
+      setTimeout(() => {
+        get().updateContextualActions();
+      }, 0);
     },
     
     updateContextualActions: () => {

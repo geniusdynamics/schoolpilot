@@ -1,0 +1,70 @@
+{
+  "dashboard": {
+    "title": "Dashibodi",
+    "description": "Muhtasari mkuu wa dashibodi"
+  },
+  "administration": {
+    "title": "Utawala",
+    "description": "Usimamizi wa wanafunzi na wafanyakazi",
+    "dashboard": "Dashibodi ya Utawala",
+    "applications": "Maombi",
+    "students": "Wanafunzi",
+    "staff": "Wafanyakazi",
+    "partners": "Washirika",
+    "departments": "Idara",
+    "designations": "Majukumu",
+    "classes": "Madarasa",
+    "clubs": "Viklabu"
+  },
+  "academics": {
+    "title": "Masomo",
+    "description": "Usimamizi wa masomo na mitihani",
+    "dashboard": "Dashibodi ya Masomo",
+    "subjects": "Masomo",
+    "examTypes": "Aina za Mitihani",
+    "timetable": "Ratiba",
+    "results": "Matokeo"
+  },
+  "finance": {
+    "title": "Fedha",
+    "description": "Usimamizi wa fedha na malipo",
+    "dashboard": "Dashibodi ya Fedha",
+    "fees": "Ada",
+    "payments": "Malipo",
+    "expenses": "Gharama",
+    "banks": "Benki"
+  },
+  "hr": {
+    "title": "Rasilimali za Kibinadamu",
+    "description": "Usimamizi wa wafanyakazi na mishahara",
+    "dashboard": "Dashibodi ya HR",
+    "payroll": "Mishahara",
+    "attendance": "Mahudhurio"
+  },
+  "library": {
+    "title": "Maktaba",
+    "description": "Usimamizi wa maktaba na rasilimali",
+    "dashboard": "Dashibodi ya Maktaba",
+    "books": "Vitabu",
+    "loans": "Mikopo ya Vitabu"
+  },
+  "nutrition": {
+    "title": "Lishe",
+    "description": "Upangaji wa chakula na usimamizi wa lishe",
+    "dashboard": "Dashibodi ya Lishe",
+    "mealPlans": "Mipango ya Chakula",
+    "menus": "Menyu"
+  },
+  "settings": {
+    "title": "Mipangilio",
+    "description": "Mipangilio ya mfumo na usanidi",
+    "dashboard": "Dashibodi ya Mipangilio",
+    "general": "Mipangilio ya Jumla",
+    "features": "Mipangilio ya Vipengele",
+    "modules": "Usimamizi wa Moduli",
+    "dataManagement": "Usimamizi wa Data",
+    "databaseSettings": "Mipangilio ya Hifadhidata",
+    "backupSettings": "Mipangilio ya Backup",
+    "dataLayerSettings": "Mipangilio ya Safu ya Data",
+    "databaseProvider": "Mtoa Huduma wa Hifadhidata",
+    "schoolProfile": "Wa

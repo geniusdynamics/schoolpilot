@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Card from '@/components/ui/Card';
-import { CogIcon, UsersIcon, CircleStackIcon, ClockIcon, IdentificationIcon, ArrowsRightLeftIcon, ViewColumnsIcon, IconProps } from '@/components/ui/icons';
+import { CogIcon, UsersIcon, CircleStackIcon, ClockIcon, IdentificationIcon, ArrowsRightLeftIcon, ViewColumnsIcon, IconProps } from '../../../components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';

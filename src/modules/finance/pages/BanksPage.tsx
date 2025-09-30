@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FinBankType as Bank, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum } from '@/types';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';

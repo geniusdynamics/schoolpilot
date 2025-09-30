@@ -93,7 +93,7 @@ class MigrationManager {
             this.logger.warn('Rolling back due to error...');
             await this.rollbackAll();
             result.rollbackItems = [...this.rollbackLog];
-            throw new Error(`Migration failed at chunk ${chunkNumber}: ${error.message}`);
+            throw new Error(`Migration failed at chunk ${chunkNumber}: ${(error as Error).message}`);
           } else {
             result.errors.push({ item: { id: `chunk_${chunkNumber}`, collectionName: 'unknown', data: chunk, operation: 'insert' }, error: error as Error });
           }
@@ -119,7 +119,7 @@ class MigrationManager {
     chunk: T[],
     processor: (batch: T[]) => Promise<MigrationItem[]>
   ): Promise<MigrationItem[]> {
-    let lastError: Error;
+    let lastError: Error | undefined;
     
     for (let attempt = 1; attempt <= this.options.maxRetries; attempt++) {
       try {
@@ -137,7 +137,7 @@ class MigrationManager {
       }
     }
     
-    throw new Error(`Chunk processing failed after ${this.options.maxRetries} attempts: ${lastError.message}`);
+    throw new Error(`Chunk processing failed after ${this.options.maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
   }
 
   /**
@@ -197,7 +197,7 @@ class MigrationManager {
           await collection.bulkInsert(inserts.map(item => item.data));
           this.logger.debug(`Bulk inserted ${inserts.length} items into ${collectionName}`);
         } catch (error) {
-          throw new Error(`Bulk insert failed for ${collectionName}: ${error.message}`);
+          throw new Error(`Bulk insert failed for ${collectionName}: ${(error as Error).message}`);
         }
       }
       
@@ -211,7 +211,7 @@ class MigrationManager {
             this.logger.warn(`Document ${item.id} not found for update in ${collectionName}`);
           }
         } catch (error) {
-          throw new Error(`Update failed for ${item.id} in ${collectionName}: ${error.message}`);
+          throw new Error(`Update failed for ${item.id} in ${collectionName}: ${(error as Error).message}`);
         }
       }
       
@@ -225,7 +225,7 @@ class MigrationManager {
             this.logger.warn(`Document ${item.id} not found for deletion in ${collectionName}`);
           }
         } catch (error) {
-          throw new Error(`Delete failed for ${item.id} in ${collectionName}: ${error.message}`);
+          throw new Error(`Delete failed for ${item.id} in ${collectionName}: ${(error as Error).message}`);
         }
       }
     }
@@ -279,5 +279,6 @@ class MigrationManager {
   }
 }
 
-export { MigrationManager, MigrationItem, MigrationResult, ChunkProcessorOptions };
+export type { MigrationItem, MigrationResult, ChunkProcessorOptions };
+export { MigrationManager };
 

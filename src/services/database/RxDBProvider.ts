@@ -1,21 +1,14 @@
 // ABOUTME: RxDB Provider Implementation for dual-database architecture
 // ABOUTME: Provides RxDB-based database operations with reactive capabilities
 
-import {
-  createRxDatabase,
-  addRxPlugin,
-  RxDatabase,
-  RxCollection,
-  RxJsonSchema,
-  RxDocument
-} from 'rxdb';
-import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
-import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema';
-import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
-import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
-import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
-import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
+import { addRxPlugin, createRxDatabase, RxDatabase } from 'rxdb';
+import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
+import { getRxStorageLocalstorage } from 'rxdb/plugins/storage-localstorage';
+// import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
+// import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
+// import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
+// import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
+// import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { Observable, Subject, BehaviorSubject, from } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import {
@@ -37,13 +30,15 @@ import {
 } from './interfaces';
 
 // Add RxDB plugins
-addRxPlugin(RxDBMigrationPlugin);
-addRxPlugin(RxDBUpdatePlugin);
-addRxPlugin(RxDBDevModePlugin);
-addRxPlugin(RxDBQueryBuilderPlugin);
+// addRxPlugin(RxDBMigrationSchemaPlugin);
+// addRxPlugin(RxDBUpdatePlugin);
+// if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
+//   addRxPlugin(RxDBDevModePlugin);
+// }
+// addRxPlugin(RxDBQueryBuilderPlugin);
 
 if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
-  addRxPlugin(RxDBLeaderElectionPlugin);
+  // addRxPlugin(RxDBLeaderElectionPlugin);
 }
 
 // RxDB Collection Implementation

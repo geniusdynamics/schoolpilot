@@ -16,9 +16,18 @@ import { PouchDBProvider } from './PouchDBProvider';
 import { RxDBProvider } from './RxDBProvider';
 import { SQLiteProvider } from './SQLiteProvider';
 import { SQLiteWASMProvider } from './LiveStoreProvider';
+import { SQLiteFileProvider } from './SQLiteFileProvider';
 
 // Provider Types
-export type ProviderType = 'pouchdb' | 'rxdb' | 'sqlite' | 'livestore' | 'hybrid';
+export type ProviderType = 'pouchdb' | 'rxdb' | 'sqlite' | 'sqlite-wasm' | 'sqlite-file' | 'livestore' | 'hybrid';
+
+// Provider creation options
+export interface ProviderCreationOptions {
+  storageType?: 'file' | 'memory' | 'opfs';
+  backendIntegration?: 'none' | 'supabase' | 'firebase';
+  config?: any;
+  environment?: 'development' | 'demo' | 'production';
+}
 
 // Provider Selection Strategy
 export interface ProviderSelectionStrategy {
@@ -28,11 +37,11 @@ export interface ProviderSelectionStrategy {
 // Default Provider Selection Strategy
 export class DefaultProviderSelectionStrategy implements ProviderSelectionStrategy {
   selectProvider(requirements: CollectionRequirements): ProviderType {
-    // Enhanced provider selection strategy with LiveStore support
+    // Enhanced provider selection strategy with SQLite WASM support
     
-    // LiveStore is preferred for:
-    // - Modern web applications requiring real-time sync
-    // - SQLite WASM with OPFS for offline-first applications
+    // SQLite WASM is preferred for:
+    // - Modern web applications requiring offline-first capabilities
+    // - OPFS storage for better performance and persistence
     // - Cross-tab persistence and better performance
     // - Production environments requiring advanced features
     
@@ -50,10 +59,15 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
     // Check if we're in a development environment and want persistent storage
     const isDevelopment = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
     if (isDevelopment && requirements.requiresOffline) {
-      return 'sqlite';
+      return 'sqlite-file';
     }
     
-    // Use LiveStore for production environments with sync requirements
+    // Use SQLite WASM for production environments with high performance requirements
+    if (requirements.requiresOffline && requirements.performanceLevel === 'high') {
+      return 'sqlite-wasm';
+    }
+    
+    // Use LiveStore for sync requirements
     if (requirements.requiresSync && requirements.performanceLevel === 'high') {
       return 'livestore';
     }
@@ -248,7 +262,10 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
 
   constructor(selectionStrategy?: ProviderSelectionStrategy) {
     this.selectionStrategy = selectionStrategy || new DefaultProviderSelectionStrategy();
-    this.initializeProviders();
+    // Skip provider initialization in test environment to prevent DOM access
+    if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+      this.initializeProviders();
+    }
   }
 
   private registerProvider(provider: IDatabaseProvider): void {
@@ -266,8 +283,11 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     } else if (constructorName.includes('RxDB')) {
       return 'rxdb';
     } else if (constructorName.includes('SQLiteWASM')) {
-      // SQLiteWASMProvider is the LiveStore implementation using SQLite WASM
-      return 'livestore';
+      // SQLiteWASMProvider for WASM-based SQLite
+      return 'sqlite-wasm';
+    } else if (constructorName.includes('SQLiteFile')) {
+      // SQLiteFileProvider for file-based SQLite
+      return 'sqlite-file';
     } else if (constructorName.includes('SQLite')) {
       // Other SQLite providers
       return 'sqlite';
@@ -283,20 +303,35 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     // Register available providers
     this.registerProvider(new PouchDBProvider());
     this.registerProvider(new RxDBProvider());
-    this.registerProvider(new SQLiteProvider());
+    // SQLiteProvider will be created with config when needed
     this.registerProvider(new SQLiteWASMProvider());
+    this.registerProvider(new SQLiteFileProvider({
+      type: 'sqlite-file',
+      storage: { type: 'file' }
+    }));
     
     console.log('Database providers initialized:', Array.from(this.providers.keys()));
   }
 
-  async createProvider(config: DatabaseConfig, requirements?: CollectionRequirements): Promise<IDatabaseProvider> {
+  async createProvider(
+    config: DatabaseConfig, 
+    requirements?: CollectionRequirements,
+    options?: ProviderCreationOptions
+  ): Promise<IDatabaseProvider> {
     try {
       // Determine which provider to use
       const providerType = requirements 
         ? this.selectionStrategy.selectProvider(requirements)
         : 'pouchdb'; // Default to PouchDB
       
-      const provider = this.providers.get(providerType);
+      let provider = this.providers.get(providerType);
+      
+      // Special handling for SQLiteProvider which needs config in constructor
+      if (providerType === 'sqlite' && !provider) {
+        provider = new SQLiteProvider(config);
+        this.registerProvider(provider);
+      }
+      
       if (!provider) {
         throw new DatabaseError(
           `Provider '${providerType}' not available`,
@@ -321,8 +356,11 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
         return fallbackProvider;
       }
 
+      // Merge options into config if provided
+      const finalConfig = options ? { ...config, ...options } : config;
+
       // Initialize the selected provider
-      await provider.initialize(config);
+      await provider.initialize(finalConfig);
       this.activeProvider = provider;
       
       console.log(`Database provider '${providerType}' initialized successfully`);
@@ -344,6 +382,12 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       const provider = this.providers.get(type);
       return provider?.isAvailable() ?? false;
     });
+  }
+
+  // Check if a specific provider type is available
+  isProviderAvailable(type: ProviderType): boolean {
+    const provider = this.providers.get(type);
+    return provider?.isAvailable() ?? false;
   }
 
   async switchProvider(providerType: ProviderType, config: DatabaseConfig): Promise<IDatabaseProvider> {

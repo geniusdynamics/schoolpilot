@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { ChevronDown, ChevronRight, Search, Filter, MoreHorizontal } from 'lucide-react';
 import { useActionRegistry, ActionDefinition, ActionGroup, ActionContext } from '../../services/actionRegistry';
 import { useTabStore } from '../../stores/tabStore';
@@ -320,10 +320,17 @@ const ActionBarComponent: React.FC<ActionBarProps & AdditionalProps> = ({
     };
   }, [actionContext, showGrouping, searchQuery, filterBy, maxVisibleActions, getActionsForContext, getActionGroupsForContext, searchActions]);
 
-  // Update context when active tab changes
+  // Update context when active tab changes - use a ref to prevent infinite loops
+  const previousActionContextRef = useRef<ActionContext | null>(null);
+  
   useEffect(() => {
-    if (actionContext) {
+    if (actionContext && 
+        (!previousActionContextRef.current || 
+         previousActionContextRef.current.activeTab?.id !== actionContext.activeTab?.id ||
+         previousActionContextRef.current.module !== actionContext.module ||
+         previousActionContextRef.current.submodule !== actionContext.submodule)) {
       setCurrentContext(actionContext);
+      previousActionContextRef.current = actionContext;
     }
   }, [actionContext, setCurrentContext]);
 
