@@ -2,7 +2,7 @@
 // ABOUTME: It aggregates data from all module hooks and provides a unified interface for the app context.
 // DEBUG: This file has been partially restored to test the ACADEMICS module hooks.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppDataContextType, AppDataLoadingStates } from '../types';
 
 // Import all module hooks
@@ -21,6 +21,10 @@ import { useSubjectPaperData } from '../modules/academics/data/useSubjectPaperDa
 import { useTeacherSubjectAssignmentData } from '../modules/academics/data/useTeacherSubjectAssignmentData';
 import { useTimetableEntryData } from '../modules/academics/data/useTimetableEntryData';
 import { useTimetablePeriodDefData } from '../modules/academics/data/useTimetablePeriodDefData';
+
+// Import finance module hooks
+import { useFeeTemplateData } from '../modules/finance/data/useFeeTemplateData';
+import { useFeeTemplateItemData } from '../modules/finance/data/useFeeTemplateItemData';
 // ... other module imports are kept for when we re-enable them
 
 // Dynamically import all mockData.ts files from modules for fallback data
@@ -44,22 +48,53 @@ export const useModularMockData = (): AppDataContextType => {
 
   const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
 
-  // --- ACADEMICS HOOKS (ENABLED) ---
-  const { data: academicyears, create: addAcademicYear, update: updateAcademicYear, remove: deleteAcademicYear } = useAcademicYearData();
-  const { data: classsubjectallocations, create: addClassSubjectAllocation, update: updateClassSubjectAllocation, remove: deleteClassSubjectAllocation } = useClassSubjectAllocationData();
-  const { data: exampapersettings, create: addExamPaperSetting, update: updateExamPaperSetting, remove: deleteExamPaperSetting } = useExamPaperSettingData();
-  const { data: examsessions, create: addExamSession, update: updateExamSession, remove: deleteExamSession } = useExamSessionData();
-  const { data: gradingschemes, create: addGradingScheme, update: updateGradingScheme, remove: deleteGradingScheme } = useGradingSchemeData();
-  const { data: gradingschemelevels, create: addGradingSchemeLevel, update: updateGradingSchemeLevel, remove: deleteGradingSchemeLevel } = useGradingSchemeLevelData();
-  const { data: studentexamresults, create: addStudentExamResult, update: updateStudentExamResult, remove: deleteStudentExamResult } = useStudentExamResultData();
-  const { data: studentpapermarks, create: addStudentPaperMark, update: updateStudentPaperMark, remove: deleteStudentPaperMark } = useStudentPaperMarkData();
-  const { data: studentsubjectenrollments, create: addStudentSubjectEnrollment, update: updateStudentSubjectEnrollment, remove: deleteStudentSubjectEnrollment } = useStudentSubjectEnrollmentData();
-  const { data: subjects, create: addSubject, update: updateSubject, remove: deleteSubject } = useSubjectData();
-  const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
-  const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
-  const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
-  const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
-  const { data: educationSystemConfigurations, create: addEducationSystemConfiguration, update: updateEducationSystemConfiguration, remove: deleteEducationSystemConfiguration } = useEducationSystemData();
+  // --- ACADEMICS HOOKS (ENABLED) - Memoized to prevent infinite loops ---
+  const academicsData = useMemo(() => {
+    const { data: academicyears, create: addAcademicYear, update: updateAcademicYear, remove: deleteAcademicYear } = useAcademicYearData();
+    const { data: classsubjectallocations, create: addClassSubjectAllocation, update: updateClassSubjectAllocation, remove: deleteClassSubjectAllocation } = useClassSubjectAllocationData();
+    const { data: exampapersettings, create: addExamPaperSetting, update: updateExamPaperSetting, remove: deleteExamPaperSetting } = useExamPaperSettingData();
+    const { data: examsessions, create: addExamSession, update: updateExamSession, remove: deleteExamSession } = useExamSessionData();
+    const { data: gradingschemes, create: addGradingScheme, update: updateGradingScheme, remove: deleteGradingScheme } = useGradingSchemeData();
+    const { data: gradingschemelevels, create: addGradingSchemeLevel, update: updateGradingSchemeLevel, remove: deleteGradingSchemeLevel } = useGradingSchemeLevelData();
+    const { data: studentexamresults, create: addStudentExamResult, update: updateStudentExamResult, remove: deleteStudentExamResult } = useStudentExamResultData();
+    const { data: studentpapermarks, create: addStudentPaperMark, update: updateStudentPaperMark, remove: deleteStudentPaperMark } = useStudentPaperMarkData();
+    const { data: studentsubjectenrollments, create: addStudentSubjectEnrollment, update: updateStudentSubjectEnrollment, remove: deleteStudentSubjectEnrollment } = useStudentSubjectEnrollmentData();
+    const { data: subjects, create: addSubject, update: updateSubject, remove: deleteSubject } = useSubjectData();
+    const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
+    const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
+    const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
+    const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
+    const { data: educationSystemConfigurations, create: addEducationSystemConfiguration, update: updateEducationSystemConfiguration, remove: deleteEducationSystemConfiguration } = useEducationSystemData();
+    
+    return {
+      academicyears, addAcademicYear, updateAcademicYear, deleteAcademicYear,
+      classsubjectallocations, addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation,
+      exampapersettings, addExamPaperSetting, updateExamPaperSetting, deleteExamPaperSetting,
+      examsessions, addExamSession, updateExamSession, deleteExamSession,
+      gradingschemes, addGradingScheme, updateGradingScheme, deleteGradingScheme,
+      gradingschemelevels, addGradingSchemeLevel, updateGradingSchemeLevel, deleteGradingSchemeLevel,
+      studentexamresults, addStudentExamResult, updateStudentExamResult, deleteStudentExamResult,
+      studentpapermarks, addStudentPaperMark, updateStudentPaperMark, deleteStudentPaperMark,
+      studentsubjectenrollments, addStudentSubjectEnrollment, updateStudentSubjectEnrollment, deleteStudentSubjectEnrollment,
+      subjects, addSubject, updateSubject, deleteSubject,
+      subjectpapers, addSubjectPaper, updateSubjectPaper, deleteSubjectPaper,
+      teachersubjectassignments, addTeacherSubjectAssignment, updateTeacherSubjectAssignment, deleteTeacherSubjectAssignment,
+      timetableentrys, addTimetableEntry, updateTimetableEntry, deleteTimetableEntry,
+      timetablePeriodDefs, addTimetablePeriodDef, updateTimetablePeriodDef, deleteTimetablePeriodDef,
+      educationSystemConfigurations, addEducationSystemConfiguration, updateEducationSystemConfiguration, deleteEducationSystemConfiguration
+    };
+  }, []); // Empty dependency array to prevent re-computation
+
+  // --- FINANCE HOOKS (ENABLED) - Memoized to prevent infinite loops ---
+  const financeData = useMemo(() => {
+    const { data: feeTemplates, create: addFeeTemplate, update: updateFeeTemplate, remove: deleteFeeTemplate } = useFeeTemplateData();
+    const { data: feeTemplateItems, create: addFeeTemplateItem, update: updateFeeTemplateItem, remove: removeFeeTemplateItem } = useFeeTemplateItemData();
+    
+    return {
+      feeTemplates, addFeeTemplate, updateFeeTemplate, deleteFeeTemplate,
+      feeTemplateItems, addFeeTemplateItem, updateFeeTemplateItem, removeFeeTemplateItem
+    };
+  }, []); // Empty dependency array to prevent re-computation
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,24 +109,27 @@ export const useModularMockData = (): AppDataContextType => {
     return null;
   };
 
-  const fullData: AppDataType = {
-    // --- ACADEMICS DATA (LIVE) ---
-    academicYears: academicyears || [],
-    classSubjectAllocations: classsubjectallocations || [],
-    examPaperSettings: exampapersettings || [],
-    examSessions: examsessions || [],
-    gradingSchemes: gradingschemes || [],
-    gradingSchemelevels: gradingschemelevels || [],
-    studentExamResults: studentexamresults || [],
-    studentPaperMarks: studentpapermarks || [],
-    studentSubjectEnrollments: studentsubjectenrollments || [],
-    subjects: subjects || [],
-    subjectPapers: subjectpapers || [],
-    teacherSubjectAssignments: teachersubjectassignments || [],
-    timetableEntries: timetableentrys || [],
-    timetablePeriodDefs: timetablePeriodDefs || [],
-    educationSystemConfigurations: educationSystemConfigurations || [],
-    examSchedules: rawInitialData.examSchedules || [],
+  return useMemo(() => ({
+    // --- ACADEMICS DATA ---
+    academicyears: academicsData.academicyears || [],
+    classsubjectallocations: academicsData.classsubjectallocations || [],
+    exampapersettings: academicsData.exampapersettings || [],
+    examsessions: academicsData.examsessions || [],
+    gradingschemes: academicsData.gradingschemes || [],
+    gradingschemelevels: academicsData.gradingschemelevels || [],
+    studentexamresults: academicsData.studentexamresults || [],
+    studentpapermarks: academicsData.studentpapermarks || [],
+    studentsubjectenrollments: academicsData.studentsubjectenrollments || [],
+    subjects: academicsData.subjects || [],
+    subjectpapers: academicsData.subjectpapers || [],
+    teachersubjectassignments: academicsData.teachersubjectassignments || [],
+    timetableentrys: academicsData.timetableentrys || [],
+    timetablePeriodDefs: academicsData.timetablePeriodDefs || [],
+    educationSystemConfigurations: academicsData.educationSystemConfigurations || [],
+
+    // --- FINANCE DATA ---
+    feeTemplates: financeData.feeTemplates || [],
+    feeTemplateItems: financeData.feeTemplateItems || [],
 
     // --- OTHER MODULES (FALLBACK MOCK / SAFE DEFAULTS) ---
     schoolDetails: rawInitialData.schoolDetails || null,
@@ -120,8 +158,6 @@ export const useModularMockData = (): AppDataContextType => {
     expenseCategories: rawInitialData.expenseCategories || [],
     banks: rawInitialData.banks || [],
     suppliers: rawInitialData.suppliers || [],
-    feeTemplates: rawInitialData.feeTemplates || [],
-    feeTemplateItems: rawInitialData.feeTemplateItems || [],
     expenseClaims: rawInitialData.expenseClaims || [],
     studentInvoices: rawInitialData.studentInvoices || [],
     studentInvoiceItems: rawInitialData.studentInvoiceItems || [],
@@ -158,33 +194,31 @@ export const useModularMockData = (): AppDataContextType => {
     generalPayments: rawInitialData.generalPayments || [],
     generalLedgerEntries: rawInitialData.generalLedgerEntries || [],
     rfqs: rawInitialData.rfqs || [],
-  };
-
-  return {
-    ...fullData,
+    
+    // --- ADDITIONAL PROPERTIES ---
     loading: loading.all,
     error: null,
     refresh: emptyFunc,
     getStudentDetailsById: emptyGetFunc,
     getStudentFinancialDetailsById: emptyGetFunc,
     // --- ACADEMICS CRUD (LIVE) ---
-    addAcademicYear, updateAcademicYear, deleteAcademicYear,
-    addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation,
-    addExamPaperSetting, updateExamPaperSetting, deleteExamPaperSetting,
-    addExamSession, updateExamSession, deleteExamSession,
-    addGradingScheme, updateGradingScheme, deleteGradingScheme,
-    addGradingSchemeLevel, updateGradingSchemeLevel, deleteGradingSchemeLevel,
-    addStudentExamResult, updateStudentExamResult, deleteStudentExamResult,
-    addStudentPaperMark, updateStudentPaperMark, deleteStudentPaperMark,
-    addStudentSubjectEnrollment, updateStudentSubjectEnrollment, deleteStudentSubjectEnrollment,
-    addSubject, updateSubject, deleteSubject,
-    addSubjectPaper, updateSubjectPaper, deleteSubjectPaper,
-    addTeacherSubjectAssignment, updateTeacherSubjectAssignment, deleteTeacherSubjectAssignment,
-    addTimetableEntry, updateTimetableEntry, deleteTimetableEntry,
-    addTimetablePeriodDef, updateTimetablePeriodDef, deleteTimetablePeriodDef,
-    addEducationSystemConfiguration, updateEducationSystemConfiguration, deleteEducationSystemConfiguration,
+    addAcademicYear: academicsData.addAcademicYear, updateAcademicYear: academicsData.updateAcademicYear, deleteAcademicYear: academicsData.deleteAcademicYear,
+    addClassSubjectAllocation: academicsData.addClassSubjectAllocation, updateClassSubjectAllocation: academicsData.updateClassSubjectAllocation, deleteClassSubjectAllocation: academicsData.deleteClassSubjectAllocation,
+    addExamPaperSetting: academicsData.addExamPaperSetting, updateExamPaperSetting: academicsData.updateExamPaperSetting, deleteExamPaperSetting: academicsData.deleteExamPaperSetting,
+    addExamSession: academicsData.addExamSession, updateExamSession: academicsData.updateExamSession, deleteExamSession: academicsData.deleteExamSession,
+    addGradingScheme: academicsData.addGradingScheme, updateGradingScheme: academicsData.updateGradingScheme, deleteGradingScheme: academicsData.deleteGradingScheme,
+    addGradingSchemeLevel: academicsData.addGradingSchemeLevel, updateGradingSchemeLevel: academicsData.updateGradingSchemeLevel, deleteGradingSchemeLevel: academicsData.deleteGradingSchemeLevel,
+    addStudentExamResult: academicsData.addStudentExamResult, updateStudentExamResult: academicsData.updateStudentExamResult, deleteStudentExamResult: academicsData.deleteStudentExamResult,
+    addStudentPaperMark: academicsData.addStudentPaperMark, updateStudentPaperMark: academicsData.updateStudentPaperMark, deleteStudentPaperMark: academicsData.deleteStudentPaperMark,
+    addStudentSubjectEnrollment: academicsData.addStudentSubjectEnrollment, updateStudentSubjectEnrollment: academicsData.updateStudentSubjectEnrollment, deleteStudentSubjectEnrollment: academicsData.deleteStudentSubjectEnrollment,
+    addSubject: academicsData.addSubject, updateSubject: academicsData.updateSubject, deleteSubject: academicsData.deleteSubject,
+    addSubjectPaper: academicsData.addSubjectPaper, updateSubjectPaper: academicsData.updateSubjectPaper, deleteSubjectPaper: academicsData.deleteSubjectPaper,
+    addTeacherSubjectAssignment: academicsData.addTeacherSubjectAssignment, updateTeacherSubjectAssignment: academicsData.updateTeacherSubjectAssignment, deleteTeacherSubjectAssignment: academicsData.deleteTeacherSubjectAssignment,
+    addTimetableEntry: academicsData.addTimetableEntry, updateTimetableEntry: academicsData.updateTimetableEntry, deleteTimetableEntry: academicsData.deleteTimetableEntry,
+    addTimetablePeriodDef: academicsData.addTimetablePeriodDef, updateTimetablePeriodDef: academicsData.updateTimetablePeriodDef, deleteTimetablePeriodDef: academicsData.deleteTimetablePeriodDef,
+    addEducationSystemConfiguration: academicsData.addEducationSystemConfiguration, updateEducationSystemConfiguration: academicsData.updateEducationSystemConfiguration, deleteEducationSystemConfiguration: academicsData.deleteEducationSystemConfiguration,
     getTimetableEntries: (classStreamId: number) => {
-      return (timetableentrys || []).filter((entry: any) => entry.class_stream_id === classStreamId);
+      return (academicsData.timetableentrys || []).filter((entry: any) => entry.class_stream_id === classStreamId);
     },
     addExamSchedule: emptyFunc, updateExamSchedule: emptyFunc, deleteExamSchedule: emptyFunc,
 
@@ -211,8 +245,8 @@ export const useModularMockData = (): AppDataContextType => {
     addExpenseCategory: emptyFunc, updateExpenseCategory: emptyFunc, removeExpenseCategory: emptyFunc,
     addBank: emptyFunc, updateBank: emptyFunc, removeBank: emptyFunc,
     addSupplier: emptyFunc, updateSupplier: emptyFunc, removeSupplier: emptyFunc,
-    addFeeTemplate: emptyFunc, updateFeeTemplate: emptyFunc, deleteFeeTemplate: emptyFunc,
-    addFeeTemplateItem: emptyFunc, updateFeeTemplateItem: emptyFunc, removeFeeTemplateItem: emptyFunc,
+    addFeeTemplate: financeData.addFeeTemplate, updateFeeTemplate: financeData.updateFeeTemplate, deleteFeeTemplate: financeData.deleteFeeTemplate,
+    addFeeTemplateItem: financeData.addFeeTemplateItem, updateFeeTemplateItem: financeData.updateFeeTemplateItem, removeFeeTemplateItem: financeData.removeFeeTemplateItem,
     addExpenseClaim: emptyFunc, updateExpenseClaim: emptyFunc, removeExpenseClaim: emptyFunc,
     addCustomerInvoice: emptyFunc, updateCustomerInvoice: emptyFunc, removeCustomerInvoice: emptyFunc,
     addSupplierInvoice: emptyFunc, updateSupplierInvoice: emptyFunc, removeSupplierInvoice: emptyFunc,
@@ -255,5 +289,5 @@ export const useModularMockData = (): AppDataContextType => {
     addPayslipItem: emptyFunc, updatePayslipItem: emptyFunc, removePayslipItem: emptyFunc,
     addStaffRecurringItem: emptyFunc, updateStaffRecurringItem: emptyFunc, removeStaffRecurringItem: emptyFunc,
     addStaffSalarySetting: emptyFunc, updateStaffSalarySetting: emptyFunc, removeStaffSalarySetting: emptyFunc,
-  };
+  }), [academicsData, financeData, loading]);
 };

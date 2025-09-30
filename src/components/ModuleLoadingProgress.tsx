@@ -84,7 +84,7 @@ const ModuleLoadingProgress: React.FC<ModuleLoadingProgressProps> = ({
       if (checkInterval) clearInterval(checkInterval);
       if (timeoutHandle) clearTimeout(timeoutHandle);
     };
-  }, [timeoutMs, onComplete, onTimeout, isCompleted]);
+  }, [timeoutMs, onComplete, onTimeout]);
 
   return (
     <div className="w-full">

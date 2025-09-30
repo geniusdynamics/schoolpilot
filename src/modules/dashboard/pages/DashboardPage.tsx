@@ -21,18 +21,22 @@ const DashboardPage: React.FC = () => {
   React.useEffect(() => {
     const checkPermission = async () => {
       try {
+        console.log('🔍 [DashboardPage] Starting permission check for dashboard.view');
+        console.log('🔍 [DashboardPage] Current user:', user);
         const hasAccess = await hasPermission('dashboard.view');
+        console.log('🔍 [DashboardPage] Permission check result:', hasAccess);
         setCanViewDashboard(hasAccess);
       } catch (error) {
         console.error('Error checking dashboard permission:', error);
         setCanViewDashboard(false);
       } finally {
         setCheckingPermission(false);
+        console.log('🔍 [DashboardPage] Permission check completed');
       }
     };
 
     checkPermission();
-  }, [hasPermission]);
+  }, [hasPermission, user]);
 
   if (checkingPermission) {
     return (

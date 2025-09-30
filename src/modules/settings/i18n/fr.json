@@ -1,5 +1,5 @@
 {
-  "title": "Paramètres",
+  "title": "Paramètres Unifiés",
   "general": {
     "title": "Paramètres généraux",
     "appSettingsHeader": "Paramètres de l'application",
@@ -234,6 +234,8 @@
   "navigation:settings.features": "Paramètres des Fonctionnalités",
   "navigation:settings.modules": "Gestion des Modules",
   "navigation:settings.auditLog": "Journal d'Audit",
+  "navigation:settings.dataLayer": "Couche de Données",
+  "navigation:settings.databaseProvider": "Fournisseur de Base de Données",
   "navigation:settings.databaseSettings": "Paramètres de la Base de Données",
   "navigation:settings.settings": "Paramètres Généraux",
   "navigation:settings.schoolProfile": "Profil de l'École",
@@ -246,7 +248,12 @@
     "pageTitle": "Paramètres des onglets",
     "pageDescription": "Configurer les paramètres de l'interface à onglets et tester la fonctionnalité de l'espace de travail",
     "settingsTab": "Paramètres",
-    "workspaceTab": "Test de l'espace de travail"
+    "workspaceTab": "Test de l'espace de travail",
+    "system": "Système",
+    "users": "Utilisateurs",
+    "features": "Fonctionnalités",
+    "sync": "Synchronisation",
+    "workflows": "Flux de travail"
   },
   "tabbedWorkspaceTest": {
     "pageTitle": "Test de l'espace de travail à onglets",

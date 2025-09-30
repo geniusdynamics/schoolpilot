@@ -1,0 +1,285 @@
+{
+  "timestamp": "2025-09-28T16:28:54.987Z",
+  "configuration": {
+    "administration": {
+      "targetStudentCount": 500,
+      "targetStaffCount": 100
+    },
+    "library": {
+      "targetBookCount": 1000,
+      "targetAuthorCount": 200,
+      "targetPublisherCount": 150
+    },
+    "financial": {
+      "targetTransactionCount": 1000,
+      "targetSupplierCount": 100
+    },
+    "academics": {
+      "targetSubjectCount": 50,
+      "targetGradingSchemes": 5
+    },
+    "clubs": {
+      "targetClubCount": 25,
+      "targetMemberCount": 200
+    },
+    "school": {
+      "name": "Test School",
+      "locale": "en",
+      "academicYear": "2024-2025"
+    }
+  },
+  "totalDuration": 2549,
+  "totalTests": 5,
+  "passedTests": 1,
+  "failedTests": 4,
+  "results": [
+    {
+      "generator": "AdministrationGenerator",
+      "success": false,
+      "duration": 1841,
+      "dataCount": {
+        "students": 500,
+        "staff": 100,
+        "parents": 0,
+        "classes": 0,
+        "departments": 0,
+        "roles": 0
+      },
+      "errors": [
+        "Missing fields: parents, classes, departments, roles",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName",
+        "Student missing or invalid firstName",
+        "Student missing or invalid lastName"
+      ],
+      "warnings": [],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      },
+      "performanceMetrics": {
+        "memoryUsage": {
+          "heapUsed": 32.79,
+          "heapTotal": 65.1,
+          "external": 20.79,
+          "rss": 145.26
+        },
+        "cpuTime": 1841,
+        "gcCollections": 0
+      },
+      "memoryLeaks": false,
+      "dataValidation": {
+        "structureValid": false,
+        "relationshipsValid": true,
+        "constraintsValid": false,
+        "missingFields": [
+          "parents",
+          "classes",
+          "departments",
+          "roles"
+        ]
+      }
+    },
+    {
+      "generator": "LibraryGenerator",
+      "success": false,
+      "duration": 193,
+      "dataCount": {
+        "books": 1000,
+        "authors": 200,
+        "categories": 0,
+        "loans": 0,
+        "fines": 0,
+        "inventory": 0
+      },
+      "errors": [
+        "Missing fields: categories, loans, fines, inventory"
+      ],
+      "warnings": [],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      },
+      "performanceMetrics": {
+        "memoryUsage": {
+          "heapUsed": 45.9,
+          "heapTotal": 68.1,
+          "external": 37.64,
+          "rss": 156.48
+        },
+        "cpuTime": 193,
+        "gcCollections": 0
+      },
+      "memoryLeaks": false,
+      "dataValidation": {
+        "structureValid": false,
+        "relationshipsValid": true,
+        "constraintsValid": true,
+        "missingFields": [
+          "categories",
+          "loans",
+          "fines",
+          "inventory"
+        ]
+      }
+    },
+    {
+      "generator": "FinancialGenerator",
+      "success": false,
+      "duration": 306,
+      "dataCount": {
+        "chart_of_accounts": 65,
+        "voteheads": 0,
+        "suppliers": 100,
+        "fee_templates": 10,
+        "fee_template_items": 0,
+        "student_wallet_transactions": 0,
+        "procurement_records": 0,
+        "payment_vouchers": 0
+      },
+      "errors": [
+        "Missing fields: voteheads, student_wallet_transactions, procurement_records, payment_vouchers"
+      ],
+      "warnings": [],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      },
+      "performanceMetrics": {
+        "memoryUsage": {
+          "heapUsed": 53.03,
+          "heapTotal": 106.85,
+          "external": 53.67,
+          "rss": 183.52
+        },
+        "cpuTime": 306,
+        "gcCollections": 0
+      },
+      "memoryLeaks": false,
+      "dataValidation": {
+        "structureValid": false,
+        "relationshipsValid": true,
+        "constraintsValid": true,
+        "missingFields": [
+          "voteheads",
+          "student_wallet_transactions",
+          "procurement_records",
+          "payment_vouchers"
+        ]
+      }
+    },
+    {
+      "generator": "AcademicsGenerator",
+      "success": false,
+      "duration": 93,
+      "dataCount": {
+        "subjects": 232,
+        "grading_schemes": 3,
+        "exam_sessions": 36,
+        "timetables": 0,
+        "teacher_subject_assignments": 100,
+        "curriculum_structures": 0
+      },
+      "errors": [
+        "Missing fields: exams, exam_results, timetables, curriculum_structures"
+      ],
+      "warnings": [
+        "Expected 5+ grading schemes, got 3"
+      ],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      },
+      "performanceMetrics": {
+        "memoryUsage": {
+          "heapUsed": 59.68,
+          "heapTotal": 107.1,
+          "external": 70.61,
+          "rss": 186.68
+        },
+        "cpuTime": 93,
+        "gcCollections": 0
+      },
+      "memoryLeaks": false,
+      "dataValidation": {
+        "structureValid": false,
+        "relationshipsValid": true,
+        "constraintsValid": true,
+        "missingFields": [
+          "exams",
+          "exam_results",
+          "timetables",
+          "curriculum_structures"
+        ]
+      }
+    },
+    {
+      "generator": "ClubsGenerator",
+      "success": true,
+      "duration": 114,
+      "dataCount": {
+        "clubs": 25,
+        "club_members": 692,
+        "club_activities": 243,
+        "club_events": 108,
+        "club_budgets": 75,
+        "club_achievements": 52
+      },
+      "errors": [],
+      "warnings": [],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      },
+      "performanceMetrics": {
+        "memoryUsage": {
+          "heapUsed": 68.02,
+          "heapTotal": 108.1,
+          "external": 87.54,
+          "rss": 195.29
+        },
+        "cpuTime": 114,
+        "gcCollections": 0
+      },
+      "memoryLeaks": false,
+      "dataValidation": {
+        "structureValid": true,
+        "relationshipsValid": true,
+        "constraintsValid": true,
+        "missingFields": []
+      }
+    }
+  ],
+  "summary": "Enhanced Generator Test Suite completed: 1/5 tests passed in 2.55s",
+  "overallPerformance": {
+    "totalMemoryUsed": 259.42,
+    "averageTestDuration": 509.8,
+    "memoryLeaksDetected": 0
+  },
+  "crossModuleValidation": {
+    "foreignKeyIntegrity": true,
+    "dataConsistency": true,
+    "relationshipErrors": []
+  }
+}

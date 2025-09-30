@@ -10,13 +10,13 @@ async function loadData(collectionName: string, data: any[]) {
 
 async function main() {
   // Placeholder for transformed data
-  const transformedSubjects = [];
-  const transformedExamSessions = [];
-  const transformedStudentExamResults = [];
+  const transformedSubjects: any[] = [];
+  const transformedExamSessions: any[] = [];
+  const transformedStudentExamResults: any[] = [];
 
   await loadData('subjects', transformedSubjects);
-  await loadData('examsessions', transformedExamSessions);
-  await loadData('studentexamresults', transformedStudentExamResults);
+  await loadData('exam_sessions', transformedExamSessions);
+  await loadData('student_exam_results', transformedStudentExamResults);
 }
 
 main();

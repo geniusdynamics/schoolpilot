@@ -118,7 +118,7 @@ export class DatabaseManager {
         await this.akademicoConnection.query('SELECT 1');
       } catch (error) {
         console.error('Failed to establish Akademico connection:', error);
-        throw new Error(`Akademico connection failed: ${error.message}`);
+        throw new Error(`Akademico connection failed: ${(error as Error).message}`);
       }
     }
     return this.akademicoConnection;
@@ -135,7 +135,7 @@ export class DatabaseManager {
         await this.schoolPilotConnection.query('SELECT 1');
       } catch (error) {
         console.error('Failed to establish SchoolPilot connection:', error);
-        throw new Error(`SchoolPilot connection failed: ${error.message}`);
+        throw new Error(`SchoolPilot connection failed: ${(error as Error).message}`);
       }
     }
     return this.schoolPilotConnection;
@@ -187,7 +187,7 @@ export class DatabaseManager {
       results.akademico = true;
       console.log('✅ Akademico connection test passed');
     } catch (error) {
-      console.error('❌ Akademico connection test failed:', error.message);
+      console.error('❌ Akademico connection test failed:', (error as Error).message);
     }
 
     try {
@@ -196,7 +196,7 @@ export class DatabaseManager {
       results.schoolPilot = true;
       console.log('✅ SchoolPilot connection test passed');
     } catch (error) {
-      console.error('❌ SchoolPilot connection test failed:', error.message);
+      console.error('❌ SchoolPilot connection test failed:', (error as Error).message);
     }
 
     try {
@@ -209,7 +209,7 @@ export class DatabaseManager {
         console.log('⚠️ RxDB instance not set');
       }
     } catch (error) {
-      console.error('❌ RxDB connection test failed:', error.message);
+      console.error('❌ RxDB connection test failed:', (error as Error).message);
     }
 
     return results;
@@ -240,7 +240,7 @@ export class DatabaseManager {
 
     if (this.rxdbInstance) {
       try {
-        await this.rxdbInstance.destroy();
+        await this.rxdbInstance.remove();
         console.log('RxDB instance destroyed');
       } catch (error) {
         console.error('Error destroying RxDB instance:', error);

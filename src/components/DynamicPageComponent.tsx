@@ -25,12 +25,24 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
   
   const currentPath = overridePath || location.pathname;
   
+  // Force debug output
+  console.log('🚨 [DynamicPageComponent] FORCE DEBUG - Current path:', currentPath);
+  if (typeof window !== 'undefined') {
+    (window as any).debugPath = currentPath;
+  }
+  
   // Find navigation item for current path
   const navigationItem = useMemo(() => {
+    console.log('🔍 [DynamicPageComponent] Looking for navigation item for path:', currentPath);
+    console.log('🔍 [DynamicPageComponent] Available navigation items:', navigationItems);
+    
     for (const module of navigationItems) {
+      console.log('🔍 [DynamicPageComponent] Checking module:', module.name, 'path:', module.path);
       if (module.children) {
         for (const child of module.children) {
+          console.log('🔍 [DynamicPageComponent] Checking child:', child.name, 'path:', child.path);
           if (child.path === currentPath) {
+            console.log('✅ [DynamicPageComponent] Found matching child navigation item:', child);
             return { module, child };
           }
         }
@@ -40,9 +52,11 @@ const DynamicPageComponent: React.FC<DynamicPageComponentProps> = ({
       const moduleId = module.path.replace('/', ''); // Extract module ID from path like '/administration' -> 'administration'
       if (currentPath === `/${moduleId}` || 
           currentPath === `/${moduleId}/dashboard`) {
+        console.log('✅ [DynamicPageComponent] Found matching module dashboard:', module);
         return { module, child: null };
       }
     }
+    console.log('❌ [DynamicPageComponent] No navigation item found for path:', currentPath);
     return null;
   }, [navigationItems, currentPath]);
 

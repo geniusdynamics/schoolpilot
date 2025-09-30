@@ -1,19 +1,20 @@
 // ABOUTME: This page component allows users to manage school classes and their streams.
 // ABOUTME: It features tables for both classes and streams, with modals for CRUD operations.
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Class as SchoolClass, ClassStream, Staff } from '@/types'; 
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; 
-import Spinner from '@/components/ui/Spinner';
-import { usePageActions } from '@/hooks/usePageActions';
+import { useAppData } from '../../../hooks/useAppData';
+import { usePageActions } from '../../../hooks/usePageActions';
+import Card from '../../../components/ui/Card';
+import Button from '../../../components/ui/Button';
+import Modal from '../../../components/ui/Modal';
+import Input from '../../../components/ui/Input';
+import Select from '../../../components/ui/Select';
+import { DataGrid, DataGridColumn } from '../../../components/ui';
+import Spinner from '../../../components/ui/Spinner';
+import { PlusIcon, EditIcon, DeleteIcon } from 'lucide-react';
+import { SchoolClass, ClassStream, Staff } from '../../../types/database';
+import { ActionDefinition } from '../../../types/actions';
 
 interface ClassFormData extends Partial<Omit<SchoolClass, 'id' | 'streams'>> {}
 interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | 'class_teacher_name' | 'class_name'>> {
@@ -42,23 +43,36 @@ const ClassesPage: React.FC = () => {
   const [editingStream, setEditingStream] = useState<ClassStream | null>(null);
   const [selectedClassForStream, setSelectedClassForStream] = useState<SchoolClass | null>(null);
 
-  // Register page actions dynamically based on selected class
-  usePageActions([
-    {
-      id: 'add-class',
-      label: t('classes.addClassButton'),
-      icon: PlusIcon,
-      onClick: () => openClassModal(),
-      variant: 'primary'
-    },
-    ...(selectedClassForStream ? [{
-      id: 'add-stream',
-      label: t('classes.addStreamButton'),
-      icon: PlusIcon,
-      onClick: () => openStreamModal(undefined, selectedClassForStream),
-      variant: 'secondary'
-    }] : [])
-  ], [selectedClassForStream]);
+  // Page actions - use usePageActions with proper dependency management
+  const { registerActions, unregisterAction } = usePageActions();
+
+  // Memoize action definitions to prevent infinite loops
+  const baseActions = useMemo((): ActionDefinition[] => {
+    const actions: ActionDefinition[] = [
+      {
+        id: 'add-class',
+        label: t('classes.addClassButton'),
+        icon: 'plus',
+        onClick: () => openClassModal(),
+        variant: 'primary'
+      }
+    ];
+    
+    // Add stream action if a class is selected
+    if (selectedClassForStream) {
+      actions.push({
+        id: 'add-stream',
+        label: t('classes.addStreamButton'),
+        icon: 'plus',
+        onClick: () => openStreamModal(null, selectedClassForStream),
+        variant: 'secondary'
+      });
+    }
+    
+    return actions;
+  }, [t, selectedClassForStream]);
+
+  usePageActions(baseActions, { autoRegister: true });
 
   const [classFormData, setClassFormData] = useState<ClassFormData>({ name: '' });
   const [streamFormData, setStreamFormData] = useState<StreamFormData>({ name: '' });

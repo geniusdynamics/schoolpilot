@@ -1,0 +1,137 @@
+{
+  "timestamp": "2025-09-28T17:05:03.661Z",
+  "totalDuration": 2914,
+  "totalTests": 5,
+  "passedTests": 0,
+  "failedTests": 5,
+  "results": [
+    {
+      "generator": "AdministrationGenerator",
+      "success": false,
+      "duration": 1994,
+      "dataCount": {
+        "students": 0,
+        "staff": 0,
+        "parents": 0,
+        "classes": 0,
+        "departments": 0,
+        "roles": 0
+      },
+      "errors": [
+        "Missing fields: students, staff, parents, classes, departments, roles"
+      ],
+      "warnings": [
+        "Expected 500+ students, got 0",
+        "Expected 100+ staff, got 0"
+      ],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    },
+    {
+      "generator": "LibraryGenerator",
+      "success": false,
+      "duration": 399,
+      "dataCount": {
+        "books": 0,
+        "authors": 0,
+        "categories": 0,
+        "loans": 0,
+        "fines": 0,
+        "inventory": 0
+      },
+      "errors": [
+        "Missing fields: books, authors, categories, loans, fines, inventory"
+      ],
+      "warnings": [
+        "Expected 1000+ books, got 0",
+        "Expected 200+ authors, got 0"
+      ],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    },
+    {
+      "generator": "FinancialGenerator",
+      "success": false,
+      "duration": 317,
+      "dataCount": {
+        "chart_of_accounts": 0,
+        "voteheads": 0,
+        "suppliers": 0,
+        "fee_templates": 0,
+        "fee_template_items": 0,
+        "student_wallet_transactions": 0,
+        "procurement_records": 0,
+        "payment_vouchers": 0
+      },
+      "errors": [
+        "Missing fields: chart_of_accounts, voteheads, suppliers, fee_templates, student_wallet_transactions, procurement_records, payment_vouchers"
+      ],
+      "warnings": [
+        "Expected 50+ chart of accounts, got 0",
+        "Expected 50+ suppliers, got 0"
+      ],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    },
+    {
+      "generator": "AcademicsGenerator",
+      "success": false,
+      "duration": 96,
+      "dataCount": {
+        "subjects": 0,
+        "grading_schemes": 0,
+        "exam_sessions": 0,
+        "timetables": 0,
+        "teacher_subject_assignments": 0,
+        "curriculum_structures": 0
+      },
+      "errors": [
+        "Missing fields: subjects, grading_schemes, exams, exam_results, timetables, teacher_subject_assignments, curriculum_structures"
+      ],
+      "warnings": [
+        "Expected 50+ subjects, got 0",
+        "Expected 5+ grading schemes, got 0"
+      ],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    },
+    {
+      "generator": "ClubsGenerator",
+      "success": false,
+      "duration": 106,
+      "dataCount": {
+        "clubs": 0,
+        "club_members": 0,
+        "club_activities": 0,
+        "club_events": 0,
+        "club_budgets": 0,
+        "club_achievements": 0
+      },
+      "errors": [
+        "Missing fields: clubs, club_members, club_activities, club_events, club_budgets, club_achievements"
+      ],
+      "warnings": [
+        "Expected 25+ clubs, got 0",
+        "Expected 200+ club members, got 0"
+      ],
+      "storageTests": {
+        "PouchDB": false,
+        "SQLite-OPFS": false,
+        "Mock": false
+      }
+    }
+  ],
+  "summary": "Generator Test Suite completed: 0/5 tests passed in 2.91s"
+}

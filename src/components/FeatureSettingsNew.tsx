@@ -20,7 +20,7 @@ import {
 // Import the new unified components
 import AdaptiveTabs, { TabConfig, ActionConfig } from './ui/AdaptiveTabs';
 import { useSimpleActions, usePageActions } from '../hooks/useSimpleActions';
-import { useUnifiedConfig } from '../contexts/UnifiedConfigContext';
+import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 import { useAppData } from '../contexts/AppDataContext';
 
 // Import existing sub-components (reusable)
@@ -32,6 +32,7 @@ import NetworkStatusIndicator from './NetworkStatusIndicator';
 import ConflictResolutionComponent from './ConflictResolutionInterface';
 import Card from './ui/Card';
 import Button from './ui/Button';
+import { UnifiedModeSwitch } from './UnifiedModeSwitch';
 
 interface FeatureSettingsNewProps {
   className?: string;
@@ -136,12 +137,7 @@ const FeatureSettingsNew: React.FC<FeatureSettingsNewProps> = ({
     updateConfig(newConfig);
   };
 
-  const handleModeChange = (mode: 'demo' | 'production') => {
-    updateConfig({ 
-      ...config, 
-      dataMode: mode 
-    });
-  };
+
 
   const getStatusBadge = (status: boolean, label: string) => (
     <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -282,35 +278,11 @@ const FeatureSettingsNew: React.FC<FeatureSettingsNewProps> = ({
         <div className="p-6 space-y-6">
           {/* Application Mode */}
           <Card title="Application Mode">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="mode"
-                    value="demo"
-                    checked={config.dataMode === 'demo'}
-                    onChange={() => handleModeChange('demo')}
-                    className="mr-2"
-                  />
-                  Demo Mode
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="mode"
-                    value="production"
-                    checked={config.dataMode === 'production'}
-                    onChange={() => handleModeChange('production')}
-                    className="mr-2"
-                  />
-                  Production Mode
-                </label>
-              </div>
-              <p className="text-sm text-gray-600">
-                Demo mode uses mock data, while production mode uses RxDB with real data persistence.
-              </p>
-            </div>
+            <UnifiedModeSwitch 
+              variant="radio" 
+              showDescription={true}
+              onModeChange={(mode) => updateConfig({ ...config, dataMode: mode })}
+            />
           </Card>
 
           {/* Feature Flags */}

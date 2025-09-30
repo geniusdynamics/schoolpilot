@@ -21,10 +21,31 @@ SchoolPilot3 is an enterprise-grade SchoolPilot that handles all aspects of educ
 - **Memory Management**: Optimized mock data system with realistic entity relationships
 
 ### Developer Experience Excellence
-- **Rich Mock Data**: 1,998 lines of comprehensive, realistic test data in [`src/hooks/useMockData.ts`](src/hooks/useMockData.ts)
+- **Rich Mock Data & Data Generators**: Modular data generator system with module-specific hooks and live data integration
 - **Instant Mode Switching**: Single configuration flag toggles entire data architecture
 - **Type-Driven Development**: IntelliSense-powered development workflow with full autocomplete
 - **Hot Module Replacement**: Sub-second feedback during development with Vite
+
+### Rich Mock Data & Data Generators
+The application includes comprehensive mock data and modular data generators:
+
+#### Modular Data Generator System
+- **Module-Specific Hooks**: Each module provides dedicated data hooks (e.g., `useFeeTemplateData`, `useStudentData`)
+- **Live Data Integration**: Finance module now uses live data hooks instead of fallback mock data
+- **Unified Data Context**: `useModularMockData` aggregates data from all module hooks
+- **Fallback System**: Graceful fallback to `rawInitialData` for modules not yet integrated
+
+#### Data Generation Features
+- **40+ Entity Types**: Students, teachers, classes, subjects, fees, etc.
+- **Realistic Relationships**: Proper foreign key relationships between entities
+- **Configurable Volume**: Adjustable data generation for different testing scenarios
+- **Consistent Data**: Deterministic generation for reproducible testing
+- **CRUD Operations**: Full create, read, update, delete operations per module
+
+#### Recently Integrated Modules
+- **Finance Module**: `useFeeTemplateData` and `useFeeTemplateItemData` now provide live data
+- **Academics Module**: Multiple hooks for academic year, class allocation, timetable data
+- **Administration Module**: User management and system configuration data
 
 ## 🏗️ Architecture Highlights
 
@@ -277,6 +298,22 @@ npm run verify-mcp-servers
 - Graceful fallback to mock data if initialization fails
 - Data persistence across sessions
 - Real-time reactive subscriptions
+
+#### Data Generator Loading Context
+Data generators are materialized and loaded through a specific initialization flow:
+
+1. **Authentication Context**: After successful login via `AuthContext`
+2. **App Initialization**: `App.tsx` orchestrates the main application flow
+3. **Data Provider Wrapper**: `DataProviderWrapper` conditionally loads `AppDataProvider`
+4. **Module Data Loading**: `useModularMockData` aggregates data from module-specific hooks
+5. **Context Propagation**: Data becomes available through `AppDataContext` to all components
+
+**Key Loading Points:**
+- **Post-Authentication**: Data generators activate only after user authentication
+- **Lazy Loading**: `AppDataProvider` is lazily loaded based on environment and data mode
+- **Module Integration**: Each module's data hooks are called during `useModularMockData` execution
+- **Error Handling**: Graceful fallback to mock data if any module hook fails
+- **Performance**: Module loading includes error handling and performance monitoring
 
 ### Module Structure
 Each module follows a consistent structure:

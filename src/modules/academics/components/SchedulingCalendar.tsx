@@ -43,7 +43,7 @@ const SchedulingCalendar: React.FC = () => {
   const availableRooms = ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Lab 1', 'Lab 2'];
 
   const getPeriodTime = (periodId: number): string => {
-    const period = timetablePeriodDefs.find(p => p.id === periodId);
+    const period = (timetablePeriodDefs || []).find(p => p.id === periodId);
     return period ? `${period.start_time} - ${period.end_time}` : 'Unknown';
   };
 

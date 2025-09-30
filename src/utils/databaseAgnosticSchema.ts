@@ -182,7 +182,7 @@ export class DatabaseSchemaConverter {
    * Convert single property to RxDB format
    */
   private static convertPropertyToRxDB(prop: DatabaseProperty): any {
-    const converted = {
+    const converted: any = {
       type: this.mapTypeToRxDB(prop.type),
       description: prop.description,
       default: prop.default,
@@ -219,7 +219,7 @@ export class DatabaseSchemaConverter {
    * Convert single property to PouchDB format
    */
   private static convertPropertyToPouchDB(prop: DatabaseProperty): any {
-    const converted = {
+    const converted: any = {
       type: this.mapTypeToPouchDB(prop.type),
       description: prop.description,
       default: prop.default

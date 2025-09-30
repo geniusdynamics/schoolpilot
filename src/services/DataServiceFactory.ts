@@ -54,7 +54,7 @@ export class DataServiceFactory {
             providerType = DATA_LAYER_CONFIG.development.provider as ProviderType;
             break;
           case 'production':
-            providerType = DATA_LAYER_CONFIG.production.provider as ProviderType;
+            providerType = DATA_LAYER_CONFIG.production.default.provider as ProviderType;
             break;
           case 'demo':
           default:

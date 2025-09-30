@@ -2,13 +2,14 @@
 import {
   createRxDatabase, addRxPlugin, RxDatabase, RxCollection, RxJsonSchema, toTypedRxJsonSchema, PrimaryKey, RxDocumentData
 } from 'rxdb';
-import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
-import { RxDBMigrationPlugin } from 'rxdb/plugins/migration-schema';
-import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
-import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
-import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
-import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
+import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
+import * as validateAjv from 'rxdb/plugins/validate-ajv';
+const { wrappedValidateAjvStorage } = validateAjv;
+// import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
+// import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
+// import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
+// import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
+// import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 
 import * as allTypes from '../types';
 import { 
@@ -52,14 +53,16 @@ import { createDatabaseSchema, convertToRxDBSchema } from '../utils/databaseAgno
 
 console.log('rxdbService.ts: Script loaded. Attempting RxDB setup.');
 
-addRxPlugin(RxDBMigrationPlugin);
-addRxPlugin(RxDBUpdatePlugin);
-addRxPlugin(RxDBDevModePlugin);
-addRxPlugin(RxDBQueryBuilderPlugin);
+// addRxPlugin(RxDBMigrationSchemaPlugin);
+// addRxPlugin(RxDBUpdatePlugin);
+// if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
+//   addRxPlugin(RxDBDevModePlugin);
+// }
+// addRxPlugin(RxDBQueryBuilderPlugin);
 
 if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
   if (!RXDB_LEADER_ELECTION_DISABLED) {
-    addRxPlugin(RxDBLeaderElectionPlugin);
+    // addRxPlugin(RxDBLeaderElectionPlugin);
   }
 }
 
@@ -287,7 +290,7 @@ export const initializeDatabase = async (): Promise<SchoolDatabase> => {
     const db = await createRxDatabase<SchoolDatabaseCollections>({
       name: RXDB_DB_NAME,
       storage: wrappedValidateAjvStorage({
-        storage: getRxStorageDexie()
+        storage: getRxStorageMemory()
       }),
       multiInstance: !RXDB_LEADER_ELECTION_DISABLED,
       ignoreDuplicate: true, // Allow duplicate instances in development (React strict mode)

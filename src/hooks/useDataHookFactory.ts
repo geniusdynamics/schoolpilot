@@ -2,7 +2,7 @@
 // ABOUTME: Provides consistent CRUD operations and data synchronization capabilities
 // ABOUTME: Ensures all module data hooks follow the same pattern and interface
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAppDataInternal } from './useAppData';
 import { DataOperation } from '../services/DataStrategyManager';
 import { globalDataConsistencyService } from '../services/DataConsistencyService';
@@ -95,23 +95,31 @@ export function createDataHook<T extends EntityData>(
     // During initialization, appData might be null/undefined, so default to local state
     const useGlobalContext = appData?.dataSource !== 'mock' && appData?.dataSource !== undefined;
     
+    // Use ref to track previous data for stable comparison
+    const prevGlobalDataRef = useRef<T[] | undefined>();
+    
+    // Memoize the global entity data to prevent unnecessary re-renders
+    const globalEntityData = useMemo(() => {
+      return appData?.[entityName as keyof typeof appData] as T[] | undefined;
+    }, [appData, entityName]);
+    
     // Effect to synchronize data from global context, preventing infinite loops.
     useEffect(() => {
-      if (useGlobalContext) {
-        const globalEntityData = appData?.[entityName as keyof typeof appData] as T[] | undefined;
-
-        if (globalEntityData) {
-          setData(currentData => {
-            if (JSON.stringify(currentData) !== JSON.stringify(globalEntityData)) {
-              return globalEntityData;
-            }
-            return currentData;
-          });
+      if (useGlobalContext && globalEntityData) {
+        // Only update if the data has actually changed (deep comparison)
+        const hasChanged = !prevGlobalDataRef.current || 
+          prevGlobalDataRef.current.length !== globalEntityData.length ||
+          prevGlobalDataRef.current.some((item, index) => 
+            JSON.stringify(item) !== JSON.stringify(globalEntityData[index])
+          );
+        
+        if (hasChanged) {
+          setData(globalEntityData);
+          prevGlobalDataRef.current = globalEntityData;
         }
       }
       setLoading(false);
-    // The dependency array now watches the specific slice of data, but stringified to ensure stability.
-    }, [useGlobalContext, entityName, JSON.stringify(appData?.[entityName as keyof typeof appData])]);
+    }, [useGlobalContext, entityName, globalEntityData]);
     
     // Create operation
     const create = useCallback(async (item: Partial<T>): Promise<T> => {

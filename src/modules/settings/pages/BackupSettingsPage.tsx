@@ -4,7 +4,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import { useAppData } from '@/hooks/useAppData';
-import { DownloadIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+import { DownloadIcon, CheckCircleIcon, ExclamationTriangleIcon } from '../../../components/ui/icons';
 import { useTranslation } from 'react-i18next';
 import { getDatabaseManager } from '@/services/database/ProviderSelector';
 

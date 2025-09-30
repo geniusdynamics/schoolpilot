@@ -4,9 +4,9 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import { useAppData } from '@/hooks/useAppData';
-import { CogIcon, DatabaseIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+import { CogIcon, DatabaseIcon, CheckCircleIcon, AlertTriangleIcon, InformationCircleIcon } from '../../../components/ui/icons';
 import { useTranslation } from 'react-i18next';
-import { useUnifiedConfig } from '@/contexts/UnifiedConfigContext';
+import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/DataServiceFactory';
 import { DATA_LAYER_CONFIG } from '@/config/dataLayerConfig';
 
@@ -49,7 +49,7 @@ const DatabaseProviderSettingsPage: React.FC = () => {
     // Set initial provider based on current configuration
     const currentProvider = DataServiceFactory.getUserDatabaseConfig()?.provider || 
                           (currentEnvironment === 'development' ? DATA_LAYER_CONFIG.development.provider :
-                           currentEnvironment === 'production' ? DATA_LAYER_CONFIG.production.provider :
+                           currentEnvironment === 'production' ? DATA_LAYER_CONFIG.production.default.provider :
                            DATA_LAYER_CONFIG.demo.provider);
     
     setSelectedProvider(currentProvider);
@@ -112,7 +112,7 @@ const DatabaseProviderSettingsPage: React.FC = () => {
       
       // Reset to environment default
       const defaultProvider = currentEnvironment === 'development' ? DATA_LAYER_CONFIG.development.provider :
-                            currentEnvironment === 'production' ? DATA_LAYER_CONFIG.production.provider :
+                            currentEnvironment === 'production' ? DATA_LAYER_CONFIG.production.default.provider :
                             DATA_LAYER_CONFIG.demo.provider;
       
       setSelectedProvider(defaultProvider);
@@ -166,7 +166,7 @@ const DatabaseProviderSettingsPage: React.FC = () => {
      return (
       <Card title="Database Provider Settings">
         <div className="p-6 text-center">
-          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-3" />
+          <AlertTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-3" />
           <h3 className="text-lg font-semibold text-red-700">Database Initialization Failed</h3>
           <p className="text-red-600 mt-1">The application is currently running in fallback mode using mock data.</p>
           <p className="text-sm text-gray-500 mt-2">Error: {initializationError.message}</p>
@@ -233,7 +233,7 @@ const DatabaseProviderSettingsPage: React.FC = () => {
                   {isDatabaseModeActive ? (
                     <CheckCircleIcon className="w-4 h-4 mr-2" />
                   ) : (
-                    <ExclamationTriangleIcon className="w-4 h-4 mr-2" />
+                    <AlertTriangleIcon className="w-4 h-4 mr-2" />
                   )}
                   <span>
                     {isDatabaseModeActive 
@@ -340,11 +340,6 @@ const Spinner: React.FC<{size?: 'sm' | 'md' | 'lg'}> = ({ size = 'md' }) => {
   );
 };
 
-// Simple information circle icon component
-const InformationCircleIcon: React.FC<{className?: string}> = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
+
 
 export default DatabaseProviderSettingsPage;

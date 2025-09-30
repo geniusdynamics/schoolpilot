@@ -20,7 +20,15 @@ const THEME_STORAGE_KEY = 'schoolpilot-theme';
 const getSystemTheme = (): 'light' | 'dark' => {
   if (typeof window === 'undefined') return 'light';
   
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // Handle test environment where matchMedia might not exist or be mocked
+  try {
+    if (!window.matchMedia) return 'light';
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    return mediaQuery.matches ? 'dark' : 'light';
+  } catch (error) {
+    // Fallback for test environments or unsupported browsers
+    return 'light';
+  }
 };
 
 // Get stored theme preference
@@ -75,7 +83,7 @@ export const useTheme = (): ThemeContextValue => {
     updateResolvedTheme();
 
     // Listen for system theme changes if using system theme
-    if (theme === 'system') {
+    if (theme === 'system' && typeof window !== 'undefined' && window.matchMedia) {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handleChange = () => updateResolvedTheme();
       

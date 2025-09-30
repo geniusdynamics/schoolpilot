@@ -1,0 +1,14 @@
+{
+  "journeys": [],
+  "screenshots": [],
+  "errors": [
+    "Critical error: Navigation timeout of 30000 ms exceeded"
+  ],
+  "summary": {
+    "totalJourneys": 0,
+    "successfulJourneys": 0,
+    "failedJourneys": 0,
+    "screenshotsTaken": 0
+  },
+  "timestamp": "2025-09-03T07:21:39.043Z"
+}

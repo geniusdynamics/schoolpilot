@@ -4,6 +4,11 @@
 import { ModuleDefinition } from '@/core/types';
 import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon } from '@/components/ui/icons';
 
+// Import the new unified settings page
+import UnifiedSettingsPage from './pages/UnifiedSettingsPage';
+// Import the new combined data management page
+import DataManagementSettingsPage from './pages/DataManagementSettingsPage';
+
 // Simple database icon component
 const DatabaseIcon: React.FC<{className?: string}> = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,19 +25,29 @@ const settingsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:settings.dashboard', path: '/settings/dashboard', icon: CogIcon, page: 'SettingsDashboardPage' },
-    { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
-    { name: 'navigation:settings.features', path: '/settings/features', icon: CogIcon, page: 'FeatureSettingsPage' },
+    // Primary unified settings page
+    { name: 'navigation:settings.unified', path: '/settings', icon: CogIcon, page: 'UnifiedSettingsPage' },
+    
+    // Legacy pages (deprecated - use unified settings instead)
+    { name: 'navigation:settings.dashboard', path: '/settings/dashboard', icon: CogIcon, page: 'SettingsDashboardPage', deprecated: true },
+    { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage', deprecated: true },
+    { name: 'navigation:settings.features', path: '/settings/features', icon: CogIcon, page: 'FeatureSettingsPage', deprecated: true },
+    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage', deprecated: true },
+    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage', deprecated: true },
+    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage', deprecated: true },
+    
+    // Specialized pages (still active)
+    { name: 'navigation:settings.dataManagement', path: '/settings/data-management', icon: DatabaseIcon, page: 'DataManagementSettingsPage' },
     { name: 'navigation:settings.tabs', path: '/settings/tabs', icon: ArrowsRightLeftIcon, page: 'TabSettingsPage' },
     { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
     { name: 'navigation:settings.dependencyReport', path: '/settings/dependency-report', icon: CircleStackIcon, page: 'ModuleDependencyReportPage' },
     { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
-    { name: 'navigation:settings.databaseProvider', path: '/settings/database-provider', icon: DatabaseIcon, page: 'DatabaseProviderSettingsPage' },
-    { name: 'navigation:settings.databaseSettings', path: '/settings/database-settings', icon: CogIcon, page: 'DatabaseSettingsPage' },
-    { name: 'navigation:settings.backupSettings', path: '/settings/backup-settings', icon: DownloadIcon, page: 'BackupSettingsPage' },
-    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
-    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage' },
-    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage' },
+    
+    // Legacy data layer pages (deprecated - use data management instead)
+    { name: 'navigation:settings.databaseProvider', path: '/settings/database-provider', icon: DatabaseIcon, page: 'DatabaseProviderSettingsPage', deprecated: true },
+    { name: 'navigation:settings.dataLayerSettings', path: '/settings/data-layer', icon: DatabaseIcon, page: 'DataLayerSettingsPage', deprecated: true },
+    
+    // Test pages
     { name: 'navigation:settings.tabbedWorkspaceTest', path: '/settings/tabbed-workspace-test', icon: ViewColumnsIcon, page: 'TabbedWorkspaceTestPage' },
     { name: 'navigation:settings.tabbedModeTest', path: '/settings/tabbed-mode-test', icon: ViewColumnsIcon, page: 'TabbedModeTestPage' },
   ],

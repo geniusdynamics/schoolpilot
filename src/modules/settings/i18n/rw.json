@@ -1,5 +1,6 @@
 {
-  "title": "Igenamiterere",
+  "title": "Igenamiterere ryunze ubwenge",
+  "description": "Genzura igenamiterere ryose rya sisitemu n'ibigenga mu buryo bumwe",
   "navigation": {
     "settings": {
       "title": "Igenamiterere",
@@ -8,6 +9,8 @@
       "features": "Ibintu byihariye",
       "modules": "Modules",
       "auditLog": "Inyandiko y'igenzura",
+      "dataLayer": "Urwego rw'amakuru",
+      "databaseProvider": "Utanga ububiko",
       "databaseSettings": "Igenamiterere ry'ububiko",
       "schoolProfile": "Umwirondoro w'ishuri",
       "users": "Abakoresha",
@@ -21,7 +24,12 @@
     "pageTitle": "Igenamiterere ry'amatabure",
     "pageDescription": "Shiraho igenamiterere ry'interface y'amatabure kandi ugerageze imikorere y'umwanya de akazi",
     "settingsTab": "Igenamiterere",
-    "workspaceTab": "Igeragezwa ry'umwanya de akazi"
+    "workspaceTab": "Igeragezwa ry'umwanya de akazi",
+    "system": "Sisitemu",
+    "users": "Abakoresha",
+    "features": "Ibintu byihariye",
+    "sync": "Guhuza",
+    "workflows": "Imirimo"
   },
   "tabbedWorkspaceTest": {
     "pageTitle": "Igeragezwa ry'umwanya de akazi",

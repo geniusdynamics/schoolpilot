@@ -31,7 +31,7 @@ async function verifyMigration() {
     const sourceExaminationsCount = await akademicoConnection.query(
       "SELECT COUNT(*) as count FROM examinations"
     );
-    const targetExaminationsCount = await db.examsessions.count().exec();
+    const targetExaminationsCount = await db.exam_sessions.count().exec();
     
     results.push({
       entity: 'examinations',
@@ -65,7 +65,7 @@ async function verifyMigration() {
     const sourceExamResultsCount = await akademicoConnection.query(
       "SELECT COUNT(*) as count FROM exam_results"
     );
-    const targetExamResultsCount = await db.studentexamresults.count().exec();
+    const targetExamResultsCount = await db.student_exam_results.count().exec();
     
     results.push({
       entity: 'exam_results',
@@ -81,7 +81,7 @@ async function verifyMigration() {
     logger.info('Performing data integrity checks...');
     
     // Check for orphaned records
-    const orphanedResults = await db.studentexamresults.find({
+    const orphanedResults = await db.student_exam_results.find({
       selector: {
         exam_session_id: { $exists: false }
       }

@@ -3,7 +3,7 @@
  * Replaces the complex ActionRegistry with a simple, platform-aware action system
  */
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useMemo } from 'react';
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { usePlatformInfo } from '../utils/platformDetection';
@@ -231,11 +231,37 @@ export const useSimpleActions = (
     }));
   }, [isMobile]);
   
+  // Track previous actions to prevent unnecessary re-renders
+  const previousActionsRef = useRef<SimpleAction[]>([]);
+  
+  // Memoize actions to ensure stable reference
+  const stableActions = useMemo(() => {
+    // Deep comparison to check if actions have actually changed
+    const hasChanged = actions.length !== previousActionsRef.current.length ||
+      actions.some((action, index) => {
+        const prevAction = previousActionsRef.current[index];
+        return !prevAction || 
+          action.id !== prevAction.id ||
+          action.label !== prevAction.label ||
+          action.variant !== prevAction.variant ||
+          action.visible !== prevAction.visible ||
+          action.disabled !== prevAction.disabled ||
+          action.priority !== prevAction.priority;
+      });
+    
+    if (hasChanged) {
+      previousActionsRef.current = actions;
+      return actions;
+    }
+    
+    return previousActionsRef.current;
+  }, [actions]);
+  
   // Register actions
   useEffect(() => {
-    if (actions.length === 0) return;
+    if (stableActions.length === 0) return;
     
-    const processedActions = adaptedActions(actions);
+    const processedActions = adaptedActions(stableActions);
     
     // Unregister old actions
     registeredActionsRef.current.forEach(actionId => {
@@ -256,7 +282,7 @@ export const useSimpleActions = (
       });
       registeredActionsRef.current.clear();
     };
-  }, deps ? [...deps] : [JSON.stringify(actions)]);
+  }, deps ? [...deps, stableActions] : [stableActions, adaptedActions]);
   
   // Cleanup on unmount
   useEffect(() => {

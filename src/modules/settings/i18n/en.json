@@ -1,5 +1,6 @@
 {
-  "title": "Settings",
+  "title": "Unified Settings",
+  "description": "Comprehensive settings management for system configuration, user management, features, and workflows",
   "navigation": {
     "settings": {
       "title": "Settings",
@@ -15,14 +16,21 @@
       "workflows": "Workflows",
       "tabs": "Tab Settings",
       "tabbedWorkspaceTest": "Tabbed Workspace Test",
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "dataLayer": "Data Layer",
+      "databaseProvider": "Database Provider"
     }
   },
   "tabs": {
     "pageTitle": "Tab Settings",
     "pageDescription": "Configure tabbed interface settings and test workspace functionality",
     "settingsTab": "Settings",
-    "workspaceTab": "Workspace Test"
+    "workspaceTab": "Workspace Test",
+    "system": "System",
+    "users": "Users",
+    "features": "Features",
+    "sync": "Sync",
+    "workflows": "Workflows"
   },
   "tabbedMode": {
     "title": "Tabbed Mode Configuration",

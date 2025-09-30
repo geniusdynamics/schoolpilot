@@ -377,15 +377,17 @@ describe('Card Component', () => {
 
   describe('Responsive Behavior', () => {
     it('applies responsive padding classes', () => {
-      render(
+      const { container } = render(
         <Card title="Responsive Card">
           <p>Responsive content</p>
         </Card>
       );
 
-      // Check for responsive padding classes
-      const headerElement = document.querySelector('.px-4.py-5.sm\\:px-6');
-      const bodyElement = document.querySelector('.px-4.py-5.sm\\:p-6');
+      // Check for responsive padding classes - the Card component uses different class structure
+      // Header uses: px-4 py-3 sm:px-6 (from getSizeStyles)
+      // Body uses: px-4 py-3 sm:p-6 (from getSizeStyles)
+      const headerElement = container.querySelector('[class*="px-4"][class*="py-3"][class*="sm:px-6"]');
+      const bodyElement = container.querySelector('[class*="px-4"][class*="py-3"][class*="sm:p-6"]');
       
       expect(headerElement).toBeInTheDocument();
       expect(bodyElement).toBeInTheDocument();

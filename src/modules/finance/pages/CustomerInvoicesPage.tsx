@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FinCustomerInvoiceType as CustomerInvoice, FinCustomerInvoiceItemType as CustomerInvoiceItem, Customer, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinCustomerInvoiceStatusEnum } from '@/types';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { FinGeneralPaymentType as GeneralPayment, FinGeneralPaymentItemType as GeneralPaymentItem, FinGeneralPayerTypeEnum as GeneralPayerType, Student, Staff, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '@/types';
 import { AdminCustomerType as Customer, AdminPartnerType as Partner } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';

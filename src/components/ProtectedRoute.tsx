@@ -27,29 +27,34 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check permissions and module access
   useEffect(() => {
     const checkAccess = async () => {
-      if (isLoading) return;
+      console.log('🔍 [ProtectedRoute] Starting access check for:', { requiredModule, requiredPermission });
+      
+      if (!isAuthenticated) {
+        console.log('🔍 [ProtectedRoute] User not authenticated');
+        setCheckingAccess(false);
+        return;
+      }
 
-      console.log('🔍 [ProtectedRoute] Checking access:', { requiredPermission, requiredModule, isAuthenticated });
       setCheckingAccess(true);
       try {
-        let access = true;
-
-        // Check specific permission if required
-        if (requiredPermission) {
-          const hasPerm = await hasPermission(requiredPermission);
-          console.log('🔍 [ProtectedRoute] Permission check:', { permission: requiredPermission, hasPerm });
-          access = access && hasPerm;
-        }
+        let hasAccess = true;
 
         // Check module access if required
         if (requiredModule) {
-          const hasModule = await hasModuleAccess(requiredModule);
-          console.log('🔍 [ProtectedRoute] Module check:', { module: requiredModule, hasModule });
-          access = access && hasModule;
+          const moduleAccess = await hasModuleAccess(requiredModule);
+          console.log('🔍 [ProtectedRoute] Module access check for', requiredModule, ':', moduleAccess);
+          hasAccess = hasAccess && moduleAccess;
         }
 
-        console.log('🔍 [ProtectedRoute] Final access result:', access);
-        setHasAccess(access);
+        // Check permission if required
+        if (requiredPermission) {
+          const permissionAccess = await hasPermission(requiredPermission);
+          console.log('🔍 [ProtectedRoute] Permission check for', requiredPermission, ':', permissionAccess);
+          hasAccess = hasAccess && permissionAccess;
+        }
+
+        console.log('🔍 [ProtectedRoute] Final access result:', hasAccess);
+        setHasAccess(hasAccess);
       } catch (error) {
         console.error('Error checking access:', error);
         setHasAccess(false);
@@ -59,7 +64,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     };
 
     checkAccess();
-  }, [isAuthenticated, isLoading, requiredPermission, requiredModule, hasPermission, hasModuleAccess]);
+  }, [isAuthenticated, requiredModule, requiredPermission, hasModuleAccess, hasPermission]);
 
   // Show loading spinner while checking authentication
   if (isLoading || checkingAccess) {
@@ -108,4 +113,4 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   return <>{children}</>;
 };
 
-export default ProtectedRoute; 
+export default ProtectedRoute;

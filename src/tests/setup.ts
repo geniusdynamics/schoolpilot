@@ -1,8 +1,44 @@
 // ABOUTME: Test setup configuration for data validation and consistency tests
 // ABOUTME: Initializes test environment and mocks for validation system testing
 
-import { beforeAll, afterAll, vi } from 'vitest';
-import '@testing-library/jest-dom';
+import { beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
+import { cleanup, configure } from '@testing-library/react';
+import { act } from 'react';
+
+// Configure React Testing Library for React 19
+configure({ 
+  testIdAttribute: 'data-testid',
+  asyncUtilTimeout: 5000,
+  // Enable React 19 compatibility
+  reactStrictMode: true
+});
+
+// Global act function for React 19 compatibility
+global.act = act;
+
+// Set up matchMedia mock immediately before any other imports
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => {
+    const mockMediaQueryList = {
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(), // deprecated
+      removeListener: vi.fn(), // deprecated
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    };
+    return mockMediaQueryList;
+  }),
+});
+
+// Ensure matchMedia is available globally
+if (typeof global !== 'undefined') {
+  global.matchMedia = window.matchMedia;
+}
 
 // Mock console methods to reduce noise in tests
 beforeAll(() => {
@@ -15,6 +51,22 @@ afterAll(() => {
   vi.restoreAllMocks();
 });
 
+// Cleanup after each test
+afterEach(() => {
+  cleanup();
+});
+
+// Ensure DOM is clean before each test
+beforeEach(() => {
+  if (typeof document !== 'undefined') {
+    document.body.innerHTML = '';
+    // Ensure document.body exists and is properly initialized
+    if (!document.body) {
+      document.documentElement.appendChild(document.createElement('body'));
+    }
+  }
+});
+
 // Mock Date.now for consistent test results
 const mockDate = new Date('2024-01-01T00:00:00.000Z');
 vi.setSystemTime(mockDate);
@@ -25,20 +77,22 @@ Object.defineProperty(navigator, 'onLine', {
   value: true
 });
 
-// Mock window.matchMedia for accessibility tests
-Object.defineProperty(window, 'matchMedia', {
+// matchMedia mock is now set up at the top of this file
+
+// Mock URL APIs for file download tests
+Object.defineProperty(URL, 'createObjectURL', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
+  value: vi.fn().mockReturnValue('blob:test-url')
 });
+
+Object.defineProperty(URL, 'revokeObjectURL', {
+  writable: true,
+  value: vi.fn()
+});
+
+// Remove createElement mocking to avoid interference with React Testing Library
+// The download functionality will use real anchor elements
+// URL.createObjectURL and URL.revokeObjectURL are already mocked above
 
 // Global test utilities
 export const createMockStudent = (overrides = {}) => ({

@@ -1,0 +1,235 @@
+// ABOUTME: Test file for DataModeManager service to verify mode switching functionality
+// ABOUTME: Tests data seeding, clearing, and provider switching between development, demo, and production modes
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { getDataModeManager, resetDataModeManager } from '../services/dataModeManager';
+import { getDatabaseProviderFactory } from '../services/database/DatabaseProviderFactory';
+import { getDataLayerConfig } from '../config/dataLayerConfig';
+
+// Mock the dependencies
+vi.mock('../services/DatabaseProviderFactory');
+vi.mock('../config/dataLayerConfig');
+
+const mockGetDatabaseProviderFactory = vi.mocked(getDatabaseProviderFactory);
+const mockGetDataLayerConfig = vi.mocked(getDataLayerConfig);
+
+describe('DataModeManager', () => {
+  let dataModeManager: ReturnType<typeof getDataModeManager>;
+  let mockProvider: any;
+  let mockConfig: any;
+
+  beforeEach(() => {
+    // Reset the singleton
+    resetDataModeManager();
+    
+    // Create mock provider
+    mockProvider = {
+      initialize: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
+      clearDatabase: vi.fn().mockResolvedValue(undefined),
+      executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
+      executeTransaction: vi.fn().mockResolvedValue(undefined),
+      getTableNames: vi.fn().mockResolvedValue([]),
+      exportData: vi.fn().mockResolvedValue({}),
+      importData: vi.fn().mockResolvedValue(undefined)
+    };
+
+    // Create mock config
+    mockConfig = {
+      development: {
+        provider: 'sqlite-file',
+        config: { filename: 'dev.db' }
+      },
+      demo: {
+        provider: 'sqlite',
+        config: { storageType: 'opfs' }
+      },
+      production: {
+        provider: 'sqlite',
+        config: { storageType: 'opfs' }
+      }
+    };
+
+    // Setup mocks
+    mockGetDatabaseProviderFactory.mockReturnValue({
+      createProvider: vi.fn().mockResolvedValue(mockProvider),
+      getAvailableProviders: vi.fn().mockReturnValue(['sqlite', 'sqlite-file'])
+    });
+    
+    mockGetDataLayerConfig.mockReturnValue(mockConfig);
+    
+    dataModeManager = getDataModeManager();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('initialization', () => {
+    it('should initialize with development mode by default', async () => {
+      const status = await dataModeManager.getStatus();
+      expect(status.currentMode).toBe('development');
+      expect(status.isTransitioning).toBe(false);
+    });
+
+    it('should have correct initial state', async () => {
+      const status = await dataModeManager.getStatus();
+      expect(status.currentMode).toBe('development');
+      expect(status.activeProvider).toBeDefined();
+    });
+  });
+
+  describe('mode switching', () => {
+    it('should switch from development to demo mode', async () => {
+      await dataModeManager.switchMode('demo');
+      
+      const status = await dataModeManager.getStatus();
+      expect(status.currentMode).toBe('demo');
+      expect(status.isTransitioning).toBe(false);
+    });
+
+    it('should switch from demo to production mode', async () => {
+      await dataModeManager.switchMode('demo');
+      
+      await dataModeManager.switchMode('production');
+      
+      const status = await dataModeManager.getStatus();
+      expect(status.currentMode).toBe('production');
+      expect(status.isTransitioning).toBe(false);
+    });
+
+    it('should handle transition state correctly', async () => {
+      // Start the switch but don't await it immediately
+      const switchPromise = dataModeManager.switchMode('demo');
+      
+      // Check that we're in transition state
+      const transitionStatus = await dataModeManager.getStatus();
+      expect(transitionStatus.isTransitioning).toBe(true);
+      
+      // Wait for completion
+      await switchPromise;
+      
+      // Check final state
+      const finalStatus = await dataModeManager.getStatus();
+      expect(finalStatus.isTransitioning).toBe(false);
+      expect(finalStatus.currentMode).toBe('demo');
+    });
+
+    it('should switch provider during mode change', async () => {
+      await dataModeManager.switchMode('demo');
+      
+      // Verify that the factory's switchProvider method was called
+      expect(mockGetDatabaseProviderFactory().createProvider).toHaveBeenCalled();
+    });
+  });
+
+  describe('data management', () => {
+    it('should clear all data', async () => {
+      await dataModeManager.clearAllData();
+      expect(mockProvider.getCollection).toHaveBeenCalled();
+    });
+
+    it('should seed demo data when switching to demo mode', async () => {
+      await dataModeManager.switchMode('demo', { seedData: true });
+      
+      // Verify that demo data was seeded
+      expect(mockProvider.getCollection).toHaveBeenCalled();
+    });
+
+    it('should preserve data when switching without clearData option', async () => {
+      await dataModeManager.switchMode('demo', { preserveData: true });
+      
+      // Verify that data was not cleared
+      expect(mockProvider.getCollection).not.toHaveBeenCalled();
+    });
+
+    it('should clear data when switching with clearData option', async () => {
+      await dataModeManager.switchMode('demo', { clearData: true });
+      
+      // Verify that data was cleared
+      expect(mockProvider.getCollection).toHaveBeenCalled();
+    });
+  });
+
+  describe('status and information', () => {
+    it('should return correct available modes', () => {
+      const modes = dataModeManager.getAvailableModes();
+      expect(modes).toEqual(['development', 'demo', 'production']);
+    });
+
+    it('should return current mode', async () => {
+      const status = await dataModeManager.getStatus();
+      expect(status.currentMode).toBe('development');
+      
+      await dataModeManager.switchMode('demo');
+      const statusAfterSwitch = await dataModeManager.getStatus();
+      expect(statusAfterSwitch.currentMode).toBe('demo');
+    });
+
+    it('should detect transition state', async () => {
+      const initialStatus = await dataModeManager.getStatus();
+      expect(initialStatus.isInTransition).toBe(false);
+      
+      // Start transition but don't await
+      const switchPromise = dataModeManager.switchMode('demo');
+      const transitionStatus = await dataModeManager.getStatus();
+      expect(transitionStatus.isInTransition).toBe(true);
+      
+      await switchPromise;
+      const finalStatus = await dataModeManager.getStatus();
+      expect(finalStatus.isInTransition).toBe(false);
+    });
+
+  describe('error handling', () => {
+    it('should handle provider creation errors', async () => {
+      mockGetDatabaseProviderFactory().createProvider.mockRejectedValueOnce(new Error('Provider creation failed'));
+      
+      await expect(dataModeManager.switchMode('demo')).rejects.toThrow('Provider creation failed');
+    });
+
+    it('should handle provider initialization errors', async () => {
+      mockGetDatabaseProviderFactory().createProvider.mockRejectedValue(new Error('Provider creation failed'));
+      
+      await expect(dataModeManager.switchMode('demo')).rejects.toThrow('Provider creation failed');
+    });
+
+    it('should handle data seeding errors', async () => {
+      mockProvider.getCollection.mockRejectedValue(new Error('Seeding failed'));
+      
+      await expect(dataModeManager.switchMode('demo', { seedData: true })).rejects.toThrow('Seeding failed');
+    });
+
+    it('should handle mode switching errors', async () => {
+      mockProvider.getCollection.mockRejectedValue(new Error('Database error'));
+      
+      await expect(dataModeManager.switchMode('demo')).rejects.toThrow('Database error');
+    });
+
+    it('should handle data clearing errors', async () => {
+      await dataModeManager.initializeMode();
+      mockProvider.clearDatabase.mockRejectedValue(new Error('Clear failed'));
+      
+      await expect(dataModeManager.clearAllData()).rejects.toThrow('Clear failed');
+    });
+  });
+
+  describe('cleanup', () => {
+    it('should destroy and cleanup resources', async () => {
+      await dataModeManager.initializeMode();
+      
+      await dataModeManager.destroy();
+      
+      expect(mockProvider.close).toHaveBeenCalled();
+    });
+
+    it('should reset to defaults', async () => {
+      await dataModeManager.initializeMode();
+      await dataModeManager.switchMode('demo');
+      
+      await dataModeManager.resetToDefaults();
+      
+      const status = dataModeManager.getStatus();
+      expect(status.currentMode).toBe('development');
+    });
+  });
+});

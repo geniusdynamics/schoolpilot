@@ -43,13 +43,47 @@ This is the primary location for defining data structures. Each functional area 
 
 ### 2.5. Data Hooks
 
-*   **`src/hooks/useMockData.ts`**:
-    *   Implements `AppDataContextType` using in-memory data.
-    *   Dynamically loads all `mockData.ts` files from the modules to create its initial state.
+#### Legacy Data Hooks
+*   **`src/hooks/useMockData.ts`** (Legacy):
+    *   Original implementation using centralized mock data.
     *   See `mock-data-dev-guide.md` for details.
 *   **`src/hooks/useRxDBData.ts`**:
     *   Implements `AppDataContextType` using RxDB.
     *   See `rxdb-data-dev-guide.md` for details.
+
+#### Modern Modular Data Generator System
+*   **`src/hooks/useModularMockData.ts`** (Current):
+    *   **Purpose**: Aggregates data from module-specific data hooks
+    *   **Architecture**: Modular approach where each module provides its own data hooks
+    *   **Live Data Integration**: Uses actual module hooks instead of static mock data
+    *   **Fallback System**: Graceful fallback to `rawInitialData` for modules not yet integrated
+    *   **CRUD Operations**: Full create, read, update, delete operations per module
+
+#### Module-Specific Data Hooks
+Each module now provides dedicated data hooks in `src/modules/{module}/data/`:
+
+**Finance Module** (Fully Integrated):
+*   `useFeeTemplateData.ts` - Fee template management with live data
+*   `useFeeTemplateItemData.ts` - Fee template items with live data
+*   `useBankData.ts` - Bank account management
+*   `useChartOfAccountData.ts` - Chart of accounts
+
+**Academics Module** (Fully Integrated):
+*   `useAcademicYearData.ts` - Academic year management
+*   `useClassSubjectAllocationData.ts` - Class-subject allocations
+*   `useTimetableEntryData.ts` - Timetable management
+*   `useEducationSystemData.ts` - Education system configuration
+
+**Administration Module** (Partially Integrated):
+*   Various hooks for user management and system configuration
+
+#### Data Loading Context
+Data generators are materialized through this flow:
+1. **Authentication**: After successful login via `AuthContext`
+2. **App Initialization**: `App.tsx` orchestrates the main application flow
+3. **Data Provider Loading**: `DataProviderWrapper` conditionally loads `AppDataProvider`
+4. **Module Hook Execution**: `useModularMockData` calls all module-specific hooks
+5. **Context Propagation**: Data becomes available through `AppDataContext`
 
 ### 2.6. Database Provider System (Production Mode)
 
@@ -139,6 +173,46 @@ The `AppDataContext.tsx` has been enhanced to expose sync capabilities:
 *   **Sync Control**: Manual sync triggers and queue management
 
 ## 3. Workflow for Adding/Modifying Data Entities
+
+### 3.1. Modern Approach: Modular Data Generator System
+
+#### 3.1.1. Define Types
+1.  **Add to `src/types/index.ts`**:
+    *   Define the TypeScript interface for your entity.
+    *   Example: `Student`, `Teacher`, `Class`, etc.
+
+#### 3.1.2. Update `AppDataContextType`
+1.  **Edit `src/contexts/AppDataContext.tsx`**:
+    *   Add your entity array to the context type.
+    *   Add CRUD functions for your entity.
+    *   Example: `students: Student[]`, `addStudent`, `updateStudent`, `deleteStudent`.
+
+#### 3.1.3. Create Module Data Hook
+1.  **Create `src/modules/{module}/data/use{Entity}Data.ts`**:
+    *   Implement a dedicated hook for your entity
+    *   Include initial mock data generation
+    *   Implement full CRUD operations
+    *   Follow the pattern from existing hooks like `useFeeTemplateData.ts`
+
+#### 3.1.4. Export from Module Data Index
+1.  **Update `src/modules/{module}/data/index.ts`**:
+    *   Export your new data hook
+    *   Ensure it's available for import
+
+#### 3.1.5. Integrate with Modular Data System
+1.  **Update `src/hooks/useModularMockData.ts`**:
+    *   Import your new data hook
+    *   Add hook execution in the appropriate module section
+    *   Map the hook's data and functions to the context
+    *   Move entity from fallback section to live data section
+
+#### 3.1.6. Test Integration
+1.  **Verify data loading**:
+    *   Check that data appears in components
+    *   Test CRUD operations
+    *   Ensure no console errors
+
+### 3.2. Legacy Approach (Deprecated)
 
 1.  **Define/Update Type**:
     *   Find the appropriate module in `src/modules/` or create a new one.

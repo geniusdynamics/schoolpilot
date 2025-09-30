@@ -8,53 +8,59 @@ import '@testing-library/jest-dom';
 import DatePicker from '../components/ui/forms/DatePicker';
 
 // Mock the utility functions
-jest.mock('../utils/animations', () => ({
-  useTransition: () => [false, jest.fn()],
-  getAnimationStyles: (isOpen: boolean, animation: string) => 
-    isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+vi.mock('../utils/animations', () => ({
+  fadeIn: 'fadeIn',
+  fadeOut: 'fadeOut',
+  slideIn: 'slideIn',
+  slideOut: 'slideOut'
 }));
 
-jest.mock('../utils/accessibility', () => ({
-  useFocusManagement: () => ({
-    focusedElement: null,
-    setFocusedElement: jest.fn()
-  }),
-  useKeyboardNavigation: ({ onEscape, onEnter, onArrowKeys }: any) => ({
-    handleKeyDown: (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'Escape':
-          onEscape?.();
-          break;
-        case 'Enter':
-          onEnter?.();
-          break;
-        case 'ArrowUp':
-          onArrowKeys?.('up');
-          break;
-        case 'ArrowDown':
-          onArrowKeys?.('down');
-          break;
-        case 'ArrowLeft':
-          onArrowKeys?.('left');
-          break;
-        case 'ArrowRight':
-          onArrowKeys?.('right');
-          break;
-      }
-    }
-  }),
-  generateId: (prefix: string) => `${prefix}-test-id`,
-  createAriaDescribedBy: (ids: (string | undefined)[]) => ids.filter(Boolean).join(' '),
-  announceToScreenReader: jest.fn()
+vi.mock('../utils/accessibility', () => ({
+  announceToScreenReader: vi.fn(),
+  trapFocus: vi.fn(),
+  restoreFocus: vi.fn(),
+  getNextFocusableElement: vi.fn(),
+  getPreviousFocusableElement: vi.fn()
 }));
 
-jest.mock('../utils/designTokens', () => ({
-  designTokens: {
-    colors: {
-      primary: { 500: '#3b82f6' },
-      success: { 500: '#10b981' },
-      error: { 500: '#ef4444' }
+vi.mock('../utils/designTokens', () => ({
+  colors: {
+    primary: '#007bff',
+    secondary: '#6c757d',
+    success: '#28a745',
+    danger: '#dc3545',
+    warning: '#ffc107',
+    info: '#17a2b8',
+    light: '#f8f9fa',
+    dark: '#343a40'
+  },
+  spacing: {
+    xs: '0.25rem',
+    sm: '0.5rem',
+    md: '1rem',
+    lg: '1.5rem',
+    xl: '3rem'
+  },
+  typography: {
+    fontFamily: 'Inter, sans-serif',
+    fontSize: {
+      sm: '0.875rem',
+      base: '1rem',
+      lg: '1.125rem',
+      xl: '1.25rem'
     }
+  },
+  borderRadius: {
+    sm: '0.125rem',
+    base: '0.25rem',
+    md: '0.375rem',
+    lg: '0.5rem'
+  },
+  shadows: {
+    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    base: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
   }
 }));
 

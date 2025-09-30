@@ -321,9 +321,9 @@ export const DEFAULT_UNIFIED_CONFIG: UnifiedAppConfig = createDefaultConfig();
 const CONFIG_PRESETS_DEFINITIONS: Record<string, Partial<UnifiedAppConfig>> = {
   demo: {
     dataMode: 'demo',
-    useEnhancedFeatures: false,
+    useEnhancedFeatures: true,
     features: {
-      enhancedDataLayer: false,
+      enhancedDataLayer: true,
       networkStatusIndicator: false,
       moduleHealthIndicator: false,
       syncStatusComponent: false,

@@ -37,25 +37,15 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
   
   // Memoize settings module and menu to prevent unnecessary recalculations
   const settingsModule = useMemo(() => {
-    console.log('🔍 [SettingsPopup] All navigation items:', navigationItems);
     const module = navigationItems.find((item: any) => {
-      console.log('🔍 [SettingsPopup] Checking item:', {
-        name: item.name,
-        path: item.path,
-        modulePath: item.modulePath,
-        isGroup: item.isGroup,
-        matches: item.modulePath === '/settings' && item.isGroup
-      });
       return item.modulePath === '/settings' && item.isGroup;
     });
-    console.log('🔍 [SettingsPopup] Found settings module:', module);
     return module;
   }, [navigationItems]);
   
   const settingsMenu = useMemo(() => {
     try {
       const menu = settingsModule?.children || [];
-      console.log('🔍 [SettingsPopup] Settings menu items:', menu);
       return menu;
     } catch (error) {
       console.error('[SettingsPopup] Error getting settings menu:', error);
