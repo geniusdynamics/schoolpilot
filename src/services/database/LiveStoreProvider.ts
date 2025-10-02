@@ -1,20 +1,10 @@
-/**
- * SQLite WASM Database Provider Implementation
- * 
- * This provider integrates SQLite WASM with the existing database provider architecture,
- * enabling offline storage, cross-tab persistence using OPFS, and high-performance queries.
- * 
- * Features:
- * - SQLite WASM with OPFS storage
- * - Offline-first architecture
- * - Cross-tab persistence
- * - High-performance SQL queries
- * - Reactive data subscriptions
- * - Performance monitoring
- */
+// ABOUTME: LiveStore provider for multi-machine synchronization and peer-to-peer data sharing
+// ABOUTME: Provides real-time sync, peer discovery, conflict resolution, and distributed database capabilities
 
-import { Observable, BehaviorSubject, Subject } from 'rxjs';
-import { map, filter } from 'rxjs/operators';
+import { LiveStore } from '@livestore/livestore';
+import { WebAdapter } from '@livestore/adapter-web';
+import { Observable, BehaviorSubject, Subject, fromEvent } from 'rxjs';
+import { map, filter, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
   IDatabaseProvider,
   ICollection,
@@ -32,399 +22,460 @@ import {
   DatabaseError,
   CollectionError
 } from './interfaces';
-import sqlite3InitModule from '@sqlite.org/sqlite-wasm';
-import type { Database } from '@sqlite.org/sqlite-wasm';
-import { schema } from '../livestore/schema';
-import { SchemaConverter } from './SchemaConverter';
 
-// SQLite WASM Collection Implementation
-export class SQLiteCollectionWrapper<T extends { id?: string }> implements ICollection<T> {
+// LiveStore specific interfaces
+export interface LiveStoreConfig {
+  dbName: string;
+  version: number;
+  peerDiscovery?: {
+    enabled: boolean;
+    signalServer?: string;
+    stunServers?: string[];
+    turnServers?: Array<{
+      urls: string;
+      username?: string;
+      credential?: string;
+    }>;
+  };
+  sync?: {
+    enabled: boolean;
+    autoSync: boolean;
+    syncInterval: number;
+    conflictResolution: 'client-wins' | 'server-wins' | 'last-write-wins' | 'manual';
+  };
+  performance?: {
+    cacheSize: number;
+    maxConnections: number;
+    enableIndexing: boolean;
+  };
+}
+
+export interface PeerInfo {
+  id: string;
+  name: string;
+  status: 'connected' | 'disconnected' | 'connecting';
+  lastSeen: Date;
+  syncStatus: 'synced' | 'syncing' | 'conflict' | 'error';
+}
+
+export interface SyncStatus {
+  isActive: boolean;
+  connectedPeers: number;
+  lastSync: Date | null;
+  pendingChanges: number;
+  conflicts: number;
+  errors: string[];
+}
+
+// LiveStore Collection Implementation with Multi-Machine Sync
+export class LiveStoreCollection<T extends { id?: string }> implements ICollection<T> {
   private changeSubject = new Subject<CollectionChangeEvent<T>>();
   private dataSubject = new BehaviorSubject<T[]>([]);
   private isDestroyed = false;
-  private tableName: string;
+  private liveStoreConfig: LiveStoreConfig;
+  private syncStatus: SyncStatus;
+  private connectedPeers = new Map<string, PeerInfo>();
+  private conflictQueue: Array<{ local: T; remote: T; timestamp: Date }> = [];
 
   constructor(
-    private db: Database,
+    private liveStore: LiveStore,
+    private collectionName: string,
     public readonly name: string,
-    public readonly schema: CollectionSchema
+    public readonly schema: CollectionSchema,
+    liveStoreConfig: LiveStoreConfig
   ) {
-    this.tableName = this.sanitizeTableName(name);
-    this.createTable();
+    this.liveStoreConfig = liveStoreConfig;
+    this.syncStatus = {
+      isActive: false,
+      connectedPeers: 0,
+      lastSync: null,
+      pendingChanges: 0,
+      conflicts: 0,
+      errors: []
+    };
+    
+    this.setupChangeListener();
+    this.setupPeerDiscovery();
+    this.setupSyncMonitoring();
     this.loadInitialData();
   }
 
-  private sanitizeTableName(name: string): string {
-    // Convert collection name to valid SQL table name
-    return name.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
-  }
-
-  private createTable(): void {
-    try {
-      // Use schema converter to generate proper SQLite schema
-      const conversionResult = SchemaConverter.convertRxDBToSQLite(this.name, this.schema);
+  private setupChangeListener(): void {
+    // Subscribe to LiveStore changes
+    this.liveStore.subscribe(this.collectionName, (changes: any) => {
+      if (this.isDestroyed) return;
       
-      // Generate CREATE TABLE SQL
-      const createTableSQL = SchemaConverter.generateCreateTableSQL(conversionResult.sqlSchema);
-      console.log(`[SQLiteCollection] Creating table ${this.tableName} with SQL:`, createTableSQL);
-      
-      this.db.exec(createTableSQL);
-      
-      // Create indexes
-      const indexSQLs = SchemaConverter.generateCreateIndexSQL(this.tableName, conversionResult.indexes);
-      indexSQLs.forEach(indexSQL => {
-        console.log(`[SQLiteCollection] Creating index with SQL:`, indexSQL);
-        this.db.exec(indexSQL);
+      changes.forEach((change: any) => {
+        const eventType = change.type === 'delete' ? 'delete' : 
+                         change.type === 'insert' ? 'insert' : 'update';
+        
+        this.changeSubject.next({
+          type: eventType,
+          doc: this.transformDoc(change.doc),
+          id: change.doc.id || change.id
+        });
       });
       
-      console.log(`[SQLiteCollection] ✅ Successfully created table ${this.tableName} with ${conversionResult.indexes.length} indexes`);
-    } catch (error) {
-      console.error(`[SQLiteCollection] ❌ Failed to create table ${this.tableName}:`, error);
-      throw error;
+      // Update data subject
+      this.refreshDataSubject();
+    });
+  }
+
+  private setupPeerDiscovery(): void {
+    if (!this.liveStoreConfig.peerDiscovery?.enabled) {
+      return;
+    }
+
+    // Listen for peer connection events
+    this.liveStore.on('peer:connected', (peer: any) => {
+      console.log(`[LiveStoreCollection] Peer connected: ${peer.id}`);
+      
+      const peerInfo: PeerInfo = {
+        id: peer.id,
+        name: peer.name || `Peer-${peer.id.slice(0, 8)}`,
+        status: 'connected',
+        lastSeen: new Date(),
+        syncStatus: 'synced'
+      };
+      
+      this.connectedPeers.set(peer.id, peerInfo);
+      this.syncStatus.connectedPeers = this.connectedPeers.size;
+      
+      // Start sync with new peer
+      this.syncWithPeer(peer.id);
+    });
+
+    this.liveStore.on('peer:disconnected', (peer: any) => {
+      console.log(`[LiveStoreCollection] Peer disconnected: ${peer.id}`);
+      
+      this.connectedPeers.delete(peer.id);
+      this.syncStatus.connectedPeers = this.connectedPeers.size;
+    });
+
+    this.liveStore.on('peer:error', (error: any) => {
+      console.error(`[LiveStoreCollection] Peer error:`, error);
+      this.syncStatus.errors.push(`Peer error: ${error.message}`);
+    });
+  }
+
+  private setupSyncMonitoring(): void {
+    if (!this.liveStoreConfig.sync?.enabled) {
+      return;
+    }
+
+    // Monitor sync status
+    this.liveStore.on('sync:start', () => {
+      console.log(`[LiveStoreCollection] Sync started for ${this.name}`);
+      this.syncStatus.isActive = true;
+    });
+
+    this.liveStore.on('sync:complete', () => {
+      console.log(`[LiveStoreCollection] Sync completed for ${this.name}`);
+      this.syncStatus.isActive = false;
+      this.syncStatus.lastSync = new Date();
+    });
+
+    this.liveStore.on('sync:conflict', (conflict: any) => {
+      console.warn(`[LiveStoreCollection] Sync conflict detected in ${this.name}:`, conflict);
+      this.handleSyncConflict(conflict);
+    });
+
+    this.liveStore.on('sync:error', (error: any) => {
+      console.error(`[LiveStoreCollection] Sync error in ${this.name}:`, error);
+      this.syncStatus.errors.push(`Sync error: ${error.message}`);
+      this.syncStatus.isActive = false;
+    });
+
+    // Auto-sync if enabled
+    if (this.liveStoreConfig.sync?.autoSync) {
+      setInterval(() => {
+        this.syncAllPeers();
+      }, this.liveStoreConfig.sync.syncInterval || 30000);
+    }
+  }
+
+  private async syncWithPeer(peerId: string): Promise<void> {
+    try {
+      console.log(`[LiveStoreCollection] Syncing ${this.name} with peer ${peerId}`);
+      
+      const peer = this.connectedPeers.get(peerId);
+      if (peer) {
+        peer.syncStatus = 'syncing';
+      }
+      
+      await this.liveStore.sync(peerId, this.collectionName);
+      
+      if (peer) {
+        peer.syncStatus = 'synced';
+        peer.lastSeen = new Date();
+      }
+      
+      console.log(`[LiveStoreCollection] Sync completed with peer ${peerId}`);
+    } catch (error: any) {
+      console.error(`[LiveStoreCollection] Failed to sync with peer ${peerId}:`, error);
+      
+      const peer = this.connectedPeers.get(peerId);
+      if (peer) {
+        peer.syncStatus = 'error';
+      }
+      
+      this.syncStatus.errors.push(`Sync failed with peer ${peerId}: ${error.message}`);
+    }
+  }
+
+  private async syncAllPeers(): Promise<void> {
+    if (this.connectedPeers.size === 0) {
+      return;
+    }
+
+    console.log(`[LiveStoreCollection] Syncing ${this.name} with ${this.connectedPeers.size} peers`);
+    
+    const syncPromises = Array.from(this.connectedPeers.keys()).map(peerId => 
+      this.syncWithPeer(peerId)
+    );
+    
+    try {
+      await Promise.allSettled(syncPromises);
+      console.log(`[LiveStoreCollection] Bulk sync completed for ${this.name}`);
+    } catch (error: any) {
+      console.error(`[LiveStoreCollection] Bulk sync failed for ${this.name}:`, error);
+    }
+  }
+
+  private handleSyncConflict(conflict: any): void {
+    this.syncStatus.conflicts++;
+    
+    const { local, remote } = conflict;
+    this.conflictQueue.push({
+      local: this.transformDoc(local),
+      remote: this.transformDoc(remote),
+      timestamp: new Date()
+    });
+
+    switch (this.liveStoreConfig.sync?.conflictResolution) {
+      case 'client-wins':
+        // Keep local version
+        console.log(`[LiveStoreCollection] Conflict resolved (client wins) for ${this.name}`);
+        break;
+        
+      case 'server-wins':
+        // Accept remote version
+        console.log(`[LiveStoreCollection] Conflict resolved (server wins) for ${this.name}`);
+        this.liveStore.put(this.collectionName, remote);
+        break;
+        
+      case 'last-write-wins':
+        // Use timestamp to determine winner
+        const localTime = new Date(local.updatedAt || local.createdAt || 0);
+        const remoteTime = new Date(remote.updatedAt || remote.createdAt || 0);
+        
+        if (remoteTime > localTime) {
+          this.liveStore.put(this.collectionName, remote);
+          console.log(`[LiveStoreCollection] Conflict resolved (remote newer) for ${this.name}`);
+        } else {
+          console.log(`[LiveStoreCollection] Conflict resolved (local newer) for ${this.name}`);
+        }
+        break;
+        
+      case 'manual':
+      default:
+        // Manual resolution required
+        console.warn(`[LiveStoreCollection] Manual conflict resolution required for ${this.name}`);
+        break;
     }
   }
 
   private async loadInitialData(): Promise<void> {
     try {
-      const data = await this.find();
-      this.dataSubject.next(data);
-    } catch (error) {
-      console.error(`Failed to load initial data for collection ${this.name}:`, error);
+      const docs = await this.find();
+      this.dataSubject.next(docs);
+    } catch (error: any) {
+      console.error(`Failed to load initial data for ${this.name}:`, error);
     }
   }
 
-  private handleLiveStoreEvent(event: any): void {
-    const changeEvent: CollectionChangeEvent<T> = {
-      type: event.type || 'update',
-      doc: event.doc,
-      oldDoc: event.oldDoc,
-      id: event.doc?.id || event.id
-    };
-    
-    this.changeSubject.next(changeEvent);
-    
-    // Update the data subject
-    this.loadInitialData();
-  }
-
-  private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  private validateDocument(doc: any): void {
-    if (!doc) {
-      throw new CollectionError('Document cannot be null or undefined', this.name);
-    }
-  }
-
-  // CRUD Operations
-  async insert(doc: Omit<T, 'id'>): Promise<InsertResult<T>> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
-    this.validateDocument(doc);
-    
-    const id = this.generateId();
-    const fullDoc = { ...doc, id } as T;
-    
+  private async refreshDataSubject(): Promise<void> {
     try {
-      const columns = Object.keys(fullDoc).join(', ');
-      const placeholders = Object.keys(fullDoc).map(() => '?').join(', ');
-      const values = Object.values(fullDoc);
+      const docs = await this.find();
+      this.dataSubject.next(docs);
+    } catch (error: any) {
+      console.error(`Failed to refresh data subject for ${this.name}:`, error);
+    }
+  }
 
-      const sql = `INSERT INTO ${this.tableName} (${columns}) VALUES (${placeholders})`;
-      this.db.exec(sql, values);
+  private transformDoc(doc: any): T {
+    if (!doc) return doc;
+    
+    // Transform LiveStore document to application format
+    const transformed = { ...doc };
+    return transformed as T;
+  }
+
+  // CRUD Operations with Multi-Machine Sync
+  async insert(doc: Omit<T, 'id'>): Promise<InsertResult<T>> {
+    try {
+      const docWithId = {
+        ...doc,
+        id: this.generateId(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const result = await this.liveStore.put(this.collectionName, docWithId);
+      
+      // Sync with connected peers
+      if (this.liveStoreConfig.sync?.enabled && this.connectedPeers.size > 0) {
+        this.syncAllPeers();
+      }
       
       return {
-        id,
-        doc: fullDoc,
+        id: docWithId.id,
+        rev: result.rev || '1-' + Date.now(),
+        doc: docWithId as T,
         ok: true
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new CollectionError(
-        `Failed to insert document: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to insert document in ${this.name}: ${error?.message || String(error)}`,
         this.name
       );
     }
   }
 
   async insertMany(docs: Omit<T, 'id'>[]): Promise<BulkResult<T>> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
-    const results: InsertResult<T>[] = [];
-    const errors: Array<{ id: string; error: string; reason: string }> = [];
-
-    for (const doc of docs) {
-      try {
-        const result = await this.insert(doc);
-        results.push(result);
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        errors.push({
-          id: 'unknown',
-          error: 'insert_failed',
-          reason: errorMsg
-        });
-      }
-    }
-
-    return { docs: results, errors };
-  }
-
-  async findOne(idOrQuery: string | QueryOptions): Promise<T | null> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
     try {
-      if (typeof idOrQuery === 'string') {
-        return await this.findById(idOrQuery);
+      const docsWithIds = docs.map(doc => ({
+        ...doc,
+        id: this.generateId(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+
+      const results = await Promise.allSettled(
+        docsWithIds.map(doc => this.liveStore.put(this.collectionName, doc))
+      );
+      
+      const insertResults: InsertResult<T>[] = [];
+      const errors: Array<{ id: string; error: string; reason: string }> = [];
+      
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          insertResults.push({
+            id: docsWithIds[index].id,
+            rev: result.value.rev || '1-' + Date.now(),
+            doc: docsWithIds[index] as T,
+            ok: true
+          });
+        } else {
+          errors.push({
+            id: docsWithIds[index].id,
+            error: 'Insert failed',
+            reason: result.reason?.message || String(result.reason)
+          });
+        }
+      });
+      
+      // Sync with connected peers
+      if (this.liveStoreConfig.sync?.enabled && this.connectedPeers.size > 0) {
+        this.syncAllPeers();
       }
       
-      const results = await this.find({ ...idOrQuery, limit: 1 });
-      return results.length > 0 ? results[0] : null;
-    } catch (error) {
+      return { docs: insertResults, errors };
+    } catch (error: any) {
       throw new CollectionError(
-        `Failed to find document: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to insert multiple documents in ${this.name}: ${error?.message || String(error)}`,
         this.name
       );
     }
   }
 
   async findById(id: string): Promise<T | null> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
     try {
-      const sql = `SELECT * FROM ${this.tableName} WHERE id = ? LIMIT 1`;
-      const stmt = this.db.prepare(sql);
-      const result = stmt.get([id]);
-      stmt.finalize();
-      
-      return result ? this.parseRow(result) : null;
-    } catch (error) {
+      const doc = await this.liveStore.get(this.collectionName, id);
+      return doc ? this.transformDoc(doc) : null;
+    } catch (error: any) {
+      if (error?.status === 404 || error?.message?.includes('not found')) {
+        return null;
+      }
       throw new CollectionError(
-        `Failed to find document by ID: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to find document by ID in ${this.name}: ${error?.message || String(error)}`,
         this.name
       );
     }
   }
 
-  private parseRow(row: any): T {
-    // Convert SQLite row to typed document
-    const doc = { ...row } as T;
-    
-    // Parse JSON fields if needed
-    Object.entries(this.schema.properties).forEach(([key, prop]) => {
-      if (prop.type === 'object' || prop.type === 'array') {
-        if (doc[key as keyof T] && typeof doc[key as keyof T] === 'string') {
-          try {
-            doc[key as keyof T] = JSON.parse(doc[key as keyof T] as string);
-          } catch {
-            // Keep as string if parsing fails
-          }
-        }
-      }
-    });
-    
-    return doc;
-  }
-
-  async find(query?: QueryOptions): Promise<T[]> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
+  async find(query: QueryOptions = {}): Promise<T[]> {
     try {
-      let sql = `SELECT * FROM ${this.tableName}`;
-      const params: any[] = [];
+      let docs = await this.liveStore.query(this.collectionName, query.selector || {});
       
-      // Build WHERE clause from selector
-      if (query?.selector) {
-        const whereConditions = this.buildWhereClause(query.selector, params);
-        if (whereConditions) {
-          sql += ` WHERE ${whereConditions}`;
-        }
-      }
-      
-      // Build ORDER BY clause
-      if (query?.sort) {
-        const orderBy = this.buildOrderByClause(query.sort);
-        if (orderBy) {
-          sql += ` ORDER BY ${orderBy}`;
-        }
-      }
-      
-      // Add LIMIT and OFFSET
-      if (query?.limit) {
-        sql += ` LIMIT ${query.limit}`;
-      }
-      
-      if (query?.skip) {
-        sql += ` OFFSET ${query.skip}`;
-      }
-      
-      const stmt = this.db.prepare(sql);
-      const results = stmt.all(params);
-      stmt.finalize();
-      
-      return results.map(row => this.parseRow(row));
-    } catch (error) {
-      throw new CollectionError(
-        `Failed to find documents: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        this.name
-      );
-    }
-  }
-
-  private buildWhereClause(selector: any, params: any[]): string {
-    const conditions: string[] = [];
-    
-    Object.entries(selector).forEach(([key, value]) => {
-      if (typeof value === 'object' && value !== null) {
-        // Handle operators like $eq, $gt, $lt, etc.
-        Object.entries(value).forEach(([op, opValue]) => {
-          switch (op) {
-            case '$eq':
-              conditions.push(`${key} = ?`);
-              params.push(opValue);
-              break;
-            case '$gt':
-              conditions.push(`${key} > ?`);
-              params.push(opValue);
-              break;
-            case '$gte':
-              conditions.push(`${key} >= ?`);
-              params.push(opValue);
-              break;
-            case '$lt':
-              conditions.push(`${key} < ?`);
-              params.push(opValue);
-              break;
-            case '$lte':
-              conditions.push(`${key} <= ?`);
-              params.push(opValue);
-              break;
-            case '$ne':
-              conditions.push(`${key} != ?`);
-              params.push(opValue);
-              break;
-            case '$in':
-              if (Array.isArray(opValue)) {
-                const placeholders = opValue.map(() => '?').join(', ');
-                conditions.push(`${key} IN (${placeholders})`);
-                params.push(...opValue);
-              }
-              break;
-            case '$regex':
-              conditions.push(`${key} LIKE ?`);
-              params.push(`%${opValue}%`);
-              break;
+      // Apply sorting
+      if (query.sort) {
+        docs = docs.sort((a: any, b: any) => {
+          for (const [field, direction] of Object.entries(query.sort!)) {
+            const aVal = a[field];
+            const bVal = b[field];
+            const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+            if (comparison !== 0) {
+              return direction === 'desc' ? -comparison : comparison;
+            }
           }
+          return 0;
         });
-      } else {
-        // Simple equality
-        conditions.push(`${key} = ?`);
-        params.push(value);
       }
-    });
-    
-    return conditions.join(' AND ');
-  }
-
-  private buildOrderByClause(sort: any): string {
-    if (typeof sort === 'string') {
-      return `${sort} ASC`;
+      
+      // Apply pagination
+      if (query.skip) {
+        docs = docs.slice(query.skip);
+      }
+      if (query.limit) {
+        docs = docs.slice(0, query.limit);
+      }
+      
+      return docs.map((doc: any) => this.transformDoc(doc));
+    } catch (error: any) {
+      throw new CollectionError(
+        `Failed to find documents in ${this.name}: ${error?.message || String(error)}`,
+        this.name
+      );
     }
-    
-    if (Array.isArray(sort)) {
-      return sort.map(s => {
-        if (typeof s === 'string') {
-          return `${s} ASC`;
-        } else {
-          return Object.entries(s)
-            .map(([field, direction]) => `${field} ${direction === 1 ? 'ASC' : 'DESC'}`)
-            .join(', ');
-        }
-      }).join(', ');
-    }
-    
-    if (typeof sort === 'object') {
-      return Object.entries(sort)
-        .map(([field, direction]) => `${field} ${direction === 1 ? 'ASC' : 'DESC'}`)
-        .join(', ');
-    }
-    
-    return '';
-  }
-
-  private convertQueryToLiveStore(query?: QueryOptions): any {
-    if (!query) return {};
-    
-    const liveStoreQuery: any = {};
-    
-    if (query.selector) {
-      liveStoreQuery.where = query.selector;
-    }
-    
-    if (query.sort) {
-      liveStoreQuery.orderBy = query.sort;
-    }
-    
-    if (query.limit) {
-      liveStoreQuery.limit = query.limit;
-    }
-    
-    if (query.skip) {
-      liveStoreQuery.offset = query.skip;
-    }
-    
-    return liveStoreQuery;
   }
 
   async update(id: string, update: Partial<T>): Promise<UpdateResult<T>> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
     try {
       const existing = await this.findById(id);
       if (!existing) {
-        throw new CollectionError(`Document with ID ${id} not found`, this.name);
+        throw new Error(`Document with ID ${id} not found`);
       }
-
-      const updatedDoc = { ...existing, ...update, id } as T;
       
-      const setClause = Object.keys(update)
-        .map(key => `${key} = ?`)
-        .join(', ');
-      const values = [...Object.values(update), id];
-
-      const sql = `UPDATE ${this.tableName} SET ${setClause}, updated_at = strftime('%s', 'now') WHERE id = ?`;
-      this.db.exec(sql, values);
+      const updatedDoc = {
+        ...existing,
+        ...update,
+        id,
+        updatedAt: new Date().toISOString()
+      };
+      
+      const result = await this.liveStore.put(this.collectionName, updatedDoc);
+      
+      // Sync with connected peers
+      if (this.liveStoreConfig.sync?.enabled && this.connectedPeers.size > 0) {
+        this.syncAllPeers();
+      }
       
       return {
         id,
-        doc: updatedDoc,
+        rev: result.rev || '2-' + Date.now(),
+        doc: updatedDoc as T,
         ok: true
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new CollectionError(
-        `Failed to update document: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to update document in ${this.name}: ${error?.message || String(error)}`,
         this.name
       );
     }
   }
 
   async updateMany(query: QueryOptions, update: Partial<T>): Promise<UpdateResult<T>[]> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
     try {
       const docs = await this.find(query);
       const results: UpdateResult<T>[] = [];
@@ -437,40 +488,38 @@ export class SQLiteCollectionWrapper<T extends { id?: string }> implements IColl
       }
       
       return results;
-    } catch (error) {
+    } catch (error: any) {
       throw new CollectionError(
-        `Failed to update documents: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to update multiple documents in ${this.name}: ${error?.message || String(error)}`,
         this.name
       );
     }
   }
 
   async remove(id: string): Promise<DeleteResult> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
     try {
-      await this.liveStoreCollection.delete(id);
+      await this.liveStore.delete(this.collectionName, id);
+      
+      // Sync with connected peers
+      if (this.liveStoreConfig.sync?.enabled && this.connectedPeers.size > 0) {
+        this.syncAllPeers();
+      }
       
       return {
         id,
+        rev: 'deleted-' + Date.now(),
         ok: true,
         deleted: true
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new CollectionError(
-        `Failed to remove document: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to remove document from ${this.name}: ${error?.message || String(error)}`,
         this.name
       );
     }
   }
 
   async removeMany(query: QueryOptions): Promise<DeleteResult[]> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
     try {
       const docs = await this.find(query);
       const results: DeleteResult[] = [];
@@ -483,123 +532,77 @@ export class SQLiteCollectionWrapper<T extends { id?: string }> implements IColl
       }
       
       return results;
-    } catch (error) {
+    } catch (error: any) {
       throw new CollectionError(
-        `Failed to remove documents: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to remove multiple documents from ${this.name}: ${error?.message || String(error)}`,
         this.name
       );
     }
   }
 
-  // RxDB-compatible methods
+  // Upsert operation (update or insert)
   async upsert(id: string, doc: Partial<T>): Promise<UpdateResult<T> | InsertResult<T>> {
-    const existing = await this.findById(id);
-    
-    if (existing) {
-      return await this.update(id, doc);
-    } else {
-      return await this.insert({ ...doc, id } as Omit<T, 'id'>);
-    }
-  }
-
-  async delete(id: string): Promise<DeleteResult> {
-    if (this.isDestroyed) {
-      throw new CollectionError('Collection has been destroyed', this.name);
-    }
-
     try {
       const existing = await this.findById(id);
-      if (!existing) {
-        return {
-          id,
-          ok: false,
-          deleted: false
-        };
+      if (existing) {
+        return await this.update(id, doc);
+      } else {
+        const docWithId = { ...doc, id } as Omit<T, 'id'>;
+        return await this.insert(docWithId);
       }
-
-      const sql = `DELETE FROM ${this.tableName} WHERE id = ?`;
-      this.db.exec(sql, [id]);
-      
-      return {
-        id,
-        ok: true,
-        deleted: true
-      };
-    } catch (error) {
+    } catch (error: any) {
       throw new CollectionError(
-        `Failed to delete document: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to upsert document in ${this.name}: ${error?.message || String(error)}`,
         this.name
       );
+    }
+  }
+
+  // RxDB Compatibility Aliases
+  async delete(id: string): Promise<DeleteResult> {
+    return this.remove(id);
+  }
+
+  async findOne(idOrQuery: string | QueryOptions): Promise<T | null> {
+    if (typeof idOrQuery === 'string') {
+      return this.findById(idOrQuery);
+    } else {
+      try {
+        const results = await this.find({ ...idOrQuery, limit: 1 });
+        return results.length > 0 ? results[0] : null;
+      } catch (error: any) {
+        throw new CollectionError(
+          `Failed to find document in ${this.name}: ${error?.message || String(error)}`,
+          this.name
+        );
+      }
     }
   }
 
   // Reactive Operations
   subscribe(query?: QueryOptions): Observable<T[]> {
     if (query) {
-      return this.dataSubject.pipe(
-        map(data => {
-          // Apply query filtering on the client side
-          let filtered = data;
-          
-          if (query.selector) {
-            filtered = filtered.filter(doc => this.matchesSelector(doc, query.selector!));
+      return new Observable(subscriber => {
+        const updateData = async () => {
+          try {
+            const data = await this.find(query);
+            subscriber.next(data);
+          } catch (error: any) {
+            subscriber.error(error);
           }
-          
-          if (query.sort) {
-            filtered = this.applySorting(filtered, query.sort);
-          }
-          
-          if (query.skip) {
-            filtered = filtered.slice(query.skip);
-          }
-          
-          if (query.limit) {
-            filtered = filtered.slice(0, query.limit);
-          }
-          
-          return filtered;
-        })
-      );
+        };
+        
+        updateData();
+        
+        const changeSubscription = this.changeSubject.subscribe(() => {
+          updateData();
+        });
+        
+        return () => changeSubscription.unsubscribe();
+      });
+    } else {
+      return this.dataSubject.asObservable();
     }
-    
-    return this.dataSubject.asObservable();
-  }
-
-  private matchesSelector(doc: T, selector: Record<string, any>): boolean {
-    for (const [key, value] of Object.entries(selector)) {
-      const docValue = (doc as any)[key];
-      if (docValue !== value) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private applySorting(data: T[], sort: Array<string | Record<string, 'asc' | 'desc'>>): T[] {
-    return data.sort((a, b) => {
-      for (const sortItem of sort) {
-        let field: string;
-        let direction: 'asc' | 'desc' = 'asc';
-        
-        if (typeof sortItem === 'string') {
-          field = sortItem;
-        } else {
-          field = Object.keys(sortItem)[0];
-          direction = Object.values(sortItem)[0];
-        }
-        
-        const aValue = (a as any)[field];
-        const bValue = (b as any)[field];
-        
-        if (aValue < bValue) {
-          return direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return direction === 'asc' ? 1 : -1;
-        }
-      }
-      return 0;
-    });
   }
 
   subscribeToChanges(): Observable<CollectionChangeEvent<T>> {
@@ -608,118 +611,324 @@ export class SQLiteCollectionWrapper<T extends { id?: string }> implements IColl
 
   // Performance Operations
   async count(query?: QueryOptions): Promise<number> {
-    const results = await this.find(query);
-    return results.length;
+    try {
+      const docs = await this.find(query || {});
+      return docs.length;
+    } catch (error: any) {
+      throw new CollectionError(
+        `Failed to count documents in ${this.name}: ${error?.message || String(error)}`,
+        this.name
+      );
+    }
   }
 
   async exists(id: string): Promise<boolean> {
-    const doc = await this.findById(id);
-    return doc !== null;
+    try {
+      const doc = await this.findById(id);
+      return doc !== null;
+    } catch (error: any) {
+      return false;
+    }
   }
 
   async createIndex(index: IndexDefinition): Promise<void> {
-    // LiveStore handles indexing automatically based on schema
-    console.log(`Index creation for ${index.name} is handled automatically by LiveStore`);
+    try {
+      await this.liveStore.createIndex(this.collectionName, {
+        fields: index.fields,
+        name: index.name
+      });
+    } catch (error: any) {
+      throw new CollectionError(
+        `Failed to create index in ${this.name}: ${error?.message || String(error)}`,
+        this.name
+      );
+    }
   }
 
   // Collection management
   async getStats(): Promise<CollectionStats> {
-    const count = await this.count();
-    
-    return {
-      name: this.name,
-      documentCount: count,
-      indexCount: this.schema.indexes?.length || 0,
-      storageSize: 0, // LiveStore doesn't expose storage size
-      lastModified: new Date()
-    };
+    try {
+      const count = await this.count();
+      
+      return {
+        name: this.name,
+        documentCount: count,
+        indexCount: 0, // LiveStore doesn't provide easy access to index count
+        storageSize: 0, // LiveStore doesn't provide storage size info
+        lastModified: new Date()
+      };
+    } catch (error: any) {
+      throw new CollectionError(
+        `Failed to get stats for ${this.name}: ${error?.message || String(error)}`,
+        this.name
+      );
+    }
   }
 
   async compact(): Promise<void> {
-    // LiveStore handles compaction automatically
-    console.log(`Compaction for collection ${this.name} is handled automatically by LiveStore`);
+    try {
+      // LiveStore handles compaction automatically
+      console.log(`[LiveStoreCollection] Compaction requested for ${this.name} (handled automatically)`);
+    } catch (error: any) {
+      throw new CollectionError(
+        `Failed to compact ${this.name}: ${error?.message || String(error)}`,
+        this.name
+      );
+    }
   }
 
   async destroy(): Promise<void> {
-    this.isDestroyed = true;
-    this.changeSubject.complete();
-    this.dataSubject.complete();
+    try {
+      console.log(`[LiveStoreCollection] Destroying collection ${this.name}...`);
+      
+      this.isDestroyed = true;
+      
+      // Disconnect from all peers
+      for (const peerId of this.connectedPeers.keys()) {
+        try {
+          await this.liveStore.disconnect(peerId);
+        } catch (error: any) {
+          console.error(`Failed to disconnect from peer ${peerId}:`, error);
+        }
+      }
+      
+      this.connectedPeers.clear();
+      this.conflictQueue = [];
+      
+      // Complete subjects
+      this.changeSubject.complete();
+      this.dataSubject.complete();
+      
+      console.log(`[LiveStoreCollection] Collection ${this.name} destroyed successfully`);
+    } catch (error: any) {
+      console.error(`[LiveStoreCollection] Failed to destroy ${this.name}:`, error);
+      throw new CollectionError(
+        `Failed to destroy: ${error instanceof Error ? error.message : String(error)}`,
+        this.name
+      );
+    }
+  }
+
+  // LiveStore specific methods
+
+  /**
+   * Get connected peers information
+   */
+  getConnectedPeers(): PeerInfo[] {
+    return Array.from(this.connectedPeers.values());
+  }
+
+  /**
+   * Get sync status information
+   */
+  getSyncStatus(): SyncStatus {
+    return { ...this.syncStatus };
+  }
+
+  /**
+   * Force sync with all connected peers
+   */
+  async forceSyncAllPeers(): Promise<void> {
+    await this.syncAllPeers();
+  }
+
+  /**
+   * Get pending conflicts that require manual resolution
+   */
+  getPendingConflicts(): Array<{ local: T; remote: T; timestamp: Date }> {
+    return [...this.conflictQueue];
+  }
+
+  /**
+   * Resolve a conflict manually
+   */
+  async resolveConflict(conflictIndex: number, resolution: 'local' | 'remote' | T): Promise<void> {
+    if (conflictIndex < 0 || conflictIndex >= this.conflictQueue.length) {
+      throw new Error('Invalid conflict index');
+    }
+
+    const conflict = this.conflictQueue[conflictIndex];
+    let resolvedDoc: T;
+
+    if (resolution === 'local') {
+      resolvedDoc = conflict.local;
+    } else if (resolution === 'remote') {
+      resolvedDoc = conflict.remote;
+    } else {
+      resolvedDoc = resolution;
+    }
+
+    // Apply resolution
+    if (resolvedDoc.id) {
+      await this.update(resolvedDoc.id, resolvedDoc);
+    }
+
+    // Remove from conflict queue
+    this.conflictQueue.splice(conflictIndex, 1);
+    this.syncStatus.conflicts = this.conflictQueue.length;
+
+    console.log(`[LiveStoreCollection] Conflict resolved for ${this.name}`);
+  }
+
+  /**
+   * Connect to a specific peer
+   */
+  async connectToPeer(peerId: string): Promise<void> {
+    try {
+      await this.liveStore.connect(peerId);
+      console.log(`[LiveStoreCollection] Connected to peer ${peerId}`);
+    } catch (error: any) {
+      console.error(`[LiveStoreCollection] Failed to connect to peer ${peerId}:`, error);
+      throw new CollectionError(`Failed to connect to peer: ${error.message}`, this.name);
+    }
+  }
+
+  /**
+   * Disconnect from a specific peer
+   */
+  async disconnectFromPeer(peerId: string): Promise<void> {
+    try {
+      await this.liveStore.disconnect(peerId);
+      this.connectedPeers.delete(peerId);
+      this.syncStatus.connectedPeers = this.connectedPeers.size;
+      console.log(`[LiveStoreCollection] Disconnected from peer ${peerId}`);
+    } catch (error: any) {
+      console.error(`[LiveStoreCollection] Failed to disconnect from peer ${peerId}:`, error);
+      throw new CollectionError(`Failed to disconnect from peer: ${error.message}`, this.name);
+    }
+  }
+
+  private generateId(): string {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 
-// SQLite WASM Provider Implementation
-export class SQLiteWASMProvider implements IDatabaseProvider {
-  public readonly name = 'SQLite WASM';
+// Enhanced LiveStore Provider Implementation with Multi-Machine Sync
+export class LiveStoreProvider implements IDatabaseProvider {
+  public readonly name = 'LiveStore';
   public readonly version = '1.0.0';
   
-  private db: Database | null = null;
-  private sqlite3: any = null;
-  private collections = new Map<string, SQLiteCollectionWrapper<any>>();
-  private isInitialized = false;
+  private collections = new Map<string, ICollection<any>>();
   private config: DatabaseConfig | null = null;
-  private dbPath: string = 'schoolpilot.db';
+  private liveStoreConfig: LiveStoreConfig;
+  private liveStore: LiveStore | null = null;
+  private isInitialized = false;
+  private performanceStats = {
+    avgQueryTime: 0,
+    totalQueries: 0,
+    memoryUsage: 0
+  };
 
-  async initialize(config: DatabaseConfig): Promise<void> {
+  constructor() {
+    this.liveStoreConfig = {
+      dbName: 'schoolpilot3-livestore',
+      version: 1,
+      peerDiscovery: {
+        enabled: true,
+        signalServer: 'wss://signal.livestore.dev',
+        stunServers: ['stun:stun.l.google.com:19302']
+      },
+      sync: {
+        enabled: true,
+        autoSync: true,
+        syncInterval: 30000,
+        conflictResolution: 'last-write-wins'
+      },
+      performance: {
+        cacheSize: 50, // MB
+        maxConnections: 10,
+        enableIndexing: true
+      }
+    };
+  }
+
+  async initialize(config: DatabaseConfig, liveStoreConfig?: Partial<LiveStoreConfig>): Promise<void> {
     try {
       this.config = config;
       
-      // Initialize SQLite WASM
-      this.sqlite3 = await sqlite3InitModule({
-        print: console.log,
-        printErr: console.error,
+      if (liveStoreConfig) {
+        this.liveStoreConfig = { ...this.liveStoreConfig, ...liveStoreConfig };
+      }
+      
+      // Create WebAdapter for LiveStore
+      const adapter = new WebAdapter({
+        dbName: this.liveStoreConfig.dbName,
+        version: this.liveStoreConfig.version
       });
 
-      // Configure for OPFS if available
-      const opfsAvailable = 'opfs' in this.sqlite3.capi;
-      
-      if (opfsAvailable && config.storage?.type === 'opfs') {
-        // Use OPFS for persistent storage
-        this.dbPath = `/opfs/${config.name || 'schoolpilot'}.db`;
-        this.db = new this.sqlite3.oo1.OpfsDb(this.dbPath);
-        console.log('SQLite WASM initialized with OPFS storage');
-      } else {
-        // Fallback to in-memory database
-        this.db = new this.sqlite3.oo1.DB();
-        console.log('SQLite WASM initialized with in-memory storage');
-      }
+      // Initialize LiveStore with peer discovery and sync
+      this.liveStore = new LiveStore({
+        adapter,
+        schema: {}, // Will be populated as collections are created
+        debug: process.env.NODE_ENV === 'development',
+        peerDiscovery: this.liveStoreConfig.peerDiscovery,
+        sync: this.liveStoreConfig.sync
+      });
 
-      // Enable WAL mode for better concurrency
-      this.db.exec('PRAGMA journal_mode=WAL');
-      this.db.exec('PRAGMA synchronous=NORMAL');
-      this.db.exec('PRAGMA cache_size=10000');
-      this.db.exec('PRAGMA temp_store=MEMORY');
+      // Setup global event listeners
+      this.setupGlobalEventListeners();
       
       this.isInitialized = true;
-      
-      console.log('SQLite WASM initialized successfully');
-    } catch (error) {
+      console.log('[LiveStoreProvider] Provider initialized successfully with multi-machine sync');
+    } catch (error: any) {
       throw new DatabaseError(
-        `Failed to initialize SQLite WASM: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to initialize LiveStore provider: ${error instanceof Error ? error.message : String(error)}`,
         'INITIALIZATION_ERROR',
         this.name
       );
     }
   }
 
-  async createCollection<T>(name: string, schema: CollectionSchema): Promise<ICollection<T>> {
-    if (!this.isInitialized || !this.db) {
-      throw new DatabaseError('SQLite WASM not initialized', 'NOT_INITIALIZED', this.name);
-    }
+  private setupGlobalEventListeners(): void {
+    if (!this.liveStore) return;
 
+    this.liveStore.on('peer:discovered', (peer: any) => {
+      console.log(`[LiveStoreProvider] Peer discovered: ${peer.id}`);
+    });
+
+    this.liveStore.on('sync:global:start', () => {
+      console.log('[LiveStoreProvider] Global sync started');
+    });
+
+    this.liveStore.on('sync:global:complete', () => {
+      console.log('[LiveStoreProvider] Global sync completed');
+    });
+
+    this.liveStore.on('error', (error: any) => {
+      console.error('[LiveStoreProvider] Global error:', error);
+    });
+  }
+
+  async createCollection<T = any>(name: string, schema: CollectionSchema): Promise<ICollection<T>> {
     try {
-      // Create SQLite collection wrapper
-      const collection = new SQLiteCollectionWrapper<T>(
-        this.db,
+      if (!this.isInitialized || !this.liveStore) {
+        throw new DatabaseError('Provider not initialized', 'NOT_INITIALIZED', this.name);
+      }
+      
+      console.log(`[LiveStoreProvider] Creating collection: ${name}`);
+      
+      // Register schema with LiveStore
+      await this.liveStore.addCollection(name, {
+        schema: schema.properties || {},
+        indexes: schema.indexes || []
+      });
+      
+      // Create collection wrapper with multi-machine sync
+      const collection = new LiveStoreCollection<T & { id?: string }>(
+        this.liveStore,
         name,
-        schema
+        name,
+        schema,
+        this.liveStoreConfig
       );
       
       this.collections.set(name, collection);
-      return collection;
       
-    } catch (error) {
+      console.log(`[LiveStoreProvider] Collection '${name}' created successfully with multi-machine sync`);
+      return collection;
+    } catch (error: any) {
       throw new DatabaseError(
-        `Failed to create collection ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to create collection '${name}': ${error instanceof Error ? error.message : String(error)}`,
         'COLLECTION_CREATION_ERROR',
         this.name,
         name
@@ -737,24 +946,28 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
 
   async destroy(): Promise<void> {
     try {
+      console.log('[LiveStoreProvider] Destroying provider...');
+      
       // Destroy all collections
-      for (const collection of this.collections.values()) {
-        await collection.destroy();
+      for (const [name, collection] of this.collections) {
+        try {
+          await collection.destroy();
+        } catch (error: any) {
+          console.error(`Failed to destroy collection '${name}':`, error);
+        }
       }
+      
+      // Disconnect from all peers and cleanup LiveStore
+      if (this.liveStore) {
+        await this.liveStore.destroy();
+      }
+      
       this.collections.clear();
-      
-      // Close SQLite database
-      if (this.db) {
-        this.db.close();
-        this.db = null;
-      }
-      
-      this.sqlite3 = null;
       this.isInitialized = false;
-      
-    } catch (error) {
+      console.log('[LiveStoreProvider] Provider destroyed successfully');
+    } catch (error: any) {
       throw new DatabaseError(
-        `Failed to destroy SQLite WASM: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to destroy LiveStore provider: ${error?.message || String(error)}`,
         'DESTRUCTION_ERROR',
         this.name
       );
@@ -762,52 +975,58 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
   }
 
   isAvailable(): boolean {
-    // Check if LiveStore dependencies are available
-    try {
-      return typeof window !== 'undefined' && 
-             'indexedDB' in window && 
-             window.indexedDB !== null;
-    } catch {
-      return false;
-    }
+    // Check if the environment supports LiveStore (WebRTC, IndexedDB, etc.)
+    return typeof window !== 'undefined' && 
+           !!window.indexedDB && 
+           !!window.RTCPeerConnection;
   }
 
   getStatus(): ProviderStatus {
+    const totalPeers = Array.from(this.collections.values())
+      .reduce((total, collection) => {
+        const liveStoreCollection = collection as any;
+        return total + (liveStoreCollection.getConnectedPeers?.()?.length || 0);
+      }, 0);
+
     return {
       name: this.name,
       version: this.version,
       isConnected: this.isInitialized,
       collectionsCount: this.collections.size,
-      performance: {
-        avgQueryTime: 0, // LiveStore doesn't expose this
-        totalQueries: 0,
-        memoryUsage: 0
+      performance: { 
+        ...this.performanceStats,
+        connectedPeers: totalPeers
       }
     };
   }
 
   async backup(): Promise<string> {
-    if (!this.isInitialized) {
-      throw new DatabaseError('LiveStore not initialized', 'NOT_INITIALIZED', this.name);
-    }
-
     try {
-      const backup: Record<string, any[]> = {};
+      const backupData: Record<string, any[]> = {};
+      const peerInfo: Record<string, PeerInfo[]> = {};
       
       for (const [name, collection] of this.collections) {
-        backup[name] = await collection.find();
+        const docs = await collection.find();
+        backupData[name] = docs;
+        
+        // Include peer information
+        const liveStoreCollection = collection as any;
+        if (liveStoreCollection.getConnectedPeers) {
+          peerInfo[name] = liveStoreCollection.getConnectedPeers();
+        }
       }
       
       return JSON.stringify({
-        version: this.version,
         timestamp: new Date().toISOString(),
-        config: this.config,
-        data: backup
+        provider: this.name,
+        version: this.version,
+        liveStoreConfig: this.liveStoreConfig,
+        peerInfo,
+        collections: backupData
       });
-      
-    } catch (error) {
+    } catch (error: any) {
       throw new DatabaseError(
-        `Failed to create backup: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to create backup: ${error instanceof Error ? error.message : String(error)}`,
         'BACKUP_ERROR',
         this.name
       );
@@ -815,42 +1034,116 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
   }
 
   async restore(backupData: string): Promise<void> {
-    if (!this.isInitialized) {
-      throw new DatabaseError('LiveStore not initialized', 'NOT_INITIALIZED', this.name);
-    }
-
     try {
       const backup = JSON.parse(backupData);
       
-      if (!backup.data) {
-        throw new Error('Invalid backup format');
+      if (backup.provider !== this.name) {
+        throw new Error(`Backup was created with ${backup.provider}, not ${this.name}`);
       }
       
-      for (const [collectionName, documents] of Object.entries(backup.data)) {
-        const collection = this.collections.get(collectionName);
-        if (collection && Array.isArray(documents)) {
+      for (const [collectionName, docs] of Object.entries(backup.collections)) {
+        const collection = this.getCollection(collectionName);
+        if (collection && Array.isArray(docs)) {
           // Clear existing data
-          const existing = await collection.find();
-          for (const doc of existing) {
-            if (doc.id) {
-              await collection.remove(doc.id);
+          const existingDocs = await collection.find();
+          for (const doc of existingDocs) {
+            if ((doc as any).id) {
+              await collection.remove((doc as any).id);
             }
           }
           
           // Insert backup data
-          for (const doc of documents) {
-            const { id, ...docWithoutId } = doc;
-            await collection.insert(docWithoutId);
+          if (docs.length > 0) {
+            await collection.insertMany(docs as any[]);
           }
         }
       }
       
-    } catch (error) {
+      console.log('[LiveStoreProvider] Backup restored successfully');
+    } catch (error: any) {
       throw new DatabaseError(
-        `Failed to restore backup: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to restore backup: ${error?.message || String(error)}`,
         'RESTORE_ERROR',
         this.name
       );
     }
+  }
+
+  // LiveStore specific methods
+
+  /**
+   * Get global peer statistics
+   */
+  getGlobalPeerStatistics(): {
+    totalPeers: number;
+    activeSyncs: number;
+    totalConflicts: number;
+    collectionsWithPeers: string[];
+  } {
+    let totalPeers = 0;
+    let activeSyncs = 0;
+    let totalConflicts = 0;
+    const collectionsWithPeers: string[] = [];
+
+    for (const [name, collection] of this.collections) {
+      const liveStoreCollection = collection as any;
+      
+      if (liveStoreCollection.getConnectedPeers) {
+        const peers = liveStoreCollection.getConnectedPeers();
+        if (peers.length > 0) {
+          totalPeers += peers.length;
+          collectionsWithPeers.push(name);
+        }
+      }
+      
+      if (liveStoreCollection.getSyncStatus) {
+        const syncStatus = liveStoreCollection.getSyncStatus();
+        if (syncStatus.isActive) activeSyncs++;
+        totalConflicts += syncStatus.conflicts;
+      }
+    }
+
+    return {
+      totalPeers,
+      activeSyncs,
+      totalConflicts,
+      collectionsWithPeers
+    };
+  }
+
+  /**
+   * Force sync all collections with all peers
+   */
+  async syncAllCollections(): Promise<{ [collectionName: string]: { success: boolean; error?: string } }> {
+    const results: { [collectionName: string]: { success: boolean; error?: string } } = {};
+    
+    console.log('[LiveStoreProvider] Syncing all collections with all peers...');
+    
+    for (const [name, collection] of this.collections) {
+      try {
+        const liveStoreCollection = collection as any;
+        if (liveStoreCollection.forceSyncAllPeers) {
+          await liveStoreCollection.forceSyncAllPeers();
+        }
+        results[name] = { success: true };
+        console.log(`[LiveStoreProvider] Successfully synced collection: ${name}`);
+      } catch (error: any) {
+        results[name] = {
+          success: false,
+          error: error instanceof Error ? error.message : String(error)
+        };
+        console.error(`[LiveStoreProvider] Failed to sync collection ${name}:`, error);
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * Configure LiveStore settings
+   */
+  configureLiveStore(config: Partial<LiveStoreConfig>): void {
+    this.liveStoreConfig = { ...this.liveStoreConfig, ...config };
+    console.log('[LiveStoreProvider] LiveStore configuration updated:', this.liveStoreConfig);
   }
 }

@@ -21,10 +21,47 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ error, errorInfo });
-    console.error('🚨🚨🚨 [ErrorBoundary] Caught error:', error);
-    console.error('🚨🚨🚨 [ErrorBoundary] Error info:', errorInfo);
+    
+    // Check if this is a database-related error
+    const isDatabaseError = this.isDatabaseRelatedError(error);
+    
+    console.error('🚨🚨🚨 [ErrorBoundary] Caught error:', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      isDatabaseError
+    });
+    
+    // Enhanced error reporting for database errors
+    if (isDatabaseError) {
+      console.error('🗄️ [ErrorBoundary] Database-related error detected');
+      // Additional database context could be collected here
+    }
+    
     // Optionally log error to external service
     // logErrorToService(error, errorInfo);
+  }
+
+  private isDatabaseRelatedError(error: Error): boolean {
+    const dbErrorPatterns = [
+      /database/i,
+      /sqlite/i,
+      /indexeddb/i,
+      /opfs/i,
+      /pouchdb/i,
+      /storage/i,
+      /quota.*exceeded/i,
+      /transaction/i,
+      /collection/i,
+      /provider/i
+    ];
+    
+    const errorMessage = error.message.toLowerCase();
+    const errorStack = (error.stack || '').toLowerCase();
+    
+    return dbErrorPatterns.some(pattern => 
+      pattern.test(errorMessage) || pattern.test(errorStack)
+    );
   }
 
   render() {

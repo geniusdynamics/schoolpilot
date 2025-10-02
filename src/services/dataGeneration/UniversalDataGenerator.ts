@@ -6,7 +6,7 @@ import { AdapterFactory } from './adapters/AdapterFactory';
 import { RelationshipManager } from './RelationshipManager';
 import {
   AdministrationGenerator,
-  AcademicGenerator,
+  AcademicsGenerator,
   FinancialGenerator,
   ClubsGenerator,
   DormitoryGenerator,
@@ -55,19 +55,25 @@ export class UniversalDataGenerator {
   }
 
   private initializeGenerators(): void {
+    const generatorConfig: DataGenerationConfig = {
+      locale: this.config.locale || 'en',
+      batchSize: this.config.batchSize || 100,
+      logProgress: this.config.logProgress || false
+    };
+
     this.generators = {
-      administration: new AdministrationGenerator(),
-      academic: new AcademicGenerator(),
-      finance: new FinancialGenerator(),
-      clubs: new ClubsGenerator(),
-      dormitory: new DormitoryGenerator(),
-      library: new LibraryGenerator(),
-      nutrition: new NutritionGenerator(),
-      payroll: new PayrollGenerator(),
-      inventory: new InventoryGenerator(),
-      transport: new TransportGenerator(),
-      communication: new CommunicationGenerator(),
-      health: new HealthGenerator()
+      administration: new AdministrationGenerator(generatorConfig),
+      academic: new AcademicsGenerator(generatorConfig),
+      finance: new FinancialGenerator(generatorConfig),
+      clubs: new ClubsGenerator(generatorConfig),
+      dormitory: new DormitoryGenerator(generatorConfig),
+      library: new LibraryGenerator(generatorConfig),
+      nutrition: new NutritionGenerator(generatorConfig),
+      payroll: new PayrollGenerator(generatorConfig),
+      inventory: new InventoryGenerator(generatorConfig),
+      transport: new TransportGenerator(generatorConfig),
+      communication: new CommunicationGenerator(generatorConfig),
+      health: new HealthGenerator(generatorConfig)
     };
   }
 

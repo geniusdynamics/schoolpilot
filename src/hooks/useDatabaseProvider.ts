@@ -30,6 +30,10 @@ interface DatabaseProviderResult extends Partial<AppDataContextType> {
   migrationStatus: 'pending' | 'running' | 'complete' | 'error';
   migrationError: string | null;
   clearMockData?: () => Promise<void>; // Add function to clear mock data
+  // Override loading to match AppDataContextType structure
+  loading: boolean | { all: boolean; [key: string]: boolean };
+  error: Error | null;
+  refresh: () => Promise<void>;
 }
 
 // Migration status tracking

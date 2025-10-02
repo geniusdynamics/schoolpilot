@@ -6,7 +6,7 @@
 // Environment Types
 export type Environment = 'development' | 'staging' | 'production';
 export type DataMode = 'demo' | 'production';
-export type DatabaseProvider = 'rxdb' | 'pouchdb' | 'sqlite' | 'memory';
+export type DatabaseProvider = 'rxdb' | 'pouchdb' | 'sqlite' | 'memory' | 'backend-api';
 
 // Environment Configuration
 export interface EnvironmentConfig {
@@ -33,7 +33,7 @@ const ENVIRONMENT_MATRIX: Record<Environment, EnvironmentConfig> = {
     name: 'development',
     allowedDataModes: ['demo', 'production'],
     defaultDataMode: 'demo',
-    allowedDatabaseProviders: ['rxdb', 'pouchdb', 'sqlite', 'memory'],
+    allowedDatabaseProviders: ['rxdb', 'pouchdb', 'sqlite', 'memory', 'backend-api'],
     defaultDatabaseProvider: 'sqlite',
     canSwitchDataModes: true,
     requiresConfirmation: false,
@@ -50,7 +50,7 @@ const ENVIRONMENT_MATRIX: Record<Environment, EnvironmentConfig> = {
     name: 'staging',
     allowedDataModes: ['demo', 'production'],
     defaultDataMode: 'demo',
-    allowedDatabaseProviders: ['rxdb', 'pouchdb'],
+    allowedDatabaseProviders: ['rxdb', 'pouchdb', 'backend-api'],
     defaultDatabaseProvider: 'rxdb',
     canSwitchDataModes: true,
     requiresConfirmation: true,
@@ -67,7 +67,7 @@ const ENVIRONMENT_MATRIX: Record<Environment, EnvironmentConfig> = {
     name: 'production',
     allowedDataModes: ['production'],
     defaultDataMode: 'production',
-    allowedDatabaseProviders: ['rxdb'],
+    allowedDatabaseProviders: ['rxdb', 'backend-api'],
     defaultDatabaseProvider: 'rxdb',
     canSwitchDataModes: false,
     requiresConfirmation: true,

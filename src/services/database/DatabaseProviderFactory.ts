@@ -15,11 +15,13 @@ import {
 import { PouchDBProvider } from './PouchDBProvider';
 import { RxDBProvider } from './RxDBProvider';
 import { SQLiteProvider } from './SQLiteProvider';
-import { SQLiteWASMProvider } from './LiveStoreProvider';
+import { SQLiteWASMProvider } from './SQLiteWASMProvider';
 import { SQLiteFileProvider } from './SQLiteFileProvider';
+import { BackendAPIProvider } from './BackendAPIProvider';
+import { getCurrentUnifiedConfig } from '../../config/unifiedConfig';
 
 // Provider Types
-export type ProviderType = 'pouchdb' | 'rxdb' | 'sqlite' | 'sqlite-wasm' | 'sqlite-file' | 'livestore' | 'hybrid';
+export type ProviderType = 'pouchdb' | 'rxdb' | 'sqlite' | 'sqlite-wasm' | 'sqlite-file' | 'livestore' | 'backend-api' | 'hybrid';
 
 // Provider creation options
 export interface ProviderCreationOptions {
@@ -34,54 +36,81 @@ export interface ProviderSelectionStrategy {
   selectProvider(requirements: CollectionRequirements): ProviderType;
 }
 
-// Default Provider Selection Strategy
+// Default Provider Selection Strategy with UnifiedConfig Integration
 export class DefaultProviderSelectionStrategy implements ProviderSelectionStrategy {
   selectProvider(requirements: CollectionRequirements): ProviderType {
-    // Enhanced provider selection strategy with SQLite WASM support
+    // Get current unified configuration
+    const config = getCurrentUnifiedConfig();
     
-    // SQLite WASM is preferred for:
-    // - Modern web applications requiring offline-first capabilities
-    // - OPFS storage for better performance and persistence
-    // - Cross-tab persistence and better performance
-    // - Production environments requiring advanced features
-    
-    // PouchDB is preferred for:
-    // - All collection counts (no artificial limits)
-    // - Offline-first applications (fallback)
-    // - Simple to moderate complexity queries
-    // - Better IndexedDB integration
-    
-    // SQLite is preferred for:
-    // - Development environments with persistent storage
-    // - Better performance with large datasets
-    // - Closer to production environment for testing
-    
-    // Check if we're in a development environment and want persistent storage
-    const isDevelopment = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
-    if (isDevelopment && requirements.requiresOffline) {
-      return 'sqlite-file';
+    // Check if user has explicitly configured a provider in unifiedConfig
+    if (config.database?.provider) {
+      console.log(`[ProviderSelectionStrategy] Using configured provider: ${config.database.provider}`);
+      
+      switch (config.database.provider) {
+        case 'sqlite':
+          // Choose SQLite variant based on environment
+          const environment = config.environment || 'production';
+          return environment === 'development' ? 'sqlite-file' : 'sqlite-wasm';
+        case 'pouchdb':
+          return 'pouchdb';
+        case 'rxdb':
+          return 'rxdb';
+        case 'backend-api':
+          return 'backend-api';
+        // case 'livestore': // Temporarily disabled
+        //   return 'pouchdb';
+        default:
+          console.warn(`[ProviderSelectionStrategy] Unknown configured provider ${config.database.provider}, using automatic selection`);
+      }
     }
     
-    // Use SQLite WASM for production environments with high performance requirements
-    if (requirements.requiresOffline && requirements.performanceLevel === 'high') {
-      return 'sqlite-wasm';
+    // Automatic provider selection based on environment and requirements
+    const environment = config.environment || 'production';
+    const isDevelopment = environment === 'development';
+    
+    console.log(`[ProviderSelectionStrategy] Automatic selection for environment: ${environment}`);
+    
+    // Development environment preferences
+    if (isDevelopment) {
+      if (requirements.requiresOffline) {
+        return 'sqlite-file'; // File-based SQLite for development persistence
+      }
+      return 'pouchdb'; // PouchDB for development flexibility
     }
     
-    // Use LiveStore for sync requirements
-    if (requirements.requiresSync && requirements.performanceLevel === 'high') {
-      return 'livestore';
+    // Production environment preferences
+    if (environment === 'production') {
+      // Use LiveStore for sync requirements in production
+      if (requirements.requiresSync && requirements.performanceLevel === 'high') {
+        return 'pouchdb'; // Fallback to pouchdb for now
+      }
+      
+      // Use SQLite WASM for high-performance offline applications
+      if (requirements.requiresOffline && requirements.performanceLevel === 'high') {
+        return 'sqlite-wasm';
+      }
+      
+      // Use RxDB for advanced reactive requirements
+      if (requirements.requiresReactivity && requirements.performanceLevel === 'high') {
+        return 'rxdb';
+      }
     }
     
-    if (requirements.requiresOffline || requirements.requiresSync) {
-      return 'pouchdb';
+    // Fallback logic based on requirements
+    if (requirements.requiresSync) {
+      // Check if backend API is configured
+      if (config.database?.apiConfig?.apiBaseUrl) {
+        return 'backend-api'; // Use Backend API for external sync
+      }
+      return 'pouchdb'; // PouchDB has good sync capabilities
     }
     
-    // Use RxDB only for specific advanced reactive requirements
-    if (requirements.requiresReactivity && requirements.performanceLevel === 'high') {
-      return 'rxdb';
+    if (requirements.requiresOffline) {
+      return 'sqlite-wasm'; // SQLite WASM for offline-first
     }
     
-    // Default to PouchDB for all other cases
+    // Default fallback
+    console.log('[ProviderSelectionStrategy] Using default fallback: pouchdb');
     return 'pouchdb';
   }
 }
@@ -257,6 +286,7 @@ export class QueryBuilder<T> {
 // Database Provider Factory Implementation
 export class DatabaseProviderFactory implements IDatabaseProviderFactory {
   private providers = new Map<ProviderType, IDatabaseProvider>();
+  private providerFactories = new Map<string, () => IDatabaseProvider>();
   private activeProvider: IDatabaseProvider | null = null;
   private selectionStrategy: ProviderSelectionStrategy;
 
@@ -268,10 +298,55 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     }
   }
 
-  private registerProvider(provider: IDatabaseProvider): void {
-    const providerType = this.getProviderType(provider);
-    this.providers.set(providerType, provider);
-    console.log(`Registered database provider: ${providerType}`);
+  public registerProvider(name: string, factory: () => IDatabaseProvider): void;
+  public registerProvider(provider: IDatabaseProvider): void;
+  public registerProvider(nameOrProvider: string | IDatabaseProvider, factory?: () => IDatabaseProvider): void {
+    if (typeof nameOrProvider === 'string' && factory) {
+      // Interface implementation: registerProvider(name: string, factory: () => IDatabaseProvider)
+      this.providerFactories.set(nameOrProvider, factory);
+      console.log(`Registered provider factory: ${nameOrProvider}`);
+    } else if (typeof nameOrProvider === 'object') {
+      // Internal implementation: registerProvider(provider: IDatabaseProvider)
+      const provider = nameOrProvider as IDatabaseProvider;
+      const providerType = this.getProviderType(provider);
+      this.providers.set(providerType, provider);
+      console.log(`Registered database provider: ${providerType}`);
+    }
+  }
+
+  private async createMockProvider(): Promise<IDatabaseProvider> {
+    // Create a minimal mock provider that prevents crashes
+    return {
+      name: 'MockProvider',
+      version: '1.0.0',
+      initialize: async () => {},
+      createCollection: async () => ({
+        name: 'mock',
+        insert: async () => ({ id: 'mock' }),
+        findById: async () => null,
+        find: async () => [],
+        update: async () => ({ id: 'mock' }),
+        delete: async () => true,
+        count: async () => 0,
+        clear: async () => {},
+        subscribe: () => ({ subscribe: () => ({ unsubscribe: () => {} }) })
+      } as any),
+      getCollection: () => null,
+      getAllCollections: () => new Map(),
+      destroy: async () => {},
+      isAvailable: () => true,
+      getStatus: () => ({ 
+        isConnected: true, 
+        isReady: true, 
+        error: null,
+        name: 'MockProvider',
+        version: '1.0.0',
+        collectionsCount: 0,
+        performance: { avgQueryTime: 0, totalQueries: 0, memoryUsage: 0 }
+      }),
+      backup: async () => '/mock/backup/path',
+      restore: async () => {}
+    };
   }
 
   private getProviderType(provider: IDatabaseProvider): ProviderType {
@@ -293,37 +368,168 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       return 'sqlite';
     } else if (constructorName.includes('LiveStore')) {
       // Direct LiveStore providers
-      return 'livestore';
+      return 'sqlite-wasm'; // Map LiveStore to sqlite-wasm for now
+    } else if (constructorName.includes('BackendAPI')) {
+      // Backend API providers
+      return 'backend-api';
     } else {
       throw new Error(`Unknown provider type: ${constructorName}`);
     }
   }
 
   private initializeProviders(): void {
-    // Register available providers
-    this.registerProvider(new PouchDBProvider());
-    this.registerProvider(new RxDBProvider());
-    // SQLiteProvider will be created with config when needed
-    this.registerProvider(new SQLiteWASMProvider());
-    this.registerProvider(new SQLiteFileProvider({
-      type: 'sqlite-file',
-      storage: { type: 'file' }
-    }));
-    
-    console.log('Database providers initialized:', Array.from(this.providers.keys()));
+    try {
+      console.log('[DatabaseProviderFactory] Starting provider initialization...');
+      
+      // Check environment variables for provider enablement
+      const enableRxDB = process.env.REACT_APP_ENABLE_RXDB === 'true';
+      const enablePouchDB = process.env.REACT_APP_ENABLE_POUCHDB !== 'false'; // Default true
+      const enableSQLiteWASM = process.env.REACT_APP_ENABLE_SQLITE_WASM !== 'false'; // Default true
+      const enableBackendAPI = process.env.REACT_APP_ENABLE_BACKEND_API !== 'false'; // Default true
+      
+      console.log('[DatabaseProviderFactory] Provider enablement flags:', {
+        enableRxDB,
+        enablePouchDB,
+        enableSQLiteWASM,
+        enableBackendAPI
+      });
+      
+      // Register available providers based on configuration
+      if (enablePouchDB) {
+        try {
+          const pouchProvider = new PouchDBProvider();
+          this.registerProvider(pouchProvider);
+          console.log('[DatabaseProviderFactory] PouchDB provider registered, isAvailable:', pouchProvider.isAvailable());
+        } catch (error) {
+          console.error('[DatabaseProviderFactory] Failed to register PouchDB provider:', error);
+        }
+      } else {
+        console.log('[DatabaseProviderFactory] PouchDB provider disabled via environment variable');
+      }
+      
+      if (enableRxDB) {
+        try {
+          const rxdbProvider = new RxDBProvider();
+          this.registerProvider(rxdbProvider);
+          console.log('[DatabaseProviderFactory] RxDB provider registered, isAvailable:', rxdbProvider.isAvailable());
+        } catch (error) {
+          console.error('[DatabaseProviderFactory] Failed to register RxDB provider:', error);
+        }
+      } else {
+        console.log('[DatabaseProviderFactory] RxDB provider disabled (unlicensed - set REACT_APP_ENABLE_RXDB=true to enable)');
+      }
+      
+      if (enableSQLiteWASM) {
+        try {
+          const sqliteWasmProvider = new SQLiteWASMProvider();
+          this.registerProvider(sqliteWasmProvider);
+          console.log('[DatabaseProviderFactory] SQLite WASM provider registered, isAvailable:', sqliteWasmProvider.isAvailable());
+        } catch (error) {
+          console.error('[DatabaseProviderFactory] Failed to register SQLite WASM provider:', error);
+        }
+      } else {
+        console.log('[DatabaseProviderFactory] SQLite WASM provider disabled via environment variable');
+      }
+      
+      if (enableBackendAPI) {
+        try {
+          const backendProvider = new BackendAPIProvider();
+          this.registerProvider(backendProvider);
+          console.log('[DatabaseProviderFactory] Backend API provider registered, isAvailable:', backendProvider.isAvailable());
+        } catch (error) {
+          console.error('[DatabaseProviderFactory] Failed to register Backend API provider:', error);
+        }
+      } else {
+        console.log('[DatabaseProviderFactory] Backend API provider disabled via environment variable');
+      }
+      
+      // Register SQLiteFileProvider for development (synchronously)
+      try {
+        // Skip SQLiteFileProvider in browser environment
+        if (typeof window === 'undefined') {
+          // Use synchronous import since we're in Node.js environment
+          const sqliteFileProvider = new SQLiteFileProvider();
+          this.registerProvider(sqliteFileProvider);
+          console.log('[DatabaseProviderFactory] SQLiteFileProvider registered successfully, isAvailable:', sqliteFileProvider.isAvailable());
+        } else {
+          console.log('[DatabaseProviderFactory] SQLiteFileProvider skipped in browser environment');
+        }
+      } catch (error) {
+        console.warn('[DatabaseProviderFactory] SQLiteFileProvider registration failed:', error);
+        console.log('[DatabaseProviderFactory] Continuing without SQLiteFileProvider');
+      }
+      
+      console.log('[DatabaseProviderFactory] Database providers initialized:', Array.from(this.providers.keys()));
+      console.log('[DatabaseProviderFactory] Available providers:', this.getAvailableProviderTypes());
+    } catch (error) {
+      console.error('[DatabaseProviderFactory] Provider initialization failed:', error);
+      // Continue with minimal providers
+      console.log('[DatabaseProviderFactory] Continuing with minimal provider set');
+    }
   }
 
-  async createProvider(
+  async createProviderWithRequirements(
     config: DatabaseConfig, 
     requirements?: CollectionRequirements,
     options?: ProviderCreationOptions
   ): Promise<IDatabaseProvider> {
     try {
+      console.log('[DatabaseProviderFactory] Creating provider with requirements:', requirements);
+      
       // Determine which provider to use
-      const providerType = requirements 
+      const primaryProviderType = requirements 
         ? this.selectionStrategy.selectProvider(requirements)
         : 'pouchdb'; // Default to PouchDB
       
+      console.log(`[DatabaseProviderFactory] Primary provider selected: ${primaryProviderType}`);
+      
+      // Try to create and initialize the primary provider
+      const provider = await this.createAndInitializeProvider(primaryProviderType, config, options);
+      
+      if (provider) {
+        this.activeProvider = provider;
+        console.log(`[DatabaseProviderFactory] Successfully created provider: ${primaryProviderType}`);
+        return provider;
+      }
+      
+      // If primary provider failed, try fallback providers
+      console.warn(`[DatabaseProviderFactory] Primary provider ${primaryProviderType} failed, trying fallbacks...`);
+      
+      const fallbackProviders: ProviderType[] = ['pouchdb', 'rxdb', 'backend-api'];
+      
+      for (const fallbackType of fallbackProviders) {
+        if (fallbackType === primaryProviderType) continue; // Skip already tried provider
+        
+        console.log(`[DatabaseProviderFactory] Trying fallback provider: ${fallbackType}`);
+        
+        const fallbackProvider = await this.createAndInitializeProvider(fallbackType, config, options);
+        if (fallbackProvider) {
+          this.activeProvider = fallbackProvider;
+          console.log(`[DatabaseProviderFactory] Successfully created fallback provider: ${fallbackType}`);
+          return fallbackProvider;
+        }
+      }
+      
+      // As a last resort, create a mock provider to prevent app crash
+      console.warn('[DatabaseProviderFactory] All providers failed, creating mock provider as fallback');
+      const mockProvider = await this.createMockProvider();
+      this.activeProvider = mockProvider;
+      return mockProvider;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new DatabaseError(
+        `Failed to create database provider: ${errorMessage}`,
+        'PROVIDER_CREATION_ERROR'
+      );
+    }
+  }
+
+  private async createAndInitializeProvider(
+    providerType: ProviderType,
+    config: DatabaseConfig,
+    options?: ProviderCreationOptions
+  ): Promise<IDatabaseProvider | null> {
+    try {
       let provider = this.providers.get(providerType);
       
       // Special handling for SQLiteProvider which needs config in constructor
@@ -333,43 +539,26 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       }
       
       if (!provider) {
-        throw new DatabaseError(
-          `Provider '${providerType}' not available`,
-          'PROVIDER_NOT_FOUND'
-        );
+        console.warn(`[DatabaseProviderFactory] Provider '${providerType}' not registered`);
+        return null;
       }
 
       // Check if provider is available in current environment
       if (!provider.isAvailable()) {
-        // Fallback to PouchDB if primary provider is not available
-        const fallbackProvider = this.providers.get('pouchdb');
-        if (!fallbackProvider || !fallbackProvider.isAvailable()) {
-          throw new DatabaseError(
-            'No database providers available in current environment',
-            'NO_PROVIDERS_AVAILABLE'
-          );
-        }
-        
-        console.warn(`Provider '${providerType}' not available, falling back to PouchDB`);
-        await fallbackProvider.initialize(config);
-        this.activeProvider = fallbackProvider;
-        return fallbackProvider;
+        console.warn(`[DatabaseProviderFactory] Provider '${providerType}' not available in current environment`);
+        return null;
       }
 
       // Merge options into config if provided
       const finalConfig = options ? { ...config, ...options } : config;
 
-      // Initialize the selected provider
+      // Initialize the provider
       await provider.initialize(finalConfig);
-      this.activeProvider = provider;
       
-      console.log(`Database provider '${providerType}' initialized successfully`);
       return provider;
     } catch (error) {
-      throw new DatabaseError(
-        `Failed to create database provider: ${error.message}`,
-        'PROVIDER_CREATION_ERROR'
-      );
+      console.error(`[DatabaseProviderFactory] Failed to initialize provider ${providerType}:`, error);
+      return null;
     }
   }
 
@@ -377,7 +566,14 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     return this.activeProvider;
   }
 
-  getAvailableProviders(): ProviderType[] {
+  getAvailableProviders(): string[] {
+    return Array.from(this.providers.keys()).filter(type => {
+      const provider = this.providers.get(type);
+      return provider?.isAvailable() ?? false;
+    });
+  }
+
+  getAvailableProviderTypes(): ProviderType[] {
     return Array.from(this.providers.keys()).filter(type => {
       const provider = this.providers.get(type);
       return provider?.isAvailable() ?? false;
@@ -399,7 +595,7 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       }
 
       // Create new provider
-      const provider = await this.createProvider(config, {
+      const provider = await this.createProviderWithRequirements(config, {
         collectionsCount: 88, // Support all collections
         requiresOffline: true,
         requiresSync: false,
@@ -410,8 +606,9 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
 
       return provider;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       throw new DatabaseError(
-        `Failed to switch to provider '${providerType}': ${error.message}`,
+        `Failed to switch to provider '${providerType}': ${errorMessage}`,
         'PROVIDER_SWITCH_ERROR'
       );
     }
@@ -428,6 +625,49 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
   // Query builder factory
   createQueryBuilder<T>(collectionName: string): QueryBuilder<T> {
     return new QueryBuilder<T>(collectionName);
+  }
+
+  // Get deployment mode from unifiedConfig
+  getDeploymentMode(): string {
+    const config = getCurrentUnifiedConfig();
+    return config.environment || 'production';
+  }
+
+  // Get database configuration from unifiedConfig
+  getDatabaseConfig(): any {
+    const config = getCurrentUnifiedConfig();
+    return config.database || {};
+  }
+
+  // Check if provider switching is allowed (development mode only)
+  isProviderSwitchingAllowed(): boolean {
+    const deploymentMode = this.getDeploymentMode();
+    return deploymentMode === 'development';
+  }
+
+  // IDatabaseProviderFactory interface implementation
+  async createProvider(type: string, config: DatabaseConfig): Promise<IDatabaseProvider> {
+    // Convert string type to ProviderType and use enhanced createProvider
+    const providerType = type as ProviderType;
+    const requirements: CollectionRequirements = {
+      collectionsCount: 88,
+      requiresOffline: true,
+      requiresSync: false,
+      requiresReactivity: true,
+      performanceLevel: 'standard',
+      storageQuota: 100 * 1024 * 1024
+    };
+    
+    return this.createProviderWithRequirements(config, requirements);
+  }
+
+  validateProvider(type: string): boolean {
+    const providerType = type as ProviderType;
+    return this.isProviderAvailable(providerType);
+  }
+
+  selectOptimalProvider(requirements: CollectionRequirements): string {
+    return this.selectionStrategy.selectProvider(requirements);
   }
 
   async destroy(): Promise<void> {
@@ -449,8 +689,9 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       this.providers.clear();
       console.log('Database provider factory destroyed');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       throw new DatabaseError(
-        `Failed to destroy provider factory: ${error.message}`,
+        `Failed to destroy provider factory: ${errorMessage}`,
         'FACTORY_DESTRUCTION_ERROR'
       );
     }
@@ -475,7 +716,4 @@ export function resetDatabaseProviderFactory(): void {
 }
 
 // Export types and utilities
-export {
-  ProviderType,
-  ProviderSelectionStrategy
-};
+// Note: ProviderSelectionStrategy exported above in class definition

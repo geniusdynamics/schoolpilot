@@ -23,7 +23,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { UnifiedAppConfig } from './config/unifiedConfig';
 import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from './hooks/useMemoryManagement';
-import { ActionProvider } from './contexts/ActionProvider';
+import { StableActionProvider } from './contexts/StableActionProvider';
 import { ToastProvider } from './hooks/useToast';
 
 // Lazy load components
@@ -369,30 +369,28 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   debugLog('🔍 [AppContent] User authenticated, showing layout');
   
   return (
-    <ActionProvider>
-      <Layout>
-        {/* Main content with error boundary */}
-        <div className="flex-1">
-          <ErrorBoundary key={location.pathname}>
-            <DynamicRoutes modulesInitialized={modulesInitialized} />
-          </ErrorBoundary>
-        </div>
-        
-        {/* Global notifications (if enabled) */}
-        {config.features.enableNotifications && config.environment !== 'demo' && (
-          <Suspense fallback={null}>
-            <GlobalNotifications />
-          </Suspense>
-        )}
-        
-        {/* Performance Monitor (Feature Flag Controlled) */}
-        {config.features.performanceMonitorWidget && (
-          <Suspense fallback={null}>
-            <PerformanceMonitor showDetails={true} />
-          </Suspense>
-        )}
-      </Layout>
-    </ActionProvider>
+    <Layout>
+      {/* Main content with error boundary */}
+      <div className="flex-1">
+        <ErrorBoundary key={location.pathname}>
+          <DynamicRoutes modulesInitialized={modulesInitialized} />
+        </ErrorBoundary>
+      </div>
+      
+      {/* Global notifications (if enabled) */}
+      {(config.features as any).enableNotifications && config.environment !== 'demo' && (
+        <Suspense fallback={null}>
+          <GlobalNotifications />
+        </Suspense>
+      )}
+      
+      {/* Performance Monitor (Feature Flag Controlled) */}
+      {config.features.performanceMonitorWidget && (
+        <Suspense fallback={null}>
+          <PerformanceMonitor showDetails={true} />
+        </Suspense>
+      )}
+    </Layout>
   );
 };
 
@@ -480,7 +478,11 @@ const AppInner: React.FC = () => {
       <DataProviderWrapper config={config}>
         <AuthProvider>
           <UserProvider>
-            <AppContent modulesInitialized={modulesInitialized} config={config} />
+            <ErrorBoundary>
+              <StableActionProvider>
+                <AppContent modulesInitialized={modulesInitialized} config={config} />
+              </StableActionProvider>
+            </ErrorBoundary>
           </UserProvider>
         </AuthProvider>
       </DataProviderWrapper>
