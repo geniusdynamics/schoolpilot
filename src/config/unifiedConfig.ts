@@ -94,6 +94,40 @@ export interface BackendConfig {
   lastChecked?: Date;
 }
 
+// Backend API Configuration for external system integration
+export interface BackendAPIConfig {
+  apiBaseUrl: string;
+  apiKey?: string;
+  authToken?: string;
+  authType?: 'bearer' | 'api-key' | 'basic' | 'custom';
+  customHeaders?: Record<string, string>;
+  timeout?: number;
+  retryAttempts?: number;
+  syncInterval?: number;
+  batchSize?: number;
+  enableOfflineQueue?: boolean;
+  conflictResolution?: 'local' | 'remote' | 'manual';
+  endpoints?: {
+    [collectionName: string]: {
+      basePath: string;
+      idField?: string;
+      timestampField?: string;
+      methods?: {
+        list?: string;
+        get?: string;
+        create?: string;
+        update?: string;
+        delete?: string;
+        sync?: string;
+      };
+      mapping?: {
+        [localField: string]: string;
+      };
+      filters?: Record<string, any>;
+    };
+  };
+}
+
 // Enhanced Database Configuration
 export interface DatabaseConfig {
   provider: DatabaseProvider;
@@ -101,6 +135,7 @@ export interface DatabaseConfig {
   autoDetect: boolean;
   connectionString?: string;
   options: Record<string, any>;
+  apiConfig?: BackendAPIConfig;
 }
 
 // Production Demo Configuration Integration

@@ -209,7 +209,7 @@ export const useActionRegistry = create<ActionRegistryStore>()(subscribeWithSele
     // Permission validation
     hasPermission: (action, userPermissions, userRole) => {
       // Check required permissions
-      if (action.requiredPermissions.length > 0) {
+      if (action.requiredPermissions && action.requiredPermissions.length > 0) {
         const hasAllPermissions = action.requiredPermissions.every(permission =>
           userPermissions.includes(permission)
         );
@@ -361,7 +361,11 @@ export const useActionRegistry = create<ActionRegistryStore>()(subscribeWithSele
         state.updateAction(actionId, { loading: true });
         
         // Execute the action
-        await action.onClick(context);
+        if (action.execute) {
+          await action.execute(context);
+        } else if (action.onClick) {
+          await action.onClick(context);
+        }
         
         console.log(`Action executed successfully: ${actionId}`);
       } catch (error) {
@@ -394,25 +398,53 @@ export const useActionRegistry = create<ActionRegistryStore>()(subscribeWithSele
     setCurrentContext: (context) => {
       const state = get();
       
+      // Create a stable comparison key to avoid deep object comparison
+      const createContextKey = (ctx: ActionContext | null) => {
+        if (!ctx) return null;
+        return `${ctx.module}:${ctx.submodule || ''}:${ctx.feature || ''}:${ctx.user.id}:${ctx.user.role}:${ctx.activeTab?.id || ''}`;
+      };
+      
+      const currentKey = createContextKey(state.currentContext);
+      const newKey = createContextKey(context);
+      
       // Only update if context actually changed
-      if (state.currentContext && 
-          JSON.stringify(state.currentContext) === JSON.stringify(context)) {
+      if (currentKey === newKey) {
         return;
       }
       
       set({ currentContext: context });
       
-      // Use setTimeout to prevent synchronous updates that could cause loops
-      setTimeout(() => {
-        get().updateContextualActions();
-      }, 0);
+      // Debounce contextual actions update to prevent rapid successive calls
+      const updateActions = () => {
+        const latestState = get();
+        if (latestState.currentContext) {
+          const contextualActions = latestState.getActionsForContext(latestState.currentContext);
+          // Only update if actions actually changed
+          const currentActionsIds = latestState.contextualActions.map(a => a.id).sort().join(',');
+          const newActionsIds = contextualActions.map(a => a.id).sort().join(',');
+          
+          if (currentActionsIds !== newActionsIds) {
+            set({ contextualActions });
+          }
+        }
+      };
+      
+      // Use a longer timeout to prevent cascading updates
+      setTimeout(updateActions, 150);
     },
     
     updateContextualActions: () => {
       const state = get();
       if (state.currentContext) {
         const contextualActions = state.getActionsForContext(state.currentContext);
-        set({ contextualActions });
+        
+        // Only update if actions actually changed to prevent unnecessary re-renders
+        const currentActionsIds = state.contextualActions.map(a => a.id).sort().join(',');
+        const newActionsIds = contextualActions.map(a => a.id).sort().join(',');
+        
+        if (currentActionsIds !== newActionsIds) {
+          set({ contextualActions });
+        }
       }
     },
     

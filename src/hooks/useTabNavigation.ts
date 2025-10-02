@@ -5,7 +5,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTabStore, Tab, TabContent, TabGroup } from '../stores/tabStore';
 import { useAuth } from '../contexts/AuthContext';
-import { useActionProvider } from '../contexts/ActionProvider';
+import { useStableActionProvider } from '../contexts/StableActionProvider';
 import { useToastHelpers } from './useToast';
 
 // Navigation options for creating tabs
@@ -108,7 +108,7 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { setModuleContext } = useActionProvider();
+  const { setModuleContext } = useStableActionProvider();
   const { showWarning, showError, showInfo } = useToastHelpers();
   
   const {

@@ -59,7 +59,7 @@ export class SchemaConverter {
    * Convert RxDB schema to SQLite-compatible format
    */
   static convertRxDBToSQLite(collectionName: string, rxdbSchema: any): ConversionResult {
-    console.log(`[SchemaConverter] Converting schema for collection: ${collectionName}`);
+    // Reduced logging to prevent spam - only log errors
     
     if (!rxdbSchema || typeof rxdbSchema !== 'object') {
       throw new Error(`Invalid schema for collection ${collectionName}: expected object, got ${typeof rxdbSchema}`);
@@ -88,8 +88,6 @@ export class SchemaConverter {
     
     // Extract relationships
     const relationships = this.extractRelationships(schema.properties || {});
-
-    console.log(`[SchemaConverter] Successfully converted schema for ${collectionName}`);
     
     return {
       schema: collectionSchema,
@@ -360,7 +358,8 @@ export class SchemaConverter {
    * Convert all collections from RxDB format to SQLite format
    */
   static convertAllCollections(collectionsDefinition: Record<string, any>): Record<string, ConversionResult> {
-    console.log(`[SchemaConverter] Converting ${Object.keys(collectionsDefinition).length} collections to SQLite format`);
+    // Single log for batch conversion
+    console.log(`[SchemaConverter] Converting ${Object.keys(collectionsDefinition).length} collections...`);
     
     const convertedCollections: Record<string, ConversionResult> = {};
     const errors: string[] = [];
@@ -369,7 +368,7 @@ export class SchemaConverter {
       try {
         const result = this.convertRxDBToSQLite(collectionName, collectionDef);
         convertedCollections[collectionName] = result;
-        console.log(`[SchemaConverter] ✅ Converted ${collectionName}`);
+        // Removed per-collection success log to reduce spam
       } catch (error) {
         const errorMsg = `Failed to convert collection ${collectionName}: ${error instanceof Error ? error.message : 'Unknown error'}`;
         console.error(`[SchemaConverter] ❌ ${errorMsg}`);
@@ -380,7 +379,7 @@ export class SchemaConverter {
     if (errors.length > 0) {
       console.warn(`[SchemaConverter] Conversion completed with ${errors.length} errors:`, errors);
     } else {
-      console.log(`[SchemaConverter] ✅ Successfully converted all ${Object.keys(convertedCollections).length} collections`);
+      console.log(`[SchemaConverter] ✅ Successfully converted ${Object.keys(convertedCollections).length} collections`);
     }
 
     return convertedCollections;

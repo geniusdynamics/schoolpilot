@@ -45,14 +45,20 @@ class ApplicationErrorBoundary extends Component<Props, State> {
     
     this.setState({ errorInfo });
     
+    // Check if this is a database-related error
+    const isDatabaseError = this.isDatabaseRelatedError(error);
+    const errorCategory = this.categorizeError(error);
+    
     console.error('🚨 [ApplicationErrorBoundary] Critical application error:', {
       errorId,
       error: error.message,
       stack: error.stack,
-      componentStack: errorInfo.componentStack
+      componentStack: errorInfo.componentStack,
+      isDatabaseError,
+      errorCategory
     });
 
-    // Report error to Bugsink
+    // Report error to Bugsink with enhanced context
     try {
       reportError(error, {
         errorId,
@@ -61,7 +67,11 @@ class ApplicationErrorBoundary extends Component<Props, State> {
         retryCount: this.state.retryCount,
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
-        url: window.location.href
+        url: window.location.href,
+        isDatabaseError,
+        errorCategory,
+        databaseContext: this.getDatabaseContext(),
+        storageInfo: this.getStorageInfo()
       });
     } catch (reportingError) {
       console.error('Failed to report error to Bugsink:', reportingError);
@@ -69,6 +79,74 @@ class ApplicationErrorBoundary extends Component<Props, State> {
 
     if (onError) {
       onError(error, errorInfo, errorId);
+    }
+  }
+
+  private isDatabaseRelatedError(error: Error): boolean {
+    const dbErrorPatterns = [
+      /database/i,
+      /sqlite/i,
+      /indexeddb/i,
+      /opfs/i,
+      /pouchdb/i,
+      /storage/i,
+      /quota.*exceeded/i,
+      /transaction/i,
+      /collection/i,
+      /provider/i,
+      /initialization/i
+    ];
+    
+    const errorMessage = error.message.toLowerCase();
+    const errorStack = (error.stack || '').toLowerCase();
+    
+    return dbErrorPatterns.some(pattern => 
+      pattern.test(errorMessage) || pattern.test(errorStack)
+    );
+  }
+
+  private categorizeError(error: Error): string {
+    const message = error.message.toLowerCase();
+    
+    if (message.includes('database') || message.includes('sqlite') || message.includes('indexeddb')) {
+      return 'database';
+    }
+    if (message.includes('network') || message.includes('fetch')) {
+      return 'network';
+    }
+    if (message.includes('render') || message.includes('component')) {
+      return 'rendering';
+    }
+    if (message.includes('chunk') || message.includes('loading')) {
+      return 'loading';
+    }
+    
+    return 'unknown';
+  }
+
+  private getDatabaseContext(): any {
+    try {
+      return {
+        localStorage: Object.keys(localStorage).filter(key => 
+          key.includes('db') || key.includes('database') || key.includes('config')
+        ).length,
+        indexedDBSupported: 'indexedDB' in window,
+        opfsSupported: 'storage' in navigator && 'getDirectory' in navigator.storage,
+        webAssemblySupported: 'WebAssembly' in window
+      };
+    } catch (e) {
+      return { error: 'Failed to collect database context' };
+    }
+  }
+
+  private getStorageInfo(): any {
+    try {
+      return {
+        localStorageUsed: JSON.stringify(localStorage).length,
+        localStorageAvailable: typeof Storage !== 'undefined'
+      };
+    } catch (e) {
+      return { error: 'Failed to collect storage info' };
     }
   }
 

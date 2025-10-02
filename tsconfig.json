@@ -3,6 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
+    "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "allowJs": true,
@@ -24,6 +25,8 @@
   },
   "include": [
     "src/**/*",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "*.js",
     "*.ts"
   ],

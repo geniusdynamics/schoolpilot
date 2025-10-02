@@ -1,71 +1,173 @@
-// ABOUTME: SQLite provider for development mode using file storage instead of OPFS
-// ABOUTME: Implements IDatabaseProvider interface with file-based SQLite for easy database inspection
+// ABOUTME: Enhanced SQLite provider for development mode using file storage instead of OPFS
+// ABOUTME: Implements IDatabaseProvider interface with file-based SQLite for easy database inspection and development tools
 
-import { IDatabaseProvider, ICollection, DatabaseConfig, BackupData } from './types';
+import { IDatabaseProvider, ICollection, DatabaseConfig, CollectionSchema, ProviderStatus } from './interfaces';
 import { SQLiteFileService } from '../sqlite/SQLiteFileService';
 import { SQLiteFileCollection } from '../sqlite/SQLiteFileService';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export class SQLiteFileProvider implements IDatabaseProvider {
   public readonly name = 'SQLiteFile';
   public readonly version = '1.0.0';
   private sqliteService: SQLiteFileService;
-  private collections: Map<string, SQLiteFileCollection> = new Map();
+  private collections: Map<string, SQLiteFileCollection<any>> = new Map();
   private isInitialized = false;
+  private config: DatabaseConfig;
+  private dbPath: string;
 
   constructor(config?: DatabaseConfig) {
-    this.sqliteService = new SQLiteFileService(config);
+    this.config = config || {
+      name: 'schoolpilot_dev',
+      version: 1,
+      debug: true
+    };
+    
+    // Set up database file path for development
+    this.dbPath = (this.config.storage as any)?.path || path.join(process.cwd(), 'data', `${this.config.name}.db`);
+    
+    this.sqliteService = new SQLiteFileService();
+    
+    console.log(`[SQLiteFileProvider] Initialized with database path: ${this.dbPath}`);
   }
 
-  async initialize(): Promise<void> {
+  async initialize(config?: DatabaseConfig): Promise<void> {
     try {
+      console.log('[SQLiteFileProvider] Initializing SQLite File Provider for development...');
+      
+      // Update config if provided
+      if (config) {
+        this.config = { ...this.config, ...config };
+      }
+      
+      // Ensure data directory exists
+      await this.ensureDataDirectory();
+      
+      // Initialize SQLite service
       await this.sqliteService.initialize();
+      
+      // Set up development-specific features
+      await this.setupDevelopmentFeatures();
+      
       this.isInitialized = true;
-      console.log('SQLiteFileProvider initialized successfully');
+      console.log(`[SQLiteFileProvider] Successfully initialized with database: ${this.dbPath}`);
+      
+      // Log database info for development
+      if (this.config.debug) {
+        await this.logDatabaseInfo();
+      }
+      
     } catch (error) {
-      console.error('Failed to initialize SQLiteFileProvider:', error);
+      console.error('[SQLiteFileProvider] Failed to initialize:', error);
       throw error;
     }
   }
 
-  async createCollection<T = any>(name: string, schema?: any): Promise<ICollection<T>> {
+  private async ensureDataDirectory(): Promise<void> {
+    try {
+      const dataDir = path.dirname(this.dbPath);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+        console.log(`[SQLiteFileProvider] Created data directory: ${dataDir}`);
+      }
+    } catch (error) {
+      console.error('[SQLiteFileProvider] Failed to create data directory:', error);
+      throw error;
+    }
+  }
+
+  private async setupDevelopmentFeatures(): Promise<void> {
+    try {
+      // Enable SQLite development features
+      const db = this.sqliteService.getDatabase();
+      
+      if (db) {
+        // Enable foreign key constraints
+        db.exec('PRAGMA foreign_keys = ON;');
+        
+        // Enable WAL mode for better concurrency
+        db.exec('PRAGMA journal_mode = WAL;');
+        
+        // Enable query optimization
+        db.exec('PRAGMA optimize;');
+        
+        // Set reasonable cache size (10MB)
+        db.exec('PRAGMA cache_size = -10000;');
+        
+        console.log('[SQLiteFileProvider] Development features enabled');
+      }
+    } catch (error) {
+      console.warn('[SQLiteFileProvider] Failed to setup development features:', error);
+    }
+  }
+
+  private async logDatabaseInfo(): Promise<void> {
+    try {
+      const db = this.sqliteService.getDatabase();
+      if (db) {
+        const info = {
+          path: this.dbPath,
+          size: this.getDatabaseSize(),
+          tables: this.getTableList(),
+          pragmas: this.getDatabasePragmas()
+        };
+        
+        console.log('[SQLiteFileProvider] Database Info:', info);
+      }
+    } catch (error) {
+      console.warn('[SQLiteFileProvider] Failed to log database info:', error);
+    }
+  }
+
+  async createCollection<T = any>(name: string, schema: CollectionSchema): Promise<ICollection<T>> {
     if (!this.isInitialized) {
       throw new Error('SQLiteFileProvider not initialized');
     }
 
     try {
+      console.log(`[SQLiteFileProvider] Creating collection: ${name}`);
+      
       const collection = await this.sqliteService.createCollection<T>(name, schema);
       this.collections.set(name, collection);
-      return collection;
+      
+      // Log collection creation for development
+      if (this.config.debug) {
+        console.log(`[SQLiteFileProvider] Collection '${name}' created with schema:`, {
+          properties: Object.keys(schema.properties || {}),
+          indexes: schema.indexes?.length || 0,
+          primaryKey: schema.primaryKey
+        });
+      }
+      
+      return collection as unknown as ICollection<T>;
     } catch (error) {
-      console.error(`Failed to create collection ${name}:`, error);
+      console.error(`[SQLiteFileProvider] Failed to create collection ${name}:`, error);
       throw error;
     }
   }
 
-  async getCollection<T = any>(name: string): Promise<ICollection<T> | null> {
+  getCollection<T = any>(name: string): ICollection<T> | null {
     if (!this.isInitialized) {
       throw new Error('SQLiteFileProvider not initialized');
     }
 
-    // Check if collection is already cached
-    if (this.collections.has(name)) {
-      return this.collections.get(name) as ICollection<T>;
-    }
+    // Return cached collection
+    const collection = this.collections.get(name);
+    return collection ? (collection as unknown as ICollection<T>) : null;
+  }
 
-    try {
-      const collection = await this.sqliteService.getCollection<T>(name);
-      if (collection) {
-        this.collections.set(name, collection);
-      }
-      return collection;
-    } catch (error) {
-      console.error(`Failed to get collection ${name}:`, error);
-      return null;
+  getAllCollections(): Map<string, ICollection<any>> {
+    const result = new Map<string, ICollection<any>>();
+    for (const [name, collection] of this.collections) {
+      result.set(name, collection as unknown as ICollection<any>);
     }
+    return result;
   }
 
   async destroy(): Promise<void> {
     try {
+      console.log('[SQLiteFileProvider] Destroying provider...');
+      
       // Clear collections cache
       this.collections.clear();
       
@@ -73,151 +175,299 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       await this.sqliteService.destroy();
       this.isInitialized = false;
       
-      console.log('SQLiteFileProvider destroyed successfully');
+      console.log('[SQLiteFileProvider] Provider destroyed successfully');
     } catch (error) {
-      console.error('Failed to destroy SQLiteFileProvider:', error);
+      console.error('[SQLiteFileProvider] Failed to destroy provider:', error);
       throw error;
     }
   }
 
-  async isAvailable(): Promise<boolean> {
+  isAvailable(): boolean {
     try {
-      // Check if SQLite is available in the current environment
-      return await this.sqliteService.isAvailable();
+      // Check if we're in a Node.js environment (required for file access)
+      return typeof process !== 'undefined' && 
+             process.versions && 
+             !!process.versions.node &&
+             typeof require !== 'undefined';
     } catch (error) {
-      console.error('Error checking SQLiteFileProvider availability:', error);
+      console.error('[SQLiteFileProvider] Error checking availability:', error);
       return false;
     }
   }
 
-  async getStatus(): Promise<{
-    isConnected: boolean;
-    collections: string[];
-    storageInfo?: any;
-  }> {
+  getStatus(): ProviderStatus {
     try {
-      const status = await this.sqliteService.getStatus();
       return {
-        isConnected: this.isInitialized && status.isConnected,
-        collections: Array.from(this.collections.keys()),
-        storageInfo: {
-          type: 'file',
-          path: status.databasePath,
-          size: status.databaseSize
+        name: this.name,
+        version: this.version,
+        isConnected: this.isInitialized,
+        collectionsCount: this.collections.size,
+        lastError: undefined,
+        performance: {
+          avgQueryTime: 0, // TODO: Implement query time tracking
+          totalQueries: 0,
+          memoryUsage: this.getMemoryUsage()
         }
       };
     } catch (error) {
-      console.error('Error getting SQLiteFileProvider status:', error);
+      console.error('[SQLiteFileProvider] Error getting status:', error);
       return {
+        name: this.name,
+        version: this.version,
         isConnected: false,
-        collections: []
+        collectionsCount: 0,
+        lastError: error instanceof Error ? error : new Error(String(error)),
+        performance: {
+          avgQueryTime: 0,
+          totalQueries: 0,
+          memoryUsage: 0
+        }
       };
     }
   }
 
-  async backup(): Promise<BackupData> {
-    if (!this.isInitialized) {
-      throw new Error('SQLiteFileProvider not initialized');
-    }
-
+  async backup(): Promise<string> {
     try {
-      return await this.sqliteService.backup();
+      console.log('[SQLiteFileProvider] Creating backup...');
+      
+      if (!this.isInitialized) {
+        throw new Error('Provider not initialized');
+      }
+
+      const backup = {
+        metadata: {
+          provider: this.name,
+          version: this.version,
+          timestamp: new Date().toISOString(),
+          dbPath: this.dbPath,
+          collections: Array.from(this.collections.keys())
+        },
+        data: {} as Record<string, any[]>
+      };
+
+      // Backup each collection
+      for (const [name, collection] of this.collections) {
+        try {
+          const documents = await collection.find({});
+          backup.data[name] = documents;
+          console.log(`[SQLiteFileProvider] Backed up ${documents.length} documents from ${name}`);
+        } catch (error) {
+          console.error(`[SQLiteFileProvider] Failed to backup collection ${name}:`, error);
+          backup.data[name] = [];
+        }
+      }
+
+      const backupString = JSON.stringify(backup, null, 2);
+      console.log(`[SQLiteFileProvider] Backup created (${backupString.length} bytes)`);
+      
+      return backupString;
     } catch (error) {
-      console.error('Failed to backup SQLiteFileProvider:', error);
+      console.error('[SQLiteFileProvider] Backup failed:', error);
       throw error;
     }
   }
 
-  async restore(backupData: BackupData): Promise<void> {
-    if (!this.isInitialized) {
-      throw new Error('SQLiteFileProvider not initialized');
-    }
-
+  async restore(backupData: string): Promise<void> {
     try {
-      await this.sqliteService.restore(backupData);
-      // Clear collections cache after restore
-      this.collections.clear();
-      console.log('SQLiteFileProvider restored successfully');
+      console.log('[SQLiteFileProvider] Restoring from backup...');
+      
+      if (!this.isInitialized) {
+        throw new Error('Provider not initialized');
+      }
+
+      const backup = JSON.parse(backupData);
+      
+      if (!backup.metadata || !backup.data) {
+        throw new Error('Invalid backup format');
+      }
+
+      console.log(`[SQLiteFileProvider] Restoring backup from ${backup.metadata.timestamp}`);
+
+      // Restore each collection
+      for (const [collectionName, documents] of Object.entries(backup.data)) {
+        const collection = this.collections.get(collectionName);
+        if (!collection) {
+          console.warn(`[SQLiteFileProvider] Collection ${collectionName} not found, skipping`);
+          continue;
+        }
+
+        try {
+          // Clear existing data (use remove method if removeMany not available)
+          try {
+            if (typeof (collection as any).removeMany === 'function') {
+              await (collection as any).removeMany({});
+            } else {
+              // Fallback: remove all documents individually
+              const allDocs = await collection.find({});
+              for (const doc of allDocs) {
+                if (doc.id) {
+                  await collection.remove(doc.id);
+                }
+              }
+            }
+          } catch (clearError) {
+            console.warn(`[SQLiteFileProvider] Failed to clear collection ${collectionName}:`, clearError);
+          }
+          
+          // Insert backup data
+          if (Array.isArray(documents) && documents.length > 0) {
+            if (typeof (collection as any).insertMany === 'function') {
+              await (collection as any).insertMany(documents as any[]);
+            } else {
+              // Fallback: insert documents individually
+              for (const doc of documents as any[]) {
+                await collection.insert(doc);
+              }
+            }
+            console.log(`[SQLiteFileProvider] Restored ${documents.length} documents to ${collectionName}`);
+          }
+        } catch (error) {
+          console.error(`[SQLiteFileProvider] Failed to restore collection ${collectionName}:`, error);
+        }
+      }
+
+      console.log('[SQLiteFileProvider] Restore completed');
     } catch (error) {
-      console.error('Failed to restore SQLiteFileProvider:', error);
+      console.error('[SQLiteFileProvider] Restore failed:', error);
       throw error;
     }
   }
 
-  // Development-specific methods
-  async exportDatabase(): Promise<string> {
-    if (!this.isInitialized) {
-      throw new Error('SQLiteFileProvider not initialized');
-    }
+  // Development-specific features
 
-    try {
-      return await this.sqliteService.exportDatabase();
-    } catch (error) {
-      console.error('Failed to export database:', error);
-      throw error;
-    }
-  }
-
-  async loadSeedData(seedData: any): Promise<void> {
-    if (!this.isInitialized) {
-      throw new Error('SQLiteFileProvider not initialized');
-    }
-
-    try {
-      await this.sqliteService.loadSeedData(seedData);
-      console.log('Seed data loaded successfully');
-    } catch (error) {
-      console.error('Failed to load seed data:', error);
-      throw error;
-    }
-  }
-
-  async clearAllData(): Promise<void> {
-    if (!this.isInitialized) {
-      throw new Error('SQLiteFileProvider not initialized');
-    }
-
-    try {
-      await this.sqliteService.clearAllData();
-      this.collections.clear();
-      console.log('All data cleared successfully');
-    } catch (error) {
-      console.error('Failed to clear all data:', error);
-      throw error;
-    }
-  }
-
-  async getCollectionStats(collectionName: string): Promise<any> {
-    if (!this.isInitialized) {
-      throw new Error('SQLiteFileProvider not initialized');
-    }
-
-    try {
-      return await this.sqliteService.getCollectionStats(collectionName);
-    } catch (error) {
-      console.error(`Failed to get stats for collection ${collectionName}:`, error);
-      throw error;
-    }
-  }
-
-  // File-specific methods for development
+  /**
+   * Get database file path (development feature)
+   */
   getDatabasePath(): string {
-    return this.sqliteService.getDatabasePath();
+    return this.dbPath;
   }
 
-  async vacuum(): Promise<void> {
-    if (!this.isInitialized) {
-      throw new Error('SQLiteFileProvider not initialized');
-    }
-
+  /**
+   * Get database file size in bytes (development feature)
+   */
+  getDatabaseSize(): number {
     try {
-      await this.sqliteService.vacuum();
-      console.log('Database vacuumed successfully');
+      if (fs.existsSync(this.dbPath)) {
+        const stats = fs.statSync(this.dbPath);
+        return stats.size;
+      }
+      return 0;
     } catch (error) {
-      console.error('Failed to vacuum database:', error);
+      console.error('[SQLiteFileProvider] Error getting database size:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get list of tables in the database (development feature)
+   */
+  getTableList(): string[] {
+    try {
+      const db = this.sqliteService.getDatabase();
+      if (!db) return [];
+
+      const result = db.prepare(`
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name NOT LIKE 'sqlite_%'
+        ORDER BY name
+      `).all();
+
+      return result.map((row: any) => row.name);
+    } catch (error) {
+      console.error('[SQLiteFileProvider] Error getting table list:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get database pragma settings (development feature)
+   */
+  getDatabasePragmas(): Record<string, any> {
+    try {
+      const db = this.sqliteService.getDatabase();
+      if (!db) return {};
+
+      const pragmas = [
+        'journal_mode',
+        'synchronous',
+        'cache_size',
+        'foreign_keys',
+        'page_size',
+        'auto_vacuum'
+      ];
+
+      const result: Record<string, any> = {};
+      
+      for (const pragma of pragmas) {
+        try {
+          const value = db.prepare(`PRAGMA ${pragma}`).get();
+          result[pragma] = value;
+        } catch (error) {
+          result[pragma] = 'error';
+        }
+      }
+
+      return result;
+    } catch (error) {
+      console.error('[SQLiteFileProvider] Error getting pragmas:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Get memory usage information
+   */
+  private getMemoryUsage(): number {
+    try {
+      if (typeof process !== 'undefined' && process.memoryUsage) {
+        return process.memoryUsage().heapUsed;
+      }
+      return 0;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  /**
+   * Execute raw SQL query (development feature - use with caution)
+   */
+  executeRawSQL(sql: string, params?: any[]): any {
+    try {
+      const db = this.sqliteService.getDatabase();
+      if (!db) throw new Error('Database not available');
+
+      console.warn('[SQLiteFileProvider] Executing raw SQL:', sql);
+      
+      if (params) {
+        return db.prepare(sql).all(params);
+      } else {
+        return db.exec(sql);
+      }
+    } catch (error) {
+      console.error('[SQLiteFileProvider] Raw SQL execution failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Vacuum database to reclaim space (development feature)
+   */
+  async vacuum(): Promise<void> {
+    try {
+      console.log('[SQLiteFileProvider] Running VACUUM to optimize database...');
+      
+      const db = this.sqliteService.getDatabase();
+      if (!db) throw new Error('Database not available');
+
+      const sizeBefore = this.getDatabaseSize();
+      db.exec('VACUUM;');
+      const sizeAfter = this.getDatabaseSize();
+      
+      const savedBytes = sizeBefore - sizeAfter;
+      console.log(`[SQLiteFileProvider] VACUUM completed. Saved ${savedBytes} bytes (${Math.round(savedBytes / 1024)}KB)`);
+    } catch (error) {
+      console.error('[SQLiteFileProvider] VACUUM failed:', error);
       throw error;
     }
   }
 }
-
-export default SQLiteFileProvider;

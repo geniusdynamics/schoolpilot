@@ -2,7 +2,6 @@
 // ABOUTME: Provides React context wrapper around the action registry system with tab integration
 
 import React, { createContext, useContext, useEffect, useMemo, ReactNode, useRef, useCallback } from 'react';
-import { isEqual } from 'lodash'; // Add this import for deep equality check
 import { useActionRegistry, ActionDefinition, ActionGroup, ActionContext } from '../services/actionRegistry';
 import { useTabStore } from '../stores/tabStore';
 import { useAuth } from './AuthContext';
@@ -52,23 +51,16 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
   defaultFeature
 }) => {
   const { user } = useAuth();
-  const { activeTabId, getTabById } = useTabStore();
+  const { activeTabId, tabs } = useTabStore((state) => ({
+    activeTabId: state.activeTabId,
+    tabs: state.tabs
+  }));
   
-  // Get selected tab IDs separately to avoid dependency on entire tabs array
-  // Use a stable selector to prevent unnecessary re-renders
-  const selectedTabIds = useTabStore(
-    useCallback(
-      (state) => {
-        const ids = state.tabs.filter(tab => tab.selected).map(tab => tab.id);
-        return ids;
-      },
-      []
-    ),
-    (prev, next) => {
-      // Custom equality check for array of IDs
-      if (prev.length !== next.length) return false;
-      return prev.every((id, index) => id === next[index]);
-    }
+  // Get selected tab IDs and active tab in a stable way
+  const selectedTabIds = useMemo(() => tabs.map(tab => tab.id), [tabs]);
+  const activeTab = useMemo(() => 
+    activeTabId ? tabs.find(tab => tab.id === activeTabId) || null : null, 
+    [activeTabId, tabs]
   );
   const {
     registerAction,
@@ -83,11 +75,26 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
     currentContext
   } = useActionRegistry();
 
+  // Memoize user object to prevent unnecessary re-renders
+  const stableUser = useMemo(() => {
+    if (!user) return null;
+    return {
+      id: user.id || '',
+      name: user.fullName || '',
+      email: user.email || '',
+      role: user.role || 'guest',
+      permissions: user.permissions || [],
+      moduleAccess: (user.moduleAccess && typeof user.moduleAccess === 'object' && !Array.isArray(user.moduleAccess)) 
+        ? user.moduleAccess as Record<string, string[]>
+        : {} as Record<string, string[]>,
+      departmentId: undefined,
+      classIds: undefined
+    };
+  }, [user?.id, user?.role, user?.fullName, user?.email, JSON.stringify(user?.permissions || [])]);
+
   // Build current action context based on active tab and user
   const actionContext = useMemo((): ActionContext | null => {
-    if (!user) return null;
-
-    const activeTab = activeTabId ? getTabById(activeTabId) : null;
+    if (!stableUser) return null;
     
     // Determine module context
     let module = defaultModule;
@@ -98,8 +105,8 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
     if (activeTab) {
       // Extract context from active tab
       module = activeTab.module || defaultModule;
-      submodule = activeTab.submodule || defaultSubmodule;
-      feature = activeTab.feature || defaultFeature;
+      submodule = (activeTab as any).submodule || defaultSubmodule;
+      feature = (activeTab as any).feature || defaultFeature;
       metadata = activeTab.metadata || {};
     }
 
@@ -109,65 +116,126 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
         title: activeTab.title,
         path: activeTab.path || '',
         module: activeTab.module || module,
-        submodule: activeTab.submodule,
-        feature: activeTab.feature,
+        submodule: (activeTab.metadata as any)?.submodule,
+        feature: (activeTab.metadata as any)?.feature,
         metadata: activeTab.metadata
       } : undefined,
       selectedTabs: selectedTabIds,
       module,
       submodule,
       feature,
-      user: {
-        id: user.id || '',
-        name: user.name || '',
-        email: user.email || '',
-        role: user.role || 'guest',
-        permissions: user.permissions || [],
-        moduleAccess: user.moduleAccess || {},
-        departmentId: user.departmentId,
-        classIds: user.classIds
-      },
+      user: stableUser,
       data: metadata,
-      moduleData: activeTab?.moduleData
+      moduleData: (activeTab?.metadata as any)?.moduleData
     };
-  }, [user, activeTabId, selectedTabIds, getTabById, defaultModule, defaultSubmodule, defaultFeature]);
+  }, [
+    stableUser,
+    activeTabId, 
+    selectedTabIds.join(','), 
+    defaultModule, 
+    defaultSubmodule, 
+    defaultFeature,
+    activeTab?.id,
+    activeTab?.module,
+    activeTab?.path
+  ]);
 
-  // Get contextual actions and groups
+  // Get contextual actions and groups with debouncing
   const contextualActions = useMemo(() => {
-    return actionContext ? getActionsForContext(actionContext) : [];
-  }, [actionContext, getActionsForContext]);
+    if (!actionContext) return [];
+    
+    try {
+      return getActionsForContext(actionContext);
+    } catch (error) {
+      console.error('Error getting contextual actions:', error);
+      return [];
+    }
+  }, [actionContext?.module, actionContext?.submodule, actionContext?.feature, actionContext?.user.id, actionContext?.user.role]);
 
   const contextualGroups = useMemo(() => {
-    return actionContext ? getActionGroupsForContext(actionContext) : [];
-  }, [actionContext, getActionGroupsForContext]);
+    if (!actionContext) return [];
+    
+    try {
+      return getActionGroupsForContext(actionContext);
+    } catch (error) {
+      console.error('Error getting contextual groups:', error);
+      return [];
+    }
+  }, [actionContext?.module, actionContext?.submodule, actionContext?.feature, actionContext?.user.id, actionContext?.user.role]);
 
   // Update action registry context when our context changes
   const prevContextRef = useRef<ActionContext | null>(null);
   const isUpdatingContext = useRef(false);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastUpdateTime = useRef<number>(0);
   
   useEffect(() => {
-    if (actionContext && 
-        !isUpdatingContext.current && 
-        (!prevContextRef.current || !isEqual(actionContext, prevContextRef.current))) {
-      
-      isUpdatingContext.current = true;
-      
-      // Use a timeout to prevent synchronous updates that could cause loops
-      const timeoutId = setTimeout(() => {
-        setCurrentContext(actionContext);
-        prevContextRef.current = actionContext;
-        isUpdatingContext.current = false;
-      }, 0);
-      
-      return () => {
-        clearTimeout(timeoutId);
-        isUpdatingContext.current = false;
-      };
+    // Clear any pending updates
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+      updateTimeoutRef.current = null;
     }
-  }, [actionContext, setCurrentContext]);
+    
+    if (actionContext && !isUpdatingContext.current) {
+      // Throttle updates to prevent excessive calls
+      const now = Date.now();
+      const timeSinceLastUpdate = now - lastUpdateTime.current;
+      const minUpdateInterval = 200; // Minimum 200ms between updates
+      
+      // Create a stable string representation for comparison
+      const currentContextString = JSON.stringify({
+        module: actionContext.module,
+        submodule: actionContext.submodule,
+        feature: actionContext.feature,
+        userId: actionContext.user.id,
+        userRole: actionContext.user.role,
+        activeTabId: actionContext.activeTab?.id,
+        selectedTabsCount: actionContext.selectedTabs?.length || 0
+      });
+      
+      const prevContextString = prevContextRef.current ? JSON.stringify({
+        module: prevContextRef.current.module,
+        submodule: prevContextRef.current.submodule,
+        feature: prevContextRef.current.feature,
+        userId: prevContextRef.current.user.id,
+        userRole: prevContextRef.current.user.role,
+        activeTabId: prevContextRef.current.activeTab?.id,
+        selectedTabsCount: prevContextRef.current.selectedTabs?.length || 0
+      }) : null;
+      
+      if (currentContextString !== prevContextString) {
+        isUpdatingContext.current = true;
+        
+        // Calculate delay based on time since last update
+        const delay = Math.max(0, minUpdateInterval - timeSinceLastUpdate);
+        
+        // Debounce the update to prevent rapid successive calls
+        updateTimeoutRef.current = setTimeout(() => {
+          try {
+            setCurrentContext(actionContext);
+            prevContextRef.current = actionContext;
+            lastUpdateTime.current = Date.now();
+          } catch (error) {
+            console.error('Error updating action context:', error);
+          } finally {
+            isUpdatingContext.current = false;
+            updateTimeoutRef.current = null;
+          }
+        }, delay);
+      }
+    }
+    
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+        updateTimeoutRef.current = null;
+      }
+      isUpdatingContext.current = false;
+    };
+  }, [actionContext]); // Removed setCurrentContext from dependencies
 
   // Action execution with context merging
-  const executeAction = async (actionId: string, customContext?: Partial<ActionContext>) => {
+  const executeAction = useCallback(async (actionId: string, customContext?: Partial<ActionContext>) => {
     if (!actionContext) {
       console.error('No action context available for execution');
       return;
@@ -181,10 +249,10 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
     } : actionContext;
 
     await registryExecuteAction(actionId, mergedContext);
-  };
+  }, [actionContext, registryExecuteAction]);
 
   // Context management helpers
-  const updateContext = (updates: Partial<ActionContext>) => {
+  const updateContext = useCallback((updates: Partial<ActionContext>) => {
     if (!actionContext) return;
     
     const updatedContext = {
@@ -195,24 +263,24 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
     };
     
     setCurrentContext(updatedContext);
-  };
+  }, [actionContext, setCurrentContext]);
 
-  const setModuleContext = (module: string, submodule?: string, feature?: string) => {
+  const setModuleContext = useCallback((module: string, submodule?: string, feature?: string) => {
     updateContext({ module, submodule, feature });
-  };
+  }, [updateContext]);
 
   // Wrapped action queries with current context
-  const wrappedSearchActions = (query: string) => {
+  const wrappedSearchActions = useCallback((query: string) => {
     return actionContext ? searchActions(query, actionContext) : [];
-  };
+  }, [actionContext, searchActions]);
 
-  const wrappedGetActionsForModule = (module: string) => {
+  const wrappedGetActionsForModule = useCallback((module: string) => {
     if (!user) return [];
     return getActionsForModule(module, user.permissions || [], user.role || 'guest');
-  };
+  }, [user, getActionsForModule]);
 
   // Context value
-  const contextValue: ActionProviderContextType = {
+  const contextValue: ActionProviderContextType = useMemo(() => ({
     currentContext: actionContext,
     contextualActions,
     contextualGroups,
@@ -224,7 +292,19 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
     getActionById,
     updateContext,
     setModuleContext
-  };
+  }), [
+    actionContext,
+    contextualActions,
+    contextualGroups,
+    executeAction,
+    registerAction,
+    registerActionGroup,
+    wrappedGetActionsForModule,
+    wrappedSearchActions,
+    getActionById,
+    updateContext,
+    setModuleContext
+  ]);
 
   return (
     <ActionProviderContext.Provider value={contextValue}>

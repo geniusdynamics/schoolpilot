@@ -7,7 +7,7 @@ initializeErrorTracking();
 
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './app';
+import App from './App';
 import './index.css';
 import i18n, { initializeI18n } from './i18n/i18n'; // Import your i18n configuration
 import { initializeUnifiedConfig } from './config/unifiedConfig';
