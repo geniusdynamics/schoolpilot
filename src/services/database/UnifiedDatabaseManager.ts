@@ -1,7 +1,7 @@
 // ABOUTME: Unified Database Manager that consolidates RxDB, PouchDB, and SQLite providers
 // ABOUTME: Provides deployment mode-based provider selection and comprehensive database management
 
-import { getCurrentUnifiedConfig } from '../../config/unifiedConfig';
+import { getCurrentUnifiedConfig, getDatabaseConfig, validateDatabaseConfig } from '../../config/unifiedConfig';
 import { DataServiceFactory } from '../DataServiceFactory';
 import { getDatabaseManager } from './ProviderSelector';
 import { collectionsDefinition } from '../rxdbService';
@@ -9,6 +9,7 @@ import { SchemaConverter } from './SchemaConverter';
 import { ICollection, IDatabaseProvider, DatabaseConfig, CollectionSchema, CollectionRequirements } from './interfaces';
 import { DatabaseProviderFactory, getDatabaseProviderFactory, ProviderType } from './DatabaseProviderFactory';
 import { UniversalDataGenerator, UniversalDataGenerationConfig, GenerationStats } from '../dataGeneration/UniversalDataGenerator';
+import { StartupOptimizer } from './StartupOptimizer';
 
 export type DeploymentMode = 'development' | 'staging' | 'production';
 export type DatabaseProvider = 'sqlite-file' | 'sqlite-wasm' | 'pouchdb' | 'rxdb' | 'livestore' | 'sqlite' | 'backend-api' | 'hybrid';
@@ -47,10 +48,12 @@ export class UnifiedDatabaseManager {
   private status: DatabaseStatus;
   private healthCheckInterval: NodeJS.Timeout | null = null;
   private providerFactory: DatabaseProviderFactory;
+  private startupOptimizer: StartupOptimizer;
 
   private constructor() {
     this.deploymentMode = this.detectDeploymentMode();
     this.providerFactory = getDatabaseProviderFactory();
+    this.startupOptimizer = StartupOptimizer.getInstance();
     this.status = {
       isInitialized: false,
       provider: null,
@@ -198,32 +201,43 @@ export class UnifiedDatabaseManager {
    */
   private selectProvider(): DatabaseProvider {
     const config = getCurrentUnifiedConfig();
+    const dbConfig = getDatabaseConfig();
     
     console.log(`🔍 [UnifiedDatabaseManager] Selecting provider for ${this.deploymentMode} mode`);
-    console.log(`📊 [UnifiedDatabaseManager] Config database settings:`, config.database);
+    console.log(`📊 [UnifiedDatabaseManager] Database configuration:`, dbConfig);
+    
+    // Validate database configuration first
+    const validation = validateDatabaseConfig();
+    if (!validation.isValid) {
+      console.warn(`⚠️ [UnifiedDatabaseManager] Database configuration validation failed:`, validation.errors);
+      // Continue with warnings but log them
+      if (validation.warnings.length > 0) {
+        console.warn(`⚠️ [UnifiedDatabaseManager] Database configuration warnings:`, validation.warnings);
+      }
+    }
     
     // Priority 1: Check if user has explicitly configured a provider
-    if (config.database?.provider) {
-      console.log(`🎯 [UnifiedDatabaseManager] Using configured provider: ${config.database.provider}`);
+    if (dbConfig.provider) {
+      console.log(`🎯 [UnifiedDatabaseManager] Using configured provider: ${dbConfig.provider}`);
       
       // Validate that the configured provider is allowed
-      if (config.database.allowedProviders && !config.database.allowedProviders.includes(config.database.provider)) {
-        console.warn(`⚠️ [UnifiedDatabaseManager] Configured provider ${config.database.provider} not in allowed list: ${config.database.allowedProviders.join(', ')}`);
+      if (dbConfig.allowedProviders && !dbConfig.allowedProviders.includes(dbConfig.provider)) {
+        console.warn(`⚠️ [UnifiedDatabaseManager] Configured provider ${dbConfig.provider} not in allowed list: ${dbConfig.allowedProviders.join(', ')}`);
       }
       
-      switch (config.database.provider) {
+      switch (dbConfig.provider) {
         case 'sqlite':
           return this.deploymentMode === 'development' ? 'sqlite-file' : 'sqlite-wasm';
+        case 'sqlite-file':
+        case 'sqlite-wasm':
         case 'pouchdb':
-          return 'pouchdb';
+        case 'backend-api':
+        case 'livestore':
+          return dbConfig.provider;
         case 'rxdb':
           return 'rxdb';
-        case 'backend-api':
-          return 'backend-api';
-        // case 'livestore': // Temporarily disabled
-        //   return 'pouchdb';
         default:
-          console.warn(`⚠️ [UnifiedDatabaseManager] Unknown provider ${config.database.provider}, using automatic selection`);
+          console.warn(`⚠️ [UnifiedDatabaseManager] Unknown provider ${dbConfig.provider}, using automatic selection`);
       }
     }
 
@@ -264,29 +278,36 @@ export class UnifiedDatabaseManager {
     try {
       console.log(`🔧 [UnifiedDatabaseManager] Initializing ${this.providerType} provider using factory...`);
 
-      // Create database configuration
+      // Create database configuration using enhanced config
       const unifiedConfig = getCurrentUnifiedConfig();
+      const dbConfig = getDatabaseConfig();
+      
+      // Create provider-specific database configuration
       const config: DatabaseConfig = {
         name: `schoolpilot_${this.deploymentMode}`,
         version: 1,
-        autoCompaction: this.deploymentMode === 'production',
-        debug: this.deploymentMode === 'development',
+        autoCompaction: dbConfig.storage.compressionEnabled,
+        debug: dbConfig.monitoring.logLevel === 'debug',
+        
         // Add backend API configuration if provider is backend-api
-        ...(this.providerType === 'backend-api' && unifiedConfig.database?.apiConfig ? {
-          apiBaseUrl: unifiedConfig.database.apiConfig.apiBaseUrl,
-          apiKey: unifiedConfig.database.apiConfig.apiKey,
-          authToken: unifiedConfig.database.apiConfig.authToken,
-          authType: unifiedConfig.database.apiConfig.authType || 'bearer',
-          customHeaders: unifiedConfig.database.apiConfig.customHeaders,
-          timeout: unifiedConfig.database.apiConfig.timeout || 30000,
-          retryAttempts: unifiedConfig.database.apiConfig.retryAttempts || 3,
-          syncInterval: unifiedConfig.database.apiConfig.syncInterval || 30000,
-          batchSize: unifiedConfig.database.apiConfig.batchSize || 100,
-          enableOfflineQueue: unifiedConfig.database.apiConfig.enableOfflineQueue !== false,
-          conflictResolution: unifiedConfig.database.apiConfig.conflictResolution || 'manual',
-          endpoints: unifiedConfig.database.apiConfig.endpoints
+        ...(this.providerType === 'backend-api' && dbConfig.apiConfig ? {
+          apiBaseUrl: dbConfig.apiConfig.apiBaseUrl,
+          apiKey: dbConfig.apiConfig.apiKey,
+          authToken: dbConfig.apiConfig.authToken,
+          authType: dbConfig.apiConfig.authType || 'bearer',
+          customHeaders: dbConfig.apiConfig.customHeaders,
+          timeout: dbConfig.sync.timeout,
+          retryAttempts: dbConfig.sync.retryAttempts,
+          syncInterval: dbConfig.sync.interval,
+          batchSize: dbConfig.sync.batchSize,
+          enableOfflineQueue: dbConfig.features.enableOfflineMode,
+          conflictResolution: dbConfig.sync.conflictResolution,
+          endpoints: dbConfig.apiConfig.endpoints
         } : {})
       };
+      
+      // Store enhanced configuration for use by provider
+      (config as any).enhancedConfig = dbConfig;
 
       // Define collection requirements based on our needs
       const requirements: CollectionRequirements = {
@@ -306,6 +327,11 @@ export class UnifiedDatabaseManager {
       }
 
       console.log(`✅ [UnifiedDatabaseManager] Provider ${this.providerType} initialized successfully through factory`);
+      
+      // Start startup optimization
+      if (this.provider) {
+        await this.startupOptimizer.startOptimization(this.provider);
+      }
     } catch (error) {
       console.error(`❌ [UnifiedDatabaseManager] Provider initialization failed:`, error);
       throw error;
@@ -1874,6 +1900,58 @@ export class UnifiedDatabaseManager {
       console.error('❌ [UnifiedDatabaseManager] Reset failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get startup performance metrics
+   */
+  public getStartupMetrics() {
+    return this.startupOptimizer.getLatestStartupMetrics();
+  }
+
+  /**
+   * Get startup performance summary
+   */
+  public getStartupPerformanceSummary() {
+    return this.startupOptimizer.getStartupPerformanceSummary();
+  }
+
+  /**
+   * Get progressive loading states
+   */
+  public getProgressiveLoadingStates() {
+    return this.startupOptimizer.getProgressiveLoadingStates();
+  }
+
+  /**
+   * Get loading statistics
+   */
+  public getLoadingStatistics() {
+    return this.startupOptimizer.getLoadingStatistics();
+  }
+
+  /**
+   * Check if a collection is loaded
+   */
+  public isCollectionLoaded(collectionName: string) {
+    return this.startupOptimizer.isCollectionLoaded(collectionName);
+  }
+
+  /**
+   * Get lazy-loaded collection
+   */
+  public async getLazyCollection<T>(collectionName: string): Promise<ICollection<T> | null> {
+    if (!this.provider) {
+      throw new Error('Database not initialized');
+    }
+    return this.startupOptimizer.getLazyCollection<T>(this.provider, collectionName);
+  }
+
+  /**
+   * Update startup optimization configuration
+   */
+  public updateStartupConfiguration(config: any) {
+    this.startupOptimizer.updateConfiguration(config);
   }
 }
 

@@ -32,6 +32,66 @@ import {
   initializeProductionDemo,
   transitionToLiveMode,
 } from './productionDemo';
+import {
+  DatabaseConfigValidator,
+  databaseConfigValidator,
+  ValidationResult,
+  ValidationError,
+  ValidationWarning,
+} from './databaseConfigSchema';
+// Environment Variable Keys for Database Configuration (must be defined early for module initialization)
+export const DB_ENV_VARS = {
+  // Provider Selection
+  DATABASE_PROVIDER: 'REACT_APP_DATABASE_PROVIDER',
+  DATABASE_AUTO_DETECT: 'REACT_APP_DATABASE_AUTO_DETECT',
+  
+  // Connection
+  DATABASE_URL: 'REACT_APP_DATABASE_URL',
+  DATABASE_NAME: 'REACT_APP_DATABASE_NAME',
+  
+  // Performance
+  DATABASE_CACHE_SIZE: 'REACT_APP_DATABASE_CACHE_SIZE',
+  DATABASE_QUERY_TIMEOUT: 'REACT_APP_DATABASE_QUERY_TIMEOUT',
+  DATABASE_BATCH_SIZE: 'REACT_APP_DATABASE_BATCH_SIZE',
+  DATABASE_ENABLE_CACHING: 'REACT_APP_DATABASE_ENABLE_CACHING',
+  DATABASE_ENABLE_INDEXING: 'REACT_APP_DATABASE_ENABLE_INDEXING',
+  
+  // Storage
+  DATABASE_MAX_SIZE: 'REACT_APP_DATABASE_MAX_SIZE',
+  DATABASE_COMPRESSION: 'REACT_APP_DATABASE_COMPRESSION',
+  DATABASE_ENCRYPTION: 'REACT_APP_DATABASE_ENCRYPTION',
+  DATABASE_BACKUP: 'REACT_APP_DATABASE_BACKUP',
+  DATABASE_RETENTION_DAYS: 'REACT_APP_DATABASE_RETENTION_DAYS',
+  
+  // Sync
+  DATABASE_SYNC_ENABLED: 'REACT_APP_DATABASE_SYNC_ENABLED',
+  DATABASE_SYNC_INTERVAL: 'REACT_APP_DATABASE_SYNC_INTERVAL',
+  DATABASE_SYNC_CONFLICT_RESOLUTION: 'REACT_APP_DATABASE_SYNC_CONFLICT_RESOLUTION',
+  DATABASE_SYNC_RETRY_ATTEMPTS: 'REACT_APP_DATABASE_SYNC_RETRY_ATTEMPTS',
+  DATABASE_SYNC_TIMEOUT: 'REACT_APP_DATABASE_SYNC_TIMEOUT',
+  
+  // Monitoring
+  DATABASE_HEALTH_CHECKS: 'REACT_APP_DATABASE_HEALTH_CHECKS',
+  DATABASE_HEALTH_CHECK_INTERVAL: 'REACT_APP_DATABASE_HEALTH_CHECK_INTERVAL',
+  DATABASE_PERFORMANCE_METRICS: 'REACT_APP_DATABASE_PERFORMANCE_METRICS',
+  DATABASE_ERROR_REPORTING: 'REACT_APP_DATABASE_ERROR_REPORTING',
+  DATABASE_LOG_LEVEL: 'REACT_APP_DATABASE_LOG_LEVEL',
+  
+  // Features
+  DATABASE_FULL_TEXT_SEARCH: 'REACT_APP_DATABASE_FULL_TEXT_SEARCH',
+  DATABASE_TRANSACTIONS: 'REACT_APP_DATABASE_TRANSACTIONS',
+  DATABASE_REAL_TIME_UPDATES: 'REACT_APP_DATABASE_REAL_TIME_UPDATES',
+  DATABASE_OFFLINE_MODE: 'REACT_APP_DATABASE_OFFLINE_MODE',
+  DATABASE_DATA_VALIDATION: 'REACT_APP_DATABASE_DATA_VALIDATION',
+  DATABASE_AUDIT_LOG: 'REACT_APP_DATABASE_AUDIT_LOG',
+  
+  // Backend API
+  DATABASE_API_BASE_URL: 'REACT_APP_DATABASE_API_BASE_URL',
+  DATABASE_API_KEY: 'REACT_APP_DATABASE_API_KEY',
+  DATABASE_API_AUTH_TOKEN: 'REACT_APP_DATABASE_API_AUTH_TOKEN',
+  DATABASE_API_AUTH_TYPE: 'REACT_APP_DATABASE_API_AUTH_TYPE',
+  DATABASE_API_TIMEOUT: 'REACT_APP_DATABASE_API_TIMEOUT',
+} as const;
 
 // Legacy type for backward compatibility
 export type BackendEnvironment = 'development' | 'production' | 'staging' | 'unknown';
@@ -136,6 +196,49 @@ export interface DatabaseConfig {
   connectionString?: string;
   options: Record<string, any>;
   apiConfig?: BackendAPIConfig;
+  
+  // Enhanced configuration options
+  performance: {
+    enableIndexing: boolean;
+    enableCaching: boolean;
+    cacheSize: number; // MB
+    queryTimeout: number; // ms
+    batchSize: number;
+  };
+  
+  storage: {
+    maxSize: number; // MB, 0 = unlimited
+    compressionEnabled: boolean;
+    encryptionEnabled: boolean;
+    backupEnabled: boolean;
+    retentionDays: number;
+  };
+  
+  sync: {
+    enabled: boolean;
+    interval: number; // ms
+    conflictResolution: 'local' | 'remote' | 'manual' | 'merge';
+    batchSize: number;
+    retryAttempts: number;
+    timeout: number; // ms
+  };
+  
+  monitoring: {
+    enableHealthChecks: boolean;
+    healthCheckInterval: number; // ms
+    enablePerformanceMetrics: boolean;
+    enableErrorReporting: boolean;
+    logLevel: 'debug' | 'info' | 'warn' | 'error';
+  };
+  
+  features: {
+    enableFullTextSearch: boolean;
+    enableTransactions: boolean;
+    enableRealTimeUpdates: boolean;
+    enableOfflineMode: boolean;
+    enableDataValidation: boolean;
+    enableAuditLog: boolean;
+  };
 }
 
 // Production Demo Configuration Integration
@@ -286,6 +389,9 @@ function createDefaultConfig(): UnifiedAppConfig {
   const defaultDataMode = getDefaultDataMode(detectedEnvironment);
   const defaultDatabaseProvider = getDefaultDatabaseProvider(detectedEnvironment);
   
+  // Load database configuration from environment variables
+  const envDatabaseConfig = loadDatabaseConfigFromEnv();
+  
   return {
     // Core Configuration
     environment: detectedEnvironment,
@@ -300,13 +406,58 @@ function createDefaultConfig(): UnifiedAppConfig {
       overrideSource: undefined,
     },
     
-    // Database Configuration
+    // Database Configuration (with environment variable overrides)
     database: {
-      provider: defaultDatabaseProvider,
+      // Base configuration
+      provider: envDatabaseConfig.provider || defaultDatabaseProvider,
       allowedProviders: envConfig.allowedDatabaseProviders,
-      autoDetect: false, // Default value since envConfig.autoDetectBackend doesn't exist
-      connectionString: process.env.REACT_APP_DATABASE_URL,
+      autoDetect: envDatabaseConfig.autoDetect ?? true,
+      connectionString: envDatabaseConfig.connectionString || process.env.REACT_APP_DATABASE_URL || process.env.DATABASE_URL,
       options: {},
+      apiConfig: envDatabaseConfig.apiConfig,
+      
+      // Enhanced configuration with environment-based defaults and overrides
+      performance: {
+        enableIndexing: envDatabaseConfig.performance?.enableIndexing ?? true,
+        enableCaching: envDatabaseConfig.performance?.enableCaching ?? (detectedEnvironment === 'production'),
+        cacheSize: envDatabaseConfig.performance?.cacheSize ?? (detectedEnvironment === 'production' ? 100 : 50), // MB
+        queryTimeout: envDatabaseConfig.performance?.queryTimeout ?? 30000, // 30 seconds
+        batchSize: envDatabaseConfig.performance?.batchSize ?? (detectedEnvironment === 'production' ? 1000 : 100),
+      },
+      
+      storage: {
+        maxSize: envDatabaseConfig.storage?.maxSize ?? (detectedEnvironment === 'production' ? 0 : 500), // MB, 0 = unlimited in production
+        compressionEnabled: envDatabaseConfig.storage?.compressionEnabled ?? (detectedEnvironment === 'production'),
+        encryptionEnabled: envDatabaseConfig.storage?.encryptionEnabled ?? false, // Can be enabled per deployment
+        backupEnabled: envDatabaseConfig.storage?.backupEnabled ?? (detectedEnvironment !== 'development'),
+        retentionDays: envDatabaseConfig.storage?.retentionDays ?? (detectedEnvironment === 'production' ? 365 : 30),
+      },
+      
+      sync: {
+        enabled: envDatabaseConfig.sync?.enabled ?? (defaultDatabaseProvider === 'backend-api' || defaultDatabaseProvider === 'pouchdb'),
+        interval: envDatabaseConfig.sync?.interval ?? 30000, // 30 seconds
+        conflictResolution: envDatabaseConfig.sync?.conflictResolution ?? 'manual',
+        batchSize: envDatabaseConfig.sync?.batchSize ?? 100,
+        retryAttempts: envDatabaseConfig.sync?.retryAttempts ?? 3,
+        timeout: envDatabaseConfig.sync?.timeout ?? 60000, // 1 minute
+      },
+      
+      monitoring: {
+        enableHealthChecks: envDatabaseConfig.monitoring?.enableHealthChecks ?? true,
+        healthCheckInterval: envDatabaseConfig.monitoring?.healthCheckInterval ?? 300000, // 5 minutes
+        enablePerformanceMetrics: envDatabaseConfig.monitoring?.enablePerformanceMetrics ?? (detectedEnvironment === 'production'),
+        enableErrorReporting: envDatabaseConfig.monitoring?.enableErrorReporting ?? (detectedEnvironment !== 'development'),
+        logLevel: envDatabaseConfig.monitoring?.logLevel ?? (detectedEnvironment === 'development' ? 'debug' : 'info'),
+      },
+      
+      features: {
+        enableFullTextSearch: envDatabaseConfig.features?.enableFullTextSearch ?? (defaultDatabaseProvider !== 'backend-api'),
+        enableTransactions: envDatabaseConfig.features?.enableTransactions ?? (defaultDatabaseProvider === 'sqlite-file' || defaultDatabaseProvider === 'sqlite-wasm'),
+        enableRealTimeUpdates: envDatabaseConfig.features?.enableRealTimeUpdates ?? (defaultDatabaseProvider === 'pouchdb' || defaultDatabaseProvider === 'livestore'),
+        enableOfflineMode: envDatabaseConfig.features?.enableOfflineMode ?? (defaultDatabaseProvider !== 'backend-api'),
+        enableDataValidation: envDatabaseConfig.features?.enableDataValidation ?? true,
+        enableAuditLog: envDatabaseConfig.features?.enableAuditLog ?? (detectedEnvironment === 'production'),
+      },
     },
     
     // Backend Configuration (Legacy)
@@ -526,6 +677,203 @@ export const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 // Configuration version for migration
 const CONFIG_VERSION = '2.0.0';
 
+/**
+ * Load database configuration from environment variables
+ */
+function loadDatabaseConfigFromEnv(): Partial<DatabaseConfig> {
+  const config: Partial<DatabaseConfig> = {};
+  
+  // Provider selection
+  if (process.env[DB_ENV_VARS.DATABASE_PROVIDER]) {
+    config.provider = process.env[DB_ENV_VARS.DATABASE_PROVIDER] as DatabaseProvider;
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_AUTO_DETECT]) {
+    config.autoDetect = process.env[DB_ENV_VARS.DATABASE_AUTO_DETECT] === 'true';
+  }
+  
+  // Connection
+  if (process.env[DB_ENV_VARS.DATABASE_URL] || process.env.DATABASE_URL) {
+    config.connectionString = process.env[DB_ENV_VARS.DATABASE_URL] || process.env.DATABASE_URL;
+  }
+  
+  // Performance settings
+  const performance: Partial<DatabaseConfig['performance']> = {};
+  
+  if (process.env[DB_ENV_VARS.DATABASE_CACHE_SIZE]) {
+    performance.cacheSize = parseInt(process.env[DB_ENV_VARS.DATABASE_CACHE_SIZE]);
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_QUERY_TIMEOUT]) {
+    performance.queryTimeout = parseInt(process.env[DB_ENV_VARS.DATABASE_QUERY_TIMEOUT]);
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_BATCH_SIZE]) {
+    performance.batchSize = parseInt(process.env[DB_ENV_VARS.DATABASE_BATCH_SIZE]);
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_ENABLE_CACHING]) {
+    performance.enableCaching = process.env[DB_ENV_VARS.DATABASE_ENABLE_CACHING] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_ENABLE_INDEXING]) {
+    performance.enableIndexing = process.env[DB_ENV_VARS.DATABASE_ENABLE_INDEXING] === 'true';
+  }
+  
+  if (Object.keys(performance).length > 0) {
+    config.performance = performance as DatabaseConfig['performance'];
+  }
+  
+  // Storage settings
+  const storage: Partial<DatabaseConfig['storage']> = {};
+  
+  if (process.env[DB_ENV_VARS.DATABASE_MAX_SIZE]) {
+    storage.maxSize = parseInt(process.env[DB_ENV_VARS.DATABASE_MAX_SIZE]);
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_COMPRESSION]) {
+    storage.compressionEnabled = process.env[DB_ENV_VARS.DATABASE_COMPRESSION] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_ENCRYPTION]) {
+    storage.encryptionEnabled = process.env[DB_ENV_VARS.DATABASE_ENCRYPTION] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_BACKUP]) {
+    storage.backupEnabled = process.env[DB_ENV_VARS.DATABASE_BACKUP] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_RETENTION_DAYS]) {
+    storage.retentionDays = parseInt(process.env[DB_ENV_VARS.DATABASE_RETENTION_DAYS]);
+  }
+  
+  if (Object.keys(storage).length > 0) {
+    config.storage = storage as DatabaseConfig['storage'];
+  }
+  
+  // Sync settings
+  const sync: Partial<DatabaseConfig['sync']> = {};
+  
+  if (process.env[DB_ENV_VARS.DATABASE_SYNC_ENABLED]) {
+    sync.enabled = process.env[DB_ENV_VARS.DATABASE_SYNC_ENABLED] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_SYNC_INTERVAL]) {
+    sync.interval = parseInt(process.env[DB_ENV_VARS.DATABASE_SYNC_INTERVAL]);
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_SYNC_CONFLICT_RESOLUTION]) {
+    sync.conflictResolution = process.env[DB_ENV_VARS.DATABASE_SYNC_CONFLICT_RESOLUTION] as DatabaseConfig['sync']['conflictResolution'];
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_SYNC_RETRY_ATTEMPTS]) {
+    sync.retryAttempts = parseInt(process.env[DB_ENV_VARS.DATABASE_SYNC_RETRY_ATTEMPTS]);
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_SYNC_TIMEOUT]) {
+    sync.timeout = parseInt(process.env[DB_ENV_VARS.DATABASE_SYNC_TIMEOUT]);
+  }
+  
+  if (Object.keys(sync).length > 0) {
+    config.sync = sync as DatabaseConfig['sync'];
+  }
+  
+  // Monitoring settings
+  const monitoring: Partial<DatabaseConfig['monitoring']> = {};
+  
+  if (process.env[DB_ENV_VARS.DATABASE_HEALTH_CHECKS]) {
+    monitoring.enableHealthChecks = process.env[DB_ENV_VARS.DATABASE_HEALTH_CHECKS] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_HEALTH_CHECK_INTERVAL]) {
+    monitoring.healthCheckInterval = parseInt(process.env[DB_ENV_VARS.DATABASE_HEALTH_CHECK_INTERVAL]);
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_PERFORMANCE_METRICS]) {
+    monitoring.enablePerformanceMetrics = process.env[DB_ENV_VARS.DATABASE_PERFORMANCE_METRICS] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_ERROR_REPORTING]) {
+    monitoring.enableErrorReporting = process.env[DB_ENV_VARS.DATABASE_ERROR_REPORTING] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_LOG_LEVEL]) {
+    monitoring.logLevel = process.env[DB_ENV_VARS.DATABASE_LOG_LEVEL] as DatabaseConfig['monitoring']['logLevel'];
+  }
+  
+  if (Object.keys(monitoring).length > 0) {
+    config.monitoring = monitoring as DatabaseConfig['monitoring'];
+  }
+  
+  // Feature settings
+  const features: Partial<DatabaseConfig['features']> = {};
+  
+  if (process.env[DB_ENV_VARS.DATABASE_FULL_TEXT_SEARCH]) {
+    features.enableFullTextSearch = process.env[DB_ENV_VARS.DATABASE_FULL_TEXT_SEARCH] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_TRANSACTIONS]) {
+    features.enableTransactions = process.env[DB_ENV_VARS.DATABASE_TRANSACTIONS] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_REAL_TIME_UPDATES]) {
+    features.enableRealTimeUpdates = process.env[DB_ENV_VARS.DATABASE_REAL_TIME_UPDATES] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_OFFLINE_MODE]) {
+    features.enableOfflineMode = process.env[DB_ENV_VARS.DATABASE_OFFLINE_MODE] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_DATA_VALIDATION]) {
+    features.enableDataValidation = process.env[DB_ENV_VARS.DATABASE_DATA_VALIDATION] === 'true';
+  }
+  
+  if (process.env[DB_ENV_VARS.DATABASE_AUDIT_LOG]) {
+    features.enableAuditLog = process.env[DB_ENV_VARS.DATABASE_AUDIT_LOG] === 'true';
+  }
+  
+  if (Object.keys(features).length > 0) {
+    config.features = features as DatabaseConfig['features'];
+  }
+  
+  // Backend API configuration
+  if (process.env[DB_ENV_VARS.DATABASE_API_BASE_URL] || 
+      process.env[DB_ENV_VARS.DATABASE_API_KEY] || 
+      process.env[DB_ENV_VARS.DATABASE_API_AUTH_TOKEN]) {
+    
+    config.apiConfig = {
+      apiBaseUrl: process.env[DB_ENV_VARS.DATABASE_API_BASE_URL] || '',
+      apiKey: process.env[DB_ENV_VARS.DATABASE_API_KEY],
+      authToken: process.env[DB_ENV_VARS.DATABASE_API_AUTH_TOKEN],
+      authType: (process.env[DB_ENV_VARS.DATABASE_API_AUTH_TYPE] as any) || 'bearer',
+      timeout: process.env[DB_ENV_VARS.DATABASE_API_TIMEOUT] ? 
+        parseInt(process.env[DB_ENV_VARS.DATABASE_API_TIMEOUT]) : undefined,
+    };
+  }
+  
+  return config;
+}
+
+/**
+ * Load database configuration from configuration file
+ */
+async function loadDatabaseConfigFromFile(): Promise<Partial<DatabaseConfig>> {
+  try {
+    // Try to load from public/database-config.json
+    const response = await fetch('/database-config.json');
+    if (response.ok) {
+      const config = await response.json();
+      console.log('📁 [UnifiedConfig] Loaded database configuration from file');
+      return config;
+    }
+  } catch (error) {
+    // File doesn't exist or can't be loaded, which is fine
+    console.log('📁 [UnifiedConfig] No database configuration file found');
+  }
+  
+  return {};
+}
+
 // RxDB Constants (migrated from config.ts)
 export const RXDB_DB_NAME = 'schoolpilot';
 export const RXDB_LEADER_ELECTION_DISABLED = true;
@@ -557,6 +905,9 @@ export class UnifiedConfigManager {
    */
   private loadConfig(): UnifiedAppConfig {
     let config = createDefaultConfig();
+    
+    // Load configuration file asynchronously (will be applied later)
+    this.loadConfigurationFile();
 
     // Try to load from localStorage first
     if (typeof window !== 'undefined') {
@@ -929,6 +1280,497 @@ export class UnifiedConfigManager {
   public getConfigVersion(): string {
     return CONFIG_VERSION;
   }
+
+  /**
+   * Get current database configuration
+   */
+  public getDatabaseConfig(): DatabaseConfig {
+    return { ...this.config.database };
+  }
+
+  /**
+   * Update database configuration
+   */
+  public updateDatabaseConfig(updates: Partial<DatabaseConfig>): void {
+    this.config.database = {
+      ...this.config.database,
+      ...updates,
+      // Deep merge nested objects
+      performance: {
+        ...this.config.database.performance,
+        ...(updates.performance || {}),
+      },
+      storage: {
+        ...this.config.database.storage,
+        ...(updates.storage || {}),
+      },
+      sync: {
+        ...this.config.database.sync,
+        ...(updates.sync || {}),
+      },
+      monitoring: {
+        ...this.config.database.monitoring,
+        ...(updates.monitoring || {}),
+      },
+      features: {
+        ...this.config.database.features,
+        ...(updates.features || {}),
+      },
+    };
+    this.saveConfig();
+    this.notifyListeners();
+  }
+
+  /**
+   * Update database provider with automatic configuration adjustment
+   */
+  public updateDatabaseProvider(provider: DatabaseProvider): void {
+    const envConfig = this.getEnvironmentConfig();
+    
+    // Validate provider is allowed
+    if (!envConfig.allowedDatabaseProviders.includes(provider)) {
+      throw new Error(`Provider ${provider} is not allowed in ${this.config.environment} environment`);
+    }
+
+    // Update provider and adjust configuration based on provider capabilities
+    const updates: Partial<DatabaseConfig> = {
+      provider,
+      features: {
+        ...this.config.database.features,
+        enableFullTextSearch: provider !== 'backend-api',
+        enableTransactions: provider === 'sqlite-file' || provider === 'sqlite-wasm',
+        enableRealTimeUpdates: provider === 'pouchdb' || provider === 'livestore',
+        enableOfflineMode: provider !== 'backend-api',
+      },
+      sync: {
+        ...this.config.database.sync,
+        enabled: provider === 'backend-api' || provider === 'pouchdb',
+      },
+    };
+
+    this.updateDatabaseConfig(updates);
+  }
+
+  /**
+   * Get database configuration presets
+   */
+  public getDatabaseConfigPresets(): Record<string, Partial<DatabaseConfig>> {
+    return {
+      performance: {
+        performance: {
+          enableIndexing: true,
+          enableCaching: true,
+          cacheSize: 200,
+          queryTimeout: 15000,
+          batchSize: 1000,
+        },
+        monitoring: {
+          enableHealthChecks: true,
+          healthCheckInterval: 60000, // 1 minute
+          enablePerformanceMetrics: true,
+          enableErrorReporting: true,
+          logLevel: 'info',
+        },
+      },
+      
+      storage_optimized: {
+        storage: {
+          maxSize: 1000, // 1GB
+          compressionEnabled: true,
+          encryptionEnabled: false,
+          backupEnabled: true,
+          retentionDays: 90,
+        },
+        performance: {
+          enableIndexing: true,
+          enableCaching: true,
+          cacheSize: 100,
+          queryTimeout: 30000,
+          batchSize: 500,
+        },
+      },
+      
+      sync_heavy: {
+        sync: {
+          enabled: true,
+          interval: 10000, // 10 seconds
+          conflictResolution: 'merge',
+          batchSize: 50,
+          retryAttempts: 5,
+          timeout: 30000,
+        },
+        features: {
+          enableFullTextSearch: true,
+          enableTransactions: true,
+          enableRealTimeUpdates: true,
+          enableOfflineMode: true,
+          enableDataValidation: true,
+          enableAuditLog: false,
+        },
+      },
+      
+      development: {
+        monitoring: {
+          enableHealthChecks: true,
+          healthCheckInterval: 300000, // 5 minutes
+          enablePerformanceMetrics: false,
+          enableErrorReporting: false,
+          logLevel: 'debug',
+        },
+        storage: {
+          maxSize: 100, // 100MB
+          compressionEnabled: false,
+          encryptionEnabled: false,
+          backupEnabled: false,
+          retentionDays: 7,
+        },
+      },
+      
+      production: {
+        performance: {
+          enableIndexing: true,
+          enableCaching: true,
+          cacheSize: 500,
+          queryTimeout: 30000,
+          batchSize: 2000,
+        },
+        storage: {
+          maxSize: 0, // Unlimited
+          compressionEnabled: true,
+          encryptionEnabled: true,
+          backupEnabled: true,
+          retentionDays: 365,
+        },
+        monitoring: {
+          enableHealthChecks: true,
+          healthCheckInterval: 60000, // 1 minute
+          enablePerformanceMetrics: true,
+          enableErrorReporting: true,
+          logLevel: 'warn',
+        },
+        features: {
+          enableFullTextSearch: true,
+          enableTransactions: true,
+          enableRealTimeUpdates: true,
+          enableOfflineMode: true,
+          enableDataValidation: true,
+          enableAuditLog: true,
+        },
+      },
+    };
+  }
+
+  /**
+   * Apply database configuration preset
+   */
+  public applyDatabaseConfigPreset(preset: string): void {
+    const presets = this.getDatabaseConfigPresets();
+    const presetConfig = presets[preset];
+    
+    if (!presetConfig) {
+      throw new Error(`Unknown database configuration preset: ${preset}`);
+    }
+    
+    this.updateDatabaseConfig(presetConfig);
+  }
+
+  /**
+   * Load configuration from file asynchronously
+   */
+  private async loadConfigurationFile(): Promise<void> {
+    try {
+      const fileConfig = await loadDatabaseConfigFromFile();
+      
+      if (Object.keys(fileConfig).length > 0) {
+        console.log('📁 [UnifiedConfig] Applying configuration from file');
+        
+        // Merge file configuration with current configuration
+        this.updateDatabaseConfig(fileConfig);
+      }
+    } catch (error) {
+      console.warn('📁 [UnifiedConfig] Failed to load configuration file:', error);
+    }
+  }
+
+  /**
+   * Reload configuration from environment variables
+   */
+  public reloadFromEnvironment(): void {
+    console.log('🔄 [UnifiedConfig] Reloading configuration from environment variables');
+    
+    const envDatabaseConfig = loadDatabaseConfigFromEnv();
+    
+    if (Object.keys(envDatabaseConfig).length > 0) {
+      this.updateDatabaseConfig(envDatabaseConfig);
+      console.log('✅ [UnifiedConfig] Applied environment variable overrides');
+    }
+  }
+
+  /**
+   * Export current database configuration to environment variable format
+   */
+  public exportDatabaseConfigAsEnvVars(): Record<string, string> {
+    const config = this.config.database;
+    const envVars: Record<string, string> = {};
+    
+    // Provider settings
+    if (config.provider) {
+      envVars[DB_ENV_VARS.DATABASE_PROVIDER] = config.provider;
+    }
+    
+    if (config.autoDetect !== undefined) {
+      envVars[DB_ENV_VARS.DATABASE_AUTO_DETECT] = config.autoDetect.toString();
+    }
+    
+    if (config.connectionString) {
+      envVars[DB_ENV_VARS.DATABASE_URL] = config.connectionString;
+    }
+    
+    // Performance settings
+    envVars[DB_ENV_VARS.DATABASE_CACHE_SIZE] = config.performance.cacheSize.toString();
+    envVars[DB_ENV_VARS.DATABASE_QUERY_TIMEOUT] = config.performance.queryTimeout.toString();
+    envVars[DB_ENV_VARS.DATABASE_BATCH_SIZE] = config.performance.batchSize.toString();
+    envVars[DB_ENV_VARS.DATABASE_ENABLE_CACHING] = config.performance.enableCaching.toString();
+    envVars[DB_ENV_VARS.DATABASE_ENABLE_INDEXING] = config.performance.enableIndexing.toString();
+    
+    // Storage settings
+    envVars[DB_ENV_VARS.DATABASE_MAX_SIZE] = config.storage.maxSize.toString();
+    envVars[DB_ENV_VARS.DATABASE_COMPRESSION] = config.storage.compressionEnabled.toString();
+    envVars[DB_ENV_VARS.DATABASE_ENCRYPTION] = config.storage.encryptionEnabled.toString();
+    envVars[DB_ENV_VARS.DATABASE_BACKUP] = config.storage.backupEnabled.toString();
+    envVars[DB_ENV_VARS.DATABASE_RETENTION_DAYS] = config.storage.retentionDays.toString();
+    
+    // Sync settings
+    envVars[DB_ENV_VARS.DATABASE_SYNC_ENABLED] = config.sync.enabled.toString();
+    envVars[DB_ENV_VARS.DATABASE_SYNC_INTERVAL] = config.sync.interval.toString();
+    envVars[DB_ENV_VARS.DATABASE_SYNC_CONFLICT_RESOLUTION] = config.sync.conflictResolution;
+    envVars[DB_ENV_VARS.DATABASE_SYNC_RETRY_ATTEMPTS] = config.sync.retryAttempts.toString();
+    envVars[DB_ENV_VARS.DATABASE_SYNC_TIMEOUT] = config.sync.timeout.toString();
+    
+    // Monitoring settings
+    envVars[DB_ENV_VARS.DATABASE_HEALTH_CHECKS] = config.monitoring.enableHealthChecks.toString();
+    envVars[DB_ENV_VARS.DATABASE_HEALTH_CHECK_INTERVAL] = config.monitoring.healthCheckInterval.toString();
+    envVars[DB_ENV_VARS.DATABASE_PERFORMANCE_METRICS] = config.monitoring.enablePerformanceMetrics.toString();
+    envVars[DB_ENV_VARS.DATABASE_ERROR_REPORTING] = config.monitoring.enableErrorReporting.toString();
+    envVars[DB_ENV_VARS.DATABASE_LOG_LEVEL] = config.monitoring.logLevel;
+    
+    // Feature settings
+    envVars[DB_ENV_VARS.DATABASE_FULL_TEXT_SEARCH] = config.features.enableFullTextSearch.toString();
+    envVars[DB_ENV_VARS.DATABASE_TRANSACTIONS] = config.features.enableTransactions.toString();
+    envVars[DB_ENV_VARS.DATABASE_REAL_TIME_UPDATES] = config.features.enableRealTimeUpdates.toString();
+    envVars[DB_ENV_VARS.DATABASE_OFFLINE_MODE] = config.features.enableOfflineMode.toString();
+    envVars[DB_ENV_VARS.DATABASE_DATA_VALIDATION] = config.features.enableDataValidation.toString();
+    envVars[DB_ENV_VARS.DATABASE_AUDIT_LOG] = config.features.enableAuditLog.toString();
+    
+    // API settings
+    if (config.apiConfig) {
+      if (config.apiConfig.apiBaseUrl) {
+        envVars[DB_ENV_VARS.DATABASE_API_BASE_URL] = config.apiConfig.apiBaseUrl;
+      }
+      if (config.apiConfig.apiKey) {
+        envVars[DB_ENV_VARS.DATABASE_API_KEY] = config.apiConfig.apiKey;
+      }
+      if (config.apiConfig.authToken) {
+        envVars[DB_ENV_VARS.DATABASE_API_AUTH_TOKEN] = config.apiConfig.authToken;
+      }
+      if (config.apiConfig.authType) {
+        envVars[DB_ENV_VARS.DATABASE_API_AUTH_TYPE] = config.apiConfig.authType;
+      }
+      if (config.apiConfig.timeout) {
+        envVars[DB_ENV_VARS.DATABASE_API_TIMEOUT] = config.apiConfig.timeout.toString();
+      }
+    }
+    
+    return envVars;
+  }
+
+  /**
+   * Export current database configuration as JSON file content
+   */
+  public exportDatabaseConfigAsJSON(): string {
+    return JSON.stringify(this.config.database, null, 2);
+  }
+
+  /**
+   * Validate database configuration using schema validator
+   */
+  public validateDatabaseConfig(): ValidationResult {
+    const config = this.config.database;
+    const envConfig = this.getEnvironmentConfig();
+    
+    // Use schema validator for comprehensive validation
+    const schemaValidation = databaseConfigValidator.validate(config);
+    
+    // Add environment-specific validation
+    const environmentErrors: ValidationError[] = [];
+    
+    if (!envConfig.allowedDatabaseProviders.includes(config.provider)) {
+      environmentErrors.push({
+        field: 'provider',
+        message: `Provider ${config.provider} is not allowed in ${this.config.environment} environment`,
+        currentValue: config.provider,
+        expectedValue: envConfig.allowedDatabaseProviders[0],
+        autoFix: () => envConfig.allowedDatabaseProviders[0]
+      });
+    }
+    
+    return {
+      ...schemaValidation,
+      errors: [...schemaValidation.errors, ...environmentErrors],
+      isValid: schemaValidation.isValid && environmentErrors.length === 0
+    };
+  }
+
+  /**
+   * Auto-fix database configuration issues
+   */
+  public autoFixDatabaseConfig(): {
+    success: boolean;
+    changes: string[];
+    remainingIssues: ValidationResult;
+  } {
+    try {
+      const { fixed, changes } = databaseConfigValidator.autoFix(this.config.database);
+      
+      // Apply the fixed configuration
+      this.config.database = fixed;
+      this.saveConfig();
+      this.notifyListeners();
+      
+      // Validate the fixed configuration
+      const remainingIssues = this.validateDatabaseConfig();
+      
+      return {
+        success: true,
+        changes,
+        remainingIssues
+      };
+    } catch (error) {
+      console.error('Auto-fix failed:', error);
+      return {
+        success: false,
+        changes: [],
+        remainingIssues: this.validateDatabaseConfig()
+      };
+    }
+  }
+
+  /**
+   * Migrate database configuration to latest version
+   */
+  public migrateDatabaseConfig(currentVersion = '1.0.0'): {
+    success: boolean;
+    appliedMigrations: string[];
+    validation: ValidationResult;
+  } {
+    try {
+      const { migrated, appliedMigrations } = databaseConfigValidator.migrate(
+        this.config.database, 
+        currentVersion
+      );
+      
+      // Apply the migrated configuration
+      this.config.database = migrated;
+      this.saveConfig();
+      this.notifyListeners();
+      
+      // Validate the migrated configuration
+      const validation = this.validateDatabaseConfig();
+      
+      return {
+        success: true,
+        appliedMigrations,
+        validation
+      };
+    } catch (error) {
+      console.error('Migration failed:', error);
+      return {
+        success: false,
+        appliedMigrations: [],
+        validation: this.validateDatabaseConfig()
+      };
+    }
+  }
+
+  /**
+   * Reset database configuration to defaults
+   */
+  public resetDatabaseConfigToDefaults(): {
+    success: boolean;
+    validation: ValidationResult;
+  } {
+    try {
+      const defaults = databaseConfigValidator.resetToDefaults(this.config.environment);
+      
+      // Apply environment-specific adjustments
+      const envConfig = this.getEnvironmentConfig();
+      if (envConfig.allowedDatabaseProviders.length > 0) {
+        defaults.provider = envConfig.allowedDatabaseProviders[0];
+      }
+      
+      this.config.database = defaults;
+      this.saveConfig();
+      this.notifyListeners();
+      
+      const validation = this.validateDatabaseConfig();
+      
+      return {
+        success: true,
+        validation
+      };
+    } catch (error) {
+      console.error('Reset to defaults failed:', error);
+      return {
+        success: false,
+        validation: this.validateDatabaseConfig()
+      };
+    }
+  }
+
+  /**
+   * Repair database configuration (migrate + auto-fix)
+   */
+  public repairDatabaseConfig(currentVersion = '1.0.0'): {
+    success: boolean;
+    changes: string[];
+    migrations: string[];
+    validation: ValidationResult;
+  } {
+    try {
+      const { repaired, changes, migrations } = databaseConfigValidator.repair(
+        this.config.database,
+        currentVersion
+      );
+      
+      // Apply environment-specific fixes
+      const envConfig = this.getEnvironmentConfig();
+      if (!envConfig.allowedDatabaseProviders.includes(repaired.provider)) {
+        repaired.provider = envConfig.allowedDatabaseProviders[0];
+        changes.push(`provider: ${this.config.database.provider} → ${repaired.provider} (environment constraint)`);
+      }
+      
+      this.config.database = repaired;
+      this.saveConfig();
+      this.notifyListeners();
+      
+      const validation = this.validateDatabaseConfig();
+      
+      return {
+        success: true,
+        changes,
+        migrations,
+        validation
+      };
+    } catch (error) {
+      console.error('Repair failed:', error);
+      return {
+        success: false,
+        changes: [],
+        migrations: [],
+        validation: this.validateDatabaseConfig()
+      };
+    }
+  }
 }
 
 // Export singleton instance
@@ -1011,6 +1853,82 @@ export const getAllowedDatabaseProviders = (): DatabaseProvider[] => {
   const config = unifiedConfigManager.getConfig();
   return config.database.allowedProviders;
 };
+
+// Database configuration utilities
+export const getDatabaseConfig = (): DatabaseConfig => {
+  return unifiedConfigManager.getDatabaseConfig();
+};
+
+export const updateDatabaseConfig = (updates: Partial<DatabaseConfig>): void => {
+  unifiedConfigManager.updateDatabaseConfig(updates);
+};
+
+export const updateDatabaseProvider = (provider: DatabaseProvider): void => {
+  unifiedConfigManager.updateDatabaseProvider(provider);
+};
+
+export const getDatabaseConfigPresets = (): Record<string, Partial<DatabaseConfig>> => {
+  return unifiedConfigManager.getDatabaseConfigPresets();
+};
+
+export const applyDatabaseConfigPreset = (preset: string): void => {
+  unifiedConfigManager.applyDatabaseConfigPreset(preset);
+};
+
+export const validateDatabaseConfig = () => {
+  return unifiedConfigManager.validateDatabaseConfig();
+};
+
+// Enhanced validation utilities
+export const validateDatabaseConfigEnhanced = () => {
+  const { databaseConfigValidator } = require('./databaseConfigSchema');
+  const config = unifiedConfigManager.getDatabaseConfig();
+  return databaseConfigValidator.validate(config);
+};
+
+export const resetDatabaseConfig = (environment?: 'development' | 'staging' | 'production') => {
+  const { databaseConfigValidator } = require('./databaseConfigSchema');
+  const resetConfig = databaseConfigValidator.reset(environment);
+  unifiedConfigManager.updateDatabaseConfig(resetConfig);
+  return resetConfig;
+};
+
+// Environment-based configuration utilities
+export const reloadConfigFromEnvironment = (): void => {
+  unifiedConfigManager.reloadFromEnvironment();
+};
+
+export const exportDatabaseConfigAsEnvVars = (): Record<string, string> => {
+  return unifiedConfigManager.exportDatabaseConfigAsEnvVars();
+};
+
+export const exportDatabaseConfigAsJSON = (): string => {
+  return unifiedConfigManager.exportDatabaseConfigAsJSON();
+};
+
+export const getDatabaseEnvVarKeys = () => {
+  return DB_ENV_VARS;
+};
+
+// Database configuration validation and repair utilities
+export const autoFixDatabaseConfig = () => {
+  return unifiedConfigManager.autoFixDatabaseConfig();
+};
+
+export const migrateDatabaseConfig = (currentVersion?: string) => {
+  return unifiedConfigManager.migrateDatabaseConfig(currentVersion);
+};
+
+export const resetDatabaseConfigToDefaults = () => {
+  return unifiedConfigManager.resetDatabaseConfigToDefaults();
+};
+
+export const repairDatabaseConfig = (currentVersion?: string) => {
+  return unifiedConfigManager.repairDatabaseConfig(currentVersion);
+};
+
+// Export validator for advanced usage
+export { databaseConfigValidator, DatabaseConfigValidator } from './databaseConfigSchema';
 
 // Configuration migration helper
 export const migrateConfigurationToV2 = (): void => {

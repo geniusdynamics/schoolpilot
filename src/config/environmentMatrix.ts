@@ -6,7 +6,7 @@
 // Environment Types
 export type Environment = 'development' | 'staging' | 'production';
 export type DataMode = 'demo' | 'production';
-export type DatabaseProvider = 'rxdb' | 'pouchdb' | 'sqlite' | 'memory' | 'backend-api';
+export type DatabaseProvider = 'rxdb' | 'pouchdb' | 'sqlite' | 'sqlite-file' | 'sqlite-wasm' | 'memory' | 'backend-api' | 'livestore' | 'hybrid';
 
 // Environment Configuration
 export interface EnvironmentConfig {
