@@ -1,0 +1,49 @@
+{
+  "provider": "sqlite-wasm",
+  "autoDetect": true,
+  "connectionString": "",
+  "performance": {
+    "enableIndexing": true,
+    "enableCaching": true,
+    "cacheSize": 100,
+    "queryTimeout": 30000,
+    "batchSize": 1000
+  },
+  "storage": {
+    "maxSize": 0,
+    "compressionEnabled": true,
+    "encryptionEnabled": false,
+    "backupEnabled": true,
+    "retentionDays": 365
+  },
+  "sync": {
+    "enabled": false,
+    "interval": 30000,
+    "conflictResolution": "manual",
+    "batchSize": 100,
+    "retryAttempts": 3,
+    "timeout": 60000
+  },
+  "monitoring": {
+    "enableHealthChecks": true,
+    "healthCheckInterval": 300000,
+    "enablePerformanceMetrics": true,
+    "enableErrorReporting": true,
+    "logLevel": "info"
+  },
+  "features": {
+    "enableFullTextSearch": true,
+    "enableTransactions": true,
+    "enableRealTimeUpdates": false,
+    "enableOfflineMode": true,
+    "enableDataValidation": true,
+    "enableAuditLog": true
+  },
+  "apiConfig": {
+    "apiBaseUrl": "",
+    "apiKey": "",
+    "authToken": "",
+    "authType": "bearer",
+    "timeout": 30000
+  }
+}

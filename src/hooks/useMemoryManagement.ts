@@ -1,274 +1,224 @@
-// ABOUTME: React hook for memory management integration
-// ABOUTME: Provides component-level memory tracking and optimization
+// ABOUTME: React hook for database memory management monitoring
+// ABOUTME: Provides real-time memory metrics, alerts, and management controls
 
-import { useEffect, useCallback, useRef, useState, useMemo } from 'react';
-import { memoryManager, MemoryAlert, MemoryReport } from '../services/memoryManager';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  DatabaseMemoryManager,
+  MemoryUsageMetrics,
+  MemoryAlert,
+  MemoryThresholds,
+  databaseMemoryManager,
+} from '../services/database/MemoryManager';
 
-interface UseMemoryManagementOptions {
-  componentName: string;
-  trackLifecycle?: boolean;
-  enableAlerts?: boolean;
-  cachePrefix?: string;
-}
-
-interface MemoryManagementHookReturn {
-  memoryReport: MemoryReport | null;
+export interface MemoryManagementState {
+  metrics: MemoryUsageMetrics | null;
+  history: MemoryUsageMetrics[];
+  alerts: MemoryAlert[];
   activeAlerts: MemoryAlert[];
-  cacheValue: <T>(key: string, value: T, ttl?: number) => void;
-  getCachedValue: <T>(key: string) => T | null;
-  clearComponentCache: () => void;
-  forceCleanup: () => void;
-  isMemoryHigh: boolean;
-  memoryUsagePercent: number;
+  connectionStats: {
+    total: number;
+    active: number;
+    stale: number;
+    byProvider: Record<string, number>;
+  };
+  summary: {
+    current: MemoryUsageMetrics | null;
+    trend: 'increasing' | 'decreasing' | 'stable';
+    alerts: number;
+    connections: {
+      active: number;
+      stale: number;
+    };
+    recommendations: string[];
+  };
+  thresholds: MemoryThresholds;
+  isMonitoring: boolean;
 }
 
-export const useMemoryManagement = (
-  options: UseMemoryManagementOptions
-): MemoryManagementHookReturn => {
-  const {
-    componentName,
-    trackLifecycle = true,
-    enableAlerts = true,
-    cachePrefix = ''
-  } = options;
+export interface MemoryManagementActions {
+  startMonitoring: (intervalMs?: number) => void;
+  stopMonitoring: () => void;
+  forceCleanup: () => void;
+  resolveAlert: (alertId: string) => boolean;
+  updateThresholds: (thresholds: Partial<MemoryThresholds>) => void;
+  registerGCCallback: (callback: () => void) => void;
+  unregisterGCCallback: (callback: () => void) => void;
+  refreshMetrics: () => void;
+}
 
-  const [memoryReport, setMemoryReport] = useState<MemoryReport | null>(null);
-  const [activeAlerts, setActiveAlerts] = useState<MemoryAlert[]>([]);
-  const componentIdRef = useRef<string | null>(null);
-  const cacheKeysRef = useRef<Set<string>>(new Set());
+/**
+ * Hook for database memory management
+ */
+export function useMemoryManagement(): MemoryManagementState & MemoryManagementActions {
+  const [state, setState] = useState<MemoryManagementState>(() => ({
+    metrics: databaseMemoryManager.getLatestMemoryMetrics(),
+    history: databaseMemoryManager.getMemoryHistory(),
+    alerts: databaseMemoryManager.getAllAlerts(),
+    activeAlerts: databaseMemoryManager.getActiveAlerts(),
+    connectionStats: databaseMemoryManager.getConnectionStats(),
+    summary: databaseMemoryManager.getMemorySummary(),
+    thresholds: databaseMemoryManager.getThresholds(),
+    isMonitoring: true, // Memory manager starts automatically
+  }));
 
-  // Track component lifecycle
+  // Update state when memory metrics change
+  const updateState = useCallback(() => {
+    setState(prevState => ({
+      ...prevState,
+      metrics: databaseMemoryManager.getLatestMemoryMetrics(),
+      history: databaseMemoryManager.getMemoryHistory(),
+      alerts: databaseMemoryManager.getAllAlerts(),
+      activeAlerts: databaseMemoryManager.getActiveAlerts(),
+      connectionStats: databaseMemoryManager.getConnectionStats(),
+      summary: databaseMemoryManager.getMemorySummary(),
+      thresholds: databaseMemoryManager.getThresholds(),
+    }));
+  }, []);
+
+  // Set up memory monitoring listener
   useEffect(() => {
-    if (trackLifecycle) {
-      componentIdRef.current = memoryManager.trackComponentMount(componentName);
-      
-      return () => {
-        if (componentIdRef.current) {
-          memoryManager.trackComponentUnmount(componentName);
-        }
-      };
+    const handleMemoryUpdate = (metrics: MemoryUsageMetrics) => {
+      updateState();
+    };
+
+    databaseMemoryManager.addListener(handleMemoryUpdate);
+
+    // Initial update
+    updateState();
+
+    return () => {
+      databaseMemoryManager.removeListener(handleMemoryUpdate);
+    };
+  }, [updateState]);
+
+  // Actions
+  const startMonitoring = useCallback((intervalMs?: number) => {
+    databaseMemoryManager.startMonitoring(intervalMs);
+    setState(prevState => ({ ...prevState, isMonitoring: true }));
+  }, []);
+
+  const stopMonitoring = useCallback(() => {
+    databaseMemoryManager.stopMonitoring();
+    setState(prevState => ({ ...prevState, isMonitoring: false }));
+  }, []);
+
+  const forceCleanup = useCallback(() => {
+    databaseMemoryManager.forceCleanup();
+    updateState();
+  }, [updateState]);
+
+  const resolveAlert = useCallback((alertId: string) => {
+    const result = databaseMemoryManager.resolveAlert(alertId);
+    if (result) {
+      updateState();
     }
-  }, [componentName, trackLifecycle]);
+    return result;
+  }, [updateState]);
 
-  // Listen for memory alerts
+  const updateThresholds = useCallback((thresholds: Partial<MemoryThresholds>) => {
+    databaseMemoryManager.updateThresholds(thresholds);
+    updateState();
+  }, [updateState]);
+
+  const registerGCCallback = useCallback((callback: () => void) => {
+    databaseMemoryManager.registerGCCallback(callback);
+  }, []);
+
+  const unregisterGCCallback = useCallback((callback: () => void) => {
+    databaseMemoryManager.unregisterGCCallback(callback);
+  }, []);
+
+  const refreshMetrics = useCallback(() => {
+    updateState();
+  }, [updateState]);
+
+  return {
+    ...state,
+    startMonitoring,
+    stopMonitoring,
+    forceCleanup,
+    resolveAlert,
+    updateThresholds,
+    registerGCCallback,
+    unregisterGCCallback,
+    refreshMetrics,
+  };
+}
+
+/**
+ * Hook for simplified memory metrics
+ */
+export function useMemoryMetrics() {
+  const [metrics, setMetrics] = useState<MemoryUsageMetrics | null>(
+    databaseMemoryManager.getLatestMemoryMetrics()
+  );
+
   useEffect(() => {
-    if (!enableAlerts) return;
-
-    const handleMemoryAlert = (event: CustomEvent<MemoryAlert>) => {
-      setActiveAlerts(prev => [...prev, event.detail]);
+    const handleMemoryUpdate = (newMetrics: MemoryUsageMetrics) => {
+      setMetrics(newMetrics);
     };
 
-    window.addEventListener('memoryAlert', handleMemoryAlert as EventListener);
-    
-    return () => {
-      window.removeEventListener('memoryAlert', handleMemoryAlert as EventListener);
-    };
-  }, [enableAlerts]);
-
-  // Update memory report periodically with smart throttling
-  useEffect(() => {
-    let isActive = true;
-    
-    const updateReport = () => {
-      if (!isActive) return;
-      
-      try {
-        const report = memoryManager.getMemoryReport();
-        setMemoryReport(prevReport => {
-          // Only update if there are meaningful changes
-          if (!prevReport || 
-              Math.abs(report.currentUsage.usedJSHeapSize - prevReport.currentUsage.usedJSHeapSize) > 1024 * 1024 || // 1MB change
-              report.alerts.length !== prevReport.alerts.length) {
-            return report;
-          }
-          return prevReport;
-        });
-        setActiveAlerts(report.alerts);
-      } catch (error) {
-        console.warn('Error updating memory report:', error);
-      }
-    };
-
-    updateReport(); // Initial update
-    
-    // Use longer interval and only update when component is visible
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        updateReport();
-      }
-    }, 60000); // Update every 60 seconds when visible
+    databaseMemoryManager.addListener(handleMemoryUpdate);
 
     return () => {
-      isActive = false;
+      databaseMemoryManager.removeListener(handleMemoryUpdate);
+    };
+  }, []);
+
+  return metrics;
+}
+
+/**
+ * Hook for memory alerts only
+ */
+export function useMemoryAlerts() {
+  const [alerts, setAlerts] = useState<MemoryAlert[]>(
+    databaseMemoryManager.getActiveAlerts()
+  );
+
+  useEffect(() => {
+    const updateAlerts = () => {
+      setAlerts(databaseMemoryManager.getActiveAlerts());
+    };
+
+    databaseMemoryManager.addListener(updateAlerts);
+
+    // Update alerts every 30 seconds
+    const interval = setInterval(updateAlerts, 30000);
+
+    return () => {
+      databaseMemoryManager.removeListener(updateAlerts);
       clearInterval(interval);
     };
   }, []);
 
-  // Cache management with component prefix
-  const cacheValue = useCallback(<T>(key: string, value: T, ttl?: number) => {
-    const fullKey = cachePrefix ? `${cachePrefix}:${key}` : `${componentName}:${key}`;
-    cacheKeysRef.current.add(fullKey);
-    memoryManager.setCache(fullKey, value, ttl);
-  }, [componentName, cachePrefix]);
+  return alerts;
+}
 
-  const getCachedValue = useCallback(<T>(key: string): T | null => {
-    const fullKey = cachePrefix ? `${cachePrefix}:${key}` : `${componentName}:${key}`;
-    return memoryManager.getCache<T>(fullKey);
-  }, [componentName, cachePrefix]);
-
-  // Clear all cache entries created by this component
-  const clearComponentCache = useCallback(() => {
-    cacheKeysRef.current.forEach(key => {
-      memoryManager.getCache(key); // This will remove expired entries
-    });
-    cacheKeysRef.current.clear();
+/**
+ * Hook for connection tracking
+ */
+export function useConnectionTracking() {
+  const registerConnection = useCallback((id: string, provider: string) => {
+    databaseMemoryManager.registerConnection(id, provider);
   }, []);
 
-  // Force memory cleanup
-  const forceCleanup = useCallback(() => {
-    clearComponentCache();
-    // Trigger global cleanup
-    memoryManager.getMemoryReport(); // This triggers internal cleanup checks
-  }, [clearComponentCache]);
+  const updateConnectionActivity = useCallback((id: string) => {
+    databaseMemoryManager.updateConnectionActivity(id);
+  }, []);
 
-  // Calculate memory usage metrics
-  const currentUsage = memoryReport?.currentUsage;
-  const isMemoryHigh = currentUsage ? 
-    (currentUsage.usedJSHeapSize / currentUsage.jsHeapSizeLimit) > 0.7 : false;
-  const memoryUsagePercent = currentUsage ? 
-    (currentUsage.usedJSHeapSize / currentUsage.jsHeapSizeLimit) * 100 : 0;
+  const unregisterConnection = useCallback((id: string) => {
+    databaseMemoryManager.unregisterConnection(id);
+  }, []);
+
+  const getConnectionStats = useCallback(() => {
+    return databaseMemoryManager.getConnectionStats();
+  }, []);
 
   return {
-    memoryReport,
-    activeAlerts,
-    cacheValue,
-    getCachedValue,
-    clearComponentCache,
-    forceCleanup,
-    isMemoryHigh,
-    memoryUsagePercent
+    registerConnection,
+    updateConnectionActivity,
+    unregisterConnection,
+    getConnectionStats,
   };
-};
-
-// Hook for automatic component cleanup
-export const useComponentCleanup = (componentName: string) => {
-  const cleanupFunctionsRef = useRef<(() => void)[]>([]);
-
-  const addCleanupFunction = useCallback((cleanupFn: () => void) => {
-    cleanupFunctionsRef.current.push(cleanupFn);
-  }, []);
-
-  const removeCleanupFunction = useCallback((cleanupFn: () => void) => {
-    const index = cleanupFunctionsRef.current.indexOf(cleanupFn);
-    if (index > -1) {
-      cleanupFunctionsRef.current.splice(index, 1);
-    }
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      cleanupFunctionsRef.current.forEach(cleanup => {
-        try {
-          cleanup();
-        } catch (error) {
-          console.warn(`Cleanup function failed for ${componentName}:`, error);
-        }
-      });
-      cleanupFunctionsRef.current = [];
-    };
-  }, [componentName]);
-
-  return {
-    addCleanupFunction,
-    removeCleanupFunction
-  };
-};
-
-// Hook for optimized data caching with memory awareness
-export const useMemoryAwareCache = <T>(
-  componentName: string,
-  maxCacheSize: number = 10
-) => {
-  const cacheRef = useRef<Map<string, { data: T; timestamp: number; accessCount: number }>>(new Map());
-  const { isMemoryHigh } = useMemoryManagement({ componentName, trackLifecycle: false });
-
-  const setCache = useCallback((key: string, data: T) => {
-    // If memory is high, be more aggressive about cache cleanup
-    const maxSize = isMemoryHigh ? Math.floor(maxCacheSize / 2) : maxCacheSize;
-    
-    if (cacheRef.current.size >= maxSize) {
-      // Remove least recently used item
-      let oldestKey = '';
-      let oldestTime = Date.now();
-      
-      cacheRef.current.forEach((value, key) => {
-        if (value.timestamp < oldestTime) {
-          oldestTime = value.timestamp;
-          oldestKey = key;
-        }
-      });
-      
-      if (oldestKey) {
-        cacheRef.current.delete(oldestKey);
-      }
-    }
-    
-    cacheRef.current.set(key, {
-      data,
-      timestamp: Date.now(),
-      accessCount: 1
-    });
-  }, [isMemoryHigh, maxCacheSize]);
-
-  const getCache = useCallback((key: string): T | null => {
-    const entry = cacheRef.current.get(key);
-    if (entry) {
-      entry.accessCount++;
-      entry.timestamp = Date.now(); // Update access time
-      return entry.data;
-    }
-    return null;
-  }, []);
-
-  const clearCache = useCallback(() => {
-    cacheRef.current.clear();
-  }, []);
-
-  const getCacheStats = useCallback(() => {
-    return {
-      size: cacheRef.current.size,
-      maxSize: isMemoryHigh ? Math.floor(maxCacheSize / 2) : maxCacheSize,
-      entries: Array.from(cacheRef.current.entries()).map(([key, value]) => ({
-        key,
-        accessCount: value.accessCount,
-        age: Date.now() - value.timestamp
-      }))
-    };
-  }, [isMemoryHigh, maxCacheSize]);
-
-  // Clear cache when memory is high
-  useEffect(() => {
-    if (isMemoryHigh && cacheRef.current.size > 0) {
-      // Clear half the cache when memory is high
-      const entries = Array.from(cacheRef.current.entries());
-      const toRemove = Math.ceil(entries.length / 2);
-      
-      // Sort by access count and timestamp, remove least used
-      entries
-        .sort((a, b) => a[1].accessCount - b[1].accessCount || a[1].timestamp - b[1].timestamp)
-        .slice(0, toRemove)
-        .forEach(([key]) => cacheRef.current.delete(key));
-    }
-  }, [isMemoryHigh]);
-
-  return {
-    setCache,
-    getCache,
-    clearCache,
-    getCacheStats,
-    isMemoryHigh
-  };
-};
-
-export default useMemoryManagement;
+}
