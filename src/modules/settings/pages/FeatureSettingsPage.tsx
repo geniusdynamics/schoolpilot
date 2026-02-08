@@ -7,7 +7,7 @@ import FeatureSettings from '../../../components/FeatureSettings';
 import { useRBAC } from '../../../hooks/useRBAC';
 
 const FeatureSettingsPage: React.FC = () => {
-  const { t } = useTranslation(['settings', 'common']);
+  const { t } = useTranslation('settings');
   const { hasPermission } = useRBAC();
 
   // Check if user has permission to access feature settings
@@ -16,10 +16,10 @@ const FeatureSettingsPage: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {t('settings:accessDeniedTitle')}
+            {t('accessDeniedTitle')}
           </h2>
           <p className="text-gray-600">
-            {t('settings:accessDeniedMessage')}
+            {t('accessDeniedMessage')}
           </p>
         </div>
       </div>
@@ -30,10 +30,10 @@ const FeatureSettingsPage: React.FC = () => {
     <div className="space-y-6">
       <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
         <h2 className="text-xl font-semibold text-blue-900 mb-2">
-          Feature Settings Page
+          {t('featureSettings.title')}
         </h2>
         <p className="text-blue-700">
-          This is the Feature Settings page. If you can see this message, the routing is working correctly.
+          {t('featureSettings.description')}
         </p>
       </div>
       <FeatureSettings />
