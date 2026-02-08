@@ -5,6 +5,10 @@
  */
 
 export { UnifiedDataService, uds, createDataService } from './UnifiedDataService';
+export { SyncEngine } from './SyncEngine';
+export { SQLiteProvider } from './providers/SQLiteProvider';
+export { PouchDBProvider } from './providers/PouchDBProvider';
+export { createProvider } from './providers';
 export type {
   DataProvider,
   ProviderCapabilities,
