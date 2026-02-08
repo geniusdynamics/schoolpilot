@@ -181,7 +181,7 @@ const StudentPaymentsPage: React.FC = () => {
       }>
         <DataGrid 
           columns={paymentColumns} 
-          data={studentPayments || []} 
+          data={Array.isArray(studentPayments) ? studentPayments : []} 
           isLoading={loading.studentPayments}
           sortable
           filterable

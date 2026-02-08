@@ -282,26 +282,26 @@ export class UnifiedDatabaseManager {
       const unifiedConfig = getCurrentUnifiedConfig();
       const dbConfig = getDatabaseConfig();
       
-      // Create provider-specific database configuration
+      // Create provider-specific database configuration with safe defaults
       const config: DatabaseConfig = {
         name: `schoolpilot_${this.deploymentMode}`,
         version: 1,
-        autoCompaction: dbConfig.storage.compressionEnabled,
-        debug: dbConfig.monitoring.logLevel === 'debug',
+        autoCompaction: dbConfig?.storage?.compressionEnabled ?? false,
+        debug: dbConfig?.monitoring?.logLevel === 'debug',
         
         // Add backend API configuration if provider is backend-api
-        ...(this.providerType === 'backend-api' && dbConfig.apiConfig ? {
+        ...(this.providerType === 'backend-api' && dbConfig?.apiConfig ? {
           apiBaseUrl: dbConfig.apiConfig.apiBaseUrl,
           apiKey: dbConfig.apiConfig.apiKey,
           authToken: dbConfig.apiConfig.authToken,
           authType: dbConfig.apiConfig.authType || 'bearer',
           customHeaders: dbConfig.apiConfig.customHeaders,
-          timeout: dbConfig.sync.timeout,
-          retryAttempts: dbConfig.sync.retryAttempts,
-          syncInterval: dbConfig.sync.interval,
-          batchSize: dbConfig.sync.batchSize,
-          enableOfflineQueue: dbConfig.features.enableOfflineMode,
-          conflictResolution: dbConfig.sync.conflictResolution,
+          timeout: dbConfig.sync?.timeout ?? 30000,
+          retryAttempts: dbConfig.sync?.retryAttempts ?? 3,
+          syncInterval: dbConfig.sync?.interval ?? 30000,
+          batchSize: dbConfig.sync?.batchSize ?? 100,
+          enableOfflineQueue: dbConfig.features?.enableOfflineMode ?? true,
+          conflictResolution: dbConfig.sync?.conflictResolution ?? 'local-wins',
           endpoints: dbConfig.apiConfig.endpoints
         } : {})
       };

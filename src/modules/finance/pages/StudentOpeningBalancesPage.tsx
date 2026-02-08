@@ -38,6 +38,7 @@ const StudentOpeningBalancesPage: React.FC = () => {
   const [formData, setFormData] = useState<StudentOpeningBalanceFormData>(initialFormData);
 
   const studentsWithoutOB = useMemo(() => {
+    if (!studentOpeningBalances || !students) return [];
     const studentIdsWithOB = new Set(studentOpeningBalances.map(ob => ob.student_id));
     return students.filter(s => !studentIdsWithOB.has(s.id) && s.status === StudentStatus.ACTIVE);
   }, [students, studentOpeningBalances]);

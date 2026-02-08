@@ -1,7 +1,16 @@
 /**
  * Deployment Mode Configuration
  * 
- * Defines configuration for all deployment modes.
+ * SchoolPilot3 is a SINGLE-TENANT frontend app.
+ * Each instance serves ONE school and can connect to various backends.
+ * 
+ * Modes:
+ * - standalone: No backend, local SQLite only
+ * - networked: LAN server for multi-computer setup
+ * - hosted: Connect to self-hosted backend API
+ * - saas: Connect to SchoolPilot SaaS backend (backend is multi-tenant, this app is not)
+ * - erpnext: Connect to ERPNext instance
+ * - demo: Mock data for testing
  */
 
 import type { DeploymentMode } from '../services/data/types';
@@ -105,8 +114,8 @@ export const deploymentConfigs: Record<DeploymentMode, DeploymentConfig> = {
 
   saas: {
     mode: 'saas',
-    name: 'SaaS',
-    description: 'Cloud-hosted multi-tenant',
+    name: 'SaaS Connect',
+    description: 'Connect to SchoolPilot SaaS backend (this app remains single-tenant)',
     provider: 'pouchdb',
     features: {
       multiUser: true,
