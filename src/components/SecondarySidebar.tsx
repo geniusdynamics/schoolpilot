@@ -158,7 +158,21 @@ const getModuleStyle = (moduleKey: string) => {
   return colorSchemes[moduleKey as keyof typeof colorSchemes] || colorSchemes.settings;
 };
 
-const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; onClose: () => void }> = ({ selectedModuleKey, isOpen, onClose }) => {
+interface SecondarySidebarProps {
+  selectedModuleKey: string;
+  isOpen: boolean;
+  onClose: () => void;
+  items?: any[];
+  onItemClick?: (item: { path: string; name?: string }) => void;
+}
+
+const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ 
+  selectedModuleKey, 
+  isOpen, 
+  onClose,
+  items: propItems,
+  onItemClick
+}) => {
   const { t } = useTranslation();
   const { navigationItems, isLoading } = useDynamicNavigation(true); // Use dynamic navigation
   const { accessibleModules, hasModuleAccess } = useRBAC();
@@ -189,6 +203,12 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     
     if (!item.path) {
       showWarning(errorMessages.missingPath);
+      return;
+    }
+
+    // If new onItemClick prop is provided, use it (for URL-driven tab system)
+    if (onItemClick) {
+      onItemClick({ path: item.path, name: item.name });
       return;
     }
 
@@ -280,9 +300,13 @@ const SecondarySidebar: React.FC<{ selectedModuleKey: string; isOpen: boolean; o
     return navigationItems?.find(item => item.name === selectedModuleKey && item.isGroup);
   }, [navigationItems, selectedModuleKey]);
   
+  // Use propItems if provided (new tab system), otherwise use derived subMenus
   const subMenus = useMemo(() => {
+    if (propItems && propItems.length > 0) {
+      return propItems;
+    }
     return selectedModule && selectedModule.children ? selectedModule.children : [];
-  }, [selectedModule]);
+  }, [selectedModule, propItems]);
   
   const moduleKey = useMemo(() => {
     return selectedModuleKey.split(':')[1]?.split('.')[0] || '';
