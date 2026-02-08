@@ -25,7 +25,7 @@ import {
   ListBulletIcon,
   ArrowLeftOnRectangleIcon
 } from '../../../components/ui/icons';
-import FeatureSettings from './FeatureSettingsPage';
+import FeatureSettingsPage from './FeatureSettingsPage';
 import SyncManagementPanel from '../../../components/SyncManagementPanel';
 import { User, Role, Workflow, WorkflowState } from '../../../types';
 const UnifiedSettingsPage: React.FC = () => {
@@ -688,7 +688,7 @@ const UnifiedSettingsPage: React.FC = () => {
 
       {/* Features Tab */}
       {activeTab === 'features' && (
-        <FeatureSettings />
+        <FeatureSettingsPage />
       )}
 
       {/* Sync Tab */}

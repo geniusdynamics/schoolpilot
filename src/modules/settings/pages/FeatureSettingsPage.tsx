@@ -28,6 +28,14 @@ const FeatureSettingsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
+        <h2 className="text-xl font-semibold text-blue-900 mb-2">
+          Feature Settings Page
+        </h2>
+        <p className="text-blue-700">
+          This is the Feature Settings page. If you can see this message, the routing is working correctly.
+        </p>
+      </div>
       <FeatureSettings />
     </div>
   );

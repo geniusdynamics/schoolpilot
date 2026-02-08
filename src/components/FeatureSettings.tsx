@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useAppData } from '../hooks/useAppData';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
+import { useEnvironment } from '../hooks/useUnifiedConfig';
 import { 
   SyncStatusComponent, 
   NetworkStatusIndicator, 
@@ -40,7 +41,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'memory' | 'ui-components'>('overview');
   const [showConflictModal, setShowConflictModal] = useState(false);
-  const { config, updateConfig } = useUnifiedConfig();
+  const { config, updateConfig, resetConfig, applyPreset } = useUnifiedConfig();
+  const { current: currentEnvironment } = useEnvironment();
   console.log('FeatureSettings loaded config with features:', Object.keys(config.features));
   
   const { 
@@ -250,10 +252,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
             <div className="flex space-x-2">
               <button
                 onClick={() => {
-                  // Clear localStorage and reload config
-                  localStorage.removeItem('app-config');
-                  localStorage.removeItem('app-config-version');
-                  window.location.reload();
+                  resetConfig();
                 }}
                 className="text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded transition-colors"
               >
@@ -261,10 +260,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
               </button>
               <button
                 onClick={() => {
-                  // Force complete reset - clear ALL localStorage
-                  localStorage.clear();
-                  // Force reload from scratch
-                  window.location.href = window.location.origin + window.location.pathname;
+                  resetConfig();
                 }}
                 className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors"
               >
@@ -272,24 +268,16 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
               </button>
               <button
                 onClick={() => {
-                  // Force add missing feature flag
-                  const updatedConfig = {
-                    ...config,
-                    features: {
-                      ...config.features,
-                      enablePerformanceMonitoring: false // Add the missing flag
-                    }
-                  };
-                  
-                  // Update both global config and local state
-                  updateConfig(updatedConfig);
-                  
-                  // Also force localStorage update
-                  localStorage.setItem('app-config', JSON.stringify(updatedConfig));
-                  localStorage.setItem('app-config-version', '1.2.0');
-                  
-                  console.log('Added missing performanceMonitorWidget flag');
-                  window.location.reload();
+                  const needsPerformanceWidget = (config.features as any).performanceMonitorWidget === undefined;
+                  if (needsPerformanceWidget) {
+                    updateConfig({
+                      features: {
+                        ...config.features,
+                        performanceMonitorWidget: false
+                      }
+                    } as any);
+                  }
+                  console.log('Ensured performanceMonitorWidget flag exists');
                 }}
                 className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
               >
@@ -297,33 +285,9 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
               </button>
               <button
                 onClick={() => {
-                  // Force restore all default feature flags
-                  const defaultFeatures = {
-                    enhancedDataLayer: false,
-                    networkStatusIndicator: false,
-                    moduleHealthIndicator: false,
-                    syncStatusComponent: false,
-                    globalNotifications: false,
-                    performanceOptimizations: true,
-                    advancedErrorBoundaries: true,
-                    performanceMonitorWidget: false, // This is the missing one
-                  };
-                  
-                  const updatedConfig = {
-                    ...config,
-                    features: {
-                      ...config.features,
-                      ...defaultFeatures // Merge with defaults to ensure all flags exist
-                    }
-                  };
-                  
-                  // Update everything
-                  updateConfig(updatedConfig);
-                  localStorage.setItem('app-config', JSON.stringify(updatedConfig));
-                  localStorage.setItem('app-config-version', '1.2.0');
-                  
-                  console.log('Restored all default feature flags:', updatedConfig.features);
-                  window.location.reload();
+                  const envPreset = (currentEnvironment === 'production' ? 'production' : (currentEnvironment === 'staging' ? 'staging' : 'development')) as any;
+                  applyPreset(envPreset);
+                  console.log('Applied preset to restore defaults:', envPreset);
                 }}
                 className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-1 rounded transition-colors"
               >
@@ -332,11 +296,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
               <button
                 onClick={() => {
                   // Debug: Show current localStorage content
-                  const stored = localStorage.getItem('app-config');
-                  const version = localStorage.getItem('app-config-version');
                   console.log('=== DEBUG INFO ===');
-                  console.log('Config version:', version);
-                  console.log('Stored config:', stored ? JSON.parse(stored) : 'None');
                   console.log('Current config:', config);
                   console.log('Feature flags:', Object.keys(config.features));
                   alert('Check console for debug info');
