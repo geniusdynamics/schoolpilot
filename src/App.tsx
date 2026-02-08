@@ -1,10 +1,9 @@
 // ABOUTME: Main application component with unified configuration and module management
-// ABOUTME: Handles authentication, routing, module loading, and global features
+// ABOUTME: Updated to support both old and new tab systems via feature flags
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Layout from './components/Layout';
 import { UserProvider } from './contexts/UserContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { UnifiedConfigProvider } from './contexts/UnifiedConfigContext';
@@ -25,6 +24,13 @@ import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from './hooks/useMemoryManagement';
 import { StableActionProvider } from './contexts/StableActionProvider';
 import { ToastProvider } from './hooks/useToast';
+import { NetworkProvider } from './contexts/NetworkContext';
+import { featureFlags } from './config/featureFlags';
+import { uds } from './services/data';
+
+// Layout components - choose based on feature flag
+import Layout from './components/Layout';
+import LayoutNew from './components/LayoutNew';
 
 // Lazy load components
 const GlobalNotifications = lazy(() => import('./components/GlobalNotifications'));
@@ -40,7 +46,12 @@ const pageModules = {
   ...import.meta.glob('./modules/*/pages/*.tsx'),
   ...import.meta.glob('./modules/*/pages/**/*.tsx'),
 };
-// Module loading completed
+
+// Debug: Log available page modules
+console.log('📦 [App] Total page modules loaded:', Object.keys(pageModules).length);
+const settingsPages = Object.keys(pageModules).filter(k => k.includes('/settings/pages/'));
+console.log('📦 [App] Settings pages available:', settingsPages.length);
+settingsPages.forEach(page => console.log('  -', page));
 
 // Dashboard modules for dynamic loading
 const dashboardModules = {
@@ -48,8 +59,7 @@ const dashboardModules = {
 };
 
 const getPageComponent = (navItem: any) => {
-  console.error('🔍 [App] Looking up page component for:', navItem.page, 'path:', navItem.path);
-  console.error('🔍 [App] Available keys:', Object.keys(pageModules));
+  console.log('🔍 [App] Looking up page component for:', navItem.page, 'path:', navItem.path);
   
   if (!navItem.page) {
     console.log('❌ [App] No page specified for nav item:', navItem);
@@ -70,8 +80,11 @@ const getPageComponent = (navItem: any) => {
     return React.lazy(pageModules[modularKey]);
   }
 
+  // Debug: Show similar keys to help diagnose
+  const similarKeys = Object.keys(pageModules).filter(k => k.includes(moduleDir) && k.includes('settings'));
   console.log('❌ [App] Component not found for:', navItem.page);
   console.log('❌ [App] Tried key:', modularKey);
+  console.log('🔍 [App] Similar keys in pageModules:', similarKeys);
   return null;
 };
 
@@ -266,11 +279,22 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       {navigationItems
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
         .flatMap(module => {
+          console.log('🗺️ [DynamicRoutes] Processing module:', module.name, 'children:', module.children?.length);
           return (module.children || []).map(nav => {
+            console.log('🗺️ [DynamicRoutes] Processing nav item:', {
+              name: nav.name,
+              path: nav.path,
+              page: nav.page,
+              deprecated: nav.deprecated
+            });
+            
             const PageComponent = getPageComponent(nav);
             if (!PageComponent) {
+              console.warn('⚠️ [DynamicRoutes] No component found for:', nav.path, 'page:', nav.page);
               return null;
             }
+            
+            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with component:', nav.page);
             
             const modulePath = nav.modulePath?.replace('/', '') || '';
             const moduleName = modulePath || nav.path.split('/')[1] || '';
@@ -289,7 +313,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
                       <div className="flex items-center justify-center h-screen">
                         <div className="text-center">
                           <Spinner size="lg" />
-                          <p className="mt-4 text-gray-600">Loading page...</p>
+                          <p className="mt-4 text-gray-600">Loading {nav.page || 'page'}...</p>
                         </div>
                       </div>
                     }>
@@ -312,6 +336,9 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   const authContext = useAuth();
   const { isAuthenticated, isLoading, user } = authContext;
   const { restoreRouteIfNeeded } = useRoutePersistence();
+  
+  // Choose layout based on feature flag
+  const LayoutComponent = featureFlags.useNewTabSystem ? LayoutNew : Layout;
   
   // Debug authentication state
   useEffect(() => {
@@ -369,7 +396,7 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   debugLog('🔍 [AppContent] User authenticated, showing layout');
   
   return (
-    <Layout>
+    <LayoutComponent>
       {/* Main content with error boundary */}
       <div className="flex-1">
         <ErrorBoundary key={location.pathname}>
@@ -390,14 +417,47 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
           <PerformanceMonitor showDetails={true} />
         </Suspense>
       )}
-    </Layout>
+    </LayoutComponent>
   );
 };
 
-// Data provider wrapper
+// Data provider wrapper with feature flag
 const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.ReactNode }> = ({ config, children }) => {
-  debugLog('🚀 [App] Using Consolidated Data Provider with environment:', config.environment, 'dataMode:', config.dataMode);
+  const [udsInitialized, setUdsInitialized] = useState(!featureFlags.useUnifiedDataService);
   
+  useEffect(() => {
+    if (featureFlags.useUnifiedDataService) {
+      debugLog('🚀 [App] Initializing Unified Data Service...');
+      
+      uds.initialize('demo', { /* config */ })
+        .then(() => {
+          setUdsInitialized(true);
+          debugLog('✅ [App] Unified Data Service initialized');
+        })
+        .catch(error => {
+          console.error('❌ [App] Failed to initialize UDS:', error);
+          // Fall back to old system
+          setUdsInitialized(true);
+        });
+      
+      return () => {
+        uds.destroy();
+      };
+    }
+  }, []);
+  
+  if (!udsInitialized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">Initializing data layer...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Use existing AppDataProvider for now (legacy)
   const AppDataProvider = lazy(() => import('./contexts/AppDataContext').then(module => ({ default: module.AppDataProvider })));
   
   return (
@@ -475,17 +535,19 @@ const AppInner: React.FC = () => {
 
   return (
     <HashRouter>
-      <DataProviderWrapper config={config}>
-        <AuthProvider>
-          <UserProvider>
-            <ErrorBoundary>
-              <StableActionProvider>
-                <AppContent modulesInitialized={modulesInitialized} config={config} />
-              </StableActionProvider>
-            </ErrorBoundary>
-          </UserProvider>
-        </AuthProvider>
-      </DataProviderWrapper>
+      <NetworkProvider>
+        <DataProviderWrapper config={config}>
+          <AuthProvider>
+            <UserProvider>
+              <ErrorBoundary>
+                <StableActionProvider>
+                  <AppContent modulesInitialized={modulesInitialized} config={config} />
+                </StableActionProvider>
+              </ErrorBoundary>
+            </UserProvider>
+          </AuthProvider>
+        </DataProviderWrapper>
+      </NetworkProvider>
     </HashRouter>
   );
 };
