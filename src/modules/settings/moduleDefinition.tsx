@@ -4,11 +4,6 @@
 import { ModuleDefinition } from '@/core/types';
 import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon } from '@/components/ui/icons';
 
-// Import the new unified settings page
-import UnifiedSettingsPage from './pages/UnifiedSettingsPage';
-// Import the new combined data management page
-import DataManagementSettingsPage from './pages/DataManagementSettingsPage';
-
 // Simple database icon component
 const DatabaseIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,6 +40,9 @@ const settingsModule: ModuleDefinition = {
     { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
     { name: 'navigation:settings.dependencyReport', path: '/settings/dependency-report', icon: CircleStackIcon, page: 'ModuleDependencyReportPage' },
 
+    // School Profile
+    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
+
     // Audit & Logs
     { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
 
@@ -52,13 +50,10 @@ const settingsModule: ModuleDefinition = {
     { name: 'navigation:settings.tabbedWorkspaceTest', path: '/settings/tabbed-workspace-test', icon: ViewColumnsIcon, page: 'TabbedWorkspaceTestPage' },
     { name: 'navigation:settings.tabbedModeTest', path: '/settings/tabbed-mode-test', icon: ViewColumnsIcon, page: 'TabbedModeTestPage' },
 
-    // Legacy pages (deprecated - use new pages instead)
-    { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage', deprecated: true },
-    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage', deprecated: true },
-    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage', deprecated: true },
-    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage', deprecated: true },
-    { name: 'navigation:settings.databaseProvider', path: '/settings/database-provider', icon: DatabaseIcon, page: 'DatabaseProviderSettingsPage', deprecated: true },
-    { name: 'navigation:settings.dataLayer', path: '/settings/data-layer', icon: DatabaseIcon, page: 'DataLayerSettingsPage', deprecated: true },
+    // Legacy pages - still accessible but not shown in main nav
+    { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
+    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage' },
+    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage' },
   ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [
