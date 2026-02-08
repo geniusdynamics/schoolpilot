@@ -6,26 +6,33 @@
 
 export { SQLiteProvider } from './SQLiteProvider';
 export { PouchDBProvider } from './PouchDBProvider';
+export { BackendProvider, type BackendProviderConfig } from '../../backend/BackendProvider';
 
 // Factory function to create appropriate provider
 import type { DeploymentMode, DataProvider } from '../types';
 import { SQLiteProvider } from './SQLiteProvider';
 import { PouchDBProvider } from './PouchDBProvider';
+import { BackendProvider, type BackendProviderConfig } from '../../backend/BackendProvider';
+
+interface SQLiteOptions {
+  filename?: string;
+  encryptionKey?: string;
+}
+
+interface PouchDBOptions {
+  localDbName?: string;
+  remoteUrl?: string;
+  auth?: {
+    username: string;
+    password: string;
+  };
+}
 
 interface ProviderFactoryOptions {
   mode: DeploymentMode;
-  sqlite?: {
-    filename?: string;
-    encryptionKey?: string;
-  };
-  pouchdb?: {
-    localDbName?: string;
-    remoteUrl?: string;
-    auth?: {
-      username: string;
-      password: string;
-    };
-  };
+  sqlite?: SQLiteOptions;
+  pouchdb?: PouchDBOptions;
+  backend?: BackendProviderConfig;
 }
 
 export async function createProvider(options: ProviderFactoryOptions): Promise<DataProvider> {
@@ -53,6 +60,15 @@ export async function createProvider(options: ProviderFactoryOptions): Promise<D
         }
       });
       return pouchdb;
+
+    case 'hosted':
+    case 'erpnext':
+      if (!options.backend) {
+        throw new Error(`Backend configuration required for mode: ${options.mode}`);
+      }
+      const backend = new BackendProvider(options.backend);
+      await backend.initialize();
+      return backend;
 
     default:
       throw new Error(`No provider available for mode: ${options.mode}`);
