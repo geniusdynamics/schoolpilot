@@ -19,6 +19,7 @@ import type {
   DataEventType,
   SyncResult
 } from './types';
+import type { SyncEngine } from './SyncEngine';
 
 // Provider imports will be added when implementing specific providers
 // import { SQLiteProvider } from './providers/SQLiteProvider';
@@ -476,21 +477,24 @@ export class UnifiedDataService {
   // ==================== Private Methods ====================
 
   private async createProvider(mode: DeploymentMode, options: Record<string, any>): Promise<DataProvider> {
-    // For Phase 1, we'll create a mock provider that wraps existing mock data
-    // In Phase 2, we'll implement SQLite and PouchDB providers
+    const { createProvider } = await import('./providers');
     
     switch (mode) {
       case 'standalone':
-        // Will be implemented: return new SQLiteProvider();
-        return this.createMockProvider();
+        return createProvider({
+          mode: 'standalone',
+          sqlite: options.sqlite
+        });
       
       case 'networked':
       case 'saas':
-        // Will be implemented: return new PouchDBProvider();
-        return this.createMockProvider();
+        return createProvider({
+          mode,
+          pouchdb: options.pouchdb
+        });
       
       case 'hosted':
-        // Will be implemented: return new BackendAPIProvider();
+        // Will be implemented in Phase 3: BackendAPIProvider
         return this.createMockProvider();
       
       case 'demo':
