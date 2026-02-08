@@ -7,12 +7,14 @@
 export { SQLiteProvider } from './SQLiteProvider';
 export { PouchDBProvider } from './PouchDBProvider';
 export { BackendProvider, type BackendProviderConfig } from '../../backend/BackendProvider';
+export { ERPNextProvider, type ERPNextProviderConfig } from '../../erpnext/ERPNextProvider';
 
 // Factory function to create appropriate provider
 import type { DeploymentMode, DataProvider } from '../types';
 import { SQLiteProvider } from './SQLiteProvider';
 import { PouchDBProvider } from './PouchDBProvider';
 import { BackendProvider, type BackendProviderConfig } from '../../backend/BackendProvider';
+import { ERPNextProvider, type ERPNextProviderConfig } from '../../erpnext/ERPNextProvider';
 
 interface SQLiteOptions {
   filename?: string;
@@ -33,6 +35,7 @@ interface ProviderFactoryOptions {
   sqlite?: SQLiteOptions;
   pouchdb?: PouchDBOptions;
   backend?: BackendProviderConfig;
+  erpnext?: ERPNextProviderConfig;
 }
 
 export async function createProvider(options: ProviderFactoryOptions): Promise<DataProvider> {
@@ -62,13 +65,20 @@ export async function createProvider(options: ProviderFactoryOptions): Promise<D
       return pouchdb;
 
     case 'hosted':
-    case 'erpnext':
       if (!options.backend) {
         throw new Error(`Backend configuration required for mode: ${options.mode}`);
       }
       const backend = new BackendProvider(options.backend);
       await backend.initialize();
       return backend;
+
+    case 'erpnext':
+      if (!options.erpnext) {
+        throw new Error(`ERPNext configuration required for mode: erpnext`);
+      }
+      const erpnext = new ERPNextProvider(options.erpnext);
+      await erpnext.initialize();
+      return erpnext;
 
     default:
       throw new Error(`No provider available for mode: ${options.mode}`);
