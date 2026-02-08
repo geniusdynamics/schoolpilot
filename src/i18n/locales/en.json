@@ -55,7 +55,8 @@
       "refresh": "Refresh",
       "sync": "Sync",
       "view": "View",
-      "more": "More"
+      "more": "More",
+      "manage": "Manage"
     },
     "common": {
       "loading": "Loading...",

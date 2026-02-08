@@ -49,34 +49,34 @@ const SettingsDashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Settings Dashboard" className="bg-white shadow-xl">
+      <Card title={t('navigation.settings.dashboard')} className="bg-white shadow-xl">
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <StatCard title="Total Users" value={totalUsers} icon={<UsersIcon />} iconBgColor="bg-green-100" iconColor="text-green-600"/>
-            <StatCard title="Total Students" value={totalStudents} icon={<UsersIcon />} iconBgColor="bg-blue-100" iconColor="text-blue-600"/>
+            <StatCard title={t('userManagement.totalUsers')} value={totalUsers} icon={<UsersIcon />} iconBgColor="bg-green-100" iconColor="text-green-600"/>
+            <StatCard title={t('userManagement.totalUsers')} value={totalStudents} icon={<UsersIcon />} iconBgColor="bg-blue-100" iconColor="text-blue-600"/>
             <StatCard title="Total Staff" value={totalStaff} icon={<UsersIcon />} iconBgColor="bg-purple-100" iconColor="text-purple-600"/>
             <StatCard title="System Status" value={systemStatus} icon={<CogIcon />} iconBgColor="bg-orange-100" iconColor="text-orange-600"/>
           </div>
 
           <Card title="Settings Categories" className="mb-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
-                <Button as={Link} to="/settings/general" variant="outline" leftIcon={<CogIcon className="w-5 h-5"/>}>
-                    General Settings
+                <Button as={Link} to="/settings/unified" variant="outline" leftIcon={<CogIcon className="w-5 h-5"/>}>
+                    {t('navigation.settings.unified')}
                 </Button>
                 <Button as={Link} to="/settings/features" variant="outline" leftIcon={<CogIcon className="w-5 h-5"/>}>
-                    Feature Settings
+                    {t('navigation.settings.features')}
                 </Button>
                 <Button as={Link} to="/settings/modules" variant="outline" leftIcon={<CircleStackIcon className="w-5 h-5"/>}>
-                    Module Management
-                </Button>
-                <Button as={Link} to="/settings/users" variant="outline" leftIcon={<UsersIcon className="w-5 h-5"/>}>
-                    User Management
+                    {t('navigation.settings.modules')}
                 </Button>
                 <Button as={Link} to="/settings/school-profile" variant="outline" leftIcon={<IdentificationIcon className="w-5 h-5"/>}>
-                    School Profile
+                    {t('navigation.settings.schoolProfile')}
                 </Button>
                 <Button as={Link} to="/settings/audit-log" variant="outline" leftIcon={<ClockIcon className="w-5 h-5"/>}>
-                    Audit Log
+                    {t('navigation.settings.auditLog')}
+                </Button>
+                <Button as={Link} to="/settings/data-management" variant="outline" leftIcon={<CircleStackIcon className="w-5 h-5"/>}>
+                    {t('navigation.settings.dataManagement')}
                 </Button>
             </div>
           </Card>

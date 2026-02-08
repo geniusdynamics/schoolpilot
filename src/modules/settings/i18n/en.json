@@ -7,7 +7,7 @@
       "description": "Configure system settings, modules, and user management",
       "dashboard": "Settings Dashboard",
       "unified": "Unified Settings",
-      "general": "General",
+      "general": "General Settings",
       "features": "Features",
       "dataManagement": "Data Management",
       "databaseSettings": "Database Settings",
@@ -25,6 +25,161 @@
       "dataLayer": "Data Layer",
       "databaseProvider": "Database Provider"
     }
+  },
+  "general": {
+    "title": "General Settings",
+    "appSettingsHeader": "Application Settings",
+    "appSettingsDescription": "Configure general application settings and preferences"
+  },
+  "schoolProfile": {
+    "title": "School Profile",
+    "header": "School Information",
+    "description": "Manage your school's profile information",
+    "nameLabel": "School Name",
+    "codeLabel": "School Code",
+    "emailLabel": "Email Address",
+    "telephoneLabel": "Telephone",
+    "headTeacherLabel": "Head Teacher",
+    "genderLabel": "School Gender",
+    "typeLabel": "School Type",
+    "mottoLabel": "School Motto",
+    "postalAddressLabel": "Postal Address",
+    "townCityLabel": "Town/City",
+    "notConfigured": "Not configured",
+    "noCode": "No code assigned",
+    "manageProfile": "Manage Profile",
+    "loadingDetails": "Loading school details...",
+    "saveButton": "Save Changes",
+    "saveSuccess": "School profile saved successfully",
+    "saveError": "Failed to save school profile",
+    "genderMixed": "Mixed",
+    "genderBoys": "Boys Only",
+    "genderGirls": "Girls Only",
+    "selectGenderOption": "Select gender",
+    "selectClassificationOption": "Select classification",
+    "typePublic": "Public",
+    "typePrivate": "Private",
+    "typeInternational": "International",
+    "typeReligious": "Religious",
+    "typeCommunity": "Community",
+    "codePlaceholder": "e.g., SCH001"
+  },
+  "userManagement": {
+    "title": "User Management",
+    "header": "Users",
+    "description": "Manage system users and their permissions",
+    "totalUsers": "Total Users",
+    "activeUsers": "Active Users",
+    "inactiveUsers": "Inactive Users",
+    "manageUsers": "Manage Users",
+    "quickOverview": "Quick overview of user accounts",
+    "recentUsers": "Recent Users",
+    "previewDescription": "Showing recent users. Click below to view all users.",
+    "viewAllUsers": "View All Users"
+  },
+  "moduleManagement": {
+    "title": "Module Management",
+    "header": "Modules",
+    "description": "Enable, disable, and configure system modules",
+    "filtersTitle": "Filter Modules",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Search modules...",
+    "categoryLabel": "Category",
+    "modulesListTitle": "Modules List",
+    "noModulesFound": "No modules found matching your criteria",
+    "configureModule": "Configure {{name}}",
+    "modulePermissions": "Permissions for {{name}}",
+    "moduleDependencies": "Dependencies for {{name}}",
+    "moduleId": "Module ID",
+    "moduleVersion": "Version",
+    "moduleFeatures": "Features",
+    "permissionsDescription": "This module requires the following permissions:",
+    "dependenciesDescription": "This module depends on:",
+    "required": "Required",
+    "viewDependencies": "View Dependencies",
+    "columns": {
+      "name": "Name",
+      "version": "Version",
+      "category": "Category",
+      "status": "Status",
+      "features": "Features"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "stats": {
+      "total": "Total Modules",
+      "enabled": "Enabled Modules",
+      "active": "Active Modules",
+      "categories": "Categories"
+    },
+    "featuresCount": "features",
+    "dependencyError": "Failed to check dependencies for {{module}}",
+    "disableDependencyWarning": "Disabling this module may affect: {{dependencies}}",
+    "toggleError": "Failed to toggle module",
+    "configure": "Configure"
+  },
+  "workflows": {
+    "title": "Workflows",
+    "header": "Workflow Management",
+    "description": "Configure approval workflows for various processes",
+    "manageWorkflows": "Manage Workflows",
+    "addButton": "Add Workflow",
+    "editButton": "Edit",
+    "deleteButton": "Delete",
+    "saveButton": "Save Workflow",
+    "cancelButton": "Cancel",
+    "modalAddTitle": "Add New Workflow",
+    "modalEditTitle": "Edit Workflow",
+    "nameLabel": "Workflow Name",
+    "statesFor": "States for: {{workflowName}}",
+    "addStateButton": "Add State",
+    "stateModalAddTitle": "Add State to {{workflowName}}",
+    "stateModalEditTitle": "Edit State",
+    "stateNameLabel": "State Name",
+    "sequenceOrderLabel": "Sequence Order",
+    "noStatesMessage": "No states defined for this workflow",
+    "deleteStateConfirm": "Are you sure you want to delete this state?",
+    "tableHeaders": {
+      "id": "ID",
+      "workflowName": "Workflow Name",
+      "states": "States",
+      "actions": "Actions",
+      "stateName": "State Name",
+      "order": "Order"
+    }
+  },
+  "academicCalendar": {
+    "setupTitle": "Academic Calendar Setup",
+    "description": "Configure academic years, periods, and term dates",
+    "linkAcademicStructures": "Academic Structures",
+    "linkAcademicPeriodDefinitions": "Period Definitions",
+    "linkAcademicYears": "Academic Years",
+    "linkSchoolPeriods": "School Periods"
+  },
+  "rolesPermissions": {
+    "title": "Roles & Permissions",
+    "description": "Manage user roles and access permissions. Configure user management through {{userManagementLink}} and approval workflows through {{workflowsLink}}."
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "description": "View system activity and changes",
+    "viewLogs": "View Logs"
+  },
+  "dataManagement": {
+    "title": "Data Management",
+    "description": "Manage database, backups, and data layer settings",
+    "manage": "Manage Data"
+  },
+  "tableHeaders": {
+    "username": "Username",
+    "email": "Email",
+    "userType": "User Type",
+    "role": "Role",
+    "status": "Status"
   },
   "tabs": {
     "pageTitle": "Tab Settings",
@@ -102,5 +257,7 @@
     "dependencies": "Dependencies",
     "noDependencies": "No dependencies",
     "rawData": "Raw Report Data"
-  }
+  },
+  "accessDeniedTitle": "Access Denied",
+  "accessDeniedMessage": "You do not have permission to access this feature."
 }
