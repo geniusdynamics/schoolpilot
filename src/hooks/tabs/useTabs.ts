@@ -1,0 +1,373 @@
+/**
+ * useTabs Hook - URL-Driven Tab Management
+ * 
+ * The primary hook for tab management in the new URL-driven architecture.
+ * All tab state is derived from the URL, making it shareable and persistent.
+ * 
+ * @example
+ * const { tabs, activeTab, openTab, closeTab, activateTab } = useTabs();
+ * 
+ * // Open a new tab
+ * openTab('/academics/students');
+ * 
+ * // Open specific student
+ * openTab('/academics/students/123');
+ * 
+ * // Close current tab
+ * closeTab(activeTab.id);
+ */
+
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { URLTabSyncEngine } from '../../services/tabs/URLTabSyncEngine';
+import { TabStateDeriver } from '../../services/tabs/TabStateDeriver';
+import type { Tab, TabOptions, ParsedTabState } from '../../services/tabs/types';
+import { useTranslation } from 'react-i18next';
+
+// Singleton engine instance
+const engine = new URLTabSyncEngine();
+
+interface UseTabsReturn {
+  /** All open tabs */
+  tabs: Tab[];
+  
+  /** Currently active tab */
+  activeTab: Tab | null;
+  
+  /** ID of active tab */
+  activeTabId: string;
+  
+  /** Activate a tab by ID */
+  activateTab: (tabId: string) => void;
+  
+  /** Open a new tab or activate existing */
+  openTab: (url: string, options?: TabOptions) => string;
+  
+  /** Close a tab */
+  closeTab: (tabId: string) => void;
+  
+  /** Close multiple tabs */
+  closeTabs: (tabIds: string[]) => void;
+  
+  /** Close all tabs except specified */
+  closeOtherTabs: (keepTabId: string) => void;
+  
+  /** Close all tabs to the right */
+  closeTabsToRight: (tabId: string) => void;
+  
+  /** Close all tabs to the left */
+  closeTabsToLeft: (tabId: string) => void;
+  
+  /** Pin a tab */
+  pinTab: (tabId: string) => void;
+  
+  /** Unpin a tab */
+  unpinTab: (tabId: string) => void;
+  
+  /** Reorder tabs */
+  reorderTabs: (newOrder: string[]) => void;
+  
+  /** Mark tab as dirty (unsaved changes) */
+  markDirty: (tabId: string, isDirty: boolean) => void;
+  
+  /** Refresh tab title from URL */
+  refreshTab: (tabId: string) => void;
+  
+  /** Duplicate a tab */
+  duplicateTab: (tabId: string) => string;
+  
+  /** Check if tab can be closed */
+  canCloseTab: (tabId: string) => boolean;
+  
+  /** Maximum number of tabs allowed */
+  maxTabs: number;
+  
+  /** Whether tab limit is reached */
+  isAtLimit: boolean;
+  
+  /** Current tab count */
+  tabCount: number;
+}
+
+const MAX_TABS = 20;
+
+export function useTabs(): UseTabsReturn {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useTranslation();
+  
+  // Create deriver with translation function
+  const deriver = useMemo(() => new TabStateDeriver(t), [t]);
+  
+  // Local state synced with URL
+  const [state, setState] = useState<ParsedTabState>(() => engine.parseURL());
+  
+  // Track initial mount
+  const isInitialMount = useRef(true);
+  
+  // Subscribe to URL changes
+  useEffect(() => {
+    // Parse initial state
+    const initialState = engine.parseURL();
+    setState(initialState);
+    
+    // Subscribe to changes
+    const unsubscribe = engine.subscribe((newState) => {
+      setState(newState);
+    });
+    
+    return unsubscribe;
+  }, []);
+  
+  // Sync with React Router location changes
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    // When location changes (browser nav), update tab state
+    const newState = engine.parseURL(location.pathname + location.search);
+    setState(newState);
+  }, [location]);
+  
+  // Computed values
+  const activeTab = useMemo(() => {
+    return state.tabs.find(t => t.id === state.activeTabId) || null;
+  }, [state.tabs, state.activeTabId]);
+  
+  const isAtLimit = state.tabs.length >= MAX_TABS;
+  
+  // Actions
+  const activateTab = useCallback((tabId: string) => {
+    const tab = state.tabs.find(t => t.id === tabId);
+    if (!tab) return;
+    
+    // Update URL with new active tab
+    const newState = { ...state, activeTabId: tabId };
+    engine.updateURL(newState);
+    
+    // Navigate to tab's URL
+    navigate(tab.url);
+  }, [state, navigate]);
+  
+  const openTab = useCallback((url: string, options?: TabOptions): string => {
+    // Check if tab already exists for this URL
+    const existingTab = state.tabs.find(t => deriver.isSameEntity(t.url, url));
+    
+    if (existingTab) {
+      // Activate existing tab
+      activateTab(existingTab.id);
+      return existingTab.id;
+    }
+    
+    // Check tab limit
+    if (state.tabs.length >= MAX_TABS) {
+      // Find oldest non-pinned tab to close
+      const closableTabs = state.tabs
+        .filter(t => !t.pinned)
+        .sort((a, b) => (a.metadata?.lastAccessed || 0) - (b.metadata?.lastAccessed || 0));
+      
+      if (closableTabs.length === 0) {
+        throw new Error('Maximum tab limit reached and no tabs can be closed');
+      }
+      
+      // Close oldest tab
+      const tabToClose = closableTabs[0];
+      const tabsWithoutOldest = state.tabs.filter(t => t.id !== tabToClose.id);
+      
+      // Create new tab
+      const newTab = deriver.deriveTab(url, options);
+      const newTabs = [...tabsWithoutOldest, newTab];
+      const newState = { tabs: newTabs, activeTabId: newTab.id };
+      
+      engine.updateURL(newState, { push: true });
+      navigate(url);
+      
+      return newTab.id;
+    }
+    
+    // Create new tab
+    const newTab = deriver.deriveTab(url, options);
+    const newTabs = [...state.tabs, newTab];
+    const newState = { tabs: newTabs, activeTabId: newTab.id };
+    
+    engine.updateURL(newState, { push: true });
+    navigate(url);
+    
+    return newTab.id;
+  }, [state, deriver, activateTab, navigate]);
+  
+  const closeTab = useCallback((tabId: string) => {
+    const tab = state.tabs.find(t => t.id === tabId);
+    if (!tab || tab.pinned) return; // Can't close pinned tabs
+    
+    const newTabs = state.tabs.filter(t => t.id !== tabId);
+    
+    // Determine new active tab
+    let newActiveId = state.activeTabId;
+    if (state.activeTabId === tabId) {
+      // Closing active tab - activate next or previous
+      const closedIndex = state.tabs.findIndex(t => t.id === tabId);
+      const newActive = newTabs[Math.min(closedIndex, newTabs.length - 1)];
+      newActiveId = newActive?.id || '';
+    }
+    
+    const newState = { tabs: newTabs, activeTabId: newActiveId };
+    engine.updateURL(newState);
+    
+    // Navigate to new active tab if we closed the active one
+    if (state.activeTabId === tabId && newActiveId) {
+      const newActiveTab = newTabs.find(t => t.id === newActiveId);
+      if (newActiveTab) {
+        navigate(newActiveTab.url);
+      }
+    }
+  }, [state, navigate]);
+  
+  const closeTabs = useCallback((tabIds: string[]) => {
+    const newTabs = state.tabs.filter(t => !tabIds.includes(t.id) || t.pinned);
+    
+    // Check if active tab was closed
+    let newActiveId = state.activeTabId;
+    if (tabIds.includes(state.activeTabId)) {
+      const newActive = newTabs[0];
+      newActiveId = newActive?.id || '';
+    }
+    
+    const newState = { tabs: newTabs, activeTabId: newActiveId };
+    engine.updateURL(newState);
+    
+    if (state.activeTabId !== newActiveId && newActiveId) {
+      const newActiveTab = newTabs.find(t => t.id === newActiveId);
+      if (newActiveTab) {
+        navigate(newActiveTab.url);
+      }
+    }
+  }, [state, navigate]);
+  
+  const closeOtherTabs = useCallback((keepTabId: string) => {
+    const newTabs = state.tabs.filter(t => t.id === keepTabId || t.pinned);
+    const newState = { tabs: newTabs, activeTabId: keepTabId };
+    engine.updateURL(newState);
+  }, []);
+  
+  const closeTabsToRight = useCallback((tabId: string) => {
+    const tabIndex = state.tabs.findIndex(t => t.id === tabId);
+    if (tabIndex === -1) return;
+    
+    const tabsToClose = state.tabs
+      .slice(tabIndex + 1)
+      .filter(t => !t.pinned)
+      .map(t => t.id);
+    
+    closeTabs(tabsToClose);
+  }, [state, closeTabs]);
+  
+  const closeTabsToLeft = useCallback((tabId: string) => {
+    const tabIndex = state.tabs.findIndex(t => t.id === tabId);
+    if (tabIndex === -1) return;
+    
+    const tabsToClose = state.tabs
+      .slice(0, tabIndex)
+      .filter(t => !t.pinned)
+      .map(t => t.id);
+    
+    closeTabs(tabsToClose);
+  }, [state, closeTabs]);
+  
+  const pinTab = useCallback((tabId: string) => {
+    const newTabs = state.tabs.map(t =>
+      t.id === tabId ? { ...t, pinned: true } : t
+    );
+    const newState = { ...state, tabs: newTabs };
+    engine.updateURL(newState);
+  }, [state]);
+  
+  const unpinTab = useCallback((tabId: string) => {
+    const newTabs = state.tabs.map(t =>
+      t.id === tabId ? { ...t, pinned: false } : t
+    );
+    const newState = { ...state, tabs: newTabs };
+    engine.updateURL(newState);
+  }, [state]);
+  
+  const reorderTabs = useCallback((newOrder: string[]) => {
+    const orderedTabs = newOrder
+      .map(id => state.tabs.find(t => t.id === id))
+      .filter((t): t is Tab => !!t);
+    
+    // Add any tabs not in newOrder at the end
+    const remainingTabs = state.tabs.filter(t => !newOrder.includes(t.id));
+    const newTabs = [...orderedTabs, ...remainingTabs];
+    
+    const newState = { ...state, tabs: newTabs };
+    engine.updateURL(newState);
+  }, [state]);
+  
+  const markDirty = useCallback((tabId: string, isDirty: boolean) => {
+    const newTabs = state.tabs.map(t =>
+      t.id === tabId ? { ...t, isDirty } : t
+    );
+    const newState = { ...state, tabs: newTabs };
+    engine.updateURL(newState);
+  }, [state]);
+  
+  const refreshTab = useCallback((tabId: string) => {
+    const tab = state.tabs.find(t => t.id === tabId);
+    if (!tab) return;
+    
+    const updatedTab = deriver.updateTabUrl(tab, tab.url);
+    const newTabs = state.tabs.map(t =>
+      t.id === tabId ? updatedTab : t
+    );
+    const newState = { ...state, tabs: newTabs };
+    engine.updateURL(newState);
+  }, [state, deriver]);
+  
+  const duplicateTab = useCallback((tabId: string): string => {
+    const tab = state.tabs.find(t => t.id === tabId);
+    if (!tab) throw new Error('Tab not found');
+    
+    const newTab = deriver.deriveTab(tab.url, {
+      title: `${tab.title} (Copy)`,
+      pinned: false
+    });
+    
+    const newTabs = [...state.tabs, newTab];
+    const newState = { tabs: newTabs, activeTabId: newTab.id };
+    engine.updateURL(newState, { push: true });
+    
+    return newTab.id;
+  }, [state, deriver]);
+  
+  const canCloseTab = useCallback((tabId: string): boolean => {
+    const tab = state.tabs.find(t => t.id === tabId);
+    return !!tab && !tab.pinned;
+  }, [state.tabs]);
+  
+  return {
+    tabs: state.tabs,
+    activeTab,
+    activeTabId: state.activeTabId,
+    activateTab,
+    openTab,
+    closeTab,
+    closeTabs,
+    closeOtherTabs,
+    closeTabsToRight,
+    closeTabsToLeft,
+    pinTab,
+    unpinTab,
+    reorderTabs,
+    markDirty,
+    refreshTab,
+    duplicateTab,
+    canCloseTab,
+    maxTabs: MAX_TABS,
+    isAtLimit,
+    tabCount: state.tabs.length
+  };
+}
+
+export default useTabs;
