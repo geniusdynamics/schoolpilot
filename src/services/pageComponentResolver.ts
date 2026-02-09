@@ -4,6 +4,27 @@
 import React from 'react';
 import { pageHealthMonitor } from './pageHealthMonitor';
 
+// Explicit page imports for critical pages to ensure correct resolution
+// This fixes the issue where settings pages were all resolving to AuditLogPage
+import UnifiedSettingsPage from '../modules/settings/pages/UnifiedSettingsPage';
+import FeatureSettingsPage from '../modules/settings/pages/FeatureSettingsPage';
+import DatabaseSettingsPage from '../modules/settings/pages/DatabaseSettingsPage';
+import DataManagementSettingsPage from '../modules/settings/pages/DataManagementSettingsPage';
+import BackupSettingsPage from '../modules/settings/pages/BackupSettingsPage';
+import AuditLogPage from '../modules/settings/pages/AuditLogPage';
+import SettingsPage from '../modules/settings/pages/SettingsPage';
+
+// Explicit page mapping
+const explicitPageMapping: Record<string, React.ComponentType> = {
+  'UnifiedSettingsPage': UnifiedSettingsPage,
+  'FeatureSettingsPage': FeatureSettingsPage,
+  'DatabaseSettingsPage': DatabaseSettingsPage,
+  'DataManagementSettingsPage': DataManagementSettingsPage,
+  'BackupSettingsPage': BackupSettingsPage,
+  'AuditLogPage': AuditLogPage,
+  'SettingsPage': SettingsPage,
+};
+
 interface PageResolutionStrategy {
   name: string;
   resolve: (nav: any) => Promise<React.ComponentType | null>;
@@ -39,6 +60,11 @@ class PageComponentResolver {
   private initializeStrategies() {
     this.strategies = [
       {
+        name: 'explicit-mapping',
+        priority: 0, // Highest priority - check explicit mappings first
+        resolve: this.resolveByExplicitMapping.bind(this)
+      },
+      {
         name: 'modular-path',
         priority: 1,
         resolve: this.resolveByModularPath.bind(this)
@@ -59,6 +85,22 @@ class PageComponentResolver {
         resolve: this.resolveByDynamicImport.bind(this)
       }
     ].sort((a, b) => a.priority - b.priority);
+  }
+
+  // Strategy 0: Resolve by explicit mapping (highest priority)
+  private async resolveByExplicitMapping(nav: any): Promise<React.ComponentType | null> {
+    if (!nav.page) return null;
+    
+    console.log(`🔍 [PageComponentResolver] Trying explicit mapping for: ${nav.page}`);
+    
+    const mappedComponent = explicitPageMapping[nav.page];
+    if (mappedComponent) {
+      console.log(`✅ [PageComponentResolver] Found explicit mapping for: ${nav.page}`);
+      return mappedComponent;
+    }
+    
+    console.log(`❌ [PageComponentResolver] No explicit mapping found for: ${nav.page}`);
+    return null;
   }
 
   // Main resolution method with caching and health monitoring
