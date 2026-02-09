@@ -218,7 +218,22 @@
       "schoolName": "School Name",
       "schoolAddress": "School Address",
       "schoolPhone": "School Phone",
-      "schoolEmail": "School Email"
+      "schoolEmail": "School Email",
+      "dashboard": "Dashboard",
+      "unified": "Unified Settings",
+      "features": "Feature Settings",
+      "dataManagement": "Data Management",
+      "databaseSettings": "Database Settings",
+      "tabs": "Tab Settings",
+      "tabbedModeSettings": "Tabbed Mode",
+      "modules": "Module Management",
+      "dependencyReport": "Dependencies",
+      "schoolProfile": "School Profile",
+      "auditLog": "Audit Log",
+      "workflows": "Workflows",
+      "tabbedWorkspaceTest": "Workspace Test",
+      "tabbedModeTest": "Tabbed Mode Test",
+      "description": "Configure system settings and preferences"
     },
     "time": {
       "just_now": "Just now",

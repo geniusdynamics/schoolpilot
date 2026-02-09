@@ -6,7 +6,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { Tab, TabState, TabStore } from '../types/tabbedWorkspace';
+import { Tab, TabState, TabStore, TabContent } from '../types/tabbedWorkspace';
+
+// Re-export TabContent for convenience
+export type { TabContent };
 import { HierarchicalTab, BreadcrumbItem } from '../types/hierarchical';
 import { rbacService } from '../core/rbacService';
 
@@ -167,23 +170,23 @@ export const useTabStore = create<TabStoreState>()
             const storedData = localStorage.getItem(storageKey);
             
             if (!storedData && state.tabs.length === 0) {
-              // Create default welcome tab if no stored tabs exist
-              const welcomeTab: Tab = {
+              // Create default dashboard tab if no stored tabs exist
+              const dashboardTab: Tab = {
                 id: generateTabId(),
-                title: 'Welcome',
+                title: 'Dashboard',
                 module: 'dashboard',
                 path: '/dashboard',
                 content: {
                   type: 'component',
-                  component: 'WelcomeComponent'
+                  component: 'DynamicPageComponent'
                 },
                 lastAccessed: Date.now(),
-                canClose: true,
-                pinned: false
+                canClose: false,
+                pinned: true
               };
               set((draft) => {
-                draft.tabs = [welcomeTab];
-                draft.activeTabId = welcomeTab.id;
+                draft.tabs = [dashboardTab];
+                draft.activeTabId = dashboardTab.id;
               });
             }
           }

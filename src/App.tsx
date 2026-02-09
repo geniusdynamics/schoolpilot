@@ -41,6 +41,15 @@ const TabbedWorkspaceTestPage = lazy(() => import('./modules/settings/pages/Tabb
 const TabbedModeTestPage = lazy(() => import('./modules/settings/pages/TabbedModeTestPage'));
 const PerformanceMonitor = lazy(() => import('./components/PerformanceMonitor'));
 
+// Explicitly lazy load settings pages to ensure correct routing
+const SettingsPage = lazy(() => import('./modules/settings/pages/SettingsPage'));
+const UnifiedSettingsPage = lazy(() => import('./modules/settings/pages/UnifiedSettingsPage'));
+const FeatureSettingsPage = lazy(() => import('./modules/settings/pages/FeatureSettingsPage'));
+const DatabaseSettingsPage = lazy(() => import('./modules/settings/pages/DatabaseSettingsPage'));
+const DataManagementSettingsPage = lazy(() => import('./modules/settings/pages/DataManagementSettingsPage'));
+const BackupSettingsPage = lazy(() => import('./modules/settings/pages/BackupSettingsPage'));
+const AuditLogPage = lazy(() => import('./modules/settings/pages/AuditLogPage'));
+
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 const pageModules = {
   ...import.meta.glob('./modules/*/pages/*.tsx'),
@@ -48,8 +57,10 @@ const pageModules = {
 };
 
 // Debug: Log available page modules
-console.log('📦 [App] Total page modules loaded:', Object.keys(pageModules).length);
-const settingsPages = Object.keys(pageModules).filter(k => k.includes('/settings/pages/'));
+const allPageKeys = Object.keys(pageModules);
+console.log('📦 [App] Total page modules loaded:', allPageKeys.length);
+console.log('📦 [App] Sample keys:', allPageKeys.slice(0, 5));
+const settingsPages = allPageKeys.filter(k => k.includes('/settings/pages/'));
 console.log('📦 [App] Settings pages available:', settingsPages.length);
 settingsPages.forEach(page => console.log('  -', page));
 
@@ -87,13 +98,29 @@ const getPageComponent = (navItem: any) => {
     }
   }
   
+  // Fallback: Search for any key that ends with the page name
+  // This handles cases where Vite might return different path formats
+  const allKeys = Object.keys(pageModules);
+  const matchingKey = allKeys.find(key => {
+    // Match patterns like: ./modules/settings/pages/UnifiedSettingsPage.tsx
+    // Or: /modules/settings/pages/UnifiedSettingsPage.tsx (without leading dot)
+    const pageNamePattern = new RegExp(`/(modules/)?${moduleDir}/pages/${navItem.page}\\.tsx$`);
+    return pageNamePattern.test(key) || key.endsWith(`/${navItem.page}.tsx`);
+  });
+  
+  if (matchingKey) {
+    console.log('✅ [App] Found component via fallback search:', matchingKey);
+    return React.lazy(pageModules[matchingKey]);
+  }
+  
   // Debug: List all available keys for this module
-  const availableKeys = Object.keys(pageModules).filter(k => 
-    k.includes(`./modules/${moduleDir}/pages/`)
+  const availableKeys = allKeys.filter(k => 
+    k.includes(`/modules/${moduleDir}/pages/`) || 
+    k.includes(`/${moduleDir}/pages/`)
   );
   console.log('❌ [App] Component not found for:', navItem.page);
   console.log('❌ [App] Tried keys:', possibleKeys);
-  console.log('🔍 [App] Available keys for', moduleDir, ':', availableKeys);
+  console.log('🔍 [App] Available keys for', moduleDir, ':', availableKeys.slice(0, 20));
   return null;
 };
 
@@ -198,6 +225,78 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           <Suspense fallback={<div>Loading...</div>}>
             <TabbedModeTestPage />
           </Suspense>
+        }
+      />
+
+      {/* Explicit Settings Routes - Fixes routing bug where settings pages were navigating to Audit Log */}
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+              <SettingsPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/unified"
+        element={
+          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+              <UnifiedSettingsPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/features"
+        element={
+          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+              <FeatureSettingsPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/database"
+        element={
+          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+              <DatabaseSettingsPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/data-management"
+        element={
+          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+              <DataManagementSettingsPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/backup"
+        element={
+          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+              <BackupSettingsPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/audit-log"
+        element={
+          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+              <AuditLogPage />
+            </Suspense>
+          </ProtectedRoute>
         }
       />
 
