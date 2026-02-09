@@ -26,7 +26,7 @@ import { useAppData } from '../contexts/AppDataContext';
 // Import existing sub-components (reusable)
 import SyncManagementPanel from './SyncManagementPanel';
 import PerformanceDashboard from './PerformanceDashboard';
-import MemoryDashboard from './MemoryDashboard';
+import { MemoryDashboard } from './MemoryDashboard';
 import TooltipDemo from './TooltipDemo';
 import NetworkStatusIndicator from './NetworkStatusIndicator';
 import ConflictResolutionComponent from './ConflictResolutionInterface';

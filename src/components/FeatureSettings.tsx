@@ -24,7 +24,7 @@ import {
 } from './OfflineCapability';
 import SyncManagementPanel from './SyncManagementPanel';
 import PerformanceDashboard from './PerformanceDashboard';
-import MemoryDashboard from './MemoryDashboard';
+import { MemoryDashboard } from './MemoryDashboard';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
