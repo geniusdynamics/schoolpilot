@@ -3,6 +3,19 @@
  * Based on the Comprehensive Tabbed Workspace System documentation
  */
 
+// Tab content types for different rendering strategies
+export type TabContentType = 'component' | 'url' | 'html' | 'text' | 'empty';
+
+// Tab content interface for storing content configuration
+export interface TabContent {
+  type: TabContentType;
+  component?: React.ComponentType<any> | string;
+  props?: Record<string, any>;
+  url?: string;
+  html?: string;
+  text?: string;
+}
+
 // Core tab interface with comprehensive metadata and RBAC support
 export interface Tab {
   id: string;
@@ -20,6 +33,7 @@ export interface Tab {
   state?: TabState;
   permissions?: string[]; // Required permissions for this tab
   userRole?: string; // User role when tab was created
+  content?: TabContent; // Content configuration for the tab
 }
 
 // Comprehensive tab state preservation
