@@ -1,6 +1,0 @@
-{
-  "name": "SchoolPilot",
-  "description": "A comprehensive SchoolPilot application built with React, TypeScript, and Tailwind CSS. It provides modules for managing students, staff, academics, finances, and more.",
-  "requestFramePermissions": [],
-  "prompt": ""
-}

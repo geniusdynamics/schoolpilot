@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
-import { UserGroupIcon, PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; 
+import { UserGroupIcon, PlusIcon, EditIcon, DeleteIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData';
 import { User, Role } from '@/types';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
@@ -11,6 +11,9 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import type { RbacRole } from '@/core/types';
 import { useTranslation } from 'react-i18next';
+import { databaseService } from '@/services/database/databaseService';
+import { hashPassword, checkPasswordComplexity } from '@/utils/passwordHash';
+import { useToast } from '@/hooks/useToast';
 
 type UserFormData = Omit<Partial<User>, 'id' | 'created_at' | 'updated_at' | 'last_login_at' | 'hashed_password' | 'display_name' | 'role' | 'userType' | 'isActive'> & {
     password?: string;
@@ -24,25 +27,38 @@ const USER_TYPES = ['Staff', 'Student', 'Parent', 'Supplier'];
 
 const SettingsUsersPage: React.FC = () => {
   const context = useAppData();
-  const { 
-    users, 
+  const {
+    users,
     roles, // legacy roles for UI
-    loading, 
+    loading,
     addRole,
     updateRole,
-    deleteRole
-  } = context; 
+    deleteRole,
+    refreshCollection
+  } = context;
   const rbacRoles: RbacRole[] = (context as any).rbacRoles || [];
+  const { t } = useTranslation();
+  const { showError, showSuccess } = useToast();
 
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const initialUserFormData: UserFormData = { username: '', email: '', userType: '', isActive: true, role_id: undefined };
   const [userFormData, setUserFormData] = useState<UserFormData>(initialUserFormData);
+  const [userFormErrors, setUserFormErrors] = useState<Record<string, string>>({});
+  const [isSubmittingUser, setIsSubmittingUser] = useState(false);
 
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const initialRoleFormData: RoleFormData = { name: '', description: '' };
   const [roleFormData, setRoleFormData] = useState<RoleFormData>(initialRoleFormData);
+
+  // Delete confirmation modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const [isDeleteRoleModalOpen, setIsDeleteRoleModalOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  const [isDeletingRole, setIsDeletingRole] = useState(false);
 
 
   // User Modal
@@ -78,67 +94,238 @@ const SettingsUsersPage: React.FC = () => {
     // @ts-ignore
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : (name === 'role_id' ? (value ? parseInt(value) : undefined) : value);
     setUserFormData(prev => ({ ...prev, [name]: val }));
+    // Clear error for this field when user starts typing
+    if (userFormErrors[name]) {
+      setUserFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // Validate user form
+  const validateUserForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!userFormData.username?.trim()) {
+      errors.username = t('Username is required');
+    } else if (userFormData.username.length < 3) {
+      errors.username = t('Username must be at least 3 characters');
+    }
+
+    if (!userFormData.email?.trim()) {
+      errors.email = t('Email is required');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userFormData.email)) {
+      errors.email = t('Please enter a valid email address');
+    }
+
+    if (!userFormData.userType) {
+      errors.userType = t('User Type is required');
+    }
+
+    // Password validation for new users
+    if (!editingUser) {
+      if (!userFormData.password) {
+        errors.password = t('Password is required for new users');
+      } else {
+        const complexity = checkPasswordComplexity(userFormData.password);
+        if (!complexity.valid) {
+          errors.password = complexity.errors.join(', ');
+        }
+      }
+    }
+
+    // Password validation for existing users (only if provided)
+    if (editingUser && userFormData.password) {
+      const complexity = checkPasswordComplexity(userFormData.password);
+      if (!complexity.valid) {
+        errors.password = complexity.errors.join(', ');
+      }
+    }
+
+    setUserFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleUserSubmit = async () => {
+    if (!validateUserForm()) {
+      return;
+    }
+
+    setIsSubmittingUser(true);
+
+    try {
+      const usersCollection = databaseService.getCollection<User>('users');
+      if (!usersCollection) {
+        throw new Error('Users collection not available');
+      }
+
+      const now = new Date().toISOString();
+
+      if (editingUser) {
+        // Update existing user
+        const updateData: Partial<User> = {
+          username: userFormData.username!,
+          email: userFormData.email!,
+          userType: userFormData.userType,
+          isActive: userFormData.isActive,
+          role_id: userFormData.role_id ? Number(userFormData.role_id) : undefined,
+        };
+
+        // Only hash and update password if provided
+        if (userFormData.password) {
+          const hashedPassword = await hashPassword(userFormData.password);
+          (updateData as any).hashed_password = `${hashedPassword.hash}:${hashedPassword.salt}:${hashedPassword.iterations}`;
+        }
+
+        await usersCollection.update(editingUser.id, updateData);
+        showSuccess(t('User updated successfully'));
+      } else {
+        // Create new user
+        const hashedPassword = await hashPassword(userFormData.password!);
+
+        const newUser: Omit<User, 'id'> = {
+          username: userFormData.username!,
+          email: userFormData.email!,
+          userType: userFormData.userType,
+          isActive: userFormData.isActive,
+          role_id: userFormData.role_id ? Number(userFormData.role_id) : undefined,
+          hashed_password: `${hashedPassword.hash}:${hashedPassword.salt}:${hashedPassword.iterations}`,
+        };
+
+        await usersCollection.insert(newUser);
+        showSuccess(t('User created successfully'));
+      }
+
+      // Refresh users collection
+      await refreshCollection('users');
+      closeUserModal();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      showError(error instanceof Error ? error.message : t('Failed to save user'));
+    } finally {
+      setIsSubmittingUser(false);
+    }
+  };
+
+  const [isSubmittingRole, setIsSubmittingRole] = useState(false);
+  const [roleFormErrors, setRoleFormErrors] = useState<Record<string, string>>({});
+
+  // Validate role form
+  const validateRoleForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!roleFormData.name?.trim()) {
+      errors.name = t('Role name is required');
+    } else if (roleFormData.name.length < 2) {
+      errors.name = t('Role name must be at least 2 characters');
+    }
+
+    setRoleFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleRoleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setRoleFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleUserSubmit = async () => {
-    if (!userFormData.username || !userFormData.email || !userFormData.userType) {
-      alert("Username, Email, and User Type are required.");
-      return;
+    // Clear error for this field when user starts typing
+    if (roleFormErrors[name]) {
+      setRoleFormErrors(prev => ({ ...prev, [name]: '' }));
     }
-    if (!editingUser && !userFormData.password) {
-        alert("Password is required for new users.");
-        return;
-    }
-    
-    const now = new Date().toISOString();
-    const payload: Omit<User, 'id' | 'last_login_at' | 'hashed_password' | 'display_name' | 'role' | 'created_at' | 'updated_at'> & {created_at?:string, updated_at?:string} = {
-        username: userFormData.username!,
-        email: userFormData.email!,
-        userType: userFormData.userType,
-        isActive: userFormData.isActive,
-        role_id: userFormData.role_id ? Number(userFormData.role_id) : undefined,
-        password: userFormData.password, // Will be ignored if editingUser
-    };
-
-    if (editingUser) {
-      // TODO: Implement updateRole
-    } else {
-      // TODO: Implement addRole
-    }
-    closeUserModal();
   };
 
   const handleRoleSubmit = async () => {
-    if (!roleFormData.name) {
-        alert("Role name is required.");
-        return;
+    if (!validateRoleForm()) {
+      return;
     }
-    const payload = {
+
+    setIsSubmittingRole(true);
+
+    try {
+      const payload = {
         name: roleFormData.name!,
         description: roleFormData.description || undefined,
-    };
-    if (editingRole) {
-        // TODO: Implement updateRole
-    } else {
-        // TODO: Implement addRole
+      };
+
+      if (editingRole) {
+        await updateRole(editingRole.id, payload);
+        showSuccess(t('Role updated successfully'));
+      } else {
+        await addRole(payload);
+        showSuccess(t('Role created successfully'));
+      }
+
+      closeRoleModal();
+    } catch (error) {
+      console.error('Error saving role:', error);
+      showError(error instanceof Error ? error.message : t('Failed to save role'));
+    } finally {
+      setIsSubmittingRole(false);
     }
-    closeRoleModal();
   };
 
 
-  const handleDeleteUser = async (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      // TODO: Implement deleteRole
+  // Open delete confirmation modal for user
+  const openDeleteUserModal = (user: User) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Close delete confirmation modal
+  const closeDeleteUserModal = () => {
+    setIsDeleteModalOpen(false);
+    setUserToDelete(null);
+  };
+
+  // Handle actual user deletion
+  const handleDeleteUserConfirm = async () => {
+    if (!userToDelete) return;
+
+    setIsDeletingUser(true);
+
+    try {
+      const usersCollection = databaseService.getCollection<User>('users');
+      if (!usersCollection) {
+        throw new Error('Users collection not available');
+      }
+
+      await usersCollection.remove(userToDelete.id);
+      showSuccess(t('User deleted successfully'));
+
+      // Refresh users collection
+      await refreshCollection('users');
+      closeDeleteUserModal();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      showError(error instanceof Error ? error.message : t('Failed to delete user'));
+    } finally {
+      setIsDeletingUser(false);
     }
   };
-  const handleDeleteRole = async (roleId: number) => {
-    if (window.confirm('Are you sure you want to delete this role? Users with this role will have it unassigned.')) {
-        // TODO: Implement deleteRole
+
+  // Open delete confirmation modal for role
+  const openDeleteRoleModal = (role: Role) => {
+    setRoleToDelete(role);
+    setIsDeleteRoleModalOpen(true);
+  };
+
+  // Close delete confirmation modal for role
+  const closeDeleteRoleModal = () => {
+    setIsDeleteRoleModalOpen(false);
+    setRoleToDelete(null);
+  };
+
+  const handleDeleteRoleConfirm = async () => {
+    if (!roleToDelete) return;
+
+    setIsDeletingRole(true);
+
+    try {
+      await deleteRole(roleToDelete.id);
+      showSuccess(t('Role deleted successfully'));
+      closeDeleteRoleModal();
+    } catch (error) {
+      console.error('Error deleting role:', error);
+      showError(error instanceof Error ? error.message : t('Failed to delete role'));
+    } finally {
+      setIsDeletingRole(false);
     }
   };
 
@@ -146,15 +333,15 @@ const SettingsUsersPage: React.FC = () => {
     { header: 'Username', key: 'username' as keyof User },
     { header: 'Email', key: 'email' as keyof User },
     { header: 'User Type', key: 'userType' as keyof User},
-    { header: 'Role', key: 'role' as keyof User }, 
+    { header: 'Role', key: 'role' as keyof User },
     { header: 'Status', key: 'isActive' as keyof User },
     {
       header: 'Actions',
       key: 'id' as keyof User,
-      render: (value: any, item: User) => (
+      render: (_value: any, item: User) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openUserModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteUser(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="danger" onClick={() => openDeleteUserModal(item)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     }
@@ -166,10 +353,10 @@ const SettingsUsersPage: React.FC = () => {
     {
       header: 'Actions',
       key: 'id' as keyof Role,
-      render: (value: any, item: Role) => (
+      render: (_value: any, item: Role) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openRoleModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteRole(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+          <Button size="sm" variant="danger" onClick={() => openDeleteRoleModal(item)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
       ),
     }
@@ -209,28 +396,73 @@ const SettingsUsersPage: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeUserModal}>Cancel</Button>
-            <Button onClick={handleUserSubmit} disabled={loading.users}>
-              {loading.users ? <Spinner size="sm"/> : (editingUser ? 'Save Changes' : 'Add User')}
+            <Button onClick={handleUserSubmit} disabled={isSubmittingUser || loading.users}>
+              {isSubmittingUser ? <Spinner size="sm"/> : (editingUser ? 'Save Changes' : 'Add User')}
             </Button>
           </>
         }
       >
-        <Input name="username" label="Username" value={userFormData.username || ''} onChange={handleUserInputChange} required />
-        <Input name="email" label="Email" type="email" value={userFormData.email || ''} onChange={handleUserInputChange} required />
-        {!editingUser && (
-            <Input name="password" label="Password" type="password" value={userFormData.password || ''} onChange={handleUserInputChange} required />
-        )}
-        <Select name="userType" label="User Type" value={userFormData.userType} onChange={handleUserInputChange} required>
-          {USER_TYPES.map(type => (<option key={type} value={type}>{type}</option>))}
-        </Select>
-        <Select name="role_id" label="Role" value={userFormData.role_id || ''} onChange={handleUserInputChange}>
-            <option value="">Select Role</option>
-            {roles.map(role => (<option key={role.id} value={role.id}>{role.name}</option>))}
-        </Select>
-        <div className="mt-4 flex items-center">
-            <input id="isActive_user" name="isActive" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
-                checked={userFormData.isActive} onChange={handleUserInputChange} />
-            <label htmlFor="isActive_user" className="ml-2 block text-sm text-gray-900">Is Active User</label>
+        <div className="space-y-4">
+          <Input
+            name="username"
+            label="Username"
+            value={userFormData.username || ''}
+            onChange={handleUserInputChange}
+            required
+            error={userFormErrors.username}
+          />
+          <Input
+            name="email"
+            label="Email"
+            type="email"
+            value={userFormData.email || ''}
+            onChange={handleUserInputChange}
+            required
+            error={userFormErrors.email}
+          />
+          {!editingUser && (
+            <Input
+              name="password"
+              label="Password"
+              type="password"
+              value={userFormData.password || ''}
+              onChange={handleUserInputChange}
+              required
+              error={userFormErrors.password}
+              helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
+            />
+          )}
+          {editingUser && (
+            <Input
+              name="password"
+              label="New Password (leave blank to keep current)"
+              type="password"
+              value={userFormData.password || ''}
+              onChange={handleUserInputChange}
+              error={userFormErrors.password}
+              helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
+            />
+          )}
+          <Select
+            name="userType"
+            label="User Type"
+            value={userFormData.userType}
+            onChange={handleUserInputChange}
+            required
+            error={userFormErrors.userType}
+          >
+            <option value="">Select User Type</option>
+            {USER_TYPES.map(type => (<option key={type} value={type}>{type}</option>))}
+          </Select>
+          <Select name="role_id" label="Role" value={userFormData.role_id || ''} onChange={handleUserInputChange}>
+              <option value="">Select Role</option>
+              {roles.map((role: Role) => (<option key={role.id} value={role.id}>{role.name}</option>))}
+          </Select>
+          <div className="flex items-center">
+              <input id="isActive_user" name="isActive" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  checked={userFormData.isActive} onChange={handleUserInputChange} />
+              <label htmlFor="isActive_user" className="ml-2 block text-sm text-gray-900">Is Active User</label>
+          </div>
         </div>
       </Modal>
 
@@ -239,14 +471,80 @@ const SettingsUsersPage: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={closeRoleModal}>Cancel</Button>
-            <Button onClick={handleRoleSubmit} disabled={loading.roles}>
-              {loading.roles ? <Spinner size="sm"/> : (editingRole ? 'Save Changes' : 'Add Role')}
+            <Button onClick={handleRoleSubmit} disabled={isSubmittingRole || loading.roles}>
+              {isSubmittingRole ? <Spinner size="sm"/> : (editingRole ? 'Save Changes' : 'Add Role')}
             </Button>
           </>
         }
       >
-        <Input name="name" label="Role Name" value={roleFormData.name || ''} onChange={handleRoleInputChange} required />
-        <Input name="description" label="Description (Optional)" value={roleFormData.description || ''} onChange={handleRoleInputChange} />
+        <div className="space-y-4">
+          <Input
+            name="name"
+            label="Role Name"
+            value={roleFormData.name || ''}
+            onChange={handleRoleInputChange}
+            required
+            error={roleFormErrors.name}
+          />
+          <Input
+            name="description"
+            label="Description (Optional)"
+            value={roleFormData.description || ''}
+            onChange={handleRoleInputChange}
+          />
+        </div>
+      </Modal>
+
+      {/* Delete User Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteUserModal}
+        title="Confirm Delete User"
+        size="sm"
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeDeleteUserModal} disabled={isDeletingUser}>Cancel</Button>
+            <Button variant="danger" onClick={handleDeleteUserConfirm} disabled={isDeletingUser}>
+              {isDeletingUser ? <Spinner size="sm"/> : 'Delete User'}
+            </Button>
+          </>
+        }
+      >
+        <div className="text-center py-4">
+          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-700 mb-2">
+            Are you sure you want to delete the user <strong>{userToDelete?.username}</strong>?
+          </p>
+          <p className="text-sm text-gray-500">
+            This action cannot be undone. The user will be permanently removed from the system.
+          </p>
+        </div>
+      </Modal>
+
+      {/* Delete Role Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteRoleModalOpen}
+        onClose={closeDeleteRoleModal}
+        title="Confirm Delete Role"
+        size="sm"
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeDeleteRoleModal} disabled={isDeletingRole}>Cancel</Button>
+            <Button variant="danger" onClick={handleDeleteRoleConfirm} disabled={isDeletingRole}>
+              {isDeletingRole ? <Spinner size="sm"/> : 'Delete Role'}
+            </Button>
+          </>
+        }
+      >
+        <div className="text-center py-4">
+          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-700 mb-2">
+            Are you sure you want to delete the role <strong>{roleToDelete?.name}</strong>?
+          </p>
+          <p className="text-sm text-gray-500">
+            Users with this role will have it unassigned. This action cannot be undone.
+          </p>
+        </div>
       </Modal>
     </div>
   );
