@@ -53,8 +53,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         
         // Determine if we're in demo mode
+        // CRITICAL FIX: Changed from `|| true` to `?? false` to prevent forced demo mode (CRIT-002)
         const session = authService.getCurrentSession();
-        const demoMode = session?.isDemo || true;
+        const demoMode = session?.isDemo ?? false;
         setIsDemoMode(demoMode);
       } catch (error) {
         console.error('Error initializing auth:', error);

@@ -25,13 +25,15 @@ export interface FeatureFlags {
 }
 
 // Default configuration
+// CRITICAL: UDS and PouchDB are now ENABLED for data persistence
+// This fixes CRIT-001: No Data Persistence
 const defaultFlags: FeatureFlags = {
-  useNewTabSystem: false,        // Phase 1: Start with false
-  useUnifiedDataService: false,  // Phase 1: Start with false
-  enableSQLiteProvider: false,   // Phase 2
-  enableSyncEngine: false,       // Phase 2
-  enableERPNextIntegration: false, // Phase 3
-  enableMobileOptimizations: false // Phase 3
+  useNewTabSystem: true,         // ENABLED: New tab system is stable
+  useUnifiedDataService: true,   // ENABLED: Use real PouchDB provider instead of mock
+  enableSQLiteProvider: false,   // Phase 2: SQLite OPFS alternative (optional)
+  enableSyncEngine: false,       // Phase 2: Networked mode sync (requires CouchDB)
+  enableERPNextIntegration: false, // Phase 3: ERPNext bridge
+  enableMobileOptimizations: true  // ENABLED: Mobile responsiveness
 };
 
 // Load from localStorage (for development/testing)

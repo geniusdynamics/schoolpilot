@@ -1,5 +1,5 @@
 // ABOUTME: Authentication service for user login, logout, and session management
-// ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (RxDB)
+// ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (RxDB/PouchDB)
 
 import { databaseService } from './database/databaseService';
 import * as rxdbService from './rxdbService';
@@ -7,6 +7,7 @@ import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../core/rbacService';
 import { unifiedConfigManager } from '../config/unifiedConfig';
 import { reportError } from '../config/errorTracking';
+import { hashPassword, verifyPassword, generateSecureToken, checkPasswordComplexity } from '../utils/passwordHash';
 
 // Authentication Types
 export interface AuthUser {
@@ -280,6 +281,9 @@ class AuthService {
   // ===== DEMO MODE AUTHENTICATION =====
 
   private async loginDemo(credentials: LoginCredentials): Promise<AuthResult> {
+    // SECURITY WARNING: Demo mode accepts any password and should only be used for testing
+    console.warn('🔐 [AuthService] DEMO MODE LOGIN - This is insecure and should only be used for testing');
+    
     // Demo users for testing different roles
     const demoUsers: { [key: string]: AuthUser } = {
       'admin': {
@@ -383,10 +387,10 @@ class AuthService {
       };
     }
 
-    // Create session
+    // Create session with secure token (even for demo mode)
     const session: AuthSession = {
       user,
-      token: `demo_token_${Date.now()}`,
+      token: `demo_${generateSecureToken(32)}`, // Secure token with demo prefix
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       isDemo: true
     };
@@ -486,22 +490,45 @@ class AuthService {
         };
       }
 
-      // TODO: Add password hashing and verification
-      // For now, accept any password in production mode
-      if (credentials.password.length < 1) {
-        // Report production login failure to Bugsink
-        const loginError = new Error('Production login failed: Password required');
-        reportError(loginError, {
+      // CRITICAL FIX: Implement proper password verification (CRIT-003, SEC-002)
+      // Check if user has a password hash stored
+      if (!user.password_hash) {
+        // No password set - this shouldn't happen in production
+        reportError(new Error('Production login failed: No password hash'), {
           username: credentials.username,
           userId: user.id,
           loginType: 'production',
-          errorContext: 'empty_password',
+          errorContext: 'missing_password_hash',
           timestamp: new Date().toISOString()
         });
         
         return {
           success: false,
-          message: 'Password is required'
+          message: 'Account not properly configured. Please contact administrator.'
+        };
+      }
+      
+      // Verify password using PBKDF2 hashing
+      const passwordValid = await verifyPassword(credentials.password, {
+        hash: user.password_hash,
+        salt: user.password_salt,
+        iterations: user.password_iterations || 100000
+      });
+      
+      if (!passwordValid) {
+        // Report production login failure to Bugsink
+        const loginError = new Error('Production login failed: Invalid password');
+        reportError(loginError, {
+          username: credentials.username,
+          userId: user.id,
+          loginType: 'production',
+          errorContext: 'invalid_password',
+          timestamp: new Date().toISOString()
+        });
+        
+        return {
+          success: false,
+          message: 'Invalid username or password'
         };
       }
 
@@ -543,10 +570,10 @@ class AuthService {
         moduleAccess
       };
 
-      // Create session
+      // Create session with secure token (CRIT-004)
       const session: AuthSession = {
         user: authUser,
-        token: `prod_token_${Date.now()}`,
+        token: generateSecureToken(32), // Cryptographically secure random token
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
         isDemo: false
       };
