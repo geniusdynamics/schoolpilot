@@ -70,21 +70,30 @@ const getPageComponent = (navItem: any) => {
   const pathSegments = navItem.path.split('/').filter(Boolean);
   const moduleDir = pathSegments[0] || 'dashboard';
   
-  // Construct the modular key
-  const modularKey = `./modules/${moduleDir}/pages/${navItem.page}.tsx`;
-  console.log('🔍 [App] Checking modular key:', modularKey);
-  console.log('🔍 [App] Key exists in pageModules:', modularKey in pageModules);
+  // Try multiple key patterns for better compatibility
+  const possibleKeys = [
+    // Standard pattern
+    `./modules/${moduleDir}/pages/${navItem.page}.tsx`,
+    // Without .tsx extension
+    `./modules/${moduleDir}/pages/${navItem.page}`,
+    // With /index.tsx
+    `./modules/${moduleDir}/pages/${navItem.page}/index.tsx`,
+  ];
   
-  if (pageModules[modularKey]) {
-    console.log('✅ [App] Found component via modular key:', modularKey);
-    return React.lazy(pageModules[modularKey]);
+  for (const key of possibleKeys) {
+    if (pageModules[key]) {
+      console.log('✅ [App] Found component via key:', key);
+      return React.lazy(pageModules[key]);
+    }
   }
-
-  // Debug: Show similar keys to help diagnose
-  const similarKeys = Object.keys(pageModules).filter(k => k.includes(moduleDir) && k.includes('settings'));
+  
+  // Debug: List all available keys for this module
+  const availableKeys = Object.keys(pageModules).filter(k => 
+    k.includes(`./modules/${moduleDir}/pages/`)
+  );
   console.log('❌ [App] Component not found for:', navItem.page);
-  console.log('❌ [App] Tried key:', modularKey);
-  console.log('🔍 [App] Similar keys in pageModules:', similarKeys);
+  console.log('❌ [App] Tried keys:', possibleKeys);
+  console.log('🔍 [App] Available keys for', moduleDir, ':', availableKeys);
   return null;
 };
 
@@ -326,6 +335,9 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
           });
         })
       }
+      
+      {/* Catch-all route - redirect to dashboard for unknown paths */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };
