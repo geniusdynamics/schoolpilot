@@ -36,12 +36,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         setIsLoading(true);
         
-        // Wait for auth service initialization
-        const maxWaitTime = 5000; // 5 seconds max wait
+        // Wait for auth service initialization with timeout
+        const maxWaitTime = 8000; // 8 seconds max wait
         const startTime = Date.now();
         
+        // Wait for initialization with polling
         while (!authService.isInitialized() && (Date.now() - startTime) < maxWaitTime) {
           await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        // If still not initialized after timeout, log warning but continue
+        if (!authService.isInitialized()) {
+          console.warn('AuthService initialization timed out, proceeding with unauthenticated state');
         }
         
         // Check if user is already authenticated

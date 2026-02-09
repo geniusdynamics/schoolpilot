@@ -230,24 +230,39 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         setIsLoading(true);
         setError(null);
 
-        await dbManager.initialize();
+        // Add timeout to prevent hanging
+        const initPromise = dbManager.initialize();
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Database initialization timeout')), 15000);
+        });
+        
+        await Promise.race([initPromise, timeoutPromise]);
 
         if (!mounted) return;
 
-        // Load initial data from all collections
-        await loadAllCollections();
+        // Load initial data from all collections with timeout
+        const loadPromise = loadAllCollections();
+        const loadTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Load collections timeout')), 20000);
+        });
+        
+        await Promise.race([loadPromise, loadTimeoutPromise]);
 
         setIsInitialized(true);
         setIsLoading(false);
         console.log('✅ [AppDataContext] Database initialized successfully');
         toast.showSuccess('Database initialized successfully');
       } catch (err) {
-        console.error('❌ [AppDataContext] Database initialization failed:', err);
+        console.warn('⚠️ [AppDataContext] Database initialization failed or timed out:', err);
         if (mounted) {
           const error = err instanceof Error ? err : new Error(String(err));
-          setError(error);
+          // Don't show error toast for timeout - just continue without database
+          if (!error.message.includes('timeout')) {
+            toast.showError(`Database initialization failed: ${error.message}`);
+          }
+          // Proceed without database (will use mock data)
+          setIsInitialized(true);
           setIsLoading(false);
-          toast.showError(`Database initialization failed: ${error.message}`);
         }
       }
     };
