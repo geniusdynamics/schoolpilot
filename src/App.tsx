@@ -534,7 +534,8 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
 
 // Data provider wrapper with feature flag
 const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.ReactNode }> = ({ config, children }) => {
-  const [udsInitialized, setUdsInitialized] = useState(!featureFlags.useUnifiedDataService);
+  // Always proceed with app even if UDS fails - use fallback
+  const [udsInitialized, setUdsInitialized] = useState(true); // Always start as true to prevent hanging
   
   useEffect(() => {
     if (featureFlags.useUnifiedDataService) {
@@ -542,18 +543,25 @@ const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.
       
       // CRITICAL FIX: Use 'standalone' mode with PouchDB for data persistence (CRIT-001)
       // This replaces the mock provider with real IndexedDB-backed PouchDB
-      uds.initialize('standalone', { 
+      // Add timeout to prevent hanging
+      const initializationPromise = uds.initialize('standalone', { 
         pouchdb: {
           localDbName: 'schoolpilot_standalone',
         }
-      })
+      });
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('UDS initialization timeout')), 10000); // 10 second timeout
+      });
+      
+      Promise.race([initializationPromise, timeoutPromise])
         .then(() => {
           setUdsInitialized(true);
           debugLog('✅ [App] Unified Data Service initialized');
         })
         .catch(error => {
-          console.error('❌ [App] Failed to initialize UDS:', error);
-          // Fall back to old system
+          console.warn('⚠️ [App] UDS initialization failed or timed out, falling back to mock:', error);
+          // Fall back to old system gracefully
           setUdsInitialized(true);
         });
       

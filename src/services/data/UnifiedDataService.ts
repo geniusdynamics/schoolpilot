@@ -481,9 +481,10 @@ export class UnifiedDataService {
     
     switch (mode) {
       case 'standalone':
+        // Use PouchDB as default provider for standalone mode
         return createProvider({
           mode: 'standalone',
-          sqlite: options.sqlite
+          pouchdb: options.pouchdb
         });
       
       case 'networked':
