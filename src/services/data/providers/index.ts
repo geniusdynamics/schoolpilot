@@ -15,6 +15,7 @@ import { SQLiteProvider } from './SQLiteProvider';
 import { PouchDBProvider } from './PouchDBProvider';
 import { BackendProvider, type BackendProviderConfig } from '../../backend/BackendProvider';
 import { ERPNextProvider, type ERPNextProviderConfig } from '../../erpnext/ERPNextProvider';
+import { featureFlags } from '../../../config/featureFlags';
 
 interface SQLiteOptions {
   filename?: string;
@@ -41,13 +42,27 @@ interface ProviderFactoryOptions {
 export async function createProvider(options: ProviderFactoryOptions): Promise<DataProvider> {
   switch (options.mode) {
     case 'standalone':
-      const sqlite = new SQLiteProvider();
-      await sqlite.initialize({
-        filename: options.sqlite?.filename || 'schoolpilot.db',
-        encryptionKey: options.sqlite?.encryptionKey,
-        enableChangeTracking: true
+      // CRITICAL FIX: Use PouchDB as default for standalone mode (verified complete per CRIT-001)
+      // SQLite is available as alternative when enableSQLiteProvider flag is on
+      if (featureFlags.enableSQLiteProvider) {
+        const sqlite = new SQLiteProvider();
+        await sqlite.initialize({
+          filename: options.sqlite?.filename || 'schoolpilot.db',
+          encryptionKey: options.sqlite?.encryptionKey,
+          enableChangeTracking: true
+        });
+        return sqlite;
+      }
+      // Default to PouchDB for standalone mode - provides persistence without backend
+      const standalonePouch = new PouchDBProvider();
+      await standalonePouch.initialize({
+        localDbName: options.pouchdb?.localDbName || 'schoolpilot_standalone',
+        syncOptions: {
+          live: false,  // No sync in standalone mode
+          retry: false
+        }
       });
-      return sqlite;
+      return standalonePouch;
 
     case 'networked':
     case 'saas':

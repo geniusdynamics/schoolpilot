@@ -540,7 +540,13 @@ const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.
     if (featureFlags.useUnifiedDataService) {
       debugLog('🚀 [App] Initializing Unified Data Service...');
       
-      uds.initialize('demo', { /* config */ })
+      // CRITICAL FIX: Use 'standalone' mode with PouchDB for data persistence (CRIT-001)
+      // This replaces the mock provider with real IndexedDB-backed PouchDB
+      uds.initialize('standalone', { 
+        pouchdb: {
+          localDbName: 'schoolpilot_standalone',
+        }
+      })
         .then(() => {
           setUdsInitialized(true);
           debugLog('✅ [App] Unified Data Service initialized');
