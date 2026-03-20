@@ -26,7 +26,7 @@ async function extractData() {
     logger.info('Starting data extraction from SchoolPilot...');
 
     // Example: Fetch some initial entities from SchoolPilot for setup or verification
-    const initialSchoolPilotData = await schoolPilotConnection.query('SELECT 1'); // Replace with an actual query
+        const _ = await schoolPilotConnection.query('SELECT 1'); // Placeholder for initial SchoolPilot data fetch
     logger.info('Data extraction from SchoolPilot complete.');
 
     process.exit(0);

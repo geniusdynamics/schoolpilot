@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => {
         VitePWA({
           registerType: 'autoUpdate',
           workbox: {
+            // Keep precaching enabled for build assets while allowing larger JS chunks.
+            // Default Workbox cap is 2 MiB, which can fail production builds.
+            maximumFileSizeToCacheInBytes: 8 * 1024 * 1024, // 8 MiB
             globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
             runtimeCaching: [
               {

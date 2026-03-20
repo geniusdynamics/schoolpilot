@@ -138,6 +138,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
         return await navigator.storage.estimate();
       }
     } catch (e) {
+      void e;
       // Ignore storage estimate errors
     }
     return null;
@@ -154,6 +155,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
         webAssemblySupported: 'WebAssembly' in window
       };
     } catch (e) {
+      void e;
       return { error: 'Failed to collect database context' };
     }
   }
@@ -193,6 +195,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
       try {
         localStorage.removeItem(key);
       } catch (e) {
+        void e;
         console.warn(`Failed to remove localStorage key: ${key}`);
       }
     });
@@ -213,7 +216,9 @@ class DatabaseErrorBoundary extends Component<Props, State> {
 
   renderErrorUI() {
     const { error, errorType, retryCount, errorId } = this.state;
-    const { fallbackMode = 'minimal', showTechnicalDetails = false } = this.props;
+    const { fallbackMode: _fallbackMode = 'minimal', showTechnicalDetails: _showTechnicalDetails = false } = this.props;
+    void _fallbackMode;
+    void _showTechnicalDetails;
     const canRetry = retryCount < this.maxRetries;
 
     const errorMessages = {

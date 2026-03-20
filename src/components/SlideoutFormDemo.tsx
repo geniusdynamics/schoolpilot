@@ -77,7 +77,7 @@ const SlideoutFormDemo: React.FC = () => {
     guardianPhone: {
       rules: [
         validators.required('Guardian phone is required'),
-        validators.pattern(/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number'),
+        validators.pattern(/^\+?[\d\s()-]+$/, 'Please enter a valid phone number'),
       ],
     },
   };

@@ -3,7 +3,7 @@
  * Extends existing tab types with hierarchical support, sub-tabs, and breadcrumb navigation
  */
 
-import { Tab, TabState } from './tabbedWorkspace';
+import { Tab } from './tabbedWorkspace';
 
 // Enhanced breadcrumb item interface
 export interface BreadcrumbItem {

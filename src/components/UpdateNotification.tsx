@@ -8,7 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { RefreshCw, X } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 
 export interface UpdateNotificationProps {
   position?: 'top' | 'bottom';

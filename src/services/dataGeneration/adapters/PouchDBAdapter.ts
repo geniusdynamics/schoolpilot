@@ -191,7 +191,7 @@ export class PouchDBAdapter extends BaseStorageAdapter {
     const tableMatch = sql.match(/FROM\s+(?:"(\w+)"|'(\w+)'|(\w+))/i);
     const tableName = tableMatch ? (tableMatch[1] || tableMatch[2] || tableMatch[3]) : 'unknown';
     
-    let findQuery: any = {
+    const findQuery: any = {
       selector: { type: tableName },
       limit: 1000
     };

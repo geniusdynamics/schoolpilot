@@ -1,7 +1,7 @@
 // ABOUTME: React hook for database memory management monitoring
 // ABOUTME: Provides real-time memory metrics, alerts, and management controls
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   DatabaseMemoryManager,
   MemoryUsageMetrics,
@@ -220,5 +220,50 @@ export function useConnectionTracking() {
     updateConnectionActivity,
     unregisterConnection,
     getConnectionStats,
+  };
+}
+
+export function useMemoryAwareCache<T>(namespace: string, maxEntries = 50) {
+  const cacheRef = useRef<Map<string, T>>(new Map());
+
+  const setCache = useCallback((key: string, value: T) => {
+    const namespacedKey = `${namespace}:${key}`;
+    const cache = cacheRef.current;
+
+    if (cache.size >= maxEntries && !cache.has(namespacedKey)) {
+      const firstKey = cache.keys().next().value;
+      if (firstKey) {
+        cache.delete(firstKey);
+      }
+    }
+
+    cache.set(namespacedKey, value);
+  }, [namespace, maxEntries]);
+
+  const getCache = useCallback((key: string): T | null => {
+    const namespacedKey = `${namespace}:${key}`;
+    return cacheRef.current.get(namespacedKey) ?? null;
+  }, [namespace]);
+
+  const clearCache = useCallback((key?: string) => {
+    if (key) {
+      cacheRef.current.delete(`${namespace}:${key}`);
+      return;
+    }
+
+    const keysToDelete: string[] = [];
+    for (const cacheKey of cacheRef.current.keys()) {
+      if (cacheKey.startsWith(`${namespace}:`)) {
+        keysToDelete.push(cacheKey);
+      }
+    }
+
+    keysToDelete.forEach(cacheKey => cacheRef.current.delete(cacheKey));
+  }, [namespace]);
+
+  return {
+    setCache,
+    getCache,
+    clearCache,
   };
 }

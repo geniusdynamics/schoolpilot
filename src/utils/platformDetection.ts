@@ -72,7 +72,7 @@ export const isTouchDevice = (): boolean => {
   
   return 'ontouchstart' in window || 
          navigator.maxTouchPoints > 0 ||
-         // @ts-ignore - for older browsers
+         // @ts-expect-error - for older browsers
          navigator.msMaxTouchPoints > 0;
 };
 
@@ -218,7 +218,7 @@ export const getPlatformConfig = (platform?: Platform) => {
   if (screenSize === 'mobile') return platformPresets.mobile;
   if (screenSize === 'tablet') return platformPresets.tablet;
   
-  return platformPresets[detectedPlatform] || platformPresets.desktop;
+  return platformPresets[detectedPlatform as keyof typeof platformPresets] || platformPresets.desktop;
 };
 
 // Re-export React for the hook

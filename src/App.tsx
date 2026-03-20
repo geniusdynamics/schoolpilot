@@ -13,7 +13,6 @@ import { useRBAC } from './hooks/useRBAC';
 import { initializeModules } from './core/moduleLoader';
 import { initializeTheme } from './hooks/useTheme';
 import { useRoutePersistence } from './hooks/useRoutePersistence';
-import { getCurrentUnifiedConfig } from './config/unifiedConfig';
 import { debugLog } from './utils';
 import Spinner from './components/ui/Spinner';
 import { moduleRegistry } from './core/moduleRegistry';
@@ -25,15 +24,16 @@ import { useMemoryManagement } from './hooks/useMemoryManagement';
 import { StableActionProvider } from './contexts/StableActionProvider';
 import { ToastProvider } from './hooks/useToast';
 import { NetworkProvider } from './contexts/NetworkContext';
+import { SyncProvider } from './contexts/SyncContext';
 import { featureFlags } from './config/featureFlags';
 import { uds } from './services/data';
 
 // Layout components - choose based on feature flag
 import Layout from './components/Layout';
 import LayoutNew from './components/LayoutNew';
+import GlobalNotifications from './components/GlobalNotifications';
 
 // Lazy load components
-const GlobalNotifications = lazy(() => import('./components/GlobalNotifications'));
 const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 const ErrorTrackingTest = lazy(() => import('./components/ErrorTrackingTest'));
@@ -124,7 +124,15 @@ const getPageComponent = (navItem: any) => {
   return null;
 };
 
-const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) => {
+const DynamicRoutes = ({
+  modulesInitialized,
+  userId,
+  userRole
+}: {
+  modulesInitialized: boolean;
+  userId?: string;
+  userRole?: string;
+}) => {
   console.log('🔍 [DynamicRoutes] Component is rendering! modulesInitialized:', modulesInitialized);
   console.log('🔍 [DynamicRoutes] Modules initialized:', modulesInitialized);
   // Helper function to generate deprecated route redirects dynamically
@@ -153,7 +161,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
     return deprecatedRoutes;
   };
   const { navigationItems } = useDynamicNavigation(true);
-  const { accessibleModules } = useRBAC();
+  const { accessibleModules } = useRBAC(userId, userRole);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -170,16 +178,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
       <Route
         path="/login"
         element={
-          <Suspense fallback={
-            <div className="flex items-center justify-center h-screen">
-              <div className="text-center">
-                <Spinner size="lg" />
-                <p className="mt-4 text-gray-600">Loading login page...</p>
-              </div>
-            </div>
-          }>
-            <LoginPage />
-          </Suspense>
+          <Navigate to="/dashboard" replace />
         }
       />
       
@@ -310,10 +309,7 @@ const DynamicRoutes = ({ modulesInitialized }: { modulesInitialized: boolean }) 
         
         const dashboardExport = dashboardModules[dashboardKey];
         if (dashboardExport) {
-          const DashboardComponent = () => {
-            const Component = dashboardExport.default || dashboardExport;
-            return <Component />;
-          };
+          const DashboardComponent = lazy(dashboardExport as any);
           
           return (
             <Route
@@ -511,15 +507,17 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
       {/* Main content with error boundary */}
       <div className="flex-1">
         <ErrorBoundary key={location.pathname}>
-          <DynamicRoutes modulesInitialized={modulesInitialized} />
+          <DynamicRoutes
+            modulesInitialized={modulesInitialized}
+            userId={user?.id}
+            userRole={user?.role}
+          />
         </ErrorBoundary>
       </div>
       
       {/* Global notifications (if enabled) */}
       {(config.features as any).enableNotifications && config.environment !== 'demo' && (
-        <Suspense fallback={null}>
-          <GlobalNotifications />
-        </Suspense>
+        <GlobalNotifications />
       )}
       
       {/* Performance Monitor (Feature Flag Controlled) */}
@@ -533,7 +531,8 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
 };
 
 // Data provider wrapper with feature flag
-const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.ReactNode }> = ({ config, children }) => {
+const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.ReactNode }> = ({ config: _config, children }) => {
+  void _config;
   // Always proceed with app even if UDS fails - use fallback
   const [udsInitialized, setUdsInitialized] = useState(true); // Always start as true to prevent hanging
   
@@ -601,7 +600,7 @@ const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.
 
 // Main consolidated App component
 const AppInner: React.FC = () => {
-  const { config, applyPreset } = useUnifiedConfig();
+  const { config } = useUnifiedConfig();
   const [modulesInitialized, setModulesInitialized] = useState(false);
   const initializedRef = useRef(false);
 
@@ -617,11 +616,12 @@ const AppInner: React.FC = () => {
   });
 
   // Memory management for the main app
-  const { isMemoryHigh, forceCleanup } = useMemoryManagement({
+  const _memoryManagement = useMemoryManagement({
     componentName: 'App',
     trackLifecycle: true,
     enableAlerts: false
   });
+  void _memoryManagement;
 
   // Initialize modules with improved error handling
   useEffect(() => {
@@ -661,17 +661,19 @@ const AppInner: React.FC = () => {
   return (
     <HashRouter>
       <NetworkProvider>
-        <DataProviderWrapper config={config}>
-          <AuthProvider>
-            <UserProvider>
-              <ErrorBoundary>
-                <StableActionProvider>
-                  <AppContent modulesInitialized={modulesInitialized} config={config} />
-                </StableActionProvider>
-              </ErrorBoundary>
-            </UserProvider>
-          </AuthProvider>
-        </DataProviderWrapper>
+        <SyncProvider>
+          <DataProviderWrapper config={config}>
+            <AuthProvider>
+              <UserProvider>
+                <ErrorBoundary>
+                  <StableActionProvider>
+                    <AppContent modulesInitialized={modulesInitialized} config={config} />
+                  </StableActionProvider>
+                </ErrorBoundary>
+              </UserProvider>
+            </AuthProvider>
+          </DataProviderWrapper>
+        </SyncProvider>
       </NetworkProvider>
     </HashRouter>
   );

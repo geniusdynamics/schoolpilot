@@ -236,7 +236,7 @@ export const DatabaseMonitoringDashboard: React.FC<DatabaseMonitoringDashboardPr
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">Recommendations</h4>
             <div className="space-y-2">
-              {performanceData.recommendations.slice(0, 3).map((rec, index) => (
+              {performanceData.recommendations.slice(0, 3).map((rec: string, index: number) => (
                 <div key={index} className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
                   {rec}
                 </div>

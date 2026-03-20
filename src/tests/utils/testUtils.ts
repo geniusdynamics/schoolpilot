@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 // Performance monitoring utilities
 export const createPerformanceMonitor = () => {
-  let marks = new Map();
+  const marks = new Map();
   
   return {
     mark: (name: string) => {
@@ -21,7 +21,7 @@ export const createPerformanceMonitor = () => {
 
 // Memory usage tracking
 export const createMemoryTracker = () => {
-  let snapshots = new Map();
+  const snapshots = new Map();
   
   return {
     takeSnapshot: (name: string) => {
@@ -140,7 +140,7 @@ export const createNetworkTracker = () => {
 
 // Animation frame mock
 export const createAnimationFrameMock = () => {
-  let callbacks = new Map();
+  const callbacks = new Map();
   let lastId = 0;
   
   return {

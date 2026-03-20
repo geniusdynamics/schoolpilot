@@ -1,8 +1,8 @@
 // ABOUTME: ContextualActionBar component for tab-specific actions and contextual operations
 // ABOUTME: Provides dynamic actions based on active tab context with RBAC integration
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { MoreHorizontal, Search, Filter, Settings, RefreshCw, Save, Share2, Download, Upload, Edit, Trash2 } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { MoreHorizontal, Search, Settings, RefreshCw } from 'lucide-react';
 import { useTabStore } from '../../stores/tabStore';
 import { useActionRegistry, ActionDefinition, ActionContext } from '../../services/actionRegistry';
 import { cn } from '../../utils/cn';
@@ -134,7 +134,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
   variant = 'standard',
   position = 'top'
 }) => {
-  const { activeTab, tabs, validateTabAccess } = useTabStore();
+  const { activeTab, tabs } = useTabStore();
   const { getActionsForContext, executeAction } = useActionRegistry();
   
   const [searchQuery, setSearchQuery] = useState('');

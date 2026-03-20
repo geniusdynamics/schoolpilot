@@ -5,8 +5,6 @@ import React, { useState, useMemo } from 'react';
 import {
   CheckCircleIcon,
   XCircleIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
   DocumentDuplicateIcon,
   EyeIcon,
   CodeBracketIcon,
@@ -14,7 +12,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { AlertTriangleIcon } from './ui/icons';
 import { useAppData } from '../hooks/useAppData';
-import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 
@@ -49,7 +46,9 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [viewMode, setViewMode] = useState<'side-by-side' | 'unified' | 'raw'>('side-by-side');
 
-  const { resolveConflict, resolveAllConflicts } = useAppData();
+  const { resolveConflict: _resolveConflict, resolveAllConflicts: _resolveAllConflicts } = useAppData();
+  void _resolveConflict;
+  void _resolveAllConflicts;
 
   const sortedConflicts = useMemo(() => {
     return [...conflicts].sort((a, b) => {

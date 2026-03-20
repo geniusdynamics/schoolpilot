@@ -1,10 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { XIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useEnhancedNavigation } from '../hooks/useEnhancedNavigation';
-import { tabbedModeFeatureFlag } from '../services/tabbedModeFeatureFlag';
+import { useTabs } from '../hooks/tabs';
 // Removed unused HookErrorHandler import
 import { HookErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 import { SettingsSkeleton } from './ModuleLoadingFallback';
@@ -17,23 +15,7 @@ interface SettingsPopupProps {
 const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) => {
   const { t } = useTranslation('settings');
   const { navigationItems, isLoading } = useDynamicNavigation();
-  const { enhancedNavigate } = useEnhancedNavigation();
-  const navigate = useNavigate();
-  
-  // Check if tabbed mode is enabled for settings
-  const isTabbedModeEnabled = tabbedModeFeatureFlag.isTabbedModeEnabled('settings');
-  
-  console.log('🔍 [SettingsPopup] Tabbed mode status:', {
-    isTabbedModeEnabled,
-    globalEnabled: tabbedModeFeatureFlag.isGloballyEnabled(),
-    perModuleControl: tabbedModeFeatureFlag.isPerModuleControlEnabled()
-  });
-  
-  console.log('🔍 [SettingsPopup] Navigation setup:', {
-    hasEnhancedNavigate: !!enhancedNavigate,
-    hasNavigate: !!navigate,
-    componentLoaded: true
-  });
+  const { openTab } = useTabs();
   
   // Memoize settings module and menu to prevent unnecessary recalculations
   const settingsModule = useMemo(() => {
@@ -66,25 +48,8 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
   
   const handleLinkClick = useCallback(async (path: string, title: string) => {
     try {
-      console.log('🚀 [SettingsPopup] Navigating to:', { path, title, isTabbedModeEnabled });
-      
-      if (isTabbedModeEnabled) {
-        console.log('🚀 [SettingsPopup] Using enhanced navigation for:', { path, title });
-        try {
-          await enhancedNavigate(path, {
-            title,
-            module: 'settings',
-            useTabbedMode: true,
-            showFeedback: false
-          });
-        } catch (tabError) {
-          console.warn('🚀 [SettingsPopup] Enhanced navigation failed, falling back to standard navigation:', tabError);
-          navigate(path);
-        }
-      } else {
-        console.log('🚀 [SettingsPopup] Using standard navigation for:', { path, title });
-        navigate(path);
-      }
+      console.log('🚀 [SettingsPopup] Navigating to:', { path, title });
+      openTab(path, { pinned: false });
       
       // Close the popup after navigation
       if (onClose && typeof onClose === 'function') {
@@ -97,7 +62,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
         onClose();
       }
     }
-  }, [onClose, isTabbedModeEnabled, enhancedNavigate, navigate]);
+  }, [onClose, openTab]);
 
   // Conditional return after all hooks are called
   if (!open) return null;

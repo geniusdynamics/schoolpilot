@@ -135,6 +135,7 @@ class ApplicationErrorBoundary extends Component<Props, State> {
         webAssemblySupported: 'WebAssembly' in window
       };
     } catch (e) {
+      void e;
       return { error: 'Failed to collect database context' };
     }
   }
@@ -146,6 +147,7 @@ class ApplicationErrorBoundary extends Component<Props, State> {
         localStorageAvailable: typeof Storage !== 'undefined'
       };
     } catch (e) {
+      void e;
       return { error: 'Failed to collect storage info' };
     }
   }

@@ -8,7 +8,7 @@
 import React from 'react';
 import { Download } from 'lucide-react';
 import { usePWA } from '@/hooks/usePWA';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 
 export interface PWAInstallButtonProps {
   variant?: 'default' | 'outline' | 'ghost';

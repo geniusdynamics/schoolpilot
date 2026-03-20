@@ -1,9 +1,6 @@
 // Chunk processing and rollback management for data migration
 
-import { RxDatabase } from 'rxdb';
-import { AcademicsMigrationUtils } from '../../src/modules/academics/data/migration-utils';
 import { createLogger } from './migration-logger';
-import { DatabaseManager, databaseManager } from './database_manager';
 
 interface MigrationItem {
   id: string;

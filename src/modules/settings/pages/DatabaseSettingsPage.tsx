@@ -27,10 +27,7 @@ import {
 } from '../../../config/unifiedConfig';
 import { 
   databaseConfigValidator, 
-  databaseConfigMigrator,
-  ValidationResult,
-  RepairSuggestion,
-  MigrationResult
+  ValidationResult
 } from '../../../config/databaseConfigSchema';
 
 const DatabaseSettingsPage: React.FC = () => {
@@ -75,7 +72,6 @@ const DatabaseSettingsPage: React.FC = () => {
   const [dbConfig, setDbConfig] = useState(getDatabaseConfig());
   const [configValidation, setConfigValidation] = useState(validateDatabaseConfig());
   const [enhancedValidation, setEnhancedValidation] = useState<ValidationResult | null>(null);
-  const [migrationResult, setMigrationResult] = useState<MigrationResult | null>(null);
   const [showRepairSuggestions, setShowRepairSuggestions] = useState(false);
   const { t } = useTranslation();
 
@@ -154,23 +150,6 @@ const DatabaseSettingsPage: React.FC = () => {
       setActionMessage({ type: 'success', text: 'Configuration reset to defaults' });
     } catch (error) {
       setActionMessage({ type: 'error', text: `Reset failed: ${error}` });
-    }
-  };
-
-  const handleMigrateConfig = () => {
-    try {
-      const result = databaseConfigMigrator.migrate(dbConfig);
-      setMigrationResult(result);
-      
-      if (result.success && result.migratedConfig) {
-        setDbConfig(result.migratedConfig);
-        setConfigValidation(validateDatabaseConfig());
-        setActionMessage({ type: 'success', text: `Configuration migrated from ${result.fromVersion} to ${result.toVersion}` });
-      } else {
-        setActionMessage({ type: 'error', text: `Migration failed: ${result.errors.join(', ')}` });
-      }
-    } catch (error) {
-      setActionMessage({ type: 'error', text: `Migration failed: ${error}` });
     }
   };
 
@@ -841,47 +820,6 @@ const DatabaseSettingsPage: React.FC = () => {
         </Card>
       )}
 
-      {/* Migration Results */}
-      {migrationResult && (
-        <Card title="Configuration Migration Results">
-          <div className="p-6">
-            <div className={`p-3 rounded-md mb-4 ${
-              migrationResult.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-            }`}>
-              <div className="font-medium">
-                Migration from {migrationResult.fromVersion} to {migrationResult.toVersion}: {migrationResult.success ? 'Success' : 'Failed'}
-              </div>
-            </div>
-            
-            {migrationResult.errors.length > 0 && (
-              <div className="mb-4">
-                <h5 className="font-medium text-red-700 mb-2">Errors</h5>
-                <div className="space-y-1">
-                  {migrationResult.errors.map((error, index) => (
-                    <div key={index} className="p-2 bg-red-50 text-red-700 rounded text-sm">
-                      {error}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {migrationResult.warnings.length > 0 && (
-              <div>
-                <h5 className="font-medium text-yellow-700 mb-2">Warnings</h5>
-                <div className="space-y-1">
-                  {migrationResult.warnings.map((warning, index) => (
-                    <div key={index} className="p-2 bg-yellow-50 text-yellow-700 rounded text-sm">
-                      {warning}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
       {/* Provider Capabilities */}
       <Card title="Provider Capabilities">
         <div className="p-6">
@@ -1132,7 +1070,7 @@ const DatabaseSettingsPage: React.FC = () => {
               </Button>
               
               <Button
-                onClick={handleMigrateConfig}
+                onClick={handleMigrate}
                 variant="outline"
                 leftIcon={<ArchiveIcon className="w-4 h-4" />}
               >

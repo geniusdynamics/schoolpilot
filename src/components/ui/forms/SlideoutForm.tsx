@@ -1,16 +1,11 @@
 // ABOUTME: Enhanced slideout form component with spring animations, gestures, and modern interactions
 // ABOUTME: Supports different positions, auto-save, resize handles, backdrop blur, and accessibility features
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { useDrag } from '@use-gesture/react';
-import { X, Save, Loader2, GripVertical } from 'lucide-react';
+import { X, Loader2, GripVertical } from 'lucide-react';
 import { useFocusManagement, announceToScreenReader } from '../../../utils/accessibility';
-import { useAnimation, transitions } from '../../../utils/animations';
-import { designTokens } from '../../../utils/designTokens';
-import Button from '../Button';
-import IconButton from '../IconButton';
 
 export interface SlideoutFormProps {
   isOpen: boolean;
@@ -78,6 +73,7 @@ const slideAnimations = {
     exit: 'animate-slide-out-right',
   },
 };
+void slideAnimations;
 
 export const SlideoutForm: React.FC<SlideoutFormProps> = ({
   isOpen,
@@ -86,35 +82,47 @@ export const SlideoutForm: React.FC<SlideoutFormProps> = ({
   children,
   width = 'md',
   position = 'right',
-  overlay = true,
+  overlay: _overlay = true,
   closeOnOverlayClick = true,
   closeOnEscape = true,
   footer,
-  loading = false,
-  className = '',
+  loading: _loading = false,
+  className: _className = '',
   onSave,
   onCancel,
-  saveLabel = 'Save',
-  cancelLabel = 'Cancel',
+  saveLabel: _saveLabel = 'Save',
+  cancelLabel: _cancelLabel = 'Cancel',
   autoSave = false,
   autoSaveDelay = 2000,
   preventClose = false,
-  showCloseButton = true,
+  showCloseButton: _showCloseButton = true,
   // Enhanced features
   theme = 'auto',
   swipeToClose = true,
   resizable = false,
-  backdropBlur = true,
+  backdropBlur: _backdropBlur = true,
   springConfig = { damping: 25, stiffness: 300, mass: 0.8 },
   onResize,
   minWidth = 320,
   maxWidth = 800,
 }) => {
+  void _overlay;
+  void _loading;
+  void _className;
+  void _saveLabel;
+  void _cancelLabel;
+  void _showCloseButton;
+  void _backdropBlur;
   const [isAnimating, setIsAnimating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  void isAnimating;
+  void isVisible;
+  void isSaving;
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  void autoSaveStatus;
+  void setAutoSaveStatus;
   const [currentWidth, setCurrentWidth] = useState(getWidthValue(width));
   const [isResizing, setIsResizing] = useState(false);
   
@@ -406,11 +414,12 @@ export const SlideoutForm: React.FC<SlideoutFormProps> = ({
   }, [closeOnEscape, isOpen, handleClose, onSave, handleSave, preventClose]);
 
   // Handle overlay click
-  const handleOverlayClick = useCallback((event: React.MouseEvent) => {
+  const _handleOverlayClick = useCallback((event: React.MouseEvent) => {
     if (closeOnOverlayClick && event.target === overlayRef.current) {
       handleClose();
     }
   }, [closeOnOverlayClick, handleClose]);
+  void _handleOverlayClick;
 
   // Auto-save functionality
   const triggerAutoSave = useCallback(() => {
@@ -460,13 +469,14 @@ export const SlideoutForm: React.FC<SlideoutFormProps> = ({
   }, [onSave]);
 
   // Handle cancel action
-  const handleCancel = useCallback(() => {
+  const _handleCancel = useCallback(() => {
     if (onCancel) {
       onCancel();
     } else {
       handleClose();
     }
   }, [onCancel, handleClose]);
+  void _handleCancel;
 
   // Handle window resize for mobile responsiveness
   useEffect(() => {

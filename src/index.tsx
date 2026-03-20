@@ -152,7 +152,8 @@ const renderApp = () => {
             console.log(`   - Stored username: ${parsed.username}`);
             console.log(`   - Stored isDemo: ${parsed.isDemo}`);
           } catch (e) {
-            console.log(`   - Error parsing session data: ${e.message}`);
+            const err = e as Error;
+            console.log(`   - Error parsing session data: ${err.message}`);
           }
         }
         

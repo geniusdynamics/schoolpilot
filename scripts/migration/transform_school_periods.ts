@@ -4,8 +4,8 @@ import { AcademicsMigrationUtils } from './migration-utils';
 
 // Placeholder for data extraction functions
 async function getLegacyExaminations() { return []; }
-async function getLegacySubjects() { return []; }
-async function getLegacyExamResults() { return []; }
+async function _getLegacySubjects() { return []; }
+async function _getLegacyExamResults() { return []; }
 
 async function main() {
   const legacyExaminations = await getLegacyExaminations();
@@ -13,7 +13,7 @@ async function main() {
 
   for (const legacyExam of legacyExaminations) {
     const schoolPeriodId = schoolPeriodLookup.get(`${legacyExam.Term}_${legacyExam.Year}`);
-    const newExamSession = AcademicsMigrationUtils.transformExaminationToExamSession(legacyExam, schoolPeriodId!);
+    const _newExamSession = AcademicsMigrationUtils.transformExaminationToExamSession(legacyExam, schoolPeriodId!);
     // Load newExamSession into RxDB
   }
 }

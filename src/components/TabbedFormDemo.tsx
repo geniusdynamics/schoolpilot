@@ -59,7 +59,7 @@ const TabbedFormDemo: React.FC = () => {
     phone: {
       rules: [
         validators.required('Phone number is required'),
-        validators.pattern(/^\+?[\d\s\-\(\)]+$/, 'Please enter a valid phone number'),
+        validators.pattern(/^\+?[\d\s()-]+$/, 'Please enter a valid phone number'),
       ],
     },
     grade: {

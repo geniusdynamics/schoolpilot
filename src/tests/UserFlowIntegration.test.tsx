@@ -106,7 +106,7 @@ describe('User Flow Integration Tests', () => {
   test('Navigation between multiple modules', () => {
     const mockSetActiveTab = jest.fn();
     const mockAddTab = jest.fn();
-    let tabs: any[] = [];
+    const tabs: any[] = [];
 
     const TestComponent = () => {
       const handleModuleClick = (module: string) => {

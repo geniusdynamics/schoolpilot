@@ -166,6 +166,14 @@ interface SecondarySidebarProps {
   onItemClick?: (item: { path: string; name?: string }) => void;
 }
 
+const normalizeModuleId = (value?: string): string => {
+  if (!value) return '';
+  if (value.startsWith('/')) {
+    return value.replace(/^\/+/, '').split('/')[0] || '';
+  }
+  return value.replace('navigation:', '').replace('.title', '').split('.')[0] || '';
+};
+
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ 
   selectedModuleKey, 
   isOpen, 
@@ -271,12 +279,13 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     } catch (error) {
       // Handle specific error types
       console.error('Navigation failed:', error);
-      
-      if (error.message.includes('Maximum tab limit')) {
+      const err = error as Error;
+
+      if (err.message.includes('Maximum tab limit')) {
         showError(errorMessages.tabLimit);
-      } else if (error.message.includes('permission')) {
+      } else if (err.message.includes('permission')) {
         showError(errorMessages.accessDenied);
-      } else if (error.message.includes('not initialized')) {
+      } else if (err.message.includes('not initialized')) {
         showError(errorMessages.notInitialized);
       } else {
         showError(errorMessages.generalError);
@@ -296,9 +305,24 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   }, [hasModuleAccess, navigateToTab, t, user?.id, isMobile, onClose, showWarning, showInfo, showError, errorMessages]); // Stable dependencies
 
   // Memoize selected module and related data to prevent unnecessary recalculations
+  const selectedModuleId = useMemo(() => normalizeModuleId(selectedModuleKey), [selectedModuleKey]);
+
   const selectedModule = useMemo(() => {
-    return navigationItems?.find(item => item.name === selectedModuleKey && item.isGroup);
-  }, [navigationItems, selectedModuleKey]);
+    if (!Array.isArray(navigationItems) || !selectedModuleId) {
+      return undefined;
+    }
+
+    const directMatch = navigationItems.find(item =>
+      item.isGroup && normalizeModuleId(item.modulePath || item.path || item.name) === selectedModuleId
+    );
+    if (directMatch) {
+      return directMatch;
+    }
+
+    return navigationItems.find(item =>
+      item.isGroup && (item.path || '').startsWith(`/${selectedModuleId}`)
+    );
+  }, [navigationItems, selectedModuleId]);
   
   // Use propItems if provided (new tab system), otherwise use derived subMenus
   const subMenus = useMemo(() => {
@@ -309,8 +333,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   }, [selectedModule, propItems]);
   
   const moduleKey = useMemo(() => {
-    return selectedModuleKey.split(':')[1]?.split('.')[0] || '';
-  }, [selectedModuleKey]);
+    return selectedModuleId || 'settings';
+  }, [selectedModuleId]);
   
   const moduleStyle = useMemo(() => {
     return getModuleStyle(moduleKey);
@@ -427,7 +451,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     });
   }, [search, t]);
 
-  if (!selectedModule || !isOpen) {
+  if (!isOpen) {
     return null;
   }
 
@@ -536,6 +560,15 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           <XIcon className={`${isMobile ? 'w-5 h-5' : 'w-3 h-3'}`} />
         </button>
         
+        {subMenus.length === 0 && (
+          <div className="flex-1 flex items-center justify-center px-3">
+            <div className="text-center text-slate-500 text-sm">
+              <div className="font-medium">No submenu items available</div>
+              <div className="mt-1 text-xs text-slate-400">{selectedModuleId || 'unknown module'}</div>
+            </div>
+          </div>
+        )}
+
         {/* Enhanced search bar with better mobile hierarchy */}
         {!isMinimized && (
           <div className="mb-3 sm:mb-4 flex-shrink-0 relative z-10">
@@ -565,7 +598,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         )}
         
         {/* Enhanced navigation content with mobile-optimized scrolling */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 sm:pr-2 relative z-10 min-h-0">
+        <div className={`flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar pr-1 sm:pr-2 relative z-10 min-h-0 ${subMenus.length === 0 ? 'hidden' : ''}`}>
           <ul className={`${isMobile ? 'space-y-2' : 'space-y-1'} ${isMinimized ? 'items-center' : ''} pb-4 sm:pb-6`}>
             {filterItems(subMenus).map(item => (
               <li key={item.name}>

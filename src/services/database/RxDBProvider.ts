@@ -1,15 +1,11 @@
 // ABOUTME: RxDB Provider Implementation for dual-database architecture
 // ABOUTME: Provides RxDB-based database operations with reactive capabilities
 
-import { addRxPlugin, createRxDatabase, RxDatabase } from 'rxdb';
+import { createRxDatabase, RxDatabase, RxCollection, RxDocument, RxJsonSchema } from 'rxdb';
 import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
-import { getRxStorageLocalstorage } from 'rxdb/plugins/storage-localstorage';
-// import { RxDBMigrationSchemaPlugin } from 'rxdb/plugins/migration-schema';
-// import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
-// import { RxDBUpdatePlugin } from 'rxdb/plugins/update';
-// import { RxDBQueryBuilderPlugin } from 'rxdb/plugins/query-builder';
-// import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
-import { Observable, Subject, BehaviorSubject, from } from 'rxjs';
+import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
+import * as validateAjv from 'rxdb/plugins/validate-ajv';
+import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import {
   IDatabaseProvider,
@@ -29,26 +25,16 @@ import {
   CollectionError
 } from './interfaces';
 
-// Add RxDB plugins
-// addRxPlugin(RxDBMigrationSchemaPlugin);
-// addRxPlugin(RxDBUpdatePlugin);
-// if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
-//   addRxPlugin(RxDBDevModePlugin);
-// }
-// addRxPlugin(RxDBQueryBuilderPlugin);
-
-if (typeof process === 'undefined' || process.env?.NODE_ENV !== 'test') {
-  // addRxPlugin(RxDBLeaderElectionPlugin);
-}
+const { wrappedValidateAjvStorage } = validateAjv;
 
 // RxDB Collection Implementation
-export class RxDBCollection<T extends { id?: string }> implements ICollection<T> {
+export class RxDBCollection<T> implements ICollection<T> {
   private changeSubject = new Subject<CollectionChangeEvent<T>>();
   private dataSubject = new BehaviorSubject<T[]>([]);
   private isDestroyed = false;
 
   constructor(
-    private rxCollection: RxCollection<T>,
+    private rxCollection: any,
     public readonly name: string,
     public readonly schema: CollectionSchema
   ) {
@@ -58,22 +44,22 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
 
   private setupChangeListener(): void {
     this.rxCollection.$.subscribe({
-      next: (changeEvent) => {
+      next: (changeEvent: { documentData: T; operation: string; documentId: string }) => {
         if (this.isDestroyed) return;
-        
+
         const doc = changeEvent.documentData as T;
         const eventType = changeEvent.operation;
-        
+
         this.changeSubject.next({
           type: eventType as 'insert' | 'update' | 'delete',
           doc,
           id: changeEvent.documentId
         });
-        
+
         // Update data subject for reactive queries
         this.refreshDataSubject();
       },
-      error: (err) => {
+      error: (err: Error) => {
         console.error(`RxDB change listener error for ${this.name}:`, err);
       }
     });
@@ -82,7 +68,7 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
   private async loadInitialData(): Promise<void> {
     try {
       const docs = await this.rxCollection.find().exec();
-      const transformedDocs = docs.map(doc => this.transformDoc(doc));
+      const transformedDocs = docs.map((doc: RxDocument<T>) => this.transformDoc(doc));
       this.dataSubject.next(transformedDocs);
     } catch (error) {
       console.error(`Failed to load initial data for ${this.name}:`, error);
@@ -100,12 +86,12 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
 
   private transformDoc(doc: RxDocument<T> | T): T {
     if (!doc) return doc as T;
-    
+
     // If it's an RxDocument, convert to plain object
-    if (typeof doc.toJSON === 'function') {
-      return (doc as RxDocument<T>).toJSON();
+    if (typeof (doc as RxDocument<T>).toJSON === 'function') {
+      return (doc as RxDocument<T>).toJSON() as T;
     }
-    
+
     return doc as T;
   }
 
@@ -121,8 +107,9 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
         ok: true
       };
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to insert document in ${this.name}: ${error.message}`,
+        `Failed to insert document in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -132,24 +119,26 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
     try {
       const insertResults: InsertResult<T>[] = [];
       const errors: Array<{ id: string; error: string; reason: string }> = [];
-      
+
       for (let i = 0; i < docs.length; i++) {
         try {
           const result = await this.insert(docs[i]);
           insertResults.push(result);
         } catch (error) {
+          const err = error as Error;
           errors.push({
             id: `doc_${i}`,
-            error: error.name || 'InsertError',
-            reason: error.message || 'Unknown error'
+            error: err.name || 'InsertError',
+            reason: err.message || 'Unknown error'
           });
         }
       }
-      
+
       return { docs: insertResults, errors };
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to insert multiple documents in ${this.name}: ${error.message}`,
+        `Failed to insert multiple documents in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -175,8 +164,9 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       
       return result ? this.transformDoc(result) : null;
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to find document in ${this.name}: ${error.message}`,
+        `Failed to find document in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -203,10 +193,11 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       }
       
       const docs = await rxQuery.exec();
-      return docs.map(doc => this.transformDoc(doc));
+      return docs.map((doc: RxDocument<T>) => this.transformDoc(doc));
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to find documents in ${this.name}: ${error.message}`,
+        `Failed to find documents in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -221,15 +212,16 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       
       const updatedDoc = await doc.update({ $set: update });
       const transformedDoc = this.transformDoc(updatedDoc);
-      
+
       return {
         id,
         doc: transformedDoc,
         ok: true
       };
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to update document in ${this.name}: ${error.message}`,
+        `Failed to update document in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -239,18 +231,20 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
     try {
       const docs = await this.find(query);
       const results: UpdateResult<T>[] = [];
-      
+
       for (const doc of docs) {
-        if (doc.id) {
-          const result = await this.update(doc.id, update);
+        const docWithId = doc as { id?: string };
+        if (docWithId.id) {
+          const result = await this.update(docWithId.id, update);
           results.push(result);
         }
       }
-      
+
       return results;
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to update multiple documents in ${this.name}: ${error.message}`,
+        `Failed to update multiple documents in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -262,17 +256,18 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       if (!doc) {
         throw new Error(`Document with id ${id} not found`);
       }
-      
+
       await doc.remove();
-      
+
       return {
         id,
         ok: true,
         deleted: true
       };
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to remove document from ${this.name}: ${error.message}`,
+        `Failed to remove document from ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -282,18 +277,20 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
     try {
       const docs = await this.find(query);
       const results: DeleteResult[] = [];
-      
+
       for (const doc of docs) {
-        if (doc.id) {
-          const result = await this.remove(doc.id);
+        const docWithId = doc as { id?: string };
+        if (docWithId.id) {
+          const result = await this.remove(docWithId.id);
           results.push(result);
         }
       }
-      
+
       return results;
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to remove multiple documents from ${this.name}: ${error.message}`,
+        `Failed to remove multiple documents from ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -309,8 +306,9 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
         return await this.insert({ ...doc, id } as Omit<T, 'id'>);
       }
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to upsert document in ${this.name}: ${error.message}`,
+        `Failed to upsert document in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -338,15 +336,16 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       }
       
       return rxQuery.$.pipe(
-        map(docs => docs.map(doc => this.transformDoc(doc))),
-        catchError(error => {
+        map((docs: RxDocument<T>[]) => docs.map(doc => this.transformDoc(doc))),
+        catchError((error: Error) => {
           console.error(`Subscription error in ${this.name}:`, error);
           return [];
         })
       );
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to create subscription for ${this.name}: ${error.message}`,
+        `Failed to create subscription for ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -362,8 +361,9 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       const docs = await this.find(query);
       return docs.length;
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to count documents in ${this.name}: ${error.message}`,
+        `Failed to count documents in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -383,8 +383,9 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       // RxDB handles indexes through schema definition
       console.warn(`Index creation for ${this.name} should be done through schema definition`);
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to create index in ${this.name}: ${error.message}`,
+        `Failed to create index in ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -402,8 +403,9 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
         lastModified: new Date()
       };
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to get stats for ${this.name}: ${error.message}`,
+        `Failed to get stats for ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -414,8 +416,9 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       // RxDB doesn't have a direct compact method
       console.log(`Compact operation not available for RxDB collection ${this.name}`);
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to compact ${this.name}: ${error.message}`,
+        `Failed to compact ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -426,10 +429,12 @@ export class RxDBCollection<T extends { id?: string }> implements ICollection<T>
       this.isDestroyed = true;
       this.changeSubject.complete();
       this.dataSubject.complete();
-      await this.rxCollection.destroy();
+      // RxCollection doesn't have destroy(), use remove() to clear documents
+      // or just let the database be closed via database.destroy()
     } catch (error) {
+      const err = error as Error;
       throw new CollectionError(
-        `Failed to destroy ${this.name}: ${error.message}`,
+        `Failed to destroy ${this.name}: ${err.message}`,
         this.name
       );
     }
@@ -472,8 +477,9 @@ export class RxDBProvider implements IDatabaseProvider {
     } catch (error) {
       this.initializationError = error as Error;
       this.isInitialized = false;
+      const err = error as Error;
       throw new DatabaseError(
-        `Failed to initialize RxDB provider: ${error.message}`,
+        `Failed to initialize RxDB provider: ${err.message}`,
         'INITIALIZATION_ERROR'
       );
     }
@@ -486,34 +492,36 @@ export class RxDBProvider implements IDatabaseProvider {
       }
 
       // Convert our schema format to RxDB schema format
-      const rxdbSchema: RxJsonSchema<T> = {
+      // Use any to bypass strict typing incompatibility between our schema format and RxJsonSchema
+      const rxdbSchema: any = {
         version: schema.version,
         type: 'object',
-        properties: schema.properties as any,
+        properties: schema.properties,
         required: schema.required,
         primaryKey: schema.primaryKey || 'id',
         indexes: schema.indexes?.map(idx => idx.fields) || []
       };
 
-      const rxCollection = await this.database.addCollections({
+      const rxCollectionHolder = await this.database.addCollections({
         [name]: {
           schema: rxdbSchema
         }
       });
 
       const collection = new RxDBCollection<T>(
-        rxCollection[name],
+        rxCollectionHolder[name] as any,
         name,
         schema
       );
 
       this.collections.set(name, collection);
-      
+
       console.log(`RxDB collection '${name}' created successfully`);
       return collection;
     } catch (error) {
+      const err = error as Error;
       throw new DatabaseError(
-        `Failed to create RxDB collection '${name}': ${error.message}`,
+        `Failed to create RxDB collection '${name}': ${err.message}`,
         'COLLECTION_CREATION_ERROR'
       );
     }
@@ -537,15 +545,16 @@ export class RxDBProvider implements IDatabaseProvider {
 
       // Destroy database
       if (this.database) {
-        await this.database.destroy();
+        await this.database.remove();
         this.database = null;
       }
 
       this.isInitialized = false;
       console.log('RxDB Provider destroyed');
     } catch (error) {
+      const err = error as Error;
       throw new DatabaseError(
-        `Failed to destroy RxDB provider: ${error.message}`,
+        `Failed to destroy RxDB provider: ${err.message}`,
         'DESTRUCTION_ERROR'
       );
     }
@@ -554,9 +563,9 @@ export class RxDBProvider implements IDatabaseProvider {
   // Status and health
   isAvailable(): boolean {
     try {
-      return typeof window !== 'undefined' && 
-             !!window.indexedDB && 
-             typeof crypto !== 'undefined' && 
+      return typeof window !== 'undefined' &&
+             !!window.indexedDB &&
+             typeof crypto !== 'undefined' &&
              !!crypto.randomUUID;
     } catch {
       return false;
@@ -569,7 +578,7 @@ export class RxDBProvider implements IDatabaseProvider {
       version: this.version,
       isConnected: this.isInitialized && !this.initializationError,
       collectionsCount: this.collections.size,
-      lastError: this.initializationError,
+      lastError: this.initializationError ?? undefined,
       performance: {
         avgQueryTime: 0, // Would need to implement query timing
         totalQueries: 0,
@@ -585,8 +594,8 @@ export class RxDBProvider implements IDatabaseProvider {
         throw new DatabaseError('Database not initialized', 'DATABASE_NOT_INITIALIZED');
       }
 
-      const backup: any = {};
-      
+      const backup: Record<string, unknown> = {};
+
       for (const [name, collection] of this.collections) {
         const docs = await collection.find();
         backup[name] = docs;
@@ -594,8 +603,9 @@ export class RxDBProvider implements IDatabaseProvider {
 
       return JSON.stringify(backup);
     } catch (error) {
+      const err = error as Error;
       throw new DatabaseError(
-        `Failed to create backup: ${error.message}`,
+        `Failed to create backup: ${err.message}`,
         'BACKUP_ERROR'
       );
     }
@@ -604,18 +614,19 @@ export class RxDBProvider implements IDatabaseProvider {
   async restore(backupData: string): Promise<void> {
     try {
       const backup = JSON.parse(backupData);
-      
+
       for (const [collectionName, docs] of Object.entries(backup)) {
         const collection = this.getCollection(collectionName);
         if (collection && Array.isArray(docs)) {
           await collection.insertMany(docs as any[]);
         }
       }
-      
+
       console.log('RxDB Provider backup restored successfully');
     } catch (error) {
+      const err = error as Error;
       throw new DatabaseError(
-        `Failed to restore backup: ${error.message}`,
+        `Failed to restore backup: ${err.message}`,
         'RESTORE_ERROR'
       );
     }

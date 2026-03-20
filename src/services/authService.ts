@@ -82,20 +82,26 @@ class AuthService {
         return;
       }
 
-      // Try to initialize the dynamic database service
+      // Try to initialize the dynamic database service with timeout
       try {
-        await databaseService.initialize({
+        const dbInitPromise = databaseService.initialize({
           name: 'schoolpilot_db',
           multiInstance: true,
           ignoreDuplicate: true
         });
-        
+
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Database init timeout')), 10000);
+        });
+
+        await Promise.race([dbInitPromise, timeoutPromise]);
+
         this.rxDBAvailable = databaseService.isServiceInitialized();
         this.detectedProvider = databaseService.getDetectedProviderType() || 'unknown';
-        
+
         console.log(`Database service initialized: Provider = ${this.detectedProvider}, Available = ${this.rxDBAvailable}`);
       } catch (error) {
-        console.warn('Database service initialization failed, forcing demo mode:', error);
+        console.warn('Database service initialization failed or timed out, forcing demo mode:', error);
         this.rxDBAvailable = false;
         this.detectedProvider = 'unknown';
       }

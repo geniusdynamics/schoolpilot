@@ -224,7 +224,7 @@ const DataTable: React.FC<DataTableProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 onView(row);
               }}
@@ -237,7 +237,7 @@ const DataTable: React.FC<DataTableProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 onEdit(row);
               }}
@@ -250,7 +250,7 @@ const DataTable: React.FC<DataTableProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 onDelete(row);
               }}

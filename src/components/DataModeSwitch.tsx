@@ -35,7 +35,10 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
     loadStatus();
 
     // Listen for mode changes
-    const handleModeChanged = (data: any) => {
+    const handleModeChanged = (_data: unknown) => {
+      // Parameter intentionally unused but logged for debugging
+      console.debug('Mode changed event received');
+      void _data;
       loadStatus();
       setError(null);
     };

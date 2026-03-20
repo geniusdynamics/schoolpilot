@@ -17,7 +17,7 @@ async function main() {
     const newExamResult = AcademicsMigrationUtils.transformExamResultToStudentExamResult(legacyResult, studentId, examSessionId);
     // Load newExamResult into RxDB
 
-    const paperMarks = AcademicsMigrationUtils.transformSubjectMarksToStudentPaperMarks(legacyResult, newExamResult.id, subjectPapers);
+    const _paperMarks = AcademicsMigrationUtils.transformSubjectMarksToStudentPaperMarks(legacyResult, newExamResult.id, subjectPapers);
     // Load paperMarks into RxDB
   }
 }

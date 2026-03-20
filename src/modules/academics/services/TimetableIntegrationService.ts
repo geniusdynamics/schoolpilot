@@ -80,11 +80,12 @@ export class TimetableIntegrationService {
       };
     } catch (error) {
       console.error('Error checking timetable conflicts:', error);
+      const err = error as Error;
       return {
         canSchedule: false,
         conflicts: ['Error checking timetable conflicts'],
         suggestedSlots: [],
-        warnings: [error.message]
+        warnings: [err.message]
       };
     }
   }
@@ -218,7 +219,8 @@ export class TimetableIntegrationService {
       return { success: true, slotId };
     } catch (error) {
       console.error('Error reserving timetable slot:', error);
-      return { success: false, error: error.message };
+      const err = error as Error;
+      return { success: false, error: err.message };
     }
   }
 

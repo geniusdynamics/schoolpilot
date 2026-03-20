@@ -98,7 +98,7 @@ export class ExamScheduleManager {
   async getAllExamSchedules(query?: ExamScheduleQuery): Promise<ExamSchedule[]> {
     try {
       const db = await databaseService.getDatabase();
-      let selector: any = {};
+      const selector: any = {};
 
       if (query) {
         if (query.exam_id) selector.exam_id = query.exam_id;
@@ -194,7 +194,8 @@ export class ExamScheduleManager {
           const schedule = await this.createExamSchedule(scheduleData);
           results.push(schedule);
         } catch (error) {
-          errors.push(`Failed to create schedule: ${error.message}`);
+          const err = error as Error;
+          errors.push(`Failed to create schedule: ${err.message}`);
         }
       }
 

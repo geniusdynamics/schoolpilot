@@ -34,14 +34,21 @@ export class URLTabSyncEngine {
    */
   parseURL(url: string = window.location.href): ParsedTabState {
     try {
-      const urlObj = new URL(url);
+      const urlObj = new URL(url, window.location.origin);
       const params = urlObj.searchParams;
 
       // Try to get tabs from URL first
       const tabsParam = params.get('tabs');
       if (tabsParam) {
         try {
-          const tabs = JSON.parse(decodeURIComponent(tabsParam));
+          let tabs: unknown = null;
+
+          try {
+            tabs = JSON.parse(tabsParam);
+          } catch {
+            tabs = JSON.parse(decodeURIComponent(tabsParam));
+          }
+
           if (Array.isArray(tabs) && tabs.length > 0) {
             const validTabs = this.validateTabs(tabs);
             const activeTabId = params.get('active') || validTabs[0]?.id;
@@ -89,15 +96,24 @@ export class URLTabSyncEngine {
         icon: t.icon
       }));
 
-      const tabsParam = encodeURIComponent(JSON.stringify(minimalTabs));
+      const tabsParam = JSON.stringify(minimalTabs);
       url.searchParams.set('tabs', tabsParam);
       url.searchParams.set('active', state.activeTabId);
 
+      // Check URL length to avoid exceeding browser limits (typically 2048 chars)
+      // If it's too long, we'll just omit the tabs from the URL and rely on sessionStorage
+      const urlString = url.toString();
+      const finalUrl = urlString.length > 2000 ? window.location.pathname + window.location.search : urlString;
+
       // Update browser history
-      if (options?.push) {
-        window.history.pushState({ tabs: minimalTabs, active: state.activeTabId }, '', url.toString());
-      } else {
-        window.history.replaceState({ tabs: minimalTabs, active: state.activeTabId }, '', url.toString());
+      try {
+        if (options?.push) {
+          window.history.pushState({ tabs: minimalTabs, active: state.activeTabId }, '', finalUrl);
+        } else {
+          window.history.replaceState({ tabs: minimalTabs, active: state.activeTabId }, '', finalUrl);
+        }
+      } catch (historyErr) {
+        console.warn('[URLTabSyncEngine] Failed to update browser history:', historyErr);
       }
 
       // Store in session storage for redundancy
@@ -106,6 +122,8 @@ export class URLTabSyncEngine {
       // Notify subscribers
       this.lastState = state;
       this.notifySubscribers(state);
+    } catch (err) {
+      console.error('Error in updateURL:', err);
     } finally {
       this.isProcessing = false;
     }
@@ -268,9 +286,11 @@ export class URLTabSyncEngine {
 
   private saveToStorage(state: ParsedTabState): void {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const data = JSON.stringify(state);
+      sessionStorage.setItem(STORAGE_KEY, data);
+      console.log('[URLTabSyncEngine] Saved state to storage. Tabs count:', state.tabs.length, 'Data length:', data.length);
     } catch (error) {
-      console.warn('Failed to save tab state to storage:', error);
+      console.error('[URLTabSyncEngine] Failed to save tab state to storage:', error);
     }
   }
 
@@ -280,14 +300,16 @@ export class URLTabSyncEngine {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.tabs && parsed.activeTabId) {
-          return {
+          const validated = {
             tabs: this.validateTabs(parsed.tabs),
             activeTabId: parsed.activeTabId
           };
+          console.log('[URLTabSyncEngine] Loaded state from storage. Tabs count:', validated.tabs.length);
+          return validated;
         }
       }
     } catch (error) {
-      console.warn('Failed to load tab state from storage:', error);
+      console.warn('[URLTabSyncEngine] Failed to load tab state from storage:', error);
     }
     return null;
   }

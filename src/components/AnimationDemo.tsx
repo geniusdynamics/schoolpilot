@@ -1,18 +1,14 @@
 // ABOUTME: Animation system demonstration component
 // ABOUTME: Showcases all animation utilities, page transitions, and performance features
 
-import React, { useState, useRef } from 'react';
-import { 
-  usePageTransition, 
-  usePerformantAnimation, 
+import React, { useState } from 'react';
+import {
+  usePageTransition,
+  usePerformantAnimation,
   useAnimationPerformance,
   useProgressiveAnimation,
   useStaggeredAnimation,
-  useAnimationOrchestrator,
-  animationPresets,
-  createAnimation,
-  useAnimation,
-  getAnimationStyles
+  useAnimationOrchestrator
 } from '../utils/animations';
 import { useReducedMotion } from '../utils/accessibility';
 import Button from './ui/Button';
@@ -20,7 +16,6 @@ import Card from './ui/Card';
 
 const AnimationDemo: React.FC = () => {
   const [currentDemo, setCurrentDemo] = useState<string>('basic');
-  const [isVisible, setIsVisible] = useState(true);
   const prefersReducedMotion = useReducedMotion();
   
   // Page transition demo
@@ -59,10 +54,6 @@ const AnimationDemo: React.FC = () => {
         element.style.transform = `translateX(${progress * 200}px)`;
       }
     }, 1000);
-  };
-  
-  const handleToggleVisibility = () => {
-    setIsVisible(!isVisible);
   };
   
   const renderBasicAnimations = () => (

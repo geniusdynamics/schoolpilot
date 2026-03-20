@@ -92,13 +92,14 @@ const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(({
   const enhancedChildren = validChildren.map((child, index) => {
     if (!isValidElement(child)) return child;
 
+    const childElement = child as React.ReactElement;
     const isFirst = index === 0;
     const isLast = index === validChildren.length - 1;
-    const isSelected = value !== undefined && child.props.value === value;
+    const isSelected = value !== undefined && childElement.props.value === value;
 
     // Props to pass to each child button
     const childProps: any = {
-      key: child.key || index,
+      key: childElement.key || index,
       size,
     };
 
@@ -109,7 +110,7 @@ const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(({
       // Segmented control styling
       childProps.variant = isSelected ? 'primary' : 'ghost';
       childProps.className = [
-        child.props.className || '',
+        childElement.props.className || '',
         'flex-1',
         fullWidth ? 'w-full' : '',
         'rounded-md',
@@ -122,17 +123,17 @@ const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(({
       ].filter(Boolean).join(' ');
       
       // Handle selection
-      if (onChange && child.props.value !== undefined) {
-        const originalOnClick = child.props.onClick;
+      if (onChange && childElement.props.value !== undefined) {
+        const originalOnClick = childElement.props.onClick;
         childProps.onClick = (event: React.MouseEvent) => {
-          onChange(child.props.value);
+          onChange(childElement.props.value);
           originalOnClick?.(event);
         };
       }
     } else if (variant === 'toolbar') {
       // Toolbar styling with connected borders
       childProps.className = [
-        child.props.className || '',
+        childElement.props.className || '',
         'border-0',
         'rounded-none',
         'shadow-none',
@@ -168,8 +169,8 @@ const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(({
     loop: true,
     onSelect: (index) => {
       const selectedChild = validChildren[index];
-      if (isValidElement(selectedChild) && onChange && selectedChild.props.value !== undefined) {
-        onChange(selectedChild.props.value);
+      if (isValidElement(selectedChild) && onChange && (selectedChild as React.ReactElement).props.value !== undefined) {
+        onChange((selectedChild as React.ReactElement).props.value);
       }
     },
   });

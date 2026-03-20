@@ -42,6 +42,9 @@ interface UseTabsReturn {
   
   /** Open a new tab or activate existing */
   openTab: (url: string, options?: TabOptions) => string;
+
+  /** Replace current tabs with a single tab session */
+  startSession: (url: string, options?: TabOptions) => string;
   
   /** Close a tab */
   closeTab: (tabId: string) => void;
@@ -197,10 +200,19 @@ export function useTabs(): UseTabsReturn {
     
     return newTab.id;
   }, [state, deriver, activateTab, navigate]);
+
+  const startSession = useCallback((url: string, options?: TabOptions): string => {
+    const newTab = deriver.deriveTab(url, options);
+    const newState = { tabs: [newTab], activeTabId: newTab.id };
+    engine.updateURL(newState, { push: true });
+    navigate(url);
+    return newTab.id;
+  }, [deriver, navigate]);
   
   const closeTab = useCallback((tabId: string) => {
     const tab = state.tabs.find(t => t.id === tabId);
-    if (!tab || tab.pinned) return; // Can't close pinned tabs
+    if (!tab) return;
+    if (tab.pinned) return; // Can't close pinned tabs
     
     const newTabs = state.tabs.filter(t => t.id !== tabId);
     
@@ -222,6 +234,9 @@ export function useTabs(): UseTabsReturn {
       if (newActiveTab) {
         navigate(newActiveTab.url);
       }
+    } else if (state.activeTabId === tabId && !newActiveId) {
+      // If we closed the last tab, go to dashboard
+      navigate('/dashboard');
     }
   }, [state, navigate]);
   
@@ -352,6 +367,7 @@ export function useTabs(): UseTabsReturn {
     activeTabId: state.activeTabId,
     activateTab,
     openTab,
+    startSession,
     closeTab,
     closeTabs,
     closeOtherTabs,

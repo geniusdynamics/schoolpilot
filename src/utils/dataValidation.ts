@@ -1,8 +1,6 @@
 // ABOUTME: Comprehensive data validation utilities for all CRUD operations
 // ABOUTME: Provides schema validation, referential integrity checks, and consistency validation
 
-import { EntityData } from '../hooks/useDataHookFactory';
-
 // Validation result interface
 export interface ValidationResult {
   isValid: boolean;
@@ -206,7 +204,7 @@ export class DataValidator {
     }
 
     // Enum validation
-    if (rule.enum && !rule.enum.includes(value)) {
+    if (rule.enum && (rule.enum as (string | number)[]).indexOf(value) === -1) {
       errors.push({
         field: fieldName,
         message: `${fieldName} must be one of: ${rule.enum.join(', ')}`,
@@ -245,7 +243,7 @@ export class DataValidator {
         isValid = typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         break;
       case 'phone':
-        isValid = typeof value === 'string' && /^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/[\s\-\(\)]/g, ''));
+        isValid = typeof value === 'string' && /^[+]?[1-9][\d]{0,15}$/.test(value.replace(/[\s()-]/g, ''));
         break;
       case 'array':
         isValid = Array.isArray(value);
@@ -415,8 +413,8 @@ export const CommonValidations = {
   },
 
   phone: (value: string): ValidationError | null => {
-    const cleaned = value.replace(/[\s\-\(\)]/g, '');
-    if (!/^[\+]?[1-9][\d]{0,15}$/.test(cleaned)) {
+    const cleaned = value.replace(/[\s()-]/g, '');
+    if (!/^[+]?[1-9][\d]{0,15}$/.test(cleaned)) {
       return {
         field: 'phone',
         message: 'Invalid phone number format',

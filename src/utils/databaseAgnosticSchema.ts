@@ -12,11 +12,12 @@ export type DatabaseFieldType =
   | 'date'
   | 'timestamp'
   | 'uuid'
-  | 'ref';
+  | 'ref'
+  | 'null';
 
 // Database property definition interface
 export interface DatabaseProperty {
-  type: DatabaseFieldType;
+  type: DatabaseFieldType | readonly DatabaseFieldType[];
   description?: string;
   default?: any;
   enum?: any[];
@@ -27,9 +28,12 @@ export interface DatabaseProperty {
   maxLength?: number;
   minimum?: number;
   maximum?: number;
+  multipleOf?: number;
   pattern?: string;
   format?: string;
   ref?: string; // For references to other collections
+  nullable?: boolean;
+  final?: boolean;
 }
 
 // Backward-compatible type alias
@@ -49,7 +53,7 @@ export interface DatabaseSchema {
   type: 'object';
   properties: Record<string, DatabaseProperty>;
   required?: string[];
-  indexes?: string[];
+  indexes?: Array<string | string[]>;
   encrypted?: string[];
 }
 
@@ -117,9 +121,11 @@ export class DatabaseSchemaConverter {
         maxLength: prop.maxLength,
         minimum: prop.minimum,
         maximum: prop.maximum,
+        multipleOf: prop.multipleOf,
         pattern: prop.pattern,
         format: prop.format,
-        ref: prop.ref
+        ref: prop.ref,
+        final: prop.final
       };
 
       if (prop.type === 'array' && prop.items) {
@@ -154,7 +160,16 @@ export class DatabaseSchemaConverter {
       const convertedProp: any = {
         type: this.mapTypeToPouchDB(prop.type),
         description: prop.description,
-        default: prop.default
+        default: prop.default,
+        enum: prop.enum,
+        minLength: prop.minLength,
+        maxLength: prop.maxLength,
+        minimum: prop.minimum,
+        maximum: prop.maximum,
+        multipleOf: prop.multipleOf,
+        pattern: prop.pattern,
+        format: prop.format,
+        ref: prop.ref
       };
 
       if (prop.type === 'array' && prop.items) {
@@ -191,9 +206,11 @@ export class DatabaseSchemaConverter {
       maxLength: prop.maxLength,
       minimum: prop.minimum,
       maximum: prop.maximum,
+      multipleOf: prop.multipleOf,
       pattern: prop.pattern,
       format: prop.format,
-      ref: prop.ref
+      ref: prop.ref,
+      final: prop.final
     };
 
     if (prop.type === 'array' && prop.items) {
@@ -222,7 +239,16 @@ export class DatabaseSchemaConverter {
     const converted: any = {
       type: this.mapTypeToPouchDB(prop.type),
       description: prop.description,
-      default: prop.default
+      default: prop.default,
+      enum: prop.enum,
+      minLength: prop.minLength,
+      maxLength: prop.maxLength,
+      minimum: prop.minimum,
+      maximum: prop.maximum,
+      multipleOf: prop.multipleOf,
+      pattern: prop.pattern,
+      format: prop.format,
+      ref: prop.ref
     };
 
     if (prop.type === 'array' && prop.items) {
@@ -246,8 +272,16 @@ export class DatabaseSchemaConverter {
   /**
    * Map database-agnostic types to RxDB types
    */
-  private static mapTypeToRxDB(type: DatabaseFieldType): string {
-    switch (type) {
+  private static normalizeFieldType(type: DatabaseFieldType | readonly DatabaseFieldType[]): DatabaseFieldType {
+    if (!Array.isArray(type)) {
+      return type as DatabaseFieldType;
+    }
+    return (type.find((t) => t !== ('null' as unknown as DatabaseFieldType)) ?? 'string') as DatabaseFieldType;
+  }
+
+  private static mapTypeToRxDB(type: DatabaseFieldType | readonly DatabaseFieldType[]): string {
+    const normalizedType = this.normalizeFieldType(type);
+    switch (normalizedType) {
       case 'timestamp':
       case 'date':
         return 'string';
@@ -258,15 +292,16 @@ export class DatabaseSchemaConverter {
       case 'integer':
         return 'number';
       default:
-        return type;
+        return normalizedType;
     }
   }
 
   /**
    * Map database-agnostic types to PouchDB types
    */
-  private static mapTypeToPouchDB(type: DatabaseFieldType): string {
-    switch (type) {
+  private static mapTypeToPouchDB(type: DatabaseFieldType | readonly DatabaseFieldType[]): string {
+    const normalizedType = this.normalizeFieldType(type);
+    switch (normalizedType) {
       case 'timestamp':
       case 'date':
         return 'string';
@@ -277,7 +312,7 @@ export class DatabaseSchemaConverter {
       case 'integer':
         return 'number';
       default:
-        return type;
+        return normalizedType;
     }
   }
 
@@ -321,122 +356,218 @@ export class DatabaseSchemaConverter {
 
 // Helper functions for creating common schema patterns
 export class SchemaHelpers {
+  private static resolveLegacyArgs(
+    optionsOrDescription: string | Record<string, any> | undefined,
+    legacyOptions?: Record<string, any>
+  ): Record<string, any> {
+    if (typeof optionsOrDescription === 'string') {
+      return { ...(legacyOptions || {}), description: optionsOrDescription };
+    }
+    return optionsOrDescription || {};
+  }
+
+  private static withNullable(
+    baseType: DatabaseFieldType,
+    nullable?: boolean
+  ): DatabaseFieldType | readonly DatabaseFieldType[] {
+    return nullable ? [baseType, 'null'] : baseType;
+  }
+
   /**
    * Create a string property
    */
-  static string(options: {
+  static string(optionsOrDescription: string | {
     description?: string;
     minLength?: number;
     maxLength?: number;
     pattern?: string;
-    enum?: string[];
+    enum?: any[];
     default?: string;
-  } = {}): DatabaseProperty {
+    nullable?: boolean;
+    format?: string;
+    [key: string]: any;
+  } = {}, legacyOptions?: {
+    description?: string;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    enum?: any[];
+    default?: string;
+    nullable?: boolean;
+    format?: string;
+    [key: string]: any;
+  }): DatabaseProperty {
+    const options = this.resolveLegacyArgs(optionsOrDescription, legacyOptions);
     return {
-      type: 'string',
+      type: this.withNullable('string', options.nullable),
       description: options.description,
       minLength: options.minLength,
       maxLength: options.maxLength,
       pattern: options.pattern,
       enum: options.enum,
-      default: options.default
+      default: options.default,
+      format: options.format,
+      nullable: options.nullable
     };
   }
 
   /**
    * Create a number property
    */
-  static number(options: {
+  static number(optionsOrDescription: string | {
     description?: string;
     minimum?: number;
     maximum?: number;
     default?: number;
-  } = {}): DatabaseProperty {
+    integer?: boolean;
+    nullable?: boolean;
+    multipleOf?: number;
+    [key: string]: any;
+  } = {}, legacyOptions?: {
+    description?: string;
+    minimum?: number;
+    maximum?: number;
+    default?: number;
+    integer?: boolean;
+    nullable?: boolean;
+    multipleOf?: number;
+    [key: string]: any;
+  }): DatabaseProperty {
+    const options = this.resolveLegacyArgs(optionsOrDescription, legacyOptions);
+    const type = options.integer ? 'integer' : 'number';
     return {
-      type: 'number',
+      type: this.withNullable(type, options.nullable),
       description: options.description,
       minimum: options.minimum,
       maximum: options.maximum,
-      default: options.default
+      default: options.default,
+      multipleOf: options.multipleOf,
+      nullable: options.nullable
     };
   }
 
   /**
    * Create an integer property
    */
-  static integer(options: {
+  static integer(optionsOrDescription: string | {
     description?: string;
     minimum?: number;
     maximum?: number;
     default?: number;
-  } = {}): DatabaseProperty {
+    nullable?: boolean;
+    [key: string]: any;
+  } = {}, legacyOptions?: {
+    description?: string;
+    minimum?: number;
+    maximum?: number;
+    default?: number;
+    nullable?: boolean;
+    [key: string]: any;
+  }): DatabaseProperty {
+    const options = this.resolveLegacyArgs(optionsOrDescription, legacyOptions);
     return {
-      type: 'integer',
+      type: this.withNullable('integer', options.nullable),
       description: options.description,
       minimum: options.minimum,
       maximum: options.maximum,
-      default: options.default
+      default: options.default,
+      nullable: options.nullable
     };
   }
 
   /**
    * Create a boolean property
    */
-  static boolean(options: {
+  static boolean(optionsOrDescription: string | {
     description?: string;
     default?: boolean;
-  } = {}): DatabaseProperty {
+    nullable?: boolean;
+    [key: string]: any;
+  } = {}, legacyOptions?: {
+    description?: string;
+    default?: boolean;
+    nullable?: boolean;
+    [key: string]: any;
+  }): DatabaseProperty {
+    const options = this.resolveLegacyArgs(optionsOrDescription, legacyOptions);
     return {
-      type: 'boolean',
+      type: this.withNullable('boolean', options.nullable),
       description: options.description,
-      default: options.default
+      default: options.default,
+      nullable: options.nullable
     };
   }
 
   /**
    * Create an array property
    */
-  static array(items: DatabaseProperty, options: {
+  static array(itemsOrDescription: DatabaseProperty | string, options: {
     description?: string;
     default?: any[];
+    items?: DatabaseProperty;
+    nullable?: boolean;
+    [key: string]: any;
   } = {}): DatabaseProperty {
+    const items = typeof itemsOrDescription === 'string' ? options.items : itemsOrDescription;
+    const description = typeof itemsOrDescription === 'string' ? itemsOrDescription : options.description;
     return {
-      type: 'array',
-      description: options.description,
+      type: this.withNullable('array', options.nullable),
+      description,
       items,
-      default: options.default
+      default: options.default,
+      nullable: options.nullable
     };
   }
 
   /**
    * Create an object property
    */
-  static object(properties: Record<string, DatabaseProperty>, options: {
+  static object(propertiesOrDescription: Record<string, DatabaseProperty> | string, options: {
     description?: string;
     required?: string[];
     default?: any;
+    properties?: Record<string, DatabaseProperty>;
+    nullable?: boolean;
+    [key: string]: any;
   } = {}): DatabaseProperty {
+    const properties = typeof propertiesOrDescription === 'string' ? options.properties || {} : propertiesOrDescription;
+    const description = typeof propertiesOrDescription === 'string' ? propertiesOrDescription : options.description;
     return {
-      type: 'object',
-      description: options.description,
+      type: this.withNullable('object', options.nullable),
+      description,
       properties,
       required: options.required,
-      default: options.default
+      default: options.default,
+      nullable: options.nullable
     };
   }
 
   /**
    * Create a timestamp property
    */
-  static timestamp(options: {
+  static timestamp(optionsOrDescription: string | {
     description?: string;
     default?: string;
-  } = {}): DatabaseProperty {
+    maxLength?: number;
+    nullable?: boolean;
+    format?: string;
+    [key: string]: any;
+  } = {}, legacyOptions?: {
+    description?: string;
+    default?: string;
+    maxLength?: number;
+    nullable?: boolean;
+    format?: string;
+    [key: string]: any;
+  }): DatabaseProperty {
+    const options = this.resolveLegacyArgs(optionsOrDescription, legacyOptions);
     return {
-      type: 'timestamp',
+      type: this.withNullable('timestamp', options.nullable),
       description: options.description,
-      format: 'date-time',
-      default: options.default
+      format: options.format || 'date-time',
+      default: options.default,
+      maxLength: options.maxLength,
+      nullable: options.nullable
     };
   }
 
@@ -461,27 +592,48 @@ export class SchemaHelpers {
   static ref(collectionName: string, options: {
     description?: string;
     default?: string;
+    maxLength?: number;
+    minimum?: number;
+    maximum?: number;
+    nullable?: boolean;
+    [key: string]: any;
   } = {}): DatabaseProperty {
     return {
-      type: 'ref',
+      type: this.withNullable('ref', options.nullable),
       description: options.description,
       ref: collectionName,
-      default: options.default
+      default: options.default,
+      maxLength: options.maxLength,
+      minimum: options.minimum,
+      maximum: options.maximum,
+      nullable: options.nullable
     };
   }
 
   /**
    * Create a date property
    */
-  static date(options: {
+  static date(optionsOrDescription: string | {
     description?: string;
     default?: string;
-  } = {}): DatabaseProperty {
+    maxLength?: number;
+    nullable?: boolean;
+    [key: string]: any;
+  } = {}, legacyOptions?: {
+    description?: string;
+    default?: string;
+    maxLength?: number;
+    nullable?: boolean;
+    [key: string]: any;
+  }): DatabaseProperty {
+    const options = this.resolveLegacyArgs(optionsOrDescription, legacyOptions);
     return {
-      type: 'date',
+      type: this.withNullable('date', options.nullable),
       description: options.description,
       format: 'date',
-      default: options.default
+      default: options.default,
+      maxLength: options.maxLength,
+      nullable: options.nullable
     };
   }
 
@@ -511,7 +663,10 @@ export class SchemaHelpers {
   static id(options: {
     description?: string;
     type?: 'uuid' | 'string' | 'number';
-  } = {}): DatabaseProperty {
+  } | string = {}): DatabaseProperty {
+    if (typeof options === 'string') {
+      return this.id({ description: options });
+    }
     const idType = options.type || 'uuid';
     
     if (idType === 'uuid') {
@@ -532,7 +687,7 @@ export class SchemaHelpers {
     minLength?: number;
     maxLength?: number;
     pattern?: string;
-    enum?: string[];
+    enum?: any[];
     default?: string;
   } = {}): DatabaseProperty {
     return this.string(options);
@@ -636,17 +791,18 @@ export class SchemaHelpers {
 
 // Utility function to create a database schema
 export function createDatabaseSchema(config: {
-  title: string;
+  title?: string;
+  name?: string;
   description?: string;
   version?: number;
   primaryKey: string | { key: string; fields: string[]; separator?: string };
   properties: Record<string, DatabaseProperty>;
   required?: string[];
-  indexes?: string[];
+  indexes?: Array<string | string[]>;
   encrypted?: string[];
 }): DatabaseSchema {
   return {
-    title: config.title,
+    title: config.title || config.name || 'untitled_schema',
     description: config.description,
     version: config.version || 0,
     primaryKey: config.primaryKey,

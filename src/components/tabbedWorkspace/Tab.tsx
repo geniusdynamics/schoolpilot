@@ -120,7 +120,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   const menuItems = [
     {
       id: 'pin',
-      label: tab.isPinned ? 'Unpin Tab' : 'Pin Tab',
+      label: tab.pinned ? 'Unpin Tab' : 'Pin Tab',
       icon: Pin,
       onClick: onPin,
       shortcut: 'Ctrl+P'
@@ -316,9 +316,9 @@ export const Tab: React.FC<TabProps> = (props) => {
       );
     }
     
-    if (tab.hasError) {
+    if ('hasError' in tab && tab.hasError) {
       return (
-        <AlertCircle className="w-3 h-3 text-red-500" title="Error loading tab" />
+        <AlertCircle className="w-3 h-3 text-red-500" />
       );
     }
     
@@ -373,13 +373,13 @@ export const Tab: React.FC<TabProps> = (props) => {
             // Active state
             [styling.active]: isActive,
             // Inactive state
-            [styling.inactive]: !isActive && !isPinned && !tab.hasError && !tab.isLoading,
+            [styling.inactive]: !isActive && !isPinned && !('hasError' in tab && tab.hasError) && !tab.isLoading,
             // Pinned state
             [styling.pinned]: isPinned && !isActive,
             // Dragging state
             'opacity-50 scale-95': isDragging,
             // Error state
-            [styling.error]: tab.hasError,
+            [styling.error]: 'hasError' in tab && tab.hasError,
             // Loading state
             [styling.loading]: tab.isLoading
           },
@@ -438,13 +438,15 @@ export const Tab: React.FC<TabProps> = (props) => {
           {/* Close button */}
           {!isPinned && (showCloseButton !== false) && (isHovered || isActive) && (
             <button
+              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onClose(e);
+                if (onClose) onClose(e);
               }}
               className={cn(
-                'flex-shrink-0 p-0.5 rounded transition-colors ml-1',
+                'flex-shrink-0 p-0.5 rounded transition-colors ml-1 relative z-10',
                 'text-gray-500 hover:text-red-600',
                 tabStyle === 'modern'
                   ? 'hover:bg-gray-200'
@@ -462,8 +464,8 @@ export const Tab: React.FC<TabProps> = (props) => {
         {enableHierarchicalMode && isHierarchical && isActive && (tab as HierarchicalTab).subTabs && (
           <div className="px-2 pb-2">
             <SubTabNavigation
-              subTabs={(tab as HierarchicalTab).subTabs}
-              activeSubTabId={(tab as HierarchicalTab).activeSubTabId}
+              subTabs={(tab as HierarchicalTab).subTabs || []}
+              activeSubTabId={(tab as HierarchicalTab).activeSubTabId || ''}
               onSubTabClick={(subTabId) => onSubTabChange?.(tab.id, subTabId)}
               canAddSubTab={false}
             />
@@ -480,7 +482,7 @@ export const Tab: React.FC<TabProps> = (props) => {
 
         {/* Keyboard focus indicator */}
         <div className={cn(
-          'absolute inset-0 rounded-t border-2 border-transparent transition-colors',
+          'absolute inset-0 rounded-t border-2 border-transparent transition-colors pointer-events-none',
           tabStyle === 'modern'
             ? 'focus-within:border-blue-400 focus-within:shadow-sm'
             : 'focus-within:border-green-400 focus-within:shadow-sm'

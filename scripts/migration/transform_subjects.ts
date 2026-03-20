@@ -16,7 +16,7 @@ async function main() {
 
     const splitSubjects = legacySplitSubjects.filter(ss => ss.subject === legacySubject.subject_name);
     for (const splitSubject of splitSubjects) {
-      const newPaper = AcademicsMigrationUtils.transformSplitSubjectToSubjectPaper(splitSubject, newSubject.id);
+      const _newPaper = AcademicsMigrationUtils.transformSplitSubjectToSubjectPaper(splitSubject, newSubject.id);
       // Load newPaper into RxDB
     }
   }

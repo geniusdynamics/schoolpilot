@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import App from '../../app';
+import App from '../../App';
 import { initializeI18n } from '../../i18n/i18n';
 
 // Restore console methods to see debug output

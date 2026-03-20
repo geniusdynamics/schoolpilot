@@ -3,7 +3,6 @@
 
 import { createLogger } from './migration-logger';
 import { spawn } from 'child_process';
-import path from 'path';
 
 const logger = createLogger('FullMigration');
 

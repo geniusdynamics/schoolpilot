@@ -155,7 +155,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     const { key } = event;
     const currentFocused = calendarState.focusedDate || new Date();
-    let newFocused = new Date(currentFocused);
+    const newFocused = new Date(currentFocused);
 
     switch (key) {
       case 'Escape':

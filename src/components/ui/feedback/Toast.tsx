@@ -2,8 +2,7 @@
 // ABOUTME: Supports success, error, warning, info variants with auto-dismiss, progress indicators, pause-on-hover, and swipe-to-dismiss
 
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { designTokens } from '../../../utils/designTokens';
+import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info' | 'progress';
 export type ToastSize = 'normal' | 'compact';
@@ -48,31 +47,38 @@ const Toast: React.FC<ToastProps> = ({
   // Enhanced features
   pauseOnHover = true,
   swipeToDismiss = true,
-  soundEnabled = false,
+  soundEnabled: _soundEnabled = false,
   position = 'top-right',
-  theme = 'auto',
-  stackIndex = 0,
-  totalStacked = 1,
+  theme: _theme = 'auto',
+  stackIndex: _stackIndex = 0,
+  totalStacked: _totalStacked = 1,
 }) => {
+  void _soundEnabled;
+  void _theme;
+  void _stackIndex;
+  void _totalStacked;
   // Set default duration based on size
   const defaultDuration = size === 'compact' ? 1500 : 5000;
   const toastDuration = duration !== undefined ? duration : defaultDuration;
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  void isExiting;
   const [timeLeft, setTimeLeft] = useState(toastDuration);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout>();
   const progressRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  void audioRef;
   
   // Motion values for gesture handling
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-200, 0, 200], [0, 1, 0]);
   const scale = useTransform(x, [-200, 0, 200], [0.8, 1, 0.8]);
+  void scale;
 
   // Sound notification effect
   useEffect(() => {
-    if (soundEnabled && isVisible) {
+    if (_soundEnabled && isVisible) {
       const playSound = () => {
         try {
           // Create different sounds for different variants
@@ -106,7 +112,7 @@ const Toast: React.FC<ToastProps> = ({
       
       playSound();
     }
-  }, [soundEnabled, isVisible, variant]);
+  }, [_soundEnabled, isVisible, variant]);
 
   // Enhanced animation and auto-dismiss logic
   useEffect(() => {
@@ -187,12 +193,15 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   const getVariantStyles = () => {
-    const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isDark = _theme === 'dark' || (_theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
     
     // Calculate stacking transform
-    const stackOffset = stackIndex * 4;
-    const stackScale = 1 - (stackIndex * 0.05);
-    const stackOpacity = Math.max(0.7, 1 - (stackIndex * 0.15));
+    const stackOffset = _stackIndex * 4;
+    const stackScale = 1 - (_stackIndex * 0.05);
+    const stackOpacity = Math.max(0.7, 1 - (_stackIndex * 0.15));
+    void stackOffset;
+    void stackScale;
+    void stackOpacity;
     
     const baseStyles = `
       relative overflow-hidden rounded-lg border backdrop-blur-sm
@@ -285,9 +294,9 @@ const Toast: React.FC<ToastProps> = ({
     animate: {
       x: 0,
       opacity: 1,
-      scale: 1 - (stackIndex * 0.05),
+      scale: 1 - (_stackIndex * 0.05),
       rotateZ: 0,
-      y: stackIndex * -4,
+      y: _stackIndex * -4,
       transition: {
         type: 'spring',
         damping: 25,
@@ -308,8 +317,8 @@ const Toast: React.FC<ToastProps> = ({
       },
     },
     hover: {
-      scale: (1 - (stackIndex * 0.05)) * 1.02,
-      y: stackIndex * -4 - 2,
+      scale: (1 - (_stackIndex * 0.05)) * 1.02,
+      y: _stackIndex * -4 - 2,
       transition: {
         type: 'spring',
         damping: 20,
@@ -346,7 +355,7 @@ const Toast: React.FC<ToastProps> = ({
       style={{
         x: swipeToDismiss ? x : undefined,
         opacity: swipeToDismiss ? opacity : undefined,
-        zIndex: 1000 - stackIndex,
+        zIndex: 1000 - _stackIndex,
       }}
     >
       {/* Progress bar */}
