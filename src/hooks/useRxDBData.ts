@@ -115,7 +115,7 @@ export const useRxDBData = (): Partial<AppDataContextType> => {
   // Database initialization - single effect with stable dependencies
   useEffect(() => {
     let isMounted = true;
-    let subscription: Subscription | null = null;
+    const subscription: Subscription | null = null;
     
     const initializeDatabase = async () => {
       try {

@@ -3,8 +3,6 @@ import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { useToastHelpers } from '../hooks/useToast';
-import { useNavigate } from 'react-router-dom';
 import { i18nReady } from '../i18n/i18n';
 
 // Error boundary for PrimarySidebar
@@ -40,61 +38,61 @@ class PrimarySidebarErrorBoundary extends React.Component<
 // Enhanced module-specific styling with badge/label support
 const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
   const colorSchemes = {
-    'navigation:dashboard': {
+    dashboard: {
       base: 'bg-blue-500/20 border-blue-400/30 hover:bg-blue-500/30',
       selected: 'bg-blue-500/40 border-blue-300/50 shadow-blue-500/30',
       iconColor: 'text-blue-400',
       badgeColor: 'bg-blue-500 text-white border-blue-400/50'
     },
-    'navigation:administration.title': {
+    administration: {
       base: 'bg-purple-500/20 border-purple-400/30 hover:bg-purple-500/30',
       selected: 'bg-purple-500/40 border-purple-300/50 shadow-purple-500/30',
       iconColor: 'text-purple-400',
       badgeColor: 'bg-purple-500 text-white border-purple-400/50'
     },
-    'navigation:academics.title': {
+    academics: {
       base: 'bg-green-500/20 border-green-400/30 hover:bg-green-500/30',
       selected: 'bg-green-500/40 border-green-300/50 shadow-green-500/30',
       iconColor: 'text-green-400',
       badgeColor: 'bg-green-500 text-white border-green-400/50'
     },
-    'navigation:finance.title': {
+    finance: {
       base: 'bg-yellow-500/20 border-yellow-400/30 hover:bg-yellow-500/30',
       selected: 'bg-yellow-500/40 border-yellow-300/50 shadow-yellow-500/30',
       iconColor: 'text-yellow-400',
       badgeColor: 'bg-yellow-500 text-white border-yellow-400/50'
     },
-    'navigation:hr.title': {
+    hr: {
       base: 'bg-red-500/20 border-red-400/30 hover:bg-red-500/30',
       selected: 'bg-red-500/40 border-red-300/50 shadow-red-500/30',
       iconColor: 'text-red-400',
       badgeColor: 'bg-red-500 text-white border-red-400/50'
     },
-    'navigation:inventory.title': {
+    inventory: {
       base: 'bg-orange-500/20 border-orange-400/30 hover:bg-orange-500/30',
       selected: 'bg-orange-500/40 border-orange-300/50 shadow-orange-500/30',
       iconColor: 'text-orange-400',
       badgeColor: 'bg-orange-500 text-white border-orange-400/50'
     },
-    'navigation:library.title': {
+    library: {
       base: 'bg-teal-500/20 border-teal-400/30 hover:bg-teal-500/30',
       selected: 'bg-teal-500/40 border-teal-300/50 shadow-teal-500/30',
       iconColor: 'text-teal-400',
       badgeColor: 'bg-teal-500 text-white border-teal-400/50'
     },
-    'navigation:nutrition.title': {
+    nutrition: {
       base: 'bg-pink-500/20 border-pink-400/30 hover:bg-pink-500/30',
       selected: 'bg-pink-500/40 border-pink-300/50 shadow-pink-500/30',
       iconColor: 'text-pink-400',
       badgeColor: 'bg-pink-500 text-white border-pink-400/50'
     },
-    'navigation:reports.title': {
+    reports: {
       base: 'bg-indigo-500/20 border-indigo-400/30 hover:bg-indigo-500/30',
       selected: 'bg-indigo-500/40 border-indigo-300/50 shadow-indigo-500/30',
       iconColor: 'text-indigo-400',
       badgeColor: 'bg-indigo-500 text-white border-indigo-400/50'
     },
-    'navigation:settings.title': {
+    settings: {
       base: 'bg-gray-500/20 border-gray-400/30 hover:bg-gray-500/30',
       selected: 'bg-gray-500/40 border-gray-300/50 shadow-gray-500/30',
       iconColor: 'text-gray-400',
@@ -125,36 +123,30 @@ const getModuleKey = (navigationKey: string): string => {
     .split('.')[0] || 'unknown';
 };
 
-// Safe module click handler that loads module dashboard in current tab
-const handleModuleClick = async (moduleKey: string, onModuleSelect: (key: string) => void, navigate: any, showInfo: any, showError: any) => {
+const getModuleIdFromItem = (item: any): string => {
+  const fromModulePath = typeof item?.modulePath === 'string' ? item.modulePath : '';
+  const fromPath = typeof item?.path === 'string' ? item.path : '';
+  const rawName = typeof item?.name === 'string' ? item.name : '';
+
+  const modulePath = fromModulePath || fromPath;
+  if (modulePath.startsWith('/')) {
+    const segment = modulePath.replace(/^\/+/, '').split('/')[0];
+    if (segment) {
+      return segment;
+    }
+  }
+
+  return getModuleKey(rawName);
+};
+
+const handleModuleClick = (moduleId: string, onModuleSelect: (key: string) => void) => {
   try {
-    console.log('🔄 [PrimarySidebar] Loading module dashboard:', moduleKey);
-    
-    // Extract the actual module name from navigation key
-    const actualModuleName = getModuleKey(moduleKey);
-    
-    // Create a proper path for the module dashboard
-    const modulePath = `/${actualModuleName}/dashboard`;
-    
-    // Use router navigation to load module dashboard in current tab
-    navigate(modulePath);
-    
-    console.log('✅ [PrimarySidebar] Module dashboard loaded:', actualModuleName);
-    showInfo(`Loaded ${actualModuleName} dashboard`, {
-      title: 'Module Loaded',
-      duration: 2000,
-      size: 'compact'
-    });
-    
-    // Update the current selection
-    onModuleSelect(moduleKey);
+    onModuleSelect(moduleId);
   } catch (error) {
-    console.error('🔥 [PrimarySidebar] Error loading module:', error);
-    showError('Failed to load module. Please try again.');
-    // Fallback to basic selection
-    onModuleSelect(moduleKey);
+    console.error('🔥 [PrimarySidebar] Error selecting module:', error);
   }
 };
+
 
 // Main component with fixed hook order
 const PrimarySidebarContent: React.FC<{ 
@@ -169,8 +161,6 @@ const PrimarySidebarContent: React.FC<{
   const { accessibleModules = [] } = useRBAC() || {};
   const { user = null } = useAuth() || {};
   const { t, i18n } = useTranslation('navigation', { useSuspense: false });
-  const navigate = useNavigate();
-  const { showInfo, showError } = useToastHelpers();
   
   // 2. State hooks (always called in same order)
   const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
@@ -216,15 +206,11 @@ const PrimarySidebarContent: React.FC<{
     setHoveredModule(null);
   }, []);
   
-  const handleModuleSelection = useCallback((moduleKey: string) => {
-    if (typeof moduleKey === 'string' && moduleKey.length > 0 && 
-        typeof onModuleSelect === 'function' && 
-        typeof navigate === 'function' && 
-        typeof showInfo === 'function' && 
-        typeof showError === 'function') {
-      handleModuleClick(moduleKey, onModuleSelect, navigate, showInfo, showError);
+  const handleModuleSelection = useCallback((moduleId: string) => {
+    if (typeof moduleId === 'string' && moduleId.length > 0 && typeof onModuleSelect === 'function') {
+      handleModuleClick(moduleId, onModuleSelect);
     }
-  }, [onModuleSelect, navigate, showInfo, showError]);
+  }, [onModuleSelect]);
   
   // 5. Effects (always called in same order)
   useEffect(() => {
@@ -252,24 +238,24 @@ const PrimarySidebarContent: React.FC<{
   const renderModuleItem = useCallback((item: any, index: number) => {
     // Safe property access with null checks
     const itemName = item?.name || `unknown-${index}`;
-    const isSelected = selectedModuleKey === itemName;
-    const isHovered = hoveredModule === itemName;
+    const moduleId = getModuleIdFromItem(item);
+    const isSelected = selectedModuleKey === moduleId;
+    const isHovered = hoveredModule === moduleId;
     
-    const moduleKey = getModuleKey(itemName);
-    const fallbackName = moduleKey.charAt(0).toUpperCase() + moduleKey.slice(1);
+    const fallbackName = moduleId.charAt(0).toUpperCase() + moduleId.slice(1);
     
     let displayName = fallbackName;
     if (isTranslationReady) {
       try {
-        const translated = t(`${moduleKey}.title`, { defaultValue: fallbackName });
+        const translated = t(`${moduleId}.title`, { defaultValue: fallbackName });
         displayName = translated || fallbackName;
       } catch (error) {
-        console.warn('Translation error for:', moduleKey, error);
+        console.warn('Translation error for:', moduleId, error);
         displayName = fallbackName;
       }
     }
     
-    const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(itemName, isSelected);
+    const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(moduleId, isSelected);
     
     // Badge visibility logic (simplified)
     const badgeVisible = isSelected || (isHovered && isMouseNearSidebar) || (windowWidth < 1024 && isHovered);
@@ -303,7 +289,7 @@ const PrimarySidebarContent: React.FC<{
       <div
         key={itemName}
         className="relative group/item flex-shrink-0"
-        onMouseEnter={() => handleModuleMouseEnter(itemName)}
+        onMouseEnter={() => handleModuleMouseEnter(moduleId)}
         onMouseLeave={handleModuleMouseLeave}
       >
         {/* Badge/Label - responsive positioning and mobile-friendly */}
@@ -335,8 +321,8 @@ const PrimarySidebarContent: React.FC<{
         </div>
 
         <button
-          onClick={() => handleModuleSelection(itemName)}
-          onTouchStart={() => handleModuleMouseEnter(itemName)}
+          onClick={() => handleModuleSelection(moduleId)}
+          onTouchStart={() => handleModuleMouseEnter(moduleId)}
           onTouchEnd={() => handleModuleMouseLeave()}
           className={`
             group relative flex items-center justify-center

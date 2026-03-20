@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Users, DollarSign, GraduationCap, CalendarCheck, UserPlus, BarChart2, Calculator } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import type { MetricCard as MetricCardType } from '../types';
 
 interface MetricCardProps {

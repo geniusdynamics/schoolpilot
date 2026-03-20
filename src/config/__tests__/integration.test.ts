@@ -22,7 +22,7 @@ describe('Database Configuration Integration', () => {
   describe('End-to-End Configuration Workflow', () => {
     it('should complete full configuration lifecycle', async () => {
       // 1. Start with default configuration
-      let config = getDatabaseConfig();
+      const config = getDatabaseConfig();
       expect(config).toBeDefined();
       expect(config.provider).toBeDefined();
 

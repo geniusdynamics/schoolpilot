@@ -254,8 +254,8 @@ export class DatabaseManager {
     const results = await this.testConnections();
     
     const failedConnections = Object.entries(results)
-      .filter(([_, success]) => !success)
-      .map(([name, _]) => name);
+      .filter(([name, success]) => !success)
+      .map(([name]) => name);
 
     if (failedConnections.length > 0) {
       throw new Error(`Health check failed for: ${failedConnections.join(', ')}`);

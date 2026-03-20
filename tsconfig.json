@@ -15,7 +15,12 @@
     "noEmit": false,
     "outDir": "./dist",
     "baseUrl": ".",
+    "types": [
+      "vite/client",
+      "node"
+    ],
     "paths": {
+      "@/*": ["src/*"],
       "*": ["node_modules/*"]
     }
   },

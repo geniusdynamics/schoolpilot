@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,9 +24,22 @@ interface LayoutProps {
   children?: React.ReactNode;
 }
 
+const normalizeModuleId = (value?: string): string => {
+  if (!value) return '';
+  if (value.startsWith('/')) {
+    return value.replace(/^\/+/, '').split('/')[0] || '';
+  }
+  return value.replace('navigation:', '').replace('.title', '').split('.')[0] || '';
+};
+
+const routeModuleId = (path?: string): string => {
+  if (!path) return '';
+  const trimmed = path.startsWith('/') ? path.slice(1) : path;
+  return trimmed.split('/')[0] || '';
+};
+
 const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const { getMainModules, isLoading: navLoading, navigationItems } = useDynamicNavigation(true);
@@ -42,6 +55,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     pinTab,
     unpinTab,
     openTab,
+    startSession,
     markDirty
   } = useTabs();
   
@@ -84,12 +98,12 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
       const path = location.pathname;
       const moduleMatch = path.match(/^\/([^\/]+)/);
       if (moduleMatch && moduleMatch[1]) {
-        const moduleId = moduleMatch[1];
+        const moduleId = normalizeModuleId(moduleMatch[1]);
         setSelectedModuleKey(moduleId);
         
         // Auto-open submenu if we have a valid module
         const mainModules = getMainModules();
-        const hasModule = mainModules.some(m => m.id === moduleId || m.name?.includes(moduleId));
+        const hasModule = mainModules.some(m => normalizeModuleId(m.modulePath || m.path || m.name) === moduleId);
         if (hasModule) {
           setIsSubmenuOpen(true);
         }
@@ -100,18 +114,31 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   
   // Handle module selection from sidebar
   const handleModuleSelect = useCallback((moduleKey: string) => {
-    if (moduleKey === selectedModuleKey) {
+    const moduleId = normalizeModuleId(moduleKey);
+    if (!moduleId) {
+      return;
+    }
+
+    if (moduleId === selectedModuleKey) {
       // Toggle submenu if clicking same module
       setIsSubmenuOpen(prev => !prev);
     } else {
-      setSelectedModuleKey(moduleKey);
+      setSelectedModuleKey(moduleId);
       setIsSubmenuOpen(true);
-      
-      // Open module dashboard in new tab
-      const dashboardUrl = `/${moduleKey}`;
-      openTab(dashboardUrl, { pinned: false });
+
+      const modules = getMainModules();
+      const selectedModule = modules.find(module => normalizeModuleId(module.modulePath || module.path || module.name) === moduleId);
+      const preferredChild = selectedModule?.children?.find(child => child.path?.includes('/dashboard'));
+      const firstChildPath = selectedModule?.children?.find(child => !!child.path)?.path;
+      const moduleBasePath = selectedModule?.modulePath || selectedModule?.path || `/${moduleId}`;
+      const fallbackDashboardPath = moduleId === 'dashboard'
+        ? '/dashboard'
+        : `${moduleBasePath.replace(/\/$/, '')}/dashboard`;
+      const nextRoute = preferredChild?.path || firstChildPath || fallbackDashboardPath;
+
+      openTab(nextRoute, { pinned: moduleId === 'dashboard' });
     }
-  }, [selectedModuleKey, openTab]);
+  }, [selectedModuleKey, openTab, getMainModules]);
   
   // Handle tab click
   const handleTabClick = useCallback((tabId: string) => {
@@ -140,17 +167,23 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   // Handle navigation item click from secondary sidebar
   const handleNavItemClick = useCallback((item: { path: string; name?: string }) => {
     if (item.path) {
+      const nextModuleId = routeModuleId(item.path);
+      if (nextModuleId && selectedModuleKey && nextModuleId !== selectedModuleKey) {
+        openTab(item.path, { pinned: false });
+        setSelectedModuleKey(nextModuleId);
+        setIsSubmenuOpen(true);
+        return;
+      }
       openTab(item.path, { pinned: false });
     }
-  }, [openTab]);
+  }, [openTab, selectedModuleKey]);
   
   // Get navigation items for current module
   const currentModuleNav = useMemo(() => {
     if (!selectedModuleKey) return [];
     
     const module = navigationItems.find(item => 
-      item.id === selectedModuleKey || 
-      item.name?.toLowerCase().includes(selectedModuleKey.toLowerCase())
+      normalizeModuleId(item.modulePath || item.path || item.name) === selectedModuleKey
     );
     
     return module?.children || [];
@@ -177,11 +210,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     }
     
     return (
-      <TabWorkspaceErrorBoundary
-        onError={(error, errorInfo) => {
-          console.error('Tab error:', error, errorInfo);
-        }}
-      >
+      <TabWorkspaceErrorBoundary>
         <div className="flex-1 overflow-auto bg-white">
           {/* 
             The actual page content is rendered by React Router
@@ -228,7 +257,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
           {/* Tab Bar */}
           <div className="flex-shrink-0 bg-white border-b border-gray-200">
             <TabBar
-              tabs={tabs}
+              tabs={tabs as any}
               activeTabId={activeTabId}
               onTabClick={handleTabClick}
               onTabClose={handleTabClose}
@@ -237,8 +266,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
               onTabUnpin={unpinTab}
               onNewTab={handleNewTab}
               maxTabs={20}
-              showCloseButton={true}
-              showNewTabButton={true}
+              showAddButton={true}
             />
           </div>
           

@@ -162,7 +162,7 @@ const AcademicModuleStatus: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-600">
-                {Object.values(dataStatus).reduce((sum, count) => sum + count, 0)}
+                {Object.values(dataStatus).reduce((sum: number, count: unknown) => sum + (count as number), 0)}
               </div>
               <div className="text-sm text-gray-600">Total Records</div>
             </div>

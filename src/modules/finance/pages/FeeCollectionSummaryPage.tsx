@@ -80,13 +80,13 @@ const FeeCollectionSummaryPage: React.FC = () => {
 
     setReportData(summaryData);
     setIsGenerating(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [selectedSchoolPeriodId, selectedClassId, studentInvoices, invoicePaymentApplications, students, classStreams, t]);
   
 
   useEffect(() => {
     if(selectedSchoolPeriodId) handleGenerateReport();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [selectedSchoolPeriodId, selectedClassId, handleGenerateReport]); 
 
   const columns: DataGridColumn<FeeCollectionSummaryRow>[] = [

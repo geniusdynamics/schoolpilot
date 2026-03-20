@@ -7,7 +7,7 @@
 import React from 'react';
 import { useRBAC } from '../useRBAC';
 import type { Resource, Permission } from '../types';
-import { Button, ButtonProps } from '@/components/ui/button';
+import { Button, ButtonProps } from '@/components/ui/Button';
 
 interface PermissionButtonProps extends Omit<ButtonProps, 'resource' | 'permission'> {
   resource: Resource;

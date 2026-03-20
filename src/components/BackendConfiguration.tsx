@@ -2,20 +2,18 @@
 // ABOUTME: Provides UI for switching between different backend types and viewing capabilities
 
 import React, { useState, useEffect } from 'react';
-import { 
-  backendArchitecture, 
-  BackendType, 
-  BackendConfig, 
-  BackendCapabilities 
+import {
+  backendArchitecture,
+  BackendType,
+  BackendConfig
 } from '../config/backendArchitecture';
-import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 
 interface BackendConfigurationProps {
   className?: string;
 }
 
-export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ className = '' }) => {
-  const { config } = useUnifiedConfig();
+export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ className: _className = '' }) => {
+  void _className;
   const [currentBackend, setCurrentBackend] = useState<BackendType>('frontend-only');
   const [backendConfig, setBackendConfig] = useState<BackendConfig | null>(null);
   const [isApiAvailable, setIsApiAvailable] = useState<boolean>(false);
@@ -23,9 +21,9 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
 
   useEffect(() => {
     // Initialize backend configuration
-    const config = backendArchitecture.getConfig();
-    setBackendConfig(config);
-    setCurrentBackend(config.type);
+    const backendConfigFromArch = backendArchitecture.getConfig();
+    setBackendConfig(backendConfigFromArch);
+    setCurrentBackend(backendConfigFromArch.type);
     
     // Check API availability
     checkApiAvailability();
@@ -58,12 +56,12 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
 
   const renderCapabilitySection = (title: string, capabilities: Record<string, boolean>) => {
     const enabledCapabilities = Object.entries(capabilities)
-      .filter(([_, enabled]) => enabled)
-      .map(([name, _]) => name);
+      .filter(([, enabled]) => enabled)
+      .map(([name]) => name);
     
     const disabledCapabilities = Object.entries(capabilities)
-      .filter(([_, enabled]) => !enabled)
-      .map(([name, _]) => name);
+      .filter(([, enabled]) => !enabled)
+      .map(([name]) => name);
 
     return (
       <div className="mb-4">

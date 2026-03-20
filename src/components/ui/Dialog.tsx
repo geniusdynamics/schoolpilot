@@ -71,11 +71,12 @@ export const DialogContent: React.FC<DialogContentProps> = ({ children, classNam
 
   // Extract title from DialogTitle child if present
   let title = 'Dialog';
-  let restChildren = children;
+  const restChildren = children;
 
   React.Children.forEach(children, (child) => {
     if (React.isValidElement(child) && child.type === DialogTitle) {
-      title = typeof child.props.children === 'string' ? child.props.children : 'Dialog';
+      const childElement = child as React.ReactElement;
+      title = typeof childElement.props.children === 'string' ? childElement.props.children : 'Dialog';
     }
   });
 

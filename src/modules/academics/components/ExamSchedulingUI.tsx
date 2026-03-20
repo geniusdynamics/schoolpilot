@@ -170,7 +170,8 @@ export const ExamSchedulingUI: React.FC<ExamSchedulingUIProps> = ({
       }
     } catch (error) {
       console.error('Error saving schedule:', error);
-      setConflicts([error.message || 'Error saving schedule']);
+      const err = error as Error;
+      setConflicts([err.message || 'Error saving schedule']);
     } finally {
       setLoading(false);
     }

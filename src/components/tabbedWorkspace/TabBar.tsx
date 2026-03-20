@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { ChevronLeft, ChevronRight, Plus, X, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, MoreHorizontal } from 'lucide-react';
 import { useTabStore } from '../../stores/tabStore';
 import { Tab as TabComponent } from './Tab';
 import { cn } from '../../utils/cn';
@@ -56,7 +56,6 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
   onSubTabChange,
   showCloseButtons = true,
   tabStyle = 'modern',
-  enableTabGroups: enableHierarchicalTabGroups = false
 }) => {
   const {
     tabs: storeTabs,
@@ -72,12 +71,12 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
   } = useTabStore();
   
   // Use hierarchical tabs if in hierarchical mode, otherwise use legacy tabs
-  const tabs = enableHierarchicalMode ? (hierarchicalTabs || []) : (propTabs || storeTabs);
+  const tabs = enableHierarchicalMode ? (hierarchicalTabs || []) : (propTabs || storeTabs || []);
   const activeTabId = propActiveTabId || storeActiveTabId;
   
   // Convert legacy tabs to hierarchical format if needed
   const processedTabs: HierarchicalTab[] = enableHierarchicalMode 
-    ? tabs as HierarchicalTab[]
+    ? (tabs as HierarchicalTab[])
     : (tabs as any[]).map(tab => ({
         ...tab,
         subTabs: [],
@@ -90,6 +89,10 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(false);
   const [overflowTabs, setOverflowTabs] = useState<string[]>([]);
+  void scrollPosition;
+  void overflowTabs;
+  void setScrollPosition;
+  void setOverflowTabs;
   const [showOverflowDropdown, setShowOverflowDropdown] = useState(false);
   
   const tabBarRef = useRef<HTMLDivElement>(null);
@@ -158,9 +161,10 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
       onSubTabChange(tabId, subTabId);
     }
     // Update the active sub-tab in the tab
-    const updatedTabs = processedTabs.map(tab => 
+    const _updatedTabs = processedTabs.map(tab => 
       tab.id === tabId ? { ...tab, activeSubTabId: subTabId } : tab
     );
+    void _updatedTabs;
     // Note: In a real implementation, you'd update the store here
   }, [onSubTabChange, processedTabs]);
 

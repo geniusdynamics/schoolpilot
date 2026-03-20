@@ -1,0 +1,16 @@
+- [ ] Baseline quality gate is active and blocks merges when lint, typecheck, tests, or build fail.
+- [ ] Mainline is green for consecutive validation runs with no critical regressions.
+- [ ] Route ownership is canonicalized and duplicate path declarations are removed.
+- [ ] Route collision checks exist and fail on ambiguous path ownership.
+- [ ] Startup navigation is deterministic with one policy owner.
+- [ ] Layout-level and restore-level competing redirects are removed or unified.
+- [ ] One tab/session model is active in production runtime.
+- [ ] URL, tab state, and rendered views remain synchronized across navigation flows.
+- [ ] Canonical UI primitives are defined and documented for shared controls.
+- [ ] High-traffic modules are migrated to canonical primitives and validated visually.
+- [ ] Duplicate component stacks for toast/dialog/table/navigation are retired or quarantined.
+- [ ] Production layout is singular, with alternate layout disabled from active path.
+- [ ] Core pages pass responsive checks for spacing, scroll behavior, and sticky interactions.
+- [ ] Release process includes backup/restore verification before migration cutovers.
+- [ ] Rollout rings, regression thresholds, and rollback triggers are defined and tested.
+- [ ] Rollback playbook is executed in rehearsal and produces expected recovery outcomes.

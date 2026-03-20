@@ -1,6 +1,6 @@
 // Verification queries for data migration
 
-async function verifyDataIntegrity(db: any, legacyDB: any) {
+export async function verifyDataIntegrity(db: any, legacyDB: any) {
   const legacyStudentCount = await legacyDB.query('SELECT COUNT(*) as count FROM students');
   const newStudentCount = await db.students.count().exec();
 

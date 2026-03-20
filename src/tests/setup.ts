@@ -6,6 +6,14 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
 import { act } from 'react';
 
+declare global {
+  // Jest compatibility alias for legacy tests while running under Vitest.
+  // This keeps jest.fn/jest.spyOn typed and executable without enabling @types/jest globals.
+  var jest: typeof vi;
+}
+
+globalThis.jest = vi;
+
 // Configure React Testing Library for React 19
 configure({ 
   testIdAttribute: 'data-testid',

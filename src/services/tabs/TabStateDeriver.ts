@@ -13,13 +13,15 @@ const MODULE_NAMES: Record<string, string> = {
   dashboard: 'navigation:dashboard.title',
   academics: 'navigation:academics.title',
   administration: 'navigation:administration.title',
+  admissions: 'navigation:admissions.title',
   finance: 'navigation:finance.title',
   hr: 'navigation:hr.title',
   inventory: 'navigation:inventory.title',
   library: 'navigation:library.title',
   nutrition: 'navigation:nutrition.title',
   reports: 'navigation:reports.title',
-  settings: 'navigation:settings.title'
+  settings: 'navigation:settings.title',
+  audit: 'navigation:audit.title'
 };
 
 // Entity display names mapping
@@ -51,7 +53,7 @@ export class TabStateDeriver {
   /**
    * Derive a tab from a URL
    */
-  deriveTab(url: string, options?: { title?: string; pinned?: boolean }): Tab {
+  deriveTab(url: string, options?: import('./types').TabOptions): Tab {
     const parsed = this.parseURL(url);
     const { module, entity, entityId, view } = parsed;
 
@@ -59,7 +61,12 @@ export class TabStateDeriver {
     const id = this.generateTabId(module, entity, entityId);
 
     // Resolve title
-    const title = options?.title || this.resolveTitle(module, entity, entityId, view);
+    let title = options?.title || this.resolveTitle(module, entity, entityId, view);
+    
+    // Clean up translation keys from title if they leak through
+    if (title.startsWith('navigation:')) {
+      title = this.capitalize(title.replace('navigation:', '').split('.')[1] || title);
+    }
 
     // Resolve subtitle if viewing specific entity
     const subtitle = entityId ? this.resolveSubtitle(module, entity, entityId) : undefined;
@@ -68,7 +75,7 @@ export class TabStateDeriver {
     const pinned = options?.pinned ?? (module === 'dashboard');
 
     // Resolve icon based on module
-    const icon = this.resolveIcon(module, entity);
+    const icon = options?.icon || this.resolveIcon(module, entity);
 
     return {
       id,
@@ -84,7 +91,8 @@ export class TabStateDeriver {
       icon,
       metadata: {
         createdAt: Date.now(),
-        lastAccessed: Date.now()
+        lastAccessed: Date.now(),
+        ...options?.metadata
       }
     };
   }
@@ -111,8 +119,9 @@ export class TabStateDeriver {
       id: tab.id, // Keep same ID
       isDirty: tab.isDirty,
       metadata: {
-        ...tab.metadata,
-        ...newTab.metadata,
+        createdAt: tab.metadata?.createdAt || newTab.metadata?.createdAt || Date.now(),
+        ...(tab.metadata || {}),
+        ...(newTab.metadata || {}),
         lastAccessed: Date.now()
       }
     };
@@ -229,17 +238,46 @@ export class TabStateDeriver {
   }
 
   private resolveIcon(module: string, entity?: string): string {
+    if (entity) {
+      const entityIconMap: Record<string, string> = {
+        'dashboard': 'ChartBarIcon',
+        'applications': 'ClipboardDocumentListIcon',
+        'new-application': 'DocumentAddIcon',
+        'review-queue': 'EyeIcon',
+        'interviews': 'UsersIcon',
+        'students': 'UserGroupIcon',
+        'teachers': 'UsersIcon',
+        'classes': 'AcademicCapIcon',
+        'subjects': 'BookOpenIcon',
+        'attendance': 'CheckCircleIcon',
+        'exams': 'DocumentTextIcon',
+        'fees': 'CurrencyDollarIcon',
+        'payments': 'CreditCardIcon',
+        'inventory': 'ArchiveBoxIcon',
+        'books': 'BookOpenIcon',
+        'meals': 'CakeIcon',
+        'users': 'UsersIcon',
+        'settings': 'CogIcon',
+      };
+      
+      if (entityIconMap[entity]) {
+        return entityIconMap[entity];
+      }
+    }
+
     const iconMap: Record<string, string> = {
       dashboard: 'HomeIcon',
       academics: 'AcademicCapIcon',
       administration: 'UsersIcon',
+      admissions: 'AcademicCapIcon',
       finance: 'CurrencyDollarIcon',
       hr: 'BriefcaseIcon',
       inventory: 'ArchiveBoxIcon',
       library: 'BookOpenIcon',
       nutrition: 'CakeIcon',
       reports: 'ChartBarIcon',
-      settings: 'CogIcon'
+      settings: 'CogIcon',
+      audit: 'ShieldCheckIcon'
     };
 
     return iconMap[module] || 'DocumentIcon';
@@ -288,7 +326,11 @@ export class TabStateDeriver {
   }
 
   private capitalize(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    if (!str) return '';
+    return str
+      .split(/[-_]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 }
 

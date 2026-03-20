@@ -9,7 +9,7 @@ async function main() {
   const legacyGradingSchemes = await getLegacyGradingSchemes();
 
   for (const legacyScheme of legacyGradingSchemes) {
-    const newGradingScheme = AcademicsMigrationUtils.transformLegacyGradingToGradingScheme(legacyScheme);
+    const _newGradingScheme = AcademicsMigrationUtils.transformLegacyGradingToGradingScheme(legacyScheme);
     // Load newGradingScheme into RxDB
   }
 }

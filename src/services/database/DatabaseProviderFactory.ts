@@ -16,7 +16,6 @@ import { PouchDBProvider } from './PouchDBProvider';
 import { RxDBProvider } from './RxDBProvider';
 import { SQLiteProvider } from './SQLiteProvider';
 import { SQLiteWASMProvider } from './SQLiteWASMProvider';
-import { SQLiteFileProvider } from './SQLiteFileProvider';
 import { BackendAPIProvider } from './BackendAPIProvider';
 import { getCurrentUnifiedConfig } from '../../config/unifiedConfig';
 
@@ -443,21 +442,9 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
         console.log('[DatabaseProviderFactory] Backend API provider disabled via environment variable');
       }
       
-      // Register SQLiteFileProvider for development (synchronously)
-      try {
-        // Skip SQLiteFileProvider in browser environment
-        if (typeof window === 'undefined') {
-          // Use synchronous import since we're in Node.js environment
-          const sqliteFileProvider = new SQLiteFileProvider();
-          this.registerProvider(sqliteFileProvider);
-          console.log('[DatabaseProviderFactory] SQLiteFileProvider registered successfully, isAvailable:', sqliteFileProvider.isAvailable());
-        } else {
-          console.log('[DatabaseProviderFactory] SQLiteFileProvider skipped in browser environment');
-        }
-      } catch (error) {
-        console.warn('[DatabaseProviderFactory] SQLiteFileProvider registration failed:', error);
-        console.log('[DatabaseProviderFactory] Continuing without SQLiteFileProvider');
-      }
+      // Register SQLiteFileProvider only in Node-like runtimes.
+      // Dynamic import avoids bundling Node-only SQLite dependencies into browser builds.
+      void this.registerSQLiteFileProvider();
       
       console.log('[DatabaseProviderFactory] Database providers initialized:', Array.from(this.providers.keys()));
       console.log('[DatabaseProviderFactory] Available providers:', this.getAvailableProviderTypes());
@@ -465,6 +452,24 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       console.error('[DatabaseProviderFactory] Provider initialization failed:', error);
       // Continue with minimal providers
       console.log('[DatabaseProviderFactory] Continuing with minimal provider set');
+    }
+  }
+
+  private async registerSQLiteFileProvider(): Promise<void> {
+    if (typeof window !== 'undefined') {
+      console.log('[DatabaseProviderFactory] SQLiteFileProvider skipped in browser environment');
+      return;
+    }
+
+    try {
+      const sqliteFileProviderPath = './SQLiteFileProvider';
+      const sqliteFileModule = await import(/* @vite-ignore */ sqliteFileProviderPath);
+      const sqliteFileProvider = new sqliteFileModule.SQLiteFileProvider();
+      this.registerProvider(sqliteFileProvider);
+      console.log('[DatabaseProviderFactory] SQLiteFileProvider registered successfully, isAvailable:', sqliteFileProvider.isAvailable());
+    } catch (error) {
+      console.warn('[DatabaseProviderFactory] SQLiteFileProvider registration failed:', error);
+      console.log('[DatabaseProviderFactory] Continuing without SQLiteFileProvider');
     }
   }
 

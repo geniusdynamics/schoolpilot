@@ -431,15 +431,15 @@ export const optimizeAnimation = (element: HTMLElement, properties: string[]): v
 
 // Legacy animation event handlers (kept for compatibility)
 export const useAnimationEventHandlers = () => {
-  const handleAnimationStart = (callback: () => void) => (_event: AnimationEvent) => {
+  const handleAnimationStart = (callback: () => void) => {
     callback();
   };
   
-  const handleAnimationEnd = (callback: () => void) => (_event: AnimationEvent) => {
+  const handleAnimationEnd = (callback: () => void) => {
     callback();
   };
   
-  const handleTransitionEnd = (callback: () => void) => (_event: TransitionEvent) => {
+  const handleTransitionEnd = (callback: () => void) => {
     callback();
   };
   
@@ -548,16 +548,17 @@ export const usePageTransition = (config: Partial<PageTransitionConfig> = {}) =>
           ...baseStyles,
           opacity: transitionStage === 'exiting' ? 0 : 1,
         };
-      case 'slide':
+      case 'slide': {
         const direction = transitionConfig.direction || 'right';
-        const translateValue = transitionStage === 'exiting' ? 
-          (direction === 'left' ? '-100%' : direction === 'right' ? '100%' : 
+        const translateValue = transitionStage === 'exiting' ?
+          (direction === 'left' ? '-100%' : direction === 'right' ? '100%' :
            direction === 'up' ? '-100%' : '100%') : '0%';
         const translateProperty = direction === 'left' || direction === 'right' ? 'translateX' : 'translateY';
         return {
           ...baseStyles,
           transform: `${translateProperty}(${translateValue})`,
         };
+      }
       case 'scale':
         return {
           ...baseStyles,
@@ -698,8 +699,8 @@ export const useProgressiveAnimation = (animationName: keyof typeof animationPre
       return {};
     }
     // Return animation styles based on the animation name
-    const preset = animationPresets[animationName];
-    return preset ? { animation: preset.animation } : {};
+    const preset = animationPresets[animationName as keyof typeof animationPresets];
+    return preset ? { animation: `${animationName.replace(/([A-Z])/g, '-$1').toLowerCase()} ${preset.duration} ${preset.easing}` } : {};
   }, [canAnimate, isPerformant, animationName]);
   
   return {
@@ -867,17 +868,17 @@ export const useAnimationEvents = () => {
     callbacks.forEach(callback => callback());
   }, []);
   
-  const handleAnimationStart = useCallback((callback: () => void) => (event: AnimationEvent) => {
+  const handleAnimationStart = useCallback((callback: () => void) => {
     callback();
     dispatchEvent('animationStart');
   }, [dispatchEvent]);
-  
-  const handleAnimationEnd = useCallback((callback: () => void) => (event: AnimationEvent) => {
+
+  const handleAnimationEnd = useCallback((callback: () => void) => {
     callback();
     dispatchEvent('animationEnd');
   }, [dispatchEvent]);
-  
-  const handleTransitionEnd = useCallback((callback: () => void) => (event: TransitionEvent) => {
+
+  const handleTransitionEnd = useCallback((callback: () => void) => {
     callback();
     dispatchEvent('transitionEnd');
   }, [dispatchEvent]);

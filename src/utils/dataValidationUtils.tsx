@@ -160,7 +160,7 @@ export class DataValidationUtils {
   /**
    * Validate and clean columns configuration
    */
-  static validateColumns<T>(columns: any[] | null | undefined): any[] {
+  static validateColumns(columns: any[] | null | undefined): any[] {
     const validColumns = this.ensureArray(columns);
     
     return validColumns.map((column, index) => {

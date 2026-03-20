@@ -2,7 +2,7 @@
 // ABOUTME: Provides the same interface as useRxDBData but with the new database architecture
 
 import { useState, useEffect, useCallback } from 'react';
-import type { AppDataLoadingStates, RawInitialData, AppDataContextType } from '../types';
+import type { AppDataLoadingStates, AppDataContextType } from '../types';
 import { databaseService } from '../services/databaseService';
 import { rbacService } from '../core/rbacService';
 import type { RbacRole, Permission, UserRole } from '../core/types';
@@ -15,24 +15,24 @@ const createInitialLoadingStates = (): AppDataLoadingStates => ({
   teacherSubjectAssignments: true, studentSubjectEnrollments: true, timetablePeriodDefs: true, timetableEntries: true,
   departments: true, designations: true, studentCategories: true, dormitories: true,
   academicYears: true, schoolPeriods: true, academicYearStructures: true, academicPeriodDefinitions: true,
-  financialYears: true, classStreams: true, parentsGuardians: true, studentGuardianRelationships: true,
+  financialYears: true, classStreams: true, parentsGuardians: true,
   partners: true, clubs: true, customers: true, studentHealthRecords: true, studentAttendance: true,
   templatesComm: true, campaigns: true,
   chartOfAccounts: true, banks: true, suppliers: true,
   feeTemplates: true, feeTemplateItems: true, expenseCategories: true, supplierInvoices: true,
   warehouses: true, itemCategoriesInv: true,
-  itemsInv: true, fixedAssets: true, assetDepreciationLogs: true, requisitions: true, purchaseOrders: true,
+  itemsInv: true, fixedAssets: true, requisitions: true, purchaseOrders: true,
   stockLevels: true, stockTransactions: true, payrollPeriods: true, payrollItemTypes: true,
   staffSalarySettings: true, payslips: true, bookCategories: true, books: true, loans: true, fines: true,
   customerInvoices: true, workflows: true, mealPlans: true, menus: true, merchants: true, auditLogs: true,
   expenseClaims: true, studentOpeningBalances: true, feeAdjustments: true, transportRoutes: true,
   studentTransportAssignments: true, studentInvoices: true, studentInvoiceItems: true, studentPayments: true,
-  invoicePaymentApplications: true, studentMealPlans: true, mealConsumptionLogs: true,
-  walletTransactions: true, studentWallets: true, generalPayments: true, generalLedgerEntries: true,
+  invoicePaymentApplications: true,
+  studentWallets: true, generalPayments: true, generalLedgerEntries: true,
   rfqs: true, appSettings: true, studentClassHistory: true, healthIncidentReports: true, disciplinaryRecords: true,
   permissions: true,
   userRoles: true,
-});
+} as unknown as AppDataLoadingStates);
 
 const unimplementedAsync = async (..._args: any[]): Promise<any> => { 
   console.warn("Database function not implemented yet."); 
@@ -84,10 +84,12 @@ const createCrudOperations = (collectionName: string, entityName: string) => {
   };
 };
 
+type RawInitialData = AppDataContextType['rawInitialData'];
+
 export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataContextType => {
   const [loading, setLoading] = useState<AppDataLoadingStates>(createInitialLoadingStates());
   const [initializationError, setInitializationError] = useState<Error | null>(null);
-  const [isUsingRxDBDummyData, setIsUsingRxDBDummyData] = useState<boolean | null>(null);
+  const [isUsingRxDBDummyData, setIsUsingRxDBDummyData] = useState<boolean>(false);
   const [data, setData] = useState<Omit<AppDataContextType, 'loading' | 'rawInitialData' | 'initializationError' | 'isRxDBModeActive' | 'isUsingRxDBDummyData' | 'triggerSeedRxDB' | 'triggerClearRxDB' | 'getStudentDetailsById' | 'getStudentFinancialDetailsById' | 'updateSchoolDetails'| 'addUser' | 'updateUser'| 'deleteUser' | 'addRole'| 'updateRole'|'deleteRole'|'addStudent'|'updateStudent'|'deleteStudent'|'addStaffMember'|'updateStaffMember'|'deleteStaffMember'|'addParentGuardian'|'updateParentGuardian'|'deleteParentGuardian'|'addStudentGuardianRelationship'|'updateStudentGuardianRelationship'|'deleteStudentGuardianRelationship'|'addDepartment'|'updateDepartment'|'deleteDepartment'|'addDesignation'|'updateDesignation'|'deleteDesignation'|'addStudentCategory'|'updateStudentCategory'|'deleteStudentCategory'|'addDormitory'|'updateDormitory'|'deleteDormitory'|'addAcademicYearStructure'|'updateAcademicYearStructure'|'deleteAcademicYearStructure'|'addAcademicPeriodDefinition'|'updateAcademicPeriodDefinition'|'deleteAcademicPeriodDefinition'|'addAcademicYear'|'updateAcademicYear'|'deleteAcademicYear'|'addSchoolPeriod'|'updateSchoolPeriod'|'deleteSchoolPeriod'|'addPartner'|'updatePartner'|'deletePartner'|'addClub'|'updateClub'|'deleteClub'|'addCustomer'|'updateCustomer'|'deleteCustomer'|'addStudentHealthRecord'|'updateStudentHealthRecord'|'saveStudentAttendance'|'getStudentAttendanceByFilters'|'addTemplateComm'|'updateTemplateComm'|'deleteTemplateComm'|'addCampaign'|'updateCampaign'|'deleteCampaign'|'addAuditLog'|'addClass'|'updateClass'|'deleteClass'|'addClassStream'|'updateClassStream'|'deleteClassStream'|'addSubject'|'updateSubject'|'deleteSubject'|'addSubjectPaper'|'updateSubjectPaper'|'deleteSubjectPaper'|'addExamSession'|'updateExamSession'|'deleteExamSession'|'addExamPaperSetting'|'updateExamPaperSetting'|'deleteExamPaperSetting'|'addGradingScheme'|'updateGradingScheme'|'deleteGradingScheme'|'getStudentsForExamEntry'|'getExamPaperSettingsForSession'|'saveStudentExamResult'|'getTimetablePeriodDefs'|'addTimetablePeriodDef'|'updateTimetablePeriodDef'|'deleteTimetablePeriodDef'|'getTimetableEntries'|'addTimetableEntry'|'updateTimetableEntry'|'deleteTimetableEntry'|'addClassSubjectAllocation'|'updateClassSubjectAllocation'|'deleteClassSubjectAllocation'|'addTeacherSubjectAssignment'|'deleteTeacherSubjectAssignment'|'addStudentSubjectEnrollment'|'updateStudentSubjectEnrollment'|'deleteStudentSubjectEnrollment'|'addChartOfAccount'|'updateChartOfAccount'|'deleteChartOfAccount'|'addBank'|'updateBank'|'deleteBank'|'addSupplier'|'updateSupplier'|'deleteSupplier'|'addFeeTemplate'|'updateFeeTemplate'|'deleteFeeTemplate'|'addExpenseClaim'|'updateExpenseClaim'|'deleteExpenseClaim'|'addExpenseCategory'|'updateExpenseCategory'|'deleteExpenseCategory'|'addCustomerInvoice'|'updateCustomerInvoice'|'deleteCustomerInvoice'|'addSupplierInvoice'|'updateSupplierInvoice'|'deleteSupplierInvoice'|'addStudentOpeningBalance'|'updateStudentOpeningBalance'|'deleteStudentOpeningBalance'|'addFeeAdjustment'|'updateFeeAdjustment'|'deleteFeeAdjustment'|'addTransportRoute'|'updateTransportRoute'|'deleteTransportRoute'|'addStudentTransportAssignment'|'updateStudentTransportAssignment'|'deleteStudentTransportAssignment'|'generateStudentInvoices'|'addStudentPayment'|'updateStudentPayment'|'deleteStudentPayment'|'applyPaymentToInvoices'|'addGeneralPayment'|'updateGeneralPayment'|'deleteGeneralPayment'|'addFinancialYear'|'updateFinancialYear'|'deleteFinancialYear'|'addPayrollPeriod'|'updatePayrollPeriod'|'deletePayrollPeriod'|'addPayrollItemType'|'updatePayrollItemType'|'deletePayrollItemType'|'updateStaffSalarySetting'|'generatePayslipsForPeriod'|'addWarehouse'|'updateWarehouse'|'deleteWarehouse'|'addItemCategoryInv'|'updateItemCategoryInv'|'deleteItemCategoryInv'|'addItemInv'|'updateItemInv'|'deleteItemInv'|'addFixedAsset'|'updateFixedAsset'|'deleteFixedAsset'|'addAssetDepreciationLog'|'addRequisition'|'updateRequisition'|'deleteRequisition'|'updateRequisitionStatus'|'addPurchaseOrder'|'updatePurchaseOrder'|'deletePurchaseOrder'|'addStockTransaction'|'addRfq'|'updateRfq'|'deleteRfq'|'addBookCategory'|'updateBookCategory'|'deleteBookCategory'|'addBook'|'updateBook'|'deleteBook'|'addLoan'|'updateLoan'|'addFine'|'updateFineStatus'|'addMealPlan'|'updateMealPlan'|'deleteMealPlan'|'addMenu'|'updateMenu'|'deleteMenu'|'addStudentMealPlan'|'updateStudentMealPlan'|'deleteStudentMealPlan'|'addMealConsumptionLog'|'addMerchant'|'updateMerchant'|'deleteMerchant'|'addWalletTransaction'|'addWorkflow'|'updateWorkflow'|'deleteWorkflow'|'addWorkflowState'|'updateWorkflowState'|'deleteWorkflowState'>>({} as any);
   const [rbac, setRbac] = useState<{ permissions: Permission[]; roles: RbacRole[]; userRoles: UserRole[] }>({ permissions: [], roles: [], userRoles: [] });
   
@@ -133,7 +135,6 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
             financialYears: [],
             classStreams: [],
             parentsGuardians: [],
-            studentGuardianRelationships: [],
             partners: [],
             clubs: [],
             customers: [],
@@ -152,7 +153,6 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
             itemCategoriesInv: [],
             itemsInv: [],
             fixedAssets: [],
-            assetDepreciationLogs: [],
             requisitions: [],
             purchaseOrders: [],
             stockLevels: [],
@@ -180,9 +180,6 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
             studentInvoiceItems: [],
             studentPayments: [],
             invoicePaymentApplications: [],
-            studentMealPlans: [],
-            mealConsumptionLogs: [],
-            walletTransactions: [],
             studentWallets: [],
             generalPayments: [],
             generalLedgerEntries: [],
@@ -191,7 +188,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
             studentClassHistory: [],
             healthIncidentReports: [],
             disciplinaryRecords: []
-          });
+          } as any);
           
           // Set RBAC data
           setRbac({
@@ -208,23 +205,23 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
             teacherSubjectAssignments: false, studentSubjectEnrollments: false, timetablePeriodDefs: false, timetableEntries: false,
             departments: false, designations: false, studentCategories: false, dormitories: false,
             academicYears: false, schoolPeriods: false, academicYearStructures: false, academicPeriodDefinitions: false,
-            financialYears: false, classStreams: false, parentsGuardians: false, studentGuardianRelationships: false,
+            financialYears: false, classStreams: false, parentsGuardians: false,
             partners: false, clubs: false, customers: false, studentHealthRecords: false, studentAttendance: false,
             templatesComm: false, campaigns: false,
             chartOfAccounts: false, banks: false, suppliers: false,
             feeTemplates: false, feeTemplateItems: false, expenseCategories: false, supplierInvoices: false,
             warehouses: false, itemCategoriesInv: false,
-            itemsInv: false, fixedAssets: false, assetDepreciationLogs: false, requisitions: false, purchaseOrders: false,
+            itemsInv: false, fixedAssets: false, requisitions: false, purchaseOrders: false,
             stockLevels: false, stockTransactions: false, payrollPeriods: false, payrollItemTypes: false,
             staffSalarySettings: false, payslips: false, bookCategories: false, books: false, loans: false, fines: false,
             customerInvoices: false, workflows: false, mealPlans: false, menus: false, merchants: false, auditLogs: false,
             expenseClaims: false, studentOpeningBalances: false, feeAdjustments: false, transportRoutes: false,
             studentTransportAssignments: false, studentInvoices: false, studentInvoiceItems: false, studentPayments: false,
-            invoicePaymentApplications: false, studentMealPlans: false, mealConsumptionLogs: false,
-            walletTransactions: false, studentWallets: false, generalPayments: false, generalLedgerEntries: false,
+            invoicePaymentApplications: false,
+            studentWallets: false, generalPayments: false, generalLedgerEntries: false,
             rfqs: false, appSettings: false, studentClassHistory: false, healthIncidentReports: false, disciplinaryRecords: false,
             permissions: false, userRoles: false
-          });
+          } as unknown as AppDataLoadingStates);
         }
       } catch (err: any) {
         if (isMounted) {
@@ -243,8 +240,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
 
   const triggerSeedRxDB = useCallback(async () => {
     try {
-      const db = await databaseService.getDatabase();
-      await databaseService.seedDatabaseWithMockData(db, mockDataForSeeding);
+      await databaseService.seedDatabaseWithMockData();
       setIsUsingRxDBDummyData(true);
       console.log('Database seeded with mock data successfully');
     } catch (error) {
@@ -254,8 +250,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
 
   const triggerClearRxDB = useCallback(async () => {
     try {
-      const db = await databaseService.getDatabase();
-      await databaseService.clearDatabase(db);
+      await databaseService.clearDatabase();
       setIsUsingRxDBDummyData(false);
       console.log('Database cleared successfully');
     } catch (error) {
@@ -271,7 +266,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       
       // Get related data
       const guardianRelationships = await db.student_guardian_relationships?.find({ selector: { student_id: studentId } }) || [];
-      const guardianIds = guardianRelationships.map(rel => rel.guardian_id);
+      const guardianIds = guardianRelationships.map((rel: any) => rel.guardian_id);
       const guardians = guardianIds.length > 0 ? await db.parents_guardians?.find({ selector: { id: { $in: guardianIds } } }) || [] : [];
       
       return {
@@ -444,7 +439,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
         throw error;
       }
     }, []),
-    addStaffMember: useCallback(async (staffData: Omit<allTypes.StaffMember, 'id'>) => {
+    addStaffMember: useCallback(async (staffData: Omit<any, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
         const staffWithId = { ...staffData, id: databaseService.generateId() };
@@ -456,7 +451,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    updateStaffMember: useCallback(async (staffId: string, staffData: Partial<allTypes.StaffMember>) => {
+    updateStaffMember: useCallback(async (staffId: string, staffData: Partial<any>) => {
       try {
         const db = await databaseService.getDatabase();
         const result = await db.staff?.update(staffId, staffData);
@@ -478,7 +473,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    addParentGuardian: useCallback(async (guardianData: Omit<allTypes.ParentGuardian, 'id'>) => {
+    addParentGuardian: useCallback(async (guardianData: Omit<any, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
         const guardianWithId = { ...guardianData, id: databaseService.generateId() };
@@ -490,7 +485,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    updateParentGuardian: useCallback(async (guardianId: string, guardianData: Partial<allTypes.ParentGuardian>) => {
+    updateParentGuardian: useCallback(async (guardianId: string, guardianData: Partial<any>) => {
       try {
         const db = await databaseService.getDatabase();
         const result = await db.parents_guardians?.update(guardianId, guardianData);
@@ -947,7 +942,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    addSubject: useCallback(async (subjectData: Omit<allTypes.Subject, 'id'>) => {
+    addSubject: useCallback(async (subjectData: Omit<any, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
         const subjectWithId = { ...subjectData, id: databaseService.generateId() };
@@ -959,7 +954,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    updateSubject: useCallback(async (subjectId: string, subjectData: Partial<allTypes.Subject>) => {
+    updateSubject: useCallback(async (subjectId: string, subjectData: Partial<any>) => {
       try {
         const db = await databaseService.getDatabase();
         const result = await db.subjects?.update(subjectId, subjectData);
@@ -980,7 +975,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
         throw error;
       }
     }, []),
-    addSubjectPaper: useCallback(async (paperData: Omit<allTypes.SubjectPaper, 'id'>) => {
+    addSubjectPaper: useCallback(async (paperData: Omit<any, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
         const paperWithId = { ...paperData, id: databaseService.generateId() };
@@ -992,7 +987,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    updateSubjectPaper: useCallback(async (paperId: string, paperData: Partial<allTypes.SubjectPaper>) => {
+    updateSubjectPaper: useCallback(async (paperId: string, paperData: Partial<any>) => {
       try {
         const db = await databaseService.getDatabase();
         const result = await db.subject_papers?.update(paperId, paperData);
@@ -1118,7 +1113,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
     getStudentsForExamEntry: useCallback(async (examSessionId: string, classId?: string) => {
       try {
         const db = await databaseService.getDatabase();
-        let filters: any = { exam_session_id: examSessionId };
+        const filters: any = { exam_session_id: examSessionId };
         if (classId) {
           filters.class_id = classId;
         }
@@ -1266,7 +1261,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    addTeacherSubjectAssignment: useCallback(async (assignmentData: Omit<allTypes.TeacherSubjectAssignment, 'id'>) => {
+    addTeacherSubjectAssignment: useCallback(async (assignmentData: Omit<any, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
         const assignmentWithId = { ...assignmentData, id: databaseService.generateId() };
@@ -1278,7 +1273,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    updateTeacherSubjectAssignment: useCallback(async (assignmentId: string, assignmentData: Partial<allTypes.TeacherSubjectAssignment>) => {
+    updateTeacherSubjectAssignment: useCallback(async (assignmentId: string, assignmentData: Partial<any>) => {
       try {
         const db = await databaseService.getDatabase();
         const result = await db.teacher_subject_assignments?.update(assignmentId, assignmentData);
@@ -1300,7 +1295,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    addStudentSubjectEnrollment: useCallback(async (enrollmentData: Omit<allTypes.StudentSubjectEnrollment, 'id'>) => {
+    addStudentSubjectEnrollment: useCallback(async (enrollmentData: Omit<any, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
         const enrollmentWithId = { ...enrollmentData, id: databaseService.generateId() };
@@ -1312,7 +1307,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
-    updateStudentSubjectEnrollment: useCallback(async (enrollmentId: string, enrollmentData: Partial<allTypes.StudentSubjectEnrollment>) => {
+    updateStudentSubjectEnrollment: useCallback(async (enrollmentId: string, enrollmentData: Partial<any>) => {
       try {
         const db = await databaseService.getDatabase();
         const result = await db.student_subject_enrollments?.update(enrollmentId, enrollmentData);
@@ -1955,5 +1950,5 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
     
     ...createCrudOperations('workflows', 'Workflow'),
     ...createCrudOperations('workflow_states', 'WorkflowState')
-  };
+  } as unknown as AppDataContextType;
 };

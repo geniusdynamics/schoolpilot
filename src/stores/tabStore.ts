@@ -12,6 +12,7 @@ import { Tab, TabState, TabStore, TabContent } from '../types/tabbedWorkspace';
 export type { TabContent };
 import { HierarchicalTab, BreadcrumbItem } from '../types/hierarchical';
 import { rbacService } from '../core/rbacService';
+import { tabValidationService } from '../services/tabs/TabValidationService';
 
 interface TabStoreState extends TabStore {
   // Internal state
@@ -48,30 +49,29 @@ const generateTabId = (): string => {
   return `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-// Validate tab permissions
+// Validate tab permissions - NOW USES TabValidationService
 const validateTabPermissions = (tab: Tab, userRole: string, userPermissions: string[]): boolean => {
-  if (!tab.permissions || tab.permissions.length === 0) return true;
-  
-  // Check if user has any of the required permissions
-  return tab.permissions.some(permission => userPermissions.includes(permission));
+  // Use the centralized validation service
+  return tabValidationService.validateTabAccess(tab, userRole, userPermissions);
 };
 
-// Validate tab data integrity
+// Validate tab data integrity - Delegates to TabValidationService
 const validateTabData = (tab: any): tab is Tab => {
+  // First check if tab exists and is an object
   if (!tab || typeof tab !== 'object') return false;
-  if (!tab.id || typeof tab.id !== 'string') return false;
-  if (!tab.title || typeof tab.title !== 'string') return false;
-  if (!tab.module || typeof tab.module !== 'string') return false;
-  if (!tab.path || typeof tab.path !== 'string') return false;
-  if (!tab.content || typeof tab.content !== 'object') return false;
   
-  // Check for corrupted module names (should not contain colons)
-  if (tab.module.includes(':')) {
+  // Use the service's state validation
+  const validationResult = tabValidationService.validateTabState(tab as Tab);
+  
+  // Additional corruption check: module names should not contain colons
+  // This is a critical check that TabValidationService handles, but we keep it for safety
+  if (tab.module && typeof tab.module === 'string' && tab.module.includes(':')) {
     console.warn('Corrupted tab detected with invalid module name:', tab.module);
     return false;
   }
   
-  return true;
+  // Return the validation result from the service
+  return validationResult.valid;
 };
 
 // Clean corrupted tabs from persisted data

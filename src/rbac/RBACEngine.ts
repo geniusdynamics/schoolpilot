@@ -370,7 +370,7 @@ export class RBACEngine {
     user: RBACUser
   ): boolean {
     return conditions.every(condition => {
-      let value = resourceData[condition.field];
+      const value = resourceData[condition.field];
       let expectedValue = condition.value;
 
       // Handle template variables

@@ -3,7 +3,6 @@
 
 import { 
   EntityValidationSchema, 
-  BusinessRule, 
   ConsistencyCheck,
   ValidationError,
   CommonValidations,
@@ -16,8 +15,7 @@ import {
   InvoiceStatus
 } from '../core/types';
 import { 
-  ExamSessionStatus,
-  StudentEnrollmentStatus 
+  ExamSessionStatus
 } from '../modules/academics/data/enums';
 
 // Student validation schema

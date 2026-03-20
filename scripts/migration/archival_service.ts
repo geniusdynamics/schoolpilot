@@ -1,6 +1,6 @@
 // Service for archiving non-migrated historical data
 
-class ArchivalService {
+export class ArchivalService {
   private archiveDB: any; // Connection to the archival database
 
   constructor(archiveDB: any) {

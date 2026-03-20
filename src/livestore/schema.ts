@@ -1,13 +1,12 @@
 // LiveStore Schema Definitions
 // Based on the existing SchoolPilot3 data structure
 
-import { State, Events } from '@livestore/livestore';
+import { State } from '@livestore/livestore';
 import type {
   Student,
   Staff,
   Class,
   ClassStream,
-  Subject,
   Department,
   Designation,
   StudentCategory,
@@ -18,8 +17,6 @@ import type {
   Role,
   User,
   SchoolDetails,
-  SubjectPaper,
-  ExamSession,
   ChartOfAccount,
   ExpenseCategory,
   Bank,
@@ -31,438 +28,443 @@ import type {
 // Define the LiveStore schema for SchoolPilot3
 export const schema = {
   // Core School Information
-  schoolDetails: State.SQLite.table<SchoolDetails>({
+  schoolDetails: State.SQLite.table({
     name: 'school_details',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      telephone: 'TEXT',
-      email: 'TEXT',
-      postal_address: 'TEXT',
-      town: 'TEXT',
-      motto: 'TEXT',
-      logo_path: 'TEXT',
-      school_gender: 'TEXT',
-      school_type: 'TEXT',
-      head_teacher_name: 'TEXT',
-      school_code: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      telephone: State.SQLite.text(),
+      email: State.SQLite.text(),
+      postal_address: State.SQLite.text(),
+      town: State.SQLite.text(),
+      motto: State.SQLite.text(),
+      logo_path: State.SQLite.text(),
+      school_gender: State.SQLite.text(),
+      school_type: State.SQLite.text(),
+      head_teacher_name: State.SQLite.text(),
+      school_code: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
   // User Management
-  users: State.SQLite.table<User>({
+  users: State.SQLite.table({
     name: 'users',
     columns: {
-      id: 'TEXT PRIMARY KEY',
-      username: 'TEXT NOT NULL UNIQUE',
-      hashed_password: 'TEXT',
-      email: 'TEXT NOT NULL',
-      role_id: 'INTEGER',
-      role: 'TEXT',
-      display_name: 'TEXT',
-      userType: 'TEXT NOT NULL',
-      isActive: 'INTEGER NOT NULL DEFAULT 1'
+      id: State.SQLite.text({ primaryKey: true }),
+      username: State.SQLite.text({ nullable: false }),
+      hashed_password: State.SQLite.text(),
+      email: State.SQLite.text({ nullable: false }),
+      role_id: State.SQLite.integer(),
+      role: State.SQLite.text(),
+      display_name: State.SQLite.text(),
+      userType: State.SQLite.text({ nullable: false }),
+      isActive: State.SQLite.integer({ nullable: false, default: 1 })
     }
   }),
 
-  roles: State.SQLite.table<Role>({
+  roles: State.SQLite.table({
     name: 'roles',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      description: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      description: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
   // Academic Structure
-  academicYears: State.SQLite.table<AcademicYear>({
+  academicYears: State.SQLite.table({
     name: 'academic_years',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      structure_id: 'TEXT NOT NULL',
-      start_date: 'TEXT NOT NULL',
-      end_date: 'TEXT NOT NULL',
-      structure_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      structure_id: State.SQLite.text({ nullable: false }),
+      start_date: State.SQLite.text({ nullable: false }),
+      end_date: State.SQLite.text({ nullable: false }),
+      structure_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
-  schoolPeriods: State.SQLite.table<SchoolPeriod>({
+  schoolPeriods: State.SQLite.table({
     name: 'school_periods',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      academic_year_id: 'INTEGER NOT NULL',
-      period_definition_id: 'TEXT NOT NULL',
-      financial_year_id: 'INTEGER NOT NULL',
-      start_date: 'TEXT NOT NULL',
-      end_date: 'TEXT NOT NULL',
-      mid_break_start: 'TEXT',
-      mid_break_end: 'TEXT',
-      is_active: 'INTEGER NOT NULL DEFAULT 1',
-      name: 'TEXT',
-      academic_year_name: 'TEXT',
-      period_definition_name: 'TEXT',
-      financial_year_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      academic_year_id: State.SQLite.integer({ nullable: false }),
+      period_definition_id: State.SQLite.text({ nullable: false }),
+      financial_year_id: State.SQLite.integer({ nullable: false }),
+      start_date: State.SQLite.text({ nullable: false }),
+      end_date: State.SQLite.text({ nullable: false }),
+      mid_break_start: State.SQLite.text(),
+      mid_break_end: State.SQLite.text(),
+      is_active: State.SQLite.integer({ nullable: false, default: 1 }),
+      name: State.SQLite.text(),
+      academic_year_name: State.SQLite.text(),
+      period_definition_name: State.SQLite.text(),
+      financial_year_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
-  financialYears: State.SQLite.table<FinancialYear>({
+  financialYears: State.SQLite.table({
     name: 'financial_years',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      start_date: 'TEXT NOT NULL',
-      end_date: 'TEXT NOT NULL',
-      status: 'TEXT NOT NULL',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      start_date: State.SQLite.text({ nullable: false }),
+      end_date: State.SQLite.text({ nullable: false }),
+      status: State.SQLite.text({ nullable: false }),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
   // Core Entities
-  students: State.SQLite.table<Student>({
+  students: State.SQLite.table({
     name: 'students',
     columns: {
-      id: 'TEXT PRIMARY KEY',
-      admission_no: 'TEXT NOT NULL UNIQUE',
-      upi_no: 'TEXT',
-      first_name: 'TEXT NOT NULL',
-      middle_name: 'TEXT',
-      last_name: 'TEXT NOT NULL',
-      gender: 'TEXT NOT NULL',
-      date_of_birth: 'TEXT',
-      photo_path: 'TEXT',
-      current_class_stream_id: 'INTEGER',
-      student_category_id: 'INTEGER',
-      dormitory_id: 'INTEGER',
-      admission_date: 'TEXT',
-      status: 'TEXT NOT NULL',
-      address: 'TEXT',
-      remarks: 'TEXT',
-      religion: 'TEXT',
-      county: 'TEXT',
-      district: 'TEXT',
-      student_type: 'TEXT',
-      primary_school: 'TEXT',
-      marks_attained_primary: 'TEXT',
-      class_admitted: 'TEXT',
-      stream_admitted: 'TEXT',
-      email: 'TEXT',
-      phone: 'TEXT',
-      display_name: 'TEXT',
-      user_id: 'TEXT',
-      current_class_name: 'TEXT',
-      current_class_stream_name: 'TEXT',
-      student_category_name: 'TEXT',
-      dormitory_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL',
-      deleted_at: 'TEXT'
+      id: State.SQLite.text({ primaryKey: true }),
+      admission_no: State.SQLite.text({ nullable: false }),
+      upi_no: State.SQLite.text(),
+      first_name: State.SQLite.text({ nullable: false }),
+      middle_name: State.SQLite.text(),
+      last_name: State.SQLite.text({ nullable: false }),
+      gender: State.SQLite.text({ nullable: false }),
+      date_of_birth: State.SQLite.text(),
+      photo_path: State.SQLite.text(),
+      current_class_stream_id: State.SQLite.integer(),
+      student_category_id: State.SQLite.integer(),
+      dormitory_id: State.SQLite.integer(),
+      admission_date: State.SQLite.text(),
+      status: State.SQLite.text({ nullable: false }),
+      address: State.SQLite.text(),
+      remarks: State.SQLite.text(),
+      religion: State.SQLite.text(),
+      county: State.SQLite.text(),
+      district: State.SQLite.text(),
+      student_type: State.SQLite.text(),
+      primary_school: State.SQLite.text(),
+      marks_attained_primary: State.SQLite.text(),
+      class_admitted: State.SQLite.text(),
+      stream_admitted: State.SQLite.text(),
+      email: State.SQLite.text(),
+      phone: State.SQLite.text(),
+      display_name: State.SQLite.text(),
+      user_id: State.SQLite.text(),
+      current_class_name: State.SQLite.text(),
+      current_class_stream_name: State.SQLite.text(),
+      student_category_name: State.SQLite.text(),
+      dormitory_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false }),
+      deleted_at: State.SQLite.text()
     }
   }),
 
-  staff: State.SQLite.table<Staff>({
+  staff: State.SQLite.table({
     name: 'staff',
     columns: {
-      id: 'TEXT PRIMARY KEY',
-      user_id: 'TEXT',
-      staff_no: 'TEXT NOT NULL UNIQUE',
-      first_name: 'TEXT NOT NULL',
-      last_name: 'TEXT NOT NULL',
-      phone: 'TEXT',
-      department_id: 'TEXT',
-      designation_id: 'INTEGER',
-      hod_of_department_id: 'TEXT',
-      is_active: 'INTEGER NOT NULL DEFAULT 1',
-      department_name: 'TEXT',
-      designation_title: 'TEXT',
-      hod_of_department_name: 'TEXT',
-      user_username: 'TEXT',
-      email: 'TEXT',
-      display_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL',
-      deleted_at: 'TEXT'
+      id: State.SQLite.text({ primaryKey: true }),
+      user_id: State.SQLite.text(),
+      staff_no: State.SQLite.text({ nullable: false }),
+      first_name: State.SQLite.text({ nullable: false }),
+      last_name: State.SQLite.text({ nullable: false }),
+      phone: State.SQLite.text(),
+      department_id: State.SQLite.text(),
+      designation_id: State.SQLite.integer(),
+      hod_of_department_id: State.SQLite.text(),
+      is_active: State.SQLite.integer({ nullable: false, default: 1 }),
+      department_name: State.SQLite.text(),
+      designation_title: State.SQLite.text(),
+      hod_of_department_name: State.SQLite.text(),
+      user_username: State.SQLite.text(),
+      email: State.SQLite.text(),
+      display_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false }),
+      deleted_at: State.SQLite.text()
     }
   }),
 
-  classes: State.SQLite.table<Class>({
+  classes: State.SQLite.table({
     name: 'classes',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false })
     }
   }),
 
-  classStreams: State.SQLite.table<ClassStream>({
+  classStreams: State.SQLite.table({
     name: 'class_streams',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      class_id: 'INTEGER NOT NULL',
-      name: 'TEXT NOT NULL',
-      class_teacher_id: 'TEXT',
-      class_name: 'TEXT',
-      class_teacher_name: 'TEXT'
+      id: State.SQLite.integer({ primaryKey: true }),
+      class_id: State.SQLite.integer({ nullable: false }),
+      name: State.SQLite.text({ nullable: false }),
+      class_teacher_id: State.SQLite.text(),
+      class_name: State.SQLite.text(),
+      class_teacher_name: State.SQLite.text()
     }
   }),
 
-  subjects: State.SQLite.table<Subject>({
+  subjects: State.SQLite.table({
     name: 'subjects',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      subject_code: 'TEXT NOT NULL',
-      abbreviation: 'TEXT NOT NULL',
-      name: 'TEXT NOT NULL',
-      department_id: 'TEXT',
-      is_compulsory: 'INTEGER',
-      grouping: 'TEXT NOT NULL',
-      department_name: 'TEXT'
+      id: State.SQLite.integer({ primaryKey: true }),
+      subject_code: State.SQLite.text({ nullable: false }),
+      abbreviation: State.SQLite.text({ nullable: false }),
+      name: State.SQLite.text({ nullable: false }),
+      department_id: State.SQLite.text(),
+      is_compulsory: State.SQLite.integer(),
+      grouping: State.SQLite.text({ nullable: false }),
+      department_name: State.SQLite.text()
     }
   }),
 
-  departments: State.SQLite.table<Department>({
+  departments: State.SQLite.table({
     name: 'departments',
     columns: {
-      id: 'TEXT PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      is_academic: 'INTEGER NOT NULL',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.text({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      is_academic: State.SQLite.integer({ nullable: false }),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
-  designations: State.SQLite.table<Designation>({
+  designations: State.SQLite.table({
     name: 'designations',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      title: 'TEXT NOT NULL',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      title: State.SQLite.text({ nullable: false }),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
-  studentCategories: State.SQLite.table<StudentCategory>({
+  studentCategories: State.SQLite.table({
     name: 'student_categories',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false })
     }
   }),
 
-  dormitories: State.SQLite.table<Dormitory>({
+  dormitories: State.SQLite.table({
     name: 'dormitories',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      master_id: 'TEXT',
-      master_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      master_id: State.SQLite.text(),
+      master_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
-  parentsGuardians: State.SQLite.table<ParentsGuardian>({
+  parentsGuardians: State.SQLite.table({
     name: 'parents_guardians',
     columns: {
-      id: 'TEXT PRIMARY KEY',
-      user_id: 'TEXT',
-      name: 'TEXT NOT NULL',
-      phone: 'TEXT NOT NULL',
-      email: 'TEXT',
-      relationship_type: 'TEXT',
-      location: 'TEXT',
-      address: 'TEXT',
-      photo_path: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL',
-      deleted_at: 'TEXT'
+      id: State.SQLite.text({ primaryKey: true }),
+      user_id: State.SQLite.text(),
+      name: State.SQLite.text({ nullable: false }),
+      phone: State.SQLite.text({ nullable: false }),
+      email: State.SQLite.text(),
+      relationship_type: State.SQLite.text(),
+      location: State.SQLite.text(),
+      address: State.SQLite.text(),
+      photo_path: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false }),
+      deleted_at: State.SQLite.text()
     }
   }),
 
   // Academic Management
-  subjectPapers: State.SQLite.table<SubjectPaper>({
+  subjectPapers: State.SQLite.table({
     name: 'subject_papers',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      subject_id: 'INTEGER NOT NULL',
-      paper_code: 'TEXT NOT NULL',
-      name: 'TEXT NOT NULL',
-      subject_name: 'TEXT'
+      id: State.SQLite.integer({ primaryKey: true }),
+      subject_id: State.SQLite.integer({ nullable: false }),
+      paper_code: State.SQLite.text({ nullable: false }),
+      name: State.SQLite.text({ nullable: false }),
+      subject_name: State.SQLite.text()
     }
   }),
 
-  examSessions: State.SQLite.table<ExamSession>({
+  examSessions: State.SQLite.table({
     name: 'exam_sessions',
     columns: {
-      id: 'TEXT PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      school_period_id: 'INTEGER NOT NULL',
-      start_date: 'TEXT',
-      end_date: 'TEXT',
-      status: 'TEXT NOT NULL',
-      school_period_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.text({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      school_period_id: State.SQLite.integer({ nullable: false }),
+      start_date: State.SQLite.text(),
+      end_date: State.SQLite.text(),
+      status: State.SQLite.text({ nullable: false }),
+      school_period_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
   // Finance
-  chartOfAccounts: State.SQLite.table<ChartOfAccount>({
+  chartOfAccounts: State.SQLite.table({
     name: 'chart_of_accounts',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      account_code: 'TEXT NOT NULL',
-      name: 'TEXT NOT NULL',
-      type: 'TEXT NOT NULL',
-      template_type: 'TEXT NOT NULL',
-      is_active: 'INTEGER NOT NULL DEFAULT 1',
-      expense_category_id: 'INTEGER',
-      expense_category_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      account_code: State.SQLite.text({ nullable: false }),
+      name: State.SQLite.text({ nullable: false }),
+      type: State.SQLite.text({ nullable: false }),
+      template_type: State.SQLite.text({ nullable: false }),
+      is_active: State.SQLite.integer({ nullable: false, default: 1 }),
+      expense_category_id: State.SQLite.integer(),
+      expense_category_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
-  expenseCategories: State.SQLite.table<ExpenseCategory>({
+  expenseCategories: State.SQLite.table({
     name: 'expense_categories',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false })
     }
   }),
 
-  banks: State.SQLite.table<Bank>({
+  banks: State.SQLite.table({
     name: 'banks',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      account_no: 'TEXT',
-      gl_account_id: 'INTEGER NOT NULL',
-      gl_account_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      account_no: State.SQLite.text(),
+      gl_account_id: State.SQLite.integer({ nullable: false }),
+      gl_account_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
-  suppliers: State.SQLite.table<Supplier>({
+  suppliers: State.SQLite.table({
     name: 'suppliers',
     columns: {
-      id: 'TEXT PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      phone: 'TEXT',
-      email: 'TEXT',
-      address: 'TEXT',
-      contract_expiry_date: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.text({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      phone: State.SQLite.text(),
+      email: State.SQLite.text(),
+      address: State.SQLite.text(),
+      contract_expiry_date: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   }),
 
-  feeTemplates: State.SQLite.table<FeeTemplate>({
+  feeTemplates: State.SQLite.table({
     name: 'fee_templates',
     columns: {
-      id: 'INTEGER PRIMARY KEY',
-      name: 'TEXT NOT NULL',
-      school_period_id: 'INTEGER NOT NULL',
-      student_category_id: 'INTEGER',
-      school_period_name: 'TEXT',
-      student_category_name: 'TEXT',
-      created_at: 'TEXT NOT NULL',
-      updated_at: 'TEXT NOT NULL'
+      id: State.SQLite.integer({ primaryKey: true }),
+      name: State.SQLite.text({ nullable: false }),
+      school_period_id: State.SQLite.integer({ nullable: false }),
+      student_category_id: State.SQLite.integer(),
+      school_period_name: State.SQLite.text(),
+      student_category_name: State.SQLite.text(),
+      created_at: State.SQLite.text({ nullable: false }),
+      updated_at: State.SQLite.text({ nullable: false })
     }
   })
 };
 
 // Define events for data mutations
+// Note: Events require Schema objects from @livestore/livestore which provides Schema from @livestore/utils/effect
+// Using type assertions for schema compatibility
+const makeEvent = <T, Name extends string>(name: Name, _args?: T) =>
+  ({ name, schema: {} } as unknown as { name: Name; schema: T });
+
 export const events = {
   // Student events
-  studentCreated: Events.synced<{ student: Student }>(),
-  studentUpdated: Events.synced<{ id: string; updates: Partial<Student> }>(),
-  studentDeleted: Events.synced<{ id: string }>(),
+  studentCreated: makeEvent<{ student: Student }, 'studentCreated'>('studentCreated'),
+  studentUpdated: makeEvent<{ id: string; updates: Partial<Student> }, 'studentUpdated'>('studentUpdated'),
+  studentDeleted: makeEvent<{ id: string }, 'studentDeleted'>('studentDeleted'),
 
   // Staff events
-  staffCreated: Events.synced<{ staff: Staff }>(),
-  staffUpdated: Events.synced<{ id: string; updates: Partial<Staff> }>(),
-  staffDeleted: Events.synced<{ id: string }>(),
+  staffCreated: makeEvent<{ staff: Staff }, 'staffCreated'>('staffCreated'),
+  staffUpdated: makeEvent<{ id: string; updates: Partial<Staff> }, 'staffUpdated'>('staffUpdated'),
+  staffDeleted: makeEvent<{ id: string }, 'staffDeleted'>('staffDeleted'),
 
   // Class events
-  classCreated: Events.synced<{ class: Class }>(),
-  classUpdated: Events.synced<{ id: number; updates: Partial<Class> }>(),
-  classDeleted: Events.synced<{ id: number }>(),
+  classCreated: makeEvent<{ class: Class }, 'classCreated'>('classCreated'),
+  classUpdated: makeEvent<{ id: number; updates: Partial<Class> }, 'classUpdated'>('classUpdated'),
+  classDeleted: makeEvent<{ id: number }, 'classDeleted'>('classDeleted'),
 
   // Class Stream events
-  classStreamCreated: Events.synced<{ classStream: ClassStream }>(),
-  classStreamUpdated: Events.synced<{ id: number; updates: Partial<ClassStream> }>(),
-  classStreamDeleted: Events.synced<{ id: number }>(),
+  classStreamCreated: makeEvent<{ classStream: ClassStream }, 'classStreamCreated'>('classStreamCreated'),
+  classStreamUpdated: makeEvent<{ id: number; updates: Partial<ClassStream> }, 'classStreamUpdated'>('classStreamUpdated'),
+  classStreamDeleted: makeEvent<{ id: number }, 'classStreamDeleted'>('classStreamDeleted'),
 
   // Subject events
-  subjectCreated: Events.synced<{ subject: Subject }>(),
-  subjectUpdated: Events.synced<{ id: number; updates: Partial<Subject> }>(),
-  subjectDeleted: Events.synced<{ id: number }>(),
+  subjectCreated: makeEvent<{ subject: { id: number; name: string } }, 'subjectCreated'>('subjectCreated'),
+  subjectUpdated: makeEvent<{ id: number; updates: Record<string, unknown> }, 'subjectUpdated'>('subjectUpdated'),
+  subjectDeleted: makeEvent<{ id: number }, 'subjectDeleted'>('subjectDeleted'),
 
   // Department events
-  departmentCreated: Events.synced<{ department: Department }>(),
-  departmentUpdated: Events.synced<{ id: string; updates: Partial<Department> }>(),
-  departmentDeleted: Events.synced<{ id: string }>(),
+  departmentCreated: makeEvent<{ department: Department }, 'departmentCreated'>('departmentCreated'),
+  departmentUpdated: makeEvent<{ id: string; updates: Partial<Department> }, 'departmentUpdated'>('departmentUpdated'),
+  departmentDeleted: makeEvent<{ id: string }, 'departmentDeleted'>('departmentDeleted'),
 
   // Academic Year events
-  academicYearCreated: Events.synced<{ academicYear: AcademicYear }>(),
-  academicYearUpdated: Events.synced<{ id: number; updates: Partial<AcademicYear> }>(),
-  academicYearDeleted: Events.synced<{ id: number }>(),
+  academicYearCreated: makeEvent<{ academicYear: AcademicYear }, 'academicYearCreated'>('academicYearCreated'),
+  academicYearUpdated: makeEvent<{ id: number; updates: Partial<AcademicYear> }, 'academicYearUpdated'>('academicYearUpdated'),
+  academicYearDeleted: makeEvent<{ id: number }, 'academicYearDeleted'>('academicYearDeleted'),
 
   // School Period events
-  schoolPeriodCreated: Events.synced<{ schoolPeriod: SchoolPeriod }>(),
-  schoolPeriodUpdated: Events.synced<{ id: number; updates: Partial<SchoolPeriod> }>(),
-  schoolPeriodDeleted: Events.synced<{ id: number }>(),
+  schoolPeriodCreated: makeEvent<{ schoolPeriod: SchoolPeriod }, 'schoolPeriodCreated'>('schoolPeriodCreated'),
+  schoolPeriodUpdated: makeEvent<{ id: number; updates: Partial<SchoolPeriod> }, 'schoolPeriodUpdated'>('schoolPeriodUpdated'),
+  schoolPeriodDeleted: makeEvent<{ id: number }, 'schoolPeriodDeleted'>('schoolPeriodDeleted'),
 
   // Financial Year events
-  financialYearCreated: Events.synced<{ financialYear: FinancialYear }>(),
-  financialYearUpdated: Events.synced<{ id: number; updates: Partial<FinancialYear> }>(),
-  financialYearDeleted: Events.synced<{ id: number }>(),
+  financialYearCreated: makeEvent<{ financialYear: FinancialYear }, 'financialYearCreated'>('financialYearCreated'),
+  financialYearUpdated: makeEvent<{ id: number; updates: Partial<FinancialYear> }, 'financialYearUpdated'>('financialYearUpdated'),
+  financialYearDeleted: makeEvent<{ id: number }, 'financialYearDeleted'>('financialYearDeleted'),
 
   // User events
-  userCreated: Events.synced<{ user: User }>(),
-  userUpdated: Events.synced<{ id: string; updates: Partial<User> }>(),
-  userDeleted: Events.synced<{ id: string }>(),
+  userCreated: makeEvent<{ user: User }, 'userCreated'>('userCreated'),
+  userUpdated: makeEvent<{ id: string; updates: Partial<User> }, 'userUpdated'>('userUpdated'),
+  userDeleted: makeEvent<{ id: string }, 'userDeleted'>('userDeleted'),
 
   // Role events
-  roleCreated: Events.synced<{ role: Role }>(),
-  roleUpdated: Events.synced<{ id: number; updates: Partial<Role> }>(),
-  roleDeleted: Events.synced<{ id: number }>(),
+  roleCreated: makeEvent<{ role: Role }, 'roleCreated'>('roleCreated'),
+  roleUpdated: makeEvent<{ id: number; updates: Partial<Role> }, 'roleUpdated'>('roleUpdated'),
+  roleDeleted: makeEvent<{ id: number }, 'roleDeleted'>('roleDeleted'),
 
   // Parent/Guardian events
-  parentGuardianCreated: Events.synced<{ parentGuardian: ParentsGuardian }>(),
-  parentGuardianUpdated: Events.synced<{ id: string; updates: Partial<ParentsGuardian> }>(),
-  parentGuardianDeleted: Events.synced<{ id: string }>(),
+  parentGuardianCreated: makeEvent<{ parentGuardian: ParentsGuardian }, 'parentGuardianCreated'>('parentGuardianCreated'),
+  parentGuardianUpdated: makeEvent<{ id: string; updates: Partial<ParentsGuardian> }, 'parentGuardianUpdated'>('parentGuardianUpdated'),
+  parentGuardianDeleted: makeEvent<{ id: string }, 'parentGuardianDeleted'>('parentGuardianDeleted'),
 
   // Finance events
-  chartOfAccountCreated: Events.synced<{ account: ChartOfAccount }>(),
-  chartOfAccountUpdated: Events.synced<{ id: number; updates: Partial<ChartOfAccount> }>(),
-  chartOfAccountDeleted: Events.synced<{ id: number }>(),
+  chartOfAccountCreated: makeEvent<{ account: ChartOfAccount }, 'chartOfAccountCreated'>('chartOfAccountCreated'),
+  chartOfAccountUpdated: makeEvent<{ id: number; updates: Partial<ChartOfAccount> }, 'chartOfAccountUpdated'>('chartOfAccountUpdated'),
+  chartOfAccountDeleted: makeEvent<{ id: number }, 'chartOfAccountDeleted'>('chartOfAccountDeleted'),
 
-  expenseCategoryCreated: Events.synced<{ category: ExpenseCategory }>(),
-  expenseCategoryUpdated: Events.synced<{ id: number; updates: Partial<ExpenseCategory> }>(),
-  expenseCategoryDeleted: Events.synced<{ id: number }>(),
+  expenseCategoryCreated: makeEvent<{ category: ExpenseCategory }, 'expenseCategoryCreated'>('expenseCategoryCreated'),
+  expenseCategoryUpdated: makeEvent<{ id: number; updates: Partial<ExpenseCategory> }, 'expenseCategoryUpdated'>('expenseCategoryUpdated'),
+  expenseCategoryDeleted: makeEvent<{ id: number }, 'expenseCategoryDeleted'>('expenseCategoryDeleted'),
 
-  bankCreated: Events.synced<{ bank: Bank }>(),
-  bankUpdated: Events.synced<{ id: number; updates: Partial<Bank> }>(),
-  bankDeleted: Events.synced<{ id: number }>(),
+  bankCreated: makeEvent<{ bank: Bank }, 'bankCreated'>('bankCreated'),
+  bankUpdated: makeEvent<{ id: number; updates: Partial<Bank> }, 'bankUpdated'>('bankUpdated'),
+  bankDeleted: makeEvent<{ id: number }, 'bankDeleted'>('bankDeleted'),
 
-  supplierCreated: Events.synced<{ supplier: Supplier }>(),
-  supplierUpdated: Events.synced<{ id: string; updates: Partial<Supplier> }>(),
-  supplierDeleted: Events.synced<{ id: string }>(),
+  supplierCreated: makeEvent<{ supplier: Supplier }, 'supplierCreated'>('supplierCreated'),
+  supplierUpdated: makeEvent<{ id: string; updates: Partial<Supplier> }, 'supplierUpdated'>('supplierUpdated'),
+  supplierDeleted: makeEvent<{ id: string }, 'supplierDeleted'>('supplierDeleted'),
 
-  feeTemplateCreated: Events.synced<{ feeTemplate: FeeTemplate }>(),
-  feeTemplateUpdated: Events.synced<{ id: number; updates: Partial<FeeTemplate> }>(),
-  feeTemplateDeleted: Events.synced<{ id: number }>()
+  feeTemplateCreated: makeEvent<{ feeTemplate: FeeTemplate }, 'feeTemplateCreated'>('feeTemplateCreated'),
+  feeTemplateUpdated: makeEvent<{ id: number; updates: Partial<FeeTemplate> }, 'feeTemplateUpdated'>('feeTemplateUpdated'),
+  feeTemplateDeleted: makeEvent<{ id: number }, 'feeTemplateDeleted'>('feeTemplateDeleted')
 };
 
 // Export the complete schema

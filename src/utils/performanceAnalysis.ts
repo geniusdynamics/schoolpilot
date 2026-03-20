@@ -1,7 +1,7 @@
 // ABOUTME: Performance analysis utilities for statistical analysis and trend detection
 // ABOUTME: Provides helper functions for performance data analysis and visualization
 
-import { PerformanceBenchmark, ComparisonResult } from '../services/performanceBenchmark';
+import { PerformanceBenchmark } from '../services/performanceBenchmark';
 import { ChartDataPoint, PerformanceChartData } from '../types/performance';
 
 /**
@@ -298,7 +298,6 @@ export interface PerformanceInsight {
 
 export function generateInsights(
   benchmarks: PerformanceBenchmark[],
-  baseline?: PerformanceBenchmark
 ): PerformanceInsight[] {
   const insights: PerformanceInsight[] = [];
 
@@ -380,9 +379,10 @@ export function formatPerformanceValue(value: number, metric: string): string {
     case 'dataOperationTime':
     case 'interactionResponseTime':
       return value < 1000 ? `${value.toFixed(1)}ms` : `${(value / 1000).toFixed(2)}s`;
-    case 'memoryUsage':
+    case 'memoryUsage': {
       const mb = value / (1024 * 1024);
       return mb < 1024 ? `${mb.toFixed(1)}MB` : `${(mb / 1024).toFixed(2)}GB`;
+    }
     case 'totalMetrics':
       return value.toString();
     default:

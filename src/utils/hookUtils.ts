@@ -45,7 +45,7 @@ export const validateDeps = (deps: DependencyList | undefined, hookName: string)
     return false;
   }
   
-  const invalidDeps = deps.filter((dep, index) => dep === undefined || dep === null);
+  const invalidDeps = deps.filter((dep) => dep === undefined || dep === null);
   if (invalidDeps.length > 0) {
     console.error(`[${hookName}] Found ${invalidDeps.length} undefined/null dependencies`);
     return false;
@@ -86,8 +86,6 @@ export class HookErrorHandler {
  */
 export const safeUseCallback = <T extends (...args: any[]) => any>(
   callback: T,
-  deps: DependencyList | undefined,
-  hookName: string = 'useCallback'
 ): T => {
   // This function is now a no-op. Components should use React's native useCallback.
   // Its original implementation was flawed as it didn't use React's useCallback internally.
@@ -99,8 +97,6 @@ export const safeUseCallback = <T extends (...args: any[]) => any>(
  */
 export const safeUseMemo = <T>(
   factory: () => T,
-  deps: DependencyList | undefined,
-  hookName: string = 'useMemo'
 ): T => {
   // This function is now a no-op. Components should use React's native useMemo.
   // Its original implementation was flawed as it didn't use React's useMemo internally.

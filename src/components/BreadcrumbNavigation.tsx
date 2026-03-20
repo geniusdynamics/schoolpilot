@@ -38,6 +38,7 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  void navigate;
   const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems, isLoading } = useDynamicNavigation(true);
   const { navigateToUrl } = useTabNavigation();

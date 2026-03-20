@@ -339,7 +339,7 @@ export class DataValidator {
   }> {
     try {
       let isValid = true;
-      let errorMessage = rule.message;
+      const errorMessage = rule.message;
 
       switch (rule.type) {
         case 'required':

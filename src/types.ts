@@ -6,9 +6,3 @@ export * from './core/types';
 
 // Module types - exported for cross-module usage
 export * from './modules/finance/data/types';
-export * from './modules/administration/data/types';
-export * from './modules/academics/data/types';
-export * from './modules/hr/data/types';
-export * from './modules/inventory/data/types';
-export * from './modules/library/data/types';
-export * from './modules/nutrition/data/types';

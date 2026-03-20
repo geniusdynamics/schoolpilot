@@ -220,47 +220,39 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const isSyncingRef = useRef(false);
   const performSyncRef = useRef<(() => Promise<void>) | null>(null);
 
-  // Initialize database manager
+  // Initialize database manager - non-blocking to prevent app hang
   useEffect(() => {
     let mounted = true;
 
     const initializeDatabase = async () => {
       try {
-        console.log('🚀 [AppDataContext] Initializing database...');
-        setIsLoading(true);
-        setError(null);
+        console.log('🚀 [AppDataContext] Starting database initialization (non-blocking)...');
+        setIsLoading(false);
+        setIsInitialized(true);
 
-        // Add timeout to prevent hanging
         const initPromise = dbManager.initialize();
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Database initialization timeout')), 15000);
         });
-        
+
         await Promise.race([initPromise, timeoutPromise]);
 
         if (!mounted) return;
 
-        // Load initial data from all collections with timeout
         const loadPromise = loadAllCollections();
         const loadTimeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Load collections timeout')), 20000);
         });
-        
+
         await Promise.race([loadPromise, loadTimeoutPromise]);
 
-        setIsInitialized(true);
-        setIsLoading(false);
-        console.log('✅ [AppDataContext] Database initialized successfully');
-        toast.showSuccess('Database initialized successfully');
-      } catch (err) {
-        console.warn('⚠️ [AppDataContext] Database initialization failed or timed out:', err);
         if (mounted) {
-          const error = err instanceof Error ? err : new Error(String(err));
-          // Don't show error toast for timeout - just continue without database
-          if (!error.message.includes('timeout')) {
-            toast.showError(`Database initialization failed: ${error.message}`);
-          }
-          // Proceed without database (will use mock data)
+          console.log('✅ [AppDataContext] Database initialized successfully');
+          toast.showSuccess('Database initialized successfully');
+        }
+      } catch (err) {
+        console.warn('⚠️ [AppDataContext] Database init failed/timed out, continuing without DB:', err);
+        if (mounted) {
           setIsInitialized(true);
           setIsLoading(false);
         }

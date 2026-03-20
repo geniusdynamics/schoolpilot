@@ -43,6 +43,7 @@ let database: any = null;
 
 // Mock database interface to maintain compatibility
 class MockDatabase {
+  [key: string]: any;
   private collectionsMap = new Map<string, ICollection<any>>();
   private databaseManager = getDatabaseManager();
 

@@ -125,7 +125,7 @@ export class AnalyticsEngine {
           });
           break;
 
-        case 'averageAttendance':
+        case 'averageAttendance': {
           const avgAttendance = data.reduce((sum, d) => sum + (d.attendanceRate || 0), 0) / data.length;
           results.push({
             id: 'averageAttendance',
@@ -136,8 +136,8 @@ export class AnalyticsEngine {
             suffix: '%',
           });
           break;
-
-        case 'totalFees':
+        }
+        case 'totalFees': {
           const totalFees = data.reduce((sum, d) => sum + (d.amount || 0), 0);
           results.push({
             id: 'totalFees',
@@ -148,8 +148,8 @@ export class AnalyticsEngine {
             prefix: '$',
           });
           break;
-
-        case 'passRate':
+        }
+        case 'passRate': {
           const passed = data.filter(d => d.grade !== 'F').length;
           const passRate = data.length > 0 ? (passed / data.length) * 100 : 0;
           results.push({
@@ -161,8 +161,8 @@ export class AnalyticsEngine {
             suffix: '%',
           });
           break;
-
-        case 'newAdmissions':
+        }
+        case 'newAdmissions': {
           const thirtyDaysAgo = new Date();
           thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
           const newStudents = data.filter(d => new Date(d.admissionDate) >= thirtyDaysAgo).length;
@@ -174,8 +174,8 @@ export class AnalyticsEngine {
             format: 'number',
           });
           break;
-
-        case 'genderRatio':
+        }
+        case 'genderRatio': {
           const males = data.filter(d => d.gender === 'male').length;
           const females = data.filter(d => d.gender === 'female').length;
           results.push({
@@ -186,6 +186,7 @@ export class AnalyticsEngine {
             format: 'number',
           });
           break;
+        }
 
         default:
           // Custom metric calculation

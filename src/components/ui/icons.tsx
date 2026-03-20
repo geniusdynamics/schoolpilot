@@ -567,3 +567,22 @@ export { XMarkIcon } from '@heroicons/react/24/outline';
 
 // Alias for SearchIcon to fix import errors
 export const SearchIcon: React.FC<IconProps> = MagnifyingGlassIcon;
+
+// Compatibility aliases used across modules
+export const TrashIcon: React.FC<IconProps> = DeleteIcon;
+export const UserIcon: React.FC<IconProps> = UserCircleIcon;
+export const CalendarIcon: React.FC<IconProps> = CalendarDaysIcon;
+export const DocumentArrowUpIcon: React.FC<IconProps> = ArrowUpTrayIcon;
+export const SchoolIcon: React.FC<IconProps> = AcademicCapIcon;
+export const InboxIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75h16.5a.75.75 0 01.75.75v10.19a2.25 2.25 0 01-2.25 2.25h-3.436a1.5 1.5 0 00-1.06.44l-1.19 1.19a1.5 1.5 0 01-2.122 0l-1.19-1.19a1.5 1.5 0 00-1.06-.44H5.25A2.25 2.25 0 013 14.69V4.5a.75.75 0 01.75-.75z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h4.5a1.5 1.5 0 011.342.83l.316.633a1.5 1.5 0 001.342.83h2.999a1.5 1.5 0 001.342-.83l.316-.632A1.5 1.5 0 0116.5 12H21" />
+  </svg>
+);
+export const FunnelIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c-4.97 0-9 1.343-9 3s4.03 3 9 3 9-1.343 9-3-4.03-3-9-3zM3 6.75v.75c0 1.657 4.03 3 9 3s9-1.343 9-3v-.75M3 10.5v.75c0 1.657 4.03 3 9 3s9-1.343 9-3v-.75M10.5 14.25v6.19l3 1.56v-7.75" />
+  </svg>
+);
+export const FilterIcon: React.FC<IconProps> = FunnelIcon;

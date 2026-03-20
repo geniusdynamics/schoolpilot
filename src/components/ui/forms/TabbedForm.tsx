@@ -204,7 +204,7 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
     const isAccessible = isTabAccessible(tabIndex);
     const isVisited = visitedTabs.has(tabIndex);
     
-    let classes = [
+    const classes = [
       'relative flex items-center justify-center transition-all duration-200',
       currentSize.tab,
       currentSize.gap,

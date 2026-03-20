@@ -1,21 +1,30 @@
 // ABOUTME: Manages data relationships and dependencies across storage types
 // ABOUTME: Ensures referential integrity and proper data generation order
 
-import { IStorageAdapter, RelationshipDefinition, ValidationResult } from './types';
+import { IStorageAdapter, ValidationResult } from './types';
+
+// Local relationship definition matching actual usage
+interface LocalRelationshipDefinition {
+  table: string;
+  column: string;
+  required: boolean;
+}
 
 export class RelationshipManager {
-  private relationships: Map<string, RelationshipDefinition[]> = new Map();
+  private relationships: Map<string, LocalRelationshipDefinition[]> = new Map();
   private generationOrder: string[] = [];
-  private adapter: IStorageAdapter;
+  private adapter: IStorageAdapter | null = null;
 
-  constructor(adapter: IStorageAdapter) {
-    this.adapter = adapter;
+  constructor(adapter?: IStorageAdapter) {
+    if (adapter) {
+      this.adapter = adapter;
+    }
     this.initializeRelationships();
   }
 
   private initializeRelationships(): void {
     // Define core relationships based on the technical architecture
-    const relationships: Record<string, RelationshipDefinition[]> = {
+    const relationships: Record<string, LocalRelationshipDefinition[]> = {
       // Core Administration
       students: [
         { table: 'academic_years', column: 'academic_year_id', required: true },
@@ -32,7 +41,7 @@ export class RelationshipManager {
       dormitories: [
         { table: 'staff', column: 'matron_id', required: true }
       ],
-      
+
       // Academic Module
       subject_papers: [
         { table: 'subjects', column: 'subject_id', required: true }
@@ -45,7 +54,7 @@ export class RelationshipManager {
         { table: 'subjects', column: 'subject_id', required: true },
         { table: 'staff', column: 'teacher_id', required: true }
       ],
-      
+
       // Finance Module
       chart_of_accounts: [
         { table: 'voteheads', column: 'votehead_id', required: false }
@@ -61,7 +70,7 @@ export class RelationshipManager {
         { table: 'staff', column: 'staff_id', required: true },
         { table: 'expense_categories', column: 'category_id', required: true }
       ],
-      
+
       // Library Module
       books: [
         { table: 'book_categories', column: 'category_id', required: true },
@@ -71,13 +80,13 @@ export class RelationshipManager {
         { table: 'books', column: 'book_id', required: true },
         { table: 'students', column: 'student_id', required: true }
       ],
-      
+
       // Nutrition Module
       student_meal_assignments: [
         { table: 'students', column: 'student_id', required: true },
         { table: 'meal_plans', column: 'meal_plan_id', required: true }
       ],
-      
+
       // Inventory Module
       inventory_items: [
         { table: 'suppliers', column: 'supplier_id', required: false }
@@ -99,6 +108,14 @@ export class RelationshipManager {
 
     // Calculate generation order
     this.calculateGenerationOrder();
+  }
+
+  getRelationships(): Record<string, LocalRelationshipDefinition[]> {
+    const result: Record<string, LocalRelationshipDefinition[]> = {};
+    for (const [table, deps] of this.relationships) {
+      result[table] = [...deps];
+    }
+    return result;
   }
 
   private calculateGenerationOrder(): void {
@@ -146,7 +163,7 @@ export class RelationshipManager {
     return [...this.generationOrder];
   }
 
-  getTableDependencies(tableName: string): RelationshipDefinition[] {
+  getTableDependencies(tableName: string): LocalRelationshipDefinition[] {
     return this.relationships.get(tableName) || [];
   }
 
@@ -158,7 +175,7 @@ export class RelationshipManager {
     for (const record of data) {
       for (const dep of dependencies) {
         const foreignKeyValue = record[dep.column];
-        
+
         if (dep.required && (foreignKeyValue === null || foreignKeyValue === undefined)) {
           errors.push(`Missing required foreign key ${dep.column} in table ${tableName}`);
           continue;
@@ -185,6 +202,9 @@ export class RelationshipManager {
   }
 
   private async checkForeignKeyExists(tableName: string, keyValue: any): Promise<boolean> {
+    if (!this.adapter) {
+      return false;
+    }
     try {
       const results = await this.adapter.query(
         `SELECT 1 FROM ${tableName} WHERE id = ? LIMIT 1`,
@@ -233,6 +253,9 @@ export class RelationshipManager {
   }
 
   private async getRandomForeignKey(tableName: string): Promise<string | null> {
+    if (!this.adapter) {
+      return null;
+    }
     try {
       const results = await this.adapter.query(
         `SELECT id FROM ${tableName} ORDER BY RANDOM() LIMIT 1`
@@ -251,18 +274,18 @@ export class RelationshipManager {
 
   getDependencyGraph(): Record<string, string[]> {
     const graph: Record<string, string[]> = {};
-    
+
     for (const [table, deps] of this.relationships) {
       graph[table] = deps.filter(d => d.required).map(d => d.table);
     }
-    
+
     return graph;
   }
 
   validateGenerationOrder(): boolean {
     const graph = this.getDependencyGraph();
     const position = new Map<string, number>();
-    
+
     this.generationOrder.forEach((table, index) => {
       position.set(table, index);
     });
@@ -270,26 +293,26 @@ export class RelationshipManager {
     for (const [table, deps] of Object.entries(graph)) {
       const tablePos = position.get(table);
       if (tablePos === undefined) continue;
-      
+
       for (const dep of deps) {
         const depPos = position.get(dep);
         if (depPos === undefined) continue;
-        
+
         if (depPos >= tablePos) {
           console.error(`Dependency order violation: ${dep} should come before ${table}`);
           return false;
         }
       }
     }
-    
+
     return true;
   }
 
-  addRelationship(tableName: string, relationship: RelationshipDefinition): void {
+  addRelationship(tableName: string, relationship: LocalRelationshipDefinition): void {
     const existing = this.relationships.get(tableName) || [];
     existing.push(relationship);
     this.relationships.set(tableName, existing);
-    
+
     // Recalculate generation order
     this.calculateGenerationOrder();
   }
