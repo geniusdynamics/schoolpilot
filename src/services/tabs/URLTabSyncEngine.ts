@@ -7,14 +7,40 @@
 
 import type { Tab, ParsedTabState, TabStateSnapshot } from './types';
 import { performanceEventManager } from '../performanceEventManager';
+import { TabStateDeriver } from './TabStateDeriver';
 
 const STORAGE_KEY = 'sp_tabs_v2';
 const MAX_TABS = 20;
+const TAB_PARAM = 'tab';
+const ACTIVE_INDEX_PARAM = 'a';
+const PINNED_INDEX_PARAM = 'p';
+const DIRTY_INDEX_PARAM = 'd';
+const LEGACY_TABS_PARAM = 'tabs';
+const LEGACY_ACTIVE_PARAM = 'active';
 
 export class URLTabSyncEngine {
   private subscribers: Set<(state: ParsedTabState) => void> = new Set();
   private lastState: ParsedTabState | null = null;
   private isProcessing = false;
+  private readonly deriver = new TabStateDeriver((key, options) => {
+    if (key.startsWith('navigation:')) {
+      return this.formatFallbackLabel(key.replace('navigation:', '').split('.')[0] || 'dashboard');
+    }
+
+    if (key.startsWith('entities.')) {
+      return this.formatFallbackLabel(key.replace('entities.', ''));
+    }
+
+    if (key === 'tabs.editEntity') {
+      return `Edit ${String(options?.entity || 'Item')}`;
+    }
+
+    if (key === 'tabs.viewEntity') {
+      return String(options?.entity || 'Item');
+    }
+
+    return key;
+  });
 
   constructor() {
     // Listen for browser back/forward
@@ -38,8 +64,13 @@ export class URLTabSyncEngine {
       const urlObj = new URL(url, window.location.origin);
       const params = urlObj.searchParams;
 
+      const compactState = this.parseCompactTabState(params);
+      if (compactState) {
+        return compactState;
+      }
+
       // Try to get tabs from URL first
-      const tabsParam = params.get('tabs');
+      const tabsParam = params.get(LEGACY_TABS_PARAM);
       if (tabsParam) {
         try {
           let tabs: unknown = null;
@@ -52,7 +83,7 @@ export class URLTabSyncEngine {
 
           if (Array.isArray(tabs) && tabs.length > 0) {
             const validTabs = this.validateTabs(tabs);
-            const activeTabId = params.get('active') || validTabs[0]?.id;
+            const activeTabId = params.get(LEGACY_ACTIVE_PARAM) || validTabs[0]?.id;
             return { tabs: validTabs, activeTabId };
           }
         } catch (e) {
@@ -82,36 +113,14 @@ export class URLTabSyncEngine {
     this.isProcessing = true;
 
     try {
-      const url = new URL(window.location.href);
-
-      // Serialize tabs (only essential data to keep URL size reasonable)
-      const minimalTabs = state.tabs.map(t => ({
-        id: t.id,
-        url: t.url,
-        title: t.title,
-        module: t.module,
-        entity: t.entity,
-        entityId: t.entityId,
-        isDirty: t.isDirty,
-        pinned: t.pinned,
-        icon: t.icon
-      }));
-
-      const tabsParam = JSON.stringify(minimalTabs);
-      url.searchParams.set('tabs', tabsParam);
-      url.searchParams.set('active', state.activeTabId);
-
-      // Check URL length to avoid exceeding browser limits (typically 2048 chars)
-      // If it's too long, we'll just omit the tabs from the URL and rely on sessionStorage
-      const urlString = url.toString();
-      const finalUrl = urlString.length > 2000 ? window.location.pathname + window.location.search : urlString;
-
+      const finalUrl = this.createURL(state);
+      const historyState = this.buildHistoryState(state);
       // Update browser history
       try {
         if (options?.push) {
-          window.history.pushState({ tabs: minimalTabs, active: state.activeTabId }, '', finalUrl);
+          window.history.pushState(historyState, '', finalUrl);
         } else {
-          window.history.replaceState({ tabs: minimalTabs, active: state.activeTabId }, '', finalUrl);
+          window.history.replaceState(historyState, '', finalUrl);
         }
         performanceEventManager.markDiagnostic('tab_url_updated', {
           mode: options?.push ? 'push' : 'replace',
@@ -159,8 +168,8 @@ export class URLTabSyncEngine {
    */
   getActiveTabId(url: string = window.location.href): string | null {
     try {
-      const urlObj = new URL(url);
-      return urlObj.searchParams.get('active');
+      const parsed = this.parseURL(url);
+      return parsed.activeTabId || null;
     } catch {
       return null;
     }
@@ -287,7 +296,7 @@ export class URLTabSyncEngine {
       module: 'dashboard',
       isDirty: false,
       pinned: true,
-      icon: 'HomeIcon'
+      icon: 'Home'
     };
     
     return {
@@ -335,6 +344,176 @@ export class URLTabSyncEngine {
       JSON.stringify(this.lastState.tabs.map(t => t.id)) !== 
       JSON.stringify(newState.tabs.map(t => t.id))
     );
+  }
+
+  private parseCompactTabState(params: URLSearchParams): ParsedTabState | null {
+    const tabUrls = params.getAll(TAB_PARAM).filter(Boolean);
+
+    if (tabUrls.length === 0) {
+      return null;
+    }
+
+    const pinnedIndices = this.parseIndexSet(params.getAll(PINNED_INDEX_PARAM));
+    const dirtyIndices = this.parseIndexSet(params.getAll(DIRTY_INDEX_PARAM));
+    const tabs = this.restoreCompactTabs(tabUrls, pinnedIndices, dirtyIndices);
+
+    if (tabs.length === 0) {
+      return null;
+    }
+
+    const requestedActiveIndex = Number.parseInt(params.get(ACTIVE_INDEX_PARAM) || '0', 10);
+    const activeIndex = Number.isInteger(requestedActiveIndex)
+      ? Math.min(Math.max(requestedActiveIndex, 0), tabs.length - 1)
+      : 0;
+
+    return {
+      tabs,
+      activeTabId: tabs[activeIndex]?.id || tabs[0].id
+    };
+  }
+
+  private parseIndexSet(values: string[]): Set<number> {
+    return new Set(
+      values
+        .map(value => Number.parseInt(value, 10))
+        .filter(value => Number.isInteger(value) && value >= 0)
+    );
+  }
+
+  private restoreCompactTabs(tabUrls: string[], pinnedIndices: Set<number>, dirtyIndices: Set<number>): Tab[] {
+    const seenUrls = new Map<string, number>();
+
+    return tabUrls
+      .map(url => this.normalizeTabUrl(url))
+      .filter(Boolean)
+      .slice(0, MAX_TABS)
+      .map((url, index) => {
+        const occurrence = (seenUrls.get(url) || 0) + 1;
+        seenUrls.set(url, occurrence);
+
+        const derivedTab = this.deriver.deriveTab(url);
+
+        return {
+          ...derivedTab,
+          id: this.buildRestoredTabId(derivedTab, occurrence),
+          pinned: pinnedIndices.has(index) || derivedTab.pinned,
+          isDirty: dirtyIndices.has(index)
+        };
+      });
+  }
+
+  private normalizeTabUrl(url: string): string {
+    try {
+      const parsed = new URL(url, window.location.origin);
+      return `${parsed.pathname}${parsed.search}`;
+    } catch {
+      return url.startsWith('/') ? url : `/${url.replace(/^\/+/, '')}`;
+    }
+  }
+
+  createURL(state: ParsedTabState, hashRoute?: string): string {
+    const url = new URL(window.location.href);
+    const activeTabIndex = Math.max(0, state.tabs.findIndex(tab => tab.id === state.activeTabId));
+
+    this.clearTabSearchParams(url.searchParams);
+    this.applyStateToSearchParams(url.searchParams, state, activeTabIndex);
+
+    if (hashRoute !== undefined) {
+      url.hash = this.normalizeHashRoute(hashRoute);
+    }
+
+    const urlString = url.toString();
+    return urlString.length > 2000 ? this.buildStorageFallbackURL(url) : urlString;
+  }
+
+  private buildRestoredTabId(tab: Tab, occurrence: number): string {
+    if (tab.module === 'dashboard' && !tab.entity && !tab.entityId && occurrence === 1) {
+      return 'tab-dashboard';
+    }
+
+    const segments = ['tab', tab.module];
+
+    if (tab.entity) {
+      segments.push(tab.entity);
+    }
+
+    if (tab.entityId) {
+      segments.push(tab.entityId);
+    }
+
+    if (occurrence > 1 || (!tab.entity && !tab.entityId)) {
+      segments.push(String(occurrence));
+    }
+
+    return segments.join('-');
+  }
+
+  private clearTabSearchParams(params: URLSearchParams): void {
+    [
+      TAB_PARAM,
+      ACTIVE_INDEX_PARAM,
+      PINNED_INDEX_PARAM,
+      DIRTY_INDEX_PARAM,
+      LEGACY_TABS_PARAM,
+      LEGACY_ACTIVE_PARAM
+    ].forEach(param => params.delete(param));
+  }
+
+  private buildStorageFallbackURL(url: URL): string {
+    const cleanUrl = new URL(url.toString());
+    this.clearTabSearchParams(cleanUrl.searchParams);
+    return `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`;
+  }
+
+  private applyStateToSearchParams(params: URLSearchParams, state: ParsedTabState, activeTabIndex: number): void {
+    state.tabs.forEach((tab, index) => {
+      params.append(TAB_PARAM, tab.url);
+
+      if (tab.pinned) {
+        params.append(PINNED_INDEX_PARAM, String(index));
+      }
+
+      if (tab.isDirty) {
+        params.append(DIRTY_INDEX_PARAM, String(index));
+      }
+    });
+
+    params.set(ACTIVE_INDEX_PARAM, String(activeTabIndex));
+  }
+
+  private buildHistoryState(state: ParsedTabState) {
+    const activeTabIndex = Math.max(0, state.tabs.findIndex(tab => tab.id === state.activeTabId));
+
+    return {
+      tabs: state.tabs.map(tab => ({
+        id: tab.id,
+        url: tab.url,
+        pinned: tab.pinned,
+        isDirty: tab.isDirty
+      })),
+      activeTabId: state.activeTabId,
+      activeTabIndex
+    };
+  }
+
+  private normalizeHashRoute(route: string): string {
+    const normalizedRoute = route.startsWith('#') ? route.slice(1) : route;
+
+    if (!normalizedRoute) {
+      return '';
+    }
+
+    return normalizedRoute.startsWith('/')
+      ? `#${normalizedRoute}`
+      : `#/${normalizedRoute.replace(/^\/+/, '')}`;
+  }
+
+  private formatFallbackLabel(value: string): string {
+    return value
+      .split(/[-_]/)
+      .filter(Boolean)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 }
 
