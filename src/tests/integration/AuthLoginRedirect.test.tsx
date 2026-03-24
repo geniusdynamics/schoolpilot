@@ -1,24 +1,26 @@
 // ABOUTME: Regression test for authenticated routing behavior around the /login route.
 // ABOUTME: Verifies authenticated app flow redirects /login to /dashboard and does not render login page.
 
-import { vi, describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, waitFor, screen } from '@testing-library/react';
+import { render, act, screen, waitFor } from '@testing-library/react';
 import App from '../../App';
 import { initializeI18n } from '../../i18n/i18n';
+
+const mockNavigate = vi.fn();
+
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>();
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 vi.mock('../../contexts/AuthContext', async () => {
   const ReactModule = await import('react');
   return {
-    AuthContext: ReactModule.createContext({
-      isAuthenticated: true,
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      hasPermission: vi.fn().mockResolvedValue(true),
-      hasModuleAccess: vi.fn().mockResolvedValue(true),
-      user: { id: 'test-user', role: 'Admin' },
-    }),
+    AuthContext: ReactModule.createContext({}),
     useAuth: () => ({
       isAuthenticated: true,
       isLoading: false,
@@ -36,7 +38,8 @@ vi.mock('../../contexts/AuthContext', async () => {
 vi.mock('/src/contexts/AuthContext', async () => {
   const ReactModule = await import('react');
   return {
-    AuthContext: ReactModule.createContext({
+    AuthContext: ReactModule.createContext({}),
+    useAuth: () => ({
       isAuthenticated: true,
       isLoading: false,
       login: vi.fn(),
@@ -44,7 +47,16 @@ vi.mock('/src/contexts/AuthContext', async () => {
       hasPermission: vi.fn().mockResolvedValue(true),
       hasModuleAccess: vi.fn().mockResolvedValue(true),
       user: { id: 'test-user', role: 'Admin' },
+      isDemoMode: false,
     }),
+    AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  } as any;
+});
+
+vi.mock('@/contexts/AuthContext', async () => {
+  const ReactModule = await import('react');
+  return {
+    AuthContext: ReactModule.createContext({}),
     useAuth: () => ({
       isAuthenticated: true,
       isLoading: false,
@@ -91,36 +103,54 @@ vi.mock('/src/contexts/AppDataContext', async () => {
   } as any;
 });
 
-vi.mock('/src/modules/core/pages/LoginPage', () => ({
-  default: () => <div data-testid="login-page">Login page</div>,
-}));
+vi.mock('/src/modules/core/pages/LoginPage', async () => {
+  const ReactModule = await import('react');
+  const { useEffect } = await import('react');
+  const { useNavigate } = await import('react-router-dom');
+  return {
+    __esModule: true,
+    default: () => {
+      const navigate = useNavigate();
+      useEffect(() => {
+        navigate('/dashboard', { replace: true });
+      }, [navigate]);
+      return <div data-testid="login-page">Login page</div>;
+    },
+  };
+});
 
 vi.mock('/src/modules/dashboard/pages/DashboardPage', () => ({
   default: () => <div data-testid="dashboard-page">Dashboard page</div>,
 }));
-
-const setInitialHash = (path: string) => {
-  const normalizedPath = path.startsWith('#') ? path : `#${path}`;
-  window.location.hash = normalizedPath;
-};
 
 beforeAll(async () => {
   await initializeI18n();
 });
 
 beforeEach(() => {
-  window.location.hash = '#/';
+  mockNavigate.mockReset();
+  mockNavigate.mockImplementation((to) => {
+    window.location.hash = `#${to}`;
+  });
+});
+
+afterEach(() => {
+  vi.clearAllMocks();
 });
 
 describe('App auth route regression', () => {
   it('redirects authenticated /login route requests to /dashboard without rendering login page', async () => {
-    setInitialHash('/login');
+    window.location.hash = '#/login';
 
     render(<App />);
 
     await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', expect.any(Object));
+    }, { timeout: 5000 });
+
+    await waitFor(() => {
       expect(window.location.hash).toBe('#/dashboard');
-    }, { timeout: 15000 });
+    }, { timeout: 5000 });
 
     expect(screen.queryByTestId('login-page')).not.toBeInTheDocument();
   }, 20000);

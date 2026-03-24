@@ -135,7 +135,13 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
             context: ['workspace'],
             permissions: ['workspace.refresh'],
             execute: async () => {
-              window.location.reload();
+              setIsLoading(true);
+              try {
+                await initialize();
+                clearCorruptedData();
+              } finally {
+                setIsLoading(false);
+              }
             }
           });
 

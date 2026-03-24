@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
       plugins: [
         react(),
         VitePWA({
-          registerType: 'autoUpdate',
+          registerType: 'prompt',
           workbox: {
             // Keep precaching enabled for build assets while allowing larger JS chunks.
             // Default Workbox cap is 2 MiB, which can fail production builds.

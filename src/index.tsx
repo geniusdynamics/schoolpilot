@@ -11,17 +11,24 @@ import App from './App';
 import './index.css';
 import i18n, { initializeI18n } from './i18n/i18n'; // Import your i18n configuration
 import { initializeUnifiedConfig } from './config/unifiedConfig';
+import { performanceEventManager } from './services/performanceEventManager';
 
 // Initialize unified configuration
 initializeUnifiedConfig();
 
 // Wait for i18n to be ready before rendering
 const initializeApp = async () => {
+  performanceEventManager.markDiagnostic('app_initialize_start', {
+    href: window.location.href
+  });
   try {
     // Wait for i18n to be ready
     await initializeI18n();
     console.log('✅ i18n initialized successfully');
   } catch (error) {
+    performanceEventManager.markDiagnostic('app_initialize_i18n_failed', {
+      error: error instanceof Error ? error.message : String(error)
+    });
     console.warn('⚠️ i18n initialization failed, continuing with fallback:', error);
   }
   
@@ -30,8 +37,14 @@ const initializeApp = async () => {
 };
 
 const renderApp = () => {
+  performanceEventManager.markDiagnostic('app_render_start', {
+    href: window.location.href
+  });
   // Add global debug helpers
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && import.meta.env.DEV) {
+    (window as any).debugNavigationDiagnostics = () => {
+      return performanceEventManager.getDiagnosticsSnapshot(100);
+    };
     (window as any).debugAuth = async () => {
     const { authService } = await import('./services/authService');
     return {
@@ -47,8 +60,7 @@ const renderApp = () => {
     const result = await authService.login({ username, password });
     console.log('Login result:', result);
     if (result.success) {
-      console.log('Login successful! Refreshing page...');
-      setTimeout(() => location.reload(), 1000);
+      console.log('Login successful!');
     }
     return result;
   };

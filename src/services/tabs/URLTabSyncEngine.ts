@@ -6,6 +6,7 @@
  */
 
 import type { Tab, ParsedTabState, TabStateSnapshot } from './types';
+import { performanceEventManager } from '../performanceEventManager';
 
 const STORAGE_KEY = 'sp_tabs_v2';
 const MAX_TABS = 20;
@@ -112,7 +113,15 @@ export class URLTabSyncEngine {
         } else {
           window.history.replaceState({ tabs: minimalTabs, active: state.activeTabId }, '', finalUrl);
         }
+        performanceEventManager.markDiagnostic('tab_url_updated', {
+          mode: options?.push ? 'push' : 'replace',
+          tabsCount: state.tabs.length,
+          activeTabId: state.activeTabId
+        });
       } catch (historyErr) {
+        performanceEventManager.markDiagnostic('tab_url_update_failed', {
+          error: historyErr instanceof Error ? historyErr.message : String(historyErr)
+        });
         console.warn('[URLTabSyncEngine] Failed to update browser history:', historyErr);
       }
 
@@ -219,6 +228,9 @@ export class URLTabSyncEngine {
   }
 
   private handleURLChange(): void {
+    performanceEventManager.markDiagnostic('tab_url_popstate', {
+      href: window.location.href
+    });
     const state = this.parseURL();
     this.lastState = state;
     this.notifySubscribers(state);
