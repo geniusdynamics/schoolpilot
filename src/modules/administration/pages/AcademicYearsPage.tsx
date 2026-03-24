@@ -16,14 +16,13 @@ type AcademicYearFormData = Omit<Partial<AcademicYear>, 'id' | 'created_at' | 'u
 };
 
 const AcademicYearsPage: React.FC = () => {
-  const { 
-    academicYears, 
-    academicYearStructures,
-    loading, 
-    addAcademicYear, 
-    updateAcademicYear, 
-    deleteAcademicYear 
-  } = useAppData(); // Updated
+  const appData = useAppData();
+  const academicYears = appData.academicYears || [];
+  const academicYearStructures = appData.academicYearStructures || [];
+  const loading = appData.loading || {};
+  const addAcademicYear = appData.addAcademicYear;
+  const updateAcademicYear = appData.updateAcademicYear;
+  const deleteAcademicYear = appData.deleteAcademicYear;
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);

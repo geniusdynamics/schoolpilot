@@ -14,13 +14,12 @@ type AcademicStructureFormData = Omit<Partial<AcademicYearStructure>, 'id'>;
 
 const AcademicStructurePage: React.FC = () => {
   const { t } = useTranslation();
-  const { 
-    academicYearStructures, 
-    loading, 
-    addAcademicYearStructure, 
-    updateAcademicYearStructure, 
-    deleteAcademicYearStructure 
-  } = useAppData(); // Updated
+  const appData = useAppData();
+  const academicYearStructures = appData.academicYearStructures || [];
+  const loading = appData.loading || {};
+  const addAcademicYearStructure = appData.addAcademicYearStructure;
+  const updateAcademicYearStructure = appData.updateAcademicYearStructure;
+  const deleteAcademicYearStructure = appData.deleteAcademicYearStructure;
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStructure, setEditingStructure] = useState<AcademicYearStructure | null>(null);
