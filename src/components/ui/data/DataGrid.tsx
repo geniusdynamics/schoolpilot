@@ -38,6 +38,7 @@ export interface DataGridProps<T> {
   columns: DataGridColumn<T>[];
   data: T[];
   loading?: boolean;
+  isLoading?: boolean; // For backward compatibility with older components
   sortable?: boolean;
   filterable?: boolean;
   selectable?: boolean;
@@ -46,7 +47,12 @@ export interface DataGridProps<T> {
   onSelectionChange?: (selected: T[]) => void;
   onSort?: (key: string, direction: 'asc' | 'desc') => void;
   onFilter?: (filters: Record<string, string>) => void;
-  emptyState?: ReactNode;
+  emptyState?: ReactNode | { 
+    icon?: ReactNode; 
+    title: string; 
+    description?: string; 
+    action?: ReactNode | { label: string; onClick: () => void; icon?: ReactNode };
+  };
   loadingState?: ReactNode;
   className?: string;
 }
@@ -65,6 +71,7 @@ const DataGrid = <T extends Record<string, any>>({
   columns,
   data,
   loading = false,
+  isLoading,
   sortable = true,
   filterable = true,
   selectable = false,
@@ -81,6 +88,8 @@ const DataGrid = <T extends Record<string, any>>({
   const [filterState, setFilterState] = useState<FilterState>({});
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+
+  const effectiveLoading = loading || isLoading || false;
 
   // Validate and prepare data with defensive checks
   const validatedData = useMemo(() => {
@@ -247,6 +256,52 @@ const DataGrid = <T extends Record<string, any>>({
   const isAllSelected = selectedRows.size === processedData.length && processedData.length > 0;
   const isIndeterminate = selectedRows.size > 0 && selectedRows.size < processedData.length;
 
+  const renderEmptyState = () => {
+    if (!emptyState) {
+      return (
+        <div className="text-gray-500">
+          <div className="text-lg mb-2">📊</div>
+          <div className="text-sm">No data available</div>
+        </div>
+      );
+    }
+    
+    // If it's a valid React element or primitive, render it directly
+    if (React.isValidElement(emptyState) || typeof emptyState === 'string' || typeof emptyState === 'number') {
+      return emptyState as ReactNode;
+    }
+    
+    // Otherwise, treat it as our custom object format
+    const state = emptyState as any; // Using any here since we know it's the object shape
+    
+    let actionElement = null;
+    if (state.action) {
+      if (React.isValidElement(state.action)) {
+        actionElement = state.action;
+      } else if (typeof state.action === 'object' && state.action.label) {
+        // Fallback for objects like { label: '...', onClick: ... }
+        actionElement = (
+          <button 
+            onClick={state.action.onClick}
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            {state.action.icon && <span className="mr-2 -ml-1">{state.action.icon}</span>}
+            {state.action.label}
+          </button>
+        );
+      }
+    }
+
+    return (
+      <div className="text-gray-500 flex flex-col items-center py-4">
+        {state.icon && <div className="mb-4">{state.icon}</div>}
+        {state.title && <div className="text-lg font-medium text-gray-900 mb-1">{state.title}</div>}
+        {state.description && <div className="text-sm mb-4">{state.description}</div>}
+        {actionElement && <div>{actionElement}</div>}
+      </div>
+    );
+  };
+
 return (
     <TableErrorBoundary
       tableName="DataGrid"
@@ -337,7 +392,7 @@ return (
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
+            {effectiveLoading ? (
               <tr>
                 <td colSpan={columns.length + (selectable ? 1 : 0)} className="px-6 py-8 text-center">
                   {loadingState || (
@@ -348,12 +403,7 @@ return (
             ) : processedData.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + (selectable ? 1 : 0)} className="px-6 py-12 text-center">
-                  {emptyState || (
-                    <div className="text-gray-500">
-                      <div className="text-lg mb-2">📊</div>
-                      <div className="text-sm">No data available</div>
-                    </div>
-                  )}
+                  {renderEmptyState()}
                 </td>
               </tr>
             ) : (

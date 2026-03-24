@@ -12,8 +12,7 @@ interface BackendConfigurationProps {
   className?: string;
 }
 
-export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ className: _className = '' }) => {
-  void _className;
+export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ className = '' }) => {
   const [currentBackend, setCurrentBackend] = useState<BackendType>('frontend-only');
   const [backendConfig, setBackendConfig] = useState<BackendConfig | null>(null);
   const [isApiAvailable, setIsApiAvailable] = useState<boolean>(false);

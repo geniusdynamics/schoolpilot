@@ -3,14 +3,18 @@
 
 import React from 'react';
 
+interface ErrorBoundaryProps {
+  resetKey?: string;
+}
+
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
   errorInfo: React.ErrorInfo | null;
 }
 
-class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBoundaryState> {
-  constructor(props: React.PropsWithChildren<{}>) {
+class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundaryProps>, ErrorBoundaryState> {
+  constructor(props: React.PropsWithChildren<ErrorBoundaryProps>) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
   }
@@ -40,6 +44,12 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
     
     // Optionally log error to external service
     // logErrorToService(error, errorInfo);
+  }
+
+  componentDidUpdate(prevProps: Readonly<React.PropsWithChildren<ErrorBoundaryProps>>) {
+    if (this.props.resetKey !== prevProps.resetKey && this.state.hasError) {
+      this.setState({ hasError: false, error: null, errorInfo: null });
+    }
   }
 
   private isDatabaseRelatedError(error: Error): boolean {

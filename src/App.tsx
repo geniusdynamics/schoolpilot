@@ -529,7 +529,7 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
     <LayoutComponent>
       {/* Main content with error boundary */}
       <div className="flex-1">
-        <ErrorBoundary>
+        <ErrorBoundary resetKey={`${location.pathname}|${location.search}|${location.hash}`}>
           <DynamicRoutes
             modulesInitialized={modulesInitialized}
             userId={user?.id}

@@ -103,8 +103,8 @@ describe('FeeAdjustmentsPage', () => {
     
     // Check for DataGrid specific elements
     expect(screen.getByText('KES -1000.00')).toBeInTheDocument();
-    expect(screen.getByText('EXEMPTION')).toBeInTheDocument();
     expect(screen.getByText('Scholarship award')).toBeInTheDocument();
+    expect(screen.getByText('INV001')).toBeInTheDocument();
   });
 
   test('shows Add Adjustment button', () => {
@@ -133,5 +133,19 @@ describe('FeeAdjustmentsPage', () => {
 
     renderWithContext(loadingContext);
     expect(screen.getByText('Loading Fee Adjustments...')).toBeInTheDocument();
+  });
+
+  test('renders safely when related collections are missing', () => {
+    const partialContext = {
+      ...mockContextValue,
+      students: undefined,
+      schoolPeriods: undefined,
+      loading: undefined
+    };
+
+    renderWithContext(partialContext);
+
+    expect(screen.getByText('Student Fee Adjustments')).toBeInTheDocument();
+    expect(screen.getByText('Add Adjustment')).toBeInTheDocument();
   });
 });
