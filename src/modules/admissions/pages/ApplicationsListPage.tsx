@@ -14,6 +14,7 @@ import {
   SearchIcon,
   FilterIcon,
   DownloadIcon,
+  DocumentTextIcon,
 } from '@/components/ui/icons';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import {

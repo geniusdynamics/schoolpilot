@@ -131,6 +131,7 @@
     "dependencyReport": "Dependency Report",
     "auditLog": "Audit Log",
     "databaseProvider": "Database Provider",
+    "databaseAdmin": "Database & Backend Admin",
     "databaseSettings": "Database Settings",
     "dataLayerSettings": "Data Layer Settings",
     "dataManagement": "Data Management",

@@ -59,7 +59,7 @@ const MealConsumptionLogPage: React.FC = () => {
   };
 
   const recentLogs = useMemo(() => 
-    [...mealConsumptionLogs]
+    [...(mealConsumptionLogs || [])]
       .sort((a, b) => new Date(b.consumption_time).getTime() - new Date(a.consumption_time).getTime())
       .slice(0, 20), // Show latest 20 logs
   [mealConsumptionLogs]);

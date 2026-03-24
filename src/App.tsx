@@ -38,17 +38,14 @@ import GlobalNotifications from './components/GlobalNotifications';
 const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 const ErrorTrackingTest = lazy(() => import('./components/ErrorTrackingTest'));
-const TabbedWorkspaceTestPage = lazy(() => import('./modules/settings/pages/TabbedWorkspaceTestPage'));
-const TabbedModeTestPage = lazy(() => import('./modules/settings/pages/TabbedModeTestPage'));
-const PerformanceMonitor = lazy(() => import('./components/PerformanceMonitor'));
+  const PerformanceMonitor = lazy(() => import('./components/PerformanceMonitor'));
 
 // Explicitly lazy load settings pages to ensure correct routing
 const SettingsPage = lazy(() => import('./modules/settings/pages/SettingsPage'));
 const UnifiedSettingsPage = lazy(() => import('./modules/settings/pages/UnifiedSettingsPage'));
 const FeatureSettingsPage = lazy(() => import('./modules/settings/pages/FeatureSettingsPage'));
-const DatabaseSettingsPage = lazy(() => import('./modules/settings/pages/DatabaseSettingsPage'));
-const DataManagementSettingsPage = lazy(() => import('./modules/settings/pages/DataManagementSettingsPage'));
-const BackupSettingsPage = lazy(() => import('./modules/settings/pages/BackupSettingsPage'));
+const DataManagementPage = lazy(() => import('./modules/settings/pages/DataManagementPage'));
+const DatabaseAdminPage = lazy(() => import('./modules/settings/pages/DatabaseAdminPage'));
 const AuditLogPage = lazy(() => import('./modules/settings/pages/AuditLogPage'));
 
 // Vite will statically analyze all .tsx files in ./modules/*/pages
@@ -225,22 +222,6 @@ const DynamicRoutes = ({
           </Suspense>
         }
       />
-      <Route
-        path="/test/tabbed-workspace"
-        element={
-          <Suspense fallback={<div>Loading...</div>}>
-            <TabbedWorkspaceTestPage />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/test/tabbed-mode"
-        element={
-          <Suspense fallback={<div>Loading...</div>}>
-            <TabbedModeTestPage />
-          </Suspense>
-        }
-      />
 
       {/* Explicit Settings Routes - Fixes routing bug where settings pages were navigating to Audit Log */}
       <Route
@@ -274,35 +255,25 @@ const DynamicRoutes = ({
         }
       />
       <Route
-        path="/settings/database"
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
-              <DatabaseSettingsPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings/data-management"
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
-              <DataManagementSettingsPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings/backup"
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
-              <BackupSettingsPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
+          path="/settings/data-management"
+          element={
+            <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+              <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+                <DataManagementPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings/database-admin"
+          element={
+            <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+              <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+                <DatabaseAdminPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
       <Route
         path="/settings/audit-log"
         element={
