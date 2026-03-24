@@ -1,7 +1,7 @@
 // ABOUTME: Feature flag service for controlling tabbed mode per module
 // ABOUTME: Allows gradual rollout of tabbed mode functionality
 
-import { getCurrentUnifiedConfig, updateTabsConfig } from '../config/unifiedConfig';
+import { getCurrentUnifiedConfig } from '../config/unifiedConfig';
 
 export interface TabbedModeConfig {
   // Global enable/disable
@@ -29,12 +29,11 @@ class TabbedModeFeatureFlag {
       const unifiedConfig = getCurrentUnifiedConfig();
       console.log('TabbedModeFeatureFlag: Unified config:', unifiedConfig);
       
-      const tabsAdvanced = unifiedConfig.tabs?.advanced || {};
       const config = {
-        globalEnabled: tabsAdvanced.enableTabbedMode ?? false,
-        moduleOverrides: tabsAdvanced.tabbedModeModuleOverrides || {},
-        enableTabbedMode: tabsAdvanced.enableTabbedMode ?? false,
-        enablePerModuleControl: tabsAdvanced.enablePerModuleControl ?? false
+        globalEnabled: unifiedConfig.features?.enableTabbedMode ?? false,
+        moduleOverrides: unifiedConfig.features?.tabbedModeModuleOverrides || {},
+        enableTabbedMode: unifiedConfig.features?.enableTabbedMode ?? false,
+        enablePerModuleControl: unifiedConfig.features?.enablePerModuleControl ?? false
       };
       
       console.log('TabbedModeFeatureFlag: Loaded config:', config);
@@ -91,14 +90,12 @@ class TabbedModeFeatureFlag {
   public forceEnable(): void {
     this.config.globalEnabled = true;
     this.config.enableTabbedMode = true;
-    this.syncToUnifiedConfig();
   }
   
   // Force disable tabbed mode for testing
   public forceDisable(): void {
     this.config.globalEnabled = false;
     this.config.enableTabbedMode = false;
-    this.syncToUnifiedConfig();
   }
   
   // Update configuration (for runtime changes)
@@ -107,7 +104,6 @@ class TabbedModeFeatureFlag {
       ...this.config,
       ...newConfig
     };
-    this.syncToUnifiedConfig();
   }
   
   // Reset to default configuration
@@ -118,25 +114,11 @@ class TabbedModeFeatureFlag {
   // Update module override
   public setModuleOverride(moduleId: string, enabled: boolean): void {
     this.config.moduleOverrides[moduleId] = enabled;
-    this.syncToUnifiedConfig();
   }
   
   // Remove module override (will use global setting)
   public removeModuleOverride(moduleId: string): void {
     delete this.config.moduleOverrides[moduleId];
-    this.syncToUnifiedConfig();
-  }
-
-  private syncToUnifiedConfig(): void {
-    const currentTabs = getCurrentUnifiedConfig().tabs;
-    updateTabsConfig({
-      advanced: {
-        ...currentTabs.advanced,
-        enableTabbedMode: this.config.enableTabbedMode,
-        enablePerModuleControl: this.config.enablePerModuleControl,
-        tabbedModeModuleOverrides: this.config.moduleOverrides
-      }
-    });
   }
 }
 

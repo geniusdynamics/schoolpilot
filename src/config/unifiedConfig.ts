@@ -125,10 +125,9 @@ export interface FeatureConfig {
   performanceMonitorWidget: boolean;
   
   // Tabbed Mode Features
-  // Migrated to TabsConfig.advanced
-  // enableTabbedMode: boolean;
-  // enablePerModuleControl: boolean;
-  // tabbedModeModuleOverrides: Record<string, boolean>;
+  enableTabbedMode: boolean;
+  enablePerModuleControl: boolean;
+  tabbedModeModuleOverrides: Record<string, boolean>;
 }
 
 // Development Settings
@@ -257,37 +256,6 @@ export interface EnvironmentConfigIntegration {
   overrideSource?: 'url' | 'env' | 'manual';
 }
 
-// Tabs Configuration
-export interface TabsConfig {
-  general: {
-    openingDirection: 'ltr' | 'rtl';
-    newTabPlacement: 'end' | 'next';
-    defaultPage: string;
-  };
-  behavior: {
-    closeButtonVisibility: 'always' | 'hover' | 'never';
-    tabScrolling: 'smooth' | 'auto' | 'buttons';
-    activationOnHoverTiming: number; // ms, 0 means disabled
-    muteUnmuteBehavior: 'click' | 'context-menu' | 'disabled';
-  };
-  appearance: {
-    minTabWidth: number; // px
-    maxTabWidth: number; // px
-    faviconVisibility: boolean;
-    tabPreviewThumbnails: boolean;
-    colorAccents: boolean;
-  };
-  advanced: {
-    sessionRestoreGranularity: 'all' | 'pinned' | 'none';
-    memorySuspendTimeout: number; // ms
-    extensionOverrides: boolean;
-    debuggingTelemetry: boolean;
-    enableTabbedMode: boolean;
-    enablePerModuleControl: boolean;
-    tabbedModeModuleOverrides: Record<string, boolean>;
-  };
-}
-
 // Main Unified Configuration Interface
 export interface UnifiedAppConfig {
   // Core Configuration
@@ -345,10 +313,23 @@ export interface UnifiedAppConfig {
     enableCommunicationCenter: true,
     enableAnalyticsDashboard: true,
     
-    // Tabbed mode feature flags (migrated)
-    // enableTabbedMode: true,
-    // enablePerModuleControl: true,
-    // tabbedModeModuleOverrides: {...}
+    // Tabbed mode feature flags
+    enableTabbedMode: true,
+    enablePerModuleControl: true,
+    tabbedModeModuleOverrides: {
+      'dashboard': true,
+      'settings': true,
+      'reports': true,
+      'academics': false,
+      'administration': false,
+      'finance': false,
+      'hr': false,
+      'inventory': false,
+      'library': false,
+      'nutrition': false,
+      'admissions': false,
+      'audit': false,
+    },
     
     // Demo/Test mode features
     demoMode: false,
@@ -358,9 +339,6 @@ export interface UnifiedAppConfig {
     enableTestLogin: false,
   },
   
-  // Tabs Configuration
-  tabs: TabsConfig;
-  
   // Development Configuration
   development: DevelopmentConfig;
   
@@ -369,37 +347,6 @@ export interface UnifiedAppConfig {
   lastUpdated: Date;
   configVersion: string;
 }
-
-// Default Tabs Configuration
-const DEFAULT_TABS_CONFIG: TabsConfig = {
-  general: {
-    openingDirection: 'ltr',
-    newTabPlacement: 'end',
-    defaultPage: 'dashboard',
-  },
-  behavior: {
-    closeButtonVisibility: 'hover',
-    tabScrolling: 'smooth',
-    activationOnHoverTiming: 0,
-    muteUnmuteBehavior: 'click',
-  },
-  appearance: {
-    minTabWidth: 120,
-    maxTabWidth: 240,
-    faviconVisibility: true,
-    tabPreviewThumbnails: false,
-    colorAccents: true,
-  },
-  advanced: {
-    sessionRestoreGranularity: 'all',
-    memorySuspendTimeout: 300000,
-    extensionOverrides: false,
-    debuggingTelemetry: false,
-    enableTabbedMode: true,
-    enablePerModuleControl: true,
-    tabbedModeModuleOverrides: {},
-  },
-};
 
 // Default Feature Configuration
 const DEFAULT_FEATURES: FeatureConfig = {
@@ -421,10 +368,10 @@ const DEFAULT_FEATURES: FeatureConfig = {
   advancedErrorBoundaries: true,
   performanceMonitorWidget: false,
   
-  // Tabbed Mode Features (migrated)
-  // enableTabbedMode: true,
-  // enablePerModuleControl: true,
-  // tabbedModeModuleOverrides: {}
+  // Tabbed Mode Features (enabled by default for testing)
+  enableTabbedMode: true,
+  enablePerModuleControl: true,
+  tabbedModeModuleOverrides: {}
 };
 
 // Default Development Configuration
@@ -538,11 +485,6 @@ function createDefaultConfig(): UnifiedAppConfig {
     features: {
       ...DEFAULT_FEATURES,
       ...envConfig.features,
-    },
-    
-    // Tabs Configuration
-    tabs: {
-      ...DEFAULT_TABS_CONFIG,
     },
     
     // Development Configuration
@@ -983,22 +925,16 @@ export class UnifiedConfigManager {
             localStorage.setItem(CONFIG_VERSION_KEY, CONFIG_VERSION);
           }
           
-          // Deep merge features and tabs to ensure new config keys are included
-            const mergedConfig = {
-              ...config,
-              ...parsed,
-              features: {
-                ...config.features, // Start with defaults to ensure all flags exist
-                ...(parsed.features || {}) // Then apply user preferences
-              },
-              tabs: {
-                general: { ...config.tabs.general, ...(parsed.tabs?.general || {}) },
-                behavior: { ...config.tabs.behavior, ...(parsed.tabs?.behavior || {}) },
-                appearance: { ...config.tabs.appearance, ...(parsed.tabs?.appearance || {}) },
-                advanced: { ...config.tabs.advanced, ...(parsed.tabs?.advanced || {}) },
-              },
-              lastUpdated: new Date(parsed.lastUpdated || Date.now()),
-            };
+          // Deep merge features to ensure new feature flags are included
+          const mergedConfig = {
+            ...config,
+            ...parsed,
+            features: {
+              ...config.features, // Start with defaults to ensure all flags exist
+              ...parsed.features // Then apply user preferences
+            },
+            lastUpdated: new Date(parsed.lastUpdated || Date.now()),
+          };
           
           // Check if any feature flags are missing and add them
           const defaultFeatureFlags = Object.keys(config.features) as (keyof FeatureConfig)[];
@@ -1346,38 +1282,15 @@ export class UnifiedConfigManager {
   }
 
   /**
-     * Get current database configuration
-     */
-    public getDatabaseConfig(): DatabaseConfig {
-      return { ...this.config.database };
-    }
+   * Get current database configuration
+   */
+  public getDatabaseConfig(): DatabaseConfig {
+    return { ...this.config.database };
+  }
 
-    /**
-     * Get current tabs configuration
-     */
-    public getTabsConfig(): TabsConfig {
-      return { ...this.config.tabs };
-    }
-
-    /**
-     * Update tabs configuration
-     */
-    public updateTabsConfig(updates: Partial<TabsConfig>): void {
-      this.config.tabs = {
-        ...this.config.tabs,
-        ...updates,
-        general: { ...this.config.tabs.general, ...(updates.general || {}) },
-        behavior: { ...this.config.tabs.behavior, ...(updates.behavior || {}) },
-        appearance: { ...this.config.tabs.appearance, ...(updates.appearance || {}) },
-        advanced: { ...this.config.tabs.advanced, ...(updates.advanced || {}) },
-      };
-      this.saveConfig();
-      this.notifyListeners();
-    }
-
-    /**
-     * Update database configuration
-     */
+  /**
+   * Update database configuration
+   */
   public updateDatabaseConfig(updates: Partial<DatabaseConfig>): void {
     this.config.database = {
       ...this.config.database,
@@ -1947,16 +1860,8 @@ export const getDatabaseConfig = (): DatabaseConfig => {
 };
 
 export const updateDatabaseConfig = (updates: Partial<DatabaseConfig>): void => {
-    unifiedConfigManager.updateDatabaseConfig(updates);
-  };
-
-  export const getTabsConfig = (): TabsConfig => {
-    return unifiedConfigManager.getTabsConfig();
-  };
-
-  export const updateTabsConfig = (updates: Partial<TabsConfig>): void => {
-    unifiedConfigManager.updateTabsConfig(updates);
-  };
+  unifiedConfigManager.updateDatabaseConfig(updates);
+};
 
 export const updateDatabaseProvider = (provider: DatabaseProvider): void => {
   unifiedConfigManager.updateDatabaseProvider(provider);
