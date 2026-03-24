@@ -17,15 +17,14 @@ type FeeAdjustmentFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 
 };
 
 const FeeAdjustmentsPage: React.FC = () => {
-  const { 
-    feeAdjustments, 
-    students,
-    schoolPeriods,
-    loading,
-    addFeeAdjustment,
-    updateFeeAdjustment,
-    deleteFeeAdjustment
-  } = useAppData();
+  const appData = useAppData();
+  const feeAdjustments = appData.feeAdjustments || [];
+  const students = appData.students || [];
+  const schoolPeriods = appData.schoolPeriods || [];
+  const loading = appData.loading || {};
+  const addFeeAdjustment = appData.addFeeAdjustment;
+  const updateFeeAdjustment = appData.updateFeeAdjustment;
+  const deleteFeeAdjustment = appData.deleteFeeAdjustment;
   const { showToast } = useToast();
   
   const [isModalOpen, setIsModalOpen] = useState(false);

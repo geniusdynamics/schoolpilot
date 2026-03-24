@@ -15,16 +15,15 @@ type AssignmentFormData = Omit<Partial<StudentTransportAssignment>, 'id' | 'crea
 };
 
 const StudentTransportAssignmentsPage: React.FC = () => {
-  const { 
-    studentTransportAssignments, 
-    students,
-    transportRoutes,
-    schoolPeriods,
-    loading, 
-    addStudentTransportAssignment, 
-    updateStudentTransportAssignment, 
-    deleteStudentTransportAssignment 
-  } = useAppData();
+  const appData = useAppData();
+  const studentTransportAssignments = appData.studentTransportAssignments || [];
+  const students = appData.students || [];
+  const transportRoutes = appData.transportRoutes || [];
+  const schoolPeriods = appData.schoolPeriods || [];
+  const loading = appData.loading || {};
+  const addStudentTransportAssignment = appData.addStudentTransportAssignment;
+  const updateStudentTransportAssignment = appData.updateStudentTransportAssignment;
+  const deleteStudentTransportAssignment = appData.deleteStudentTransportAssignment;
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<StudentTransportAssignment | null>(null);

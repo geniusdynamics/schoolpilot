@@ -34,15 +34,18 @@ interface FeatureSettingsProps {
 }
 
 const FeatureSettings: React.FC<FeatureSettingsProps> = ({
-  className: _className = ''
+  className = ''
 }) => {
-  void _className;
   const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'ui-components'>('overview');
   const { config, updateConfig, resetConfig, applyPreset } = useUnifiedConfig();
   const { current: currentEnvironment } = useEnvironment();
   console.log('FeatureSettings loaded config with features:', Object.keys(config.features));
 
   const {
+    isOnline = false,
+    backendAvailable = false,
+    syncStatus,
+    pendingSyncCount = 0,
     conflicts = [],
     resolveConflict: _resolveConflictFn,
     resolveAllConflicts: _resolveAllConflictsFn,
@@ -76,11 +79,10 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
   void _resolveAllConflictsFn;
 
   // Safely get queue status with comprehensive fallback
-  const queueStatus = {
+  const queueStatus = _getQueueStatus?.() || {
     api: { pending: 0, processing: false, byPriority: {}, completed: 0 },
     sync: { pending: 0, processing: false, byPriority: {}, errors: 0 }
   };
-  void _getQueueStatus;
 
   const handleFeatureToggle = (feature: keyof typeof config.features) => {
     const newConfig = {
