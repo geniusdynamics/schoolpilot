@@ -223,6 +223,7 @@
       "unified": "Unified Settings",
       "features": "Feature Settings",
       "dataManagement": "Data Management",
+      "databaseAdmin": "Database & Backend Admin",
       "databaseSettings": "Database Settings",
       "tabs": "Tab Settings",
       "tabbedModeSettings": "Tabbed Mode",

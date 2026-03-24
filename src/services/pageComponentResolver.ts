@@ -8,9 +8,8 @@ import { pageHealthMonitor } from './pageHealthMonitor';
 // This fixes the issue where settings pages were all resolving to AuditLogPage
 import UnifiedSettingsPage from '../modules/settings/pages/UnifiedSettingsPage';
 import FeatureSettingsPage from '../modules/settings/pages/FeatureSettingsPage';
-import DatabaseSettingsPage from '../modules/settings/pages/DatabaseSettingsPage';
-import DataManagementSettingsPage from '../modules/settings/pages/DataManagementSettingsPage';
-import BackupSettingsPage from '../modules/settings/pages/BackupSettingsPage';
+import DataManagementPage from '../modules/settings/pages/DataManagementPage';
+import DatabaseAdminPage from '../modules/settings/pages/DatabaseAdminPage';
 import AuditLogPage from '../modules/settings/pages/AuditLogPage';
 import SettingsPage from '../modules/settings/pages/SettingsPage';
 
@@ -18,9 +17,8 @@ import SettingsPage from '../modules/settings/pages/SettingsPage';
 const explicitPageMapping: Record<string, React.ComponentType> = {
   'UnifiedSettingsPage': UnifiedSettingsPage,
   'FeatureSettingsPage': FeatureSettingsPage,
-  'DatabaseSettingsPage': DatabaseSettingsPage,
-  'DataManagementSettingsPage': DataManagementSettingsPage,
-  'BackupSettingsPage': BackupSettingsPage,
+  'DataManagementPage': DataManagementPage,
+  'DatabaseAdminPage': DatabaseAdminPage,
   'AuditLogPage': AuditLogPage,
   'SettingsPage': SettingsPage,
 };

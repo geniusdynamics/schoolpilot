@@ -146,6 +146,8 @@
     "auditLog": "Audit Log",
     "database": "Database Management",
     "databaseProvider": "Database Provider",
+    "dataManagement": "Data Management & Sync",
+    "databaseAdmin": "Database & Backend Admin",
     "databaseSettings": "Database Settings",
     "dataLayerSettings": "Data Layer Settings",
     "users": "User Management",

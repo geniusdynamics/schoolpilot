@@ -38,8 +38,8 @@ const StudentWalletPage: React.FC = () => {
   const [txFormData, setTxFormData] = useState<WalletTransactionFormData>(initialTxFormData);
 
   const filteredStudentWallets = useMemo(() => {
-    return studentWallets.filter(sw => {
-        const student = students.find(s => s.id === sw.student_id);
+    return (studentWallets || []).filter(sw => {
+        const student = (students || []).find(s => s.id === sw.student_id);
         return student && `${student.first_name} ${student.last_name} ${student.admission_no}`.toLowerCase().includes(searchTerm.toLowerCase());
     });
   }, [studentWallets, students, searchTerm]);
