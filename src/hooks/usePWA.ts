@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { performanceEventManager } from '../services/performanceEventManager';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -111,6 +112,9 @@ export function usePWA(): [PWAState, PWAActions] {
           newWorker?.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               setUpdateAvailable(true);
+              performanceEventManager.markDiagnostic('sw_update_available', {
+                source: 'updatefound'
+              });
             }
           });
         });
@@ -118,6 +122,9 @@ export function usePWA(): [PWAState, PWAActions] {
         // Check for existing updates
         if (reg.waiting) {
           setUpdateAvailable(true);
+          performanceEventManager.markDiagnostic('sw_update_available', {
+            source: 'waiting_registration'
+          });
         }
       } catch (error) {
         console.error('Service Worker registration failed:', error);
@@ -130,6 +137,9 @@ export function usePWA(): [PWAState, PWAActions] {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'update-available') {
         setUpdateAvailable(true);
+        performanceEventManager.markDiagnostic('sw_update_available', {
+          source: 'sw_message'
+        });
       }
     };
 
@@ -161,13 +171,34 @@ export function usePWA(): [PWAState, PWAActions] {
   const updateApp = useCallback(async (): Promise<void> => {
     if (!registration.current?.waiting) return;
 
-    // Send skip-waiting message
+    performanceEventManager.markDiagnostic('sw_update_apply_requested', {
+      href: window.location.href
+    });
     registration.current.waiting.postMessage({ type: 'skip-waiting' });
-    
-    // Wait for the new service worker to take control
-    const newSW = await navigator.serviceWorker.ready;
-    
-    // Reload the page
+    setUpdateAvailable(false);
+
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const handleControllerChange = () => {
+        if (settled) return;
+        settled = true;
+        navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+        resolve();
+      };
+
+      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+      setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+        resolve();
+      }, 5000);
+    });
+
+    performanceEventManager.markDiagnostic('sw_update_reload', {
+      href: window.location.href
+    });
     window.location.reload();
   }, []);
 

@@ -26,16 +26,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check permissions and module access
   useEffect(() => {
+    let cancelled = false;
+
     const checkAccess = async () => {
       console.log('🔍 [ProtectedRoute] Starting access check for:', { requiredModule, requiredPermission });
       
       if (!isAuthenticated) {
         console.log('🔍 [ProtectedRoute] User not authenticated');
-        setCheckingAccess(false);
+        if (!cancelled) {
+          setHasAccess(null);
+          setCheckingAccess(false);
+        }
         return;
       }
 
-      setCheckingAccess(true);
+      if (!cancelled) {
+        setCheckingAccess(true);
+      }
       try {
         let hasAccess = true;
 
@@ -54,16 +61,24 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         }
 
         console.log('🔍 [ProtectedRoute] Final access result:', hasAccess);
-        setHasAccess(hasAccess);
+        if (!cancelled) {
+          setHasAccess(hasAccess);
+        }
       } catch (error) {
         console.error('Error checking access:', error);
-        setHasAccess(false);
+        if (!cancelled) {
+          setHasAccess(false);
+        }
       } finally {
         setCheckingAccess(false);
       }
     };
 
     checkAccess();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isAuthenticated, requiredModule, requiredPermission, hasModuleAccess, hasPermission]);
 
   // Show loading spinner while checking authentication

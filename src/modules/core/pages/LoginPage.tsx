@@ -1,7 +1,7 @@
 // ABOUTME: Login page for user authentication
 // ABOUTME: Supports both demo mode (predefined users) and production mode
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -17,11 +17,25 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
-  const { login, isDemoMode } = useAuth();
+
+  const { login, isDemoMode, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation('common');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const getSafeRedirectPath = (): string => {
+    const candidatePath = location.state?.from?.pathname;
+    if (!candidatePath || candidatePath === '/' || candidatePath === '/login') {
+      return '/dashboard';
+    }
+    return candidatePath;
+  };
 
   // Demo users for quick login
   const demoUsers = [
@@ -44,8 +58,8 @@ const LoginPage: React.FC = () => {
         setSuccess('Login successful! Redirecting...');
         
         // Redirect to intended page or dashboard
-        const from = location.state?.from?.pathname || '/dashboard';
-        setTimeout(() => navigate(from, { replace: true }), 1000);
+        const redirectPath = getSafeRedirectPath();
+        setTimeout(() => navigate(redirectPath, { replace: true }), 1000);
       } else {
         setError(result.message);
       }
@@ -70,8 +84,8 @@ const LoginPage: React.FC = () => {
       if (result.success) {
         setSuccess(`Logged in as ${demoUser.role}! Redirecting...`);
         
-        const from = location.state?.from?.pathname || '/dashboard';
-        setTimeout(() => navigate(from, { replace: true }), 1000);
+        const redirectPath = getSafeRedirectPath();
+        setTimeout(() => navigate(redirectPath, { replace: true }), 1000);
       } else {
         setError(result.message);
       }
@@ -89,7 +103,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4" data-testid="login-page">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">

@@ -149,9 +149,8 @@ registerRoute(
 // ============================================================================
 
 // Install event
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   console.log('[SW] Installing...');
-  self.skipWaiting();
 });
 
 // Activate event

@@ -12,7 +12,7 @@ import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
 import { initializeModules } from './core/moduleLoader';
 import { initializeTheme } from './hooks/useTheme';
-import { useRoutePersistence } from './hooks/useRoutePersistence';
+import { getStoredRouteFromSession, useRoutePersistence } from './hooks/useRoutePersistence';
 import { debugLog } from './utils';
 import Spinner from './components/ui/Spinner';
 import { moduleRegistry } from './core/moduleRegistry';
@@ -27,6 +27,7 @@ import { NetworkProvider } from './contexts/NetworkContext';
 import { SyncProvider } from './contexts/SyncContext';
 import { featureFlags } from './config/featureFlags';
 import { uds } from './services/data';
+import { performanceEventManager } from './services/performanceEventManager';
 
 // Layout components - choose based on feature flag
 import Layout from './components/Layout';
@@ -170,15 +171,29 @@ const DynamicRoutes = ({
     }
   }, [modulesInitialized, navigationItems.length]);
 
+  const initialRoute = getStoredRouteFromSession();
+  const startupRoute = initialRoute && initialRoute !== '/' && initialRoute !== '/login'
+    ? initialRoute
+    : '/dashboard';
+
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to={startupRoute} replace />} />
       
-      {/* Login Route */}
+      {/* Login Route - public, no auth check needed */}
       <Route
         path="/login"
         element={
-          <Navigate to="/dashboard" replace />
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-screen">
+              <div className="text-center">
+                <Spinner size="lg" />
+                <p className="mt-4 text-gray-600">Loading...</p>
+              </div>
+            </div>
+          }>
+            <LoginPage />
+          </Suspense>
         }
       />
       
@@ -442,13 +457,18 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   const location = useLocation();
   const authContext = useAuth();
   const { isAuthenticated, isLoading, user } = authContext;
-  const { restoreRouteIfNeeded } = useRoutePersistence();
+  const { restoreRouteIfNeeded } = useRoutePersistence(isAuthenticated);
   
   // Choose layout based on feature flag
   const LayoutComponent = featureFlags.useNewTabSystem ? LayoutNew : Layout;
   
   // Debug authentication state
   useEffect(() => {
+    performanceEventManager.markDiagnostic('app_route_state', {
+      pathname: location.pathname,
+      isAuthenticated,
+      isLoading
+    });
     debugLog('🔍 [AppContent] Auth state details:', { 
       isAuthenticated, 
       isLoading, 
@@ -463,6 +483,9 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
     if (isAuthenticated && modulesInitialized && !isLoading) {
       const restored = restoreRouteIfNeeded();
       if (restored) {
+        performanceEventManager.markDiagnostic('app_route_restored', {
+          pathname: location.pathname
+        });
         debugLog('✅ [AppContent] Route restored after refresh');
       }
     }
@@ -506,7 +529,7 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
     <LayoutComponent>
       {/* Main content with error boundary */}
       <div className="flex-1">
-        <ErrorBoundary key={location.pathname}>
+        <ErrorBoundary>
           <DynamicRoutes
             modulesInitialized={modulesInitialized}
             userId={user?.id}

@@ -7,7 +7,8 @@ type PerformanceEventType =
   | 'user_interaction'
   | 'manual_refresh'
   | 'tab_switch'
-  | 'form_submit';
+  | 'form_submit'
+  | 'diagnostic';
 
 interface PerformanceEvent {
   type: PerformanceEventType;
@@ -40,9 +41,24 @@ class PerformanceEventManager {
 
     // Page visibility changes (tab switching)
     document.addEventListener('visibilitychange', () => {
+      this.emit('diagnostic', 'visibility_change', {
+        visibilityState: document.visibilityState
+      });
       if (document.visibilityState === 'visible') {
         this.emit('tab_switch', 'tab_focus');
       }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      this.emit('diagnostic', 'beforeunload', {
+        href: window.location.href
+      });
+    });
+
+    window.addEventListener('pagehide', () => {
+      this.emit('diagnostic', 'pagehide', {
+        href: window.location.href
+      });
     });
 
     // Form submissions
@@ -135,6 +151,16 @@ class PerformanceEventManager {
   public getRecentEvents(timeWindow: number = 10000): PerformanceEvent[] {
     const cutoff = Date.now() - timeWindow;
     return this.eventHistory.filter(event => event.timestamp >= cutoff);
+  }
+
+  public markDiagnostic(source: string, metadata?: Record<string, any>): void {
+    this.emit('diagnostic', source, metadata);
+  }
+
+  public getDiagnosticsSnapshot(limit: number = 100): PerformanceEvent[] {
+    return this.eventHistory
+      .filter(event => event.type === 'diagnostic' || event.type === 'navigation')
+      .slice(-limit);
   }
 }
 
