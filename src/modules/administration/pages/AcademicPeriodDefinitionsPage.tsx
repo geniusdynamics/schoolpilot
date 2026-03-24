@@ -14,14 +14,13 @@ import { useTranslation } from 'react-i18next';
 type PeriodDefinitionFormData = Omit<Partial<AcademicPeriodDefinition>, 'id' | 'structure_name'>;
 
 const AcademicPeriodDefinitionsPage: React.FC = () => {
-  const { 
-    academicPeriodDefinitions: academicPeriodDefinitionsData, 
-    academicYearStructures,
-    loading, 
-    addAcademicPeriodDefinition, 
-    updateAcademicPeriodDefinition, 
-    deleteAcademicPeriodDefinition 
-  } = useAppData();
+  const appData = useAppData();
+  const academicPeriodDefinitionsData = appData.academicPeriodDefinitions || [];
+  const academicYearStructures = appData.academicYearStructures || [];
+  const loading = appData.loading || {};
+  const addAcademicPeriodDefinition = appData.addAcademicPeriodDefinition;
+  const updateAcademicPeriodDefinition = appData.updateAcademicPeriodDefinition;
+  const deleteAcademicPeriodDefinition = appData.deleteAcademicPeriodDefinition;
   
   const { t } = useTranslation('administration');
   
