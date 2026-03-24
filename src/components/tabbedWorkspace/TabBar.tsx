@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Plus, MoreHorizontal } from 'lucide-react';
 import { useTabStore } from '../../stores/tabStore';
 import { Tab as TabComponent } from './Tab';
 import { cn } from '../../utils/cn';
+import { getIcon } from '../../utils/iconMap';
 import { HierarchicalTabBarProps, HierarchicalTab } from '../../types/hierarchical';
 
 // Legacy interface for backward compatibility
@@ -415,11 +416,14 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
                       tab.id === activeTabId && 'bg-green-100 text-green-800'
                     )}
                   >
-                    {tab.icon && (
-                      <span className="text-green-600 flex-shrink-0">
-                        {tab.icon}
-                      </span>
-                    )}
+                    {tab.icon && (() => {
+                      const IconComponent = getIcon(tab.icon);
+                      return IconComponent ? (
+                        <span className="text-green-600 flex-shrink-0">
+                          <IconComponent className="w-4 h-4" />
+                        </span>
+                      ) : null;
+                    })()}
                     <span className="truncate flex-1">{tab.title}</span>
                     {pinnedTabs.includes(tab.id) && (
                       <span className="text-green-500 text-xs">📌</span>

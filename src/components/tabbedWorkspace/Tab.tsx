@@ -413,7 +413,7 @@ export const Tab: React.FC<TabProps> = (props) => {
             )}>
               {(() => {
                 const IconComponent = getIcon(tab.icon);
-                return IconComponent ? <IconComponent className="w-4 h-4" /> : tab.icon;
+                return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
               })()}
             </span>
           )}

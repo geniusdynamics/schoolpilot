@@ -32,13 +32,20 @@ describe('URLTabSyncEngine', () => {
     sessionStorage.clear();
   });
 
-  it('stores tabs without double-encoding percent values', () => {
+  it('stores tabs as compact repeated search params', () => {
     const engine = new URLTabSyncEngine();
     engine.updateURL(createState());
 
-    const href = window.location.href;
-    expect(href.includes('%255B')).toBe(false);
-    expect(href.includes('tabs=%5B')).toBe(true);
+    const url = new URL(window.location.href);
+
+    expect(url.searchParams.getAll('tab')).toEqual(['/dashboard', '/academics/students']);
+    expect(url.searchParams.get('a')).toBe('1');
+    expect(url.searchParams.getAll('p')).toEqual(['0']);
+    expect(url.searchParams.get('tabs')).toBeNull();
+    expect(url.searchParams.get('active')).toBeNull();
+    expect(window.location.href.includes('title')).toBe(false);
+    expect(window.location.href.includes('module')).toBe(false);
+    expect(window.location.href.includes('icon')).toBe(false);
   });
 
   it('parses tabs from standard JSON search param', () => {
@@ -71,5 +78,27 @@ describe('URLTabSyncEngine', () => {
 
     expect(parsed.tabs).toHaveLength(2);
     expect(parsed.activeTabId).toBe('tab-academics');
+  });
+
+  it('parses compact repeated tab params and derives tab metadata', () => {
+    const engine = new URLTabSyncEngine();
+
+    const parsed = engine.parseURL('/?tab=/dashboard&tab=/administration/applications&a=1&p=0#/administration/applications');
+
+    expect(parsed.tabs).toHaveLength(2);
+    expect(parsed.activeTabId).toBe(parsed.tabs[1].id);
+    expect(parsed.tabs[0]).toMatchObject({
+      url: '/dashboard',
+      title: 'Dashboard',
+      module: 'dashboard',
+      pinned: true
+    });
+    expect(parsed.tabs[1]).toMatchObject({
+      url: '/administration/applications',
+      title: 'Applications',
+      module: 'administration',
+      entity: 'applications',
+      pinned: false
+    });
   });
 });

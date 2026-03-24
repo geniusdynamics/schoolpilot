@@ -240,24 +240,24 @@ export class TabStateDeriver {
   private resolveIcon(module: string, entity?: string): string {
     if (entity) {
       const entityIconMap: Record<string, string> = {
-        'dashboard': 'ChartBarIcon',
-        'applications': 'ClipboardDocumentListIcon',
-        'new-application': 'DocumentAddIcon',
-        'review-queue': 'EyeIcon',
-        'interviews': 'UsersIcon',
-        'students': 'UserGroupIcon',
-        'teachers': 'UsersIcon',
-        'classes': 'AcademicCapIcon',
-        'subjects': 'BookOpenIcon',
-        'attendance': 'CheckCircleIcon',
-        'exams': 'DocumentTextIcon',
-        'fees': 'CurrencyDollarIcon',
-        'payments': 'CreditCardIcon',
-        'inventory': 'ArchiveBoxIcon',
-        'books': 'BookOpenIcon',
-        'meals': 'CakeIcon',
-        'users': 'UsersIcon',
-        'settings': 'CogIcon',
+        'dashboard': 'BarChart3',
+        'applications': 'ClipboardList',
+        'new-application': 'Plus',
+        'review-queue': 'Eye',
+        'interviews': 'Users',
+        'students': 'Users',
+        'teachers': 'Users',
+        'classes': 'GraduationCap',
+        'subjects': 'BookOpen',
+        'attendance': 'CheckCircle',
+        'exams': 'FileText',
+        'fees': 'DollarSign',
+        'payments': 'CreditCard',
+        'inventory': 'Archive',
+        'books': 'BookOpen',
+        'meals': 'CakeSlice',
+        'users': 'Users',
+        'settings': 'Settings',
       };
       
       if (entityIconMap[entity]) {
@@ -266,21 +266,21 @@ export class TabStateDeriver {
     }
 
     const iconMap: Record<string, string> = {
-      dashboard: 'HomeIcon',
-      academics: 'AcademicCapIcon',
-      administration: 'UsersIcon',
-      admissions: 'AcademicCapIcon',
-      finance: 'CurrencyDollarIcon',
-      hr: 'BriefcaseIcon',
-      inventory: 'ArchiveBoxIcon',
-      library: 'BookOpenIcon',
-      nutrition: 'CakeIcon',
-      reports: 'ChartBarIcon',
-      settings: 'CogIcon',
-      audit: 'ShieldCheckIcon'
+      dashboard: 'Home',
+      academics: 'GraduationCap',
+      administration: 'Users',
+      admissions: 'GraduationCap',
+      finance: 'DollarSign',
+      hr: 'Briefcase',
+      inventory: 'Archive',
+      library: 'BookOpen',
+      nutrition: 'CakeSlice',
+      reports: 'BarChart3',
+      settings: 'Settings',
+      audit: 'ShieldCheck'
     };
 
-    return iconMap[module] || 'DocumentIcon';
+    return iconMap[module] || 'FileText';
   }
 
   private getModuleName(module: string): string {

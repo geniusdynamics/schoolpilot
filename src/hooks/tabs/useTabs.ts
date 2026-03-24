@@ -27,6 +27,72 @@ import { useTranslation } from 'react-i18next';
 // Singleton engine instance
 const engine = urlTabSyncEngine;
 
+export interface ModuleSessionOptions extends TabOptions {
+  preservePinned?: boolean;
+  refresh?: boolean;
+  canPreserveTab?: (tab: Tab) => boolean | Promise<boolean>;
+}
+
+interface BuildModuleSessionStateInput {
+  currentState: ParsedTabState;
+  targetUrl: string;
+  deriver: TabStateDeriver;
+  options?: ModuleSessionOptions;
+}
+
+const resolvePreservedPinnedTabs = async (
+  tabs: Tab[],
+  options?: ModuleSessionOptions
+): Promise<Tab[]> => {
+  if (!options?.preservePinned) {
+    return [];
+  }
+
+  const preserved: Tab[] = [];
+
+  for (const tab of tabs) {
+    if (!tab.pinned) {
+      continue;
+    }
+
+    const canPreserve = options.canPreserveTab ? await options.canPreserveTab(tab) : true;
+    if (canPreserve) {
+      preserved.push(tab);
+    }
+  }
+
+  return preserved;
+};
+
+export const buildModuleSessionState = async ({
+  currentState,
+  targetUrl,
+  deriver,
+  options
+}: BuildModuleSessionStateInput): Promise<ParsedTabState> => {
+  const preservedPinnedTabs = await resolvePreservedPinnedTabs(currentState.tabs, options);
+  const derivedTargetTab = deriver.deriveTab(targetUrl, options);
+  const existingTargetTab = preservedPinnedTabs.find(tab => deriver.isSameEntity(tab.url, targetUrl));
+  const targetTab = existingTargetTab
+    ? {
+        ...existingTargetTab,
+        ...derivedTargetTab,
+        id: existingTargetTab.id,
+        pinned: options?.pinned ?? existingTargetTab.pinned,
+        isDirty: existingTargetTab.isDirty
+      }
+    : derivedTargetTab;
+  const sessionTabs = [
+    ...preservedPinnedTabs.filter(tab => !deriver.isSameEntity(tab.url, targetUrl)),
+    targetTab
+  ];
+
+  return {
+    tabs: sessionTabs,
+    activeTabId: targetTab.id
+  };
+};
+
 interface UseTabsReturn {
   /** All open tabs */
   tabs: Tab[];
@@ -45,6 +111,9 @@ interface UseTabsReturn {
 
   /** Replace current tabs with a single tab session */
   startSession: (url: string, options?: TabOptions) => string;
+
+  /** Switch modules while preserving allowed pinned tabs */
+  switchModuleSession: (url: string, options?: ModuleSessionOptions) => Promise<string>;
   
   /** Close a tab */
   closeTab: (tabId: string) => void;
@@ -208,6 +277,29 @@ export function useTabs(): UseTabsReturn {
     navigate(url);
     return newTab.id;
   }, [deriver, navigate]);
+
+  const switchModuleSession = useCallback(async (url: string, options?: ModuleSessionOptions): Promise<string> => {
+    const newState = await buildModuleSessionState({
+      currentState: state,
+      targetUrl: url,
+      deriver,
+      options: {
+        preservePinned: true,
+        ...options
+      }
+    });
+
+    if (options?.refresh) {
+      const nextUrl = engine.createURL(newState, url);
+      engine.updateURL(newState);
+      window.location.assign(nextUrl);
+      return newState.activeTabId;
+    }
+
+    engine.updateURL(newState, { push: true });
+    navigate(url);
+    return newState.activeTabId;
+  }, [state, deriver, navigate]);
   
   const closeTab = useCallback((tabId: string) => {
     const tab = state.tabs.find(t => t.id === tabId);
@@ -368,6 +460,7 @@ export function useTabs(): UseTabsReturn {
     activateTab,
     openTab,
     startSession,
+    switchModuleSession,
     closeTab,
     closeTabs,
     closeOtherTabs,
