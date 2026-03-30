@@ -38,23 +38,26 @@ import GlobalNotifications from './components/GlobalNotifications';
 const LoginPage = lazy(() => import('./modules/core/pages/LoginPage'));
 const DashboardPage = lazy(() => import('./modules/dashboard/pages/DashboardPage'));
 const ErrorTrackingTest = lazy(() => import('./components/ErrorTrackingTest'));
-const TabbedWorkspaceTestPage = lazy(() => import('./modules/settings/pages/TabbedWorkspaceTestPage'));
-const TabbedModeTestPage = lazy(() => import('./modules/settings/pages/TabbedModeTestPage'));
+// Removed missing test pages to fix build errors
+// const TabbedWorkspaceTestPage = lazy(() => import('./modules/settings/pages/TabbedWorkspaceTestPage'));
+// const TabbedModeTestPage = lazy(() => import('./modules/settings/pages/TabbedModeTestPage'));
 const PerformanceMonitor = lazy(() => import('./components/PerformanceMonitor'));
 
 // Explicitly lazy load settings pages to ensure correct routing
 const SettingsPage = lazy(() => import('./modules/settings/pages/SettingsPage'));
 const UnifiedSettingsPage = lazy(() => import('./modules/settings/pages/UnifiedSettingsPage'));
 const FeatureSettingsPage = lazy(() => import('./modules/settings/pages/FeatureSettingsPage'));
-const DatabaseSettingsPage = lazy(() => import('./modules/settings/pages/DatabaseSettingsPage'));
-const DataManagementSettingsPage = lazy(() => import('./modules/settings/pages/DataManagementSettingsPage'));
-const BackupSettingsPage = lazy(() => import('./modules/settings/pages/BackupSettingsPage'));
+// Removed missing pages to fix build errors
+// const DatabaseSettingsPage = lazy(() => import('./modules/settings/pages/DatabaseSettingsPage'));
+// const DataManagementSettingsPage = lazy(() => import('./modules/settings/pages/DataManagementSettingsPage'));
+// const BackupSettingsPage = lazy(() => import('./modules/settings/pages/BackupSettingsPage'));
+const DataLayerSettingsPage = lazy(() => import('./modules/settings/pages/DataLayerSettingsPage'));
 const AuditLogPage = lazy(() => import('./modules/settings/pages/AuditLogPage'));
 
 // Vite will statically analyze all .tsx files in ./modules/*/pages
 const pageModules = {
   ...import.meta.glob('./modules/*/pages/*.tsx'),
-  ...import.meta.glob('./modules/*/pages/**/*.tsx'),
+  ...import.meta.glob(['./modules/*/pages/**/*.tsx', '!./modules/*/pages/**/__tests__/**', '!./modules/*/pages/**/*.test.tsx']),
 };
 
 // Debug: Log available page modules
@@ -225,6 +228,7 @@ const DynamicRoutes = ({
           </Suspense>
         }
       />
+      {/* 
       <Route
         path="/test/tabbed-workspace"
         element={
@@ -240,7 +244,8 @@ const DynamicRoutes = ({
             <TabbedModeTestPage />
           </Suspense>
         }
-      />
+      /> 
+      */}
 
       {/* Explicit Settings Routes - Fixes routing bug where settings pages were navigating to Audit Log */}
       <Route
@@ -273,6 +278,7 @@ const DynamicRoutes = ({
           </ProtectedRoute>
         }
       />
+      {/* 
       <Route
         path="/settings/database"
         element={
@@ -299,6 +305,17 @@ const DynamicRoutes = ({
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
               <BackupSettingsPage />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      /> 
+      */}
+      <Route
+        path="/settings/data-layer"
+        element={
+          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen"><Spinner size="lg" /></div>}>
+              <DataLayerSettingsPage />
             </Suspense>
           </ProtectedRoute>
         }

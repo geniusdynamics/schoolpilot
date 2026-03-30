@@ -2,28 +2,10 @@
 // ABOUTME: It displays key statistics and quick links to various report categories.
 
 import React from 'react';
-import Card from '@/components/ui/Card';
-import { DocumentReportIcon, ChartBarIcon, DocumentTextIcon, CurrencyDollarIcon, UsersIcon, IconProps } from '@/components/ui/icons';
+import { DocumentReportIcon, ChartBarIcon, DocumentTextIcon, CurrencyDollarIcon, UsersIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Button from '@/components/ui/Button';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-
-const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode, iconBgColor?: string, iconColor?: string }> = 
-    ({ title, value, icon, iconBgColor = 'bg-blue-100', iconColor = 'text-blue-600' }) => (
-  <Card className="shadow-md">
-    <div className="flex items-center p-4">
-      <div className={`p-3 rounded-full ${iconBgColor} ${iconColor}`}>
-        {React.cloneElement(icon as React.ReactElement<IconProps>, {className: "w-7 h-7"})}
-      </div>
-      <div className="ml-4">
-        <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  </Card>
-);
+import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 
 const ReportsDashboardPage: React.FC = () => {
   const { 
@@ -33,8 +15,6 @@ const ReportsDashboardPage: React.FC = () => {
     classes,
     subjects
   } = useAppData();
-
-  const { t } = useTranslation('reports');
 
   const pageIsLoading = loading.all || loading.students || loading.staff || loading.classes || loading.subjects;
 
@@ -48,56 +28,40 @@ const ReportsDashboardPage: React.FC = () => {
   const totalClasses = classes?.length || 0;
   const totalSubjects = subjects?.length || 0;
 
-  return (
-    <div className="space-y-6">
-      <Card title="Reports Dashboard" className="bg-white shadow-xl">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <StatCard title="Total Students" value={totalStudents} icon={<UsersIcon />} iconBgColor="bg-green-100" iconColor="text-green-600"/>
-            <StatCard title="Total Staff" value={totalStaff} icon={<UsersIcon />} iconBgColor="bg-blue-100" iconColor="text-blue-600"/>
-            <StatCard title="Total Classes" value={totalClasses} icon={<DocumentTextIcon />} iconBgColor="bg-purple-100" iconColor="text-purple-600"/>
-            <StatCard title="Total Subjects" value={totalSubjects} icon={<ChartBarIcon />} iconBgColor="bg-orange-100" iconColor="text-orange-600"/>
-          </div>
+  const metrics: DashboardMetric[] = [
+    { key: 'students', label: 'Total Students', value: totalStudents, icon: <UsersIcon className="h-6 w-6 text-emerald-700" /> },
+    { key: 'staff', label: 'Total Staff', value: totalStaff, icon: <UsersIcon className="h-6 w-6 text-blue-700" /> },
+    { key: 'classes', label: 'Total Classes', value: totalClasses, icon: <DocumentTextIcon className="h-6 w-6 text-violet-700" /> },
+    { key: 'subjects', label: 'Total Subjects', value: totalSubjects, icon: <ChartBarIcon className="h-6 w-6 text-orange-700" /> },
+  ];
 
-          <Card title="Report Categories" className="mb-6">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
-                <Button as={Link} to="/reports/student-masterlist" variant="outline" leftIcon={<UsersIcon className="w-5 h-5"/>}>
-                    Student Reports
-                </Button>
-                <Button as={Link} to="/reports/exam-results-horizontal" variant="outline" leftIcon={<ChartBarIcon className="w-5 h-5"/>}>
-                    Exam Results
-                </Button>
-                <Button as={Link} to="/reports/student-financial-summary" variant="outline" leftIcon={<CurrencyDollarIcon className="w-5 h-5"/>}>
-                    Financial Reports
-                </Button>
-                <Button as={Link} to="/reports/teacher-assignments" variant="outline" leftIcon={<DocumentTextIcon className="w-5 h-5"/>}>
-                    Teacher Reports
-                </Button>
-                <Button as={Link} to="/reports/account-ledger" variant="outline" leftIcon={<DocumentReportIcon className="w-5 h-5"/>}>
-                    Account Ledger
-                </Button>
-                <Button as={Link} to="/reports/fee-collection-summary" variant="outline" leftIcon={<CurrencyDollarIcon className="w-5 h-5"/>}>
-                    Fee Collection
-                </Button>
-            </div>
-          </Card>
-          
-          <div className="text-center py-8 mt-6">
-            <DocumentReportIcon className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">Reports &amp; Analytics Hub</h2>
-            <p className="text-gray-500 max-w-2xl mx-auto">
-              Access comprehensive reports for students, staff, finances, and academic performance. 
-              Generate insights and track key metrics across all school operations.
-            </p>
-             <div className="mt-6">
-              <span className="inline-block bg-sky-100 text-sky-700 text-sm font-semibold px-3 py-1 rounded-full">
-                Dashboard provides quick access to all report categories and key statistics.
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </div>
+  const quickActions: DashboardQuickAction[] = [
+    { key: 'student-reports', label: 'Student Reports', to: '/reports/student-masterlist', icon: <UsersIcon className="h-5 w-5" /> },
+    { key: 'exam-results', label: 'Exam Results', to: '/reports/exam-results-horizontal', icon: <ChartBarIcon className="h-5 w-5" /> },
+    { key: 'financial-reports', label: 'Financial Reports', to: '/reports/student-financial-summary', icon: <CurrencyDollarIcon className="h-5 w-5" /> },
+    { key: 'teacher-reports', label: 'Teacher Reports', to: '/reports/teacher-assignments', icon: <DocumentTextIcon className="h-5 w-5" /> },
+    { key: 'account-ledger', label: 'Account Ledger', to: '/reports/account-ledger', icon: <DocumentReportIcon className="h-5 w-5" /> },
+    { key: 'fee-collection', label: 'Fee Collection', to: '/reports/fee-collection-summary', icon: <CurrencyDollarIcon className="h-5 w-5" /> },
+  ];
+
+  const notifications: DashboardNotification[] = [
+    {
+      id: 'reports-health',
+      title: 'Report Data Coverage',
+      message: totalStudents > 0 && totalClasses > 0 ? 'Core report datasets are populated and ready.' : 'Some report datasets are empty and may reduce report depth.',
+      severity: totalStudents > 0 && totalClasses > 0 ? 'normal' : 'warning',
+    },
+  ];
+
+  return (
+    <ModuleDashboardShell
+      title="Reports Dashboard"
+      subtitle="Access student, academic, staffing, and finance reports with a unified analytics entry point."
+      heroIcon={<DocumentReportIcon className="h-8 w-8 text-white" />}
+      metrics={metrics}
+      quickActions={quickActions}
+      notifications={notifications}
+    />
   );
 };
 

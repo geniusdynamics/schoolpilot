@@ -2,9 +2,10 @@
 // ABOUTME: Handles data seeding, clearing, and provider switching based on mode
 
 import { getDatabaseProviderFactory, DatabaseProviderFactory } from './database/DatabaseProviderFactory';
-import { getDataLayerConfig, DataLayerConfig } from '../config/dataLayerConfig';
-import { IDatabaseProvider } from './database/IDatabaseProvider';
+import { getDataLayerConfig } from '../config/dataLayerConfig';
 import { EventEmitter } from 'events';
+import { collectionsDefinition } from './rxdbService';
+import { SchemaConverter } from './database/SchemaConverter';
 
 export type DataMode = 'development' | 'demo' | 'production';
 
@@ -173,34 +174,42 @@ export class DataModeManager extends EventEmitter {
 
       const seedData = this.generateSeedData();
 
-      // Seed students
-      const studentsCollection = await provider.getCollection('students');
-      for (const student of seedData.students) {
-        await studentsCollection.insert(student);
-      }
-
-      // Seed teachers
-      const teachersCollection = await provider.getCollection('teachers');
-      for (const teacher of seedData.teachers) {
-        await teachersCollection.insert(teacher);
-      }
-
-      // Seed classes
-      const classesCollection = await provider.getCollection('classes');
-      for (const classData of seedData.classes) {
-        await classesCollection.insert(classData);
-      }
-
-      // Seed subjects
-      const subjectsCollection = await provider.getCollection('subjects');
-      for (const subject of seedData.subjects) {
-        await subjectsCollection.insert(subject);
-      }
-
-      // Seed assignments
-      const assignmentsCollection = await provider.getCollection('assignments');
-      for (const assignment of seedData.assignments) {
-        await assignmentsCollection.insert(assignment);
+      // Ensure collections exist before inserting
+      const collectionsToSeed = ['students', 'teachers', 'classes', 'subjects', 'assignments'];
+      for (const collectionName of collectionsToSeed) {
+        let collection = provider.getCollection(collectionName);
+        if (!collection && typeof provider.createCollection === 'function') {
+           // Get actual schema if available
+           const def = (collectionsDefinition as any)[collectionName];
+           let schemaToUse: any = {
+             version: 0,
+             type: 'object',
+             properties: {},
+             required: [],
+             indexes: [],
+             primaryKey: 'id'
+           };
+           
+           if (def && def.schema) {
+             try {
+               const conversionResult = SchemaConverter.convertRxDBToSQLite('temp', def.schema);
+               schemaToUse = conversionResult.schema;
+             } catch (e) {
+               console.warn(`Failed to convert schema for ${collectionName}, using fallback`, e);
+             }
+           }
+           
+           collection = await provider.createCollection(collectionName, schemaToUse);
+        }
+        
+        if (collection && typeof collection.insert === 'function') {
+          const dataToSeed = (seedData as any)[collectionName] || [];
+          for (const item of dataToSeed) {
+            await collection.insert(item);
+          }
+        } else {
+          console.warn(`[DataModeManager] Cannot seed data for ${collectionName}: collection not found or doesn't support insert`);
+        }
       }
 
       this.emit('dataSeeded', seedData);

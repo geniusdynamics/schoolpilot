@@ -1,28 +1,11 @@
 import React from 'react';
-import Card from '@/components/ui/Card';
 import { LibraryIcon, BookOpenIcon, ArrowsRightLeftIcon, SparklesIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { ChartData, BookStatus, FineStatus } from '@/types';
-import DonutChart from '@/components/ui/DonutChart'; // Ensure you have this component
-import { useTranslation } from 'react-i18next';
-import { useBookData } from '../data/useBookData';
-import { useLoanData } from '../data/useLoanData';
-import { useFineData } from '../data/useFineData';
-
-const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
-  <Card className="shadow-md">
-    <div className="flex items-center p-4">
-      <div className="p-3 rounded-full bg-green-100 text-green-600">
-        {icon}
-      </div>
-      <div className="ml-4">
-        <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  </Card>
-);
+import DonutChart from '@/components/ui/DonutChart';
+import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardPanel } from '@/components/ModuleDashboardShell';
+import Card from '@/components/ui/Card';
 
 const LibraryDashboardPage: React.FC = () => {
   const { 
@@ -74,55 +57,61 @@ const LibraryDashboardPage: React.FC = () => {
   })).filter(d => d.value > 0);
 
 
-  return (
-    <div className="space-y-6">
-      <Card title="Library Dashboard" className="bg-white shadow-xl">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
-            <StatCard title="Total Books" value={totalBooks} icon={<BookOpenIcon className="w-7 h-7"/>} />
-            <StatCard title="Books on Loan" value={booksOnLoan} icon={<ArrowsRightLeftIcon className="w-7 h-7"/>} />
-            <StatCard title="Overdue Books" value={overdueBooksCount} icon={<BookOpenIcon className="w-7 h-7 text-red-500"/>} />
-            <StatCard title="Damaged Books" value={damagedBooksCount} icon={<BookOpenIcon className="w-7 h-7 text-orange-500"/>} />
-            <StatCard title="Lost Books" value={lostBooksCount} icon={<BookOpenIcon className="w-7 h-7 text-gray-800"/>} />
-            <StatCard title="Pending Fines" value={pendingFines} icon={<SparklesIcon className="w-7 h-7 text-yellow-500"/>} />
-          </div>
+  const metrics: DashboardMetric[] = [
+    { key: 'books', label: 'Total Books', value: totalBooks, icon: <BookOpenIcon className="h-6 w-6 text-emerald-700" /> },
+    { key: 'on-loan', label: 'Books on Loan', value: booksOnLoan, icon: <ArrowsRightLeftIcon className="h-6 w-6 text-blue-700" /> },
+    { key: 'overdue', label: 'Overdue Books', value: overdueBooksCount, icon: <BookOpenIcon className="h-6 w-6 text-rose-700" /> },
+    { key: 'damaged', label: 'Damaged Books', value: damagedBooksCount, icon: <BookOpenIcon className="h-6 w-6 text-amber-700" /> },
+    { key: 'lost', label: 'Lost Books', value: lostBooksCount, icon: <BookOpenIcon className="h-6 w-6 text-slate-700" /> },
+    { key: 'fines', label: 'Pending Fines', value: pendingFines, icon: <SparklesIcon className="h-6 w-6 text-yellow-700" /> },
+  ];
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            {booksByCategoryData.length > 0 && (
-              <Card title="Books by Category">
-                <DonutChart data={booksByCategoryData} title="" />
-              </Card>
-            )}
-            
-            {topBorrowed.length > 0 && (
-              <Card title="Top Borrowed Books">
-                <div className="space-y-2">
-                  {topBorrowed.map((book, index) => (
-                    <div key={book.title} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center mr-3">
-                          {index + 1}
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 truncate">{book.title}</span>
-                      </div>
-                      <span className="text-sm text-gray-500">{book.count} loans</span>
-                    </div>
-                  ))}
+  const charts: DashboardPanel[] = booksByCategoryData.length > 0
+    ? [{ key: 'books-by-category', title: 'Books by Category', content: <DonutChart data={booksByCategoryData} title="" /> }]
+    : [];
+
+  const notifications: DashboardNotification[] = [
+    {
+      id: 'overdue-books',
+      title: 'Overdue Loans',
+      message: overdueBooksCount > 0 ? `${overdueBooksCount} books are currently overdue.` : 'No books are currently overdue.',
+      severity: overdueBooksCount > 0 ? 'warning' : 'normal',
+    },
+    {
+      id: 'pending-fines',
+      title: 'Pending Fines',
+      message: pendingFines > 0 ? `${pendingFines} fines require follow-up.` : 'No pending fines at the moment.',
+      severity: pendingFines > 0 ? 'warning' : 'normal',
+    },
+  ];
+
+  return (
+    <ModuleDashboardShell
+      title="Library Dashboard"
+      subtitle="Track catalog health, lending performance, and borrower compliance from current library data."
+      heroIcon={<LibraryIcon className="h-8 w-8 text-white" />}
+      metrics={metrics}
+      charts={charts}
+      notifications={notifications}
+    >
+      {topBorrowed.length > 0 && (
+        <Card title="Top Borrowed Books" className="border-slate-200 bg-white shadow-sm">
+          <div className="space-y-2">
+            {topBorrowed.map((book, index) => (
+              <div key={book.title} className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                <div className="flex items-center">
+                  <span className="mr-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                    {index + 1}
+                  </span>
+                  <span className="truncate text-sm font-medium text-gray-900">{book.title}</span>
                 </div>
-              </Card>
-            )}
+                <span className="text-sm text-gray-500">{book.count} loans</span>
+              </div>
+            ))}
           </div>
-         
-          <div className="text-center py-8 mt-6">
-            <LibraryIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">Library Portal Overview</h2>
-            <p className="text-gray-500 max-w-2xl mx-auto">
-              Manage book catalog, track loans and returns, handle fines, and oversee library resources.
-            </p>
-          </div>
-        </div>
-      </Card>
-    </div>
+        </Card>
+      )}
+    </ModuleDashboardShell>
   );
 };
 

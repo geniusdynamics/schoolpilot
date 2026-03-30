@@ -2,6 +2,7 @@
 // ABOUTME: Provides system overview, user management, feature toggles, sync controls, and workflow configuration
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRBAC } from '../../../hooks/useRBAC';
@@ -26,9 +27,9 @@ import {
   ArrowLeftOnRectangleIcon
 } from '../../../components/ui/icons';
 import FeatureSettingsPage from './FeatureSettingsPage';
-import SyncManagementPanel from '../../../components/SyncManagementPanel';
 import { User, Role, Workflow, WorkflowState } from '../../../types';
 const UnifiedSettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { config: unifiedConfig, isLoading: isConfigLoading } = useUnifiedConfig();
   const [activeTab, setActiveTab] = useState('system');
 
@@ -693,7 +694,18 @@ const UnifiedSettingsPage: React.FC = () => {
 
       {/* Sync Tab */}
       {activeTab === 'sync' && (
-        <SyncManagementPanel />
+        <Card>
+          <div className="p-6 space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">Sync Controls</h3>
+            <p className="text-gray-600">
+              Sync management is centralized in Data Layer Settings together with mode,
+              database, and backend configuration.
+            </p>
+            <Button onClick={() => navigate('/settings/data-layer')}>
+              Open Data Layer Settings
+            </Button>
+          </div>
+        </Card>
       )}
 
       {/* Workflows Tab */}

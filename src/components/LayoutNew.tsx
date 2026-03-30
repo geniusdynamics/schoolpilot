@@ -68,7 +68,13 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     pinTab,
     unpinTab,
     openTab,
-    switchModuleSession
+    switchModuleSession,
+    closeOtherTabs,
+    closeTabsToRight,
+    closeTabsToLeft,
+    closeAllTabs,
+    closeAllExceptPinned,
+    duplicateTab
   } = useTabs();
   
   // Transform URL-driven tabs to format expected by TabBar component
@@ -318,6 +324,12 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
               onTabReorder={handleTabReorder}
               onTabPin={pinTab}
               onTabUnpin={unpinTab}
+              onTabDuplicate={duplicateTab}
+              onCloseOtherTabs={closeOtherTabs}
+              onCloseTabsToRight={closeTabsToRight}
+              onCloseTabsToLeft={closeTabsToLeft}
+              onCloseAllTabs={closeAllTabs}
+              onCloseAllExceptPinned={closeAllExceptPinned}
               onNewTab={handleNewTab}
               maxTabs={20}
               showAddButton={true}

@@ -11,6 +11,7 @@ import type { TabbedWorkspaceProps, Tab } from '../../types/tabbedWorkspace';
 import type { HierarchicalTab, BreadcrumbItem } from '../../types/hierarchical';
 import { resolveTabContent } from './resolveTabContent';
 import DynamicPageComponent from '../DynamicPageComponent';
+import { isEqual } from 'lodash';
 
 export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   className = '',
@@ -97,13 +98,22 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }
   }, []);
 
+  // Use ref for onSettingsClick to avoid dependency
+  const onSettingsClickRef = useRef(onSettingsClick);
+  useEffect(() => {
+    onSettingsClickRef.current = onSettingsClick;
+  }, [onSettingsClick]);
+
   // Initialize workspace on mount with cleanup flag
   useEffect(() => {
     let isMounted = true;
-    let settingsClickHandler: (() => void) | undefined;
     
     const initializeWorkspace = async () => {
-      if (!isMounted || isInitializedRef.current) return;
+      if (!isMounted) return;
+      if (isInitializedRef.current) {
+        console.log('⏭️ [TabbedWorkspace] Already initialized, skipping');
+        return;
+      }
       
       try {
         setIsLoading(true);
@@ -124,9 +134,6 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
         // Register default workspace actions only once
         if (isMounted) {
-          // Cache onSettingsClick to avoid dependency on prop
-          settingsClickHandler = onSettingsClick;
-          
           registerAction({
             id: 'workspace.refresh',
             label: 'Refresh Workspace',
@@ -153,7 +160,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
             context: ['workspace'],
             permissions: ['workspace.settings'],
             execute: async () => {
-              settingsClickHandler?.();
+              onSettingsClickRef.current?.();
             }
           });
 
@@ -182,7 +189,6 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       setError(null);
       setIsLoading(false);
       isInitializedRef.current = false;
-      settingsClickHandler = undefined;
       
       // Clear any stored tab states
       tabs.forEach(tab => {
@@ -191,7 +197,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
         }
       });
     };
-  }, [storeConfig, registerAction, initialize, initializeStore, onError, onSettingsClick]); // Include stable dependencies
+  }, [storeConfig, registerAction, initialize, initializeStore, onError]); // Include stable dependencies
 
   // Handle user role changes with primitive comparison
   useEffect(() => {
@@ -245,7 +251,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     }));
   }, [enableHierarchicalMode]);
 
-  // Handle tab changes and update breadcrumbs with proper change detection
+// Handle tab changes and update breadcrumbs with proper change detection
   useEffect(() => {
     if (activeTabId) {
       const activeTab = tabs.find(tab => tab.id === activeTabId);
@@ -258,7 +264,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
           const newBreadcrumbs = generateBreadcrumbs(activeTab);
           setBreadcrumbs(prevBreadcrumbs => {
             // Only update if breadcrumbs actually changed
-            if (JSON.stringify(prevBreadcrumbs) === JSON.stringify(newBreadcrumbs)) {
+            if (isEqual(prevBreadcrumbs, newBreadcrumbs)) {
               return prevBreadcrumbs;
             }
             return newBreadcrumbs;

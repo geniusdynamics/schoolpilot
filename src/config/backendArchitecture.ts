@@ -319,6 +319,8 @@ export const FUNCTION_ROUTING: FunctionRouting = {
   ]
 };
 
+const BACKEND_STORAGE_KEY = 'schoolpilot-backend-type';
+
 // Backend Detection and Configuration
 export class BackendArchitectureManager {
   private currentConfig: BackendConfig;
@@ -333,13 +335,17 @@ export class BackendArchitectureManager {
    * Detect the current backend type based on environment and availability
    */
   private detectBackendType(): BackendType {
-    // Check environment variables first
     if (process.env.VITE_BACKEND_TYPE) {
       return process.env.VITE_BACKEND_TYPE as BackendType;
     }
+
+    if (typeof window !== 'undefined') {
+      const storedBackend = window.localStorage.getItem(BACKEND_STORAGE_KEY) as BackendType | null;
+      if (storedBackend && BACKEND_CONFIGS[storedBackend]) {
+        return storedBackend;
+      }
+    }
     
-    // Default to frontend-only for now
-    // In the future, we can add detection logic for Frappe or custom APIs
     return 'frontend-only';
   }
   
@@ -417,6 +423,10 @@ export class BackendArchitectureManager {
   public switchBackend(backendType: BackendType): void {
     this.detectedBackend = backendType;
     this.currentConfig = BACKEND_CONFIGS[backendType];
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(BACKEND_STORAGE_KEY, backendType);
+    }
   }
   
   /**

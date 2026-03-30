@@ -130,6 +130,12 @@ interface UseTabsReturn {
   /** Close all tabs to the left */
   closeTabsToLeft: (tabId: string) => void;
   
+  /** Close all tabs */
+  closeAllTabs: () => void;
+  
+  /** Close all non-pinned tabs */
+  closeAllExceptPinned: () => void;
+  
   /** Pin a tab */
   pinTab: (tabId: string) => void;
   
@@ -177,31 +183,19 @@ export function useTabs(): UseTabsReturn {
   // Track initial mount
   const isInitialMount = useRef(true);
   
-  // Subscribe to URL changes
-  useEffect(() => {
-    // Parse initial state
-    const initialState = engine.parseURL();
-    setState(initialState);
-    
-    // Subscribe to changes
-    const unsubscribe = engine.subscribe((newState) => {
-      setState(newState);
-    });
-    
-    return unsubscribe;
-  }, []);
-  
-  // Sync with React Router location changes
+  // Combine URL sync effects into one
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      const initialState = engine.parseURL();
+      setState(initialState);
       return;
     }
     
     // When location changes (browser nav), update tab state
     const newState = engine.parseURL(location.pathname + location.search);
     setState(newState);
-  }, [location]);
+  }, [location.pathname, location.search]);
   
   // Computed values
   const activeTab = useMemo(() => {
@@ -383,6 +377,16 @@ export function useTabs(): UseTabsReturn {
     closeTabs(tabsToClose);
   }, [state, closeTabs]);
   
+  const closeAllTabs = useCallback(() => {
+    const tabsToClose = state.tabs.filter(t => !t.pinned).map(t => t.id);
+    closeTabs(tabsToClose);
+  }, [state, closeTabs]);
+  
+  const closeAllExceptPinned = useCallback(() => {
+    const tabsToClose = state.tabs.filter(t => !t.pinned).map(t => t.id);
+    closeTabs(tabsToClose);
+  }, [state, closeTabs]);
+  
   const pinTab = useCallback((tabId: string) => {
     const newTabs = state.tabs.map(t =>
       t.id === tabId ? { ...t, pinned: true } : t
@@ -466,6 +470,8 @@ export function useTabs(): UseTabsReturn {
     closeOtherTabs,
     closeTabsToRight,
     closeTabsToLeft,
+    closeAllTabs,
+    closeAllExceptPinned,
     pinTab,
     unpinTab,
     reorderTabs,

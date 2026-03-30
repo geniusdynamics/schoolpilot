@@ -1,8 +1,9 @@
 // ABOUTME: Backend configuration component for managing backend architecture settings
 // ABOUTME: Provides UI for switching between different backend types and viewing capabilities
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  BACKEND_CONFIGS,
   backendArchitecture,
   BackendType,
   BackendConfig
@@ -10,23 +11,43 @@ import {
 
 interface BackendConfigurationProps {
   className?: string;
+  title?: string;
+  value?: BackendType;
+  allowedTypes?: BackendType[];
+  onChange?: (backendType: BackendType) => void;
 }
 
-export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ className = '' }) => {
-  const [currentBackend, setCurrentBackend] = useState<BackendType>('frontend-only');
-  const [backendConfig, setBackendConfig] = useState<BackendConfig | null>(null);
+const DEFAULT_BACKEND_TYPES: BackendType[] = ['frontend-only', 'frappe-education', 'custom-api', 'hybrid'];
+
+export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
+  className = '',
+  title = 'Backend Configuration',
+  value,
+  allowedTypes,
+  onChange
+}) => {
+  const backendTypes = useMemo(
+    () => (allowedTypes && allowedTypes.length > 0 ? allowedTypes : DEFAULT_BACKEND_TYPES),
+    [allowedTypes]
+  );
+  const [currentBackend, setCurrentBackend] = useState<BackendType>(value || backendArchitecture.getConfig().type);
+  const [backendConfig, setBackendConfig] = useState<BackendConfig | null>(BACKEND_CONFIGS[value || backendArchitecture.getConfig().type]);
   const [isApiAvailable, setIsApiAvailable] = useState<boolean>(false);
   const [isCheckingApi, setIsCheckingApi] = useState<boolean>(false);
 
+  const syncBackendConfig = (backendType: BackendType) => {
+    backendArchitecture.switchBackend(backendType);
+    setCurrentBackend(backendType);
+    setBackendConfig(BACKEND_CONFIGS[backendType]);
+  };
+
   useEffect(() => {
-    // Initialize backend configuration
-    const backendConfigFromArch = backendArchitecture.getConfig();
-    setBackendConfig(backendConfigFromArch);
-    setCurrentBackend(backendConfigFromArch.type);
-    
-    // Check API availability
-    checkApiAvailability();
-  }, []);
+    const initialBackend = backendTypes.includes(value || backendArchitecture.getConfig().type)
+      ? (value || backendArchitecture.getConfig().type)
+      : backendTypes[0];
+
+    syncBackendConfig(initialBackend);
+  }, [value, backendTypes]);
 
   const checkApiAvailability = async () => {
     setIsCheckingApi(true);
@@ -41,41 +62,34 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
     }
   };
 
-  const handleBackendSwitch = (backendType: BackendType) => {
-    backendArchitecture.switchBackend(backendType);
-    const newConfig = backendArchitecture.getConfig();
-    setBackendConfig(newConfig);
-    setCurrentBackend(backendType);
-    
-    // Recheck API availability for new backend
-    if (backendType !== 'frontend-only') {
+  useEffect(() => {
+    if (currentBackend !== 'frontend-only') {
       checkApiAvailability();
+      return;
     }
+
+    setIsApiAvailable(false);
+    setIsCheckingApi(false);
+  }, [currentBackend]);
+
+  const handleBackendSwitch = (backendType: BackendType) => {
+    syncBackendConfig(backendType);
+    onChange?.(backendType);
   };
 
-  const renderCapabilitySection = (title: string, capabilities: Record<string, boolean>) => {
-    const enabledCapabilities = Object.entries(capabilities)
-      .filter(([, enabled]) => enabled)
-      .map(([name]) => name);
-    
-    const disabledCapabilities = Object.entries(capabilities)
-      .filter(([, enabled]) => !enabled)
-      .map(([name]) => name);
+  const renderCapabilitySection = (sectionTitle: string, capabilities: Record<string, boolean>) => {
+    const entries = Object.entries(capabilities);
 
     return (
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">{title}</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">{sectionTitle}</h4>
         <div className="space-y-1">
-          {enabledCapabilities.map(capability => (
-            <div key={capability} className="flex items-center text-xs">
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-              <span className="text-gray-600 capitalize">{capability.replace(/([A-Z])/g, ' $1').trim()}</span>
-            </div>
-          ))}
-          {disabledCapabilities.map(capability => (
-            <div key={capability} className="flex items-center text-xs opacity-50">
-              <span className="w-2 h-2 bg-gray-300 rounded-full mr-2"></span>
-              <span className="text-gray-400 capitalize">{capability.replace(/([A-Z])/g, ' $1').trim()}</span>
+          {entries.map(([capability, enabled]) => (
+            <div key={capability} className={`flex items-center text-xs ${enabled ? '' : 'opacity-50'}`}>
+              <span className={`w-2 h-2 rounded-full mr-2 ${enabled ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+              <span className={enabled ? 'text-gray-600 capitalize' : 'text-gray-400 capitalize'}>
+                {capability.replace(/([A-Z])/g, ' $1').trim()}
+              </span>
             </div>
           ))}
         </div>
@@ -84,15 +98,30 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
   };
 
   const getBackendStatusColor = () => {
-    if (currentBackend === 'frontend-only') return 'text-blue-600';
-    if (isApiAvailable) return 'text-green-600';
+    if (currentBackend === 'frontend-only') {
+      return 'text-blue-600';
+    }
+
+    if (isApiAvailable) {
+      return 'text-green-600';
+    }
+
     return 'text-orange-600';
   };
 
   const getBackendStatusText = () => {
-    if (currentBackend === 'frontend-only') return 'Local Database';
-    if (isCheckingApi) return 'Checking...';
-    if (isApiAvailable) return 'API Connected';
+    if (currentBackend === 'frontend-only') {
+      return 'Local Database';
+    }
+
+    if (isCheckingApi) {
+      return 'Checking...';
+    }
+
+    if (isApiAvailable) {
+      return 'API Connected';
+    }
+
     return 'API Unavailable';
   };
 
@@ -107,7 +136,7 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
   return (
     <div className={`p-4 bg-white border border-gray-200 rounded-lg ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Backend Configuration</h3>
+        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
         <div className="flex items-center space-x-2">
           <span className={`text-sm font-medium ${getBackendStatusColor()}`}>
             {getBackendStatusText()}
@@ -124,11 +153,10 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
         </div>
       </div>
 
-      {/* Backend Type Selection */}
       <div className="mb-6">
         <h4 className="text-sm font-medium text-gray-700 mb-3">Backend Type</h4>
-        <div className="grid grid-cols-2 gap-2">
-          {(['frontend-only', 'frappe-education', 'custom-api', 'hybrid'] as BackendType[]).map((type) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {backendTypes.map((type) => (
             <label key={type} className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="radio"
@@ -146,7 +174,6 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
         </div>
       </div>
 
-      {/* Current Configuration Details */}
       <div className="mb-6">
         <h4 className="text-sm font-medium text-gray-700 mb-3">Configuration Details</h4>
         <div className="bg-gray-50 p-3 rounded text-xs space-y-1">
@@ -161,26 +188,21 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
         </div>
       </div>
 
-      {/* Capabilities Overview */}
       <div className="space-y-4">
         <h4 className="text-sm font-medium text-gray-700">Available Capabilities</h4>
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-50 p-3 rounded">
             {renderCapabilitySection('Core Operations', backendConfig.capabilities.crud)}
           </div>
-          
           <div className="bg-gray-50 p-3 rounded">
             {renderCapabilitySection('Advanced Features', backendConfig.capabilities.advanced)}
           </div>
-          
           <div className="bg-gray-50 p-3 rounded">
             {renderCapabilitySection('Integrations', backendConfig.capabilities.integrations)}
           </div>
         </div>
       </div>
 
-      {/* Fallback Strategy */}
       <div className="mt-6 pt-4 border-t border-gray-200">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Fallback Strategy</h4>
         <div className="bg-gray-50 p-3 rounded text-xs space-y-1">
@@ -192,14 +214,13 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({ clas
         </div>
       </div>
 
-      {/* Warning for API backends when API is unavailable */}
       {currentBackend !== 'frontend-only' && !isApiAvailable && !isCheckingApi && (
         <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded">
           <div className="flex items-center">
             <span className="text-orange-600 text-sm font-medium">⚠️ API Unavailable</span>
           </div>
           <p className="text-xs text-orange-700 mt-1">
-            The selected backend requires API access, but the API is currently unavailable. 
+            The selected backend requires API access, but the API is currently unavailable.
             The system will fall back to local database operations.
           </p>
         </div>

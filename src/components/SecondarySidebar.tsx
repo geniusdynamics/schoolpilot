@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useTabNavigation } from '../hooks/useTabNavigation';
 import { useToastHelpers } from '../hooks/useToast';
-import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon, InformationCircleIcon } from './ui/icons';
+import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon, InformationCircleIcon, StarIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 import HookErrorBoundary from './HookErrorBoundary';
 import { SidebarSkeleton } from './ModuleLoadingFallback';
+import { useFavorites } from '../hooks/useFavorites';
 
 function getFallbackIcon(moduleKey: string) {
   switch (moduleKey) {
@@ -324,13 +326,36 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     );
   }, [navigationItems, selectedModuleId]);
   
+  const { favorites, reorderFavorites } = useFavorites();
+
   // Use propItems if provided (new tab system), otherwise use derived subMenus
   const subMenus = useMemo(() => {
+    let items = [];
     if (propItems && propItems.length > 0) {
-      return propItems;
+      items = propItems;
+    } else {
+      items = selectedModule && selectedModule.children ? selectedModule.children : [];
     }
-    return selectedModule && selectedModule.children ? selectedModule.children : [];
-  }, [selectedModule, propItems]);
+
+    // Add Favorites group if we are in dashboard
+    if (selectedModuleId === 'dashboard' && favorites.length > 0) {
+      const favoritesGroup = {
+        name: 'Favorites',
+        isGroup: true,
+        icon: StarIcon,
+        children: favorites.map(fav => ({
+          name: fav.title,
+          path: fav.url,
+          icon: fav.icon ? () => <StarIcon className="w-4 h-4 text-yellow-400" /> : StarIcon,
+          id: fav.id // Add ID for drag and drop
+        }))
+      };
+      // Prepend favorites to the submenus
+      return [favoritesGroup, ...items];
+    }
+
+    return items;
+  }, [selectedModule, propItems, selectedModuleId, favorites]);
   
   const moduleKey = useMemo(() => {
     return selectedModuleId || 'settings';
@@ -450,6 +475,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       }
     });
   }, [search, t]);
+
+  const handleDragEnd = useCallback((result: DropResult) => {
+    if (!result.destination) return;
+    reorderFavorites(result.source.index, result.destination.index);
+  }, [reorderFavorites]);
 
   if (!isOpen) {
     return null;
@@ -642,25 +672,67 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                         </div>
                       )}
                     {openGroups[item.name] && !isMinimized && (
-                      <ul className="space-y-1 mt-1">
-                        {item.children.map((child: any) => (
-                          <li key={child.name}>
-                            <button
-                              onClick={(e) => handleNavigationClick(child, e)}
-                              onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
-                              className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left`}
-                              tabIndex={0}
-                            >
-                              <IconWrapper 
-                                icon={child.icon} 
-                                moduleKey={moduleKey}
-                                isMobile={isMobile}
-                              />
-                              <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(child.name)}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
+                      item.name === 'Favorites' ? (
+                        <DragDropContext onDragEnd={handleDragEnd}>
+                          <Droppable droppableId="favorites-list">
+                            {(provided) => (
+                              <ul 
+                                className="space-y-1 mt-1"
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                              >
+                                {item.children.map((child: any, index: number) => (
+                                  <Draggable key={child.id || child.path} draggableId={child.id || child.path} index={index}>
+                                    {(provided, snapshot) => (
+                                      <li 
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={snapshot.isDragging ? "opacity-80 scale-105 z-50" : ""}
+                                      >
+                                        <button
+                                          onClick={(e) => handleNavigationClick(child, e)}
+                                          onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
+                                          className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left`}
+                                          tabIndex={0}
+                                        >
+                                          <IconWrapper 
+                                            icon={child.icon} 
+                                            moduleKey={moduleKey}
+                                            isMobile={isMobile}
+                                          />
+                                          <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(child.name)}</span>
+                                        </button>
+                                      </li>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </ul>
+                            )}
+                          </Droppable>
+                        </DragDropContext>
+                      ) : (
+                        <ul className="space-y-1 mt-1">
+                          {item.children.map((child: any) => (
+                            <li key={child.name}>
+                              <button
+                                onClick={(e) => handleNavigationClick(child, e)}
+                                onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
+                                className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left`}
+                                tabIndex={0}
+                              >
+                                <IconWrapper 
+                                  icon={child.icon} 
+                                  moduleKey={moduleKey}
+                                  isMobile={isMobile}
+                                />
+                                <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{t(child.name)}</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )
                     )}
                   </div>
                 ) : (

@@ -28,13 +28,14 @@ const settingsModule: ModuleDefinition = {
     { name: 'navigation:settings.features', path: '/settings/features', icon: CogIcon, page: 'FeatureSettingsPage' },
 
     // Data & Database Management
-    { name: 'navigation:settings.dataManagement', path: '/settings/data-management', icon: DatabaseIcon, page: 'DataManagementSettingsPage' },
-    { name: 'navigation:settings.databaseSettings', path: '/settings/database', icon: DatabaseIcon, page: 'DatabaseSettingsPage' },
-    { name: 'navigation:settings.backup', path: '/settings/backup', icon: DownloadIcon, page: 'BackupSettingsPage' },
+    // { name: 'navigation:settings.dataManagement', path: '/settings/data-management', icon: DatabaseIcon, page: 'DataManagementSettingsPage' },
+    // { name: 'navigation:settings.databaseSettings', path: '/settings/database', icon: DatabaseIcon, page: 'DatabaseSettingsPage' },
+    // { name: 'navigation:settings.backup', path: '/settings/backup', icon: DownloadIcon, page: 'BackupSettingsPage' },
+    { name: 'navigation:settings.dataLayer', path: '/settings/data-layer', icon: DatabaseIcon, page: 'DataLayerSettingsPage' },
 
     // Interface Configuration
-    { name: 'navigation:settings.tabs', path: '/settings/tabs', icon: ViewColumnsIcon, page: 'TabSettingsPage' },
-    { name: 'navigation:settings.tabbedModeSettings', path: '/settings/tabbed-mode', icon: ViewColumnsIcon, page: 'TabbedModeSettingsPage' },
+    // { name: 'navigation:settings.tabs', path: '/settings/tabs', icon: ViewColumnsIcon, page: 'TabSettingsPage' },
+    // { name: 'navigation:settings.tabbedModeSettings', path: '/settings/tabbed-mode', icon: ViewColumnsIcon, page: 'TabbedModeSettingsPage' },
 
     // Module Management
     { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
@@ -46,9 +47,9 @@ const settingsModule: ModuleDefinition = {
     // Audit & Logs
     { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
 
-    // Test Pages
-    { name: 'navigation:settings.tabbedWorkspaceTest', path: '/settings/tabbed-workspace-test', icon: ViewColumnsIcon, page: 'TabbedWorkspaceTestPage' },
-    { name: 'navigation:settings.tabbedModeTest', path: '/settings/tabbed-mode-test', icon: ViewColumnsIcon, page: 'TabbedModeTestPage' },
+    // Test Pages (Removed missing files)
+    // { name: 'navigation:settings.tabbedWorkspaceTest', path: '/settings/tabbed-workspace-test', icon: ViewColumnsIcon, page: 'TabbedWorkspaceTestPage' },
+    // { name: 'navigation:settings.tabbedModeTest', path: '/settings/tabbed-mode-test', icon: ViewColumnsIcon, page: 'TabbedModeTestPage' },
 
     // Legacy pages - still accessible but not shown in main nav
     { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
