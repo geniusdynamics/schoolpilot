@@ -262,7 +262,7 @@
   "accessDeniedMessage": "You do not have permission to access this feature.",
   "featureSettings": {
     "title": "Feature Settings",
-    "description": "Manage application features, sync settings, and system capabilities",
+    "description": "Manage application features and offline capabilities. Mode, database, backend, and sync controls are available in Data Layer Settings",
     "tabs": {
       "overview": "Overview",
       "sync": "Sync Management",

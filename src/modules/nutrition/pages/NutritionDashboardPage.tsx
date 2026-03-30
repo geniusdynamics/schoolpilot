@@ -1,27 +1,10 @@
 import React from 'react';
-import Card from '@/components/ui/Card';
-import { CakeIcon, UsersIcon, ListBulletIcon, BuildingStorefrontIcon, WalletIcon, IconProps } from '@/components/ui/icons';
+import { CakeIcon, UsersIcon, ListBulletIcon, BuildingStorefrontIcon, WalletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { StudentMealPlanStatus, ChartData, StudentWallet, Merchant, StudentMealPlan } from '@/types';
+import { StudentMealPlanStatus, ChartData } from '@/types';
 import DonutChart from '@/components/ui/DonutChart';
-import Button from '@/components/ui/Button';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-
-const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
-  <Card className="shadow-md">
-    <div className="flex items-center p-4">
-      <div className="p-3 rounded-full bg-orange-100 text-orange-600">
-        {React.cloneElement(icon as React.ReactElement<IconProps>, { className: "w-7 h-7" })}
-      </div>
-      <div className="ml-4">
-        <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  </Card>
-);
+import ModuleDashboardShell, { DashboardMetric, DashboardPanel, DashboardNotification, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 
 const NutritionDashboardPage: React.FC = () => {
   const { 
@@ -55,56 +38,44 @@ const NutritionDashboardPage: React.FC = () => {
   })).filter(d => d.value > 0);
 
 
+  const metrics: DashboardMetric[] = [
+    { key: 'meal-plans', label: 'Total Meal Plans', value: totalMealPlans, icon: <ListBulletIcon className="h-6 w-6 text-orange-700" /> },
+    { key: 'active-assignment', label: 'Active Meal Assignments', value: activeStudentAssignments, icon: <UsersIcon className="h-6 w-6 text-blue-700" /> },
+    { key: 'menus', label: 'Total Menus Created', value: totalMenusCreated, icon: <CakeIcon className="h-6 w-6 text-rose-700" /> },
+    { key: 'merchants', label: 'Active Merchants', value: activeMerchants, icon: <BuildingStorefrontIcon className="h-6 w-6 text-emerald-700" /> },
+    { key: 'wallet', label: 'Total Student Wallet Balance', value: `Ksh ${aggregateWalletBalance.toFixed(2)}`, icon: <WalletIcon className="h-6 w-6 text-violet-700" /> },
+  ];
+
+  const quickActions: DashboardQuickAction[] = [
+    { key: 'meal-plans', label: 'Manage Meal Plans', to: '/nutrition/meal-plans', icon: <ListBulletIcon className="h-5 w-5" /> },
+    { key: 'menus', label: 'Manage Menus', to: '/nutrition/menus', icon: <CakeIcon className="h-5 w-5" /> },
+    { key: 'wallet', label: 'Student Wallets', to: '/nutrition/student-wallet', icon: <WalletIcon className="h-5 w-5" /> },
+    { key: 'consumption', label: 'Log Consumption', to: '/nutrition/meal-consumption-log', icon: <UsersIcon className="h-5 w-5" /> },
+  ];
+
+  const charts: DashboardPanel[] = studentMealPlanStatusData.length > 0
+    ? [{ key: 'meal-plan-status', title: 'Student Meal Plan Assignment Statuses', content: <DonutChart data={studentMealPlanStatusData} title="" /> }]
+    : [];
+
+  const notifications: DashboardNotification[] = [
+    {
+      id: 'wallet-balance',
+      title: 'Wallet Exposure',
+      message: `Current aggregate student wallet balance is Ksh ${aggregateWalletBalance.toFixed(2)}.`,
+      severity: aggregateWalletBalance === 0 ? 'warning' : 'normal',
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <Card title="Nutrition & Wallet Dashboard" className="bg-white shadow-xl">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-6">
-            <StatCard title="Total Meal Plans" value={totalMealPlans} icon={<ListBulletIcon />} />
-            <StatCard title="Active Meal Assignments" value={activeStudentAssignments} icon={<UsersIcon />} />
-            <StatCard title="Total Menus Created" value={totalMenusCreated} icon={<CakeIcon />} />
-            <StatCard title="Active Merchants" value={activeMerchants} icon={<BuildingStorefrontIcon />} />
-            <StatCard title="Total Student Wallet Balance" value={`Ksh ${aggregateWalletBalance.toFixed(2)}`} icon={<WalletIcon />} />
-          </div>
-
-          <Card title="Quick Links" className="mb-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-                <Button as={Link} to="/nutrition/meal-plans" variant="outline" leftIcon={<ListBulletIcon className="w-5 h-5"/>}>
-                    Manage Meal Plans
-                </Button>
-                <Button as={Link} to="/nutrition/menus" variant="outline" leftIcon={<CakeIcon className="w-5 h-5"/>}>
-                    Manage Menus
-                </Button>
-                <Button as={Link} to="/nutrition/student-wallet" variant="outline" leftIcon={<WalletIcon className="w-5 h-5"/>}>
-                    Student Wallets
-                </Button>
-                <Button as={Link} to="/nutrition/meal-consumption-log" variant="outline" leftIcon={<UsersIcon className="w-5 h-5"/>}>
-                    Log Consumption
-                </Button>
-            </div>
-          </Card>
-
-          {studentMealPlanStatusData.length > 0 && (
-            <Card title="Student Meal Plan Assignment Statuses" className="mt-6">
-              <DonutChart data={studentMealPlanStatusData} title=""/>
-            </Card>
-          )}
-
-          <div className="text-center py-8 mt-6">
-            <CakeIcon className="w-16 h-16 text-orange-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">Meals & Student Wallet Overview</h2>
-            <p className="text-gray-500 max-w-2xl mx-auto">
-              Manage school meal plans, menus, meal consumption, and student pocket money accounts.
-            </p>
-            <div className="mt-6">
-              <span className="inline-block bg-sky-100 text-sky-700 text-sm font-semibold px-3 py-1 rounded-full">
-                Dashboard enhanced with key stats, charts, and quick links.
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </div>
+    <ModuleDashboardShell
+      title="Nutrition & Wallet Dashboard"
+      subtitle="Track meal plans, consumption assignments, merchant readiness, and student wallet balances in one view."
+      heroIcon={<CakeIcon className="h-8 w-8 text-white" />}
+      metrics={metrics}
+      quickActions={quickActions}
+      charts={charts}
+      notifications={notifications}
+    />
   );
 };
 

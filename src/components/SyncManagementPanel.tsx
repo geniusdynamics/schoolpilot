@@ -46,6 +46,7 @@ interface SyncSettings {
   priorityOrder: string[];
   enableConflictResolution: boolean;
   backgroundSync: boolean;
+  conflictResolution: 'local-wins' | 'remote-wins' | 'manual' | 'merge';
 }
 
 const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' }) => {
@@ -86,7 +87,8 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
     retryDelay: 5000,
     priorityOrder: ['critical', 'high', 'normal', 'low'],
     enableConflictResolution: true,
-    backgroundSync: true
+    backgroundSync: true,
+    conflictResolution: 'manual'
   } as SyncSettings;
 
   const syncHistory = getSyncHistory?.() || [];
@@ -354,6 +356,37 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
               <option value={3}>3 retries</option>
               <option value={5}>5 retries</option>
               <option value={10}>10 retries</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-900">Retry Delay</label>
+            <select
+              value={syncSettings.retryDelay}
+              onChange={(e) => updateSyncSettings?.({ retryDelay: parseInt(e.target.value) })}
+              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value={1000}>1 second</option>
+              <option value={5000}>5 seconds</option>
+              <option value={10000}>10 seconds</option>
+              <option value={30000}>30 seconds</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-gray-900">Conflict Resolution</label>
+              <p className="text-xs text-gray-500">Choose how sync conflicts should be handled by default</p>
+            </div>
+            <select
+              value={syncSettings.conflictResolution}
+              onChange={(e) => updateSyncSettings?.({ conflictResolution: e.target.value as SyncSettings['conflictResolution'] })}
+              className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="manual">Manual review</option>
+              <option value="merge">Merge automatically</option>
+              <option value="local-wins">Prefer local changes</option>
+              <option value="remote-wins">Prefer remote changes</option>
             </select>
           </div>
         </div>

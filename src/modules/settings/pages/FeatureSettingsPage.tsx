@@ -1,4 +1,4 @@
-// ABOUTME: Feature settings page that provides access to sync management, offline capabilities, and feature configuration
+// ABOUTME: Feature settings page that provides access to feature flags, offline capabilities, and application status
 // ABOUTME: Integrates the FeatureSettings component into the settings module navigation
 
 import React from 'react';

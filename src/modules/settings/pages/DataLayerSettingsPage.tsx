@@ -1,198 +1,211 @@
 // ABOUTME: Settings page for data layer configuration and mode management
 // ABOUTME: Provides comprehensive interface for database provider settings and mode switching
 
-import React, { useState, useEffect } from 'react';
-import { UnifiedModeSwitch } from '../../../components/UnifiedModeSwitch';
+import React, { useEffect, useMemo, useState } from 'react';
+import SyncManagementPanel from '../../../components/SyncManagementPanel';
+import { BackendConfiguration } from '../../../components/BackendConfiguration';
+import { backendArchitecture, type BackendType } from '../../../config/backendArchitecture';
 import { useDataMode } from '../../../hooks/useDataMode';
-import { DatabaseProviderFactory } from '../../../services/database/DatabaseProviderFactory';
-import { getDataLayerConfig } from '../../../config/dataLayerConfig';
-import { Database, Settings, Info, AlertCircle, CheckCircle, Server, Cog } from 'lucide-react';
-import Card from '@/components/ui/Card';
+import { getDatabaseOptionsForMode, getBackendOptionsForModeAndProvider, normalizeProvider, resolveConsolidatedConfigurationOption, type ApplicationSettingsMode, type BackendIntegrationType } from '../../../config/dataLayerConfig';
+import { Settings, Info, RefreshCw } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import Select from '@/components/ui/Select';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/DataServiceFactory';
-import { DATA_LAYER_CONFIG } from '@/config/dataLayerConfig';
-import { useDatabaseProvider } from '../../../hooks/useDatabaseProvider';
-import DatabaseProviderTab from '../components/DatabaseProviderTab';
-
-interface ProviderInfo {
-  type: string;
-  name: string;
-  description: string;
-  isAvailable: boolean;
-  isActive: boolean;
-  config?: any;
-}
-
-interface BackendIntegrationInfo {
-  type: string;
-  name: string;
-  description: string;
-  isConfigured: boolean;
-  config?: any;
-}
 
 export const DataLayerSettingsPage: React.FC = () => {
   const { status: dataModeStatus, switchMode, isLoading } = useDataMode();
   const currentMode = dataModeStatus?.currentMode || 'development';
-  const [activeTab, setActiveTab] = useState<'mode' | 'providers' | 'backend' | 'database-provider'>('mode');
+  const [activeTab, setActiveTab] = useState<'mode' | 'sync'>('mode');
   const [showAdvanced, setShowAdvanced] = useState(false);
   
-  // Database Provider tab state
   const { 
-    isDatabaseModeActive, 
-    initializationError 
+    syncStatus,
+    getQueueStatus
   } = useAppData();
   
   const { config, updateConfig } = useUnifiedConfig();
-  const currentEnvironment = config?.environment || 'development';
+  const [applicationMode, setApplicationMode] = useState<ApplicationSettingsMode>('demo');
   const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [selectedBackendIntegration, setSelectedBackendIntegration] = useState<BackendIntegrationType>('none');
+  const [selectedBackendType, setSelectedBackendType] = useState<BackendType>('frontend-only');
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'error' | 'info', text: string} | null>(null);
-  const [availableProviders, setAvailableProviders] = useState<string[]>([]);
-  const [providers, setProviders] = useState<ProviderInfo[]>([]);
-  const [backendIntegrations, setBackendIntegrations] = useState<BackendIntegrationInfo[]>([]);
-  const [status, setStatus] = useState({
-    currentMode: 'development',
-    activeProvider: 'SQLite File',
-    dataCount: 0,
-    lastSync: null as Date | null
-  });
 
-  // Load provider information
-  const loadProviders = () => {
-    const providerData: ProviderInfo[] = [
-      {
-        type: 'sqlite-file',
-        name: 'SQLite File Storage',
-        description: 'Local file-based SQLite database for development',
-        isAvailable: true,
-        isActive: currentMode === 'development',
-        config: getDataLayerConfig('development').provider.config
-      },
-      {
-        type: 'sqlite-wasm',
-        name: 'SQLite WASM + OPFS',
-        description: 'Browser-based SQLite with Origin Private File System',
-        isAvailable: true,
-        isActive: currentMode === 'demo',
-        config: getDataLayerConfig('demo').provider.config
-      },
-      {
-        type: 'pouchdb',
-        name: 'PouchDB',
-        description: 'Browser database with optional CouchDB sync',
-        isAvailable: true,
-        isActive: currentMode === 'production',
-        config: getDataLayerConfig('production').provider.config
-      },
-      {
-        type: 'couchdb',
-        name: 'CouchDB Integration',
-        description: 'Direct CouchDB connection for production',
-        isAvailable: true,
-        isActive: false,
-        config: getDataLayerConfig('production', 'couchdb').provider.config
-      },
-      {
-        type: 'postgresql',
-        name: 'PostgreSQL',
-        description: 'Enterprise PostgreSQL database',
-        isAvailable: true,
-        isActive: false,
-        config: getDataLayerConfig('production', 'postgresql').provider.config
-      }
-    ];
+  const databaseOptions = useMemo(
+    () => getDatabaseOptionsForMode(applicationMode),
+    [applicationMode]
+  );
+  const backendOptions = useMemo(
+    () => getBackendOptionsForModeAndProvider(applicationMode, selectedProvider as any),
+    [applicationMode, selectedProvider]
+  );
+  const selectedConfiguration = useMemo(
+    () => resolveConsolidatedConfigurationOption(applicationMode, selectedProvider as any, selectedBackendIntegration),
+    [applicationMode, selectedProvider, selectedBackendIntegration]
+  );
 
-    setProviders(providerData);
-
-    // Update status
-    setStatus({
-      currentMode,
-      activeProvider: providerData.find(p => p.isActive)?.name || 'Unknown',
-      dataCount: 0, // This would be fetched from the actual provider
-      lastSync: null
-    });
-  };
-
-  // Load backend integration information
-  const loadBackendIntegrations = () => {
-    const backendData: BackendIntegrationInfo[] = [
-      {
-        type: 'none',
-        name: 'No Backend Integration',
-        description: 'Local-only data storage',
-        isConfigured: true
-      },
-      {
-        type: 'erpnext',
-        name: 'ERPNext Integration',
-        description: 'Sync with ERPNext ERP system',
-        isConfigured: false,
-        config: getDataLayerConfig('production', 'erpnext').backend
-      },
-      {
-        type: 'couchdb',
-        name: 'CouchDB Sync',
-        description: 'Real-time sync with CouchDB server',
-        isConfigured: false,
-        config: getDataLayerConfig('production', 'couchdb').backend
-      },
-      {
-        type: 'postgresql',
-        name: 'PostgreSQL API',
-        description: 'REST API connection to PostgreSQL',
-        isConfigured: false,
-        config: getDataLayerConfig('production', 'postgresql').backend
-      },
-      {
-        type: 'api',
-        name: 'Custom API',
-        description: 'Generic REST API integration',
-        isConfigured: false,
-        config: getDataLayerConfig('production', 'api').backend
-      }
-    ];
-
-    setBackendIntegrations(backendData);
-  };
-
-  // Initialize available providers based on environment
-  const initializeDatabaseProviders = () => {
-    let providers: string[] = [];
-    
-    switch (currentEnvironment) {
-      case 'development':
-        providers = ['sqlite', 'pouchdb', 'livestore', 'mock'];
-        break;
-      case 'production':
-        providers = ['pouchdb', 'rxdb', 'livestore'];
-        break;
-      case 'demo':
-        providers = ['sqlite', 'pouchdb', 'livestore', 'mock'];
-        break;
-      default:
-        providers = ['sqlite', 'pouchdb', 'livestore', 'mock'];
+  const mapConflictResolution = (value: string | undefined) => {
+    if (!value) {
+      return config.database.sync.conflictResolution;
     }
-    
-    setAvailableProviders(providers);
-    
-    // Set initial provider based on current configuration
-    const currentProvider = DataServiceFactory.getUserDatabaseConfig()?.provider || 
-                          (currentEnvironment === 'development' ? DATA_LAYER_CONFIG.development.provider :
-                           currentEnvironment === 'production' ? DATA_LAYER_CONFIG.production.default.provider :
-                           DATA_LAYER_CONFIG.demo.provider);
-    
-    setSelectedProvider(currentProvider);
+
+    if (value === 'client-wins' || value === 'local-wins') {
+      return 'local';
+    }
+
+    if (value === 'server-wins' || value === 'remote-wins' || value === 'last-write-wins') {
+      return 'remote';
+    }
+
+    if (value === 'auto') {
+      return 'merge';
+    }
+
+    if (value === 'manual' || value === 'merge') {
+      return value;
+    }
+
+    return config.database.sync.conflictResolution;
   };
+
+  const getApiBaseUrl = (option: typeof selectedConfiguration) => {
+    if (!option) {
+      return config.database.apiConfig?.apiBaseUrl || config.backend.url;
+    }
+
+    return option.options.apiUrl || option.options.erpnextUrl || option.options.electricSqlUrl || option.options.postgresqlUrl || config.database.apiConfig?.apiBaseUrl || config.backend.url;
+  };
+
+  const syncSelectionState = (nextMode: ApplicationSettingsMode, nextProvider?: string, nextBackendIntegration?: BackendIntegrationType) => {
+    const nextDatabaseOptions = getDatabaseOptionsForMode(nextMode);
+    const resolvedProvider = nextProvider || nextDatabaseOptions[0]?.value || 'sqlite-wasm';
+    const nextConfiguration = resolveConsolidatedConfigurationOption(nextMode, resolvedProvider as any, nextBackendIntegration);
+
+    setApplicationMode(nextMode);
+    setSelectedProvider(resolvedProvider);
+    setSelectedBackendIntegration(nextConfiguration?.backendIntegration || 'none');
+    setSelectedBackendType(nextConfiguration?.backendType || 'frontend-only');
+
+    if (nextConfiguration) {
+      backendArchitecture.switchBackend(nextConfiguration.backendType);
+    }
+  };
+
+  const applyConsolidatedSelection = async () => {
+    if (!selectedConfiguration) {
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveMessage(null);
+
+    try {
+      await switchMode(selectedConfiguration.applicationMode === 'production' ? 'production' : 'demo');
+      backendArchitecture.switchBackend(selectedConfiguration.backendType);
+      setSelectedBackendType(selectedConfiguration.backendType);
+
+      DataServiceFactory.setUserDatabaseConfig({
+        provider: selectedConfiguration.provider as any,
+        environment: selectedConfiguration.sourceMode,
+        options: {
+          ...selectedConfiguration.options,
+          storageType: selectedConfiguration.storageType,
+          backendIntegration: selectedConfiguration.backendIntegration,
+          backendType: selectedConfiguration.backendType,
+          configurationId: selectedConfiguration.id
+        }
+      });
+
+      updateConfig({
+        ...config,
+        dataMode: selectedConfiguration.applicationMode,
+        demo: {
+          ...config.demo,
+          active: selectedConfiguration.applicationMode === 'demo'
+        },
+        database: {
+          ...config.database,
+          provider: selectedConfiguration.normalizedProvider as any,
+          allowedProviders: databaseOptions.map(option => option.value as any),
+          options: {
+            ...config.database.options,
+            ...selectedConfiguration.options,
+            storageType: selectedConfiguration.storageType,
+            backendIntegration: selectedConfiguration.backendIntegration,
+            backendType: selectedConfiguration.backendType,
+            configurationId: selectedConfiguration.id
+          },
+          apiConfig: {
+            ...config.database.apiConfig,
+            apiBaseUrl: getApiBaseUrl(selectedConfiguration),
+            apiKey: selectedConfiguration.options.apiKey || selectedConfiguration.options.erpnextApiKey || config.database.apiConfig?.apiKey,
+            syncInterval: selectedConfiguration.options.syncInterval || config.database.apiConfig?.syncInterval,
+            conflictResolution: mapConflictResolution(selectedConfiguration.options.conflictResolution) as any
+          },
+          sync: {
+            ...config.database.sync,
+            enabled: selectedConfiguration.options.sync ?? config.database.sync.enabled,
+            interval: selectedConfiguration.options.syncInterval || config.database.sync.interval,
+            conflictResolution: mapConflictResolution(selectedConfiguration.options.conflictResolution) as any,
+            batchSize: config.database.sync.batchSize,
+            retryAttempts: config.database.sync.retryAttempts,
+            timeout: config.database.sync.timeout
+          },
+          features: {
+            ...config.database.features,
+            enableOfflineMode: selectedConfiguration.options.offlineSupport ?? config.database.features.enableOfflineMode,
+            enableRealTimeUpdates: Boolean(selectedConfiguration.options.realTimeSync || selectedConfiguration.options.replication || config.database.features.enableRealTimeUpdates),
+            enableTransactions: selectedConfiguration.normalizedProvider === 'sqlite-file' || selectedConfiguration.normalizedProvider === 'sqlite-wasm'
+          }
+        },
+        backend: {
+          ...config.backend,
+          url: getApiBaseUrl(selectedConfiguration)
+        }
+      });
+
+      setSaveMessage({
+        type: 'success',
+        text: 'Configuration applied successfully! Reloading application to apply changes...'
+      });
+
+      // Reload to ensure all singleton managers and contexts pick up the new configuration cleanly
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (error: any) {
+      console.error('Error applying consolidated data-management configuration:', error);
+      setSaveMessage({
+        type: 'error',
+        text: `Failed to apply configuration: ${error.message}`
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
 
   useEffect(() => {
-    loadProviders();
-    loadBackendIntegrations();
-    initializeDatabaseProviders();
-  }, [currentMode, currentEnvironment]);
+    const resolvedMode: ApplicationSettingsMode = currentMode === 'production' ? 'production' : 'demo';
+    const normalizedCurrentProvider = normalizeProvider(
+      config.database.provider === 'sqlite-file' ? 'sqlite' : (config.database.provider as any),
+      (config.database.options?.storageType || (config.database.provider === 'sqlite-file' ? 'file' : undefined)) as any
+    );
+    const initialProvider = getDatabaseOptionsForMode(resolvedMode).some(option => option.value === normalizedCurrentProvider)
+      ? normalizedCurrentProvider
+      : getDatabaseOptionsForMode(resolvedMode)[0]?.value;
+    const storedBackendIntegration = config.database.options?.backendIntegration as BackendIntegrationType | undefined;
+
+    syncSelectionState(resolvedMode, initialProvider, storedBackendIntegration);
+  }, [
+    currentMode, 
+    config.dataMode, 
+    config.database.provider, 
+    config.database.options?.storageType, 
+    config.database.options?.backendIntegration
+  ]);
 
 
 
@@ -200,89 +213,48 @@ export const DataLayerSettingsPage: React.FC = () => {
   const handleProviderChange = (value: string) => {
     setSelectedProvider(value);
     setSaveMessage(null);
+
+    const nextConfiguration = resolveConsolidatedConfigurationOption(applicationMode, value as any, selectedBackendIntegration);
+    setSelectedBackendIntegration(nextConfiguration?.backendIntegration || 'none');
+    setSelectedBackendType(nextConfiguration?.backendType || 'frontend-only');
+
+    if (nextConfiguration) {
+      backendArchitecture.switchBackend(nextConfiguration.backendType);
+    }
+  };
+
+  const handleApplicationModeChange = (mode: ApplicationSettingsMode) => {
+    syncSelectionState(mode);
+    setSaveMessage(null);
+  };
+
+  const handleBackendIntegrationChange = (value: BackendIntegrationType) => {
+    setSelectedBackendIntegration(value);
+    const nextConfiguration = resolveConsolidatedConfigurationOption(applicationMode, selectedProvider as any, value);
+    setSelectedBackendType(nextConfiguration?.backendType || 'frontend-only');
+    setSaveMessage(null);
+
+    if (nextConfiguration) {
+      backendArchitecture.switchBackend(nextConfiguration.backendType);
+    }
   };
 
   const handleSaveConfiguration = async () => {
-    if (!selectedProvider) return;
-    
-    setIsSaving(true);
-    setSaveMessage(null);
-    
-    try {
-      // Set the user database configuration
-      DataServiceFactory.setUserDatabaseConfig({
-        provider: selectedProvider as any,
-        environment: currentEnvironment,
-        options: {}
-      });
-      
-      setSaveMessage({ 
-        type: 'success', 
-        text: `Database provider set to ${selectedProvider}. Changes will take effect on next application restart.` 
-      });
-      
-      // Update unified config if needed
-      if (updateConfig) {
-        await updateConfig({
-          ...config,
-          database: {
-            ...config.database,
-            provider: selectedProvider
-          }
-        });
-      }
-    } catch (error: any) {
-      console.error("Error saving database provider configuration:", error);
-      setSaveMessage({ 
-        type: 'error', 
-        text: `Failed to save configuration: ${error.message}` 
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    await applyConsolidatedSelection();
   };
 
   const handleResetToDefault = async () => {
-    if (!window.confirm("Are you sure you want to reset to default database provider configuration?")) {
+    if (!window.confirm('Are you sure you want to reset to the recommended data-management configuration?')) {
       return;
     }
-    
-    setIsSaving(true);
-    setSaveMessage(null);
-    
-    try {
-      // Reset to default configuration
-      DataServiceFactory.resetToDefaultConfig();
-      
-      // Reset to environment default
-      const defaultProvider = currentEnvironment === 'development' ? DATA_LAYER_CONFIG.development.provider :
-                            currentEnvironment === 'production' ? DATA_LAYER_CONFIG.production.default.provider :
-                            DATA_LAYER_CONFIG.demo.provider;
-      
-      setSelectedProvider(defaultProvider);
-      
-      setSaveMessage({ 
-        type: 'success', 
-        text: `Database provider reset to default (${defaultProvider}). Changes will take effect on next application restart.` 
-      });
-    } catch (error: any) {
-      console.error("Error resetting database provider configuration:", error);
-      setSaveMessage({ 
-        type: 'error', 
-        text: `Failed to reset configuration: ${error.message}` 
-      });
-    } finally {
-      setIsSaving(false);
-    }
+
+    DataServiceFactory.resetToDefaultConfig();
+    syncSelectionState('demo');
+    setSaveMessage({
+      type: 'info',
+      text: 'The consolidated configuration has been reset to the default demo profile. Apply the selection to save it.'
+    });
   };
-
-  const getStatusIcon = (isActive: boolean, isAvailable: boolean) => {
-    if (!isAvailable) return <AlertCircle className="w-4 h-4 text-red-500" />;
-    if (isActive) return <CheckCircle className="w-4 h-4 text-green-500" />;
-    return <div className="w-4 h-4 rounded-full bg-gray-300" />;
-  };
-
-
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -306,10 +278,8 @@ export const DataLayerSettingsPage: React.FC = () => {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex w-full">
           {[
-            { id: 'mode', label: 'Mode Switching', icon: Settings },
-            { id: 'providers', label: 'Database Providers', icon: Database },
-            { id: 'database-provider', label: 'Database Provider', icon: Cog },
-            { id: 'backend', label: 'Backend Integration', icon: Server }
+            { id: 'mode', label: 'Configuration', icon: Settings },
+            { id: 'sync', label: 'Sync Management', icon: RefreshCw }
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -334,154 +304,159 @@ export const DataLayerSettingsPage: React.FC = () => {
         {/* Mode Switching Tab */}
         {activeTab === 'mode' && (
           <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Data Mode Configuration</h3>
-              
-              <div className="space-y-4">
-                <UnifiedModeSwitch 
-                  variant="card"
-                  showDescription={true}
-                />
+            <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Unified Data Management</h3>
+                <p className="text-sm text-gray-600">
+                  Select the application mode, database type, and compatible backend from one consolidated workflow.
+                </p>
+              </div>
 
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    {showAdvanced ? 'Hide' : 'Show'} Advanced Options
-                  </button>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <div className="space-y-3 lg:col-span-1">
+                  <div className="text-sm font-medium text-gray-900">Application Mode</div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {(['demo', 'production'] as ApplicationSettingsMode[]).map((mode) => (
+                      <label
+                        key={mode}
+                        className={`flex items-center justify-between rounded-lg border px-4 py-3 ${applicationMode === mode ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                      >
+                        <div>
+                          <div className="font-medium capitalize">{mode}</div>
+                          <div className="text-xs text-gray-500">
+                            {mode === 'demo' ? 'Browser-safe demo and local development configurations' : 'Live persistence and backend-enabled production profiles'}
+                          </div>
+                        </div>
+                        <input
+                          type="radio"
+                          name="applicationMode"
+                          checked={applicationMode === mode}
+                          onChange={() => handleApplicationModeChange(mode)}
+                        />
+                      </label>
+                    ))}
+                  </div>
                 </div>
-                
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-2">
-                    <Info className="w-4 h-4 text-blue-600 mt-0.5" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium">Mode Switching Information</p>
-                      <p className="mt-1">
-                        Switching modes will change the underlying database provider and may require data migration.
-                        Development mode uses local files, Demo mode uses browser storage with sample data,
-                        and Production mode supports various backend integrations.
+
+                <div className="space-y-4 lg:col-span-2">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">Database Type</label>
+                      <select
+                        aria-label="Database Type"
+                        value={selectedProvider}
+                        onChange={(event) => handleProviderChange(event.target.value)}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                      >
+                        {databaseOptions.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                      <p className="mt-2 text-xs text-gray-500">
+                        {databaseOptions.find((option) => option.value === selectedProvider)?.description}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-2">Backend Configuration</label>
+                      <select
+                        aria-label="Backend Configuration"
+                        value={selectedBackendIntegration}
+                        onChange={(event) => handleBackendIntegrationChange(event.target.value as BackendIntegrationType)}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                      >
+                        {backendOptions.map((option) => (
+                          <option key={option.id} value={option.backendIntegration}>{option.label}</option>
+                        ))}
+                      </select>
+                      <p className="mt-2 text-xs text-gray-500">
+                        {selectedConfiguration?.description}
                       </p>
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <div className="text-xs uppercase tracking-wide text-gray-500">Selected Mode</div>
+                      <div className="mt-1 text-sm font-semibold capitalize">{applicationMode}</div>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <div className="text-xs uppercase tracking-wide text-gray-500">Database</div>
+                      <div className="mt-1 text-sm font-semibold">{databaseOptions.find((option) => option.value === selectedProvider)?.label || 'Not selected'}</div>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 p-4">
+                      <div className="text-xs uppercase tracking-wide text-gray-500">Backend Type</div>
+                      <div className="mt-1 text-sm font-semibold capitalize">{selectedBackendType.replace(/-/g, ' ')}</div>
+                    </div>
+                  </div>
+
+                  {saveMessage && (
+                    <div className={`rounded-lg border px-4 py-3 text-sm ${saveMessage.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : saveMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-blue-50 text-blue-700'}`}>
+                      {saveMessage.text}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        {showAdvanced ? 'Hide' : 'Show'} Advanced Options
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={handleResetToDefault}>Reset</Button>
+                      <Button onClick={handleSaveConfiguration} disabled={isSaving}>
+                        {isSaving ? 'Applying...' : 'Apply Configuration'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                {showAdvanced && (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-medium mb-2">Advanced Configuration</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Auto-migration:</span>
-                        <span className="text-green-600">Enabled</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Data validation:</span>
-                        <span className="text-green-600">Enabled</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Backup on switch:</span>
-                        <span className="text-green-600">Enabled</span>
-                      </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-2">
+                  <Info className="w-4 h-4 text-blue-600 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium">Consolidation Notes</p>
+                    <p className="mt-1">
+                      Demo mode groups browser demo and local development database options under one application mode.
+                      Production mode exposes only production-safe databases and the backend combinations compatible with the selected database.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {showAdvanced && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium mb-2">Advanced Configuration</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Source Mode:</span>
+                      <span className="text-gray-700 capitalize">{selectedConfiguration?.sourceMode || 'unknown'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Backend Integration:</span>
+                      <span className="text-gray-700 capitalize">{selectedBackendIntegration.replace(/-/g, ' ')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>API Base URL:</span>
+                      <span className="text-gray-700 truncate max-w-[16rem] text-right">{getApiBaseUrl(selectedConfiguration) || 'Local only'}</span>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              <BackendConfiguration key={selectedBackendType} />
             </div>
           </div>
         )}
 
-        {/* Database Providers Tab */}
-        {activeTab === 'providers' && (
+        {activeTab === 'sync' && (
           <div className="space-y-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Available Database Providers</h3>
-              
-              <div className="space-y-3">
-                {providers.map((provider) => (
-                  <div
-                    key={provider.type}
-                    className={`flex items-center justify-between p-4 border rounded-lg ${
-                      provider.isActive ? 'border-green-500 bg-green-50' : 'border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      {getStatusIcon(provider.isActive, provider.isAvailable)}
-                      <div>
-                        <h4 className="font-medium">{provider.name}</h4>
-                        <p className="text-sm text-gray-600">{provider.description}</p>
-                      </div>
-                    </div>
-                    <div className="text-sm">
-                      {provider.isActive ? (
-                        <span className="text-green-600 font-medium">Active</span>
-                      ) : provider.isAvailable ? (
-                        <span className="text-gray-500">Available</span>
-                      ) : (
-                        <span className="text-red-500">Unavailable</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <SyncManagementPanel className="!shadow-none border border-gray-200" />
           </div>
-        )}
-
-        {/* Backend Integration Tab */}
-        {activeTab === 'backend' && (
-          <div className="space-y-4">
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Backend Integration Options</h3>
-              
-              <div className="space-y-3">
-                {backendIntegrations.map((integration) => (
-                  <div
-                    key={integration.type}
-                    className={`flex items-center justify-between p-4 border rounded-lg ${
-                      integration.isConfigured ? 'border-green-500 bg-green-50' : 'border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      {integration.isConfigured ? (
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <div className="w-4 h-4 rounded-full bg-gray-300" />
-                      )}
-                      <div>
-                        <h4 className="font-medium">{integration.name}</h4>
-                        <p className="text-sm text-gray-600">{integration.description}</p>
-                      </div>
-                    </div>
-                    <div className="text-sm">
-                      {integration.isConfigured ? (
-                        <span className="text-green-600 font-medium">Configured</span>
-                      ) : (
-                        <button className="text-blue-600 hover:text-blue-800 font-medium">
-                          Configure
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Database Provider Tab */}
-        {activeTab === 'database-provider' && (
-          <DatabaseProviderTab
-            currentEnvironment={process.env.NODE_ENV || 'development'}
-            currentMode={currentMode}
-            selectedProvider={selectedProvider}
-            providers={providers}
-            saveMessage={saveMessage}
-            isSaving={isSaving}
-            onProviderChange={handleProviderChange}
-            onSaveConfiguration={handleSaveConfiguration}
-            onResetToDefault={handleResetToDefault}
-            getStatusIcon={getStatusIcon}
-          />
         )}
       </div>
 
@@ -491,19 +466,19 @@ export const DataLayerSettingsPage: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
             <span className="text-gray-600">Mode:</span>
-            <div className="font-medium capitalize">{status.currentMode}</div>
+            <div className="font-medium capitalize">{currentMode}</div>
           </div>
           <div>
             <span className="text-gray-600">Provider:</span>
-            <div className="font-medium">{status.activeProvider}</div>
+            <div className="font-medium">{config.database.provider}</div>
           </div>
           <div>
             <span className="text-gray-600">Records:</span>
-            <div className="font-medium">{status.dataCount}</div>
+            <div className="font-medium">{getQueueStatus?.()?.sync?.pending || 0} Pending</div>
           </div>
           <div>
             <span className="text-gray-600">Last Sync:</span>
-            <div className="font-medium">{status.lastSync ? status.lastSync.toLocaleString() : 'Never'}</div>
+            <div className="font-medium">{syncStatus?.lastSyncTime ? new Date(syncStatus.lastSyncTime).toLocaleString() : 'Never'}</div>
           </div>
         </div>
       </div>

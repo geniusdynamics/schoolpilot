@@ -1,6 +1,8 @@
 // ABOUTME: Comprehensive database configuration for multi-tier architecture
 // ABOUTME: Supports development (SQLite file), demo (SQLite WASM+OPFS), and flexible production modes
 
+import type { BackendType } from './backendArchitecture';
+
 // Storage Types for SQLite providers
 export type SQLiteStorageType = 'file' | 'opfs' | 'memory';
 
@@ -31,6 +33,23 @@ export interface DataLayerConfig {
     postgresql: ProviderConfig;
     api: ProviderConfig;
   };
+}
+
+export type ApplicationSettingsMode = 'demo' | 'production';
+
+export interface ConsolidatedConfigurationOption {
+  id: string;
+  applicationMode: ApplicationSettingsMode;
+  sourceMode: 'development' | 'demo' | 'production';
+  provider: ProviderConfig['provider'];
+  normalizedProvider: 'sqlite' | 'sqlite-file' | 'sqlite-wasm' | 'pouchdb' | 'rxdb' | 'livestore' | 'mock';
+  storageType?: SQLiteStorageType;
+  backendIntegration: BackendIntegrationType;
+  backendType: BackendType;
+  label: string;
+  description: string;
+  options: Record<string, any>;
+  recommended?: boolean;
 }
 
 export const DATA_LAYER_CONFIG: DataLayerConfig = {
@@ -214,6 +233,204 @@ export const DATA_LAYER_CONFIG: DataLayerConfig = {
     }
   }
 };
+
+const providerLabels: Record<ConsolidatedConfigurationOption['normalizedProvider'], string> = {
+  sqlite: 'SQLite',
+  'sqlite-file': 'SQLite File',
+  'sqlite-wasm': 'SQLite WASM',
+  pouchdb: 'PouchDB',
+  rxdb: 'RxDB',
+  livestore: 'LiveStore',
+  mock: 'Mock Storage'
+};
+
+const backendIntegrationLabels: Record<BackendIntegrationType, string> = {
+  none: 'Local Only',
+  api: 'Custom API',
+  erpnext: 'ERPNext',
+  couchdb: 'CouchDB Sync',
+  postgresql: 'PostgreSQL API',
+  hybrid: 'Hybrid Backend'
+};
+
+const backendTypeByIntegration: Record<BackendIntegrationType, BackendType> = {
+  none: 'frontend-only',
+  api: 'custom-api',
+  erpnext: 'frappe-education',
+  couchdb: 'frontend-only',
+  postgresql: 'custom-api',
+  hybrid: 'hybrid'
+};
+
+export function normalizeProvider(
+  provider: ProviderConfig['provider'],
+  storageType?: SQLiteStorageType
+): ConsolidatedConfigurationOption['normalizedProvider'] {
+  if (provider === 'sqlite' && storageType === 'file') {
+    return 'sqlite-file';
+  }
+
+  return provider;
+}
+
+function createConsolidatedOption(
+  id: string,
+  applicationMode: ApplicationSettingsMode,
+  sourceMode: ConsolidatedConfigurationOption['sourceMode'],
+  config: ProviderConfig,
+  backendIntegration: BackendIntegrationType = config.backendIntegration || 'none',
+  label?: string
+): ConsolidatedConfigurationOption {
+  const normalizedProvider = normalizeProvider(config.provider, config.storageType);
+
+  return {
+    id,
+    applicationMode,
+    sourceMode,
+    provider: config.provider,
+    normalizedProvider,
+    storageType: config.storageType,
+    backendIntegration,
+    backendType: backendTypeByIntegration[backendIntegration],
+    label: label || `${providerLabels[normalizedProvider]} · ${backendIntegrationLabels[backendIntegration]}`,
+    description: config.description || `${providerLabels[normalizedProvider]} with ${backendIntegrationLabels[backendIntegration]}`,
+    options: config.options,
+    recommended: config.recommended
+  };
+}
+
+const CONSOLIDATED_CONFIGURATION_OPTIONS: ConsolidatedConfigurationOption[] = [
+  createConsolidatedOption(
+    'demo-local-sqlite-file',
+    'demo',
+    'development',
+    DATA_LAYER_CONFIG.development,
+    'none',
+    'SQLite File · Local Development'
+  ),
+  createConsolidatedOption(
+    'demo-browser-sqlite-wasm',
+    'demo',
+    'demo',
+    DATA_LAYER_CONFIG.demo,
+    'none',
+    'SQLite WASM · Browser Demo'
+  ),
+  createConsolidatedOption(
+    'production-livestore',
+    'production',
+    'production',
+    DATA_LAYER_CONFIG.production.default,
+    'none',
+    'LiveStore · Local First'
+  ),
+  createConsolidatedOption(
+    'production-pouchdb-couchdb',
+    'production',
+    'production',
+    DATA_LAYER_CONFIG.production.alternatives[0],
+    'couchdb'
+  ),
+  createConsolidatedOption(
+    'production-rxdb-postgresql',
+    'production',
+    'production',
+    DATA_LAYER_CONFIG.production.alternatives[1],
+    'postgresql'
+  ),
+  createConsolidatedOption(
+    'production-sqlite-api',
+    'production',
+    'production',
+    DATA_LAYER_CONFIG.production.alternatives[2],
+    'api'
+  ),
+  createConsolidatedOption(
+    'production-erpnext',
+    'production',
+    'production',
+    DATA_LAYER_CONFIG.backendIntegrations.erpnext,
+    'erpnext'
+  ),
+  createConsolidatedOption(
+    'production-couchdb',
+    'production',
+    'production',
+    DATA_LAYER_CONFIG.backendIntegrations.couchdb,
+    'couchdb'
+  ),
+  createConsolidatedOption(
+    'production-postgresql',
+    'production',
+    'production',
+    DATA_LAYER_CONFIG.backendIntegrations.postgresql,
+    'postgresql'
+  ),
+  createConsolidatedOption(
+    'production-api',
+    'production',
+    'production',
+    DATA_LAYER_CONFIG.backendIntegrations.api,
+    'api'
+  )
+];
+
+export function getConsolidatedConfigurationOptions(
+  applicationMode?: ApplicationSettingsMode
+): ConsolidatedConfigurationOption[] {
+  if (!applicationMode) {
+    return [...CONSOLIDATED_CONFIGURATION_OPTIONS];
+  }
+
+  return CONSOLIDATED_CONFIGURATION_OPTIONS.filter(option => option.applicationMode === applicationMode);
+}
+
+export function getDatabaseOptionsForMode(applicationMode: ApplicationSettingsMode) {
+  const options = getConsolidatedConfigurationOptions(applicationMode);
+  const databaseMap = new Map<string, {
+    value: ConsolidatedConfigurationOption['normalizedProvider'];
+    label: string;
+    description: string;
+  }>();
+
+  options.forEach(option => {
+    if (!databaseMap.has(option.normalizedProvider)) {
+      databaseMap.set(option.normalizedProvider, {
+        value: option.normalizedProvider,
+        label: providerLabels[option.normalizedProvider],
+        description: option.description
+      });
+    }
+  });
+
+  return Array.from(databaseMap.values());
+}
+
+export function getBackendOptionsForModeAndProvider(
+  applicationMode: ApplicationSettingsMode,
+  normalizedProvider: ConsolidatedConfigurationOption['normalizedProvider']
+) {
+  return getConsolidatedConfigurationOptions(applicationMode).filter(
+    option => option.normalizedProvider === normalizedProvider
+  );
+}
+
+export function resolveConsolidatedConfigurationOption(
+  applicationMode: ApplicationSettingsMode,
+  normalizedProvider: ConsolidatedConfigurationOption['normalizedProvider'],
+  backendIntegration?: BackendIntegrationType
+) {
+  const providerOptions = getBackendOptionsForModeAndProvider(applicationMode, normalizedProvider);
+
+  if (backendIntegration) {
+    const exactMatch = providerOptions.find(option => option.backendIntegration === backendIntegration);
+    if (exactMatch) {
+      return exactMatch;
+    }
+  }
+
+  return providerOptions[0];
+}
 
 // Helper function to get configuration by environment and mode
 export function getDataLayerConfig(

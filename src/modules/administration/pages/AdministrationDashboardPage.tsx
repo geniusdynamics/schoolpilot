@@ -1,28 +1,10 @@
 import React from 'react';
-import Card from '@/components/ui/Card';
 import { CogIcon, AcademicCapIcon, CalendarDaysIcon, UserGroupIcon, UsersIcon, PuzzlePieceIcon, BriefcaseIcon, BuildingOffice2Icon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { Link } from 'react-router-dom';
-import Button from '@/components/ui/Button';
 import DonutChart from '@/components/ui/DonutChart';
 import { ChartData } from '@/types';
-import { useTranslation } from 'react-i18next';
-
-
-const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
-  <Card className="shadow-md">
-    <div className="flex items-center p-4">
-      <div className="p-3 rounded-full bg-indigo-100 text-indigo-600">
-        {icon}
-      </div>
-      <div className="ml-4">
-        <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  </Card>
-);
+import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardPanel, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 
 
 const AdministrationDashboardPage: React.FC = () => {
@@ -34,8 +16,6 @@ const AdministrationDashboardPage: React.FC = () => {
     academicYearStructures = [],
     academicYears = [],
     schoolPeriods = [],
-    clubs = [],
-    customers = [],
     departments = [], // Added with default
     studentCategories = [] // Added with default
   } = useAppData();
@@ -51,57 +31,52 @@ const AdministrationDashboardPage: React.FC = () => {
     }))
     .filter(d => d.value > 0);
 
+  const metrics: DashboardMetric[] = [
+    { key: 'students', label: 'Total Students', value: students.length, icon: <UsersIcon className="h-6 w-6 text-blue-700" /> },
+    { key: 'staff', label: 'Total Staff', value: staff.length, icon: <UserGroupIcon className="h-6 w-6 text-emerald-700" /> },
+    { key: 'classes', label: 'Total Classes', value: classes.length, icon: <AcademicCapIcon className="h-6 w-6 text-indigo-700" /> },
+    { key: 'departments', label: 'Total Departments', value: departments.length, icon: <BuildingOffice2Icon className="h-6 w-6 text-cyan-700" /> },
+    { key: 'student-categories', label: 'Student Categories', value: studentCategories.length, icon: <ListBulletIcon className="h-6 w-6 text-violet-700" /> },
+    { key: 'structures', label: 'Academic Structures', value: academicYearStructures.length, icon: <PuzzlePieceIcon className="h-6 w-6 text-amber-700" /> },
+    { key: 'years', label: 'Academic Years', value: academicYears.length, icon: <CalendarDaysIcon className="h-6 w-6 text-sky-700" /> },
+    { key: 'periods', label: 'School Periods', value: schoolPeriods.length, icon: <CalendarDaysIcon className="h-6 w-6 text-rose-700" /> },
+  ];
+
+  const quickActions: DashboardQuickAction[] = [
+    { key: 'add-student', label: 'Add New Student', to: '/administration/students', icon: <PlusIcon className="h-5 w-5" /> },
+    { key: 'manage-staff', label: 'Manage Staff', to: '/administration/staff', icon: <BriefcaseIcon className="h-5 w-5" /> },
+    { key: 'academic-calendar', label: 'Manage Academic Calendar', to: '/administration/academic-structures', icon: <CalendarDaysIcon className="h-5 w-5" /> },
+  ];
+
+  const charts: DashboardPanel[] = staffByDepartmentData.length > 0
+    ? [{ key: 'staff-by-department', title: 'Staff Distribution by Department', content: <DonutChart data={staffByDepartmentData} title="" /> }]
+    : [];
+
+  const notifications: DashboardNotification[] = [
+    {
+      id: 'departments-alert',
+      title: 'Department Coverage',
+      message: departments.length === 0 ? 'No departments are configured yet.' : `${departments.length} departments are configured.`,
+      severity: departments.length === 0 ? 'high' : 'normal',
+    },
+    {
+      id: 'student-categories-alert',
+      title: 'Student Categories',
+      message: studentCategories.length === 0 ? 'Student categories are missing.' : `${studentCategories.length} categories available for admissions.`,
+      severity: studentCategories.length === 0 ? 'warning' : 'normal',
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <Card title="Administration Dashboard" className="bg-white shadow-xl">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
-            <StatCard title="Total Students" value={students.length} icon={<UsersIcon className="w-7 h-7"/>} />
-            <StatCard title="Total Staff" value={staff.length} icon={<UserGroupIcon className="w-7 h-7"/>} />
-            <StatCard title="Total Classes" value={classes.length} icon={<AcademicCapIcon className="w-7 h-7"/>} />
-            <StatCard title="Total Departments" value={departments.length} icon={<BuildingOffice2Icon className="w-7 h-7"/>} />
-            <StatCard title="Student Categories" value={studentCategories.length} icon={<ListBulletIcon className="w-7 h-7"/>} />
-            <StatCard title="Academic Structures" value={academicYearStructures.length} icon={<PuzzlePieceIcon className="w-7 h-7"/>} />
-            <StatCard title="Academic Years" value={academicYears.length} icon={<CalendarDaysIcon className="w-7 h-7"/>} />
-            <StatCard title="School Periods" value={schoolPeriods.length} icon={<CalendarDaysIcon className="w-7 h-7"/>} />
-          </div>
-
-          <Card title="Quick Links" className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-                <Button as={Link} to="/administration/students" variant="outline" leftIcon={<PlusIcon className="w-5 h-5"/>}>
-                    Add New Student
-                </Button>
-                <Button as={Link} to="/administration/staff" variant="outline" leftIcon={<BriefcaseIcon className="w-5 h-5"/>}>
-                    Manage Staff
-                </Button>
-                <Button as={Link} to="/administration/academic-structures" variant="outline" leftIcon={<CalendarDaysIcon className="w-5 h-5"/>}>
-                    Manage Academic Calendar
-                </Button>
-            </div>
-          </Card>
-
-          {staffByDepartmentData.length > 0 && (
-            <Card title="Staff Distribution by Department" className="mb-6">
-                <DonutChart data={staffByDepartmentData} title="" />
-            </Card>
-          )}
-
-          <div className="text-center py-8">
-            <CogIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">School Administration Overview</h2>
-            <p className="text-gray-500 max-w-2xl mx-auto">
-              Manage students, staff, classes, departments, academic calendar, and core school setup from this module. 
-              Use the sidebar to navigate to specific management areas.
-            </p>
-            <div className="mt-6">
-              <span className="inline-block bg-sky-100 text-sky-700 text-sm font-semibold px-3 py-1 rounded-full">
-                Dashboard enhanced with key stats and quick links.
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </div>
+    <ModuleDashboardShell
+      title="Administration Dashboard"
+      subtitle="Manage students, staff, classes, departments, and school setup from a single operational view."
+      heroIcon={<CogIcon className="h-8 w-8 text-white" />}
+      metrics={metrics}
+      quickActions={quickActions}
+      charts={charts}
+      notifications={notifications}
+    />
   );
 };
 

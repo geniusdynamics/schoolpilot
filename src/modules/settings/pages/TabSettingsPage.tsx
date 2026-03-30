@@ -2,7 +2,7 @@
 // ABOUTME: Provides UI for configuring tab-related features with internal tabs
 
 import React from 'react';
-import TabSettings from '../../../components/TabSettings';
+// import TabSettings from '../../../components/TabSettings';
 import BreadcrumbNavigation from '../../../components/BreadcrumbNavigation';
 
 const TabSettingsPage: React.FC = () => {
@@ -27,7 +27,10 @@ const TabSettingsPage: React.FC = () => {
       
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
-        <TabSettings />
+        {/* <TabSettings /> */}
+        <div className="p-4 bg-gray-50 border rounded text-gray-500">
+          Tab settings component is currently unavailable.
+        </div>
       </div>
     </div>
   );

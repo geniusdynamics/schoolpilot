@@ -2,6 +2,7 @@
 // ABOUTME: Provides user-friendly interface for configuring all application features
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   CogIcon, 
   WifiIcon, 
@@ -16,18 +17,15 @@ import {
 import { useAppData } from '../hooks/useAppData';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 import { useEnvironment } from '../hooks/useUnifiedConfig';
-import { 
-  NetworkStatusIndicator, 
-  ConflictResolutionComponent,
-  FeatureAvailabilityIndicator 
+import {
+NetworkStatusIndicator, 
+ConflictResolutionComponent,
+FeatureAvailabilityIndicator 
 } from './OfflineCapability';
-import SyncManagementPanel from './SyncManagementPanel';
 import PerformanceDashboard from './PerformanceDashboard';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import TooltipDemo from './TooltipDemo';
-import { BackendConfiguration } from './BackendConfiguration';
-import { UnifiedModeSwitch } from './UnifiedModeSwitch';
 
 interface FeatureSettingsProps {
   className?: string;
@@ -36,6 +34,7 @@ interface FeatureSettingsProps {
 const FeatureSettings: React.FC<FeatureSettingsProps> = ({
   className = ''
 }) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'sync' | 'features' | 'conflicts' | 'performance' | 'ui-components'>('overview');
   const { config, updateConfig, resetConfig, applyPreset } = useUnifiedConfig();
   const { current: currentEnvironment } = useEnvironment();
@@ -205,22 +204,26 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     </div>
   );
 
-  const renderSyncTab = () => (
-    <div className="space-y-6">
-      <SyncManagementPanel className="!shadow-none !bg-transparent border border-gray-200" />
-    </div>
-  );
-
   const renderFeaturesTab = () => (
     <div className="space-y-6">
-      {/* Application Mode */}
-      <Card title="Application Mode">
+      <Card title="Data Layer Controls">
         <div className="space-y-4">
-          <UnifiedModeSwitch 
-            variant="radio" 
-            showDescription={true}
-            onModeChange={(mode) => updateConfig({ ...config, dataMode: mode })}
-          />
+          <p className="text-sm text-gray-600">
+            Mode, database, backend, and sync controls are now managed in Data Layer Settings.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {['Mode', 'Database', 'Backend', 'Sync'].map((control) => (
+              <span
+                key={control}
+                className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+              >
+                {control}
+              </span>
+            ))}
+          </div>
+          <Button onClick={() => navigate('/settings/data-layer')}>
+            Open Data Layer Settings
+          </Button>
         </div>
       </Card>
 
@@ -341,26 +344,8 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
           </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium">Backend Integration</div>
-              <div className="text-sm text-gray-600">Enable backend API integration</div>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={config.backend.available}
-                onChange={() => console.log('Backend integration cannot be toggled directly')}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
-          </div>
         </div>
       </Card>
-
-      {/* Backend Configuration */}
-      <BackendConfiguration />
 
       {/* Feature Availability */}
       <FeatureAvailabilityIndicator 
@@ -409,7 +394,6 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: CogIcon },
-    { id: 'sync', label: 'Sync Management', icon: ArrowPathIcon },
     { id: 'features', label: 'Feature Flags', icon: Cog6ToothIcon },
     { id: 'conflicts', label: `Conflicts ${transformedConflicts.length > 0 ? `(${transformedConflicts.length})` : ''}`, icon: ExclamationTriangleIcon },
     { id: 'performance', label: 'Performance', icon: ClockIcon },
@@ -423,7 +407,7 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Feature Settings</h1>
-            <p className="text-gray-600">Manage offline capabilities, sync settings, and application features</p>
+            <p className="text-gray-600">Manage feature flags, offline capabilities, and application status</p>
           </div>
           <NetworkStatusIndicator showDetails={true} className="bg-white p-3 rounded-lg shadow" />
         </div>
@@ -452,7 +436,6 @@ const FeatureSettings: React.FC<FeatureSettingsProps> = ({
       {/* Tab Content */}
       <div className="min-h-96">
         {activeTab === 'overview' && renderOverviewTab()}
-        {activeTab === 'sync' && renderSyncTab()}
         {activeTab === 'features' && renderFeaturesTab()}
         {activeTab === 'conflicts' && renderConflictsTab()}
         {activeTab === 'performance' && <PerformanceDashboard />}

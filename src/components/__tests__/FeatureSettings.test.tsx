@@ -6,11 +6,21 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import FeatureSettings from '../../components/FeatureSettings';
 
+const mockNavigate = vi.fn();
+
 const mockFns = {
   updateConfig: vi.fn(),
   resetConfig: vi.fn(),
   applyPreset: vi.fn(),
 };
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<any>('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 vi.mock('../../hooks/useUnifiedConfig', async () => {
   const actual = await vi.importActual<any>('../../hooks/useUnifiedConfig');
@@ -79,5 +89,15 @@ describe('FeatureSettings', () => {
     const restoreBtn = screen.getByText('Restore Defaults');
     fireEvent.click(restoreBtn);
     expect(mockFns.applyPreset).toHaveBeenCalledWith('development');
+  });
+
+  it('shows a data layer handoff instead of duplicate mode and backend controls', () => {
+    render(<FeatureSettings />);
+    fireEvent.click(screen.getByText('Feature Flags'));
+    expect(screen.getByText('Data Layer Controls')).toBeInTheDocument();
+    expect(screen.queryByText('Application Mode')).not.toBeInTheDocument();
+    expect(screen.queryByText('Backend Configuration')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /open data layer settings/i }));
+    expect(mockNavigate).toHaveBeenCalledWith('/settings/data-layer');
   });
 });

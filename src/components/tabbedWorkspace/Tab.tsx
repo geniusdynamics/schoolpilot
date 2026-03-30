@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Pin, Copy, ExternalLink, MoreVertical, AlertCircle } from 'lucide-react';
+import { X, Pin, Copy, ExternalLink, MoreVertical, AlertCircle, Star } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../utils/cn';
 import { Tab as TabType } from '../../types/tabbedWorkspace';
 import { HierarchicalTab, SubTab } from '../../types/hierarchical';
 import { getIcon } from '../../utils/iconMap';
 import { useTabStore } from '../../stores/tabStore';
 import { SubTabNavigation } from '../SubTabNavigation';
+import { useFavorites } from '../../hooks/useFavorites';
 
 // Legacy TabProps for backward compatibility
 interface LegacyTabProps {
@@ -20,6 +22,11 @@ interface LegacyTabProps {
   onDuplicate: () => void;
   onOpenInNewWindow?: () => void;
   showContextMenu?: boolean;
+  onCloseOtherTabs?: (tabId: string) => void;
+  onCloseTabsToRight?: (tabId: string) => void;
+  onCloseTabsToLeft?: (tabId: string) => void;
+  onCloseAllTabs?: () => void;
+  onCloseAllExceptPinned?: () => void;
 }
 
 // Enhanced TabProps with hierarchical support
@@ -35,6 +42,11 @@ interface HierarchicalTabProps {
   onDuplicate: () => void;
   onOpenInNewWindow?: () => void;
   showContextMenu?: boolean;
+  onCloseOtherTabs?: (tabId: string) => void;
+  onCloseTabsToRight?: (tabId: string) => void;
+  onCloseTabsToLeft?: (tabId: string) => void;
+  onCloseAllTabs?: () => void;
+  onCloseAllExceptPinned?: () => void;
   // Hierarchical features
   enableHierarchicalMode?: boolean;
   onSubTabChange?: (tabId: string, subTabId: string) => void;
@@ -58,6 +70,13 @@ interface ContextMenuProps {
   onPin: () => void;
   onDuplicate: () => void;
   onOpenInNewWindow?: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
+  onCloseOtherTabs?: (tabId: string) => void;
+  onCloseTabsToRight?: (tabId: string) => void;
+  onCloseTabsToLeft?: (tabId: string) => void;
+  onCloseAllTabs?: () => void;
+  onCloseAllExceptPinned?: () => void;
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -67,23 +86,34 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onClose,
   onPin,
   onDuplicate,
-  onOpenInNewWindow
+  onOpenInNewWindow,
+  isFavorite,
+  onToggleFavorite,
+  onCloseOtherTabs,
+  onCloseTabsToRight,
+  onCloseTabsToLeft,
+  onCloseAllTabs,
+  onCloseAllExceptPinned
 }) => {
-  const { closeAllTabs, closeTabsToRight, closeTabsToLeft, closeAllExceptPinned, closeOtherTabs } = useTabStore();
+  const tabStore = useTabStore();
   
   const handleAction = (action: string) => {
     switch (action) {
       case 'close-others':
-        closeOtherTabs(tab.id);
+        if (onCloseOtherTabs) onCloseOtherTabs(tab.id);
+        else tabStore.closeOtherTabs(tab.id);
         break;
       case 'close-to-right':
-        closeTabsToRight(tab.id);
+        if (onCloseTabsToRight) onCloseTabsToRight(tab.id);
+        else tabStore.closeTabsToRight(tab.id);
         break;
       case 'close-to-left':
-        closeTabsToLeft(tab.id);
+        if (onCloseTabsToLeft) onCloseTabsToLeft(tab.id);
+        else tabStore.closeTabsToLeft(tab.id);
         break;
       case 'close-all':
-        closeAllTabs();
+        if (onCloseAllTabs) onCloseAllTabs();
+        else tabStore.closeAllTabs();
         break;
       default:
         console.log(`Context menu action: ${action}`);
@@ -115,7 +145,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     }
   }, [isVisible, onClose]);
 
-  if (!isVisible) return null;
+  if (!isVisible || typeof document === 'undefined') return null;
 
   const menuItems = [
     {
@@ -124,6 +154,15 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       icon: Pin,
       onClick: onPin,
       shortcut: 'Ctrl+P'
+    },
+    {
+      id: 'favorite',
+      label: isFavorite ? 'Unfavorite Tab' : 'Favorite Tab',
+      icon: Star,
+      onClick: () => {
+        onToggleFavorite?.();
+        onClose();
+      }
     },
     {
       id: 'duplicate',
@@ -160,6 +199,16 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       onClick: () => handleAction('close-to-left')
     },
     {
+      id: 'closeNonPinned',
+      label: 'Close Non-Pinned Tabs',
+      icon: X,
+      onClick: () => {
+        if (onCloseAllExceptPinned) onCloseAllExceptPinned();
+        else tabStore.closeAllExceptPinned();
+        onClose();
+      }
+    },
+    {
       id: 'closeAll',
       label: 'Close All Tabs',
       icon: X,
@@ -168,11 +217,11 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     }
   ];
 
-  return (
+  return createPortal(
     <div
       ref={menuRef}
       className={cn(
-        'fixed bg-white border border-green-200 rounded-lg shadow-lg z-50',
+        'fixed bg-white border border-green-200 rounded-lg shadow-xl z-[9999]',
         'min-w-[180px] py-1 text-sm'
       )}
       style={{
@@ -212,7 +261,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           </button>
         );
       })}
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -228,7 +278,12 @@ export const Tab: React.FC<TabProps> = (props) => {
     onPin,
     onDuplicate,
     onOpenInNewWindow,
-    showContextMenu = true
+    showContextMenu = true,
+    onCloseOtherTabs,
+    onCloseTabsToRight,
+    onCloseTabsToLeft,
+    onCloseAllTabs,
+    onCloseAllExceptPinned
   } = props;
   
   // Extract hierarchical props if available
@@ -242,8 +297,16 @@ export const Tab: React.FC<TabProps> = (props) => {
     position: { x: number; y: number };
   }>({ isVisible: false, position: { x: 0, y: 0 } });
   
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const isTabFavorite = isFavorite(tab.id);
+  
   const [isHovered, setIsHovered] = useState(false);
   const tabRef = useRef<HTMLDivElement>(null);
+
+  // Handle close context menu
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenu(prev => ({ ...prev, isVisible: false }));
+  }, []);
 
   // Handle context menu
   const handleContextMenu = useCallback((event: React.MouseEvent) => {
@@ -252,16 +315,28 @@ export const Tab: React.FC<TabProps> = (props) => {
     event.preventDefault();
     event.stopPropagation();
     
+    // Adjust position to prevent menu from going off-screen
+    let x = event.clientX;
+    let y = event.clientY;
+    
+    // Approximate menu dimensions
+    const menuWidth = 220;
+    const menuHeight = 300;
+    
+    if (typeof window !== 'undefined') {
+      if (x + menuWidth > window.innerWidth) {
+        x = window.innerWidth - menuWidth - 10;
+      }
+      if (y + menuHeight > window.innerHeight) {
+        y = window.innerHeight - menuHeight - 10;
+      }
+    }
+    
     setContextMenu({
       isVisible: true,
-      position: { x: event.clientX, y: event.clientY }
+      position: { x, y }
     });
   }, [showContextMenu]);
-
-  // Handle close context menu
-  const handleCloseContextMenu = useCallback(() => {
-    setContextMenu({ isVisible: false, position: { x: 0, y: 0 } });
-  }, []);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
@@ -297,7 +372,7 @@ export const Tab: React.FC<TabProps> = (props) => {
 
   // Calculate tab width based on content
   const getTabWidth = () => {
-    if (isPinned) return 'w-12'; // Compact pinned tabs
+    if (isPinned) return 'w-14 min-w-[56px] justify-center'; // Compact pinned tabs, centered content
     if (tab.title.length > 20) return 'w-48'; // Long titles
     if (tab.title.length > 10) return 'w-36'; // Medium titles
     return 'w-32'; // Short titles
@@ -341,7 +416,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         base: 'bg-white border-gray-200 text-gray-700',
         active: 'bg-white border-blue-500 text-blue-800 shadow-sm',
         inactive: 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-700',
-        pinned: 'bg-gray-100 border-gray-300',
+        pinned: 'bg-blue-50 border-blue-200 text-blue-800',
         error: 'bg-red-50 border-red-300',
         loading: 'bg-blue-50 border-blue-300'
       };
@@ -352,7 +427,7 @@ export const Tab: React.FC<TabProps> = (props) => {
       base: 'bg-green-50 border-green-200 text-green-700',
       active: 'bg-white border-green-500 text-green-800 shadow-sm',
       inactive: 'bg-green-50 border-transparent text-gray-600 hover:bg-green-100 hover:text-green-700',
-      pinned: 'bg-green-100 border-green-300',
+      pinned: 'bg-green-100 border-green-300 text-green-800',
       error: 'bg-red-50 border-red-300',
       loading: 'bg-blue-50 border-blue-300'
     };
@@ -367,6 +442,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         className={cn(
           'relative cursor-pointer transition-all duration-200',
           'border-b-2 select-none group',
+          isPinned ? 'rounded-lg m-1 border-2' : '',
           getTabWidth(),
           enableHierarchicalMode ? 'flex flex-col' : 'flex items-center',
           {
@@ -375,7 +451,7 @@ export const Tab: React.FC<TabProps> = (props) => {
             // Inactive state
             [styling.inactive]: !isActive && !isPinned && !('hasError' in tab && tab.hasError) && !tab.isLoading,
             // Pinned state
-            [styling.pinned]: isPinned && !isActive,
+            [styling.pinned]: isPinned,
             // Dragging state
             'opacity-50 scale-95': isDragging,
             // Error state
@@ -387,6 +463,13 @@ export const Tab: React.FC<TabProps> = (props) => {
         )}
         onClick={onClick}
         onContextMenu={handleContextMenu}
+        onMouseDown={(e) => {
+          // Stop propagation for right-click to prevent react-beautiful-dnd from 
+          // intercepting the mousedown and cancelling the contextmenu event
+          if (e.button === 2) {
+            e.stopPropagation();
+          }
+        }}
         onKeyDown={handleKeyDown}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -398,22 +481,25 @@ export const Tab: React.FC<TabProps> = (props) => {
       >
         {/* Pin indicator */}
         {isPinned && (
-          <div className="absolute -top-1 -left-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+          <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm z-10" />
         )}
 
         {/* Main tab content */}
-        <div className="flex items-center gap-2 px-3 py-2 min-w-0 flex-1">
+        <div className={cn(
+          "flex items-center gap-2 px-3 py-2 min-w-0 flex-1",
+          isPinned ? "justify-center px-0" : ""
+        )}>
           {/* Icon */}
           {tab.icon && (
             <span className={cn(
               'flex-shrink-0 text-sm',
               isActive 
                 ? (tabStyle === 'modern' ? 'text-blue-600' : 'text-green-600')
-                : 'text-gray-500'
+                : (isPinned ? (tabStyle === 'modern' ? 'text-blue-700' : 'text-green-700') : 'text-gray-500')
             )}>
               {(() => {
                 const IconComponent = getIcon(tab.icon);
-                return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
+                return IconComponent ? <IconComponent className={isPinned ? "w-5 h-5" : "w-4 h-4"} /> : null;
               })()}
             </span>
           )}
@@ -431,9 +517,14 @@ export const Tab: React.FC<TabProps> = (props) => {
           )}
 
           {/* Status indicator */}
-          <div className="flex-shrink-0">
-            {getStatusIndicator()}
-          </div>
+          {!isPinned && (
+            <div className="flex-shrink-0 flex items-center gap-1">
+              {isTabFavorite && (
+                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+              )}
+              {getStatusIndicator()}
+            </div>
+          )}
 
           {/* Close button */}
           {!isPinned && (showCloseButton !== false) && (isHovered || isActive) && (
@@ -473,7 +564,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         )}
 
         {/* Active tab indicator */}
-        {isActive && (
+        {isActive && !isPinned && (
           <div className={cn(
             'absolute bottom-0 left-0 right-0 h-0.5',
             tabStyle === 'modern' ? 'bg-blue-500' : 'bg-green-500'
@@ -482,7 +573,8 @@ export const Tab: React.FC<TabProps> = (props) => {
 
         {/* Keyboard focus indicator */}
         <div className={cn(
-          'absolute inset-0 rounded-t border-2 border-transparent transition-colors pointer-events-none',
+          'absolute inset-0 border-2 border-transparent transition-colors pointer-events-none',
+          isPinned ? 'rounded-lg' : 'rounded-t',
           tabStyle === 'modern'
             ? 'focus-within:border-blue-400 focus-within:shadow-sm'
             : 'focus-within:border-green-400 focus-within:shadow-sm'
@@ -498,6 +590,19 @@ export const Tab: React.FC<TabProps> = (props) => {
         onPin={onPin}
         onDuplicate={onDuplicate}
         onOpenInNewWindow={onOpenInNewWindow}
+        isFavorite={isTabFavorite}
+        onToggleFavorite={() => toggleFavorite({
+          id: tab.id,
+          title: tab.title,
+          url: tab.path || '', // path corresponds to url in TabType
+          icon: typeof tab.icon === 'string' ? tab.icon : undefined,
+          module: tab.module || 'dashboard'
+        })}
+        onCloseOtherTabs={onCloseOtherTabs}
+        onCloseTabsToRight={onCloseTabsToRight}
+        onCloseTabsToLeft={onCloseTabsToLeft}
+        onCloseAllTabs={onCloseAllTabs}
+        onCloseAllExceptPinned={onCloseAllExceptPinned}
       />
     </>
   );

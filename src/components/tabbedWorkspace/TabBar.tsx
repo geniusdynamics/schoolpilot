@@ -21,6 +21,11 @@ interface LegacyTabBarProps {
   onTabPin?: (tabId: string) => void;
   onTabUnpin?: (tabId: string) => void;
   onTabDuplicate?: (tabId: string) => void;
+  onCloseOtherTabs?: (tabId: string) => void;
+  onCloseTabsToRight?: (tabId: string) => void;
+  onCloseTabsToLeft?: (tabId: string) => void;
+  onCloseAllTabs?: () => void;
+  onCloseAllExceptPinned?: () => void;
   onNewTab?: (tabData?: any) => void;
   maxTabs?: number;
   enableTabGroups?: boolean;
@@ -45,6 +50,11 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
   onTabPin,
   onTabUnpin,
   onTabDuplicate,
+  onCloseOtherTabs,
+  onCloseTabsToRight,
+  onCloseTabsToLeft,
+  onCloseAllTabs,
+  onCloseAllExceptPinned,
   onNewTab,
   maxTabs,
   enableTabGroups,
@@ -319,7 +329,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         className={cn(
-                          'flex-shrink-0',
+                          'flex-shrink-0 flex items-center justify-center',
                           snapshot.isDragging && 'z-50 rotate-2 shadow-lg'
                         )}
                       >
@@ -332,6 +342,11 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
                           onClose={showCloseButtons && tab.canClose !== false ? (e) => handleTabClose(tab.id, e) : undefined}
                           onPin={() => handleTabPin(tab.id)}
                           onDuplicate={() => handleTabDuplicate(tab.id)}
+                          onCloseOtherTabs={onCloseOtherTabs}
+                          onCloseTabsToRight={onCloseTabsToRight}
+                          onCloseTabsToLeft={onCloseTabsToLeft}
+                          onCloseAllTabs={onCloseAllTabs}
+                          onCloseAllExceptPinned={onCloseAllExceptPinned}
                           onSubTabChange={enableHierarchicalMode ? (subTabId) => handleSubTabChange(tab.id, subTabId) : undefined}
                           showCloseButton={showCloseButtons && tab.canClose !== false}
                           tabStyle={tabStyle}

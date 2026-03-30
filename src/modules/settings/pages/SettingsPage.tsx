@@ -11,6 +11,8 @@ import Table from '@/components/ui/Table';
 import { Link } from 'react-router-dom';
 import ModuleManagementPanel from '@/components/settings/ModuleManagementPanel';
 import UserPermissionsPanel from '@/components/settings/UserPermissionsPanel';
+import Spinner from '@/components/ui/Spinner';
+import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 
 const SettingsPage: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
@@ -32,23 +34,59 @@ const SettingsPage: React.FC = () => {
   // Show only first 5 users as preview
   const previewUsers = users.slice(0, 5);
 
+  if (usersLoading.all || usersLoading.users || usersLoading.schoolDetails) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  const metrics: DashboardMetric[] = [
+    { key: 'users', label: t('userManagement.totalUsers'), value: users.length, icon: <UserGroupIcon className="h-6 w-6 text-blue-700" /> },
+    { key: 'school', label: t('navigation:settings.schoolProfile'), value: schoolDetails?.name || t('schoolProfile.notConfigured'), icon: <IdentificationIcon className="h-6 w-6 text-emerald-700" /> },
+    { key: 'database-mode', label: t('dataManagement.title'), value: isDatabaseModeActive ? 'Database Mode Active' : 'Browser Mode', icon: <CircleStackIcon className="h-6 w-6 text-indigo-700" /> },
+    { key: 'modules', label: t('moduleManagement.title'), value: t('common:manage'), icon: <CogIcon className="h-6 w-6 text-cyan-700" /> },
+  ];
+
+  const quickActions: DashboardQuickAction[] = [
+    { key: 'school-profile', label: t('navigation:settings.schoolProfile'), to: '/settings/school-profile', icon: <IdentificationIcon className="h-5 w-5" /> },
+    { key: 'users', label: t('navigation:settings.users'), to: '/settings/users', icon: <UserGroupIcon className="h-5 w-5" /> },
+    { key: 'modules', label: t('navigation:settings.modules'), to: '/settings/modules', icon: <CircleStackIcon className="h-5 w-5" /> },
+    { key: 'audit', label: t('navigation:settings.auditLog'), to: '/settings/audit-log', icon: <ClockIcon className="h-5 w-5" /> },
+    { key: 'workflows', label: t('navigation:settings.workflows'), to: '/settings/workflows', icon: <ArrowsRightLeftIcon className="h-5 w-5" /> },
+  ];
+
+  const notifications: DashboardNotification[] = [
+    {
+      id: 'data-mode',
+      title: t('dataManagement.title'),
+      message: isDatabaseModeActive
+        ? 'Advanced data tools are enabled.'
+        : 'Running in browser mode with reduced data-management capabilities.',
+      severity: isDatabaseModeActive ? 'normal' : 'warning',
+    },
+    {
+      id: 'user-volume',
+      title: t('userManagement.title'),
+      message: users.length > 0
+        ? `${users.length} user accounts are configured.`
+        : 'No user accounts are currently configured.',
+      severity: users.length > 0 ? 'normal' : 'warning',
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <Card title={t('general.title')}>
-        <div className="text-center py-8">
-          <CogIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">{t('general.appSettingsHeader')}</h2>
-          <p className="text-gray-500">{t('general.appSettingsDescription')}</p>
-        </div>
-      </Card>
-
-      {/* Module Management Panel */}
+    <ModuleDashboardShell
+      title={t('general.title')}
+      subtitle={t('general.appSettingsDescription')}
+      heroIcon={<CogIcon className="h-8 w-8 text-white" />}
+      metrics={metrics}
+      quickActions={quickActions}
+      notifications={notifications}
+    >
       <ModuleManagementPanel />
-
-      {/* User Permissions Panel */}
       <UserPermissionsPanel />
-
-      {/* Settings Quick Access Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
         {/* School Profile Card */}
@@ -143,8 +181,6 @@ const SettingsPage: React.FC = () => {
           </Card>
         )}
       </div>
-
-      {/* Recent Users Preview */}
       <Card title={t('userManagement.recentUsers')}>
         <div className="mb-4">
           <p className="text-gray-600">{t('userManagement.previewDescription')}</p>
@@ -177,7 +213,7 @@ const SettingsPage: React.FC = () => {
             {t('rolesPermissions.description', { userManagementLink: t('navigation:settings.users'), workflowsLink: t('navigation:settings.workflows') })}
           </p>
       </Card>
-    </div>
+    </ModuleDashboardShell>
   );
 };
 

@@ -3,7 +3,7 @@
 // ABOUTME: Provides consistent data access, loading states, error handling, and toast notifications
 
 import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { getCurrentUnifiedConfig } from '../config/unifiedConfig';
+import { getCurrentUnifiedConfig, updateAppConfig } from '../config/unifiedConfig';
 import { UnifiedDatabaseManager } from '../services/database/UnifiedDatabaseManager';
 import type { AppDataContextType, AppDataLoadingStates } from '../core/types';
 import { useToastHelpers } from '../hooks/useToast';
@@ -22,8 +22,12 @@ export interface SyncStatus {
 // Sync settings interface
 export interface SyncSettings {
   autoSync: boolean;
+  backgroundSync: boolean;
   syncInterval: number;
   batchSize: number;
+  maxRetries: number;
+  retryDelay: number;
+  enableConflictResolution: boolean;
   conflictResolution: 'local-wins' | 'remote-wins' | 'manual' | 'merge';
 }
 
@@ -383,19 +387,30 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   
   // Sync settings (stored in localStorage)
   const [syncSettings, setSyncSettings] = useState<SyncSettings>(() => {
+    const unifiedSync = getCurrentUnifiedConfig().database.sync;
     try {
       const stored = localStorage.getItem('sync-settings');
       if (stored) {
-        return JSON.parse(stored);
+        return {
+          backgroundSync: true,
+          maxRetries: unifiedSync.retryAttempts,
+          retryDelay: 5000,
+          enableConflictResolution: true,
+          ...JSON.parse(stored)
+        };
       }
     } catch (err) {
       console.warn('Failed to load sync settings:', err);
     }
     return {
-      autoSync: true,
-      syncInterval: 30000, // 30 seconds
-      batchSize: 100,
-      conflictResolution: 'manual' as const
+      autoSync: unifiedSync.enabled,
+      backgroundSync: true,
+      syncInterval: unifiedSync.interval,
+      batchSize: unifiedSync.batchSize,
+      maxRetries: unifiedSync.retryAttempts,
+      retryDelay: 5000,
+      enableConflictResolution: unifiedSync.conflictResolution !== 'manual',
+      conflictResolution: unifiedSync.conflictResolution === 'local' ? 'local-wins' : unifiedSync.conflictResolution === 'remote' ? 'remote-wins' : unifiedSync.conflictResolution
     };
   });
   
@@ -467,7 +482,13 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => {
       mounted = false;
     };
-  }, [dbManager]); // Removed toast from dependencies to prevent re-initialization loop
+  }, [dbManager, toast]);
+
+  // Store sync settings in ref to avoid dependency
+  const syncSettingsRef = useRef(syncSettings);
+  useEffect(() => {
+    syncSettingsRef.current = syncSettings;
+  }, [syncSettings]);
 
   // Automatic sync interval
   useEffect(() => {
@@ -481,11 +502,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const providerType = dbManager.getProviderType();
     const supportsSync = providerType === 'backend-api' || providerType === 'pouchdb';
 
-    if (!supportsSync || !syncSettings.autoSync || !isInitialized) {
+    if (!supportsSync || !syncSettingsRef.current.autoSync || !isInitialized) {
       return;
     }
 
-    console.log(`🔄 [AppDataContext] Setting up automatic sync (interval: ${syncSettings.syncInterval}ms)`);
+    console.log(`🔄 [AppDataContext] Setting up automatic sync (interval: ${syncSettingsRef.current.syncInterval}ms)`);
 
     // Set up interval for automatic sync
     syncIntervalRef.current = setInterval(() => {
@@ -495,7 +516,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           console.error('Automatic sync failed:', err);
         });
       }
-    }, syncSettings.syncInterval);
+    }, syncSettingsRef.current.syncInterval);
 
     return () => {
       if (syncIntervalRef.current) {
@@ -503,7 +524,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         syncIntervalRef.current = null;
       }
     };
-  }, [syncSettings.autoSync, syncSettings.syncInterval, isInitialized]); // Reduced dependencies to prevent excessive re-runs
+  }, [isInitialized, isOnline, networkState?.backendAvailable, syncStatus.state, dbManager]);
 
   // Load data from all collections
   const loadAllCollections = useCallback(async () => {
@@ -539,7 +560,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.showError(errorMessage);
       throw err;
     }
-  }, [loadAllCollections]); // Removed toast to prevent re-render loop
+  }, [loadAllCollections, toast]); // Added toast to dependencies
 
   // Backup data
   const backupData = useCallback(async () => {
@@ -554,7 +575,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.showError(errorMessage);
       throw err;
     }
-  }, [dbManager]); // Removed toast to prevent re-render loop
+  }, [dbManager, toast]); // Added toast to dependencies
 
   // Restore data
   const restoreData = useCallback(async (backup: any) => {
@@ -574,7 +595,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.showError(errorMessage);
       throw err;
     }
-  }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
+  }, [dbManager, loadAllCollections, toast]); // Added toast to dependencies
 
   // Clear all data
   const clearAllData = useCallback(async () => {
@@ -589,7 +610,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.showError(errorMessage);
       throw err;
     }
-  }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
+  }, [dbManager, loadAllCollections, toast]); // Added toast to dependencies
 
   // Get collection statistics
   const getCollectionStats = useCallback(async () => {
@@ -603,6 +624,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Perform sync operation
   const performSync = useCallback(async () => {
+    console.log('🔄 [DEBUG] performSync called with:', { 
+      isOnline, 
+      backendAvailable: networkState?.backendAvailable, 
+      syncState: syncStatus.state 
+    }); 
+
     // Only sync if provider supports it (backend-api or pouchdb)
     const providerType = dbManager.getProviderType();
     if (providerType !== 'backend-api' && providerType !== 'pouchdb') {
@@ -671,12 +698,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       isSyncingRef.current = false;
     }
-  }, [dbManager, isOnline, networkState, syncStatus.state, loadAllCollections]); // Removed toast to prevent re-render loop
+  }, [dbManager, isOnline, networkState, syncStatus.state, loadAllCollections, toast]);
 
   // Store performSync in ref for use in effects
   useEffect(() => {
     performSyncRef.current = performSync;
-  }, []); // Remove performSync from dependencies to prevent circular dependency
+  }, [performSync]);
 
   // Monitor online/offline status and network state
   useEffect(() => {
@@ -692,7 +719,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       setIsOnline(state.isOnline);
       
       // Trigger sync on network reconnection if auto-sync is enabled
-      if (state.isOnline && syncSettings.autoSync && !isSyncingRef.current && performSyncRef.current) {
+      if (state.isOnline && syncSettingsRef.current.autoSync && !isSyncingRef.current && performSyncRef.current) {
         console.log('🔄 [AppDataContext] Network reconnected, triggering sync...');
         performSyncRef.current().catch(err => {
           console.error('Auto-sync on reconnection failed:', err);
@@ -705,20 +732,20 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       window.removeEventListener('offline', handleOffline);
       unsubscribe();
     };
-  }, [networkManager, syncSettings.autoSync]);
+  }, [networkManager]);
 
   // Force sync
   const forceSync = useCallback(async () => {
     console.log('🔄 [AppDataContext] Force sync requested');
     await performSync();
-  }, []); // Remove performSync from dependencies to prevent circular dependency
+  }, [performSync]);
 
   // Pause sync
   const pauseSync = useCallback(() => {
     console.log('⏸️ [AppDataContext] Sync paused');
     setSyncStatus(prev => ({ ...prev, state: 'paused' }));
     toast.showInfo('Automatic sync paused');
-  }, []); // Removed toast to prevent re-render loop
+  }, [toast]);
 
   // Resume sync
   const resumeSync = useCallback(() => {
@@ -732,7 +759,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         console.error('Sync on resume failed:', err);
       });
     }
-  }, [isOnline, networkState]); // Removed performSync and toast to prevent re-render loop
+  }, [isOnline, networkState, performSync, toast]);
 
   // Cancel sync
   const cancelSync = useCallback(() => {
@@ -742,7 +769,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       setSyncStatus(prev => ({ ...prev, state: 'idle', progress: 0 }));
       toast.showWarning('Sync cancelled');
     }
-  }, []); // Removed toast to prevent re-render loop
+  }, [toast]);
 
   // Get sync settings
   const getSyncSettings = useCallback(() => {
@@ -754,18 +781,37 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     setSyncSettings(prev => {
       const updated = { ...prev, ...newSettings };
       
-      // Persist to localStorage
       try {
         localStorage.setItem('sync-settings', JSON.stringify(updated));
       } catch (err) {
         console.warn('Failed to save sync settings:', err);
       }
+
+      const currentConfig = getCurrentUnifiedConfig();
+      updateAppConfig({
+        ...currentConfig,
+        database: {
+          ...currentConfig.database,
+          sync: {
+            ...currentConfig.database.sync,
+            enabled: updated.autoSync,
+            interval: updated.syncInterval,
+            batchSize: updated.batchSize,
+            retryAttempts: updated.maxRetries,
+            conflictResolution: updated.conflictResolution === 'local-wins'
+              ? 'local'
+              : updated.conflictResolution === 'remote-wins'
+                ? 'remote'
+                : updated.conflictResolution
+          }
+        }
+      });
       
       return updated;
     });
     
     toast.showSuccess('Sync settings updated');
-  }, []); // Removed toast to prevent re-render loop
+  }, [toast]);
 
   // ========== Task 4.4: Data Refresh and State Management ==========
 
@@ -798,7 +844,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.showError(errorMessage);
       throw err;
     }
-  }, [dbManager]); // Removed toast to prevent re-render loop
+  }, [dbManager, toast]);
 
   // Task 4.4.1: Refresh data with progress tracking
   const refreshDataWithProgress = useCallback(async (onProgress?: (progress: number) => void) => {
@@ -834,7 +880,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.showError(errorMessage);
       throw err;
     }
-  }, [dbManager]); // Removed toast to prevent re-render loop
+  }, [dbManager, toast]);
 
   // Task 4.4.2: Pagination support
   const getCollectionPage = useCallback(async <T = any,>(

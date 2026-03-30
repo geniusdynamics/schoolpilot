@@ -1,123 +1,125 @@
 import React from 'react';
-import Card from '@/components/ui/Card';
-import { CurrencyDollarIcon, BanknotesIcon, CircleStackIcon, BuildingStorefrontIcon, TicketIcon, IconProps, PlusIcon, ReceiptRefundIcon } from '@/components/ui/icons';
-import BarChart from '@/components/ui/BarChart'; // Using the existing BarChart component
+import { CurrencyDollarIcon, TicketIcon, PlusIcon, ReceiptRefundIcon } from '@/components/ui/icons';
+import BarChart from '@/components/ui/BarChart';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { BarChartData } from '@/types'; 
-import Button from '@/components/ui/Button';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-
-
-const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode, iconBgColor?: string, iconColor?: string }> = 
-    ({ title, value, icon, iconBgColor = 'bg-yellow-100', iconColor = 'text-yellow-600' }) => (
-  <Card className="shadow-md">
-    <div className="flex items-center p-4">
-      <div className={`p-3 rounded-full ${iconBgColor} ${iconColor}`}>
-        {React.cloneElement(icon as React.ReactElement<IconProps>, {className: "w-7 h-7"})}
-      </div>
-      <div className="ml-4">
-        <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
-        <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  </Card>
-);
+import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardPanel, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 
 
 const FinanceDashboardPage: React.FC = () => {
   const { 
     loading, 
-    banks,
-    chartOfAccounts,
-    suppliers,
     feeTemplates,
-    studentInvoices
+    studentInvoices,
+    studentPayments,
+    generalPayments,
+    supplierInvoices
   } = useAppData();
 
-  const pageIsLoading = loading.all || loading.banks || loading.chartOfAccounts || loading.suppliers || loading.feeTemplates || loading.studentInvoices;
+  const pageIsLoading = loading.all || loading.feeTemplates || loading.studentInvoices || loading.studentPayments || loading.generalPayments || loading.supplierInvoices;
 
   if (pageIsLoading) { 
     return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
   }
-  
-  // Mock data for new stats
-  const mockTotalIncome = 5850000;
-  const mockTotalExpenses = 2340000;
-  const mockNetPosition = mockTotalIncome - mockTotalExpenses;
-  const mockOutstandingInvoices = (studentInvoices || []).filter(inv => inv.status === 'Due' || inv.status === 'Overdue').length;
+  const toAmount = (value: unknown): number => {
+    const parsed = Number(value ?? 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
 
+  const totalIncome = [...(studentPayments || []), ...(generalPayments || [])]
+    .reduce((sum, payment: any) => sum + toAmount(payment.amount_paid ?? payment.amount), 0);
+  const totalExpenses = (supplierInvoices || [])
+    .filter((invoice: any) => String(invoice.status).toLowerCase() !== 'voided')
+    .reduce((sum: number, invoice: any) => sum + toAmount(invoice.total_amount ?? invoice.amount), 0);
+  const netPosition = totalIncome - totalExpenses;
+  const outstandingInvoices = (studentInvoices || []).filter((invoice: any) => {
+    const status = String(invoice.status || '').toLowerCase();
+    return status === 'due' || status === 'overdue' || status === 'unpaid';
+  }).length;
 
-  const incomeExpenseData: BarChartData[] = [
-    { name: 'Jan', uv: 400000, pv: 240000 }, // uv for income, pv for expenses
-    { name: 'Feb', uv: 300000, pv: 139800 },
-    { name: 'Mar', uv: 500000, pv: 380000 },
-    { name: 'Apr', uv: 478000, pv: 290800 },
-    { name: 'May', uv: 589000, pv: 380000 },
-    { name: 'Jun', uv: 439000, pv: 250000 },
+  const monthKeys = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - (5 - index));
+    return {
+      key: `${date.getFullYear()}-${date.getMonth()}`,
+      name: date.toLocaleDateString(undefined, { month: 'short' }),
+      income: 0,
+      expense: 0,
+    };
+  });
+  const byMonth = new Map(monthKeys.map((entry) => [entry.key, entry]));
+
+  [...(studentPayments || []), ...(generalPayments || [])].forEach((payment: any) => {
+    const date = new Date(payment.payment_date || payment.paymentDate || payment.created_at || payment.createdAt || Date.now());
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const month = byMonth.get(key);
+    if (month) {
+      month.income += toAmount(payment.amount_paid ?? payment.amount);
+    }
+  });
+  (supplierInvoices || []).forEach((invoice: any) => {
+    const date = new Date(invoice.invoice_date || invoice.created_at || invoice.createdAt || Date.now());
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const month = byMonth.get(key);
+    if (month && String(invoice.status).toLowerCase() !== 'voided') {
+      month.expense += toAmount(invoice.total_amount ?? invoice.amount);
+    }
+  });
+
+  const incomeExpenseData: BarChartData[] = monthKeys.map((entry) => ({
+    name: entry.name,
+    uv: Math.max(0, entry.income - entry.expense),
+  }));
+
+  const metrics: DashboardMetric[] = [
+    { key: 'income', label: 'Total Income', value: `Ksh ${totalIncome.toLocaleString()}`, icon: <CurrencyDollarIcon className="h-6 w-6 text-emerald-700" /> },
+    { key: 'expenses', label: 'Total Expenses', value: `Ksh ${totalExpenses.toLocaleString()}`, icon: <CurrencyDollarIcon className="h-6 w-6 text-rose-700" /> },
+    { key: 'net', label: 'Net Position', value: `Ksh ${netPosition.toLocaleString()}`, icon: <CurrencyDollarIcon className="h-6 w-6 text-blue-700" /> },
+    { key: 'outstanding', label: 'Outstanding Invoices', value: outstandingInvoices, icon: <ReceiptRefundIcon className="h-6 w-6 text-amber-700" /> },
+    { key: 'fee-templates', label: 'Fee Templates', value: feeTemplates.length, icon: <TicketIcon className="h-6 w-6 text-indigo-700" /> },
   ];
 
+  const quickActions: DashboardQuickAction[] = [
+    { key: 'record-payment', label: 'Record Payment', to: '/finance/student-payments', icon: <ReceiptRefundIcon className="h-5 w-5" /> },
+    { key: 'new-expense', label: 'New Expense', to: '/finance/expenses', icon: <CurrencyDollarIcon className="h-5 w-5" /> },
+    { key: 'fee-templates', label: 'Fee Templates', to: '/finance/fee-templates', icon: <TicketIcon className="h-5 w-5" /> },
+    { key: 'general-receipts', label: 'General Receipts', to: '/finance/general-receipts', icon: <PlusIcon className="h-5 w-5" /> },
+  ];
+
+  const charts: DashboardPanel[] = [
+    {
+      key: 'cashflow',
+      title: 'Net Cashflow (Last 6 Months)',
+      content: <BarChart data={incomeExpenseData} xAxisKey="name" barDataKey="uv" />,
+    },
+  ];
+
+  const notifications: DashboardNotification[] = [
+    {
+      id: 'outstanding-invoices',
+      title: 'Collections',
+      message: outstandingInvoices > 0 ? `${outstandingInvoices} student invoices are still unpaid.` : 'All student invoices are currently settled.',
+      severity: outstandingInvoices > 0 ? 'warning' : 'normal',
+    },
+    {
+      id: 'net-position',
+      title: 'Net Position',
+      message: netPosition < 0 ? 'Net position is negative for the tracked period.' : 'Net position remains positive for the tracked period.',
+      severity: netPosition < 0 ? 'high' : 'normal',
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <Card title="Finance Dashboard" className="bg-white shadow-xl">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <StatCard title="Total Income (Mock)" value={`Ksh ${mockTotalIncome.toLocaleString()}`} icon={<CurrencyDollarIcon />} iconBgColor="bg-green-100" iconColor="text-green-600"/>
-            <StatCard title="Total Expenses (Mock)" value={`Ksh ${mockTotalExpenses.toLocaleString()}`} icon={<CurrencyDollarIcon />} iconBgColor="bg-red-100" iconColor="text-red-600"/>
-            <StatCard title="Net Position (Mock)" value={`Ksh ${mockNetPosition.toLocaleString()}`} icon={<CurrencyDollarIcon />} iconBgColor="bg-blue-100" iconColor="text-blue-600"/>
-            <StatCard title="Outstanding Invoices" value={mockOutstandingInvoices} icon={<ReceiptRefundIcon />} iconBgColor="bg-orange-100" iconColor="text-orange-600"/>
-          </div>
-
-          <Card title="Quick Links" className="mb-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-                <Button as={Link} to="/finance/student-payments" variant="outline" leftIcon={<ReceiptRefundIcon className="w-5 h-5"/>}>
-                    Record Payment
-                </Button>
-                <Button as={Link} to="/finance/expenses" variant="outline" leftIcon={<CurrencyDollarIcon className="w-5 h-5"/>}>
-                    New Expense
-                </Button>
-                <Button as={Link} to="/finance/fee-templates" variant="outline" leftIcon={<TicketIcon className="w-5 h-5"/>}>
-                    Fee Templates
-                </Button>
-                <Button as={Link} to="/finance/general-receipts" variant="outline" leftIcon={<PlusIcon className="w-5 h-5"/>}>
-                    General Receipts
-                </Button>
-            </div>
-          </Card>
-
-          <Card title="Income vs Expenses (Last 6 Months - Mock)" className="mt-6">
-             <BarChart 
-                data={incomeExpenseData} 
-                xAxisKey="name" 
-                barDataKey="uv" // Primary bar (Income)
-                // To show expenses as a second bar, BarChart component needs enhancement or use two separate bars.
-                // For simplicity, this example shows 'uv' as income. A real chart might plot 'uv' (income) and 'pv' (expenses).
-                // If your BarChart supports multiple bars, you'd configure that here.
-                // title="Income (uv) vs Expenses (pv)" // Example if BarChart supports it
-            />
-             {/* To display expenses as a second bar, you'd typically need to map over an array of bar definitions:
-                <Bar dataKey="pv" fill="#ff7300" name="Expenses" /> 
-                This requires BarChart component to accept multiple <Bar /> children or a config for them.
-             */}
-          </Card>
-          
-          <div className="text-center py-8 mt-6">
-            <CurrencyDollarIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">Financial Management Hub</h2>
-            <p className="text-gray-500 max-w-2xl mx-auto">
-              Oversee all financial operations, including fee management, expenses, payroll links, and reporting.
-            </p>
-             <div className="mt-6">
-              <span className="inline-block bg-sky-100 text-sky-700 text-sm font-semibold px-3 py-1 rounded-full">
-                Dashboard enhanced with key stats, charts, and quick links.
-              </span>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </div>
+    <ModuleDashboardShell
+      title="Finance Dashboard"
+      subtitle="Track billing, collections, supplier liabilities, and current net financial position using live data."
+      heroIcon={<CurrencyDollarIcon className="h-8 w-8 text-white" />}
+      metrics={metrics}
+      quickActions={quickActions}
+      charts={charts}
+      notifications={notifications}
+    />
   );
 };
 

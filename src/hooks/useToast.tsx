@@ -158,22 +158,28 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 export const useToastHelpers = () => {
   const { showToast } = useToast();
 
-  return {
-    showSuccess: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
-      showToast({ ...options, message, variant: 'success' }),
-    
-    showError: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
-      showToast({ ...options, message, variant: 'error' }),
-    
-    showWarning: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
-      showToast({ ...options, message, variant: 'warning' }),
-    
-    showInfo: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
-      showToast({ ...options, message, variant: 'info' }),
-    
-    showProgress: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
-      showToast({ ...options, message, variant: 'progress', duration: 0 }),
-  };
+  const showSuccess = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
+    showToast({ ...options, message, variant: 'success' }), [showToast]);
+  
+  const showError = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
+    showToast({ ...options, message, variant: 'error' }), [showToast]);
+  
+  const showWarning = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
+    showToast({ ...options, message, variant: 'warning' }), [showToast]);
+  
+  const showInfo = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
+    showToast({ ...options, message, variant: 'info' }), [showToast]);
+  
+  const showProgress = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) =>
+    showToast({ ...options, message, variant: 'progress', duration: 0 }), [showToast]);
+
+  return React.useMemo(() => ({
+    showSuccess,
+    showError,
+    showWarning,
+    showInfo,
+    showProgress,
+  }), [showSuccess, showError, showWarning, showInfo, showProgress]);
 };
 
 // Hook for managing long-running operations with progress
