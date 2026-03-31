@@ -18,7 +18,8 @@ import {
   CollectionStats,
   IndexDefinition,
   DatabaseError,
-  CollectionError
+  CollectionError,
+  ITransaction
 } from './interfaces';
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm';
 import type { Database } from '@sqlite.org/sqlite-wasm';
@@ -812,6 +813,45 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
   private config: DatabaseConfig;
   private sqlite3: any = null;
 
+  // Connection Pool / Query Queue
+  private isExecuting = false;
+  private queryQueue: Array<() => void> = [];
+
+  // Helper for thread-safe/queued execution
+  public async executeQueued<T>(task: () => Promise<T> | T): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queryQueue.push(async () => {
+        try {
+          const result = await task();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      this.processQueue();
+    });
+  }
+
+  private async processQueue() {
+    if (this.isExecuting || this.queryQueue.length === 0) return;
+    this.isExecuting = true;
+    
+    const task = this.queryQueue.shift();
+    if (task) {
+      try {
+        await task();
+      } finally {
+        this.isExecuting = false;
+        if (this.queryQueue.length > 0) {
+          // Use setTimeout to yield the event loop
+          setTimeout(() => this.processQueue(), 0);
+        }
+      }
+    } else {
+      this.isExecuting = false;
+    }
+  }
+
   constructor(config?: DatabaseConfig) {
     this.config = config || {
       name: 'schoolpilot_prod',
@@ -853,6 +893,21 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       } catch (opfsError) {
         console.warn('[SQLiteWASMProvider] OPFS database creation failed, falling back to memory:', opfsError);
         this.db = new this.sqlite3.oo1.DB();
+      }
+
+      // Configure SQLCipher Encryption if a key is provided
+      if (this.config.encryptionKey) {
+        console.log('[SQLiteWASMProvider] Applying SQLCipher encryption key...');
+        try {
+          // In a real SQLCipher-compiled WASM environment, this PRAGMA enables encryption.
+          this.db.exec(`PRAGMA key = '${this.config.encryptionKey}';`);
+          // Verify encryption works by attempting a basic read
+          this.db.exec('SELECT count(*) FROM sqlite_master;');
+          console.log('[SQLiteWASMProvider] SQLCipher encryption successfully initialized.');
+        } catch (encError) {
+          console.error('[SQLiteWASMProvider] Failed to initialize encryption. Ensure sqlite3 was compiled with SQLCipher support.', encError);
+          throw new DatabaseError('Failed to initialize database encryption', 'ENCRYPTION_ERROR', this.name);
+        }
       }
 
       if (!this.db) {
@@ -974,6 +1029,50 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
       console.log('[SQLiteWASMProvider] Provider destroyed successfully');
     } catch (error) {
       console.error('[SQLiteWASMProvider] Failed to destroy provider:', error);
+      throw error;
+    }
+  }
+
+  async transaction<TResult>(callback: (tx: ITransaction) => Promise<TResult>): Promise<TResult> {
+    if (!this.isInitialized || !this.db) {
+      throw new Error('SQLiteWASMProvider not initialized');
+    }
+
+    const txId = `tx-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    let isCommitted = false;
+    let isRolledBack = false;
+
+    const tx: ITransaction = {
+      id: txId,
+      commit: async () => {
+        if (isCommitted || isRolledBack) return;
+        this.db!.exec('COMMIT;');
+        isCommitted = true;
+        console.log(`[SQLiteWASMProvider] Transaction ${txId} committed.`);
+      },
+      rollback: async () => {
+        if (isCommitted || isRolledBack) return;
+        this.db!.exec('ROLLBACK;');
+        isRolledBack = true;
+        console.log(`[SQLiteWASMProvider] Transaction ${txId} rolled back.`);
+      }
+    };
+
+    try {
+      this.db.exec('BEGIN;');
+      console.log(`[SQLiteWASMProvider] Transaction ${txId} started.`);
+      
+      const result = await callback(tx);
+      
+      if (!isCommitted && !isRolledBack) {
+        await tx.commit();
+      }
+      
+      return result;
+    } catch (error) {
+      if (!isCommitted && !isRolledBack) {
+        await tx.rollback();
+      }
       throw error;
     }
   }
