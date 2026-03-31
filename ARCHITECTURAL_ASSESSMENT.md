@@ -410,19 +410,20 @@ src/services/
 
 ### Code Quality
 - [ ] Split AppDataContext into focused contexts
-- [ ] Simplify configuration system
-- [ ] Implement proper logging system
+- [x] Simplify configuration system
+- [x] Implement proper logging system
+- [x] AppProviders composition layer
 - [ ] Remove all dead code
 - [ ] Standardize error handling
-- [ ] Add comprehensive JSDoc comments
-- [ ] Establish coding standards document
+- [x] Add comprehensive JSDoc comments
+- [x] Establish coding standards document
 
 ### Documentation
-- [ ] Architecture decision records (ADRs)
-- [ ] Database provider selection guide
-- [ ] Deployment tier documentation
-- [ ] Module development guide
-- [ ] Contributing guidelines
+- [x] Architecture decision records (ADRs)
+- [x] Database provider selection guide
+- [x] Deployment tier documentation
+- [x] Module development guide
+- [x] Contributing guidelines
 - [ ] Code of conduct
 - [ ] API documentation
 - [ ] Configuration reference
@@ -454,94 +455,101 @@ src/services/
 - [ ] Accessibility testing
 
 ### Community
-- [ ] README with project overview
+- [x] README with project overview
 - [ ] Demo site or sandbox
 - [ ] Community forum or Discord
 - [ ] Roadmap document
-- [ ] Changelog
+- [x] Changelog
 - [ ] License file (if not present)
 
 ---
 
 ## Implementation Roadmap
 
-### Phase 1: Foundation (Weeks 1-4)
+### Phase 1: Foundation (Weeks 1-4) ✅ PARTIAL
 **Goal**: Fix critical issues that block OSS release
 
 1. **Week 1-2**: Split AppDataContext
-   - Create focused contexts
-   - Update all consumers
-   - Add tests for each context
+   - [ ] Create focused contexts
+   - [ ] Update all consumers
+   - [ ] Add tests for each context
+   - **Status**: Hooks extracted, full context split pending
 
-2. **Week 3**: Simplify Configuration
-   - Split unifiedConfig.ts
-   - Update all config consumers
-   - Add configuration validation
+2. **Week 3**: Simplify Configuration ✅
+   - [x] Split unifiedConfig.ts (strangler-fig pattern)
+   - [x] Update all config consumers (backward compatible)
+   - [x] Add configuration validation
+   - **Status**: Complete - databaseConfigRuntime.ts, environmentRuntime.ts created
 
-3. **Week 4**: Logging & Dead Code
-   - Implement logger utility
-   - Replace all console.log calls
-   - Remove dead code and unused imports
+3. **Week 4**: Logging & Dead Code ✅
+   - [x] Implement logger utility (debugLog/warnLog/errorLog)
+   - [x] Replace console.log calls in App.tsx
+   - [ ] Remove dead code and unused imports
+   - **Status**: Logging facade in place, dead code cleanup pending
 
-### Phase 2: Architecture (Weeks 5-8)
+### Phase 2: Architecture (Weeks 5-8) ✅ IN PROGRESS
 **Goal**: Improve code organization and patterns
 
-4. **Week 5**: Database Provider Documentation
-   - Create DatabaseProviderFactory
-   - Write provider selection guide
-   - Add configuration examples
+4. **Week 5**: Database Provider Documentation ✅
+   - [x] Create DatabaseProviderFactory (already exists)
+   - [x] Write provider selection guide
+   - [x] Add configuration examples
+   - **Status**: Complete - PROVIDER_SELECTION_GUIDE.md created
 
-5. **Week 6**: Service Layer Reorganization
-   - Reorganize services by domain
-   - Update all imports
-   - Verify all tests pass
+5. **Week 6**: Service Layer Reorganization ✅
+   - [x] Create barrel files (livestore, sqlite)
+   - [x] ESLint deep-import rule added
+   - [x] Verify all tests pass
+   - **Status**: Complete - All service folders have index.ts barrels
 
-6. **Week 7-8**: State Management Standardization
-   - Establish guidelines
-   - Migrate inconsistent patterns
-   - Document state flow
+6. **Week 7-8**: State Management Standardization ✅
+   - [x] Establish guidelines (STATE_MANAGEMENT_GUIDELINES.md exists)
+   - [ ] Migrate inconsistent patterns
+   - [x] Document state flow
+   - **Status**: Guidelines exist, migration pending
 
-### Phase 3: Documentation (Weeks 9-12)
+### Phase 3: Documentation (Weeks 9-12) 🔄 PARTIAL
 **Goal**: Create comprehensive documentation
 
-7. **Week 9**: Architecture Documentation
-   - ADRs for key decisions
-   - System architecture diagrams
-   - Data flow documentation
+7. **Week 9**: Architecture Documentation ✅
+   - [x] ADRs for key decisions (ADR-000 through ADR-003)
+   - [ ] System architecture diagrams
+   - [ ] Data flow documentation
+   - **Status**: ADRs complete, diagrams pending
 
 8. **Week 10**: Developer Documentation
-   - Contributing guidelines
-   - Module development guide
-   - Setup and deployment guides
+   - [ ] Contributing guidelines
+   - [ ] Module development guide
+   - [ ] Setup and deployment guides
 
 9. **Week 11**: API Documentation
-   - Generate TypeDoc documentation
-   - Document context provider APIs
-   - Document configuration options
+   - [ ] Generate TypeDoc documentation
+   - [ ] Document context provider APIs
+   - [ ] Document configuration options
 
 10. **Week 12**: Community Preparation
-    - README and overview
-    - Issue/PR templates
-    - Code of conduct
-    - License verification
+    - [ ] README and overview
+    - [ ] Issue/PR templates
+    - [ ] Code of conduct
+    - [ ] License verification
 
 ### Phase 4: Testing & Security (Weeks 13-16)
 **Goal**: Ensure quality and security
 
 11. **Week 13-14**: Testing
-    - Increase unit test coverage
-    - Add integration tests
-    - Add E2E tests
+    - [ ] Increase unit test coverage
+    - [ ] Add integration tests
+    - [ ] Add E2E tests
 
 12. **Week 15**: Security Audit
-    - Dependency scan
-    - Code review for security issues
-    - Fix identified vulnerabilities
+    - [ ] Dependency scan
+    - [ ] Code review for security issues
+    - [ ] Fix identified vulnerabilities
 
 13. **Week 16**: Final Review
-    - Comprehensive testing
-    - Documentation review
-    - OSS readiness assessment
+    - [ ] Comprehensive testing
+    - [ ] Documentation review
+    - [ ] OSS readiness assessment
 
 ---
 
@@ -604,6 +612,64 @@ With the recommended changes over 16 weeks, SchoolPilot3 can become a **robust O
 ---
 
 ## Architecture Decision Records (ADRs)
+
+### ADR-003: Database Provider Selection Guide
+**Date**: 2026-03-31
+**Status**: Accepted
+
+**Context**: Multiple database providers existed without clear documentation on selection criteria, leading to confusion about which provider to use for different deployment scenarios.
+
+**Decision**:
+- Created `docs/database/PROVIDER_SELECTION_GUIDE.md` with:
+  - Provider comparison matrix
+  - Selection flowchart
+  - Detailed provider documentation
+  - Environment-based defaults
+  - Troubleshooting guide
+- Key selection criteria:
+  - `sqlite-wasm` for single-app, offline-first
+  - `pouchdb` for LAN multi-user with sync
+  - `backend-api` for cloud-only deployments
+  - `rxdb` for complex reactive requirements
+
+**Consequences**:
+- Clear guidance for deployment planning
+- Reduced configuration errors
+- Easier onboarding for new developers
+
+---
+
+### ADR-004: Architecture Documentation Suite
+**Date**: 2026-03-31
+**Status**: Accepted
+
+**Context**: The project lacked comprehensive architecture documentation, making it difficult for new developers to understand the system design.
+
+**Decision**:
+- Created `docs/architecture/ARCHITECTURE_DIAGRAMS.md` with:
+  - High-level architecture diagrams
+  - Provider composition flow
+  - Data flow diagram
+  - Module structure
+  - Deployment tier diagrams
+  - Context hierarchy
+- Created `docs/developer/MODULE_DEVELOPMENT.md` with:
+  - Step-by-step module creation guide
+  - Data hooks pattern
+  - Component patterns
+  - Testing guidelines
+- Created `docs/developer/CONTRIBUTING.md` with:
+  - Code of conduct
+  - Development workflow
+  - Coding guidelines
+  - Commit message format
+
+**Consequences**:
+- Improved developer onboarding
+- Clear module development patterns
+- Consistent coding standards established
+
+---
 
 ### ADR-002: Service Layer Barrel Boundaries
 **Date**: 2026-03-31
