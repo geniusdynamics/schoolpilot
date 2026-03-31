@@ -4,6 +4,18 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
+const serviceDirectories = [
+  'src/services/backend',
+  'src/services/data',
+  'src/services/database',
+  'src/services/dataGeneration',
+  'src/services/erpnext',
+  'src/services/livestore',
+  'src/services/sqlite',
+  'src/services/sync',
+  'src/services/tabs',
+];
+
 export default tseslint.config(
   { ignores: ['dist', 'node_modules', 'coverage'] },
   {
@@ -24,6 +36,12 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       '@typescript-eslint/no-explicit-any': 'off',
+      'no-restricted-imports': [
+        'warn',
+        {
+          patterns: serviceDirectories.map(dir => `${dir}/*/*`),
+        },
+      ],
     },
   }
 );
