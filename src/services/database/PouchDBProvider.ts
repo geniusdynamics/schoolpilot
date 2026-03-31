@@ -21,7 +21,8 @@ import {
   CollectionStats,
   IndexDefinition,
   DatabaseError,
-  CollectionError
+  CollectionError,
+  ITransaction
 } from './interfaces';
 
 // Add PouchDB plugins
@@ -989,6 +990,34 @@ export class PouchDBProvider implements IDatabaseProvider {
         'DESTRUCTION_ERROR',
         this.name
       );
+    }
+  }
+
+  async transaction<TResult>(callback: (tx: ITransaction) => Promise<TResult>): Promise<TResult> {
+    if (!this.isInitialized) {
+      throw new DatabaseError('Provider not initialized', 'NOT_INITIALIZED', this.name);
+    }
+
+    console.warn('[PouchDBProvider] Native ACID transactions are not fully supported by PouchDB. Executing in best-effort simulated mode.');
+    
+    const txId = `tx-pouch-${Date.now()}`;
+    const tx: ITransaction = {
+      id: txId,
+      commit: async () => {
+        console.log(`[PouchDBProvider] Simulated transaction ${txId} committed.`);
+      },
+      rollback: async () => {
+        console.warn(`[PouchDBProvider] Simulated transaction ${txId} rollback requested, but PouchDB does not support automatic rollback.`);
+      }
+    };
+
+    try {
+      const result = await callback(tx);
+      await tx.commit();
+      return result;
+    } catch (error) {
+      await tx.rollback();
+      throw error;
     }
   }
 

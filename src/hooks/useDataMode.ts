@@ -47,11 +47,11 @@ export function useDataMode(): UseDataModeReturn {
     }
   }, [dataModeManager]);
 
-  const clearData = useCallback(async () => {
+  const clearData = useCallback(async (options?: { force?: boolean; confirmationToken?: string }) => {
     try {
       setIsLoading(true);
       setError(null);
-      await dataModeManager.clearAllData();
+      await dataModeManager.clearAllData(options);
       await refreshStatus();
     } catch (err) {
       console.error('Failed to clear data:', err);
@@ -62,11 +62,11 @@ export function useDataMode(): UseDataModeReturn {
     }
   }, [dataModeManager, refreshStatus]);
 
-  const seedData = useCallback(async () => {
+  const seedData = useCallback(async (volume?: 'small' | 'medium' | 'large') => {
     try {
       setIsLoading(true);
       setError(null);
-      await dataModeManager.seedDemoData();
+      await dataModeManager.seedDemoData(volume);
       await refreshStatus();
     } catch (err) {
       console.error('Failed to seed data:', err);

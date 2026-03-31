@@ -12,6 +12,7 @@ export interface DatabaseConfig {
   ignoreDuplicate?: boolean;
   autoCompaction?: boolean;
   debug?: boolean;
+  encryptionKey?: string;
 }
 
 // Collection schema definition
@@ -132,6 +133,12 @@ export interface CollectionStats {
   lastModified: Date;
 }
 
+export interface ITransaction {
+  id: string;
+  commit(): Promise<void>;
+  rollback(): Promise<void>;
+}
+
 // Core collection interface
 export interface ICollection<T> {
   readonly name: string;
@@ -179,6 +186,9 @@ export interface IDatabaseProvider {
   getAllCollections(): Map<string, ICollection<any>>;
   destroy(): Promise<void>;
   
+  // Transaction management
+  transaction?<TResult>(callback: (tx: ITransaction) => Promise<TResult>): Promise<TResult>;
+
   // Status and health
   isAvailable(): boolean;
   getStatus(): ProviderStatus;

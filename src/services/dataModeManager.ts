@@ -4,8 +4,19 @@
 import { getDatabaseProviderFactory, DatabaseProviderFactory } from './database/DatabaseProviderFactory';
 import { getDataLayerConfig } from '../config/dataLayerConfig';
 import { EventEmitter } from 'events';
-import { collectionsDefinition } from './rxdbService';
-import { SchemaConverter } from './database/SchemaConverter';
+import {
+  AdministrationGenerator,
+  AcademicsGenerator,
+  FinancialGenerator,
+  ClubsGenerator,
+  DormitoryGenerator,
+  LibraryGenerator,
+  NutritionGenerator,
+  PayrollGenerator,
+  InventoryGenerator,
+  TransportGenerator,
+  HealthGenerator
+} from './dataGeneration/generators/index';
 
 export type DataMode = 'development' | 'demo' | 'production';
 
@@ -46,10 +57,33 @@ export class DataModeManager extends EventEmitter {
   private dbFactory: DatabaseProviderFactory;
   private lastSwitched: Date = new Date();
 
+  private switchQueue: Array<{ task: () => Promise<void>, resolve: () => void, reject: (err: any) => void }> = [];
+
   constructor() {
     super();
     this.dbFactory = getDatabaseProviderFactory();
     this.initializeMode();
+  }
+
+  private async processQueue() {
+    if (this.isTransitioning || this.switchQueue.length === 0) return;
+    
+    this.isTransitioning = true;
+    const item = this.switchQueue.shift();
+    if (item) {
+      try {
+        await item.task();
+        item.resolve();
+      } catch (err) {
+        item.reject(err);
+      } finally {
+        this.isTransitioning = false;
+        // Continue processing if there are more items
+        if (this.switchQueue.length > 0) {
+          this.processQueue();
+        }
+      }
+    }
   }
 
   private async initializeMode(): Promise<void> {
@@ -76,69 +110,94 @@ export class DataModeManager extends EventEmitter {
   }
 
   async switchMode(newMode: DataMode, options: ModeTransitionOptions = {}): Promise<void> {
-    if (this.isTransitioning) {
-      throw new Error('Mode transition already in progress');
-    }
+    return new Promise((resolve, reject) => {
+      this.switchQueue.push({
+        task: async () => {
+          if (this.currentMode === newMode) {
+            console.log(`Already in ${newMode} mode`);
+            return;
+          }
 
-    if (this.currentMode === newMode) {
-      console.log(`Already in ${newMode} mode`);
-      return;
-    }
+          this.emit('transitionStarted', { from: this.currentMode, to: newMode });
+          const previousMode = this.currentMode;
+          const currentProvider = this.dbFactory.getActiveProvider();
+          const previousProviderName = currentProvider ? currentProvider.name : null;
 
-    this.isTransitioning = true;
-    this.emit('transitionStarted', { from: this.currentMode, to: newMode });
+          try {
+            // Step 1: Backup current data if requested
+            if (options.backupData) {
+              await this.backupCurrentData();
+            }
 
-    try {
-      // Step 1: Backup current data if requested
-      if (options.backupData) {
-        await this.backupCurrentData();
-      }
+            // Step 2: Get new configuration
+            const newConfig = getDataLayerConfig(newMode);
+            
+            // Step 3: Clear data if requested or switching to a different provider type
+            const needsDataClear = options.clearData || 
+              (currentProvider && currentProvider.name !== newConfig.provider);
+            
+            if (needsDataClear && !options.preserveData) {
+              await this.clearAllData({ force: true, confirmationToken: 'DANGER_CLEAR_PRODUCTION_DATA' }); // Safe here because it's an internal managed switch
+            }
 
-      // Step 2: Get new configuration
-      const newConfig = getDataLayerConfig(newMode);
-      
-      // Step 3: Clear data if requested or switching to a different provider type
-      const currentProvider = this.dbFactory.getActiveProvider();
-      const needsDataClear = options.clearData || 
-        (currentProvider && currentProvider.name !== newConfig.provider);
-      
-      if (needsDataClear && !options.preserveData) {
-        await this.clearAllData();
-      }
+            // Step 4: Switch to new provider
+            await this.dbFactory.switchProvider(newConfig.provider, newConfig.options);
 
-      // Step 4: Switch to new provider
-      await this.dbFactory.switchProvider(newConfig.provider, newConfig.options);
+            // Step 5: Seed data if requested (typically for demo mode)
+            if (options.seedData || (newMode === 'demo' && options.seedData !== false)) {
+              await this.seedDemoData();
+            }
 
-      // Step 5: Seed data if requested (typically for demo mode)
-      if (options.seedData || (newMode === 'demo' && options.seedData !== false)) {
-        await this.seedDemoData();
-      }
+            // Step 6: Update current mode and persist preference
+            this.currentMode = newMode;
+            this.lastSwitched = new Date();
+            localStorage.setItem('app_data_mode', newMode);
+            localStorage.setItem('app_data_mode_timestamp', this.lastSwitched.toISOString());
 
-      // Step 6: Update current mode and persist preference
-      this.currentMode = newMode;
-      this.lastSwitched = new Date();
-      // Use the same key as unified config: 'app_data_mode'
-      localStorage.setItem('app_data_mode', newMode);
-      localStorage.setItem('app_data_mode_timestamp', this.lastSwitched.toISOString());
+            this.emit('modeChanged', { 
+              mode: newMode, 
+              provider: newConfig.provider,
+              timestamp: this.lastSwitched
+            });
 
-      this.emit('modeChanged', { 
-        mode: newMode, 
-        provider: newConfig.provider,
-        timestamp: this.lastSwitched
+            this.emit('transitionCompleted', this.currentMode);
+          } catch (error) {
+            console.error('Failed to switch mode, rolling back:', error);
+            
+            // Rollback
+            try {
+              if (previousProviderName) {
+                 const prevConfig = getDataLayerConfig(previousMode);
+                 await this.dbFactory.switchProvider(previousProviderName, prevConfig.options);
+                 this.currentMode = previousMode;
+              }
+            } catch (rollbackError) {
+              console.error('CRITICAL: Rollback failed after switchMode error', rollbackError);
+            }
+            
+            this.emit('error', error);
+            throw error;
+          }
+        },
+        resolve,
+        reject
       });
-
-    } catch (error) {
-      console.error('Failed to switch mode:', error);
-      this.emit('error', error);
-      throw error;
-    } finally {
-      this.isTransitioning = false;
-      this.emit('transitionCompleted', this.currentMode);
-    }
+      
+      // Trigger queue processing
+      this.processQueue();
+    });
   }
 
-  async clearAllData(): Promise<void> {
+  async clearAllData(options?: { force?: boolean; confirmationToken?: string }): Promise<void> {
     try {
+      const isProduction = process.env.NODE_ENV === 'production' || this.currentMode === 'production';
+      
+      if (isProduction) {
+        if (!options?.force || options.confirmationToken !== 'DANGER_CLEAR_PRODUCTION_DATA') {
+          throw new Error('CLEAR_REJECTED: Cannot clear production data without explicit force and confirmation token.');
+        }
+      }
+
       const provider = this.dbFactory.getActiveProvider();
       if (!provider) {
         throw new Error('No active database provider');
@@ -158,6 +217,42 @@ export class DataModeManager extends EventEmitter {
         }
       }
 
+      // Audit log the clearance
+      try {
+        const auditCollection = await provider.getCollection('audit_logs');
+        if (!auditCollection && typeof provider.createCollection === 'function') {
+           const auditSchema = {
+             version: 0,
+             type: 'object',
+             properties: {
+               id: { type: 'string' },
+               action: { type: 'string' },
+               timestamp: { type: 'string' },
+               environment: { type: 'string' }
+             },
+             primaryKey: 'id'
+           };
+           const newAuditCollection = await provider.createCollection('audit_logs', auditSchema as any);
+           if (newAuditCollection && typeof newAuditCollection.insert === 'function') {
+             await newAuditCollection.insert({
+               id: `audit-${Date.now()}`,
+               action: 'CLEAR_ALL_DATA',
+               timestamp: new Date().toISOString(),
+               environment: this.currentMode
+             });
+           }
+        } else if (auditCollection && typeof auditCollection.insert === 'function') {
+          await auditCollection.insert({
+            id: `audit-${Date.now()}`,
+            action: 'CLEAR_ALL_DATA',
+            timestamp: new Date().toISOString(),
+            environment: this.currentMode
+          });
+        }
+      } catch (auditError) {
+        console.warn('Failed to write audit log for data clearance:', auditError);
+      }
+
       this.emit('dataCleared');
     } catch (error) {
       console.error('Failed to clear data:', error);
@@ -165,178 +260,130 @@ export class DataModeManager extends EventEmitter {
     }
   }
 
-  async seedDemoData(): Promise<void> {
+  async seedDemoData(volume: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise' = 'medium'): Promise<void> {
     try {
       const provider = this.dbFactory.getActiveProvider();
       if (!provider) {
         throw new Error('No active database provider');
       }
 
-      const seedData = this.generateSeedData();
+      console.log(`[DataModeManager] Seeding comprehensive demo data (volume: ${volume})...`);
 
-      // Ensure collections exist before inserting
-      const collectionsToSeed = ['students', 'teachers', 'classes', 'subjects', 'assignments'];
-      for (const collectionName of collectionsToSeed) {
-        let collection = provider.getCollection(collectionName);
-        if (!collection && typeof provider.createCollection === 'function') {
-           // Get actual schema if available
-           const def = (collectionsDefinition as any)[collectionName];
-           let schemaToUse: any = {
-             version: 0,
-             type: 'object',
-             properties: {},
-             required: [],
-             indexes: [],
-             primaryKey: 'id'
-           };
-           
-           if (def && def.schema) {
-             try {
-               const conversionResult = SchemaConverter.convertRxDBToSQLite('temp', def.schema);
-               schemaToUse = conversionResult.schema;
-             } catch (e) {
-               console.warn(`Failed to convert schema for ${collectionName}, using fallback`, e);
-             }
-           }
-           
-           collection = await provider.createCollection(collectionName, schemaToUse);
-        }
-        
-        if (collection && typeof collection.insert === 'function') {
-          const dataToSeed = (seedData as any)[collectionName] || [];
-          for (const item of dataToSeed) {
-            await collection.insert(item);
+      interface VolumePreset {
+        students: number; staff: number; subjects: number; classes: number;
+        books: number; suppliers: number; vehicles: number; inventoryItems: number;
+        dormitories: number; clubs: number; mealPlans: number; healthRecords: number;
+      }
+      const volumePresets: Record<'tiny' | 'small' | 'medium' | 'large' | 'enterprise', VolumePreset> = {
+        tiny:       { students: 30,  staff: 10,  subjects: 12, classes: 4,  books: 50,   suppliers: 5,   vehicles: 3,   inventoryItems: 30,  dormitories: 2,  clubs: 5,   mealPlans: 3,  healthRecords: 30  },
+        small:      { students: 150, staff: 30,  subjects: 20, classes: 8,  books: 300,  suppliers: 15,  vehicles: 8,   inventoryItems: 100, dormitories: 5,  clubs: 12,  mealPlans: 5,  healthRecords: 150 },
+        medium:     { students: 500, staff: 75,  subjects: 30, classes: 20, books: 800,  suppliers: 30,  vehicles: 15,  inventoryItems: 250, dormitories: 10, clubs: 25,  mealPlans: 8,  healthRecords: 500 },
+        large:      { students: 1500, staff: 200, subjects: 40, classes: 50, books: 2000, suppliers: 60,  vehicles: 30,  inventoryItems: 600, dormitories: 20, clubs: 50,  mealPlans: 12, healthRecords: 1500 },
+        enterprise: { students: 5000, staff: 500, subjects: 50, classes: 120, books: 5000, suppliers: 100, vehicles: 60, inventoryItems: 1200, dormitories: 40, clubs: 80, mealPlans: 20, healthRecords: 5000 }
+      };
+
+      const counts = volumePresets[volume];
+
+      // Initialize all 10 module generators with shared locale
+      const generatorConfig = { locale: 'en_KE' as const };
+      const generators = {
+        administration: new AdministrationGenerator(generatorConfig),
+        academic:       new AcademicsGenerator(generatorConfig),
+        finance:        new FinancialGenerator(generatorConfig),
+        clubs:          new ClubsGenerator(generatorConfig),
+        dormitory:      new DormitoryGenerator(generatorConfig),
+        library:        new LibraryGenerator(generatorConfig),
+        nutrition:      new NutritionGenerator(generatorConfig),
+        payroll:        new PayrollGenerator(generatorConfig),
+        inventory:      new InventoryGenerator(generatorConfig),
+        transport:      new TransportGenerator(generatorConfig),
+        health:         new HealthGenerator(generatorConfig)
+      };
+
+      // Track which collections exist and which we insert into
+      const insertedCounts: Record<string, number> = {};
+
+      // Iterate through all generators and insert their data into real ICollection collections
+      for (const [moduleName, generator] of Object.entries(generators)) {
+        try {
+          await generator.initialize();
+          const generatedData = await generator.generateData(counts[moduleName as keyof typeof counts] || 10);
+          
+          if (!generatedData || generatedData.length === 0) {
+            console.warn(`[DataModeManager] No data generated for module: ${moduleName}`);
+            continue;
           }
-        } else {
-          console.warn(`[DataModeManager] Cannot seed data for ${collectionName}: collection not found or doesn't support insert`);
+
+          // Group by table name (each item is { table: string, data: object })
+          const tableGroups = new Map<string, any[]>();
+          for (const item of generatedData) {
+            if (!item || !item.table || !item.data) continue;
+            const tableName = this.normalizeTableName(item.table);
+            if (!tableGroups.has(tableName)) tableGroups.set(tableName, []);
+            tableGroups.get(tableName)!.push(item.data);
+          }
+
+          // Insert each group into the real ICollection
+          for (const [tableName, records] of tableGroups) {
+            try {
+              let collection = provider.getCollection(tableName);
+              
+              // If collection doesn't exist, create it dynamically
+              if (!collection) {
+                if (typeof provider.createCollection === 'function') {
+                  collection = await provider.createCollection(tableName, {
+                    version: 0,
+                    type: 'object',
+                    properties: {},
+                    primaryKey: 'id'
+                  } as any);
+                  console.log(`[DataModeManager] Dynamically created collection: ${tableName}`);
+                } else {
+                  console.warn(`[DataModeManager] Cannot create collection '${tableName}' — provider doesn't support it`);
+                  continue;
+                }
+              }
+
+              // Insert records using ICollection.insert (supports single or batch via insertMany)
+              if (typeof collection.insertMany === 'function') {
+                await collection.insertMany(records);
+              } else {
+                for (const record of records) {
+                  if (typeof collection.insert === 'function') {
+                    await collection.insert(record);
+                  }
+                }
+              }
+
+              insertedCounts[tableName] = (insertedCounts[tableName] || 0) + records.length;
+              console.log(`[DataModeManager] Inserted ${records.length} records into '${tableName}'`);
+            } catch (insertError) {
+              console.warn(`[DataModeManager] Failed to insert into '${tableName}':`, insertError instanceof Error ? insertError.message : String(insertError));
+            }
+          }
+        } catch (genError) {
+          console.warn(`[DataModeManager] Generator '${moduleName}' failed:`, genError instanceof Error ? genError.message : String(genError));
+          // Continue with other generators — don't fail the whole seeding
         }
       }
 
-      this.emit('dataSeeded', seedData);
+      const totalRecords = Object.values(insertedCounts).reduce((sum, c) => sum + c, 0);
+      const tablesPopulated = Object.keys(insertedCounts).length;
+
+      console.log(`[DataModeManager] Demo data seeding complete: ${totalRecords} records across ${tablesPopulated} collections.`, insertedCounts);
+
+      this.emit('dataSeeded', { volume, stats: { totalRecords, tablesGenerated: Object.keys(insertedCounts), insertedCounts } });
     } catch (error) {
-      console.error('Failed to seed demo data:', error);
+      console.error('[DataModeManager] Failed to seed demo data:', error);
       throw error;
     }
   }
 
-  private generateSeedData(): SeedDataConfig {
-    return {
-      students: [
-        {
-          id: 'student-1',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@school.edu',
-          grade: '10',
-          dateOfBirth: '2008-05-15',
-          enrollmentDate: '2023-09-01',
-          status: 'active'
-        },
-        {
-          id: 'student-2',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          email: 'jane.smith@school.edu',
-          grade: '11',
-          dateOfBirth: '2007-08-22',
-          enrollmentDate: '2022-09-01',
-          status: 'active'
-        },
-        {
-          id: 'student-3',
-          firstName: 'Mike',
-          lastName: 'Johnson',
-          email: 'mike.johnson@school.edu',
-          grade: '9',
-          dateOfBirth: '2009-03-10',
-          enrollmentDate: '2024-09-01',
-          status: 'active'
-        }
-      ],
-      teachers: [
-        {
-          id: 'teacher-1',
-          firstName: 'Sarah',
-          lastName: 'Wilson',
-          email: 'sarah.wilson@school.edu',
-          department: 'Mathematics',
-          hireDate: '2020-08-15',
-          status: 'active'
-        },
-        {
-          id: 'teacher-2',
-          firstName: 'Robert',
-          lastName: 'Brown',
-          email: 'robert.brown@school.edu',
-          department: 'Science',
-          hireDate: '2019-01-10',
-          status: 'active'
-        }
-      ],
-      classes: [
-        {
-          id: 'class-1',
-          name: 'Algebra II',
-          teacherId: 'teacher-1',
-          subject: 'Mathematics',
-          grade: '10',
-          schedule: 'MWF 9:00-10:00',
-          room: 'Room 101',
-          capacity: 25,
-          enrolled: 3
-        },
-        {
-          id: 'class-2',
-          name: 'Biology',
-          teacherId: 'teacher-2',
-          subject: 'Science',
-          grade: '9',
-          schedule: 'TTh 10:00-11:30',
-          room: 'Lab 201',
-          capacity: 20,
-          enrolled: 1
-        }
-      ],
-      subjects: [
-        {
-          id: 'subject-1',
-          name: 'Mathematics',
-          description: 'Mathematical concepts and problem solving',
-          department: 'STEM',
-          credits: 4
-        },
-        {
-          id: 'subject-2',
-          name: 'Science',
-          description: 'Natural sciences and scientific method',
-          department: 'STEM',
-          credits: 4
-        }
-      ],
-      assignments: [
-        {
-          id: 'assignment-1',
-          title: 'Quadratic Equations Worksheet',
-          classId: 'class-1',
-          teacherId: 'teacher-1',
-          description: 'Practice solving quadratic equations',
-          dueDate: '2024-02-15',
-          points: 100,
-          type: 'homework'
-        },
-        {
-          id: 'assignment-2',
-          title: 'Cell Structure Lab Report',
-          classId: 'class-2',
-          teacherId: 'teacher-2',
-          description: 'Analyze and report on cell structure observations',
-          dueDate: '2024-02-20',
-          points: 150,
-          type: 'lab'
-        }
-      ]
-    };
+  private normalizeTableName(table: string): string {
+    return table.toLowerCase().replace(/[\s-]+/g, '_').replace(/[^a-z0-9_]/g, '');
   }
+
+
 
   private async backupCurrentData(): Promise<void> {
     try {
