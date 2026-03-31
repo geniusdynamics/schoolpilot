@@ -9,8 +9,8 @@ export interface UseDataModeReturn {
   isLoading: boolean;
   error: string | null;
   switchMode: (mode: DataMode, options?: ModeTransitionOptions) => Promise<void>;
-  clearData: () => Promise<void>;
-  seedData: () => Promise<void>;
+  clearData: (options?: { force?: boolean; confirmationToken?: string }) => Promise<void>;
+  seedData: (volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise') => Promise<void>;
   refreshStatus: () => Promise<void>;
   resetError: () => void;
 }
@@ -62,7 +62,7 @@ export function useDataMode(): UseDataModeReturn {
     }
   }, [dataModeManager, refreshStatus]);
 
-  const seedData = useCallback(async (volume?: 'small' | 'medium' | 'large') => {
+  const seedData = useCallback(async (volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise') => {
     try {
       setIsLoading(true);
       setError(null);

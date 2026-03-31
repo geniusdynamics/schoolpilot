@@ -1,8 +1,10 @@
 // ABOUTME: Service for managing data layer modes, switching between development, demo, and production configurations
 // ABOUTME: Handles data seeding, clearing, and provider switching based on mode
 
-import { getDatabaseProviderFactory, DatabaseProviderFactory } from './database/DatabaseProviderFactory';
 import { getDataLayerConfig } from '../config/dataLayerConfig';
+import { DatabaseProviderFactory, getDatabaseProviderFactory, ProviderType } from './database/DatabaseProviderFactory';
+import { DatabaseConfig, QueryOptions } from './database/interfaces';
+import { DataGenerationConfig } from './dataGeneration/types';
 import { EventEmitter } from 'events';
 import {
   AdministrationGenerator,
@@ -15,7 +17,8 @@ import {
   PayrollGenerator,
   InventoryGenerator,
   TransportGenerator,
-  HealthGenerator
+  HealthGenerator,
+  CommunicationGenerator
 } from './dataGeneration/generators/index';
 
 export type DataMode = 'development' | 'demo' | 'production';
@@ -100,7 +103,7 @@ export class DataModeManager extends EventEmitter {
 
       // Initialize the database factory with the current mode configuration
       const config = getDataLayerConfig(this.currentMode);
-      await this.dbFactory.switchProvider(config.provider, config.options);
+      await this.dbFactory.switchProvider(config.provider as ProviderType, config.options as unknown as DatabaseConfig);
       
       this.emit('modeInitialized', this.currentMode);
     } catch (error) {
@@ -141,7 +144,7 @@ export class DataModeManager extends EventEmitter {
             }
 
             // Step 4: Switch to new provider
-            await this.dbFactory.switchProvider(newConfig.provider, newConfig.options);
+            await this.dbFactory.switchProvider(newConfig.provider as ProviderType, newConfig.options as unknown as DatabaseConfig);
 
             // Step 5: Seed data if requested (typically for demo mode)
             if (options.seedData || (newMode === 'demo' && options.seedData !== false)) {
@@ -168,7 +171,7 @@ export class DataModeManager extends EventEmitter {
             try {
               if (previousProviderName) {
                  const prevConfig = getDataLayerConfig(previousMode);
-                 await this.dbFactory.switchProvider(previousProviderName, prevConfig.options);
+                 await this.dbFactory.switchProvider(previousProviderName as ProviderType, prevConfig.options as unknown as DatabaseConfig);
                  this.currentMode = previousMode;
               }
             } catch (rollbackError) {
@@ -209,8 +212,20 @@ export class DataModeManager extends EventEmitter {
       for (const collectionName of collections) {
         try {
           const collection = await provider.getCollection(collectionName);
-          if (collection && typeof collection.clear === 'function') {
-            await collection.clear();
+          if (collection) {
+            try {
+              // ICollection.removeMany takes QueryOptions with a selector, {} removes all matched docs
+              if (typeof collection.removeMany === 'function') {
+                await collection.removeMany({ selector: {} });
+              } else if (typeof collection.remove === 'function') {
+                const allDocs = await collection.find({});
+                for (const doc of allDocs) {
+                  await collection.remove((doc as any).id || (doc as any)._id);
+                }
+              }
+            } catch (error) {
+              console.warn(`Failed to clear collection ${collectionName}:`, error);
+            }
           }
         } catch (error) {
           console.warn(`Failed to clear collection ${collectionName}:`, error);
@@ -273,31 +288,69 @@ export class DataModeManager extends EventEmitter {
         students: number; staff: number; subjects: number; classes: number;
         books: number; suppliers: number; vehicles: number; inventoryItems: number;
         dormitories: number; clubs: number; mealPlans: number; healthRecords: number;
+        communications: number;
       }
       const volumePresets: Record<'tiny' | 'small' | 'medium' | 'large' | 'enterprise', VolumePreset> = {
-        tiny:       { students: 30,  staff: 10,  subjects: 12, classes: 4,  books: 50,   suppliers: 5,   vehicles: 3,   inventoryItems: 30,  dormitories: 2,  clubs: 5,   mealPlans: 3,  healthRecords: 30  },
-        small:      { students: 150, staff: 30,  subjects: 20, classes: 8,  books: 300,  suppliers: 15,  vehicles: 8,   inventoryItems: 100, dormitories: 5,  clubs: 12,  mealPlans: 5,  healthRecords: 150 },
-        medium:     { students: 500, staff: 75,  subjects: 30, classes: 20, books: 800,  suppliers: 30,  vehicles: 15,  inventoryItems: 250, dormitories: 10, clubs: 25,  mealPlans: 8,  healthRecords: 500 },
-        large:      { students: 1500, staff: 200, subjects: 40, classes: 50, books: 2000, suppliers: 60,  vehicles: 30,  inventoryItems: 600, dormitories: 20, clubs: 50,  mealPlans: 12, healthRecords: 1500 },
-        enterprise: { students: 5000, staff: 500, subjects: 50, classes: 120, books: 5000, suppliers: 100, vehicles: 60, inventoryItems: 1200, dormitories: 40, clubs: 80, mealPlans: 20, healthRecords: 5000 }
+        tiny:       { students: 30,  staff: 10,  subjects: 12, classes: 4,  books: 50,   suppliers: 5,   vehicles: 3,   inventoryItems: 30,  dormitories: 2,  clubs: 5,   mealPlans: 3,  healthRecords: 30,  communications: 20   },
+        small:      { students: 150, staff: 30,  subjects: 20, classes: 8,  books: 300,  suppliers: 15,  vehicles: 8,   inventoryItems: 100, dormitories: 5,  clubs: 12,  mealPlans: 5,  healthRecords: 150, communications: 100  },
+        medium:     { students: 500, staff: 75,  subjects: 30, classes: 20, books: 800,  suppliers: 30,  vehicles: 15,  inventoryItems: 250, dormitories: 10, clubs: 25,  mealPlans: 8,  healthRecords: 500, communications: 300  },
+        large:      { students: 1500, staff: 200, subjects: 40, classes: 50, books: 2000, suppliers: 60,  vehicles: 30,  inventoryItems: 600, dormitories: 20, clubs: 50,  mealPlans: 12, healthRecords: 1500, communications: 800 },
+        enterprise: { students: 5000, staff: 500, subjects: 50, classes: 120, books: 5000, suppliers: 100, vehicles: 60, inventoryItems: 1200, dormitories: 40, clubs: 80, mealPlans: 20, healthRecords: 5000, communications: 2000 }
       };
 
       const counts = volumePresets[volume];
 
-      // Initialize all 10 module generators with shared locale
-      const generatorConfig = { locale: 'en_KE' as const };
+      // Full DataGenerationConfig matching the type expected by all generators
+      const generatorConfig: DataGenerationConfig = {
+        storageType: 'mock',
+        migrationMode: 'fresh',
+        batchSize: 100,
+        enableValidation: true,
+        enableRelationshipValidation: true,
+        locale: 'en_KE',
+        seedData: {
+          students: counts.students,
+          staff: counts.staff,
+          subjects: counts.subjects,
+          books: counts.books,
+          suppliers: counts.suppliers,
+          inventoryItems: counts.inventoryItems,
+          clubs: counts.clubs,
+          dormitories: counts.dormitories
+        }
+      };
+
+      // Initialize all module generators with shared config
       const generators = {
-        administration: new AdministrationGenerator(generatorConfig),
-        academic:       new AcademicsGenerator(generatorConfig),
-        finance:        new FinancialGenerator(generatorConfig),
-        clubs:          new ClubsGenerator(generatorConfig),
-        dormitory:      new DormitoryGenerator(generatorConfig),
-        library:        new LibraryGenerator(generatorConfig),
-        nutrition:      new NutritionGenerator(generatorConfig),
-        payroll:        new PayrollGenerator(generatorConfig),
-        inventory:      new InventoryGenerator(generatorConfig),
-        transport:      new TransportGenerator(generatorConfig),
-        health:         new HealthGenerator(generatorConfig)
+        administration:   new AdministrationGenerator(generatorConfig),
+        academic:         new AcademicsGenerator(generatorConfig),
+        finance:          new FinancialGenerator(generatorConfig),
+        clubs:            new ClubsGenerator(generatorConfig),
+        dormitory:        new DormitoryGenerator(generatorConfig),
+        library:          new LibraryGenerator(generatorConfig),
+        nutrition:        new NutritionGenerator(generatorConfig),
+        payroll:          new PayrollGenerator(generatorConfig),
+        inventory:        new InventoryGenerator(generatorConfig),
+        transport:        new TransportGenerator(generatorConfig),
+        health:           new HealthGenerator(generatorConfig),
+        communications:   new CommunicationGenerator(generatorConfig)
+      };
+
+      // Map module names to their count keys in the preset
+      type GeneratorKey = keyof typeof generators;
+      const countKeys: Record<GeneratorKey, keyof VolumePreset> = {
+        administration: 'staff',
+        academic: 'students',
+        finance: 'staff',
+        clubs: 'clubs',
+        dormitory: 'dormitories',
+        library: 'books',
+        nutrition: 'mealPlans',
+        payroll: 'staff',
+        inventory: 'inventoryItems',
+        transport: 'vehicles',
+        health: 'healthRecords',
+        communications: 'communications'
       };
 
       // Track which collections exist and which we insert into
@@ -306,8 +359,9 @@ export class DataModeManager extends EventEmitter {
       // Iterate through all generators and insert their data into real ICollection collections
       for (const [moduleName, generator] of Object.entries(generators)) {
         try {
-          await generator.initialize();
-          const generatedData = await generator.generateData(counts[moduleName as keyof typeof counts] || 10);
+          const countKey = countKeys[moduleName as GeneratorKey];
+          const count = counts[countKey] || 10;
+          const generatedData = await generator.generateData(count);
           
           if (!generatedData || generatedData.length === 0) {
             console.warn(`[DataModeManager] No data generated for module: ${moduleName}`);
@@ -394,7 +448,7 @@ export class DataModeManager extends EventEmitter {
       }
 
       const backupName = `backup_${this.currentMode}_${Date.now()}`;
-      await provider.backup(backupName);
+      await provider.backup();
       
       this.emit('dataBackedUp', { mode: this.currentMode, backupName });
     } catch (error) {

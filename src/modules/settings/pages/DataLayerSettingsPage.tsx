@@ -14,14 +14,13 @@ import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/DataServiceFactory';
 
 export const DataLayerSettingsPage: React.FC = () => {
-  const { status: dataModeStatus, switchMode, isLoading } = useDataMode();
+  const { status: dataModeStatus, switchMode, isLoading, seedData, clearData } = useDataMode();
   const currentMode = dataModeStatus?.currentMode || 'development';
   const [activeTab, setActiveTab] = useState<'mode' | 'sync'>('mode');
   const [showAdvanced, setShowAdvanced] = useState(false);
   
   const { 
-    syncStatus,
-    getQueueStatus
+    syncStatus
   } = useAppData();
   
   const { config, updateConfig } = useUnifiedConfig();
@@ -31,6 +30,9 @@ export const DataLayerSettingsPage: React.FC = () => {
   const [selectedBackendType, setSelectedBackendType] = useState<BackendType>('frontend-only');
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'error' | 'info', text: string} | null>(null);
+  const [seedVolume, setSeedVolume] = useState<'tiny' | 'small' | 'medium' | 'large' | 'enterprise'>('small');
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedMessage, setSeedMessage] = useState<{type: 'success' | 'error' | 'info', text: string} | null>(null);
 
   const databaseOptions = useMemo(
     () => getDatabaseOptionsForMode(applicationMode),
@@ -256,6 +258,46 @@ export const DataLayerSettingsPage: React.FC = () => {
     });
   };
 
+  const handleSeedData = async () => {
+    if (!window.confirm(`Seed '${seedVolume}' demo data across all 12 modules? This may take a moment.`)) {
+      return;
+    }
+    setIsSeeding(true);
+    setSeedMessage(null);
+    try {
+      await seedData(seedVolume);
+      setSeedMessage({
+        type: 'success',
+        text: `Successfully seeded ${seedVolume} demo data! The collections are now populated with realistic school data.`
+      });
+    } catch (error: any) {
+      setSeedMessage({
+        type: 'error',
+        text: `Seeding failed: ${error.message}`
+      });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const handleClearData = async () => {
+    if (!window.confirm('Are you sure you want to clear ALL data from the current database?')) {
+      return;
+    }
+    try {
+      await clearData();
+      setSeedMessage({
+        type: 'info',
+        text: 'All data has been cleared from the current database.'
+      });
+    } catch (error: any) {
+      setSeedMessage({
+        type: 'error',
+        text: `Clear failed: ${error.message}`
+      });
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header */}
@@ -448,6 +490,54 @@ export const DataLayerSettingsPage: React.FC = () => {
                 </div>
               )}
 
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start space-x-2 mb-3">
+                  <Info className="w-4 h-4 text-green-600 mt-0.5" />
+                  <div className="text-sm text-green-800">
+                    <p className="font-medium">Demo Data Management</p>
+                    <p className="mt-1">
+                      Populate the database with realistic school data across 12 modules — academics, finance, library, health, transport, and more.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="text-sm font-medium text-green-900">Data Volume:</label>
+                  <select
+                    value={seedVolume}
+                    onChange={(e) => setSeedVolume(e.target.value as any)}
+                    className="text-sm border border-green-300 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="tiny">Tiny (30 students)</option>
+                    <option value="small">Small (150 students)</option>
+                    <option value="medium">Medium (500 students)</option>
+                    <option value="large">Large (1,500 students)</option>
+                    <option value="enterprise">Enterprise (5,000 students)</option>
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleClearData}
+                    disabled={isSeeding}
+                    className="border-red-300 text-red-700 hover:bg-red-50"
+                  >
+                    Clear All Data
+                  </Button>
+                  <Button
+                    onClick={handleSeedData}
+                    disabled={isSeeding}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {isSeeding ? 'Seeding...' : 'Seed Demo Data'}
+                  </Button>
+                </div>
+                {seedMessage && (
+                  <div className={`mt-3 rounded-lg border px-4 py-3 text-sm ${seedMessage.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : seedMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-blue-50 text-blue-700'}`}>
+                    {seedMessage.text}
+                  </div>
+                )}
+              </div>
+
               <BackendConfiguration key={selectedBackendType} />
             </div>
           </div>
@@ -474,7 +564,7 @@ export const DataLayerSettingsPage: React.FC = () => {
           </div>
           <div>
             <span className="text-gray-600">Records:</span>
-            <div className="font-medium">{getQueueStatus?.()?.sync?.pending || 0} Pending</div>
+            <div className="font-medium">{dataModeStatus?.dataCount || 0} Records</div>
           </div>
           <div>
             <span className="text-gray-600">Last Sync:</span>
