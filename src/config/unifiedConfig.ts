@@ -39,59 +39,14 @@ import {
   ValidationError,
   ValidationWarning,
 } from './databaseConfigSchema';
-// Environment Variable Keys for Database Configuration (must be defined early for module initialization)
-export const DB_ENV_VARS = {
-  // Provider Selection
-  DATABASE_PROVIDER: 'REACT_APP_DATABASE_PROVIDER',
-  DATABASE_AUTO_DETECT: 'REACT_APP_DATABASE_AUTO_DETECT',
-  
-  // Connection
-  DATABASE_URL: 'REACT_APP_DATABASE_URL',
-  DATABASE_NAME: 'REACT_APP_DATABASE_NAME',
-  
-  // Performance
-  DATABASE_CACHE_SIZE: 'REACT_APP_DATABASE_CACHE_SIZE',
-  DATABASE_QUERY_TIMEOUT: 'REACT_APP_DATABASE_QUERY_TIMEOUT',
-  DATABASE_BATCH_SIZE: 'REACT_APP_DATABASE_BATCH_SIZE',
-  DATABASE_ENABLE_CACHING: 'REACT_APP_DATABASE_ENABLE_CACHING',
-  DATABASE_ENABLE_INDEXING: 'REACT_APP_DATABASE_ENABLE_INDEXING',
-  
-  // Storage
-  DATABASE_MAX_SIZE: 'REACT_APP_DATABASE_MAX_SIZE',
-  DATABASE_COMPRESSION: 'REACT_APP_DATABASE_COMPRESSION',
-  DATABASE_ENCRYPTION: 'REACT_APP_DATABASE_ENCRYPTION',
-  DATABASE_BACKUP: 'REACT_APP_DATABASE_BACKUP',
-  DATABASE_RETENTION_DAYS: 'REACT_APP_DATABASE_RETENTION_DAYS',
-  
-  // Sync
-  DATABASE_SYNC_ENABLED: 'REACT_APP_DATABASE_SYNC_ENABLED',
-  DATABASE_SYNC_INTERVAL: 'REACT_APP_DATABASE_SYNC_INTERVAL',
-  DATABASE_SYNC_CONFLICT_RESOLUTION: 'REACT_APP_DATABASE_SYNC_CONFLICT_RESOLUTION',
-  DATABASE_SYNC_RETRY_ATTEMPTS: 'REACT_APP_DATABASE_SYNC_RETRY_ATTEMPTS',
-  DATABASE_SYNC_TIMEOUT: 'REACT_APP_DATABASE_SYNC_TIMEOUT',
-  
-  // Monitoring
-  DATABASE_HEALTH_CHECKS: 'REACT_APP_DATABASE_HEALTH_CHECKS',
-  DATABASE_HEALTH_CHECK_INTERVAL: 'REACT_APP_DATABASE_HEALTH_CHECK_INTERVAL',
-  DATABASE_PERFORMANCE_METRICS: 'REACT_APP_DATABASE_PERFORMANCE_METRICS',
-  DATABASE_ERROR_REPORTING: 'REACT_APP_DATABASE_ERROR_REPORTING',
-  DATABASE_LOG_LEVEL: 'REACT_APP_DATABASE_LOG_LEVEL',
-  
-  // Features
-  DATABASE_FULL_TEXT_SEARCH: 'REACT_APP_DATABASE_FULL_TEXT_SEARCH',
-  DATABASE_TRANSACTIONS: 'REACT_APP_DATABASE_TRANSACTIONS',
-  DATABASE_REAL_TIME_UPDATES: 'REACT_APP_DATABASE_REAL_TIME_UPDATES',
-  DATABASE_OFFLINE_MODE: 'REACT_APP_DATABASE_OFFLINE_MODE',
-  DATABASE_DATA_VALIDATION: 'REACT_APP_DATABASE_DATA_VALIDATION',
-  DATABASE_AUDIT_LOG: 'REACT_APP_DATABASE_AUDIT_LOG',
-  
-  // Backend API
-  DATABASE_API_BASE_URL: 'REACT_APP_DATABASE_API_BASE_URL',
-  DATABASE_API_KEY: 'REACT_APP_DATABASE_API_KEY',
-  DATABASE_API_AUTH_TOKEN: 'REACT_APP_DATABASE_API_AUTH_TOKEN',
-  DATABASE_API_AUTH_TYPE: 'REACT_APP_DATABASE_API_AUTH_TYPE',
-  DATABASE_API_TIMEOUT: 'REACT_APP_DATABASE_API_TIMEOUT',
-} as const;
+import { DB_ENV_VARS } from './databaseEnvVars';
+import {
+  loadDatabaseConfigFromEnvironment,
+  loadDatabaseConfigFromFile,
+  exportDatabaseConfigToEnvVars,
+} from './databaseConfigRuntime';
+import { detectOptimalConfigurationRuntime } from './environmentRuntime';
+export { DB_ENV_VARS } from './databaseEnvVars';
 
 // Legacy type for backward compatibility
 export type BackendEnvironment = 'development' | 'production' | 'staging' | 'unknown';
@@ -390,7 +345,7 @@ function createDefaultConfig(): UnifiedAppConfig {
   const defaultDatabaseProvider = getDefaultDatabaseProvider(detectedEnvironment);
   
   // Load database configuration from environment variables
-  const envDatabaseConfig = loadDatabaseConfigFromEnv();
+  const envDatabaseConfig = loadDatabaseConfigFromEnvironment();
   
   return {
     // Core Configuration
@@ -677,202 +632,6 @@ export const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 // Configuration version for migration
 const CONFIG_VERSION = '2.0.0';
 
-/**
- * Load database configuration from environment variables
- */
-function loadDatabaseConfigFromEnv(): Partial<DatabaseConfig> {
-  const config: Partial<DatabaseConfig> = {};
-  
-  // Provider selection
-  if (process.env[DB_ENV_VARS.DATABASE_PROVIDER]) {
-    config.provider = process.env[DB_ENV_VARS.DATABASE_PROVIDER] as DatabaseProvider;
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_AUTO_DETECT]) {
-    config.autoDetect = process.env[DB_ENV_VARS.DATABASE_AUTO_DETECT] === 'true';
-  }
-  
-  // Connection
-  if (process.env[DB_ENV_VARS.DATABASE_URL] || process.env.DATABASE_URL) {
-    config.connectionString = process.env[DB_ENV_VARS.DATABASE_URL] || process.env.DATABASE_URL;
-  }
-  
-  // Performance settings
-  const performance: Partial<DatabaseConfig['performance']> = {};
-  
-  if (process.env[DB_ENV_VARS.DATABASE_CACHE_SIZE]) {
-    performance.cacheSize = parseInt(process.env[DB_ENV_VARS.DATABASE_CACHE_SIZE]);
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_QUERY_TIMEOUT]) {
-    performance.queryTimeout = parseInt(process.env[DB_ENV_VARS.DATABASE_QUERY_TIMEOUT]);
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_BATCH_SIZE]) {
-    performance.batchSize = parseInt(process.env[DB_ENV_VARS.DATABASE_BATCH_SIZE]);
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_ENABLE_CACHING]) {
-    performance.enableCaching = process.env[DB_ENV_VARS.DATABASE_ENABLE_CACHING] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_ENABLE_INDEXING]) {
-    performance.enableIndexing = process.env[DB_ENV_VARS.DATABASE_ENABLE_INDEXING] === 'true';
-  }
-  
-  if (Object.keys(performance).length > 0) {
-    config.performance = performance as DatabaseConfig['performance'];
-  }
-  
-  // Storage settings
-  const storage: Partial<DatabaseConfig['storage']> = {};
-  
-  if (process.env[DB_ENV_VARS.DATABASE_MAX_SIZE]) {
-    storage.maxSize = parseInt(process.env[DB_ENV_VARS.DATABASE_MAX_SIZE]);
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_COMPRESSION]) {
-    storage.compressionEnabled = process.env[DB_ENV_VARS.DATABASE_COMPRESSION] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_ENCRYPTION]) {
-    storage.encryptionEnabled = process.env[DB_ENV_VARS.DATABASE_ENCRYPTION] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_BACKUP]) {
-    storage.backupEnabled = process.env[DB_ENV_VARS.DATABASE_BACKUP] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_RETENTION_DAYS]) {
-    storage.retentionDays = parseInt(process.env[DB_ENV_VARS.DATABASE_RETENTION_DAYS]);
-  }
-  
-  if (Object.keys(storage).length > 0) {
-    config.storage = storage as DatabaseConfig['storage'];
-  }
-  
-  // Sync settings
-  const sync: Partial<DatabaseConfig['sync']> = {};
-  
-  if (process.env[DB_ENV_VARS.DATABASE_SYNC_ENABLED]) {
-    sync.enabled = process.env[DB_ENV_VARS.DATABASE_SYNC_ENABLED] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_SYNC_INTERVAL]) {
-    sync.interval = parseInt(process.env[DB_ENV_VARS.DATABASE_SYNC_INTERVAL]);
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_SYNC_CONFLICT_RESOLUTION]) {
-    sync.conflictResolution = process.env[DB_ENV_VARS.DATABASE_SYNC_CONFLICT_RESOLUTION] as DatabaseConfig['sync']['conflictResolution'];
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_SYNC_RETRY_ATTEMPTS]) {
-    sync.retryAttempts = parseInt(process.env[DB_ENV_VARS.DATABASE_SYNC_RETRY_ATTEMPTS]);
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_SYNC_TIMEOUT]) {
-    sync.timeout = parseInt(process.env[DB_ENV_VARS.DATABASE_SYNC_TIMEOUT]);
-  }
-  
-  if (Object.keys(sync).length > 0) {
-    config.sync = sync as DatabaseConfig['sync'];
-  }
-  
-  // Monitoring settings
-  const monitoring: Partial<DatabaseConfig['monitoring']> = {};
-  
-  if (process.env[DB_ENV_VARS.DATABASE_HEALTH_CHECKS]) {
-    monitoring.enableHealthChecks = process.env[DB_ENV_VARS.DATABASE_HEALTH_CHECKS] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_HEALTH_CHECK_INTERVAL]) {
-    monitoring.healthCheckInterval = parseInt(process.env[DB_ENV_VARS.DATABASE_HEALTH_CHECK_INTERVAL]);
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_PERFORMANCE_METRICS]) {
-    monitoring.enablePerformanceMetrics = process.env[DB_ENV_VARS.DATABASE_PERFORMANCE_METRICS] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_ERROR_REPORTING]) {
-    monitoring.enableErrorReporting = process.env[DB_ENV_VARS.DATABASE_ERROR_REPORTING] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_LOG_LEVEL]) {
-    monitoring.logLevel = process.env[DB_ENV_VARS.DATABASE_LOG_LEVEL] as DatabaseConfig['monitoring']['logLevel'];
-  }
-  
-  if (Object.keys(monitoring).length > 0) {
-    config.monitoring = monitoring as DatabaseConfig['monitoring'];
-  }
-  
-  // Feature settings
-  const features: Partial<DatabaseConfig['features']> = {};
-  
-  if (process.env[DB_ENV_VARS.DATABASE_FULL_TEXT_SEARCH]) {
-    features.enableFullTextSearch = process.env[DB_ENV_VARS.DATABASE_FULL_TEXT_SEARCH] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_TRANSACTIONS]) {
-    features.enableTransactions = process.env[DB_ENV_VARS.DATABASE_TRANSACTIONS] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_REAL_TIME_UPDATES]) {
-    features.enableRealTimeUpdates = process.env[DB_ENV_VARS.DATABASE_REAL_TIME_UPDATES] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_OFFLINE_MODE]) {
-    features.enableOfflineMode = process.env[DB_ENV_VARS.DATABASE_OFFLINE_MODE] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_DATA_VALIDATION]) {
-    features.enableDataValidation = process.env[DB_ENV_VARS.DATABASE_DATA_VALIDATION] === 'true';
-  }
-  
-  if (process.env[DB_ENV_VARS.DATABASE_AUDIT_LOG]) {
-    features.enableAuditLog = process.env[DB_ENV_VARS.DATABASE_AUDIT_LOG] === 'true';
-  }
-  
-  if (Object.keys(features).length > 0) {
-    config.features = features as DatabaseConfig['features'];
-  }
-  
-  // Backend API configuration
-  if (process.env[DB_ENV_VARS.DATABASE_API_BASE_URL] || 
-      process.env[DB_ENV_VARS.DATABASE_API_KEY] || 
-      process.env[DB_ENV_VARS.DATABASE_API_AUTH_TOKEN]) {
-    
-    config.apiConfig = {
-      apiBaseUrl: process.env[DB_ENV_VARS.DATABASE_API_BASE_URL] || '',
-      apiKey: process.env[DB_ENV_VARS.DATABASE_API_KEY],
-      authToken: process.env[DB_ENV_VARS.DATABASE_API_AUTH_TOKEN],
-      authType: (process.env[DB_ENV_VARS.DATABASE_API_AUTH_TYPE] as any) || 'bearer',
-      timeout: process.env[DB_ENV_VARS.DATABASE_API_TIMEOUT] ? 
-        parseInt(process.env[DB_ENV_VARS.DATABASE_API_TIMEOUT]) : undefined,
-    };
-  }
-  
-  return config;
-}
-
-/**
- * Load database configuration from configuration file
- */
-async function loadDatabaseConfigFromFile(): Promise<Partial<DatabaseConfig>> {
-  try {
-    // Try to load from public/database-config.json
-    const response = await fetch('/database-config.json');
-    if (response.ok) {
-      const config = await response.json();
-      console.log('📁 [UnifiedConfig] Loaded database configuration from file');
-      return config;
-    }
-  } catch (error) {
-    // File doesn't exist or can't be loaded, which is fine
-    console.log('📁 [UnifiedConfig] No database configuration file found');
-  }
-  
-  return {};
-}
 
 // RxDB Constants (migrated from config.ts)
 export const RXDB_DB_NAME = 'schoolpilot';
@@ -1498,7 +1257,7 @@ export class UnifiedConfigManager {
   public reloadFromEnvironment(): void {
     console.log('🔄 [UnifiedConfig] Reloading configuration from environment variables');
     
-    const envDatabaseConfig = loadDatabaseConfigFromEnv();
+    const envDatabaseConfig = loadDatabaseConfigFromEnvironment();
     
     if (Object.keys(envDatabaseConfig).length > 0) {
       this.updateDatabaseConfig(envDatabaseConfig);
@@ -1510,78 +1269,7 @@ export class UnifiedConfigManager {
    * Export current database configuration to environment variable format
    */
   public exportDatabaseConfigAsEnvVars(): Record<string, string> {
-    const config = this.config.database;
-    const envVars: Record<string, string> = {};
-    
-    // Provider settings
-    if (config.provider) {
-      envVars[DB_ENV_VARS.DATABASE_PROVIDER] = config.provider;
-    }
-    
-    if (config.autoDetect !== undefined) {
-      envVars[DB_ENV_VARS.DATABASE_AUTO_DETECT] = config.autoDetect.toString();
-    }
-    
-    if (config.connectionString) {
-      envVars[DB_ENV_VARS.DATABASE_URL] = config.connectionString;
-    }
-    
-    // Performance settings
-    envVars[DB_ENV_VARS.DATABASE_CACHE_SIZE] = config.performance.cacheSize.toString();
-    envVars[DB_ENV_VARS.DATABASE_QUERY_TIMEOUT] = config.performance.queryTimeout.toString();
-    envVars[DB_ENV_VARS.DATABASE_BATCH_SIZE] = config.performance.batchSize.toString();
-    envVars[DB_ENV_VARS.DATABASE_ENABLE_CACHING] = config.performance.enableCaching.toString();
-    envVars[DB_ENV_VARS.DATABASE_ENABLE_INDEXING] = config.performance.enableIndexing.toString();
-    
-    // Storage settings
-    envVars[DB_ENV_VARS.DATABASE_MAX_SIZE] = config.storage.maxSize.toString();
-    envVars[DB_ENV_VARS.DATABASE_COMPRESSION] = config.storage.compressionEnabled.toString();
-    envVars[DB_ENV_VARS.DATABASE_ENCRYPTION] = config.storage.encryptionEnabled.toString();
-    envVars[DB_ENV_VARS.DATABASE_BACKUP] = config.storage.backupEnabled.toString();
-    envVars[DB_ENV_VARS.DATABASE_RETENTION_DAYS] = config.storage.retentionDays.toString();
-    
-    // Sync settings
-    envVars[DB_ENV_VARS.DATABASE_SYNC_ENABLED] = config.sync.enabled.toString();
-    envVars[DB_ENV_VARS.DATABASE_SYNC_INTERVAL] = config.sync.interval.toString();
-    envVars[DB_ENV_VARS.DATABASE_SYNC_CONFLICT_RESOLUTION] = config.sync.conflictResolution;
-    envVars[DB_ENV_VARS.DATABASE_SYNC_RETRY_ATTEMPTS] = config.sync.retryAttempts.toString();
-    envVars[DB_ENV_VARS.DATABASE_SYNC_TIMEOUT] = config.sync.timeout.toString();
-    
-    // Monitoring settings
-    envVars[DB_ENV_VARS.DATABASE_HEALTH_CHECKS] = config.monitoring.enableHealthChecks.toString();
-    envVars[DB_ENV_VARS.DATABASE_HEALTH_CHECK_INTERVAL] = config.monitoring.healthCheckInterval.toString();
-    envVars[DB_ENV_VARS.DATABASE_PERFORMANCE_METRICS] = config.monitoring.enablePerformanceMetrics.toString();
-    envVars[DB_ENV_VARS.DATABASE_ERROR_REPORTING] = config.monitoring.enableErrorReporting.toString();
-    envVars[DB_ENV_VARS.DATABASE_LOG_LEVEL] = config.monitoring.logLevel;
-    
-    // Feature settings
-    envVars[DB_ENV_VARS.DATABASE_FULL_TEXT_SEARCH] = config.features.enableFullTextSearch.toString();
-    envVars[DB_ENV_VARS.DATABASE_TRANSACTIONS] = config.features.enableTransactions.toString();
-    envVars[DB_ENV_VARS.DATABASE_REAL_TIME_UPDATES] = config.features.enableRealTimeUpdates.toString();
-    envVars[DB_ENV_VARS.DATABASE_OFFLINE_MODE] = config.features.enableOfflineMode.toString();
-    envVars[DB_ENV_VARS.DATABASE_DATA_VALIDATION] = config.features.enableDataValidation.toString();
-    envVars[DB_ENV_VARS.DATABASE_AUDIT_LOG] = config.features.enableAuditLog.toString();
-    
-    // API settings
-    if (config.apiConfig) {
-      if (config.apiConfig.apiBaseUrl) {
-        envVars[DB_ENV_VARS.DATABASE_API_BASE_URL] = config.apiConfig.apiBaseUrl;
-      }
-      if (config.apiConfig.apiKey) {
-        envVars[DB_ENV_VARS.DATABASE_API_KEY] = config.apiConfig.apiKey;
-      }
-      if (config.apiConfig.authToken) {
-        envVars[DB_ENV_VARS.DATABASE_API_AUTH_TOKEN] = config.apiConfig.authToken;
-      }
-      if (config.apiConfig.authType) {
-        envVars[DB_ENV_VARS.DATABASE_API_AUTH_TYPE] = config.apiConfig.authType;
-      }
-      if (config.apiConfig.timeout) {
-        envVars[DB_ENV_VARS.DATABASE_API_TIMEOUT] = config.apiConfig.timeout.toString();
-      }
-    }
-    
-    return envVars;
+    return exportDatabaseConfigToEnvVars(this.config.database);
   }
 
   /**
@@ -1954,33 +1642,7 @@ export const subscribeToConfig = (listener: (config: UnifiedAppConfig) => void):
 
 // Environment-based configuration detection (migrated from appConfig.ts)
 export const detectOptimalConfiguration = (): Partial<UnifiedAppConfig> => {
-  const isProduction = process.env.NODE_ENV === 'production';
-  const hasServiceWorker = typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
-  const hasIndexedDB = typeof window !== 'undefined' && 'indexedDB' in window;
-  const isOnline = typeof navigator !== 'undefined' && navigator.onLine;
-
-  return {
-    useEnhancedFeatures: hasIndexedDB && hasServiceWorker,
-    features: {
-      enhancedDataLayer: hasIndexedDB,
-      networkStatusIndicator: true,
-      moduleHealthIndicator: true,
-      syncStatusComponent: hasServiceWorker,
-      globalNotifications: true,
-      performanceOptimizations: isProduction,
-      advancedErrorBoundaries: true,
-      enableOfflineMode: hasServiceWorker && hasIndexedDB,
-      enableRealTimeSync: isOnline && isProduction,
-      enablePerformanceMonitoring: isProduction,
-      enableAdvancedReporting: isProduction,
-      enableBulkOperations: true,
-      enableDataExport: true,
-      enableNotifications: true,
-      enableAuditLog: isProduction,
-      enableMultiTenant: isProduction,
-      performanceMonitorWidget: false,
-    },
-  };
+  return detectOptimalConfigurationRuntime() as Partial<UnifiedAppConfig>;
 };
 
 // Legacy AppMode type compatibility
