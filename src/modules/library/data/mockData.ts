@@ -20,9 +20,9 @@ export const initialMockBookCategories: BookCategory[] = [
 ];
 
 export const initialMockBooks: Book[] = [
-  { id: 'BOOK001', category_id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', accession_no: 'LIB001', status: BookStatus.AVAILABLE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Fiction' },
+  { id: 'BOOK001', category_id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', accession_no: 'LIB001', status: BookStatus.AVAILABLE, is_digital: true, digital_access_url: 'https://example.com/library/great-gatsby.pdf', digital_format: 'PDF', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Fiction' },
   { id: 'BOOK002', category_id: 2, title: 'Cosmos', author: 'Carl Sagan', accession_no: 'LIB002', status: BookStatus.ON_LOAN, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Science' },
-  { id: 'BOOK003', category_id: 3, title: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', accession_no: 'LIB003', status: BookStatus.AVAILABLE, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'History' },
+  { id: 'BOOK003', category_id: 3, title: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', accession_no: 'LIB003', status: BookStatus.AVAILABLE, is_digital: true, digital_access_url: 'https://example.com/library/sapiens.epub', digital_format: 'EPUB', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'History' },
   { id: 'BOOK004', category_id: 5, title: 'Clean Code', author: 'Robert C. Martin', accession_no: 'LIB004', status: BookStatus.LOST, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), category_name: 'Computer Science' },
 ];
 

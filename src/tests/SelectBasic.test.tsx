@@ -75,6 +75,28 @@ describe('Select Component - Basic Tests', () => {
     expect(onChange).toHaveBeenCalledWith('option1');
   });
 
+  it('normalizes numeric option values for options-mode consumers', async () => {
+    const onChange = vi.fn();
+    render(
+      <Select
+        options={[
+          { value: 101 as any, label: 'Grade 1' },
+          { value: 202 as any, label: 'Grade 2' },
+        ]}
+        value={202 as any}
+        onChange={onChange}
+      />
+    );
+
+    expect(screen.getByText('Grade 2')).toBeInTheDocument();
+
+    const trigger = screen.getByRole('combobox');
+    await user.click(trigger);
+    await user.click(screen.getByRole('option', { name: 'Grade 1' }));
+
+    expect(onChange).toHaveBeenCalledWith('101');
+  });
+
   it('shows search input when searchable', async () => {
     render(<Select options={mockOptions} searchable />);
     

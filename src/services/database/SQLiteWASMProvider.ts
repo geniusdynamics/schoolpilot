@@ -941,28 +941,35 @@ export class SQLiteWASMProvider implements IDatabaseProvider {
     try {
       if (!this.db) return;
 
-      // Enable WAL mode for better concurrency and crash recovery
-      this.db.exec('PRAGMA journal_mode = WAL;');
+      const walMode = import.meta.env.VITE_SQLITE_WAL_MODE !== 'false';
+      const foreignKeys = import.meta.env.VITE_SQLITE_FOREIGN_KEYS !== 'false';
+      const synchronousMode = import.meta.env.VITE_SQLITE_SYNCHRONOUS || '1';
+      const cacheSize = parseInt(import.meta.env.VITE_SQLITE_CACHE_SIZE || '20000', 10);
+
+      if (walMode) {
+        this.db.exec('PRAGMA journal_mode = WAL;');
+      }
       
-      // Enable foreign key constraints
-      this.db.exec('PRAGMA foreign_keys = ON;');
+      if (foreignKeys) {
+        this.db.exec('PRAGMA foreign_keys = ON;');
+      }
       
-      // Set synchronous mode for better durability
-      this.db.exec('PRAGMA synchronous = NORMAL;');
+      this.db.exec(`PRAGMA synchronous = ${synchronousMode === '0' ? 'OFF' : synchronousMode === '2' ? 'FULL' : 'NORMAL'};`);
       
-      // Set cache size for better performance (20MB)
-      this.db.exec('PRAGMA cache_size = -20000;');
+      this.db.exec(`PRAGMA cache_size = -${cacheSize};`);
       
-      // Enable automatic index creation
       this.db.exec('PRAGMA automatic_index = ON;');
       
-      // Set page size for better performance
       this.db.exec('PRAGMA page_size = 4096;');
       
-      // Enable query optimization
       this.db.exec('PRAGMA optimize;');
 
-      console.log('[SQLiteWASMProvider] Production settings configured');
+      console.log('[SQLiteWASMProvider] Production settings configured', {
+        walMode,
+        foreignKeys,
+        synchronousMode,
+        cacheSize
+      });
     } catch (error) {
       console.warn('[SQLiteWASMProvider] Failed to configure production settings:', error);
     }

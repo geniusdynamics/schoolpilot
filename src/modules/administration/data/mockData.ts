@@ -5,7 +5,6 @@ import {
   User, Role, Department, Designation, StudentCategory, Dormitory,
   Class, ClassStream, Student, ParentsGuardian, SchoolDetails, Staff,
   AcademicYear, SchoolPeriod, AcademicYearStructure, AcademicPeriodDefinition,
-  FinancialYear, FinancialYearStatus,
   PersonGender, StudentStatus
 } from '../../../core/types';
 
@@ -685,6 +684,7 @@ export const departments = initialMockDepartments;
 export const designations = initialMockDesignations;
 export const staff = initialMockStaff;
 export const students = initialMockStudents;
+export const customers = initialMockCustomers;
 export const users = initialMockUsers;
 export const roles = initialMockRoles;
 export const academicYears = initialMockAcademicYears;
@@ -693,4 +693,6 @@ export const academicYearStructures = initialMockAcademicYearStructures;
 export const academicPeriodDefinitions = initialMockAcademicPeriodDefinitions;
 export const studentCategories = initialMockStudentCategories;
 export const dormitories = initialMockDormitories;
+export const classes = initialMockClasses;
+export const classStreams = initialMockClassStreams;
 export const parentsGuardians = initialMockParentsGuardians;

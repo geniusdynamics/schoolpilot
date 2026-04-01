@@ -34,6 +34,22 @@ export const EDUCATION_SYSTEM_TEMPLATES: Record<string, Partial<EducationSystemC
     continuous_assessment_weight: 40,
     final_exam_weight: 60
   },
+
+  'IGCSE_SECONDARY': {
+    name: 'IGCSE Secondary System',
+    country_code: 'GB',
+    system_type: EducationSystemType.SECONDARY,
+    grading_system_type: GradingSystemType.LETTER_GRADES,
+    min_grade_level: 7,
+    max_grade_level: 12,
+    academic_period_type: AcademicPeriodType.TERM,
+    periods_per_year: 3,
+    passing_grade: 50,
+    max_grade_value: 100,
+    assessment_types: [AssessmentType.FORMATIVE, AssessmentType.SUMMATIVE, AssessmentType.PROJECT_BASED, AssessmentType.PRACTICAL],
+    continuous_assessment_weight: 30,
+    final_exam_weight: 70
+  },
   
   'US_UNIVERSITY_SEMESTER': {
     name: 'US University Semester System',

@@ -206,16 +206,8 @@ export class ConflictDetectionEngine {
     conflictingSchedules: ExamSchedule[];
   }> {
     try {
-      if (!this.db) {
-        return {
-          availableRooms: [],
-          availableInvigilators: [],
-          conflictingSchedules: []
-        };
-      }
-
-      const collection = this.db.collections['exam_schedules'];
-      if (!collection) {
+      const db = await databaseService.getDatabase();
+      if (!db.exam_schedules) {
         return {
           availableRooms: [],
           availableInvigilators: [],
@@ -224,18 +216,34 @@ export class ConflictDetectionEngine {
       }
 
       // Get all schedules for this period
-      const conflictingSchedules = await collection.find({
+      const conflictingSchedules = await db.exam_schedules.find({
         selector: { period_id: options.period_id }
-      }).exec();
+      }) || [];
 
-      const schedules = conflictingSchedules.map(doc => doc.toJSON());
+      // Extract used rooms and invigilators
+      const usedRooms = new Set(conflictingSchedules.map(s => s.room_number).filter(Boolean) as string[]);
+      const usedInvigilators = new Set(conflictingSchedules.map(s => s.invigilator_id).filter(Boolean) as string[]);
 
-      // In a real system, you'd query available rooms and invigilators from your database
-      // For now, return empty arrays as placeholders
+      // Define default available rooms and invigilators if not provided by database
+      // In a production system, these would be fetched from their respective collections
+      const allRooms = ['Room 101', 'Room 102', 'Room 103', 'Room 104', 'Lab A', 'Lab B', 'Main Hall'];
+      
+      // For invigilators, we could fetch from staff collection
+      let allInvigilators: string[] = [];
+      if (db.staff) {
+        const staff = await db.staff.find({ selector: {} }) || [];
+        allInvigilators = staff.map((s: any) => `${s.first_name} ${s.last_name}`);
+      } else {
+        allInvigilators = ['Invigilator 1', 'Invigilator 2', 'Invigilator 3'];
+      }
+
+      const availableRooms = allRooms.filter(room => !usedRooms.has(room));
+      const availableInvigilators = allInvigilators.filter(name => !usedInvigilators.has(name));
+
       return {
-        availableRooms: [],
-        availableInvigilators: [],
-        conflictingSchedules: schedules
+        availableRooms,
+        availableInvigilators,
+        conflictingSchedules: conflictingSchedules as ExamSchedule[]
       };
     } catch (error) {
       console.error('Error getting available slots:', error);

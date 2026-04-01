@@ -1,7 +1,8 @@
 // src/modules/academics/components/EducationSystemForm.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { EducationSystemConfiguration, EducationSystemType, GradingSystemType, AcademicPeriodType, AssessmentType } from '../data/types';
+import { EDUCATION_SYSTEM_TEMPLATES } from '../data/templates/education-system-templates';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Checkbox from '@/components/ui/Checkbox';
@@ -45,6 +46,7 @@ const EducationSystemForm: React.FC<EducationSystemFormProps> = ({
     is_default: false,
     ...initialData
   });
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
   const handleInputChange = (field: keyof EducationSystemConfiguration, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -63,6 +65,19 @@ const EducationSystemForm: React.FC<EducationSystemFormProps> = ({
     const continuous = formData.continuous_assessment_weight || 0;
     const final = formData.final_exam_weight || 0;
     return continuous + final === 100;
+  };
+
+  const applyTemplate = (templateKey: string) => {
+    setSelectedTemplate(templateKey);
+    const template = EDUCATION_SYSTEM_TEMPLATES[templateKey];
+    if (!template) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      ...template
+    }));
   };
 
   return (
@@ -104,6 +119,16 @@ const EducationSystemForm: React.FC<EducationSystemFormProps> = ({
                   label: type
                 }))}
               />
+
+              <Select
+                label="Template"
+                value={selectedTemplate}
+                onChange={(value) => applyTemplate(String(value))}
+                options={Object.entries(EDUCATION_SYSTEM_TEMPLATES).map(([key, template]) => ({
+                  value: key,
+                  label: template.name || key
+                }))}
+              />
               
               <div className="flex items-center space-x-4">
                 <Checkbox
@@ -119,6 +144,79 @@ const EducationSystemForm: React.FC<EducationSystemFormProps> = ({
                   onChange={(checked) => handleInputChange('is_default', checked)}
                 />
                 <label htmlFor="is_default">Default System</label>
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="structure">
+          <Card title="Academic Structure">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Minimum Grade Level" type="number" value={formData.min_grade_level || 1} onChange={(e) => handleInputChange('min_grade_level', Number(e.target.value) || 1)} />
+              <Input label="Maximum Grade Level" type="number" value={formData.max_grade_level || 12} onChange={(e) => handleInputChange('max_grade_level', Number(e.target.value) || 12)} />
+              <Select
+                label="Academic Period Type"
+                value={formData.academic_period_type}
+                onChange={(value) => handleInputChange('academic_period_type', value)}
+                options={Object.values(AcademicPeriodType).map(type => ({ value: type, label: type }))}
+              />
+              <Input label="Periods Per Year" type="number" value={formData.periods_per_year || 3} onChange={(e) => handleInputChange('periods_per_year', Number(e.target.value) || 1)} />
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="grading">
+          <Card title="Grading System">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Select
+                label="Grading System"
+                value={formData.grading_system_type}
+                onChange={(value) => handleInputChange('grading_system_type', value)}
+                options={Object.values(GradingSystemType).map(type => ({ value: type, label: type }))}
+              />
+              <Input label="Passing Grade" type="number" value={formData.passing_grade || 0} onChange={(e) => handleInputChange('passing_grade', Number(e.target.value) || 0)} />
+              <Input label="Maximum Grade Value" type="number" value={formData.max_grade_value || 100} onChange={(e) => handleInputChange('max_grade_value', Number(e.target.value) || 100)} />
+              <Input label="Grade Precision" type="number" value={formData.grade_precision || 0} onChange={(e) => handleInputChange('grade_precision', Number(e.target.value) || 0)} />
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="assessment">
+          <Card title="Assessment Rules">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <Input label="Continuous Assessment Weight" type="number" value={formData.continuous_assessment_weight || 0} onChange={(e) => handleInputChange('continuous_assessment_weight', Number(e.target.value) || 0)} />
+              <Input label="Final Exam Weight" type="number" value={formData.final_exam_weight || 0} onChange={(e) => handleInputChange('final_exam_weight', Number(e.target.value) || 0)} />
+            </div>
+            <div className="space-y-2">
+              {Object.values(AssessmentType).map((type) => (
+                <div key={type} className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`assessment-${type}`}
+                    checked={(formData.assessment_types || []).includes(type)}
+                    onChange={(checked) => handleAssessmentTypeChange(type, checked)}
+                  />
+                  <label htmlFor={`assessment-${type}`}>{type}</label>
+                </div>
+              ))}
+            </div>
+            {!validateWeights() && (
+              <p className="mt-3 text-sm text-red-600">Continuous assessment and final exam weights must add up to 100.</p>
+            )}
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="advanced">
+          <Card title="Advanced Settings">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input label="Minimum Subjects Per Student" type="number" value={formData.min_subjects_per_student || 0} onChange={(e) => handleInputChange('min_subjects_per_student', Number(e.target.value) || 0)} />
+              <Input label="Maximum Subjects Per Student" type="number" value={formData.max_subjects_per_student || 0} onChange={(e) => handleInputChange('max_subjects_per_student', Number(e.target.value) || 0)} />
+              <div className="flex items-center space-x-3">
+                <Checkbox id="uses_competency_tracking" checked={formData.uses_competency_tracking || false} onChange={(checked) => handleInputChange('uses_competency_tracking', checked)} />
+                <label htmlFor="uses_competency_tracking">Use competency tracking</label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Checkbox id="uses_credit_hours" checked={formData.uses_credit_hours || false} onChange={(checked) => handleInputChange('uses_credit_hours', checked)} />
+                <label htmlFor="uses_credit_hours">Use credit hours</label>
               </div>
             </div>
           </Card>

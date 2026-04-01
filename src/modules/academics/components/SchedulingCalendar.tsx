@@ -1,6 +1,7 @@
-// src/modules/academics/components/SchedulingCalendar.tsx
+// ABOUTME: Displays the exam scheduling calendar with daily filtering and conflict visibility.
+// ABOUTME: Provides a scheduling modal that captures class stream, room, and invigilator selections.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import { ExamSession, ClassStream, TimetablePeriodDef, ExamSchedule } from '@/core/types';
 import Card from '@/components/ui/Card';
@@ -38,6 +39,9 @@ const SchedulingCalendar: React.FC = () => {
   );
   const [selectedClassStream, setSelectedClassStream] = useState<number | null>(null);
   const [selectedExamSession, setSelectedExamSession] = useState<string>('');
+  const [scheduledClassStream, setScheduledClassStream] = useState<number | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<string>('');
+  const [selectedInvigilator, setSelectedInvigilator] = useState<string>('');
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   const availableRooms = ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Lab 1', 'Lab 2'];
@@ -87,6 +91,22 @@ const SchedulingCalendar: React.FC = () => {
     return conflicts;
   }
 
+  const openScheduleModal = () => {
+    setSelectedExamSession('');
+    setScheduledClassStream(selectedClassStream);
+    setSelectedRoom('');
+    setSelectedInvigilator('');
+    setShowScheduleModal(true);
+  };
+
+  const closeScheduleModal = () => {
+    setShowScheduleModal(false);
+    setSelectedExamSession('');
+    setScheduledClassStream(null);
+    setSelectedRoom('');
+    setSelectedInvigilator('');
+  };
+
   const handleScheduleExam = (scheduleData: Partial<ExamSchedule>) => {
     const newSchedule: ExamSchedule = {
       id: `schedule_${Date.now()}`,
@@ -101,7 +121,7 @@ const SchedulingCalendar: React.FC = () => {
     };
 
     addExamSchedule(newSchedule);
-    setShowScheduleModal(false);
+    closeScheduleModal();
   };
 
   return (
@@ -109,7 +129,7 @@ const SchedulingCalendar: React.FC = () => {
       <Card>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Exam Scheduling Calendar</h2>
-          <Button onClick={() => setShowScheduleModal(true)}>
+          <Button onClick={openScheduleModal}>
             <PlusIcon className="w-4 h-4 mr-2" />
             Schedule New Exam
           </Button>
@@ -136,7 +156,11 @@ const SchedulingCalendar: React.FC = () => {
                   <label className="block text-sm font-medium mb-2">Class Stream</label>
                   <Select
                     value={selectedClassStream?.toString() || ''}
-                    onChange={(e) => setSelectedClassStream(e.target.value ? parseInt(e.target.value) : null)}
+                    onChange={(value) =>
+                      setSelectedClassStream(
+                        typeof value === 'string' && value ? parseInt(value, 10) : null
+                      )
+                    }
                     options={[
                       { value: '', label: 'All Classes' },
                       ...classStreams.map(cs => ({ value: cs.id.toString(), label: `${cs.class_name} ${cs.stream_name}` }))
@@ -228,42 +252,54 @@ const SchedulingCalendar: React.FC = () => {
               <Select
                 label="Exam Session"
                 value={selectedExamSession}
-                onChange={setSelectedExamSession}
-                options={examSessions.map(es => ({ value: es.id, label: es.name }))}
+                onChange={(value) => setSelectedExamSession(typeof value === 'string' ? value : '')}
+                options={examSessions.map(es => ({ value: String(es.id), label: es.name }))}
               />
               
               <Select
                 label="Class Stream"
-                value={selectedClassStream?.toString() || ''}
-                onChange={(e) => setSelectedClassStream(parseInt(e.target.value))}
+                value={scheduledClassStream?.toString() || ''}
+                onChange={(value) =>
+                  setScheduledClassStream(
+                    typeof value === 'string' && value ? parseInt(value, 10) : null
+                  )
+                }
                 options={classStreams.map(cs => ({ value: cs.id.toString(), label: `${cs.class_name} ${cs.stream_name}` }))}
               />
 
               <Select
                 label="Room"
-                value=""
-                onChange={() => {}}
+                value={selectedRoom}
+                onChange={(value) => setSelectedRoom(typeof value === 'string' ? value : '')}
                 options={availableRooms.map(room => ({ value: room, label: room }))}
               />
 
               <Select
                 label="Invigilator"
-                value=""
-                onChange={() => {}}
+                value={selectedInvigilator}
+                onChange={(value) => setSelectedInvigilator(typeof value === 'string' ? value : '')}
                 options={staffMembers.map(staff => ({ value: staff.name, label: staff.name }))}
               />
 
               <div className="flex justify-end space-x-2">
                 <Button
                   variant="outline"
-                  onClick={() => setShowScheduleModal(false)}
+                  onClick={closeScheduleModal}
                 >
                   Cancel
                 </Button>
                 <Button
+                  disabled={
+                    !selectedExamSession ||
+                    !scheduledClassStream ||
+                    !selectedRoom ||
+                    !selectedInvigilator
+                  }
                   onClick={() => handleScheduleExam({
                     exam_session_id: selectedExamSession,
-                    class_stream_id: selectedClassStream || 0,
+                    class_stream_id: scheduledClassStream || 0,
+                    room: selectedRoom,
+                    invigilator: selectedInvigilator,
                     date: selectedDate
                   })}
                 >

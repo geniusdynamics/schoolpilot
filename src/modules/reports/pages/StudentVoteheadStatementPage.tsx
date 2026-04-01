@@ -1,4 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
+// ABOUTME: Renders the student votehead statement page for period-based charges and allocations.
+// ABOUTME: Delegates statement math to a pure builder so balances stay consistent with finance data.
+
+import React, { useState, useCallback } from 'react';
 import Card from '@/components/ui/Card';
 import { CurrencyDollarIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
@@ -6,20 +9,14 @@ import Spinner from '@/components/ui/Spinner';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Student, SchoolPeriod, StudentInvoice, StudentPayment, InvoicePaymentApplication, StudentInvoiceItem, InvoiceStatus } from '@/types';
 import { useTranslation } from 'react-i18next';
-
-interface StatementRow {
-  date: string;
-  description: string;
-  invoiceNo?: string;
-  paymentRef?: string;
-  debit: number;
-  credit: number;
-  balance: number;
-}
+import {
+  buildStudentVoteheadStatement,
+  StatementRow
+} from '../utils/studentVoteheadStatement';
 
 const StudentVoteheadStatementPage: React.FC = () => {
+  const { t } = useTranslation();
   const { 
     students, 
     schoolPeriods,
@@ -27,6 +24,7 @@ const StudentVoteheadStatementPage: React.FC = () => {
     studentInvoiceItems,
     studentPayments,
     invoicePaymentApplications,
+    studentOpeningBalances,
     loading 
   } = useAppData();
 
@@ -37,114 +35,49 @@ const StudentVoteheadStatementPage: React.FC = () => {
   
   const [reportData, setReportData] = useState<StatementRow[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [openingBalance, setOpeningBalance] = useState(0); // For simplicity, can enhance later
+  const [openingBalance, setOpeningBalance] = useState(0);
 
   const handleGenerateReport = useCallback(() => {
     if (!selectedStudentId || !selectedSchoolPeriodId) {
-      alert(t('validation.pleaseSelectAStudentAndASchoolPeriod'));
+      alert(t('validation.pleaseSelectAStudentAndASchoolPeriod', 'Please select a student and a school period.'));
       setReportData([]);
       return;
     }
+
     setIsGenerating(true);
-    
     const student = (students || []).find(s => s.id === selectedStudentId);
+
     if (!student) {
-        setIsGenerating(false);
-        return;
+      setIsGenerating(false);
+      return;
     }
 
-    // For simplicity, opening balance is mock. Real OB would come from StudentOpeningBalance or prior period's closing.
-    const mockOB = (studentOpeningBalances || []).find(ob => ob.student_id === selectedStudentId)?.amount || 0;
-    setOpeningBalance(mockOB);
-
-    let runningBalance = mockOB;
-    const statementEntries: StatementRow[] = [];
-
-    if(mockOB !== 0) {
-        statementEntries.push({
-            date: schoolPeriods.find(p => p.id === selectedSchoolPeriodId)?.start_date || new Date().toISOString(), // Approx.
-            description: 'Opening Balance',
-            debit: mockOB > 0 ? mockOB : 0,
-            credit: mockOB < 0 ? -mockOB : 0,
-            balance: runningBalance
-        });
-    }
-
-    const invoicesForStudentAndPeriod = (studentInvoices || []).filter(
-      inv => inv.student_id === selectedStudentId && inv.school_period_id === selectedSchoolPeriodId && inv.status !== InvoiceStatus.VOIDED
-    );
-    
-    (invoicesForStudentAndPeriod || []).forEach(invoice => {
-      (invoice.items || []).forEach(item => {
-        runningBalance += item.amount;
-        statementEntries.push({
-          date: invoice.issue_date,
-          description: item.description,
-          invoiceNo: invoice.invoice_number,
-          debit: item.amount,
-          credit: 0,
-          balance: runningBalance,
-        });
-      });
+    const statement = buildStudentVoteheadStatement({
+      selectedStudentId,
+      selectedSchoolPeriodId,
+      schoolPeriods: schoolPeriods || [],
+      studentInvoices: studentInvoices || [],
+      studentInvoiceItems: studentInvoiceItems || [],
+      studentPayments: studentPayments || [],
+      invoicePaymentApplications: invoicePaymentApplications || [],
+      studentOpeningBalances: studentOpeningBalances || []
     });
 
-    const paymentsForStudent = (studentPayments || []).filter(p => p.student_id === selectedStudentId);
-    // Filter payments that fall within the selected school period (approximate for now)
-    // And apply applications for these payments
-    paymentsForStudent.forEach(payment => {
-        // Consider only payments applied to invoices of the selected period for more accuracy
-        // This requires checking invoicePaymentApplications
-        const applicationsForThisPayment = (invoicePaymentApplications || []).filter(ipa => ipa.payment_id === payment.id);
-        let paymentAppliedToThisPeriod = false;
-        
-        for(const app of applicationsForThisPayment) {
-            const invItem = (studentInvoiceItems || []).find(sii => sii.id === app.invoice_item_id);
-            if(invItem) {
-                const parentInvoice = (studentInvoices || []).find(si => si.id === invItem.invoice_id);
-                if(parentInvoice && parentInvoice.school_period_id === selectedSchoolPeriodId) {
-                    paymentAppliedToThisPeriod = true;
-                    break;
-                }
-            }
-        }
-        
-        if(paymentAppliedToThisPeriod) { // Or a simpler date check if needed
-            runningBalance -= payment.total_amount_paid;
-            statementEntries.push({
-                date: payment.transaction_date,
-                description: `Payment Received (${payment.payment_method || 'N/A'})`,
-                paymentRef: payment.receipt_no,
-                debit: 0,
-                credit: payment.total_amount_paid,
-                balance: runningBalance,
-            });
-        }
-    });
-
-    (statementEntries || []).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    // Re-calculate running balance after sorting
-    let currentBal = mockOB;
-    const finalStatement = (statementEntries || []).map(entry => {
-        if (entry.description === 'Opening Balance') {
-           // OB balance is already set correctly if it was the first entry
-           // If it's not (e.g. manual OB entered mid-statement), this logic needs adjustment
-           return entry;
-        }
-        currentBal += entry.debit - entry.credit;
-        return {...entry, balance: currentBal };
-    });
-
-
-    setReportData(finalStatement);
+    setOpeningBalance(statement.openingBalance);
+    setReportData(statement.rows);
     setIsGenerating(false);
-  }, [selectedStudentId, selectedSchoolPeriodId, students, studentInvoices, studentInvoiceItems, studentPayments, invoicePaymentApplications, schoolPeriods]);
-  
-  // Mock studentOpeningBalances as it's not part of the report's primary data fetching from useAppData for this page directly.
-  const studentOpeningBalances = useMemo(() => [
-      {student_id: "S001", amount: 500}, 
-      {student_id: "S002", amount: -200},
-    ], []);
+  }, [
+    invoicePaymentApplications,
+    schoolPeriods,
+    selectedSchoolPeriodId,
+    selectedStudentId,
+    studentInvoices,
+    studentInvoiceItems,
+    studentOpeningBalances,
+    studentPayments,
+    students,
+    t
+  ]);
 
 
   const columns = [
@@ -156,7 +89,7 @@ const StudentVoteheadStatementPage: React.FC = () => {
     { header: 'Balance (KES)', accessor: 'balance' as keyof StatementRow, render: (item: StatementRow) => item.balance.toFixed(2) },
   ];
 
-  const isLoadingPage = loading.students || loading.schoolPeriods || loading.studentInvoices || loading.studentInvoiceItems || loading.studentPayments || loading.invoicePaymentApplications;
+  const isLoadingPage = loading.students || loading.schoolPeriods || loading.studentInvoices || loading.studentInvoiceItems || loading.studentPayments || loading.invoicePaymentApplications || loading.studentOpeningBalances;
 
   const handlePrintAndExportPDF = () => {
     window.print();

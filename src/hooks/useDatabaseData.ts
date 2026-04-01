@@ -6,6 +6,7 @@ import type { AppDataLoadingStates, AppDataContextType } from '../types';
 import { databaseService } from '../services/databaseService';
 import { rbacService } from '../core/rbacService';
 import type { RbacRole, Permission, UserRole } from '../core/types';
+import type { InvSupplierContractType } from '../modules/inventory/data/types';
 import * as allTypes from '../types';
 
 const createInitialLoadingStates = (): AppDataLoadingStates => ({
@@ -18,7 +19,7 @@ const createInitialLoadingStates = (): AppDataLoadingStates => ({
   financialYears: true, classStreams: true, parentsGuardians: true,
   partners: true, clubs: true, customers: true, studentHealthRecords: true, studentAttendance: true,
   templatesComm: true, campaigns: true,
-  chartOfAccounts: true, banks: true, suppliers: true,
+  chartOfAccounts: true, banks: true, suppliers: true, supplierContracts: true,
   feeTemplates: true, feeTemplateItems: true, expenseCategories: true, supplierInvoices: true,
   warehouses: true, itemCategoriesInv: true,
   itemsInv: true, fixedAssets: true, requisitions: true, purchaseOrders: true,
@@ -90,7 +91,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
   const [loading, setLoading] = useState<AppDataLoadingStates>(createInitialLoadingStates());
   const [initializationError, setInitializationError] = useState<Error | null>(null);
   const [isUsingRxDBDummyData, setIsUsingRxDBDummyData] = useState<boolean>(false);
-  const [data, setData] = useState<Omit<AppDataContextType, 'loading' | 'rawInitialData' | 'initializationError' | 'isRxDBModeActive' | 'isUsingRxDBDummyData' | 'triggerSeedRxDB' | 'triggerClearRxDB' | 'getStudentDetailsById' | 'getStudentFinancialDetailsById' | 'updateSchoolDetails'| 'addUser' | 'updateUser'| 'deleteUser' | 'addRole'| 'updateRole'|'deleteRole'|'addStudent'|'updateStudent'|'deleteStudent'|'addStaffMember'|'updateStaffMember'|'deleteStaffMember'|'addParentGuardian'|'updateParentGuardian'|'deleteParentGuardian'|'addStudentGuardianRelationship'|'updateStudentGuardianRelationship'|'deleteStudentGuardianRelationship'|'addDepartment'|'updateDepartment'|'deleteDepartment'|'addDesignation'|'updateDesignation'|'deleteDesignation'|'addStudentCategory'|'updateStudentCategory'|'deleteStudentCategory'|'addDormitory'|'updateDormitory'|'deleteDormitory'|'addAcademicYearStructure'|'updateAcademicYearStructure'|'deleteAcademicYearStructure'|'addAcademicPeriodDefinition'|'updateAcademicPeriodDefinition'|'deleteAcademicPeriodDefinition'|'addAcademicYear'|'updateAcademicYear'|'deleteAcademicYear'|'addSchoolPeriod'|'updateSchoolPeriod'|'deleteSchoolPeriod'|'addPartner'|'updatePartner'|'deletePartner'|'addClub'|'updateClub'|'deleteClub'|'addCustomer'|'updateCustomer'|'deleteCustomer'|'addStudentHealthRecord'|'updateStudentHealthRecord'|'saveStudentAttendance'|'getStudentAttendanceByFilters'|'addTemplateComm'|'updateTemplateComm'|'deleteTemplateComm'|'addCampaign'|'updateCampaign'|'deleteCampaign'|'addAuditLog'|'addClass'|'updateClass'|'deleteClass'|'addClassStream'|'updateClassStream'|'deleteClassStream'|'addSubject'|'updateSubject'|'deleteSubject'|'addSubjectPaper'|'updateSubjectPaper'|'deleteSubjectPaper'|'addExamSession'|'updateExamSession'|'deleteExamSession'|'addExamPaperSetting'|'updateExamPaperSetting'|'deleteExamPaperSetting'|'addGradingScheme'|'updateGradingScheme'|'deleteGradingScheme'|'getStudentsForExamEntry'|'getExamPaperSettingsForSession'|'saveStudentExamResult'|'getTimetablePeriodDefs'|'addTimetablePeriodDef'|'updateTimetablePeriodDef'|'deleteTimetablePeriodDef'|'getTimetableEntries'|'addTimetableEntry'|'updateTimetableEntry'|'deleteTimetableEntry'|'addClassSubjectAllocation'|'updateClassSubjectAllocation'|'deleteClassSubjectAllocation'|'addTeacherSubjectAssignment'|'deleteTeacherSubjectAssignment'|'addStudentSubjectEnrollment'|'updateStudentSubjectEnrollment'|'deleteStudentSubjectEnrollment'|'addChartOfAccount'|'updateChartOfAccount'|'deleteChartOfAccount'|'addBank'|'updateBank'|'deleteBank'|'addSupplier'|'updateSupplier'|'deleteSupplier'|'addFeeTemplate'|'updateFeeTemplate'|'deleteFeeTemplate'|'addExpenseClaim'|'updateExpenseClaim'|'deleteExpenseClaim'|'addExpenseCategory'|'updateExpenseCategory'|'deleteExpenseCategory'|'addCustomerInvoice'|'updateCustomerInvoice'|'deleteCustomerInvoice'|'addSupplierInvoice'|'updateSupplierInvoice'|'deleteSupplierInvoice'|'addStudentOpeningBalance'|'updateStudentOpeningBalance'|'deleteStudentOpeningBalance'|'addFeeAdjustment'|'updateFeeAdjustment'|'deleteFeeAdjustment'|'addTransportRoute'|'updateTransportRoute'|'deleteTransportRoute'|'addStudentTransportAssignment'|'updateStudentTransportAssignment'|'deleteStudentTransportAssignment'|'generateStudentInvoices'|'addStudentPayment'|'updateStudentPayment'|'deleteStudentPayment'|'applyPaymentToInvoices'|'addGeneralPayment'|'updateGeneralPayment'|'deleteGeneralPayment'|'addFinancialYear'|'updateFinancialYear'|'deleteFinancialYear'|'addPayrollPeriod'|'updatePayrollPeriod'|'deletePayrollPeriod'|'addPayrollItemType'|'updatePayrollItemType'|'deletePayrollItemType'|'updateStaffSalarySetting'|'generatePayslipsForPeriod'|'addWarehouse'|'updateWarehouse'|'deleteWarehouse'|'addItemCategoryInv'|'updateItemCategoryInv'|'deleteItemCategoryInv'|'addItemInv'|'updateItemInv'|'deleteItemInv'|'addFixedAsset'|'updateFixedAsset'|'deleteFixedAsset'|'addAssetDepreciationLog'|'addRequisition'|'updateRequisition'|'deleteRequisition'|'updateRequisitionStatus'|'addPurchaseOrder'|'updatePurchaseOrder'|'deletePurchaseOrder'|'addStockTransaction'|'addRfq'|'updateRfq'|'deleteRfq'|'addBookCategory'|'updateBookCategory'|'deleteBookCategory'|'addBook'|'updateBook'|'deleteBook'|'addLoan'|'updateLoan'|'addFine'|'updateFineStatus'|'addMealPlan'|'updateMealPlan'|'deleteMealPlan'|'addMenu'|'updateMenu'|'deleteMenu'|'addStudentMealPlan'|'updateStudentMealPlan'|'deleteStudentMealPlan'|'addMealConsumptionLog'|'addMerchant'|'updateMerchant'|'deleteMerchant'|'addWalletTransaction'|'addWorkflow'|'updateWorkflow'|'deleteWorkflow'|'addWorkflowState'|'updateWorkflowState'|'deleteWorkflowState'>>({} as any);
+  const [data, setData] = useState<Omit<AppDataContextType, 'loading' | 'rawInitialData' | 'initializationError' | 'isRxDBModeActive' | 'isUsingRxDBDummyData' | 'triggerSeedRxDB' | 'triggerClearRxDB' | 'getStudentDetailsById' | 'getStudentFinancialDetailsById' | 'updateSchoolDetails'| 'addUser' | 'updateUser'| 'deleteUser' | 'addRole'| 'updateRole'|'deleteRole'|'addStudent'|'updateStudent'|'deleteStudent'|'addStaffMember'|'updateStaffMember'|'deleteStaffMember'|'addParentGuardian'|'updateParentGuardian'|'deleteParentGuardian'|'addStudentGuardianRelationship'|'updateStudentGuardianRelationship'|'deleteStudentGuardianRelationship'|'addDepartment'|'updateDepartment'|'deleteDepartment'|'addDesignation'|'updateDesignation'|'deleteDesignation'|'addStudentCategory'|'updateStudentCategory'|'deleteStudentCategory'|'addDormitory'|'updateDormitory'|'deleteDormitory'|'addAcademicYearStructure'|'updateAcademicYearStructure'|'deleteAcademicYearStructure'|'addAcademicPeriodDefinition'|'updateAcademicPeriodDefinition'|'deleteAcademicPeriodDefinition'|'addAcademicYear'|'updateAcademicYear'|'deleteAcademicYear'|'addSchoolPeriod'|'updateSchoolPeriod'|'deleteSchoolPeriod'|'addPartner'|'updatePartner'|'deletePartner'|'addClub'|'updateClub'|'deleteClub'|'addCustomer'|'updateCustomer'|'deleteCustomer'|'addStudentHealthRecord'|'updateStudentHealthRecord'|'saveStudentAttendance'|'getStudentAttendanceByFilters'|'addTemplateComm'|'updateTemplateComm'|'deleteTemplateComm'|'addCampaign'|'updateCampaign'|'deleteCampaign'|'addAuditLog'|'addClass'|'updateClass'|'deleteClass'|'addClassStream'|'updateClassStream'|'deleteClassStream'|'addSubject'|'updateSubject'|'deleteSubject'|'addSubjectPaper'|'updateSubjectPaper'|'deleteSubjectPaper'|'addExamSession'|'updateExamSession'|'deleteExamSession'|'addExamPaperSetting'|'updateExamPaperSetting'|'deleteExamPaperSetting'|'addGradingScheme'|'updateGradingScheme'|'deleteGradingScheme'|'getStudentsForExamEntry'|'getExamPaperSettingsForSession'|'saveStudentExamResult'|'getTimetablePeriodDefs'|'addTimetablePeriodDef'|'updateTimetablePeriodDef'|'deleteTimetablePeriodDef'|'getTimetableEntries'|'addTimetableEntry'|'updateTimetableEntry'|'deleteTimetableEntry'|'addClassSubjectAllocation'|'updateClassSubjectAllocation'|'deleteClassSubjectAllocation'|'addTeacherSubjectAssignment'|'deleteTeacherSubjectAssignment'|'addStudentSubjectEnrollment'|'updateStudentSubjectEnrollment'|'deleteStudentSubjectEnrollment'|'addChartOfAccount'|'updateChartOfAccount'|'deleteChartOfAccount'|'addBank'|'updateBank'|'deleteBank'|'addSupplier'|'updateSupplier'|'deleteSupplier'|'addSupplierContract'|'updateSupplierContract'|'deleteSupplierContract'|'addFeeTemplate'|'updateFeeTemplate'|'deleteFeeTemplate'|'addExpenseClaim'|'updateExpenseClaim'|'deleteExpenseClaim'|'addExpenseCategory'|'updateExpenseCategory'|'deleteExpenseCategory'|'addCustomerInvoice'|'updateCustomerInvoice'|'deleteCustomerInvoice'|'addSupplierInvoice'|'updateSupplierInvoice'|'deleteSupplierInvoice'|'addStudentOpeningBalance'|'updateStudentOpeningBalance'|'deleteStudentOpeningBalance'|'addFeeAdjustment'|'updateFeeAdjustment'|'deleteFeeAdjustment'|'addTransportRoute'|'updateTransportRoute'|'deleteTransportRoute'|'addStudentTransportAssignment'|'updateStudentTransportAssignment'|'deleteStudentTransportAssignment'|'generateStudentInvoices'|'addStudentPayment'|'updateStudentPayment'|'deleteStudentPayment'|'applyPaymentToInvoices'|'addGeneralPayment'|'updateGeneralPayment'|'deleteGeneralPayment'|'addFinancialYear'|'updateFinancialYear'|'deleteFinancialYear'|'addPayrollPeriod'|'updatePayrollPeriod'|'deletePayrollPeriod'|'addPayrollItemType'|'updatePayrollItemType'|'deletePayrollItemType'|'updateStaffSalarySetting'|'generatePayslipsForPeriod'|'addWarehouse'|'updateWarehouse'|'deleteWarehouse'|'addItemCategoryInv'|'updateItemCategoryInv'|'deleteItemCategoryInv'|'addItemInv'|'updateItemInv'|'deleteItemInv'|'addFixedAsset'|'updateFixedAsset'|'deleteFixedAsset'|'addAssetDepreciationLog'|'addRequisition'|'updateRequisition'|'deleteRequisition'|'updateRequisitionStatus'|'addPurchaseOrder'|'updatePurchaseOrder'|'deletePurchaseOrder'|'addStockTransaction'|'addRfq'|'updateRfq'|'deleteRfq'|'addBookCategory'|'updateBookCategory'|'deleteBookCategory'|'addBook'|'updateBook'|'deleteBook'|'addLoan'|'updateLoan'|'addFine'|'updateFineStatus'|'addMealPlan'|'updateMealPlan'|'deleteMealPlan'|'addMenu'|'updateMenu'|'deleteMenu'|'addStudentMealPlan'|'updateStudentMealPlan'|'deleteStudentMealPlan'|'addMealConsumptionLog'|'addMerchant'|'updateMerchant'|'deleteMerchant'|'addWalletTransaction'|'addWorkflow'|'updateWorkflow'|'deleteWorkflow'|'addWorkflowState'|'updateWorkflowState'|'deleteWorkflowState'>>({} as any);
   const [rbac, setRbac] = useState<{ permissions: Permission[]; roles: RbacRole[]; userRoles: UserRole[] }>({ permissions: [], roles: [], userRoles: [] });
   
   useEffect(() => {
@@ -145,6 +146,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
             chartOfAccounts: [],
             banks: [],
             suppliers: [],
+            supplierContracts: [],
             feeTemplates: [],
             feeTemplateItems: [],
             expenseCategories: [],
@@ -208,7 +210,7 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
             financialYears: false, classStreams: false, parentsGuardians: false,
             partners: false, clubs: false, customers: false, studentHealthRecords: false, studentAttendance: false,
             templatesComm: false, campaigns: false,
-            chartOfAccounts: false, banks: false, suppliers: false,
+            chartOfAccounts: false, banks: false, suppliers: false, supplierContracts: false,
             feeTemplates: false, feeTemplateItems: false, expenseCategories: false, supplierInvoices: false,
             warehouses: false, itemCategoriesInv: false,
             itemsInv: false, fixedAssets: false, requisitions: false, purchaseOrders: false,
@@ -300,6 +302,34 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       return null;
     }
   }, []);
+
+  const getCachedCollection = useCallback(<T,>(cachedItems: T[] | undefined, fallbackItems: T[] | undefined): T[] => {
+    if (Array.isArray(cachedItems) && cachedItems.length > 0) {
+      return cachedItems;
+    }
+
+    return Array.isArray(fallbackItems) ? fallbackItems : cachedItems || [];
+  }, []);
+
+  const getCachedStudents = useCallback(
+    () => getCachedCollection(data.students, mockDataForSeeding?.students),
+    [data.students, getCachedCollection, mockDataForSeeding]
+  );
+
+  const getCachedStudentAttendance = useCallback(
+    () => getCachedCollection(data.studentAttendance, mockDataForSeeding?.studentAttendance),
+    [data.studentAttendance, getCachedCollection, mockDataForSeeding]
+  );
+
+  const getCachedTimetablePeriodDefs = useCallback(
+    () => getCachedCollection(data.timetablePeriodDefs, mockDataForSeeding?.timetablePeriodDefs),
+    [data.timetablePeriodDefs, getCachedCollection, mockDataForSeeding]
+  );
+
+  const getCachedTimetableEntries = useCallback(
+    () => getCachedCollection(data.timetableEntries, mockDataForSeeding?.timetableEntries),
+    [data.timetableEntries, getCachedCollection, mockDataForSeeding]
+  );
 
   // Return the complete AppDataContextType interface
   return {
@@ -842,23 +872,59 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
         const db = await databaseService.getDatabase();
         const attendanceWithId = { ...attendanceData, id: databaseService.generateId() };
         const result = await db.student_attendance?.insert(attendanceWithId);
-        return result?.doc || null;
+        const savedAttendance = result?.doc || attendanceWithId;
+        setData(prev => ({
+          ...prev,
+          studentAttendance: [...(prev.studentAttendance || []), savedAttendance]
+        }));
+        return savedAttendance;
       } catch (error) {
         console.error('Error saving student attendance:', error);
         throw error;
       }
     }, []),
     
-    getStudentAttendanceByFilters: useCallback(async (filters: any) => {
+    getStudentAttendanceByFilters: useCallback((dateOrFilters: string | { selector?: Record<string, unknown> }, classStreamId?: number, periodId?: number) => {
       try {
-        const db = await databaseService.getDatabase();
-        const results = await db.student_attendance?.find(filters);
-        return results?.docs || [];
+        const attendanceRecords = getCachedStudentAttendance();
+        const students = getCachedStudents();
+
+        if (typeof dateOrFilters === 'string') {
+          if (classStreamId === undefined || periodId === undefined) {
+            return [];
+          }
+
+          const studentIdsInStream = new Set(
+            students
+              .filter(student => Number(student.current_class_stream_id) === Number(classStreamId))
+              .map(student => student.id)
+          );
+
+          return attendanceRecords.filter(record =>
+            record.date === dateOrFilters &&
+            Number(record.period_id) === Number(periodId) &&
+            studentIdsInStream.has(record.student_id)
+          );
+        }
+
+        const selectorEntries = Object.entries(dateOrFilters?.selector || {});
+        if (selectorEntries.length === 0) {
+          return attendanceRecords;
+        }
+
+        return attendanceRecords.filter(record =>
+          selectorEntries.every(([field, expectedValue]) => {
+            const recordValue = (record as Record<string, unknown>)[field];
+            return Array.isArray(expectedValue)
+              ? expectedValue.includes(recordValue)
+              : recordValue === expectedValue;
+          })
+        );
       } catch (error) {
         console.error('Error getting student attendance by filters:', error);
-        throw error;
+        return [];
       }
-    }, []),
+    }, [getCachedStudentAttendance, getCachedStudents]),
     
     ...createCrudOperations('template_comms', 'TemplateComm'),
     ...createCrudOperations('campaigns', 'Campaign'),
@@ -1150,15 +1216,12 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
     
     getTimetablePeriodDefs: useCallback(() => {
       try {
-        // This is a sync function that should return cached data
-        // For now, return empty array as placeholder
-        console.warn('getTimetablePeriodDefs: sync function not fully implemented');
-        return [];
+        return getCachedTimetablePeriodDefs();
       } catch (error) {
         console.error('Error getting timetable period definitions:', error);
         return [];
       }
-    }, []),
+    }, [getCachedTimetablePeriodDefs]),
     addTimetablePeriodDef: useCallback(async (periodData: Omit<allTypes.TimetablePeriodDef, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
@@ -1193,23 +1256,51 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       }
     }, []),
     
+    getTimetableEntries: useCallback((classStreamId: number) => {
+      try {
+        return getCachedTimetableEntries().filter(entry => Number(entry.class_stream_id) === Number(classStreamId));
+      } catch (error) {
+        console.error('Error getting timetable entries:', error);
+        return [];
+      }
+    }, [getCachedTimetableEntries]),
+
     addTimetableEntry: useCallback(async (entryData: Omit<allTypes.TimetableEntry, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
         const entryWithId = { ...entryData, id: databaseService.generateId() };
         const result = await db.timetable_entries?.insert(entryWithId);
-        return result?.doc || null;
+        const savedEntry = result?.doc || entryWithId;
+        setData(prev => ({
+          ...prev,
+          timetableEntries: [...(prev.timetableEntries || []), savedEntry]
+        }));
+        return savedEntry;
       } catch (error) {
         console.error('Error adding timetable entry:', error);
         throw error;
       }
     }, []),
     
-    updateTimetableEntry: useCallback(async (entryId: string, entryData: Partial<allTypes.TimetableEntry>) => {
+    updateTimetableEntry: useCallback(async (entryOrId: string | Partial<allTypes.TimetableEntry>, entryData?: Partial<allTypes.TimetableEntry>) => {
       try {
+        const entryId = typeof entryOrId === 'string' ? entryOrId : entryOrId.id;
+        if (!entryId) {
+          throw new Error('Timetable entry id is required for updates.');
+        }
+
+        const nextEntryData = typeof entryOrId === 'string' ? (entryData || {}) : entryOrId;
+        const { id: _entryId, ...updatePayload } = nextEntryData;
         const db = await databaseService.getDatabase();
-        const result = await db.timetable_entries?.update(entryId, entryData);
-        return result?.doc || null;
+        const result = await db.timetable_entries?.update(entryId, updatePayload);
+        const savedEntry = result?.doc || { ...nextEntryData, id: entryId };
+        setData(prev => ({
+          ...prev,
+          timetableEntries: (prev.timetableEntries || []).map(entry =>
+            entry.id === entryId ? { ...entry, ...savedEntry } : entry
+          )
+        }));
+        return savedEntry;
       } catch (error) {
         console.error('Error updating timetable entry:', error);
         throw error;
@@ -1220,6 +1311,10 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
       try {
         const db = await databaseService.getDatabase();
         await db.timetable_entries?.remove(entryId);
+        setData(prev => ({
+          ...prev,
+          timetableEntries: (prev.timetableEntries || []).filter(entry => entry.id !== entryId)
+        }));
         return true;
       } catch (error) {
         console.error('Error deleting timetable entry:', error);
@@ -1426,6 +1521,40 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
         return true;
       } catch (error) {
         console.error('Error deleting supplier:', error);
+        throw error;
+      }
+    }, []),
+
+    addSupplierContract: useCallback(async (contractData: Partial<InvSupplierContractType>) => {
+      try {
+        const db = await databaseService.getDatabase();
+        const contractWithId = { ...contractData, id: contractData.id || databaseService.generateId() };
+        const result = await db.supplier_contracts?.insert(contractWithId);
+        return result?.doc || null;
+      } catch (error) {
+        console.error('Error adding supplier contract:', error);
+        throw error;
+      }
+    }, []),
+
+    updateSupplierContract: useCallback(async (contractId: string, contractData: Partial<InvSupplierContractType>) => {
+      try {
+        const db = await databaseService.getDatabase();
+        const result = await db.supplier_contracts?.update(contractId, contractData);
+        return result?.doc || null;
+      } catch (error) {
+        console.error('Error updating supplier contract:', error);
+        throw error;
+      }
+    }, []),
+
+    deleteSupplierContract: useCallback(async (contractId: string) => {
+      try {
+        const db = await databaseService.getDatabase();
+        await db.supplier_contracts?.remove(contractId);
+        return true;
+      } catch (error) {
+        console.error('Error deleting supplier contract:', error);
         throw error;
       }
     }, []),
@@ -1925,7 +2054,56 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
     addMealConsumptionLog: useCallback(async (logData: Omit<allTypes.MealConsumptionLog, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
-        const logWithId = { ...logData, id: databaseService.generateId() };
+        const student = data.students.find((entry: any) => String(entry.id) === String(logData.student_id));
+        const menu = data.menus.find((entry: any) => String(entry.id) === String(logData.menu_id));
+        const activeMealPlan = data.studentMealPlans.find((entry: any) => String(entry.student_id) === String(logData.student_id));
+        const chargedAmount = logData.charged_amount ?? (activeMealPlan ? 0 : (menu as any)?.cost || 0);
+        const walletTransactionId = chargedAmount > 0 ? databaseService.generateId() : null;
+
+        if (chargedAmount > 0) {
+          const currentWallet = data.studentWallets.find((entry: any) => String(entry.student_id) === String(logData.student_id));
+          const nextBalance = (currentWallet?.balance || 0) - chargedAmount;
+
+          await db.wallet_transactions?.insert({
+            id: walletTransactionId,
+            student_id: logData.student_id,
+            transaction_date: new Date().toISOString(),
+            transaction_type: 'DEBIT',
+            amount: chargedAmount,
+            description: `${menu?.description || 'Meal'} consumption charge`,
+            reference_id: logData.menu_id,
+            reference_type: 'MEAL_CONSUMPTION',
+            running_balance: nextBalance,
+            student_name: student ? `${(student as any).first_name || ''} ${(student as any).last_name || ''}`.trim() : undefined
+          });
+
+          if (currentWallet) {
+            await db.student_wallets?.update(String(logData.student_id), {
+              ...currentWallet,
+              balance: nextBalance,
+              last_updated: new Date().toISOString()
+            });
+          } else {
+            await db.student_wallets?.insert({
+              student_id: logData.student_id,
+              balance: nextBalance,
+              last_updated: new Date().toISOString(),
+              student_name: student ? `${(student as any).first_name || ''} ${(student as any).last_name || ''}`.trim() : undefined
+            });
+          }
+        }
+
+        const logWithId = {
+          ...logData,
+          id: databaseService.generateId(),
+          consumption_time: logData.consumption_time || new Date().toISOString(),
+          charged_amount: chargedAmount,
+          wallet_transaction_id: walletTransactionId,
+          student_name: logData.student_name || (student ? `${(student as any).first_name || ''} ${(student as any).last_name || ''}`.trim() : undefined),
+          menu_description: logData.menu_description || menu?.description,
+          menu_meal_type: logData.menu_meal_type || (menu as any)?.meal_type,
+          menu_date: logData.menu_date || (menu as any)?.menu_date
+        };
         const result = await db.meal_consumption_logs?.insert(logWithId);
         return result?.doc || null;
       } catch (error) {
@@ -1939,14 +2117,38 @@ export const useDatabaseData = (mockDataForSeeding: RawInitialData): AppDataCont
     addWalletTransaction: useCallback(async (transactionData: Omit<allTypes.WalletTransaction, 'id'>) => {
       try {
         const db = await databaseService.getDatabase();
-        const transactionWithId = { ...transactionData, id: databaseService.generateId() };
+        const currentWallet = data.studentWallets.find((entry: any) => String(entry.student_id) === String(transactionData.student_id));
+        const currentBalance = currentWallet?.balance || 0;
+        const delta = transactionData.transaction_type === 'DEBIT' ? -Math.abs(transactionData.amount) : Math.abs(transactionData.amount);
+        const nextBalance = transactionData.running_balance ?? (currentBalance + delta);
+        const student = data.students.find((entry: any) => String(entry.id) === String(transactionData.student_id));
+        const transactionWithId = {
+          ...transactionData,
+          id: databaseService.generateId(),
+          running_balance: nextBalance,
+          student_name: transactionData.student_name || (student ? `${(student as any).first_name || ''} ${(student as any).last_name || ''}`.trim() : undefined)
+        };
         const result = await db.wallet_transactions?.insert(transactionWithId);
+        if (currentWallet) {
+          await db.student_wallets?.update(String(transactionData.student_id), {
+            ...currentWallet,
+            balance: nextBalance,
+            last_updated: new Date().toISOString()
+          });
+        } else {
+          await db.student_wallets?.insert({
+            student_id: transactionData.student_id,
+            balance: nextBalance,
+            last_updated: new Date().toISOString(),
+            student_name: transactionWithId.student_name
+          });
+        }
         return result?.doc || null;
       } catch (error) {
         console.error('Error adding wallet transaction:', error);
         throw error;
       }
-    }, []),
+    }, [data.menus, data.studentMealPlans, data.studentWallets, data.students]),
     
     ...createCrudOperations('workflows', 'Workflow'),
     ...createCrudOperations('workflow_states', 'WorkflowState')

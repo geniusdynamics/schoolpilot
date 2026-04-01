@@ -54,7 +54,10 @@
     "test:all-generators:full": "tsx scripts/test/test-all-generators.ts --verbose --performance --export-csv --export-json",
     "test:generators:all": "tsx scripts/test/test-all-generators.ts --config=default --verbose",
     "test:generators:quick": "tsx scripts/test/test-all-generators.ts --config=quick",
-    "test:generators:performance": "tsx scripts/test/test-all-generators.ts --config=performance --performance --export-csv"
+    "test:generators:performance": "tsx scripts/test/test-all-generators.ts --config=performance --performance --export-csv",
+    "setup:self-hosted": "node scripts/setup-self-hosted.cjs",
+    "setup:self-hosted:linux": "node scripts/setup-self-hosted.cjs && echo '📋 Now configure your firewall and start the server'",
+    "setup:self-hosted:windows": "node scripts/setup-self-hosted.cjs && echo '📋 Now configure Windows Firewall and start the server'"
   },
   "dependencies": {
     "@effect/rpc": "^0.69.0",

@@ -16,6 +16,36 @@ export interface UseEducationSystemData {
 
 const STORAGE_KEY = 'education_system_configurations';
 
+const buildDefaultSystems = (): EducationSystemConfiguration[] =>
+  Object.entries(EDUCATION_SYSTEM_TEMPLATES).map(([templateId, template]) => ({
+    id: templateId.toLowerCase().replace(/_/g, '-'),
+    name: template.name || templateId,
+    country_code: template.country_code || '',
+    system_type: template.system_type!,
+    grading_system_type: template.grading_system_type!,
+    min_grade_level: template.min_grade_level ?? 1,
+    max_grade_level: template.max_grade_level ?? 12,
+    academic_period_type: template.academic_period_type!,
+    periods_per_year: template.periods_per_year ?? 3,
+    uses_competency_tracking: template.uses_competency_tracking ?? false,
+    competency_levels: template.competency_levels || [],
+    assessment_types: template.assessment_types || [],
+    continuous_assessment_weight: template.continuous_assessment_weight ?? 40,
+    final_exam_weight: template.final_exam_weight ?? 60,
+    passing_grade: template.passing_grade ?? 50,
+    max_grade_value: template.max_grade_value ?? 100,
+    grade_precision: template.grade_precision ?? 0,
+    uses_credit_hours: template.uses_credit_hours ?? false,
+    allows_grade_modification: true,
+    requires_external_moderation: false,
+    supports_remedial_exams: true,
+    is_active: true,
+    is_default: templateId === 'KENYA_CBC_SECONDARY',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ...template
+  } as EducationSystemConfiguration));
+
 export const useEducationSystemData = (): UseEducationSystemData => {
   const [educationSystemConfigurations, setEducationSystemConfigurations] = useState<EducationSystemConfiguration[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,82 +60,7 @@ export const useEducationSystemData = (): UseEducationSystemData => {
         if (stored) {
           setEducationSystemConfigurations(JSON.parse(stored));
         } else {
-          // Initialize with some default systems
-          const defaultSystems: EducationSystemConfiguration[] = [
-            {
-              id: 'kenya-cbc-primary',
-              name: 'Kenya CBC Primary System',
-              country_code: 'KE',
-              system_type: 'Primary',
-              grading_system_type: 'Competency Based',
-              min_grade_level: 1,
-              max_grade_level: 6,
-              academic_period_type: 'Term',
-              periods_per_year: 3,
-              uses_competency_tracking: true,
-              competency_levels: ['Exceeding Expectations', 'Meeting Expectations', 'Approaching Expectations', 'Below Expectations'],
-              assessment_types: ['Formative', 'Summative', 'Competency'],
-              continuous_assessment_weight: 60,
-              final_exam_weight: 40,
-              passing_grade: 50,
-              max_grade_value: 100,
-              grade_precision: 0,
-              uses_credit_hours: false,
-              allows_grade_modification: true,
-              requires_external_moderation: false,
-              supports_remedial_exams: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            {
-              id: 'kenya-cbc-secondary',
-              name: 'Kenya CBC Secondary System',
-              country_code: 'KE',
-              system_type: 'Secondary',
-              grading_system_type: 'Letter Grades',
-              min_grade_level: 7,
-              max_grade_level: 12,
-              academic_period_type: 'Term',
-              periods_per_year: 3,
-              uses_competency_tracking: false,
-              assessment_types: ['Formative', 'Summative'],
-              continuous_assessment_weight: 40,
-              final_exam_weight: 60,
-              passing_grade: 50,
-              max_grade_value: 100,
-              grade_precision: 0,
-              uses_credit_hours: false,
-              allows_grade_modification: true,
-              requires_external_moderation: true,
-              supports_remedial_exams: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            {
-              id: 'kenya-844',
-              name: 'Kenya 8-4-4 System',
-              country_code: 'KE',
-              system_type: 'Secondary',
-              grading_system_type: 'Letter Grades',
-              min_grade_level: 1,
-              max_grade_level: 12,
-              academic_period_type: 'Term',
-              periods_per_year: 3,
-              uses_competency_tracking: false,
-              assessment_types: ['Formative', 'Summative'],
-              continuous_assessment_weight: 30,
-              final_exam_weight: 70,
-              passing_grade: 40,
-              max_grade_value: 100,
-              grade_precision: 0,
-              uses_credit_hours: false,
-              allows_grade_modification: false,
-              requires_external_moderation: true,
-              supports_remedial_exams: false,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ];
+          const defaultSystems: EducationSystemConfiguration[] = buildDefaultSystems();
           setEducationSystemConfigurations(defaultSystems);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultSystems));
         }
@@ -173,11 +128,15 @@ export const useEducationSystemData = (): UseEducationSystemData => {
 
   return {
     educationSystemConfigurations,
+    data: educationSystemConfigurations,
     loading,
     error,
     addEducationSystemConfiguration,
+    create: addEducationSystemConfiguration,
     updateEducationSystemConfiguration,
+    update: updateEducationSystemConfiguration,
     deleteEducationSystemConfiguration,
+    remove: deleteEducationSystemConfiguration,
     getEducationSystemConfiguration
   };
 };

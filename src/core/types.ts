@@ -17,6 +17,7 @@ import type {
   FinStudentTransportAssignmentType
 } from '../modules/finance/data/types';
 import type { EducationSystemConfiguration } from '../modules/academics/data/types';
+import type { InvSupplierContractType } from '../modules/inventory/data/types';
 
 // --- Chart Data Types ---
 export interface ChartData {
@@ -1359,6 +1360,7 @@ export type AppDataType = {
   expenseCategories: ExpenseCategory[];
   banks: Bank[];
   suppliers: Supplier[];
+  supplierContracts: InvSupplierContractType[];
   feeTemplates: FeeTemplate[];
   feeTemplateItems: FeeTemplateItem[];
   expenseClaims: ExpenseClaim[];
@@ -1443,6 +1445,9 @@ export type AppDataContextType = AppDataType & {
   addCustomer: (customerData: any) => Promise<void>;
   updateCustomer: (updatedCustomer: any) => Promise<void>;
   deleteCustomer: (customerId: number) => Promise<void>;
+  addSupplierContract: (contractData: Partial<InvSupplierContractType>) => Promise<void>;
+  updateSupplierContract: (contractId: string, contractData: Partial<InvSupplierContractType>) => Promise<void>;
+  deleteSupplierContract: (contractId: string) => Promise<void>;
   // Student Health Record CRUD operations
   addStudentHealthRecord: (healthRecordData: any) => Promise<void>;
   updateStudentHealthRecord: (updatedHealthRecord: any) => Promise<void>;

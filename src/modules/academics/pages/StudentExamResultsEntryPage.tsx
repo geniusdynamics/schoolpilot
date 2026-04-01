@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Student, ClassStream } from '@/types';
-import { StudentExamResultWithDetails, StudentPaperMarkWithDetails, ExamSession, ExamPaperSetting, SubjectPaper, StudentPaperMark } from '@/modules/academics/data/types'; // Corrected imports
+// ABOUTME: This page component captures per-student marks for a selected exam session and class stream.
+// ABOUTME: It reads configured session papers from AppDataContext and persists nested student result records.
+import React, { useState, useEffect, useMemo } from 'react';
+import { Student } from '@/types';
+import { ExamPaperSetting, StudentPaperMark } from '@/modules/academics/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -25,6 +27,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
     examSessions,
     classStreams,
     loading,
+    saveStudentExamResult,
   } = useAppData(); // Updated
 
   const [selectedExamSessionId, setSelectedExamSessionId] = useState<string | undefined>(undefined);
@@ -37,6 +40,11 @@ const StudentExamResultsEntryPage: React.FC = () => {
   const [pageLoading, setPageLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const selectedExamSession = useMemo(
+    () => (examSessions || []).find((session) => session.id === selectedExamSessionId),
+    [examSessions, selectedExamSessionId]
+  );
+
   useEffect(() => {
     if (selectedExamSessionId && selectedClassStreamId) {
       setPageLoading(true);
@@ -45,33 +53,9 @@ const StudentExamResultsEntryPage: React.FC = () => {
         // Get students for the selected class stream using AppDataContext
         const studs = getStudentsForExamEntry(students || [], selectedClassStreamId);
         setStudentsForEntry(studs || []);
-        
-        // Mock paper settings - in real implementation, this would come from API
-        const mockPapers: ExamPaperSetting[] = [
-          {
-            id: '1',
-            exam_session_id: selectedExamSessionId,
-            subject_paper_id: 1,
-            subject_name: 'Mathematics',
-            subject_paper_name: 'Paper 1',
-            marks_out_of: 100,
-            weight_percentage: 50,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          {
-            id: '2',
-            exam_session_id: selectedExamSessionId,
-            subject_paper_id: 2,
-            subject_name: 'English',
-            subject_paper_name: 'Paper 1',
-            marks_out_of: 100,
-            weight_percentage: 50,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }
-        ];
-        setPaperSettingsForSession(mockPapers);
+
+        const sessionPapers = selectedExamSession?.paper_settings || [];
+        setPaperSettingsForSession(sessionPapers);
 
         // Pre-fill marks
         const initialMarks: MarkInput = {};
@@ -80,7 +64,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
           const existingResult = (studentExamResults || []).find(
             res => res.student_id === student.id && res.exam_session_id === selectedExamSessionId
           );
-          mockPapers.forEach(paperSetting => {
+          sessionPapers.forEach(paperSetting => {
             const existingMark = existingResult?.marks?.find(m => m.paper_setting_id === paperSetting.id);
             initialMarks[student.id][paperSetting.id] = existingMark?.score?.toString() || '';
           });
@@ -99,7 +83,7 @@ const StudentExamResultsEntryPage: React.FC = () => {
       setPaperSettingsForSession([]);
       setMarks({});
     }
-  }, [selectedExamSessionId, selectedClassStreamId, studentExamResults, students]);
+  }, [selectedExamSession, selectedExamSessionId, selectedClassStreamId, studentExamResults, students]);
 
   const handleMarkChange = (studentId: string, paperSettingId: string, value: string) => {
     setMarks(prev => ({
@@ -118,40 +102,54 @@ const StudentExamResultsEntryPage: React.FC = () => {
     }
     setSaving(true);
 
-    for (const student of studentsForEntry) {
-      const studentMarksForPapers: Array<Omit<StudentPaperMark, 'id' | 'student_exam_result_id'>> = [];
-      let studentTotalMarks = 0;
-      let hasMarks = false;
+    try {
+      for (const student of studentsForEntry) {
+        const studentMarksForPapers: Array<Omit<StudentPaperMark, 'id' | 'student_exam_result_id'>> = [];
+        let studentTotalMarks = 0;
+        let hasMarks = false;
 
-      paperSettingsForSession.forEach(paperSetting => {
-        const scoreStr = marks[student.id]?.[paperSetting.id];
-        if (scoreStr !== undefined && scoreStr !== '') {
-          const score = parseFloat(String(scoreStr));
-          if (!isNaN(score)) {
-            studentMarksForPapers.push({
-              paper_setting_id: paperSetting.id,
-              score: score,
-            });
-            studentTotalMarks += score; // Simple sum, actual total might involve weighting
-            hasMarks = true;
+        for (const paperSetting of paperSettingsForSession) {
+          const scoreStr = marks[student.id]?.[paperSetting.id];
+          if (scoreStr === undefined || scoreStr === '') {
+            continue;
           }
+
+          const score = parseFloat(String(scoreStr));
+          if (Number.isNaN(score)) {
+            continue;
+          }
+
+          if (score < 0 || score > paperSetting.marks_out_of) {
+            alert(`Score for ${student.first_name} ${student.last_name} in ${paperSetting.subject_paper_name || 'paper'} must be between 0 and ${paperSetting.marks_out_of}.`);
+            return;
+          }
+
+          studentMarksForPapers.push({
+            paper_setting_id: paperSetting.id,
+            score,
+          });
+          studentTotalMarks += score;
+          hasMarks = true;
         }
-      });
-      
-      if (hasMarks) { // Only save if there's at least one mark for the student
-        const resultPayload = {
+
+        if (!hasMarks) {
+          continue;
+        }
+
+        await saveStudentExamResult({
           student_id: student.id,
           exam_session_id: selectedExamSessionId,
-          total_marks: studentTotalMarks, // This would be more complex with weighting and grading schemes
-          // mean_grade, class_rank, stream_rank would be calculated later in an "Analyze Results" step
-        };
-        // TODO: Implement saveStudentExamResult API call
-        console.log('Would save result:', resultPayload, studentMarksForPapers);
+          total_marks: studentTotalMarks,
+          marks: studentMarksForPapers,
+        });
       }
+      alert("Marks saved successfully! Weighted totals and grades are saved, and ranks still require further processing via 'Exam Analysis'.");
+    } catch (error) {
+      console.error('Failed to save student exam results:', error);
+      alert('Unable to save the marks. Please try again.');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    alert("Marks saved successfully! (Note: Totals and ranks require further processing via 'Exam Analysis')");
-    // Optionally, refetch results to show any calculated totals if saveStudentExamResult updates them
   };
 
 

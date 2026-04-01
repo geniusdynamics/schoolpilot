@@ -90,8 +90,9 @@ export default defineConfig(({ mode }) => {
         // livestoreDevtoolsPlugin({ schemaPath: './src/livestore/schema.ts' })
       ],
       server: {
-        port: 5200,
-        host: true,
+        port: parseInt(env.VITE_PORT || '5200', 10),
+        host: env.VITE_HOST || '0.0.0.0',
+        strictPort: env.VITE_STRICT_PORT === 'true',
         fs: { strict: false },
         headers: {
           'Cross-Origin-Opener-Policy': 'same-origin',

@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppDataContextType, AppDataLoadingStates } from '../types';
+import { createAppDataLoadingState } from '../contexts/appData/appDataCollections';
 
 // Import all module hooks
 import { useAcademicYearData } from '../modules/academics/data/useAcademicYearData';
@@ -25,6 +26,22 @@ import { useTimetablePeriodDefData } from '../modules/academics/data/useTimetabl
 // Import finance module hooks
 import { useFeeTemplateData } from '../modules/finance/data/useFeeTemplateData';
 import { useFeeTemplateItemData } from '../modules/finance/data/useFeeTemplateItemData';
+import { useCustomerInvoiceData } from '../modules/finance/data/useCustomerInvoiceData';
+import { useStudentInvoiceData } from '../modules/finance/data/useStudentInvoiceData';
+import { useStudentOpeningBalanceData } from '../modules/finance/data/useStudentOpeningBalanceData';
+import { useStudentPaymentData } from '../modules/finance/data/useStudentPaymentData';
+import { useChartOfAccountData } from '../modules/finance/data/useChartOfAccountData';
+import { useExpenseCategoryData } from '../modules/finance/data/useExpenseCategoryData';
+import { useBankData } from '../modules/finance/data/useBankData';
+import { useSupplierData } from '../modules/finance/data/useSupplierData';
+import { useExpenseClaimData } from '../modules/finance/data/useExpenseClaimData';
+import { useSupplierInvoiceData } from '../modules/finance/data/useSupplierInvoiceData';
+import { useFeeAdjustmentData } from '../modules/finance/data/useFeeAdjustmentData';
+import { useTransportRouteData } from '../modules/finance/data/useTransportRouteData';
+import { useInvoicePaymentApplicationData } from '../modules/finance/data/useInvoicePaymentApplicationData';
+import { useGeneralPaymentData } from '../modules/finance/data/useGeneralPaymentData';
+import { useGeneralLedgerEntryData } from '../modules/finance/data/useGeneralLedgerEntryData';
+import { useSupplierContractData } from '../modules/inventory/data/useSupplierContractData';
 // ... other module imports are kept for when we re-enable them
 
 // Dynamically import all mockData.ts files from modules for fallback data
@@ -41,64 +58,353 @@ for (const mod of Object.values(mockDataModules)) {
 }
 
 // Helper function to create loading states
-const createLoadingStates = (): AppDataLoadingStates => ({ all: true });
+const createLoadingStates = (isLoading: boolean): AppDataLoadingStates => createAppDataLoadingState(isLoading);
 
 export const useModularMockData = (): AppDataContextType => {
   console.log('🔧 [useModularMockData] DEBUG: Running with ACADEMICS hooks enabled.');
 
-  const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates());
+  const [loading, setLoading] = useState<AppDataLoadingStates>(createLoadingStates(true));
 
-  // --- ACADEMICS HOOKS (ENABLED) - Memoized to prevent infinite loops ---
-  const academicsData = useMemo(() => {
-    const { data: academicyears, create: addAcademicYear, update: updateAcademicYear, remove: deleteAcademicYear } = useAcademicYearData();
-    const { data: classsubjectallocations, create: addClassSubjectAllocation, update: updateClassSubjectAllocation, remove: deleteClassSubjectAllocation } = useClassSubjectAllocationData();
-    const { data: exampapersettings, create: addExamPaperSetting, update: updateExamPaperSetting, remove: deleteExamPaperSetting } = useExamPaperSettingData();
-    const { data: examsessions, create: addExamSession, update: updateExamSession, remove: deleteExamSession } = useExamSessionData();
-    const { data: gradingschemes, create: addGradingScheme, update: updateGradingScheme, remove: deleteGradingScheme } = useGradingSchemeData();
-    const { data: gradingschemelevels, create: addGradingSchemeLevel, update: updateGradingSchemeLevel, remove: deleteGradingSchemeLevel } = useGradingSchemeLevelData();
-    const { data: studentexamresults, create: addStudentExamResult, update: updateStudentExamResult, remove: deleteStudentExamResult } = useStudentExamResultData();
-    const { data: studentpapermarks, create: addStudentPaperMark, update: updateStudentPaperMark, remove: deleteStudentPaperMark } = useStudentPaperMarkData();
-    const { data: studentsubjectenrollments, create: addStudentSubjectEnrollment, update: updateStudentSubjectEnrollment, remove: deleteStudentSubjectEnrollment } = useStudentSubjectEnrollmentData();
-    const { data: subjects, create: addSubject, update: updateSubject, remove: deleteSubject } = useSubjectData();
-    const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
-    const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
-    const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
-    const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
-    const { data: educationSystemConfigurations, create: addEducationSystemConfiguration, update: updateEducationSystemConfiguration, remove: deleteEducationSystemConfiguration } = useEducationSystemData();
-    
-    return {
-      academicyears, addAcademicYear, updateAcademicYear, deleteAcademicYear,
-      classsubjectallocations, addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation,
-      exampapersettings, addExamPaperSetting, updateExamPaperSetting, deleteExamPaperSetting,
-      examsessions, addExamSession, updateExamSession, deleteExamSession,
-      gradingschemes, addGradingScheme, updateGradingScheme, deleteGradingScheme,
-      gradingschemelevels, addGradingSchemeLevel, updateGradingSchemeLevel, deleteGradingSchemeLevel,
-      studentexamresults, addStudentExamResult, updateStudentExamResult, deleteStudentExamResult,
-      studentpapermarks, addStudentPaperMark, updateStudentPaperMark, deleteStudentPaperMark,
-      studentsubjectenrollments, addStudentSubjectEnrollment, updateStudentSubjectEnrollment, deleteStudentSubjectEnrollment,
-      subjects, addSubject, updateSubject, deleteSubject,
-      subjectpapers, addSubjectPaper, updateSubjectPaper, deleteSubjectPaper,
-      teachersubjectassignments, addTeacherSubjectAssignment, updateTeacherSubjectAssignment, deleteTeacherSubjectAssignment,
-      timetableentrys, addTimetableEntry, updateTimetableEntry, deleteTimetableEntry,
-      timetablePeriodDefs, addTimetablePeriodDef, updateTimetablePeriodDef, deleteTimetablePeriodDef,
-      educationSystemConfigurations, addEducationSystemConfiguration, updateEducationSystemConfiguration, deleteEducationSystemConfiguration
-    };
-  }, []); // Empty dependency array to prevent re-computation
+  // --- ACADEMICS HOOKS (ENABLED) ---
+  const { data: academicyears, create: addAcademicYear, update: updateAcademicYear, remove: deleteAcademicYear } = useAcademicYearData();
+  const { data: classsubjectallocations, create: addClassSubjectAllocation, update: updateClassSubjectAllocation, remove: deleteClassSubjectAllocation } = useClassSubjectAllocationData();
+  const { data: exampapersettings, create: addExamPaperSetting, update: updateExamPaperSetting, remove: deleteExamPaperSetting } = useExamPaperSettingData();
+  const { data: examsessions, create: addExamSession, update: updateExamSession, remove: deleteExamSession } = useExamSessionData();
+  const { data: gradingschemes, create: addGradingScheme, update: updateGradingScheme, remove: deleteGradingScheme } = useGradingSchemeData();
+  const { data: gradingschemelevels, create: addGradingSchemeLevel, update: updateGradingSchemeLevel, remove: deleteGradingSchemeLevel } = useGradingSchemeLevelData();
+  const { data: studentexamresults, create: addStudentExamResult, update: updateStudentExamResult, remove: deleteStudentExamResult } = useStudentExamResultData();
+  const { data: studentpapermarks, create: addStudentPaperMark, update: updateStudentPaperMark, remove: deleteStudentPaperMark } = useStudentPaperMarkData();
+  const { data: studentsubjectenrollments, create: addStudentSubjectEnrollment, update: updateStudentSubjectEnrollment, remove: deleteStudentSubjectEnrollment } = useStudentSubjectEnrollmentData();
+  const { data: subjects, create: addSubject, update: updateSubject, remove: deleteSubject } = useSubjectData();
+  const { data: subjectpapers, create: addSubjectPaper, update: updateSubjectPaper, remove: deleteSubjectPaper } = useSubjectPaperData();
+  const { data: teachersubjectassignments, create: addTeacherSubjectAssignment, update: updateTeacherSubjectAssignment, remove: deleteTeacherSubjectAssignment } = useTeacherSubjectAssignmentData();
+  const { data: timetableentrys, create: addTimetableEntry, update: updateTimetableEntry, remove: deleteTimetableEntry } = useTimetableEntryData();
+  const { data: timetablePeriodDefs, create: addTimetablePeriodDef, update: updateTimetablePeriodDef, remove: deleteTimetablePeriodDef } = useTimetablePeriodDefData();
+  const { data: educationSystemConfigurations, create: addEducationSystemConfiguration, update: updateEducationSystemConfiguration, remove: deleteEducationSystemConfiguration } = useEducationSystemData();
 
-  // --- FINANCE HOOKS (ENABLED) - Memoized to prevent infinite loops ---
-  const financeData = useMemo(() => {
-    const { data: feeTemplates, create: addFeeTemplate, update: updateFeeTemplate, remove: deleteFeeTemplate } = useFeeTemplateData();
-    const { data: feeTemplateItems, create: addFeeTemplateItem, update: updateFeeTemplateItem, remove: removeFeeTemplateItem } = useFeeTemplateItemData();
-    
-    return {
-      feeTemplates, addFeeTemplate, updateFeeTemplate, deleteFeeTemplate,
-      feeTemplateItems, addFeeTemplateItem, updateFeeTemplateItem, removeFeeTemplateItem
-    };
-  }, []); // Empty dependency array to prevent re-computation
+  const academicsData = useMemo(() => ({
+    academicyears, addAcademicYear, updateAcademicYear, deleteAcademicYear,
+    classsubjectallocations, addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation,
+    exampapersettings, addExamPaperSetting, updateExamPaperSetting, deleteExamPaperSetting,
+    examsessions, addExamSession, updateExamSession, deleteExamSession,
+    gradingschemes, addGradingScheme, updateGradingScheme, deleteGradingScheme,
+    gradingschemelevels, addGradingSchemeLevel, updateGradingSchemeLevel, deleteGradingSchemeLevel,
+    studentexamresults, addStudentExamResult, updateStudentExamResult, deleteStudentExamResult,
+    studentpapermarks, addStudentPaperMark, updateStudentPaperMark, deleteStudentPaperMark,
+    studentsubjectenrollments, addStudentSubjectEnrollment, updateStudentSubjectEnrollment, deleteStudentSubjectEnrollment,
+    subjects, addSubject, updateSubject, deleteSubject,
+    subjectpapers, addSubjectPaper, updateSubjectPaper, deleteSubjectPaper,
+    teachersubjectassignments, addTeacherSubjectAssignment, updateTeacherSubjectAssignment, deleteTeacherSubjectAssignment,
+    timetableentrys, addTimetableEntry, updateTimetableEntry, deleteTimetableEntry,
+    timetablePeriodDefs, addTimetablePeriodDef, updateTimetablePeriodDef, deleteTimetablePeriodDef,
+    educationSystemConfigurations, addEducationSystemConfiguration, updateEducationSystemConfiguration, deleteEducationSystemConfiguration
+  }), [
+    academicyears, addAcademicYear, updateAcademicYear, deleteAcademicYear,
+    classsubjectallocations, addClassSubjectAllocation, updateClassSubjectAllocation, deleteClassSubjectAllocation,
+    exampapersettings, addExamPaperSetting, updateExamPaperSetting, deleteExamPaperSetting,
+    examsessions, addExamSession, updateExamSession, deleteExamSession,
+    gradingschemes, addGradingScheme, updateGradingScheme, deleteGradingScheme,
+    gradingschemelevels, addGradingSchemeLevel, updateGradingSchemeLevel, deleteGradingSchemeLevel,
+    studentexamresults, addStudentExamResult, updateStudentExamResult, deleteStudentExamResult,
+    studentpapermarks, addStudentPaperMark, updateStudentPaperMark, deleteStudentPaperMark,
+    studentsubjectenrollments, addStudentSubjectEnrollment, updateStudentSubjectEnrollment, deleteStudentSubjectEnrollment,
+    subjects, addSubject, updateSubject, deleteSubject,
+    subjectpapers, addSubjectPaper, updateSubjectPaper, deleteSubjectPaper,
+    teachersubjectassignments, addTeacherSubjectAssignment, updateTeacherSubjectAssignment, deleteTeacherSubjectAssignment,
+    timetableentrys, addTimetableEntry, updateTimetableEntry, deleteTimetableEntry,
+    timetablePeriodDefs, addTimetablePeriodDef, updateTimetablePeriodDef, deleteTimetablePeriodDef,
+    educationSystemConfigurations, addEducationSystemConfiguration, updateEducationSystemConfiguration, deleteEducationSystemConfiguration
+  ]);
+
+  // --- FINANCE HOOKS (ENABLED) ---
+  const { data: feeTemplates, create: createFeeTemplateRecord, update: updateFeeTemplateRecord, remove: deleteFeeTemplateRecord } = useFeeTemplateData();
+  const { data: feeTemplateItems, create: createFeeTemplateItemRecord, update: updateFeeTemplateItemRecord, remove: deleteFeeTemplateItemRecord } = useFeeTemplateItemData();
+  const { data: studentPayments, create: createStudentPaymentRecord, update: updateStudentPaymentRecord, remove: deleteStudentPaymentRecord } = useStudentPaymentData();
+  const { data: studentOpeningBalances, create: createStudentOpeningBalanceRecord, update: updateStudentOpeningBalanceRecord, remove: deleteStudentOpeningBalanceRecord } = useStudentOpeningBalanceData();
+  const { data: customerInvoices, create: createCustomerInvoiceRecord, update: updateCustomerInvoiceRecord, remove: deleteCustomerInvoiceRecord } = useCustomerInvoiceData();
+  const { data: studentInvoices, create: createStudentInvoiceRecord, update: updateStudentInvoiceRecord, remove: deleteStudentInvoiceRecord } = useStudentInvoiceData();
+  const { data: chartOfAccounts, create: createChartOfAccountRecord, update: updateChartOfAccountRecord, remove: deleteChartOfAccountRecord } = useChartOfAccountData();
+  const { data: expenseCategories, create: createExpenseCategoryRecord, update: updateExpenseCategoryRecord, remove: deleteExpenseCategoryRecord } = useExpenseCategoryData();
+  const { data: banks, create: createBankRecord, update: updateBankRecord, remove: deleteBankRecord } = useBankData();
+  const { data: suppliers, create: createSupplierRecord, update: updateSupplierRecord, remove: deleteSupplierRecord } = useSupplierData();
+  const { data: supplierContracts, create: createSupplierContractRecord, update: updateSupplierContractRecord, remove: deleteSupplierContractRecord } = useSupplierContractData();
+  const { data: expenseClaims, create: createExpenseClaimRecord, update: updateExpenseClaimRecord, remove: deleteExpenseClaimRecord } = useExpenseClaimData();
+  const { data: supplierInvoices, create: createSupplierInvoiceRecord, update: updateSupplierInvoiceRecord, remove: deleteSupplierInvoiceRecord } = useSupplierInvoiceData();
+  const { data: feeAdjustments, create: createFeeAdjustmentRecord, update: updateFeeAdjustmentRecord, remove: deleteFeeAdjustmentRecord } = useFeeAdjustmentData();
+  const { data: transportRoutes, create: createTransportRouteRecord, update: updateTransportRouteRecord, remove: deleteTransportRouteRecord } = useTransportRouteData();
+  const { data: invoicePaymentApplications, create: createInvoicePaymentApplicationRecord, update: updateInvoicePaymentApplicationRecord, remove: deleteInvoicePaymentApplicationRecord } = useInvoicePaymentApplicationData();
+  const { data: generalPayments, create: createGeneralPaymentRecord, update: updateGeneralPaymentRecord, remove: deleteGeneralPaymentRecord } = useGeneralPaymentData();
+  const { data: generalLedgerEntries, create: createGeneralLedgerEntryRecord, update: updateGeneralLedgerEntryRecord, remove: deleteGeneralLedgerEntryRecord } = useGeneralLedgerEntryData();
+
+  const students = useMemo(() => rawInitialData.students || [], []);
+  const customers = useMemo(() => rawInitialData.customers || [], []);
+  const schoolPeriods = useMemo(() => rawInitialData.schoolPeriods || [], []);
+  const studentCategories = useMemo(() => rawInitialData.studentCategories || [], []);
+
+  const resolveStudentName = useCallback((studentId?: string) => {
+    if (!studentId) {
+      return undefined;
+    }
+
+    const student = students.find((entry: any) => entry.id === studentId);
+    if (!student) {
+      return undefined;
+    }
+
+    return student.display_name || [student.first_name, student.last_name].filter(Boolean).join(' ').trim() || undefined;
+  }, [students]);
+
+  const resolveCustomerName = useCallback((customerId?: number) => {
+    if (customerId === undefined) {
+      return undefined;
+    }
+
+    const customer = customers.find((entry: any) => entry.id === customerId);
+    return customer?.name || customer?.display_name || undefined;
+  }, [customers]);
+
+  const resolveSchoolPeriodName = useCallback((schoolPeriodId?: number) => {
+    if (schoolPeriodId === undefined) {
+      return undefined;
+    }
+
+    return schoolPeriods.find((entry: any) => entry.id === schoolPeriodId)?.name;
+  }, [schoolPeriods]);
+
+  const resolveStudentCategoryName = useCallback((studentCategoryId?: number) => {
+    if (studentCategoryId === undefined) {
+      return undefined;
+    }
+
+    return studentCategories.find((entry: any) => entry.id === studentCategoryId)?.name;
+  }, [studentCategories]);
+
+  const resolveSupplierName = useCallback((supplierId?: number) => {
+    if (supplierId === undefined) {
+      return undefined;
+    }
+
+    return suppliers.find((entry: any) => Number(entry.id) === Number(supplierId))?.name;
+  }, [suppliers]);
+
+  const financeData = useMemo(() => ({
+    feeTemplates,
+    feeTemplateItems,
+    chartOfAccounts,
+    expenseCategories,
+    banks,
+    suppliers,
+    supplierContracts,
+    expenseClaims,
+    studentPayments,
+    studentOpeningBalances,
+    customerInvoices,
+    studentInvoices,
+    supplierInvoices,
+    feeAdjustments,
+    transportRoutes,
+    invoicePaymentApplications,
+    generalPayments,
+    generalLedgerEntries,
+    addFeeTemplate: async (templateData: any) => createFeeTemplateRecord({
+      ...templateData,
+      items: templateData.items || [],
+      school_period_name: resolveSchoolPeriodName(templateData.school_period_id),
+      student_category_name: resolveStudentCategoryName(templateData.student_category_id)
+    }),
+    updateFeeTemplate: async (updatedTemplate: any) => updateFeeTemplateRecord(updatedTemplate.id, {
+      ...updatedTemplate,
+      items: updatedTemplate.items || [],
+      school_period_name: resolveSchoolPeriodName(updatedTemplate.school_period_id),
+      student_category_name: resolveStudentCategoryName(updatedTemplate.student_category_id)
+    }),
+    deleteFeeTemplate: async (templateId: number) => deleteFeeTemplateRecord(templateId),
+    addFeeTemplateItem: async (itemData: any) => createFeeTemplateItemRecord(itemData),
+    updateFeeTemplateItem: async (itemId: string, updatedItem: any) => updateFeeTemplateItemRecord(itemId, updatedItem),
+    removeFeeTemplateItem: async (itemId: string) => deleteFeeTemplateItemRecord(itemId),
+    addChartOfAccount: async (accountData: any) => createChartOfAccountRecord(accountData),
+    updateChartOfAccount: async (id: string, updatedAccount: any) => updateChartOfAccountRecord(id, updatedAccount),
+    deleteChartOfAccount: async (id: string) => deleteChartOfAccountRecord(id),
+    addExpenseCategory: async (categoryData: any) => createExpenseCategoryRecord(categoryData),
+    updateExpenseCategory: async (id: string, updatedCategory: any) => updateExpenseCategoryRecord(id, updatedCategory),
+    removeExpenseCategory: async (id: string) => deleteExpenseCategoryRecord(id),
+    addBank: async (bankData: any) => createBankRecord(bankData),
+    updateBank: async (id: string, updatedBank: any) => updateBankRecord(id, updatedBank),
+    removeBank: async (id: string) => deleteBankRecord(id),
+    addSupplier: async (supplierData: any) => createSupplierRecord(supplierData),
+    updateSupplier: async (id: number, updatedSupplier: any) => updateSupplierRecord(id, updatedSupplier),
+    deleteSupplier: async (id: number) => deleteSupplierRecord(id),
+    removeSupplier: async (id: number) => deleteSupplierRecord(id),
+    addSupplierContract: async (contractData: any) => createSupplierContractRecord({
+      ...contractData,
+      supplier_name: resolveSupplierName(contractData.supplier_id)
+    }),
+    updateSupplierContract: async (id: string, updatedContract: any) => updateSupplierContractRecord(id, {
+      ...updatedContract,
+      supplier_name: resolveSupplierName(updatedContract.supplier_id)
+    }),
+    deleteSupplierContract: async (id: string) => deleteSupplierContractRecord(id),
+    addStudentPayment: async (paymentData: any) => createStudentPaymentRecord({
+      ...paymentData,
+      student_name: resolveStudentName(paymentData.student_id)
+    }),
+    updateStudentPayment: async (paymentId: string, updatedPayment: any) => updateStudentPaymentRecord(paymentId, {
+      ...updatedPayment,
+      student_name: resolveStudentName(updatedPayment.student_id)
+    }),
+    deleteStudentPayment: async (paymentId: string) => deleteStudentPaymentRecord(paymentId),
+    addExpenseClaim: async (claimData: any) => createExpenseClaimRecord({
+      ...claimData,
+      supplier_name: resolveSupplierName(claimData.supplier_id)
+    }),
+    updateExpenseClaim: async (id: string, updatedClaim: any) => updateExpenseClaimRecord(id, {
+      ...updatedClaim,
+      supplier_name: resolveSupplierName(updatedClaim.supplier_id)
+    }),
+    removeExpenseClaim: async (id: string) => deleteExpenseClaimRecord(id),
+    addStudentOpeningBalance: async (balanceData: any) => createStudentOpeningBalanceRecord({
+      ...balanceData,
+      is_billed: balanceData.is_billed || false,
+      student_name: resolveStudentName(balanceData.student_id)
+    }),
+    updateStudentOpeningBalance: async (updatedBalance: any) => updateStudentOpeningBalanceRecord(updatedBalance.id, {
+      ...updatedBalance,
+      is_billed: updatedBalance.is_billed || false,
+      student_name: resolveStudentName(updatedBalance.student_id)
+    }),
+    deleteStudentOpeningBalance: async (balanceId: string) => deleteStudentOpeningBalanceRecord(balanceId),
+    addCustomerInvoice: async (invoiceData: any) => createCustomerInvoiceRecord({
+      ...invoiceData,
+      items: invoiceData.items || [],
+      total_amount: invoiceData.total_amount ?? 0,
+      customer_name: resolveCustomerName(invoiceData.customer_id)
+    }),
+    updateCustomerInvoice: async (updatedInvoice: any) => updateCustomerInvoiceRecord(updatedInvoice.id, {
+      ...updatedInvoice,
+      items: updatedInvoice.items || [],
+      total_amount: updatedInvoice.total_amount ?? 0,
+      customer_name: resolveCustomerName(updatedInvoice.customer_id)
+    }),
+    deleteCustomerInvoice: async (invoiceId: string) => deleteCustomerInvoiceRecord(invoiceId),
+    addSupplierInvoice: async (invoiceData: any) => createSupplierInvoiceRecord({
+      ...invoiceData,
+      supplier_name: resolveSupplierName(invoiceData.supplier_id)
+    }),
+    updateSupplierInvoice: async (id: string, updatedInvoice: any) => updateSupplierInvoiceRecord(id, {
+      ...updatedInvoice,
+      supplier_name: resolveSupplierName(updatedInvoice.supplier_id)
+    }),
+    removeSupplierInvoice: async (id: string) => deleteSupplierInvoiceRecord(id),
+    addStudentInvoice: async (invoiceData: any) => createStudentInvoiceRecord({
+      ...invoiceData,
+      items: invoiceData.items || [],
+      total_amount_billed: invoiceData.total_amount_billed ?? 0,
+      amount_paid: invoiceData.amount_paid ?? 0,
+      student_name: resolveStudentName(invoiceData.student_id),
+      school_period_name: resolveSchoolPeriodName(invoiceData.school_period_id)
+    }),
+    updateStudentInvoice: async (updatedInvoice: any) => updateStudentInvoiceRecord(updatedInvoice.id, {
+      ...updatedInvoice,
+      items: updatedInvoice.items || [],
+      total_amount_billed: updatedInvoice.total_amount_billed ?? 0,
+      amount_paid: updatedInvoice.amount_paid ?? 0,
+      student_name: resolveStudentName(updatedInvoice.student_id),
+      school_period_name: resolveSchoolPeriodName(updatedInvoice.school_period_id)
+    }),
+    deleteStudentInvoice: async (invoiceId: string) => deleteStudentInvoiceRecord(invoiceId),
+    addFeeAdjustment: async (adjustmentData: any) => createFeeAdjustmentRecord({
+      ...adjustmentData,
+      student_name: resolveStudentName(adjustmentData.student_id)
+    }),
+    updateFeeAdjustment: async (id: string, updatedAdjustment: any) => updateFeeAdjustmentRecord(id, {
+      ...updatedAdjustment,
+      student_name: resolveStudentName(updatedAdjustment.student_id)
+    }),
+    deleteFeeAdjustment: async (id: string) => deleteFeeAdjustmentRecord(id),
+    addTransportRoute: async (routeData: any) => createTransportRouteRecord(routeData),
+    updateTransportRoute: async (id: string, updatedRoute: any) => updateTransportRouteRecord(id, updatedRoute),
+    deleteTransportRoute: async (id: string) => deleteTransportRouteRecord(id),
+    addInvoicePaymentApplication: async (applicationData: any) => createInvoicePaymentApplicationRecord(applicationData),
+    updateInvoicePaymentApplication: async (id: string, updatedApplication: any) => updateInvoicePaymentApplicationRecord(id, updatedApplication),
+    removeInvoicePaymentApplication: async (id: string) => deleteInvoicePaymentApplicationRecord(id),
+    addGeneralPayment: async (paymentData: any) => createGeneralPaymentRecord(paymentData),
+    updateGeneralPayment: async (id: string, updatedPayment: any) => updateGeneralPaymentRecord(id, updatedPayment),
+    removeGeneralPayment: async (id: string) => deleteGeneralPaymentRecord(id),
+    addGeneralLedgerEntry: async (entryData: any) => createGeneralLedgerEntryRecord(entryData),
+    updateGeneralLedgerEntry: async (id: string, updatedEntry: any) => updateGeneralLedgerEntryRecord(id, updatedEntry),
+    removeGeneralLedgerEntry: async (id: string) => deleteGeneralLedgerEntryRecord(id)
+  }), [
+    feeTemplates,
+    feeTemplateItems,
+    studentPayments,
+    studentOpeningBalances,
+    customerInvoices,
+    studentInvoices,
+    createFeeTemplateRecord,
+    updateFeeTemplateRecord,
+    deleteFeeTemplateRecord,
+    createFeeTemplateItemRecord,
+    updateFeeTemplateItemRecord,
+    deleteFeeTemplateItemRecord,
+    createChartOfAccountRecord,
+    updateChartOfAccountRecord,
+    deleteChartOfAccountRecord,
+    createExpenseCategoryRecord,
+    updateExpenseCategoryRecord,
+    deleteExpenseCategoryRecord,
+    createBankRecord,
+    updateBankRecord,
+    deleteBankRecord,
+    createSupplierRecord,
+    updateSupplierRecord,
+    deleteSupplierRecord,
+    supplierContracts,
+    createSupplierContractRecord,
+    updateSupplierContractRecord,
+    deleteSupplierContractRecord,
+    createExpenseClaimRecord,
+    updateExpenseClaimRecord,
+    deleteExpenseClaimRecord,
+    createStudentPaymentRecord,
+    updateStudentPaymentRecord,
+    deleteStudentPaymentRecord,
+    createStudentOpeningBalanceRecord,
+    updateStudentOpeningBalanceRecord,
+    deleteStudentOpeningBalanceRecord,
+    createCustomerInvoiceRecord,
+    updateCustomerInvoiceRecord,
+    deleteCustomerInvoiceRecord,
+    createStudentInvoiceRecord,
+    updateStudentInvoiceRecord,
+    deleteStudentInvoiceRecord,
+    createSupplierInvoiceRecord,
+    updateSupplierInvoiceRecord,
+    deleteSupplierInvoiceRecord,
+    createFeeAdjustmentRecord,
+    updateFeeAdjustmentRecord,
+    deleteFeeAdjustmentRecord,
+    createTransportRouteRecord,
+    updateTransportRouteRecord,
+    deleteTransportRouteRecord,
+    createInvoicePaymentApplicationRecord,
+    updateInvoicePaymentApplicationRecord,
+    deleteInvoicePaymentApplicationRecord,
+    createGeneralPaymentRecord,
+    updateGeneralPaymentRecord,
+    deleteGeneralPaymentRecord,
+    createGeneralLedgerEntryRecord,
+    updateGeneralLedgerEntryRecord,
+    deleteGeneralLedgerEntryRecord,
+    resolveSchoolPeriodName,
+    resolveStudentCategoryName,
+    resolveStudentName,
+    resolveCustomerName,
+    resolveSupplierName
+  ]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading({ all: false });
+      setLoading(createLoadingStates(false));
     }, 500);
     return () => clearTimeout(timer);
   }, []);
@@ -130,6 +436,12 @@ export const useModularMockData = (): AppDataContextType => {
     // --- FINANCE DATA ---
     feeTemplates: financeData.feeTemplates || [],
     feeTemplateItems: financeData.feeTemplateItems || [],
+    chartOfAccounts: financeData.chartOfAccounts || [],
+    expenseCategories: financeData.expenseCategories || [],
+    banks: financeData.banks || [],
+    suppliers: financeData.suppliers || [],
+    supplierContracts: financeData.supplierContracts || [],
+    expenseClaims: financeData.expenseClaims || [],
 
     // --- OTHER MODULES (FALLBACK MOCK / SAFE DEFAULTS) ---
     schoolDetails: rawInitialData.schoolDetails || null,
@@ -154,18 +466,13 @@ export const useModularMockData = (): AppDataContextType => {
     studentAttendance: rawInitialData.studentAttendance || [],
     templatesComm: rawInitialData.templatesComm || [],
     campaigns: rawInitialData.campaigns || [],
-    chartOfAccounts: rawInitialData.chartOfAccounts || [],
-    expenseCategories: rawInitialData.expenseCategories || [],
-    banks: rawInitialData.banks || [],
-    suppliers: rawInitialData.suppliers || [],
-    expenseClaims: rawInitialData.expenseClaims || [],
-    studentInvoices: rawInitialData.studentInvoices || [],
+    studentInvoices: financeData.studentInvoices || [],
     studentInvoiceItems: rawInitialData.studentInvoiceItems || [],
-    studentPayments: rawInitialData.studentPayments || [],
-    feeAdjustments: rawInitialData.feeAdjustments || [],
-    invoicePaymentApplications: rawInitialData.invoicePaymentApplications || [],
-    customerInvoices: rawInitialData.customerInvoices || [],
-    supplierInvoices: rawInitialData.supplierInvoices || [],
+    studentPayments: financeData.studentPayments || [],
+    feeAdjustments: financeData.feeAdjustments || [],
+    invoicePaymentApplications: financeData.invoicePaymentApplications || [],
+    customerInvoices: financeData.customerInvoices || [],
+    supplierInvoices: financeData.supplierInvoices || [],
     warehouses: rawInitialData.warehouses || [],
     itemCategoriesInv: rawInitialData.itemCategoriesInv || [],
     itemsInv: rawInitialData.itemsInv || [],
@@ -188,15 +495,15 @@ export const useModularMockData = (): AppDataContextType => {
     menus: rawInitialData.menus || [],
     merchants: rawInitialData.merchants || [],
     auditLogs: rawInitialData.auditLogs || [],
-    studentOpeningBalances: rawInitialData.studentOpeningBalances || [],
-    transportRoutes: rawInitialData.transportRoutes || [],
+    studentOpeningBalances: financeData.studentOpeningBalances || [],
+    transportRoutes: financeData.transportRoutes || [],
     studentTransportAssignments: rawInitialData.studentTransportAssignments || [],
-    generalPayments: rawInitialData.generalPayments || [],
-    generalLedgerEntries: rawInitialData.generalLedgerEntries || [],
+    generalPayments: financeData.generalPayments || [],
+    generalLedgerEntries: financeData.generalLedgerEntries || [],
     rfqs: rawInitialData.rfqs || [],
     
     // --- ADDITIONAL PROPERTIES ---
-    loading: loading.all,
+    loading,
     error: null,
     refresh: emptyFunc,
     getStudentDetailsById: emptyGetFunc,
@@ -241,25 +548,26 @@ export const useModularMockData = (): AppDataContextType => {
     saveStudentAttendance: emptyFunc,
     getStudentAttendanceByFilters: () => [],
     getTimetablePeriodDefs: () => [],
-    addChartOfAccount: emptyFunc, updateChartOfAccount: emptyFunc, deleteChartOfAccount: emptyFunc,
-    addExpenseCategory: emptyFunc, updateExpenseCategory: emptyFunc, removeExpenseCategory: emptyFunc,
-    addBank: emptyFunc, updateBank: emptyFunc, removeBank: emptyFunc,
-    addSupplier: emptyFunc, updateSupplier: emptyFunc, removeSupplier: emptyFunc,
+    addChartOfAccount: financeData.addChartOfAccount, updateChartOfAccount: financeData.updateChartOfAccount, deleteChartOfAccount: financeData.deleteChartOfAccount,
+    addExpenseCategory: financeData.addExpenseCategory, updateExpenseCategory: financeData.updateExpenseCategory, removeExpenseCategory: financeData.removeExpenseCategory,
+    addBank: financeData.addBank, updateBank: financeData.updateBank, removeBank: financeData.removeBank,
+    addSupplier: financeData.addSupplier, updateSupplier: financeData.updateSupplier, deleteSupplier: financeData.deleteSupplier, removeSupplier: financeData.removeSupplier,
+    addSupplierContract: financeData.addSupplierContract, updateSupplierContract: financeData.updateSupplierContract, deleteSupplierContract: financeData.deleteSupplierContract,
     addFeeTemplate: financeData.addFeeTemplate, updateFeeTemplate: financeData.updateFeeTemplate, deleteFeeTemplate: financeData.deleteFeeTemplate,
     addFeeTemplateItem: financeData.addFeeTemplateItem, updateFeeTemplateItem: financeData.updateFeeTemplateItem, removeFeeTemplateItem: financeData.removeFeeTemplateItem,
-    addExpenseClaim: emptyFunc, updateExpenseClaim: emptyFunc, removeExpenseClaim: emptyFunc,
-    addCustomerInvoice: emptyFunc, updateCustomerInvoice: emptyFunc, removeCustomerInvoice: emptyFunc,
-    addSupplierInvoice: emptyFunc, updateSupplierInvoice: emptyFunc, removeSupplierInvoice: emptyFunc,
-    addStudentOpeningBalance: emptyFunc, updateStudentOpeningBalance: emptyFunc, deleteStudentOpeningBalance: emptyFunc,
-    addFeeAdjustment: emptyFunc, updateFeeAdjustment: emptyFunc, deleteFeeAdjustment: emptyFunc,
-    addTransportRoute: emptyFunc, updateTransportRoute: emptyFunc, deleteTransportRoute: emptyFunc,
+    addExpenseClaim: financeData.addExpenseClaim, updateExpenseClaim: financeData.updateExpenseClaim, removeExpenseClaim: financeData.removeExpenseClaim,
+    addCustomerInvoice: financeData.addCustomerInvoice, updateCustomerInvoice: financeData.updateCustomerInvoice, deleteCustomerInvoice: financeData.deleteCustomerInvoice,
+    addSupplierInvoice: financeData.addSupplierInvoice, updateSupplierInvoice: financeData.updateSupplierInvoice, removeSupplierInvoice: financeData.removeSupplierInvoice,
+    addStudentOpeningBalance: financeData.addStudentOpeningBalance, updateStudentOpeningBalance: financeData.updateStudentOpeningBalance, deleteStudentOpeningBalance: financeData.deleteStudentOpeningBalance,
+    addFeeAdjustment: financeData.addFeeAdjustment, updateFeeAdjustment: financeData.updateFeeAdjustment, deleteFeeAdjustment: financeData.deleteFeeAdjustment,
+    addTransportRoute: financeData.addTransportRoute, updateTransportRoute: financeData.updateTransportRoute, deleteTransportRoute: financeData.deleteTransportRoute,
     addStudentTransportAssignment: emptyFunc, updateStudentTransportAssignment: emptyFunc, deleteStudentTransportAssignment: emptyFunc,
-    addStudentInvoice: emptyFunc, updateStudentInvoice: emptyFunc, deleteStudentInvoice: emptyFunc,
+    addStudentInvoice: financeData.addStudentInvoice, updateStudentInvoice: financeData.updateStudentInvoice, deleteStudentInvoice: financeData.deleteStudentInvoice,
     addStudentInvoiceItem: emptyFunc, updateStudentInvoiceItem: emptyFunc, deleteStudentInvoiceItem: emptyFunc,
-    addStudentPayment: emptyFunc, updateStudentPayment: emptyFunc, deleteStudentPayment: emptyFunc,
-    addInvoicePaymentApplication: emptyFunc, updateInvoicePaymentApplication: emptyFunc, removeInvoicePaymentApplication: emptyFunc,
-    addGeneralPayment: emptyFunc, updateGeneralPayment: emptyFunc, removeGeneralPayment: emptyFunc,
-    addGeneralLedgerEntry: emptyFunc, updateGeneralLedgerEntry: emptyFunc, removeGeneralLedgerEntry: emptyFunc,
+    addStudentPayment: financeData.addStudentPayment, updateStudentPayment: financeData.updateStudentPayment, deleteStudentPayment: financeData.deleteStudentPayment,
+    addInvoicePaymentApplication: financeData.addInvoicePaymentApplication, updateInvoicePaymentApplication: financeData.updateInvoicePaymentApplication, removeInvoicePaymentApplication: financeData.removeInvoicePaymentApplication,
+    addGeneralPayment: financeData.addGeneralPayment, updateGeneralPayment: financeData.updateGeneralPayment, removeGeneralPayment: financeData.removeGeneralPayment,
+    addGeneralLedgerEntry: financeData.addGeneralLedgerEntry, updateGeneralLedgerEntry: financeData.updateGeneralLedgerEntry, removeGeneralLedgerEntry: financeData.removeGeneralLedgerEntry,
     addRFQ: emptyFunc, updateRFQ: emptyFunc, deleteRFQ: emptyFunc,
     addWarehouse: emptyFunc, updateWarehouse: emptyFunc, removeWarehouse: emptyFunc,
     addItemCategory: emptyFunc, updateItemCategory: emptyFunc, removeItemCategory: emptyFunc,

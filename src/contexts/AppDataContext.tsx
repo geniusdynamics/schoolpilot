@@ -8,6 +8,13 @@ import { UnifiedDatabaseManager } from '../services/database/UnifiedDatabaseMana
 import type { AppDataContextType, AppDataLoadingStates } from '../core/types';
 import { useToastHelpers } from '../hooks/useToast';
 import { NetworkStateManager, NetworkState } from '../services/NetworkStateManager';
+import { getDataModeManager } from '../services/dataModeManager';
+import { hasRequiredSchoolData } from '../services/database/demoDataSeed';
+import { useAcademicsOperations } from './appData/useAcademicsOperations';
+import {
+  createAppDataLoadingState,
+  normalizeAppDataCollections
+} from './appData/appDataCollections';
 
 // Sync status interface
 export interface SyncStatus {
@@ -74,208 +81,7 @@ export interface DataSourceConfig {
   retryAttempts: number;
 }
 
-const APP_DATA_ARRAY_KEYS = [
-  'roles',
-  'users',
-  'students',
-  'staff',
-  'classes',
-  'classStreams',
-  'subjects',
-  'departments',
-  'designations',
-  'studentCategories',
-  'dormitories',
-  'academicYears',
-  'schoolPeriods',
-  'academicYearStructures',
-  'academicPeriodDefinitions',
-  'financialYears',
-  'partners',
-  'clubs',
-  'customers',
-  'studentHealthRecords',
-  'studentAttendance',
-  'timetablePeriodDefs',
-  'templatesComm',
-  'campaigns',
-  'subjectPapers',
-  'examSessions',
-  'examPaperSettings',
-  'gradingSchemes',
-  'chartOfAccounts',
-  'expenseCategories',
-  'banks',
-  'suppliers',
-  'feeTemplates',
-  'feeTemplateItems',
-  'expenseClaims',
-  'studentInvoices',
-  'studentInvoiceItems',
-  'studentPayments',
-  'feeAdjustments',
-  'invoicePaymentApplications',
-  'customerInvoices',
-  'supplierInvoices',
-  'studentExamResults',
-  'classSubjectAllocations',
-  'teacherSubjectAssignments',
-  'studentSubjectEnrollments',
-  'timetableEntries',
-  'warehouses',
-  'itemCategoriesInv',
-  'itemsInv',
-  'fixedAssets',
-  'requisitions',
-  'purchaseOrders',
-  'stockLevels',
-  'stockTransactions',
-  'payrollPeriods',
-  'payrollItemTypes',
-  'staffSalarySettings',
-  'payslips',
-  'bookCategories',
-  'books',
-  'loans',
-  'fines',
-  'parentsGuardians',
-  'workflows',
-  'mealPlans',
-  'menus',
-  'merchants',
-  'auditLogs',
-  'studentOpeningBalances',
-  'transportRoutes',
-  'studentTransportAssignments',
-  'generalPayments',
-  'generalLedgerEntries',
-  'rfqs',
-  'educationSystemConfigurations'
-] as const;
-
-type AppDataArrayKey = typeof APP_DATA_ARRAY_KEYS[number];
-
-const COLLECTION_KEY_ALIASES: Record<string, AppDataArrayKey | 'schoolDetails'> = {
-  app_settings: 'schoolDetails',
-  school_details: 'schoolDetails',
-  users: 'users',
-  roles: 'roles',
-  students: 'students',
-  staff: 'staff',
-  classes: 'classes',
-  class_streams: 'classStreams',
-  subjects: 'subjects',
-  departments: 'departments',
-  designations: 'designations',
-  student_categories: 'studentCategories',
-  dormitories: 'dormitories',
-  academic_years: 'academicYears',
-  school_periods: 'schoolPeriods',
-  academic_year_structures: 'academicYearStructures',
-  academic_period_definitions: 'academicPeriodDefinitions',
-  financial_years: 'financialYears',
-  partners: 'partners',
-  clubs: 'clubs',
-  customers: 'customers',
-  student_health_records: 'studentHealthRecords',
-  student_attendance: 'studentAttendance',
-  timetable_period_defs: 'timetablePeriodDefs',
-  templates_comm: 'templatesComm',
-  campaigns: 'campaigns',
-  subject_papers: 'subjectPapers',
-  exam_sessions: 'examSessions',
-  exam_paper_settings: 'examPaperSettings',
-  grading_schemes: 'gradingSchemes',
-  chart_of_accounts: 'chartOfAccounts',
-  expense_categories: 'expenseCategories',
-  banks: 'banks',
-  suppliers: 'suppliers',
-  fee_templates: 'feeTemplates',
-  fee_template_items: 'feeTemplateItems',
-  expense_claims: 'expenseClaims',
-  student_invoices: 'studentInvoices',
-  student_invoice_items: 'studentInvoiceItems',
-  student_payments: 'studentPayments',
-  fee_adjustments: 'feeAdjustments',
-  invoice_payment_applications: 'invoicePaymentApplications',
-  customer_invoices: 'customerInvoices',
-  supplier_invoices: 'supplierInvoices',
-  student_exam_results: 'studentExamResults',
-  class_subject_allocations: 'classSubjectAllocations',
-  teacher_subject_assignments: 'teacherSubjectAssignments',
-  student_subject_enrollments: 'studentSubjectEnrollments',
-  timetable_entries: 'timetableEntries',
-  warehouses: 'warehouses',
-  item_categories_inv: 'itemCategoriesInv',
-  items_inv: 'itemsInv',
-  fixed_assets: 'fixedAssets',
-  requisitions: 'requisitions',
-  purchase_orders: 'purchaseOrders',
-  stock_levels: 'stockLevels',
-  stock_transactions: 'stockTransactions',
-  payroll_periods: 'payrollPeriods',
-  payroll_item_types: 'payrollItemTypes',
-  staff_salary_settings: 'staffSalarySettings',
-  payslips: 'payslips',
-  book_categories: 'bookCategories',
-  books: 'books',
-  loans: 'loans',
-  fines: 'fines',
-  parents_guardians: 'parentsGuardians',
-  workflows: 'workflows',
-  meal_plans: 'mealPlans',
-  menus: 'menus',
-  merchants: 'merchants',
-  audit_logs: 'auditLogs',
-  student_opening_balances: 'studentOpeningBalances',
-  transport_routes: 'transportRoutes',
-  student_transport_assignments: 'studentTransportAssignments',
-  general_payments: 'generalPayments',
-  general_ledger_entries: 'generalLedgerEntries',
-  rfqs: 'rfqs',
-  education_system_configurations: 'educationSystemConfigurations'
-};
-
-const snakeToCamel = (value: string): string =>
-  value.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
-
-export const createAppDataLoadingState = (isLoading: boolean): AppDataLoadingStates => {
-  const loadingEntries = APP_DATA_ARRAY_KEYS.reduce<Record<string, boolean>>((accumulator, key) => {
-    accumulator[key] = isLoading;
-    return accumulator;
-  }, {
-    all: isLoading,
-    schoolDetails: isLoading
-  });
-
-  return loadingEntries as AppDataLoadingStates;
-};
-
-export const normalizeAppDataCollections = (rawData: Record<string, any[] | undefined>) => {
-  const normalizedData = APP_DATA_ARRAY_KEYS.reduce<Record<string, any[]>>((accumulator, key) => {
-    accumulator[key] = [];
-    return accumulator;
-  }, {});
-
-  normalizedData.schoolDetails = [];
-
-  Object.entries(rawData).forEach(([collectionName, collectionValue]) => {
-    const alias = COLLECTION_KEY_ALIASES[collectionName] || COLLECTION_KEY_ALIASES[snakeToCamel(collectionName)];
-    const normalizedValue = Array.isArray(collectionValue) ? collectionValue : [];
-
-    if (alias) {
-      normalizedData[alias] = normalizedValue;
-      return;
-    }
-
-    const camelKey = snakeToCamel(collectionName);
-    if (camelKey in normalizedData) {
-      normalizedData[camelKey] = normalizedValue;
-    }
-  });
-
-  return normalizedData as Record<AppDataArrayKey | 'schoolDetails', any[]>;
-};
+export { createAppDataLoadingState, normalizeAppDataCollections } from './appData/appDataCollections';
 
 // Enhanced context type with database management and sync capabilities
 export interface EnhancedAppDataContextType extends AppDataContextType {
@@ -357,12 +163,23 @@ export interface EnhancedAppDataContextType extends AppDataContextType {
   seedDatabase: (seedConfig?: {
     dataMode?: 'demo' | 'development' | 'production';
     modules?: string[];
-    volume?: 'small' | 'medium' | 'large';
+    volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
   }) => Promise<{ success: boolean; message: string; stats?: any }>;
 }
 
 // Create the context with a default undefined value
 const AppDataContext = createContext<EnhancedAppDataContextType | undefined>(undefined);
+
+export const hasAppDataContextContract = (
+  context: EnhancedAppDataContextType | null | undefined
+): context is EnhancedAppDataContextType => {
+  return Boolean(
+    context &&
+    typeof context.refreshData === 'function' &&
+    context.loading &&
+    typeof context.loading === 'object'
+  );
+};
 
 // Simplified provider component that uses UnifiedDatabaseManager
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -457,6 +274,16 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
         if (!mounted) return;
 
+        if (config.dataMode !== 'production') {
+          const provider = dbManager.getProvider();
+          if (provider && !(await hasRequiredSchoolData(provider))) {
+            await dbManager.seedDatabase({
+              dataMode: 'demo',
+              volume: 'medium'
+            });
+          }
+        }
+
         const loadPromise = loadAllCollections();
         const loadTimeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Load collections timeout')), 20000);
@@ -482,7 +309,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => {
       mounted = false;
     };
-  }, [dbManager, toast]);
+  }, [config.dataMode, dbManager, toast]);
 
   // Store sync settings in ref to avoid dependency
   const syncSettingsRef = useRef(syncSettings);
@@ -549,6 +376,25 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       console.error('Failed to load collections:', err);
     }
   }, [dbManager]);
+
+  useEffect(() => {
+    const dataModeManager = getDataModeManager();
+    const refreshFromEvent = () => {
+      loadAllCollections().catch((err) => {
+        console.error('Failed to refresh collections after data mode change:', err);
+      });
+    };
+
+    dataModeManager.on('dataSeeded', refreshFromEvent);
+    dataModeManager.on('dataCleared', refreshFromEvent);
+    dataModeManager.on('modeChanged', refreshFromEvent);
+
+    return () => {
+      dataModeManager.off('dataSeeded', refreshFromEvent);
+      dataModeManager.off('dataCleared', refreshFromEvent);
+      dataModeManager.off('modeChanged', refreshFromEvent);
+    };
+  }, [loadAllCollections]);
 
   // Refresh all data
   const refreshData = useCallback(async () => {
@@ -1203,11 +1049,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
 
-  // Task 5.2: Seed database with configuration-based data
+  // Seed database with configuration-based data
   const seedDatabase = useCallback(async (seedConfig?: {
     dataMode?: 'demo' | 'development' | 'production';
     modules?: string[];
-    volume?: 'small' | 'medium' | 'large';
+    volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
   }) => {
     try {
       console.log('🌱 [AppDataContext] Seeding database...');
@@ -1237,6 +1083,9 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       };
     }
   }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
+
+  // Academics Operations
+  const academicsOps = useAcademicsOperations(dbManager, data, setData, loadAllCollections);
 
   // Create context value
   const contextValue = useMemo(() => {
@@ -1309,6 +1158,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Data generation (Task 5)
       generateData,
       seedDatabase,
+
+      ...academicsOps,
       
       // Legacy compatibility
       refresh: refreshData,
@@ -1348,6 +1199,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     updateDataStrategy,
     generateData,
     seedDatabase,
+    academicsOps,
     config.environment,
     loadAllCollections
   ]); // Removed toast from dependencies to prevent re-render loop
