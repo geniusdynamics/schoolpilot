@@ -39,6 +39,9 @@ const defaultFlags: FeatureFlags = {
 // Load from localStorage (for development/testing)
 function loadFlags(): FeatureFlags {
   try {
+    if (typeof window === 'undefined') {
+      return defaultFlags;
+    }
     const stored = localStorage.getItem('sp_feature_flags');
     if (stored) {
       const parsed = JSON.parse(stored);
@@ -80,6 +83,9 @@ export function toggleFeature(flag: keyof FeatureFlags): boolean {
 // Save flags to localStorage
 function saveFlags(): void {
   try {
+    if (typeof window === 'undefined') {
+      return;
+    }
     localStorage.setItem('sp_feature_flags', JSON.stringify(featureFlags));
   } catch (e) {
     console.warn('Failed to save feature flags:', e);
@@ -101,7 +107,7 @@ export function enableAllFeatures(): void {
 }
 
 // Console helper for developers
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).featureFlags = {
     get: () => featureFlags,
     enable: enableFeature,

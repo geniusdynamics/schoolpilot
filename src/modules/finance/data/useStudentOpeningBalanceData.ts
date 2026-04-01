@@ -1,47 +1,52 @@
-// ABOUTME: Self-contained hook for any data management
-// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
+// ABOUTME: Self-contained hook for student opening balance data management.
+// ABOUTME: Provides CRUD operations for student opening balances without depending on AppDataContext.
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '../../../core/types';
+import { initialMockStudentOpeningBalances } from './mockData';
+import { FinStudentOpeningBalanceType as StudentOpeningBalance } from './types';
 
 const useStudentOpeningBalanceData = () => {
-  const [studentOpeningBalances, setStudentOpeningBalances] = useState<any[]>([]);
+  const [studentOpeningBalances, setStudentOpeningBalances] = useState<StudentOpeningBalance[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      // Simulate fetching data from a mock source
-      setStudentOpeningBalances(initialMockUsers);
+      setStudentOpeningBalances(initialMockStudentOpeningBalances);
       setIsLoading(false);
-    } catch (e) {
+    } catch {
       setError('Failed to fetch student opening balances');
       setIsLoading(false);
     }
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
+  const create = async (newItem: Partial<StudentOpeningBalance>) => {
+    const newDataItem: StudentOpeningBalance = {
       ...newItem,
-      id: Date.now(),
+      id: `SOB${Date.now()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as any;
-    setStudentOpeningBalances((prev: any[]) => [...prev, newDataItem]);
+    } as StudentOpeningBalance;
+    setStudentOpeningBalances((prev) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setStudentOpeningBalances((prev: any[]) => prev.map((item: any) =>
-      item.id === id
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+  const update = async (
+    idOrItem: string | StudentOpeningBalance,
+    updatedData?: Partial<StudentOpeningBalance>
+  ) => {
+    const targetId = typeof idOrItem === 'string' ? idOrItem : idOrItem.id;
+    const nextData = typeof idOrItem === 'string' ? updatedData : idOrItem;
+
+    setStudentOpeningBalances((prev) => prev.map((item) =>
+      item.id === targetId
+        ? { ...item, ...nextData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
-    setStudentOpeningBalances((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  const remove = async (id: string) => {
+    setStudentOpeningBalances((prev) => prev.filter((item) => item.id !== id));
   };
 
   return {

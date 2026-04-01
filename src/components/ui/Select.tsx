@@ -79,6 +79,11 @@ export interface SelectProps {
   onSearch?: (query: string) => void;
 }
 
+const normalizeOption = (option: SelectOption): SelectOption => ({
+  ...option,
+  value: String(option.value),
+});
+
 // Helper function to parse children into SelectOption[]
 const parseChildrenToOptions = (children: ReactNode): SelectOption[] => {
   const options: SelectOption[] = [];
@@ -87,8 +92,8 @@ const parseChildrenToOptions = (children: ReactNode): SelectOption[] => {
     if (React.isValidElement(child) && child.type === 'option') {
       const props = child.props as any;
       options.push({
-        value: props.value || '',
-        label: props.children || props.value || '',
+        value: String(props.value || ''),
+        label: String(props.children || props.value || ''),
         disabled: props.disabled || false,
       });
     }
@@ -131,7 +136,7 @@ const Select: React.FC<SelectProps> = ({
   // Determine if we're using legacy mode (children) or enhanced mode (options)
   const isLegacyMode = !options && children;
   const effectiveOptions = useMemo(() => {
-    if (options) return options;
+    if (options) return options.map(normalizeOption);
     if (children) return parseChildrenToOptions(children);
     return [];
   }, [options, children]);
@@ -159,6 +164,19 @@ const Select: React.FC<SelectProps> = ({
   // Controlled vs uncontrolled
   const currentValue = value !== undefined ? value : internalValue;
   const isControlled = value !== undefined;
+  const normalizedValue = useMemo(() => {
+    if (multiple) {
+      return Array.isArray(currentValue)
+        ? currentValue.map(item => String(item))
+        : [];
+    }
+
+    if (currentValue === undefined || currentValue === null) {
+      return '';
+    }
+
+    return String(currentValue);
+  }, [currentValue, multiple]);
 
   // Filter options based on search
   const filteredOptions = useMemo(() => {
@@ -171,14 +189,14 @@ const Select: React.FC<SelectProps> = ({
 
   // Get selected options for display
   const selectedOptions = useMemo(() => {
-    if (multiple && Array.isArray(currentValue)) {
-      return effectiveOptions.filter(option => currentValue.includes(option.value));
+    if (multiple && Array.isArray(normalizedValue)) {
+      return effectiveOptions.filter(option => normalizedValue.includes(option.value));
     }
-    if (!multiple && typeof currentValue === 'string') {
-      return effectiveOptions.filter(option => option.value === currentValue);
+    if (!multiple && typeof normalizedValue === 'string') {
+      return effectiveOptions.filter(option => option.value === normalizedValue);
     }
     return [];
-  }, [effectiveOptions, currentValue, multiple]);
+  }, [effectiveOptions, normalizedValue, multiple]);
 
   // Handle value changes
   const handleValueChange = useCallback((newValue: string | string[]) => {
@@ -214,7 +232,7 @@ const Select: React.FC<SelectProps> = ({
     if (option.disabled) return;
 
     if (multiple) {
-      const currentArray = Array.isArray(currentValue) ? currentValue : [];
+      const currentArray = Array.isArray(normalizedValue) ? normalizedValue : [];
       const isSelected = currentArray.includes(option.value);
       
       let newValue: string[];
@@ -237,20 +255,20 @@ const Select: React.FC<SelectProps> = ({
       setIsOpen(false);
       announceToScreenReader(`${option.label} selected`);
     }
-  }, [currentValue, multiple, maxSelections, handleValueChange]);
+  }, [normalizedValue, multiple, maxSelections, handleValueChange]);
 
   // Handle tag removal in multi-select
   const handleTagRemove = useCallback((optionValue: string, event: MouseEvent) => {
     event.stopPropagation();
-    if (Array.isArray(currentValue)) {
-      const newValue = currentValue.filter(v => v !== optionValue);
+    if (Array.isArray(normalizedValue)) {
+      const newValue = normalizedValue.filter(v => v !== optionValue);
       handleValueChange(newValue);
       const option = effectiveOptions.find(opt => opt.value === optionValue);
       if (option) {
         announceToScreenReader(`${option.label} removed`);
       }
     }
-  }, [currentValue, handleValueChange, effectiveOptions]);
+  }, [normalizedValue, handleValueChange, effectiveOptions]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
@@ -464,7 +482,7 @@ const Select: React.FC<SelectProps> = ({
 
   // Render selected value display
   const renderSelectedValue = () => {
-    if (multiple && Array.isArray(currentValue) && currentValue.length > 0) {
+    if (multiple && Array.isArray(normalizedValue) && normalizedValue.length > 0) {
       return (
         <div className="flex flex-wrap gap-1">
           {selectedOptions.map((option) => (
@@ -490,8 +508,8 @@ const Select: React.FC<SelectProps> = ({
       );
     }
 
-    if (!multiple && typeof currentValue === 'string' && currentValue) {
-      const selectedOption = effectiveOptions.find(opt => opt.value === currentValue);
+    if (!multiple && typeof normalizedValue === 'string' && normalizedValue) {
+      const selectedOption = effectiveOptions.find(opt => opt.value === normalizedValue);
       if (selectedOption) {
         return (
           <div className="flex items-center gap-2">
@@ -512,8 +530,8 @@ const Select: React.FC<SelectProps> = ({
   // Render option
   const renderOption = (option: SelectOption, index: number) => {
     const isSelected = multiple 
-      ? Array.isArray(currentValue) && currentValue.includes(option.value)
-      : currentValue === option.value;
+      ? Array.isArray(normalizedValue) && normalizedValue.includes(option.value)
+      : normalizedValue === option.value;
     const isFocused = index === focusedIndex;
 
     return (
@@ -581,7 +599,7 @@ const Select: React.FC<SelectProps> = ({
         <select
           id={fieldIds.field}
           name={name}
-          value={currentValue as string}
+          value={Array.isArray(normalizedValue) ? normalizedValue[0] || '' : normalizedValue}
           onChange={onChange as (e: React.ChangeEvent<HTMLSelectElement>) => void}
           disabled={disabled}
           required={required}

@@ -1,3 +1,6 @@
+// ABOUTME: Manages school period records and links them to academic years, period definitions, and financial years.
+// ABOUTME: Provides a modal form with typed field parsing for select and date inputs.
+
 import React, { useState, useMemo } from 'react';
 import { SchoolPeriod, AcademicYear, AcademicPeriodDefinition, FinancialYear } from '@/types';
 import Card from '@/components/ui/Card';
@@ -21,8 +24,8 @@ type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'u
 const SchoolPeriodsPage: React.FC = () => {
   const { t } = useTranslation();
   const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
-  const { academicYears } = useAcademicYearData();
-  const { academicPeriodDefinitions } = useAcademicPeriodDefinitionData();
+  const { data: academicYears } = useAcademicYearData();
+  const { data: academicPeriodDefinitions } = useAcademicPeriodDefinitionData();
   const { data: financialYears } = useFinancialYearData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,6 +40,39 @@ const SchoolPeriodsPage: React.FC = () => {
     is_active: false,
   };
   const [formData, setFormData] = useState<SchoolPeriodFormData>(initialFormData);
+
+  const academicYearOptions = useMemo(
+    () => [
+      { value: '', label: 'Select Academic Year' },
+      ...(academicYears || []).map((academicYear: AcademicYear) => ({
+        value: academicYear.id.toString(),
+        label: academicYear.name,
+      })),
+    ],
+    [academicYears]
+  );
+
+  const periodDefinitionOptions = useMemo(
+    () => [
+      { value: '', label: 'Select Period Definition' },
+      ...(academicPeriodDefinitions || []).map((periodDefinition: AcademicPeriodDefinition) => ({
+        value: periodDefinition.id,
+        label: `${periodDefinition.name} (${periodDefinition.structure_name})`,
+      })),
+    ],
+    [academicPeriodDefinitions]
+  );
+
+  const financialYearOptions = useMemo(
+    () => [
+      { value: '', label: 'Select Financial Year' },
+      ...(financialYears || []).map((financialYear: FinancialYear) => ({
+        value: financialYear.id.toString(),
+        label: financialYear.name,
+      })),
+    ],
+    [financialYears]
+  );
 
   const openModal = (period?: SchoolPeriod) => {
     setEditingPeriod(period || null);
@@ -76,6 +112,24 @@ const SchoolPeriodsPage: React.FC = () => {
         processedValue = value || undefined;
     }
     
+    setFormData(prev => ({ ...prev, [name]: processedValue }));
+  };
+
+  const handleSelectChange = (
+    name: 'academic_year_id' | 'period_definition_id' | 'financial_year_id',
+    value: string
+  ) => {
+    let processedValue: string | number | undefined = value;
+
+    if (name === 'academic_year_id' || name === 'financial_year_id') {
+      processedValue = value ? parseInt(value, 10) : undefined;
+      if (Number.isNaN(processedValue as number)) {
+        processedValue = undefined;
+      }
+    } else {
+      processedValue = value || undefined;
+    }
+
     setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
 
@@ -236,18 +290,30 @@ const SchoolPeriodsPage: React.FC = () => {
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select name="academic_year_id" label="Academic Year" value={formData.academic_year_id || ''} onChange={handleInputChange} required>
-                <option value="">Select Academic Year</option>
-                {(academicYears || []).map((ay: AcademicYear) => (<option key={ay.id} value={ay.id}>{ay.name}</option>))}
-            </Select>
-            <Select name="period_definition_id" label="Period Definition" value={formData.period_definition_id || ''} onChange={handleInputChange} required>
-                <option value="">Select Period Definition</option>
-                {(academicPeriodDefinitions || []).map((pd: AcademicPeriodDefinition) => (<option key={pd.id} value={pd.id}>{pd.name} ({pd.structure_name})</option>))}
-            </Select>
-            <Select name="financial_year_id" label="Financial Year" value={formData.financial_year_id || ''} onChange={handleInputChange} required>
-                <option value="">Select Financial Year</option>
-                {(financialYears || []).map((fy: FinancialYear) => (<option key={fy.id} value={fy.id}>{fy.name}</option>))}
-            </Select>
+            <Select
+              name="academic_year_id"
+              label="Academic Year"
+              value={formData.academic_year_id?.toString() || ''}
+              onChange={(value) => handleSelectChange('academic_year_id', typeof value === 'string' ? value : '')}
+              options={academicYearOptions}
+              required
+            />
+            <Select
+              name="period_definition_id"
+              label="Period Definition"
+              value={formData.period_definition_id || ''}
+              onChange={(value) => handleSelectChange('period_definition_id', typeof value === 'string' ? value : '')}
+              options={periodDefinitionOptions}
+              required
+            />
+            <Select
+              name="financial_year_id"
+              label="Financial Year"
+              value={formData.financial_year_id?.toString() || ''}
+              onChange={(value) => handleSelectChange('financial_year_id', typeof value === 'string' ? value : '')}
+              options={financialYearOptions}
+              required
+            />
             <Input name="start_date" label="Start Date" type="date" value={formData.start_date || ''} onChange={handleInputChange} required />
             <Input name="end_date" label="End Date" type="date" value={formData.end_date || ''} onChange={handleInputChange} required />
             <Input name="mid_break_start" label="Mid-Break Start Date (Optional)" type="date" value={formData.mid_break_start || ''} onChange={handleInputChange} />

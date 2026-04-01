@@ -10,6 +10,7 @@ import { ICollection, IDatabaseProvider, DatabaseConfig, CollectionSchema, Colle
 import { DatabaseProviderFactory, getDatabaseProviderFactory, ProviderType } from './DatabaseProviderFactory';
 import { UniversalDataGenerator, UniversalDataGenerationConfig, GenerationStats } from '../dataGeneration/UniversalDataGenerator';
 import { StartupOptimizer } from './StartupOptimizer';
+import { seedProviderWithDemoData } from './demoDataSeed';
 
 export type DeploymentMode = 'development' | 'staging' | 'production';
 export type DatabaseProvider = 'sqlite-file' | 'sqlite-wasm' | 'pouchdb' | 'rxdb' | 'livestore' | 'sqlite' | 'backend-api' | 'hybrid';
@@ -205,6 +206,29 @@ export class UnifiedDatabaseManager {
     
     console.log(`🔍 [UnifiedDatabaseManager] Selecting provider for ${this.deploymentMode} mode`);
     console.log(`📊 [UnifiedDatabaseManager] Database configuration:`, dbConfig);
+    
+    const envProvider = import.meta.env.VITE_DB_PROVIDER;
+    const envMode = import.meta.env.VITE_DB_MODE;
+    
+    if (envProvider) {
+      console.log(`🌍 [UnifiedDatabaseManager] Environment variable VITE_DB_PROVIDER=${envProvider} detected`);
+      const validProviders = ['sqlite-wasm', 'sqlite-file', 'pouchdb', 'backend-api', 'livestore', 'rxdb', 'hybrid'];
+      if (validProviders.includes(envProvider)) {
+        console.log(`✅ [UnifiedDatabaseManager] Using environment-specified provider: ${envProvider}`);
+        return envProvider as DatabaseProvider;
+      } else {
+        console.warn(`⚠️ [UnifiedDatabaseManager] Invalid VITE_DB_PROVIDER value: ${envProvider}, falling back to config`);
+      }
+    }
+    
+    if (envMode && !dbConfig.provider) {
+      console.log(`🌍 [UnifiedDatabaseManager] Environment variable VITE_DB_MODE=${envMode} detected`);
+      if (envMode === 'demo') {
+        return 'pouchdb';
+      } else if (envMode === 'production') {
+        return this.deploymentMode === 'development' ? 'sqlite-file' : 'sqlite-wasm';
+      }
+    }
     
     // Validate database configuration first
     const validation = validateDatabaseConfig();
@@ -855,6 +879,10 @@ export class UnifiedDatabaseManager {
    */
   public getCollection<T>(name: string): ICollection<T> | null {
     return this.collections.get(name) as ICollection<T> || null;
+  }
+
+  public getProvider(): IDatabaseProvider | null {
+    return this.provider;
   }
 
   /**
@@ -1629,7 +1657,7 @@ export class UnifiedDatabaseManager {
   public async seedDatabase(seedConfig?: {
     dataMode?: 'demo' | 'development' | 'production';
     modules?: string[];
-    volume?: 'small' | 'medium' | 'large';
+    volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
   }): Promise<{
     success: boolean;
     message: string;
@@ -1638,62 +1666,30 @@ export class UnifiedDatabaseManager {
     try {
       console.log('🌱 [UnifiedDatabaseManager] Seeding database...');
 
+      if (!this.provider) {
+        throw new Error('Database provider is not initialized');
+      }
+
       const config = getCurrentUnifiedConfig();
       const {
         dataMode = config.dataMode || 'demo',
-        modules = ['administration', 'academic', 'finance'],
+        modules,
         volume = 'medium'
       } = seedConfig || {};
 
-      // Define volume-based counts
-      const volumeCounts = {
-        small: {
-          students: 50,
-          staff: 10,
-          classes: 5,
-          subjects: 8
-        },
-        medium: {
-          students: 200,
-          staff: 25,
-          classes: 15,
-          subjects: 20
-        },
-        large: {
-          students: 1000,
-          staff: 100,
-          classes: 50,
-          subjects: 50
-        }
-      };
-
-      const counts = volumeCounts[volume];
-
-      // Configure data generation based on data mode
-      const generationOptions = {
-        modules,
-        counts,
-        useRealisticData: dataMode !== 'demo',
-        includeTestData: dataMode === 'development',
-        clearExisting: true
-      };
-
       console.log(`🌱 [UnifiedDatabaseManager] Seeding with ${volume} volume for ${dataMode} mode`);
 
-      const result = await this.generateData(generationOptions);
+      const stats = await seedProviderWithDemoData(this.provider, {
+        modules,
+        volume,
+        clearExisting: true
+      });
 
-      if (result.success) {
-        return {
-          success: true,
-          message: `Database seeded successfully with ${volume} volume data for ${modules.length} modules`,
-          stats: result.stats
-        };
-      } else {
-        return {
-          success: false,
-          message: `Database seeding failed: ${result.error}`
-        };
-      }
+      return {
+        success: true,
+        message: `Database seeded successfully with ${volume} volume data for ${modules?.length || 'all'} modules`,
+        stats
+      };
 
     } catch (error) {
       console.error('❌ [UnifiedDatabaseManager] Database seeding failed:', error);

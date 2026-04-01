@@ -257,7 +257,7 @@ const DamagedLostBooksPage: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Select
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value as any)}
+              onChange={(value) => setFilterType(value as typeof filterType)}
               options={filterOptions}
               className="min-w-40"
             />
@@ -372,7 +372,7 @@ const DamagedLostBooksPage: React.FC = () => {
             <Select
               label="Book Status"
               value={statusUpdateData.status}
-              onChange={(e) => handleInputChange('status', e.target.value as LibBookStatusEnum)}
+              onChange={(value) => handleInputChange('status', value as LibBookStatusEnum)}
               options={Object.values(LibBookStatusEnum).map(status => ({ 
                 label: status, 
                 value: status 

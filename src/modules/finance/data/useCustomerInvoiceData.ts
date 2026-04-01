@@ -1,17 +1,35 @@
-// ABOUTME: Self-contained hook for customerinvoice data management
-// ABOUTME: Provides CRUD operations for customerinvoice without depending on AppDataContext
+// ABOUTME: Self-contained hook for customer invoice data management.
+// ABOUTME: Provides CRUD operations for customer invoices without depending on AppDataContext.
 
 import { useState, useEffect } from 'react';
 import { initialMockCustomerInvoices } from './mockData';
-import { CustomerInvoice } from '../../../core/types';
+import {
+  FinCustomerInvoiceStatusEnum,
+  FinCustomerInvoiceType as CustomerInvoice
+} from './types';
 
 export const useCustomerInvoiceData = () => {
-  const [data, setData] = useState<CustomerInvoice[]>(initialMockCustomerInvoices);
+  const [data, setData] = useState<CustomerInvoice[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setData(initialMockCustomerInvoices);
+      setIsLoading(false);
+    } catch {
+      setError('Failed to fetch customer invoices');
+      setIsLoading(false);
+    }
+  }, []);
 
   const create = async (newItem: Partial<CustomerInvoice>) => {
     const newDataItem: CustomerInvoice = {
       ...newItem,
-      id: Date.now(),
+      id: `CINV${Date.now()}`,
+      total_amount: newItem.total_amount ?? 0,
+      status: newItem.status ?? FinCustomerInvoiceStatusEnum.DUE,
+      items: newItem.items ?? [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as CustomerInvoice;
@@ -19,20 +37,28 @@ export const useCustomerInvoiceData = () => {
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<CustomerInvoice>) => {
+  const update = async (
+    idOrItem: string | CustomerInvoice,
+    updatedData?: Partial<CustomerInvoice>
+  ) => {
+    const targetId = typeof idOrItem === 'string' ? idOrItem : idOrItem.id;
+    const nextData = typeof idOrItem === 'string' ? updatedData : idOrItem;
+
     setData((prev: CustomerInvoice[]) => prev.map((item: CustomerInvoice) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+      item.id === targetId 
+        ? { ...item, ...nextData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
+  const remove = async (id: string) => {
     setData((prev: CustomerInvoice[]) => prev.filter((item: CustomerInvoice) => item.id !== id));
   };
 
   return {
     data,
+    isLoading,
+    error,
     create,
     update,
     remove

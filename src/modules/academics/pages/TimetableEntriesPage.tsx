@@ -63,8 +63,7 @@ const TimetableEntriesPage: React.FC = () => {
     setFormData(initialFormData);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (name: keyof TimetableEntryFormData, value: string) => {
     let processedValue: string | number | undefined = value;
     if (name === 'period_id' || name === 'subject_id') {
         processedValue = value ? parseInt(value) : undefined;
@@ -240,7 +239,7 @@ const TimetableEntriesPage: React.FC = () => {
           name="day_of_week" 
           label="Day of Week" 
           value={formData.day_of_week || ''} 
-          onChange={handleInputChange}
+          onChange={(e) => handleInputChange('day_of_week', e.target.value)}
           required
           disabled={!!editingEntry} 
         >
@@ -251,7 +250,7 @@ const TimetableEntriesPage: React.FC = () => {
           name="period_id" 
           label="Period" 
           value={formData.period_id || ''} 
-          onChange={handleInputChange}
+          onChange={(e) => handleInputChange('period_id', e.target.value)}
           required
           disabled={!!editingEntry}
         >
@@ -264,7 +263,7 @@ const TimetableEntriesPage: React.FC = () => {
           name="subject_id" 
           label="Subject" 
           value={formData.subject_id || ''} 
-          onChange={handleInputChange}
+          onChange={(e) => handleInputChange('subject_id', e.target.value)}
           required
         >
           <option value="">Select Subject</option>
@@ -276,7 +275,7 @@ const TimetableEntriesPage: React.FC = () => {
           name="teacher_id" 
           label="Teacher" 
           value={formData.teacher_id || ''} 
-          onChange={handleInputChange}
+          onChange={(e) => handleInputChange('teacher_id', e.target.value)}
           required
         >
           <option value="">Select Teacher</option>

@@ -3,6 +3,7 @@
 // ABOUTME: Ensures all module data hooks follow the same pattern and interface
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { hasAppDataContextContract } from '../contexts/AppDataContext';
 import { useAppDataInternal } from './useAppData';
 import { DataOperation } from '../services/DataStrategyManager';
 import { globalDataConsistencyService } from '../services/DataConsistencyService';
@@ -50,6 +51,7 @@ export interface DataHookConfig<T extends EntityData> {
   entityName: string;
   initialData: T[];
   entityModule: string;
+  contextCrudName?: string;
   requiresBackend?: boolean;
   allowOffline?: boolean;
   syncPriority?: 'low' | 'normal' | 'high' | 'critical';
@@ -67,6 +69,7 @@ export function createDataHook<T extends EntityData>(
     entityName,
     initialData,
     entityModule,
+    contextCrudName,
     requiresBackend = false,
     allowOffline = true,
     syncPriority = 'normal'
@@ -91,17 +94,35 @@ export function createDataHook<T extends EntityData>(
     // Get the global app data context - handle initialization phase
     const appData = useAppDataInternal();
     
-    // Determine if we should use the global context or local state
-    // During initialization, appData might be null/undefined, so default to local state
-    const useGlobalContext = appData?.dataSource !== 'mock' && appData?.dataSource !== undefined;
-    
+    const hasGlobalContextContract = hasAppDataContextContract(appData);
+
     // Use ref to track previous data for stable comparison
     const prevGlobalDataRef = useRef<T[] | undefined>();
-    
+
     // Memoize the global entity data to prevent unnecessary re-renders
     const globalEntityData = useMemo(() => {
-      return appData?.[entityName as keyof typeof appData] as T[] | undefined;
-    }, [appData, entityName]);
+      if (!hasGlobalContextContract) {
+        return undefined;
+      }
+
+      const entityData = appData[entityName as keyof typeof appData];
+      return Array.isArray(entityData) ? entityData as T[] : undefined;
+    }, [appData, entityName, hasGlobalContextContract]);
+
+    // Determine if we should use the global context or local state.
+    // An explicitly empty array from AppDataContext is valid data and should not fall back to initialData.
+    const useGlobalContext = hasGlobalContextContract && globalEntityData !== undefined;
+    const contextCrudBaseName = contextCrudName || `${entityName.charAt(0).toUpperCase()}${entityName.slice(1)}`;
+
+    const getContextCrudMethod = (operation: 'add' | 'update' | 'delete') => {
+      if (!appData) {
+        return undefined;
+      }
+
+      const preferredMethodName = `${operation}${contextCrudBaseName}`;
+      const legacyMethodName = `${operation}${entityName.charAt(0).toUpperCase()}${entityName.slice(1)}`;
+      return appData[preferredMethodName] || appData[legacyMethodName];
+    };
     
     // Effect to synchronize data from global context, preventing infinite loops.
     useEffect(() => {
@@ -151,8 +172,8 @@ export function createDataHook<T extends EntityData>(
         }
         
         // If using global context and it has a specific create method for this entity
-        if (useGlobalContext && appData[`add${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`]) {
-          const createFn = appData[`add${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`] as Function;
+        const createFn = getContextCrudMethod('add') as Function | undefined;
+        if (useGlobalContext && createFn) {
           const result = await createFn(newItem);
           return result;
         }
@@ -201,22 +222,26 @@ export function createDataHook<T extends EntityData>(
         setError(err instanceof Error ? err : new Error(String(err)));
         throw err;
       }
-    }, [useGlobalContext, appData, entityName, requiresBackend, allowOffline, syncPriority]);
+    }, [
+      allowOffline,
+      appData,
+      contextCrudBaseName,
+      data,
+      entityName,
+      globalEntityData,
+      requiresBackend,
+      syncPriority,
+      useGlobalContext
+    ]);
     
     // Update operation
     const update = useCallback(async (id: T['id'], updates: Partial<T>): Promise<T> => {
       const startTime = performance.now();
       try {
-        // Find existing item for validation using functional update to get current state
-        let existingItem: T | undefined;
-        let currentData: T[] = [];
-        
-        setData(prev => {
-          currentData = prev;
-          existingItem = prev.find(item => item.id === id);
-          return prev; // No state change, just accessing current value
-        });
-        
+        // Find existing item for validation from the active data source.
+        const currentData = useGlobalContext && globalEntityData ? globalEntityData : data;
+        const existingItem = currentData.find(item => item.id === id);
+
         if (!existingItem) {
           throw new Error(`Entity with ID ${id} not found`);
         }
@@ -241,8 +266,8 @@ export function createDataHook<T extends EntityData>(
         }
 
         // If using global context and it has a specific update method for this entity
-        if (useGlobalContext && appData[`update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`]) {
-          const updateFn = appData[`update${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`] as Function;
+        const updateFn = getContextCrudMethod('update') as Function | undefined;
+        if (useGlobalContext && updateFn) {
           const result = await updateFn(id, updates);
           return result;
         }
@@ -300,22 +325,26 @@ export function createDataHook<T extends EntityData>(
         setError(err instanceof Error ? err : new Error(String(err)));
         throw err;
       }
-    }, [useGlobalContext, appData, entityName, requiresBackend, allowOffline, syncPriority]);
+    }, [
+      allowOffline,
+      appData,
+      contextCrudBaseName,
+      data,
+      entityName,
+      globalEntityData,
+      requiresBackend,
+      syncPriority,
+      useGlobalContext
+    ]);
     
     // Remove operation
     const remove = useCallback(async (id: T['id']): Promise<boolean> => {
       const startTime = performance.now();
       try {
-        // Find existing item for validation using functional update to get current state
-        let existingItem: T | undefined;
-        let currentData: T[] = [];
-        
-        setData(prev => {
-          currentData = prev;
-          existingItem = prev.find(item => item.id === id);
-          return prev; // No state change, just accessing current value
-        });
-        
+        // Find existing item for validation from the active data source.
+        const currentData = useGlobalContext && globalEntityData ? globalEntityData : data;
+        const existingItem = currentData.find(item => item.id === id);
+
         if (!existingItem) {
           throw new Error(`Entity with ID ${id} not found`);
         }
@@ -337,8 +366,8 @@ export function createDataHook<T extends EntityData>(
         }
 
         // If using global context and it has a specific delete method for this entity
-        if (useGlobalContext && appData[`delete${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`]) {
-          const deleteFn = appData[`delete${entityName.charAt(0).toUpperCase() + entityName.slice(1)}`] as Function;
+        const deleteFn = getContextCrudMethod('delete') as Function | undefined;
+        if (useGlobalContext && deleteFn) {
           const result = await deleteFn(id);
           return result;
         }
@@ -387,7 +416,15 @@ export function createDataHook<T extends EntityData>(
         setError(err instanceof Error ? err : new Error(String(err)));
         throw err;
       }
-    }, [useGlobalContext, appData, entityName, requiresBackend, allowOffline, syncPriority]);
+    }, [
+      allowOffline,
+      appData,
+      contextCrudBaseName,
+      entityName,
+      requiresBackend,
+      syncPriority,
+      useGlobalContext
+    ]);
     
     // Batch create operation
     const createMany = useCallback(async (items: Partial<T>[]): Promise<T[]> => {

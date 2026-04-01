@@ -2,18 +2,17 @@
 // ABOUTME: Updated to support both old and new tab systems via feature flags
 
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { UserProvider } from './contexts/UserContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { UnifiedConfigProvider } from './contexts/UnifiedConfigContext';
+import { useAuth } from './contexts/AuthContext';
 import { useUnifiedConfig } from './hooks/useUnifiedConfig';
 import { useDynamicNavigation } from './hooks/useDynamicNavigation';
 import { useRBAC } from './hooks/useRBAC';
 import { initializeModules } from './core/moduleLoader';
 import { initializeTheme } from './hooks/useTheme';
 import { getStoredRouteFromSession, useRoutePersistence } from './hooks/useRoutePersistence';
-import { debugLog } from './utils';
+import { debugLog, warnLog, errorLog } from './utils';
 import Spinner from './components/ui/Spinner';
 import { moduleRegistry } from './core/moduleRegistry';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -21,12 +20,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { UnifiedAppConfig } from './config/unifiedConfig';
 import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from './hooks/useMemoryManagement';
-import { StableActionProvider } from './contexts/StableActionProvider';
 import { ToastProvider } from './hooks/useToast';
-import { NetworkProvider } from './contexts/NetworkContext';
-import { SyncProvider } from './contexts/SyncContext';
+import { AppProviders } from './contexts/AppProviders';
 import { featureFlags } from './config/featureFlags';
-import { uds } from './services/data';
 import { performanceEventManager } from './services/performanceEventManager';
 
 // Layout components - choose based on feature flag
@@ -62,11 +58,11 @@ const pageModules = {
 
 // Debug: Log available page modules
 const allPageKeys = Object.keys(pageModules);
-console.log('📦 [App] Total page modules loaded:', allPageKeys.length);
-console.log('📦 [App] Sample keys:', allPageKeys.slice(0, 5));
+debugLog('📦 [App] Total page modules loaded:', allPageKeys.length);
+debugLog('📦 [App] Sample keys:', allPageKeys.slice(0, 5));
 const settingsPages = allPageKeys.filter(k => k.includes('/settings/pages/'));
-console.log('📦 [App] Settings pages available:', settingsPages.length);
-settingsPages.forEach(page => console.log('  -', page));
+debugLog('📦 [App] Settings pages available:', settingsPages.length);
+settingsPages.forEach(page => debugLog('  -', page));
 
 // Dashboard modules for dynamic loading
 const dashboardModules = {
@@ -74,10 +70,10 @@ const dashboardModules = {
 };
 
 const getPageComponent = (navItem: any) => {
-  console.log('🔍 [App] Looking up page component for:', navItem.page, 'path:', navItem.path);
+  debugLog('🔍 [App] Looking up page component for:', navItem.page, 'path:', navItem.path);
   
   if (!navItem.page) {
-    console.log('❌ [App] No page specified for nav item:', navItem);
+    debugLog('❌ [App] No page specified for nav item:', navItem);
     return null;
   }
 
@@ -97,7 +93,7 @@ const getPageComponent = (navItem: any) => {
   
   for (const key of possibleKeys) {
     if (pageModules[key]) {
-      console.log('✅ [App] Found component via key:', key);
+      debugLog('✅ [App] Found component via key:', key);
       return React.lazy(pageModules[key]);
     }
   }
@@ -113,7 +109,7 @@ const getPageComponent = (navItem: any) => {
   });
   
   if (matchingKey) {
-    console.log('✅ [App] Found component via fallback search:', matchingKey);
+    debugLog('✅ [App] Found component via fallback search:', matchingKey);
     return React.lazy(pageModules[matchingKey]);
   }
   
@@ -122,9 +118,9 @@ const getPageComponent = (navItem: any) => {
     k.includes(`/modules/${moduleDir}/pages/`) || 
     k.includes(`/${moduleDir}/pages/`)
   );
-  console.log('❌ [App] Component not found for:', navItem.page);
-  console.log('❌ [App] Tried keys:', possibleKeys);
-  console.log('🔍 [App] Available keys for', moduleDir, ':', availableKeys.slice(0, 20));
+  debugLog('❌ [App] Component not found for:', navItem.page);
+  debugLog('❌ [App] Tried keys:', possibleKeys);
+  debugLog('🔍 [App] Available keys for', moduleDir, ':', availableKeys.slice(0, 20));
   return null;
 };
 
@@ -137,8 +133,8 @@ const DynamicRoutes = ({
   userId?: string;
   userRole?: string;
 }) => {
-  console.log('🔍 [DynamicRoutes] Component is rendering! modulesInitialized:', modulesInitialized);
-  console.log('🔍 [DynamicRoutes] Modules initialized:', modulesInitialized);
+  debugLog('🔍 [DynamicRoutes] Component is rendering! modulesInitialized:', modulesInitialized);
+  debugLog('🔍 [DynamicRoutes] Modules initialized:', modulesInitialized);
   // Helper function to generate deprecated route redirects dynamically
   const generateDeprecatedRouteRedirects = (): React.ReactElement[] => {
     const deprecatedRoutes: React.ReactElement[] = [];
@@ -170,7 +166,7 @@ const DynamicRoutes = ({
 
   useEffect(() => {
     if (modulesInitialized && navigationItems.length > 0) {
-      console.log('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
+      debugLog('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
     }
   }, [modulesInitialized, navigationItems.length]);
 
@@ -415,9 +411,9 @@ const DynamicRoutes = ({
       {navigationItems
         .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
         .flatMap(module => {
-          console.log('🗺️ [DynamicRoutes] Processing module:', module.name, 'children:', module.children?.length);
+          debugLog('🗺️ [DynamicRoutes] Processing module:', module.name, 'children:', module.children?.length);
           return (module.children || []).map(nav => {
-            console.log('🗺️ [DynamicRoutes] Processing nav item:', {
+            debugLog('🗺️ [DynamicRoutes] Processing nav item:', {
               name: nav.name,
               path: nav.path,
               page: nav.page,
@@ -426,11 +422,11 @@ const DynamicRoutes = ({
             
             const PageComponent = getPageComponent(nav);
             if (!PageComponent) {
-              console.warn('⚠️ [DynamicRoutes] No component found for:', nav.path, 'page:', nav.page);
+              warnLog('⚠️ [DynamicRoutes] No component found for:', nav.path, 'page:', nav.page);
               return null;
             }
             
-            console.log('✅ [DynamicRoutes] Creating route for:', nav.path, 'with component:', nav.page);
+            debugLog('✅ [DynamicRoutes] Creating route for:', nav.path, 'with component:', nav.page);
             
             const modulePath = nav.modulePath?.replace('/', '') || '';
             const moduleName = modulePath || nav.path.split('/')[1] || '';
@@ -570,74 +566,6 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   );
 };
 
-// Data provider wrapper with feature flag
-const DataProviderWrapper: React.FC<{ config: UnifiedAppConfig; children: React.ReactNode }> = ({ config: _config, children }) => {
-  void _config;
-  // Always proceed with app even if UDS fails - use fallback
-  const [udsInitialized, setUdsInitialized] = useState(true); // Always start as true to prevent hanging
-  
-  useEffect(() => {
-    if (featureFlags.useUnifiedDataService) {
-      debugLog('🚀 [App] Initializing Unified Data Service...');
-      
-      // CRITICAL FIX: Use 'standalone' mode with PouchDB for data persistence (CRIT-001)
-      // This replaces the mock provider with real IndexedDB-backed PouchDB
-      // Add timeout to prevent hanging
-      const initializationPromise = uds.initialize('standalone', { 
-        pouchdb: {
-          localDbName: 'schoolpilot_standalone',
-        }
-      });
-      
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('UDS initialization timeout')), 10000); // 10 second timeout
-      });
-      
-      Promise.race([initializationPromise, timeoutPromise])
-        .then(() => {
-          setUdsInitialized(true);
-          debugLog('✅ [App] Unified Data Service initialized');
-        })
-        .catch(error => {
-          console.warn('⚠️ [App] UDS initialization failed or timed out, falling back to mock:', error);
-          // Fall back to old system gracefully
-          setUdsInitialized(true);
-        });
-      
-      return () => {
-        uds.destroy();
-      };
-    }
-  }, []);
-  
-  if (!udsInitialized) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Initializing data layer...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  // Use existing AppDataProvider for now (legacy)
-  const AppDataProvider = lazy(() => import('./contexts/AppDataContext').then(module => ({ default: module.AppDataProvider })));
-  
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <Spinner size="lg" />
-          <p className="mt-4 text-gray-600">Loading data layer...</p>
-        </div>
-      </div>
-    }>
-      <AppDataProvider>{children}</AppDataProvider>
-    </Suspense>
-  );
-};
-
 // Main consolidated App component
 const AppInner: React.FC = () => {
   const { config } = useUnifiedConfig();
@@ -648,7 +576,7 @@ const AppInner: React.FC = () => {
   useEffect(() => {
     initializeTheme();
   }, []);
-  
+
   // Performance monitoring for the main app
   const { measureAsync } = usePerformanceMonitoring({
     componentName: 'App',
@@ -669,53 +597,39 @@ const AppInner: React.FC = () => {
       if (!initializedRef.current) {
         debugLog('🚀 [App] Initializing modules...');
         initializedRef.current = true;
-        
+
         try {
           const emergencyTimeout = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Emergency module loading timeout')), 8000);
           });
-          
+
           await measureAsync(
             () => Promise.race([initializeModules(), emergencyTimeout]),
             'module_initialization'
           );
-          
+
           const registeredModules = moduleRegistry.getAllModules();
           const enabledModules = moduleRegistry.getEnabledModules();
-          
+
           const navigationItems = moduleRegistry.getNavigationItems();
-          
-          console.log(`📊 [App] Module verification complete: ${registeredModules.length} total, ${enabledModules.length} enabled, ${navigationItems.length} nav items`);
-          
+
+          debugLog(`📊 [App] Module verification complete: ${registeredModules.length} total, ${enabledModules.length} enabled, ${navigationItems.length} nav items`);
+
           setModulesInitialized(true);
         } catch (error) {
-          console.error('❌ [App] Module initialization failed:', error);
+          errorLog('❌ [App] Module initialization failed:', error);
           setModulesInitialized(true);
         }
       }
     };
-    
+
     init();
   }, [measureAsync]);
 
   return (
-    <HashRouter>
-      <NetworkProvider>
-        <SyncProvider>
-          <DataProviderWrapper config={config}>
-            <AuthProvider>
-              <UserProvider>
-                <ErrorBoundary>
-                  <StableActionProvider>
-                    <AppContent modulesInitialized={modulesInitialized} config={config} />
-                  </StableActionProvider>
-                </ErrorBoundary>
-              </UserProvider>
-            </AuthProvider>
-          </DataProviderWrapper>
-        </SyncProvider>
-      </NetworkProvider>
-    </HashRouter>
+    <AppProviders modulesInitialized={modulesInitialized}>
+      <AppContent modulesInitialized={modulesInitialized} config={config} />
+    </AppProviders>
   );
 };
 
@@ -740,3 +654,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

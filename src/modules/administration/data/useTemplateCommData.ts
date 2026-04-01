@@ -1,37 +1,67 @@
-// ABOUTME: Self-contained hook for templatecomm data management
-// ABOUTME: Provides CRUD operations for templatecomm without depending on AppDataContext
+// ABOUTME: Self-contained hook for communication template data management.
+// ABOUTME: Provides CRUD operations plus page-friendly aliases for administration pages.
 
-import { useState, useEffect } from 'react';
-import { initialMockTemplateComms } from '../../administration/data/mockData';
+import { useState } from 'react';
+import { initialMockTemplateComms } from './mockData';
 import { AdminTemplateCommType } from './types';
+
+const createTimestamp = () => new Date().toISOString();
 
 export const useTemplateCommData = () => {
   const [data, setData] = useState<AdminTemplateCommType[]>(initialMockTemplateComms);
 
   const create = async (newItem: Partial<AdminTemplateCommType>) => {
+    const timestamp = createTimestamp();
     const newDataItem: AdminTemplateCommType = {
-      ...newItem,
+      ...(newItem as AdminTemplateCommType),
       id: Date.now(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as AdminTemplateCommType;
-    setData((prev: AdminTemplateCommType[]) => [...prev, newDataItem]);
+      created_at: timestamp,
+      updated_at: timestamp
+    };
+
+    setData((previousTemplates) => [...previousTemplates, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<AdminTemplateCommType>) => {
-    setData((prev: AdminTemplateCommType[]) => prev.map((item: AdminTemplateCommType) => 
-      item.id === id 
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
-        : item
-    ));
+  const update = async (
+    idOrRecord: number | AdminTemplateCommType,
+    updatedData?: Partial<AdminTemplateCommType>
+  ) => {
+    const recordToPersist =
+      typeof idOrRecord === 'object'
+        ? idOrRecord
+        : ({ id: idOrRecord, ...(updatedData || {}) } as AdminTemplateCommType);
+
+    let updatedTemplate: AdminTemplateCommType | undefined;
+
+    setData((previousTemplates) =>
+      previousTemplates.map((template) => {
+        if (template.id !== recordToPersist.id) {
+          return template;
+        }
+
+        updatedTemplate = {
+          ...template,
+          ...recordToPersist,
+          updated_at: createTimestamp()
+        };
+
+        return updatedTemplate;
+      })
+    );
+
+    return updatedTemplate;
   };
 
   const remove = async (id: number) => {
-    setData((prev: AdminTemplateCommType[]) => prev.filter((item: AdminTemplateCommType) => item.id !== id));
+    setData((previousTemplates) => previousTemplates.filter((template) => template.id !== id));
   };
 
   return {
+    templateComms: data,
+    addTemplateComm: create,
+    updateTemplateComm: update,
+    deleteTemplateComm: remove,
     data,
     create,
     update,
@@ -39,5 +69,4 @@ export const useTemplateCommData = () => {
   };
 };
 
-// Mark this as a global provider for cross-module use
 export const isGlobalProvider = true;

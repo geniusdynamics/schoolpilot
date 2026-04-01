@@ -10,6 +10,13 @@ export const useBookData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const normalizeBook = (book: LibBookType): LibBookType => ({
+    ...book,
+    damaged_status: book.damaged_status ?? book.status === 'Damaged',
+    lost_status: book.lost_status ?? book.status === 'Lost',
+    is_digital: book.is_digital ?? Boolean(book.digital_access_url),
+  });
+
   useEffect(() => {
     let subscription: any = null;
     
@@ -20,7 +27,7 @@ export const useBookData = () => {
         const db = await getDatabase();
         subscription = db.collections.books.find().$.subscribe(books => {
           if (books) {
-            setData(books);
+            setData(books.map(normalizeBook));
           }
           setIsLoading(false);
         });
@@ -48,7 +55,7 @@ export const useBookData = () => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       } as LibBookType);
-      return book;
+      return normalizeBook(book as unknown as LibBookType);
     } catch (err) {
       throw err instanceof Error ? err : new Error('Failed to create book');
     }
@@ -107,15 +114,15 @@ export const useBookData = () => {
   };
 
   const getDamagedBooks = async () => {
-    return data.filter(book => book.damaged_status === true);
+    return data.filter(book => normalizeBook(book).damaged_status === true);
   };
 
   const getLostBooks = async () => {
-    return data.filter(book => book.lost_status === true);
+    return data.filter(book => normalizeBook(book).lost_status === true);
   };
 
   const getDigitalBooks = async () => {
-    return data.filter(book => book.is_digital === true);
+    return data.filter(book => normalizeBook(book).is_digital === true);
   };
 
   const getBooksByAvailabilityStatus = async (status: string) => {

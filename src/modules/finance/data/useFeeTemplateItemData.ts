@@ -1,5 +1,5 @@
-// ABOUTME: Self-contained hook for any data management
-// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
+// ABOUTME: Self-contained hook for fee template item data management.
+// ABOUTME: Provides CRUD operations for fee template items without depending on AppDataContext.
 
 import { useState, useEffect } from 'react';
 import { initialMockFeeTemplateItems } from './mockData';
@@ -15,7 +15,7 @@ const useFeeTemplateItemData = () => {
       // Simulate fetching data from a mock source
       setFeeTemplateItems(initialMockFeeTemplateItems);
       setIsLoading(false);
-    } catch (e) {
+    } catch {
       setError('Failed to fetch fee template items');
       setIsLoading(false);
     }
@@ -24,7 +24,7 @@ const useFeeTemplateItemData = () => {
   const create = async (newItem: Partial<FinFeeTemplateItemType>) => {
     const newDataItem: FinFeeTemplateItemType = {
       ...newItem,
-      id: Date.now(),
+      id: `FTI_${Date.now()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as FinFeeTemplateItemType;
@@ -32,7 +32,7 @@ const useFeeTemplateItemData = () => {
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<FinFeeTemplateItemType>) => {
+  const update = async (id: string, updatedData: Partial<FinFeeTemplateItemType>) => {
     setFeeTemplateItems((prev: FinFeeTemplateItemType[]) => prev.map((item: FinFeeTemplateItemType) =>
       item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
@@ -40,7 +40,7 @@ const useFeeTemplateItemData = () => {
     ));
   };
 
-  const remove = async (id: number) => {
+  const remove = async (id: string) => {
     setFeeTemplateItems((prev: FinFeeTemplateItemType[]) => prev.filter((item: FinFeeTemplateItemType) => item.id !== id));
   };
 

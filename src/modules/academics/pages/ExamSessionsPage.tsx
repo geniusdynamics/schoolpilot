@@ -30,6 +30,12 @@ const ExamSessionsPage: React.FC = () => {
     schoolPeriods, 
     subjectPapers, 
     loading, 
+    addExamSession,
+    updateExamSession,
+    deleteExamSession,
+    addExamPaperSetting,
+    updateExamPaperSetting,
+    deleteExamPaperSetting
   } = useAppData();
 
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
@@ -49,6 +55,13 @@ const ExamSessionsPage: React.FC = () => {
   const initialPaperSettingFormData: PaperSettingFormData = { subject_paper_id: undefined, marks_out_of: 100, weight_percentage: 100 };
   const [paperSettingFormData, setPaperSettingFormData] = useState<PaperSettingFormData>(initialPaperSettingFormData);
 
+  const activeSessionForPapers = useMemo(() => {
+    if (!currentSessionForPapers) {
+      return null;
+    }
+
+    return examSessions.find((session) => session.id === currentSessionForPapers.id) || currentSessionForPapers;
+  }, [currentSessionForPapers, examSessions]);
 
   // Session Modal
   const openSessionModal = (session?: ExamSession) => {
@@ -95,7 +108,9 @@ const ExamSessionsPage: React.FC = () => {
     const { name, value } = e.target;
     setPaperSettingFormData(prev => ({ 
         ...prev, 
-        [name]: name === 'subject_paper_id' || name === 'marks_out_of' || name === 'weight_percentage' ? parseFloat(value) : value 
+        [name]: name === 'subject_paper_id' || name === 'marks_out_of' || name === 'weight_percentage'
+          ? (value === '' ? undefined : parseFloat(value))
+          : value 
     }));
   };
 
@@ -111,52 +126,84 @@ const ExamSessionsPage: React.FC = () => {
       status: sessionFormData.status!,
     };
 
-    if (editingSession) {
-      // TODO: Implement updateExamSession when available in context
-    } else {
-      // TODO: Implement addExamSession when available in context
+    try {
+      if (editingSession) {
+        await updateExamSession(editingSession.id, payload);
+      } else {
+        await addExamSession(payload);
+      }
+      closeSessionModal();
+    } catch (error) {
+      console.error('Failed to save exam session:', error);
+      alert('Unable to save the exam session. Please try again.');
     }
-    closeSessionModal();
   };
   
   const handlePaperSettingSubmit = async () => {
-    if (!currentSessionForPapers || !paperSettingFormData.subject_paper_id || paperSettingFormData.marks_out_of === undefined || paperSettingFormData.weight_percentage === undefined) {
+    if (!activeSessionForPapers || !paperSettingFormData.subject_paper_id || paperSettingFormData.marks_out_of === undefined || paperSettingFormData.weight_percentage === undefined) {
       alert(t('validation.subjectPaperMarksOutOfAndWeightPercentageAreRequired'));
       return;
     }
+
+    const marksOutOf = Number(paperSettingFormData.marks_out_of);
+    const weightPercentage = Number(paperSettingFormData.weight_percentage);
+    const hasDuplicatePaper = (activeSessionForPapers.paper_settings || []).some((setting) =>
+      setting.subject_paper_id === Number(paperSettingFormData.subject_paper_id) &&
+      setting.id !== editingPaperSetting?.id
+    );
+
+    if (marksOutOf <= 0 || weightPercentage <= 0) {
+      alert('Marks out of and weight percentage must be greater than zero.');
+      return;
+    }
+
+    if (hasDuplicatePaper) {
+      alert('This subject paper is already configured for the selected exam session.');
+      return;
+    }
+
     const payload: Omit<ExamPaperSetting, 'id' | 'created_at' | 'updated_at' | 'subject_paper_name' | 'subject_name'> = {
-      exam_session_id: currentSessionForPapers.id,
+      exam_session_id: activeSessionForPapers.id,
       subject_paper_id: Number(paperSettingFormData.subject_paper_id!),
-      marks_out_of: Number(paperSettingFormData.marks_out_of),
-      weight_percentage: Number(paperSettingFormData.weight_percentage),
+      marks_out_of: marksOutOf,
+      weight_percentage: weightPercentage,
     };
 
-    if (editingPaperSetting) {
-      // TODO: Implement updateExamPaperSetting when available in context
-    } else {
-      // TODO: Implement addExamPaperSetting when available in context
+    try {
+      if (editingPaperSetting) {
+        await updateExamPaperSetting(editingPaperSetting.id, payload);
+      } else {
+        await addExamPaperSetting(payload);
+      }
+      setEditingPaperSetting(null); 
+      setPaperSettingFormData(initialPaperSettingFormData); 
+    } catch (error) {
+      console.error('Failed to save exam paper setting:', error);
+      alert('Unable to save the paper setting. Please try again.');
     }
-    
-    const updatedSession = examSessions.find(es => es.id === currentSessionForPapers.id);
-    if(updatedSession) setCurrentSessionForPapers(updatedSession);
-    
-    setEditingPaperSetting(null); 
-    setPaperSettingFormData(initialPaperSettingFormData); 
   };
 
 
   const handleDeleteSession = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this exam session? This will also delete all its paper settings and might affect related results.')) {
-      // TODO: Implement deleteExamSession when available in context
+      try {
+        await deleteExamSession(id);
+      } catch (error) {
+        console.error('Failed to delete exam session:', error);
+        alert('Unable to delete the exam session. Please try again.');
+      }
     }
   };
 
   const handleDeletePaperSetting = async (paperSettingId: string) => {
-      if (!currentSessionForPapers) return;
+      if (!activeSessionForPapers) return;
       if (window.confirm('Are you sure you want to delete this paper setting?')) {
-          // TODO: Implement deleteExamPaperSetting when available in context
-           const updatedSession = examSessions.find(es => es.id === currentSessionForPapers.id);
-           if(updatedSession) setCurrentSessionForPapers(updatedSession);
+          try {
+            await deleteExamPaperSetting(paperSettingId);
+          } catch (error) {
+            console.error('Failed to delete exam paper setting:', error);
+            alert('Unable to delete the paper setting. Please try again.');
+          }
       }
   };
 
@@ -197,7 +244,7 @@ const ExamSessionsPage: React.FC = () => {
       header: 'Actions',
       render: (value: any, item: ExamPaperSetting) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openPaperSettingModal(currentSessionForPapers!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="ghost" onClick={() => activeSessionForPapers && openPaperSettingModal(activeSessionForPapers, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeletePaperSetting(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
         </div>
       ),
@@ -270,11 +317,11 @@ const ExamSessionsPage: React.FC = () => {
       <Modal 
         isOpen={isPaperSettingModalOpen} 
         onClose={closePaperSettingModal} 
-        title={`Manage Paper Settings for: ${currentSessionForPapers?.name || ''}`} 
+        title={`Manage Paper Settings for: ${activeSessionForPapers?.name || ''}`} 
         size="xl"
         footer={<Button variant="secondary" onClick={closePaperSettingModal}>Done</Button>}
       >
-        {currentSessionForPapers && (
+        {activeSessionForPapers && (
           <div className="space-y-4">
             <Card title="Add/Edit Paper Setting">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -295,7 +342,7 @@ const ExamSessionsPage: React.FC = () => {
             <h4 className="text-md font-semibold text-gray-700 mt-6">Configured Papers for this Session</h4>
             <DataGrid 
               columns={paperSettingColumns} 
-              data={currentSessionForPapers.paper_settings || []} 
+              data={activeSessionForPapers.paper_settings || []} 
             />
           </div>
         )}

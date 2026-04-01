@@ -3,23 +3,9 @@
 
 import { getDataLayerConfig } from '../config/dataLayerConfig';
 import { DatabaseProviderFactory, getDatabaseProviderFactory, ProviderType } from './database/DatabaseProviderFactory';
-import { DatabaseConfig, QueryOptions } from './database/interfaces';
-import { DataGenerationConfig } from './dataGeneration/types';
+import { DatabaseConfig } from './database/interfaces';
 import { EventEmitter } from 'events';
-import {
-  AdministrationGenerator,
-  AcademicsGenerator,
-  FinancialGenerator,
-  ClubsGenerator,
-  DormitoryGenerator,
-  LibraryGenerator,
-  NutritionGenerator,
-  PayrollGenerator,
-  InventoryGenerator,
-  TransportGenerator,
-  HealthGenerator,
-  CommunicationGenerator
-} from './dataGeneration/generators/index';
+import { REQUIRED_SCHOOL_COLLECTIONS, seedProviderWithDemoData } from './database/demoDataSeed';
 
 export type DataMode = 'development' | 'demo' | 'production';
 
@@ -44,14 +30,6 @@ export interface DataModeStatus {
   dataCount: number;
   lastSwitched: Date;
   isTransitioning: boolean;
-}
-
-export interface SeedDataConfig {
-  students: any[];
-  teachers: any[];
-  classes: any[];
-  subjects: any[];
-  assignments: any[];
 }
 
 export class DataModeManager extends EventEmitter {
@@ -206,12 +184,11 @@ export class DataModeManager extends EventEmitter {
         throw new Error('No active database provider');
       }
 
-      // Get all collections and clear them
-      const collections = ['students', 'teachers', 'classes', 'subjects', 'assignments', 'grades', 'attendance'];
+      const collections = Array.from(new Set([...REQUIRED_SCHOOL_COLLECTIONS, 'departments', 'designations', 'student_categories', 'dormitories', 'academic_years', 'school_periods', 'subjects']));
       
       for (const collectionName of collections) {
         try {
-          const collection = await provider.getCollection(collectionName);
+          const collection = provider.getCollection(collectionName);
           if (collection) {
             try {
               // ICollection.removeMany takes QueryOptions with a selector, {} removes all matched docs
@@ -282,159 +259,16 @@ export class DataModeManager extends EventEmitter {
         throw new Error('No active database provider');
       }
 
-      console.log(`[DataModeManager] Seeding comprehensive demo data (volume: ${volume})...`);
+      const stats = await seedProviderWithDemoData(provider, {
+        volume,
+        clearExisting: true
+      });
 
-      interface VolumePreset {
-        students: number; staff: number; subjects: number; classes: number;
-        books: number; suppliers: number; vehicles: number; inventoryItems: number;
-        dormitories: number; clubs: number; mealPlans: number; healthRecords: number;
-        communications: number;
-      }
-      const volumePresets: Record<'tiny' | 'small' | 'medium' | 'large' | 'enterprise', VolumePreset> = {
-        tiny:       { students: 30,  staff: 10,  subjects: 12, classes: 4,  books: 50,   suppliers: 5,   vehicles: 3,   inventoryItems: 30,  dormitories: 2,  clubs: 5,   mealPlans: 3,  healthRecords: 30,  communications: 20   },
-        small:      { students: 150, staff: 30,  subjects: 20, classes: 8,  books: 300,  suppliers: 15,  vehicles: 8,   inventoryItems: 100, dormitories: 5,  clubs: 12,  mealPlans: 5,  healthRecords: 150, communications: 100  },
-        medium:     { students: 500, staff: 75,  subjects: 30, classes: 20, books: 800,  suppliers: 30,  vehicles: 15,  inventoryItems: 250, dormitories: 10, clubs: 25,  mealPlans: 8,  healthRecords: 500, communications: 300  },
-        large:      { students: 1500, staff: 200, subjects: 40, classes: 50, books: 2000, suppliers: 60,  vehicles: 30,  inventoryItems: 600, dormitories: 20, clubs: 50,  mealPlans: 12, healthRecords: 1500, communications: 800 },
-        enterprise: { students: 5000, staff: 500, subjects: 50, classes: 120, books: 5000, suppliers: 100, vehicles: 60, inventoryItems: 1200, dormitories: 40, clubs: 80, mealPlans: 20, healthRecords: 5000, communications: 2000 }
-      };
-
-      const counts = volumePresets[volume];
-
-      // Full DataGenerationConfig matching the type expected by all generators
-      const generatorConfig: DataGenerationConfig = {
-        storageType: 'mock',
-        migrationMode: 'fresh',
-        batchSize: 100,
-        enableValidation: true,
-        enableRelationshipValidation: true,
-        locale: 'en_KE',
-        seedData: {
-          students: counts.students,
-          staff: counts.staff,
-          subjects: counts.subjects,
-          books: counts.books,
-          suppliers: counts.suppliers,
-          inventoryItems: counts.inventoryItems,
-          clubs: counts.clubs,
-          dormitories: counts.dormitories
-        }
-      };
-
-      // Initialize all module generators with shared config
-      const generators = {
-        administration:   new AdministrationGenerator(generatorConfig),
-        academic:         new AcademicsGenerator(generatorConfig),
-        finance:          new FinancialGenerator(generatorConfig),
-        clubs:            new ClubsGenerator(generatorConfig),
-        dormitory:        new DormitoryGenerator(generatorConfig),
-        library:          new LibraryGenerator(generatorConfig),
-        nutrition:        new NutritionGenerator(generatorConfig),
-        payroll:          new PayrollGenerator(generatorConfig),
-        inventory:        new InventoryGenerator(generatorConfig),
-        transport:        new TransportGenerator(generatorConfig),
-        health:           new HealthGenerator(generatorConfig),
-        communications:   new CommunicationGenerator(generatorConfig)
-      };
-
-      // Map module names to their count keys in the preset
-      type GeneratorKey = keyof typeof generators;
-      const countKeys: Record<GeneratorKey, keyof VolumePreset> = {
-        administration: 'staff',
-        academic: 'students',
-        finance: 'staff',
-        clubs: 'clubs',
-        dormitory: 'dormitories',
-        library: 'books',
-        nutrition: 'mealPlans',
-        payroll: 'staff',
-        inventory: 'inventoryItems',
-        transport: 'vehicles',
-        health: 'healthRecords',
-        communications: 'communications'
-      };
-
-      // Track which collections exist and which we insert into
-      const insertedCounts: Record<string, number> = {};
-
-      // Iterate through all generators and insert their data into real ICollection collections
-      for (const [moduleName, generator] of Object.entries(generators)) {
-        try {
-          const countKey = countKeys[moduleName as GeneratorKey];
-          const count = counts[countKey] || 10;
-          const generatedData = await generator.generateData(count);
-          
-          if (!generatedData || generatedData.length === 0) {
-            console.warn(`[DataModeManager] No data generated for module: ${moduleName}`);
-            continue;
-          }
-
-          // Group by table name (each item is { table: string, data: object })
-          const tableGroups = new Map<string, any[]>();
-          for (const item of generatedData) {
-            if (!item || !item.table || !item.data) continue;
-            const tableName = this.normalizeTableName(item.table);
-            if (!tableGroups.has(tableName)) tableGroups.set(tableName, []);
-            tableGroups.get(tableName)!.push(item.data);
-          }
-
-          // Insert each group into the real ICollection
-          for (const [tableName, records] of tableGroups) {
-            try {
-              let collection = provider.getCollection(tableName);
-              
-              // If collection doesn't exist, create it dynamically
-              if (!collection) {
-                if (typeof provider.createCollection === 'function') {
-                  collection = await provider.createCollection(tableName, {
-                    version: 0,
-                    type: 'object',
-                    properties: {},
-                    primaryKey: 'id'
-                  } as any);
-                  console.log(`[DataModeManager] Dynamically created collection: ${tableName}`);
-                } else {
-                  console.warn(`[DataModeManager] Cannot create collection '${tableName}' — provider doesn't support it`);
-                  continue;
-                }
-              }
-
-              // Insert records using ICollection.insert (supports single or batch via insertMany)
-              if (typeof collection.insertMany === 'function') {
-                await collection.insertMany(records);
-              } else {
-                for (const record of records) {
-                  if (typeof collection.insert === 'function') {
-                    await collection.insert(record);
-                  }
-                }
-              }
-
-              insertedCounts[tableName] = (insertedCounts[tableName] || 0) + records.length;
-              console.log(`[DataModeManager] Inserted ${records.length} records into '${tableName}'`);
-            } catch (insertError) {
-              console.warn(`[DataModeManager] Failed to insert into '${tableName}':`, insertError instanceof Error ? insertError.message : String(insertError));
-            }
-          }
-        } catch (genError) {
-          console.warn(`[DataModeManager] Generator '${moduleName}' failed:`, genError instanceof Error ? genError.message : String(genError));
-          // Continue with other generators — don't fail the whole seeding
-        }
-      }
-
-      const totalRecords = Object.values(insertedCounts).reduce((sum, c) => sum + c, 0);
-      const tablesPopulated = Object.keys(insertedCounts).length;
-
-      console.log(`[DataModeManager] Demo data seeding complete: ${totalRecords} records across ${tablesPopulated} collections.`, insertedCounts);
-
-      this.emit('dataSeeded', { volume, stats: { totalRecords, tablesGenerated: Object.keys(insertedCounts), insertedCounts } });
+      this.emit('dataSeeded', { volume, stats });
     } catch (error) {
       console.error('[DataModeManager] Failed to seed demo data:', error);
       throw error;
     }
-  }
-
-  private normalizeTableName(table: string): string {
-    return table.toLowerCase().replace(/[\s-]+/g, '_').replace(/[^a-z0-9_]/g, '');
   }
 
 
@@ -464,10 +298,10 @@ export class DataModeManager extends EventEmitter {
     try {
       if (provider) {
         // Count total records across all collections
-        const collections = ['students', 'teachers', 'classes', 'subjects', 'assignments'];
+        const collections = ['students', 'staff', 'classes', 'class_streams', 'subjects'];
         for (const collectionName of collections) {
           try {
-            const collection = await provider.getCollection(collectionName);
+            const collection = provider.getCollection(collectionName);
             if (collection && typeof collection.count === 'function') {
               dataCount += await collection.count();
             }
