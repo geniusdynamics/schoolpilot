@@ -1,0 +1,2692 @@
+diff --git a/check_syntax.cjs b/check_syntax.cjs
+new file mode 100644
+index 0000000..c6a27db
+--- /dev/null
++++ b/check_syntax.cjs
+@@ -0,0 +1,15 @@
++const fs = require('fs');
++const babel = require('@babel/parser');
++const file = '/workspace/src/contexts/AppDataContext.tsx';
++const code = fs.readFileSync(file, 'utf8');
++
++try {
++  babel.parse(code, {
++    sourceType: 'module',
++    plugins: ['jsx', 'typescript']
++  });
++  console.log('Babel parse success');
++} catch (e) {
++  console.error('Babel parse error at line ' + e.loc.line + ' column ' + e.loc.column);
++  console.error(e.message);
++}
+diff --git a/clean_academics.cjs b/clean_academics.cjs
+new file mode 100644
+index 0000000..10b2487
+--- /dev/null
++++ b/clean_academics.cjs
+@@ -0,0 +1,60 @@
++const fs = require('fs');
++
++const file = '/workspace/src/contexts/AppDataContext.tsx';
++let code = fs.readFileSync(file, 'utf8');
++
++// Find the start of the academics methods
++const startStr = "const getTimetablePeriodDefs = useCallback(";
++const endStr = "  const deleteTimetableEntry = useCallback(async (entryId: string) => {\n";
++
++const startIndex = code.indexOf(startStr);
++const endIndexSearch = code.indexOf(endStr);
++
++if (startIndex > -1 && endIndexSearch > -1) {
++  // Find the end of deleteTimetableEntry
++  const endBlock = "  }, [dbManager]);";
++  const endBlockIndex = code.indexOf(endBlock, endIndexSearch);
++  
++  if (endBlockIndex > -1) {
++    const finalEndIndex = endBlockIndex + endBlock.length + 1;
++    
++    const before = code.substring(0, startIndex);
++    const after = code.substring(finalEndIndex);
++    
++    const hookCall = `
++  const {
++    getTimetablePeriodDefs,
++    getTimetableEntries,
++    getStudentAttendanceByFilters,
++    saveStudentAttendance,
++    addExamSession,
++    updateExamSession,
++    deleteExamSession,
++    addExamPaperSetting,
++    updateExamPaperSetting,
++    deleteExamPaperSetting,
++    saveStudentExamResult,
++    addTimetableEntry,
++    updateTimetableEntry,
++    deleteTimetableEntry
++  } = useAcademicsOperations(dbManager, data);
++`;
++
++    code = before + hookCall + after;
++    
++    // Make sure useAcademicsOperations is imported
++    if (!code.includes('useAcademicsOperations')) {
++      code = code.replace(
++        "import { useValidationContext } from './appData/ValidationContext';",
++        "import { useValidationContext } from './appData/ValidationContext';\nimport { useAcademicsOperations } from './appData/useAcademicsOperations';"
++      );
++    }
++    
++    fs.writeFileSync(file, code);
++    console.log('Cleaned up academics methods');
++  } else {
++    console.log('Could not find end of deleteTimetableEntry');
++  }
++} else {
++  console.log('Could not find start/end strings', {startIndex, endIndexSearch});
++}
+diff --git a/clean_context.cjs b/clean_context.cjs
+new file mode 100644
+index 0000000..a1a1948
+--- /dev/null
++++ b/clean_context.cjs
+@@ -0,0 +1,111 @@
++const fs = require('fs');
++const file = '/workspace/src/contexts/AppDataContext.tsx';
++let code = fs.readFileSync(file, 'utf8');
++
++// replace everything from `  // Create context value` down to `  // Loading state`
++const startMarker = '  // Create context value';
++const endMarker = '  // Loading state';
++
++const startIndex = code.indexOf(startMarker);
++const endIndex = code.indexOf(endMarker);
++
++if (startIndex > -1 && endIndex > -1) {
++  const before = code.substring(0, startIndex);
++  const after = code.substring(endIndex);
++  
++  const newBlock = `  // Create context value
++  const contextValue = useMemo(() => {
++    const normalizedData = normalizeAppDataCollections(data);
++    const loadingState = createAppDataLoadingState(isLoading);
++
++    return {
++      ...normalizedData,
++      isInitialized,
++      loading: loadingState,
++      error,
++      isDatabaseModeActive: isInitialized && !isLoading && !error,
++      isOnline,
++      appVersion: '1.0.0',
++      deploymentMode: dbManager.getDeploymentMode(),
++      providerType: dbManager.getProviderType(),
++      backendAvailable: networkState?.backendAvailable || false,
++      connectionQuality: networkState?.connectionQuality || 'offline',
++      networkState,
++      syncStatus,
++      refreshData,
++      getCollectionStats,
++      forceSync,
++      pauseSync,
++      resumeSync,
++      cancelSync,
++      getSyncSettings,
++      updateSyncSettings,
++      refreshCollection,
++      refreshDataWithProgress,
++      cleanupOldData,
++      getProviderCapabilities,
++      currentDataMode,
++      dataSourceDescription,
++      getDataSourceConfig,
++      updateDataStrategy,
++      saveStudentAttendance,
++      getStudentAttendanceByFilters,
++      addExamSession,
++      updateExamSession,
++      deleteExamSession,
++      addExamPaperSetting,
++      updateExamPaperSetting,
++      deleteExamPaperSetting,
++      saveStudentExamResult,
++      getTimetablePeriodDefs,
++      getTimetableEntries,
++      addTimetableEntry,
++      updateTimetableEntry,
++      deleteTimetableEntry
++    };
++  }, [
++    data,
++    isInitialized,
++    isLoading,
++    error,
++    isOnline,
++    dbManager,
++    networkState,
++    syncStatus,
++    refreshData,
++    getCollectionStats,
++    forceSync,
++    pauseSync,
++    resumeSync,
++    cancelSync,
++    getSyncSettings,
++    updateSyncSettings,
++    refreshCollection,
++    refreshDataWithProgress,
++    cleanupOldData,
++    getProviderCapabilities,
++    currentDataMode,
++    dataSourceDescription,
++    getDataSourceConfig,
++    updateDataStrategy,
++    saveStudentAttendance,
++    getStudentAttendanceByFilters,
++    addExamSession,
++    updateExamSession,
++    deleteExamSession,
++    addExamPaperSetting,
++    updateExamPaperSetting,
++    deleteExamPaperSetting,
++    saveStudentExamResult,
++    getTimetablePeriodDefs,
++    getTimetableEntries,
++    addTimetableEntry,
++    updateTimetableEntry,
++    deleteTimetableEntry
++  ]);
++
++`;
++  
++  fs.writeFileSync(file, before + newBlock + after);
++  console.log('Successfully replaced contextValue block');
++}
+diff --git a/count_braces.cjs b/count_braces.cjs
+new file mode 100644
+index 0000000..f335593
+--- /dev/null
++++ b/count_braces.cjs
+@@ -0,0 +1,27 @@
++const fs = require('fs');
++const code = fs.readFileSync('/workspace/src/contexts/AppDataContext.tsx', 'utf8');
++
++let parenCount = 0;
++let braceCount = 0;
++let bracketCount = 0;
++
++const lines = code.split('\n');
++
++for (let i = 0; i < lines.length; i++) {
++  const line = lines[i];
++  for (let j = 0; j < line.length; j++) {
++    const c = line[j];
++    if (c === '(') parenCount++;
++    else if (c === ')') parenCount--;
++    else if (c === '{') braceCount++;
++    else if (c === '}') braceCount--;
++    else if (c === '[') bracketCount++;
++    else if (c === ']') bracketCount--;
++  }
++  
++  if (parenCount < 0 || braceCount < 0 || bracketCount < 0) {
++    console.log(`Mismatch at line ${i + 1}: parens=${parenCount}, braces=${braceCount}, brackets=${bracketCount}`);
++  }
++}
++
++console.log(`Final count: parens=${parenCount}, braces=${braceCount}, brackets=${bracketCount}`);
+diff --git a/fix_appdata_brace.cjs b/fix_appdata_brace.cjs
+new file mode 100644
+index 0000000..faedbc8
+--- /dev/null
++++ b/fix_appdata_brace.cjs
+@@ -0,0 +1,10 @@
++const fs = require('fs');
++const file = '/workspace/src/contexts/AppDataContext.tsx';
++let code = fs.readFileSync(file, 'utf8');
++
++code = code.replace(
++  "    deleteTimetableEntry,\n    config.environment,\n  ]); // Removed toast from dependencies",
++  "    deleteTimetableEntry,\n    config.environment,\n    };\n  }, [\n    data,\n    isInitialized,\n    isLoading,\n    error,\n    isOnline,\n    networkState,\n    syncStatus,\n    refreshData,\n    getCollectionStats,\n    forceSync,\n    pauseSync,\n    resumeSync,\n    cancelSync,\n    getSyncSettings,\n    updateSyncSettings,\n    refreshCollection,\n    refreshDataWithProgress,\n    cleanupOldData,\n    getProviderCapabilities,\n    currentDataMode,\n    dataSourceDescription,\n    getDataSourceConfig,\n    updateDataStrategy,\n    saveStudentAttendance,\n    getStudentAttendanceByFilters,\n    addExamSession,\n    updateExamSession,\n    deleteExamSession,\n    addExamPaperSetting,\n    updateExamPaperSetting,\n    deleteExamPaperSetting,\n    saveStudentExamResult,\n    getTimetablePeriodDefs,\n    getTimetableEntries,\n    addTimetableEntry,\n    updateTimetableEntry,\n    deleteTimetableEntry,\n    config.environment,\n  ]); // Removed toast from dependencies"
++);
++
++fs.writeFileSync(file, code);
+diff --git a/fix_syntax.cjs b/fix_syntax.cjs
+new file mode 100644
+index 0000000..2222d18
+--- /dev/null
++++ b/fix_syntax.cjs
+@@ -0,0 +1,23 @@
++const fs = require('fs');
++const file = '/workspace/src/contexts/AppDataContext.tsx';
++let code = fs.readFileSync(file, 'utf8');
++
++// I will replace the end of contextValue to be perfectly clean
++const target = `    addTimetableEntry,
++    updateTimetableEntry,
++    deleteTimetableEntry
++    };
++  }, [`;
++
++const replacement = `    addTimetableEntry,
++    updateTimetableEntry,
++    deleteTimetableEntry
++    };
++  }, [`;
++
++// Wait, let's just use regex to replace the whole useMemo ending
++code = code.replace(/    deleteTimetableEntry\n    \};\n  \}, \[\s+data,[\s\S]*?config\.environment,\n  \]\);/m, 
++  `    deleteTimetableEntry\n  };\n}, [\n  data,\n  isInitialized,\n  isLoading,\n  error,\n  isOnline,\n  networkState,\n  syncStatus,\n  refreshData,\n  getCollectionStats,\n  forceSync,\n  pauseSync,\n  resumeSync,\n  cancelSync,\n  getSyncSettings,\n  updateSyncSettings,\n  refreshCollection,\n  refreshDataWithProgress,\n  cleanupOldData,\n  getProviderCapabilities,\n  currentDataMode,\n  dataSourceDescription,\n  getDataSourceConfig,\n  updateDataStrategy,\n  saveStudentAttendance,\n  getStudentAttendanceByFilters,\n  addExamSession,\n  updateExamSession,\n  deleteExamSession,\n  addExamPaperSetting,\n  updateExamPaperSetting,\n  deleteExamPaperSetting,\n  saveStudentExamResult,\n  getTimetablePeriodDefs,\n  getTimetableEntries,\n  addTimetableEntry,\n  updateTimetableEntry,\n  deleteTimetableEntry\n]);`
++);
++
++fs.writeFileSync(file, code);
+diff --git a/refactor_academics.cjs b/refactor_academics.cjs
+new file mode 100644
+index 0000000..e9530fb
+--- /dev/null
++++ b/refactor_academics.cjs
+@@ -0,0 +1,54 @@
++const fs = require('fs');
++
++const file = '/workspace/src/contexts/AppDataContext.tsx';
++let code = fs.readFileSync(file, 'utf8');
++
++code = code.replace(
++  "import {\n  createAppDataLoadingState,\n  normalizeAppDataCollections\n} from './appData/appDataCollections';",
++  "import {\n  createAppDataLoadingState,\n  normalizeAppDataCollections\n} from './appData/appDataCollections';\nimport { useAcademicsOperations } from './appData/useAcademicsOperations';"
++);
++
++// Remove getNormalizedData to deleteTimetableEntry (lines ~800 to 1180)
++// It's safer to use regex to strip out these methods since they are now in the hook
++
++const startPattern = /  const getNormalizedData = useCallback\(\(\) => normalizeAppDataCollections\(data\), \[data\]\);\n/;
++const endPattern = /  const contextValue = useMemo\(\(\) => \{/;
++
++const matchStart = code.match(startPattern);
++const matchEnd = code.match(endPattern);
++
++if (matchStart && matchEnd) {
++  const startIndex = matchStart.index;
++  const endIndex = matchEnd.index;
++  
++  const before = code.substring(0, startIndex);
++  const after = code.substring(endIndex);
++  
++  // Inject the hook call
++  const hookCall = `
++  const {
++    getTimetablePeriodDefs,
++    getTimetableEntries,
++    getStudentAttendanceByFilters,
++    saveStudentAttendance,
++    addExamSession,
++    updateExamSession,
++    deleteExamSession,
++    addExamPaperSetting,
++    updateExamPaperSetting,
++    deleteExamPaperSetting,
++    saveStudentExamResult,
++    addTimetableEntry,
++    updateTimetableEntry,
++    deleteTimetableEntry
++  } = useAcademicsOperations(dbManager, data);
++
++`;
++
++  code = before + hookCall + after;
++  fs.writeFileSync(file, code);
++  console.log('Academics methods removed from AppDataContext');
++} else {
++  console.log('Could not find patterns to remove academics methods');
++}
++
+diff --git a/refactor_appdata.cjs b/refactor_appdata.cjs
+new file mode 100644
+index 0000000..d8d32eb
+--- /dev/null
++++ b/refactor_appdata.cjs
+@@ -0,0 +1,47 @@
++const fs = require('fs');
++
++const file = '/workspace/src/contexts/AppDataContext.tsx';
++let code = fs.readFileSync(file, 'utf8');
++
++// 1. Add imports for DomainContexts
++code = code.replace(
++  "import { ValidationProvider, useValidationContext } from './appData/ValidationContext';",
++  "import { ValidationProvider, useValidationContext } from './appData/ValidationContext';\nimport { useCoreDomain, useAcademicsDomain, useHRDomain, useFinanceDomain, useInventoryDomain, useSharedDomain } from './appData/domainContexts';"
++);
++
++// 2. Remove useState for data
++code = code.replace(
++  "const [data, setData] = useState<Record<string, any[]>>({});\n",
++  ""
++);
++
++// 3. Inside AppDataProvider, consume Domain Contexts
++code = code.replace(
++  "const [isOnline, setIsOnline] = useState(navigator.onLine);",
++  "const [isOnline, setIsOnline] = useState(navigator.onLine);\n\n  // Consume Domain Contexts\n  const coreDomain = useCoreDomain();\n  const academicsDomain = useAcademicsDomain();\n  const hrDomain = useHRDomain();\n  const financeDomain = useFinanceDomain();\n  const inventoryDomain = useInventoryDomain();\n  const sharedDomain = useSharedDomain();\n\n  // Reconstruct the legacy data object for internal operations if needed\n  const data = useMemo(() => ({\n    ...coreDomain,\n    ...academicsDomain,\n    ...hrDomain,\n    ...financeDomain,\n    ...inventoryDomain,\n    ...sharedDomain\n  }), [coreDomain, academicsDomain, hrDomain, financeDomain, inventoryDomain, sharedDomain]);\n"
++);
++
++// 4. Remove loadAllCollections completely
++code = code.replace(/  \/\/ Load data from all collections[\s\S]*?setData\(loadedData\);\n    \} catch \(err\) \{\n      console\.error\('Failed to load collections:', err\);\n    \}\n  \}, \[dbManager\]\);\n/, "");
++
++// Replace other calls to loadAllCollections() with dispatching appDataChanged
++code = code.replace(/await loadAllCollections\(\);/g, "window.dispatchEvent(new CustomEvent('appDataChanged'));");
++code = code.replace(/loadAllCollections\(\)\.catch\(\(err\) => \{[\s\S]*?\}\);/g, "window.dispatchEvent(new CustomEvent('appDataChanged'));");
++
++// For refreshData:
++code = code.replace(/const refreshData = useCallback\(async \(\) => \{[\s\S]*?\}\}, \[loadAllCollections, toast\]\);/, 
++  "const refreshData = useCallback(async () => {\n    try {\n      window.dispatchEvent(new CustomEvent('appDataChanged'));\n      toast.showSuccess('Data refreshed successfully');\n    } catch (err) {\n      const errorMessage = err instanceof Error ? err.message : 'Failed to refresh data';\n      toast.showError(errorMessage);\n      throw err;\n    }\n  }, [toast]);"
++);
++
++// For loadPromise = loadAllCollections() -> window.dispatchEvent
++code = code.replace(/const loadPromise = loadAllCollections\(\);/g, "window.dispatchEvent(new CustomEvent('appDataChanged'));\n        const loadPromise = Promise.resolve();");
++
++// For the last useEffect that listens to appDataChanged and calls loadAllCollections - remove it entirely
++code = code.replace(/  \/\/ Listen for data changed events from decoupled providers[\s\S]*?  \}, \[loadAllCollections\]\);\n/, "");
++
++// Remove loadAllCollections from dependency arrays
++code = code.replace(/, loadAllCollections/g, "");
++code = code.replace(/loadAllCollections, /g, "");
++
++fs.writeFileSync(file, code);
++console.log('Refactored AppDataContext.tsx successfully');
+diff --git a/src/App.tsx b/src/App.tsx
+index 223d08c..e3c9902 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -22,7 +22,7 @@ import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
+ import { useMemoryManagement } from './hooks/useMemoryManagement';
+ import { ToastProvider } from './hooks/useToast';
+ import { AppProviders } from './contexts/AppProviders';
+-import { featureFlags } from './config/featureFlags';
++import { useFeatureFlagStore } from './stores/featureFlagStore';
+ import { performanceEventManager } from './services/performanceEventManager';
+ 
+ // Layout components - choose based on feature flag
+@@ -473,6 +473,7 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
+   const { restoreRouteIfNeeded } = useRoutePersistence(isAuthenticated);
+   
+   // Choose layout based on feature flag
++  const featureFlags = useFeatureFlagStore(state => state.flags);
+   const LayoutComponent = featureFlags.useNewTabSystem ? LayoutNew : Layout;
+   
+   // Debug authentication state
+diff --git a/src/config/featureFlags.ts b/src/config/featureFlags.ts
+deleted file mode 100644
+index ba0f46e..0000000
+--- a/src/config/featureFlags.ts
++++ /dev/null
+@@ -1,125 +0,0 @@
+-/**
+- * Feature Flags Configuration
+- * 
+- * Controls rollout of new features for gradual migration.
+- */
+-
+-export interface FeatureFlags {
+-  /** Enable new URL-driven tab system */
+-  useNewTabSystem: boolean;
+-  
+-  /** Enable unified data service */
+-  useUnifiedDataService: boolean;
+-  
+-  /** Enable SQLite provider (standalone mode) */
+-  enableSQLiteProvider: boolean;
+-  
+-  /** Enable sync engine */
+-  enableSyncEngine: boolean;
+-  
+-  /** Enable ERPNext integration */
+-  enableERPNextIntegration: boolean;
+-  
+-  /** Enable mobile optimizations */
+-  enableMobileOptimizations: boolean;
+-}
+-
+-// Default configuration
+-// CRITICAL: UDS and PouchDB are now ENABLED for data persistence
+-// This fixes CRIT-001: No Data Persistence
+-const defaultFlags: FeatureFlags = {
+-  useNewTabSystem: true,         // ENABLED: New tab system is stable
+-  useUnifiedDataService: true,   // ENABLED: Use real PouchDB provider instead of mock
+-  enableSQLiteProvider: false,   // Phase 2: SQLite OPFS alternative (optional)
+-  enableSyncEngine: false,       // Phase 2: Networked mode sync (requires CouchDB)
+-  enableERPNextIntegration: false, // Phase 3: ERPNext bridge
+-  enableMobileOptimizations: true  // ENABLED: Mobile responsiveness
+-};
+-
+-// Load from localStorage (for development/testing)
+-function loadFlags(): FeatureFlags {
+-  try {
+-    if (typeof window === 'undefined') {
+-      return defaultFlags;
+-    }
+-    const stored = localStorage.getItem('sp_feature_flags');
+-    if (stored) {
+-      const parsed = JSON.parse(stored);
+-      return { ...defaultFlags, ...parsed };
+-    }
+-  } catch (e) {
+-    console.warn('Failed to load feature flags:', e);
+-  }
+-  return defaultFlags;
+-}
+-
+-// Current flags
+-export const featureFlags = loadFlags();
+-
+-// Helper to check if a feature is enabled
+-export function isEnabled(flag: keyof FeatureFlags): boolean {
+-  return featureFlags[flag];
+-}
+-
+-// Enable a feature (for testing)
+-export function enableFeature(flag: keyof FeatureFlags): void {
+-  featureFlags[flag] = true;
+-  saveFlags();
+-}
+-
+-// Disable a feature
+-export function disableFeature(flag: keyof FeatureFlags): void {
+-  featureFlags[flag] = false;
+-  saveFlags();
+-}
+-
+-// Toggle a feature
+-export function toggleFeature(flag: keyof FeatureFlags): boolean {
+-  featureFlags[flag] = !featureFlags[flag];
+-  saveFlags();
+-  return featureFlags[flag];
+-}
+-
+-// Save flags to localStorage
+-function saveFlags(): void {
+-  try {
+-    if (typeof window === 'undefined') {
+-      return;
+-    }
+-    localStorage.setItem('sp_feature_flags', JSON.stringify(featureFlags));
+-  } catch (e) {
+-    console.warn('Failed to save feature flags:', e);
+-  }
+-}
+-
+-// Reset to defaults
+-export function resetFlags(): void {
+-  Object.assign(featureFlags, defaultFlags);
+-  saveFlags();
+-}
+-
+-// Development helper to enable all features
+-export function enableAllFeatures(): void {
+-  Object.keys(featureFlags).forEach(key => {
+-    (featureFlags as any)[key] = true;
+-  });
+-  saveFlags();
+-}
+-
+-// Console helper for developers
+-if (typeof window !== 'undefined' && import.meta.env.DEV) {
+-  (window as any).featureFlags = {
+-    get: () => featureFlags,
+-    enable: enableFeature,
+-    disable: disableFeature,
+-    toggle: toggleFeature,
+-    reset: resetFlags,
+-    enableAll: enableAllFeatures
+-  };
+-  
+-  console.log('Feature flags available. Usage:');
+-  console.log('  featureFlags.get() - Show current flags');
+-  console.log('  featureFlags.enable("useNewTabSystem") - Enable new tabs');
+-  console.log('  featureFlags.toggle("useUnifiedDataService") - Toggle data service');
+-  console.log('  featureFlags.enableAll() - Enable all features (dev only)');
+-}
+diff --git a/src/contexts/AppDataContext.tsx b/src/contexts/AppDataContext.tsx
+index 9c058c5..b66d5b9 100644
+--- a/src/contexts/AppDataContext.tsx
++++ b/src/contexts/AppDataContext.tsx
+@@ -14,6 +14,11 @@ import {
+   createAppDataLoadingState,
+   normalizeAppDataCollections
+ } from './appData/appDataCollections';
++import { BackupRestoreProvider, useBackupRestoreContext } from './appData/BackupRestoreContext';
++import { DataGenerationProvider, useDataGenerationContext } from './appData/DataGenerationContext';
++import { PaginationProvider, usePaginationContext } from './appData/PaginationContext';
++import { ValidationProvider, useValidationContext } from './appData/ValidationContext';
++import { useCoreDomain, useAcademicsDomain, useHRDomain, useFinanceDomain, useInventoryDomain, useSharedDomain } from './appData/domainContexts';
+ 
+ // Sync status interface
+ export interface SyncStatus {
+@@ -181,13 +186,50 @@ export const hasAppDataContextContract = (
+ };
+ 
+ // Simplified provider component that uses UnifiedDatabaseManager
++const AppDataValueProvider: React.FC<{
++  children: ReactNode;
++  coreValue: Partial<AppDataContextType>;
++}> = ({ children, coreValue }) => {
++
++  const { getCollectionPage } = usePaginationContext();
++  const { validateData } = useValidationContext();
++
++  const value = useMemo(() => ({
++    ...coreValue,
++    validateData
++  }), [
++    coreValue,
++    validateData
++  ]) as AppDataContextType;
++
++  return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
++};
++
+ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+   const [isInitialized, setIsInitialized] = useState(false);
+   const [isLoading, setIsLoading] = useState(true);
+   const [error, setError] = useState<Error | null>(null);
+   const [isOnline, setIsOnline] = useState(navigator.onLine);
+-  const [data, setData] = useState<Record<string, any[]>>({});
+-  
++
++  // Consume Domain Contexts
++  const coreDomain = useCoreDomain();
++  const academicsDomain = useAcademicsDomain();
++  const hrDomain = useHRDomain();
++  const financeDomain = useFinanceDomain();
++  const inventoryDomain = useInventoryDomain();
++  const sharedDomain = useSharedDomain();
++
++  // Reconstruct the legacy data object for internal operations if needed
++  const data = useMemo(() => ({
++    ...coreDomain,
++    ...academicsDomain,
++    ...hrDomain,
++    ...financeDomain,
++    ...inventoryDomain,
++    ...sharedDomain
++  }), [coreDomain, academicsDomain, hrDomain, financeDomain, inventoryDomain, sharedDomain]);
++
++    
+   // Network state
+   const [networkState, setNetworkState] = useState<NetworkState | null>(null);
+   
+@@ -283,7 +325,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+           }
+         }
+ 
+-        const loadPromise = loadAllCollections();
++        window.dispatchEvent(new CustomEvent('appDataChanged'));
++        const loadPromise = Promise.resolve();
+         const loadTimeoutPromise = new Promise((_, reject) => {
+           setTimeout(() => reject(new Error('Load collections timeout')), 20000);
+         });
+@@ -352,36 +395,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     };
+   }, [isInitialized, isOnline, networkState?.backendAvailable, syncStatus.state, dbManager]);
+ 
+-  // Load data from all collections
+-  const loadAllCollections = useCallback(async () => {
+-    try {
+-      const collections = dbManager.getAllCollections();
+-      const loadedData: Record<string, any[]> = {};
+-
+-      for (const [name, collection] of collections) {
+-        try {
+-          if (collection && typeof collection.find === 'function') {
+-            const docs = await collection.find({});
+-            loadedData[name] = docs;
+-          }
+-        } catch (err) {
+-          console.warn(`Failed to load collection ${name}:`, err);
+-          loadedData[name] = [];
+-        }
+-      }
+-
+-      setData(loadedData);
+-    } catch (err) {
+-      console.error('Failed to load collections:', err);
+-    }
+-  }, [dbManager]);
+ 
+   useEffect(() => {
+     const dataModeManager = getDataModeManager();
+     const refreshFromEvent = () => {
+-      loadAllCollections().catch((err) => {
+-        console.error('Failed to refresh collections after data mode change:', err);
+-      });
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+     };
+ 
+     dataModeManager.on('dataSeeded', refreshFromEvent);
+@@ -389,73 +407,24 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     dataModeManager.on('modeChanged', refreshFromEvent);
+ 
+     return () => {
+-      dataModeManager.off('dataSeeded', refreshFromEvent);
+-      dataModeManager.off('dataCleared', refreshFromEvent);
+-      dataModeManager.off('modeChanged', refreshFromEvent);
+-    };
+-  }, [loadAllCollections]);
++        dataModeManager.off('dataSeeded', refreshFromEvent);
++        dataModeManager.off('dataCleared', refreshFromEvent);
++        dataModeManager.off('modeChanged', refreshFromEvent);
++      };
++    }, []);
+ 
+-  // Refresh all data
++    // Refresh all data
+   const refreshData = useCallback(async () => {
+     try {
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       toast.showSuccess('Data refreshed successfully');
+     } catch (err) {
+       const errorMessage = err instanceof Error ? err.message : 'Failed to refresh data';
+       toast.showError(errorMessage);
+       throw err;
+     }
+-  }, [loadAllCollections, toast]); // Added toast to dependencies
+-
+-  // Backup data
+-  const backupData = useCallback(async () => {
+-    try {
+-      toast.showInfo('Starting backup...');
+-      const backup = await dbManager.createBackup();
+-      toast.showSuccess('Backup completed successfully');
+-      return backup;
+-    } catch (err) {
+-      const errorMessage = err instanceof Error ? err.message : 'Backup failed';
+-      console.error('Backup failed:', err);
+-      toast.showError(errorMessage);
+-      throw err;
+-    }
+-  }, [dbManager, toast]); // Added toast to dependencies
+-
+-  // Restore data
+-  const restoreData = useCallback(async (backup: any) => {
+-    try {
+-      toast.showInfo('Starting restore...');
+-      const result = await dbManager.restoreFromBackup(backup, { clearExisting: true });
+-      await loadAllCollections();
+-      
+-      if (result.success) {
+-        toast.showSuccess(`Restore completed: ${result.restored} records restored`);
+-      } else {
+-        toast.showWarning(`Restore completed with errors: ${result.restored} restored, ${result.failed} failed`);
+-      }
+-    } catch (err) {
+-      const errorMessage = err instanceof Error ? err.message : 'Restore failed';
+-      console.error('Restore failed:', err);
+-      toast.showError(errorMessage);
+-      throw err;
+-    }
+-  }, [dbManager, loadAllCollections, toast]); // Added toast to dependencies
++  }, [toast]); // Added toast to dependencies
+ 
+-  // Clear all data
+-  const clearAllData = useCallback(async () => {
+-    try {
+-      toast.showInfo('Clearing all data...');
+-      await dbManager.clearAllData();
+-      await loadAllCollections();
+-      toast.showSuccess('All data cleared successfully');
+-    } catch (err) {
+-      const errorMessage = err instanceof Error ? err.message : 'Failed to clear data';
+-      console.error('Clear data failed:', err);
+-      toast.showError(errorMessage);
+-      throw err;
+-    }
+-  }, [dbManager, loadAllCollections, toast]); // Added toast to dependencies
+ 
+   // Get collection statistics
+   const getCollectionStats = useCallback(async () => {
+@@ -514,7 +483,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+         await (provider as any).sync();
+         
+         // Reload data after successful sync
+-        await loadAllCollections();
++        window.dispatchEvent(new CustomEvent('appDataChanged'));
+         
+         setSyncStatus(prev => ({
+           ...prev,
+@@ -543,7 +512,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     } finally {
+       isSyncingRef.current = false;
+     }
+-  }, [dbManager, isOnline, networkState, syncStatus.state, loadAllCollections, toast]);
++  }, [dbManager, isOnline, networkState, syncStatus.state, toast]);
+ 
+   // Store performSync in ref for use in effects
+   useEffect(() => {
+@@ -671,7 +640,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+       // Check throttling (max once per 5 seconds)
+       const lastRefresh = lastRefreshTimes.current.get(collectionName);
+       if (lastRefresh && Date.now() - lastRefresh.getTime() < 5000) {
+-        console.log(`⏱️ [AppDataContext] Throttling refresh for ${collectionName}`);
+         return;
+       }
+ 
+@@ -727,56 +695,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     }
+   }, [dbManager, toast]);
+ 
+-  // Task 4.4.2: Pagination support
+-  const getCollectionPage = useCallback(async <T = any,>(
+-    collectionName: string,
+-    options: PaginationOptions
+-  ): Promise<PaginationResult<T>> => {
+-    try {
+-      const collection = dbManager.getCollection<T>(collectionName);
+-      if (!collection) {
+-        throw new Error(`Collection ${collectionName} not found`);
+-      }
+-
+-      // Get total count
+-      const totalCount = typeof collection.count === 'function' 
+-        ? await collection.count() 
+-        : 0;
+-
+-      // Calculate pagination
+-      const { page, pageSize, sortBy, sortOrder = 'asc' } = options;
+-      const skip = (page - 1) * pageSize;
+-      const totalPages = Math.ceil(totalCount / pageSize);
+-
+-      // Fetch paginated data
+-      let paginatedData: T[] = [];
+-      if (typeof collection.find === 'function') {
+-        const query: any = {
+-          skip,
+-          limit: pageSize
+-        };
+-
+-        if (sortBy) {
+-          query.sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+-        }
+-
+-        paginatedData = await collection.find(query);
+-      }
+-
+-      return {
+-        data: paginatedData,
+-        page,
+-        pageSize,
+-        totalCount,
+-        totalPages,
+-        hasNextPage: page < totalPages,
+-        hasPreviousPage: page > 1
+-      };
+-    } catch (err) {
+-      console.error(`Failed to get page for collection ${collectionName}:`, err);
+-      throw err;
+-    }
+-  }, [dbManager]);
++  const { getCollectionPage } = usePaginationContext();
+ 
+   // Task 4.4.3: Memory management - Cleanup old data
+   const cleanupOldData = useCallback(async (daysOld: number = 30) => {
+@@ -818,14 +737,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+       toast.showSuccess(`Cleaned up ${totalCleaned} old records`);
+       
+       // Refresh data after cleanup
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+     } catch (err) {
+       const errorMessage = err instanceof Error ? err.message : 'Failed to cleanup old data';
+       console.error('Cleanup failed:', err);
+       toast.showError(errorMessage);
+       throw err;
+     }
+-  }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
++  }, [dbManager]); // Removed toast to prevent re-render loop
+ 
+   // Task 4.4.4: Provider capability detection
+   const getProviderCapabilities = useCallback((): ProviderCapabilities => {
+@@ -855,7 +774,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+         realTimeUpdates: true,
+         conflictResolution: true,
+         fullTextSearch: false,
+-        transactions: false
+       },
+       'backend-api': {
+         bulkOperations: true,
+@@ -898,84 +816,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     return `Hybrid mode - Local ${providerType} with limited connectivity`;
+   }, [dbManager, currentDataMode]);
+ 
+-  // Task 4.4.6: Data validation
+-  const validateData = useCallback(async () => {
+-    try {
+-      console.log('🔍 [AppDataContext] Validating data integrity...');
+-      
+-      const issues: Array<{ severity: 'error' | 'warning' | 'info'; message: string; collection?: string }> = [];
+-
+-      for (const [name, collection] of dbManager.getAllCollections()) {
+-        try {
+-          // Check if collection is accessible
+-          if (!collection) {
+-            issues.push({
+-              severity: 'error',
+-              message: `Collection ${name} is null or undefined`,
+-              collection: name
+-            });
+-            continue;
+-          }
+-
+-          // Check collection count
+-          if (typeof collection.count === 'function') {
+-            const count = await collection.count();
+-            if (count < 0) {
+-              issues.push({
+-                severity: 'error',
+-                message: `Collection ${name} has negative count: ${count}`,
+-                collection: name
+-              });
+-            }
+-          }
+-
+-          // Check for duplicate IDs
+-          if (typeof collection.find === 'function') {
+-            const docs = await collection.find({});
+-            const ids = new Set();
+-            const duplicates: string[] = [];
+-
+-            for (const doc of docs) {
+-              if (doc.id) {
+-                if (ids.has(doc.id)) {
+-                  duplicates.push(doc.id);
+-                } else {
+-                  ids.add(doc.id);
+-                }
+-              }
+-            }
+-
+-            if (duplicates.length > 0) {
+-              issues.push({
+-                severity: 'error',
+-                message: `Collection ${name} has ${duplicates.length} duplicate IDs`,
+-                collection: name
+-              });
+-            }
+-          }
+-        } catch (err) {
+-          issues.push({
+-            severity: 'warning',
+-            message: `Failed to validate collection ${name}: ${err instanceof Error ? err.message : String(err)}`,
+-            collection: name
+-          });
+-        }
+-      }
+-
+-      const isValid = !issues.some(issue => issue.severity === 'error');
+-      
+-      if (isValid) {
+-        toast.showSuccess('Data validation passed');
+-      } else {
+-        toast.showWarning(`Data validation found ${issues.filter(i => i.severity === 'error').length} errors`);
+-      }
+-
+-      return { isValid, issues };
+-    } catch (err) {
+-      console.error('Data validation failed:', err);
+-      throw err;
+-    }
+-  }, [dbManager]); // Removed toast to prevent re-render loop
++  const { validateData } = useValidationContext();
+ 
+   // Task 4.4.8: Data strategy configuration
+   const getDataSourceConfig = useCallback((): DataSourceConfig => {
+@@ -1006,404 +847,26 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+ 
+   // ========== Task 5: Migrate Mock Data System to Database ==========
+ 
+-  // Task 5.1 & 5.3: Generate data using UniversalDataGenerator
+-  const generateData = useCallback(async (options?: {
+-    modules?: string[];
+-    counts?: Record<string, number>;
+-    useRealisticData?: boolean;
+-    includeTestData?: boolean;
+-    clearExisting?: boolean;
+-  }) => {
+-    try {
+-      console.log('🎲 [AppDataContext] Starting data generation...');
+-      toast.showInfo('Generating data...');
+-
+-      const result = await dbManager.generateData(options);
+ 
+-      if (result.success) {
+-        // Reload data after generation
+-        await loadAllCollections();
+-        
+-        const stats = result.stats;
+-        const message = stats 
+-          ? `Generated ${stats.totalRecords} records across ${stats.tablesGenerated.length} collections`
+-          : 'Data generated successfully';
+-        
+-        toast.showSuccess(message);
+-        console.log('✅ [AppDataContext] Data generation completed:', result.stats);
+-      } else {
+-        toast.showError(`Data generation failed: ${result.error}`);
+-        console.error('❌ [AppDataContext] Data generation failed:', result.error);
+-      }
+ 
+-      return result;
+-    } catch (err) {
+-      const errorMessage = err instanceof Error ? err.message : 'Data generation failed';
+-      console.error('Data generation error:', err);
+-      toast.showError(errorMessage);
+-      return {
+-        success: false,
+-        error: errorMessage
+-      };
+-    }
+-  }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
+-
+-  // Task 5.2: Seed database with configuration-based data
+-  const seedDatabase = useCallback(async (seedConfig?: {
+-    dataMode?: 'demo' | 'development' | 'production';
+-    modules?: string[];
+-    volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
+-  }) => {
+-    try {
+-      console.log('🌱 [AppDataContext] Seeding database...');
+-      toast.showInfo('Seeding database...');
+-
+-      const result = await dbManager.seedDatabase(seedConfig);
+-
+-      if (result.success) {
+-        // Reload data after seeding
+-        await loadAllCollections();
+-        
+-        toast.showSuccess(result.message);
+-        console.log('✅ [AppDataContext] Database seeded:', result.stats);
+-      } else {
+-        toast.showError(result.message);
+-        console.error('❌ [AppDataContext] Database seeding failed:', result.message);
+-      }
+-
+-      return result;
+-    } catch (err) {
+-      const errorMessage = err instanceof Error ? err.message : 'Database seeding failed';
+-      console.error('Database seeding error:', err);
+-      toast.showError(errorMessage);
+-      return {
+-        success: false,
+-        message: errorMessage
+-      };
+-    }
+-  }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
+-
+-  const getNormalizedData = useCallback(() => normalizeAppDataCollections(data), [data]);
+-
+-  const getTimetablePeriodDefs = useCallback(() => {
+-    return getNormalizedData().timetablePeriodDefs || [];
+-  }, [getNormalizedData]);
+-
+-  const getTimetableEntries = useCallback((classStreamId: number) => {
+-    return (getNormalizedData().timetableEntries || []).filter((entry: any) => Number(entry.class_stream_id) === Number(classStreamId));
+-  }, [getNormalizedData]);
+-
+-  const getStudentAttendanceByFilters = useCallback((date: string, classStreamId: number, periodId: number) => {
+-    const normalized = getNormalizedData();
+-    const studentsInStream = (normalized.students || []).filter((student: any) => Number(student.current_class_stream_id) === Number(classStreamId));
+-    const studentIds = new Set(studentsInStream.map((student: any) => String(student.id)));
+-
+-    return (normalized.studentAttendance || []).filter((record: any) =>
+-      record.date === date &&
+-      Number(record.period_id) === Number(periodId) &&
+-      studentIds.has(String(record.student_id))
+-    );
+-  }, [getNormalizedData]);
+-
+-  const saveStudentAttendance = useCallback(async (attendanceRecords: any[]) => {
+-    const collection = dbManager.getCollection('student_attendance');
+-    const records = Array.isArray(attendanceRecords) ? attendanceRecords : [attendanceRecords];
+-    const normalizedRecords = records.map((record) => ({
+-      ...record,
+-      id: record.id || `attendance-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+-      created_at: record.created_at || new Date().toISOString(),
+-      updated_at: new Date().toISOString()
+-    }));
+-
+-    if (collection) {
+-      if (typeof collection.insertMany === 'function') {
+-        await collection.insertMany(normalizedRecords);
+-      } else {
+-        for (const record of normalizedRecords) {
+-          await collection.insert(record);
+-        }
+-      }
+-      await loadAllCollections();
+-      return;
+-    }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      student_attendance: [...(previous.student_attendance || []), ...normalizedRecords]
+-    }));
+-  }, [dbManager, loadAllCollections]);
+-
+-  const resolveSubjectPaperDetails = useCallback((subjectPaperId: number) => {
+-    const normalized = getNormalizedData();
+-    const subjectPaper = (normalized.subjectPapers || []).find(
+-      (item: any) => Number(item.id) === Number(subjectPaperId)
+-    );
+-    return {
+-      subject_name: subjectPaper?.subject_name || null,
+-      subject_paper_name: subjectPaper?.name || null
+-    };
+-  }, [getNormalizedData]);
+-
+-  const mutateExamSessionRecord = useCallback(async (
+-    sessionId: string,
+-    updater: (session: any, timestamp: string) => any
+-  ) => {
+-    const normalized = getNormalizedData();
+-    const currentSession = (normalized.examSessions || []).find((item: any) => String(item.id) === String(sessionId));
+-    if (!currentSession) {
+-      throw new Error(`Exam session ${sessionId} not found`);
+-    }
+-
+-    const timestamp = new Date().toISOString();
+-    const nextSession = updater(currentSession, timestamp);
+-    const collection = dbManager.getCollection('exam_sessions');
+-
+-    if (collection && typeof collection.update === 'function') {
+-      await collection.update(String(sessionId), nextSession);
+-      await loadAllCollections();
+-      return nextSession;
+-    }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      exam_sessions: (previous.exam_sessions || []).map((session: any) =>
+-        String(session.id) === String(sessionId) ? nextSession : session
+-      )
+-    }));
+-    return nextSession;
+-  }, [dbManager, getNormalizedData, loadAllCollections]);
+-
+-  const addExamSession = useCallback(async (sessionData: any) => {
+-    const normalized = getNormalizedData();
+-    const schoolPeriod = (normalized.schoolPeriods || []).find(
+-      (item: any) => Number(item.id) === Number(sessionData.school_period_id)
+-    );
+-    const timestamp = new Date().toISOString();
+-    const nextSession = {
+-      ...sessionData,
+-      id: sessionData.id || `exam-session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+-      paper_settings: Array.isArray(sessionData.paper_settings) ? sessionData.paper_settings : [],
+-      school_period_name: sessionData.school_period_name || schoolPeriod?.name || null,
+-      created_at: sessionData.created_at || timestamp,
+-      updated_at: timestamp
+-    };
+-    const collection = dbManager.getCollection('exam_sessions');
+-
+-    if (collection) {
+-      await collection.insert(nextSession);
+-      await loadAllCollections();
+-      return nextSession;
+-    }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      exam_sessions: [...(previous.exam_sessions || []), nextSession]
+-    }));
+-    return nextSession;
+-  }, [dbManager, getNormalizedData, loadAllCollections]);
+-
+-  const updateExamSession = useCallback(async (sessionId: string, sessionData: any) => {
+-    return mutateExamSessionRecord(sessionId, (currentSession, timestamp) => {
+-      const normalized = getNormalizedData();
+-      const schoolPeriodId = sessionData.school_period_id ?? currentSession.school_period_id;
+-      const schoolPeriod = (normalized.schoolPeriods || []).find((item: any) => Number(item.id) === Number(schoolPeriodId));
+-      return {
+-        ...currentSession,
+-        ...sessionData,
+-        school_period_name: sessionData.school_period_name || schoolPeriod?.name || currentSession.school_period_name || null,
+-        updated_at: timestamp
+-      };
+-    });
+-  }, [getNormalizedData, mutateExamSessionRecord]);
+-
+-  const deleteExamSession = useCallback(async (sessionId: string) => {
+-    const collection = dbManager.getCollection('exam_sessions');
+-    if (collection && typeof collection.remove === 'function') {
+-      await collection.remove(String(sessionId));
+-      await loadAllCollections();
+-      return;
+-    }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      exam_sessions: (previous.exam_sessions || []).filter((session: any) => String(session.id) !== String(sessionId))
+-    }));
+-  }, [dbManager, loadAllCollections]);
+-
+-  const addExamPaperSetting = useCallback(async (settingData: any) => {
+-    const timestamp = new Date().toISOString();
+-    const paperDetails = resolveSubjectPaperDetails(Number(settingData.subject_paper_id));
+-    const nextSetting = {
+-      ...settingData,
+-      ...paperDetails,
+-      id: settingData.id || `paper-setting-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+-      created_at: settingData.created_at || timestamp,
+-      updated_at: timestamp
+-    };
+-    return mutateExamSessionRecord(String(settingData.exam_session_id), (currentSession, updatedAt) => ({
+-      ...currentSession,
+-      paper_settings: [...(currentSession.paper_settings || []), { ...nextSetting, updated_at: updatedAt }],
+-      updated_at: updatedAt
+-    }));
+-  }, [mutateExamSessionRecord, resolveSubjectPaperDetails]);
+-
+-  const updateExamPaperSetting = useCallback(async (settingId: string, settingData: any) => {
+-    const normalized = getNormalizedData();
+-    const currentSession = (normalized.examSessions || []).find((session: any) =>
+-      (session.paper_settings || []).some((setting: any) => String(setting.id) === String(settingId))
+-    );
+-    if (!currentSession) {
+-      throw new Error(`Exam paper setting ${settingId} not found`);
+-    }
+-
+-    return mutateExamSessionRecord(String(currentSession.id), (session, timestamp) => ({
+-      ...session,
+-      paper_settings: (session.paper_settings || []).map((setting: any) => {
+-        if (String(setting.id) !== String(settingId)) return setting;
+-        const paperDetails = resolveSubjectPaperDetails(Number(settingData.subject_paper_id ?? setting.subject_paper_id));
+-        return { ...setting, ...settingData, ...paperDetails, updated_at: timestamp };
+-      }),
+-      updated_at: timestamp
+-    }));
+-  }, [getNormalizedData, mutateExamSessionRecord, resolveSubjectPaperDetails]);
+-
+-  const deleteExamPaperSetting = useCallback(async (settingId: string) => {
+-    const normalized = getNormalizedData();
+-    const currentSession = (normalized.examSessions || []).find((session: any) =>
+-      (session.paper_settings || []).some((setting: any) => String(setting.id) === String(settingId))
+-    );
+-    if (!currentSession) {
+-      return;
+-    }
+-
+-    await mutateExamSessionRecord(String(currentSession.id), (session, timestamp) => ({
+-      ...session,
+-      paper_settings: (session.paper_settings || []).filter((setting: any) => String(setting.id) !== String(settingId)),
+-      updated_at: timestamp
+-    }));
+-  }, [getNormalizedData, mutateExamSessionRecord]);
+-
+-  const saveStudentExamResult = useCallback(async (resultData: any) => {
+-    const normalized = getNormalizedData();
+-    const existingResult = (normalized.studentExamResults || []).find((item: any) =>
+-      String(item.student_id) === String(resultData.student_id) &&
+-      String(item.exam_session_id) === String(resultData.exam_session_id)
+-    );
+-    const timestamp = new Date().toISOString();
+-    const student = (normalized.students || []).find((item: any) => String(item.id) === String(resultData.student_id));
+-    const session = (normalized.examSessions || []).find((item: any) => String(item.id) === String(resultData.exam_session_id));
+-    const classStream = (normalized.classStreams || []).find((item: any) => Number(item.id) === Number(student?.current_class_stream_id));
+-    const marks = (resultData.marks || []).map((mark: any) => {
+-      const paper = (session?.paper_settings || []).find((item: any) => String(item.id) === String(mark.paper_setting_id));
+-      return {
+-        ...mark,
+-        id: mark.id || `paper-mark-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+-        student_exam_result_id: existingResult?.id || resultData.id || '',
+-        subject_name: mark.subject_name || paper?.subject_name || null,
+-        subject_paper_name: mark.subject_paper_name || paper?.subject_paper_name || null,
+-        marks_out_of: mark.marks_out_of ?? paper?.marks_out_of ?? null
+-      };
+-    });
+-    const nextResult = {
+-      ...existingResult,
+-      ...resultData,
+-      id: existingResult?.id || resultData.id || `exam-result-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+-      marks,
+-      student_name: resultData.student_name || (student ? `${student.first_name || ''} ${student.last_name || ''}`.trim() : null),
+-      admission_no: resultData.admission_no || student?.admission_no || null,
+-      class_name: resultData.class_name || classStream?.class_name || student?.current_class_name || null,
+-      stream_name: resultData.stream_name || classStream?.name || student?.current_class_stream_name || null,
+-      exam_session_name: resultData.exam_session_name || session?.name || null,
+-      created_at: existingResult?.created_at || resultData.created_at || timestamp,
+-      updated_at: timestamp
+-    };
+-    nextResult.marks = marks.map((mark: any) => ({ ...mark, student_exam_result_id: nextResult.id }));
+-    const collection = dbManager.getCollection('student_exam_results');
+-
+-    if (collection) {
+-      if (existingResult && typeof collection.update === 'function') {
+-        await collection.update(String(existingResult.id), nextResult);
+-      } else {
+-        await collection.insert(nextResult);
+-      }
+-      await loadAllCollections();
+-      return nextResult;
+-    }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      student_exam_results: existingResult
+-        ? (previous.student_exam_results || []).map((result: any) => String(result.id) === String(existingResult.id) ? nextResult : result)
+-        : [...(previous.student_exam_results || []), nextResult]
+-    }));
+-    return nextResult;
+-  }, [dbManager, getNormalizedData, loadAllCollections]);
+-
+-  const addTimetableEntry = useCallback(async (entryData: any) => {
+-    const normalized = getNormalizedData();
+-    const classStream = (normalized.classStreams || []).find((item: any) => Number(item.id) === Number(entryData.class_stream_id));
+-    const period = (normalized.timetablePeriodDefs || []).find((item: any) => Number(item.id) === Number(entryData.period_id));
+-    const subject = (normalized.subjects || []).find((item: any) => Number(item.id) === Number(entryData.subject_id));
+-    const teacher = (normalized.staff || []).find((item: any) => String(item.id) === String(entryData.teacher_id));
+-
+-    const newEntry = {
+-      ...entryData,
+-      id: entryData.id || `tt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+-      class_stream_name: entryData.class_stream_name || (classStream ? `${classStream.class_name || ''} ${classStream.name || ''}`.trim() : ''),
+-      period_name: entryData.period_name || period?.period_name || '',
+-      subject_name: entryData.subject_name || subject?.name || subject?.subject_name || '',
+-      teacher_name: entryData.teacher_name || (teacher ? `${teacher.first_name || ''} ${teacher.last_name || ''}`.trim() : ''),
+-      created_at: entryData.created_at || new Date().toISOString(),
+-      updated_at: new Date().toISOString()
+-    };
+-
+-    const collection = dbManager.getCollection('timetable_entries');
+-    if (collection) {
+-      await collection.insert(newEntry);
+-      await loadAllCollections();
+-      return;
+-    }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      timetable_entries: [...(previous.timetable_entries || []), newEntry]
+-    }));
+-  }, [dbManager, getNormalizedData, loadAllCollections]);
+-
+-  const updateTimetableEntry = useCallback(async (updatedEntry: any) => {
+-    const collection = dbManager.getCollection('timetable_entries');
+-    const nextEntry = {
+-      ...updatedEntry,
+-      updated_at: new Date().toISOString()
+-    };
+-
+-    if (collection && typeof collection.update === 'function') {
+-      await collection.update(String(updatedEntry.id), nextEntry);
+-      await loadAllCollections();
+-      return;
+-    }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      timetable_entries: (previous.timetable_entries || []).map((entry: any) =>
+-        String(entry.id) === String(updatedEntry.id) ? nextEntry : entry
+-      )
+-    }));
+-  }, [dbManager, loadAllCollections]);
+-
+-  const deleteTimetableEntry = useCallback(async (entryId: string) => {
+-    const collection = dbManager.getCollection('timetable_entries');
+-    if (collection && typeof collection.remove === 'function') {
+-      await collection.remove(String(entryId));
+-      await loadAllCollections();
+-      return;
+-    }
++  
++  const {
++    getTimetablePeriodDefs,
++    getTimetableEntries,
++    getStudentAttendanceByFilters,
++    saveStudentAttendance,
++    addExamSession,
++    updateExamSession,
++    deleteExamSession,
++    addExamPaperSetting,
++    updateExamPaperSetting,
++    deleteExamPaperSetting,
++    saveStudentExamResult,
++    addTimetableEntry,
++    updateTimetableEntry,
++    deleteTimetableEntry
++  } = useAcademicsOperations(dbManager, data);
+ 
+-    setData((previous) => ({
+-      ...previous,
+-      timetable_entries: (previous.timetable_entries || []).filter((entry: any) => String(entry.id) !== String(entryId))
+-    }));
+-  }, [dbManager, loadAllCollections]);
+ 
+   // Create context value
+   const contextValue = useMemo(() => {
+@@ -1411,10 +874,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     const loadingState = createAppDataLoadingState(isLoading);
+ 
+     return {
+-      // Core data collections
+       ...normalizedData,
+-      
+-      // Status flags
+       isInitialized,
+       loading: loadingState,
+       error,
+@@ -1423,60 +883,26 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+       appVersion: '1.0.0',
+       deploymentMode: dbManager.getDeploymentMode(),
+       providerType: dbManager.getProviderType(),
+-      
+-      // Network state
+       backendAvailable: networkState?.backendAvailable || false,
+       connectionQuality: networkState?.connectionQuality || 'offline',
+       networkState,
+-      
+-      // Sync status
+       syncStatus,
+-      
+-      // Database operations
+       refreshData,
+-      backupData,
+-      restoreData,
+-      clearAllData,
+       getCollectionStats,
+-      
+-      // Sync operations
+       forceSync,
+       pauseSync,
+       resumeSync,
+       cancelSync,
+-      
+-      // Sync settings
+       getSyncSettings,
+       updateSyncSettings,
+-      
+-      // Enhanced data refresh (Task 4.4.1)
+       refreshCollection,
+       refreshDataWithProgress,
+-      
+-      // Pagination (Task 4.4.2)
+-      getCollectionPage,
+-      
+-      // Memory management (Task 4.4.3)
+       cleanupOldData,
+-      
+-      // Provider capabilities (Task 4.4.4)
+       getProviderCapabilities,
+-      
+-      // Data mode tracking (Task 4.4.5)
+       currentDataMode,
+       dataSourceDescription,
+-      
+-      // Data validation (Task 4.4.6)
+-      validateData,
+-      
+-      // Data strategy (Task 4.4.8)
+       getDataSourceConfig,
+       updateDataStrategy,
+-      
+-      // Data generation (Task 5)
+-      generateData,
+-      seedDatabase,
+-
+       saveStudentAttendance,
+       getStudentAttendanceByFilters,
+       addExamSession,
+@@ -1490,14 +916,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+       getTimetableEntries,
+       addTimetableEntry,
+       updateTimetableEntry,
+-      deleteTimetableEntry,
+-      
+-      // Legacy compatibility
+-      refresh: refreshData,
+-      isRxDBModeActive: isInitialized,
+-      schoolDetails: normalizedData.schoolDetails?.[0] || null,
+-      users: normalizedData.users || [],
+-    } as any as EnhancedAppDataContextType;
++      deleteTimetableEntry
++    };
+   }, [
+     data,
+     isInitialized,
+@@ -1508,9 +928,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     networkState,
+     syncStatus,
+     refreshData,
+-    backupData,
+-    restoreData,
+-    clearAllData,
+     getCollectionStats,
+     forceSync,
+     pauseSync,
+@@ -1520,16 +937,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     updateSyncSettings,
+     refreshCollection,
+     refreshDataWithProgress,
+-    getCollectionPage,
+     cleanupOldData,
+     getProviderCapabilities,
+     currentDataMode,
+     dataSourceDescription,
+-    validateData,
+     getDataSourceConfig,
+     updateDataStrategy,
+-    generateData,
+-    seedDatabase,
+     saveStudentAttendance,
+     getStudentAttendanceByFilters,
+     addExamSession,
+@@ -1543,10 +956,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+     getTimetableEntries,
+     addTimetableEntry,
+     updateTimetableEntry,
+-    deleteTimetableEntry,
+-    config.environment,
+-    loadAllCollections
+-  ]); // Removed toast from dependencies to prevent re-render loop
++    deleteTimetableEntry
++  ]);
+ 
+   // Loading state
+   if (isLoading) {
+@@ -1587,16 +998,16 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
+   }
+ 
+   return (
+-    <AppDataContext.Provider value={contextValue}>
++    <AppDataValueProvider coreValue={contextValue}>
+       {children}
+-      
++
+       {/* Offline indicator */}
+       {!isOnline && (
+         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 z-50">
+           📡 Offline Mode - Changes will sync when connection is restored
+         </div>
+       )}
+-    </AppDataContext.Provider>
++    </AppDataValueProvider>
+   );
+ };
+ 
+diff --git a/src/contexts/AppProviders.tsx b/src/contexts/AppProviders.tsx
+index a87ff07..7447a55 100644
+--- a/src/contexts/AppProviders.tsx
++++ b/src/contexts/AppProviders.tsx
+@@ -10,11 +10,17 @@ import { UserProvider } from './UserContext';
+ import { StableActionProvider } from './StableActionProvider';
+ import ErrorBoundary from '../components/ErrorBoundary';
+ import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
+-import { featureFlags } from '../config/featureFlags';
++import { useFeatureFlagStore } from '../stores/featureFlagStore';
+ import { uds } from '../services/data';
+ import { debugLog, warnLog } from '../utils';
+ import Spinner from '../components/ui/Spinner';
+ 
++import { BackupRestoreProvider } from './appData/BackupRestoreContext';
++import { DataGenerationProvider } from './appData/DataGenerationContext';
++import { PaginationProvider } from './appData/PaginationContext';
++import { ValidationProvider } from './appData/ValidationContext';
++import { DomainProviders } from './appData/domainContexts';
++
+ const AppDataProvider = lazy(() =>
+   import('./AppDataContext').then(module => ({ default: module.AppDataProvider }))
+ );
+@@ -23,6 +29,8 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
+   const { config } = useUnifiedConfig();
+   const [udsInitialized, setUdsInitialized] = useState(true);
+ 
++  const featureFlags = useFeatureFlagStore(state => state.flags);
++
+   useEffect(() => {
+     if (featureFlags.useUnifiedDataService) {
+       debugLog('🚀 [AppProviders] Initializing Unified Data Service...');
+@@ -75,7 +83,17 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
+         </div>
+       </div>
+     }>
+-      <AppDataProvider>{children}</AppDataProvider>
++      <BackupRestoreProvider>
++        <DataGenerationProvider>
++          <PaginationProvider>
++            <ValidationProvider>
++              <DomainProviders>
++                <AppDataProvider>{children}</AppDataProvider>
++              </DomainProviders>
++            </ValidationProvider>
++          </PaginationProvider>
++        </DataGenerationProvider>
++      </BackupRestoreProvider>
+     </Suspense>
+   );
+ };
+diff --git a/src/contexts/appData/AcademicsContext.tsx b/src/contexts/appData/AcademicsContext.tsx
+new file mode 100644
+index 0000000..d084e53
+--- /dev/null
++++ b/src/contexts/appData/AcademicsContext.tsx
+@@ -0,0 +1,45 @@
++import React, { createContext, useContext, useMemo, ReactNode } from 'react';
++import { useAppData } from '../AppDataContext';
++
++// Define the Academics Domain State
++export interface AcademicsDomainState {
++  students: any[];
++  classes: any[];
++  subjects: any[];
++  examSessions: any[];
++  studentExamResults: any[];
++}
++
++export const AcademicsContext = createContext<AcademicsDomainState | undefined>(undefined);
++
++export const AcademicsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
++  const appData = useAppData();
++
++  const value = useMemo(() => ({
++    students: appData.students || [],
++    classes: appData.classes || [],
++    subjects: appData.subjects || [],
++    examSessions: appData.examSessions || [],
++    studentExamResults: appData.studentExamResults || []
++  }), [
++    appData.students,
++    appData.classes,
++    appData.subjects,
++    appData.examSessions,
++    appData.studentExamResults
++  ]);
++
++  return (
++    <AcademicsContext.Provider value={value}>
++      {children}
++    </AcademicsContext.Provider>
++  );
++};
++
++export const useAcademicsDomain = () => {
++  const context = useContext(AcademicsContext);
++  if (!context) {
++    throw new Error('useAcademicsDomain must be used within an AcademicsProvider');
++  }
++  return context;
++};
+diff --git a/src/contexts/appData/BackupRestoreContext.tsx b/src/contexts/appData/BackupRestoreContext.tsx
+new file mode 100644
+index 0000000..d47f80c
+--- /dev/null
++++ b/src/contexts/appData/BackupRestoreContext.tsx
+@@ -0,0 +1,90 @@
++import React, { createContext, useContext, useCallback, ReactNode } from 'react';
++import { UnifiedDatabaseManager } from '../../services/database/UnifiedDatabaseManager';
++import { useToastHelpers } from '../../hooks/useToast';
++
++export interface BackupRestoreContextType {
++  backupData: () => Promise<any>;
++  restoreData: (backup: any) => Promise<void>;
++  clearAllData: () => Promise<void>;
++}
++
++export const BackupRestoreContext = createContext<BackupRestoreContextType | undefined>(undefined);
++
++export const BackupRestoreProvider: React.FC<{ 
++  children: ReactNode; 
++  onDataChanged?: () => Promise<void>;
++}> = ({ children, onDataChanged }) => {
++  const toast = useToastHelpers();
++  
++  const backupData = useCallback(async () => {
++    try {
++      const dbManager = UnifiedDatabaseManager.getInstance();
++      toast.showInfo('Starting backup...');
++      const backup = await dbManager.createBackup();
++      toast.showSuccess('Backup completed successfully');
++      return backup;
++    } catch (err) {
++      const errorMessage = err instanceof Error ? err.message : 'Backup failed';
++      console.error('Backup failed:', err);
++      toast.showError(errorMessage);
++      throw err;
++    }
++  }, [toast]);
++
++  const restoreData = useCallback(async (backup: any) => {
++    try {
++      const dbManager = UnifiedDatabaseManager.getInstance();
++      toast.showInfo('Starting restore...');
++      const result = await dbManager.restoreFromBackup(backup, { clearExisting: true });
++      if (onDataChanged) {
++        await onDataChanged();
++      } else {
++        window.dispatchEvent(new CustomEvent('appDataChanged'));
++      }
++
++      if (result.success) {
++        toast.showSuccess(`Restore completed: ${result.restored} records restored`);
++      } else {
++        toast.showWarning(`Restore completed with errors: ${result.restored} restored, ${result.failed} failed`);
++      }
++    } catch (err) {
++      const errorMessage = err instanceof Error ? err.message : 'Restore failed';
++      console.error('Restore failed:', err);
++      toast.showError(errorMessage);
++      throw err;
++    }
++  }, [onDataChanged, toast]);
++
++  const clearAllData = useCallback(async () => {
++    try {
++      const dbManager = UnifiedDatabaseManager.getInstance();
++      toast.showInfo('Clearing all data...');
++      await dbManager.clearAllData();
++      if (onDataChanged) {
++        await onDataChanged();
++      } else {
++        window.dispatchEvent(new CustomEvent('appDataChanged'));
++      }
++      toast.showSuccess('All data cleared successfully');
++    } catch (err) {
++      const errorMessage = err instanceof Error ? err.message : 'Failed to clear data';
++      console.error('Clear data failed:', err);
++      toast.showError(errorMessage);
++      throw err;
++    }
++  }, [onDataChanged, toast]);
++
++  return (
++    <BackupRestoreContext.Provider value={{ backupData, restoreData, clearAllData }}>
++      {children}
++    </BackupRestoreContext.Provider>
++  );
++};
++
++export const useBackupRestoreContext = () => {
++  const context = useContext(BackupRestoreContext);
++  if (!context) {
++    throw new Error('useBackupRestoreContext must be used within a BackupRestoreProvider');
++  }
++  return context;
++};
+diff --git a/src/contexts/appData/DataGenerationContext.tsx b/src/contexts/appData/DataGenerationContext.tsx
+new file mode 100644
+index 0000000..7d0a92f
+--- /dev/null
++++ b/src/contexts/appData/DataGenerationContext.tsx
+@@ -0,0 +1,123 @@
++import React, { createContext, useContext, useCallback, ReactNode } from 'react';
++import { UnifiedDatabaseManager } from '../../services/database/UnifiedDatabaseManager';
++import { useToastHelpers } from '../../hooks/useToast';
++
++export interface DataGenerationContextType {
++  generateData: (options?: {
++    modules?: string[];
++    counts?: Record<string, number>;
++    useRealisticData?: boolean;
++    includeTestData?: boolean;
++    clearExisting?: boolean;
++  }) => Promise<any>;
++  seedDatabase: (seedConfig?: {
++    dataMode?: 'demo' | 'development' | 'production';
++    modules?: string[];
++    volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
++  }) => Promise<any>;
++}
++
++export const DataGenerationContext = createContext<DataGenerationContextType | undefined>(undefined);
++
++export const DataGenerationProvider: React.FC<{ 
++  children: ReactNode; 
++  onDataChanged?: () => Promise<void>;
++}> = ({ children, onDataChanged }) => {
++  const toast = useToastHelpers();
++  
++  const generateData = useCallback(async (options?: {
++    modules?: string[];
++    counts?: Record<string, number>;
++    useRealisticData?: boolean;
++    includeTestData?: boolean;
++    clearExisting?: boolean;
++  }) => {
++    try {
++      console.log('🎲 [DataGenerationContext] Starting data generation...');
++      toast.showInfo('Generating data...');
++
++      const dbManager = UnifiedDatabaseManager.getInstance();
++      const result = await dbManager.generateData(options);
++
++      if (result.success) {
++        if (onDataChanged) {
++          await onDataChanged();
++        } else {
++          window.dispatchEvent(new CustomEvent('appDataChanged'));
++        }
++
++        const stats = result.stats;
++        const message = stats
++          ? `Generated ${stats.totalRecords} records across ${stats.tablesGenerated.length} collections`
++          : 'Data generated successfully';
++
++        toast.showSuccess(message);
++        console.log('✅ [DataGenerationContext] Data generation completed:', result.stats);
++      } else {
++        toast.showError(`Data generation failed: ${result.error}`);
++        console.error('❌ [DataGenerationContext] Data generation failed:', result.error);
++      }
++        return result;
++      } catch (err) {
++      const errorMessage = err instanceof Error ? err.message : 'Data generation failed';
++      console.error('❌ [DataGenerationContext] Data generation error:', err);
++      toast.showError(errorMessage);
++      return {
++        success: false,
++        error: errorMessage
++      };
++    }
++  }, [onDataChanged, toast]);
++
++  const seedDatabase = useCallback(async (seedConfig?: {
++    dataMode?: 'demo' | 'development' | 'production';
++    modules?: string[];
++    volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
++  }) => {
++    try {
++      console.log('🌱 [DataGenerationContext] Seeding database...');
++      toast.showInfo('Seeding database...');
++
++      const dbManager = UnifiedDatabaseManager.getInstance();
++      const result = await dbManager.seedDatabase(seedConfig);
++
++      if (result.success) {
++        if (onDataChanged) {
++          await onDataChanged();
++        } else {
++          window.dispatchEvent(new CustomEvent('appDataChanged'));
++        }
++
++        toast.showSuccess(result.message);
++        console.log('✅ [DataGenerationContext] Database seeded:', result.stats);
++      } else {
++        toast.showError(result.message);
++        console.error('❌ [DataGenerationContext] Database seeding failed:', result.message);
++      }
++
++      return result;
++    } catch (err) {
++      const errorMessage = err instanceof Error ? err.message : 'Database seeding failed';
++      console.error('Database seeding error:', err);
++      toast.showError(errorMessage);
++      return {
++        success: false,
++        message: errorMessage
++      };
++    }
++  }, [onDataChanged, toast]);
++
++  return (
++    <DataGenerationContext.Provider value={{ generateData, seedDatabase }}>
++      {children}
++    </DataGenerationContext.Provider>
++  );
++};
++
++export const useDataGenerationContext = () => {
++  const context = useContext(DataGenerationContext);
++  if (!context) {
++    throw new Error('useDataGenerationContext must be used within a DataGenerationProvider');
++  }
++  return context;
++};
+diff --git a/src/contexts/appData/PaginationContext.tsx b/src/contexts/appData/PaginationContext.tsx
+new file mode 100644
+index 0000000..61ee5f7
+--- /dev/null
++++ b/src/contexts/appData/PaginationContext.tsx
+@@ -0,0 +1,87 @@
++import React, { createContext, useContext, useCallback, ReactNode } from 'react';
++import { UnifiedDatabaseManager } from '../../services/database/UnifiedDatabaseManager';
++
++export interface PaginationOptions {
++  page: number;
++  pageSize: number;
++  sortBy?: string;
++  sortOrder?: 'asc' | 'desc';
++}
++
++export interface PaginationResult<T> {
++  data: T[];
++  page: number;
++  pageSize: number;
++  totalCount: number;
++  totalPages: number;
++  hasNextPage: boolean;
++  hasPreviousPage: boolean;
++}
++
++export interface PaginationContextType {
++  getCollectionPage: <T = any>(
++    collectionName: string,
++    options: PaginationOptions
++  ) => Promise<PaginationResult<T>>;
++}
++
++export const PaginationContext = createContext<PaginationContextType | undefined>(undefined);
++
++export const PaginationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
++  const getCollectionPage = useCallback(async <T = any,>(
++    collectionName: string,
++    options: PaginationOptions
++  ): Promise<PaginationResult<T>> => {
++    try {
++      const dbManager = UnifiedDatabaseManager.getInstance();
++      const collection = dbManager.getCollection<T>(collectionName);
++      if (!collection) {
++        throw new Error(`Collection ${collectionName} not found`);
++      }
++
++      const totalCount = await collection.count();
++      const totalPages = Math.ceil(totalCount / options.pageSize);
++      const skip = (options.page - 1) * options.pageSize;
++
++      let query = collection.find();
++
++      if (options.sortBy) {
++        query = query.sort({
++          [options.sortBy]: options.sortOrder || 'asc'
++        });
++      }
++
++      query = query.skip(skip).limit(options.pageSize);
++
++      const docs = await query.exec();
++      const data = docs.map(doc => doc.toJSON() as T);
++
++      return {
++        data,
++        page: options.page,
++        pageSize: options.pageSize,
++        totalCount,
++        totalPages,
++        hasNextPage: options.page < totalPages,
++        hasPreviousPage: options.page > 1
++      };
++    } catch (err) {
++      console.error(`[PaginationContext] Error fetching page for ${collectionName}:`, err);
++      throw err;
++    }
++  }, []);
++
++  return (
++    <PaginationContext.Provider value={{ getCollectionPage }}>
++      {children}
++    </PaginationContext.Provider>
++  );
++};
++
++export const usePaginationContext = () => {
++  const context = useContext(PaginationContext);
++  if (!context) {
++    throw new Error('usePaginationContext must be used within a PaginationProvider');
++  }
++  return context;
++};
+diff --git a/src/contexts/appData/ValidationContext.tsx b/src/contexts/appData/ValidationContext.tsx
+new file mode 100644
+index 0000000..2fb7aac
+--- /dev/null
++++ b/src/contexts/appData/ValidationContext.tsx
+@@ -0,0 +1,109 @@
++import React, { createContext, useContext, useCallback, ReactNode } from 'react';
++import { UnifiedDatabaseManager } from '../../services/database/UnifiedDatabaseManager';
++import { useToastHelpers } from '../../hooks/useToast';
++
++export interface ValidationIssue {
++  severity: 'error' | 'warning' | 'info';
++  message: string;
++  collection?: string;
++}
++
++export interface ValidationContextType {
++  validateData: () => Promise<{ isValid: boolean; issues: ValidationIssue[] }>;
++}
++
++export const ValidationContext = createContext<ValidationContextType | undefined>(undefined);
++
++export const ValidationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
++  const toast = useToastHelpers();
++  const validateData = useCallback(async () => {
++    try {
++      console.log('🔍 [ValidationContext] Validating data integrity...');
++      const dbManager = UnifiedDatabaseManager.getInstance();
++      const issues: ValidationIssue[] = [];
++
++      for (const [name, collection] of dbManager.getAllCollections()) {
++        try {
++          if (!collection) {
++            issues.push({
++              severity: 'error',
++              message: `Collection ${name} is null or undefined`,
++              collection: name
++            });
++            continue;
++          }
++
++          if (typeof collection.count === 'function') {
++            const count = await collection.count();
++            if (count < 0) {
++              issues.push({
++                severity: 'error',
++                message: `Collection ${name} has negative count: ${count}`,
++                collection: name
++              });
++            }
++          }
++
++          // Check for duplicate IDs
++          if (typeof collection.find === 'function') {
++            const docs = await collection.find({});
++            const ids = new Set();
++            const duplicates: string[] = [];
++
++            for (const doc of docs) {
++              if (doc.id) {
++                if (ids.has(doc.id)) {
++                  duplicates.push(doc.id);
++                } else {
++                  ids.add(doc.id);
++                }
++              }
++            }
++
++            if (duplicates.length > 0) {
++              issues.push({
++                severity: 'error',
++                message: `Collection ${name} has ${duplicates.length} duplicate IDs`,
++                collection: name
++              });
++            }
++          }
++        } catch (err) {
++          issues.push({
++            severity: 'warning',
++            message: `Failed to validate collection ${name}: ${err instanceof Error ? err.message : String(err)}`,
++            collection: name
++          });
++        }
++      }
++
++      const isValid = !issues.some(issue => issue.severity === 'error');
++      
++      if (isValid) {
++        toast.showSuccess('Data validation passed');
++      } else {
++        toast.showWarning(`Data validation found ${issues.filter(i => i.severity === 'error').length} errors`);
++      }
++
++      console.log(`✅ [ValidationContext] Data validation completed. Found ${issues.length} issues.`);
++      return { isValid, issues };
++    } catch (err) {
++      console.error('❌ [ValidationContext] Global validation error:', err);
++      throw err;
++    }
++  }, [toast]);
++
++  return (
++    <ValidationContext.Provider value={{ validateData }}>
++      {children}
++    </ValidationContext.Provider>
++  );
++};
++
++export const useValidationContext = () => {
++  const context = useContext(ValidationContext);
++  if (!context) {
++    throw new Error('useValidationContext must be used within a ValidationProvider');
++  }
++  return context;
++};
+diff --git a/src/contexts/appData/createDomainContext.tsx b/src/contexts/appData/createDomainContext.tsx
+new file mode 100644
+index 0000000..5bb321f
+--- /dev/null
++++ b/src/contexts/appData/createDomainContext.tsx
+@@ -0,0 +1,99 @@
++import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
++import { UnifiedDatabaseManager } from '../../services/database/UnifiedDatabaseManager';
++import { normalizeAppDataCollections } from './appDataCollections';
++import { getDataModeManager } from '../../config/dataModePolicies';
++
++export function createDomainContext<T>(domainName: string, collectionsList: string[]) {
++  const DomainContext = createContext<T | undefined>(undefined);
++
++  const DomainProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
++    const [data, setData] = useState<Partial<T>>({});
++    
++    const loadDomainCollections = useCallback(async () => {
++      try {
++        const dbManager = UnifiedDatabaseManager.getInstance();
++        const loadedData: Record<string, any[]> = {};
++
++        for (const name of collectionsList) {
++          try {
++            const collection = dbManager.getCollection(name);
++            if (collection && typeof collection.find === 'function') {
++              const docs = await collection.find({});
++              loadedData[name] = docs;
++            } else {
++              loadedData[name] = [];
++            }
++          } catch (err) {
++            console.warn(`[${domainName}] Failed to load collection ${name}:`, err);
++            loadedData[name] = [];
++          }
++        }
++
++        // We normalize the fetched data to get the camelCase versions
++        const normalized = normalizeAppDataCollections(loadedData) as any;
++        
++        // Filter out keys that we didn't request
++        const domainData: any = {};
++        
++        // helper to get camelCase mapping just like normalizeAppDataCollections does
++        const snakeToCamel = (value: string): string => value.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
++        
++        // Include aliases mapping if available (we'll just manually check the normalized output)
++        // Since normalizeAppDataCollections populated the camelCase keys correctly for loadedData
++        // We just need to identify which camelCase keys correspond to our snake_case collectionsList
++        
++        const camelKeys = collectionsList.map(name => {
++           if (name === 'app_settings' || name === 'school_details') return 'schoolDetails';
++           return snakeToCamel(name);
++        });
++
++        for (const key of camelKeys) {
++          if (normalized[key] !== undefined) {
++             domainData[key] = normalized[key];
++          }
++        }
++
++        setData(domainData);
++      } catch (err) {
++        console.error(`[${domainName}] Failed to load collections:`, err);
++      }
++    }, []);
++
++    useEffect(() => {
++      loadDomainCollections();
++    }, [loadDomainCollections]);
++
++    useEffect(() => {
++      const dataModeManager = getDataModeManager();
++      
++      const handleDataChanged = () => {
++        console.log(`🔄 [${domainName}] Received appDataChanged event, reloading collections...`);
++        loadDomainCollections();
++      };
++      
++      window.addEventListener('appDataChanged', handleDataChanged);
++      dataModeManager.on('dataSeeded', handleDataChanged);
++      
++      return () => {
++        window.removeEventListener('appDataChanged', handleDataChanged);
++        dataModeManager.off('dataSeeded', handleDataChanged);
++      };
++    }, [loadDomainCollections]);
++
++    return (
++      <DomainContext.Provider value={data as T}>
++        {children}
++      </DomainContext.Provider>
++    );
++  };
++
++  const useDomainContext = () => {
++    const context = useContext(DomainContext);
++    if (context === undefined) {
++      throw new Error(`use${domainName}Context must be used within a ${domainName}Provider`);
++    }
++    return context;
++  };
++
++  return { DomainContext, DomainProvider, useDomainContext };
++}
+diff --git a/src/contexts/appData/domainConfig.ts b/src/contexts/appData/domainConfig.ts
+new file mode 100644
+index 0000000..69ae586
+--- /dev/null
++++ b/src/contexts/appData/domainConfig.ts
+@@ -0,0 +1,31 @@
++export const DOMAIN_GROUPS = {
++  core: [
++    'users', 'roles', 'audit_logs', 'education_system_configurations', 'workflows',
++    'academic_years', 'school_periods', 'academic_year_structures', 'academic_period_definitions', 'app_settings', 'school_details'
++  ],
++  academics: [
++    'students', 'classes', 'class_streams', 'subjects', 'student_categories', 'subject_papers',
++    'exam_sessions', 'exam_paper_settings', 'grading_schemes', 'student_exam_results',
++    'class_subject_allocations', 'teacher_subject_assignments', 'student_subject_enrollments',
++    'timetable_entries', 'timetable_period_defs', 'student_attendance', 'student_health_records'
++  ],
++  hr: [
++    'staff', 'departments', 'designations', 'payroll_periods', 'payroll_item_types',
++    'staff_salary_settings', 'payslips'
++  ],
++  finance: [
++    'financial_years', 'chart_of_accounts', 'expense_categories', 'banks', 'fee_templates',
++    'fee_template_items', 'expense_claims', 'student_invoices', 'student_invoice_items',
++    'student_payments', 'fee_adjustments', 'invoice_payment_applications', 'customer_invoices',
++    'supplier_invoices', 'student_opening_balances', 'general_payments', 'general_ledger_entries'
++  ],
++  inventory: [
++    'warehouses', 'item_categories_inv', 'items_inv', 'fixed_assets', 'requisitions',
++    'purchase_orders', 'stock_levels', 'stock_transactions', 'suppliers', 'supplier_contracts'
++  ],
++  shared: [
++    'book_categories', 'books', 'loans', 'fines', 'transport_routes', 'student_transport_assignments',
++    'meal_plans', 'menus', 'merchants', 'dormitories', 'partners', 'clubs', 'customers',
++    'parents_guardians', 'templates_comm', 'campaigns', 'rfqs'
++  ]
++};
+diff --git a/src/contexts/appData/domainContexts.tsx b/src/contexts/appData/domainContexts.tsx
+new file mode 100644
+index 0000000..39f1f1e
+--- /dev/null
++++ b/src/contexts/appData/domainContexts.tsx
+@@ -0,0 +1,50 @@
++import { createDomainContext } from './createDomainContext';
++import { DOMAIN_GROUPS } from './domainConfig';
++
++export const { 
++  DomainProvider: CoreDomainProvider, 
++  useDomainContext: useCoreDomain 
++} = createDomainContext<any>('Core', DOMAIN_GROUPS.core);
++
++export const { 
++  DomainProvider: AcademicsDomainProvider, 
++  useDomainContext: useAcademicsDomain 
++} = createDomainContext<any>('Academics', DOMAIN_GROUPS.academics);
++
++export const { 
++  DomainProvider: HRDomainProvider, 
++  useDomainContext: useHRDomain 
++} = createDomainContext<any>('HR', DOMAIN_GROUPS.hr);
++
++export const { 
++  DomainProvider: FinanceDomainProvider, 
++  useDomainContext: useFinanceDomain 
++} = createDomainContext<any>('Finance', DOMAIN_GROUPS.finance);
++
++export const { 
++  DomainProvider: InventoryDomainProvider, 
++  useDomainContext: useInventoryDomain 
++} = createDomainContext<any>('Inventory', DOMAIN_GROUPS.inventory);
++
++export const { 
++  DomainProvider: SharedDomainProvider, 
++  useDomainContext: useSharedDomain 
++} = createDomainContext<any>('Shared', DOMAIN_GROUPS.shared);
++
++export const DomainProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
++  return (
++    <CoreDomainProvider>
++      <AcademicsDomainProvider>
++        <HRDomainProvider>
++          <FinanceDomainProvider>
++            <InventoryDomainProvider>
++              <SharedDomainProvider>
++                {children}
++              </SharedDomainProvider>
++            </InventoryDomainProvider>
++          </FinanceDomainProvider>
++        </HRDomainProvider>
++      </AcademicsDomainProvider>
++    </CoreDomainProvider>
++  );
++};
+diff --git a/src/contexts/appData/index.ts b/src/contexts/appData/index.ts
+new file mode 100644
+index 0000000..5cbc46c
+--- /dev/null
++++ b/src/contexts/appData/index.ts
+@@ -0,0 +1,11 @@
++export * from './BackupRestoreContext';
++export * from './DataGenerationContext';
++export * from './PaginationContext';
++export * from './ValidationContext';
++export * from './appDataCollections';
++export * from './useAcademicsOperations';
++export * from './useBackupRestore';
++export * from './useDataGeneration';
++export * from './useDataLoading';
++export * from './usePagination';
++export * from './useValidation';
+diff --git a/src/contexts/appData/useAcademicsOperations.ts b/src/contexts/appData/useAcademicsOperations.ts
+index 45f99f4..2dfad73 100644
+--- a/src/contexts/appData/useAcademicsOperations.ts
++++ b/src/contexts/appData/useAcademicsOperations.ts
+@@ -111,9 +111,7 @@ const calculateMeanGrade = (
+ 
+ export const useAcademicsOperations = (
+   dbManager: UnifiedDatabaseManager,
+-  data: Record<string, any[]>,
+-  setData: React.Dispatch<React.SetStateAction<Record<string, any[]>>>,
+-  loadAllCollections: () => Promise<void>
++  data: Record<string, any[]>
+ ) => {
+   const getNormalizedData = useCallback(() => normalizeAppDataCollections(data), [data]);
+ 
+@@ -155,15 +153,12 @@ export const useAcademicsOperations = (
+           await collection.insert(record);
+         }
+       }
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       return;
+     }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      student_attendance: [...(previous.student_attendance || []), ...normalizedRecords]
+-    }));
+-  }, [dbManager, loadAllCollections, setData]);
++    
++    throw new Error('student_attendance collection not ready');
++  }, [dbManager]);
+ 
+   const resolveSubjectPaperDetails = useCallback((subjectPaperId: number) => {
+     const normalized = getNormalizedData();
+@@ -192,18 +187,12 @@ export const useAcademicsOperations = (
+ 
+     if (collection && typeof collection.update === 'function') {
+       await collection.update(String(sessionId), nextSession);
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       return nextSession;
+     }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      exam_sessions: (previous.exam_sessions || []).map((session: any) =>
+-        String(session.id) === String(sessionId) ? nextSession : session
+-      )
+-    }));
+-    return nextSession;
+-  }, [dbManager, getNormalizedData, loadAllCollections, setData]);
++    
++    throw new Error('exam_sessions collection not ready');
++  }, [dbManager, getNormalizedData]);
+ 
+   const addExamSession = useCallback(async (sessionData: any) => {
+     const normalized = getNormalizedData();
+@@ -223,16 +212,12 @@ export const useAcademicsOperations = (
+ 
+     if (collection) {
+       await collection.insert(nextSession);
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       return nextSession;
+     }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      exam_sessions: [...(previous.exam_sessions || []), nextSession]
+-    }));
+-    return nextSession;
+-  }, [dbManager, getNormalizedData, loadAllCollections, setData]);
++    
++    throw new Error('exam_sessions collection not ready');
++  }, [dbManager, getNormalizedData]);
+ 
+   const updateExamSession = useCallback(async (sessionId: string, sessionData: any) => {
+     return mutateExamSessionRecord(sessionId, (currentSession, timestamp) => {
+@@ -252,15 +237,12 @@ export const useAcademicsOperations = (
+     const collection = dbManager.getCollection('exam_sessions');
+     if (collection && typeof collection.remove === 'function') {
+       await collection.remove(String(sessionId));
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       return;
+     }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      exam_sessions: (previous.exam_sessions || []).filter((session: any) => String(session.id) !== String(sessionId))
+-    }));
+-  }, [dbManager, loadAllCollections, setData]);
++    
++    throw new Error('exam_sessions collection not ready');
++  }, [dbManager]);
+ 
+   const addExamPaperSetting = useCallback(async (settingData: any) => {
+     const timestamp = new Date().toISOString();
+@@ -372,18 +354,12 @@ export const useAcademicsOperations = (
+       } else {
+         await collection.insert(nextResult);
+       }
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       return nextResult;
+     }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      student_exam_results: existingResult
+-        ? (previous.student_exam_results || []).map((result: any) => String(result.id) === String(existingResult.id) ? nextResult : result)
+-        : [...(previous.student_exam_results || []), nextResult]
+-    }));
+-    return nextResult;
+-  }, [dbManager, getNormalizedData, loadAllCollections, setData]);
++    
++    throw new Error('student_exam_results collection not ready');
++  }, [dbManager, getNormalizedData]);
+ 
+   const addTimetableEntry = useCallback(async (entryData: any) => {
+     const normalized = getNormalizedData();
+@@ -406,15 +382,12 @@ export const useAcademicsOperations = (
+     const collection = dbManager.getCollection('timetable_entries');
+     if (collection) {
+       await collection.insert(newEntry);
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       return;
+     }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      timetable_entries: [...(previous.timetable_entries || []), newEntry]
+-    }));
+-  }, [dbManager, getNormalizedData, loadAllCollections, setData]);
++    
++    throw new Error('timetable_entries collection not ready');
++  }, [dbManager, getNormalizedData]);
+ 
+   const updateTimetableEntry = useCallback(async (updatedEntry: any) => {
+     const collection = dbManager.getCollection('timetable_entries');
+@@ -425,31 +398,23 @@ export const useAcademicsOperations = (
+ 
+     if (collection && typeof collection.update === 'function') {
+       await collection.update(String(updatedEntry.id), nextEntry);
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       return;
+     }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      timetable_entries: (previous.timetable_entries || []).map((entry: any) =>
+-        String(entry.id) === String(updatedEntry.id) ? nextEntry : entry
+-      )
+-    }));
+-  }, [dbManager, loadAllCollections, setData]);
++    
++    throw new Error('timetable_entries collection not ready');
++  }, [dbManager]);
+ 
+   const deleteTimetableEntry = useCallback(async (entryId: string) => {
+     const collection = dbManager.getCollection('timetable_entries');
+     if (collection && typeof collection.remove === 'function') {
+       await collection.remove(String(entryId));
+-      await loadAllCollections();
++      window.dispatchEvent(new CustomEvent('appDataChanged'));
+       return;
+     }
+-
+-    setData((previous) => ({
+-      ...previous,
+-      timetable_entries: (previous.timetable_entries || []).filter((entry: any) => String(entry.id) !== String(entryId))
+-    }));
+-  }, [dbManager, loadAllCollections, setData]);
++    
++    throw new Error('timetable_entries collection not ready');
++  }, [dbManager]);
+ 
+   return {
+     getTimetablePeriodDefs,
+diff --git a/src/contexts/appData/useBackupRestore.ts b/src/contexts/appData/useBackupRestore.ts
+index 1e091e6..b44d7c0 100644
+--- a/src/contexts/appData/useBackupRestore.ts
++++ b/src/contexts/appData/useBackupRestore.ts
+@@ -1,15 +1,5 @@
+-import { useAppData } from '../../hooks/useAppData';
++import { useBackupRestoreContext } from './BackupRestoreContext';
+ 
+ export const useBackupRestore = () => {
+-  const {
+-    backupData,
+-    restoreData,
+-    clearAllData
+-  } = useAppData();
+-
+-  return {
+-    backupData,
+-    restoreData,
+-    clearAllData
+-  };
++  return useBackupRestoreContext();
+ };
+diff --git a/src/contexts/appData/useDataGeneration.ts b/src/contexts/appData/useDataGeneration.ts
+index 093e9eb..8d3673c 100644
+--- a/src/contexts/appData/useDataGeneration.ts
++++ b/src/contexts/appData/useDataGeneration.ts
+@@ -1,11 +1,5 @@
+-import { useAppData } from '../../hooks/useAppData';
++import { useDataGenerationContext } from './DataGenerationContext';
+ 
+ export const useDataGeneration = () => {
+-  const {
+-    generateData
+-  } = useAppData();
+-
+-  return {
+-    generateData
+-  };
++  return useDataGenerationContext();
+ };
+diff --git a/src/contexts/appData/usePagination.ts b/src/contexts/appData/usePagination.ts
+index 0c645c5..37d2b68 100644
+--- a/src/contexts/appData/usePagination.ts
++++ b/src/contexts/appData/usePagination.ts
+@@ -1,9 +1,5 @@
+-import { useAppData } from '../../hooks/useAppData';
++import { usePaginationContext } from './PaginationContext';
+ 
+ export const usePagination = () => {
+-  const { getCollectionPage } = useAppData();
+-
+-  return {
+-    getCollectionPage
+-  };
++  return usePaginationContext();
+ };
+diff --git a/src/contexts/appData/useValidation.ts b/src/contexts/appData/useValidation.ts
+index d72f370..d7507ff 100644
+--- a/src/contexts/appData/useValidation.ts
++++ b/src/contexts/appData/useValidation.ts
+@@ -1,9 +1,5 @@
+-import { useAppData } from '../../hooks/useAppData';
++import { useValidationContext } from './ValidationContext';
+ 
+ export const useValidation = () => {
+-  const { validateData } = useAppData();
+-
+-  return {
+-    validateData
+-  };
++  return useValidationContext();
+ };
+diff --git a/src/services/data/providers/index.ts b/src/services/data/providers/index.ts
+index 18a9b6d..5280b63 100644
+--- a/src/services/data/providers/index.ts
++++ b/src/services/data/providers/index.ts
+@@ -15,7 +15,7 @@ import { SQLiteProvider } from './SQLiteProvider';
+ import { PouchDBProvider } from './PouchDBProvider';
+ import { BackendProvider, type BackendProviderConfig } from '../../backend/BackendProvider';
+ import { ERPNextProvider, type ERPNextProviderConfig } from '../../erpnext/ERPNextProvider';
+-import { featureFlags } from '../../../config/featureFlags';
++import { useFeatureFlagStore } from '../../../stores/featureFlagStore';
+ 
+ interface SQLiteOptions {
+   filename?: string;
+@@ -44,6 +44,7 @@ export async function createProvider(options: ProviderFactoryOptions): Promise<D
+     case 'standalone':
+       // CRITICAL FIX: Use PouchDB as default for standalone mode (verified complete per CRIT-001)
+       // SQLite is available as alternative when enableSQLiteProvider flag is on
++      const featureFlags = useFeatureFlagStore.getState().flags;
+       if (featureFlags.enableSQLiteProvider) {
+         const sqlite = new SQLiteProvider();
+         await sqlite.initialize({
+diff --git a/src/stores/featureFlagStore.ts b/src/stores/featureFlagStore.ts
+new file mode 100644
+index 0000000..195b404
+--- /dev/null
++++ b/src/stores/featureFlagStore.ts
+@@ -0,0 +1,91 @@
++import { create } from 'zustand';
++import { persist, createJSONStorage } from 'zustand/middleware';
++
++export interface FeatureFlags {
++  /** Enable new URL-driven tab system */
++  useNewTabSystem: boolean;
++
++  /** Enable unified data service */
++  useUnifiedDataService: boolean;
++
++  /** Enable SQLite provider (standalone mode) */
++  enableSQLiteProvider: boolean;
++
++  /** Enable sync engine */
++  enableSyncEngine: boolean;
++
++  /** Enable ERPNext integration */
++  enableERPNextIntegration: boolean;
++
++  /** Enable mobile optimizations */
++  enableMobileOptimizations: boolean;
++}
++
++const defaultFlags: FeatureFlags = {
++  useNewTabSystem: true,
++  useUnifiedDataService: true,
++  enableSQLiteProvider: false,
++  enableSyncEngine: false,
++  enableERPNextIntegration: false,
++  enableMobileOptimizations: true
++};
++
++export interface FeatureFlagStore {
++  flags: FeatureFlags;
++  isEnabled: (flag: keyof FeatureFlags) => boolean;
++  enableFeature: (flag: keyof FeatureFlags) => void;
++  disableFeature: (flag: keyof FeatureFlags) => void;
++  toggleFeature: (flag: keyof FeatureFlags) => void;
++  resetFlags: () => void;
++  enableAllFeatures: () => void;
++}
++
++export const useFeatureFlagStore = create<FeatureFlagStore>()(
++  persist(
++    (set, get) => ({
++      flags: { ...defaultFlags },
++      
++      isEnabled: (flag) => {
++        return get().flags[flag] ?? false;
++      },
++      
++      enableFeature: (flag) => 
++        set((state) => ({ flags: { ...state.flags, [flag]: true } })),
++        
++      disableFeature: (flag) => 
++        set((state) => ({ flags: { ...state.flags, [flag]: false } })),
++        
++      toggleFeature: (flag) => 
++        set((state) => ({ flags: { ...state.flags, [flag]: !state.flags[flag] } })),
++        
++      resetFlags: () => 
++        set({ flags: { ...defaultFlags } }),
++        
++      enableAllFeatures: () => 
++        set((state) => {
++          const allEnabled = { ...state.flags };
++          (Object.keys(allEnabled) as Array<keyof FeatureFlags>).forEach(key => {
++            allEnabled[key] = true;
++          });
++          return { flags: allEnabled };
++        }),
++    }),
++    {
++      name: 'sp_feature_flags_store',
++      storage: createJSONStorage(() => localStorage),
++      version: 1, // Add versioning for future expiration/cleanup logic
++    }
++  )
++);
++
++// Console helper for developers
++if (typeof window !== 'undefined' && import.meta.env.DEV) {
++  (window as any).featureFlags = {
++    get: () => useFeatureFlagStore.getState().flags,
++    enable: useFeatureFlagStore.getState().enableFeature,
++    disable: useFeatureFlagStore.getState().disableFeature,
++    toggle: useFeatureFlagStore.getState().toggleFeature,
++    reset: useFeatureFlagStore.getState().resetFlags,
++    enableAll: useFeatureFlagStore.getState().enableAllFeatures
++  };
++}
+diff --git a/trace_braces.cjs b/trace_braces.cjs
+new file mode 100644
+index 0000000..ea01e2b
+--- /dev/null
++++ b/trace_braces.cjs
+@@ -0,0 +1,52 @@
++const fs = require('fs');
++const code = fs.readFileSync('/workspace/src/contexts/AppDataContext.tsx', 'utf8');
++
++const stack = [];
++const lines = code.split('\n');
++
++let inString = false;
++let stringChar = '';
++
++for (let i = 0; i < lines.length; i++) {
++  const line = lines[i];
++  
++  // Skip comments (hacky, ignores block comments)
++  if (line.trim().startsWith('//')) continue;
++  
++  for (let j = 0; j < line.length; j++) {
++    const c = line[j];
++    
++    // Ignore strings
++    if ((c === "'" || c === '"' || c === '`') && line[j-1] !== '\\') {
++      if (!inString) {
++        inString = true;
++        stringChar = c;
++      } else if (c === stringChar) {
++        inString = false;
++      }
++      continue;
++    }
++    
++    if (inString) continue;
++    
++    if (c === '(' || c === '{' || c === '[') {
++      stack.push({ char: c, line: i + 1 });
++    } else if (c === ')' || c === '}' || c === ']') {
++      if (stack.length > 0) {
++        const last = stack[stack.length - 1];
++        if (
++          (c === ')' && last.char === '(') ||
++          (c === '}' && last.char === '{') ||
++          (c === ']' && last.char === '[')
++        ) {
++          stack.pop();
++        }
++      }
++    }
++  }
++}
++
++console.log('Unclosed blocks:');
++for (const item of stack) {
++  console.log(`Character '${item.char}' at line ${item.line}`);
++}
