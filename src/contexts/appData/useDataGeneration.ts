@@ -1,11 +1,5 @@
-import { useAppData } from '../../hooks/useAppData';
+import { useDataGenerationContext } from './DataGenerationContext';
 
 export const useDataGeneration = () => {
-  const {
-    generateData
-  } = useAppData();
-
-  return {
-    generateData
-  };
+  return useDataGenerationContext();
 };
