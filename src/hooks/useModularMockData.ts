@@ -41,7 +41,6 @@ import { useTransportRouteData } from '../modules/finance/data/useTransportRoute
 import { useInvoicePaymentApplicationData } from '../modules/finance/data/useInvoicePaymentApplicationData';
 import { useGeneralPaymentData } from '../modules/finance/data/useGeneralPaymentData';
 import { useGeneralLedgerEntryData } from '../modules/finance/data/useGeneralLedgerEntryData';
-import { useSupplierContractData } from '../modules/inventory/data/useSupplierContractData';
 // ... other module imports are kept for when we re-enable them
 
 // Dynamically import all mockData.ts files from modules for fallback data
@@ -127,7 +126,6 @@ export const useModularMockData = (): AppDataContextType => {
   const { data: expenseCategories, create: createExpenseCategoryRecord, update: updateExpenseCategoryRecord, remove: deleteExpenseCategoryRecord } = useExpenseCategoryData();
   const { data: banks, create: createBankRecord, update: updateBankRecord, remove: deleteBankRecord } = useBankData();
   const { data: suppliers, create: createSupplierRecord, update: updateSupplierRecord, remove: deleteSupplierRecord } = useSupplierData();
-  const { data: supplierContracts, create: createSupplierContractRecord, update: updateSupplierContractRecord, remove: deleteSupplierContractRecord } = useSupplierContractData();
   const { data: expenseClaims, create: createExpenseClaimRecord, update: updateExpenseClaimRecord, remove: deleteExpenseClaimRecord } = useExpenseClaimData();
   const { data: supplierInvoices, create: createSupplierInvoiceRecord, update: updateSupplierInvoiceRecord, remove: deleteSupplierInvoiceRecord } = useSupplierInvoiceData();
   const { data: feeAdjustments, create: createFeeAdjustmentRecord, update: updateFeeAdjustmentRecord, remove: deleteFeeAdjustmentRecord } = useFeeAdjustmentData();
@@ -194,7 +192,6 @@ export const useModularMockData = (): AppDataContextType => {
     expenseCategories,
     banks,
     suppliers,
-    supplierContracts,
     expenseClaims,
     studentPayments,
     studentOpeningBalances,
@@ -233,17 +230,7 @@ export const useModularMockData = (): AppDataContextType => {
     removeBank: async (id: string) => deleteBankRecord(id),
     addSupplier: async (supplierData: any) => createSupplierRecord(supplierData),
     updateSupplier: async (id: number, updatedSupplier: any) => updateSupplierRecord(id, updatedSupplier),
-    deleteSupplier: async (id: number) => deleteSupplierRecord(id),
     removeSupplier: async (id: number) => deleteSupplierRecord(id),
-    addSupplierContract: async (contractData: any) => createSupplierContractRecord({
-      ...contractData,
-      supplier_name: resolveSupplierName(contractData.supplier_id)
-    }),
-    updateSupplierContract: async (id: string, updatedContract: any) => updateSupplierContractRecord(id, {
-      ...updatedContract,
-      supplier_name: resolveSupplierName(updatedContract.supplier_id)
-    }),
-    deleteSupplierContract: async (id: string) => deleteSupplierContractRecord(id),
     addStudentPayment: async (paymentData: any) => createStudentPaymentRecord({
       ...paymentData,
       student_name: resolveStudentName(paymentData.student_id)
@@ -358,10 +345,6 @@ export const useModularMockData = (): AppDataContextType => {
     createSupplierRecord,
     updateSupplierRecord,
     deleteSupplierRecord,
-    supplierContracts,
-    createSupplierContractRecord,
-    updateSupplierContractRecord,
-    deleteSupplierContractRecord,
     createExpenseClaimRecord,
     updateExpenseClaimRecord,
     deleteExpenseClaimRecord,
@@ -440,7 +423,6 @@ export const useModularMockData = (): AppDataContextType => {
     expenseCategories: financeData.expenseCategories || [],
     banks: financeData.banks || [],
     suppliers: financeData.suppliers || [],
-    supplierContracts: financeData.supplierContracts || [],
     expenseClaims: financeData.expenseClaims || [],
 
     // --- OTHER MODULES (FALLBACK MOCK / SAFE DEFAULTS) ---
@@ -551,8 +533,7 @@ export const useModularMockData = (): AppDataContextType => {
     addChartOfAccount: financeData.addChartOfAccount, updateChartOfAccount: financeData.updateChartOfAccount, deleteChartOfAccount: financeData.deleteChartOfAccount,
     addExpenseCategory: financeData.addExpenseCategory, updateExpenseCategory: financeData.updateExpenseCategory, removeExpenseCategory: financeData.removeExpenseCategory,
     addBank: financeData.addBank, updateBank: financeData.updateBank, removeBank: financeData.removeBank,
-    addSupplier: financeData.addSupplier, updateSupplier: financeData.updateSupplier, deleteSupplier: financeData.deleteSupplier, removeSupplier: financeData.removeSupplier,
-    addSupplierContract: financeData.addSupplierContract, updateSupplierContract: financeData.updateSupplierContract, deleteSupplierContract: financeData.deleteSupplierContract,
+    addSupplier: financeData.addSupplier, updateSupplier: financeData.updateSupplier, removeSupplier: financeData.removeSupplier,
     addFeeTemplate: financeData.addFeeTemplate, updateFeeTemplate: financeData.updateFeeTemplate, deleteFeeTemplate: financeData.deleteFeeTemplate,
     addFeeTemplateItem: financeData.addFeeTemplateItem, updateFeeTemplateItem: financeData.updateFeeTemplateItem, removeFeeTemplateItem: financeData.removeFeeTemplateItem,
     addExpenseClaim: financeData.addExpenseClaim, updateExpenseClaim: financeData.updateExpenseClaim, removeExpenseClaim: financeData.removeExpenseClaim,
