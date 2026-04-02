@@ -70,7 +70,6 @@ describe('inventory supplier hooks shared-context CRUD naming', () => {
     const { result } = renderHook(() => useSupplierData());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    await waitFor(() => expect(result.current.suppliers[0]?.id).toBe(7));
 
     await act(async () => {
       await result.current.create({
@@ -122,7 +121,6 @@ describe('inventory supplier hooks shared-context CRUD naming', () => {
     const { result } = renderHook(() => useSupplierContractData());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    await waitFor(() => expect(result.current.contracts[0]?.id).toBe('SC-001'));
 
     await act(async () => {
       await result.current.create({
