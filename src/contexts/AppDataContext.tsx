@@ -18,6 +18,7 @@ import { BackupRestoreProvider, useBackupRestoreContext } from './appData/Backup
 import { DataGenerationProvider, useDataGenerationContext } from './appData/DataGenerationContext';
 import { PaginationProvider, usePaginationContext } from './appData/PaginationContext';
 import { ValidationProvider, useValidationContext } from './appData/ValidationContext';
+import { useCoreDomain, useAcademicsDomain, useHRDomain, useFinanceDomain, useInventoryDomain, useSharedDomain } from './appData/domainContexts';
 
 // Sync status interface
 export interface SyncStatus {
@@ -209,8 +210,26 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [data, setData] = useState<Record<string, any[]>>({});
-  
+
+  // Consume Domain Contexts
+  const coreDomain = useCoreDomain();
+  const academicsDomain = useAcademicsDomain();
+  const hrDomain = useHRDomain();
+  const financeDomain = useFinanceDomain();
+  const inventoryDomain = useInventoryDomain();
+  const sharedDomain = useSharedDomain();
+
+  // Reconstruct the legacy data object for internal operations if needed
+  const data = useMemo(() => ({
+    ...coreDomain,
+    ...academicsDomain,
+    ...hrDomain,
+    ...financeDomain,
+    ...inventoryDomain,
+    ...sharedDomain
+  }), [coreDomain, academicsDomain, hrDomain, financeDomain, inventoryDomain, sharedDomain]);
+
+    
   // Network state
   const [networkState, setNetworkState] = useState<NetworkState | null>(null);
   
@@ -306,7 +325,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           }
         }
 
-        const loadPromise = loadAllCollections();
+        window.dispatchEvent(new CustomEvent('appDataChanged'));
+        const loadPromise = Promise.resolve();
         const loadTimeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Load collections timeout')), 20000);
         });
@@ -375,36 +395,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
   }, [isInitialized, isOnline, networkState?.backendAvailable, syncStatus.state, dbManager]);
 
-  // Load data from all collections
-  const loadAllCollections = useCallback(async () => {
-    try {
-      const collections = dbManager.getAllCollections();
-      const loadedData: Record<string, any[]> = {};
-
-      for (const [name, collection] of collections) {
-        try {
-          if (collection && typeof collection.find === 'function') {
-            const docs = await collection.find({});
-            loadedData[name] = docs;
-          }
-        } catch (err) {
-          console.warn(`Failed to load collection ${name}:`, err);
-          loadedData[name] = [];
-        }
-      }
-
-      setData(loadedData);
-    } catch (err) {
-      console.error('Failed to load collections:', err);
-    }
-  }, [dbManager]);
 
   useEffect(() => {
     const dataModeManager = getDataModeManager();
     const refreshFromEvent = () => {
-      loadAllCollections().catch((err) => {
-        console.error('Failed to refresh collections after data mode change:', err);
-      });
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
     };
 
     dataModeManager.on('dataSeeded', refreshFromEvent);
@@ -412,23 +407,23 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     dataModeManager.on('modeChanged', refreshFromEvent);
 
     return () => {
-      dataModeManager.off('dataSeeded', refreshFromEvent);
-      dataModeManager.off('dataCleared', refreshFromEvent);
-      dataModeManager.off('modeChanged', refreshFromEvent);
-    };
-  }, [loadAllCollections]);
+        dataModeManager.off('dataSeeded', refreshFromEvent);
+        dataModeManager.off('dataCleared', refreshFromEvent);
+        dataModeManager.off('modeChanged', refreshFromEvent);
+      };
+    }, []);
 
-  // Refresh all data
+    // Refresh all data
   const refreshData = useCallback(async () => {
     try {
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       toast.showSuccess('Data refreshed successfully');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to refresh data';
       toast.showError(errorMessage);
       throw err;
     }
-  }, [loadAllCollections, toast]); // Added toast to dependencies
+  }, [toast]); // Added toast to dependencies
 
 
   // Get collection statistics
@@ -488,7 +483,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         await (provider as any).sync();
         
         // Reload data after successful sync
-        await loadAllCollections();
+        window.dispatchEvent(new CustomEvent('appDataChanged'));
         
         setSyncStatus(prev => ({
           ...prev,
@@ -517,7 +512,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       isSyncingRef.current = false;
     }
-  }, [dbManager, isOnline, networkState, syncStatus.state, loadAllCollections, toast]);
+  }, [dbManager, isOnline, networkState, syncStatus.state, toast]);
 
   // Store performSync in ref for use in effects
   useEffect(() => {
@@ -742,14 +737,14 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       toast.showSuccess(`Cleaned up ${totalCleaned} old records`);
       
       // Refresh data after cleanup
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to cleanup old data';
       console.error('Cleanup failed:', err);
       toast.showError(errorMessage);
       throw err;
     }
-  }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
+  }, [dbManager]); // Removed toast to prevent re-render loop
 
   // Task 4.4.4: Provider capability detection
   const getProviderCapabilities = useCallback((): ProviderCapabilities => {
@@ -854,337 +849,24 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
 
 
-  const getTimetablePeriodDefs = useCallback(() => {
-    return getNormalizedData().timetablePeriodDefs || [];
-  }, [getNormalizedData]);
+  
+  const {
+    getTimetablePeriodDefs,
+    getTimetableEntries,
+    getStudentAttendanceByFilters,
+    saveStudentAttendance,
+    addExamSession,
+    updateExamSession,
+    deleteExamSession,
+    addExamPaperSetting,
+    updateExamPaperSetting,
+    deleteExamPaperSetting,
+    saveStudentExamResult,
+    addTimetableEntry,
+    updateTimetableEntry,
+    deleteTimetableEntry
+  } = useAcademicsOperations(dbManager, data);
 
-  const getTimetableEntries = useCallback((classStreamId: number) => {
-    return (getNormalizedData().timetableEntries || []).filter((entry: any) => Number(entry.class_stream_id) === Number(classStreamId));
-  }, [getNormalizedData]);
-
-  const getStudentAttendanceByFilters = useCallback((date: string, classStreamId: number, periodId: number) => {
-    const normalized = getNormalizedData();
-    const studentsInStream = (normalized.students || []).filter((student: any) => Number(student.current_class_stream_id) === Number(classStreamId));
-    const studentIds = new Set(studentsInStream.map((student: any) => String(student.id)));
-
-    return (normalized.studentAttendance || []).filter((record: any) =>
-      record.date === date &&
-      Number(record.period_id) === Number(periodId) &&
-      studentIds.has(String(record.student_id))
-    );
-  }, [getNormalizedData]);
-
-  const saveStudentAttendance = useCallback(async (attendanceRecords: any[]) => {
-    const collection = dbManager.getCollection('student_attendance');
-    const records = Array.isArray(attendanceRecords) ? attendanceRecords : [attendanceRecords];
-    const normalizedRecords = records.map((record) => ({
-      ...record,
-      id: record.id || `attendance-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      created_at: record.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }));
-
-    if (collection) {
-      if (typeof collection.insertMany === 'function') {
-        await collection.insertMany(normalizedRecords);
-      } else {
-        for (const record of normalizedRecords) {
-          await collection.insert(record);
-        }
-      }
-      await loadAllCollections();
-      return;
-    }
-
-    setData((previous) => ({
-      ...previous,
-      student_attendance: [...(previous.student_attendance || []), ...normalizedRecords]
-    }));
-  }, [dbManager, loadAllCollections]);
-
-  const resolveSubjectPaperDetails = useCallback((subjectPaperId: number) => {
-    const normalized = getNormalizedData();
-    const subjectPaper = (normalized.subjectPapers || []).find(
-      (item: any) => Number(item.id) === Number(subjectPaperId)
-    );
-    return {
-      subject_name: subjectPaper?.subject_name || null,
-      subject_paper_name: subjectPaper?.name || null
-    };
-  }, [getNormalizedData]);
-
-  const mutateExamSessionRecord = useCallback(async (
-    sessionId: string,
-    updater: (session: any, timestamp: string) => any
-  ) => {
-    const normalized = getNormalizedData();
-    const currentSession = (normalized.examSessions || []).find((item: any) => String(item.id) === String(sessionId));
-    if (!currentSession) {
-      throw new Error(`Exam session ${sessionId} not found`);
-    }
-
-    const timestamp = new Date().toISOString();
-    const nextSession = updater(currentSession, timestamp);
-    const collection = dbManager.getCollection('exam_sessions');
-
-    if (collection && typeof collection.update === 'function') {
-      await collection.update(String(sessionId), nextSession);
-      await loadAllCollections();
-      return nextSession;
-    }
-
-    setData((previous) => ({
-      ...previous,
-      exam_sessions: (previous.exam_sessions || []).map((session: any) =>
-        String(session.id) === String(sessionId) ? nextSession : session
-      )
-    }));
-    return nextSession;
-  }, [dbManager, getNormalizedData, loadAllCollections]);
-
-  const addExamSession = useCallback(async (sessionData: any) => {
-    const normalized = getNormalizedData();
-    const schoolPeriod = (normalized.schoolPeriods || []).find(
-      (item: any) => Number(item.id) === Number(sessionData.school_period_id)
-    );
-    const timestamp = new Date().toISOString();
-    const nextSession = {
-      ...sessionData,
-      id: sessionData.id || `exam-session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      paper_settings: Array.isArray(sessionData.paper_settings) ? sessionData.paper_settings : [],
-      school_period_name: sessionData.school_period_name || schoolPeriod?.name || null,
-      created_at: sessionData.created_at || timestamp,
-      updated_at: timestamp
-    };
-    const collection = dbManager.getCollection('exam_sessions');
-
-    if (collection) {
-      await collection.insert(nextSession);
-      await loadAllCollections();
-      return nextSession;
-    }
-
-    setData((previous) => ({
-      ...previous,
-      exam_sessions: [...(previous.exam_sessions || []), nextSession]
-    }));
-    return nextSession;
-  }, [dbManager, getNormalizedData, loadAllCollections]);
-
-  const updateExamSession = useCallback(async (sessionId: string, sessionData: any) => {
-    return mutateExamSessionRecord(sessionId, (currentSession, timestamp) => {
-      const normalized = getNormalizedData();
-      const schoolPeriodId = sessionData.school_period_id ?? currentSession.school_period_id;
-      const schoolPeriod = (normalized.schoolPeriods || []).find((item: any) => Number(item.id) === Number(schoolPeriodId));
-      return {
-        ...currentSession,
-        ...sessionData,
-        school_period_name: sessionData.school_period_name || schoolPeriod?.name || currentSession.school_period_name || null,
-        updated_at: timestamp
-      };
-    });
-  }, [getNormalizedData, mutateExamSessionRecord]);
-
-  const deleteExamSession = useCallback(async (sessionId: string) => {
-    const collection = dbManager.getCollection('exam_sessions');
-    if (collection && typeof collection.remove === 'function') {
-      await collection.remove(String(sessionId));
-      await loadAllCollections();
-      return;
-    }
-
-    setData((previous) => ({
-      ...previous,
-      exam_sessions: (previous.exam_sessions || []).filter((session: any) => String(session.id) !== String(sessionId))
-    }));
-  }, [dbManager, loadAllCollections]);
-
-  const addExamPaperSetting = useCallback(async (settingData: any) => {
-    const timestamp = new Date().toISOString();
-    const paperDetails = resolveSubjectPaperDetails(Number(settingData.subject_paper_id));
-    const nextSetting = {
-      ...settingData,
-      ...paperDetails,
-      id: settingData.id || `paper-setting-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      created_at: settingData.created_at || timestamp,
-      updated_at: timestamp
-    };
-    return mutateExamSessionRecord(String(settingData.exam_session_id), (currentSession, updatedAt) => ({
-      ...currentSession,
-      paper_settings: [...(currentSession.paper_settings || []), { ...nextSetting, updated_at: updatedAt }],
-      updated_at: updatedAt
-    }));
-  }, [mutateExamSessionRecord, resolveSubjectPaperDetails]);
-
-  const updateExamPaperSetting = useCallback(async (settingId: string, settingData: any) => {
-    const normalized = getNormalizedData();
-    const currentSession = (normalized.examSessions || []).find((session: any) =>
-      (session.paper_settings || []).some((setting: any) => String(setting.id) === String(settingId))
-    );
-    if (!currentSession) {
-      throw new Error(`Exam paper setting ${settingId} not found`);
-    }
-
-    return mutateExamSessionRecord(String(currentSession.id), (session, timestamp) => ({
-      ...session,
-      paper_settings: (session.paper_settings || []).map((setting: any) => {
-        if (String(setting.id) !== String(settingId)) return setting;
-        const paperDetails = resolveSubjectPaperDetails(Number(settingData.subject_paper_id ?? setting.subject_paper_id));
-        return { ...setting, ...settingData, ...paperDetails, updated_at: timestamp };
-      }),
-      updated_at: timestamp
-    }));
-  }, [getNormalizedData, mutateExamSessionRecord, resolveSubjectPaperDetails]);
-
-  const deleteExamPaperSetting = useCallback(async (settingId: string) => {
-    const normalized = getNormalizedData();
-    const currentSession = (normalized.examSessions || []).find((session: any) =>
-      (session.paper_settings || []).some((setting: any) => String(setting.id) === String(settingId))
-    );
-    if (!currentSession) {
-      return;
-    }
-
-    await mutateExamSessionRecord(String(currentSession.id), (session, timestamp) => ({
-      ...session,
-      paper_settings: (session.paper_settings || []).filter((setting: any) => String(setting.id) !== String(settingId)),
-      updated_at: timestamp
-    }));
-  }, [getNormalizedData, mutateExamSessionRecord]);
-
-  const saveStudentExamResult = useCallback(async (resultData: any) => {
-    const normalized = getNormalizedData();
-    const existingResult = (normalized.studentExamResults || []).find((item: any) =>
-      String(item.student_id) === String(resultData.student_id) &&
-      String(item.exam_session_id) === String(resultData.exam_session_id)
-    );
-    const timestamp = new Date().toISOString();
-    const student = (normalized.students || []).find((item: any) => String(item.id) === String(resultData.student_id));
-    const session = (normalized.examSessions || []).find((item: any) => String(item.id) === String(resultData.exam_session_id));
-    const classStream = (normalized.classStreams || []).find((item: any) => Number(item.id) === Number(student?.current_class_stream_id));
-    const marks = (resultData.marks || []).map((mark: any) => {
-      const paper = (session?.paper_settings || []).find((item: any) => String(item.id) === String(mark.paper_setting_id));
-      return {
-        ...mark,
-        id: mark.id || `paper-mark-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        student_exam_result_id: existingResult?.id || resultData.id || '',
-        subject_name: mark.subject_name || paper?.subject_name || null,
-        subject_paper_name: mark.subject_paper_name || paper?.subject_paper_name || null,
-        marks_out_of: mark.marks_out_of ?? paper?.marks_out_of ?? null
-      };
-    });
-    const nextResult = {
-      ...existingResult,
-      ...resultData,
-      id: existingResult?.id || resultData.id || `exam-result-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      marks,
-      student_name: resultData.student_name || (student ? `${student.first_name || ''} ${student.last_name || ''}`.trim() : null),
-      admission_no: resultData.admission_no || student?.admission_no || null,
-      class_name: resultData.class_name || classStream?.class_name || student?.current_class_name || null,
-      stream_name: resultData.stream_name || classStream?.name || student?.current_class_stream_name || null,
-      exam_session_name: resultData.exam_session_name || session?.name || null,
-      created_at: existingResult?.created_at || resultData.created_at || timestamp,
-      updated_at: timestamp
-    };
-    nextResult.marks = marks.map((mark: any) => ({ ...mark, student_exam_result_id: nextResult.id }));
-    const collection = dbManager.getCollection('student_exam_results');
-
-    if (collection) {
-      if (existingResult && typeof collection.update === 'function') {
-        await collection.update(String(existingResult.id), nextResult);
-      } else {
-        await collection.insert(nextResult);
-      }
-      await loadAllCollections();
-      return nextResult;
-    }
-
-    setData((previous) => ({
-      ...previous,
-      student_exam_results: existingResult
-        ? (previous.student_exam_results || []).map((result: any) => String(result.id) === String(existingResult.id) ? nextResult : result)
-        : [...(previous.student_exam_results || []), nextResult]
-    }));
-    return nextResult;
-  }, [dbManager, getNormalizedData, loadAllCollections]);
-
-  const addTimetableEntry = useCallback(async (entryData: any) => {
-    const normalized = getNormalizedData();
-    const classStream = (normalized.classStreams || []).find((item: any) => Number(item.id) === Number(entryData.class_stream_id));
-    const period = (normalized.timetablePeriodDefs || []).find((item: any) => Number(item.id) === Number(entryData.period_id));
-    const subject = (normalized.subjects || []).find((item: any) => Number(item.id) === Number(entryData.subject_id));
-    const teacher = (normalized.staff || []).find((item: any) => String(item.id) === String(entryData.teacher_id));
-
-    const newEntry = {
-      ...entryData,
-      id: entryData.id || `tt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      class_stream_name: entryData.class_stream_name || (classStream ? `${classStream.class_name || ''} ${classStream.name || ''}`.trim() : ''),
-      period_name: entryData.period_name || period?.period_name || '',
-      subject_name: entryData.subject_name || subject?.name || subject?.subject_name || '',
-      teacher_name: entryData.teacher_name || (teacher ? `${teacher.first_name || ''} ${teacher.last_name || ''}`.trim() : ''),
-      created_at: entryData.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-
-    const collection = dbManager.getCollection('timetable_entries');
-    if (collection) {
-      await collection.insert(newEntry);
-      await loadAllCollections();
-      return;
-    }
-
-    setData((previous) => ({
-      ...previous,
-      timetable_entries: [...(previous.timetable_entries || []), newEntry]
-    }));
-  }, [dbManager, getNormalizedData, loadAllCollections]);
-
-  const updateTimetableEntry = useCallback(async (updatedEntry: any) => {
-    const collection = dbManager.getCollection('timetable_entries');
-    const nextEntry = {
-      ...updatedEntry,
-      updated_at: new Date().toISOString()
-    };
-
-    if (collection && typeof collection.update === 'function') {
-      await collection.update(String(updatedEntry.id), nextEntry);
-      await loadAllCollections();
-      return;
-    }
-
-    setData((previous) => ({
-      ...previous,
-      timetable_entries: (previous.timetable_entries || []).map((entry: any) =>
-        String(entry.id) === String(updatedEntry.id) ? nextEntry : entry
-      )
-    }));
-  }, [dbManager, loadAllCollections]);
-
-  const deleteTimetableEntry = useCallback(async (entryId: string) => {
-    const collection = dbManager.getCollection('timetable_entries');
-    if (collection && typeof collection.remove === 'function') {
-      await collection.remove(String(entryId));
-      await loadAllCollections();
-      return;
-    }
-
-    setData((previous) => ({
-      ...previous,
-      timetable_entries: (previous.timetable_entries || []).filter((entry: any) => String(entry.id) !== String(entryId))
-    }));
-  }, [dbManager, loadAllCollections]);
-
-  // Listen for data changed events from decoupled providers
-  useEffect(() => {
-    const handleDataChanged = () => {
-      console.log('🔄 [AppDataContext] Received appDataChanged event, reloading collections...');
-      loadAllCollections();
-    };
-    window.addEventListener('appDataChanged', handleDataChanged);
-    return () => {
-      window.removeEventListener('appDataChanged', handleDataChanged);
-    };
-  }, [loadAllCollections]);
 
   // Create context value
   const contextValue = useMemo(() => {
@@ -1192,10 +874,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     const loadingState = createAppDataLoadingState(isLoading);
 
     return {
-      // Core data collections
       ...normalizedData,
-      
-      // Status flags
       isInitialized,
       loading: loadingState,
       error,
@@ -1204,53 +883,26 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       appVersion: '1.0.0',
       deploymentMode: dbManager.getDeploymentMode(),
       providerType: dbManager.getProviderType(),
-      
-      // Network state
       backendAvailable: networkState?.backendAvailable || false,
       connectionQuality: networkState?.connectionQuality || 'offline',
       networkState,
-      
-      // Sync status
       syncStatus,
-      
-      // Database operations
       refreshData,
       getCollectionStats,
-      
-      // Sync operations
       forceSync,
       pauseSync,
       resumeSync,
       cancelSync,
-      
-      // Sync settings
       getSyncSettings,
       updateSyncSettings,
-      
-      // Enhanced data refresh (Task 4.4.1)
       refreshCollection,
       refreshDataWithProgress,
-      
-      // Pagination (Task 4.4.2)
-      
-      // Memory management (Task 4.4.3)
       cleanupOldData,
-      
-      // Provider capabilities (Task 4.4.4)
       getProviderCapabilities,
-      
-      // Data mode tracking (Task 4.4.5)
       currentDataMode,
       dataSourceDescription,
-      
-      // Data validation (Task 4.4.6)
-      
-      // Data strategy (Task 4.4.8)
       getDataSourceConfig,
       updateDataStrategy,
-      
-      // Data generation (Task 5)
-
       saveStudentAttendance,
       getStudentAttendanceByFilters,
       addExamSession,
@@ -1264,14 +916,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       getTimetableEntries,
       addTimetableEntry,
       updateTimetableEntry,
-      deleteTimetableEntry,
-      
-      // Legacy compatibility
-      refresh: refreshData,
-      isRxDBModeActive: isInitialized,
-      schoolDetails: normalizedData.schoolDetails?.[0] || null,
-      users: normalizedData.users || [],
-    } as any as EnhancedAppDataContextType;
+      deleteTimetableEntry
+    };
   }, [
     data,
     isInitialized,
@@ -1310,10 +956,8 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     getTimetableEntries,
     addTimetableEntry,
     updateTimetableEntry,
-    deleteTimetableEntry,
-    config.environment,
-    loadAllCollections
-  ]); // Removed toast from dependencies to prevent re-render loop
+    deleteTimetableEntry
+  ]);
 
   // Loading state
   if (isLoading) {

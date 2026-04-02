@@ -19,6 +19,7 @@ import { BackupRestoreProvider } from './appData/BackupRestoreContext';
 import { DataGenerationProvider } from './appData/DataGenerationContext';
 import { PaginationProvider } from './appData/PaginationContext';
 import { ValidationProvider } from './appData/ValidationContext';
+import { DomainProviders } from './appData/domainContexts';
 
 const AppDataProvider = lazy(() =>
   import('./AppDataContext').then(module => ({ default: module.AppDataProvider }))
@@ -86,7 +87,9 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         <DataGenerationProvider>
           <PaginationProvider>
             <ValidationProvider>
-              <AppDataProvider>{children}</AppDataProvider>
+              <DomainProviders>
+                <AppDataProvider>{children}</AppDataProvider>
+              </DomainProviders>
             </ValidationProvider>
           </PaginationProvider>
         </DataGenerationProvider>

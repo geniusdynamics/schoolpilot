@@ -111,9 +111,7 @@ const calculateMeanGrade = (
 
 export const useAcademicsOperations = (
   dbManager: UnifiedDatabaseManager,
-  data: Record<string, any[]>,
-  setData: React.Dispatch<React.SetStateAction<Record<string, any[]>>>,
-  loadAllCollections: () => Promise<void>
+  data: Record<string, any[]>
 ) => {
   const getNormalizedData = useCallback(() => normalizeAppDataCollections(data), [data]);
 
@@ -155,15 +153,12 @@ export const useAcademicsOperations = (
           await collection.insert(record);
         }
       }
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       return;
     }
-
-    setData((previous) => ({
-      ...previous,
-      student_attendance: [...(previous.student_attendance || []), ...normalizedRecords]
-    }));
-  }, [dbManager, loadAllCollections, setData]);
+    
+    throw new Error('student_attendance collection not ready');
+  }, [dbManager]);
 
   const resolveSubjectPaperDetails = useCallback((subjectPaperId: number) => {
     const normalized = getNormalizedData();
@@ -192,18 +187,12 @@ export const useAcademicsOperations = (
 
     if (collection && typeof collection.update === 'function') {
       await collection.update(String(sessionId), nextSession);
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       return nextSession;
     }
-
-    setData((previous) => ({
-      ...previous,
-      exam_sessions: (previous.exam_sessions || []).map((session: any) =>
-        String(session.id) === String(sessionId) ? nextSession : session
-      )
-    }));
-    return nextSession;
-  }, [dbManager, getNormalizedData, loadAllCollections, setData]);
+    
+    throw new Error('exam_sessions collection not ready');
+  }, [dbManager, getNormalizedData]);
 
   const addExamSession = useCallback(async (sessionData: any) => {
     const normalized = getNormalizedData();
@@ -223,16 +212,12 @@ export const useAcademicsOperations = (
 
     if (collection) {
       await collection.insert(nextSession);
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       return nextSession;
     }
-
-    setData((previous) => ({
-      ...previous,
-      exam_sessions: [...(previous.exam_sessions || []), nextSession]
-    }));
-    return nextSession;
-  }, [dbManager, getNormalizedData, loadAllCollections, setData]);
+    
+    throw new Error('exam_sessions collection not ready');
+  }, [dbManager, getNormalizedData]);
 
   const updateExamSession = useCallback(async (sessionId: string, sessionData: any) => {
     return mutateExamSessionRecord(sessionId, (currentSession, timestamp) => {
@@ -252,15 +237,12 @@ export const useAcademicsOperations = (
     const collection = dbManager.getCollection('exam_sessions');
     if (collection && typeof collection.remove === 'function') {
       await collection.remove(String(sessionId));
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       return;
     }
-
-    setData((previous) => ({
-      ...previous,
-      exam_sessions: (previous.exam_sessions || []).filter((session: any) => String(session.id) !== String(sessionId))
-    }));
-  }, [dbManager, loadAllCollections, setData]);
+    
+    throw new Error('exam_sessions collection not ready');
+  }, [dbManager]);
 
   const addExamPaperSetting = useCallback(async (settingData: any) => {
     const timestamp = new Date().toISOString();
@@ -372,18 +354,12 @@ export const useAcademicsOperations = (
       } else {
         await collection.insert(nextResult);
       }
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       return nextResult;
     }
-
-    setData((previous) => ({
-      ...previous,
-      student_exam_results: existingResult
-        ? (previous.student_exam_results || []).map((result: any) => String(result.id) === String(existingResult.id) ? nextResult : result)
-        : [...(previous.student_exam_results || []), nextResult]
-    }));
-    return nextResult;
-  }, [dbManager, getNormalizedData, loadAllCollections, setData]);
+    
+    throw new Error('student_exam_results collection not ready');
+  }, [dbManager, getNormalizedData]);
 
   const addTimetableEntry = useCallback(async (entryData: any) => {
     const normalized = getNormalizedData();
@@ -406,15 +382,12 @@ export const useAcademicsOperations = (
     const collection = dbManager.getCollection('timetable_entries');
     if (collection) {
       await collection.insert(newEntry);
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       return;
     }
-
-    setData((previous) => ({
-      ...previous,
-      timetable_entries: [...(previous.timetable_entries || []), newEntry]
-    }));
-  }, [dbManager, getNormalizedData, loadAllCollections, setData]);
+    
+    throw new Error('timetable_entries collection not ready');
+  }, [dbManager, getNormalizedData]);
 
   const updateTimetableEntry = useCallback(async (updatedEntry: any) => {
     const collection = dbManager.getCollection('timetable_entries');
@@ -425,31 +398,23 @@ export const useAcademicsOperations = (
 
     if (collection && typeof collection.update === 'function') {
       await collection.update(String(updatedEntry.id), nextEntry);
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       return;
     }
-
-    setData((previous) => ({
-      ...previous,
-      timetable_entries: (previous.timetable_entries || []).map((entry: any) =>
-        String(entry.id) === String(updatedEntry.id) ? nextEntry : entry
-      )
-    }));
-  }, [dbManager, loadAllCollections, setData]);
+    
+    throw new Error('timetable_entries collection not ready');
+  }, [dbManager]);
 
   const deleteTimetableEntry = useCallback(async (entryId: string) => {
     const collection = dbManager.getCollection('timetable_entries');
     if (collection && typeof collection.remove === 'function') {
       await collection.remove(String(entryId));
-      await loadAllCollections();
+      window.dispatchEvent(new CustomEvent('appDataChanged'));
       return;
     }
-
-    setData((previous) => ({
-      ...previous,
-      timetable_entries: (previous.timetable_entries || []).filter((entry: any) => String(entry.id) !== String(entryId))
-    }));
-  }, [dbManager, loadAllCollections, setData]);
+    
+    throw new Error('timetable_entries collection not ready');
+  }, [dbManager]);
 
   return {
     getTimetablePeriodDefs,
