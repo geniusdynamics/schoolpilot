@@ -1,9 +1,5 @@
-import { useAppData } from '../../hooks/useAppData';
+import { usePaginationContext } from './PaginationContext';
 
 export const usePagination = () => {
-  const { getCollectionPage } = useAppData();
-
-  return {
-    getCollectionPage
-  };
+  return usePaginationContext();
 };

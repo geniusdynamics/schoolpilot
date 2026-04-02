@@ -15,6 +15,11 @@ import { uds } from '../services/data';
 import { debugLog, warnLog } from '../utils';
 import Spinner from '../components/ui/Spinner';
 
+import { BackupRestoreProvider } from './appData/BackupRestoreContext';
+import { DataGenerationProvider } from './appData/DataGenerationContext';
+import { PaginationProvider } from './appData/PaginationContext';
+import { ValidationProvider } from './appData/ValidationContext';
+
 const AppDataProvider = lazy(() =>
   import('./AppDataContext').then(module => ({ default: module.AppDataProvider }))
 );
@@ -75,7 +80,15 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         </div>
       </div>
     }>
-      <AppDataProvider>{children}</AppDataProvider>
+      <BackupRestoreProvider>
+        <DataGenerationProvider>
+          <PaginationProvider>
+            <ValidationProvider>
+              <AppDataProvider>{children}</AppDataProvider>
+            </ValidationProvider>
+          </PaginationProvider>
+        </DataGenerationProvider>
+      </BackupRestoreProvider>
     </Suspense>
   );
 };
