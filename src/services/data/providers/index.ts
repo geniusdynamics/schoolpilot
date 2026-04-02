@@ -15,7 +15,7 @@ import { SQLiteProvider } from './SQLiteProvider';
 import { PouchDBProvider } from './PouchDBProvider';
 import { BackendProvider, type BackendProviderConfig } from '../../backend/BackendProvider';
 import { ERPNextProvider, type ERPNextProviderConfig } from '../../erpnext/ERPNextProvider';
-import { featureFlags } from '../../../config/featureFlags';
+import { useFeatureFlagStore } from '../../../stores/featureFlagStore';
 
 interface SQLiteOptions {
   filename?: string;
@@ -44,6 +44,7 @@ export async function createProvider(options: ProviderFactoryOptions): Promise<D
     case 'standalone':
       // CRITICAL FIX: Use PouchDB as default for standalone mode (verified complete per CRIT-001)
       // SQLite is available as alternative when enableSQLiteProvider flag is on
+      const featureFlags = useFeatureFlagStore.getState().flags;
       if (featureFlags.enableSQLiteProvider) {
         const sqlite = new SQLiteProvider();
         await sqlite.initialize({
