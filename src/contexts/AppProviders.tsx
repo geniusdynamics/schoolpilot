@@ -10,7 +10,7 @@ import { UserProvider } from './UserContext';
 import { StableActionProvider } from './StableActionProvider';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
-import { featureFlags } from '../config/featureFlags';
+import { useFeatureFlagStore } from '../stores/featureFlagStore';
 import { uds } from '../services/data';
 import { debugLog, warnLog } from '../utils';
 import Spinner from '../components/ui/Spinner';
@@ -27,6 +27,8 @@ const AppDataProvider = lazy(() =>
 const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { config } = useUnifiedConfig();
   const [udsInitialized, setUdsInitialized] = useState(true);
+
+  const featureFlags = useFeatureFlagStore(state => state.flags);
 
   useEffect(() => {
     if (featureFlags.useUnifiedDataService) {

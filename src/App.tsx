@@ -22,7 +22,7 @@ import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 import { useMemoryManagement } from './hooks/useMemoryManagement';
 import { ToastProvider } from './hooks/useToast';
 import { AppProviders } from './contexts/AppProviders';
-import { featureFlags } from './config/featureFlags';
+import { useFeatureFlagStore } from './stores/featureFlagStore';
 import { performanceEventManager } from './services/performanceEventManager';
 
 // Layout components - choose based on feature flag
@@ -473,6 +473,7 @@ const AppContent: React.FC<{ modulesInitialized: boolean; config: UnifiedAppConf
   const { restoreRouteIfNeeded } = useRoutePersistence(isAuthenticated);
   
   // Choose layout based on feature flag
+  const featureFlags = useFeatureFlagStore(state => state.flags);
   const LayoutComponent = featureFlags.useNewTabSystem ? LayoutNew : Layout;
   
   // Debug authentication state
