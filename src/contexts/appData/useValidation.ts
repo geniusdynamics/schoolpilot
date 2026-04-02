@@ -1,9 +1,5 @@
-import { useAppData } from '../../hooks/useAppData';
+import { useValidationContext } from './ValidationContext';
 
 export const useValidation = () => {
-  const { validateData } = useAppData();
-
-  return {
-    validateData
-  };
+  return useValidationContext();
 };

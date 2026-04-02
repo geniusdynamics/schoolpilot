@@ -1,15 +1,5 @@
-import { useAppData } from '../../hooks/useAppData';
+import { useBackupRestoreContext } from './BackupRestoreContext';
 
 export const useBackupRestore = () => {
-  const {
-    backupData,
-    restoreData,
-    clearAllData
-  } = useAppData();
-
-  return {
-    backupData,
-    restoreData,
-    clearAllData
-  };
+  return useBackupRestoreContext();
 };

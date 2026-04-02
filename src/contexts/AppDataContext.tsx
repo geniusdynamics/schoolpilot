@@ -14,6 +14,10 @@ import {
   createAppDataLoadingState,
   normalizeAppDataCollections
 } from './appData/appDataCollections';
+import { BackupRestoreProvider, useBackupRestoreContext } from './appData/BackupRestoreContext';
+import { DataGenerationProvider, useDataGenerationContext } from './appData/DataGenerationContext';
+import { PaginationProvider, usePaginationContext } from './appData/PaginationContext';
+import { ValidationProvider, useValidationContext } from './appData/ValidationContext';
 
 // Sync status interface
 export interface SyncStatus {
@@ -181,6 +185,25 @@ export const hasAppDataContextContract = (
 };
 
 // Simplified provider component that uses UnifiedDatabaseManager
+const AppDataValueProvider: React.FC<{
+  children: ReactNode;
+  coreValue: Partial<AppDataContextType>;
+}> = ({ children, coreValue }) => {
+
+  const { getCollectionPage } = usePaginationContext();
+  const { validateData } = useValidationContext();
+
+  const value = useMemo(() => ({
+    ...coreValue,
+    validateData
+  }), [
+    coreValue,
+    validateData
+  ]) as AppDataContextType;
+
+  return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;
+};
+
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -407,55 +430,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [loadAllCollections, toast]); // Added toast to dependencies
 
-  // Backup data
-  const backupData = useCallback(async () => {
-    try {
-      toast.showInfo('Starting backup...');
-      const backup = await dbManager.createBackup();
-      toast.showSuccess('Backup completed successfully');
-      return backup;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Backup failed';
-      console.error('Backup failed:', err);
-      toast.showError(errorMessage);
-      throw err;
-    }
-  }, [dbManager, toast]); // Added toast to dependencies
-
-  // Restore data
-  const restoreData = useCallback(async (backup: any) => {
-    try {
-      toast.showInfo('Starting restore...');
-      const result = await dbManager.restoreFromBackup(backup, { clearExisting: true });
-      await loadAllCollections();
-      
-      if (result.success) {
-        toast.showSuccess(`Restore completed: ${result.restored} records restored`);
-      } else {
-        toast.showWarning(`Restore completed with errors: ${result.restored} restored, ${result.failed} failed`);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Restore failed';
-      console.error('Restore failed:', err);
-      toast.showError(errorMessage);
-      throw err;
-    }
-  }, [dbManager, loadAllCollections, toast]); // Added toast to dependencies
-
-  // Clear all data
-  const clearAllData = useCallback(async () => {
-    try {
-      toast.showInfo('Clearing all data...');
-      await dbManager.clearAllData();
-      await loadAllCollections();
-      toast.showSuccess('All data cleared successfully');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to clear data';
-      console.error('Clear data failed:', err);
-      toast.showError(errorMessage);
-      throw err;
-    }
-  }, [dbManager, loadAllCollections, toast]); // Added toast to dependencies
 
   // Get collection statistics
   const getCollectionStats = useCallback(async () => {
@@ -671,7 +645,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Check throttling (max once per 5 seconds)
       const lastRefresh = lastRefreshTimes.current.get(collectionName);
       if (lastRefresh && Date.now() - lastRefresh.getTime() < 5000) {
-        console.log(`⏱️ [AppDataContext] Throttling refresh for ${collectionName}`);
         return;
       }
 
@@ -727,56 +700,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   }, [dbManager, toast]);
 
-  // Task 4.4.2: Pagination support
-  const getCollectionPage = useCallback(async <T = any,>(
-    collectionName: string,
-    options: PaginationOptions
-  ): Promise<PaginationResult<T>> => {
-    try {
-      const collection = dbManager.getCollection<T>(collectionName);
-      if (!collection) {
-        throw new Error(`Collection ${collectionName} not found`);
-      }
-
-      // Get total count
-      const totalCount = typeof collection.count === 'function' 
-        ? await collection.count() 
-        : 0;
-
-      // Calculate pagination
-      const { page, pageSize, sortBy, sortOrder = 'asc' } = options;
-      const skip = (page - 1) * pageSize;
-      const totalPages = Math.ceil(totalCount / pageSize);
-
-      // Fetch paginated data
-      let paginatedData: T[] = [];
-      if (typeof collection.find === 'function') {
-        const query: any = {
-          skip,
-          limit: pageSize
-        };
-
-        if (sortBy) {
-          query.sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
-        }
-
-        paginatedData = await collection.find(query);
-      }
-
-      return {
-        data: paginatedData,
-        page,
-        pageSize,
-        totalCount,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1
-      };
-    } catch (err) {
-      console.error(`Failed to get page for collection ${collectionName}:`, err);
-      throw err;
-    }
-  }, [dbManager]);
+  const { getCollectionPage } = usePaginationContext();
 
   // Task 4.4.3: Memory management - Cleanup old data
   const cleanupOldData = useCallback(async (daysOld: number = 30) => {
@@ -855,7 +779,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         realTimeUpdates: true,
         conflictResolution: true,
         fullTextSearch: false,
-        transactions: false
       },
       'backend-api': {
         bulkOperations: true,
@@ -898,84 +821,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     return `Hybrid mode - Local ${providerType} with limited connectivity`;
   }, [dbManager, currentDataMode]);
 
-  // Task 4.4.6: Data validation
-  const validateData = useCallback(async () => {
-    try {
-      console.log('🔍 [AppDataContext] Validating data integrity...');
-      
-      const issues: Array<{ severity: 'error' | 'warning' | 'info'; message: string; collection?: string }> = [];
-
-      for (const [name, collection] of dbManager.getAllCollections()) {
-        try {
-          // Check if collection is accessible
-          if (!collection) {
-            issues.push({
-              severity: 'error',
-              message: `Collection ${name} is null or undefined`,
-              collection: name
-            });
-            continue;
-          }
-
-          // Check collection count
-          if (typeof collection.count === 'function') {
-            const count = await collection.count();
-            if (count < 0) {
-              issues.push({
-                severity: 'error',
-                message: `Collection ${name} has negative count: ${count}`,
-                collection: name
-              });
-            }
-          }
-
-          // Check for duplicate IDs
-          if (typeof collection.find === 'function') {
-            const docs = await collection.find({});
-            const ids = new Set();
-            const duplicates: string[] = [];
-
-            for (const doc of docs) {
-              if (doc.id) {
-                if (ids.has(doc.id)) {
-                  duplicates.push(doc.id);
-                } else {
-                  ids.add(doc.id);
-                }
-              }
-            }
-
-            if (duplicates.length > 0) {
-              issues.push({
-                severity: 'error',
-                message: `Collection ${name} has ${duplicates.length} duplicate IDs`,
-                collection: name
-              });
-            }
-          }
-        } catch (err) {
-          issues.push({
-            severity: 'warning',
-            message: `Failed to validate collection ${name}: ${err instanceof Error ? err.message : String(err)}`,
-            collection: name
-          });
-        }
-      }
-
-      const isValid = !issues.some(issue => issue.severity === 'error');
-      
-      if (isValid) {
-        toast.showSuccess('Data validation passed');
-      } else {
-        toast.showWarning(`Data validation found ${issues.filter(i => i.severity === 'error').length} errors`);
-      }
-
-      return { isValid, issues };
-    } catch (err) {
-      console.error('Data validation failed:', err);
-      throw err;
-    }
-  }, [dbManager]); // Removed toast to prevent re-render loop
+  const { validateData } = useValidationContext();
 
   // Task 4.4.8: Data strategy configuration
   const getDataSourceConfig = useCallback((): DataSourceConfig => {
@@ -1006,84 +852,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // ========== Task 5: Migrate Mock Data System to Database ==========
 
-  // Task 5.1 & 5.3: Generate data using UniversalDataGenerator
-  const generateData = useCallback(async (options?: {
-    modules?: string[];
-    counts?: Record<string, number>;
-    useRealisticData?: boolean;
-    includeTestData?: boolean;
-    clearExisting?: boolean;
-  }) => {
-    try {
-      console.log('🎲 [AppDataContext] Starting data generation...');
-      toast.showInfo('Generating data...');
 
-      const result = await dbManager.generateData(options);
-
-      if (result.success) {
-        // Reload data after generation
-        await loadAllCollections();
-        
-        const stats = result.stats;
-        const message = stats 
-          ? `Generated ${stats.totalRecords} records across ${stats.tablesGenerated.length} collections`
-          : 'Data generated successfully';
-        
-        toast.showSuccess(message);
-        console.log('✅ [AppDataContext] Data generation completed:', result.stats);
-      } else {
-        toast.showError(`Data generation failed: ${result.error}`);
-        console.error('❌ [AppDataContext] Data generation failed:', result.error);
-      }
-
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Data generation failed';
-      console.error('Data generation error:', err);
-      toast.showError(errorMessage);
-      return {
-        success: false,
-        error: errorMessage
-      };
-    }
-  }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
-
-  // Task 5.2: Seed database with configuration-based data
-  const seedDatabase = useCallback(async (seedConfig?: {
-    dataMode?: 'demo' | 'development' | 'production';
-    modules?: string[];
-    volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
-  }) => {
-    try {
-      console.log('🌱 [AppDataContext] Seeding database...');
-      toast.showInfo('Seeding database...');
-
-      const result = await dbManager.seedDatabase(seedConfig);
-
-      if (result.success) {
-        // Reload data after seeding
-        await loadAllCollections();
-        
-        toast.showSuccess(result.message);
-        console.log('✅ [AppDataContext] Database seeded:', result.stats);
-      } else {
-        toast.showError(result.message);
-        console.error('❌ [AppDataContext] Database seeding failed:', result.message);
-      }
-
-      return result;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Database seeding failed';
-      console.error('Database seeding error:', err);
-      toast.showError(errorMessage);
-      return {
-        success: false,
-        message: errorMessage
-      };
-    }
-  }, [dbManager, loadAllCollections]); // Removed toast to prevent re-render loop
-
-  const getNormalizedData = useCallback(() => normalizeAppDataCollections(data), [data]);
 
   const getTimetablePeriodDefs = useCallback(() => {
     return getNormalizedData().timetablePeriodDefs || [];
@@ -1405,6 +1174,18 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }));
   }, [dbManager, loadAllCollections]);
 
+  // Listen for data changed events from decoupled providers
+  useEffect(() => {
+    const handleDataChanged = () => {
+      console.log('🔄 [AppDataContext] Received appDataChanged event, reloading collections...');
+      loadAllCollections();
+    };
+    window.addEventListener('appDataChanged', handleDataChanged);
+    return () => {
+      window.removeEventListener('appDataChanged', handleDataChanged);
+    };
+  }, [loadAllCollections]);
+
   // Create context value
   const contextValue = useMemo(() => {
     const normalizedData = normalizeAppDataCollections(data);
@@ -1434,9 +1215,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       
       // Database operations
       refreshData,
-      backupData,
-      restoreData,
-      clearAllData,
       getCollectionStats,
       
       // Sync operations
@@ -1454,7 +1232,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       refreshDataWithProgress,
       
       // Pagination (Task 4.4.2)
-      getCollectionPage,
       
       // Memory management (Task 4.4.3)
       cleanupOldData,
@@ -1467,15 +1244,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       dataSourceDescription,
       
       // Data validation (Task 4.4.6)
-      validateData,
       
       // Data strategy (Task 4.4.8)
       getDataSourceConfig,
       updateDataStrategy,
       
       // Data generation (Task 5)
-      generateData,
-      seedDatabase,
 
       saveStudentAttendance,
       getStudentAttendanceByFilters,
@@ -1508,9 +1282,6 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     networkState,
     syncStatus,
     refreshData,
-    backupData,
-    restoreData,
-    clearAllData,
     getCollectionStats,
     forceSync,
     pauseSync,
@@ -1520,16 +1291,12 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     updateSyncSettings,
     refreshCollection,
     refreshDataWithProgress,
-    getCollectionPage,
     cleanupOldData,
     getProviderCapabilities,
     currentDataMode,
     dataSourceDescription,
-    validateData,
     getDataSourceConfig,
     updateDataStrategy,
-    generateData,
-    seedDatabase,
     saveStudentAttendance,
     getStudentAttendanceByFilters,
     addExamSession,
@@ -1587,16 +1354,16 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   }
 
   return (
-    <AppDataContext.Provider value={contextValue}>
+    <AppDataValueProvider coreValue={contextValue}>
       {children}
-      
+
       {/* Offline indicator */}
       {!isOnline && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 z-50">
           📡 Offline Mode - Changes will sync when connection is restored
         </div>
       )}
-    </AppDataContext.Provider>
+    </AppDataValueProvider>
   );
 };
 
