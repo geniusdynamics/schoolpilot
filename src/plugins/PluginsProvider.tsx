@@ -6,7 +6,10 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { PluginManager, initPlugins } from './PluginManager';
-import type { PluginConfig, LoadedPlugin, PluginManifest } from './types';
+import type { PluginConfig, LoadedPlugin } from './types';
+import whitelabelPlugin from './builtin/whitelabel';
+import gradingEnginePlugin from './builtin/grading-engine';
+import feeCalculatorPlugin from './builtin/fee-calculator';
 
 interface PluginsContextValue {
   manager: PluginManager;
@@ -43,10 +46,36 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
 
   useEffect(() => {
     const loadPlugins = async () => {
+      // Register builtin plugins
+      const builtinPluginsData = [
+        whitelabelPlugin,
+        gradingEnginePlugin,
+        feeCalculatorPlugin,
+      ] as Array<{ manifest: any; module: any }>;
+
+      const builtinPlugins: LoadedPlugin[] = builtinPluginsData.map((pluginData) => ({
+        manifest: pluginData.manifest,
+        module: pluginData.module,
+        status: 'inactive' as const,
+        loadedAt: new Date(),
+        source: 'builtin' as const,
+      }));
+
+      // Register each builtin plugin
+      for (const plugin of builtinPlugins) {
+        try {
+          manager.registerBuiltinPlugin(plugin);
+        } catch (error) {
+          console.error(`Failed to register builtin plugin ${plugin.manifest.id}:`, error);
+        }
+      }
+
+      // Load additional manifests if provided
       if (manifests && manifests.length > 0) {
         await manager.loadPlugins(manifests);
-        setPlugins(manager.getAllPlugins());
       }
+
+      setPlugins(manager.getAllPlugins());
       setIsReady(true);
     };
 

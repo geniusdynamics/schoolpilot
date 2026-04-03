@@ -229,6 +229,20 @@ export class PluginManager {
   // ============================================================================
 
   /**
+   * Register a builtin plugin directly
+   */
+  registerBuiltinPlugin(plugin: LoadedPlugin): void {
+    if (this.plugins.has(plugin.manifest.id)) {
+      console.warn(`[PluginManager] Builtin plugin ${plugin.manifest.id} already registered`);
+      return;
+    }
+    
+    plugin.source = 'builtin';
+    plugin.status = plugin.error ? 'error' : 'inactive';
+    this.plugins.set(plugin.manifest.id, plugin);
+  }
+
+  /**
    * Load a plugin from manifest
    */
   async loadPlugin(manifest: PluginManifest): Promise<LoadedPlugin> {
