@@ -23,7 +23,8 @@
       "tabbedWorkspaceTest": "Tabbed Workspace Test",
       "tabbedModeTest": "Tabbed Mode Test",
       "dataLayer": "Data Layer",
-      "databaseProvider": "Database Provider"
+      "databaseProvider": "Database Provider",
+      "plugins": "Plugins"
     }
   },
   "general": {
@@ -308,4 +309,7 @@
     "allClear": "All Clear!",
     "noConflictsMessage": "There are no sync conflicts that need resolution."
   }
+}
+}
+}
 }

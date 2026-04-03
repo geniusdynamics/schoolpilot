@@ -2,7 +2,7 @@
 // ABOUTME: Exports the module definition for the settings module
 
 import { ModuleDefinition } from '@/core/types';
-import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon } from '@/components/ui/icons';
+import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon, PuzzlePieceIcon } from '@/components/ui/icons';
 
 // Simple database icon component
 const DatabaseIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -40,6 +40,9 @@ const settingsModule: ModuleDefinition = {
     // Module Management
     { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
     { name: 'navigation:settings.dependencyReport', path: '/settings/dependency-report', icon: CircleStackIcon, page: 'ModuleDependencyReportPage' },
+
+    // Plugin Management
+    { name: 'navigation:settings.plugins', path: '/settings/plugins', icon: PuzzlePieceIcon, page: 'PluginSettingsPage' },
 
     // School Profile
     { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
@@ -103,6 +106,30 @@ const settingsModule: ModuleDefinition = {
       name: 'Configure Modules',
       description: 'Can configure module settings',
       resource: 'modules',
+      action: 'configure',
+      moduleId: 'settings'
+    },
+    {
+      id: 'plugins.view',
+      name: 'View Plugins',
+      description: 'Can view installed plugins',
+      resource: 'plugins',
+      action: 'view',
+      moduleId: 'settings'
+    },
+    {
+      id: 'plugins.manage',
+      name: 'Manage Plugins',
+      description: 'Can install, activate, and deactivate plugins',
+      resource: 'plugins',
+      action: 'manage',
+      moduleId: 'settings'
+    },
+    {
+      id: 'plugins.configure',
+      name: 'Configure Plugins',
+      description: 'Can configure plugin settings',
+      resource: 'plugins',
       action: 'configure',
       moduleId: 'settings'
     },

@@ -14,6 +14,7 @@ import FeatureSettingsPage from '../modules/settings/pages/FeatureSettingsPage';
 import DataLayerSettingsPage from '../modules/settings/pages/DataLayerSettingsPage';
 import AuditLogPage from '../modules/settings/pages/AuditLogPage';
 import SettingsPage from '../modules/settings/pages/SettingsPage';
+import PluginSettingsPage from '../modules/settings/pages/PluginSettingsPage';
 
 // Explicit page mapping
 const explicitPageMapping: Record<string, React.ComponentType> = {
@@ -25,6 +26,7 @@ const explicitPageMapping: Record<string, React.ComponentType> = {
   'DataLayerSettingsPage': DataLayerSettingsPage,
   'AuditLogPage': AuditLogPage,
   'SettingsPage': SettingsPage,
+  'PluginSettingsPage': PluginSettingsPage,
 };
 
 interface PageResolutionStrategy {
