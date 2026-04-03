@@ -49,6 +49,48 @@ export class PluginManager {
     this.loadPersistedState();
   }
 
+  /**
+   * Generate a unique instance ID
+   */
+  private generateInstanceId(): string {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Load persisted state from localStorage
+   */
+  private loadPersistedState(): void {
+    try {
+      const persisted = localStorage.getItem('plugin_manager_state');
+      if (persisted) {
+        const state = JSON.parse(persisted);
+        if (state.adminConfig) {
+          this.adminConfig = state.adminConfig;
+        }
+        if (state.marketplaceKey) {
+          this.marketplaceKey = state.marketplaceKey;
+        }
+      }
+    } catch (error) {
+      console.warn('[PluginManager] Failed to load persisted state:', error);
+    }
+  }
+
+  /**
+   * Persist state to localStorage
+   */
+  private persistState(): void {
+    try {
+      const state = {
+        adminConfig: this.adminConfig,
+        marketplaceKey: this.marketplaceKey,
+      };
+      localStorage.setItem('plugin_manager_state', JSON.stringify(state));
+    } catch (error) {
+      console.warn('[PluginManager] Failed to persist state:', error);
+    }
+  }
+
   // ============================================================================
   // Event System
   // ============================================================================
@@ -706,3 +748,46 @@ export function getPlugins(): PluginManager {
 }
 
 export default PluginManager;
+        return num.toLocaleString();
+      },
+    };
+
+    return {
+      pluginId: manifest.id,
+      manifest,
+      settings: this.getPluginSettings(manifest.id),
+      api,
+    };
+  }
+
+  private removePluginHooks(pluginId: string): void {
+    for (const hook of this.hooks.values()) {
+      hook.handlers = hook.handlers.filter(h => h.pluginId !== pluginId);
+    }
+  }
+
+  private async persistSettings(pluginId: string): Promise<void> {
+    const settings = this.settings.get(pluginId);
+    if (settings) {
+      localStorage.setItem(`plugin_settings_${pluginId}`, JSON.stringify(settings));
+    }
+  }
+}
+
+// Singleton instance
+let pluginManagerInstance: PluginManager | null = null;
+
+export function initPlugins(config?: PluginConfig): PluginManager {
+  pluginManagerInstance = new PluginManager(config);
+  return pluginManagerInstance;
+}
+
+export function getPlugins(): PluginManager {
+  if (!pluginManagerInstance) {
+    pluginManagerInstance = new PluginManager();
+  }
+  return pluginManagerInstance;
+}
+
+export default PluginManager;
+
