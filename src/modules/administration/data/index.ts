@@ -20,3 +20,4 @@ export { isGlobalProvider as isTemplateCommGlobalProvider, useTemplateCommData }
 export { isGlobalProvider as isCampaignGlobalProvider, useCampaignData } from './useCampaignData';
 export { isGlobalProvider as isClassGlobalProvider, useClassData } from './useClassData';
 export { isGlobalProvider as isClassStreamGlobalProvider, useClassStreamData } from './useClassStreamData';
+export { useStudentImportData } from './useStudentImportData';

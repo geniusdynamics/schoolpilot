@@ -1,0 +1,59 @@
+{
+  "id": "poc-grading-engine",
+  "name": "Grading Engine (POC)",
+  "version": "1.0.0",
+  "type": "engine",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Proof-of-concept grading engine with WASM support",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTBCMzgxIiBzdHJva2Utd2lkdGg9IjIiPjxyZWN0IHg9IjQiIHk9IjQiIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgcng9IjIiLz48cGF0aCBkPSJNOSA5aDZNOSA5djZNMTUgMTJoLjAxIi8+PC9zdmc+",
+  "engine": {
+    "wasmFile": "/wasm/grading.wasm",
+    "exports": ["spGradingCalculate", "spGradingStrategies", "spGradingValidate"],
+    "fallbackBehavior": "fallback"
+  },
+  "hooks": [
+    "grading.beforeCalculate",
+    "grading.afterCalculate",
+    "grading.validateConfig"
+  ],
+  "settings": [
+    {
+      "key": "useWasm",
+      "label": "Use WASM Engine",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Use WASM-based calculation (faster) or JavaScript fallback"
+    },
+    {
+      "key": "defaultStrategy",
+      "label": "Default Grading Strategy",
+      "type": "select",
+      "defaultValue": "percentage",
+      "options": [
+        { "label": "Percentage", "value": "percentage" },
+        { "label": "GPA (4.0 Scale)", "value": "gpa" },
+        { "label": "Letter Grade", "value": "letter" }
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "path": "/plugins/grading-engine",
+      "component": "GradingEnginePage",
+      "title": "Grading Engine",
+      "icon": "CalculatorIcon"
+    }
+  ],
+  "menuItems": [
+    {
+      "id": "grading-engine",
+      "label": "Grading Engine",
+      "icon": "CalculatorIcon",
+      "route": "/plugins/grading-engine",
+      "order": 100
+    }
+  ]
+}

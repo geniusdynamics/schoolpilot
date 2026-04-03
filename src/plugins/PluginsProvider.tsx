@@ -6,10 +6,8 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { PluginManager, initPlugins } from './PluginManager';
-import type { PluginConfig, LoadedPlugin } from './types';
-import whitelabelPlugin from './builtin/whitelabel';
-import gradingEnginePlugin from './builtin/grading-engine';
-import feeCalculatorPlugin from './builtin/fee-calculator';
+import type { PluginConfig, LoadedPlugin, PluginManifest } from './types';
+import { loadAllBuiltinPlugins } from './BuiltinLoader';
 
 interface PluginsContextValue {
   manager: PluginManager;
@@ -46,37 +44,30 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
 
   useEffect(() => {
     const loadPlugins = async () => {
-      // Register builtin plugins
-      const builtinPluginsData = [
-        whitelabelPlugin,
-        gradingEnginePlugin,
-        feeCalculatorPlugin,
-      ] as Array<{ manifest: any; module: any }>;
-
-      const builtinPlugins: LoadedPlugin[] = builtinPluginsData.map((pluginData) => ({
-        manifest: pluginData.manifest,
-        module: pluginData.module,
-        status: 'inactive' as const,
-        loadedAt: new Date(),
-        source: 'builtin' as const,
-      }));
-
-      // Register each builtin plugin
-      for (const plugin of builtinPlugins) {
-        try {
-          manager.registerBuiltinPlugin(plugin);
-        } catch (error) {
-          console.error(`Failed to register builtin plugin ${plugin.manifest.id}:`, error);
+      try {
+        // Auto-discover and load builtin plugins using BuiltinLoader
+        const builtinPlugins = await loadAllBuiltinPlugins();
+        
+        // Register each discovered plugin
+        for (const plugin of builtinPlugins) {
+          try {
+            manager.registerBuiltinPlugin(plugin);
+          } catch (error) {
+            console.error(`[PluginsProvider] Failed to register ${plugin.manifest.id}:`, error);
+          }
         }
-      }
 
-      // Load additional manifests if provided
-      if (manifests && manifests.length > 0) {
-        await manager.loadPlugins(manifests);
-      }
+        // Load additional custom manifests if provided
+        if (manifests && manifests.length > 0) {
+          await manager.loadPlugins(manifests);
+        }
 
-      setPlugins(manager.getAllPlugins());
-      setIsReady(true);
+        setPlugins(manager.getAllPlugins());
+        setIsReady(true);
+      } catch (error) {
+        console.error('[PluginsProvider] Failed to initialize plugins:', error);
+        setIsReady(true); // Still render app even if plugins fail
+      }
     };
 
     loadPlugins();

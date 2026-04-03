@@ -1,0 +1,44 @@
+{
+  "id": "builtin-whitelabel",
+  "name": "White-Label Branding",
+  "version": "1.0.0",
+  "type": "whitelabel",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Customize application branding including name, logo, colors, and UI labels",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM0I4MkY2IiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAyTDIgN2wxMCA1IDEwLTUtMTAtNXpNMiAxN2wxMCA1IDEwLTVNMiAxMmw1IDIuNSIvPjwvc3ZnPg==",
+  "hooks": [
+    "ui.branding.header",
+    "ui.branding.title",
+    "ui.branding.logo",
+    "ui.branding.colors",
+    "ui.label.resolve",
+    "ui.menu.beforeRender",
+    "ui.footer.render"
+  ],
+  "settings": [
+    {
+      "key": "enabled",
+      "label": "Enable White-Labeling",
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "Enable custom branding for this instance"
+    },
+    {
+      "key": "appName",
+      "label": "Application Name",
+      "type": "string",
+      "description": "Custom name displayed in header and browser title",
+      "validation": { "max": 50 }
+    },
+    {
+      "key": "primaryColor",
+      "label": "Primary Brand Color",
+      "type": "color",
+      "defaultValue": "#3B82F6",
+      "description": "Primary color for buttons and accents"
+    }
+  ]
+}

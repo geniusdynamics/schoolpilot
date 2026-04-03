@@ -1,0 +1,39 @@
+{
+  "id": "builtin-fee-calculator",
+  "name": "Fee Calculator",
+  "version": "1.0.0",
+  "type": "engine",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Advanced fee structure calculator with discount and penalty support",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTBCMzgxIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAxYTMgMyAwIDAgMC0zIDN2NGEyIDIgMCAwIDAgNCAwdjEgYTMgMyAwIDAgMCAzIDNoLTFhMSAxIDAgMCAxLTEtMXYtMiIvPjwvc3ZnPg==",
+  "hooks": [
+    "fee.beforeCalculate",
+    "fee.afterCalculate",
+    "fee.applyDiscount",
+    "fee.applyPenalty"
+  ],
+  "settings": [
+    {
+      "key": "useWasm",
+      "label": "Use WASM Engine",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Use WASM-based calculation for performance"
+    },
+    {
+      "key": "defaultCurrency",
+      "label": "Default Currency",
+      "type": "select",
+      "defaultValue": "USD",
+      "options": [
+        { "label": "USD", "value": "USD" },
+        { "label": "EUR", "value": "EUR" },
+        { "label": "KES", "value": "KES" },
+        { "label": "NGN", "value": "NGN" }
+      ]
+    }
+  ]
+}
