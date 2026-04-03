@@ -277,6 +277,11 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   const isSyncingRef = useRef(false);
   const performSyncRef = useRef<(() => Promise<void>) | null>(null);
 
+  // Helper function to get normalized data from current state
+  const getNormalizedData = useCallback(() => {
+    return normalizeAppDataCollections(data);
+  }, [data]);
+
   // Initialize database manager - non-blocking to prevent app hang
   useEffect(() => {
     let mounted = true;
