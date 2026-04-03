@@ -366,102 +366,155 @@ const PluginRow: React.FC<{
   onUninstall,
   isLoading,
 }) => {
-  const { t } = useTranslation('settings');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
-    <div
-      onClick={onSelect}
-      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
-    >
-      <div className="flex items-start gap-4">
-        {/* Icon */}
-        <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-          {plugin.manifest.icon ? (
-            <img src={plugin.manifest.icon} alt="" className="w-6 h-6" />
-          ) : (
-            <PuzzlePieceIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                {plugin.manifest.name}
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {plugin.manifest.source === 'builtin' ? 'Builtin' : plugin.manifest.source}
-                {' · '}{plugin.manifest.version}
-              </p>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Info button */}
-              <button
-                onClick={(e) => { e.stopPropagation(); onSelect(); }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                title="Details"
-              >
-                <InformationCircleIcon className="h-4 w-4" />
-              </button>
-
-              {/* Settings button for active plugins */}
-              {plugin.status === 'active' && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onSelect(); }}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                  title="Settings"
-                >
-                  <CogIcon className="h-4 w-4" />
-                </button>
-              )}
-
-              {/* Uninstall button */}
-              {plugin.source !== 'builtin' && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onUninstall(); }}
-                  disabled={isLoading}
-                  className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
-                  title="Uninstall"
-                >
-                  <TrashIcon className="h-4 w-4" />
-                </button>
-              )}
-
-              {/* Toggle */}
-              {plugin.status === 'active' ? (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDeactivate(); }}
-                  disabled={isLoading}
-                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                >
-                  <span className="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition" />
-                </button>
-              ) : (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onActivate(); }}
-                  disabled={isLoading || plugin.status === 'error'}
-                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50"
-                >
-                  <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
-                </button>
-              )}
-            </div>
+    <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+      <div className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+        <div className="flex items-start gap-4">
+          {/* Icon */}
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center flex-shrink-0">
+            {plugin.manifest.icon ? (
+              <img src={plugin.manifest.icon} alt="" className="w-6 h-6" />
+            ) : (
+              <PuzzlePieceIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            )}
           </div>
 
-          {/* Description */}
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
-            {plugin.manifest.description || 'No description available'}
-          </p>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {plugin.manifest.name}
+                  </h3>
+                  {plugin.manifest.type && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 capitalize">
+                      {plugin.manifest.type}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-mono">
+                  {plugin.manifest.id}
+                </p>
+              </div>
 
-          {/* Error message */}
-          {plugin.error && (
-            <p className="text-xs text-red-600 dark:text-red-400 mt-2">
-              {plugin.error}
+              {/* Controls */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Config button */}
+                {plugin.status === 'active' && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onSelect(); }}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <CogIcon className="h-3.5 w-3.5" />
+                    Config
+                  </button>
+                )}
+
+                {/* Info button with dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    title="Info"
+                  >
+                    <InformationCircleIcon className="h-4 w-4" />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {showDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onSelect(); setShowDropdown(false); }}
+                        className="w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                      >
+                        <InformationCircleIcon className="h-4 w-4" />
+                        Details
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShowDropdown(false); }}
+                        className="w-full px-4 py-2 text-sm text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                      >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        README
+                      </button>
+                      {plugin.source !== 'builtin' && (
+                        <>
+                          <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onUninstall(); setShowDropdown(false); }}
+                            className="w-full px-4 py-2 text-sm text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                            Uninstall
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* More options (three dots) */}
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                  </svg>
+                </button>
+
+                {/* Toggle Switch */}
+                <select
+                  value={plugin.status === 'active' ? 'on' : 'off'}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    if (e.target.value === 'on') {
+                      onActivate();
+                    } else {
+                      onDeactivate();
+                    }
+                  }}
+                  disabled={isLoading || plugin.status === 'error'}
+                  className="text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-3 py-1.5 border-0 cursor-pointer focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <option value="on">ON</option>
+                  <option value="off">OFF</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Description */}
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              {plugin.manifest.description || 'No description available'}
             </p>
-          )}
+
+            {/* Error message */}
+            {plugin.error && (
+              <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  <span className="font-semibold">Error:</span> {plugin.error}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
