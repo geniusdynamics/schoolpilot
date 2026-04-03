@@ -1,7 +1,7 @@
 # Configuration System
 
 <cite>
-**Referenced Files in This Document**   
+**Referenced Files in This Document**
 - [unifiedConfig.ts](file://src/config/unifiedConfig.ts)
 - [UnifiedConfigContext.tsx](file://src/contexts/UnifiedConfigContext.tsx)
 - [environmentMatrix.ts](file://src/config/environmentMatrix.ts)
@@ -12,51 +12,63 @@
 - [databaseEnvVars.ts](file://src/config/databaseEnvVars.ts)
 - [productionDemo.ts](file://src/config/productionDemo.ts)
 - [backendArchitecture.ts](file://src/config/backendArchitecture.ts)
+- [ConfigurationMigration.ts](file://src/config/ConfigurationMigration.ts)
+- [deployment.ts](file://src/config/deployment.ts)
+- [DEPLOYMENT_SPECIFICATION.md](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md)
+- [setup-self-hosted.cjs](file://scripts/setup-self-hosted.cjs)
+- [database-config.example.json](file://public/database-config.example.json)
+- [backend-api-config.example.ts](file://src/config/examples/backend-api-config.example.ts)
+- [LANServer.ts](file://src/server/LANServer.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive documentation for the new environment runtime detection system
-- Documented the enhanced database configuration runtime with environment variable support
-- Added documentation for the database configuration schema validation and repair system
-- Updated the unified configuration architecture to reflect the new modular approach
-- Enhanced the context propagation mechanism documentation with new capabilities
-- Added documentation for production demo configuration and management
-- Expanded backend architecture documentation with new configuration options
+- Added comprehensive documentation for the new ConfigurationMigration system with versioned migration support
+- Documented template-based configuration files for hybrid, LAN sync, and standalone deployments
+- Enhanced unified configuration framework with environment-specific templates and deployment mode integration
+- Updated database configuration management with migration capabilities and template support
+- Added LAN server integration for networked deployment mode with auto-discovery capabilities
+- Enhanced deployment mode templates with comprehensive configuration examples and setup procedures
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Core Architecture](#core-architecture)
 3. [Unified Configuration Manager](#unified-configuration-manager)
-4. [Environment Runtime Detection](#environment-runtime-detection)
-5. [Database Configuration Runtime](#database-configuration-runtime)
-6. [Database Configuration Schema Validation](#database-configuration-schema-validation)
-7. [Environment Matrix System](#environment-matrix-system)
-8. [Data Mode Policies](#data-mode-policies)
-9. [Production Demo Configuration](#production-demo-configuration)
-10. [Context Propagation Mechanism](#context-propagation-mechanism)
-11. [Feature Flag Implementation](#feature-flag-implementation)
-12. [Backend Architecture Configuration](#backend-architecture-configuration)
-13. [Practical Examples](#practical-examples)
-14. [Common Issues and Troubleshooting](#common-issues-and-troubleshooting)
-15. [Best Practices](#best-practices)
+4. [Configuration Migration System](#configuration-migration-system)
+5. [Environment Runtime Detection](#environment-runtime-detection)
+6. [Database Configuration Runtime](#database-configuration-runtime)
+7. [Database Configuration Schema Validation](#database-configuration-schema-validation)
+8. [Environment Matrix System](#environment-matrix-system)
+9. [Data Mode Policies](#data-mode-policies)
+10. [Production Demo Configuration](#production-demo-configuration)
+11. [Context Propagation Mechanism](#context-propagation-mechanism)
+12. [Feature Flag Implementation](#feature-flag-implementation)
+13. [Backend Architecture Configuration](#backend-architecture-configuration)
+14. [Deployment Mode Templates](#deployment-mode-templates)
+15. [LAN Server Integration](#lan-server-integration)
+16. [Practical Examples](#practical-examples)
+17. [Common Issues and Troubleshooting](#common-issues-and-troubleshooting)
+18. [Best Practices](#best-practices)
 
 ## Introduction
 
-The unified configuration system in schoolpilot3 serves as the single source of truth for application settings across all environments. This comprehensive framework governs feature availability, environment-specific behavior, data mode policies, and database configuration management. The system has been significantly enhanced with modular architecture components that provide runtime environment detection, database configuration management, and production demo capabilities.
+The unified configuration system in schoolpilot3 serves as the single source of truth for application settings across all environments. This comprehensive framework governs feature availability, environment-specific behavior, data mode policies, and database configuration management. The system has been significantly enhanced with modular architecture components that provide runtime environment detection, database configuration management, production demo capabilities, deployment mode templates, and a robust configuration migration system.
 
 The enhanced configuration system addresses several critical requirements:
 - Centralized management of application settings with modular architecture
 - Runtime environment detection and optimal configuration recommendations
-- Database configuration management with environment variable support
+- Database configuration management with environment variable support and migration capabilities
 - Comprehensive database schema validation and repair capabilities
 - Production demo configuration and lifecycle management
 - Environment-specific configuration overrides and policies
 - Real-time configuration access across components
 - Feature flag management for gradual rollouts
-- Backend architecture preferences and detection
+- Backend architecture preferences and deployment-specific integration
+- Deployment mode templates for hybrid, LAN sync, and standalone configurations
+- Configuration migration system for versioned upgrades and data preservation
+- Template-based configuration files for streamlined deployment setup
 
-This document provides a comprehensive overview of the enhanced unified configuration system, detailing its modular architecture, implementation patterns, and usage across different deployment environments.
+This document provides a comprehensive overview of the enhanced unified configuration system, detailing its modular architecture, implementation patterns, deployment templates, configuration migration capabilities, and usage across different deployment environments.
 
 **Section sources**
 - [unifiedConfig.ts](file://src/config/unifiedConfig.ts)
@@ -64,7 +76,7 @@ This document provides a comprehensive overview of the enhanced unified configur
 
 ## Core Architecture
 
-The unified configuration system follows a modular layered architecture with clear separation of concerns. The system is built around the `UnifiedConfigManager` class, which serves as the central authority for configuration state, integrated with specialized modules for environment detection, database management, and production demo handling.
+The unified configuration system follows a modular layered architecture with clear separation of concerns. The system is built around the `UnifiedConfigManager` class, which serves as the central authority for configuration state, integrated with specialized modules for environment detection, database management, production demo handling, deployment mode templates, and configuration migration.
 
 ```mermaid
 graph TD
@@ -75,18 +87,27 @@ A --> E[Environment Matrix]
 A --> F[Data Mode Policies]
 A --> G[Production Demo Management]
 A --> H[Backend Architecture]
-B --> I[detectOptimalConfigurationRuntime]
-C --> J[loadDatabaseConfigFromEnvironment]
-C --> K[loadDatabaseConfigFromFile]
-D --> L[DatabaseConfigValidator]
-E --> M[Environment Detection]
-F --> N[Data Mode Switching]
-G --> O[Production Demo State]
-H --> P[Backend Type Detection]
-A --> Q[Configuration Storage]
-Q --> R[localStorage]
-A --> S[Event System]
-S --> T[Configuration Listeners]
+A --> I[Deployment Mode Templates]
+A --> J[Configuration Migration System]
+B --> K[detectOptimalConfigurationRuntime]
+C --> L[loadDatabaseConfigFromEnvironment]
+C --> M[loadDatabaseConfigFromFile]
+C --> N[applyDatabaseConfigPreset]
+D --> O[DatabaseConfigValidator]
+E --> P[Environment Detection]
+F --> Q[Data Mode Switching]
+G --> R[Production Demo State]
+H --> S[Backend Type Detection]
+I --> T[Hybrid Deployment Config]
+I --> U[LANSync Deployment Config]
+I --> V[Standalone Deployment Config]
+J --> W[ConfigurationMigration]
+J --> X[Version Migration]
+J --> Y[Template Processing]
+A --> Z[Configuration Storage]
+Z --> AA[localStorage]
+A --> AB[Event System]
+AB --> AC[Configuration Listeners]
 ```
 
 **Diagram sources**
@@ -98,6 +119,8 @@ S --> T[Configuration Listeners]
 - [dataModePolicies.ts](file://src/config/dataModePolicies.ts)
 - [productionDemo.ts](file://src/config/productionDemo.ts)
 - [backendArchitecture.ts](file://src/config/backendArchitecture.ts)
+- [ConfigurationMigration.ts](file://src/config/ConfigurationMigration.ts)
+- [DEPLOYMENT_SPECIFICATION.md](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md)
 
 **Section sources**
 - [unifiedConfig.ts](file://src/config/unifiedConfig.ts)
@@ -111,15 +134,17 @@ The `UnifiedConfigManager` class is the central component of the enhanced config
 
 ### Enhanced Configuration Structure
 
-The `UnifiedAppConfig` interface defines the complete configuration structure with enhanced database configuration management and production demo integration:
+The `UnifiedAppConfig` interface defines the complete configuration structure with enhanced database configuration management, production demo integration, deployment mode templates, and configuration migration capabilities:
 
 - **Core Configuration**: Environment, data mode, and enhanced features flag
 - **Environment Integration**: Current environment and configuration with runtime detection
-- **Enhanced Database Configuration**: Comprehensive database settings with validation
+- **Enhanced Database Configuration**: Comprehensive database settings with validation and migration support
 - **Production Demo Integration**: Complete production demo state and management
 - **Feature Flags**: Comprehensive feature toggle system with module-specific controls
 - **Development Configuration**: Debug settings and log levels
-- **Backend Architecture**: Flexible backend integration options
+- **Backend Architecture**: Flexible backend integration options with deployment templates
+- **Deployment Mode Templates**: Pre-configured deployment strategies for different environments
+- **Configuration Migration**: Version tracking and migration capabilities for configuration upgrades
 
 ```mermaid
 classDiagram
@@ -135,6 +160,8 @@ class UnifiedAppConfig {
 +version : string
 +lastUpdated : Date
 +configVersion : string
++deploymentTemplates : DeploymentTemplates
++migration : MigrationConfig
 }
 class DatabaseConfig {
 +provider : DatabaseProvider
@@ -159,13 +186,49 @@ class EnvironmentConfigIntegration {
 +detectedAutomatically : boolean
 +overrideSource? : 'url' | 'env' | 'manual'
 }
+class DeploymentTemplates {
++hybrid : HybridDeploymentConfig
++lanSync : LANSyncDeploymentConfig
++standalone : StandaloneDeploymentConfig
+}
+class HybridDeploymentConfig {
++apiFirst : boolean
++offlineFirst : boolean
++syncStrategy : 'real-time' | 'periodic'
++fallbackMode : 'api' | 'offline'
+}
+class LANSyncDeploymentConfig {
++serverDiscovery : 'auto' | 'manual'
++websocketEnabled : boolean
++localCache : boolean
++syncInterval : number
+}
+class StandaloneDeploymentConfig {
++storageType : 'sqlite-opfs' | 'electron-store' | 'indexeddb'
++backupEnabled : boolean
++portableMode : boolean
++autoSave : boolean
+}
+class MigrationConfig {
++version : string
++migrations : Record~string, Function~
+}
 UnifiedAppConfig --> DatabaseConfig
 UnifiedAppConfig --> ProductionDemoConfigIntegration
 UnifiedAppConfig --> EnvironmentConfigIntegration
+UnifiedAppConfig --> DeploymentTemplates
+UnifiedAppConfig --> MigrationConfig
+DeploymentTemplates --> HybridDeploymentConfig
+DeploymentTemplates --> LANSyncDeploymentConfig
+DeploymentTemplates --> StandaloneDeploymentConfig
 ```
 
 **Diagram sources**
 - [unifiedConfig.ts:146-235](file://src/config/unifiedConfig.ts#L146-L235)
+- [ConfigurationMigration.ts:27-30](file://src/config/ConfigurationMigration.ts#L27-L30)
+- [DEPLOYMENT_SPECIFICATION.md:22-121](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L22-L121)
+- [DEPLOYMENT_SPECIFICATION.md:124-267](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L124-L267)
+- [DEPLOYMENT_SPECIFICATION.md:271-398](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L271-L398)
 
 **Section sources**
 - [unifiedConfig.ts:146-235](file://src/config/unifiedConfig.ts#L146-L235)
@@ -176,9 +239,11 @@ The `UnifiedConfigManager` class implements several key enhancements:
 
 - **Modular Architecture**: Integrates with specialized modules for different configuration aspects
 - **Runtime Detection**: Uses environment runtime detection for optimal feature recommendations
-- **Database Management**: Comprehensive database configuration management with validation
+- **Database Management**: Comprehensive database configuration management with validation and migration support
 - **Production Demo**: Full production demo lifecycle management
+- **Deployment Templates**: Integrated deployment mode configuration templates
 - **Configuration Migration**: Handles version upgrades and data migration across modules
+- **Template Processing**: Supports template-based configuration files for streamlined deployment
 - **Deep Merging**: Ensures new feature flags are included when loading stored configurations
 
 The manager's constructor initializes the configuration by first attempting to load from localStorage, then applying defaults, and finally processing URL parameter overrides and environment variable configurations.
@@ -197,7 +262,9 @@ MergeFeatures --> ApplyURL["Apply URL Overrides"]
 ApplyURL --> LoadEnvConfig["Load Environment Variables"]
 LoadEnvConfig --> LoadFileConfig["Load Configuration File"]
 LoadFileConfig --> ApplyEnvOverrides["Apply Environment Overrides"]
-ApplyEnvOverrides --> ReturnConfig["Return Configuration"]
+ApplyEnvOverrides --> LoadDeploymentTemplates["Load Deployment Templates"]
+LoadDeploymentTemplates --> LoadMigrationConfig["Load Migration Configuration"]
+LoadMigrationConfig --> ReturnConfig["Return Configuration"]
 HasStored --> |No| ApplyDefaults["Apply Default Configuration"]
 ApplyDefaults --> LoadEnvConfig
 ```
@@ -207,6 +274,115 @@ ApplyDefaults --> LoadEnvConfig
 
 **Section sources**
 - [unifiedConfig.ts:665-761](file://src/config/unifiedConfig.ts#L665-L761)
+
+## Configuration Migration System
+
+The ConfigurationMigration system provides comprehensive version management and migration capabilities for configuration schemas. This system ensures seamless upgrades between configuration versions while preserving user data and settings.
+
+### Migration Architecture
+
+The `ConfigurationMigration` class implements a robust migration framework with version tracking, step-by-step migration execution, and comprehensive validation:
+
+- **Version Tracking**: Maintains current configuration version and migration history
+- **Step-based Migration**: Executes migrations in discrete steps with rollback support
+- **Dry-run Mode**: Allows previewing migration effects without applying changes
+- **Template Processing**: Supports template-based configuration file processing
+- **Validation Integration**: Validates migrated configurations against current schema requirements
+- **Error Handling**: Provides detailed error reporting and recovery mechanisms
+
+```mermaid
+classDiagram
+class ConfigurationMigration {
++currentVersion : string
++migrations : Map~string, Function~
++registerMigration(fromVersion, migrate) void
++needsMigration(config) boolean
++getVersion(config) string
++migrate(config, options) MigrationReport
++rollback(backupConfig) Record~string, any~
++validateMigrated(config) ValidationResult
++buildMigrationPath(from, to) MigrationStep[]
++compareVersions(a, b) number
+}
+class MigrationStep {
++fromVersion : string
++toVersion : string
++description : string
++changes : string[]
+}
+class MigrationReport {
++migrationNeeded : boolean
++currentVersion : string
++targetVersion : string
++steps : MigrationStep[]
++dryRun : boolean
++result? : MigrationResult
+}
+class MigrationResult {
++success : boolean
++fromVersion : string
++toVersion : string
++steps : MigrationStep[]
++errors : string[]
++warnings : string[]
++migratedConfig : Record~string, any~
+}
+ConfigurationMigration --> MigrationStep
+ConfigurationMigration --> MigrationReport
+ConfigurationMigration --> MigrationResult
+```
+
+**Diagram sources**
+- [ConfigurationMigration.ts:44-51](file://src/config/ConfigurationMigration.ts#L44-L51)
+- [ConfigurationMigration.ts:10-15](file://src/config/ConfigurationMigration.ts#L10-L15)
+- [ConfigurationMigration.ts:32-39](file://src/config/ConfigurationMigration.ts#L32-L39)
+- [ConfigurationMigration.ts:17-25](file://src/config/ConfigurationMigration.ts#L17-L25)
+
+**Section sources**
+- [ConfigurationMigration.ts:44-176](file://src/config/ConfigurationMigration.ts#L44-L176)
+
+### Migration Steps and Version Chain
+
+The system supports a structured migration path with predefined version transitions:
+
+- **Version 1.0.0 → 1.1.0**: Nested configuration structure migration
+- **Version 1.1.0 → 1.2.0**: Feature flags and monitoring configuration addition
+- **Version 1.2.0 → 2.0.0**: Deployment scenarios and hybrid provider configuration
+- **Version 2.0.0 → 2.1.0**: Capability-based provider selection and monitoring enhancements
+
+Each migration step includes detailed change descriptions and validation requirements.
+
+**Section sources**
+- [ConfigurationMigration.ts:228-261](file://src/config/ConfigurationMigration.ts#L228-L261)
+- [ConfigurationMigration.ts:263-342](file://src/config/ConfigurationMigration.ts#L263-L342)
+
+### Migration Execution and Validation
+
+The migration system provides comprehensive execution and validation capabilities:
+
+```mermaid
+sequenceDiagram
+participant Client as "Client Code"
+participant Migration as "ConfigurationMigration"
+participant Validator as "DatabaseConfigValidator"
+Client->>Migration : migrate(config, {dryRun})
+Migration->>Migration : buildMigrationPath()
+alt Dry Run Mode
+Migration-->>Client : MigrationReport (dryRun=true)
+else Apply Migration
+Migration->>Migration : Execute each migration step
+Migration->>Validator : validateMigrated(config)
+Validator-->>Migration : ValidationResult
+Migration-->>Client : MigrationReport (dryRun=false)
+end
+```
+
+**Diagram sources**
+- [ConfigurationMigration.ts:78-146](file://src/config/ConfigurationMigration.ts#L78-L146)
+- [databaseConfigSchema.ts:158-176](file://src/config/databaseConfigSchema.ts#L158-L176)
+
+**Section sources**
+- [ConfigurationMigration.ts:78-146](file://src/config/ConfigurationMigration.ts#L78-L146)
 
 ## Environment Runtime Detection
 
@@ -269,7 +445,7 @@ The runtime detection integrates seamlessly with the unified configuration syste
 
 ## Database Configuration Runtime
 
-The database configuration runtime system provides comprehensive management of database configuration through environment variables and configuration files.
+The database configuration runtime system provides comprehensive management of database configuration through environment variables, configuration files, and template processing.
 
 ### Environment Variable Configuration
 
@@ -319,9 +495,10 @@ V --> Y[Set Real Time Updates]
 
 ### Configuration File Support
 
-The system supports configuration files for database settings:
+The system supports configuration files for database settings with template processing capabilities:
 
 - **File Loading**: Asynchronously loads database configuration from `/database-config.json`
+- **Template Processing**: Processes template-based configuration files with environment variable substitution
 - **Fallback Handling**: Graceful handling when configuration file is not present
 - **Merge Strategy**: Combines file configuration with environment variable overrides
 - **Validation**: Validates loaded configuration against schema requirements
@@ -397,19 +574,20 @@ DatabaseConfigValidator --> ValidationResult
 
 ### Migration System
 
-The system provides comprehensive configuration migration support:
+The system provides comprehensive configuration migration support with integration to the ConfigurationMigration system:
 
 - **Version Tracking**: Tracks configuration versions for migration purposes
 - **Automated Migration**: Applies migrations automatically when upgrading
 - **Validation Integration**: Validates migrated configurations
 - **Rollback Support**: Provides rollback capabilities for failed migrations
+- **Template Processing**: Supports migration of template-based configurations
 
 **Section sources**
 - [databaseConfigSchema.ts:202-299](file://src/config/databaseConfigSchema.ts#L202-L299)
 
 ### Auto-Fix and Repair Capabilities
 
-The system offers automated configuration repair:
+The system offers automated configuration repair with enhanced migration integration:
 
 - **Auto-Fix**: Automatically corrects configuration issues based on validation rules
 - **Repair Process**: Combines migration and auto-fix for comprehensive repair
@@ -628,6 +806,8 @@ The `UnifiedConfigProvider` component provides comprehensive configuration manag
 - **Environment Management**: Dynamic environment switching with validation
 - **Database Provider Management**: Comprehensive database provider configuration
 - **Production Demo Management**: Full production demo lifecycle management
+- **Deployment Template Management**: Access to deployment mode templates
+- **Configuration Migration Management**: Integration with migration system
 - **Legacy Compatibility**: Maintains backward compatibility with existing components
 
 ```mermaid
@@ -656,6 +836,12 @@ class UnifiedConfigContextType {
 +getProductionDemoState : Function
 +transitionToLiveMode : Function
 +isProductionDemoAvailable : Function
++getDeploymentTemplate : Function
++applyDeploymentTemplate : Function
++applyDatabaseConfigPreset : Function
++migrateDatabaseConfig : Function
++validateDatabaseConfig : Function
++autoFixDatabaseConfig : Function
 }
 class UnifiedConfigProvider {
 +children : ReactNode
@@ -683,6 +869,8 @@ The context provides an extensive hook system for different use cases:
 - **useDatabaseProvider**: Database provider management with validation
 - **useProductionDemo**: Production demo management with lifecycle control
 - **useConfigManagement**: Comprehensive configuration access with enhanced capabilities
+- **useDeploymentTemplates**: Access to deployment mode templates and configuration
+- **useConfigurationMigration**: Integration with configuration migration system
 
 **Section sources**
 - [UnifiedConfigContext.tsx:432-481](file://src/contexts/UnifiedConfigContext.tsx#L432-L481)
@@ -706,13 +894,13 @@ class TabbedModeConfig {
 +globalEnabled : boolean
 +enablePerModuleControl : boolean
 +enableTabbedMode : boolean
-+moduleOverrides : Record<string, boolean>
++moduleOverrides : Record~string, boolean~
 }
 class TabbedModeFeatureFlag {
 -config : TabbedModeConfig
 +isTabbedModeEnabled(moduleId) : boolean
 +isGloballyEnabled() : boolean
-+getModuleOverrides() : Record<string, boolean>
++getModuleOverrides() : Record~string, boolean~
 +isPerModuleControlEnabled() : boolean
 +forceEnable() : void
 +forceDisable() : void
@@ -831,11 +1019,289 @@ BackendAvailable --> |No| ReturnFalse
 **Section sources**
 - [backendArchitecture.ts:362-387](file://src/config/backendArchitecture.ts#L362-L387)
 
+## Deployment Mode Templates
+
+The deployment mode templates system provides pre-configured deployment strategies for different school environments and technical capabilities. This system supports six distinct deployment modes, each optimized for specific use cases and infrastructure requirements.
+
+### Hybrid Deployment Configuration
+
+Hybrid deployment combines API-first and offline-first strategies for maximum flexibility and reliability:
+
+```mermaid
+classDiagram
+class HybridDeploymentConfig {
++apiFirst : boolean
++offlineFirst : boolean
++syncStrategy : 'real-time' | 'periodic'
++fallbackMode : 'api' | 'offline'
++dataConsistency : 'strong' | 'eventual'
++conflictResolution : 'timestamp' | 'merge' | 'manual'
++localCacheSize : number
++syncBatchSize : number
+}
+class HybridDeploymentTemplate {
++name : string
++description : string
++targetUsers : string
++recommendedFor : string[]
++configuration : HybridDeploymentConfig
++setupGuide : string[]
+}
+HybridDeploymentTemplate --> HybridDeploymentConfig
+```
+
+**Diagram sources**
+- [DEPLOYMENT_SPECIFICATION.md:513-649](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L513-L649)
+
+**Section sources**
+- [DEPLOYMENT_SPECIFICATION.md:513-649](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L513-L649)
+
+### LAN Sync Deployment Configuration
+
+LAN sync deployment provides real-time synchronization for small school networks with automatic server discovery:
+
+```mermaid
+classDiagram
+class LANSyncDeploymentConfig {
++serverDiscovery : 'auto' | 'manual'
++websocketEnabled : boolean
++localCache : boolean
++syncInterval : number
++maxUsers : number
++security : 'jwt' | 'none'
++backupEnabled : boolean
++autoDiscovery : boolean
+}
+class LANSyncTemplate {
++name : string
++description : string
++maxComputers : number
++networkRequirements : string[]
++configuration : LANSyncDeploymentConfig
++setupGuide : string[]
+}
+LANSyncTemplate --> LANSyncDeploymentConfig
+```
+
+**Diagram sources**
+- [DEPLOYMENT_SPECIFICATION.md:124-267](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L124-L267)
+
+**Section sources**
+- [DEPLOYMENT_SPECIFICATION.md:124-267](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L124-L267)
+
+### Standalone Deployment Configuration
+
+Standalone deployment provides single-laptop operation with optional desktop and portable modes:
+
+```mermaid
+classDiagram
+class StandaloneDeploymentConfig {
++storageType : 'sqlite-opfs' | 'electron-store' | 'indexeddb'
++backupEnabled : boolean
++portableMode : boolean
++autoSave : boolean
++exportEnabled : boolean
++offlineOnly : boolean
++dataEncryption : boolean
+}
+class StandaloneTemplate {
++name : string
++description : string
++maxUsers : number
++requirements : string[]
++configuration : StandaloneDeploymentConfig
++setupGuide : string[]
+}
+StandaloneTemplate --> StandaloneDeploymentConfig
+```
+
+**Diagram sources**
+- [DEPLOYMENT_SPECIFICATION.md:22-121](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L22-L121)
+
+**Section sources**
+- [DEPLOYMENT_SPECIFICATION.md:22-121](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L22-L121)
+
+### Deployment Mode Matrix
+
+The system defines six distinct deployment modes with comprehensive specifications:
+
+| Mode | Target User | Users | Database | Network | Sync | Complexity |
+|------|-------------|-------|----------|---------|------|------------|
+| **Standalone** | Single laptop schools | 1 | SQLite OPFS | None | None | ⭐ |
+| **Networked** | Small school LAN | 2-20 | SQLite (shared) | LAN | WebSocket | ⭐⭐ |
+| **Hosted** | Medium school server | 20-100 | PostgreSQL | LAN/WAN | Real-time | ⭐⭐⭐ |
+| **SaaS Backend** | Multi-tenant cloud | 100+ | PostgreSQL | Internet | Continuous | ⭐⭐⭐⭐ |
+| **ERPNext** | ERPNext users | Varies | ERPNext | Internet | API Bridge | ⭐⭐⭐⭐ |
+| **Mobile** | Teachers on-field | 1/device | SQLite | Varies | Periodic | ⭐⭐ |
+
+**Section sources**
+- [DEPLOYMENT_SPECIFICATION.md:9-18](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L9-L18)
+
+### Self-Hosting Configuration Templates
+
+The system provides comprehensive self-hosting configuration templates with environment variable support:
+
+```mermaid
+classDiagram
+class SelfHostingConfig {
++vitePort : string
++viteHost : string
++viteDBProvider : string
++viteDBMode : string
++viteDeploymentEnv : string
++viteSQLiteWALMode : string
++viteBackendAPIURL : string
++viteBackendAPIKey : string
++viteEnableHTTPS : string
++viteEnableAuditLog : string
+}
+class SelfHostingTemplate {
++name : string
++description : string
++requiredPackages : string[]
++environmentVariables : SelfHostingConfig
++setupCommands : string[]
+}
+SelfHostingTemplate --> SelfHostingConfig
+```
+
+**Diagram sources**
+- [setup-self-hosted.cjs:14-38](file://scripts/setup-self-hosted.cjs#L14-L38)
+
+**Section sources**
+- [setup-self-hosted.cjs:14-38](file://scripts/setup-self-hosted.cjs#L14-L38)
+
+### Backend Integration Templates
+
+The system provides comprehensive backend integration templates for different backend systems:
+
+```mermaid
+classDiagram
+class BackendIntegrationTemplate {
++name : string
++backendType : string
++configuration : BackendAPIConfig
++endpointMappings : EndpointMapping[]
++syncStrategies : string[]
++securityConfig : SecurityConfig
+}
+class BackendAPIConfig {
++apiBaseUrl : string
++authType : string
++authToken : string
++timeout : number
++retryAttempts : number
++syncInterval : number
++conflictResolution : string
++endpoints : Endpoints
+}
+class EndpointMapping {
++collection : string
++backendEndpoint : string
++fieldMappings : FieldMapping[]
+}
+BackendIntegrationTemplate --> BackendAPIConfig
+BackendIntegrationTemplate --> EndpointMapping
+```
+
+**Diagram sources**
+- [backend-api-config.example.ts:6-74](file://src/config/examples/backend-api-config.example.ts#L6-L74)
+
+**Section sources**
+- [backend-api-config.example.ts:6-74](file://src/config/examples/backend-api-config.example.ts#L6-L74)
+
+## LAN Server Integration
+
+The LAN Server integration provides comprehensive support for networked deployment mode with automatic server discovery and real-time synchronization capabilities.
+
+### LAN Server Architecture
+
+The LAN Server provides a lightweight server solution for small school LAN deployments:
+
+- **SQLite Database**: Shared SQLite database with file-based locking
+- **REST API**: Complete REST API for CRUD operations and data synchronization
+- **WebSocket Support**: Real-time WebSocket connections for instant updates
+- **Auto-Discovery**: mDNS/Bonjour service advertisement for automatic server discovery
+- **Authentication**: Optional authentication with configurable security settings
+- **Cross-platform**: Runs on Windows, Linux, and macOS
+
+```mermaid
+classDiagram
+class LANServer {
++config : LANServerConfig
++app : Application
++httpServer : HTTPServer
++wss : WebSocketServer
++state : ServerState
++db : Database
++start() Promise~void~
++stop() Promise~void~
++setupRoutes() void
++setupWebSocket() void
++setupDiscovery() Promise~void~
++initializeDatabase() void
+}
+class LANServerConfig {
++dataDir : string
++port : number
++host? : string
++enableCors? : boolean
++auth? : AuthConfig
+}
+class ServerState {
++running : boolean
++clients : Map~string, WebSocketClient~
++startTime : Date
+}
+class WebSocketClient {
++id : string
++socket : WebSocket
++subscriptions : Set~string~
++lastPing : number
+}
+LANServer --> LANServerConfig
+LANServer --> ServerState
+LANServer --> WebSocketClient
+```
+
+**Diagram sources**
+- [LANServer.ts:46-56](file://src/server/LANServer.ts#L46-L56)
+- [LANServer.ts:22-44](file://src/server/LANServer.ts#L22-L44)
+
+**Section sources**
+- [LANServer.ts:1-567](file://src/server/LANServer.ts#L1-L567)
+
+### Server Discovery and Auto-configuration
+
+The LAN Server implements sophisticated discovery mechanisms:
+
+- **mDNS/Bonjour**: Service advertisement and discovery using standard protocols
+- **IP Range Scanning**: Fallback scanning of common IP ranges for server detection
+- **Manual Configuration**: Support for manual server address specification
+- **Reconnection Logic**: Automatic reconnection attempts with configurable intervals
+- **Health Monitoring**: Server health checks and status reporting
+
+**Section sources**
+- [LANServer.ts:513-533](file://src/server/LANServer.ts#L513-L533)
+
+### Networked Mode Configuration
+
+The networked deployment mode integrates seamlessly with the LAN Server:
+
+- **Client Configuration**: Automatic server discovery with manual fallback support
+- **Real-time Sync**: WebSocket-based real-time synchronization between clients
+- **Offline Support**: Local caching with automatic synchronization when online
+- **Multi-user Support**: Concurrent access to shared database with transaction support
+- **Security**: Optional authentication and authorization for server access
+
+**Section sources**
+- [DEPLOYMENT_SPECIFICATION.md:204-270](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L204-L270)
+
 ## Practical Examples
 
 ### Enhanced Database Configuration Management
 
-Database configuration management now includes comprehensive environment variable support and validation:
+Database configuration management now includes comprehensive environment variable support, migration capabilities, and template processing:
 
 ```typescript
 // Enhanced database configuration with environment variable overrides
@@ -867,15 +1333,23 @@ if (!validationResult.isValid) {
   const repairResult = validator.repair(DATABASE_CONFIG);
   console.log('Database configuration repaired:', repairResult.changes);
 }
+
+// Apply configuration migration
+const migration = new ConfigurationMigration('2.1.0');
+if (migration.needsMigration(DATABASE_CONFIG)) {
+  const migrationResult = await migration.migrate(DATABASE_CONFIG, { dryRun: false });
+  console.log('Configuration migrated successfully:', migrationResult.result?.migratedConfig);
+}
 ```
 
 **Section sources**
 - [databaseConfigRuntime.ts:77-247](file://src/config/databaseConfigRuntime.ts#L77-L247)
 - [databaseConfigSchema.ts:316-359](file://src/config/databaseConfigSchema.ts#L316-L359)
+- [ConfigurationMigration.ts:78-146](file://src/config/ConfigurationMigration.ts#L78-L146)
 
 ### Enhanced Production Demo Configuration
 
-Production demo configuration includes comprehensive lifecycle management:
+Production demo configuration includes comprehensive lifecycle management with migration support:
 
 ```typescript
 // Initialize production demo with enhanced configuration
@@ -947,6 +1421,47 @@ const detectOptimalConfig = () => {
 **Section sources**
 - [environmentRuntime.ts:29-57](file://src/config/environmentRuntime.ts#L29-L57)
 
+### Deployment Mode Template Application
+
+Deployment mode templates can be applied programmatically for different environments with template processing support:
+
+```typescript
+// Apply deployment template based on environment
+const applyDeploymentTemplate = (environment: string) => {
+  let template: DeploymentTemplate;
+  
+  switch(environment) {
+    case 'standalone':
+      template = getStandaloneTemplate();
+      break;
+    case 'lan-sync':
+      template = getLANSyncTemplate();
+      break;
+    case 'hybrid':
+      template = getHybridTemplate();
+      break;
+    default:
+      template = getDefaultTemplate();
+  }
+  
+  // Apply template configuration
+  const config = unifiedConfigManager.getConfig();
+  const updatedConfig = {
+    ...config,
+    ...template.configuration,
+    deploymentMode: template.name
+  };
+  
+  unifiedConfigManager.updateConfig(updatedConfig);
+  return updatedConfig;
+};
+```
+
+**Section sources**
+- [DEPLOYMENT_SPECIFICATION.md:22-121](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L22-L121)
+- [DEPLOYMENT_SPECIFICATION.md:124-267](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L124-L267)
+- [DEPLOYMENT_SPECIFICATION.md:513-649](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L513-L649)
+
 ## Common Issues and Troubleshooting
 
 ### Configuration Loading Race Conditions
@@ -1012,10 +1527,10 @@ const loadEnvDatabaseConfig = () => {
 ### Database Configuration Validation Errors
 
 **Issue**: Database configuration validation failures
-**Solution**: Use comprehensive validation and auto-fix capabilities
+**Solution**: Use comprehensive validation and auto-fix capabilities with migration support
 
 ```typescript
-// Enhanced database configuration validation
+// Enhanced database configuration validation with migration
 const validateDatabaseConfig = () => {
   const validator = databaseConfigValidator;
   const config = unifiedConfigManager.getDatabaseConfig();
@@ -1069,6 +1584,87 @@ const isFeatureEnabled = (featureName) => {
 **Section sources**
 - [UnifiedConfigContext.tsx](file://src/contexts/UnifiedConfigContext.tsx)
 
+### Configuration Migration Issues
+
+**Issue**: Configuration migration failures or incomplete migrations
+**Solution**: Use dry-run mode and comprehensive error handling
+
+```typescript
+// Enhanced configuration migration with error handling
+const migrateConfiguration = async (config: any) => {
+  const migration = new ConfigurationMigration('2.1.0');
+  
+  // Check if migration is needed
+  if (!migration.needsMigration(config)) {
+    return { success: true, message: 'No migration needed' };
+  }
+  
+  // Preview migration
+  const dryRunResult = await migration.migrate(config, { dryRun: true });
+  console.log('Migration preview:', dryRunResult.steps);
+  
+  // Execute migration
+  try {
+    const result = await migration.migrate(config, { dryRun: false });
+    if (result.result?.success) {
+      console.log('Configuration migrated successfully');
+      return { success: true, migratedConfig: result.result.migratedConfig };
+    } else {
+      console.error('Migration failed:', result.result?.errors);
+      return { success: false, errors: result.result?.errors };
+    }
+  } catch (error) {
+    console.error('Migration error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+```
+
+**Section sources**
+- [ConfigurationMigration.ts:78-146](file://src/config/ConfigurationMigration.ts#L78-L146)
+
+### Deployment Template Application Issues
+
+**Issue**: Deployment templates not applying correctly
+**Solution**: Validate template compatibility and apply incrementally
+
+```typescript
+// Enhanced deployment template application
+const applyDeploymentTemplate = (templateName: string) => {
+  const template = getDeploymentTemplate(templateName);
+  
+  if (!template) {
+    console.error(`Deployment template '${templateName}' not found`);
+    return false;
+  }
+  
+  // Validate template compatibility
+  const compatibility = validateTemplateCompatibility(template);
+  if (!compatibility.valid) {
+    console.error('Template compatibility issues:', compatibility.errors);
+    return false;
+  }
+  
+  // Apply template incrementally
+  const config = unifiedConfigManager.getConfig();
+  const updatedConfig = deepMergeIncremental(config, template.configuration);
+  
+  try {
+    unifiedConfigManager.updateConfig(updatedConfig);
+    console.log(`Deployment template '${templateName}' applied successfully`);
+    return true;
+  } catch (error) {
+    console.error('Failed to apply deployment template:', error);
+    return false;
+  }
+};
+```
+
+**Section sources**
+- [DEPLOYMENT_SPECIFICATION.md:22-121](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L22-L121)
+- [DEPLOYMENT_SPECIFICATION.md:124-267](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L124-L267)
+- [DEPLOYMENT_SPECIFICATION.md:513-649](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L513-L649)
+
 ## Best Practices
 
 ### Extending the Configuration System
@@ -1081,6 +1677,7 @@ When adding new configuration modules:
 4. **Include Validation**: Implement comprehensive validation and auto-fix capabilities
 5. **Handle Migration**: Implement versioning and migration logic for configuration changes
 6. **Document Changes**: Update documentation with new configuration options
+7. **Template Support**: Consider adding template-based configuration file support
 
 ```typescript
 // Example: Adding a new configuration module
@@ -1129,10 +1726,11 @@ To maintain backward compatibility:
 3. **Deprecation Warnings**: Add warnings for deprecated configuration options
 4. **Default Fallbacks**: Ensure new configuration options have sensible defaults
 5. **Legacy Support**: Maintain support for legacy configuration formats
+6. **Template Processing**: Support migration of template-based configurations
 
 ```typescript
-// Enhanced configuration versioning
-const CONFIG_VERSION = '2.0.0';
+// Enhanced configuration versioning with migration
+const CONFIG_VERSION = '2.1.0';
 
 // Migration logic with comprehensive validation
 private loadConfig(): UnifiedAppConfig {
@@ -1174,9 +1772,10 @@ When working with database configuration:
 4. **Migration Support**: Implement comprehensive migration support
 5. **Security Considerations**: Handle sensitive configuration data securely
 6. **Performance Optimization**: Optimize configuration for different environments
+7. **Template Processing**: Support template-based configuration files with environment variable substitution
 
 ```typescript
-// Enhanced database configuration best practices
+// Enhanced database configuration with template support
 const configureDatabase = () => {
   // 1. Load configuration from environment variables
   const envConfig = loadDatabaseConfigFromEnvironment();
@@ -1184,15 +1783,18 @@ const configureDatabase = () => {
   // 2. Load configuration from file
   const fileConfig = loadDatabaseConfigFromFile();
   
-  // 3. Merge configurations with priority: environment > file > defaults
-  const mergedConfig = mergeConfigs(envConfig, fileConfig, getDefaultConfig());
+  // 3. Process template files with environment variable substitution
+  const templateProcessed = processTemplateConfig(fileConfig, envConfig);
   
-  // 4. Validate configuration
+  // 4. Merge configurations with priority: environment > file > defaults
+  const mergedConfig = mergeConfigs(envConfig, templateProcessed, getDefaultConfig());
+  
+  // 5. Validate configuration
   const validator = databaseConfigValidator;
   const validation = validator.validate(mergedConfig);
   
   if (!validation.isValid) {
-    // 5. Attempt auto-fix
+    // 6. Attempt auto-fix
     const fixedConfig = validator.autoFix(mergedConfig);
     return fixedConfig.fixed;
   }
@@ -1204,3 +1806,105 @@ const configureDatabase = () => {
 **Section sources**
 - [databaseConfigRuntime.ts:250-265](file://src/config/databaseConfigRuntime.ts#L250-L265)
 - [databaseConfigSchema.ts:316-359](file://src/config/databaseConfigSchema.ts#L316-L359)
+
+### Deployment Template Best Practices
+
+When working with deployment templates:
+
+1. **Template Validation**: Always validate deployment templates before application
+2. **Incremental Application**: Apply templates incrementally to avoid conflicts
+3. **Environment Compatibility**: Ensure templates are compatible with target environments
+4. **Backup Before Application**: Create configuration backups before applying templates
+5. **Testing Strategy**: Test templates in staging environments first
+6. **Documentation**: Document template usage and configuration options
+7. **Migration Support**: Ensure templates support configuration version migrations
+
+```typescript
+// Enhanced deployment template application with migration support
+const applyDeploymentTemplate = (templateName: string, environment: string) => {
+  // 1. Validate template existence and compatibility
+  const template = getDeploymentTemplate(templateName);
+  if (!template) {
+    throw new Error(`Template '${templateName}' not found`);
+  }
+  
+  // 2. Validate environment compatibility
+  if (!isEnvironmentCompatible(template, environment)) {
+    throw new Error(`Template '${templateName}' not compatible with environment '${environment}'`);
+  }
+  
+  // 3. Create backup
+  const backup = createConfigBackup();
+  
+  // 4. Apply template incrementally
+  const config = unifiedConfigManager.getConfig();
+  const updatedConfig = applyTemplateIncrementally(config, template);
+  
+  // 5. Validate new configuration
+  const validation = validateConfig(updatedConfig);
+  if (!validation.isValid) {
+    // 6. Restore backup on failure
+    restoreConfigBackup(backup);
+    throw new Error(`Template application failed: ${validation.errors.join(', ')}`);
+  }
+  
+  // 7. Apply configuration
+  unifiedConfigManager.updateConfig(updatedConfig);
+  return updatedConfig;
+};
+```
+
+**Section sources**
+- [DEPLOYMENT_SPECIFICATION.md:22-121](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L22-L121)
+- [DEPLOYMENT_SPECIFICATION.md:124-267](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L124-L267)
+- [DEPLOYMENT_SPECIFICATION.md:513-649](file://docs/architecture/deployment-modes/DEPLOYMENT_SPECIFICATION.md#L513-L649)
+
+### Configuration Migration Best Practices
+
+When implementing configuration migrations:
+
+1. **Version Tracking**: Maintain explicit version tracking for all configuration changes
+2. **Step-wise Migration**: Break complex migrations into discrete, testable steps
+3. **Dry-run Support**: Always provide dry-run mode for migration previews
+4. **Error Recovery**: Implement comprehensive error handling and rollback mechanisms
+5. **Validation Integration**: Integrate migration validation with configuration schema validation
+6. **Template Processing**: Support migration of template-based configuration files
+7. **Testing Strategy**: Thoroughly test migrations with representative configuration datasets
+
+```typescript
+// Enhanced migration implementation with best practices
+class EnhancedConfigurationMigration extends ConfigurationMigration {
+  constructor(currentVersion: string) {
+    super(currentVersion);
+    this.registerDefaultMigrations();
+  }
+  
+  async migrateWithValidation(
+    config: Record<string, any>, 
+    options: MigrationOptions = {}
+  ): Promise<EnhancedMigrationResult> {
+    // 1. Validate configuration before migration
+    const initialValidation = this.validateConfig(config);
+    if (!initialValidation.isValid) {
+      throw new Error(`Invalid configuration before migration: ${initialValidation.errors.join(', ')}`);
+    }
+    
+    // 2. Execute migration with comprehensive error handling
+    const result = await this.migrate(config, options);
+    
+    // 3. Validate migrated configuration
+    if (result.result?.success) {
+      const finalValidation = this.validateMigrated(result.result.migratedConfig);
+      if (!finalValidation.isValid) {
+        throw new Error(`Invalid configuration after migration: ${finalValidation.errors.join(', ')}`);
+      }
+    }
+    
+    return result;
+  }
+}
+```
+
+**Section sources**
+- [ConfigurationMigration.ts:44-176](file://src/config/ConfigurationMigration.ts#L44-L176)
+- [databaseConfigSchema.ts:158-176](file://src/config/databaseConfigSchema.ts#L158-L176)

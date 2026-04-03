@@ -2,6 +2,13 @@
 
 <cite>
 **Referenced Files in This Document**
+- [HybridProvider.ts](file://src\services\database\HybridProvider.ts)
+- [CircuitBreaker.ts](file://src\services\database\monitoring\CircuitBreaker.ts)
+- [StructuredLogger.ts](file://src\services\database\monitoring\StructuredLogger.ts)
+- [MetricsCollector.ts](file://src\services\database\monitoring\MetricsCollector.ts)
+- [HealthChecker.ts](file://src\services\database\monitoring\HealthChecker.ts)
+- [performanceMonitor.ts](file://src\services\performanceMonitor.ts)
+- [usePerformanceMonitoring.ts](file://src\hooks\usePerformanceMonitoring.ts)
 - [ProviderSelector.ts](file://src\services\database\ProviderSelector.ts)
 - [DataStrategyManager.ts](file://src\services\DataStrategyManager.ts)
 - [DatabaseProviderFactory.ts](file://src\services\database\DatabaseProviderFactory.ts)
@@ -30,33 +37,35 @@
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive documentation for the new Universal Data Generation Framework
-- Enhanced DataStrategyManager documentation with improved synchronization monitoring
-- Updated ProviderSelector pattern to include new SQLite WASM and Backend API providers
-- Expanded data synchronization workflow with conflict detection and resolution capabilities
-- Added production demo mode configuration and management
-- Enhanced unified data access layer with new storage adapters and relationship management
+- Added comprehensive documentation for the new HybridProvider implementation with backend API composition and local cache
+- Enhanced monitoring systems documentation with circuit breakers, metrics collection, structured logging, and health checks
+- Updated ProviderSelector pattern to include HybridProvider as a core database provider option
+- Expanded data synchronization workflow with hybrid architecture capabilities
+- Added performance monitoring and optimization documentation with comprehensive metrics tracking
+- Enhanced service layer abstraction with new monitoring and resilience patterns
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Multi-Provider Database Strategy](#multi-provider-database-strategy)
 3. [ProviderSelector Pattern Implementation](#providerselector-pattern-implementation)
-4. [DataStrategyManager and Access Patterns](#datastrategymanager-and-access-patterns)
-5. [Enhanced Data Synchronization Workflow](#enhanced-data-synchronization-workflow)
-6. [Service Layer Abstraction](#service-layer-abstraction)
-7. [RxDB Integration for Reactive Queries](#rxdb-integration-for-reactive-queries)
-8. [PouchDB for CouchDB Synchronization](#pouchdb-for-couchdb-synchronization)
-9. [SQLite for Desktop Persistence](#sqlite-for-desktop-persistence)
-10. [Universal Data Generation Framework](#universal-data-generation-framework)
-11. [Production Demo Mode Management](#production-demo-mode-management)
-12. [Performance and Optimization](#performance-and-optimization)
-13. [Data Flow Sequence Diagrams](#data-flow-sequence-diagrams)
+4. [HybridProvider Architecture](#hybridprovider-architecture)
+5. [DataStrategyManager and Access Patterns](#datastrategymanager-and-access-patterns)
+6. [Enhanced Data Synchronization Workflow](#enhanced-data-synchronization-workflow)
+7. [Comprehensive Monitoring Systems](#comprehensive-monitoring-systems)
+8. [Service Layer Abstraction](#service-layer-abstraction)
+9. [RxDB Integration for Reactive Queries](#rxdb-integration-for-reactive-queries)
+10. [PouchDB for CouchDB Synchronization](#pouchdb-for-couchdb-synchronization)
+11. [SQLite for Desktop Persistence](#sqlite-for-desktop-persistence)
+12. [Universal Data Generation Framework](#universal-data-generation-framework)
+13. [Production Demo Mode Management](#production-demo-mode-management)
+14. [Performance and Optimization](#performance-and-optimization)
+15. [Data Flow Sequence Diagrams](#data-flow-sequence-diagrams)
 
 ## Introduction
-The data management architecture in schoolpilot3 implements a sophisticated multi-provider database strategy designed to support diverse deployment scenarios while maintaining a consistent API interface. This architecture enables the application to function seamlessly in online, offline, and hybrid environments by leveraging different database technologies through a unified abstraction layer. The system supports RxDB for reactive real-time data, PouchDB for CouchDB synchronization, and SQLite for local persistence in desktop environments. This document details the architectural components, patterns, and workflows that enable this flexible data management approach, including the newly enhanced data generation framework and production demo capabilities.
+The data management architecture in schoolpilot3 implements a sophisticated multi-provider database strategy designed to support diverse deployment scenarios while maintaining a consistent API interface. This architecture enables the application to function seamlessly in online, offline, and hybrid environments by leveraging different database technologies through a unified abstraction layer. The system supports RxDB for reactive real-time data, PouchDB for CouchDB synchronization, SQLite for local persistence in desktop environments, and the new HybridProvider for backend API composition with local caching. This document details the architectural components, patterns, and workflows that enable this flexible data management approach, including the newly enhanced monitoring systems, circuit breakers, metrics collection, and comprehensive performance optimization capabilities.
 
 ## Multi-Provider Database Strategy
-The schoolpilot3 application employs a multi-provider database strategy to accommodate various deployment requirements and connectivity scenarios. This approach allows the system to operate effectively in environments with intermittent connectivity, desktop installations, and cloud-based deployments. The architecture supports seven primary database providers:
+The schoolpilot3 application employs an enhanced multi-provider database strategy to accommodate various deployment requirements and connectivity scenarios. This approach allows the system to operate effectively in environments with intermittent connectivity, desktop installations, and cloud-based deployments. The architecture now supports eight primary database providers:
 
 - **RxDB**: A reactive database for JavaScript that provides real-time data updates and synchronization capabilities
 - **PouchDB**: A JavaScript database that syncs with CouchDB and compatible servers, enabling offline-first functionality
@@ -65,8 +74,9 @@ The schoolpilot3 application employs a multi-provider database strategy to accom
 - **SQLite File**: Traditional file-based SQLite for development environments
 - **Backend API**: External API integration for cloud-based data management
 - **LiveStore**: Real-time synchronization provider for production environments
+- **HybridProvider**: Composite provider combining backend API with local cache for offline-first architecture
 
-This multi-provider strategy ensures that the application can maintain data consistency and availability across different platforms and network conditions. The selection of the appropriate database provider is determined by the deployment environment, user requirements, and performance considerations.
+This multi-provider strategy ensures that the application can maintain data consistency and availability across different platforms and network conditions. The selection of the appropriate database provider is determined by the deployment environment, user requirements, and performance considerations. The new HybridProvider represents a significant enhancement, providing backend API composition with local caching for optimal offline-first functionality.
 
 **Section sources**
 - [dataLayerConfig.ts:1-50](file://src\config\dataLayerConfig.ts#L1-L50)
@@ -105,9 +115,10 @@ class SQLiteProvider {
 +executeSql(sql) : Promise<ResultSet>
 +beginTransaction() : Promise<Transaction>
 }
-class SQLiteWASMProvider {
-+wasmInstance : WASMModule
-+executeQuery(sql) : Promise<ResultSet>
+class HybridProvider {
++initialize(config) : Promise<void>
++createCollection(name, schema) : Promise<ICollection>
++triggerSync(direction) : Promise<void>
 }
 class BackendAPIProvider {
 +fetchFromAPI(endpoint) : Promise<APIResponse>
@@ -121,7 +132,7 @@ ProviderSelector --> DatabaseProvider : "creates"
 DatabaseProvider <|-- RxDBProvider : "implements"
 DatabaseProvider <|-- PouchDBProvider : "implements"
 DatabaseProvider <|-- SQLiteProvider : "implements"
-DatabaseProvider <|-- SQLiteWASMProvider : "implements"
+DatabaseProvider <|-- HybridProvider : "implements"
 DatabaseProvider <|-- BackendAPIProvider : "implements"
 DatabaseProvider <|-- LiveStoreProvider : "implements"
 ```
@@ -137,15 +148,95 @@ The ProviderSelector evaluates several factors when determining the appropriate 
 - **Performance constraints**: Memory usage, disk I/O, and query latency
 - **Security requirements**: Data encryption and access controls
 - **Storage type**: File-based, memory-based, or WASM-based storage
+- **Hybrid architecture needs**: Backend API composition with local caching
 
-This pattern enables the application to seamlessly switch between database providers without requiring changes to the higher-level application logic, providing flexibility and future extensibility.
+This pattern enables the application to seamlessly switch between database providers without requiring changes to the higher-level application logic, providing flexibility and future extensibility. The new HybridProvider is now a core component of this selector pattern, offering enhanced offline-first capabilities.
 
 **Section sources**
 - [ProviderSelector.ts:1-100](file://src\services\database\ProviderSelector.ts#L1-L100)
 - [DatabaseProviderFactory.ts:39-115](file://src\services\database\DatabaseProviderFactory.ts#L39-L115)
 
+## HybridProvider Architecture
+The HybridProvider represents a significant architectural enhancement, implementing a composite pattern that combines backend API functionality with local caching for optimal offline-first performance. This provider creates a seamless experience by prioritizing local cache reads while maintaining synchronization with remote backend services.
+
+```mermaid
+classDiagram
+class HybridProvider {
++name : string
++version : string
++backendProvider : BackendAPIProvider
++cacheProvider : IDatabaseProvider
++collections : Map~string, HybridCollection~
++offlineQueue : OfflineQueue
++syncManager : SyncManager
++initialize(config) : Promise~void~
++createCollection(name, schema) : Promise~ICollection~
++triggerSync(direction) : Promise~void~
+}
+class HybridCollection {
++name : string
++schema : CollectionSchema
++cacheCollection : ICollection
++backendCollection : ICollection
++offlineQueue : OfflineQueue
++networkMonitor : NetworkMonitor
++cacheFirst : boolean
++syncManager : SyncManager
++insert(doc) : Promise~InsertResult~
++findOne(idOrQuery) : Promise~T~
++update(id, update) : Promise~UpdateResult~
++remove(id) : Promise~DeleteResult~
+}
+class BackendAPIProvider {
++initialize(config) : Promise~void~
++createCollection(name, schema) : Promise~ICollection~
++fetch(url, init) : Promise~Response~
+}
+class OfflineQueue {
++enqueue(operation) : Promise~void~
++process() : Promise~void~
+}
+class SyncManager {
++sync(direction) : Promise~void~
++stop() : void~
+}
+class NetworkMonitor {
++isOnline() : boolean
++getStatus() : NetworkStatus
++getInstance() : NetworkMonitor
+}
+HybridProvider --> HybridCollection : "creates"
+HybridProvider --> BackendAPIProvider : "uses"
+HybridProvider --> OfflineQueue : "uses"
+HybridProvider --> SyncManager : "uses"
+HybridCollection --> OfflineQueue : "queues operations"
+HybridCollection --> NetworkMonitor : "monitors connectivity"
+```
+
+**Diagram sources**
+- [HybridProvider.ts:326-607](file://src\services\database\HybridProvider.ts#L326-L607)
+
+The HybridProvider implements several key architectural patterns:
+
+### Composite Pattern Implementation
+The provider composes two distinct database layers:
+- **Backend Provider**: Handles remote API communication and synchronization
+- **Cache Provider**: Manages local data storage with immediate response capabilities
+
+### Offline-First Design
+The architecture prioritizes local cache operations for immediate user feedback, with automatic queuing of operations when offline and intelligent synchronization when connectivity is restored.
+
+### Automatic Conflict Resolution
+The system handles conflicts between local and remote data through timestamp-based resolution and operational ordering, ensuring data consistency across all instances.
+
+### Configurable Cache Strategy
+Supports multiple cache provider types (SQLite-WASM, PouchDB, RxDB) with configurable cache-first behavior and performance optimization settings.
+
+**Section sources**
+- [HybridProvider.ts:1-608](file://src\services\database\HybridProvider.ts#L1-L608)
+
 ## DataStrategyManager and Access Patterns
-The DataStrategyManager orchestrates the implementation of various data access patterns, including api-first, offline-first, and hybrid approaches. This component serves as the central coordinator for data operations, determining the optimal strategy based on current conditions and requirements.
+The DataStrategyManager orchestrates the implementation of various data access patterns, including api-first, offline-first, hybrid, and demo approaches. This component serves as the central coordinator for data operations, determining the optimal strategy based on current conditions and requirements.
 
 ```mermaid
 flowchart TD
@@ -154,10 +245,13 @@ StrategyEvaluation --> ModeCheck{"Data Mode"}
 ModeCheck --> |Demo| DemoMode["Demo Mode Operations"]
 ModeCheck --> |Online| OnlineCheck{"Online?"}
 ModeCheck --> |Offline| OfflineCheck{"Offline Available?"}
+ModeCheck --> |Hybrid| HybridCheck{"Hybrid Provider Available?"}
 OnlineCheck --> |Yes| ApiFirst["API-First Strategy"]
 OnlineCheck --> |No| OfflineFirst["Offline-First Strategy"]
 OfflineCheck --> |Yes| OfflineFirst
 OfflineCheck --> |No| Error["Operation Not Possible"]
+HybridCheck --> |Yes| HybridStrategy["Hybrid Strategy"]
+HybridCheck --> |No| Error
 ApiFirst --> CacheCheck["Check Local Cache"]
 CacheCheck --> CacheValid{"Cache Valid?"}
 CacheValid --> |Yes| ReturnCached["Return Cached Data"]
@@ -166,9 +260,13 @@ FetchRemote --> UpdateCache["Update Local Cache"]
 UpdateCache --> ReturnData["Return Data"]
 OfflineFirst --> LocalStorage["Use Local Database"]
 LocalStorage --> ReturnLocal["Return Local Data"]
+HybridStrategy --> HybridCache["Hybrid Cache First"]
+HybridCache --> HybridSync["Automatic Sync"]
+HybridSync --> ReturnHybrid["Return Hybrid Data"]
 ReturnCached --> End([Response])
 ReturnData --> End
 ReturnLocal --> End
+ReturnHybrid --> End
 DemoMode --> MockStorage["Use Mock Data"]
 MockStorage --> ReturnDemo["Return Demo Data"]
 ReturnDemo --> End
@@ -184,7 +282,7 @@ UpdateLocal --> Wait
 - [DataStrategyManager.ts:20-60](file://src\services\DataStrategyManager.ts#L20-L60)
 - [dataModePolicies.ts:10-30](file://src\config\dataModePolicies.ts#L10-L30)
 
-The DataStrategyManager supports four primary data access patterns:
+The DataStrategyManager supports five primary data access patterns:
 
 ### API-First Pattern
 In the API-first pattern, the application prioritizes data retrieval from remote APIs while maintaining a local cache for performance optimization. This approach is suitable for environments with reliable network connectivity.
@@ -193,15 +291,13 @@ In the API-first pattern, the application prioritizes data retrieval from remote
 The offline-first pattern prioritizes local data storage and operations, synchronizing with remote servers when connectivity is available. This ensures uninterrupted functionality in disconnected environments.
 
 ### Hybrid Pattern
-The hybrid pattern combines elements of both approaches, dynamically switching between online and offline modes based on network availability and user preferences.
+The hybrid pattern combines backend API composition with local caching, providing optimal performance with automatic synchronization and conflict resolution. This pattern leverages the new HybridProvider capabilities.
 
 ### Demo Pattern
 The demo pattern uses mock data storage for demonstration purposes, providing realistic data without requiring actual database connections.
 
-The DataStrategyManager also handles conflict detection and resolution during synchronization, implementing strategies such as:
-- **Last-write-wins**: The most recent update takes precedence
-- **Merge strategies**: Combining changes from multiple sources
-- **Manual resolution**: Presenting conflicts to users for resolution
+### Enhanced Conflict Detection
+The system detects conflicts by comparing document revisions, timestamps, and operational metadata. When multiple clients modify the same record, the system identifies the conflict during synchronization attempts with detailed conflict categorization.
 
 **Section sources**
 - [DataStrategyManager.ts:1-120](file://src\services\DataStrategyManager.ts#L1-L120)
@@ -215,6 +311,7 @@ sequenceDiagram
 participant UI as "UI Component"
 participant Hook as "Data Hook"
 participant Strategy as "DataStrategyManager"
+participant Hybrid as "HybridProvider"
 participant Monitor as "DataSyncMonitoringService"
 participant Provider as "Database Provider"
 participant Remote as "Remote Server"
@@ -226,6 +323,16 @@ Provider-->>Strategy : Return Local Data
 Strategy-->>Hook : Return Data
 Hook-->>UI : Update Interface
 Strategy->>Monitor : Update Status
+alt Hybrid Provider Active
+Strategy->>Hybrid : Check Cache First
+Hybrid->>Hybrid : Read from Cache
+Hybrid-->>Strategy : Return Cached Data
+Strategy->>Monitor : Update Cache Metrics
+else Direct Provider
+Strategy->>Provider : Check for Changes
+Provider-->>Strategy : Return Changed Records
+Strategy->>Monitor : Track Queue
+end
 loop Background Sync
 Strategy->>Provider : Check for Changes
 Provider-->>Strategy : Return Changed Records
@@ -278,6 +385,95 @@ The synchronization process includes comprehensive error handling for network fa
 - [DataStrategyManager.ts:1-120](file://src\services\DataStrategyManager.ts#L1-L120)
 - [DataSyncMonitoringService.ts:1-483](file://src\services\DataSyncMonitoringService.ts#L1-L483)
 
+## Comprehensive Monitoring Systems
+The enhanced monitoring systems provide comprehensive oversight of database operations, performance metrics, and system health. This includes circuit breakers for fault tolerance, structured logging for debugging, metrics collection for performance analysis, and health checks for system status monitoring.
+
+```mermaid
+classDiagram
+class CircuitBreaker {
++state : CircuitState
++failureCount : number
++successCount : number
++execute(operation) : Promise~any~
++executeSync(operation) : any
++getStats() : CircuitBreakerStats
++getState() : CircuitState
++reset() : void
++forceOpen() : void
+}
+class CircuitBreakerRegistry {
++breakers : Map~string, CircuitBreaker~
++get(name, config) : CircuitBreaker
++getAll() : Map~string, CircuitBreaker~
++resetAll() : void
++getHealthStatus() : HealthStatus
+}
+class StructuredLogger {
++config : LoggerConfig
++debug(message, metadata) : void
++info(message, metadata) : void
++warn(message, metadata) : void
++error(message, error, metadata) : void
++time(operation, fn, metadata) : Promise~any~
++timeSync(operation, fn, metadata) : any
+}
+class MetricsCollector {
++queryLatencies : number[]
++operationCounts : object
++recordQuery(latencyMs) : void
++recordOperation(type) : void
++recordError(errorType, context) : void
++getQueryMetrics() : QueryMetrics
++getOperationMetrics() : OperationMetrics
++exportPrometheus(providerName) : string
++exportJSON(providerName) : ProviderMetrics
+}
+class HealthChecker {
++config : Required~HealthCheckConfig~
++check(options) : Promise~HealthCheckResult~
++quickCheck() : Promise~QuickHealth~
+}
+class PerformanceMonitorService {
++moduleMetrics : ModuleMetric[]
++dataMetrics : DataOperationMetric[]
++interactionMetrics : UserInteractionMetric[]
++recordModuleLoad(metric) : void
++recordDataOperation(metric) : void
++recordUserInteraction(metric) : void
++getPerformanceReport() : PerformanceReport
+}
+CircuitBreakerRegistry --> CircuitBreaker : "manages"
+MetricsCollector --> PerformanceMonitorService : "integrates with"
+HealthChecker --> MetricsCollector : "uses"
+StructuredLogger --> CircuitBreaker : "logs events"
+```
+
+**Diagram sources**
+- [CircuitBreaker.ts:41-221](file://src\services\database\monitoring\CircuitBreaker.ts#L41-L221)
+- [StructuredLogger.ts:37-237](file://src\services\database\monitoring\StructuredLogger.ts#L37-L237)
+- [MetricsCollector.ts:56-267](file://src\services\database\monitoring\MetricsCollector.ts#L56-L267)
+- [HealthChecker.ts:83-301](file://src\services\database\monitoring\HealthChecker.ts#L83-L301)
+- [performanceMonitor.ts:119-206](file://src\services\performanceMonitor.ts#L119-L206)
+
+### Circuit Breaker Pattern
+The circuit breaker pattern prevents cascading failures by temporarily blocking requests to failing services. It monitors operation success/failure rates and automatically transitions between closed, open, and half-open states based on configurable thresholds.
+
+### Structured Logging
+Provides consistent log formatting with context, timing, and metadata for all database operations. Supports multiple log levels and includes automatic error capture with stack traces for debugging.
+
+### Metrics Collection
+Tracks query latency distributions (average, p50, p95, p99), operation counts by type, error rates, and storage usage. Exports metrics in Prometheus-compatible format for external monitoring systems.
+
+### Health Checks
+Performs comprehensive system health assessments including provider connectivity, storage quotas, network status, and sync operation health. Provides quick health checks (<1 second response time) for status endpoints.
+
+**Section sources**
+- [CircuitBreaker.ts:1-609](file://src\services\database\monitoring\CircuitBreaker.ts#L1-L609)
+- [StructuredLogger.ts:1-245](file://src\services\database\monitoring\StructuredLogger.ts#L1-L245)
+- [MetricsCollector.ts:1-268](file://src\services\database\monitoring\MetricsCollector.ts#L1-L268)
+- [HealthChecker.ts:1-302](file://src\services\database\monitoring\HealthChecker.ts#L1-L302)
+- [performanceMonitor.ts:267-316](file://src\services\performanceMonitor.ts#L267-L316)
+
 ## Service Layer Abstraction
 The service layer abstraction provides a unified interface across different database technologies, hiding the complexities of individual providers from the rest of the application. This abstraction enables consistent data access patterns regardless of the underlying database implementation.
 
@@ -287,12 +483,18 @@ subgraph "Application Layer"
 UI[UI Components]
 Hooks[Data Hooks]
 Contexts[Context Providers]
+Monitoring[Monitoring Services]
 end
 subgraph "Service Layer"
 CRUD[UnifiedCRUDService]
 Strategy[DataStrategyManager]
 Provider[ProviderSelector]
+Hybrid[HybridProvider]
 Monitor[DataSyncMonitoringService]
+Breaker[CircuitBreaker Registry]
+Logger[Structured Logger]
+Metrics[Metrics Collector]
+Health[Health Checker]
 end
 subgraph "Database Layer"
 RxDB[RxDB Provider]
@@ -308,6 +510,7 @@ Hooks --> CRUD
 Contexts --> Strategy
 CRUD --> Strategy
 Strategy --> Provider
+Provider --> Hybrid
 Provider --> RxDB
 Provider --> PouchDB
 Provider --> SQLite
@@ -317,16 +520,21 @@ Provider --> LiveStore
 Provider --> Mock
 Strategy --> Monitor
 Monitor --> Provider
-style CRUD fill:#4CAF50,stroke:#388E3C
-style Strategy fill:#2196F3,stroke:#1976D2
-style Provider fill:#FF9800,stroke:#F57C00
-style Monitor fill:#9C27B0,stroke:#7B1FA2
+Hybrid --> Breaker
+Hybrid --> Logger
+Hybrid --> Metrics
+Hybrid --> Health
+Monitor --> Breaker
+Monitor --> Logger
+Monitor --> Metrics
+Monitor --> Health
 ```
 
 **Diagram sources**
 - [UnifiedCRUDService.ts:10-40](file://src\services\UnifiedCRUDService.ts#L10-L40)
 - [DataStrategyManager.ts:15-30](file://src\services\DataStrategyManager.ts#L15-L30)
 - [ProviderSelector.ts:10-25](file://src\services\database\ProviderSelector.ts#L10-L25)
+- [HybridProvider.ts:326-343](file://src\services\database\HybridProvider.ts#L326-L343)
 
 The UnifiedCRUDService implements standard operations that are translated to provider-specific implementations:
 - **Create**: Insert new records with automatic ID generation and validation
@@ -340,6 +548,7 @@ This abstraction layer also handles cross-cutting concerns such as:
 - **Performance monitoring**: Tracking operation latency, success rates, and cache hit ratios
 - **Caching strategies**: Implementing multi-level caching with TTL and invalidation
 - **Audit logging**: Comprehensive audit trails for all data operations
+- **Monitoring integration**: Seamless integration with circuit breakers, metrics collectors, and health checks
 
 **Section sources**
 - [UnifiedCRUDService.ts:1-60](file://src\services\UnifiedCRUDService.ts#L1-L60)
@@ -554,7 +763,7 @@ AdapterFactory --> StorageAdapter : "creates"
 - [AdapterFactory.ts:12-50](file://src\services\dataGeneration\adapters\AdapterFactory.ts#L12-L50)
 - [RelationshipManager.ts:25-111](file://src\services\dataGeneration\RelationshipManager.ts#L25-L111)
 
-The framework supports five primary storage backends:
+The framework supports six primary storage backends:
 
 ### Storage Backends
 - **Mock Adapter**: In-memory storage for testing and development with fast performance
@@ -562,6 +771,7 @@ The framework supports five primary storage backends:
 - **SQLite Livestore**: SQLite with Livestore for real-time synchronization
 - **PouchDB Adapter**: PouchDB for offline-first applications with sync capabilities
 - **Backend API Adapter**: External API integration for cloud-based data generation
+- **Hybrid Adapter**: Hybrid provider integration for comprehensive data generation
 
 ### Data Generation Capabilities
 The framework generates comprehensive educational data across all modules:
@@ -743,10 +953,18 @@ Each database provider includes specific optimizations:
 - **Query compilation**: Pre-compiling frequently used queries
 - **Transaction optimization**: Batched transaction processing
 
+#### HybridProvider Optimizations
+- **Cache-first reads**: Immediate responses from local cache
+- **Automatic sync**: Background synchronization when online
+- **Offline queueing**: Queued operations when offline
+- **Conflict resolution**: Automatic conflict detection and resolution
+- **Provider fallback**: Graceful degradation to backend-only mode
+
 **Section sources**
 - [DataStrategyManager.ts:1-120](file://src\services\DataStrategyManager.ts#L1-L120)
 - [databaseService.ts:1-50](file://src\services\database\databaseService.ts#L1-L50)
 - [DataSyncMonitoringService.ts:81-120](file://src\services\DataSyncMonitoringService.ts#L81-L120)
+- [HybridProvider.ts:326-607](file://src\services\database\HybridProvider.ts#L326-L607)
 
 ## Data Flow Sequence Diagrams
 The following sequence diagrams illustrate the complete data flow from UI components through hooks to database providers.
@@ -811,6 +1029,36 @@ Strategy->>Monitor : Update Performance Metrics
 - [DataStrategyManager.ts:45-70](file://src\services\DataStrategyManager.ts#L45-L70)
 - [ProviderSelector.ts:30-40](file://src\services\database\ProviderSelector.ts#L30-L40)
 
+### HybridProvider Data Flow
+```mermaid
+sequenceDiagram
+participant UI as "UI Component"
+participant Hook as "useDatabaseData"
+participant Hybrid as "HybridProvider"
+participant Cache as "Cache Provider"
+participant Backend as "Backend Provider"
+participant Queue as "Offline Queue"
+UI->>Hook : createStudent({ name : 'John' })
+Hook->>Hybrid : insert({ name : 'John' })
+Hybrid->>Cache : insert({ name : 'John' })
+Cache-->>Hybrid : Insert Result
+alt Online & Backend Available
+Hybrid->>Backend : insert({ name : 'John' })
+Backend-->>Hybrid : Confirm Insert
+else Offline or Backend Failure
+Hybrid->>Queue : enqueue(create, student, { name : 'John' })
+Queue-->>Hybrid : Queued Successfully
+end
+Hybrid-->>Hook : Return Result
+Hook-->>UI : Confirm Operation
+UI-->>UI : Update Interface
+Note over Hybrid,Queue : Automatic sync when online<br/>Queued operations for offline
+```
+
+**Diagram sources**
+- [HybridProvider.ts:69-97](file://src\services\database\HybridProvider.ts#L69-L97)
+- [HybridProvider.ts:182-207](file://src\services\database\HybridProvider.ts#L182-L207)
+
 ### Data Generation Flow
 ```mermaid
 sequenceDiagram
@@ -848,3 +1096,4 @@ These diagrams illustrate how the architecture maintains a consistent interface 
 - [ProviderSelector.ts:1-50](file://src\services\database\ProviderSelector.ts#L1-L50)
 - [UniversalDataGenerator.ts:1-300](file://src\services\dataGeneration\UniversalDataGenerator.ts#L1-L300)
 - [dataModeManager.ts:255-367](file://src\services\dataModeManager.ts#L255-L367)
+- [HybridProvider.ts:1-608](file://src\services\database\HybridProvider.ts#L1-L608)

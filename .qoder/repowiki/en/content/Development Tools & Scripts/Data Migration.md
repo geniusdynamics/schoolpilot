@@ -1,23 +1,28 @@
 # Data Migration
 
 <cite>
-**Referenced Files in This Document**   
-- [migration_config.ts](file://migration_config.ts)
+**Referenced Files in This Document**
 - [run_full_migration.ts](file://scripts/migration/run_full_migration.ts)
-- [extract_data.ts](file://scripts/migration/extract_data.ts)
 - [transform_data.ts](file://scripts/migration/transform_data.ts)
 - [load_data.ts](file://scripts/migration/load_data.ts)
 - [verify_migration.ts](file://scripts/migration/verify_migration.ts)
 - [chunk_processor.ts](file://scripts/migration/chunk_processor.ts)
 - [database_manager.ts](file://scripts/migration/database_manager.ts)
-- [transform_exam_results.ts](file://scripts/migration/transform_exam_results.ts)
-- [transform_grading_schemes.ts](file://scripts/migration/transform_grading_schemes.ts)
-- [transform_school_periods.ts](file://scripts/migration/transform_school_periods.ts)
-- [transform_subjects.ts](file://scripts/migration/transform_subjects.ts)
-- [verification_queries.ts](file://scripts/migration/verification_queries.ts)
-- [migration-utils.ts](file://src/modules/academics/data/migration-utils.ts)
 - [migration-logger.ts](file://scripts/migration/migration-logger.ts)
+- [migration-utils.ts](file://src/modules/academics/data/migration-utils.ts)
+- [extract_legacy_examinations.sql](file://scripts/migration/extract_legacy_examinations.sql)
+- [extract_legacy_subjects.sql](file://scripts/migration/extract_legacy_subjects.sql)
+- [extract_legacy_exam_results.sql](file://scripts/migration/extract_legacy_exam_results.sql)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated project structure documentation to reflect the current migration directory organization
+- Revised component analysis to align with the actual implementation in the repository
+- Updated architecture diagrams to match the current codebase structure
+- Removed references to non-existent migration specification documents
+- Enhanced troubleshooting guidance with current implementation details
+- Updated configuration and dependency analysis sections
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -33,6 +38,8 @@
 ## Introduction
 This document provides a comprehensive overview of the data migration framework in schoolpilot3, detailing the end-to-end process of migrating from legacy systems. The framework follows the Extract, Transform, Load (ETL) pattern with verification, ensuring data integrity throughout the migration process. The system is designed to handle complex academic data including examinations, subjects, exam results, and grading schemes, transforming legacy schemas into the current RxDB collections used by the application.
 
+**Updated** The framework now operates as a streamlined ETL pipeline with four distinct phases: extraction from legacy databases, transformation using specialized utilities, chunked loading with rollback capabilities, and comprehensive verification.
+
 ## Project Structure
 The data migration framework is organized within the `scripts/migration` directory, containing specialized scripts for each phase of the migration process. The framework leverages configuration files, utility classes, and modular scripts to ensure a reliable and verifiable migration process.
 
@@ -44,7 +51,7 @@ A --> D[Extraction]
 A --> E[Transformation]
 A --> F[Loading]
 A --> G[Verification]
-B --> B1[migration_config.ts]
+B --> B1[database_manager.ts]
 C --> C1[run_full_migration.ts]
 D --> D1[extract_data.ts]
 D --> D2[SQL Scripts]
@@ -62,24 +69,27 @@ F --> F3[database_manager.ts]
 ```
 
 **Diagram sources**
-- [migration_config.ts](file://migration_config.ts)
 - [run_full_migration.ts](file://scripts/migration/run_full_migration.ts)
-- [extract_data.ts](file://scripts/migration/extract_data.ts)
+- [transform_data.ts](file://scripts/migration/transform_data.ts)
+- [load_data.ts](file://scripts/migration/load_data.ts)
+- [verify_migration.ts](file://scripts/migration/verify_migration.ts)
+- [database_manager.ts](file://scripts/migration/database_manager.ts)
+
+**Section sources**
+- [run_full_migration.ts](file://scripts/migration/run_full_migration.ts)
 - [transform_data.ts](file://scripts/migration/transform_data.ts)
 - [load_data.ts](file://scripts/migration/load_data.ts)
 - [verify_migration.ts](file://scripts/migration/verify_migration.ts)
 
-**Section sources**
-- [migration_config.ts](file://migration_config.ts)
-- [run_full_migration.ts](file://scripts/migration/run_full_migration.ts)
-
 ## Core Components
 The data migration framework consists of several core components that work together to ensure a successful migration from legacy systems to the current RxDB-based architecture. These components include configuration management, data extraction, transformation utilities, chunked data loading, and comprehensive verification processes.
 
+**Updated** The core components now include a sophisticated chunk processor with rollback capabilities, a robust database manager supporting both PostgreSQL and MySQL connections, and a comprehensive logging system with progress tracking.
+
 **Section sources**
-- [run_full_migration.ts](file://scripts/migration/run_full_migration.ts)
-- [chunk_processor.ts](file://scripts/migration/chunk_processor.ts)
 - [database_manager.ts](file://scripts/migration/database_manager.ts)
+- [chunk_processor.ts](file://scripts/migration/chunk_processor.ts)
+- [migration-logger.ts](file://scripts/migration/migration-logger.ts)
 
 ## Architecture Overview
 The data migration architecture follows a sequential ETL (Extract, Transform, Load) process with a final verification phase. The framework is orchestrated by the `run_full_migration.ts` script, which coordinates the execution of individual migration phases. Each phase is designed to be modular and can be executed independently if needed.
@@ -120,7 +130,6 @@ Orchestrator->>Orchestrator : Process completed
 
 **Diagram sources**
 - [run_full_migration.ts](file://scripts/migration/run_full_migration.ts)
-- [extract_data.ts](file://scripts/migration/extract_data.ts)
 - [transform_data.ts](file://scripts/migration/transform_data.ts)
 - [load_data.ts](file://scripts/migration/load_data.ts)
 - [verify_migration.ts](file://scripts/migration/verify_migration.ts)
@@ -128,42 +137,33 @@ Orchestrator->>Orchestrator : Process completed
 ## Detailed Component Analysis
 
 ### Data Extraction Phase
-The data extraction phase retrieves data from legacy databases using SQL queries and stores it in JSON format for subsequent processing. The extraction process is configured to connect to both the legacy Akademico system (PostgreSQL) and the target SchoolPilot system (MySQL).
+The data extraction phase retrieves data from legacy databases using SQL queries and stores it in JSON format for subsequent processing. The extraction process connects to both the legacy Akademico system (PostgreSQL) and the target SchoolPilot system (MySQL).
 
 ```mermaid
 flowchart TD
-Start([Start Extraction]) --> ReadConfig["Read migration_config.ts"]
+Start([Start Extraction]) --> ReadConfig["Read database_manager.ts"]
 ReadConfig --> ConnectLegacy["Connect to Legacy Database"]
 ConnectLegacy --> ExecuteSQL["Execute SQL Scripts"]
 ExecuteSQL --> examinations["extract_legacy_examinations.sql"]
 ExecuteSQL --> subjects["extract_legacy_subjects.sql"]
 ExecuteSQL --> exam_results["extract_legacy_exam_results.sql"]
-ExecuteSQL --> grading["extract_legacy_grading.sql"]
-ExecuteSQL --> split_results["extract_legacy_split_results.sql"]
 ExecuteSQL --> QueryData["Query Data from Legacy DB"]
 QueryData --> StoreJSON["Store as JSON Files"]
 StoreJSON --> data_extracted["data/extracted/examinations.json"]
 StoreJSON --> data_extracted_subjects["data/extracted/subjects.json"]
 StoreJSON --> data_extracted_results["data/extracted/exam_results.json"]
-StoreJSON --> data_extracted_grading["data/extracted/grading.json"]
-StoreJSON --> data_extracted_split["data/extracted/split_results.json"]
 data_extracted --> End([Extraction Complete])
 data_extracted_subjects --> End
 data_extracted_results --> End
-data_extracted_grading --> End
-data_extracted_split --> End
 ```
 
 **Diagram sources**
-- [extract_data.ts](file://scripts/migration/extract_data.ts)
-- [migration_config.ts](file://migration_config.ts)
 - [extract_legacy_examinations.sql](file://scripts/migration/extract_legacy_examinations.sql)
 - [extract_legacy_subjects.sql](file://scripts/migration/extract_legacy_subjects.sql)
 - [extract_legacy_exam_results.sql](file://scripts/migration/extract_legacy_exam_results.sql)
 
 **Section sources**
-- [extract_data.ts](file://scripts/migration/extract_data.ts)
-- [migration_config.ts](file://migration_config.ts)
+- [database_manager.ts](file://scripts/migration/database_manager.ts)
 
 ### Data Transformation Phase
 The transformation phase maps legacy data schemas to the current RxDB collections using the `AcademicsMigrationUtils` class. This phase handles the conversion of various academic entities including examinations, subjects, exam results, and grading schemes.
@@ -205,10 +205,6 @@ transform_subjects_ts --> AcademicsMigrationUtils : "uses"
 
 **Diagram sources**
 - [transform_data.ts](file://scripts/migration/transform_data.ts)
-- [transform_exam_results.ts](file://scripts/migration/transform_exam_results.ts)
-- [transform_grading_schemes.ts](file://scripts/migration/transform_grading_schemes.ts)
-- [transform_school_periods.ts](file://scripts/migration/transform_school_periods.ts)
-- [transform_subjects.ts](file://scripts/migration/transform_subjects.ts)
 - [migration-utils.ts](file://src/modules/academics/data/migration-utils.ts)
 
 **Section sources**
@@ -232,7 +228,7 @@ exam_results --> ProcessResults["Process Exam Results"]
 subgraph ChunkProcessor
 ProcessExams --> ChunkExams["Split into Chunks"]
 ChunkExams --> ValidateExams["Validate Chunk"]
-ValidateExams --> CommitExams["Commit to examsessions"]
+ValidateExams --> CommitExams["Commit to exam_sessions"]
 CommitExams --> RetryExams{"Commit Failed?"}
 RetryExams -- Yes --> BackoffExams["Exponential Backoff"]
 BackoffExams --> RetryExams
@@ -246,7 +242,7 @@ BackoffSubjects --> RetrySubjects
 RetrySubjects -- No --> SuccessSubjects["Chunk Processed"]
 ProcessResults --> ChunkResults["Split into Chunks"]
 ChunkResults --> ValidateResults["Validate Chunk"]
-ValidateResults --> CommitResults["Commit to studentexamresults"]
+ValidateResults --> CommitResults["Commit to student_exam_results"]
 CommitResults --> RetryResults{"Commit Failed?"}
 RetryResults -- Yes --> BackoffResults["Exponential Backoff"]
 BackoffResults --> RetryResults
@@ -276,7 +272,7 @@ ConnectDatabases --> VerifyExams["Verify Examinations"]
 ConnectDatabases --> VerifySubjects["Verify Subjects"]
 ConnectDatabases --> VerifyResults["Verify Exam Results"]
 VerifyExams --> QuerySourceExams["Query Source: SELECT COUNT(*) FROM examinations"]
-QuerySourceExams --> QueryTargetExams["Query Target: db.examsessions.count().exec()"]
+QuerySourceExams --> QueryTargetExams["Query Target: db.exam_sessions.count().exec()"]
 QueryTargetExams --> CompareExams{"Counts Match?"}
 CompareExams -- Yes --> PassExams["Status: PASS"]
 CompareExams -- No --> FailExams["Status: FAIL"]
@@ -286,7 +282,7 @@ QueryTargetSubjects --> CompareSubjects{"Counts Match?"}
 CompareSubjects -- Yes --> PassSubjects["Status: PASS"]
 CompareSubjects -- No --> FailSubjects["Status: FAIL"]
 VerifyResults --> QuerySourceResults["Query Source: SELECT COUNT(*) FROM exam_results"]
-QuerySourceResults --> QueryTargetResults["Query Target: db.studentexamresults.count().exec()"]
+QuerySourceResults --> QueryTargetResults["Query Target: db.student_exam_results.count().exec()"]
 QueryTargetResults --> CompareResults{"Counts Match?"}
 CompareResults -- Yes --> PassResults["Status: PASS"]
 CompareResults -- No --> FailResults["Status: FAIL"]
@@ -316,11 +312,9 @@ DetermineStatus --> End([Verification Complete])
 
 **Diagram sources**
 - [verify_migration.ts](file://scripts/migration/verify_migration.ts)
-- [verification_queries.ts](file://scripts/migration/verification_queries.ts)
 
 **Section sources**
 - [verify_migration.ts](file://scripts/migration/verify_migration.ts)
-- [verification_queries.ts](file://scripts/migration/verification_queries.ts)
 
 ## Dependency Analysis
 The data migration framework has a well-defined dependency structure that ensures modularity and separation of concerns. The components are organized in a way that allows for independent execution of each migration phase.
@@ -332,7 +326,7 @@ A --> C[transform_data.ts]
 A --> D[load_data.ts]
 A --> E[verify_migration.ts]
 B --> F[database_manager.ts]
-B --> G[migration_config.ts]
+B --> G[SQL Scripts]
 C --> H[migration-utils.ts]
 C --> I[database_manager.ts]
 D --> J[chunk_processor.ts]
@@ -349,7 +343,6 @@ D --> R
 
 **Diagram sources**
 - [run_full_migration.ts](file://scripts/migration/run_full_migration.ts)
-- [extract_data.ts](file://scripts/migration/extract_data.ts)
 - [transform_data.ts](file://scripts/migration/transform_data.ts)
 - [load_data.ts](file://scripts/migration/load_data.ts)
 - [verify_migration.ts](file://scripts/migration/verify_migration.ts)
@@ -375,6 +368,8 @@ The data migration framework incorporates several performance optimizations to h
 
 The framework also includes comprehensive logging with different log levels (debug, info, warn, error) to monitor performance and troubleshoot issues during migration.
 
+**Updated** The logging system now includes timer functionality for performance tracking and progress indicators for long-running operations.
+
 **Section sources**
 - [chunk_processor.ts](file://scripts/migration/chunk_processor.ts)
 - [database_manager.ts](file://scripts/migration/database_manager.ts)
@@ -386,7 +381,7 @@ This section provides guidance for common migration issues and their solutions.
 ### Data Type Mismatches
 **Issue**: Data type mismatches between legacy and target schemas can cause transformation or loading failures.
 
-**Solution**: 
+**Solution**:
 1. Review the `migration-utils.ts` transformation functions to ensure proper type conversion
 2. Add validation in the transformation phase to catch type issues early
 3. Use the deterministic UUID generation for consistent identifier mapping
@@ -507,3 +502,5 @@ The data migration framework in schoolpilot3 provides a robust and reliable solu
 5. **Performance Optimization**: Chunked processing and bulk operations enable efficient migration of large datasets.
 
 The framework is particularly well-suited for complex academic data migrations, with specialized utilities for handling examinations, subjects, exam results, and grading schemes. By following the documented patterns and best practices, organizations can successfully migrate their legacy data to the schoolpilot3 platform with confidence in data integrity and completeness.
+
+**Updated** The framework has been streamlined to focus on the core migration phases while maintaining its robustness and reliability. The removal of non-existent migration specification documents has simplified the overall structure and improved maintainability.

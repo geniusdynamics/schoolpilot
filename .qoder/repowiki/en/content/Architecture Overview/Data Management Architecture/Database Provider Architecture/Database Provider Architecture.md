@@ -4,42 +4,46 @@
 **Referenced Files in This Document**
 - [DatabaseProviderFactory.ts](file://src/services/database/DatabaseProviderFactory.ts)
 - [interfaces.ts](file://src/services/database/interfaces.ts)
-- [databaseService.ts](file://src/services/databaseService.ts)
-- [database_manager.ts](file://scripts/migration/database_manager.ts)
-- [RxDBProvider.ts](file://src/services/database/RxDBProvider.ts)
-- [PouchDBProvider.ts](file://src/services/database/PouchDBProvider.ts)
-- [SQLiteProvider.ts](file://src/services/database/SQLiteProvider.ts)
-- [SQLiteWASMProvider.ts](file://src/services/database/SQLiteWASMProvider.ts)
-- [BackendAPIProvider.ts](file://src/services/database/BackendAPIProvider.ts)
+- [HybridProvider.ts](file://src/services/database/HybridProvider.ts)
+- [HealthChecker.ts](file://src/services/database/monitoring/HealthChecker.ts)
+- [MetricsCollector.ts](file://src/services/database/monitoring/MetricsCollector.ts)
+- [NetworkMonitor.ts](file://src/services/database/sync/NetworkMonitor.ts)
+- [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
+- [performanceMonitor.ts](file://src/services/performanceMonitor.ts)
+- [PerformanceMonitorWidget.tsx](file://src/components/PerformanceMonitorWidget.tsx)
+- [deployment_configuration_guide.md](file://.trae/documents/deployment_configuration_guide.md)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive documentation for the new DatabaseProviderFactory with enhanced provider selection mechanism
-- Updated provider types to include SQLite WASM, SQLite file, and backend API providers
-- Documented the new ProviderSelectionStrategy pattern with unified configuration integration
-- Added QueryBuilder implementation for enhanced query capabilities
-- Updated provider selection logic to support dual-database architecture
-- Enhanced error handling and recovery patterns with DatabaseError classes
+- Added comprehensive documentation for the new HybridProvider with offline-first architecture
+- Updated provider selection architecture to include capability detection and monitoring systems
+- Documented enhanced monitoring capabilities with HealthChecker, MetricsCollector, and NetworkMonitor
+- Added UnifiedDatabaseManager for consolidated provider management
+- Updated provider types to include 'hybrid' and enhanced provider selection logic
+- Added performance monitoring and health check systems
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Core Interface Contracts](#core-interface-contracts)
 3. [Enhanced Provider Selection Architecture](#enhanced-provider-selection-architecture)
 4. [DatabaseProviderFactory Implementation](#databaseproviderfactory-implementation)
-5. [Provider Implementation Details](#provider-implementation-details)
-6. [Query Builder System](#query-builder-system)
-7. [Provider-Specific Characteristics](#provider-specific-characteristics)
-8. [Connection and Transaction Management](#connection-and-transaction-management)
-9. [Error Handling and Recovery](#error-handling-and-recovery)
-10. [Performance Analysis](#performance-analysis)
-11. [Architecture Diagrams](#architecture-diagrams)
+5. [Hybrid Provider Implementation](#hybrid-provider-implementation)
+6. [Monitoring and Health Systems](#monitoring-and-health-systems)
+7. [Unified Database Management](#unified-database-management)
+8. [Provider Implementation Details](#provider-implementation-details)
+9. [Query Builder System](#query-builder-system)
+10. [Provider-Specific Characteristics](#provider-specific-characteristics)
+11. [Connection and Transaction Management](#connection-and-transaction-management)
+12. [Error Handling and Recovery](#error-handling-and-recovery)
+13. [Performance Analysis](#performance-analysis)
+14. [Architecture Diagrams](#architecture-diagrams)
 
 ## Introduction
 
-The database provider system in schoolpilot3 implements a sophisticated dual-database architecture that enables dynamic routing of database operations to different underlying database technologies based on runtime configuration and environment. This enhanced architecture supports five primary database providers: RxDB for reactive real-time queries, PouchDB for CouchDB-compatible synchronization, SQLite for high-performance local persistence, SQLite WASM for browser-based SQLite, and Backend API for cloud-based data services.
+The database provider system in schoolpilot3 implements a sophisticated dual-database architecture that enables dynamic routing of database operations to different underlying database technologies based on runtime configuration and environment. This enhanced architecture supports eight primary database providers: RxDB for reactive real-time queries, PouchDB for CouchDB-compatible synchronization, SQLite for high-performance local persistence, SQLite WASM for browser-based SQLite, Backend API for cloud-based data services, and HybridProvider for offline-first architecture with local caching.
 
-The system is designed to provide a consistent interface across all providers while leveraging the unique capabilities of each database technology. The enhanced DatabaseProviderFactory implements a sophisticated provider selection mechanism that dynamically chooses the appropriate provider based on runtime requirements, environment configuration, and unified settings. This document provides a comprehensive analysis of the enhanced architecture, interface contracts, implementation specifics, and operational characteristics of this database provider system.
+The system is designed to provide a consistent interface across all providers while leveraging the unique capabilities of each database technology. The enhanced DatabaseProviderFactory implements a sophisticated provider selection mechanism that dynamically chooses the appropriate provider based on runtime requirements, environment configuration, and capability detection. This document provides a comprehensive analysis of the enhanced architecture, interface contracts, implementation specifics, and operational characteristics of this database provider system.
 
 **Section sources**
 - [DatabaseProviderFactory.ts:1-725](file://src/services/database/DatabaseProviderFactory.ts#L1-L725)
@@ -194,7 +198,7 @@ The enhanced provider selection architecture introduces a sophisticated strategy
 
 ### Provider Types and Selection Strategy
 
-The system now supports seven distinct provider types with enhanced selection logic:
+The system now supports eight distinct provider types with enhanced selection logic:
 
 ```typescript
 export type ProviderType = 'pouchdb' | 'rxdb' | 'sqlite' | 'sqlite-wasm' | 'sqlite-file' | 'livestore' | 'backend-api' | 'hybrid';
@@ -378,6 +382,332 @@ async switchProvider(providerType: ProviderType, config: DatabaseConfig): Promis
 **Section sources**
 - [DatabaseProviderFactory.ts:286-704](file://src/services/database/DatabaseProviderFactory.ts#L286-L704)
 
+## Hybrid Provider Implementation
+
+The HybridProvider represents a significant enhancement to the database architecture, implementing an offline-first approach that combines local caching with backend synchronization.
+
+### HybridProvider Architecture
+
+```mermaid
+classDiagram
+class HybridProvider {
++BackendAPIProvider backendProvider
++IDatabaseProvider cacheProvider
++Map~string, HybridCollection~ collections
++HybridProviderConfig config
++boolean isInitialized
++OfflineQueue offlineQueue
++SyncManager syncManager
++initialize(config : DatabaseConfig) Promise~void~
++createCollection~T~(name : string, schema : CollectionSchema) Promise~ICollection~T~~
++getCollection~T~(name : string) ICollection~T~ | null
++getAllCollections() Map~string, ICollection~any~~
++isAvailable() boolean
++getStatus() ProviderStatus
++backup() Promise~string~
++restore(backupData : string) Promise~void~
++destroy() Promise~void~
++getCacheProvider() IDatabaseProvider | null
++getBackendProvider() BackendAPIProvider | null
++getSyncManager() SyncManager | null
++getOfflineQueue() OfflineQueue | null
++triggerSync(direction? : 'push' | 'pull' | 'bidirectional') Promise~void~
++processOfflineQueue() Promise~void~
+}
+class HybridCollection~T~ {
++ICollection~T~ cacheCollection
++ICollection~T~ backendCollection
++OfflineQueue offlineQueue
++NetworkMonitor networkMonitor
++Subject~CollectionChangeEvent~ changeSubject
++BehaviorSubject~T[]~ dataSubject
++insert(doc : Omit~T, 'id'~) Promise~InsertResult~T~~
++insertMany(docs : Omit~T, 'id'~[]) Promise~BulkResult~T~~
++findOne(idOrQuery : string | QueryOptions) Promise~T | null~
++findById(id : string) Promise~T | null~
++find(query? : QueryOptions) Promise~T[]~
++update(id : string, update : Partial~T~) Promise~UpdateResult~T~~
++updateMany(query : QueryOptions, update : Partial~T~) Promise~UpdateResult~T~~[]
++remove(id : string) Promise~DeleteResult~
++removeMany(query : QueryOptions) Promise~DeleteResult~~[]
++subscribe(query? : QueryOptions) Observable~T[]~
++subscribeToChanges() Observable~CollectionChangeEvent~T~~
++count(query? : QueryOptions) Promise~number~
++exists(id : string) Promise~boolean~
++createIndex(index : IndexDefinition) Promise~void~
++getStats() Promise~CollectionStats~
++compact() Promise~void~
++destroy() Promise~void~
+}
+HybridProvider --> HybridCollection : "creates"
+```
+
+**Diagram sources**
+- [HybridProvider.ts:326-608](file://src/services/database/HybridProvider.ts#L326-L608)
+
+### Offline-First Design Pattern
+
+The HybridProvider implements a sophisticated offline-first architecture:
+
+**Cache-First Operations**: All read operations prioritize local cache for immediate response
+**Backend Synchronization**: Write operations are applied to both cache and backend with automatic sync
+**Offline Queue Management**: Operations are queued when offline and processed when connectivity is restored
+**Conflict Resolution**: Built-in conflict resolution strategies for concurrent modifications
+**Automatic Fallback**: Seamless fallback to backend API when cache is unavailable
+
+### HybridCollection Implementation
+
+Each collection in the HybridProvider wraps both cache and backend collections:
+
+```typescript
+async findOne(idOrQuery: string | QueryOptions): Promise<T | null> {
+  // Cache-first read
+  if (this.cacheFirst) {
+    try {
+      const result = await this.cacheCollection.findOne(idOrQuery);
+      if (result !== null) return result;
+    } catch (error) {
+      console.warn(`[HybridCollection] Cache findOne failed for ${this.name}, falling back:`, error);
+    }
+  }
+
+  // Fall back to backend
+  if (this.backendCollection) {
+    return await this.backendCollection.findOne(idOrQuery);
+  }
+
+  return null;
+}
+```
+
+**Section sources**
+- [HybridProvider.ts:46-321](file://src/services/database/HybridProvider.ts#L46-L321)
+- [HybridProvider.ts:326-608](file://src/services/database/HybridProvider.ts#L326-L608)
+
+## Monitoring and Health Systems
+
+The enhanced architecture includes comprehensive monitoring and health checking systems to ensure optimal database performance and reliability.
+
+### HealthChecker Implementation
+
+The HealthChecker provides comprehensive health assessment across multiple dimensions:
+
+```mermaid
+classDiagram
+class HealthChecker {
+-HealthCheckConfig config
+-NetworkMonitor networkMonitor
+-MetricsCollector metricsCollector
+-ProviderHealthCheck providerCheckFn()
++check(options?) Promise~HealthCheckResult~
++quickCheck() Promise~QuickHealthCheck~
+-private checkProvider() Promise~ProviderHealthCheck~
+-private checkStorage() Promise~StorageHealthCheck~
+-private checkNetwork() Promise~NetworkHealthCheck~
+-private checkSync(pendingOps, failedOps) SyncHealthCheck
+-private computeOverallStatus(issues, warnings) HealthStatus
+}
+class HealthCheckResult {
++HealthStatus status
++Date timestamp
++number responseTime
++ProviderHealthCheck provider
++StorageHealthCheck storage
++NetworkHealthCheck network
++SyncHealthCheck sync
++OverallHealth overall
+}
+class ProviderHealthCheck {
++string name
++ProviderStatus status
++number responseTime
++number collectionsCount
++string lastError
++boolean isHealthy
+}
+class StorageHealthCheck {
++boolean hasQuota
++number usedBytes
++number availableBytes
++number totalBytes
++number usagePercent
++boolean isHealthy
++number warningThreshold
++number criticalThreshold
+}
+class NetworkHealthCheck {
++NetworkStatus status
++boolean isOnline
++number latency
++boolean isHealthy
+}
+class SyncHealthCheck {
++boolean isActive
++Date lastSync
++number pendingOperations
++number failedOperations
++boolean isHealthy
+}
+HealthChecker --> HealthCheckResult : "creates"
+HealthChecker --> ProviderHealthCheck : "creates"
+HealthChecker --> StorageHealthCheck : "creates"
+HealthChecker --> NetworkHealthCheck : "creates"
+HealthChecker --> SyncHealthCheck : "creates"
+```
+
+**Diagram sources**
+- [HealthChecker.ts:83-302](file://src/services/database/monitoring/HealthChecker.ts#L83-L302)
+
+### MetricsCollector Implementation
+
+The MetricsCollector tracks comprehensive performance metrics:
+
+```typescript
+export interface QueryMetrics {
+  avg: number;
+  p50: number;
+  p95: number;
+  p99: number;
+  min: number;
+  max: number;
+  count: number;
+}
+
+export interface OperationMetrics {
+  totalOperations: number;
+  createCount: number;
+  readCount: number;
+  updateCount: number;
+  deleteCount: number;
+  errorCount: number;
+  errorRate: number;
+}
+
+export interface StorageMetrics {
+  usedBytes: number;
+  collectionCount: number;
+  documentCount: number;
+  indexCount: number;
+}
+```
+
+### NetworkMonitor Implementation
+
+The NetworkMonitor provides real-time network connectivity monitoring:
+
+```typescript
+export type NetworkStatus = 'online' | 'offline' | 'unknown';
+
+export interface NetworkInfo {
+  isOnline: boolean;
+  type: 'wifi' | 'cellular' | 'ethernet' | 'unknown';
+  effectiveType: '4g' | '3g' | '2g' | 'slow-2g' | 'unknown';
+  downlink: number;
+  rtt: number;
+  saveData: boolean;
+}
+```
+
+**Section sources**
+- [HealthChecker.ts:1-302](file://src/services/database/monitoring/HealthChecker.ts#L1-L302)
+- [MetricsCollector.ts:1-268](file://src/services/database/monitoring/MetricsCollector.ts#L1-L268)
+- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
+
+## Unified Database Management
+
+The UnifiedDatabaseManager provides centralized management of database providers with capability detection and automatic recovery mechanisms.
+
+### UnifiedDatabaseManager Architecture
+
+```mermaid
+classDiagram
+class UnifiedDatabaseManager {
++static instance : UnifiedDatabaseManager
++IDatabaseProvider provider
++boolean isInitialized
++DeploymentMode deploymentMode
++DatabaseProvider providerType
++Map~string, ICollection~any~~ collections
++DatabaseStatus status
++NodeJS.Timeout healthCheckInterval
++DatabaseProviderFactory providerFactory
++StartupOptimizer startupOptimizer
++CapabilityDetector capabilityDetector
++FallbackChain fallbackChain
++setFallbackChain(chain : DatabaseProvider[]) void
++getFallbackChain() DatabaseProvider[]
++initialize() Promise~void~
++selectProvider() DatabaseProvider
++selectProviderWithCapabilities() Promise~DatabaseProvider~
++initializeProvider() Promise~void~
++createCollections() Promise~void~
++performHealthCheck() Promise~DatabaseHealth~
++attemptAutomaticRepair(issues) Promise~void~
+}
+class CapabilityDetector {
++static instance : CapabilityDetector
++getProviderRecommendation() Promise~ProviderRecommendation~
++hasCapability(capability : string) Promise~boolean~
++getDiagnosticReport() Promise~string~
+}
+class StartupOptimizer {
++static instance : StartupOptimizer
++startOptimization(provider : IDatabaseProvider) Promise~void~
+}
+UnifiedDatabaseManager --> CapabilityDetector : "uses"
+UnifiedDatabaseManager --> StartupOptimizer : "uses"
+```
+
+**Diagram sources**
+- [UnifiedDatabaseManager.ts:43-2068](file://src/services/database/UnifiedDatabaseManager.ts#L43-L2068)
+
+### Capability-Based Provider Selection
+
+The UnifiedDatabaseManager integrates capability detection to ensure selected providers are actually supported:
+
+```typescript
+private async selectProviderWithCapabilities(): Promise<DatabaseProvider> {
+  // First, get config-based selection
+  const configSelectedProvider = this.selectProvider();
+  
+  // Get capability-based recommendation
+  let capabilityRecommendation: ProviderRecommendation | null = null;
+  try {
+    capabilityRecommendation = await this.capabilityDetector.getProviderRecommendation();
+  } catch (error) {
+    // If capability detection fails, use config-based selection
+    return configSelectedProvider;
+  }
+  
+  // Apply capability compatibility logic
+  const capabilityRecommended = capabilityRecommendation.recommended;
+  const capabilityAlternatives = capabilityRecommendation.alternatives;
+  
+  // Check if config-selected provider is available
+  const configProviderAvailable = await this.validateProviderAvailability(configSelectedProvider);
+  
+  if (configProviderAvailable) {
+    // Use config provider if it matches capability recommendations
+    if (capabilityRecommended === configSelectedProvider || 
+        capabilityAlternatives.includes(configSelectedProvider)) {
+      return configSelectedProvider;
+    }
+  }
+  
+  // Use capability recommendation if available
+  const recommendedAvailable = await this.validateProviderAvailability(capabilityRecommended);
+  if (recommendedAvailable) {
+    return capabilityRecommended;
+  }
+  
+  // Fallback to config provider
+  return configSelectedProvider;
+}
+```
+
+**Section sources**
+- [UnifiedDatabaseManager.ts:316-380](file://src/services/database/UnifiedDatabaseManager.ts#L316-L380)
+
 ## Provider Implementation Details
 
 ### RxDB Provider Implementation
@@ -400,12 +730,12 @@ The SQLiteWASM provider implements browser-based SQLite with WebAssembly for hig
 
 The BackendAPI provider implements cloud-based data services with enhanced synchronization capabilities and improved error handling.
 
+### HybridProvider Implementation
+
+The HybridProvider implements offline-first architecture combining local caching with backend synchronization for optimal performance and reliability.
+
 **Section sources**
-- [RxDBProvider.ts](file://src/services/database/RxDBProvider.ts)
-- [PouchDBProvider.ts](file://src/services/database/PouchDBProvider.ts)
-- [SQLiteProvider.ts](file://src/services/database/SQLiteProvider.ts)
-- [SQLiteWASMProvider.ts](file://src/services/database/SQLiteWASMProvider.ts)
-- [BackendAPIProvider.ts](file://src/services/database/BackendAPIProvider.ts)
+- [HybridProvider.ts:1-608](file://src/services/database/HybridProvider.ts#L1-L608)
 
 ## Query Builder System
 
@@ -477,6 +807,11 @@ The enhanced architecture provides improved characteristics for each provider ty
 - Enhanced cloud synchronization with improved reliability
 - Better error handling with automatic retry mechanisms
 - Improved performance with connection pooling
+
+**HybridProvider:**
+- Offline-first architecture with seamless cache-backend synchronization
+- Advanced conflict resolution and offline queue management
+- Comprehensive monitoring and health checking capabilities
 
 ## Connection and Transaction Management
 
@@ -608,13 +943,14 @@ interface ProviderStatus {
 
 ### Performance Comparison Matrix
 
-| Provider | Query Performance | Storage Efficiency | Memory Usage | Scalability | Offline Support |
-|----------|------------------|-------------------|-------------|-------------|-----------------|
-| RxDB | High (reactive) | Moderate | Moderate | Moderate | Limited |
-| PouchDB | Moderate | High | High | High | Excellent |
-| SQLite (WASM) | Very High | High | Low | Very High | Good |
-| SQLite (File) | Very High | High | Low | Very High | Excellent |
-| Backend API | Variable | High | Low | Very High | Depends |
+| Provider | Query Performance | Storage Efficiency | Memory Usage | Scalability | Offline Support | Monitoring |
+|----------|------------------|-------------------|-------------|-------------|-----------------|------------|
+| RxDB | High (reactive) | Moderate | Moderate | Moderate | Limited | Basic |
+| PouchDB | Moderate | High | High | High | Excellent | Basic |
+| SQLite (WASM) | Very High | High | Low | Very High | Good | Basic |
+| SQLite (File) | Very High | High | Low | Very High | Excellent | Basic |
+| Backend API | Variable | High | Low | Very High | Depends | Basic |
+| Hybrid | Very High (cache) | High | Low | Very High | Excellent | Comprehensive |
 
 ### Optimization Recommendations
 
@@ -627,11 +963,13 @@ interface ProviderStatus {
 - Use SQLite WASM for high-performance web applications
 - Implement Backend API for cloud-native deployments
 - Configure PouchDB for hybrid offline-online scenarios
+- Use HybridProvider for offline-first applications
 
 **Performance Monitoring:**
 - Monitor query performance across all providers
 - Track memory usage for browser-based deployments
 - Analyze storage efficiency for mobile applications
+- Implement comprehensive health monitoring
 
 ## Architecture Diagrams
 
@@ -652,16 +990,19 @@ H --> J[PouchDB Provider]
 H --> K[SQLite Provider]
 H --> L[SQLiteWASM Provider]
 H --> M[BackendAPI Provider]
-I --> N[IndexedDB]
-J --> O[IndexedDB/CouchDB]
-K --> P[Local Storage/File System]
-L --> Q[WebAssembly/SQLite]
-M --> R[Cloud Services/API]
+H --> N[HybridProvider]
+I --> O[IndexedDB]
+J --> P[IndexedDB/CouchDB]
+K --> Q[Local Storage/File System]
+L --> R[WebAssembly/SQLite]
+M --> S[Cloud Services/API]
+N --> T[Cache Provider]
+N --> U[Backend Provider]
 ```
 
 **Diagram sources**
 - [DatabaseProviderFactory.ts:39-115](file://src/services/database/DatabaseProviderFactory.ts#L39-L115)
-- [databaseService.ts](file://src/services/databaseService.ts)
+- [UnifiedDatabaseManager.ts:43-2068](file://src/services/database/UnifiedDatabaseManager.ts#L43-L2068)
 
 ### Provider Selection Flow
 
@@ -696,29 +1037,52 @@ Q --> R
 **Diagram sources**
 - [DatabaseProviderFactory.ts:39-115](file://src/services/database/DatabaseProviderFactory.ts#L39-L115)
 
-### Migration and Dual-Database Architecture
-
-The system supports migration scenarios with dual-database connectivity:
+### Hybrid Provider Architecture
 
 ```mermaid
 sequenceDiagram
 participant App as Application
-participant DBManager as DatabaseManager
-participant Akademico as Akademico DB
-participant SchoolPilot as SchoolPilot DB
-participant RxDB as RxDB Instance
-App->>DBManager : healthCheck()
-DBManager->>Akademico : testConnection()
-DBManager->>SchoolPilot : testConnection()
-DBManager->>RxDB : testConnection()
-Akademico-->>DBManager : Connection Status
-SchoolPilot-->>DBManager : Connection Status
-RxDB-->>DBManager : Connection Status
-DBManager-->>App : Health Check Results
+participant Hybrid as HybridProvider
+participant Cache as Cache Provider
+participant Backend as Backend Provider
+participant Queue as Offline Queue
+participant Network as NetworkMonitor
+App->>Hybrid : insert(doc)
+Hybrid->>Cache : insert(doc)
+Cache-->>Hybrid : cacheResult
+alt Online
+Hybrid->>Backend : insert(doc)
+Backend-->>Hybrid : backendResult
+else Offline
+Hybrid->>Queue : enqueue(operation)
+Queue-->>Hybrid : queued
+end
+Hybrid-->>App : insertResult
 ```
 
 **Diagram sources**
-- [database_manager.ts:177-216](file://scripts/migration/database_manager.ts#L177-L216)
+- [HybridProvider.ts:69-97](file://src/services/database/HybridProvider.ts#L69-L97)
+
+### Monitoring and Health Check Architecture
+
+```mermaid
+graph TD
+A[HealthChecker] --> B[Provider Health Check]
+A --> C[Storage Health Check]
+A --> D[Network Health Check]
+A --> E[Sync Health Check]
+B --> F[Provider Status]
+C --> G[Storage Metrics]
+D --> H[Network Status]
+E --> I[Sync Metrics]
+F --> J[Overall Health Status]
+G --> J
+H --> J
+I --> J
+```
+
+**Diagram sources**
+- [HealthChecker.ts:101-164](file://src/services/database/monitoring/HealthChecker.ts#L101-L164)
 
 **Section sources**
-- [database_manager.ts:105-269](file://scripts/migration/database_manager.ts#L105-L269)
+- [UnifiedDatabaseManager.ts:98-168](file://src/services/database/UnifiedDatabaseManager.ts#L98-L168)
