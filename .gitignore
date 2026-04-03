@@ -33,3 +33,13 @@ docs/AkademicoNotes/
 # Kiro AI Assistant
 .kiro/
 
+# Windows NUL device (appears as file on Windows)
+nul
+
+# Temporary build files
+*.txt
+!README.txt
+typecheck.*.log
+patch-*.txt
+files.txt
+full_file_list.txt
