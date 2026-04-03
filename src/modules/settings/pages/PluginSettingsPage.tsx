@@ -306,16 +306,16 @@ const InstalledPluginsTab: React.FC<{
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder={t('plugins.searchPlaceholder', 'Search plugins...')}
+            placeholder={t('plugins.searchPlaceholder', 'Search plugins by name or description...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         >
           <option value="all">{t('plugins.filterAll', 'All Types')}</option>
           <option value="module">Modules</option>
@@ -327,22 +327,21 @@ const InstalledPluginsTab: React.FC<{
       </div>
 
       {/* Plugin List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="space-y-3">
         {plugins.length === 0 ? (
-          <div className="col-span-2 text-center py-12 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <PuzzlePieceIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>{t('plugins.noPlugins', 'No plugins installed')}</p>
           </div>
         ) : (
           plugins.map(plugin => (
-            <PluginCard
+            <PluginRow
               key={plugin.manifest.id}
               plugin={plugin}
-              isSelected={selectedPlugin?.manifest.id === plugin.manifest.id}
-              onSelect={() => onSelect(plugin)}
               onActivate={() => onActivate(plugin.manifest.id)}
               onDeactivate={() => onDeactivate(plugin.manifest.id)}
               onUninstall={() => onUninstall(plugin.manifest.id)}
+              onSelect={() => onSelect(plugin)}
               isLoading={isLoading}
             />
           ))
@@ -352,9 +351,8 @@ const InstalledPluginsTab: React.FC<{
   );
 };
 
-const PluginCard: React.FC<{
+const PluginRow: React.FC<{
   plugin: LoadedPlugin;
-  isSelected: boolean;
   onSelect: () => void;
   onActivate: () => void;
   onDeactivate: () => void;
@@ -362,92 +360,107 @@ const PluginCard: React.FC<{
   isLoading: boolean;
 }> = ({
   plugin,
-  isSelected,
   onSelect,
   onActivate,
   onDeactivate,
   onUninstall,
   isLoading,
 }) => {
-  const StatusIcon = {
-    active: CheckCircleIcon,
-    inactive: StopIcon,
-    error: XCircleIcon,
-    loaded: InformationCircleIcon,
-  }[plugin.status] || InformationCircleIcon;
-
-  const statusColor = {
-    active: 'text-green-500',
-    inactive: 'text-gray-400',
-    error: 'text-red-500',
-  }[plugin.status] || 'text-gray-400';
+  const { t } = useTranslation('settings');
 
   return (
     <div
       onClick={onSelect}
-      className={`
-        border rounded-lg p-4 cursor-pointer transition-colors
-        ${isSelected 
-          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
-          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'}
-      `}
+      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
     >
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-            {plugin.manifest.icon ? (
-              <img src={plugin.manifest.icon} alt="" className="w-6 h-6" />
-            ) : (
-              <PuzzlePieceIcon className="h-6 w-6 text-gray-400" />
-            )}
-          </div>
-          <div>
-            <h3 className="font-medium text-gray-900 dark:text-white">
-              {plugin.manifest.name}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {plugin.manifest.description || 'No description'}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <StatusIcon className={`h-5 w-5 ${statusColor}`} />
-          <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-            {plugin.manifest.type}
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between">
-        <span className="text-xs text-gray-400">v{plugin.manifest.version}</span>
-        <div className="flex gap-2">
-          {plugin.status === 'active' ? (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDeactivate(); }}
-              disabled={isLoading}
-              className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
-            >
-              <StopIcon className="h-4 w-4 inline mr-1" />
-              Deactivate
-            </button>
+      <div className="flex items-start gap-4">
+        {/* Icon */}
+        <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+          {plugin.manifest.icon ? (
+            <img src={plugin.manifest.icon} alt="" className="w-6 h-6" />
           ) : (
-            <button
-              onClick={(e) => { e.stopPropagation(); onActivate(); }}
-              disabled={isLoading || plugin.status === 'error'}
-              className="px-3 py-1 text-sm bg-primary-500 text-white rounded hover:bg-primary-600 disabled:opacity-50"
-            >
-              <PlayIcon className="h-4 w-4 inline mr-1" />
-              Activate
-            </button>
+            <PuzzlePieceIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
           )}
-          {plugin.source !== 'builtin' && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onUninstall(); }}
-              disabled={isLoading}
-              className="px-3 py-1 text-sm bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50"
-            >
-              <TrashIcon className="h-4 w-4" />
-            </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                {plugin.manifest.name}
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {plugin.manifest.source === 'builtin' ? 'Builtin' : plugin.manifest.source}
+                {' · '}{plugin.manifest.version}
+              </p>
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Info button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); onSelect(); }}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                title="Details"
+              >
+                <InformationCircleIcon className="h-4 w-4" />
+              </button>
+
+              {/* Settings button for active plugins */}
+              {plugin.status === 'active' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onSelect(); }}
+                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                  title="Settings"
+                >
+                  <CogIcon className="h-4 w-4" />
+                </button>
+              )}
+
+              {/* Uninstall button */}
+              {plugin.source !== 'builtin' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onUninstall(); }}
+                  disabled={isLoading}
+                  className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+                  title="Uninstall"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </button>
+              )}
+
+              {/* Toggle */}
+              {plugin.status === 'active' ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDeactivate(); }}
+                  disabled={isLoading}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary-500 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                >
+                  <span className="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+                </button>
+              ) : (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onActivate(); }}
+                  disabled={isLoading || plugin.status === 'error'}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50"
+                >
+                  <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+            {plugin.manifest.description || 'No description available'}
+          </p>
+
+          {/* Error message */}
+          {plugin.error && (
+            <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+              {plugin.error}
+            </p>
           )}
         </div>
       </div>
