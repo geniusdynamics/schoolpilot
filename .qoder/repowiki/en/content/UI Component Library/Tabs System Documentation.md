@@ -7,32 +7,54 @@
 - [TabAccessibilityManager.ts](file://src/services/TabAccessibilityManager.ts)
 - [URLTabSyncEngine.ts](file://src/services/tabs/URLTabSyncEngine.ts)
 - [tabStore.ts](file://src/stores/tabStore.ts)
+- [tabPersistenceAdapter.ts](file://src/stores/adapters/tabPersistenceAdapter.ts)
 - [tabbedWorkspace.ts](file://src/types/tabbedWorkspace.ts)
 - [index.ts](file://src/components/tabbedWorkspace/index.ts)
+- [TabValidationService.ts](file://src/services/tabs/TabValidationService.ts)
+- [RouteToTabMapper.ts](file://src/services/tabs/RouteToTabMapper.ts)
+- [TAB_INTEGRATION_IMPLEMENTATION_SUMMARY.md](file://docs/TAB_INTEGRATION_IMPLEMENTATION_SUMMARY.md)
+- [TAB_OPERATIONS_REVIEW_2026-04-02.md](file://docs/TAB_OPERATIONS_REVIEW_2026-04-02.md)
+- [TABDED_MODE_USER_GUIDE.md](file://docs/tabs/TABDED_MODE_USER_GUIDE.md)
+- [TABBED_MODE_FEATURE_FLAG_IMPLEMENTATION.md](file://docs/tabs/TABBED_MODE_FEATURE_FLAG_IMPLEMENTATION.md)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added comprehensive documentation for TabPersistenceService integration with enhanced persistence capabilities
+- Updated TabValidationService integration details with improved validation logic
+- Added RouteToTabMapper service documentation for centralized route handling
+- Enhanced state management documentation with new persistence adapter
+- Added feature flag system documentation for controlled tabbed mode deployment
+- Updated troubleshooting guide with new persistence-related issues
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [System Architecture](#system-architecture)
 3. [Core Components](#core-components)
-4. [URL-Based Tab Management](#url-based-tab-management)
-5. [Accessibility Implementation](#accessibility-implementation)
-6. [State Management](#state-management)
-7. [Tab Operations](#tab-operations)
-8. [Performance Considerations](#performance-considerations)
-9. [Integration Patterns](#integration-patterns)
-10. [Troubleshooting Guide](#troubleshooting-guide)
-11. [Conclusion](#conclusion)
+4. [Enhanced Validation System](#enhanced-validation-system)
+5. [Advanced Persistence Implementation](#advanced-persistence-implementation)
+6. [Centralized Route Mapping](#centralized-route-mapping)
+7. [Feature Flag Management](#feature-flag-management)
+8. [URL-Based Tab Management](#url-based-tab-management)
+9. [Accessibility Implementation](#accessibility-implementation)
+10. [State Management](#state-management)
+11. [Tab Operations](#tab-operations)
+12. [Performance Considerations](#performance-considerations)
+13. [Integration Patterns](#integration-patterns)
+14. [Troubleshooting Guide](#troubleshooting-guide)
+15. [Conclusion](#conclusion)
 
 ## Introduction
 
 The Tabs System in SchoolPilot3 represents a sophisticated tabbed workspace architecture designed to provide seamless multi-tab navigation experiences across educational modules. This system implements URL-driven tab management, ensuring tab state persistence, cross-tab synchronization, and comprehensive accessibility support.
 
-The system is built around three core pillars: URL synchronization for state management, comprehensive accessibility compliance, and robust state persistence with RBAC integration. It supports advanced features like tab pinning, bulk operations, hierarchical navigation, and real-time collaboration capabilities.
+**Updated** The system now includes enhanced validation through TabValidationService, advanced persistence with TabPersistenceService, centralized route mapping via RouteToTabMapper, and granular feature flag control for gradual deployment.
+
+The system is built around four core pillars: URL synchronization for state management, comprehensive accessibility compliance, robust state persistence with RBAC integration, and service-oriented architecture for maintainability and scalability.
 
 ## System Architecture
 
-The Tabs System follows a layered architecture pattern with clear separation of concerns:
+The Tabs System follows a layered architecture pattern with clear separation of concerns and service-oriented design:
 
 ```mermaid
 graph TB
@@ -40,32 +62,46 @@ subgraph "Presentation Layer"
 UI[Tab Components]
 ActionBar[Action Bar]
 SubTabNav[Sub-Tab Navigation]
+FeatureFlag[Feature Flag Controls]
 end
 subgraph "Control Layer"
 Hook[useTabs Hook]
 Manager[TabStateManager]
 AccessManager[TabAccessibilityManager]
+RouteMapper[RouteToTabMapper]
+end
+subgraph "Service Layer"
+Validation[TabValidationService]
+Persistence[TabPersistenceService]
+FeatureFlagSvc[TabbedModeFeatureFlag]
 end
 subgraph "Data Layer"
 Store[TabStore]
 SyncEngine[URLTabSyncEngine]
-Validation[TabValidationService]
+Adapter[TabPersistenceAdapter]
 end
 subgraph "Persistence Layer"
+IndexedDB[IndexedDB Storage]
+LocalStorage[localStorage Fallback]
 URL[Browser URL]
 Session[Session Storage]
-Local[Local Storage]
 end
 UI --> Hook
 Hook --> Manager
 Hook --> AccessManager
-Manager --> Store
-AccessManager --> Store
+Manager --> Validation
+Manager --> RouteMapper
+Manager --> FeatureFlagSvc
+Validation --> Store
+RouteMapper --> Store
+FeatureFlagSvc --> UI
 Store --> SyncEngine
 SyncEngine --> URL
 SyncEngine --> Session
-SyncEngine --> Local
-Store --> Validation
+Store --> Adapter
+Adapter --> Persistence
+Persistence --> IndexedDB
+Persistence --> LocalStorage
 ```
 
 **Diagram sources**
@@ -73,6 +109,8 @@ Store --> Validation
 - [TabStateManager.ts:33-375](file://src/services/TabStateManager.ts#L33-L375)
 - [TabAccessibilityManager.ts:62-552](file://src/services/TabAccessibilityManager.ts#L62-L552)
 - [URLTabSyncEngine.ts:21-522](file://src/services/tabs/URLTabSyncEngine.ts#L21-L522)
+- [tabPersistenceAdapter.ts:1-153](file://src/stores/adapters/tabPersistenceAdapter.ts#L1-L153)
+- [RouteToTabMapper.ts:60-609](file://src/services/tabs/RouteToTabMapper.ts#L60-L609)
 
 ## Core Components
 
@@ -144,6 +182,211 @@ The TabStateManager handles complex tab state logic, module dashboard detection,
 
 **Section sources**
 - [TabStateManager.ts:33-375](file://src/services/TabStateManager.ts#L33-L375)
+
+## Enhanced Validation System
+
+### TabValidationService Integration
+
+The TabValidationService provides centralized validation logic that enhances tab creation and state management with comprehensive error checking and validation rules.
+
+```mermaid
+classDiagram
+class TabValidationService {
++validateTabAccess(tab, userRole, userPermissions) : boolean
++validateTabState(tab) : ValidationResult
++validateTabCreation(tabs, tabData, maxTabs) : ValidationResponse
++validatePermissions(tab, userRole, userPermissions) : PermissionResult
++validateTabStructure(tab) : StructureResult
++canCreateTab(tabCount, maxTabs) : LimitResult
+}
+class ValidationResponse {
+-valid : boolean
+-errors : string[]
+-warnings : string[]
+}
+class ValidationResult {
+-valid : boolean
+-errors : string[]
+}
+TabValidationService --> ValidationResponse : "returns"
+TabValidationService --> ValidationResult : "returns"
+```
+
+**Diagram sources**
+- [TabValidationService.ts](file://src/services/tabs/TabValidationService.ts)
+
+### Enhanced Tab Creation Validation
+
+The tabStore now delegates comprehensive validation to the TabValidationService, providing better error handling and validation results:
+
+**Before**:
+```typescript
+if (updatedState.tabs.length >= updatedState.maxTabs) {
+  throw new Error(`Maximum tab limit (${updatedState.maxTabs}) reached`);
+}
+```
+
+**After**:
+```typescript
+const validation = tabValidationService.validateTabCreation(
+  updatedState.tabs,
+  tabData,
+  updatedState.maxTabs
+);
+
+if (!validation.valid) {
+  throw new Error(validation.errors.join(', '));
+}
+
+if (validation.warnings.length > 0) {
+  console.warn('[TabStore] Tab creation warnings:', validation.warnings);
+}
+```
+
+**Section sources**
+- [tabStore.ts:53-76](file://src/stores/tabStore.ts#L53-L76)
+- [TAB_INTEGRATION_IMPLEMENTATION_SUMMARY.md:25-47](file://docs/TAB_INTEGRATION_IMPLEMENTATION_SUMMARY.md#L25-L47)
+
+## Advanced Persistence Implementation
+
+### TabPersistenceAdapter Architecture
+
+The TabPersistenceAdapter bridges Zustand's persist middleware with the TabPersistenceService, enabling advanced persistence features with IndexedDB fallback and schema versioning.
+
+```mermaid
+classDiagram
+class TabPersistenceAdapter {
+<<StateStorage>>
++getItem(name) : Promise~string|null~
++setItem(name, value) : Promise~void~
++removeItem(name) : Promise~void~
+}
+class TabPersistenceService {
+-saveTabs(tabs) : Promise~void~
+-loadTabs() : Promise~Tab[]|null~
+-clearTabs() : Promise~void~
+}
+class PersistedTabState {
+-tabs : Tab[]
+-pinnedTabs : string[]
+-recentlyClosedTabs : Tab[]
+-maxTabs : number
+-tabGroups : Object
+}
+TabPersistenceAdapter --> TabPersistenceService : "delegates to"
+TabPersistenceAdapter --> PersistedTabState : "manages"
+```
+
+**Diagram sources**
+- [tabPersistenceAdapter.ts:49-153](file://src/stores/adapters/tabPersistenceAdapter.ts#L49-L153)
+
+### Multi-Layered Persistence Strategy
+
+The system implements a sophisticated multi-layered persistence approach:
+
+1. **Primary Storage**: IndexedDB for large datasets and better performance
+2. **Fallback Storage**: localStorage for compatibility and data migration
+3. **Additional State**: Separate localStorage storage for non-tab state (pinnedTabs, recentlyClosedTabs)
+4. **Schema Versioning**: Support for future data migrations and versioning
+
+**Features Enabled**:
+- ✅ IndexedDB support for larger datasets (up to 50+ tabs efficiently)
+- ✅ Automatic fallback to localStorage if IndexedDB fails
+- ✅ Schema versioning for future migrations
+- ✅ Better error handling and recovery mechanisms
+- ✅ Metadata tracking (lastSaved, tabCount, etc.)
+
+**Section sources**
+- [tabPersistenceAdapter.ts:27-34](file://src/stores/adapters/tabPersistenceAdapter.ts#L27-L34)
+- [tabStore.ts:854-855](file://src/stores/tabStore.ts#L854-L855)
+- [TAB_INTEGRATION_IMPLEMENTATION_SUMMARY.md:93-99](file://docs/TAB_INTEGRATION_IMPLEMENTATION_SUMMARY.md#L93-L99)
+
+## Centralized Route Mapping
+
+### RouteToTabMapper Service
+
+The RouteToTabMapper service extracts route handling logic from TabStateManager and TabbedWorkspaceManager, providing centralized route-to-tab mapping capabilities.
+
+```mermaid
+classDiagram
+class RouteToTabMapper {
++resolveNavigationItem(path, navigationConfig) : NavigationItem|null
++parseRouteParams(path, pattern) : Record~string,string~
++buildTabFromRoute(path, navigationItem, options) : Partial~Tab~
++matchRoute(path, patterns) : string|null
++extractModuleFromPath(path) : string
++normalizePath(path) : string
+-private findExactMatch(path, items) : NavigationItem|null
+-private findParameterizedMatch(path, items) : NavigationItem|null
+-private findPrefixMatch(path, items) : NavigationItem|null
+}
+class NavigationItem {
+-id : string
+-name : string
+-path : string
+-module : string
+-icon : string
+-children : NavigationItem[]
+-permissions : string[]
+}
+RouteToTabMapper --> NavigationItem : "resolves"
+```
+
+**Diagram sources**
+- [RouteToTabMapper.ts:60-609](file://src/services/tabs/RouteToTabMapper.ts#L60-L609)
+
+### Route Processing Capabilities
+
+The service handles complex routing scenarios:
+
+1. **Exact Path Matching**: Direct path-to-navigation-item matching
+2. **Parameterized Routes**: Dynamic parameter extraction (e.g., `/students/:id`)
+3. **Wildcard Matching**: Support for wildcard patterns and prefix matching
+4. **Module Extraction**: Automatic module identification from paths
+5. **Title Generation**: Intelligent tab title creation from navigation items
+
+**Section sources**
+- [RouteToTabMapper.ts:82-109](file://src/services/tabs/RouteToTabMapper.ts#L82-L109)
+- [RouteToTabMapper.ts:244-264](file://src/services/tabs/RouteToTabMapper.ts#L244-L264)
+
+## Feature Flag Management
+
+### Tabbed Mode Feature Flag System
+
+The feature flag system provides granular control over tabbed mode deployment with per-module enablement and gradual rollout capabilities.
+
+```mermaid
+flowchart TD
+FeatureFlag[Feature Flag Configuration] --> GlobalCheck{Global Enable?}
+GlobalCheck --> |No| DisableAll[Disable All Modules]
+GlobalCheck --> |Yes| PerModuleCheck{Per-Module Control?}
+PerModuleCheck --> |No| UseDefault[Use Global Default]
+PerModuleCheck --> |Yes| ModuleOverride{Module Override?}
+ModuleOverride --> |Exists| UseOverride[Use Module Setting]
+ModuleOverride --> |None| UseDefault
+UseOverride --> EvaluateLogic[Evaluate Logic]
+UseDefault --> EvaluateLogic
+DisableAll --> EvaluateLogic
+EvaluateLogic --> FinalDecision{Final Decision}
+FinalDecision --> Enable[Enable Tabbed Mode]
+FinalDecision --> Disable[Disable Tabbed Mode]
+```
+
+**Diagram sources**
+- [TABBED_MODE_FEATURE_FLAG_IMPLEMENTATION.md:36-42](file://docs/tabs/TABBED_MODE_FEATURE_FLAG_IMPLEMENTATION.md#L36-L42)
+
+### Configuration Hierarchy
+
+The feature flag system follows a clear hierarchy:
+
+1. **Global Enable/Disable** - Master switch for entire system
+2. **Per-Module Control** - Enable/disable individual module control
+3. **Module Overrides** - Specific module settings
+4. **Runtime Updates** - Dynamic configuration changes
+
+**Section sources**
+- [TABDED_MODE_USER_GUIDE.md:16-24](file://docs/tabs/TABDED_MODE_USER_GUIDE.md#L16-L24)
+- [TABBED_MODE_FEATURE_FLAG_IMPLEMENTATION.md:59-65](file://docs/tabs/TABBED_MODE_FEATURE_FLAG_IMPLEMENTATION.md#L59-L65)
 
 ## URL-Based Tab Management
 
@@ -276,23 +519,26 @@ TabStore --> Tab : "manages"
 - [tabStore.ts:18-107](file://src/stores/tabStore.ts#L18-L107)
 - [tabbedWorkspace.ts:20-37](file://src/types/tabbedWorkspace.ts#L20-L37)
 
-### Persistence Strategy
+### Enhanced Persistence Strategy
 
-The system implements a multi-layered persistence strategy:
+The system implements a multi-layered persistence strategy with advanced features:
 
 1. **URL Persistence**: Real-time state synchronization via URL parameters
-2. **Session Storage**: Temporary state retention during browser sessions
-3. **Local Storage**: Long-term state persistence across browser restarts
+2. **IndexedDB Storage**: Primary storage for large datasets with automatic fallback
+3. **localStorage Fallback**: Compatibility and data migration support
+4. **Schema Versioning**: Support for future data migrations
+5. **Metadata Tracking**: Enhanced state tracking and recovery
 
 **Section sources**
 - [tabStore.ts:139-244](file://src/stores/tabStore.ts#L139-L244)
+- [tabPersistenceAdapter.ts:60-83](file://src/stores/adapters/tabPersistenceAdapter.ts#L60-L83)
 - [URLTabSyncEngine.ts:308-336](file://src/services/tabs/URLTabSyncEngine.ts#L308-L336)
 
 ## Tab Operations
 
 ### Advanced Tab Manipulation
 
-The system provides comprehensive tab manipulation capabilities:
+The system provides comprehensive tab manipulation capabilities with enhanced validation and persistence:
 
 ```mermaid
 flowchart TD
@@ -302,31 +548,35 @@ OperationType --> |Close Tab| CloseTab["Close Existing Tab"]
 OperationType --> |Pin Tab| PinTab["Toggle Tab Pinning"]
 OperationType --> |Duplicate Tab| DuplicateTab["Create Tab Copy"]
 OperationType --> |Bulk Operations| BulkOps["Execute Bulk Operations"]
-OpenTab --> CheckLimit["Check Tab Limit"]
+OpenTab --> ValidateTab["Validate with TabValidationService"]
+ValidateTab --> CheckLimit["Check Tab Limit"]
 CheckLimit --> LimitExceeded{"Limit Exceeded?"}
 LimitExceeded --> |Yes| CloseOldest["Close Oldest Non-Pinned Tab"]
 LimitExceeded --> |No| CreateTab["Create New Tab"]
 CloseOldest --> CreateTab
-CreateTab --> UpdateURL["Update URL State"]
+CreateTab --> PersistTab["Persist via TabPersistenceAdapter"]
 CloseTab --> UpdateStore["Update Store State"]
 PinTab --> UpdateStore
 DuplicateTab --> UpdateStore
 BulkOps --> UpdateStore
+PersistTab --> UpdateURL["Update URL State"]
+UpdateStore --> UpdateURL
 ```
 
 **Diagram sources**
 - [useTabs.ts:220-265](file://src/hooks/tabs/useTabs.ts#L220-L265)
 - [useTabs.ts:298-327](file://src/hooks/tabs/useTabs.ts#L298-L327)
+- [tabPersistenceAdapter.ts:101-128](file://src/stores/adapters/tabPersistenceAdapter.ts#L101-L128)
 
 ### Tab Lifecycle Management
 
-The system manages tab lifecycle through several key phases:
+The system manages tab lifecycle through several key phases with enhanced validation:
 
-1. **Creation**: Tab derivation from URL with metadata extraction
-2. **Activation**: State synchronization and UI updates
-3. **Modification**: Real-time updates to tab properties
-4. **Destruction**: Proper cleanup and state persistence
-5. **Restoration**: Support for recently closed tab recovery
+1. **Creation**: Tab derivation from URL with metadata extraction and validation
+2. **Activation**: State synchronization and UI updates with permission checks
+3. **Modification**: Real-time updates to tab properties with validation
+4. **Destruction**: Proper cleanup and state persistence with error handling
+5. **Restoration**: Support for recently closed tab recovery with validation
 
 **Section sources**
 - [useTabs.ts:439-453](file://src/hooks/tabs/useTabs.ts#L439-L453)
@@ -343,6 +593,8 @@ The Tabs System implements several performance optimization strategies:
 - **URL Optimization**: Compact parameter encoding for long URLs
 - **Event Throttling**: Debounced URL change handling
 - **State Validation**: Efficient state validation and cleanup
+- **IndexedDB Performance**: Optimized IndexedDB operations for large datasets
+- **Graceful Degradation**: Automatic fallback to localStorage when IndexedDB fails
 
 ### Performance Monitoring
 
@@ -351,6 +603,7 @@ The system includes comprehensive performance monitoring through the `performanc
 **Section sources**
 - [URLTabSyncEngine.ts:125-135](file://src/services/tabs/URLTabSyncEngine.ts#L125-L135)
 - [URLTabSyncEngine.ts:484-497](file://src/services/tabs/URLTabSyncEngine.ts#L484-L497)
+- [TAB_INTEGRATION_IMPLEMENTATION_SUMMARY.md:223-241](file://docs/TAB_INTEGRATION_IMPLEMENTATION_SUMMARY.md#L223-L241)
 
 ## Integration Patterns
 
@@ -365,16 +618,23 @@ TabBar[TabBar]
 Tab[Tab]
 TabContent[TabContent]
 ActionBar[ActionBar]
+FeatureFlag[Feature Flag Controls]
 end
 subgraph "Integration Points"
 ModuleNav[Module Navigation]
 Settings[Settings Panel]
 Breadcrumbs[Breadcrumb Navigation]
 end
-subgraph "External Systems"
+subgraph "Service Layer"
 RBAC[RBAC Service]
-Validation[Validation Service]
-Persistence[Persistence Adapter]
+Validation[TabValidationService]
+Persistence[TabPersistenceService]
+RouteMapper[RouteToTabMapper]
+FeatureFlagSvc[TabbedModeFeatureFlag]
+end
+subgraph "External Systems"
+ExternalPersistence[External Persistence]
+Analytics[Analytics Service]
 end
 TabBar --> ModuleNav
 Tab --> Settings
@@ -382,6 +642,8 @@ TabContent --> Breadcrumbs
 ActionBar --> RBAC
 TabBar --> Validation
 TabContent --> Persistence
+RouteMapper --> FeatureFlagSvc
+FeatureFlag --> ExternalPersistence
 ```
 
 **Diagram sources**
@@ -389,7 +651,7 @@ TabContent --> Persistence
 
 ### Module-Specific Integration
 
-Each module can integrate tabs through standardized interfaces, supporting both simple navigation and complex multi-entity workflows.
+Each module can integrate tabs through standardized interfaces, supporting both simple navigation and complex multi-entity workflows with feature flag control.
 
 **Section sources**
 - [index.ts:25-41](file://src/components/tabbedWorkspace/index.ts#L25-L41)
@@ -400,22 +662,28 @@ Each module can integrate tabs through standardized interfaces, supporting both 
 
 | Issue | Symptoms | Solution |
 |-------|----------|----------|
-| Tab State Not Persisting | Tabs reset after refresh | Check localStorage availability and quota |
+| Tab State Not Persisting | Tabs reset after refresh | Check IndexedDB availability and quota |
 | URL Parameter Overflow | URL too long, truncated | System automatically falls back to storage-based URLs |
 | Tab Navigation Issues | Keyboard navigation not working | Verify accessibility manager configuration |
 | Performance Degradation | Slow tab switching | Monitor tab count and implement cleanup |
 | Cross-Tab Synchronization | State not updating across tabs | Check storage event listeners |
+| IndexedDB Storage Issues | Data not saving to IndexedDB | Check browser support and quota |
+| Feature Flag Misconfiguration | Module shows wrong navigation | Verify feature flag settings |
+| Route Mapping Errors | Tabs not creating from routes | Check RouteToTabMapper configuration |
 
 ### Debugging Tools
 
-The system provides comprehensive debugging capabilities through console logging and state snapshots, enabling developers to diagnose tab-related issues effectively.
+The system provides comprehensive debugging capabilities through console logging, state snapshots, and service-specific debugging tools, enabling developers to diagnose tab-related issues effectively.
 
 **Section sources**
 - [URLTabSyncEngine.ts:308-336](file://src/services/tabs/URLTabSyncEngine.ts#L308-L336)
 - [TabStateManager.ts:217-261](file://src/services/TabStateManager.ts#L217-L261)
+- [tabPersistenceAdapter.ts:89-92](file://src/stores/adapters/tabPersistenceAdapter.ts#L89-L92)
 
 ## Conclusion
 
 The Tabs System in SchoolPilot3 represents a comprehensive solution for multi-tab navigation in educational applications. Its URL-driven architecture ensures state persistence and sharing, while the extensive accessibility implementation provides inclusive user experiences. The system's modular design enables easy integration with various modules and platforms, making it a robust foundation for complex educational workflows.
 
-The combination of advanced state management, performance optimization, and comprehensive accessibility support positions this system as a leading implementation for modern web applications requiring sophisticated tab management capabilities.
+**Updated** The recent integration of TabValidationService, TabPersistenceService, and RouteToTabMapper has significantly enhanced the system's maintainability, scalability, and reliability. The addition of feature flag management provides controlled deployment capabilities, enabling gradual migration to tabbed mode across modules.
+
+The combination of advanced state management, performance optimization, comprehensive accessibility support, and service-oriented architecture positions this system as a leading implementation for modern web applications requiring sophisticated tab management capabilities with enterprise-grade features and maintainability.
