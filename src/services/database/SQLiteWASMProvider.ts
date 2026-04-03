@@ -162,38 +162,70 @@ export class SQLiteWASMCollection<T = any> implements ICollection<T> {
       throw new CollectionError('Collection has been destroyed', this.name);
     }
 
-    return this.trackQueryPerformance(() => {
-      const results: InsertResult<T>[] = [];
-      const errors: Array<{ id: string; error: string; reason: string }> = [];
-      
-      // Use transaction for better performance
-      this.db.exec('BEGIN TRANSACTION');
-      
-      try {
-        for (const doc of docs) {
-          try {
-            const result = this.insert(doc);
-            results.push(result as any); // Sync version for transaction
-          } catch (error) {
-            errors.push({
-              id: (doc as any).id || 'unknown',
-              error: 'insert_failed',
-              reason: error instanceof Error ? error.message : String(error)
-            });
-          }
+    const startTime = performance.now();
+    const results: InsertResult<T>[] = [];
+    const errors: Array<{ id: string; error: string; reason: string }> = [];
+
+    // Use transaction for better performance
+    this.db.exec('BEGIN TRANSACTION');
+
+    try {
+      for (const doc of docs) {
+        try {
+          const id = (doc as any).id || this.generateId();
+          const docWithId = { ...doc, id } as T;
+
+          // Inline synchronous insert logic for use within transaction
+          const columns = Object.keys(docWithId as any);
+          const placeholders = columns.map(() => '?').join(', ');
+          const values = columns.map(col => this.serializeValue((docWithId as any)[col]));
+
+          const sql = `INSERT INTO ${this.tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
+
+          this.db.exec({
+            sql: sql,
+            bind: values
+          });
+
+          results.push({
+            id: id,
+            doc: docWithId,
+            ok: true
+          });
+        } catch (error) {
+          errors.push({
+            id: (doc as any).id || 'unknown',
+            error: 'insert_failed',
+            reason: error instanceof Error ? error.message : String(error)
+          });
         }
-        
-        this.db.exec('COMMIT');
-        
-        // Update data subject once after all inserts
-        this.updateDataSubject();
-        
-        return { docs: results, errors };
-      } catch (error) {
-        this.db.exec('ROLLBACK');
-        throw error;
       }
-    });
+
+      this.db.exec('COMMIT');
+
+      // Track performance
+      const endTime = performance.now();
+      const queryTime = endTime - startTime;
+      this.queryCount++;
+      this.totalQueryTime += queryTime;
+
+      // Log slow queries
+      if (queryTime > 100) {
+        console.warn(`[SQLiteWASMCollection] Slow batch insert in ${this.name}: ${queryTime.toFixed(2)}ms`);
+      }
+
+      // Update data subject once after all inserts
+      this.updateDataSubject();
+
+      return { docs: results, errors };
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      // Track performance even on failure
+      const endTime = performance.now();
+      this.queryCount++;
+      this.totalQueryTime += (endTime - startTime);
+      throw error;
+    }
   }
 
   async findOne(query: QueryOptions | string): Promise<T | null> {

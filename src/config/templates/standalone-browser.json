@@ -1,0 +1,66 @@
+{
+  "_version": "2.1.0",
+  "_template": "standalone-browser",
+  "_description": "Browser-based application with SQLite WASM + OPFS storage",
+
+  "deployment": {
+    "scenario": "standalone",
+    "environment": "browser-client"
+  },
+
+  "provider": {
+    "type": "sqlite-wasm",
+    "fallbackChain": ["pouchdb", "memory"]
+  },
+
+  "sqlite": {
+    "vfs": "opfs",
+    "wal": true,
+    "encryption": {
+      "enabled": false
+    }
+  },
+
+  "general": {
+    "autoInit": true,
+    "retryOnFailure": true,
+    "maxRetries": 3,
+    "logLevel": "info"
+  },
+
+  "performance": {
+    "enableIndexing": true,
+    "enableCaching": true,
+    "cacheSize": 50,
+    "queryTimeout": 30000,
+    "batchSize": 200
+  },
+
+  "storage": {
+    "compressionEnabled": true,
+    "encryptionEnabled": false,
+    "backupEnabled": true,
+    "retentionDays": 30
+  },
+
+  "sync": {
+    "enabled": false
+  },
+
+  "monitoring": {
+    "enableHealthChecks": true,
+    "healthCheckInterval": 300000,
+    "enablePerformanceMetrics": true,
+    "enableErrorReporting": true,
+    "logLevel": "info"
+  },
+
+  "features": {
+    "enableFullTextSearch": true,
+    "enableTransactions": true,
+    "enableRealTimeUpdates": true,
+    "enableOfflineMode": true,
+    "enableDataValidation": true,
+    "enableAuditLog": true
+  }
+}

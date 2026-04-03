@@ -1,0 +1,76 @@
+{
+  "_version": "2.1.0",
+  "_template": "lan-sync",
+  "_description": "Local network sync with PouchDB and local CouchDB instance",
+
+  "deployment": {
+    "scenario": "lan-sync",
+    "environment": "browser-client"
+  },
+
+  "provider": {
+    "type": "pouchdb",
+    "fallbackChain": ["sqlite-wasm", "memory"]
+  },
+
+  "pouchdb": {
+    "name": "schoolpilot_lan",
+    "adapter": "indexeddb",
+    "sync": {
+      "enabled": true,
+      "remoteUrl": "http://couchdb.local:5984/schoolpilot",
+      "live": true,
+      "retry": true,
+      "direction": "bidirectional",
+      "conflictResolution": "local-wins"
+    }
+  },
+
+  "general": {
+    "autoInit": true,
+    "retryOnFailure": true,
+    "maxRetries": 5,
+    "logLevel": "info"
+  },
+
+  "performance": {
+    "enableIndexing": true,
+    "enableCaching": true,
+    "cacheSize": 100,
+    "queryTimeout": 30000,
+    "batchSize": 200
+  },
+
+  "storage": {
+    "compressionEnabled": true,
+    "encryptionEnabled": false,
+    "backupEnabled": true,
+    "retentionDays": 60
+  },
+
+  "sync": {
+    "enabled": true,
+    "interval": 30000,
+    "conflictResolution": "local-wins",
+    "batchSize": 100,
+    "retryAttempts": 3,
+    "timeout": 60000
+  },
+
+  "monitoring": {
+    "enableHealthChecks": true,
+    "healthCheckInterval": 120000,
+    "enablePerformanceMetrics": true,
+    "enableErrorReporting": true,
+    "logLevel": "info"
+  },
+
+  "features": {
+    "enableFullTextSearch": true,
+    "enableTransactions": true,
+    "enableRealTimeUpdates": true,
+    "enableOfflineMode": true,
+    "enableDataValidation": true,
+    "enableAuditLog": true
+  }
+}

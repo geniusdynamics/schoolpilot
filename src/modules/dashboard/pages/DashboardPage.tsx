@@ -536,7 +536,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <ModuleDashboardShell
-      title={user?.fullName ? t('welcomeBack', { name: user.fullName }) : t('welcomeBackDefault', 'Welcome back!')}
+      title={user?.fullName ? t('welcomeBack', { interpolation: { name: user.fullName } }) : t('welcomeBackDefault', 'Welcome back!')}
       subtitle={`${t('dashboardSubtitle', 'Monitor academics, attendance, finance, and communication from one decision-ready dashboard.')} ${t('lastUpdated', 'Last updated')}: ${currentTime.toLocaleString()}`}
       heroIcon={<AcademicCapIcon className="h-8 w-8 text-white" />}
       metrics={shellMetrics}

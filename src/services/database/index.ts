@@ -24,6 +24,16 @@ export type {
 
 // Providers (if they exist)
 export * from './PouchDBProvider';
+export * from './HybridProvider';
 
 // Re-export for backward compatibility
 export { unifiedDatabaseManager as databaseManager };
+
+// Detection module (Phase 2 - CapabilityDetector)
+export * from './detection';
+
+// Sync module (Phase 3 - OfflineQueue, SyncManager, NetworkMonitor)
+export * from './sync';
+
+// Monitoring module (Phase 4 - MetricsCollector, HealthChecker)
+export * from './monitoring';

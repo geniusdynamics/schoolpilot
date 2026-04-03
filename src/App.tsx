@@ -24,6 +24,7 @@ import { ToastProvider } from './hooks/useToast';
 import { AppProviders } from './contexts/AppProviders';
 import { useFeatureFlagStore } from './stores/featureFlagStore';
 import { performanceEventManager } from './services/performanceEventManager';
+import { OnboardingGate } from './components/OnboardingGate';
 
 // Layout components - choose based on feature flag
 import Layout from './components/Layout';
@@ -647,7 +648,9 @@ const App: React.FC = () => {
             </div>
           </div>
         }>
-          <AppInner />
+          <OnboardingGate>
+            <AppInner />
+          </OnboardingGate>
         </Suspense>
       </ToastProvider>
     </UnifiedConfigProvider>

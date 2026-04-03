@@ -8,6 +8,7 @@ import { rbacService } from '../core/rbacService';
 import { unifiedConfigManager } from '../config/unifiedConfig';
 import { reportError } from '../config/errorTracking';
 import { hashPassword, verifyPassword, generateSecureToken, checkPasswordComplexity } from '../utils/passwordHash';
+import { CapabilityDetector } from '@/services/database/detection/CapabilityDetector';
 
 // Authentication Types
 export interface AuthUser {
@@ -69,8 +70,9 @@ class AuthService {
   private async initialize() {
     console.log('🔐 [AuthService] initialize() called');
     try {
-      // Check if IndexedDB is available
-      const hasIndexedDB = typeof window !== 'undefined' && window.indexedDB;
+      // Check if IndexedDB is available using centralized CapabilityDetector
+      const detector = CapabilityDetector.getInstance();
+      const hasIndexedDB = await detector.hasCapability('hasIndexedDB');
       console.log('🔐 [AuthService] IndexedDB available?', hasIndexedDB);
       
       if (!hasIndexedDB) {

@@ -11,6 +11,7 @@ import { DatabaseProviderFactory, getDatabaseProviderFactory, ProviderType } fro
 import { UniversalDataGenerator, UniversalDataGenerationConfig, GenerationStats } from '../dataGeneration/UniversalDataGenerator';
 import { StartupOptimizer } from './StartupOptimizer';
 import { seedProviderWithDemoData } from './demoDataSeed';
+import { CapabilityDetector, ProviderRecommendation } from './detection/CapabilityDetector';
 
 export type DeploymentMode = 'development' | 'staging' | 'production';
 export type DatabaseProvider = 'sqlite-file' | 'sqlite-wasm' | 'pouchdb' | 'rxdb' | 'livestore' | 'sqlite' | 'backend-api' | 'hybrid';
@@ -50,11 +51,14 @@ export class UnifiedDatabaseManager {
   private healthCheckInterval: NodeJS.Timeout | null = null;
   private providerFactory: DatabaseProviderFactory;
   private startupOptimizer: StartupOptimizer;
+  private capabilityDetector: CapabilityDetector;
+  private fallbackChain: DatabaseProvider[] = ['pouchdb', 'rxdb', 'backend-api', 'sqlite-wasm'];
 
   private constructor() {
     this.deploymentMode = this.detectDeploymentMode();
     this.providerFactory = getDatabaseProviderFactory();
     this.startupOptimizer = StartupOptimizer.getInstance();
+    this.capabilityDetector = CapabilityDetector.getInstance();
     this.status = {
       isInitialized: false,
       provider: null,
@@ -75,6 +79,20 @@ export class UnifiedDatabaseManager {
   }
 
   /**
+   * Set the fallback chain for provider selection
+   */
+  public setFallbackChain(chain: DatabaseProvider[]): void {
+    this.fallbackChain = chain;
+  }
+
+  /**
+   * Get the current fallback chain
+   */
+  public getFallbackChain(): DatabaseProvider[] {
+    return [...this.fallbackChain];
+  }
+
+  /**
    * Initialize the database manager with automatic provider selection
    */
   public async initialize(): Promise<void> {
@@ -85,8 +103,8 @@ export class UnifiedDatabaseManager {
       const availableProviders = this.providerFactory.getAvailableProviderTypes();
       console.log('📋 [UnifiedDatabaseManager] Available providers:', availableProviders);
       
-      // Select appropriate provider based on deployment mode
-      this.providerType = this.selectProvider();
+      // Select appropriate provider using both config and capability detection
+      this.providerType = await this.selectProviderWithCapabilities();
       console.log(`📊 [UnifiedDatabaseManager] Selected provider: ${this.providerType} for ${this.deploymentMode} mode`);
 
       // Validate provider availability
@@ -97,7 +115,7 @@ export class UnifiedDatabaseManager {
         console.warn(`⚠️ [UnifiedDatabaseManager] Selected provider ${this.providerType} is not available, attempting fallback...`);
         
         // Try fallback providers in order of preference
-        const fallbackProviders = ['pouchdb', 'rxdb', 'backend-api', 'sqlite-wasm'];
+        const fallbackProviders = this.fallbackChain;
         let fallbackFound = false;
         
         for (const fallbackProvider of fallbackProviders) {
@@ -131,7 +149,7 @@ export class UnifiedDatabaseManager {
       this.startHealthMonitoring();
 
       this.isInitialized = true;
-      this.updateStatus();
+      await this.updateStatus();
 
       console.log(`✅ [UnifiedDatabaseManager] Successfully initialized with ${this.collections.size} collections`);
     } catch (error) {
@@ -293,6 +311,90 @@ export class UnifiedDatabaseManager {
         console.log(`🔄 [UnifiedDatabaseManager] Fallback to PouchDB for unknown deployment mode`);
         return 'pouchdb'; // Fallback to PouchDB
     }
+  }
+
+  /**
+   * Select provider using both configuration and capability detection
+   * Integrates CapabilityDetector to ensure selected provider is actually supported
+   */
+  private async selectProviderWithCapabilities(): Promise<DatabaseProvider> {
+    // First, get config-based selection
+    const configSelectedProvider = this.selectProvider();
+    
+    // Get capability-based recommendation
+    let capabilityRecommendation: ProviderRecommendation | null = null;
+    try {
+      capabilityRecommendation = await this.capabilityDetector.getProviderRecommendation();
+      console.log(`🧠 [UnifiedDatabaseManager] CapabilityDetector recommends: ${capabilityRecommendation.recommended}`);
+      console.log(`📋 [UnifiedDatabaseManager] CapabilityDetector alternatives: ${capabilityRecommendation.alternatives.join(', ')}`);
+    } catch (error) {
+      console.warn(`⚠️ [UnifiedDatabaseManager] Capability detection failed, using config-based selection only:`, error);
+    }
+    
+    // If capability detection failed, fall back to config selection
+    if (!capabilityRecommendation) {
+      return configSelectedProvider;
+    }
+    
+    const capabilityRecommended = capabilityRecommendation.recommended as DatabaseProvider;
+    const capabilityAlternatives = capabilityRecommendation.alternatives as DatabaseProvider[];
+    
+    // Strategy: Prefer config selection if it's in the capability recommendations
+    // Otherwise use capability recommendation if config selection isn't available
+    
+    // Check if config-selected provider is available
+    const configProviderAvailable = await this.validateProviderAvailability(configSelectedProvider);
+    
+    if (configProviderAvailable) {
+      // Config provider is available, check if it's recommended or acceptable
+      if (capabilityRecommended === configSelectedProvider || 
+          capabilityAlternatives.includes(configSelectedProvider)) {
+        console.log(`✅ [UnifiedDatabaseManager] Config provider ${configSelectedProvider} is capability-compatible, using it`);
+        return configSelectedProvider;
+      } else {
+        // Config provider available but not recommended by capabilities
+        console.log(`⚠️ [UnifiedDatabaseManager] Config provider ${configSelectedProvider} available but not capability-recommended, using it anyway with fallback`);
+        return configSelectedProvider;
+      }
+    } else {
+      // Config provider not available, use capability recommendation
+      const recommendedAvailable = await this.validateProviderAvailability(capabilityRecommended);
+      if (recommendedAvailable) {
+        console.log(`✅ [UnifiedDatabaseManager] Config provider unavailable, using capability-recommended: ${capabilityRecommended}`);
+        return capabilityRecommended;
+      }
+      
+      // Try alternatives
+      for (const alternative of capabilityAlternatives) {
+        const alternativeAvailable = await this.validateProviderAvailability(alternative);
+        if (alternativeAvailable) {
+          console.log(`✅ [UnifiedDatabaseManager] Using capability alternative: ${alternative}`);
+          return alternative;
+        }
+      }
+      
+      // Fallback to config provider anyway (will trigger fallback chain in initialize)
+      console.log(`⚠️ [UnifiedDatabaseManager] No capability-compatible providers available, falling back to config selection`);
+      return configSelectedProvider;
+    }
+  }
+
+  /**
+   * Get capability detection report for diagnostics
+   */
+  public async getCapabilityReport(): Promise<string> {
+    return await this.capabilityDetector.getDiagnosticReport();
+  }
+
+  /**
+   * Check if a specific capability is available
+   */
+  public async hasCapability(capability: string): Promise<boolean> {
+    const capabilities = ['hasFileSystem', 'hasOPFS', 'hasIndexedDB', 'hasLocalStorage', 'hasWASM', 'hasServiceWorker', 'hasWebWorker', 'hasSharedArrayBuffer'];
+    if (!capabilities.includes(capability)) {
+      throw new Error(`Unknown capability: ${capability}`);
+    }
+    return await this.capabilityDetector.hasCapability(capability as any);
   }
 
   /**
@@ -759,13 +861,20 @@ export class UnifiedDatabaseManager {
   /**
    * Update internal status
    */
-  private updateStatus(): void {
+  private async updateStatus(): Promise<void> {
+    let totalRecords = 0;
+    try {
+      totalRecords = await this.getTotalRecords();
+    } catch {
+      totalRecords = 0;
+    }
+
     this.status = {
       isInitialized: this.isInitialized,
       provider: this.providerType,
       providerName: this.provider?.name || null,
       collectionsCount: this.collections.size,
-      totalRecords: 0, // Would need to calculate this
+      totalRecords,
       lastHealthCheck: this.status.lastHealthCheck,
       errors: this.status.errors,
       warnings: this.status.warnings
@@ -1774,7 +1883,7 @@ export class UnifiedDatabaseManager {
 
       this.provider = null;
       this.isInitialized = false;
-      this.updateStatus();
+      await this.updateStatus();
 
       console.log('✅ [UnifiedDatabaseManager] Shutdown complete');
     } catch (error) {
@@ -1810,7 +1919,7 @@ export class UnifiedDatabaseManager {
       this.startHealthMonitoring();
 
       this.isInitialized = true;
-      this.updateStatus();
+      await this.updateStatus();
 
       console.log(`✅ [UnifiedDatabaseManager] Successfully switched to ${newProviderType}`);
     } catch (error) {
@@ -1841,7 +1950,7 @@ export class UnifiedDatabaseManager {
           this.startHealthMonitoring();
           
           this.isInitialized = true;
-          this.updateStatus();
+          await this.updateStatus();
           
           console.log('✅ [UnifiedDatabaseManager] Recovery successful with PouchDB fallback');
           return true;

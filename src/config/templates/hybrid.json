@@ -1,0 +1,115 @@
+{
+  "_version": "2.1.0",
+  "_template": "hybrid",
+  "_description": "Hybrid mode: Backend API + local cache with offline-first support",
+
+  "deployment": {
+    "scenario": "backend-api",
+    "environment": "browser-client"
+  },
+
+  "provider": {
+    "type": "hybrid",
+    "fallbackChain": ["pouchdb", "sqlite-wasm"]
+  },
+
+  "hybrid": {
+    "backend": {
+      "baseUrl": "https://api.schoolpilot.example.com",
+      "authentication": {
+        "type": "bearer",
+        "credentials": {}
+      },
+      "retry": {
+        "maxAttempts": 3,
+        "backoff": "exponential",
+        "initialDelay": 1000,
+        "maxDelay": 30000
+      },
+      "timeout": {
+        "connect": 5000,
+        "read": 30000,
+        "write": 30000
+      }
+    },
+    "cache": {
+      "provider": "sqlite-wasm",
+      "ttl": 300000,
+      "maxSize": 104857600
+    },
+    "collections": {
+      "students": {
+        "mode": "hybrid",
+        "syncStrategy": "eager",
+        "conflictResolution": "last-write-wins"
+      },
+      "staff": {
+        "mode": "hybrid",
+        "syncStrategy": "eager",
+        "conflictResolution": "last-write-wins"
+      },
+      "settings": {
+        "mode": "cache-first",
+        "syncStrategy": "lazy",
+        "conflictResolution": "remote-wins"
+      }
+    },
+    "offlineQueue": {
+      "enabled": true,
+      "maxSize": 10000,
+      "persistQueue": true,
+      "retryStrategy": {
+        "maxAttempts": 5,
+        "backoff": "exponential",
+        "initialDelay": 1000,
+        "maxDelay": 60000
+      }
+    },
+    "sync": {
+      "autoSync": true,
+      "syncInterval": 30000,
+      "syncOnStartup": true,
+      "syncOnNetworkReconnect": true,
+      "batchSize": 100
+    }
+  },
+
+  "general": {
+    "autoInit": true,
+    "retryOnFailure": true,
+    "maxRetries": 5,
+    "logLevel": "info"
+  },
+
+  "performance": {
+    "enableIndexing": true,
+    "enableCaching": true,
+    "cacheSize": 100,
+    "queryTimeout": 30000,
+    "batchSize": 200
+  },
+
+  "storage": {
+    "compressionEnabled": true,
+    "encryptionEnabled": true,
+    "backupEnabled": true,
+    "retentionDays": 90
+  },
+
+  "monitoring": {
+    "enableHealthChecks": true,
+    "healthCheckInterval": 60000,
+    "enablePerformanceMetrics": true,
+    "enableErrorReporting": true,
+    "logLevel": "warn"
+  },
+
+  "features": {
+    "enableFullTextSearch": true,
+    "enableTransactions": true,
+    "enableRealTimeUpdates": true,
+    "enableOfflineMode": true,
+    "enableDataValidation": true,
+    "enableAuditLog": true
+  }
+}

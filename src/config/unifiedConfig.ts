@@ -647,9 +647,21 @@ export class UnifiedConfigManager {
   private static instance: UnifiedConfigManager;
   private config: UnifiedAppConfig;
   private listeners: Set<(config: UnifiedAppConfig) => void> = new Set();
+  private initialized = false;
 
   private constructor() {
-    this.config = this.loadConfig();
+    // Initialize with defaults, async loading happens in init()
+    this.config = createDefaultConfig();
+  }
+
+  /**
+   * Initialize the config manager (async, loads from storage and file)
+   */
+  async init(): Promise<void> {
+    if (this.initialized) return;
+    this.config = await this.loadConfig();
+    await this.loadConfigurationFile();
+    this.initialized = true;
   }
 
   public static getInstance(): UnifiedConfigManager {
@@ -662,11 +674,8 @@ export class UnifiedConfigManager {
   /**
    * Load configuration from localStorage or use defaults with URL parameter overrides
    */
-  private loadConfig(): UnifiedAppConfig {
+  private async loadConfig(): Promise<UnifiedAppConfig> {
     let config = createDefaultConfig();
-    
-    // Load configuration file asynchronously (will be applied later)
-    this.loadConfigurationFile();
 
     // Try to load from localStorage first
     if (typeof window !== 'undefined') {
@@ -1463,6 +1472,11 @@ export class UnifiedConfigManager {
 
 // Export singleton instance
 export const unifiedConfigManager = UnifiedConfigManager.getInstance();
+
+// Async initialization helper
+export const initUnifiedConfig = async (): Promise<void> => {
+  await unifiedConfigManager.init();
+};
 
 // Utility functions for backward compatibility
 export const getAppMode = (): DataMode => {

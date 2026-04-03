@@ -4,6 +4,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions } from '../services/dataModeManager';
 
+const DEMO_CLEARED_KEY = 'schoolpilot_demo_cleared_for_production';
+
 export interface UseDataModeReturn {
   status: DataModeStatus | null;
   isLoading: boolean;
@@ -13,20 +15,29 @@ export interface UseDataModeReturn {
   seedData: (volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise') => Promise<void>;
   refreshStatus: () => Promise<void>;
   resetError: () => void;
+  isDemoCleared: boolean;
+  markDemoCleared: () => void;
+  isDemoReseedingDisabled: boolean;
 }
 
 export function useDataMode(): UseDataModeReturn {
   const [status, setStatus] = useState<DataModeStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDemoCleared, setIsDemoCleared] = useState(() => localStorage.getItem(DEMO_CLEARED_KEY) === 'true');
 
   const dataModeManager = getDataModeManager();
+
+  const markDemoCleared = useCallback(() => {
+    localStorage.setItem(DEMO_CLEARED_KEY, 'true');
+    setIsDemoCleared(true);
+  }, []);
 
   const refreshStatus = useCallback(async () => {
     try {
       const currentStatus = await dataModeManager.getStatus();
       setStatus(currentStatus);
-      setError(null); // Clear errors on successful refresh
+      setError(null);
     } catch (err) {
       console.error('Failed to refresh status:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh status');
@@ -52,6 +63,11 @@ export function useDataMode(): UseDataModeReturn {
       setIsLoading(true);
       setError(null);
       await dataModeManager.clearAllData(options);
+      // If clearing data in demo mode, mark as cleared for production transition
+      const currentMode = dataModeManager.getCurrentMode();
+      if (currentMode === 'demo') {
+        markDemoCleared();
+      }
       await refreshStatus();
     } catch (err) {
       console.error('Failed to clear data:', err);
@@ -60,7 +76,7 @@ export function useDataMode(): UseDataModeReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [dataModeManager, refreshStatus]);
+  }, [dataModeManager, refreshStatus, markDemoCleared]);
 
   const seedData = useCallback(async (volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise') => {
     try {
@@ -82,10 +98,8 @@ export function useDataMode(): UseDataModeReturn {
   }, []);
 
   useEffect(() => {
-    // Initial status load
     refreshStatus();
 
-    // Event listeners
     const handleModeChanged = (data: any) => {
       refreshStatus();
       setError(null);
@@ -107,6 +121,11 @@ export function useDataMode(): UseDataModeReturn {
     };
 
     const handleDataCleared = () => {
+      // Check if demo mode was cleared
+      const currentMode = dataModeManager.getCurrentMode();
+      if (currentMode === 'demo') {
+        markDemoCleared();
+      }
       refreshStatus();
     };
 
@@ -129,7 +148,7 @@ export function useDataMode(): UseDataModeReturn {
       dataModeManager.off('dataCleared', handleDataCleared);
       dataModeManager.off('dataSeeded', handleDataSeeded);
     };
-  }, [dataModeManager, refreshStatus]);
+  }, [dataModeManager, refreshStatus, markDemoCleared]);
 
   return {
     status,
@@ -139,7 +158,10 @@ export function useDataMode(): UseDataModeReturn {
     clearData,
     seedData,
     refreshStatus,
-    resetError
+    resetError,
+    isDemoCleared,
+    markDemoCleared,
+    isDemoReseedingDisabled: isDemoCleared,
   };
 }
 
