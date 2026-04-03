@@ -19,6 +19,7 @@ import { BackupRestoreProvider } from './appData/BackupRestoreContext';
 import { DataGenerationProvider } from './appData/DataGenerationContext';
 import { PaginationProvider } from './appData/PaginationContext';
 import { ValidationProvider } from './appData/ValidationContext';
+import { PluginsProvider } from '../plugins/PluginsProvider';
 
 const AppDataProvider = lazy(() =>
   import('./AppDataContext').then(module => ({ default: module.AppDataProvider }))
@@ -109,16 +110,18 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children, modulesIni
             <AuthProvider>
               <UserProvider>
                 <ErrorBoundary>
-                  <StableActionProvider>
-                    {modulesInitialized ? children : (
-                      <div className="flex items-center justify-center h-screen">
-                        <div className="text-center">
-                          <Spinner size="lg" />
-                          <p className="mt-4 text-gray-600">Initializing application...</p>
+                  <PluginsProvider config={{ autoActivate: true }}>
+                    <StableActionProvider>
+                      {modulesInitialized ? children : (
+                        <div className="flex items-center justify-center h-screen">
+                          <div className="text-center">
+                            <Spinner size="lg" />
+                            <p className="mt-4 text-gray-600">Initializing application...</p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </StableActionProvider>
+                      )}
+                    </StableActionProvider>
+                  </PluginsProvider>
                 </ErrorBoundary>
               </UserProvider>
             </AuthProvider>
