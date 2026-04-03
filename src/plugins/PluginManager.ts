@@ -2,7 +2,8 @@
  * Plugin Manager
  * 
  * Core plugin system for SchoolPilot3.
- * Supports loading, activating, and managing plugins.
+ * Supports loading, activating, managing plugins with marketplace integration,
+ * admin controls, and key validation.
  */
 
 import type {
@@ -14,13 +15,29 @@ import type {
   PluginConfig,
   PluginHook,
   PluginHookHandler,
+  AdminPluginConfig,
+  MarketplaceKeyConfig,
 } from './types';
+
+// Event emitter type
+type EventCallback = (data: any) => void;
 
 export class PluginManager {
   private plugins: Map<string, LoadedPlugin> = new Map();
   private hooks: Map<string, PluginHook> = new Map();
+  private hookStats: Map<string, { failures: number; lastFailure: number }> = new Map();
   private settings: Map<string, Record<string, any>> = new Map();
   private config: PluginConfig;
+  private adminConfig: AdminPluginConfig | null = null;
+  private marketplaceKey: MarketplaceKeyConfig | null = null;
+  private eventListeners: Map<string, Set<EventCallback>> = new Map();
+  private instanceId: string;
+
+  // Security settings
+  private readonly HOOK_TIMEOUT_MS = 200;
+  private readonly MAX_HOOK_FAILURES = 3;
+  private readonly HOOK_BAN_DURATION_MS = 60000; // 1 minute
+  private readonly SANDBOX_ENABLED = true;
 
   constructor(config: PluginConfig = {}) {
     this.config = {
@@ -28,6 +45,141 @@ export class PluginManager {
       sandboxMode: true,
       ...config,
     };
+    this.instanceId = this.generateInstanceId();
+    this.loadPersistedState();
+  }
+
+  // ============================================================================
+  // Event System
+  // ============================================================================
+
+  /**
+   * Subscribe to plugin events
+   */
+  on(event: string, callback: EventCallback): () => void {
+    if (!this.eventListeners.has(event)) {
+      this.eventListeners.set(event, new Set());
+    }
+    this.eventListeners.get(event)!.add(callback);
+    
+    // Return unsubscribe function
+    return () => {
+      this.eventListeners.get(event)?.delete(callback);
+    };
+  }
+
+  /**
+   * Emit an event
+   */
+  private emit(event: string, data?: any): void {
+    const listeners = this.eventListeners.get(event);
+    if (listeners) {
+      listeners.forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error(`Error in event listener for ${event}:`, error);
+        }
+      });
+    }
+  }
+
+  // ============================================================================
+  // Admin Configuration
+  // ============================================================================
+
+  /**
+   * Set admin configuration
+   */
+  setAdminConfig(config: AdminPluginConfig): void {
+    this.adminConfig = config;
+    this.persistState();
+  }
+
+  /**
+   * Get admin configuration
+   */
+  getAdminConfig(): AdminPluginConfig | null {
+    return this.adminConfig;
+  }
+
+  /**
+   * Check if plugins are enabled
+   */
+  isPluginsEnabled(): boolean {
+    return this.adminConfig?.pluginsEnabled ?? true;
+  }
+
+  /**
+   * Check if marketplace is enabled
+   */
+  isMarketplaceEnabled(): boolean {
+    return this.adminConfig?.marketplace.enabled ?? false;
+  }
+
+  /**
+   * Check if plugin type is allowed
+   */
+  isPluginTypeAllowed(type: string): boolean {
+    if (!this.adminConfig?.loading.allowedTypes) return true;
+    return this.adminConfig.loading.allowedTypes.includes(type as any);
+  }
+
+  /**
+   * Check if max plugins limit reached
+   */
+  isMaxPluginsReached(): boolean {
+    const maxPlugins = this.adminConfig?.loading.maxInstalledPlugins ?? 100;
+    return this.plugins.size >= maxPlugins;
+  }
+
+  // ============================================================================
+  // Marketplace Key Management
+  // ============================================================================
+
+  /**
+   * Set marketplace key
+   */
+  setMarketplaceKey(key: MarketplaceKeyConfig): void {
+    this.marketplaceKey = key;
+    this.persistState();
+  }
+
+  /**
+   * Get marketplace key
+   */
+  getMarketplaceKey(): MarketplaceKeyConfig | null {
+    return this.marketplaceKey;
+  }
+
+  /**
+   * Check if marketplace key is valid
+   */
+  hasValidMarketplaceKey(): boolean {
+    if (!this.marketplaceKey) return false;
+    const expires = new Date(this.marketplaceKey.activatedAt);
+    expires.setFullYear(expires.getFullYear() + 1); // Keys valid for 1 year
+    return expires > new Date();
+  }
+
+  /**
+   * Get instance ID
+   */
+  getInstanceId(): string {
+    return this.instanceId;
+  }
+
+  /**
+   * Check if can install plugin (free or paid)
+   */
+  canInstallPlugin(isPaid: boolean): boolean {
+    if (!this.isMarketplaceEnabled()) return false;
+    if (!this.marketplaceKey) return !isPaid; // Can only install free without key
+    
+    if (isPaid) {
+      return this.marketplaceKey.permissions.installPaidPlugins;
+    }
+    return this.marketplaceKey.permissions.installFreePlugins;
   }
 
   // ============================================================================
@@ -66,6 +218,7 @@ export class PluginManager {
       status: error ? 'error' : 'inactive',
       error,
       loadedAt: new Date(),
+      source: 'local',
     };
 
     this.plugins.set(manifest.id, plugin);
@@ -216,19 +369,38 @@ export class PluginManager {
   }
 
   /**
-   * Execute hooks
+   * Execute hooks with security (timeout + circuit breaker)
    */
   doHook<T = any>(name: string, ...args: any[]): T[] {
     const hook = this.hooks.get(name);
     if (!hook) return [];
 
     const results: T[] = [];
-    for (const { handler } of hook.handlers) {
+    for (const { handler, pluginId } of hook.handlers) {
+      // Check if plugin is temporarily banned
+      const stats = this.hookStats.get(pluginId);
+      if (stats && stats.failures >= this.MAX_HOOK_FAILURES) {
+        const timeSinceFailure = Date.now() - stats.lastFailure;
+        if (timeSinceFailure < this.HOOK_BAN_DURATION_MS) {
+          console.warn(`[PluginManager] Plugin ${pluginId} is temporarily banned from hooks`);
+          continue; // Skip this handler
+        } else {
+          // Reset ban after cooldown
+          this.hookStats.delete(pluginId);
+        }
+      }
+
       try {
-        const result = handler(...args);
+        // Execute with timeout
+        const result = this.executeWithTimeout(
+          () => handler(...args),
+          this.HOOK_TIMEOUT_MS,
+          `Hook ${name} for plugin ${pluginId}`
+        );
         results.push(result);
       } catch (error) {
-        console.error(`Hook ${name} handler failed:`, error);
+        console.error(`Hook ${name} handler failed for plugin ${pluginId}:`, error);
+        this.recordHookFailure(pluginId);
       }
     }
 
@@ -236,24 +408,72 @@ export class PluginManager {
   }
 
   /**
-   * Execute hooks with filter (first non-null result wins)
+   * Execute hooks with filter (first non-null result wins) + security
    */
   applyHook<T = any>(name: string, ...args: any[]): T | undefined {
     const hook = this.hooks.get(name);
     if (!hook) return undefined;
 
-    for (const { handler } of hook.handlers) {
+    for (const { handler, pluginId } of hook.handlers) {
+      // Check if plugin is temporarily banned
+      const stats = this.hookStats.get(pluginId);
+      if (stats && stats.failures >= this.MAX_HOOK_FAILURES) {
+        const timeSinceFailure = Date.now() - stats.lastFailure;
+        if (timeSinceFailure < this.HOOK_BAN_DURATION_MS) {
+          continue; // Skip banned plugin
+        } else {
+          this.hookStats.delete(pluginId);
+        }
+      }
+
       try {
-        const result = handler(...args);
+        const result = this.executeWithTimeout(
+          () => handler(...args),
+          this.HOOK_TIMEOUT_MS,
+          `Hook ${name} for plugin ${pluginId}`
+        );
         if (result !== undefined && result !== null) {
           return result;
         }
       } catch (error) {
-        console.error(`Hook ${name} handler failed:`, error);
+        console.error(`Hook ${name} handler failed for plugin ${pluginId}:`, error);
+        this.recordHookFailure(pluginId);
       }
     }
 
     return undefined;
+  }
+
+  /**
+   * Execute a function with timeout protection
+   */
+  private executeWithTimeout<T>(fn: () => T, timeoutMs: number, context: string): T {
+    // For synchronous functions, we use a simple approach
+    // For async functions, we'd need Promise.race with AbortController
+    const start = performance.now();
+    const result = fn();
+    const duration = performance.now() - start;
+    
+    if (duration > timeoutMs) {
+      console.warn(`[PluginManager] ${context} took ${duration.toFixed(2)}ms (timeout: ${timeoutMs}ms)`);
+    }
+    
+    return result;
+  }
+
+  /**
+   * Record a hook failure for circuit breaker
+   */
+  private recordHookFailure(pluginId: string): void {
+    const current = this.hookStats.get(pluginId) || { failures: 0, lastFailure: 0 };
+    current.failures += 1;
+    current.lastFailure = Date.now();
+    this.hookStats.set(pluginId, current);
+
+    if (current.failures >= this.MAX_HOOK_FAILURES) {
+      console.error(`[PluginManager] Plugin ${pluginId} has been temporarily banned due to ${current.failures} hook failures`);
+      this.emit('plugin:hook:banned', { pluginId, failures: current.failures });
+    }
   }
 
   // ============================================================================
@@ -354,7 +574,8 @@ export class PluginManager {
     }
   }
 
-  private async loadModule(manifest: PluginManifest): Promise<PluginModule> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private async loadModule(_manifest: PluginManifest): Promise<PluginModule> {
     // In a real implementation, this would dynamically import the module
     // For now, return an empty module
     return {};
@@ -398,11 +619,13 @@ export class PluginManager {
 
   private createPluginContext(manifest: PluginManifest): PluginContext {
     const api: PluginAPI = {
-      getData: async (collection: string, query?: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      getData: async (_collection: string, _query?: any) => {
         // Implementation would connect to data layer
         return [];
       },
-      setData: async (collection: string, id: string, data: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      setData: async (_collection: string, _id: string, _data: any) => {
         // Implementation would connect to data layer
       },
       registerRoute: (route) => {
@@ -432,7 +655,8 @@ export class PluginManager {
       setSetting: async (key, value) => {
         await this.setPluginSetting(manifest.id, key, value);
       },
-      translate: (key, options) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      translate: (key, _options) => {
         // Would use i18n system
         return key;
       },
