@@ -8,6 +8,9 @@
       "applications": "Applications",
       "preNAsMarks": "Pre-NAs Marks",
       "students": "Students",
+      "studentImport": "Student Import",
+      "studentClearance": "Student Clearance",
+      "disciplinaryCases": "Disciplinary Cases",
       "staff": "Staff",
       "partners": "Partners",
       "departments": "Departments",
@@ -489,5 +492,78 @@
     "addMarks": "Add Marks",
     "updateMarks": "Update Marks",
     "cancel": "Cancel"
+  },
+  "studentImport": {
+    "title": "Student Data Import",
+    "description": "Import student data from CSV files with validation and progress tracking",
+    "progress": "Import Progress",
+    "newImport": "New Import",
+    "history": "Import History",
+    "steps": {
+      "upload": "Upload",
+      "preview": "Preview",
+      "importing": "Import",
+      "results": "Results"
+    },
+    "upload": {
+      "dropZone": "Drag & drop your CSV file here",
+      "dropActive": "Drop your file here",
+      "orClick": "or click to browse files",
+      "supportedFormats": "Supported formats: CSV (Excel coming soon)",
+      "downloadTemplate": "Download CSV Template"
+    },
+    "preview": {
+      "title": "Preview Import Data",
+      "totalRecords": "Total Records",
+      "valid": "Valid",
+      "warnings": "Warnings",
+      "invalid": "Invalid",
+      "importButton": "Import {count} Valid Records"
+    },
+    "importing": {
+      "title": "Importing Students",
+      "progress": "Progress",
+      "success": "Successfully Imported",
+      "failed": "Failed",
+      "remaining": "Remaining",
+      "pleaseWait": "Please do not close this window while importing..."
+    },
+    "results": {
+      "title": "Import Results",
+      "totalRecords": "Total Records",
+      "imported": "Imported",
+      "failed": "Failed",
+      "finalStatus": "Final Status"
+    },
+    "columns": {
+      "row": "Row",
+      "admissionNumber": "Admission No",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "dateOfBirth": "Date of Birth",
+      "gender": "Gender",
+      "grade": "Grade",
+      "guardian": "Guardian",
+      "guardianPhone": "Guardian Phone",
+      "status": "Status",
+      "errors": "Errors",
+      "importStatus": "Import Status",
+      "error": "Error"
+    },
+    "validation": {
+      "admissionNumberRequired": "Admission number is required",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "dateOfBirthRequired": "Date of birth is required",
+      "genderRequired": "Valid gender is required",
+      "gradeLevelRequired": "Grade level is required",
+      "guardianNameRequired": "Guardian name is required",
+      "guardianPhoneRequired": "Guardian phone is required",
+      "invalidDateFormat": "Date of birth must be in YYYY-MM-DD format",
+      "invalidEmail": "Invalid email format",
+      "invalidPhone": "Phone number contains invalid characters",
+      "futureDate": "Date of birth cannot be in the future",
+      "unusualAge": "Unusual age detected"
+    }
   }
 }

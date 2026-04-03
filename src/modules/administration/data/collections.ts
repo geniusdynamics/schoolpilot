@@ -51,6 +51,40 @@ export const administrationCollections = {
   bulk_imports: {
     schema: schemas.bulkImportSchema,
   },
+  
+  // === STUDENT DATA IMPORT COLLECTIONS ===
+  student_import_sessions: {
+    schema: schemas.studentImportSessionSchema,
+  },
+  student_import_records: {
+    schema: schemas.studentImportRecordSchema,
+  },
+  
+  // === STUDENT CLEARANCE COLLECTIONS ===
+  student_clearances: {
+    schema: schemas.studentClearanceSchema,
+  },
+  student_clearance_requests: {
+    schema: schemas.studentClearanceRequestSchema,
+  },
+  
+  // === DISCIPLINARY CASES COLLECTIONS ===
+  disciplinary_cases: {
+    schema: schemas.disciplinaryCaseSchema,
+  },
+  disciplinary_records: {
+    schema: schemas.disciplinaryRecordSchema,
+  },
+  
+  // === CERTIFICATES MANAGEMENT COLLECTIONS ===
+  certificate_requests: {
+    schema: schemas.certificateRequestSchema,
+  },
+  
+  // === VISITORS MANAGEMENT COLLECTIONS ===
+  visitor_logs: {
+    schema: schemas.visitorLogSchema,
+  },
 };
 
 // Type helper for consumers of this module's collections (optional)

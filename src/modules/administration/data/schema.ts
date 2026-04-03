@@ -481,3 +481,253 @@ export const bulkImportSchema: DatabaseSchema = createDatabaseSchema({
     required: ['id', 'import_type', 'filename', 'status', 'total_records', 'processed_records', 'successful_records', 'failed_records', 'started_by', 'started_at', 'created_at', 'updated_at'],
     indexes: ['import_type', 'status', 'filename']
 });
+
+// === STUDENT DATA IMPORT SCHEMAS ===
+
+export const studentImportSessionSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_import_sessions',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the import session' }),
+        filename: SchemaHelpers.string({ description: 'Original filename', maxLength: 255 }),
+        total_records: SchemaHelpers.integer({ description: 'Total number of records', minimum: 0, maximum: 999999 }),
+        valid_records: SchemaHelpers.integer({ description: 'Number of valid records', minimum: 0, maximum: 999999 }),
+        invalid_records: SchemaHelpers.integer({ description: 'Number of invalid records', minimum: 0, maximum: 999999 }),
+        imported_records: SchemaHelpers.integer({ description: 'Number of imported records', minimum: 0, maximum: 999999 }),
+        failed_records: SchemaHelpers.integer({ description: 'Number of failed records', minimum: 0, maximum: 999999 }),
+        status: SchemaHelpers.string({ description: 'Import status', enum: Object.values(types.ImportStatus), maxLength: 50 }),
+        started_by: SchemaHelpers.ref('users', { description: 'Reference to user who started import' }),
+        started_at: SchemaHelpers.timestamp({ description: 'Import start timestamp' }),
+        completed_at: SchemaHelpers.timestamp({ description: 'Import completion timestamp' }),
+        error_log: SchemaHelpers.string({ description: 'Error log', maxLength: 2000 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+        started_by_name: SchemaHelpers.string({ description: 'Starter name (denormalized)', maxLength: 200 }),
+    },
+    required: ['id', 'filename', 'total_records', 'valid_records', 'invalid_records', 'imported_records', 'failed_records', 'status', 'started_by', 'started_at', 'created_at', 'updated_at'],
+    indexes: ['status', 'filename', 'started_at']
+});
+
+export const studentImportRecordSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_import_records',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the import record' }),
+        import_id: SchemaHelpers.ref('student_import_sessions', { description: 'Reference to import session' }),
+        row_number: SchemaHelpers.integer({ description: 'Row number in original file', minimum: 1, maximum: 999999 }),
+        admission_number: SchemaHelpers.string({ description: 'Student admission number', maxLength: 50 }),
+        first_name: SchemaHelpers.string({ description: 'Student first name', maxLength: 100 }),
+        middle_name: SchemaHelpers.string({ description: 'Student middle name', maxLength: 100 }),
+        last_name: SchemaHelpers.string({ description: 'Student last name', maxLength: 100 }),
+        date_of_birth: SchemaHelpers.string({ description: 'Date of birth', maxLength: 20 }),
+        gender: SchemaHelpers.string({ description: 'Gender', enum: ['Male', 'Female', 'Other'], maxLength: 20 }),
+        grade_level: SchemaHelpers.string({ description: 'Grade level', maxLength: 50 }),
+        class_name: SchemaHelpers.string({ description: 'Class name', maxLength: 100 }),
+        stream_name: SchemaHelpers.string({ description: 'Stream name', maxLength: 100 }),
+        guardian_name: SchemaHelpers.string({ description: 'Guardian name', maxLength: 200 }),
+        guardian_phone: SchemaHelpers.string({ description: 'Guardian phone', maxLength: 20 }),
+        guardian_email: SchemaHelpers.string({ description: 'Guardian email', maxLength: 255 }),
+        validation_status: SchemaHelpers.string({ description: 'Validation status', enum: Object.values(types.ImportValidationStatus), maxLength: 50 }),
+        validation_errors: SchemaHelpers.string({ description: 'Validation errors (JSON)', maxLength: 2000 }),
+        validation_warnings: SchemaHelpers.string({ description: 'Validation warnings (JSON)', maxLength: 2000 }),
+        import_status: SchemaHelpers.string({ description: 'Import status', enum: ['Pending', 'Imported', 'Skipped', 'Failed'], maxLength: 50 }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to created student (if imported)' }),
+        error_message: SchemaHelpers.string({ description: 'Error message (if failed)', maxLength: 500 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'import_id', 'row_number', 'admission_number', 'first_name', 'last_name', 'date_of_birth', 'gender', 'grade_level', 'guardian_name', 'guardian_phone', 'validation_status', 'import_status', 'created_at', 'updated_at'],
+    indexes: ['import_id', 'row_number', 'admission_number', 'validation_status', 'import_status']
+});
+
+// === STUDENT CLEARANCE SCHEMAS ===
+
+export const studentClearanceSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_clearances',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the clearance' }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to student' }),
+        student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
+        admission_number: SchemaHelpers.string({ description: 'Admission number (denormalized)', maxLength: 50 }),
+        clearance_type: SchemaHelpers.string({ description: 'Clearance type', enum: Object.values(types.ClearanceType), maxLength: 50 }),
+        status: SchemaHelpers.string({ description: 'Clearance status', enum: Object.values(types.ClearanceStatus), maxLength: 50 }),
+        remarks: SchemaHelpers.string({ description: 'Remarks', maxLength: 500 }),
+        cleared_by: SchemaHelpers.ref('users', { description: 'Reference to user who cleared' }),
+        cleared_by_name: SchemaHelpers.string({ description: 'Cleared by name (denormalized)', maxLength: 200 }),
+        cleared_at: SchemaHelpers.timestamp({ description: 'Cleared timestamp' }),
+        requested_at: SchemaHelpers.timestamp({ description: 'Requested timestamp' }),
+        completed_at: SchemaHelpers.timestamp({ description: 'Completed timestamp' }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'student_id', 'clearance_type', 'status', 'requested_at', 'created_at', 'updated_at'],
+    indexes: ['student_id', 'clearance_type', 'status', 'admission_number']
+});
+
+export const studentClearanceRequestSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_clearance_requests',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the clearance request' }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to student' }),
+        student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
+        admission_number: SchemaHelpers.string({ description: 'Admission number (denormalized)', maxLength: 50 }),
+        academic_year_id: SchemaHelpers.ref('academic_years', { description: 'Reference to academic year' }),
+        academic_year_name: SchemaHelpers.string({ description: 'Academic year name (denormalized)', maxLength: 100 }),
+        reason: SchemaHelpers.string({ description: 'Reason for clearance', maxLength: 500 }),
+        status: SchemaHelpers.string({ description: 'Request status', enum: Object.values(types.ClearanceRequestStatus), maxLength: 50 }),
+        total_departments: SchemaHelpers.integer({ description: 'Total departments to clear', minimum: 0, maximum: 100 }),
+        cleared_departments: SchemaHelpers.integer({ description: 'Cleared departments count', minimum: 0, maximum: 100 }),
+        pending_departments: SchemaHelpers.integer({ description: 'Pending departments count', minimum: 0, maximum: 100 }),
+        rejected_departments: SchemaHelpers.integer({ description: 'Rejected departments count', minimum: 0, maximum: 100 }),
+        requested_by: SchemaHelpers.ref('users', { description: 'Reference to user who requested' }),
+        requested_by_name: SchemaHelpers.string({ description: 'Requested by name (denormalized)', maxLength: 200 }),
+        requested_at: SchemaHelpers.timestamp({ description: 'Requested timestamp' }),
+        completed_at: SchemaHelpers.timestamp({ description: 'Completed timestamp' }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'student_id', 'reason', 'status', 'total_departments', 'cleared_departments', 'pending_departments', 'rejected_departments', 'requested_by', 'requested_at', 'created_at', 'updated_at'],
+    indexes: ['student_id', 'status', 'admission_number', 'requested_at']
+});
+
+// === DISCIPLINARY CASES SCHEMAS ===
+
+export const disciplinaryCaseSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'disciplinary_cases',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the disciplinary case' }),
+        case_number: SchemaHelpers.string({ description: 'Case number', maxLength: 50 }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to student' }),
+        student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
+        admission_number: SchemaHelpers.string({ description: 'Admission number (denormalized)', maxLength: 50 }),
+        class_name: SchemaHelpers.string({ description: 'Class name (denormalized)', maxLength: 100 }),
+        category: SchemaHelpers.string({ description: 'Category', enum: Object.values(types.DisciplinaryCategory), maxLength: 50 }),
+        severity: SchemaHelpers.string({ description: 'Severity', enum: Object.values(types.DisciplinarySeverity), maxLength: 50 }),
+        status: SchemaHelpers.string({ description: 'Status', enum: Object.values(types.DisciplinaryStatus), maxLength: 50 }),
+        title: SchemaHelpers.string({ description: 'Case title', maxLength: 200 }),
+        description: SchemaHelpers.string({ description: 'Case description', maxLength: 2000 }),
+        incident_date: SchemaHelpers.string({ description: 'Incident date', maxLength: 20 }),
+        incident_time: SchemaHelpers.string({ description: 'Incident time', maxLength: 20 }),
+        incident_location: SchemaHelpers.string({ description: 'Incident location', maxLength: 200 }),
+        reported_by: SchemaHelpers.ref('users', { description: 'Reference to user who reported' }),
+        reported_by_name: SchemaHelpers.string({ description: 'Reporter name (denormalized)', maxLength: 200 }),
+        assigned_to: SchemaHelpers.ref('users', { description: 'Reference to assigned user' }),
+        assigned_to_name: SchemaHelpers.string({ description: 'Assignee name (denormalized)', maxLength: 200 }),
+        witnesses: SchemaHelpers.string({ description: 'Witnesses', maxLength: 1000 }),
+        action_taken: SchemaHelpers.string({ description: 'Action taken', enum: Object.values(types.DisciplinaryAction), maxLength: 50 }),
+        action_details: SchemaHelpers.string({ description: 'Action details', maxLength: 1000 }),
+        action_date: SchemaHelpers.timestamp({ description: 'Action date' }),
+        follow_up_required: SchemaHelpers.boolean({ description: 'Follow up required', default: false }),
+        follow_up_date: SchemaHelpers.string({ description: 'Follow up date', maxLength: 20 }),
+        follow_up_notes: SchemaHelpers.string({ description: 'Follow up notes', maxLength: 1000 }),
+        parent_notified: SchemaHelpers.boolean({ description: 'Parent notified', default: false }),
+        parent_notification_date: SchemaHelpers.timestamp({ description: 'Parent notification date' }),
+        parent_response: SchemaHelpers.string({ description: 'Parent response', maxLength: 1000 }),
+        resolved_at: SchemaHelpers.timestamp({ description: 'Resolved timestamp' }),
+        resolution_notes: SchemaHelpers.string({ description: 'Resolution notes', maxLength: 1000 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'case_number', 'student_id', 'category', 'severity', 'status', 'title', 'description', 'incident_date', 'reported_by', 'follow_up_required', 'parent_notified', 'created_at', 'updated_at'],
+    indexes: ['case_number', 'student_id', 'category', 'severity', 'status', 'incident_date']
+});
+
+export const disciplinaryRecordSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'disciplinary_records',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the disciplinary record' }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to student' }),
+        student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
+        admission_number: SchemaHelpers.string({ description: 'Admission number (denormalized)', maxLength: 50 }),
+        case_id: SchemaHelpers.ref('disciplinary_cases', { description: 'Reference to disciplinary case' }),
+        category: SchemaHelpers.string({ description: 'Category', enum: Object.values(types.DisciplinaryCategory), maxLength: 50 }),
+        action: SchemaHelpers.string({ description: 'Action', enum: Object.values(types.DisciplinaryAction), maxLength: 50 }),
+        action_details: SchemaHelpers.string({ description: 'Action details', maxLength: 1000 }),
+        action_date: SchemaHelpers.timestamp({ description: 'Action date' }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'student_id', 'case_id', 'category', 'action', 'action_date', 'created_at', 'updated_at'],
+    indexes: ['student_id', 'case_id', 'category', 'action', 'action_date']
+});
+
+// === CERTIFICATES MANAGEMENT SCHEMAS ===
+
+export const certificateRequestSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'certificate_requests',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the certificate request' }),
+        certificate_number: SchemaHelpers.string({ description: 'Certificate number', maxLength: 50 }),
+        student_id: SchemaHelpers.ref('students', { description: 'Reference to student' }),
+        student_name: SchemaHelpers.string({ description: 'Student name (denormalized)', maxLength: 200 }),
+        admission_number: SchemaHelpers.string({ description: 'Admission number (denormalized)', maxLength: 50 }),
+        class_name: SchemaHelpers.string({ description: 'Class name (denormalized)', maxLength: 100 }),
+        certificate_type: SchemaHelpers.string({ description: 'Certificate type', enum: Object.values(types.CertificateType), maxLength: 50 }),
+        status: SchemaHelpers.string({ description: 'Status', enum: Object.values(types.CertificateStatus), maxLength: 50 }),
+        purpose: SchemaHelpers.string({ description: 'Purpose', maxLength: 500 }),
+        remarks: SchemaHelpers.string({ description: 'Remarks', maxLength: 500 }),
+        requested_by: SchemaHelpers.ref('users', { description: 'Reference to user who requested' }),
+        requested_by_name: SchemaHelpers.string({ description: 'Requested by name (denormalized)', maxLength: 200 }),
+        requested_at: SchemaHelpers.timestamp({ description: 'Requested timestamp' }),
+        approved_by: SchemaHelpers.ref('users', { description: 'Reference to user who approved' }),
+        approved_by_name: SchemaHelpers.string({ description: 'Approved by name (denormalized)', maxLength: 200 }),
+        approved_at: SchemaHelpers.timestamp({ description: 'Approved timestamp' }),
+        issued_by: SchemaHelpers.ref('users', { description: 'Reference to user who issued' }),
+        issued_by_name: SchemaHelpers.string({ description: 'Issued by name (denormalized)', maxLength: 200 }),
+        issued_at: SchemaHelpers.timestamp({ description: 'Issued timestamp' }),
+        rejection_reason: SchemaHelpers.string({ description: 'Rejection reason', maxLength: 500 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'certificate_number', 'student_id', 'certificate_type', 'status', 'requested_by', 'requested_at', 'created_at', 'updated_at'],
+    indexes: ['certificate_number', 'student_id', 'certificate_type', 'status', 'requested_at']
+});
+
+// === VISITORS MANAGEMENT SCHEMAS ===
+
+export const visitorLogSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'visitor_logs',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the visitor log' }),
+        visitor_name: SchemaHelpers.string({ description: 'Visitor name', maxLength: 200 }),
+        visitor_type: SchemaHelpers.string({ description: 'Visitor type', enum: Object.values(types.VisitorType), maxLength: 50 }),
+        phone: SchemaHelpers.string({ description: 'Phone number', maxLength: 20 }),
+        email: SchemaHelpers.string({ description: 'Email', maxLength: 255 }),
+        id_type: SchemaHelpers.string({ description: 'ID type', maxLength: 50 }),
+        id_number: SchemaHelpers.string({ description: 'ID number', maxLength: 50 }),
+        purpose: SchemaHelpers.string({ description: 'Purpose of visit', maxLength: 500 }),
+        person_to_meet: SchemaHelpers.string({ description: 'Person to meet', maxLength: 200 }),
+        person_to_meet_id: SchemaHelpers.ref('users', { description: 'Reference to person to meet' }),
+        status: SchemaHelpers.string({ description: 'Status', enum: Object.values(types.VisitorStatus), maxLength: 50 }),
+        check_in_time: SchemaHelpers.timestamp({ description: 'Check-in time' }),
+        check_out_time: SchemaHelpers.timestamp({ description: 'Check-out time' }),
+        expected_arrival: SchemaHelpers.timestamp({ description: 'Expected arrival time' }),
+        remarks: SchemaHelpers.string({ description: 'Remarks', maxLength: 500 }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'visitor_name', 'visitor_type', 'phone', 'purpose', 'status', 'check_in_time', 'created_at', 'updated_at'],
+    indexes: ['visitor_name', 'visitor_type', 'status', 'check_in_time', 'phone']
+});

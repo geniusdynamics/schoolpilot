@@ -80,7 +80,13 @@ const APP_DATA_ARRAY_KEYS = [
   'generalPayments',
   'generalLedgerEntries',
   'rfqs',
-  'educationSystemConfigurations'
+  'educationSystemConfigurations',
+  'studentImportSessions',
+  'studentImportRecords',
+  'studentClearances',
+  'studentClearanceRequests',
+  'disciplinaryCases',
+  'disciplinaryRecords'
 ] as const;
 
 type AppDataArrayKey = typeof APP_DATA_ARRAY_KEYS[number];
@@ -164,7 +170,13 @@ const COLLECTION_KEY_ALIASES: Record<string, AppDataArrayKey | 'schoolDetails'> 
   general_payments: 'generalPayments',
   general_ledger_entries: 'generalLedgerEntries',
   rfqs: 'rfqs',
-  education_system_configurations: 'educationSystemConfigurations'
+  education_system_configurations: 'educationSystemConfigurations',
+  student_import_sessions: 'studentImportSessions',
+  student_import_records: 'studentImportRecords',
+  student_clearances: 'studentClearances',
+  student_clearance_requests: 'studentClearanceRequests',
+  disciplinary_cases: 'disciplinaryCases',
+  disciplinary_records: 'disciplinaryRecords'
 };
 
 const snakeToCamel = (value: string): string =>

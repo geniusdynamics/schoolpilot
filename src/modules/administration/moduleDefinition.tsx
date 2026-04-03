@@ -22,6 +22,11 @@ import {
   DocumentAddIcon,
   DocumentSearchIcon,
   CheckBadgeIcon,
+  ArrowUpTrayIcon,
+  ClipboardDocumentCheckIcon,
+  ShieldExclamationIcon,
+  DocumentTextIcon,
+  UserPlusIcon,
 } from '@/components/ui/icons';
 
 export const administrationModule: ModuleDefinition = {
@@ -37,6 +42,11 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.applications', path: '/administration/applications', icon: DocumentAddIcon, page: 'ApplicationsPage' },
     { name: 'navigation:administration.preNAsMarks', path: '/administration/prenas-marks', icon: DocumentSearchIcon, page: 'PreNAsMarksPage' },
     { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentsListPage' },
+    { name: 'navigation:administration.studentImport', path: '/administration/student-import', icon: ArrowUpTrayIcon, page: 'StudentDataImportPage' },
+    { name: 'navigation:administration.studentClearance', path: '/administration/student-clearance', icon: ClipboardDocumentCheckIcon, page: 'StudentClearancePage' },
+    { name: 'navigation:administration.disciplinaryCases', path: '/administration/disciplinary-cases', icon: ShieldExclamationIcon, page: 'DisciplinaryCasesPage' },
+    { name: 'navigation:administration.certificates', path: '/administration/certificates', icon: DocumentTextIcon, page: 'CertificatesManagementPage' },
+    { name: 'navigation:administration.visitors', path: '/administration/visitors', icon: UserPlusIcon, page: 'VisitorsManagementPage' },
     { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffListPage' },
     { name: 'navigation:administration.partners', path: '/administration/partners', icon: UserCircleIcon, page: 'PartnersPage' },
     { name: 'navigation:administration.departments', path: '/administration/departments', icon: BuildingOffice2Icon, page: 'DepartmentsPage' },
@@ -75,7 +85,12 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/students', page: 'StudentsListPage' },
     { path: '/administration/students/add', page: 'AddStudentPage' },
     { path: '/administration/students/:studentId', page: 'StudentDetailPage' },
-    { path: '/administration/students/:studentId/financial', page: 'StudentFinancialDetailPage' }
+    { path: '/administration/students/:studentId/financial', page: 'StudentFinancialDetailPage' },
+    { path: '/administration/student-import', page: 'StudentDataImportPage' },
+    { path: '/administration/student-clearance', page: 'StudentClearancePage' },
+    { path: '/administration/disciplinary-cases', page: 'DisciplinaryCasesPage' },
+    { path: '/administration/certificates', page: 'CertificatesManagementPage' },
+    { path: '/administration/visitors', page: 'VisitorsManagementPage' }
   ],
   settings: {
     category: 'administration',

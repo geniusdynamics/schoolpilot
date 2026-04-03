@@ -535,3 +535,312 @@ export interface Department {
   updated_at: string;
 }
 
+// === STUDENT DATA IMPORT TYPES ===
+
+export enum ImportStatus {
+  PENDING = 'Pending',
+  VALIDATING = 'Validating',
+  VALIDATED = 'Validated',
+  IMPORTING = 'Importing',
+  COMPLETED = 'Completed',
+  FAILED = 'Failed',
+  PARTIAL = 'Partial'
+}
+
+export enum ImportValidationStatus {
+  VALID = 'Valid',
+  INVALID = 'Invalid',
+  WARNING = 'Warning'
+}
+
+export interface StudentImportRecord {
+  id: string;
+  import_id: string;
+  row_number: number;
+  admission_number: string;
+  first_name: string;
+  middle_name?: string;
+  last_name: string;
+  date_of_birth: string;
+  gender: 'Male' | 'Female' | 'Other';
+  grade_level: string;
+  class_name?: string;
+  stream_name?: string;
+  guardian_name: string;
+  guardian_phone: string;
+  guardian_email?: string;
+  validation_status: ImportValidationStatus;
+  validation_errors?: string[];
+  validation_warnings?: string[];
+  import_status: 'Pending' | 'Imported' | 'Skipped' | 'Failed';
+  student_id?: string;
+  error_message?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StudentImportSession {
+  id: string;
+  filename: string;
+  total_records: number;
+  valid_records: number;
+  invalid_records: number;
+  imported_records: number;
+  failed_records: number;
+  status: ImportStatus;
+  started_by: string;
+  started_at: string;
+  completed_at?: string;
+  error_log?: string;
+  created_at: string;
+  updated_at: string;
+  started_by_name?: string;
+}
+
+// === STUDENT CLEARANCE TYPES ===
+
+export enum ClearanceStatus {
+  PENDING = 'Pending',
+  CLEARED = 'Cleared',
+  NOT_CLEARED = 'Not Cleared',
+  WAIVED = 'Waived'
+}
+
+export enum ClearanceType {
+  LIBRARY = 'Library',
+  FINANCE = 'Finance',
+  DORMITORY = 'Dormitory',
+  ACADEMICS = 'Academics',
+  SPORTS = 'Sports',
+  DISCIPLINE = 'Discipline',
+  LABORATORY = 'Laboratory',
+  ICT = 'ICT',
+  GENERAL = 'General'
+}
+
+export enum ClearanceRequestStatus {
+  DRAFT = 'Draft',
+  IN_PROGRESS = 'In Progress',
+  COMPLETED = 'Completed',
+  CANCELLED = 'Cancelled'
+}
+
+export interface StudentClearance {
+  id: string;
+  student_id: string;
+  student_name?: string;
+  admission_number?: string;
+  clearance_type: ClearanceType;
+  status: ClearanceStatus;
+  remarks?: string;
+  cleared_by?: string;
+  cleared_by_name?: string;
+  cleared_at?: string;
+  requested_at: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StudentClearanceRequest {
+  id: string;
+  student_id: string;
+  student_name?: string;
+  admission_number?: string;
+  academic_year_id?: string;
+  academic_year_name?: string;
+  reason: string;
+  status: ClearanceRequestStatus;
+  total_departments: number;
+  cleared_departments: number;
+  pending_departments: number;
+  rejected_departments: number;
+  requested_by: string;
+  requested_by_name?: string;
+  requested_at: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// === DISCIPLINARY CASES TYPES ===
+
+export enum DisciplinarySeverity {
+  MINOR = 'Minor',
+  MODERATE = 'Moderate',
+  SERIOUS = 'Serious',
+  CRITICAL = 'Critical'
+}
+
+export enum DisciplinaryStatus {
+  REPORTED = 'Reported',
+  UNDER_INVESTIGATION = 'Under Investigation',
+  PENDING_REVIEW = 'Pending Review',
+  RESOLVED = 'Resolved',
+  DISMISSED = 'Dismissed',
+  APPEALED = 'Appealed'
+}
+
+export enum DisciplinaryAction {
+  VERBAL_WARNING = 'Verbal Warning',
+  WRITTEN_WARNING = 'Written Warning',
+  DETENTION = 'Detention',
+  SUSPENSION = 'Suspension',
+  EXPULSION = 'Expulsion',
+  COMMUNITY_SERVICE = 'Community Service',
+  PARENT_MEETING = 'Parent Meeting',
+  BEHAVIORAL_CONTRACT = 'Behavioral Contract',
+  COUNSELING = 'Counseling'
+}
+
+export enum DisciplinaryCategory {
+  ATTENDANCE = 'Attendance',
+  BEHAVIOR = 'Behavior',
+  ACADEMIC_DISHONESTY = 'Academic Dishonesty',
+  DRESS_CODE = 'Dress Code',
+  SUBSTANCE_ABUSE = 'Substance Abuse',
+  BULLYING = 'Bullying',
+  VANDALISM = 'Vandalism',
+  DISRESPECT = 'Disrespect',
+  FIGHTING = 'Fighting',
+  THEFT = 'Theft',
+  OTHER = 'Other'
+}
+
+export interface DisciplinaryCase {
+  id: string;
+  case_number: string;
+  student_id: string;
+  student_name?: string;
+  admission_number?: string;
+  class_name?: string;
+  category: DisciplinaryCategory;
+  severity: DisciplinarySeverity;
+  status: DisciplinaryStatus;
+  title: string;
+  description: string;
+  incident_date: string;
+  incident_time?: string;
+  incident_location?: string;
+  reported_by: string;
+  reported_by_name?: string;
+  assigned_to?: string;
+  assigned_to_name?: string;
+  witnesses?: string;
+  action_taken?: DisciplinaryAction;
+  action_details?: string;
+  action_date?: string;
+  follow_up_required: boolean;
+  follow_up_date?: string;
+  follow_up_notes?: string;
+  parent_notified: boolean;
+  parent_notification_date?: string;
+  parent_response?: string;
+  resolved_at?: string;
+  resolution_notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DisciplinaryRecord {
+  id: string;
+  student_id: string;
+  student_name?: string;
+  admission_number?: string;
+  case_id: string;
+  category: DisciplinaryCategory;
+  action: DisciplinaryAction;
+  action_details?: string;
+  action_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// === CERTIFICATES MANAGEMENT TYPES ===
+
+export enum CertificateType {
+  BIRTH_CERTIFICATE = 'Birth Certificate',
+  TRANSFER_CERTIFICATE = 'Transfer Certificate',
+  CHARACTER_CERTIFICATE = 'Character Certificate',
+  ACADEMIC_CERTIFICATE = 'Academic Certificate',
+  COMPLETION_CERTIFICATE = 'Completion Certificate',
+  ACHIEVEMENT_CERTIFICATE = 'Achievement Certificate',
+  CONDUCT_CERTIFICATE = 'Conduct Certificate',
+  LEAVING_CERTIFICATE = 'Leaving Certificate',
+  BONAFIDE_CERTIFICATE = 'Bonafide Certificate'
+}
+
+export enum CertificateStatus {
+  REQUESTED = 'Requested',
+  IN_PROGRESS = 'In Progress',
+  APPROVED = 'Approved',
+  REJECTED = 'Rejected',
+  ISSUED = 'Issued',
+  CANCELLED = 'Cancelled'
+}
+
+export interface CertificateRequest {
+  id: string;
+  certificate_number: string;
+  student_id: string;
+  student_name?: string;
+  admission_number?: string;
+  class_name?: string;
+  certificate_type: CertificateType;
+  status: CertificateStatus;
+  purpose?: string;
+  remarks?: string;
+  requested_by: string;
+  requested_by_name?: string;
+  requested_at: string;
+  approved_by?: string;
+  approved_by_name?: string;
+  approved_at?: string;
+  issued_by?: string;
+  issued_by_name?: string;
+  issued_at?: string;
+  rejection_reason?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// === VISITORS MANAGEMENT TYPES ===
+
+export enum VisitorType {
+  PARENT = 'Parent',
+  GUARDIAN = 'Guardian',
+  OFFICIAL = 'Official',
+  DELIVERY = 'Delivery',
+  INTERVIEW = 'Interview',
+  MAINTENANCE = 'Maintenance',
+  GUEST = 'Guest',
+  OTHER = 'Other'
+}
+
+export enum VisitorStatus {
+  CHECKED_IN = 'Checked In',
+  CHECKED_OUT = 'Checked Out',
+  EXPECTED = 'Expected',
+  NO_SHOW = 'No Show'
+}
+
+export interface VisitorLog {
+  id: string;
+  visitor_name: string;
+  visitor_type: VisitorType;
+  phone: string;
+  email?: string;
+  id_type?: string;
+  id_number?: string;
+  purpose: string;
+  person_to_meet?: string;
+  person_to_meet_id?: string;
+  status: VisitorStatus;
+  check_in_time: string;
+  check_out_time?: string;
+  expected_arrival?: string;
+  remarks?: string;
+  created_at: string;
+  updated_at: string;
+}
+
