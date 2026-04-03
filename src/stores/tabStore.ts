@@ -13,6 +13,7 @@ export type { TabContent };
 import { HierarchicalTab, BreadcrumbItem } from '../types/hierarchical';
 import { rbacService } from '../core/rbacService';
 import { tabValidationService } from '../services/tabs/TabValidationService';
+import { tabPersistenceAdapter } from './adapters/tabPersistenceAdapter';
 
 interface TabStoreState extends TabStore {
   // Internal state
@@ -288,9 +289,20 @@ export const useTabStore = create<TabStoreState>()
           }
         }
         
-        // Check tab limit
-        if (updatedState.tabs.length >= updatedState.maxTabs) {
-          throw new Error(`Maximum tab limit (${updatedState.maxTabs}) reached`);
+        // Validate tab creation using TabValidationService
+        const validation = tabValidationService.validateTabCreation(
+          updatedState.tabs,
+          tabData,
+          updatedState.maxTabs
+        );
+        
+        if (!validation.valid) {
+          throw new Error(validation.errors.join(', '));
+        }
+        
+        // Log warnings if any
+        if (validation.warnings.length > 0) {
+          console.warn('[TabStore] Tab creation warnings:', validation.warnings);
         }
         
         const newTab: Tab = {
@@ -840,7 +852,7 @@ export const useTabStore = create<TabStoreState>()
     })),
     {
       name: 'tabbed-workspace-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: tabPersistenceAdapter, // Using TabPersistenceService for enhanced persistence
       partialize: (state) => ({
         tabs: state.tabs,
         pinnedTabs: state.pinnedTabs,
