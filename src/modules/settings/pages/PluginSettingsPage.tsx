@@ -20,12 +20,12 @@ import {
   XCircleIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
-import { usePlugins } from '../../plugins/usePlugins';
-import type { 
-  LoadedPlugin, 
+import { usePlugins } from '../../../plugins/usePlugins';
+import type {
+  LoadedPlugin,
   AdminPluginConfig,
   MarketplacePlugin,
-} from '../../plugins/types';
+} from '../../../plugins/types';
 
 // ============================================================================
 // Types
