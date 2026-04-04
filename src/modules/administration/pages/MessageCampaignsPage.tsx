@@ -4,7 +4,7 @@ import { AdminCampaignType as Campaign, CampaignStatus, CampaignAudienceType, Ad
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -15,6 +15,10 @@ import { useAppData } from '@/hooks/useAppData'; // For classStreams only
 import Spinner from '@/components/ui/Spinner';
 import { useUser } from '@/contexts/UserContext'; // Import useUser
 import { useTranslation } from 'react-i18next';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'template_name' | 'created_by_name' | 'target_audience_display' | 'approved_by' | 'status' | 'template_id' | 'target_audience_type' | 'approved_by_name'> & {
     status: CampaignStatus;

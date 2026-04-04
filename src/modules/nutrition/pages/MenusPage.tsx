@@ -3,7 +3,10 @@ import { Menu, MealType } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -150,45 +153,56 @@ const MenusPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingMenu ? t('menus.edit.title') : t('menus.add.title')} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('menus.cancel.button')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.menus}>
-              {loading.menus ? <Spinner size="sm"/> : (editingMenu ? t('menus.save.button') : t('menus.add.button'))}
-            </Button>
-          </>
-        }
+      <DialogForm 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        title={editingMenu ? t('menus.edit.title') : t('menus.add.title')} 
+        size="lg"
+        onSubmit={handleSubmit}
       >
-        <Input 
-          name="menu_date" 
-          label={t('menus.date.label')} 
-          type="date"
-          value={formData.menu_date || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Select 
-          name="meal_type" 
-          label={t('menus.mealType.label')} 
-          value={formData.meal_type} 
-          onChange={handleInputChange}
-          required
-        >
-          {Object.values(MealType).map((type) => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </Select>
-        <Textarea 
-          name="description" 
-          label={t('menus.description.label')} 
-          value={formData.description || ''} 
-          onChange={handleInputChange} 
-          rows={4}
-          required 
-          placeholder={t('menus.description.placeholder')}
-        />
-      </Modal>
+        <FormSection>
+          <FormField>
+            <Input 
+              name="menu_date" 
+              label={t('menus.date.label')} 
+              type="date"
+              value={formData.menu_date || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+          <FormField>
+            <Select 
+              name="meal_type" 
+              label={t('menus.mealType.label')} 
+              value={formData.meal_type} 
+              onChange={handleInputChange}
+              required
+            >
+              {Object.values(MealType).map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField>
+            <Textarea 
+              name="description" 
+              label={t('menus.description.label')} 
+              value={formData.description || ''} 
+              onChange={handleInputChange} 
+              rows={4}
+              required 
+              placeholder={t('menus.description.placeholder')}
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>{t('menus.cancel.button')}</Button>
+          <Button onClick={handleSubmit} disabled={loading.menus}>
+            {loading.menus ? <Spinner size="sm"/> : (editingMenu ? t('menus.save.button') : t('menus.add.button'))}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

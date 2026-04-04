@@ -8,7 +8,10 @@ import Spinner from '@/components/ui/Spinner';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
@@ -125,27 +128,48 @@ const SubjectsPage: React.FC = () => {
         <DataGrid columns={columns} data={subjectsState || []} loading={loading.subjects && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={t(editingSubject ? 'subjects.edit' : 'subjects.addNew')} size="lg"
-        footer={<><Button variant="secondary" onClick={closeModal}>Cancel</Button><Button onClick={handleSubmit} disabled={loading.subjects}>{loading.subjects ? <Spinner size="sm" /> : 'Save'}</Button></>}
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={t(editingSubject ? 'subjects.edit' : 'subjects.addNew')}
+        size="lg"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input name="subject_code" label={t('subjects.code')} value={formData.subject_code || ''} onChange={handleInputChange} required />
-            <Input name="abbreviation" label={t('subjects.abbreviation')} value={formData.abbreviation || ''} onChange={handleInputChange} required />
-            <Input name="name" label={t('subjects.name')} value={formData.name || ''} onChange={handleInputChange} className="md:col-span-2" required />
-            <Select name="department_id" label={t('subjects.department')} value={formData.department_id ?? ''} onChange={handleInputChange}>
+        <FormSection title="Basic Information">
+          <FormField label={t('subjects.code')} required>
+            <Input name="subject_code" value={formData.subject_code || ''} onChange={handleInputChange} required />
+          </FormField>
+          <FormField label={t('subjects.abbreviation')} required>
+            <Input name="abbreviation" value={formData.abbreviation || ''} onChange={handleInputChange} required />
+          </FormField>
+          <FormField label={t('subjects.name')} required>
+            <Input name="name" value={formData.name || ''} onChange={handleInputChange} className="md:col-span-2" required />
+          </FormField>
+        </FormSection>
+        <FormSection title="Classification">
+          <FormField label={t('subjects.department')}>
+            <Select name="department_id" value={formData.department_id ?? ''} onChange={handleInputChange}>
                 <option value="">Select Department</option>
                 {(initialMockDepartments || []).filter((d: { is_academic: boolean }) => d.is_academic).map((dep: { id: string; name: string }) => <option key={dep.id} value={dep.id}>{dep.name}</option>)}
             </Select>
-            <Select name="grouping" label={t('subjects.grouping')} value={formData.grouping || SubjectGrouping.OTHER} onChange={handleInputChange} required>
+          </FormField>
+          <FormField label={t('subjects.grouping')} required>
+            <Select name="grouping" value={formData.grouping || SubjectGrouping.OTHER} onChange={handleInputChange} required>
                 {Object.values(SubjectGrouping).map(group => <option key={group} value={group}>{group}</option>)}
             </Select>
-            <div className="flex items-center mt-2 md:col-span-2">
+          </FormField>
+          <FormField label={t('subjects.isCompulsory')}>
+            <div className="flex items-center mt-2">
                 <input id="is_compulsory" name="is_compulsory" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
                     checked={formData.is_compulsory || false} onChange={handleInputChange} />
                 <label htmlFor="is_compulsory" className="ml-2 block text-sm text-gray-900">{t('subjects.isCompulsory')}</label>
             </div>
-        </div>
-      </Modal>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading.subjects}>{loading.subjects ? <Spinner size="sm" /> : 'Save'}</Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

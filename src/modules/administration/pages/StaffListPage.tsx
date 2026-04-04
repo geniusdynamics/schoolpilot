@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Staff, Department, Designation } from '@/types';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Card from '@/components/ui/Card';
@@ -11,6 +11,10 @@ import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon } from '@/components/ui/i
 import { useAppData } from '@/hooks/useAppData'; // Import useAppData
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'department_name' | 'designation_title' | 'email' | 'hod_of_department_name' | 'display_name' | 'user_username' | 'deleted_at'> { 
   department_id?: number; 

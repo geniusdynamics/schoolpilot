@@ -6,7 +6,6 @@ import { SchoolPeriod, AcademicYear, AcademicPeriodDefinition, FinancialYear } f
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '@/components/ui/icons';
@@ -16,6 +15,10 @@ import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefini
 import { useFinancialYearData } from '../../finance/data/useFinancialYearData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'updated_at' | 'name' | 'academic_year_name' | 'period_definition_name' | 'financial_year_name' > & {
     period_definition_id?: string;
@@ -279,52 +282,76 @@ const SchoolPeriodsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPeriod ? 'Edit School Period' : 'Add New School Period'} size="xl"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit}>
-              {editingPeriod ? 'Save Changes' : 'Add Period'}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingPeriod ? 'Edit School Period' : 'Add New School Period'}
+        size="xl"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormSection title="Period Configuration" columns={2}>
+          <FormField label="Academic Year" required>
             <Select
               name="academic_year_id"
-              label="Academic Year"
               value={formData.academic_year_id?.toString() || ''}
               onChange={(value) => handleSelectChange('academic_year_id', typeof value === 'string' ? value : '')}
               options={academicYearOptions}
               required
             />
+          </FormField>
+          <FormField label="Period Definition" required>
             <Select
               name="period_definition_id"
-              label="Period Definition"
               value={formData.period_definition_id || ''}
               onChange={(value) => handleSelectChange('period_definition_id', typeof value === 'string' ? value : '')}
               options={periodDefinitionOptions}
               required
             />
+          </FormField>
+          <FormField label="Financial Year" required>
             <Select
               name="financial_year_id"
-              label="Financial Year"
               value={formData.financial_year_id?.toString() || ''}
               onChange={(value) => handleSelectChange('financial_year_id', typeof value === 'string' ? value : '')}
               options={financialYearOptions}
               required
             />
-            <Input name="start_date" label="Start Date" type="date" value={formData.start_date || ''} onChange={handleInputChange} required />
-            <Input name="end_date" label="End Date" type="date" value={formData.end_date || ''} onChange={handleInputChange} required />
-            <Input name="mid_break_start" label="Mid-Break Start Date (Optional)" type="date" value={formData.mid_break_start || ''} onChange={handleInputChange} />
-            <Input name="mid_break_end" label="Mid-Break End Date (Optional)" type="date" value={formData.mid_break_end || ''} onChange={handleInputChange} />
-             <div className="flex items-center mt-2 md:col-span-2">
-                <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
-                    checked={formData.is_active || false} onChange={handleInputChange} />
-                <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Set as Active School Period</label>
-            </div>
-        </div>
-      </Modal>
+          </FormField>
+        </FormSection>
+
+        <FormSection title="Dates" columns={2}>
+          <FormField label="Start Date" required>
+            <Input name="start_date" type="date" value={formData.start_date || ''} onChange={handleInputChange} required />
+          </FormField>
+          <FormField label="End Date" required>
+            <Input name="end_date" type="date" value={formData.end_date || ''} onChange={handleInputChange} required />
+          </FormField>
+          <FormField label="Mid-Break Start Date (Optional)">
+            <Input name="mid_break_start" type="date" value={formData.mid_break_start || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Mid-Break End Date (Optional)">
+            <Input name="mid_break_end" type="date" value={formData.mid_break_end || ''} onChange={handleInputChange} />
+          </FormField>
+        </FormSection>
+
+        <FormSection title="Status">
+          <div className="flex items-center">
+            <input id="is_active" name="is_active" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              checked={formData.is_active || false} onChange={handleInputChange} />
+            <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Set as Active School Period</label>
+          </div>
+        </FormSection>
+
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit">
+            {editingPeriod ? 'Save Changes' : 'Add Period'}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

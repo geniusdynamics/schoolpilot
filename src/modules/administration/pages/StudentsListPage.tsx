@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavi
 import { Student, PersonGender, StudentStatus, ParentGuardian, Department, Designation, StudentCategory, Dormitory, ClassStream, Class as SchoolClass, AcademicsExamResultSummaryType as ExamResultSummary } from '../../../types';
 import DataGrid from '../../../components/ui/data/DataGrid';
 import Button from '../../../components/ui/Button';
-import Modal from '../../../components/ui/Modal';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Card from '../../../components/ui/Card';
@@ -15,9 +14,8 @@ import { useTranslation } from 'react-i18next';
 import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
 import SlideoutForm from '../../../components/ui/forms/SlideoutForm';
 import { usePageActions } from '../../../hooks/usePageActions';
-
 import { useToast } from '../../../hooks/useToast';
-
+import DialogForm from '../../../components/ui/forms/DialogForm';
 import { getQuickEditConfig, QuickEditField, QuickEditConfig } from '../config/quickEditConfig';
 import QuickEditConfigModal from '../components/QuickEditConfigModal';
 
@@ -694,12 +692,13 @@ const StudentsListPage: React.FC = () => {
         />
       </Card>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-        title={editingStudent ? 'Edit Student' : 'Add New Student'} 
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingStudent ? 'Edit Student' : 'Add New Student'}
         size="xl"
         className="max-h-[90vh] overflow-hidden"
+        contentPadding="none"
       >
         <div className="h-full overflow-hidden">
           <TabbedForm
@@ -717,7 +716,7 @@ const StudentsListPage: React.FC = () => {
             variant="default"
           />
         </div>
-      </Modal>
+      </DialogForm>
 
       {/* Quick Edit Slideout - Simplified approach */}
       {quickEditStudent && (

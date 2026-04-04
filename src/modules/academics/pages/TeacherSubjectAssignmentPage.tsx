@@ -6,7 +6,10 @@ import { TeacherSubjectAssignment, ClassSubjectAllocation } from '@/modules/acad
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -136,43 +139,44 @@ const TeacherSubjectAssignmentPage: React.FC = () => {
         <DataGrid columns={columns} data={teacherSubjectAssignments} loading={loading.teacherSubjectAssignments && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAssignment ? 'Edit Teacher Assignment' : 'Assign Teacher to Subject'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.teacherSubjectAssignments}>
-              {loading.teacherSubjectAssignments ? <Spinner size="sm"/> : 'Assign Teacher'}
-            </Button>
-          </>
-        }
-      >
-        <Select 
-          name="allocation_id" 
-          label="Class-Subject Allocation" 
-          value={formData.allocation_id || ''} 
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">Select Class-Subject</option>
-          {classSubjectAllocations.map((alloc: ClassSubjectAllocation) => (
-            <option key={alloc.id} value={alloc.id}>
-              {alloc.class_stream_name} - {alloc.subject_name} ({alloc.academic_year_name})
-            </option>
-          ))}
-        </Select>
-        <Select 
-          name="teacher_id" 
-          label="Teacher" 
-          value={formData.teacher_id || ''} 
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">Select Teacher</option>
-          {staff.filter(s => s.is_active && s.department_name === 'Academics' || s.designation_title?.includes('Teacher') || s.designation_title?.includes('Principal')).map((teacher: Staff) => ( // Simple filter for teachers
-            <option key={teacher.id} value={teacher.id}>{teacher.first_name} {teacher.last_name}</option>
-          ))}
-        </Select>
-      </Modal>
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingAssignment ? 'Edit Teacher Assignment' : 'Assign Teacher to Subject'} size="lg">
+        <FormSection title="Assignment Details">
+          <FormField label="Class-Subject Allocation" required>
+            <Select 
+              name="allocation_id" 
+              value={formData.allocation_id || ''} 
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Class-Subject</option>
+              {classSubjectAllocations.map((alloc: ClassSubjectAllocation) => (
+                <option key={alloc.id} value={alloc.id}>
+                  {alloc.class_stream_name} - {alloc.subject_name} ({alloc.academic_year_name})
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Teacher" required>
+            <Select 
+              name="teacher_id" 
+              value={formData.teacher_id || ''} 
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Teacher</option>
+              {staff.filter(s => s.is_active && s.department_name === 'Academics' || s.designation_title?.includes('Teacher') || s.designation_title?.includes('Principal')).map((teacher: Staff) => ( // Simple filter for teachers
+                <option key={teacher.id} value={teacher.id}>{teacher.first_name} {teacher.last_name}</option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading.teacherSubjectAssignments}>
+            {loading.teacherSubjectAssignments ? <Spinner size="sm"/> : 'Assign Teacher'}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

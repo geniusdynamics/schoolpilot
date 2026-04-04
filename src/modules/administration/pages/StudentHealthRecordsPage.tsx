@@ -4,7 +4,7 @@ import { AdminStudentHealthRecordType } from '@/modules/administration/data/type
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+
 import Input from '@/components/ui/Input';
 import { EditIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
 import { useStudentHealthRecordData } from '@/modules/administration/data/useStudentHealthRecordData';
@@ -12,6 +12,10 @@ import { useAppData } from '@/hooks/useAppData'; // For students data only
 import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
 import { useTranslation } from 'react-i18next';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 type HealthRecordFormData = Omit<Partial<AdminStudentHealthRecordType>, 'id' | 'student_id' | 'created_at' | 'updated_at'>;
 
@@ -152,55 +156,58 @@ const StudentHealthRecordsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal
+      <DialogForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={`Manage Health Record for ${selectedStudent?.first_name} ${selectedStudent?.last_name}`}
         size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit}>
-              Save Health Record
-            </Button>
-          </>
-        }
+        onSubmit={handleSubmit}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormSection columns={2}>
+          <FormField label="Blood Type">
             <Input 
                 name="blood_type" 
-                label="Blood Type" 
                 value={formData.blood_type || ''} 
                 onChange={handleInputChange} 
                 placeholder="e.g., A+, O-"
             />
+          </FormField>
+          <FormField label="Emergency Contact Override (Phone)">
             <Input 
                 name="emergency_contact_override" 
-                label="Emergency Contact Override (Phone)" 
                 value={formData.emergency_contact_override || ''} 
                 onChange={handleInputChange} 
                 placeholder="Optional: Alt. emergency phone"
             />
-        </div>
-        <Textarea
-            name="allergies"
-            label="Allergies"
-            value={formData.allergies || ''}
-            onChange={handleInputChange}
-            rows={3}
-            placeholder="List any known allergies..."
-            containerClassName="mt-4"
-        />
-        <Textarea
-            name="medical_conditions"
-            label="Medical Conditions"
-            value={formData.medical_conditions || ''}
-            onChange={handleInputChange}
-            rows={3}
-            placeholder="List any pre-existing medical conditions..."
-            containerClassName="mt-4"
-        />
-      </Modal>
+          </FormField>
+        </FormSection>
+        <FormSection>
+          <FormField label="Allergies">
+            <Textarea
+                name="allergies"
+                value={formData.allergies || ''}
+                onChange={handleInputChange}
+                rows={3}
+                placeholder="List any known allergies..."
+            />
+          </FormField>
+          <FormField label="Medical Conditions">
+            <Textarea
+                name="medical_conditions"
+                value={formData.medical_conditions || ''}
+                onChange={handleInputChange}
+                rows={3}
+                placeholder="List any pre-existing medical conditions..."
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit}>
+            Save Health Record
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

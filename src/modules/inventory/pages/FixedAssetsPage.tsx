@@ -3,14 +3,16 @@ import { FixedAsset, ItemInv, Staff, ItemTypeInv, DepreciationMethod } from '@/t
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 type FixedAssetFormData = Omit<Partial<FixedAsset>, 'id' | 'created_at' | 'updated_at' | 'item_name' | 'assigned_to_staff_name' | 'depreciation_method'> & {
     depreciation_method?: DepreciationMethod;
@@ -209,37 +211,59 @@ const FixedAssetsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAsset ? 'Edit Fixed Asset' : 'Add New Fixed Asset'} size="2xl"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.fixedAssets}>
-              {loading.fixedAssets ? <Spinner size="sm"/> : (editingAsset ? 'Save Changes' : 'Add Asset')}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingAsset ? 'Edit Fixed Asset' : 'Add New Fixed Asset'}
+        size="xl"
+        onSubmit={handleSubmit}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select name="item_id" label="Inventory Item (Fixed Asset Type)" value={formData.item_id || ''} onChange={handleInputChange} required>
-                <option value="">Select Item</option>
-                {fixedAssetItems.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+        <FormSection columns={3}>
+          <FormField label="Inventory Item (Fixed Asset Type)" required>
+            <Select name="item_id" value={formData.item_id || ''} onChange={handleInputChange}>
+              <option value="">Select Item</option>
+              {fixedAssetItems.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
             </Select>
-            <Input name="asset_tag" label="Asset Tag" value={formData.asset_tag || ''} onChange={handleInputChange} required />
-            <Input name="serial_number" label="Serial Number" value={formData.serial_number || ''} onChange={handleInputChange} />
-            <Input name="purchase_date" label="Purchase Date" type="date" value={formData.purchase_date || ''} onChange={handleInputChange} />
-            <Input name="purchase_cost" label="Purchase Cost (KES)" type="number" step="0.01" value={formData.purchase_cost ?? ''} onChange={handleInputChange} />
-            <Input name="current_value" label="Current Value (KES)" type="number" step="0.01" value={formData.current_value ?? ''} onChange={handleInputChange} />
-            <Select name="depreciation_method" label="Depreciation Method" value={formData.depreciation_method || ''} onChange={handleInputChange}>
-                <option value="">Select Method</option>
-                {Object.values(DepreciationMethod).map(method => <option key={method} value={method}>{method}</option>)}
+          </FormField>
+          <FormField label="Asset Tag" required>
+            <Input name="asset_tag" value={formData.asset_tag || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Serial Number">
+            <Input name="serial_number" value={formData.serial_number || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Purchase Date">
+            <Input name="purchase_date" type="date" value={formData.purchase_date || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Purchase Cost (KES)">
+            <Input name="purchase_cost" type="number" step="0.01" value={formData.purchase_cost ?? ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Current Value (KES)">
+            <Input name="current_value" type="number" step="0.01" value={formData.current_value ?? ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Depreciation Method">
+            <Select name="depreciation_method" value={formData.depreciation_method || ''} onChange={handleInputChange}>
+              <option value="">Select Method</option>
+              {Object.values(DepreciationMethod).map(method => <option key={method} value={method}>{method}</option>)}
             </Select>
-            <Input name="depreciation_rate_pa" label="Depreciation Rate (% p.a.)" type="number" step="0.01" min="0" max="100" value={formData.depreciation_rate_pa ?? ''} onChange={handleInputChange} />
-            <Select name="assigned_to_staff_id" label="Assigned To Staff (Optional)" value={formData.assigned_to_staff_id || ''} onChange={handleInputChange}>
-                <option value="">None</option>
-                {activeStaff.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
+          </FormField>
+          <FormField label="Depreciation Rate (% p.a.)">
+            <Input name="depreciation_rate_pa" type="number" step="0.01" min="0" max="100" value={formData.depreciation_rate_pa ?? ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Assigned To Staff (Optional)">
+            <Select name="assigned_to_staff_id" value={formData.assigned_to_staff_id || ''} onChange={handleInputChange}>
+              <option value="">None</option>
+              {activeStaff.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
             </Select>
-        </div>
-      </Modal>
+          </FormField>
+        </FormSection>
+
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button variant="primary" type="submit" disabled={loading.fixedAssets}>
+            {loading.fixedAssets ? <Spinner size="sm"/> : (editingAsset ? 'Save Changes' : 'Add Asset')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

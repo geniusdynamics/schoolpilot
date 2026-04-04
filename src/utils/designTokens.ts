@@ -380,6 +380,22 @@ export const designTokens: DesignTokens = {
       bounceSubtle: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
     },
   },
+  form: {
+    sectionGap: '1.5rem',      // space-y-6
+    fieldGap: '1rem',          // gap-4
+    labelGap: '0.5rem',        // space-y-2
+    inputHeight: {
+      sm: '2rem',    // 32px
+      md: '2.5rem',  // 40px
+      lg: '3rem',    // 48px
+    },
+    inputBorder: '#d4d4d4',    // neutral.300
+    inputFocus: '#3b82f6',     // primary.500
+    errorColor: '#ef4444',     // error.500
+    successColor: '#22c55e',   // success.500
+    actionsPadding: '1rem 1.5rem', // px-6 py-4
+    labelFontWeight: 500,      // font-medium
+  },
 };
 
 // CSS custom property generator for theme switching

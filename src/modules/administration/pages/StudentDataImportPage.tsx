@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Badge from '@/components/ui/Badge';

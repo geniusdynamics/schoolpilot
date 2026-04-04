@@ -5,7 +5,7 @@ import { AdminClubAndSocietyType as ClubAndSociety, ClubType } from '@/modules/a
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon as ClubsIcon } from '@/components/ui/icons';
@@ -13,6 +13,10 @@ import { useClubAndSocietyData } from '@/modules/administration/data/useClubAndS
 import { useAppData } from '@/hooks/useAppData'; // For staff data only
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated_at' | 'patron_name' | 'type'> & {
     type: ClubType; // Make type required for the form

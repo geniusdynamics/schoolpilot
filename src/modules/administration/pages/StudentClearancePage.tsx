@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -11,6 +10,10 @@ import { PlusIcon, EyeIcon, CheckCircleIcon, XCircleIcon } from '@/components/ui
 import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 import type { StudentClearanceRequest, StudentClearance, ClearanceRequestStatus, ClearanceStatus, ClearanceType } from '../data/types';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 const StudentClearancePage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -204,44 +207,49 @@ const StudentClearancePage: React.FC = () => {
       )}
 
       {/* New Request Modal */}
-      <Modal
+      <DialogForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={t('clearance.newRequest')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={handleSubmit}>
-              {t('clearance.submitRequest')}
-            </Button>
-          </>
-        }
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <div className="space-y-4">
-          <Select
-            label="Student"
-            value={formData.student_id}
-            onChange={(value) => handleInputChange('student_id', value)}
-            options={students.map((s: any) => ({ label: `${s.first_name} ${s.last_name} (${s.admission_number})`, value: s.id }))}
-            required
-          />
-          <Select
-            label="Academic Year"
-            value={formData.academic_year_id}
-            onChange={(value) => handleInputChange('academic_year_id', value)}
-            options={academic_years.map((y: any) => ({ label: y.name, value: y.id }))}
-          />
-          <Textarea
-            label="Reason for Clearance"
-            value={formData.reason}
-            onChange={(value) => handleInputChange('reason', value)}
-            required
-            rows={4}
-          />
-        </div>
-      </Modal>
+        <FormSection>
+          <FormField label="Student" required>
+            <Select
+              value={formData.student_id}
+              onChange={(value) => handleInputChange('student_id', value)}
+              options={students.map((s: any) => ({ label: `${s.first_name} ${s.last_name} (${s.admission_number})`, value: s.id }))}
+              required
+            />
+          </FormField>
+          <FormField label="Academic Year">
+            <Select
+              value={formData.academic_year_id}
+              onChange={(value) => handleInputChange('academic_year_id', value)}
+              options={academic_years.map((y: any) => ({ label: y.name, value: y.id }))}
+            />
+          </FormField>
+          <FormField label="Reason for Clearance" required>
+            <Textarea
+              value={formData.reason}
+              onChange={(value) => handleInputChange('reason', value)}
+              required
+              rows={4}
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>
+            {t('common.cancel')}
+          </Button>
+          <Button type="submit">
+            {t('clearance.submitRequest')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

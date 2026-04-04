@@ -449,76 +449,24 @@ const ApplicationFormPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <Card title="New Application" className="shadow-xl">
-        {/* Step Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div
-                  className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                    currentStep >= step.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  <step.icon className="w-5 h-5" />
-                </div>
-                <span
-                  className={`ml-2 text-sm font-medium ${
-                    currentStep >= step.id ? 'text-blue-600' : 'text-gray-500'
-                  }`}
-                >
-                  {step.name}
-                </span>
-                {index < steps.length - 1 && (
-                  <div className="w-16 h-0.5 mx-4 bg-gray-200">
-                    <div
-                      className={`h-full bg-blue-600 transition-all ${
-                        currentStep > step.id ? 'w-full' : 'w-0'
-                      }`}
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Form Content */}
-        <div className="mb-8">{renderCurrentStep()}</div>
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between pt-4 border-t">
-          <Button
-            variant="secondary"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            leftIcon={<ChevronLeftIcon className="w-5 h-5" />}
-          >
-            Previous
-          </Button>
-          
-          {currentStep < steps.length ? (
-            <Button
-              variant="primary"
-              onClick={handleNext}
-              disabled={!isStepValid()}
-              rightIcon={<ChevronRightIcon className="w-5 h-5" />}
-            >
-              Next
-            </Button>
-          ) : (
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              leftIcon={<CheckCircleIcon className="w-5 h-5" />}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Application'}
-            </Button>
-          )}
-        </div>
+      <Card className="shadow-xl">
+        <FormContainer>
+          <FormHeader
+            title="New Application"
+            description="Complete all steps to submit your application"
+          />
+          <WizardForm
+            steps={wizardSteps}
+            onComplete={handleSubmit}
+            onCancel={handleCancel}
+            showProgress={true}
+            validateOnNext={true}
+            previousButtonText="Previous"
+            nextButtonText="Next"
+            completeButtonText="Submit Application"
+            cancelButtonText="Cancel"
+          />
+        </FormContainer>
       </Card>
     </div>
   );

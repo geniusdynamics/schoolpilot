@@ -3,12 +3,16 @@ import { Customer } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon as CustomersIcon } from '@/components/ui/icons';
 import { useCustomerData } from '@/modules/administration/data/useCustomerData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 type CustomerFormData = Omit<Partial<Customer>, 'id' | 'created_at' | 'updated_at'>;
 

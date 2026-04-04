@@ -3,13 +3,16 @@ import { AcademicYear, AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 type AcademicYearFormData = Omit<Partial<AcademicYear>, 'id' | 'created_at' | 'updated_at' | 'structure_name'> & {
     structure_id?: number; 
@@ -182,55 +185,71 @@ const AcademicYearsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingYear ? 'Edit Academic Year' : 'Add New Academic Year'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.academicYears}>
-              {loading.academicYears ? <Spinner size="sm"/> : (editingYear ? 'Save Changes' : 'Add Year')}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingYear ? 'Edit Academic Year' : 'Add New Academic Year'}
+        size="lg"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <Input 
-          name="name" 
-          label="Academic Year Name" 
-          placeholder="e.g., AY 2024/2025"
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Select 
-          name="structure_id" 
-          label="Academic Year Structure" 
-          value={formData.structure_id || ''} 
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">Select Structure</option>
-          {academicYearStructures.map((structure: AcademicYearStructure) => (
-            <option key={structure.id} value={structure.id}>
-              {structure.name}
-            </option>
-          ))}
-        </Select>
-        <Input 
-          name="start_date" 
-          label="Start Date" 
-          type="date"
-          value={formData.start_date || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Input 
-          name="end_date" 
-          label="End Date" 
-          type="date"
-          value={formData.end_date || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+        <FormSection title="Academic Year Details">
+          <FormField label="Academic Year Name" required>
+            <Input
+              name="name"
+              placeholder="e.g., AY 2024/2025"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+          <FormField label="Academic Year Structure" required>
+            <Select
+              name="structure_id"
+              value={formData.structure_id || ''}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Structure</option>
+              {academicYearStructures.map((structure: AcademicYearStructure) => (
+                <option key={structure.id} value={structure.id}>
+                  {structure.name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+
+        <FormSection title="Duration" columns={2}>
+          <FormField label="Start Date" required>
+            <Input
+              name="start_date"
+              type="date"
+              value={formData.start_date || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+          <FormField label="End Date" required>
+            <Input
+              name="end_date"
+              type="date"
+              value={formData.end_date || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+        </FormSection>
+
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit" disabled={loading.academicYears}>
+            {loading.academicYears ? <Spinner size="sm"/> : (editingYear ? 'Save Changes' : 'Add Year')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

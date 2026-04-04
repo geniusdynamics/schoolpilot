@@ -7,7 +7,6 @@ import { useAppData } from '../../../hooks/useAppData';
 import { usePageActions } from '../../../hooks/usePageActions';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
-import Modal from '../../../components/ui/Modal';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { DataGrid, DataGridColumn } from '../../../components/ui';
@@ -15,6 +14,10 @@ import Spinner from '../../../components/ui/Spinner';
 import { PlusIcon, EditIcon, DeleteIcon } from 'lucide-react';
 import { SchoolClass, ClassStream, Staff } from '../../../types/database';
 import { ActionDefinition } from '../../../types/actions';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 interface ClassFormData extends Partial<Omit<SchoolClass, 'id' | 'streams'>> {}
 interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | 'class_teacher_name' | 'class_name'>> {
@@ -291,22 +294,66 @@ const ClassesPage: React.FC = () => {
       )}
 
       {/* Class Modal */}
-      <Modal isOpen={isClassModalOpen} onClose={closeClassModal} title={editingClass ? t('classes.modalEditTitle') : t('classes.modalAddTitle')}
-        footer={<><Button variant="secondary" onClick={closeClassModal}>{t('common:cancel')}</Button><Button onClick={handleClassSubmit} disabled={loading.classes}>{loading.classes ? <Spinner size="sm"/> : t('common:save')}</Button></>}
+      <DialogForm
+        isOpen={isClassModalOpen}
+        onClose={closeClassModal}
+        title={editingClass ? t('classes.modalEditTitle') : t('classes.modalAddTitle')}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleClassSubmit();
+        }}
       >
-        <Input name="name" label={t('classes.nameLabel')} value={classFormData.name || ''} onChange={(e) => setClassFormData({...classFormData, name: e.target.value})} required />
-      </Modal>
+        <FormSection title="Class Information">
+          <FormField label={t('classes.nameLabel')} required>
+            <Input
+              name="name"
+              value={classFormData.name || ''}
+              onChange={(e) => setClassFormData({...classFormData, name: e.target.value})}
+              required
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeClassModal}>{t('common:cancel')}</Button>
+          <Button type="submit" disabled={loading.classes}>
+            {loading.classes ? <Spinner size="sm"/> : t('common:save')}
+          </Button>
+        </FormActions>
+      </DialogForm>
 
       {/* Stream Modal */}
-      <Modal isOpen={isStreamModalOpen} onClose={closeStreamModal} title={editingStream ? t('classes.modalEditStreamTitle') : t('classes.modalAddStreamTitle', { className: selectedClassForStream?.name || ''})}
-         footer={<><Button variant="secondary" onClick={closeStreamModal}>{t('common:cancel')}</Button><Button onClick={handleStreamSubmit} disabled={loading.classStreams}>{loading.classStreams ? <Spinner size="sm"/> : t('common:save')}</Button></>}
+      <DialogForm
+        isOpen={isStreamModalOpen}
+        onClose={closeStreamModal}
+        title={editingStream ? t('classes.modalEditStreamTitle') : t('classes.modalAddStreamTitle', { className: selectedClassForStream?.name || ''})}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleStreamSubmit();
+        }}
       >
-        <Input name="name" label={t('classes.streamNameLabel')} value={streamFormData.name || ''} onChange={(e) => setStreamFormData({...streamFormData, name: e.target.value})} required />
-        <Select name="class_teacher_id" label={t('classes.teacherLabel')} value={streamFormData.class_teacher_id || ''} onChange={(e) => setStreamFormData({...streamFormData, class_teacher_id: e.target.value})}>
-            <option value="">{t('classes.selectTeacherOption')}</option>
-            {(staff || []).filter(s => s.is_active).map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
-        </Select>
-      </Modal>
+        <FormSection title="Stream Information">
+          <FormField label={t('classes.streamNameLabel')} required>
+            <Input
+              name="name"
+              value={streamFormData.name || ''}
+              onChange={(e) => setStreamFormData({...streamFormData, name: e.target.value})}
+              required
+            />
+          </FormField>
+          <FormField label={t('classes.teacherLabel')}>
+            <Select name="class_teacher_id" value={streamFormData.class_teacher_id || ''} onChange={(e) => setStreamFormData({...streamFormData, class_teacher_id: e.target.value})}>
+              <option value="">{t('classes.selectTeacherOption')}</option>
+              {(staff || []).filter(s => s.is_active).map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeStreamModal}>{t('common:cancel')}</Button>
+          <Button type="submit" disabled={loading.classStreams}>
+            {loading.classStreams ? <Spinner size="sm"/> : t('common:save')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

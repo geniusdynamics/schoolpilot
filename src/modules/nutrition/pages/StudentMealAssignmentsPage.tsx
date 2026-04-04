@@ -3,7 +3,10 @@ import { StudentMealPlan, Student, MealPlan, SchoolPeriod, StudentMealPlanStatus
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, UsersIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
@@ -214,32 +217,53 @@ const StudentMealAssignmentsPage: React.FC = () => {
        
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAssignment ? 'Edit Meal Plan Assignment' : 'Assign Meal Plan to Student'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.studentMealPlans}>
-              {loading.studentMealPlans ? <Spinner size="sm"/> : (editingAssignment ? 'Save Changes' : 'Assign Plan')}
-            </Button>
-          </>
-        }
+      <DialogForm 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        title={editingAssignment ? 'Edit Meal Plan Assignment' : 'Assign Meal Plan to Student'} 
+        size="lg" 
+        onSubmit={handleSubmit}
       >
-        <Select name="student_id" label="Student" value={formData.student_id || ''} onChange={handleInputChange} required disabled={!!editingAssignment}>
-            <option value="">Select Student</option>
-            {(activeStudents || []).map((student: Student) => (<option key={student.id} value={student.id}>{student.first_name} {student.last_name} ({student.admission_no})</option>))}
-        </Select>
-        <Select name="school_period_id" label="School Period" value={formData.school_period_id || ''} onChange={handleInputChange} required disabled={!!editingAssignment}>
-            <option value="">Select School Period</option>
-            {(schoolPeriods || []).map((period: SchoolPeriod) => (<option key={period.id} value={period.id}>{period.name}</option>))}
-        </Select>
-        <Select name="meal_plan_id" label="Meal Plan" value={formData.meal_plan_id || ''} onChange={handleInputChange} required>
-            <option value="">Select Meal Plan</option>
-            {(mealPlans || []).map((plan: MealPlan) => (<option key={plan.id} value={plan.id}>{plan.name} (Cost: {plan.cost_per_period?.toFixed(2) || 'N/A'})</option>))}
-        </Select>
-        <Select name="status" label="Assignment Status" value={formData.status} onChange={handleInputChange} required>
-            {Object.values(StudentMealPlanStatus).map(status => (<option key={status} value={status}>{status}</option>))}
-        </Select>
-      </Modal>
+        <FormSection columns={2}>
+          <FormField label="Student" required>
+            <Select name="student_id" value={formData.student_id || ''} onChange={handleInputChange} disabled={!!editingAssignment}>
+              <option value="">Select Student</option>
+              {(activeStudents || []).map((student: Student) => (
+                <option key={student.id} value={student.id}>{student.first_name} {student.last_name} ({student.admission_no})</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="School Period" required>
+            <Select name="school_period_id" value={formData.school_period_id || ''} onChange={handleInputChange} disabled={!!editingAssignment}>
+              <option value="">Select School Period</option>
+              {(schoolPeriods || []).map((period: SchoolPeriod) => (
+                <option key={period.id} value={period.id}>{period.name}</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Meal Plan" required>
+            <Select name="meal_plan_id" value={formData.meal_plan_id || ''} onChange={handleInputChange}>
+              <option value="">Select Meal Plan</option>
+              {(mealPlans || []).map((plan: MealPlan) => (
+                <option key={plan.id} value={plan.id}>{plan.name} (Cost: {plan.cost_per_period?.toFixed(2) || 'N/A'})</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Assignment Status" required>
+            <Select name="status" value={formData.status} onChange={handleInputChange}>
+              {Object.values(StudentMealPlanStatus).map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading.studentMealPlans}>
+            {loading.studentMealPlans ? <Spinner size="sm"/> : (editingAssignment ? 'Save Changes' : 'Assign Plan')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

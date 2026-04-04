@@ -2,15 +2,14 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DataGrid from '../../../components/ui/data/DataGrid';
 import Button from '../../../components/ui/Button';
-import Modal from '../../../components/ui/Modal';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Card from '../../../components/ui/Card';
-import { 
-  PlusIcon, 
-  EditIcon, 
-  DeleteIcon, 
-  UserCircleIcon, 
+import {
+  PlusIcon,
+  EditIcon,
+  DeleteIcon,
+  UserCircleIcon,
   DocumentAddIcon,
   DocumentSearchIcon,
   CheckBadgeIcon,
@@ -32,6 +31,10 @@ import Spinner from '../../../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../hooks/useToast';
 import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 import { 
   AdminApplicationType, 
   AdminKCPEMarksType,
@@ -374,48 +377,52 @@ const ApplicationManagement: React.FC = () => {
       )}
 
       {/* Application Form Modal */}
-      <Modal
+      <DialogForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingApplication ? t('admissions.actions.edit') : t('admissions.actions.submit')}
-        size="large"
+        size="lg"
+        onSubmit={handleSubmit}
       >
-        <div className="space-y-6">
-          {/* Applicant Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Applicant Information */}
+        <FormSection
+          title={t('admissions.application.applicantInfo', 'Applicant Information')}
+          columns={2}
+        >
+          <FormField label={t('admissions.application.applicantFirstName')} required>
             <Input
-              label={t('admissions.application.applicantFirstName')}
               value={formData.applicantFirstName}
               onChange={(value) => handleInputChange('applicantFirstName', value)}
-              required
             />
+          </FormField>
+          <FormField label={t('admissions.application.applicantLastName')} required>
             <Input
-              label={t('admissions.application.applicantLastName')}
               value={formData.applicantLastName}
               onChange={(value) => handleInputChange('applicantLastName', value)}
-              required
             />
+          </FormField>
+          <FormField label={t('admissions.application.applicantEmail')} required>
             <Input
-              label={t('admissions.application.applicantEmail')}
               type="email"
               value={formData.applicantEmail}
               onChange={(value) => handleInputChange('applicantEmail', value)}
-              required
             />
+          </FormField>
+          <FormField label={t('admissions.application.applicantPhone')}>
             <Input
-              label={t('admissions.application.applicantPhone')}
               value={formData.applicantPhone || ''}
               onChange={(value) => handleInputChange('applicantPhone', value)}
             />
+          </FormField>
+          <FormField label={t('admissions.application.dateOfBirth')} required>
             <Input
-              label={t('admissions.application.dateOfBirth')}
               type="date"
               value={formData.dateOfBirth}
               onChange={(value) => handleInputChange('dateOfBirth', value)}
-              required
             />
+          </FormField>
+          <FormField label={t('admissions.application.gender')} required>
             <Select
-              label={t('admissions.application.gender')}
               value={formData.gender}
               onChange={(value) => handleInputChange('gender', value)}
               options={[
@@ -423,81 +430,93 @@ const ApplicationManagement: React.FC = () => {
                 { value: 'Female', label: 'Female' },
                 { value: 'Other', label: 'Other' }
               ]}
-              required
             />
-          </div>
+          </FormField>
+        </FormSection>
 
-          {/* Academic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Academic Information */}
+        <FormSection
+          title={t('admissions.application.academicInfo', 'Academic Information')}
+          columns={2}
+        >
+          <FormField label={t('admissions.application.intendedClass')} required>
             <Input
-              label={t('admissions.application.intendedClass')}
               value={formData.intendedClass}
               onChange={(value) => handleInputChange('intendedClass', value)}
-              required
             />
+          </FormField>
+          <FormField label={t('admissions.application.previousSchool')}>
             <Input
-              label={t('admissions.application.previousSchool')}
               value={formData.previousSchool || ''}
               onChange={(value) => handleInputChange('previousSchool', value)}
             />
-          </div>
+          </FormField>
+        </FormSection>
 
-          {/* Guardian Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Guardian Information */}
+        <FormSection
+          title={t('admissions.application.guardianInfo', 'Guardian Information')}
+          columns={2}
+        >
+          <FormField label={t('admissions.application.guardianName')} required>
             <Input
-              label={t('admissions.application.guardianName')}
               value={formData.guardianName}
               onChange={(value) => handleInputChange('guardianName', value)}
-              required
             />
+          </FormField>
+          <FormField label={t('admissions.application.guardianPhone')} required>
             <Input
-              label={t('admissions.application.guardianPhone')}
               value={formData.guardianPhone}
               onChange={(value) => handleInputChange('guardianPhone', value)}
-              required
             />
+          </FormField>
+          <FormField label={t('admissions.application.guardianEmail')}>
             <Input
-              label={t('admissions.application.guardianEmail')}
               type="email"
               value={formData.guardianEmail || ''}
               onChange={(value) => handleInputChange('guardianEmail', value)}
             />
+          </FormField>
+          <FormField label={t('admissions.application.guardianRelationship')}>
             <Input
-              label={t('admissions.application.guardianRelationship')}
               value={formData.guardianRelationship || ''}
               onChange={(value) => handleInputChange('guardianRelationship', value)}
             />
-          </div>
+          </FormField>
+        </FormSection>
 
-          {/* Additional Information */}
-          <div className="space-y-4">
+        {/* Additional Information */}
+        <FormSection
+          title={t('admissions.application.additionalInfo', 'Additional Information')}
+        >
+          <FormField label={t('admissions.application.address')}>
             <Input
-              label={t('admissions.application.address')}
               value={formData.address || ''}
               onChange={(value) => handleInputChange('address', value)}
               multiline
               rows={3}
             />
+          </FormField>
+          <FormField label={t('admissions.application.remarks')}>
             <Input
-              label={t('admissions.application.remarks')}
               value={formData.remarks || ''}
               onChange={(value) => handleInputChange('remarks', value)}
               multiline
               rows={3}
             />
-          </div>
+          </FormField>
+        </FormSection>
 
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <Button variant="secondary" onClick={closeModal}>
-              {t('common.cancel')}
-            </Button>
-            <Button variant="primary" onClick={handleSubmit}>
-              {editingApplication ? t('admissions.actions.edit') : t('admissions.actions.submit')}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        {/* Form Actions */}
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>
+            {t('common.cancel')}
+          </Button>
+          <Button variant="primary" type="submit">
+            {editingApplication ? t('admissions.actions.edit') : t('admissions.actions.submit')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

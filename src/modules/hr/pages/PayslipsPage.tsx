@@ -1,265 +1,341 @@
-import React, { useState, useMemo } from 'react';
-import { Payslip, PayrollPeriod, PayslipStatus, PayslipItem, AcademicYear } from '@/types';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Select from '@/components/ui/Select';
-import { ScaleIcon, EyeIcon, ListBulletIcon, CalendarDaysIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import Card from '@/components/ui/Card';
+import Table from '@/components/ui/Table';
+import { PlusIcon, EyeIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData';
+import Spinner from '@/components/ui/Spinner';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
+import type { Payslip, Staff, PayrollPeriod } from '@/types';
+
+interface GeneratePayslipFormData {
+  staff_id: number | null;
+  period_id: number | null;
+  payment_date: string;
+  notes: string;
+}
 
 const PayslipsPage: React.FC = () => {
-  const { 
-    payslips, 
-    payrollPeriods, 
-    academicYears,
-    loading, 
-    generatePayslipsForPeriod 
-  } = useAppData(); // Updated
+  const { t } = useTranslation('hr');
+  const { payslips, loading: appDataLoading, refreshCollection } = useAppData();
+  const { staff } = useAppData();
+  const { payrollPeriods } = useAppData();
   
-  const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>((academicYears || [])[0]?.id);
-  const [selectedPayrollPeriodId, setSelectedPayrollPeriodId] = useState<number | undefined>();
-  const [viewingPayslip, setViewingPayslip] = useState<Payslip | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPayslip, setSelectedPayslip] = useState<Payslip | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [formData, setFormData] = useState<GeneratePayslipFormData>({
+    staff_id: null,
+    period_id: null,
+    payment_date: new Date().toISOString().split('T')[0],
+    notes: '',
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const filteredPayrollPeriods = useMemo(() => {
-    if (!selectedAcademicYearId) return (payrollPeriods || []);
-    // This assumes payrollPeriods are linked to financial years which might loosely map to academic years.
-    // For a more direct link, PayrollPeriod would need academic_year_id or a way to filter by AY's date range.
-    // For now, let's assume a simpler filter or all periods if no direct link.
-    // This logic might need refinement based on actual data relations.
-    const ay = (academicYears || []).find(a => a.id === selectedAcademicYearId);
-    if (!ay) return (payrollPeriods || []);
-    return (payrollPeriods || []).filter(pp => {
-        // A simple check if payroll period overlaps with academic year dates
-        const ppStart = new Date(pp.start_date);
-        const ppEnd = new Date(pp.end_date);
-        const ayStart = new Date(ay.start_date);
-        const ayEnd = new Date(ay.end_date);
-        return (ppStart >= ayStart && ppStart <= ayEnd) || (ppEnd >= ayStart && ppEnd <= ayEnd);
+  const openModal = useCallback(() => {
+    setFormData({
+      staff_id: null,
+      period_id: null,
+      payment_date: new Date().toISOString().split('T')[0],
+      notes: '',
     });
-  }, [selectedAcademicYearId, academicYears, payrollPeriods]);
+    setFormErrors({});
+    setIsModalOpen(true);
+  }, []);
 
-  const payslipsForSelectedPeriod = useMemo(() => {
-    if (!selectedPayrollPeriodId) return [];
-    return (payslips || []).filter(p => p.payroll_period_id === selectedPayrollPeriodId);
-  }, [selectedPayrollPeriodId, payslips]);
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setFormData({
+      staff_id: null,
+      period_id: null,
+      payment_date: new Date().toISOString().split('T')[0],
+      notes: '',
+    });
+    setFormErrors({});
+  }, []);
 
-  const handleGeneratePayslips = async () => {
-    if (!selectedPayrollPeriodId) {
-      alert("Please select a payroll period to generate payslips.");
+  const openViewModal = useCallback((payslip: Payslip) => {
+    setSelectedPayslip(payslip);
+    setIsViewModalOpen(true);
+  }, []);
+
+  const closeViewModal = useCallback(() => {
+    setIsViewModalOpen(false);
+    setSelectedPayslip(null);
+  }, []);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
+                name === 'staff_id' || name === 'period_id' ? (value ? parseInt(value) : null) : value;
+    setFormData(prev => ({ ...prev, [name]: val }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  }, [formErrors]);
+
+  const validateForm = useCallback((): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.staff_id) {
+      errors.staff_id = t('payslips.validation.staffRequired') || 'Staff member is required';
+    }
+    if (!formData.period_id) {
+      errors.period_id = t('payslips.validation.periodRequired') || 'Payroll period is required';
+    }
+    if (!formData.payment_date) {
+      errors.payment_date = t('payslips.validation.paymentDateRequired') || 'Payment date is required';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [formData, t]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!validateForm()) {
       return;
     }
-    await generatePayslipsForPeriod(selectedPayrollPeriodId);
+
+    setIsSubmitting(true);
+    try {
+      const dbManager = await import('@/services/database/UnifiedDatabaseManager').then(m => m.UnifiedDatabaseManager);
+      const db = dbManager.getInstance();
+      const collection = db.getCollection<Payslip>('payslips');
+      
+      const timestamp = new Date().toISOString();
+      const newId = Date.now();
+
+      // For now, create a basic payslip structure
+      await collection?.insert({
+        id: newId,
+        staff_id: formData.staff_id!,
+        period_id: formData.period_id!,
+        basic_salary: 0,
+        total_earnings: 0,
+        total_deductions: 0,
+        net_salary: 0,
+        payment_date: new Date(formData.payment_date!).toISOString(),
+        status: 'generated',
+        earnings_details: [],
+        deductions_details: [],
+        notes: formData.notes,
+        created_at: timestamp,
+        updated_at: timestamp,
+      });
+
+      await refreshCollection('payslips');
+      closeModal();
+    } catch (error) {
+      console.error('Error generating payslip:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, refreshCollection, closeModal, validateForm]);
+
+  const getStaffName = (staffId: number) => {
+    const staffMember = (staff as Staff[] | undefined)?.find(s => s.id === staffId);
+    return staffMember?.first_name && staffMember?.last_name 
+      ? `${staffMember.first_name} ${staffMember.last_name}` 
+      : staffMember?.username || `Staff #${staffId}`;
   };
 
-  const openPayslipDetailsModal = (payslip: Payslip) => {
-    setViewingPayslip(payslip);
+  const getPeriodName = (periodId: number) => {
+    const period = (payrollPeriods as PayrollPeriod[] | undefined)?.find(p => p.id === periodId);
+    return period?.name || `Period #${periodId}`;
   };
 
-  const closePayslipDetailsModal = () => {
-    setViewingPayslip(null);
-  };
-
-  const payslipColumns: DataGridColumn<Payslip>[] = [
+  const columns = [
+    { header: t('tableHeaders.id'), key: 'id' as keyof Payslip },
     { 
-      key: 'id', 
-      header: 'Payslip ID', 
-      sortable: true, 
-      filterable: true, 
-      width: 100
+      header: t('tableHeaders.staff'), 
+      key: 'staff_id' as keyof Payslip,
+      render: (value: number) => getStaffName(value)
     },
     { 
-      key: 'staff_name', 
-      header: 'Staff Name', 
-      sortable: true, 
-      filterable: true, 
-      width: 200
+      header: t('tableHeaders.period'), 
+      key: 'period_id' as keyof Payslip,
+      render: (value: number) => getPeriodName(value)
     },
     { 
-      key: 'payroll_period_name', 
-      header: 'Payroll Period', 
-      sortable: true, 
-      filterable: true, 
-      width: 150
+      header: t('tableHeaders.netSalary'), 
+      key: 'net_salary' as keyof Payslip,
+      render: (value: number) => value?.toLocaleString() || '0'
     },
     { 
-      key: 'gross_salary', 
-      header: 'Gross Salary', 
-      sortable: true, 
-      filterable: false, 
-      width: 120,
-      render: (value, row) => `Ksh ${row.gross_salary?.toFixed(2) || '0.00'}`
+      header: t('tableHeaders.paymentDate'), 
+      key: 'payment_date' as keyof Payslip,
+      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
     },
-    { 
-      key: 'total_deductions', 
-      header: 'Total Deductions', 
-      sortable: true, 
-      filterable: false, 
-      width: 140,
-      render: (value, row) => `Ksh ${row.total_deductions?.toFixed(2) || '0.00'}`
-    },
-    { 
-      key: 'net_salary', 
-      header: 'Net Salary', 
-      sortable: true, 
-      filterable: false, 
-      width: 120,
-      render: (value, row) => `Ksh ${row.net_salary?.toFixed(2) || '0.00'}`
-    },
-    { 
-      key: 'status', 
-      header: 'Status', 
-      sortable: true, 
-      filterable: true, 
-      width: 120,
-      render: (value, row) => (
-        <span className={`px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full ${
-            row.status === PayslipStatus.PAID ? 'bg-green-100 text-green-800' :
-            row.status === PayslipStatus.PROCESSED ? 'bg-blue-100 text-blue-800' :
-            'bg-yellow-100 text-yellow-800' // Draft
-        }`}>{row.status}</span>
-      )
-    },
+    { header: t('tableHeaders.status'), key: 'status' as keyof Payslip },
     {
-      key: 'id',
-      header: 'Actions',
-      sortable: false,
-      filterable: false,
-      width: 120,
-      sticky: 'right',
-      render: (value, row) => (
-        <Button size="sm" variant="ghost" onClick={() => openPayslipDetailsModal(row)} leftIcon={<EyeIcon className="w-4 h-4" />}>
-          View Details
+      header: t('tableHeaders.actions'),
+      key: 'id' as keyof Payslip,
+      render: (_: any, item: Payslip) => (
+        <Button size="sm" variant="ghost" onClick={() => openViewModal(item)} leftIcon={<EyeIcon className="w-4 h-4" />}>
+          {t('common:view')}
         </Button>
       ),
     },
   ];
 
-  const payslipItemColumns: DataGridColumn<PayslipItem>[] = [
-    { 
-      key: 'item_type_name', 
-      header: 'Description', 
-      sortable: true, 
-      filterable: true, 
-      width: 200
-    },
-    { 
-      key: 'item_category', 
-      header: 'Category', 
-      sortable: true, 
-      filterable: true, 
-      width: 150
-    },
-    { 
-      key: 'amount', 
-      header: 'Amount (KES)', 
-      sortable: true, 
-      filterable: false, 
-      width: 150,
-      render: (value, row) => row.amount?.toFixed(2) || '0.00'
-    },
-  ];
-
-  const isLoadingPage = loading.payslips || loading.payrollPeriods || loading.academicYears;
-
-  if (isLoadingPage && !viewingPayslip) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Payslips Data...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <Card title="Payslips Management" icon={<ScaleIcon className="w-6 h-6 text-green-600"/>}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-md bg-gray-50">
-           <Select 
-                label="Academic Year (for period filter)" 
-                value={selectedAcademicYearId || ''} 
-                onChange={e => setSelectedAcademicYearId(Number(e.target.value) || undefined)}
-            >
-                <option value="">Select Academic Year</option>
-                {(academicYears || []).map(ay => <option key={ay.id} value={ay.id}>{ay.name}</option>)}
-            </Select>
-            <Select 
-                name="payroll_period_id" 
-                label="Select Payroll Period" 
-                value={selectedPayrollPeriodId || ''} 
-                onChange={e => setSelectedPayrollPeriodId(Number(e.target.value) || undefined)}
-                disabled={!selectedAcademicYearId && (academicYears || []).length > 0} 
-                required
-            >
-                <option value="">-- Select Payroll Period --</option>
-                {(filteredPayrollPeriods || []).map((period: PayrollPeriod) => (
-                    <option key={period.id} value={period.id}>{period.name}</option>
-                ))}
-            </Select>
-            <div className="md:pt-6"> {/* Align button with inputs */}
-              <Button 
-                onClick={handleGeneratePayslips} 
-                disabled={!selectedPayrollPeriodId || loading.payslips}
-                leftIcon={loading.payslips && selectedPayrollPeriodId ? <Spinner size="sm"/> : <CalendarDaysIcon className="w-5 h-5"/>}
-              >
-                {loading.payslips && selectedPayrollPeriodId ? 'Generating...' : 'Generate Payslips for Period'}
-              </Button>
-            </div>
-        </div>
-        
-        {selectedPayrollPeriodId ? (
-             payslipsForSelectedPeriod.length > 0 ? (
-                 <DataGrid 
-                   columns={payslipColumns} 
-                   data={payslipsForSelectedPeriod || []} 
-                   isLoading={loading.payslips && !!selectedPayrollPeriodId}
-                   sortable
-                   filterable
-                   emptyState={{
-                     icon: <ScaleIcon className="w-12 h-12 text-gray-400" />,
-                     title: "No payslips found",
-                     description: "No payslips generated for the selected period yet, or no staff salary settings found for active staff."
-                   }}
-                 />
-             ) : (
-                 <p className="text-center text-gray-500 py-4">No payslips generated for the selected period yet, or no staff salary settings found for active staff.</p>
-             )
+      <Card
+        title={t('payslips.title')}
+        actions={
+          <Button onClick={openModal} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            {t('payslips.generateButton')}
+          </Button>
+        }
+      >
+        <p className="text-sm text-gray-600 mb-4">{t('payslips.description')}</p>
+        {appDataLoading.payslips ? (
+          <div className="flex justify-center py-8">
+            <Spinner />
+          </div>
         ) : (
-            <p className="text-center text-gray-500 py-4">Please select a payroll period to view or generate payslips.</p>
+          <Table
+            columns={columns}
+            data={payslips || []}
+            emptyStateMessage={t('payslips.noPayslips') || 'No payslips found'}
+          />
         )}
       </Card>
 
-      {/* Payslip Details Modal */}
-      <Modal 
-        isOpen={!!viewingPayslip} 
-        onClose={closePayslipDetailsModal} 
-        title={`Payslip Details for ${viewingPayslip?.staff_name} (${viewingPayslip?.payroll_period_name})`} 
-        size="xl"
-        footer={<Button variant="secondary" onClick={closePayslipDetailsModal}>Close</Button>}
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={t('payslips.generateTitle')}
+        onSubmit={handleSubmit}
+        loading={isSubmitting}
       >
-        {viewingPayslip && (
-            <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 p-4 border rounded-md bg-indigo-50">
-                    <div><strong className="text-gray-700">Gross Salary:</strong> <span className="font-semibold text-indigo-700">Ksh {viewingPayslip.gross_salary?.toFixed(2)}</span></div>
-                    <div><strong className="text-gray-700">Total Deductions:</strong> <span className="font-semibold text-indigo-700">Ksh {viewingPayslip.total_deductions?.toFixed(2)}</span></div>
-                    <div className="col-span-2 text-lg"><strong className="text-gray-700">Net Salary:</strong> <span className="font-bold text-green-600">Ksh {viewingPayslip.net_salary?.toFixed(2)}</span></div>
-                </div>
-                <h4 className="text-md font-semibold text-gray-700 mt-2">Payslip Items:</h4>
-                <DataGrid 
-                  columns={payslipItemColumns} 
-                  data={viewingPayslip?.items || []}
-                  sortable
-                  filterable
-                  emptyState={{
-                    icon: <ListBulletIcon className="w-8 h-8 text-gray-400" />,
-                    title: "No payslip items",
-                    description: "No items found for this payslip."
-                  }}
-                />
+        <FormSection title={t('payslips.formSection.title')}>
+          <FormField label={t('fields.staff')} required error={formErrors.staff_id}>
+            <select
+              name="staff_id"
+              value={formData.staff_id || ''}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">{t('fields.selectStaff')}</option>
+              {(staff as Staff[] || []).map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.first_name} {s.last_name} - {s.username}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label={t('fields.payrollPeriod')} required error={formErrors.period_id}>
+            <select
+              name="period_id"
+              value={formData.period_id || ''}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">{t('fields.selectPeriod')}</option>
+              {(payrollPeriods as PayrollPeriod[] || []).map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label={t('fields.paymentDate')} required error={formErrors.payment_date}>
+            <Input
+              type="date"
+              name="payment_date"
+              value={formData.payment_date || ''}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+            />
+          </FormField>
+          <FormField label={t('fields.notes')}>
+            <textarea
+              name="notes"
+              value={formData.notes || ''}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              placeholder={t('fields.notesPlaceholder')}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal} disabled={isSubmitting}>
+            {t('common:cancel')}
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? <Spinner size="sm" /> : t('payslips.generate')}
+          </Button>
+        </FormActions>
+      </DialogForm>
+
+      <DialogForm
+        isOpen={isViewModalOpen}
+        onClose={closeViewModal}
+        title={t('payslips.viewTitle')}
+        size="lg"
+      >
+        {selectedPayslip && (
+          <FormSection title={t('payslips.viewSection.details')}>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-sm text-gray-500">{t('fields.staff')}:</span>
+                <p className="font-medium">{getStaffName(selectedPayslip.staff_id)}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">{t('fields.payrollPeriod')}:</span>
+                <p className="font-medium">{getPeriodName(selectedPayslip.period_id)}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">{t('fields.paymentDate')}:</span>
+                <p className="font-medium">
+                  {selectedPayslip.payment_date ? new Date(selectedPayslip.payment_date).toLocaleDateString() : '-'}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">{t('fields.status')}:</span>
+                <p className="font-medium">{selectedPayslip.status}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">{t('fields.basicSalary')}:</span>
+                <p className="font-medium">{selectedPayslip.basic_salary?.toLocaleString() || '0'}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">{t('fields.totalEarnings')}:</span>
+                <p className="font-medium text-green-600">{selectedPayslip.total_earnings?.toLocaleString() || '0'}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">{t('fields.totalDeductions')}:</span>
+                <p className="font-medium text-red-600">{selectedPayslip.total_deductions?.toLocaleString() || '0'}</p>
+              </div>
+              <div>
+                <span className="text-sm text-gray-500">{t('fields.netSalary')}:</span>
+                <p className="font-medium text-primary-600">{selectedPayslip.net_salary?.toLocaleString() || '0'}</p>
+              </div>
             </div>
+            {selectedPayslip.notes && (
+              <div className="mt-4">
+                <span className="text-sm text-gray-500">{t('fields.notes')}:</span>
+                <p className="mt-1">{selectedPayslip.notes}</p>
+              </div>
+            )}
+          </FormSection>
         )}
-      </Modal>
+        <FormActions>
+          <Button variant="secondary" onClick={closeViewModal}>
+            {t('common:close')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

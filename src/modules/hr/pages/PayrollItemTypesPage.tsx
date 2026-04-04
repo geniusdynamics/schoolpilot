@@ -1,244 +1,290 @@
-import React, { useState } from 'react';
-import { PayrollItemType, PayrollItemCategory, PayrollTaxImplication } from '@/types';
-import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import Card from '@/components/ui/Card';
+import Table from '@/components/ui/Table';
+import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData';
+import Spinner from '@/components/ui/Spinner';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
+import type { PayrollItemType } from '@/types';
 
-type PayrollItemTypeFormData = Omit<Partial<PayrollItemType>, 'id' | 'created_at' | 'updated_at' | 'category' | 'tax_implication'> & {
-    category: PayrollItemCategory; 
-    tax_implication: PayrollTaxImplication;
-};
+type PayrollItemTypeFormData = Omit<Partial<PayrollItemType>, 'id' | 'created_at' | 'updated_at'>;
 
 const PayrollItemTypesPage: React.FC = () => {
-  const { 
-    payrollItemTypes, 
-    loading, 
-    addPayrollItemType, 
-    updatePayrollItemType, 
-    deletePayrollItemType 
-  } = useAppData(); // Updated
+  const { t } = useTranslation('hr');
+  const { payrollItemTypes, loading: appDataLoading, refreshCollection } = useAppData();
   
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItemType, setEditingItemType] = useState<PayrollItemType | null>(null);
-  const initialFormData: PayrollItemTypeFormData = { 
-    name: '', 
-    category: PayrollItemCategory.EARNING, 
-    tax_implication: PayrollTaxImplication.TAXABLE 
-  };
-  const [formData, setFormData] = useState<PayrollItemTypeFormData>(initialFormData);
+  const [editingItem, setEditingItem] = useState<PayrollItemType | null>(null);
+  const [formData, setFormData] = useState<PayrollItemTypeFormData>({
+    name: '',
+    code: '',
+    type: 'earning',
+    description: '',
+    is_active: true,
+    is_system_defined: false,
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const openModal = (itemType?: PayrollItemType) => {
-    setEditingItemType(itemType || null);
-    setFormData(itemType ? 
-      { 
-        name: itemType.name, 
-        category: itemType.category, 
-        tax_implication: itemType.tax_implication 
-      } : 
-      initialFormData
-    );
+  const openModal = useCallback((item?: PayrollItemType) => {
+    if (item) {
+      setEditingItem(item);
+      setFormData({
+        name: item.name,
+        code: item.code,
+        type: item.type,
+        description: item.description || '',
+        is_active: item.is_active,
+        is_system_defined: item.is_system_defined || false,
+      });
+    } else {
+      setEditingItem(null);
+      setFormData({
+        name: '',
+        code: '',
+        type: 'earning',
+        description: '',
+        is_active: true,
+        is_system_defined: false,
+      });
+    }
+    setFormErrors({});
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
-    setEditingItemType(null);
-    setFormData(initialFormData);
-  };
+    setEditingItem(null);
+    setFormData({
+      name: '',
+      code: '',
+      type: 'earning',
+      description: '',
+      is_active: true,
+      is_system_defined: false,
+    });
+    setFormErrors({});
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    setFormData(prev => ({ ...prev, [name]: val }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  }, [formErrors]);
 
-  const handleSubmit = async () => {
-    if (!formData.name || !formData.category || !formData.tax_implication) {
-      alert("Name, Category, and Tax Implication are required.");
+  const validateForm = useCallback((): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.name?.trim()) {
+      errors.name = t('payrollItemTypes.validation.nameRequired') || 'Name is required';
+    }
+    if (!formData.code?.trim()) {
+      errors.code = t('payrollItemTypes.validation.codeRequired') || 'Code is required';
+    }
+    if (!formData.type) {
+      errors.type = t('payrollItemTypes.validation.typeRequired') || 'Type is required';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [formData, t]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!validateForm()) {
       return;
     }
-    const payload: Omit<PayrollItemType, 'id' | 'created_at' | 'updated_at'> = {
-      name: formData.name!,
-      category: formData.category,
-      tax_implication: formData.tax_implication,
-    };
 
-    if (editingItemType) {
-      await updatePayrollItemType({ ...editingItemType, ...payload });
-    } else {
-      await addPayrollItemType(payload);
+    setIsSubmitting(true);
+    try {
+      const dbManager = await import('@/services/database/UnifiedDatabaseManager').then(m => m.UnifiedDatabaseManager);
+      const db = dbManager.getInstance();
+      const collection = db.getCollection<PayrollItemType>('payroll_item_types');
+      
+      const timestamp = new Date().toISOString();
+
+      if (editingItem) {
+        await collection?.update(editingItem.id.toString(), {
+          name: formData.name,
+          code: formData.code,
+          type: formData.type as 'earning' | 'deduction',
+          description: formData.description,
+          is_active: formData.is_active,
+          updated_at: timestamp,
+        });
+      } else {
+        const newId = Date.now();
+        await collection?.insert({
+          id: newId,
+          name: formData.name!,
+          code: formData.code!,
+          type: formData.type as 'earning' | 'deduction',
+          description: formData.description,
+          is_active: formData.is_active ?? true,
+          is_system_defined: false,
+          created_at: timestamp,
+          updated_at: timestamp,
+        });
+      }
+
+      await refreshCollection('payrollItemTypes');
+      closeModal();
+    } catch (error) {
+      console.error('Error saving payroll item type:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-    closeModal();
-  };
+  }, [editingItem, formData, refreshCollection, closeModal, validateForm]);
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this payroll item type? This might affect staff salary settings and payslips.')) {
-      await deletePayrollItemType(id);
+  const handleDelete = useCallback(async (item: PayrollItemType) => {
+    if (item.is_system_defined) {
+      alert(t('payrollItemTypes.cannotDeleteSystem') || 'Cannot delete system-defined items');
+      return;
     }
-  };
 
-  const columns: DataGridColumn<PayrollItemType>[] = [
+    if (!confirm(t('payrollItemTypes.confirmDelete') || 'Are you sure you want to delete this item?')) {
+      return;
+    }
+
+    try {
+      const dbManager = await import('@/services/database/UnifiedDatabaseManager').then(m => m.UnifiedDatabaseManager);
+      const db = dbManager.getInstance();
+      const collection = db.getCollection<PayrollItemType>('payroll_item_types');
+      await collection?.remove(item.id.toString());
+      await refreshCollection('payrollItemTypes');
+    } catch (error) {
+      console.error('Error deleting payroll item type:', error);
+    }
+  }, [refreshCollection, t]);
+
+  const columns = [
+    { header: t('tableHeaders.id'), key: 'id' as keyof PayrollItemType },
+    { header: t('tableHeaders.name'), key: 'name' as keyof PayrollItemType },
+    { header: t('tableHeaders.code'), key: 'code' as keyof PayrollItemType },
+    { header: t('tableHeaders.type'), key: 'type' as keyof PayrollItemType },
+    { header: t('tableHeaders.status'), key: 'is_active' as keyof PayrollItemType },
     {
-      key: 'id',
-      header: 'ID',
-      sortable: true,
-      width: 80,
-      sticky: true
-    },
-    {
-      key: 'name',
-      header: 'Item Name',
-      sortable: true,
-      filterable: true
-    },
-    {
-      key: 'category',
-      header: 'Category',
-      sortable: true,
-      filterable: true,
-      width: 150,
-      render: (value) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          value === PayrollItemCategory.EARNING ? 'bg-green-100 text-green-800' :
-          value === PayrollItemCategory.DEDUCTION ? 'bg-red-100 text-red-800' :
-          'bg-blue-100 text-blue-800' // CONTRIBUTION
-        }`}>
-          {value}
-        </span>
-      )
-    },
-    {
-      key: 'tax_implication',
-      header: 'Tax Implication',
-      sortable: true,
-      filterable: true,
-      width: 150,
-      render: (value) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          value === PayrollTaxImplication.TAXABLE ? 'bg-orange-100 text-orange-800' :
-          'bg-gray-100 text-gray-800' // NON_TAXABLE
-        }`}>
-          {value}
-        </span>
-      )
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      width: 180,
-      render: (_, row) => (
-        <div className="flex space-x-2">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            onClick={() => openModal(row)} 
-            leftIcon={<EditIcon className="w-4 h-4" />}
-          >
-            Edit
+      header: t('tableHeaders.actions'),
+      key: 'id' as keyof PayrollItemType,
+      render: (_: any, item: PayrollItemType) => (
+        <div className="flex gap-2">
+          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
+            {t('common:edit')}
           </Button>
-          <Button 
-            size="sm" 
-            variant="danger" 
-            onClick={() => handleDelete(row.id)} 
-            leftIcon={<DeleteIcon className="w-4 h-4" />}
-          >
-            Delete
-          </Button>
+          {!item.is_system_defined && (
+            <Button size="sm" variant="danger" onClick={() => handleDelete(item)} leftIcon={<DeleteIcon className="w-4 h-4" />}>
+              {t('common:delete')}
+            </Button>
+          )}
         </div>
-      )
-    }
+      ),
+    },
   ];
-
-  if (loading.payrollItemTypes && !isModalOpen) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner size="lg" /> <span className="ml-2">Loading Payroll Item Types...</span>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
-      <Card title="Payroll Item Types Management" actions={
-        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
-          Add Item Type
-        </Button>
-      }>
-        <React.Fragment>
-          <p className="text-sm text-gray-600 mb-4">
-            Define various types of payroll items such as earnings, deductions, and contributions.
-          </p>
-          <DataGrid
-            columns={columns}
-            data={payrollItemTypes || []}
-            loading={loading.payrollItemTypes && isModalOpen}
-            sortable={true}
-            filterable={true}
-            emptyState={
-              <div className="text-center py-12">
-                <ListBulletIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No payroll item types found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Get started by defining your first payroll item type for earnings, deductions, or contributions.
-                </p>
-                <div className="mt-6">
-                  <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-4 h-4" />}>
-                    Add Item Type
-                  </Button>
-                </div>
-              </div>
-            }
-            className="mt-4"
-          />
-        </React.Fragment>
-      </Card>
-
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingItemType ? 'Edit Payroll Item Type' : 'Add New Payroll Item Type'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.payrollItemTypes}>
-              {loading.payrollItemTypes ? <Spinner size="sm"/> : (editingItemType ? 'Save Changes' : 'Add Item Type')}
-            </Button>
-          </>
+      <Card
+        title={t('payrollItemTypes.title')}
+        actions={
+          <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            {t('payrollItemTypes.addButton')}
+          </Button>
         }
       >
-        <Input 
-          name="name" 
-          label="Item Name" 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Select 
-          name="category" 
-          label="Category" 
-          value={formData.category} 
-          onChange={handleInputChange}
-          required
-        >
-          {Object.values(PayrollItemCategory).map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </Select>
-        <Select 
-          name="tax_implication" 
-          label="Tax Implication" 
-          value={formData.tax_implication} 
-          onChange={handleInputChange}
-          required
-        >
-          {Object.values(PayrollTaxImplication).map((taxImp) => (
-            <option key={taxImp} value={taxImp}>{taxImp}</option>
-          ))}
-        </Select>
-      </Modal>
+        <p className="text-sm text-gray-600 mb-4">{t('payrollItemTypes.description')}</p>
+        {appDataLoading.payrollItemTypes ? (
+          <div className="flex justify-center py-8">
+            <Spinner />
+          </div>
+        ) : (
+          <Table
+            columns={columns}
+            data={payrollItemTypes || []}
+            emptyStateMessage={t('payrollItemTypes.noItems') || 'No payroll item types found'}
+          />
+        )}
+      </Card>
+
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingItem ? t('payrollItemTypes.modalEditTitle') : t('payrollItemTypes.modalAddTitle')}
+        onSubmit={handleSubmit}
+        loading={isSubmitting}
+      >
+        <FormSection title={t('payrollItemTypes.formSection.title')}>
+          <FormField label={t('fields.name')} required error={formErrors.name}>
+            <Input
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              placeholder={t('fields.namePlaceholder')}
+            />
+          </FormField>
+          <FormField label={t('fields.code')} required error={formErrors.code}>
+            <Input
+              name="code"
+              value={formData.code || ''}
+              onChange={handleInputChange}
+              disabled={isSubmitting || editingItem?.is_system_defined}
+              placeholder={t('fields.codePlaceholder')}
+            />
+          </FormField>
+          <FormField label={t('fields.type')} required error={formErrors.type}>
+            <select
+              name="type"
+              value={formData.type || ''}
+              onChange={handleInputChange}
+              disabled={isSubmitting || editingItem?.is_system_defined}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="earning">{t('fields.typeEarning')}</option>
+              <option value="deduction">{t('fields.typeDeduction')}</option>
+            </select>
+          </FormField>
+          <FormField label={t('fields.description')}>
+            <textarea
+              name="description"
+              value={formData.description || ''}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+              placeholder={t('fields.descriptionPlaceholder')}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+          </FormField>
+          <FormField>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="is_active"
+                checked={formData.is_active ?? true}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-700">{t('fields.isActive')}</span>
+            </label>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal} disabled={isSubmitting}>
+            {t('common:cancel')}
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? <Spinner size="sm" /> : (editingItem ? t('common:save') : t('common:create'))}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

@@ -8,7 +8,10 @@ import { ExamSessionStatus } from '../data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, ChartPieIcon, ListBulletIcon } from '@/components/ui/icons';
@@ -271,72 +274,79 @@ const ExamSessionsPage: React.FC = () => {
       </Card>
 
       {/* Session Modal */}
-      <Modal isOpen={isSessionModalOpen} onClose={closeSessionModal} title={editingSession ? 'Edit Exam Session' : 'Add New Exam Session'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeSessionModal}>Cancel</Button>
-            <Button onClick={handleSessionSubmit} disabled={loading.examSessions}>
-              {loading.examSessions ? <Spinner size="sm"/> : (editingSession ? 'Save Changes' : 'Add Session')}
-            </Button>
-          </>
-        }
-      >
-        <Input 
-          name="name" 
-          label="Exam Session Name" 
-          value={sessionFormData.name || ''} 
-          onChange={handleSessionInputChange} 
-          required 
-        />
-        <Select 
-          name="school_period_id" 
-          label="School Period" 
-          value={sessionFormData.school_period_id || ''} 
-          onChange={handleSessionInputChange}
-          required
-        >
-          <option value="">Select School Period</option>
-          {schoolPeriods.map((period: SchoolPeriod) => (
-            <option key={period.id} value={period.id}>{period.name}</option>
-          ))}
-        </Select>
-        <Select 
-          name="status" 
-          label="Status" 
-          value={sessionFormData.status || ''} 
-          onChange={handleSessionInputChange}
-          required
-        >
-          {Object.values(ExamSessionStatus).map((status) => (
-            <option key={status} value={status}>{status}</option>
-          ))}
-        </Select>
-      </Modal>
+      <DialogForm isOpen={isSessionModalOpen} onClose={closeSessionModal} title={editingSession ? 'Edit Exam Session' : 'Add New Exam Session'} size="lg">
+        <FormSection title="Session Information">
+          <FormField label="Exam Session Name" required>
+            <Input 
+              name="name" 
+              value={sessionFormData.name || ''} 
+              onChange={handleSessionInputChange} 
+              required 
+            />
+          </FormField>
+          <FormField label="School Period" required>
+            <Select 
+              name="school_period_id" 
+              value={sessionFormData.school_period_id || ''} 
+              onChange={handleSessionInputChange}
+              required
+            >
+              <option value="">Select School Period</option>
+              {schoolPeriods.map((period: SchoolPeriod) => (
+                <option key={period.id} value={period.id}>{period.name}</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Status" required>
+            <Select 
+              name="status" 
+              value={sessionFormData.status || ''} 
+              onChange={handleSessionInputChange}
+              required
+            >
+              {Object.values(ExamSessionStatus).map((status) => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeSessionModal}>Cancel</Button>
+          <Button onClick={handleSessionSubmit} disabled={loading.examSessions}>
+            {loading.examSessions ? <Spinner size="sm"/> : (editingSession ? 'Save Changes' : 'Add Session')}
+          </Button>
+        </FormActions>
+      </DialogForm>
 
       {/* Paper Settings Modal */}
-      <Modal 
+      <DialogForm 
         isOpen={isPaperSettingModalOpen} 
         onClose={closePaperSettingModal} 
         title={`Manage Paper Settings for: ${activeSessionForPapers?.name || ''}`} 
         size="xl"
-        footer={<Button variant="secondary" onClick={closePaperSettingModal}>Done</Button>}
       >
         {activeSessionForPapers && (
           <div className="space-y-4">
             <Card title="Add/Edit Paper Setting">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select name="subject_paper_id" label="Subject Paper" value={paperSettingFormData.subject_paper_id || ''} onChange={handlePaperSettingInputChange} required>
-                    <option value="">Select Subject Paper</option>
-                    {subjectPapers.map(sp => <option key={sp.id} value={sp.id}>{sp.subject_name} - {sp.name}</option>)}
-                </Select>
-                <Input name="marks_out_of" label="Marks Out Of" type="number" value={paperSettingFormData.marks_out_of || ''} onChange={handlePaperSettingInputChange} required />
-                <Input name="weight_percentage" label="Weight (%)" type="number" value={paperSettingFormData.weight_percentage || ''} onChange={handlePaperSettingInputChange} required />
-              </div>
-              <div className="text-right mt-4">
+              <FormSection title="Paper Configuration">
+                <FormField label="Subject Paper" required>
+                  <Select name="subject_paper_id" value={paperSettingFormData.subject_paper_id || ''} onChange={handlePaperSettingInputChange} required>
+                      <option value="">Select Subject Paper</option>
+                      {subjectPapers.map(sp => <option key={sp.id} value={sp.id}>{sp.subject_name} - {sp.name}</option>)}
+                  </Select>
+                </FormField>
+                <FormField label="Marks Out Of" required>
+                  <Input name="marks_out_of" type="number" value={paperSettingFormData.marks_out_of || ''} onChange={handlePaperSettingInputChange} required />
+                </FormField>
+                <FormField label="Weight (%)" required>
+                  <Input name="weight_percentage" type="number" value={paperSettingFormData.weight_percentage || ''} onChange={handlePaperSettingInputChange} required />
+                </FormField>
+              </FormSection>
+              <FormActions>
                 <Button onClick={handlePaperSettingSubmit} size="sm" disabled={loading.examSessions}>
                   {loading.examSessions ? <Spinner size="sm"/> : (editingPaperSetting ? 'Update Paper' : 'Add Paper')}
                 </Button>
-              </div>
+              </FormActions>
             </Card>
             
             <h4 className="text-md font-semibold text-gray-700 mt-6">Configured Papers for this Session</h4>
@@ -346,7 +356,10 @@ const ExamSessionsPage: React.FC = () => {
             />
           </div>
         )}
-      </Modal>
+        <FormActions>
+          <Button variant="secondary" onClick={closePaperSettingModal}>Done</Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

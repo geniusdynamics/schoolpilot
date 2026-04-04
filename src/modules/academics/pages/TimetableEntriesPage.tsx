@@ -3,7 +3,7 @@ import { ClassStream, Staff } from '@/types';
 import { DayOfWeek, TimetableEntry, TimetablePeriodDef, Subject } from '@/core/types';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TableCellsIcon, PrinterIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated

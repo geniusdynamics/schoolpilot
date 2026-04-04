@@ -3,7 +3,10 @@ import { Merchant, ChartOfAccount, AccountType } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
@@ -151,37 +154,46 @@ const MerchantsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingMerchant ? 'Edit Merchant' : 'Add New Merchant'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.merchants}>
-              {loading.merchants ? <Spinner size="sm"/> : (editingMerchant ? 'Save Changes' : 'Add Merchant')}
-            </Button>
-          </>
-        }
+      <DialogForm 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+        title={editingMerchant ? 'Edit Merchant' : 'Add New Merchant'} 
+        size="lg"
+        onSubmit={handleSubmit}
       >
-        <Input 
-          name="name" 
-          label="Merchant Name" 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Select 
-          name="gl_account_id" 
-          label="GL Account for Sales (Revenue Account)" 
-          value={formData.gl_account_id || ''} 
-          onChange={handleInputChange}
-        >
-          <option value="">Select GL Revenue Account</option>
-          {revenueAccounts.map((coa: ChartOfAccount) => (
-            <option key={coa.id} value={coa.id}>
-              {coa.account_code} - {coa.name}
-            </option>
-          ))}
-        </Select>
-      </Modal>
+        <FormSection>
+          <FormField>
+            <Input 
+              name="name" 
+              label="Merchant Name" 
+              value={formData.name || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+          <FormField>
+            <Select 
+              name="gl_account_id" 
+              label="GL Account for Sales (Revenue Account)" 
+              value={formData.gl_account_id || ''} 
+              onChange={handleInputChange}
+            >
+              <option value="">Select GL Revenue Account</option>
+              {revenueAccounts.map((coa: ChartOfAccount) => (
+                <option key={coa.id} value={coa.id}>
+                  {coa.account_code} - {coa.name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading.merchants}>
+            {loading.merchants ? <Spinner size="sm"/> : (editingMerchant ? 'Save Changes' : 'Add Merchant')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

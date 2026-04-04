@@ -5,7 +5,10 @@ import { StudentEnrollmentStatus, Subject } from '@/modules/academics/data/types
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input'; 
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon } from '@/components/ui/icons';
@@ -279,67 +282,70 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
         <DataGrid columns={columnsForListing} data={(studentSubjectEnrollments || [])} loading={loading.studentSubjectEnrollments && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingEnrollment ? 'Edit Enrollment Status' : 'Enroll Student in Subject'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.studentSubjectEnrollments}>
-              {loading.studentSubjectEnrollments ? <Spinner size="sm"/> : (editingEnrollment ? 'Save Changes' : 'Enroll Student')}
-            </Button>
-          </>
-        }
-      >
-        <Select 
-          name="student_id" 
-          label="Student" 
-          value={formData.student_id || ''} 
-          onChange={handleInputChange}
-          required
-          disabled={!!editingEnrollment} 
-        >
-          <option value="">Select Student</option>
-          {(students || []).filter(s => s.status === StudentStatus.ACTIVE).map((std: Student) => (
-            <option key={std.id} value={std.id}>{std.first_name} {std.last_name} ({std.admission_no}) - {std.current_class_name} {std.current_class_stream_name}</option>
-          ))}
-        </Select>
-        <Select 
-          name="class_subject_allocation_id" 
-          label="Subject Allocation" 
-          value={formData.class_subject_allocation_id || ''} 
-          onChange={handleInputChange}
-          required
-          disabled={!!editingEnrollment || !formData.student_id}
-        >
-          <option value="">Select Subject (for Student's Class)</option>
-          {(classSubjectAllocations || [])
-            .filter(alloc => !formData.student_id || alloc.class_stream_id === (students || []).find(s => s.id === formData.student_id)?.current_class_stream_id) // Filter by selected student's class stream
-            .map((alloc: any) => (
-            <option key={alloc.id} value={alloc.id}>
-              {alloc.subject_name} ({alloc.class_stream_name} - {alloc.academic_year_name})
-            </option>
-          ))}
-        </Select>
-        <Input 
-            name="enrollment_date" 
-            label="Enrollment Date" 
-            type="date" 
-            value={formData.enrollment_date || ''} 
-            onChange={handleInputChange} 
-            required
-            disabled={!!editingEnrollment}
-        />
-        <Select 
-            name="status" 
-            label="Enrollment Status" 
-            value={formData.status} 
-            onChange={handleInputChange}
-            required
-        >
-            {Object.values(StudentEnrollmentStatus).map(status => (
-                <option key={status} value={status}>{status}</option>
-            ))}
-        </Select>
-      </Modal>
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingEnrollment ? 'Edit Enrollment Status' : 'Enroll Student in Subject'} size="lg">
+        <FormSection title="Student Information">
+          <FormField label="Student" required>
+            <Select 
+              name="student_id" 
+              value={formData.student_id || ''} 
+              onChange={handleInputChange}
+              required
+              disabled={!!editingEnrollment} 
+            >
+              <option value="">Select Student</option>
+              {(students || []).filter(s => s.status === StudentStatus.ACTIVE).map((std: Student) => (
+                <option key={std.id} value={std.id}>{std.first_name} {std.last_name} ({std.admission_no}) - {std.current_class_name} {std.current_class_stream_name}</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Subject Allocation" required>
+            <Select 
+              name="class_subject_allocation_id" 
+              value={formData.class_subject_allocation_id || ''} 
+              onChange={handleInputChange}
+              required
+              disabled={!!editingEnrollment || !formData.student_id}
+            >
+              <option value="">Select Subject (for Student's Class)</option>
+              {(classSubjectAllocations || [])
+                .filter(alloc => !formData.student_id || alloc.class_stream_id === (students || []).find(s => s.id === formData.student_id)?.current_class_stream_id) // Filter by selected student's class stream
+                .map((alloc: any) => (
+                <option key={alloc.id} value={alloc.id}>
+                  {alloc.subject_name} ({alloc.class_stream_name} - {alloc.academic_year_name})
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Enrollment Date" required>
+            <Input 
+                name="enrollment_date" 
+                type="date" 
+                value={formData.enrollment_date || ''} 
+                onChange={handleInputChange} 
+                required
+                disabled={!!editingEnrollment}
+            />
+          </FormField>
+          <FormField label="Enrollment Status" required>
+            <Select 
+                name="status" 
+                value={formData.status} 
+                onChange={handleInputChange}
+                required
+            >
+                {Object.values(StudentEnrollmentStatus).map(status => (
+                    <option key={status} value={status}>{status}</option>
+                ))}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading.studentSubjectEnrollments}>
+            {loading.studentSubjectEnrollments ? <Spinner size="sm"/> : (editingEnrollment ? 'Save Changes' : 'Enroll Student')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };
