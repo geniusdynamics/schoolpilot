@@ -4,6 +4,7 @@ import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { i18nReady } from '../i18n/i18n';
+import TopOverflowMenu from './TopOverflowMenu';
 
 // Error boundary for PrimarySidebar
 class PrimarySidebarErrorBoundary extends React.Component<
@@ -404,11 +405,12 @@ const PrimarySidebarContent: React.FC<{
 
   return (
     <aside className={sidebarClassName}>
-      {/* Logo at the top */}
-      <div className="flex-shrink-0 mb-4">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
-          E
-        </div>
+      {/* Top Overflow Menu (ERPNext-style) at the top */}
+      <div className="flex-shrink-0 mb-4 w-full px-1">
+        <TopOverflowMenu
+          currentModule={selectedModuleKey}
+          onModuleSelect={onModuleSelect}
+        />
       </div>
 
       {/* Content container - responsive spacing and scrolling */}

@@ -10,7 +10,8 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { PlusIcon, EyeIcon, EditIcon, CheckCircleIcon } from '@/components/ui/icons';
 import { databaseService } from '@/services/databaseService';
 import { useTranslation } from 'react-i18next';
-import type { DisciplinaryCase, DisciplinarySeverity, DisciplinaryStatus, DisciplinaryAction, DisciplinaryCategory } from '../data/types';
+import { DisciplinaryCategory, DisciplinarySeverity, DisciplinaryStatus, DisciplinaryAction } from '../data/types';
+import type { DisciplinaryCase } from '../data/types';
 
 const DisciplinaryCasesPage: React.FC = () => {
   const { t } = useTranslation('administration');

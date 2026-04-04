@@ -10,7 +10,8 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { PlusIcon, EyeIcon, CheckCircleIcon, LogOutIcon } from '@/components/ui/icons';
 import { databaseService } from '@/services/databaseService';
 import { useTranslation } from 'react-i18next';
-import type { VisitorLog, VisitorType, VisitorStatus } from '../data/types';
+import { VisitorType, VisitorStatus } from '../data/types';
+import type { VisitorLog } from '../data/types';
 
 const VisitorsManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');

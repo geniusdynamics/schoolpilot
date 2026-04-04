@@ -294,7 +294,11 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   
   return (
     <div className="flex flex-col min-h-screen w-screen bg-slate-100">
-      <Header onSettings={() => setShowSettings(true)} />
+      <Header
+        onSettings={() => setShowSettings(true)}
+        currentModule={selectedModuleKey}
+        onModuleSelect={handleModuleSelect}
+      />
       
       <div className="flex flex-1 pt-16">
         {/* Fixed sidebars - positioned with CSS position:fixed, no flex space */}

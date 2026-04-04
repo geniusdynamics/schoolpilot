@@ -8,7 +8,6 @@ import UserMenu from './UserMenu';
 import { NetworkStatusIndicator } from './OfflineCapability';
 import ModuleHealthIndicator from './ModuleHealthIndicator';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
-
 const notifications = 3; // Example notification count
 
 const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {

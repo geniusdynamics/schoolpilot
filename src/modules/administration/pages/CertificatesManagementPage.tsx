@@ -10,7 +10,8 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { PlusIcon, EyeIcon, CheckCircleIcon, XCircleIcon } from '@/components/ui/icons';
 import { databaseService } from '@/services/databaseService';
 import { useTranslation } from 'react-i18next';
-import type { CertificateRequest, CertificateType, CertificateStatus } from '../data/types';
+import { CertificateType, CertificateStatus } from '../data/types';
+import type { CertificateRequest } from '../data/types';
 
 const CertificatesManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');

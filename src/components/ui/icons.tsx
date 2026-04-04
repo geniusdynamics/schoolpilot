@@ -520,6 +520,7 @@ export const ArrowLeftOnRectangleIcon: React.FC<IconProps> = (props) => (
   </svg>
 );
 export const LogoutIcon: React.FC<IconProps> = ArrowLeftOnRectangleIcon; // Alias
+export const LogOutIcon: React.FC<IconProps> = LogoutIcon; // Alternative casing
 
 export const CheckIcon: React.FC<IconProps> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
