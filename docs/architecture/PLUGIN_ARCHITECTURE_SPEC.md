@@ -7,14 +7,16 @@ SchoolPilot3 implements a comprehensive plugin architecture that enables extensi
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
-2. [Plugin Types](#plugin-types)
-3. [Plugin Manifest](#plugin-manifest)
-4. [Hook System](#hook-system)
-5. [Marketplace Integration](#marketplace-integration)
-6. [Admin Configuration](#admin-configuration)
-7. [Security Model](#security-model)
-8. [Go WASM Integration](#go-wasm-integration)
-9. [Implementation Guide](#implementation-guide)
+2. [Builtin Plugin Loader](#builtin-plugin-loader)
+3. [Plugin Types](#plugin-types)
+4. [Plugin Manifest](#plugin-manifest)
+5. [Hook System](#hook-system)
+6. [Marketplace Integration](#marketplace-integration)
+7. [Admin Configuration](#admin-configuration)
+8. [Security Model](#security-model)
+9. [Go WASM Integration](#go-wasm-integration)
+10. [Implementation Guide](#implementation-guide)
+11. [Builtin Plugins Reference](#builtin-plugins-reference)
 
 ---
 
@@ -70,6 +72,143 @@ SchoolPilot3 implements a comprehensive plugin architecture that enables extensi
 | **PluginsProvider** | `src/plugins/PluginsProvider.tsx` | React context provider |
 | **PluginMarketplace** | `src/services/PluginMarketplace.ts` | Marketplace API client |
 | **Builtin Plugins** | `src/plugins/builtin/` | Pre-installed core plugins |
+| **BuiltinLoader** | `src/plugins/BuiltinLoader.ts` | Auto-discovery loader |
+
+---
+
+## Builtin Plugin Loader
+
+The Builtin Plugin Loader provides automatic discovery and loading of core plugins shipped with SchoolPilot3. This eliminates the need for manual plugin registration and ensures essential plugins are always available.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    BuiltinLoader                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────────┐     ┌─────────────────────────────┐  │
+│  │ BUILTIN_PLUGINS  │────►│  loadAllBuiltinPlugins()    │  │
+│  │   (registry)     │     │                             │  │
+│  └──────────────────┘     │  1. Iterate registry        │  │
+│           │               │  2. Dynamic import          │  │
+│           │               │  3. Validate structure      │  │
+│           ▼               │  4. Return loaded plugins   │  │
+│  ┌──────────────────┐     └─────────────────────────────┘  │
+│  │  PluginManager   │                    │                  │
+│  │                  │◄───────────────────┘                  │
+│  │  loadBuiltin()   │                                       │
+│  └──────────────────┘                                       │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Plugin Registry
+
+Builtin plugins are registered in `BuiltinLoader.ts`:
+
+```typescript
+const BUILTIN_PLUGINS: PluginDirectory[] = [
+  { name: 'whitelabel', path: './whitelabel' },
+  { name: 'grading-engine', path: './grading-engine' },
+  { name: 'fee-calculator', path: './fee-calculator' },
+];
+```
+
+### Loading Process
+
+1. **Discovery**: Loader iterates through `BUILTIN_PLUGINS` registry
+2. **Import**: Dynamically imports each plugin module
+3. **Validation**: Verifies plugin has valid `manifest` and `module` exports
+4. **Registration**: Returns `LoadedPlugin` objects for PluginManager
+
+```typescript
+// src/plugins/BuiltinLoader.ts
+export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
+  const plugins: LoadedPlugin[] = [];
+
+  for (const dirInfo of BUILTIN_PLUGINS) {
+    const plugin = await loadBuiltinPlugin(dirInfo);
+    if (plugin) {
+      plugins.push(plugin);
+    }
+  }
+
+  return plugins;
+}
+```
+
+### Integration with PluginManager
+
+The PluginManager loads builtin plugins during initialization:
+
+```typescript
+// src/plugins/PluginManager.ts
+class PluginManager {
+  async initialize(): Promise<void> {
+    // Load builtin plugins first
+    const builtinPlugins = await loadAllBuiltinPlugins();
+
+    for (const plugin of builtinPlugins) {
+      await this.registerPlugin(plugin);
+    }
+
+    // Then load user-installed plugins...
+  }
+}
+```
+
+### Creating a Builtin Plugin
+
+1. **Create plugin directory**
+```bash
+mkdir -p src/plugins/builtin/my-plugin
+```
+
+2. **Create plugin structure**
+```typescript
+// src/plugins/builtin/my-plugin/index.ts
+import type { PluginManifest, PluginModule } from '../../types';
+
+export const manifest: PluginManifest = {
+  id: 'com.schoolpilot.my-plugin',
+  name: 'My Plugin',
+  version: '1.0.0',
+  type: 'module',
+  entry: './index.ts',
+  category: 'builtin',
+};
+
+const module: PluginModule = {
+  async activate(context) {
+    // Plugin activation logic
+  },
+  async deactivate() {
+    // Cleanup logic
+  },
+};
+
+export default { manifest, module };
+```
+
+3. **Register in BuiltinLoader**
+```typescript
+// src/plugins/BuiltinLoader.ts
+const BUILTIN_PLUGINS: PluginDirectory[] = [
+  // ... existing plugins
+  { name: 'my-plugin', path: './my-plugin' },
+];
+```
+
+### Builtin vs External Plugins
+
+| Aspect | Builtin Plugins | External Plugins |
+|--------|----------------|------------------|
+| **Location** | `src/plugins/builtin/` | Marketplace / Manual install |
+| **Loading** | Auto-discovered | Manual registration |
+| **Trust Level** | Trusted (no sandbox) | Verified/Community (sandboxed) |
+| **Updates** | With app releases | Independent updates |
+| **Purpose** | Core functionality | Extended features |
 
 ---
 
@@ -779,3 +918,199 @@ src/modules/settings/pages/
 - **Examples**: `/src/plugins/builtin/`
 - **Community**: GitHub Discussions
 - **Enterprise Support**: support@schoolpilot3.com
+
+---
+
+## Builtin Plugins Reference
+
+SchoolPilot3 ships with several builtin plugins that provide core functionality.
+
+### White-Label Plugin
+
+**Location**: `src/plugins/builtin/whitelabel/`
+
+**Purpose**: Customize application branding and labels.
+
+**Features**:
+- Override application name and logo
+- Customize UI labels and text
+- Hide/show specific features
+- Apply custom color schemes
+
+**Configuration**:
+```typescript
+// Plugin manifest
+{
+  id: 'com.schoolpilot.whitelabel',
+  name: 'White Label',
+  type: 'whitelabel',
+  settings: [
+    {
+      key: 'appName',
+      label: 'Application Name',
+      type: 'string',
+      defaultValue: 'SchoolPilot3',
+    },
+    {
+      key: 'logoUrl',
+      label: 'Logo URL',
+      type: 'string',
+    },
+    {
+      key: 'primaryColor',
+      label: 'Primary Color',
+      type: 'color',
+      defaultValue: '#3B82F6',
+    },
+  ],
+}
+```
+
+**Hooks**:
+- `ui.branding.header` - Modify header branding
+- `ui.branding.title` - Override page title
+- `ui.branding.logo` - Provide custom logo
+- `ui.label.resolve` - Override UI labels
+
+---
+
+### Grading Engine Plugin
+
+**Location**: `src/plugins/builtin/grading-engine/`
+
+**Purpose**: Advanced grading calculations and strategies.
+
+**Features**:
+- Weighted average calculations
+- Points-based grading
+- Custom grading strategies
+- Grade normalization
+- Statistical analysis
+
+**Configuration**:
+```typescript
+// Plugin manifest
+{
+  id: 'com.schoolpilot.grading-engine',
+  name: 'Grading Engine',
+  type: 'engine',
+  engine: {
+    wasmFile: './grading-engine.wasm',
+    exports: ['calculateGrades', 'normalizeScores', 'generateReport'],
+  },
+  settings: [
+    {
+      key: 'defaultStrategy',
+      label: 'Default Strategy',
+      type: 'select',
+      options: [
+        { label: 'Weighted Average', value: 'weighted' },
+        { label: 'Points-Based', value: 'points' },
+        { label: 'Percentage', value: 'percentage' },
+      ],
+    },
+  ],
+}
+```
+
+**Hooks**:
+- `grading.beforeCalculate` - Pre-process grade data
+- `grading.afterCalculate` - Post-process results
+- `grading.validateConfig` - Validate grading configuration
+
+**API**:
+```typescript
+// Using the grading engine
+const engine = plugins.getEngine('com.schoolpilot.grading-engine');
+const results = await engine.calculateGrades(students, config);
+```
+
+---
+
+### Fee Calculator Plugin
+
+**Location**: `src/plugins/builtin/fee-calculator/`
+
+**Purpose**: Calculate fees with discounts, penalties, and payment plans.
+
+**Features**:
+- Base fee calculation
+- Discount application
+- Late fee penalties
+- Payment plan generation
+- Multi-currency support
+
+**Configuration**:
+```typescript
+// Plugin manifest
+{
+  id: 'com.schoolpilot.fee-calculator',
+  name: 'Fee Calculator',
+  type: 'module',
+  settings: [
+    {
+      key: 'currency',
+      label: 'Default Currency',
+      type: 'select',
+      options: ['USD', 'EUR', 'GBP', 'NGN'],
+    },
+    {
+      key: 'lateFeePercentage',
+      label: 'Late Fee %',
+      type: 'number',
+      defaultValue: 5,
+    },
+    {
+      key: 'enableDiscounts',
+      label: 'Enable Discounts',
+      type: 'boolean',
+      defaultValue: true,
+    },
+  ],
+}
+```
+
+**Hooks**:
+- `fees.beforeCalculate` - Pre-process fee input
+- `fees.afterCalculate` - Post-process fee results
+- `fees.applyDiscounts` - Apply discount logic
+
+**API**:
+```typescript
+// Calculate fees
+const calculator = plugins.getPlugin('com.schoolpilot.fee-calculator');
+const feeBreakdown = await calculator.calculate({
+  baseAmount: 1000,
+  discounts: [{ type: 'sibling', percentage: 10 }],
+  dueDate: '2024-12-31',
+});
+```
+
+---
+
+### Plugin Comparison
+
+| Plugin | Type | Purpose | WASM |
+|--------|------|---------|------|
+| **White-Label** | whitelabel | Branding customization | No |
+| **Grading Engine** | engine | Grade calculations | Yes |
+| **Fee Calculator** | module | Fee calculations | No |
+
+---
+
+### Enabling/Disabling Builtin Plugins
+
+Builtin plugins can be controlled through the Plugin Settings page:
+
+```typescript
+// Check if a builtin plugin is enabled
+const isEnabled = pluginManager.isPluginEnabled('com.schoolpilot.whitelabel');
+
+// Disable a builtin plugin
+await pluginManager.disablePlugin('com.schoolpilot.whitelabel');
+
+// Re-enable a builtin plugin
+await pluginManager.enablePlugin('com.schoolpilot.whitelabel');
+```
+
+Note: Some builtin plugins may be required for core functionality and cannot be disabled.

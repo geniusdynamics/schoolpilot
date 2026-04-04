@@ -102,20 +102,6 @@ my-plugin/
     └── plugin.test.ts
 ```
 
-### Plugin Types
-
-Choose the appropriate type for your plugin:
-
-| Type | Use Case | Example |
-|------|----------|---------|
-| `module` | Full feature module | Advanced grading system |
-| `theme` | Visual styling | Dark mode theme |
-| `integration` | External service | Payment gateway |
-| `report` | Custom reports | Student transcript generator |
-| `widget` | Dashboard widgets | Attendance chart widget |
-| `whitelabel` | Branding customization | School logo replacer |
-| `engine` | WASM computation | Grade calculator engine |
-
 ---
 
 ## Plugin Manifest
@@ -1067,5 +1053,205 @@ interface PluginAPI {
 
 ---
 
+*Last updated: April 2026*
+*Version: 1.0*
+
+```typescript
+// hooks/useMyPlugin.ts
+import { useMemo } from 'react';
+import { usePlugins } from '../../plugins/usePlugins';
+
+export function useMyPlugin() {
+  const { getPlugin, doHook } = usePlugins();
+  const plugin = getPlugin('com.mycompany.my-plugin');
+  
+  return useMemo(() => ({
+    isLoaded: !!plugin,
+    isActive: plugin?.status === 'active',
+    settings: plugin?.settings || {},
+    process: async (data: any) => {
+      // Use plugin API
+      return doHook('myplugin.process', data);
+    },
+  }), [plugin, doHook]);
+}
+```
+
+---
+
+## Examples
+
+### Complete Plugin Example: Attendance Tracker
+
+```typescript
+// index.ts
+import type { PluginManifest, PluginModule, PluginContext } from '../types';
+
+export const manifest: PluginManifest = {
+  id: 'com.example.attendance-tracker',
+  name: 'Attendance Tracker',
+  version: '1.0.0',
+  type: 'module',
+  entry: './index.ts',
+  description: 'Track and analyze student attendance',
+  
+  hooks: ['data.afterLoad', 'attendance.calculate'],
+  
+  routes: [
+    {
+      path: '/attendance/tracker',
+      component: 'AttendanceTrackerPage',
+      title: 'Attendance Tracker',
+      icon: 'ClipboardDocumentCheckIcon',
+    },
+  ],
+  
+  menuItems: [
+    {
+      id: 'attendance-tracker',
+      label: 'Attendance Tracker',
+      icon: 'ClipboardDocumentCheckIcon',
+      route: '/attendance/tracker',
+      order: 30,
+      parent: 'academics',
+    },
+  ],
+  
+  settings: [
+    {
+      key: 'alertThreshold',
+      label: 'Alert Threshold (%)',
+      type: 'number',
+      defaultValue: 80,
+      validation: { min: 0, max: 100 },
+      description: 'Alert when attendance falls below this threshold',
+    },
+    {
+      key: 'notifyParents',
+      label: 'Notify Parents',
+      type: 'boolean',
+      defaultValue: true,
+    },
+  ],
+};
+
+const module: PluginModule = {
+  async activate(context: PluginContext) {
+    // Register attendance calculation hook
+    context.api.addHook('attendance.calculate', async (studentId, period) => {
+      const records = await context.api.getData('attendance', { studentId, period });
+      const present = records.filter(r => r.status === 'present').length;
+      const total = records.length;
+      
+      const percentage = (present / total) * 100;
+      const threshold = context.api.getSetting('alertThreshold') ?? 80;
+      
+      if (percentage < threshold && context.api.getSetting('notifyParents')) {
+        context.api.showNotification(
+          `Low attendance alert for student ${studentId}`,
+          'warning'
+        );
+      }
+      
+      return { present, total, percentage };
+    });
+  },
+  
+  async deactivate() {
+    console.log('Attendance Tracker deactivated');
+  },
+  
+  api: {
+    calculateAttendance: async (studentId: string, period: string) => {
+      // Exposed API for other plugins
+    },
+  },
+};
+
+export default { manifest, module };
+```
+
+---
+
+## API Reference
+
+### PluginManager
+
+```typescript
+class PluginManager {
+  // Load a plugin
+  async loadPlugin(manifest: PluginManifest): Promise<LoadedPlugin>;
+  
+  // Load multiple plugins
+  async loadPlugins(manifests: PluginManifest[]): Promise<LoadedPlugin[]>;
+  
+  // Activate/deactivate
+  async activatePlugin(pluginId: string): Promise<void>;
+  async deactivatePlugin(pluginId: string): Promise<void>;
+  
+  // Unload
+  async unloadPlugin(pluginId: string): Promise<void>;
+  
+  // Access
+  getPlugin(pluginId: string): LoadedPlugin | undefined;
+  getAllPlugins(): LoadedPlugin[];
+  getActivePlugins(): LoadedPlugin[];
+  getPluginsByType(type: PluginType): LoadedPlugin[];
+  
+  // Hooks
+  addHook(name: string, handler: Function, priority?: number): void;
+  removeHook(name: string, handler: Function): void;
+  doHook<T>(name: string, ...args: any[]): T[];
+  applyHook<T>(name: string, ...args: any[]): T | undefined;
+  
+  // Settings
+  getPluginSettings(pluginId: string): Record<string, any>;
+  async setPluginSetting(pluginId: string, key: string, value: any): Promise<void>;
+}
+```
+
+### PluginAPI
+
+```typescript
+interface PluginAPI {
+  // Data
+  getData(collection: string, query?: any): Promise<any[]>;
+  setData(collection: string, id: string, data: any): Promise<void>;
+  
+  // UI
+  registerRoute(route: PluginRoute): void;
+  registerMenuItem(item: PluginMenuItem): void;
+  registerWidget(widget: PluginWidget): void;
+  showNotification(message: string, type?: NotificationType): void;
+  
+  // Hooks
+  addHook(name: string, handler: Function, priority?: number): void;
+  removeHook(name: string, handler: Function): void;
+  doHook(name: string, ...args: any[]): any[];
+  
+  // Settings
+  getSetting(key: string): any;
+  setSetting(key: string, value: any): Promise<void>;
+  
+  // Utils
+  translate(key: string, options?: any): string;
+  formatDate(date: Date | string): string;
+  formatNumber(num: number): string;
+}
+```
+
+---
+
+## Support & Resources
+
+- **Documentation**: [docs.schoolpilot3.com/plugins](https://docs.schoolpilot3.com/plugins)
+- **API Reference**: [api.schoolpilot3.com/docs](https://api.schoolpilot3.com/docs)
+- **Community**: [github.com/schoolpilot3/discussions](https://github.com/schoolpilot3/discussions)
+- **Issue Tracker**: [github.com/schoolpilot3/issues](https://github.com/schoolpilot3/issues)
+
+---
+
+*Last updated: April 2026*
+*Version: 1.0*
 *Last updated: April 2026*
 *Version: 1.0*
