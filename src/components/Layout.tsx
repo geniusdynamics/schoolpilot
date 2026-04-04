@@ -195,9 +195,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <div className="flex flex-col min-h-screen w-screen bg-slate-100">
         <Header onSettings={() => setShowSettings(true)} />
         <div className="flex flex-1 pt-16 md:pt-16">
+          {/* Fixed sidebars - positioned with CSS position:fixed, no flex space */}
           <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
           <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
-          <main className="flex-1 overflow-hidden">
+          <main 
+            className="flex-1 overflow-hidden"
+            style={{
+              marginLeft: isSubmenuOpen ? 'calc(5rem + 13rem)' : '5rem'
+            }}
+          >
             {isTabbedMode ? (
               /* Tabbed Workspace Mode - Full page tabs with integrated breadcrumbs */
               <TabbedWorkspace

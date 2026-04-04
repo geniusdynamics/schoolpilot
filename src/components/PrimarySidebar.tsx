@@ -376,16 +376,14 @@ const PrimarySidebarContent: React.FC<{
   
   const sidebarClassName = useMemo(() => {
     return `
-      flex flex-col items-center min-h-full
-      w-16 sm:w-20
+      fixed top-0 left-0 z-50
+      flex flex-col items-center
+      w-16 sm:w-20 h-screen
       bg-gradient-to-b from-slate-900/95 via-slate-800/90 to-slate-900/95
       lg:backdrop-blur-xl md:backdrop-blur-sm
       border-r border-white/10
       shadow-2xl shadow-black/20
-      rounded-r-3xl
-      py-4 sm:py-6
-      relative
-      before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/5 before:to-transparent before:rounded-r-3xl before:pointer-events-none
+      pt-4 pb-4 sm:pt-4 sm:pb-6
       transition-all duration-300 ease-out
       ${isMouseNearSidebar ? 'sidebar-active' : 'sidebar-inactive'}
     `;
@@ -406,13 +404,41 @@ const PrimarySidebarContent: React.FC<{
 
   return (
     <aside className={sidebarClassName}>
+      {/* Logo at the top */}
+      <div className="flex-shrink-0 mb-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
+          E
+        </div>
+      </div>
+
       {/* Content container - responsive spacing and scrolling */}
-      <div className="flex flex-col gap-2 sm:gap-3 w-full items-center relative z-10 max-h-full">
-        {Array.isArray(mainModules) && mainModules.length > 0 
+      <div className="flex flex-col gap-2 sm:gap-3 w-full items-center overflow-y-auto overflow-x-hidden custom-scrollbar flex-1">
+        {Array.isArray(mainModules) && mainModules.length > 0
           ? mainModules.map((module, index) => renderModuleItem(module, index))
           : <div className="text-white/50 text-xs text-center p-4">Loading modules...</div>
         }
       </div>
+
+      {/* Custom scrollbar styles */}
+      <style>{`
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: rgba(255, 255, 255, 0.2);
+          border-radius: 2px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(255, 255, 255, 0.3);
+        }
+      `}</style>
     </aside>
   );
 };

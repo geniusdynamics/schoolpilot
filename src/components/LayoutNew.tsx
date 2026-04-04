@@ -297,13 +297,12 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
       <Header onSettings={() => setShowSettings(true)} />
       
       <div className="flex flex-1 pt-16">
-        {/* Primary Sidebar - Module Selection */}
+        {/* Fixed sidebars - positioned with CSS position:fixed, no flex space */}
         <PrimarySidebar 
           selectedModuleKey={selectedModuleKey} 
           onModuleSelect={handleModuleSelect} 
         />
         
-        {/* Secondary Sidebar - Submenu */}
         <SecondarySidebar 
           selectedModuleKey={selectedModuleKey} 
           isOpen={isSubmenuOpen} 
@@ -313,7 +312,12 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
         />
         
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <main 
+          className="flex-1 flex flex-col overflow-hidden min-w-0"
+          style={{
+            marginLeft: isSubmenuOpen ? 'calc(5rem + 14rem)' : '5rem'
+          }}
+        >
           {/* Tab Bar */}
           <div className="flex-shrink-0 bg-white border-b border-gray-200">
             <TabBar

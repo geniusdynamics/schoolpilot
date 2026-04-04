@@ -37,7 +37,7 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/90 lg:backdrop-blur-md shadow-md border-b border-slate-100`}
+      className={`fixed top-0 left-16 sm:left-20 right-0 z-40 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'} bg-white/90 lg:backdrop-blur-md shadow-md border-b border-slate-100`}
       style={{ height: '48px' }}
     >
       <div className="max-w-full mx-auto flex items-center justify-between h-12 px-3 sm:px-6">

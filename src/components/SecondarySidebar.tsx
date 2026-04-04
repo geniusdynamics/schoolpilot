@@ -488,8 +488,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   // Enhanced sidebar width and positioning for mobile optimization
   const sidebarWidth = isMinimized ? 'w-14' : 'w-52';
   const sidebarClasses = isMobile
-    ? 'w-44 sm:w-24 fixed inset-y-0 left-14 sm:left-16 md:left-20 z-40 shadow-2xl' // Mobile: compact responsive positioning
-    : `${sidebarWidth} relative transition-all duration-300 ease-in-out`; // Desktop: smoother transitions
+    ? 'w-44 sm:w-24 fixed top-0 left-16 sm:left-20 z-40 shadow-2xl h-screen pt-16' // Mobile: fixed from top with padding for header
+    : `${sidebarWidth} fixed top-0 left-16 sm:left-20 z-40 h-screen pt-16 transition-all duration-300 ease-in-out`; // Desktop: fixed from top with padding for header
 
   // Show loading fallback if modules are still loading
   if (isLoading || !navigationItems.length) {
@@ -502,7 +502,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       {isMobile && (
         <div 
           className={`
-            fixed inset-0 left-14 sm:left-16 md:left-20 z-30 transition-all duration-300 ease-in-out
+            fixed inset-0 top-12 left-16 sm:left-20 z-30 transition-all duration-300 ease-in-out
             ${isOpen 
               ? 'bg-transparent opacity-100 pointer-events-auto mobile-fade-in' 
               : 'bg-transparent opacity-0 pointer-events-none mobile-fade-out'
@@ -536,8 +536,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           px-2 py-4
           ${moduleStyle.background}
           ${isMobile ? 'bg-white/98' : 'bg-white/95'}
-          h-screen
-          max-h-screen
           transition-transform duration-300 ease-in-out
         `}
         style={{
