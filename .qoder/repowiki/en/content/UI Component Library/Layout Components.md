@@ -16,6 +16,8 @@
 - [SecondarySidebar.tsx](file://src/components/SecondarySidebar.tsx)
 - [Layout.tsx](file://src/components/Layout.tsx)
 - [LayoutNew.tsx](file://src/components/LayoutNew.tsx)
+- [Header.tsx](file://src/components/Header.tsx)
+- [TopOverflowMenu.tsx](file://src/components/TopOverflowMenu.tsx)
 - [design-system.css](file://src/styles/design-system.css)
 - [responsive.ts](file://src/utils/responsive.ts)
 - [accessibility.ts](file://src/utils/accessibility.ts)
@@ -25,21 +27,22 @@
 
 ## Update Summary
 **Changes Made**
-- Updated Sidebar Components section to reflect comprehensive fixed-position sidebar system implementation
-- Added detailed documentation for PrimarySidebar and SecondarySidebar fixed positioning with full height coverage
-- Enhanced Layout components documentation to explain dynamic margin calculations for fixed sidebar system
-- Updated section sources to include the modified PrimarySidebar.tsx, SecondarySidebar.tsx, Layout.tsx, and LayoutNew.tsx files
-- Added comprehensive coverage of custom scrollbar styling and improved logo integration
+- Updated Sidebar Components section to reflect the integration of TopOverflowMenu component into PrimarySidebar
+- Added documentation for the new TopOverflowMenu component and its role in module selection
+- Enhanced PrimarySidebar documentation to explain the replacement of static logo with dynamic TopOverflowMenu
+- Updated section sources to include the modified PrimarySidebar.tsx and new TopOverflowMenu.tsx files
+- Clarified that Header component has not yet been enhanced with module selection functionality
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Core Layout Components](#core-layout-components)
 3. [Fixed-Position Sidebar System](#fixed-position-sidebar-system)
-4. [TabbedWorkspace System](#tabbedworkspace-system)
-5. [Usage Patterns and Integration](#usage-patterns-and-integration)
-6. [Performance and Optimization](#performance-and-optimization)
-7. [Responsive Behavior and Accessibility](#responsive-behavior-and-accessibility)
-8. [Common Issues and Troubleshooting](#common-issues-and-troubleshooting)
+4. [TopOverflowMenu Integration](#topoverflowmenu-integration)
+5. [TabbedWorkspace System](#tabbedworkspace-system)
+6. [Usage Patterns and Integration](#usage-patterns-and-integration)
+7. [Performance and Optimization](#performance-and-optimization)
+8. [Responsive Behavior and Accessibility](#responsive-behavior-and-accessibility)
+9. [Common Issues and Troubleshooting](#common-issues-and-troubleshooting)
 
 ## Introduction
 The layout components in schoolpilot3 provide a comprehensive and modular structure for building user interfaces across the application. The system has evolved to implement a sophisticated fixed-position sidebar architecture that ensures consistent navigation while maximizing content area utilization. These components define the foundational scaffolding of pages, enabling a uniform experience with dynamic content rendering, navigation, and state management. This document details the key structural components—PageContainer, PageHeader, the fixed-position Sidebar system, and TabbedWorkspace—and their integration into actual pages such as AcademicsDashboardPage and SettingsDashboardPage.
@@ -97,7 +100,7 @@ The **PrimarySidebar** serves as the primary navigation hub with fixed positioni
 - **Full Height Coverage**: Implements `h-screen` for complete vertical coverage
 - **Enhanced Visual Design**: Features gradient backgrounds, backdrop blur effects, and sophisticated border styling
 - **Custom Scrollbar**: Includes custom scrollbar styling with thin width and transparent tracks
-- **Improved Logo Integration**: Enhanced positioning and styling for better visual hierarchy
+- **Integrated TopOverflowMenu**: Replaced static logo with dynamic TopOverflowMenu component for module selection
 - **Responsive Width**: Adapts from `w-16` (2.5rem) to `w-20` (3.25rem) on larger screens
 - **Glassmorphism Effects**: Implements backdrop blur with `backdrop-blur-xl` and `backdrop-blur-sm` variants
 - **Dynamic Styling**: Adjusts based on mouse proximity with `sidebar-active` and `sidebar-inactive` classes
@@ -116,9 +119,9 @@ graph TB
 A[Viewport] --> B[PrimarySidebar - Fixed]
 A --> C[SecondarySidebar - Fixed]
 A --> D[Main Content Area]
-B --> E[Full Height Coverage]
-B --> F[Custom Scrollbar]
-B --> G[Logo Integration]
+B --> E[TopOverflowMenu Integration]
+B --> F[Full Height Coverage]
+B --> G[Custom Scrollbar]
 C --> H[Mobile Optimization]
 C --> I[Smart Minimization]
 C --> J[Touch Targets]
@@ -128,7 +131,7 @@ K --> M[Responsive Adjustments]
 ```
 
 **Diagram sources**
-- [PrimarySidebar.tsx:377-390](file://src/components/PrimarySidebar.tsx#L377-L390)
+- [PrimarySidebar.tsx:409-414](file://src/components/PrimarySidebar.tsx#L409-L414)
 - [SecondarySidebar.tsx:488-493](file://src/components/SecondarySidebar.tsx#L488-L493)
 - [Layout.tsx:203-206](file://src/components/Layout.tsx#L203-L206)
 
@@ -153,6 +156,52 @@ Both sidebar components implement custom scrollbar styling for enhanced visual c
 - [PrimarySidebar.tsx:424-442](file://src/components/PrimarySidebar.tsx#L424-L442)
 - [SecondarySidebar.tsx:767-787](file://src/components/SecondarySidebar.tsx#L767-L787)
 - [Layout.tsx:203-206](file://src/components/Layout.tsx#L203-L206)
+
+## TopOverflowMenu Integration
+
+### Component Overview
+The **TopOverflowMenu** component has been integrated into the PrimarySidebar to replace the static logo approach. This component provides an ERPNext-style dropdown menu for module selection and application-wide actions.
+
+- **Module Selection**: Displays the current module with its icon and name, allowing users to switch between modules
+- **Dynamic Navigation**: Integrates with the dynamic navigation system to populate module options
+- **Action Menu**: Provides access to application-wide actions like desktop, website, reload, theme switching, and help
+- **Submenu Support**: Supports nested menus for workspaces and help sections
+- **Responsive Design**: Adapts to different screen sizes with appropriate spacing and visibility
+
+### Props Interface
+The TopOverflowMenu component accepts the following props:
+
+```typescript
+interface TopOverflowMenuProps {
+  currentModule?: string;  // Current selected module key
+  onModuleSelect?: (moduleKey: string) => void;  // Callback for module selection
+}
+```
+
+### Integration Pattern
+The TopOverflowMenu is integrated into the PrimarySidebar at the top position:
+
+```tsx
+<div className="flex-shrink-0 mb-4 w-full px-1">
+  <TopOverflowMenu
+    currentModule={selectedModuleKey}
+    onModuleSelect={onModuleSelect}
+  />
+</div>
+```
+
+### Menu Structure
+The menu provides several categories of functionality:
+
+- **Desktop**: Quick access to the main dashboard
+- **Workspaces**: Dynamic module selection based on navigation items
+- **Website**: External link to the main website
+- **Application Controls**: Reload, full-width toggle, theme switching
+- **Help**: About and keyboard shortcuts
+
+**Section sources**
+- [TopOverflowMenu.tsx:21-39](file://src/components/TopOverflowMenu.tsx#L21-L39)
+- [PrimarySidebar.tsx:409-414](file://src/components/PrimarySidebar.tsx#L409-L414)
 
 ## TabbedWorkspace System
 

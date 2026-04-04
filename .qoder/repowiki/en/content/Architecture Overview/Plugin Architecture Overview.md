@@ -18,10 +18,10 @@
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive documentation for the new BuiltinLoader service and automatic plugin discovery system
-- Updated architecture overview to reflect the major architectural overhaul with enhanced security model
-- Expanded marketplace integration documentation with new marketplace key management and installation tracking
-- Enhanced security model documentation with detailed sandbox tier configuration and privilege management
+- Added comprehensive documentation for the new builtin plugin loader system with automatic discovery
+- Updated architecture overview to reflect the enhanced security model with multi-tier sandboxing
+- Expanded marketplace integration documentation with key validation, installation tracking, and analytics
+- Enhanced hook system documentation with timeout protection and circuit breaker mechanisms
 - Updated plugin lifecycle management to include automatic builtin plugin loading
 - Added comprehensive plugin architecture specification with new type definitions and security features
 
@@ -32,7 +32,7 @@
 4. [Plugin Types and Categories](#plugin-types-and-categories)
 5. [Automatic Plugin Discovery System](#automatic-plugin-discovery-system)
 6. [Plugin Lifecycle Management](#plugin-lifecycle-management)
-7. [Hook System](#hook-system)
+7. [Enhanced Hook System](#enhanced-hook-system)
 8. [Enhanced Security Model](#enhanced-security-model)
 9. [Marketplace Integration](#marketplace-integration)
 10. [React Integration](#react-integration)
@@ -350,7 +350,7 @@ The lifecycle includes six main states:
 - [PluginManager.ts:303-373](file://src/plugins/PluginManager.ts#L303-L373)
 - [types.ts:436-436](file://src/plugins/types.ts#L436-L436)
 
-## Hook System
+## Enhanced Hook System
 
 The hook system provides a powerful mechanism for plugins to extend application functionality without direct coupling with enhanced security measures:
 
