@@ -1,11 +1,19 @@
 # Administration Data Models
 
 <cite>
-**Referenced Files in This Document**   
+**Referenced Files in This Document**
 - [collections.ts](file://src/modules/administration/data/collections.ts)
 - [schema.ts](file://src/modules/administration/data/schema.ts)
 - [types.ts](file://src/modules/administration/data/types.ts)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added documentation for new data models: disciplinary_cases, certificate_requests, and visitor_logs collections
+- Updated entity relationship diagrams to include new collections
+- Added field definitions and schema details for three new administrative systems
+- Enhanced business rules section with new operational processes
+- Updated data access patterns to reflect new collection structures
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -21,8 +29,8 @@
 This document provides comprehensive documentation for the Administration module data models in schoolpilot3. The module manages core administrative entities including student information, staff details, departments, academic years, classes, dormitories, and designations. The data architecture is designed to support both operational efficiency and analytical capabilities through a normalized structure with strategic denormalization for performance optimization. The implementation uses a database-agnostic schema approach that supports multiple database backends through RxDB and PouchDB services.
 
 **Section sources**
-- [schema.ts](file://src/modules/administration/data/schema.ts#L1-L50)
-- [types.ts](file://src/modules/administration/data/types.ts#L1-L50)
+- [schema.ts:1-50](file://src/modules/administration/data/schema.ts#L1-L50)
+- [types.ts:1-50](file://src/modules/administration/data/types.ts#L1-L50)
 
 ## Core Entity Relationships
 The Administration module implements a relational data model with well-defined relationships between core entities. These relationships support the school's organizational structure and administrative workflows.
@@ -102,6 +110,47 @@ string last_name
 string date_of_birth
 string gender
 }
+DISCIPLINARY_CASE {
+string id PK
+string case_number
+string student_id FK
+string category
+string severity
+string status
+string title
+string description
+string incident_date
+string reported_by FK
+boolean follow_up_required
+boolean parent_notified
+}
+DISCIPLINARY_RECORD {
+string id PK
+string student_id FK
+string case_id FK
+string category
+string action
+string action_date
+}
+CERTIFICATE_REQUEST {
+string id PK
+string certificate_number
+string student_id FK
+string certificate_type
+string status
+string purpose
+string requested_by FK
+string requested_at
+}
+VISITOR_LOG {
+string id PK
+string visitor_name
+string visitor_type
+string phone
+string purpose
+string status
+string check_in_time
+}
 STUDENT ||--o{ STUDENT_HEALTH_RECORD : "has"
 STUDENT ||--o{ STUDENT_ATTENDANCE : "has"
 STUDENT ||--|| CLASS : "belongs to"
@@ -123,15 +172,19 @@ DEPARTMENT }o--|| STAFF : "contains"
 DESIGNATION }o--|| STAFF : "assigned to"
 ACADEMIC_YEAR }o--|| CLASS : "contains"
 ACADEMIC_YEAR }o--|| APPLICATION : "contains"
+DISCIPLINARY_CASE ||--|| STUDENT : "involves"
+DISCIPLINARY_CASE ||--o{ DISCIPLINARY_RECORD : "generates"
+CERTIFICATE_REQUEST ||--|| STUDENT : "requests"
+VISITOR_LOG ||--o{ USERS : "person_to_meet"
 ```
 
 **Diagram sources**
-- [schema.ts](file://src/modules/administration/data/schema.ts#L1-L484)
-- [types.ts](file://src/modules/administration/data/types.ts#L1-L538)
+- [schema.ts:1-734](file://src/modules/administration/data/schema.ts#L1-L734)
+- [types.ts:1-847](file://src/modules/administration/data/types.ts#L1-L847)
 
 **Section sources**
-- [schema.ts](file://src/modules/administration/data/schema.ts#L1-L484)
-- [types.ts](file://src/modules/administration/data/types.ts#L1-L538)
+- [schema.ts:1-734](file://src/modules/administration/data/schema.ts#L1-L734)
+- [types.ts:1-847](file://src/modules/administration/data/types.ts#L1-L847)
 
 ## Data Model Definitions
 This section details the field definitions, data types, primary/foreign keys, and constraints for each collection in the Administration module.
@@ -248,9 +301,111 @@ The StudentAttendance entity tracks student attendance.
 - `student_name`: Denormalized student name for performance (string)
 - `period_name`: Denormalized period name for performance (string)
 
+### DisciplinaryCase Entity
+The DisciplinaryCase entity manages student discipline incidents and cases.
+
+**Properties:**
+- `id`: Unique identifier (string, primary key)
+- `case_number`: Unique case identification number (string, required)
+- `student_id`: Reference to the involved student (string, foreign key, required)
+- `student_name`: Denormalized student name (string)
+- `admission_number`: Denormalized admission number (string)
+- `class_name`: Denormalized class name (string)
+- `category`: Disciplinary category (string, enum: Attendance, Behavior, Academic Dishonesty, etc.)
+- `severity`: Severity level (string, enum: Minor, Moderate, Serious, Critical)
+- `status`: Case status (string, enum: Reported, Under Investigation, Pending Review, Resolved, etc.)
+- `title`: Brief case title (string, required)
+- `description`: Detailed incident description (string, required)
+- `incident_date`: Date of incident (string, required)
+- `incident_time`: Time of incident (string)
+- `incident_location`: Location of incident (string)
+- `reported_by`: Reference to reporting user (string, foreign key, required)
+- `reported_by_name`: Denormalized reporter name (string)
+- `assigned_to`: Reference to assigned user (string, foreign key)
+- `assigned_to_name`: Denormalized assignee name (string)
+- `witnesses`: Witness information (string)
+- `action_taken`: Disciplinary action taken (string, enum: Verbal Warning, Written Warning, Detention, Suspension, Expulsion, etc.)
+- `action_details`: Action details and rationale (string)
+- `action_date`: Date action was taken (timestamp)
+- `follow_up_required`: Follow-up requirement flag (boolean, default: false)
+- `follow_up_date`: Follow-up appointment date (string)
+- `follow_up_notes`: Follow-up notes (string)
+- `parent_notified`: Parent notification status (boolean, default: false)
+- `parent_notification_date`: Parent notification timestamp (timestamp)
+- `parent_response`: Parent response information (string)
+- `resolved_at`: Resolution timestamp (timestamp)
+- `resolution_notes`: Resolution details (string)
+- `created_at`: Record creation timestamp (string, required)
+- `updated_at`: Record last update timestamp (string, required)
+
+### DisciplinaryRecord Entity
+The DisciplinaryRecord entity maintains historical disciplinary actions.
+
+**Properties:**
+- `id`: Unique identifier (string, primary key)
+- `student_id`: Reference to the student (string, foreign key, required)
+- `student_name`: Denormalized student name (string)
+- `admission_number`: Denormalized admission number (string)
+- `case_id`: Reference to the disciplinary case (string, foreign key, required)
+- `category`: Disciplinary category (string, enum: Attendance, Behavior, Academic Dishonesty, etc.)
+- `action`: Disciplinary action (string, enum: Verbal Warning, Written Warning, Detention, Suspension, Expulsion, etc.)
+- `action_details`: Action details (string)
+- `action_date`: Date action was taken (timestamp, required)
+- `created_at`: Record creation timestamp (string, required)
+- `updated_at`: Record last update timestamp (string, required)
+
+### CertificateRequest Entity
+The CertificateRequest entity manages student certificate requests and issuance.
+
+**Properties:**
+- `id`: Unique identifier (string, primary key)
+- `certificate_number`: Generated certificate identification number (string, required)
+- `student_id`: Reference to the requesting student (string, foreign key, required)
+- `student_name`: Denormalized student name (string)
+- `admission_number`: Denormalized admission number (string)
+- `class_name`: Denormalized class name (string)
+- `certificate_type`: Certificate type (string, enum: Birth Certificate, Transfer Certificate, Character Certificate, etc.)
+- `status`: Request status (string, enum: Requested, In Progress, Approved, Rejected, Issued, Cancelled)
+- `purpose`: Purpose of certificate (string)
+- `remarks`: Administrative remarks (string)
+- `requested_by`: Reference to requesting user (string, foreign key, required)
+- `requested_by_name`: Denormalized requester name (string)
+- `requested_at`: Request timestamp (timestamp, required)
+- `approved_by`: Reference to approving user (string, foreign key)
+- `approved_by_name`: Denormalized approver name (string)
+- `approved_at`: Approval timestamp (timestamp)
+- `issued_by`: Reference to issuing user (string, foreign key)
+- `issued_by_name`: Denormalized issuer name (string)
+- `issued_at`: Issuance timestamp (timestamp)
+- `rejection_reason`: Reason for rejection (string)
+- `created_at`: Record creation timestamp (string, required)
+- `updated_at`: Record last update timestamp (string, required)
+
+### VisitorLog Entity
+The VisitorLog entity tracks visitor entries and exits.
+
+**Properties:**
+- `id`: Unique identifier (string, primary key)
+- `visitor_name`: Visitor's full name (string, required)
+- `visitor_type`: Visitor type (string, enum: Parent, Guardian, Official, Delivery, Interview, Maintenance, Guest, Other)
+- `phone`: Visitor phone number (string)
+- `email`: Visitor email address (string)
+- `id_type`: Government ID type (string)
+- `id_number`: Government ID number (string)
+- `purpose`: Purpose of visit (string, required)
+- `person_to_meet`: Person being visited (string)
+- `person_to_meet_id`: Reference to person being met (string, foreign key)
+- `status`: Visit status (string, enum: Checked In, Checked Out, Expected, No Show)
+- `check_in_time`: Visitor check-in timestamp (timestamp, required)
+- `check_out_time`: Visitor check-out timestamp (timestamp)
+- `expected_arrival`: Expected arrival timestamp (timestamp)
+- `remarks`: Security or administrative remarks (string)
+- `created_at`: Record creation timestamp (string, required)
+- `updated_at`: Record last update timestamp (string, required)
+
 **Section sources**
-- [schema.ts](file://src/modules/administration/data/schema.ts#L1-L484)
-- [types.ts](file://src/modules/administration/data/types.ts#L1-L538)
+- [schema.ts:605-734](file://src/modules/administration/data/schema.ts#L605-L734)
+- [types.ts:710-847](file://src/modules/administration/data/types.ts#L710-L847)
 
 ## Schema Design and Normalization
 The Administration module employs a balanced approach to database normalization, combining normalized structures with strategic denormalization for performance optimization.
@@ -297,10 +452,10 @@ I --> K
 ```
 
 **Diagram sources**
-- [schema.ts](file://src/modules/administration/data/schema.ts#L1-L484)
+- [schema.ts:1-734](file://src/modules/administration/data/schema.ts#L1-L734)
 
 **Section sources**
-- [schema.ts](file://src/modules/administration/data/schema.ts#L1-L484)
+- [schema.ts:1-734](file://src/modules/administration/data/schema.ts#L1-L734)
 
 ## TypeScript Interfaces and Type Safety
 The Administration module leverages TypeScript interfaces to enforce type safety across the application layer.
@@ -397,10 +552,10 @@ Class --> AcademicYear : "belongs to"
 ```
 
 **Diagram sources**
-- [types.ts](file://src/modules/administration/data/types.ts#L1-L538)
+- [types.ts:1-847](file://src/modules/administration/data/types.ts#L1-L847)
 
 **Section sources**
-- [types.ts](file://src/modules/administration/data/types.ts#L1-L538)
+- [types.ts:1-847](file://src/modules/administration/data/types.ts#L1-L847)
 
 ## Data Access Patterns
 The Administration module implements a consistent data access pattern through specialized hooks and a unified data service layer.
@@ -414,6 +569,9 @@ The module provides a series of `use*Data` hooks that abstract data access compl
 - `useClassData()`: Controls class creation and student assignment
 - `useDormitoryData()`: Handles dormitory management and occupancy
 - `useStudentAttendanceData()`: Tracks and reports attendance
+- `useDisciplinaryCaseData()`: Manages discipline incident tracking
+- `useCertificateRequestData()`: Handles certificate request processing
+- `useVisitorLogData()`: Manages visitor entry/exit tracking
 
 These hooks encapsulate data fetching, caching, and state management, providing a consistent interface for components to interact with the data layer.
 
@@ -447,11 +605,11 @@ Hook-->>UI : Update state accordingly
 ```
 
 **Diagram sources**
-- [collections.ts](file://src/modules/administration/data/collections.ts#L1-L57)
-- [schema.ts](file://src/modules/administration/data/schema.ts#L1-L484)
+- [collections.ts:1-91](file://src/modules/administration/data/collections.ts#L1-L91)
+- [schema.ts:1-734](file://src/modules/administration/data/schema.ts#L1-L734)
 
 **Section sources**
-- [collections.ts](file://src/modules/administration/data/collections.ts#L1-L57)
+- [collections.ts:1-91](file://src/modules/administration/data/collections.ts#L1-L91)
 
 ## Sample Data Records
 This section provides example data records for key entities in the Administration module.
@@ -526,8 +684,95 @@ This section provides example data records for key entities in the Administratio
 }
 ```
 
+### Sample Disciplinary Case Record
+```json
+{
+  "id": "dc-001",
+  "case_number": "DC-2024-001",
+  "student_id": "std-001",
+  "student_name": "John Doe",
+  "admission_number": "STD-001",
+  "class_name": "Form 1A",
+  "category": "Behavior",
+  "severity": "Moderate",
+  "status": "Under Investigation",
+  "title": "Late to Class",
+  "description": "Student consistently arriving late to class without valid excuse",
+  "incident_date": "2024-01-15",
+  "incident_time": "08:30:00",
+  "incident_location": "Classroom 101",
+  "reported_by": "stf-002",
+  "reported_by_name": "Mr. Johnson",
+  "assigned_to": "stf-003",
+  "assigned_to_name": "Ms. Williams",
+  "witnesses": "Teacher and class monitor",
+  "action_taken": "Verbal Warning",
+  "action_details": "Written warning issued with parent notification",
+  "action_date": "2024-01-16T10:00:00Z",
+  "follow_up_required": true,
+  "follow_up_date": "2024-01-23",
+  "follow_up_notes": "Student showed improvement in punctuality",
+  "parent_notified": true,
+  "parent_notification_date": "2024-01-16T11:30:00Z",
+  "parent_response": "Apologized and committed to better punctuality",
+  "created_at": "2024-01-15T09:00:00Z",
+  "updated_at": "2024-01-23T14:30:00Z"
+}
+```
+
+### Sample Certificate Request Record
+```json
+{
+  "id": "cr-001",
+  "certificate_number": "CERT-2024-001",
+  "student_id": "std-001",
+  "student_name": "John Doe",
+  "admission_number": "STD-001",
+  "class_name": "Form 1A",
+  "certificate_type": "Character Certificate",
+  "status": "Issued",
+  "purpose": "University Admission Application",
+  "remarks": "Certificate issued with good conduct",
+  "requested_by": "std-001",
+  "requested_by_name": "John Doe",
+  "requested_at": "2024-01-10T09:00:00Z",
+  "approved_by": "stf-004",
+  "approved_by_name": "Dr. Brown",
+  "approved_at": "2024-01-12T10:30:00Z",
+  "issued_by": "stf-005",
+  "issued_by_name": "Mrs. Davis",
+  "issued_at": "2024-01-15T14:00:00Z",
+  "rejection_reason": "",
+  "created_at": "2024-01-10T09:00:00Z",
+  "updated_at": "2024-01-15T14:00:00Z"
+}
+```
+
+### Sample Visitor Log Record
+```json
+{
+  "id": "vl-001",
+  "visitor_name": "Mary Jane Doe",
+  "visitor_type": "Parent",
+  "phone": "+254712345678",
+  "email": "mary.j.doe@email.com",
+  "id_type": "National ID",
+  "id_number": "12345678",
+  "purpose": "Parent-Teacher Meeting",
+  "person_to_meet": "Mr. Johnson",
+  "person_to_meet_id": "stf-002",
+  "status": "Checked Out",
+  "check_in_time": "2024-01-15T15:30:00Z",
+  "check_out_time": "2024-01-15T16:15:00Z",
+  "expected_arrival": "2024-01-15T15:30:00Z",
+  "remarks": "Visited classroom 205 for meeting",
+  "created_at": "2024-01-15T15:25:00Z",
+  "updated_at": "2024-01-15T16:15:00Z"
+}
+```
+
 **Section sources**
-- [types.ts](file://src/modules/administration/data/types.ts#L1-L538)
+- [types.ts:710-847](file://src/modules/administration/data/types.ts#L710-L847)
 
 ## Business Rules and Constraints
 The Administration module enforces several business rules to maintain data integrity and support school operations.
@@ -553,6 +798,34 @@ The system enforces referential integrity through foreign key constraints:
 - Staff must reference existing departments and designations
 - Attendance records must reference existing students and periods
 - Health records must reference existing students
+- Disciplinary cases must reference existing students and users
+- Certificate requests must reference existing students and users
+- Visitor logs must reference existing users for person_to_meet
+
+### Disciplinary Management Rules
+The disciplinary system enforces comprehensive policies:
+- Disciplinary cases require unique case numbers
+- Severity levels must be categorized appropriately (Minor, Moderate, Serious, Critical)
+- Status progression follows proper workflow (Reported → Under Investigation → Pending Review → Resolved)
+- Actions must match severity levels and institutional policies
+- Parent notification is mandatory for certain actions
+- Follow-up requirements are tracked for ongoing supervision
+
+### Certificate Management Rules
+The certificate system maintains strict controls:
+- Certificate numbers must be unique and sequentially generated
+- Status tracking ensures proper authorization workflow
+- Approval requires authorized personnel signatures
+- Issuance requires final approval and timestamping
+- Rejection reasons must be documented for transparency
+
+### Visitor Management Rules
+The visitor management system enforces security protocols:
+- Visitor types are categorized for appropriate access control
+- Check-in/check-out timestamps ensure accurate tracking
+- Expected arrival times facilitate scheduling coordination
+- Status tracking prevents unauthorized extended stays
+- ID verification ensures visitor authenticity
 
 ### Validation Rules
 The system implements comprehensive validation rules:
@@ -562,9 +835,10 @@ The system implements comprehensive validation rules:
 - Date fields follow ISO format
 - Email fields follow standard email format
 - Phone numbers follow international format
+- Foreign key references must exist in referenced collections
 
 These business rules are enforced at both the application and database levels to ensure data consistency and reliability across the system.
 
 **Section sources**
-- [schema.ts](file://src/modules/administration/data/schema.ts#L1-L484)
-- [types.ts](file://src/modules/administration/data/types.ts#L1-L538)
+- [schema.ts:605-734](file://src/modules/administration/data/schema.ts#L605-L734)
+- [types.ts:666-847](file://src/modules/administration/data/types.ts#L666-L847)

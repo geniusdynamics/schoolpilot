@@ -1,44 +1,45 @@
 # Data Synchronization Workflow
 
 <cite>
-**Referenced Files in This Document**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
+**Referenced Files in This Document**   
+- [DatabaseService.ts:14-301](file://src/services/database/databaseService.ts#L14-L301)
+- [DataStrategyManager.ts:43-573](file://src/services/DataStrategyManager.ts#L43-L573)
+- [DataSyncMonitoringService.ts:80-479](file://src/services/DataSyncMonitoringService.ts#L80-L479)
+- [useDatabaseData.ts:86-1958](file://src/hooks/useDatabaseData.ts#L86-L1958)
+- [ConflictDetectionEngine.ts:14-248](file://src/modules/academics/services/ConflictDetectionEngine.ts#L14-L248)
+- [ProviderSelector.ts:0-449](file://src/services/database/ProviderSelector.ts#L0-L449)
+- [SyncManager.ts:1-387](file://src/services/database/sync/SyncManager.ts#L1-L387)
 - [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
 - [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-- [DataSyncMonitoringService.ts:1-483](file://src/services/DataSyncMonitoringService.ts#L1-L483)
-- [NetworkStateManager.ts:1-234](file://src/services/NetworkStateManager.ts#L1-L234)
-- [DataStrategyManager.ts:1-574](file://src/services/DataStrategyManager.ts#L1-L574)
-- [useDatabaseData.ts:1-2121](file://src/hooks/useDatabaseData.ts#L1-L2121)
-- [ConflictDetectionEngine.ts:1-259](file://src/modules/academics/services/ConflictDetectionEngine.ts#L1-L259)
+- [HybridProvider.ts:1-608](file://src/services/database/HybridProvider.ts#L1-L608)
+- [BackendAPIProvider.ts:100-299](file://src/services/database/BackendAPIProvider.ts#L100-L299)
 </cite>
 
 ## Update Summary
-**Changes Made**
-- Added comprehensive synchronization infrastructure documentation including SyncManager, ConflictResolver, NetworkMonitor, and OfflineQueue components
-- Enhanced sync workflow with new centralized SyncManager coordinating all synchronization operations
-- Documented new conflict resolution strategies including merge, manual, and timestamp-based approaches
-- Added network state monitoring with NetworkMonitor providing real-time connectivity tracking
-- Documented offline queue management with IndexedDB persistence and exponential backoff retry strategies
-- Updated architecture diagrams to reflect new component relationships and data flow
-- Enhanced error handling and retry mechanisms with comprehensive backoff strategies
-- Added bandwidth optimization features including compression and slow connection handling
+**Changes Made**   
+- Added comprehensive documentation for new sync components: SyncManager, NetworkMonitor, and OfflineQueue
+- Enhanced monitoring capabilities section to include the new components
+- Updated architecture overview to include the new sync infrastructure
+- Added detailed sections for each new component with their responsibilities and interfaces
+- Updated integration patterns to show how these components work together
+- Enhanced conflict resolution and offline queue management sections
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Architecture Overview](#architecture-overview)
 3. [Core Components](#core-components)
-4. [Data Synchronization Process](#data-synchronization-process)
-5. [Conflict Detection and Resolution](#conflict-detection-and-resolution)
-6. [Event-Driven Architecture and UI Integration](#event-driven-architecture-and-ui-integration)
-7. [Error Handling and Retry Mechanisms](#error-handling-and-retry-mechanisms)
-8. [Performance and Consistency Guarantees](#performance-and-consistency-guarantees)
-9. [Network Monitoring and Connectivity Management](#network-monitoring-and-connectivity-management)
-10. [Offline Queue Management](#offline-queue-management)
-11. [Bandwidth Optimization](#bandwidth-optimization)
+4. [New Sync Infrastructure](#new-sync-infrastructure)
+5. [Data Synchronization Process](#data-synchronization-process)
+6. [Conflict Detection and Resolution](#conflict-detection-and-resolution)
+7. [Event-Driven Architecture and UI Integration](#event-driven-architecture-and-ui-integration)
+8. [Error Handling and Retry Mechanisms](#error-handling-and-retry-mechanisms)
+9. [Performance and Consistency Guarantees](#performance-and-consistency-guarantees)
+10. [Provider Selection and Fallback Mechanism](#provider-selection-and-fallback-mechanism)
 
 ## Introduction
-The schoolpilot3 application implements a comprehensive bidirectional data synchronization workflow featuring a new centralized synchronization infrastructure. This system provides robust offline-first capabilities with real-time conflict resolution, intelligent retry mechanisms, and extensive monitoring. The architecture supports multiple synchronization strategies, network-aware operations, and maintains data consistency across local databases (RxDB/SQLite) and remote CouchDB instances via PouchDB.
+The schoolpilot3 application implements a robust bidirectional data synchronization workflow between local databases (RxDB/SQLite) and remote CouchDB instances via PouchDB. This system ensures data consistency across offline and online environments, supports multiple synchronization strategies, and provides comprehensive monitoring and conflict resolution capabilities. The architecture is designed to handle intermittent connectivity, maintain data integrity, and provide a seamless user experience regardless of network conditions.
+
+**Updated** Added new SyncManager, NetworkMonitor, and OfflineQueue components that provide enhanced synchronization capabilities and improved offline-first architecture support.
 
 ## Architecture Overview
 
@@ -49,16 +50,17 @@ UI[User Interface]
 Hook[useDatabaseData Hook]
 Context[AppDataContext]
 end
-subgraph "Synchronization Infrastructure"
+subgraph "Data Layer"
+Strategy[DataStrategyManager]
+Sync[DataSyncMonitoringService]
+Database[DatabaseService]
+ProviderSelector[ProviderSelector]
+HybridProvider[HybridProvider]
+end
+subgraph "New Sync Infrastructure"
 SyncManager[SyncManager]
-ConflictResolver[ConflictResolver]
 NetworkMonitor[NetworkMonitor]
 OfflineQueue[OfflineQueue]
-end
-subgraph "Data Layer"
-DataStrategyManager[DataStrategyManager]
-NetworkStateManager[NetworkStateManager]
-DataSyncMonitoringService[DataSyncMonitoringService]
 end
 subgraph "Storage"
 Local[(Local DB: RxDB/SQLite)]
@@ -66,331 +68,502 @@ Remote[(Remote DB: CouchDB)]
 end
 UI --> Hook
 Hook --> Context
-Context --> SyncManager
-SyncManager --> ConflictResolver
-SyncManager --> NetworkMonitor
-SyncManager --> OfflineQueue
-SyncManager --> DataStrategyManager
-DataStrategyManager --> NetworkStateManager
-DataStrategyManager --> DataSyncMonitoringService
-DataStrategyManager --> Local
-DataStrategyManager --> Remote
-NetworkMonitor --> NetworkStateManager
+Context --> Strategy
+Strategy --> Database
+Database --> ProviderSelector
+ProviderSelector --> Local
+ProviderSelector --> Remote
+Strategy --> Sync
+HybridProvider --> SyncManager
+HybridProvider --> NetworkMonitor
+HybridProvider --> OfflineQueue
+SyncManager --> Local
+SyncManager --> Remote
+NetworkMonitor --> SyncManager
 OfflineQueue --> Local
+Local --> Remote
+Remote --> Local
 style Local fill:#f9f,stroke:#333
 style Remote fill:#bbf,stroke:#333
 ```
 
 **Diagram sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
-- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-- [DataStrategyManager.ts:1-574](file://src/services/DataStrategyManager.ts#L1-L574)
-- [NetworkStateManager.ts:1-234](file://src/services/NetworkStateManager.ts#L1-L234)
-- [DataSyncMonitoringService.ts:1-483](file://src/services/DataSyncMonitoringService.ts#L1-L483)
+- [DatabaseService.ts:14-301](file://src/services/database/databaseService.ts#L14-L301)
+- [DataStrategyManager.ts:43-573](file://src/services/DataStrategyManager.ts#L43-L573)
+- [DataSyncMonitoringService.ts:80-479](file://src/services/DataSyncMonitoringService.ts#L80-L479)
+- [ProviderSelector.ts:0-449](file://src/services/database/ProviderSelector.ts#L0-L449)
+- [SyncManager.ts:90-362](file://src/services/database/sync/SyncManager.ts#L90-L362)
+- [NetworkMonitor.ts:29-216](file://src/services/database/sync/NetworkMonitor.ts#L29-L216)
+- [OfflineQueue.ts:66-457](file://src/services/database/sync/OfflineQueue.ts#L66-L457)
+- [HybridProvider.ts:326-607](file://src/services/database/HybridProvider.ts#L326-L607)
 
 ## Core Components
 
-### SyncManager - Central Synchronization Coordinator
-The SyncManager serves as the central coordinator for all synchronization operations, managing provider registration, conflict resolution, bandwidth optimization, and background sync capabilities.
+### DatabaseService
+The DatabaseService class serves as the central coordinator for database operations, implementing a singleton pattern to ensure consistent access across the application. It dynamically detects and initializes the most appropriate database provider (RxDB or PouchDB) based on environmental capabilities.
+
+```mermaid
+classDiagram
+class DatabaseService {
+-static instance : DatabaseService
+-provider : IDatabaseProvider
+-factory : DatabaseProviderFactory
+-isInitialized : boolean
++initialize(config) : Promise~void~
++getProvider() : IDatabaseProvider
++getCollection~T~(name) : ICollection~T~
++getStatus() : Object
++switchProvider(type, config) : Promise~void~
+}
+class IDatabaseProvider {
+<<interface>>
++initialize(config) : Promise~void~
++createCollection(name, schema) : Promise~void~
++getCollection~T~(name) : ICollection~T~
++getAllCollections() : Map~string, ICollection~any~~
++destroy() : Promise~void~
+}
+class DatabaseProviderFactory {
++createProvider(config, schema, type?) : Promise~IDatabaseProvider~
+}
+DatabaseService --> IDatabaseProvider : "uses"
+DatabaseProviderFactory --> IDatabaseProvider : "creates"
+```
+
+**Diagram sources**
+- [DatabaseService.ts:14-301](file://src/services/database/databaseService.ts#L14-L301)
+
+**Section sources**
+- [DatabaseService.ts:14-301](file://src/services/database/databaseService.ts#L14-L301)
+
+### DataStrategyManager
+The DataStrategyManager orchestrates data operations according to configurable strategies, determining whether operations should be executed against the backend, local database, or mock data. It manages the synchronization queue and implements retry mechanisms.
+
+```mermaid
+classDiagram
+class DataStrategyManager {
+-strategy : DataStrategy
+-networkManager : NetworkStateManager
+-backendAPI : BackendAPIService
+-rxdbService : any
+-syncQueue : SyncQueueItem[]
+-isProcessingSync : boolean
++executeOperation~T~(operation, params) : Promise~T~
++queueForSync(operation, params, result) : Promise~void~
++processSyncQueue() : Promise~void~
++getSyncStatus() : Object
++updateStrategy(newStrategy) : void
+}
+class DataStrategy {
+mode : string
+syncPolicy : string
+syncInterval : number
+batchSize : number
+}
+class SyncQueueItem {
+id : string
+operation : DataOperation
+params : any
+result : any
+timestamp : Date
+retryCount : number
+status : string
+priority : string
+}
+DataStrategyManager --> DataStrategy : "uses"
+DataStrategyManager --> SyncQueueItem : "contains"
+```
+
+**Diagram sources**
+- [DataStrategyManager.ts:43-573](file://src/services/DataStrategyManager.ts#L43-L573)
+
+**Section sources**
+- [DataStrategyManager.ts:43-573](file://src/services/DataStrategyManager.ts#L43-L573)
+
+### DataSyncMonitoringService
+The DataSyncMonitoringService provides comprehensive monitoring of synchronization operations, tracking metrics such as latency, throughput, error rates, and conflict resolution. It maintains a history of sync operations and notifies subscribers of status changes. The service now includes enhanced network state change handling and automatic sync resumption.
+
+```mermaid
+classDiagram
+class DataSyncMonitoringService {
+-dataStrategyManager : DataStrategyManager
+-networkManager : NetworkStateManager
+-conflicts : Map~string, SyncConflict~
+-errors : SyncError[]
+-metrics : SyncMetrics
+-syncHistory : {timestamp, duration, success}[]
+-subscribers : (status) => void[]
++getSyncStatus() : SyncStatus
++recordConflict(entity, id, type, local, remote) : string
++resolveConflict(id, resolution) : Promise~boolean~
++recordError(operation, entityId, error) : void
++subscribe(callback) : () => void
++forceSyncAll() : Promise~void~
++updateDataStrategyManager(dataStrategyManager) : void
++destroy() : void
+}
+class SyncConflict {
+id : string
+entityName : string
+entityId : string
+conflictType : string
+localData : any
+remoteData : any
+timestamp : Date
+resolved : boolean
+resolution : ConflictResolution
+}
+class SyncError {
+id : string
+timestamp : Date
+entityName : string
+entityId : string
+operation : string
+error : string
+retryCount : number
+resolved : boolean
+}
+class SyncMetrics {
+totalOperations : number
+successfulOperations : number
+failedOperations : number
+averageLatency : number
+peakLatency : number
+throughput : number
+errorRate : number
+conflictRate : number
+cacheHitRate : number
+}
+DataSyncMonitoringService --> SyncConflict : "manages"
+DataSyncMonitoringService --> SyncError : "manages"
+DataSyncMonitoringService --> SyncMetrics : "tracks"
+```
+
+**Section sources**   
+- [DataSyncMonitoringService.ts:80-479](file://src/services/DataSyncMonitoringService.ts#L80-L479)
+
+## New Sync Infrastructure
+
+### SyncManager
+The SyncManager provides bidirectional synchronization between backend APIs and local cache providers. It manages data synchronization, handles conflict resolution, tracks sync progress and statistics, and supports pause/resume functionality. This component replaces and enhances the previous synchronization mechanisms with a more robust event-driven architecture.
 
 ```mermaid
 classDiagram
 class SyncManager {
-+config : SyncManagerConfig
-+providers : Map~string, DataProvider~
-+conflictResolver : ConflictResolver
-+currentState : SyncState
-+stats : SyncStats
-+onStateChange? : Function
-+onSyncStart? : Function
-+onSyncComplete? : Function
-+onSyncError? : Function
-+onConflict? : Function
-+onProgress? : Function
-+start() void
-+stop() void
-+syncNow(force) Promise~SyncStats~
-+registerProvider(name, provider) void
-+detectConflicts(local, remote, entity) Conflict
-+resolveConflict(conflict, resolution) any
-+shouldCompress(data) boolean
-+compress(data) Promise~Uint8Array~
-+registerBackgroundSync(tag) Promise~boolean~
-+requestPeriodicSync(minInterval) Promise~boolean~
+-config : Required~SyncManagerConfig~
+-state : SyncState
+-syncIntervalId : setInterval
+-isProcessing : boolean
++start() : Promise~void~
++stop() : Promise~void~
++pause() : void
++resume() : void
++getState() : SyncState
++performSync() : Promise~void~
+-pullFromBackend() : Promise~void~
+-pushToBackend() : Promise~void~
+-hasConflict(local, remote) : boolean
+-resolveConflict(collection, id, local, remote) : Promise~void~
+-createInitialState() : SyncState
 }
-class ConflictResolver {
--strategy : ConflictResolutionStrategy
--customRules : Map~string, ConflictResolutionStrategy~
-+setStrategy(strategy) void
-+setEntityRule(entity, strategy) void
-+detectConflicts(local, remote, options) FieldConflict[]
-+resolve(conflict, resolution) Record~string, any~
-+resolveBatch(conflicts, resolutions) Record~string, any~[]
+class SyncState {
+-status : SyncStatus
+-direction : SyncDirection
+-lastSync : Date
+-nextSync : Date
+-progress : SyncProgress
+-statistics : SyncStatistics
 }
-class SyncManagerConfig {
-+autoSync : boolean
-+syncInterval : number
-+retryInterval : number
-+maxRetries : number
-+compressionEnabled : boolean
-+compressionThreshold : number
-+conflictStrategy : ConflictResolutionStrategy
-+entityStrategies : Record~string, ConflictResolutionStrategy~
+class SyncStatistics {
+-documentsUploaded : number
+-documentsDownloaded : number
+-conflicts : number
+-errors : number
 }
-SyncManager --> ConflictResolver : "uses"
+class SyncProgress {
+-current : number
+-total : number
+-percentage : number
+}
+class SyncConflict {
+-collection : string
+-id : string
+-local : any
+-remote : any
+-localModified : number
+-remoteModified : number
+}
+SyncManager --> SyncState : "manages"
+SyncManager --> SyncStatistics : "tracks"
+SyncManager --> SyncProgress : "updates"
+SyncManager --> SyncConflict : "resolves"
 ```
 
 **Diagram sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
+- [SyncManager.ts:90-362](file://src/services/database/sync/SyncManager.ts#L90-L362)
 
 **Section sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
+- [SyncManager.ts:1-387](file://src/services/database/sync/SyncManager.ts#L1-L387)
 
-### NetworkMonitor - Real-Time Network Connectivity
-The NetworkMonitor provides comprehensive network status detection with singleton pattern implementation, emitting real-time online/offline events and connection quality metrics.
+### NetworkMonitor
+The NetworkMonitor provides real-time network connectivity monitoring with online/offline event detection, connection quality metrics, and reconnection notifications. It implements a singleton pattern for centralized network state management and provides detailed network information including connection type, speed, and quality indicators.
 
 ```mermaid
 classDiagram
 class NetworkMonitor {
--@static instance : NetworkMonitor
 -currentStatus : NetworkStatus
 -currentInfo : NetworkInfo
 -eventListeners : Array
-+getInstance() NetworkMonitor
-+resetInstance() void
-+start() void
-+stop() void
-+getStatus() NetworkStatus
-+getInfo() NetworkInfo
-+isOnline() boolean
-+isOffline() boolean
-+checkStatus() NetworkStatus
-+destroy() void
+-isConnected : boolean
++getInstance() : NetworkMonitor
++resetInstance() : void
++start() : void
++stop() : void
++getStatus() : NetworkStatus
++getInfo() : NetworkInfo
++isOnline() : boolean
++isOffline() : boolean
++checkStatus() : NetworkStatus
+-handleOnline() : void
+-handleOffline() : void
+-detectNetworkInfo() : NetworkInfo
++destroy() : void
 }
 class NetworkInfo {
-+isOnline : boolean
-+type : 'wifi' | 'cellular' | 'ethernet' | 'unknown'
-+effectiveType : '4g' | '3g' | '2g' | 'slow-2g' | 'unknown'
-+downlink : number
-+rtt : number
-+saveData : boolean
+-isOnline : boolean
+-type : string
+-effectiveType : string
+-downlink : number
+-rtt : number
+-saveData : boolean
 }
 NetworkMonitor --> NetworkInfo : "provides"
 ```
 
 **Diagram sources**
-- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
+- [NetworkMonitor.ts:29-216](file://src/services/database/sync/NetworkMonitor.ts#L29-L216)
 
 **Section sources**
 - [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
 
-### OfflineQueue - Persistent Offline Operation Queue
-The OfflineQueue manages queued operations with IndexedDB persistence, supporting priority-based processing, exponential backoff retry strategies, and comprehensive queue status tracking.
+### OfflineQueue
+The OfflineQueue provides persistent queue management for offline operations with IndexedDB persistence, configurable retry strategies, and priority-based processing. It ensures data integrity during offline periods and provides robust error handling with exponential backoff mechanisms.
 
 ```mermaid
 classDiagram
 class OfflineQueue {
--@static instance : OfflineQueue
+-instance : OfflineQueue
 -queue : QueuedOperation[]
 -config : Required~OfflineQueueConfig~
 -processing : boolean
 -db : IDBDatabase
-+getInstance(config) Promise~OfflineQueue~
-+resetInstance() void
-+initialize() Promise~void~
-+enqueue(operation) Promise~string~
-+process(executor) Promise~QueueResult~
-+getStatus() QueueStatus
-+getPendingOperations() QueuedOperation[]
-+retryOperation(operationId, executor) Promise~boolean~
-+clear() Promise~void~
-+size() number
-+isEmpty() boolean
+-initialized : boolean
++getInstance(config) : Promise~OfflineQueue~
++resetInstance() : void
++initialize() : Promise~void~
++enqueue(operation) : Promise~string~
++process(executor) : Promise
++getStatus() : QueueStatus
++getPendingOperations() : QueuedOperation[]
++getFailedOperations() : QueuedOperation[]
++retryOperation(operationId, executor) : Promise~boolean~
++clear() : Promise~void~
++size() : number
++isEmpty() : boolean
+-calculatePriority(operation) : number
+-calculateBackoff(retryCount) : number
+-sortQueue() : void
+-pruneOldFailed() : void
+-generateId() : string
+-sleep(ms) : Promise~void~
+-openDatabase() : Promise~IDBDatabase~
+-restoreFromDatabase() : Promise~void~
+-saveOperation(operation) : Promise~void~
+-updateOperation(operation) : Promise~void~
+-removeOperation(id) : Promise~void~
+-clearDatabase() : Promise~void~
 }
 class QueuedOperation {
-+id : string
-+operation : 'create' | 'update' | 'delete'
-+collection : string
-+data : any
-+timestamp : number
-+retryCount : number
-+maxRetries : number
-+priority : number
-+status : 'pending' | 'processing' | 'failed' | 'completed'
+-id : string
+-operation : string
+-collection : string
+-data : any
+-idField : string
+-timestamp : number
+-retryCount : number
+-maxRetries : number
+-priority : number
+-status : string
+-error : string
 }
 class OfflineQueueConfig {
-+maxSize : number
-+persistQueue : boolean
-+storageKey : string
-+retryStrategy : RetryStrategy
+-maxSize : number
+-persistQueue : boolean
+-storageKey : string
+-retryStrategy : Object
 }
 OfflineQueue --> QueuedOperation : "manages"
 OfflineQueue --> OfflineQueueConfig : "configured by"
 ```
 
 **Diagram sources**
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
+- [OfflineQueue.ts:66-457](file://src/services/database/sync/OfflineQueue.ts#L66-L457)
 
 **Section sources**
 - [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
 
 ## Data Synchronization Process
 
-### Enhanced Bidirectional Sync Workflow
-The new synchronization workflow centers around the SyncManager which coordinates all sync operations, conflict resolution, and network-aware processing.
+### Bidirectional Sync Workflow
+The synchronization process follows a sophisticated bidirectional pattern that ensures data consistency between local and remote databases. The workflow adapts to network conditions and user requirements through configurable strategies. The system now includes automatic sync resumption when network connectivity is restored and enhanced conflict detection.
 
 ```mermaid
 sequenceDiagram
 participant UI as "User Interface"
 participant Hook as "useDatabaseData"
+participant Strategy as "DataStrategyManager"
+participant HybridProvider as "HybridProvider"
 participant SyncManager as "SyncManager"
-participant ConflictResolver as "ConflictResolver"
 participant NetworkMonitor as "NetworkMonitor"
 participant OfflineQueue as "OfflineQueue"
-participant DataStrategyManager as "DataStrategyManager"
+participant LocalDB as "Local Database"
+participant RemoteDB as "Remote CouchDB"
 UI->>Hook : Initiate data operation
-Hook->>SyncManager : executeOperation()
+Hook->>Strategy : executeOperation()
 alt Online & Backend Available
-SyncManager->>DataStrategyManager : Execute operation
-DataStrategyManager->>DataStrategyManager : Process sync queue
-DataStrategyManager->>ConflictResolver : Detect conflicts
-ConflictResolver->>ConflictResolver : Resolve conflicts
-DataStrategyManager-->>SyncManager : Return result
-SyncManager-->>Hook : Return data
-else Offline or Poor Connection
-SyncManager->>OfflineQueue : Queue operation
-OfflineQueue->>OfflineQueue : Store in IndexedDB
-OfflineQueue-->>SyncManager : Operation queued
-SyncManager-->>Hook : Return data
+Strategy->>HybridProvider : Process operation
+HybridProvider->>LocalDB : Execute locally
+alt Sync Enabled
+HybridProvider->>SyncManager : Sync operation
+SyncManager->>RemoteDB : Push to backend
+RemoteDB-->>SyncManager : Acknowledge
+SyncManager->>LocalDB : Update local cache
 end
+else Offline or Poor Connection
+Strategy->>LocalDB : Execute operation locally
+LocalDB-->>Strategy : Return result
+alt Offline Queue Enabled
+Strategy->>OfflineQueue : Queue operation
+OfflineQueue-->>Strategy : Store in IndexedDB
+end
+end
+Hook-->>UI : Update UI with data
 NetworkMonitor->>SyncManager : Network state change
-SyncManager->>OfflineQueue : Process queued operations
-SyncManager->>DataStrategyManager : Resume sync
+SyncManager->>SyncManager : Resume sync when online
+OfflineQueue->>HybridProvider : Process queued operations
 ```
 
 **Diagram sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [useDatabaseData.ts:1-2121](file://src/hooks/useDatabaseData.ts#L1-L2121)
-- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-- [DataStrategyManager.ts:1-574](file://src/services/DataStrategyManager.ts#L1-L574)
+- [DataStrategyManager.ts:43-573](file://src/services/DataStrategyManager.ts#L43-L573)
+- [useDatabaseData.ts:86-1958](file://src/hooks/useDatabaseData.ts#L86-L1958)
+- [HybridProvider.ts:326-607](file://src/services/database/HybridProvider.ts#L326-L607)
+- [SyncManager.ts:90-362](file://src/services/database/sync/SyncManager.ts#L90-L362)
+- [NetworkMonitor.ts:29-216](file://src/services/database/sync/NetworkMonitor.ts#L29-L216)
+- [OfflineQueue.ts:66-457](file://src/services/database/sync/OfflineQueue.ts#L66-L457)
 
 **Section sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [useDatabaseData.ts:1-2121](file://src/hooks/useDatabaseData.ts#L1-L2121)
-- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-- [DataStrategyManager.ts:1-574](file://src/services/DataStrategyManager.ts#L1-L574)
+- [DataStrategyManager.ts:43-573](file://src/services/DataStrategyManager.ts#L43-L573)
+- [useDatabaseData.ts:86-1958](file://src/hooks/useDatabaseData.ts#L86-L1958)
+- [HybridProvider.ts:326-607](file://src/services/database/HybridProvider.ts#L326-L607)
 
 ### Batch Processing and Queue Management
-The system implements intelligent batch processing with priority-based ordering and exponential backoff retry mechanisms.
+The system implements intelligent batch processing to optimize network usage and improve performance. Operations are queued and processed according to priority and network conditions.
 
 ```mermaid
 flowchart TD
 A[Data Operation] --> B{Network Available?}
 B --> |Yes| C[Execute Immediately]
-B --> |No| D[Add to OfflineQueue]
-D --> E[Calculate Priority Score]
-E --> F[Sort by Priority]
-F --> G[Persist to IndexedDB]
-G --> H{Network Restored?}
-H --> |Yes| I[Process Queue with Backoff]
-H --> |No| J[Wait for Connection]
-I --> K[Apply Exponential Backoff]
-K --> L{Max Retries Exceeded?}
-L --> |No| M[Requeue with Delay]
-L --> |Yes| N[Mark as Failed]
-M --> I
-N --> O[Notify User/Manual Retry]
+B --> |No| D[Add to Offline Queue]
+D --> E[Sort by Priority]
+E --> F[Store in IndexedDB]
+F --> G{Network Restored?}
+G --> |Yes| H[Process Queue in Batches]
+G --> |No| I[Wait for Connection]
+H --> J[Apply Exponential Backoff on Failure]
+J --> K{Max Retries Exceeded?}
+K --> |No| L[Requeue for Retry]
+K --> |Yes| M[Mark as Failed]
+L --> H
+M --> N[Notify User]
+O[Sync Manager] --> H
+O --> P[Pull Remote Changes]
+P --> Q[Detect Conflicts]
+Q --> R[Resolve Conflicts]
+R --> S[Update Both Databases]
 ```
 
 **Diagram sources**
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-- [DataStrategyManager.ts:1-574](file://src/services/DataStrategyManager.ts#L1-L574)
+- [OfflineQueue.ts:66-457](file://src/services/database/sync/OfflineQueue.ts#L66-L457)
+- [SyncManager.ts:90-362](file://src/services/database/sync/SyncManager.ts#L90-L362)
 
 **Section sources**
 - [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-- [DataStrategyManager.ts:1-574](file://src/services/DataStrategyManager.ts#L1-L574)
+- [SyncManager.ts:1-387](file://src/services/database/sync/SyncManager.ts#L1-L387)
 
 ## Conflict Detection and Resolution
 
-### Comprehensive Conflict Resolution System
-The new conflict resolution system provides multiple strategies with entity-specific customization and detailed conflict tracking.
+### Enhanced Conflict Detection Algorithm
+The system employs a comprehensive conflict detection mechanism that identifies version mismatches between local and remote data. The SyncManager now includes sophisticated conflict detection with timestamp-based comparison and multiple resolution strategies.
 
 ```mermaid
 sequenceDiagram
 participant Local as "Local Data"
 participant Remote as "Remote Data"
-participant ConflictResolver as "ConflictResolver"
 participant SyncManager as "SyncManager"
-Local->>ConflictResolver : detectConflicts()
-Remote->>ConflictResolver : detectConflicts()
-ConflictResolver->>ConflictResolver : Compare field values
-ConflictResolver->>ConflictResolver : Generate FieldConflict[]
-ConflictResolver->>SyncManager : Return conflicts
+participant ConflictHandler as "Conflict Handler"
+Local->>SyncManager : Detect changes
+Remote->>SyncManager : Receive remote updates
+SyncManager->>SyncManager : Compare timestamps
+alt Version Mismatch Detected
+SyncManager->>ConflictHandler : hasConflict()
+ConflictHandler->>ConflictHandler : Compare localModified vs remoteModified
+ConflictHandler->>SyncManager : Conflict detected
+SyncManager->>SyncManager : resolveConflict()
 SyncManager->>SyncManager : Apply resolution strategy
-alt Manual Resolution Required
-SyncManager->>UI : Present conflict resolution UI
-UI->>SyncManager : User selects resolution
-SyncManager->>ConflictResolver : resolve(conflict, userResolution)
-else Automatic Resolution
-ConflictResolver->>ConflictResolver : Apply configured strategy
+else No Conflict
+SyncManager->>Local : Apply update
+SyncManager->>Remote : Confirm sync
 end
-ConflictResolver->>Local : Update with resolved data
-ConflictResolver->>Remote : Update with resolved data
 ```
 
 **Diagram sources**
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
+- [SyncManager.ts:297-345](file://src/services/database/sync/SyncManager.ts#L297-L345)
 
 **Section sources**
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
+- [SyncManager.ts:297-345](file://src/services/database/sync/SyncManager.ts#L297-L345)
 
-### Conflict Resolution Strategies
-The system supports multiple conflict resolution strategies with entity-specific overrides and detailed resolution tracking.
+### Advanced Conflict Resolution Strategies
+The system supports multiple conflict resolution strategies to handle data inconsistencies according to business requirements and user preferences. The resolution strategies now include sophisticated timestamp comparison and manual intervention options.
 
 ```mermaid
 flowchart TD
 A[Conflict Detected] --> B{Resolution Strategy}
 B --> C[Local Wins]
 B --> D[Remote Wins]
-B --> E[Timestamp Wins]
-B --> F[Merge]
-B --> G[Manual]
-C --> H[Apply Local Data]
-D --> I[Apply Remote Data]
-E --> J[Compare Timestamps]
-J --> K{Local or Remote Latest?}
-K --> L[Apply Local Data]
-K --> M[Apply Remote Data]
-F --> N[Field-by-Field Merge]
-G --> O[Present Resolution UI]
-H --> P[Update Both Databases]
-I --> P
-L --> P
-M --> P
-N --> P
-O --> Q[User Selects Fields]
-Q --> R[Apply Custom Resolution]
-R --> P
-P --> S[Update Conflict Tracking]
-S --> T[Notify UI Components]
+B --> E[Last-Write-Wins]
+B --> F[Manual Resolution]
+C --> G[Apply Local Timestamp]
+D --> H[Apply Remote Timestamp]
+E --> I{Compare Timestamps}
+I --> J[Local Modified Later]
+I --> K[Remote Modified Later]
+J --> G
+K --> H
+F --> L[Trigger Manual Resolution UI]
+L --> M[User Selects Resolution]
+M --> N[Apply User's Choice]
+G --> O[Update Both Databases]
+H --> O
+N --> O
 ```
 
 **Section sources**
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
-- [DataSyncMonitoringService.ts:1-483](file://src/services/DataSyncMonitoringService.ts#L1-L483)
+- [SyncManager.ts:306-345](file://src/services/database/sync/SyncManager.ts#L306-L345)
 
 ## Event-Driven Architecture and UI Integration
 
-### Enhanced useDatabaseData Hook Integration
-The useDatabaseData hook now integrates with the new synchronization infrastructure for real-time data updates and conflict resolution notifications.
+### useDatabaseData Hook
+The useDatabaseData hook serves as the primary interface between the application's UI components and the data synchronization system. It provides a reactive data layer that automatically updates when data changes.
 
 ```mermaid
 classDiagram
@@ -400,11 +573,9 @@ class useDatabaseData {
 +isUsingRxDBDummyData : boolean
 +data : AppDataContextType
 +rbac : RBACData
-+getStudentDetailsById(id) Promise~StudentDetailProfile~
-+getStudentFinancialDetailsById(id) Promise~any~
++getStudentDetailsById(id) : Promise~StudentDetailProfile~
++getStudentFinancialDetailsById(id) : Promise~any~
 +CRUD Operations : add, update, delete methods
-+subscribeToSyncStatus(callback) () => void
-+subscribeToConflicts(callback) () => void
 }
 class AppDataContextType {
 schoolDetails : SchoolDetail
@@ -420,99 +591,111 @@ useDatabaseData --> AppDataContextType : "returns"
 ```
 
 **Diagram sources**
-- [useDatabaseData.ts:1-2121](file://src/hooks/useDatabaseData.ts#L1-L2121)
+- [useDatabaseData.ts:86-1958](file://src/hooks/useDatabaseData.ts#L86-L1958)
 
 **Section sources**
-- [useDatabaseData.ts:1-2121](file://src/hooks/useDatabaseData.ts#L1-L2121)
+- [useDatabaseData.ts:86-1958](file://src/hooks/useDatabaseData.ts#L86-L1958)
 
 ### Data Change Notification Flow
-The event-driven architecture ensures UI components receive real-time updates from all synchronization activities.
+The event-driven architecture ensures that UI components are promptly notified of data changes, providing a responsive user experience.
 
 ```mermaid
 sequenceDiagram
 participant DB as "Database"
-participant SyncManager as "SyncManager"
-participant DataSyncMonitoringService as "DataSyncMonitoringService"
-participant useDatabaseData as "useDatabaseData"
+participant Strategy as "DataStrategyManager"
+participant Context as "AppDataContext"
+participant Hook as "useDatabaseData"
 participant UI as "UI Component"
-DB->>SyncManager : Data change detected
-SyncManager->>DataSyncMonitoringService : Update sync status
-DataSyncMonitoringService->>useDatabaseData : Emit status update
-useDatabaseData->>UI : Trigger re-render
+DB->>Strategy : Data change detected
+Strategy->>Context : Emit change event
+Context->>Hook : Update state
+Hook->>UI : Trigger re-render
 UI->>UI : Display updated data
 Note over DB,UI : Real-time updates without page refresh
 ```
 
 **Diagram sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [DataSyncMonitoringService.ts:1-483](file://src/services/DataSyncMonitoringService.ts#L1-L483)
-- [useDatabaseData.ts:1-2121](file://src/hooks/useDatabaseData.ts#L1-L2121)
+- [useDatabaseData.ts:86-1958](file://src/hooks/useDatabaseData.ts#L86-L1958)
+- [DataStrategyManager.ts:43-573](file://src/services/DataStrategyManager.ts#L43-L573)
 
 ## Error Handling and Retry Mechanisms
 
-### Advanced Retry Strategies with Exponential Backoff
-The system implements sophisticated error handling with configurable retry strategies and comprehensive error tracking.
+### Enhanced Retry Mechanisms and Exponential Backoff
+The system implements robust error handling with exponential backoff strategies to handle transient failures and network issues. The OfflineQueue now provides sophisticated retry logic with configurable strategies.
 
 ```mermaid
 flowchart TD
 A[Sync Operation] --> B{Success?}
-B --> |Yes| C[Update Success Metrics]
+B --> |Yes| C[Mark as Completed]
 B --> |No| D[Increment Retry Count]
 D --> E{Retry Count < Max?}
 E --> |Yes| F[Calculate Backoff Delay]
-F --> G[Apply Backoff Strategy]
-G --> H{Linear or Exponential?}
-H --> |Linear| I[Linear Backoff]
-H --> |Exponential| J[Exponential Backoff]
-I --> K[Wait and Retry]
-J --> L[2^n Backoff]
-L --> K
-K --> A
-E --> |No| M[Mark as Failed]
-M --> N[Update Error Tracking]
-N --> O[Notify User]
-O --> P[Manual Retry Option]
+F --> G[Schedule Retry]
+G --> H[Exponential Backoff: 1s, 2s, 4s, 8s...]
+H --> A
+E --> |No| I[Mark as Failed]
+I --> J[Store in Offline Queue]
+J --> K[Attempt Recovery on Network Reconnect]
+K --> L[Process Failed Operations]
+L --> M[Apply Linear Backoff Strategy]
+M --> A
 ```
 
 **Diagram sources**
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-- [DataStrategyManager.ts:1-574](file://src/services/DataStrategyManager.ts#L1-L574)
+- [OfflineQueue.ts:328-335](file://src/services/database/sync/OfflineQueue.ts#L328-L335)
 
 **Section sources**
 - [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-- [DataStrategyManager.ts:1-574](file://src/services/DataStrategyManager.ts#L1-L574)
 
-### Comprehensive Error Tracking and Resolution
-The DataSyncMonitoringService provides detailed error tracking with resolution capabilities and performance metrics.
+### Offline Queue Management
+The system maintains a persistent queue of operations when offline, ensuring data integrity and synchronization when connectivity is restored. The OfflineQueue provides IndexedDB persistence and sophisticated priority-based processing.
 
 ```mermaid
-flowchart TD
-A[Operation Error] --> B[Record Error Details]
-B --> C[Update Error Metrics]
-C --> D{Error Type}
-D --> E[Sync Errors]
-D --> F[Conflict Resolution Errors]
-D --> G[Network Errors]
-E --> H[Update Sync History]
-F --> I[Update Conflict Tracking]
-G --> J[Update Network State]
-H --> K[Calculate Error Rate]
-I --> K
-J --> K
-K --> L[Broadcast to Subscribers]
-L --> M[UI Notifications]
+classDiagram
+class OfflineQueue {
+-queue : QueuedOperation[]
+-config : OfflineQueueConfig
+-processing : boolean
+-db : IDBDatabase
++enqueue(operation) : Promise~string~
++process(executor) : Promise
++getStatus() : QueueStatus
++getPendingOperations() : QueuedOperation[]
++retryOperation(operationId, executor) : Promise~boolean~
++clear() : Promise~void~
+-size() : number
++isEmpty() : boolean
+-calculatePriority(operation) : number
+-calculateBackoff(retryCount) : number
+-sortQueue() : void
+-pruneOldFailed() : void
+}
+class QueuedOperation {
+-id : string
+-operation : string
+-collection : string
+-data : any
+-idField : string
+-timestamp : number
+-retryCount : number
+-maxRetries : number
+-priority : number
+-status : string
+-error : string
+}
+OfflineQueue --> QueuedOperation : "manages"
 ```
 
 **Diagram sources**
-- [DataSyncMonitoringService.ts:1-483](file://src/services/DataSyncMonitoringService.ts#L1-L483)
+- [OfflineQueue.ts:66-457](file://src/services/database/sync/OfflineQueue.ts#L66-L457)
 
 **Section sources**
-- [DataSyncMonitoringService.ts:1-483](file://src/services/DataSyncMonitoringService.ts#L1-L483)
+- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
 
 ## Performance and Consistency Guarantees
 
-### Data Consistency and Eventual Consistency Model
-The system maintains strong consistency requirements while providing eventual consistency through intelligent conflict resolution and synchronization strategies.
+### Data Consistency and Eventual Consistency
+The system balances strong consistency requirements with the realities of distributed systems through an eventual consistency model.
 
 ```mermaid
 flowchart TD
@@ -520,49 +703,37 @@ A[Local Operation] --> B[Immediate Local Update]
 B --> C[Queue for Remote Sync]
 C --> D{Network Available?}
 D --> |Yes| E[Sync to Remote]
-D --> |No| F[Store in OfflineQueue]
+D --> |No| F[Store in Offline Queue]
 F --> G[Wait for Network]
 G --> E
 E --> H[Receive Remote Acknowledgment]
-H --> I[Conflict Detection]
-I --> J{Conflict Detected?}
-J --> |No| K[Finalize Synchronization]
-J --> |Yes| L[Apply Conflict Resolution]
-L --> M[Update Both Databases]
-M --> K
-K --> N[Eventual Consistency Achieved]
+H --> I[Confirm Synchronization]
+I --> J[Eventual Consistency Achieved]
 style B fill:#d9ead3,stroke:#3c763d
 style E fill:#d9ead3,stroke:#3c763d
-style N fill:#d9ead3,stroke:#3c763d
+style J fill:#d9ead3,stroke:#3c763d
 ```
 
 **Diagram sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
+- [SyncManager.ts:169-200](file://src/services/database/sync/SyncManager.ts#L169-L200)
 
 **Section sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [ConflictResolver.ts:1-248](file://src/services/sync/ConflictResolver.ts#L1-L248)
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
+- [SyncManager.ts:1-387](file://src/services/database/sync/SyncManager.ts#L1-L387)
 
-### Performance Monitoring and Metrics Collection
-The enhanced monitoring system tracks comprehensive performance metrics and provides real-time insights into synchronization performance.
+### Performance Monitoring and Metrics
+The DataSyncMonitoringService collects comprehensive metrics to ensure optimal performance and identify potential issues.
 
 ```mermaid
 flowchart TD
-A[Sync Operation] --> B[Record Operation Metrics]
-B --> C[Update Performance Counters]
-C --> D[Calculate Throughput]
-D --> E[Update Average Latency]
-E --> F[Update Success Rate]
-F --> G[Update Conflict Rate]
-G --> H[Update Cache Hit Rate]
-H --> I[Update Sync History]
-I --> J[Calculate Recent Metrics]
-J --> K[Broadcast to Subscribers]
-K --> L[UI Performance Dashboard]
-subgraph "Performance Metrics Collected"
+A[Sync Operation] --> B[Record Metrics]
+B --> C[Update Metrics Object]
+C --> D[Add to Sync History]
+D --> E[Calculate Aggregates]
+E --> F[Update SyncStatus]
+F --> G[Broadcast to Subscribers]
+G --> H[UI Components]
+H --> I[Display Sync Status]
+subgraph "Metrics Collected"
 M1[Total Operations]
 M2[Successful Operations]
 M3[Failed Operations]
@@ -585,219 +756,34 @@ C --> M9
 ```
 
 **Diagram sources**
-- [DataSyncMonitoringService.ts:1-483](file://src/services/DataSyncMonitoringService.ts#L1-L483)
+- [DataSyncMonitoringService.ts:80-479](file://src/services/DataSyncMonitoringService.ts#L80-L479)
 
 **Section sources**
-- [DataSyncMonitoringService.ts:1-483](file://src/services/DataSyncMonitoringService.ts#L1-L483)
+- [DataSyncMonitoringService.ts:80-479](file://src/services/DataSyncMonitoringService.ts#L80-L479)
 
-## Network Monitoring and Connectivity Management
+## Provider Selection and Fallback Mechanism
 
-### Real-Time Network State Management
-The NetworkMonitor provides comprehensive network connectivity monitoring with detailed connection quality metrics and automatic reconnection handling.
+The system implements an enhanced provider selection mechanism that ensures database availability across different environments. The ProviderSelector dynamically chooses the most appropriate database provider based on environmental capabilities and requirements.
 
 ```mermaid
 flowchart TD
-A[Network State Change] --> B{Detect Change}
-B --> C[Update Network Info]
-C --> D[Check Connection Quality]
-D --> E{Connection Quality}
-E --> |Excellent| F[Enable Full Sync]
-E --> |Good| G[Enable Normal Sync]
-E --> |Poor| H[Enable Limited Sync]
-E --> |Offline| I[Pause All Sync]
-F --> J[Update Network State]
-G --> J
-H --> J
-I --> J
-J --> K[Emit Network Events]
-K --> L[Notify SyncManager]
-L --> M[Adjust Sync Strategy]
-```
-
-**Diagram sources**
-- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
-- [NetworkStateManager.ts:1-234](file://src/services/NetworkStateManager.ts#L1-L234)
-
-**Section sources**
-- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
-- [NetworkStateManager.ts:1-234](file://src/services/NetworkStateManager.ts#L1-L234)
-
-### Network-Aware Synchronization
-The system adapts synchronization behavior based on network conditions, connection type, and bandwidth constraints.
-
-```mermaid
-flowchart TD
-A[Sync Request] --> B{Network Conditions}
-B --> C[Online & Good Connection]
-B --> D[Online & Poor Connection]
-B --> E[Offline]
-C --> F[Full Synchronization]
-D --> G[Limited Synchronization]
-E --> H[Queue for Later]
-F --> I[Enable Attachments]
-G --> J[Skip Attachments]
-H --> K[Store in OfflineQueue]
-I --> L[Process Immediately]
-J --> L
-K --> M[Process When Online]
-L --> N[Update Network State]
-M --> N
-N --> O[Resume Based on Conditions]
+A[Initialize Database] --> B{Check Requirements}
+B --> C[Select Provider Type]
+C --> D{Provider Available?}
+D --> |Yes| E[Initialize Selected Provider]
+D --> |No| F[Fall Back to PouchDB]
+F --> G{PouchDB Available?}
+G --> |Yes| H[Initialize PouchDB]
+G --> |No| I[Throw Error]
+H --> J[Database Ready]
+E --> J
+J --> K[Monitor Provider Health]
+K --> L{Provider Fails?}
+L --> |Yes| M[Switch to Fallback]
+M --> C
+L --> |No| N[Continue Operation]
 ```
 
 **Section sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
-
-## Offline Queue Management
-
-### Persistent Offline Operation Queue
-The OfflineQueue provides comprehensive offline operation management with IndexedDB persistence, priority-based processing, and intelligent retry mechanisms.
-
-```mermaid
-classDiagram
-class OfflineQueue {
--@static instance : OfflineQueue
--queue : QueuedOperation[]
--config : Required~OfflineQueueConfig~
--processing : boolean
--db : IDBDatabase
-+getInstance(config) Promise~OfflineQueue~
-+resetInstance() void
-+initialize() Promise~void~
-+enqueue(operation) Promise~string~
-+process(executor) Promise~QueueResult~
-+getStatus() QueueStatus
-+getPendingOperations() QueuedOperation[]
-+retryOperation(operationId, executor) Promise~boolean~
-+clear() Promise~void~
-+size() number
-+isEmpty() boolean
-}
-class QueuedOperation {
-+id : string
-+operation : 'create' | 'update' | 'delete'
-+collection : string
-+data : any
-+timestamp : number
-+retryCount : number
-+maxRetries : number
-+priority : number
-+status : 'pending' | 'processing' | 'failed' | 'completed'
-+error? : string
-}
-class QueueStatus {
-+pending : number
-+processing : number
-+failed : number
-+completed : number
-+totalSize : number
-+oldestOperation : Date
-+newestOperation : Date
-}
-OfflineQueue --> QueuedOperation : "manages"
-OfflineQueue --> QueueStatus : "reports"
-```
-
-**Diagram sources**
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-
-**Section sources**
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-
-### Queue Processing and Recovery
-The system provides robust queue processing with automatic recovery from crashes and comprehensive status tracking.
-
-```mermaid
-flowchart TD
-A[Queue Initialization] --> B[Load from IndexedDB]
-B --> C[Restore Pending Operations]
-C --> D[Reset Processing Operations]
-D --> E[Sort by Priority]
-E --> F[Start Processing Loop]
-F --> G{Operations Remaining?}
-G --> |Yes| H[Process Next Operation]
-G --> |No| I[Complete Processing]
-H --> J[Execute Operation]
-J --> K{Operation Success?}
-K --> |Yes| L[Mark as Completed]
-K --> |No| M{Retry Attempts Left?}
-M --> |Yes| N[Increment Retry Count]
-N --> O[Apply Backoff Delay]
-O --> P[Requeue Operation]
-M --> |No| Q[Mark as Failed]
-L --> R[Remove from IndexedDB]
-P --> F
-Q --> R
-R --> F
-I --> S[Update Queue Status]
-S --> T[Notify Progress]
-```
-
-**Diagram sources**
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-
-**Section sources**
-- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
-
-## Bandwidth Optimization
-
-### Intelligent Bandwidth Management
-The SyncManager implements comprehensive bandwidth optimization including compression, selective attachment handling, and connection-aware data transfer.
-
-```mermaid
-flowchart TD
-A[Data Transfer Request] --> B{Connection Type}
-B --> C[Cellular/Slow Connection]
-B --> D[WiFi/Good Connection]
-C --> E[Check Compression Threshold]
-D --> E
-E --> F{Data Size > Threshold?}
-F --> |Yes| G[Compress Data]
-F --> |No| H[Send Directly]
-G --> I[Check Compression Support]
-I --> J{Compression Supported?}
-J --> |Yes| K[Send Compressed Data]
-J --> |No| L[Send Uncompressed Data]
-H --> M[Send Data]
-K --> N[Update Bandwidth Stats]
-L --> N
-M --> N
-N --> O[Update Transfer Metrics]
-O --> P[Update Connection Quality]
-```
-
-**Diagram sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-
-**Section sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-
-### Connection-Aware Data Transfer
-The system intelligently adapts data transfer behavior based on connection quality, battery level, and network constraints.
-
-```mermaid
-flowchart TD
-A[Sync Operation] --> B{Connection Quality}
-B --> C[Slow 2G/3G]
-B --> D[2G/3G]
-B --> E[4G/WiFi]
-C --> F[Skip Attachments]
-D --> F
-E --> G[Include Attachments]
-F --> H{Battery Level}
-G --> H
-H --> I{Battery < Min Level?}
-I --> |Yes| J[Pause Operation]
-I --> |No| K[Proceed with Sync]
-J --> L[Wait for Charging]
-K --> M[Optimize Data Transfer]
-L --> N[Resume When Conditions Met]
-M --> O[Update Connection Metrics]
-N --> O
-O --> P[Process Results]
-```
-
-**Section sources**
-- [SyncManager.ts:1-523](file://src/services/sync/SyncManager.ts#L1-L523)
-- [NetworkMonitor.ts:1-217](file://src/services/database/sync/NetworkMonitor.ts#L1-L217)
+- [ProviderSelector.ts:0-449](file://src/services/database/ProviderSelector.ts#L0-L449)
+- [DatabaseProviderFactory.ts:291-321](file://src/services/database/DatabaseProviderFactory.ts#L291-L321)
