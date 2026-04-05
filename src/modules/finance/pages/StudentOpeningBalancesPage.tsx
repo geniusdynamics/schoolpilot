@@ -200,7 +200,7 @@ const StudentOpeningBalancesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingBalance ? 'Edit Opening Balance' : 'Add Student Opening Balance'} size="lg"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingBalance ? 'Edit Opening Balance' : 'Add Student Opening Balance'} size="lg"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -224,7 +224,7 @@ const StudentOpeningBalancesPage: React.FC = () => {
                 checked={formData.is_billed || false} onChange={handleInputChange} />
             <label htmlFor="is_billed" className="ml-2 block text-sm text-gray-900">Consider this amount as already billed (affects statement)</label>
         </div>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

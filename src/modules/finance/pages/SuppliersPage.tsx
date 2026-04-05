@@ -185,7 +185,7 @@ const SuppliersPage: React.FC = () => {
         />
       </Card>
 
-      <Modal 
+      <DialogForm 
         isOpen={isModalOpen} 
         onClose={closeModal} 
         title={editingSupplier ? 'Edit Supplier' : 'Add New Supplier'} 
@@ -233,7 +233,7 @@ const SuppliersPage: React.FC = () => {
           value={formData.contract_expiry_date || ''}
           onChange={handleInputChange}
         />
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

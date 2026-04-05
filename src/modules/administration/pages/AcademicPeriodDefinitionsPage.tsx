@@ -3,7 +3,10 @@ import { AcademicPeriodDefinition, AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '@/components/ui/icons';
@@ -187,48 +190,50 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDefinition ? 'Edit Period Definition' : 'Add New Period Definition'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.academicPeriodDefinitions}>
-              {loading.academicPeriodDefinitions ? <Spinner size="sm"/> : (editingDefinition ? 'Save Changes' : 'Add Definition')}
-            </Button>
-          </>
-        }
-      >
-        <Input 
-          name="name" 
-          label="Period Name" 
-          placeholder="e.g., Term 1, Semester 2"
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Select 
-          name="structure_id" 
-          label="Academic Year Structure" 
-          value={formData.structure_id?.toString() || ''} 
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">Select Structure</option>
-          {academicYearStructures.map((structure: AcademicYearStructure) => (
-            <option key={structure.id} value={structure.id}>
-              {structure.name}
-            </option>
-          ))}
-        </Select>
-        <Input 
-          name="sequence_order" 
-          label="Sequence Order" 
-          type="number"
-          min="1"
-          value={formData.sequence_order?.toString() || '1'} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingDefinition ? 'Edit Period Definition' : 'Add New Period Definition'} size="lg">
+        <FormSection columns={1}>
+          <FormField label="Period Name" required>
+            <Input 
+              name="name" 
+              placeholder="e.g., Term 1, Semester 2"
+              value={formData.name || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+          <FormField label="Academic Year Structure" required>
+            <Select 
+              name="structure_id" 
+              value={formData.structure_id?.toString() || ''} 
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Structure</option>
+              {academicYearStructures.map((structure: AcademicYearStructure) => (
+                <option key={structure.id} value={structure.id}>
+                  {structure.name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Sequence Order" required>
+            <Input 
+              name="sequence_order" 
+              type="number"
+              min="1"
+              value={formData.sequence_order?.toString() || '1'} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading.academicPeriodDefinitions}>
+            {loading.academicPeriodDefinitions ? <Spinner size="sm"/> : (editingDefinition ? 'Save Changes' : 'Add Definition')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

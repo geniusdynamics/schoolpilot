@@ -114,39 +114,46 @@ const SubjectPapersManagementPage: React.FC = () => {
         <DataGrid columns={columns} data={subjectPapers} loading={loading.subjectPapers && isModalOpen} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPaper ? 'Edit Subject Paper' : 'Add New Subject Paper'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.subjectPapers}>
-              {loading.subjectPapers ? <Spinner size="sm"/> : (editingPaper ? 'Save Changes' : 'Add Paper')}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingPaper ? 'Edit Subject Paper' : 'Add New Subject Paper'}
+        size="lg"
+        onSubmit={handleSubmit}
       >
-        <Select 
-          name="subject_id" 
-          label="Subject" 
-          value={formData.subject_id || ''} 
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">Select Subject</option>
-          {subjects.map((subject: Subject) => (
-            <option key={subject.id} value={subject.id}>
-              {subject.name} ({subject.subject_code})
-            </option>
-          ))}
-        </Select>
-        <Input 
-          name="name" 
-          label="Paper Name" 
-          placeholder="e.g., Paper 1 (Theory)"
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+        <FormSection columns={1}>
+          <FormField label="Subject" required>
+            <Select
+              name="subject_id"
+              value={formData.subject_id || ''}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Subject</option>
+              {subjects.map((subject: Subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.name} ({subject.subject_code})
+                </option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Paper Name" required>
+            <Input
+              name="name"
+              placeholder="e.g., Paper 1 (Theory)"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit" disabled={loading.subjectPapers}>
+            {loading.subjectPapers ? <Spinner size="sm"/> : (editingPaper ? 'Save Changes' : 'Add Paper')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

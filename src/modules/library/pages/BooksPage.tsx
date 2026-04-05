@@ -5,7 +5,10 @@ import { useBookCategoryData } from '../data/useBookCategoryData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -495,97 +498,81 @@ const BooksPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingBook ? 'Edit Book' : 'Add New Book'} size="xl"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={booksLoading}>
-              {booksLoading ? <Spinner size="sm"/> : (editingBook ? 'Save Changes' : 'Add Book')}
-            </Button>
-          </>
-        }
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input name="title" label="Book Title" value={formData.title || ''} onChange={handleInputChange} required containerClassName="md:col-span-2"/>
-            <Input name="accession_no" label="Accession Number" value={formData.accession_no || ''} onChange={handleInputChange} required />
-            <Input name="author" label="Author(s)" value={formData.author || ''} onChange={handleInputChange} />
-            <Input name="publisher" label="Publisher" value={formData.publisher || ''} onChange={handleInputChange} />
-            <Input
-              label="ISBN"
-              name="isbn"
-              value={formData.isbn || ''}
-              onChange={handleInputChange}
-            />
-            <Input
-              label="Publication Year"
-              name="publication_year"
-              type="number"
-              value={formData.publication_year || ''}
-              onChange={handleInputChange}
-            />
-            <Input
-              label="Edition"
-              name="edition"
-              value={formData.edition || ''}
-              onChange={handleInputChange}
-            />
-            <Input
-              label="Location (Shelf)"
-              name="location_shelf"
-              value={formData.location_shelf || ''}
-              onChange={handleInputChange}
-            />
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingBook ? 'Edit Book' : 'Add New Book'} size="xl">
+        <FormSection columns={2}>
+          <FormField label="Book Title" required>
+            <Input name="title" value={formData.title || ''} onChange={handleInputChange} required />
+          </FormField>
+          <FormField label="Accession Number" required>
+            <Input name="accession_no" value={formData.accession_no || ''} onChange={handleInputChange} required />
+          </FormField>
+          <FormField label="Author(s)">
+            <Input name="author" value={formData.author || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Publisher">
+            <Input name="publisher" value={formData.publisher || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="ISBN">
+            <Input name="isbn" value={formData.isbn || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Publication Year">
+            <Input name="publication_year" type="number" value={formData.publication_year || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Edition">
+            <Input name="edition" value={formData.edition || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Location (Shelf)">
+            <Input name="location_shelf" value={formData.location_shelf || ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Is Digital?">
             <Checkbox
               label="Is Digital?"
               name="is_digital"
               checked={formData.is_digital || false}
               onChange={handleInputChange}
             />
-            {formData.is_digital && (
-              <Input
-                label="Digital Access URL"
-                name="digital_access_url"
-                value={formData.digital_access_url || ''}
-                onChange={handleInputChange}
-              />
-            )}
-            {formData.is_digital && (
-              <Input
-                label="Digital Format"
-                name="digital_format"
-                value={formData.digital_format || ''}
-                onChange={handleInputChange}
-              />
-            )}
-            <Select
-              label="Availability Status"
-              name="availability_status"
-              value={formData.availability_status || ''}
-              onChange={handleInputChange}
-              options={Object.values(LibBookAvailabilityStatusEnum).map(status => ({ label: status, value: status }))}
-            />
-            <Checkbox
-              label="Damaged?"
-              name="damaged_status"
-              checked={formData.damaged_status || false}
-              onChange={handleInputChange}
-            />
-            <Checkbox
-              label="Lost?"
-              name="lost_status"
-              checked={formData.lost_status || false}
-              onChange={handleInputChange}
-            />
-            <Select name="category_id" label="Category" value={formData.category_id || ''} onChange={handleInputChange}>
-                <option value="">Select Category</option>
-                {(bookCategories || []).map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+          </FormField>
+          {formData.is_digital && (
+            <FormField label="Digital Access URL">
+              <Input name="digital_access_url" value={formData.digital_access_url || ''} onChange={handleInputChange} />
+            </FormField>
+          )}
+          {formData.is_digital && (
+            <FormField label="Digital Format">
+              <Input name="digital_format" value={formData.digital_format || ''} onChange={handleInputChange} />
+            </FormField>
+          )}
+          <FormField label="Availability Status">
+            <Select name="availability_status" value={formData.availability_status || ''} onChange={handleInputChange} options={Object.values(LibBookAvailabilityStatusEnum).map(status => ({ label: status, value: status }))} />
+          </FormField>
+          <FormField label="Damaged?">
+            <Checkbox label="Damaged?" name="damaged_status" checked={formData.damaged_status || false} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Lost?">
+            <Checkbox label="Lost?" name="lost_status" checked={formData.lost_status || false} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Category">
+            <Select name="category_id" value={formData.category_id || ''} onChange={handleInputChange}>
+              <option value="">Select Category</option>
+              {(bookCategories || []).map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
             </Select>
-            <Input name="purchase_cost" label="Purchase Cost (KES)" type="number" step="0.01" value={formData.purchase_cost ?? ''} onChange={handleInputChange} />
-            <Select name="status" label="Status" value={formData.status} onChange={handleInputChange} required>
-                {Object.values(LibBookStatusEnum).map(status => <option key={status} value={status}>{status}</option>)}
+          </FormField>
+          <FormField label="Purchase Cost (KES)">
+            <Input name="purchase_cost" type="number" step="0.01" value={formData.purchase_cost ?? ''} onChange={handleInputChange} />
+          </FormField>
+          <FormField label="Status" required>
+            <Select name="status" value={formData.status} onChange={handleInputChange} required>
+              {Object.values(LibBookStatusEnum).map(status => <option key={status} value={status}>{status}</option>)}
             </Select>
-        </div>
-      </Modal>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={booksLoading}>
+            {booksLoading ? <Spinner size="sm"/> : (editingBook ? 'Save Changes' : 'Add Book')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

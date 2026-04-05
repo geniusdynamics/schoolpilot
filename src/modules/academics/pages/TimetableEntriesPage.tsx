@@ -3,7 +3,10 @@ import { ClassStream, Staff } from '@/types';
 import { DayOfWeek, TimetableEntry, TimetablePeriodDef, Subject } from '@/core/types';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TableCellsIcon, PrinterIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -225,65 +228,80 @@ const TimetableEntriesPage: React.FC = () => {
         )}
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingEntry ? 'Edit Timetable Slot' : 'Add Timetable Slot'} size="lg"
-        footer={
-          <>
+      <DialogForm
+        open={isModalOpen}
+        onClose={closeModal}
+        title={editingEntry ? 'Edit Timetable Slot' : 'Add Timetable Slot'}
+        size="lg"
+        onSubmit={handleSubmit}
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.timetableEntries}>
+            <Button type="submit" disabled={loading.timetableEntries}>
               {loading.timetableEntries ? <Spinner size="sm"/> : (editingEntry ? 'Save Changes' : 'Add Slot')}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <Select 
-          name="day_of_week" 
-          label="Day of Week" 
-          value={formData.day_of_week || ''} 
-          onChange={(e) => handleInputChange('day_of_week', e.target.value)}
-          required
-          disabled={!!editingEntry} 
-        >
-          <option value="">Select Day</option>
-          {daysOfWeekOrder.map(day => (<option key={day} value={day}>{day}</option>))}
-        </Select>
-        <Select 
-          name="period_id" 
-          label="Period" 
-          value={formData.period_id || ''} 
-          onChange={(e) => handleInputChange('period_id', e.target.value)}
-          required
-          disabled={!!editingEntry}
-        >
-          <option value="">Select Period</option>
-          {(sortedPeriods || []).map((p: TimetablePeriodDef) => (
-            <option key={p.id} value={p.id}>{p.period_name} ({p.start_time.slice(0,5)}-{p.end_time.slice(0,5)})</option>
-          ))}
-        </Select>
-         <Select 
-          name="subject_id" 
-          label="Subject" 
-          value={formData.subject_id || ''} 
-          onChange={(e) => handleInputChange('subject_id', e.target.value)}
-          required
-        >
-          <option value="">Select Subject</option>
-          {(subjects || []).map((subject: Subject) => (
-            <option key={subject.id} value={subject.id}>{subject.name}</option>
-          ))}
-        </Select>
-        <Select 
-          name="teacher_id" 
-          label="Teacher" 
-          value={formData.teacher_id || ''} 
-          onChange={(e) => handleInputChange('teacher_id', e.target.value)}
-          required
-        >
-          <option value="">Select Teacher</option>
-          {(availableTeachers || []).map((t: Staff) => (
-            <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
-          ))}
-        </Select>
-      </Modal>
+        <FormSection>
+          <FormField>
+            <Select
+              name="day_of_week"
+              label="Day of Week"
+              value={formData.day_of_week || ''}
+              onChange={(e) => handleInputChange('day_of_week', e.target.value)}
+              required
+              disabled={!!editingEntry}
+            >
+              <option value="">Select Day</option>
+              {daysOfWeekOrder.map(day => (<option key={day} value={day}>{day}</option>))}
+            </Select>
+          </FormField>
+          <FormField>
+            <Select
+              name="period_id"
+              label="Period"
+              value={formData.period_id || ''}
+              onChange={(e) => handleInputChange('period_id', e.target.value)}
+              required
+              disabled={!!editingEntry}
+            >
+              <option value="">Select Period</option>
+              {(sortedPeriods || []).map((p: TimetablePeriodDef) => (
+                <option key={p.id} value={p.id}>{p.period_name} ({p.start_time.slice(0,5)}-{p.end_time.slice(0,5)})</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField>
+            <Select
+              name="subject_id"
+              label="Subject"
+              value={formData.subject_id || ''}
+              onChange={(e) => handleInputChange('subject_id', e.target.value)}
+              required
+            >
+              <option value="">Select Subject</option>
+              {(subjects || []).map((subject: Subject) => (
+                <option key={subject.id} value={subject.id}>{subject.name}</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField>
+            <Select
+              name="teacher_id"
+              label="Teacher"
+              value={formData.teacher_id || ''}
+              onChange={(e) => handleInputChange('teacher_id', e.target.value)}
+              required
+            >
+              <option value="">Select Teacher</option>
+              {(availableTeachers || []).map((t: Staff) => (
+                <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+      </DialogForm>
     </div>
   );
 };

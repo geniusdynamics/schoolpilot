@@ -263,97 +263,110 @@ const MessageCampaignsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCampaign ? t('MessageCampaignsPage.editCampaign') : t('MessageCampaignsPage.createNewCampaign')} size="xl"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('MessageCampaignsPage.cancel')}</Button>
-            <Button onClick={handleSubmit}>
-              {editingCampaign ? t('MessageCampaignsPage.saveChanges') : t('MessageCampaignsPage.createCampaign')}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingCampaign ? t('MessageCampaignsPage.editCampaign') : t('MessageCampaignsPage.createNewCampaign')}
+        size="xl"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormSection columns={2}>
+          <FormField label={t('MessageCampaignsPage.campaignName')} required>
             <Input 
-                name="name" 
-                label={t('MessageCampaignsPage.campaignName')} 
-                value={formData.name || ''} 
-                onChange={handleInputChange} 
-                required 
-                containerClassName="md:col-span-2"
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
             />
-            <Select 
-                name="template_id" 
-                label={t('MessageCampaignsPage.communicationTemplateOptional')} 
-                value={formData.template_id || ''} 
-                onChange={handleInputChange}
-                >
-                <option value="">{t('MessageCampaignsPage.useCustomSubjectBody')}</option>
-                {(templateComms || []).map((template) => (
-                    <option key={template.id} value={template.id}>{template.name} ({template.type})</option>
-                ))}
+          </FormField>
+          <FormField label={t('MessageCampaignsPage.communicationTemplateOptional')}>
+            <Select
+              name="template_id"
+              value={formData.template_id || ''}
+              onChange={handleInputChange}
+            >
+              <option value="">{t('MessageCampaignsPage.useCustomSubjectBody')}</option>
+              {(templateComms || []).map((template) => (
+                <option key={template.id} value={template.id}>{template.name} ({template.type})</option>
+              ))}
             </Select>
-            <Input 
-                name="subject" 
-                label={t('MessageCampaignsPage.subjectForEmailPush')} 
-                value={formData.subject || ''} 
-                onChange={handleInputChange} 
-                disabled={!!selectedTemplate && selectedTemplate.type === TemplateType.SMS}
-                required={!!selectedTemplate && (selectedTemplate.type === TemplateType.EMAIL || selectedTemplate.type === TemplateType.PUSH_NOTIFICATION)}
+          </FormField>
+          <FormField label={t('MessageCampaignsPage.subjectForEmailPush')} required={!!selectedTemplate && (selectedTemplate.type === TemplateType.EMAIL || selectedTemplate.type === TemplateType.PUSH_NOTIFICATION)}>
+            <Input
+              name="subject"
+              value={formData.subject || ''}
+              onChange={handleInputChange}
+              disabled={!!selectedTemplate && selectedTemplate.type === TemplateType.SMS}
             />
-            <Select 
-                name="target_audience_type" 
-                label={t('MessageCampaignsPage.targetAudience')} 
-                value={formData.target_audience_type || ''} 
-                onChange={handleInputChange}
-                >
-                <option value="">{t('MessageCampaignsPage.selectTargetAudience')}</option>
-                {Object.values(CampaignAudienceType).map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                ))}
+          </FormField>
+          <FormField label={t('MessageCampaignsPage.targetAudience')}>
+            <Select
+              name="target_audience_type"
+              value={formData.target_audience_type || ''}
+              onChange={handleInputChange}
+            >
+              <option value="">{t('MessageCampaignsPage.selectTargetAudience')}</option>
+              {Object.values(CampaignAudienceType).map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
             </Select>
-            {(formData.target_audience_type === CampaignAudienceType.STUDENTS_OF_CLASS || formData.target_audience_type === CampaignAudienceType.PARENTS_OF_CLASS) && (
-                 <Select 
-                    name="target_id" 
-                    label={t('MessageCampaignsPage.selectClassStream')} 
-                    value={formData.target_id || ''} 
-                    onChange={handleInputChange}
-                    required
-                >
-                    <option value="">{t('MessageCampaignsPage.selectClassStream')}</option>
-                    {(classStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>)}
-                </Select>
-            )}
-             <Input 
-                name="scheduled_for" 
-                label={t('MessageCampaignsPage.scheduleForOptional')} 
-                type="datetime-local"
-                value={formData.scheduled_for || ''} 
-                onChange={handleInputChange} 
-            />
-            <Select 
-                name="status" 
-                label={t('MessageCampaignsPage.campaignStatus')} 
-                value={formData.status} 
+          </FormField>
+          {(formData.target_audience_type === CampaignAudienceType.STUDENTS_OF_CLASS || formData.target_audience_type === CampaignAudienceType.PARENTS_OF_CLASS) && (
+            <FormField label={t('MessageCampaignsPage.selectClassStream')} required>
+              <Select
+                name="target_id"
+                value={formData.target_id || ''}
                 onChange={handleInputChange}
                 required
-                >
-                {Object.values(CampaignStatus).map((status) => (
-                    <option key={status} value={status}>{status}</option>
-                ))}
+              >
+                <option value="">{t('MessageCampaignsPage.selectClassStream')}</option>
+                {(classStreams || []).map(cs => <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>)}
+              </Select>
+            </FormField>
+          )}
+          <FormField label={t('MessageCampaignsPage.scheduleForOptional')}>
+            <Input
+              name="scheduled_for"
+              type="datetime-local"
+              value={formData.scheduled_for || ''}
+              onChange={handleInputChange}
+            />
+          </FormField>
+          <FormField label={t('MessageCampaignsPage.campaignStatus')} required>
+            <Select
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              required
+            >
+              {Object.values(CampaignStatus).map((status) => (
+                <option key={status} value={status}>{status}</option>
+              ))}
             </Select>
-        </div>
-         <Textarea
-            name="body"
-            label={t('MessageCampaignsPage.campaignBodyContent')}
-            value={formData.body || ''}
-            onChange={handleInputChange}
-            rows={8}
-            placeholder={t('MessageCampaignsPage.enterCampaignMessageHere')}
-            containerClassName="mt-4"
-            required
-        />
-      </Modal>
+          </FormField>
+        </FormSection>
+        <FormSection>
+          <FormField label={t('MessageCampaignsPage.campaignBodyContent')} required>
+            <Textarea
+              name="body"
+              value={formData.body || ''}
+              onChange={handleInputChange}
+              rows={8}
+              placeholder={t('MessageCampaignsPage.enterCampaignMessageHere')}
+              required
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>{t('MessageCampaignsPage.cancel')}</Button>
+          <Button type="submit">
+            {editingCampaign ? t('MessageCampaignsPage.saveChanges') : t('MessageCampaignsPage.createCampaign')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

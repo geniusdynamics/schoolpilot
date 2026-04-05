@@ -7,8 +7,11 @@ import { useBookData } from '../data/useBookData';
 import { useBookCategoryData } from '../data/useBookCategoryData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button'; 
-import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { UploadIcon, DocumentTextIcon, CheckIcon, XMarkIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
@@ -353,25 +356,13 @@ const ImportBooksPage: React.FC = () => {
         </div>
       </Card>
 
-      <Modal 
+      <DialogForm 
         isOpen={isModalOpen} 
         onClose={closeModal} 
         title="Import Books Preview" 
         size="6xl"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button 
-              onClick={processImport} 
-              disabled={isProcessing || importData.every(row => row.validation_errors.length > 0)}
-              leftIcon={isProcessing ? <Spinner size="sm" /> : <CheckIcon className="w-4 h-4" />}
-            >
-              {isProcessing ? 'Processing...' : `Import ${importData.filter(row => row.validation_errors.length === 0).length} Books`}
-            </Button>
-          </>
-        }
       >
-        <div className="space-y-4">
+        <FormSection columns={1}>
           {isProcessing && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center space-x-2">
@@ -428,8 +419,18 @@ const ImportBooksPage: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
-      </Modal>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button 
+            onClick={processImport} 
+            disabled={isProcessing || importData.every(row => row.validation_errors.length > 0)}
+            leftIcon={isProcessing ? <Spinner size="sm" /> : <CheckIcon className="w-4 h-4" />}
+          >
+            {isProcessing ? 'Processing...' : `Import ${importData.filter(row => row.validation_errors.length === 0).length} Books`}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

@@ -209,7 +209,7 @@ const FeeAdjustmentsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal 
+      <DialogForm 
         isOpen={isModalOpen} 
         onClose={closeModal} 
         title={editingAdjustment ? 'Edit Fee Adjustment' : 'Add New Fee Adjustment'} 
@@ -247,7 +247,7 @@ const FeeAdjustmentsPage: React.FC = () => {
           <Input name="applied_invoice_id" label="Applied Invoice ID (Optional)" value={formData.applied_invoice_id || ''} onChange={handleInputChange} placeholder="e.g., SINV123"/>
           <Textarea name="reason" label="Reason for Adjustment" value={formData.reason || ''} onChange={handleInputChange} rows={3} containerClassName="md:col-span-2"/>
         </div>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

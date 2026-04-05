@@ -3,7 +3,10 @@ import { ItemCategoryInv } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -144,24 +147,27 @@ const ItemCategoriesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={t('inventory.itemCategoriesPage.editItemCategoryTitle')}
-        footer={
-          <>
+      <DialogForm open={isModalOpen} onClose={closeModal} title={editingCategory ? t('inventory.itemCategoriesPage.editItemCategoryTitle') : t('inventory.itemCategoriesPage.addCategory')}
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('inventory.itemCategoriesPage.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.itemCategoriesInv}>
               {loading.itemCategoriesInv ? <Spinner size="sm"/> : (editingCategory ? t('inventory.itemCategoriesPage.saveChanges') : t('inventory.itemCategoriesPage.addCategory'))}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <Input 
-          name="name" 
-          label={t('inventory.itemCategoriesPage.categoryName')} 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+        <FormSection>
+          <FormField label={t('inventory.itemCategoriesPage.categoryName')}>
+            <Input 
+              name="name" 
+              value={formData.name || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+        </FormSection>
+      </DialogForm>
     </div>
   );
 };

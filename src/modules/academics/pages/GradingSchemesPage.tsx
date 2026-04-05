@@ -3,7 +3,10 @@ import { GradingScheme, GradingSchemeLevel } from '@/modules/academics/data/type
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ShieldCheckIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -200,45 +203,55 @@ const GradingSchemesPage: React.FC = () => {
       </Card>
 
       {/* Scheme Modal */}
-      <Modal isOpen={isSchemeModalOpen} onClose={closeSchemeModal} title={editingScheme ? 'Edit Grading Scheme' : 'Add New Grading Scheme'}
-        footer={
-          <>
+      <DialogForm
+        open={isSchemeModalOpen}
+        onClose={closeSchemeModal}
+        title={editingScheme ? 'Edit Grading Scheme' : 'Add New Grading Scheme'}
+        onSubmit={handleSchemeSubmit}
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={closeSchemeModal}>Cancel</Button>
-            <Button onClick={handleSchemeSubmit} disabled={loading.gradingSchemes}>
+            <Button type="submit" disabled={loading.gradingSchemes}>
               {loading.gradingSchemes ? <Spinner size="sm"/> : (editingScheme ? 'Save Changes' : 'Add Scheme')}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <Input 
-          name="name" 
-          label="Scheme Name" 
-          value={schemeFormData.name || ''} 
-          onChange={handleSchemeInputChange} 
-          required 
-        />
-        <div className="mt-4 flex items-center">
-          <input 
-            id="is_default" 
-            name="is_default" 
-            type="checkbox" 
-            checked={schemeFormData.is_default || false} 
-            onChange={handleSchemeInputChange}
-            className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-          />
-          <label htmlFor="is_default" className="ml-2 block text-sm text-gray-900">
-            Set as Default Scheme
-          </label>
-        </div>
-      </Modal>
+        <FormSection>
+          <FormField>
+            <Input
+              name="name"
+              label="Scheme Name"
+              value={schemeFormData.name || ''}
+              onChange={handleSchemeInputChange}
+              required
+            />
+          </FormField>
+          <FormField>
+            <div className="flex items-center">
+              <input
+                id="is_default"
+                name="is_default"
+                type="checkbox"
+                checked={schemeFormData.is_default || false}
+                onChange={handleSchemeInputChange}
+                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              />
+              <label htmlFor="is_default" className="ml-2 block text-sm text-gray-900">
+                Set as Default Scheme
+              </label>
+            </div>
+          </FormField>
+        </FormSection>
+      </DialogForm>
 
-      {/* Level Management Modal */}
-      <Modal 
-        isOpen={isLevelModalOpen} 
+      {/* Level Management Dialog */}
+      <DialogForm 
+        open={isLevelModalOpen} 
         onClose={closeLevelModal} 
         title={`Manage Levels for: ${currentSchemeForLevels?.name || ''}`} 
         size="xl"
-        footer={<Button variant="secondary" onClick={closeLevelModal}>Done</Button>}
+        actions={<FormActions><Button variant="secondary" onClick={closeLevelModal}>Done</Button></FormActions>}
       >
         {currentSchemeForLevels && (
           <div className="space-y-4">
@@ -263,7 +276,7 @@ const GradingSchemesPage: React.FC = () => {
             />
           </div>
         )}
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

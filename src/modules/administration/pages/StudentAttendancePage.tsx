@@ -3,7 +3,6 @@ import { Student, ClassStream, TimetablePeriodDef } from '@/types';
 import { AdminStudentAttendanceType as StudentAttendance, AttendanceStatus } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, ClockIcon, MinusCircleIcon } from '@/components/ui/icons';

@@ -3,7 +3,10 @@ import { Loan, Book, User, BookStatus } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import { PlusIcon } from '@/components/ui/icons';
@@ -241,17 +244,7 @@ const BookLoansPage: React.FC = () => {
           }
         />
       </Card>
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingLoan ? t('library:bookLoans.viewLoanDetails') : t('library:bookLoans.issueNewBookLoan')} size="lg"
-        footer={ editingLoan ? <Button variant="secondary" onClick={closeModal}>{t('common:close')}</Button> :
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('common:cancel')}</Button>
-            <Button onClick={handleIssueBook} disabled={loading.loans}>
-              {loading.loans ? <Spinner size="sm"/> : t('library:bookLoans.issueBook')}
-            </Button>
-        </>
-        }
-      >
-        {/* Show borrowing status if user is selected */}
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingLoan ? t('library:bookLoans.viewLoanDetails') : t('library:bookLoans.issueNewBookLoan')} size="lg">
         {formData.user_id && !editingLoan && (
           <div className="mb-4 p-3 bg-blue-50 rounded-lg">
             <p className="text-sm font-medium text-blue-900 mb-1">Borrowing Status:</p>
@@ -275,48 +268,65 @@ const BookLoansPage: React.FC = () => {
             })()}
           </div>
         )}
-        
-        <Select 
-          name="book_id" 
-          label={t('library:bookLoans.bookToLoan')} 
-          value={formData.book_id || ''} 
-          onChange={handleInputChange}
-          required
-          disabled={!!editingLoan}
-        >
-          <option value="">{t('library:bookLoans.selectBook')}</option>
-          {availableBooks.map(book => <option key={book.id} value={book.id}>{book.title} (Acc: {book.accession_no})</option>)}
-        </Select>
-        <Select 
-          name="user_id" 
-          label={t('library:bookLoans.borrower')} 
-          value={formData.user_id || ''} 
-          onChange={handleInputChange}
-          required
-          disabled={!!editingLoan}
-        >
-          <option value="">{t('library:bookLoans.selectUser')}</option>
-          {borrowers.map(user => <option key={user.id} value={user.id}>{user.display_name} ({user.userType})</option>)}
-        </Select>
-        <Input 
-          name="due_date" 
-          label={t('library:bookLoans.dueDate')} 
-          type="date"
-          value={formData.due_date || ''} 
-          onChange={handleInputChange} 
-          required 
-          disabled={!!editingLoan}
-        />
-        {editingLoan && formData.return_date && (
-             <Input 
+        <FormSection columns={1}>
+          <FormField label={t('library:bookLoans.bookToLoan')} required>
+            <Select 
+              name="book_id" 
+              value={formData.book_id || ''} 
+              onChange={handleInputChange}
+              required
+              disabled={!!editingLoan}
+            >
+              <option value="">{t('library:bookLoans.selectBook')}</option>
+              {availableBooks.map(book => <option key={book.id} value={book.id}>{book.title} (Acc: {book.accession_no})</option>)}
+            </Select>
+          </FormField>
+          <FormField label={t('library:bookLoans.borrower')} required>
+            <Select 
+              name="user_id" 
+              value={formData.user_id || ''} 
+              onChange={handleInputChange}
+              required
+              disabled={!!editingLoan}
+            >
+              <option value="">{t('library:bookLoans.selectUser')}</option>
+              {borrowers.map(user => <option key={user.id} value={user.id}>{user.display_name} ({user.userType})</option>)}
+            </Select>
+          </FormField>
+          <FormField label={t('library:bookLoans.dueDate')} required>
+            <Input 
+              name="due_date" 
+              type="date"
+              value={formData.due_date || ''} 
+              onChange={handleInputChange} 
+              required 
+              disabled={!!editingLoan}
+            />
+          </FormField>
+          {editingLoan && formData.return_date && (
+            <FormField label={t('library:bookLoans.returnDate')}>
+              <Input 
                 name="return_date" 
-                label={t('library:bookLoans.returnDate')} 
                 type="date"
                 value={formData.return_date || ''} 
                 disabled 
-            />
-        )}
-      </Modal>
+              />
+            </FormField>
+          )}
+        </FormSection>
+        <FormActions>
+          {editingLoan ? (
+            <Button variant="secondary" onClick={closeModal}>{t('common:close')}</Button>
+          ) : (
+            <>
+              <Button variant="secondary" onClick={closeModal}>{t('common:cancel')}</Button>
+              <Button onClick={handleIssueBook} disabled={loading.loans}>
+                {loading.loans ? <Spinner size="sm"/> : t('library:bookLoans.issueBook')}
+              </Button>
+            </>
+          )}
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

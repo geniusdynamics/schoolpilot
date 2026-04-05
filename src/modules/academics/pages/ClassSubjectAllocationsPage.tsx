@@ -4,7 +4,10 @@ import { ClassSubjectAllocation, Subject } from '@/modules/academics/data/types'
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -142,53 +145,58 @@ const ClassSubjectAllocationsPage: React.FC = () => {
         <DataGrid columns={columns} data={classSubjectAllocations} loading={loading.classSubjectAllocations} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAllocation ? t('classSubjectAllocations.modalEditTitle') : t('classSubjectAllocations.modalAddTitle')} size="lg"
-        footer={
-          <>
+      <DialogForm open={isModalOpen} onClose={closeModal} title={editingAllocation ? t('classSubjectAllocations.modalEditTitle') : t('classSubjectAllocations.modalAddTitle')} size="lg"
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('common:cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.classSubjectAllocations}>
               {loading.classSubjectAllocations ? <Spinner size="sm"/> : t('common:save')}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <Select 
-          name="class_stream_id" 
-          label={t('classSubjectAllocations.classStreamLabel')} 
-          value={formData.class_stream_id || ''} 
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">{t('classSubjectAllocations.selectClassStreamOption')}</option>
-          {(classStreams || []).map((cs: ClassStream) => (
-            <option key={cs.id} value={cs.id}>{cs.name}</option>
-          ))}
-        </Select>
-        <Select 
-          name="subject_id" 
-          label={t('classSubjectAllocations.subjectLabel')} 
-          value={formData.subject_id || ''} 
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">{t('classSubjectAllocations.selectSubjectOption')}</option>
-          {(subjects || []).map((subject: CoreSubject) => (
-            <option key={subject.id} value={subject.id}>{subject.name} ({subject.subject_code})</option>
-          ))}
-        </Select>
-        <Select 
-          name="academic_year_id" 
-          label={t('classSubjectAllocations.academicYearLabel')} 
-          value={formData.academic_year_id || ''} 
-          onChange={handleInputChange}
-          required
-        >
-          <option value="">{t('classSubjectAllocations.selectAcademicYearOption')}</option>
-          {(academicYears || []).map((ay: AcademicYear) => (
-            <option key={ay.id} value={ay.id}>{ay.name}</option>
-          ))}
-        </Select>
-      </Modal>
+        <FormSection>
+          <FormField label={t('classSubjectAllocations.classStreamLabel')}>
+            <Select 
+              name="class_stream_id" 
+              value={formData.class_stream_id || ''} 
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">{t('classSubjectAllocations.selectClassStreamOption')}</option>
+              {(classStreams || []).map((cs: ClassStream) => (
+                <option key={cs.id} value={cs.id}>{cs.name}</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label={t('classSubjectAllocations.subjectLabel')}>
+            <Select 
+              name="subject_id" 
+              value={formData.subject_id || ''} 
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">{t('classSubjectAllocations.selectSubjectOption')}</option>
+              {(subjects || []).map((subject: CoreSubject) => (
+                <option key={subject.id} value={subject.id}>{subject.name} ({subject.subject_code})</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label={t('classSubjectAllocations.academicYearLabel')}>
+            <Select 
+              name="academic_year_id" 
+              value={formData.academic_year_id || ''} 
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">{t('classSubjectAllocations.selectAcademicYearOption')}</option>
+              {(academicYears || []).map((ay: AcademicYear) => (
+                <option key={ay.id} value={ay.id}>{ay.name}</option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+      </DialogForm>
     </div>
   );
 };

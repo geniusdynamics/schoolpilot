@@ -3,7 +3,10 @@ import { Warehouse } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, CubeTransparentIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -126,24 +129,27 @@ const WarehousesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingWarehouse ? t('warehouses.editWarehouse') : t('warehouses.addNewWarehouse')}
-        footer={
-          <>
+      <DialogForm open={isModalOpen} onClose={closeModal} title={editingWarehouse ? t('warehouses.editWarehouse') : t('warehouses.addNewWarehouse')}
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('warehouses.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.warehouses}>
               {loading.warehouses ? <Spinner size="sm"/> : (editingWarehouse ? t('warehouses.saveChanges') : t('warehouses.addWarehouse'))}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <Input 
-          name="name" 
-          label={t('warehouses.warehouseName')} 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+        <FormSection>
+          <FormField label={t('warehouses.warehouseName')}>
+            <Input 
+              name="name" 
+              value={formData.name || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+        </FormSection>
+      </DialogForm>
     </div>
   );
 };

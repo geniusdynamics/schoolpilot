@@ -128,24 +128,33 @@ const DesignationsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDesignation ? t('designations.editDesignation') : t('designations.addNewDesignation')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('designations.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.designations}>
-               {loading.designations ? <Spinner size="sm"/> : (editingDesignation ? t('designations.saveChanges') : t('designations.addDesignation'))}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingDesignation ? t('designations.editDesignation') : t('designations.addNewDesignation')}
+        size="lg"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <Input 
-          name="title" 
-          label={t('designations.designationTitle')} 
-          value={formData.title || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+        <FormSection>
+          <FormField label={t('designations.designationTitle')} required>
+            <Input
+              name="title"
+              value={formData.title || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>{t('designations.cancel')}</Button>
+          <Button type="submit" disabled={loading.designations}>
+            {loading.designations ? <Spinner size="sm"/> : (editingDesignation ? t('designations.saveChanges') : t('designations.addDesignation'))}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

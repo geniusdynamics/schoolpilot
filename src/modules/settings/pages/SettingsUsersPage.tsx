@@ -6,7 +6,8 @@ import { useAppData } from '@/hooks/useAppData';
 import { User, Role } from '@/types';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import { FormSection, FormField, FormActions } from '@/components/ui/forms';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import type { RbacRole } from '@/core/types';
@@ -392,160 +393,181 @@ const SettingsUsersPage: React.FC = () => {
       </Card>
 
       {/* User Modal */}
-      <Modal isOpen={isUserModalOpen} onClose={closeUserModal} title={editingUser ? 'Edit User' : 'Add New User'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeUserModal}>Cancel</Button>
-            <Button onClick={handleUserSubmit} disabled={isSubmittingUser || loading.users}>
-              {isSubmittingUser ? <Spinner size="sm"/> : (editingUser ? 'Save Changes' : 'Add User')}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isUserModalOpen}
+        onClose={closeUserModal}
+        title={editingUser ? 'Edit User' : 'Add New User'}
+        size="lg"
       >
-        <div className="space-y-4">
-          <Input
-            name="username"
-            label="Username"
-            value={userFormData.username || ''}
-            onChange={handleUserInputChange}
-            required
-            error={userFormErrors.username}
-          />
-          <Input
-            name="email"
-            label="Email"
-            type="email"
-            value={userFormData.email || ''}
-            onChange={handleUserInputChange}
-            required
-            error={userFormErrors.email}
-          />
-          {!editingUser && (
+        <FormSection title="User Information" columns={2}>
+          <FormField label="Username" required>
             <Input
-              name="password"
-              label="Password"
-              type="password"
-              value={userFormData.password || ''}
+              name="username"
+              value={userFormData.username || ''}
               onChange={handleUserInputChange}
               required
-              error={userFormErrors.password}
-              helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
+              error={userFormErrors.username}
             />
+          </FormField>
+          <FormField label="Email" required>
+            <Input
+              name="email"
+              type="email"
+              value={userFormData.email || ''}
+              onChange={handleUserInputChange}
+              required
+              error={userFormErrors.email}
+            />
+          </FormField>
+        </FormSection>
+        <FormSection title="Security">
+          {!editingUser && (
+            <FormField label="Password" required error={userFormErrors.password}>
+              <Input
+                name="password"
+                type="password"
+                value={userFormData.password || ''}
+                onChange={handleUserInputChange}
+                required
+                error={userFormErrors.password}
+                helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
+              />
+            </FormField>
           )}
           {editingUser && (
-            <Input
-              name="password"
-              label="New Password (leave blank to keep current)"
-              type="password"
-              value={userFormData.password || ''}
-              onChange={handleUserInputChange}
-              error={userFormErrors.password}
-              helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
-            />
+            <FormField label="New Password (leave blank to keep current)" error={userFormErrors.password}>
+              <Input
+                name="password"
+                type="password"
+                value={userFormData.password || ''}
+                onChange={handleUserInputChange}
+                error={userFormErrors.password}
+                helperText="Must be at least 8 characters with uppercase, lowercase, number, and special character"
+              />
+            </FormField>
           )}
-          <Select
-            name="userType"
-            label="User Type"
-            value={userFormData.userType}
-            onChange={handleUserInputChange}
-            required
-            error={userFormErrors.userType}
-          >
-            <option value="">Select User Type</option>
-            {USER_TYPES.map(type => (<option key={type} value={type}>{type}</option>))}
-          </Select>
-          <Select name="role_id" label="Role" value={userFormData.role_id || ''} onChange={handleUserInputChange}>
+        </FormSection>
+        <FormSection title="User Details" columns={2}>
+          <FormField label="User Type" required error={userFormErrors.userType}>
+            <Select
+              name="userType"
+              value={userFormData.userType}
+              onChange={handleUserInputChange}
+              required
+              error={userFormErrors.userType}
+            >
+              <option value="">Select User Type</option>
+              {USER_TYPES.map(type => (<option key={type} value={type}>{type}</option>))}
+            </Select>
+          </FormField>
+          <FormField label="Role">
+            <Select name="role_id" value={userFormData.role_id || ''} onChange={handleUserInputChange}>
               <option value="">Select Role</option>
               {roles.map((role: Role) => (<option key={role.id} value={role.id}>{role.name}</option>))}
-          </Select>
-          <div className="flex items-center">
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormSection>
+          <FormField>
+            <label className="flex items-center gap-2">
               <input id="isActive_user" name="isActive" type="checkbox" className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                  checked={userFormData.isActive} onChange={handleUserInputChange} />
-              <label htmlFor="isActive_user" className="ml-2 block text-sm text-gray-900">Is Active User</label>
-          </div>
-        </div>
-      </Modal>
+                checked={userFormData.isActive} onChange={handleUserInputChange} />
+              <span className="text-sm text-gray-900">Is Active User</span>
+            </label>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeUserModal}>Cancel</Button>
+          <Button onClick={handleUserSubmit} disabled={isSubmittingUser || loading.users}>
+            {isSubmittingUser ? <Spinner size="sm"/> : (editingUser ? 'Save Changes' : 'Add User')}
+          </Button>
+        </FormActions>
+      </DialogForm>
 
       {/* Role Modal */}
-      <Modal isOpen={isRoleModalOpen} onClose={closeRoleModal} title={editingRole ? 'Edit Role' : 'Add New Role'}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeRoleModal}>Cancel</Button>
-            <Button onClick={handleRoleSubmit} disabled={isSubmittingRole || loading.roles}>
-              {isSubmittingRole ? <Spinner size="sm"/> : (editingRole ? 'Save Changes' : 'Add Role')}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isRoleModalOpen}
+        onClose={closeRoleModal}
+        title={editingRole ? 'Edit Role' : 'Add New Role'}
+        size="md"
       >
-        <div className="space-y-4">
-          <Input
-            name="name"
-            label="Role Name"
-            value={roleFormData.name || ''}
-            onChange={handleRoleInputChange}
-            required
-            error={roleFormErrors.name}
-          />
-          <Input
-            name="description"
-            label="Description (Optional)"
-            value={roleFormData.description || ''}
-            onChange={handleRoleInputChange}
-          />
-        </div>
-      </Modal>
+        <FormSection title="Role Information">
+          <FormField label="Role Name" required error={roleFormErrors.name}>
+            <Input
+              name="name"
+              value={roleFormData.name || ''}
+              onChange={handleRoleInputChange}
+              required
+              error={roleFormErrors.name}
+            />
+          </FormField>
+          <FormField label="Description (Optional)">
+            <Input
+              name="description"
+              value={roleFormData.description || ''}
+              onChange={handleRoleInputChange}
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeRoleModal}>Cancel</Button>
+          <Button onClick={handleRoleSubmit} disabled={isSubmittingRole || loading.roles}>
+            {isSubmittingRole ? <Spinner size="sm"/> : (editingRole ? 'Save Changes' : 'Add Role')}
+          </Button>
+        </FormActions>
+      </DialogForm>
 
       {/* Delete User Confirmation Modal */}
-      <Modal
+      <DialogForm
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteUserModal}
         title="Confirm Delete User"
         size="sm"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeDeleteUserModal} disabled={isDeletingUser}>Cancel</Button>
-            <Button variant="danger" onClick={handleDeleteUserConfirm} disabled={isDeletingUser}>
-              {isDeletingUser ? <Spinner size="sm"/> : 'Delete User'}
-            </Button>
-          </>
-        }
       >
-        <div className="text-center py-4">
-          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-gray-700 mb-2">
-            Are you sure you want to delete the user <strong>{userToDelete?.username}</strong>?
-          </p>
-          <p className="text-sm text-gray-500">
-            This action cannot be undone. The user will be permanently removed from the system.
-          </p>
-        </div>
-      </Modal>
+        <FormSection>
+          <div className="text-center py-4">
+            <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <p className="text-gray-700 mb-2">
+              Are you sure you want to delete the user <strong>{userToDelete?.username}</strong>?
+            </p>
+            <p className="text-sm text-gray-500">
+              This action cannot be undone. The user will be permanently removed from the system.
+            </p>
+          </div>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeDeleteUserModal} disabled={isDeletingUser}>Cancel</Button>
+          <Button variant="danger" onClick={handleDeleteUserConfirm} disabled={isDeletingUser}>
+            {isDeletingUser ? <Spinner size="sm"/> : 'Delete User'}
+          </Button>
+        </FormActions>
+      </DialogForm>
 
       {/* Delete Role Confirmation Modal */}
-      <Modal
+      <DialogForm
         isOpen={isDeleteRoleModalOpen}
         onClose={closeDeleteRoleModal}
         title="Confirm Delete Role"
         size="sm"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeDeleteRoleModal} disabled={isDeletingRole}>Cancel</Button>
-            <Button variant="danger" onClick={handleDeleteRoleConfirm} disabled={isDeletingRole}>
-              {isDeletingRole ? <Spinner size="sm"/> : 'Delete Role'}
-            </Button>
-          </>
-        }
       >
-        <div className="text-center py-4">
-          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-gray-700 mb-2">
-            Are you sure you want to delete the role <strong>{roleToDelete?.name}</strong>?
-          </p>
-          <p className="text-sm text-gray-500">
-            Users with this role will have it unassigned. This action cannot be undone.
-          </p>
-        </div>
-      </Modal>
+        <FormSection>
+          <div className="text-center py-4">
+            <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <p className="text-gray-700 mb-2">
+              Are you sure you want to delete the role <strong>{roleToDelete?.name}</strong>?
+            </p>
+            <p className="text-sm text-gray-500">
+              Users with this role will have it unassigned. This action cannot be undone.
+            </p>
+          </div>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeDeleteRoleModal} disabled={isDeletingRole}>Cancel</Button>
+          <Button variant="danger" onClick={handleDeleteRoleConfirm} disabled={isDeletingRole}>
+            {isDeletingRole ? <Spinner size="sm"/> : 'Delete Role'}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

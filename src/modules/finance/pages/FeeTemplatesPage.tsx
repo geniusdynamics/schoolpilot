@@ -312,7 +312,7 @@ const FeeTemplatesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isTemplateModalOpen} onClose={closeTemplateModal} title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'} size="lg"
+      <DialogForm isOpen={isTemplateModalOpen} onClose={closeTemplateModal} title={editingTemplate ? 'Edit Fee Template' : 'Add New Fee Template'} size="lg"
         footer={
           <>
             <Button variant="secondary" onClick={closeTemplateModal}>Cancel</Button>
@@ -352,9 +352,9 @@ const FeeTemplatesPage: React.FC = () => {
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </Select>
-      </Modal>
+      </DialogForm>
 
-      <Modal 
+      <DialogForm 
         isOpen={isItemModalOpen} 
         onClose={closeItemModal} 
         title={`Manage Items for: ${currentTemplateForItems?.name || ''}`} 
@@ -398,7 +398,7 @@ const FeeTemplatesPage: React.FC = () => {
             />
           </div>
         )}
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

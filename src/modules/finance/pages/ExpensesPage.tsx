@@ -279,7 +279,7 @@ const ExpensesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingClaim ? 'Edit Expense Claim' : 'Add New Expense Claim'} size="xl"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingClaim ? 'Edit Expense Claim' : 'Add New Expense Claim'} size="xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -305,7 +305,7 @@ const ExpensesPage: React.FC = () => {
             </Select>
             <Textarea name="description" label="Description of Expense" value={formData.description || ''} onChange={handleInputChange} required rows={3} containerClassName="md:col-span-2"/>
         </div>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

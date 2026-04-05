@@ -187,7 +187,7 @@ const BanksPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingBank ? 'Edit Bank Account' : 'Add New Bank Account'} size="lg"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingBank ? 'Edit Bank Account' : 'Add New Bank Account'} size="lg"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -224,7 +224,7 @@ const BanksPage: React.FC = () => {
             </option>
           ))}
         </Select>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

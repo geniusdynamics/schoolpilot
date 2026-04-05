@@ -148,44 +148,55 @@ const DormitoriesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDormitory ? t('dormitories.editDormitory') : t('dormitories.addNewDormitory')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('dormitories.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.dormitories}>
-              {loading.dormitories ? <Spinner size="sm"/> : (editingDormitory ? t('dormitories.saveChanges') : t('dormitories.addDormitory'))}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingDormitory ? t('dormitories.editDormitory') : t('dormitories.addNewDormitory')}
+        size="lg"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <Input 
-          name="name" 
-          label={t('dormitories.dormitoryName')} 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-         <Input 
-          name="capacity" 
-          label={t('dormitories.capacity')} 
-          type="number"
-          value={formData.capacity || ''} 
-          onChange={handleInputChange} 
-        />
-        <Select 
-          name="master_id" 
-          label={t('dormitories.dormitoryMasterMistress')} 
-          value={formData.master_id || ''} 
-          onChange={handleInputChange}
-        >
-          <option value="">{t('dormitories.selectStaffMember')}</option>
-          {staff.filter(s => s.is_active).map((staffMember: Staff) => (
-            <option key={staffMember.id} value={staffMember.id}>
-              {staffMember.first_name} {staffMember.last_name} ({staffMember.designation_title || 'N/A'})
-            </option>
-          ))}
-        </Select>
-      </Modal>
+        <FormSection>
+          <FormField label={t('dormitories.dormitoryName')} required>
+            <Input
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+          <FormField label={t('dormitories.capacity')}>
+            <Input
+              name="capacity"
+              type="number"
+              value={formData.capacity || ''}
+              onChange={handleInputChange}
+            />
+          </FormField>
+          <FormField label={t('dormitories.dormitoryMasterMistress')}>
+            <Select
+              name="master_id"
+              value={formData.master_id || ''}
+              onChange={handleInputChange}
+            >
+              <option value="">{t('dormitories.selectStaffMember')}</option>
+              {staff.filter(s => s.is_active).map((staffMember: Staff) => (
+                <option key={staffMember.id} value={staffMember.id}>
+                  {staffMember.first_name} {staffMember.last_name} ({staffMember.designation_title || 'N/A'})
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>{t('dormitories.cancel')}</Button>
+          <Button type="submit" disabled={loading.dormitories}>
+            {loading.dormitories ? <Spinner size="sm"/> : (editingDormitory ? t('dormitories.saveChanges') : t('dormitories.addDormitory'))}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

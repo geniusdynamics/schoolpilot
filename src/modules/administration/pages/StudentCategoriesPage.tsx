@@ -128,7 +128,7 @@ const StudentCategoriesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingCategory ? t('studentCategories.editStudentCategory') : t('studentCategories.addNewStudentCategory')}
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingCategory ? t('studentCategories.editStudentCategory') : t('studentCategories.addNewStudentCategory')}
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>{t('studentCategories.cancel')}</Button>
@@ -145,7 +145,7 @@ const StudentCategoriesPage: React.FC = () => {
           onChange={handleInputChange} 
           required 
         />
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

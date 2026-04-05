@@ -287,7 +287,7 @@ const GeneralReceiptsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPayment ? 'Edit General Receipt' : 'Record New General Receipt'} size="2xl"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingPayment ? 'Edit General Receipt' : 'Record New General Receipt'} size="2xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -370,7 +370,7 @@ const GeneralReceiptsPage: React.FC = () => {
         <div className="mt-4 text-right">
             <strong className="text-lg">Total Amount: KES {totalAmount.toFixed(2)}</strong>
         </div>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

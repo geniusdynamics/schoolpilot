@@ -3,7 +3,10 @@ import { ItemInv, ItemCategoryInv, ItemTypeInv } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -230,30 +233,44 @@ const ItemsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingItem ? t('inventory.items.editItem') : t('inventory.items.addNewItem')} size="xl"
-        footer={
-          <>
+      <DialogForm open={isModalOpen} onClose={closeModal} title={editingItem ? t('inventory.items.editItem') : t('inventory.items.addNewItem')} size="xl"
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('inventory.items.cancel')}</Button>
             <Button onClick={handleSubmit} disabled={loading.itemsInv}>
               {loading.itemsInv ? <Spinner size="sm"/> : (editingItem ? t('inventory.items.saveChanges') : t('inventory.items.addItem'))}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input name="name" label={t('inventory.items.name')} value={formData.name || ''} onChange={handleInputChange} required containerClassName="md:col-span-2"/>
-            <Select name="category_id" label={t('inventory.items.category')} value={formData.category_id || ''} onChange={handleInputChange}>
+        <FormSection>
+          <FormField label={t('inventory.items.name')}>
+            <Input name="name" value={formData.name || ''} onChange={handleInputChange} required />
+          </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label={t('inventory.items.category')}>
+              <Select name="category_id" value={formData.category_id || ''} onChange={handleInputChange}>
                 <option value="">{t('inventory.items.selectCategory')}</option>
                 {(itemCategoriesInv || []).map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-            </Select>
-            <Input name="unit_of_measure" label={t('inventory.items.unitOfMeasure')} value={formData.unit_of_measure || ''} onChange={handleInputChange} required placeholder={t('inventory.items.e.g.,Piece,Kg,Litre,Box')} />
-            <Select name="item_type" label={t('inventory.items.itemType')} value={formData.item_type} onChange={handleInputChange} required>
+              </Select>
+            </FormField>
+            <FormField label={t('inventory.items.unitOfMeasure')}>
+              <Input name="unit_of_measure" value={formData.unit_of_measure || ''} onChange={handleInputChange} required placeholder={t('inventory.items.e.g.,Piece,Kg,Litre,Box')} />
+            </FormField>
+            <FormField label={t('inventory.items.itemType')}>
+              <Select name="item_type" value={formData.item_type} onChange={handleInputChange} required>
                 {Object.values(ItemTypeInv).map(type => <option key={type} value={type}>{type}</option>)}
-            </Select>
-            <Input name="current_price" label={t('inventory.items.currentPriceKES')} type="number" step="0.01" value={formData.current_price ?? ''} onChange={handleInputChange} />
-            <Textarea name="description" label={t('inventory.items.description')} value={formData.description || ''} onChange={handleInputChange} rows={3} containerClassName="md:col-span-2" />
-        </div>
-      </Modal>
+              </Select>
+            </FormField>
+            <FormField label={t('inventory.items.currentPriceKES')}>
+              <Input name="current_price" type="number" step="0.01" value={formData.current_price ?? ''} onChange={handleInputChange} />
+            </FormField>
+          </div>
+          <FormField label={t('inventory.items.description')}>
+            <Textarea name="description" value={formData.description || ''} onChange={handleInputChange} rows={3} />
+          </FormField>
+        </FormSection>
+      </DialogForm>
     </div>
   );
 };

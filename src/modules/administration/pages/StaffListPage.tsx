@@ -243,7 +243,7 @@ const StaffListPage: React.FC = () => {
         )}
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'} size="xl"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'} size="xl"
         footer={
           <>
             <Button type="button" variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -278,7 +278,7 @@ const StaffListPage: React.FC = () => {
              <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Is Active Staff Member</label>
           </div>
         </div>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

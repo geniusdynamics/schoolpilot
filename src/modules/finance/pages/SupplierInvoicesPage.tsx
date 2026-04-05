@@ -214,7 +214,7 @@ const SupplierInvoicesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingInvoice ? 'Edit Supplier Invoice' : 'Add New Supplier Invoice'} size="xl"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingInvoice ? 'Edit Supplier Invoice' : 'Add New Supplier Invoice'} size="xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -238,7 +238,7 @@ const SupplierInvoicesPage: React.FC = () => {
                 {Object.values(SupplierInvoiceStatus).map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
         </div>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

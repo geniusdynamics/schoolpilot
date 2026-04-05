@@ -199,60 +199,69 @@ const CommunicationTemplatesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingTemplate ? 'Edit Template' : 'Add New Template'} size="xl"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit}>
-              {editingTemplate ? 'Save Changes' : 'Add Template'}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingTemplate ? 'Edit Template' : 'Add New Template'}
+        size="xl"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input 
-                name="name" 
-                label="Template Name" 
-                value={formData.name || ''} 
-                onChange={handleInputChange} 
-                required 
-                containerClassName="md:col-span-2"
+        <FormSection columns={2}>
+          <FormField label="Template Name" required>
+            <Input
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
             />
-            <Select 
-                name="type" 
-                label="Template Type" 
-                value={formData.type} 
-                onChange={handleInputChange}
-                required
-                >
-                {Object.values(TemplateType).map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                ))}
+          </FormField>
+          <FormField label="Template Type" required>
+            <Select
+              name="type"
+              value={formData.type}
+              onChange={handleInputChange}
+              required
+            >
+              {Object.values(TemplateType).map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
             </Select>
-            {(formData.type === TemplateType.EMAIL || formData.type === TemplateType.PUSH_NOTIFICATION) && (
-                 <Input 
-                    name="subject" 
-                    label="Subject" 
-                    value={formData.subject || ''} 
-                    onChange={handleInputChange} 
-                    required={formData.type === TemplateType.EMAIL || formData.type === TemplateType.PUSH_NOTIFICATION}
-                />
-            )}
-        </div>
-         <Textarea
-            name="body_template"
-            label="Template Body"
-            value={formData.body_template || ''}
-            onChange={handleInputChange}
-            rows={6}
-            placeholder="Enter template content. Use placeholders like {{student_name}}, {{balance}}..."
-            containerClassName="mt-4"
-            required
-        />
+          </FormField>
+          {(formData.type === TemplateType.EMAIL || formData.type === TemplateType.PUSH_NOTIFICATION) && (
+            <FormField label="Subject" required={formData.type === TemplateType.EMAIL || formData.type === TemplateType.PUSH_NOTIFICATION}>
+              <Input
+                name="subject"
+                value={formData.subject || ''}
+                onChange={handleInputChange}
+              />
+            </FormField>
+          )}
+        </FormSection>
+        <FormSection>
+          <FormField label="Template Body" required>
+            <Textarea
+              name="body_template"
+              value={formData.body_template || ''}
+              onChange={handleInputChange}
+              rows={6}
+              placeholder="Enter template content. Use placeholders like {{student_name}}, {{balance}}..."
+              required
+            />
+          </FormField>
+        </FormSection>
         <div className="mt-2 text-xs text-gray-500">
-            Available placeholders (examples): {"{{student_name}}"}, {"{{parent_name}}"}, {"{{first_name}}"}, {"{{last_name}}"}, {"{{admission_no}}"}, {"{{class_name}}"}, {"{{balance}}"}, {"{{due_date}}"}, {"{{event_name}}"}, {"{{school_name}}."}
+          Available placeholders (examples): {"{{student_name}}"}, {"{{parent_name}}"}, {"{{first_name}}"}, {"{{last_name}}"}, {"{{admission_no}}"}, {"{{class_name}}"}, {"{{balance}}"}, {"{{due_date}}"}, {"{{event_name}}"}, {"{{school_name}}."}
         </div>
-      </Modal>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit">
+            {editingTemplate ? 'Save Changes' : 'Add Template'}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

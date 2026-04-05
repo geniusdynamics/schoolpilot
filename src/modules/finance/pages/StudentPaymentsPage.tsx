@@ -200,7 +200,7 @@ const StudentPaymentsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal
+      <DialogForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingPayment ? 'Edit Student Payment' : 'Record New Student Payment'}
@@ -236,7 +236,7 @@ const StudentPaymentsPage: React.FC = () => {
           <Input name="transaction_date" label="Transaction Date" type="date" value={paymentFormData.transaction_date || ''} onChange={handlePaymentInputChange} required />
           <Input name="reference_no" label="Reference No. (e.g., Cheque No, M-Pesa Code)" value={paymentFormData.reference_no || ''} onChange={handlePaymentInputChange} />
         </div>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

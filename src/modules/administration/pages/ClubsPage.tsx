@@ -148,48 +148,59 @@ const ClubsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingClub ? 'Edit Club/Society' : 'Add New Club/Society'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit}>
-              {editingClub ? 'Save Changes' : 'Add Club/Society'}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingClub ? 'Edit Club/Society' : 'Add New Club/Society'}
+        size="lg"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <Input 
-          name="name" 
-          label="Name" 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Select 
-          name="type" 
-          label="Type" 
-          value={formData.type || ClubType.CLUB} 
-          onChange={handleInputChange}
-          required
-        >
-          {Object.values(ClubType).map((type) => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </Select>
-        <Select 
-          name="patron_id" 
-          label="Patron (Staff Member)" 
-          value={formData.patron_id || ''} 
-          onChange={handleInputChange}
-        >
-          <option value="">Select Patron</option>
-          {staff.filter(s => s.is_active).map((staffMember: Staff) => (
-            <option key={staffMember.id} value={staffMember.id}>
-              {staffMember.first_name} {staffMember.last_name}
-            </option>
-          ))}
-        </Select>
-      </Modal>
+        <FormSection>
+          <FormField label="Name" required>
+            <Input 
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+          <FormField label="Type" required>
+            <Select
+              name="type"
+              value={formData.type || ClubType.CLUB}
+              onChange={handleInputChange}
+              required
+            >
+              {Object.values(ClubType).map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Patron (Staff Member)">
+            <Select
+              name="patron_id"
+              value={formData.patron_id || ''}
+              onChange={handleInputChange}
+            >
+              <option value="">Select Patron</option>
+              {staff.filter(s => s.is_active).map((staffMember: Staff) => (
+                <option key={staffMember.id} value={staffMember.id}>
+                  {staffMember.first_name} {staffMember.last_name}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit">
+            {editingClub ? 'Save Changes' : 'Add Club/Society'}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

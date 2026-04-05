@@ -6,8 +6,11 @@ import { LibrarySettingsType } from '../data/types';
 import { useLibrarySettingsData } from '../data/useLibrarySettingsData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button'; 
-import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -166,65 +169,70 @@ const LibrarySettingsPage: React.FC = () => {
         )}
       </Card>
 
-      <Modal
+      <DialogForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingSetting ? 'Edit Borrowing Rule' : 'Add New Borrowing Rule'}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit}>
-              {editingSetting ? 'Save Changes' : 'Add Rule'}
-            </Button>
-          </>
-        }
       >
-        <div className="space-y-4">
-          <Input
-            label="Rule Name"
-            value={newSetting.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            required
-          />
-          <Input
-            label="Max Loan Days"
-            type="number"
-            value={newSetting.max_loan_days || 0}
-            onChange={(e) => handleInputChange('max_loan_days', parseInt(e.target.value))}
-            required
-          />
-          <Input
-            label="Max Renewals"
-            type="number"
-            value={newSetting.max_renewals || 0}
-            onChange={(e) => handleInputChange('max_renewals', parseInt(e.target.value))}
-          />
-          <Input
-            label="Fine per Day (KES)"
-            type="number"
-            step="0.01"
-            value={newSetting.fine_per_day || 0}
-            onChange={(e) => handleInputChange('fine_per_day', parseFloat(e.target.value))}
-          />
-          <Input
-            label="Max Books per User"
-            type="number"
-            value={newSetting.max_books_per_user || 0}
-            onChange={(e) => handleInputChange('max_books_per_user', parseInt(e.target.value))}
-            required
-          />
-          <Input
-            label="Book Categories (comma-separated)"
-            value={newSetting.book_categories?.join(', ') || ''}
-            onChange={(e) => handleInputChange('book_categories', e.target.value.split(',').map(cat => cat.trim()))}
-          />
-          <Input
-            label="User Types (comma-separated)"
-            value={newSetting.user_types?.join(', ') || ''}
-            onChange={(e) => handleInputChange('user_types', e.target.value.split(',').map(type => type.trim()))}
-          />
-        </div>
-      </Modal>
+        <FormSection columns={1}>
+          <FormField label="Rule Name" required>
+            <Input
+              value={newSetting.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              required
+            />
+          </FormField>
+          <FormField label="Max Loan Days" required>
+            <Input
+              type="number"
+              value={newSetting.max_loan_days || 0}
+              onChange={(e) => handleInputChange('max_loan_days', parseInt(e.target.value))}
+              required
+            />
+          </FormField>
+          <FormField label="Max Renewals">
+            <Input
+              type="number"
+              value={newSetting.max_renewals || 0}
+              onChange={(e) => handleInputChange('max_renewals', parseInt(e.target.value))}
+            />
+          </FormField>
+          <FormField label="Fine per Day (KES)">
+            <Input
+              type="number"
+              step="0.01"
+              value={newSetting.fine_per_day || 0}
+              onChange={(e) => handleInputChange('fine_per_day', parseFloat(e.target.value))}
+            />
+          </FormField>
+          <FormField label="Max Books per User" required>
+            <Input
+              type="number"
+              value={newSetting.max_books_per_user || 0}
+              onChange={(e) => handleInputChange('max_books_per_user', parseInt(e.target.value))}
+              required
+            />
+          </FormField>
+          <FormField label="Book Categories (comma-separated)">
+            <Input
+              value={newSetting.book_categories?.join(', ') || ''}
+              onChange={(e) => handleInputChange('book_categories', e.target.value.split(',').map(cat => cat.trim()))}
+            />
+          </FormField>
+          <FormField label="User Types (comma-separated)">
+            <Input
+              value={newSetting.user_types?.join(', ') || ''}
+              onChange={(e) => handleInputChange('user_types', e.target.value.split(',').map(type => type.trim()))}
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit}>
+            {editingSetting ? 'Save Changes' : 'Add Rule'}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

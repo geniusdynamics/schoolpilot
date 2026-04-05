@@ -1,19 +1,22 @@
-// ABOUTME: Modal component for configuring quick edit fields
+// ABOUTME: Dialog component for configuring quick edit fields
 // ABOUTME: Allows users to customize which fields appear in the quick edit slideout
 
 import React, { useState, useEffect } from 'react';
-import Modal from '../../../components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { CogIcon, PlusIcon, XIcon } from '../../../components/ui/icons';
-import { 
-  QuickEditConfig, 
-  QuickEditField, 
-  getQuickEditConfig, 
-  saveQuickEditConfig, 
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
+import {
+  QuickEditConfig,
+  QuickEditField,
+  getQuickEditConfig,
+  saveQuickEditConfig,
   resetQuickEditConfig,
-  DEFAULT_QUICK_EDIT_CONFIG 
+  DEFAULT_QUICK_EDIT_CONFIG
 } from '../config/quickEditConfig';
 import { StudentStatus } from '../../../types';
 
@@ -37,7 +40,8 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
     }
   }, [isOpen]);
 
-  const handleSave = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     saveQuickEditConfig(config);
     onConfigUpdate(config);
     onClose();
@@ -71,7 +75,7 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
   const updateField = (index: number, updates: Partial<QuickEditField>) => {
     setConfig(prev => ({
       ...prev,
-      fields: prev.fields.map((field, i) => 
+      fields: prev.fields.map((field, i) =>
         i === index ? { ...field, ...updates } : field
       ),
     }));
@@ -95,32 +99,19 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
   ];
 
   return (
-    <Modal
+    <DialogForm
       isOpen={isOpen}
       onClose={onClose}
       title="Configure Quick Edit"
-      size="xl"
-      footer={
-        <div className="flex justify-between">
-          <Button variant="outline" onClick={handleReset}>
-            Reset to Default
-          </Button>
-          <div className="space-x-3">
-            <Button variant="secondary" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>
-              Save Configuration
-            </Button>
-          </div>
-        </div>
-      }
+      size="lg"
+      onSubmit={handleSubmit}
     >
       <div className="space-y-6">
         {/* Tab Navigation */}
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             <button
+              type="button"
               onClick={() => setActiveTab('fields')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'fields'
@@ -131,6 +122,7 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
               Fields Configuration
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('styling')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'styling'
@@ -225,7 +217,7 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
         {activeTab === 'styling' && (
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900">Styling Options</h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <Select
                 label="Theme"
@@ -238,7 +230,7 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
                 <option value="dark">Dark</option>
                 <option value="light">Light</option>
               </Select>
-              
+
               <Input
                 label="Accent Color"
                 type="color"
@@ -252,16 +244,16 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium text-gray-900 mb-2">Preview</h4>
-              <div 
+              <div
                 className={`p-3 rounded border ${
-                  config.styling.theme === 'dark' 
-                    ? 'bg-slate-800 border-slate-600 text-white' 
+                  config.styling.theme === 'dark'
+                    ? 'bg-slate-800 border-slate-600 text-white'
                     : 'bg-white border-gray-300 text-gray-900'
                 }`}
                 style={{ borderRadius: config.styling.borderRadius }}
               >
                 <div className="flex items-center space-x-2">
-                  <div 
+                  <div
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: config.styling.accentColor }}
                   />
@@ -272,8 +264,26 @@ const QuickEditConfigModal: React.FC<QuickEditConfigModalProps> = ({
           </div>
         )}
       </div>
-    </Modal>
+
+      {/* Form Actions */}
+      <FormActions>
+        <div className="flex justify-between w-full">
+          <Button variant="outline" onClick={handleReset}>
+            Reset to Default
+          </Button>
+          <div className="space-x-3">
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              Save Configuration
+            </Button>
+          </div>
+        </div>
+      </FormActions>
+    </DialogForm>
   );
 };
 
 export default QuickEditConfigModal;
+

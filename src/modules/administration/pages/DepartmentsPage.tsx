@@ -134,37 +134,46 @@ const DepartmentsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingDepartment ? t('departments.editDepartment') : t('departments.addNewDepartment')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('departments.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={isModalOpen}>
-              {editingDepartment ? t('departments.saveChanges') : t('departments.addDepartment')}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingDepartment ? t('departments.editDepartment') : t('departments.addNewDepartment')}
+        size="lg"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <Input 
-          name="name" 
-          label={t('departments.departmentName')} 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <div className="mt-4 flex items-center">
-          <input 
-            id="is_academic" 
-            name="is_academic" 
-            type="checkbox" 
-            checked={formData.is_academic || false} 
-            onChange={handleInputChange}
-            className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-          />
-          <label htmlFor="is_academic" className="ml-2 block text-sm text-gray-900">
-            {t('departments.isAcademicDepartment')}
-          </label>
-        </div>
-      </Modal>
+        <FormSection>
+          <FormField label={t('departments.departmentName')} required>
+            <Input
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+          <div className="flex items-center">
+            <input
+              id="is_academic"
+              name="is_academic"
+              type="checkbox"
+              checked={formData.is_academic || false}
+              onChange={handleInputChange}
+              className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+            />
+            <label htmlFor="is_academic" className="ml-2 block text-sm text-gray-900">
+              {t('departments.isAcademicDepartment')}
+            </label>
+          </div>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>{t('departments.cancel')}</Button>
+          <Button type="submit" disabled={isModalOpen}>
+            {editingDepartment ? t('departments.saveChanges') : t('departments.addDepartment')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

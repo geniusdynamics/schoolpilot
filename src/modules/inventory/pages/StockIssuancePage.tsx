@@ -3,7 +3,10 @@ import { StockTransaction, StockTransactionType, ItemInv, Warehouse } from '@/ty
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -156,30 +159,42 @@ const StockIssuancePage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title="Issue Stock Item" size="lg"
-        footer={
-          <>
+      <DialogForm open={isModalOpen} onClose={closeModal} title="Issue Stock Item" size="lg"
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={loading.stockTransactions}>
               {loading.stockTransactions ? <Spinner size="sm"/> : 'Issue Item'}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select name="item_id" label="Item to Issue" value={formData.item_id || ''} onChange={handleInputChange} required>
+        <FormSection>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Item to Issue">
+              <Select name="item_id" value={formData.item_id || ''} onChange={handleInputChange} required>
                 <option value="">Select Item</option>
                 {itemsInv.map(item => <option key={item.id} value={item.id}>{item.name} ({item.unit_of_measure})</option>)}
-            </Select>
-            <Select name="warehouse_id" label="Issue From Warehouse" value={formData.warehouse_id || ''} onChange={handleInputChange} required>
+              </Select>
+            </FormField>
+            <FormField label="Issue From Warehouse">
+              <Select name="warehouse_id" value={formData.warehouse_id || ''} onChange={handleInputChange} required>
                 <option value="">Select Warehouse</option>
                 {warehouses.map(wh => <option key={wh.id} value={wh.id}>{wh.name}</option>)}
-            </Select>
-            <Input name="quantity" label="Quantity to Issue" type="number" min="1" value={formData.quantity || ''} onChange={handleInputChange} required />
-            <Input name="transaction_date" label="Issuance Date" type="date" value={formData.transaction_date || ''} onChange={handleInputChange} required />
-             <Textarea name="notes" label="Notes (e.g., Issued to, Requisition No.)" value={formData.notes || ''} onChange={handleInputChange} rows={3} containerClassName="md:col-span-2" />
-        </div>
-      </Modal>
+              </Select>
+            </FormField>
+            <FormField label="Quantity to Issue">
+              <Input name="quantity" type="number" min="1" value={formData.quantity || ''} onChange={handleInputChange} required />
+            </FormField>
+            <FormField label="Issuance Date">
+              <Input name="transaction_date" type="date" value={formData.transaction_date || ''} onChange={handleInputChange} required />
+            </FormField>
+          </div>
+          <FormField label="Notes (e.g., Issued to, Requisition No.)">
+            <Textarea name="notes" value={formData.notes || ''} onChange={handleInputChange} rows={3} />
+          </FormField>
+        </FormSection>
+      </DialogForm>
     </div>
   );
 };

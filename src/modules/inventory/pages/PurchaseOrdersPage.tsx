@@ -3,7 +3,10 @@ import { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, Supplier, ItemIn
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -350,12 +353,12 @@ const PurchaseOrdersPage: React.FC = () => {
         </div>
       </Modal>
 
-      <Modal 
-        isOpen={isItemModalOpen} 
+      <DialogForm 
+        open={isItemModalOpen} 
         onClose={closeItemModal} 
         title={`Manage Items for PO: ${currentPOForItems?.id || ''}`} 
         size="xl"
-        footer={<Button variant="secondary" onClick={closeItemModal}>Done</Button>}
+        actions={<FormActions><Button variant="secondary" onClick={closeItemModal}>Done</Button></FormActions>}
       >
         {currentPOForItems && (
           <div className="space-y-4">
@@ -389,7 +392,7 @@ const PurchaseOrdersPage: React.FC = () => {
             />
           </div>
         )}
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

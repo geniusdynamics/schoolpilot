@@ -189,64 +189,74 @@ const PartnersPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPartner ? 'Edit Partner' : 'Add New Partner'} size="xl"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit}>
-              {editingPartner ? 'Save Changes' : 'Add Partner'}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={editingPartner ? 'Edit Partner' : 'Add New Partner'}
+        size="xl"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input 
-                name="name" 
-                label="Partner Name" 
-                value={formData.name || ''} 
-                onChange={handleInputChange} 
-                required 
-                containerClassName="md:col-span-2"
-            />
-            <Select 
-                name="partner_type" 
-                label="Partner Type" 
-                value={formData.partner_type} 
-                onChange={handleInputChange}
-                required
-                >
-                {Object.values(PartnerType).map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                ))}
-            </Select>
-            <Input 
-                name="contact_person" 
-                label="Contact Person" 
-                value={formData.contact_person || ''} 
-                onChange={handleInputChange} 
-            />
-            <Input 
-                name="email" 
-                label="Email Address" 
-                type="email"
-                value={formData.email || ''} 
-                onChange={handleInputChange} 
-            />
-            <Input 
-                name="phone" 
-                label="Phone Number" 
-                value={formData.phone || ''} 
-                onChange={handleInputChange} 
-            />
+        <FormSection columns={2}>
+          <FormField label="Partner Name" required>
             <Input
-                name="address"
-                label="Address"
-                value={formData.address || ''}
-                onChange={handleInputChange}
-                containerClassName="md:col-span-2"
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
             />
-        </div>
-      </Modal>
+          </FormField>
+          <FormField label="Partner Type" required>
+            <Select
+              name="partner_type"
+              value={formData.partner_type}
+              onChange={handleInputChange}
+              required
+            >
+              {Object.values(PartnerType).map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </Select>
+          </FormField>
+          <FormField label="Contact Person">
+            <Input
+              name="contact_person"
+              value={formData.contact_person || ''}
+              onChange={handleInputChange}
+            />
+          </FormField>
+          <FormField label="Email Address">
+            <Input
+              name="email"
+              type="email"
+              value={formData.email || ''}
+              onChange={handleInputChange}
+            />
+          </FormField>
+          <FormField label="Phone Number">
+            <Input
+              name="phone"
+              value={formData.phone || ''}
+              onChange={handleInputChange}
+            />
+          </FormField>
+          <FormField label="Address" containerClassName="md:col-span-2">
+            <Input
+              name="address"
+              value={formData.address || ''}
+              onChange={handleInputChange}
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button type="submit">
+            {editingPartner ? 'Save Changes' : 'Add Partner'}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

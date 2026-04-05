@@ -183,7 +183,7 @@ const StudentTransportAssignmentsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAssignment ? 'Edit Transport Assignment' : 'Assign Student to Transport Route'} size="lg"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingAssignment ? 'Edit Transport Assignment' : 'Assign Student to Transport Route'} size="lg"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -200,7 +200,7 @@ const StudentTransportAssignmentsPage: React.FC = () => {
         <Select name="route_id" label="Transport Route" value={formData.route_id}>
             {/* Options for routes will go here */}
           </Select>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

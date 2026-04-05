@@ -3,7 +3,10 @@ import { TimetablePeriodDef } from '@/core/types'; // Use core type (shared acro
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ClockIcon } from '@/components/ui/icons';
 import { useTimetablePeriodDefData } from '../data/useTimetablePeriodDefData'; // Use module-specific hook
@@ -110,40 +113,48 @@ const TimetablePeriodsPage: React.FC = () => {
         <DataGrid columns={columns} data={timetablePeriodDefs} />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingPeriod ? 'Edit Timetable Period' : 'Add New Timetable Period'}
-        footer={
-          <>
+      <DialogForm
+        open={isModalOpen}
+        onClose={closeModal}
+        title={editingPeriod ? 'Edit Timetable Period' : 'Add New Timetable Period'}
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
             <Button onClick={handleSubmit}>
               {editingPeriod ? 'Save Changes' : 'Add Period'}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <Input 
-          name="period_name" 
-          label="Period Name" 
-          value={formData.period_name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Input 
-          name="start_time" 
-          label="Start Time" 
-          type="time"
-          value={formData.start_time || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Input 
-          name="end_time" 
-          label="End Time" 
-          type="time"
-          value={formData.end_time || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+        <FormSection>
+          <FormField label="Period Name">
+            <Input 
+              name="period_name" 
+              value={formData.period_name || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+          <FormField label="Start Time">
+            <Input 
+              name="start_time" 
+              type="time"
+              value={formData.start_time || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+          <FormField label="End Time">
+            <Input 
+              name="end_time" 
+              type="time"
+              value={formData.end_time || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+        </FormSection>
+      </DialogForm>
     </div>
   );
 };

@@ -234,7 +234,7 @@ const CertificatesManagementPage: React.FC = () => {
       </Card>
 
       {selectedCertificate && (
-        <Modal
+        <DialogForm
           isOpen={!!selectedCertificate}
           onClose={() => setSelectedCertificate(null)}
           title={`Certificate Details: ${selectedCertificate.certificate_number}`}
@@ -290,7 +290,7 @@ const CertificatesManagementPage: React.FC = () => {
               </div>
             )}
           </div>
-        </Modal>
+        </DialogForm>
       )}
 
       <DialogForm

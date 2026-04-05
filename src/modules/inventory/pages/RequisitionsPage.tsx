@@ -3,7 +3,10 @@ import { Requisition, RequisitionItem, RequisitionStatus, Staff, ItemInv } from 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -439,13 +442,13 @@ const RequisitionsPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Item Management Modal */}
-      <Modal 
-        isOpen={isItemModalOpen} 
+      {/* Item Management Dialog */}
+      <DialogForm 
+        open={isItemModalOpen} 
         onClose={closeItemModal} 
         title={`Manage Items for Requisition: ${currentRequisitionForItems?.id || ''}`} 
         size="xl"
-        footer={<Button variant="secondary" onClick={closeItemModal}>Done</Button>}
+        actions={<FormActions><Button variant="secondary" onClick={closeItemModal}>Done</Button></FormActions>}
       >
         {currentRequisitionForItems && (
           <div className="space-y-4">
@@ -481,7 +484,7 @@ const RequisitionsPage: React.FC = () => {
             />
           </div>
         )}
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

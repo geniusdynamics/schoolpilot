@@ -163,7 +163,7 @@ const TransportRoutesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingRoute ? 'Edit Transport Route' : 'Add New Transport Route'} size="lg"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingRoute ? 'Edit Transport Route' : 'Add New Transport Route'} size="lg"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -179,7 +179,7 @@ const TransportRoutesPage: React.FC = () => {
             <option value="">Select Revenue Account</option>
             {revenueAccounts.map((coa: ChartOfAccount) => (<option key={coa.id} value={coa.id}>{coa.account_code} - {coa.name}</option>))}
         </Select>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

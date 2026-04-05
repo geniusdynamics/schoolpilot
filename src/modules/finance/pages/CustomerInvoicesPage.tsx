@@ -397,7 +397,7 @@ const CustomerInvoicesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isInvoiceModalOpen} onClose={closeInvoiceModal} title={editingInvoice ? 'Edit Customer Invoice' : 'Add New Customer Invoice'} size="lg"
+      <DialogForm isOpen={isInvoiceModalOpen} onClose={closeInvoiceModal} title={editingInvoice ? 'Edit Customer Invoice' : 'Add New Customer Invoice'} size="lg"
         footer={
           <>
             <Button variant="secondary" onClick={closeInvoiceModal}>Cancel</Button>
@@ -419,9 +419,9 @@ const CustomerInvoicesPage: React.FC = () => {
                 {Object.values(FinCustomerInvoiceStatusEnum).map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
         </div>
-      </Modal>
+      </DialogForm>
 
-      <Modal 
+      <DialogForm 
         isOpen={isItemModalOpen} 
         onClose={closeItemModal} 
         title={`Manage Items for Invoice: ${currentInvoiceForItems?.invoice_number || ''}`} 
@@ -462,7 +462,7 @@ const CustomerInvoicesPage: React.FC = () => {
             />
           </div>
         )}
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

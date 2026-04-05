@@ -6,8 +6,11 @@ import { LibBookType } from '../data/types';
 import { useBookData } from '../data/useBookData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button'; 
-import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { UploadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
@@ -123,35 +126,37 @@ const DigitalResourcesPage: React.FC = () => {
         )}
       </Card>
 
-      <Modal
+      <DialogForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={t('Update Digital Resource')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>
-              Save
-            </Button>
-          </>
-        }
       >
-        <div className="space-y-4">
-          <Input
-            label="Digital Access URL"
-            value={fileUrl}
-            onChange={(e) => setFileUrl(e.target.value)}
-          />
-          <Input
-            label="Format"
-            value={format}
-            onChange={(e) => setFormat(e.target.value)}
-          />
-          <input type="file" accept=".pdf,.epub,.mobi,.docx,.txt" onChange={handleFileUpload} />
-        </div>
-      </Modal>
+        <FormSection columns={1}>
+          <FormField label="Digital Access URL">
+            <Input
+              value={fileUrl}
+              onChange={(e) => setFileUrl(e.target.value)}
+            />
+          </FormField>
+          <FormField label="Format">
+            <Input
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+            />
+          </FormField>
+          <FormField label="Upload File">
+            <input type="file" accept=".pdf,.epub,.mobi,.docx,.txt" onChange={handleFileUpload} />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>
+            Save
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

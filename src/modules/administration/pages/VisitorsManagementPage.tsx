@@ -223,7 +223,7 @@ const VisitorsManagementPage: React.FC = () => {
       </Card>
 
       {selectedVisitor && (
-        <Modal
+        <DialogForm
           isOpen={!!selectedVisitor}
           onClose={() => setSelectedVisitor(null)}
           title="Visitor Details"
@@ -289,7 +289,7 @@ const VisitorsManagementPage: React.FC = () => {
               </div>
             )}
           </div>
-        </Modal>
+        </DialogForm>
       )}
 
       <DialogForm

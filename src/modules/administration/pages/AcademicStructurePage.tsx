@@ -3,7 +3,9 @@ import { AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, PuzzlePieceIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -132,25 +134,25 @@ const AcademicStructurePage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingStructure ? 'Edit Academic Year Structure' : 'Add New Academic Year Structure'}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.academicYearStructures}>
-              {loading.academicYearStructures ? <Spinner size="sm"/> : (editingStructure ? 'Save Changes' : 'Add Structure')}
-            </Button>
-          </>
-        }
-      >
-        <Input 
-          name="name" 
-          label="Structure Name" 
-          placeholder="e.g., Standard 3-Term System"
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingStructure ? 'Edit Academic Year Structure' : 'Add New Academic Year Structure'}>
+        <FormSection columns={1}>
+          <FormField label="Structure Name" required>
+            <Input 
+              name="name" 
+              placeholder="e.g., Standard 3-Term System"
+              value={formData.name || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading.academicYearStructures}>
+            {loading.academicYearStructures ? <Spinner size="sm"/> : (editingStructure ? 'Save Changes' : 'Add Structure')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

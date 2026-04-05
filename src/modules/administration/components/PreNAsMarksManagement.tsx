@@ -2,7 +2,8 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DataGrid from '../../../components/ui/data/DataGrid';
 import Button from '../../../components/ui/Button';
-import Modal from '../../../components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Card from '../../../components/ui/Card';
@@ -603,32 +604,32 @@ const PreNAsMarksManagement: React.FC = () => {
         </Card>
       )}
 
-      {/* Add/Edit Marks Modal */}
-      <Modal
+      {/* Add/Edit Marks Dialog */}
+      <DialogForm
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingMarks ? t('preNAsMarks.actions.editMarks') : t('preNAsMarks.actions.addMarks')}
-        size="large"
+        size="lg"
+        onSubmit={handleSubmit}
       >
         <TabbedForm
           tabs={createFormTabs()}
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          onSubmit={handleSubmit}
           onCancel={closeModal}
           submitLabel={editingMarks ? t('common.updateMarks') : t('common.addMarks')}
           cancelLabel={t('common.cancel')}
         />
-      </Modal>
+      </DialogForm>
 
-      {/* Bulk Import Modal - TODO: Implement detailed bulk import functionality */}
-      <Modal
+      {/* Bulk Import Dialog */}
+      <DialogForm
         isOpen={isBulkImportOpen}
         onClose={() => setIsBulkImportOpen(false)}
         title={t('preNAsMarks.bulkImport.title')}
-        size="large"
+        size="lg"
       >
-        <div className="space-y-6 p-4">
+        <div className="space-y-6">
           <div className="text-center py-8">
             <DocumentArrowUpIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -642,7 +643,12 @@ const PreNAsMarksManagement: React.FC = () => {
             </Button>
           </div>
         </div>
-      </Modal>
+        <FormActions>
+          <Button variant="secondary" onClick={() => setIsBulkImportOpen(false)}>
+            {t('common.close')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

@@ -3,7 +3,10 @@ import { Fine, Loan, FineStatus } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -192,55 +195,58 @@ const FinesPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingFine ? 'Update Fine Status' : 'Add Manual Fine'} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleSubmit} disabled={loading.fines}>
-              {loading.fines ? <Spinner size="sm"/> : (editingFine ? 'Save Changes' : 'Add Fine')}
-            </Button>
-          </>
-        }
-      >
-        <Select 
-          name="loan_id" 
-          label="Associated Loan" 
-          value={formData.loan_id || ''} 
-          onChange={handleInputChange}
-          required
-          disabled={!!editingFine} // Usually loan_id is fixed once fine is created
-        >
-          <option value="">Select Loan (for context)</option>
-          {(loans || []).map(loan => <option key={loan.id} value={loan.id}>{loan.book_title} - {loan.user_name} (Due: {new Date(loan.due_date).toLocaleDateString()})</option>)}
-        </Select>
-        <Input 
-          name="amount" 
-          label="Fine Amount (KES)" 
-          type="number" 
-          step="0.01" 
-          value={formData.amount || ''} 
-          onChange={handleInputChange} 
-          required 
-          disabled={!!editingFine} // Amount is typically fixed
-        />
-        <Textarea 
-          name="reason" 
-          label="Reason for Fine" 
-          value={formData.reason || ''} 
-          onChange={handleInputChange} 
-          rows={2}
-          disabled={!!editingFine} // Reason is typically fixed
-        />
-        <Select 
-          name="status" 
-          label="Fine Status" 
-          value={formData.status} 
-          onChange={handleInputChange}
-          required
-        >
-          {Object.values(FineStatus).map(status => <option key={status} value={status}>{status}</option>)}
-        </Select>
-      </Modal>
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingFine ? 'Update Fine Status' : 'Add Manual Fine'} size="lg">
+        <FormSection columns={1}>
+          <FormField label="Associated Loan" required>
+            <Select 
+              name="loan_id" 
+              value={formData.loan_id || ''} 
+              onChange={handleInputChange}
+              required
+              disabled={!!editingFine}
+            >
+              <option value="">Select Loan (for context)</option>
+              {(loans || []).map(loan => <option key={loan.id} value={loan.id}>{loan.book_title} - {loan.user_name} (Due: {new Date(loan.due_date).toLocaleDateString()})</option>)}
+            </Select>
+          </FormField>
+          <FormField label="Fine Amount (KES)" required>
+            <Input 
+              name="amount" 
+              type="number" 
+              step="0.01" 
+              value={formData.amount || ''} 
+              onChange={handleInputChange} 
+              required 
+              disabled={!!editingFine}
+            />
+          </FormField>
+          <FormField label="Reason for Fine">
+            <Textarea 
+              name="reason" 
+              value={formData.reason || ''} 
+              onChange={handleInputChange} 
+              rows={2}
+              disabled={!!editingFine}
+            />
+          </FormField>
+          <FormField label="Fine Status" required>
+            <Select 
+              name="status" 
+              value={formData.status} 
+              onChange={handleInputChange}
+              required
+            >
+              {Object.values(FineStatus).map(status => <option key={status} value={status}>{status}</option>)}
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={loading.fines}>
+            {loading.fines ? <Spinner size="sm"/> : (editingFine ? 'Save Changes' : 'Add Fine')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

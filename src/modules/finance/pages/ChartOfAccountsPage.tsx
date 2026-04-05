@@ -255,7 +255,7 @@ const ChartOfAccountsPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingAccount ? 'Edit Account' : 'Add New Account'} size="xl"
+      <DialogForm isOpen={isModalOpen} onClose={closeModal} title={editingAccount ? 'Edit Account' : 'Add New Account'} size="xl"
         footer={
           <>
             <Button variant="secondary" onClick={closeModal}>Cancel</Button>
@@ -289,7 +289,7 @@ const ChartOfAccountsPage: React.FC = () => {
                 <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">Is Active Account</label>
             </div>
         </div>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

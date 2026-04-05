@@ -153,7 +153,7 @@ const StudentClearancePage: React.FC = () => {
 
       {/* Request Details Modal */}
       {selectedRequest && (
-        <Modal
+        <DialogForm
           isOpen={!!selectedRequest}
           onClose={() => setSelectedRequest(null)}
           title="Clearance Request Details"
@@ -203,7 +203,7 @@ const StudentClearancePage: React.FC = () => {
               </div>
             </div>
           </div>
-        </Modal>
+        </DialogForm>
       )}
 
       {/* New Request Modal */}

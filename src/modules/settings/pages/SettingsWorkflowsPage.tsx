@@ -6,7 +6,8 @@ import { ArrowsRightLeftIcon, PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } f
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import { FormSection, FormField, FormActions } from '@/components/ui/forms';
 import Input from '@/components/ui/Input';
 import { Workflow, WorkflowState } from '@/types';
 import { useRBAC } from '@/hooks/useRBAC';
@@ -526,121 +527,125 @@ const SettingsWorkflowsPage: React.FC = () => {
 
       {/* Workflow Modal */}
       {canCreateWorkflows && (
-        <Modal 
-          isOpen={isWorkflowModalOpen} 
-          onClose={closeWorkflowModal} 
+        <DialogForm
+          isOpen={isWorkflowModalOpen}
+          onClose={closeWorkflowModal}
           title={editingWorkflow ? t('workflows.modalEditTitle') : t('workflows.modalAddTitle')}
-          footer={
-            <>
-              <Button 
-                variant="secondary" 
-                onClick={closeWorkflowModal}
-                disabled={isSubmitting}
-              >
-                {t('common:cancel')}
-              </Button>
-              <Button 
-                onClick={handleWorkflowSubmit} 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? <Spinner size="sm" /> : t('common:save')}
-              </Button>
-            </>
-          }
+          size="md"
         >
-          <Input 
-            name="name" 
-            label={t('workflows.nameLabel')} 
-            value={workflowFormData.name || ''} 
-            onChange={handleWorkflowInputChange} 
-            required 
-            error={workflowErrors.name}
-            disabled={isSubmitting}
-            placeholder={t('workflows.namePlaceholder') || 'Enter workflow name'}
-          />
-        </Modal>
+          <FormSection title={t('workflows.nameLabel') || 'Workflow Name'}>
+            <FormField label={t('workflows.nameLabel') || 'Name'} required>
+              <Input
+                name="name"
+                value={workflowFormData.name || ''}
+                onChange={handleWorkflowInputChange}
+                required
+                error={workflowErrors.name}
+                disabled={isSubmitting}
+                placeholder={t('workflows.namePlaceholder') || 'Enter workflow name'}
+              />
+            </FormField>
+          </FormSection>
+          <FormActions>
+            <Button
+              variant="secondary"
+              onClick={closeWorkflowModal}
+              disabled={isSubmitting}
+            >
+              {t('common:cancel')}
+            </Button>
+            <Button
+              onClick={handleWorkflowSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Spinner size="sm" /> : t('common:save')}
+            </Button>
+          </FormActions>
+        </DialogForm>
       )}
 
       {/* State Modal */}
       {canManageWorkflowStates && (
-        <Modal 
-          isOpen={isStateModalOpen} 
-          onClose={closeStateModal} 
-          title={editingState 
-            ? t('workflows.stateModalEditTitle') 
+        <DialogForm
+          isOpen={isStateModalOpen}
+          onClose={closeStateModal}
+          title={editingState
+            ? t('workflows.stateModalEditTitle')
             : t('workflows.stateModalAddTitle', { workflowName: currentWorkflowForStates?.name || '' })
           }
-          footer={
-            <>
-              <Button 
-                variant="secondary" 
-                onClick={closeStateModal}
-                disabled={isSubmitting}
-              >
-                {t('common:cancel')}
-              </Button>
-              <Button 
-                onClick={handleStateSubmit} 
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? <Spinner size="sm" /> : t('common:save')}
-              </Button>
-            </>
-          }
+          size="md"
         >
-          <div className="space-y-4">
-            <Input 
-              name="name" 
-              label={t('workflows.stateNameLabel')} 
-              value={stateFormData.name || ''} 
-              onChange={handleStateInputChange} 
-              required 
-              error={stateErrors.name}
+          <FormSection title={t('workflows.stateInfoTitle') || 'State Information'}>
+            <FormField label={t('workflows.stateNameLabel') || 'State Name'} required>
+              <Input
+                name="name"
+                value={stateFormData.name || ''}
+                onChange={handleStateInputChange}
+                required
+                error={stateErrors.name}
+                disabled={isSubmitting}
+                placeholder={t('workflows.stateNamePlaceholder') || 'Enter state name'}
+              />
+            </FormField>
+            <FormField label={t('workflows.sequenceOrderLabel') || 'Sequence Order'} required>
+              <Input
+                name="sequence_order"
+                type="number"
+                value={stateFormData.sequence_order?.toString() || ''}
+                onChange={handleStateInputChange}
+                required
+                error={stateErrors.sequence_order}
+                disabled={isSubmitting}
+                min={0}
+                max={9999}
+              />
+            </FormField>
+          </FormSection>
+          <FormActions>
+            <Button
+              variant="secondary"
+              onClick={closeStateModal}
               disabled={isSubmitting}
-              placeholder={t('workflows.stateNamePlaceholder') || 'Enter state name'}
-            />
-            <Input 
-              name="sequence_order" 
-              label={t('workflows.sequenceOrderLabel')} 
-              type="number" 
-              value={stateFormData.sequence_order?.toString() || ''} 
-              onChange={handleStateInputChange} 
-              required 
-              error={stateErrors.sequence_order}
-              disabled={isSubmitting}
-              min={0}
-              max={9999}
-            />
-          </div>
-        </Modal>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={deleteModalConfig.isOpen}
-        onClose={closeDeleteModal}
-        title={deleteModalConfig.title}
-        footer={
-          <>
-            <Button 
-              variant="secondary" 
-              onClick={closeDeleteModal}
-              disabled={deleteModalConfig.isDeleting}
             >
               {t('common:cancel')}
             </Button>
-            <Button 
-              variant="danger" 
-              onClick={deleteModalConfig.onConfirm}
-              disabled={deleteModalConfig.isDeleting}
+            <Button
+              onClick={handleStateSubmit}
+              disabled={isSubmitting}
             >
-              {deleteModalConfig.isDeleting ? <Spinner size="sm" /> : t('common:delete')}
+              {isSubmitting ? <Spinner size="sm" /> : t('common:save')}
             </Button>
-          </>
-        }
+          </FormActions>
+        </DialogForm>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <DialogForm
+        isOpen={deleteModalConfig.isOpen}
+        onClose={closeDeleteModal}
+        title={deleteModalConfig.title}
+        size="sm"
       >
-        <p className="text-gray-600">{deleteModalConfig.message}</p>
-      </Modal>
+        <FormSection>
+          <p className="text-gray-600">{deleteModalConfig.message}</p>
+        </FormSection>
+        <FormActions>
+          <Button
+            variant="secondary"
+            onClick={closeDeleteModal}
+            disabled={deleteModalConfig.isDeleting}
+          >
+            {t('common:cancel')}
+          </Button>
+          <Button
+            variant="danger"
+            onClick={deleteModalConfig.onConfirm}
+            disabled={deleteModalConfig.isDeleting}
+          >
+            {deleteModalConfig.isDeleting ? <Spinner size="sm" /> : t('common:delete')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

@@ -11,7 +11,8 @@ import { useUnifiedConfig } from '../../../hooks/useUnifiedConfig';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import Table from '../../../components/ui/Table';
-import Modal from '../../../components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import { FormSection, FormField, FormActions } from '../../../components/ui/forms';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Spinner from '../../../components/ui/Spinner';
@@ -767,72 +768,60 @@ const UnifiedSettingsPage: React.FC = () => {
       )}
 
       {/* User Modal */}
-      <Modal
+      <DialogForm
         isOpen={isUserModalOpen}
         onClose={closeUserModal}
         title={editingUser ? 'Edit User' : 'Add User'}
         size="lg"
       >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username *
-            </label>
-            <input
-              type="text"
+        <FormSection title="User Information" columns={2}>
+          <FormField label="Username" required>
+            <Input
+              name="username"
               value={userFormData.username || ''}
               onChange={(e) => setUserFormData({ ...userFormData, username: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter username"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
-            </label>
-            <input
+          </FormField>
+          <FormField label="Email" required>
+            <Input
+              name="email"
               type="email"
               value={userFormData.email || ''}
               onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter email"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password {editingUser ? '(leave blank to keep current)' : '*'}
-            </label>
-            <input
+          </FormField>
+        </FormSection>
+        <FormSection title="Security">
+          <FormField label={editingUser ? "New Password (leave blank to keep current)" : "Password *"} required={!editingUser}>
+            <Input
+              name="password"
               type="password"
               value={userFormData.password || ''}
               onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder={editingUser ? "Enter new password (optional)" : "Enter password"}
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              User Type *
-            </label>
-            <select
+          </FormField>
+        </FormSection>
+        <FormSection title="User Details" columns={2}>
+          <FormField label="User Type" required>
+            <Select
+              name="userType"
               value={userFormData.userType}
               onChange={(e) => setUserFormData({ ...userFormData, userType: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="student">Student</option>
               <option value="teacher">Teacher</option>
               <option value="admin">Admin</option>
               <option value="parent">Parent</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role *
-            </label>
-            <select
+            </Select>
+          </FormField>
+          <FormField label="Role" required>
+            <Select
+              name="role_id"
               value={userFormData.role_id || ''}
               onChange={(e) => setUserFormData({ ...userFormData, role_id: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select Role</option>
               {roles?.map((role) => (
@@ -840,148 +829,130 @@ const UnifiedSettingsPage: React.FC = () => {
                   {role.name}
                 </option>
               ))}
-            </select>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="userActive"
-              checked={userFormData.isActive}
-              onChange={(e) => setUserFormData({ ...userFormData, isActive: e.target.checked })}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label htmlFor="userActive" className="ml-2 block text-sm text-gray-900">
-              Active
+            </Select>
+          </FormField>
+        </FormSection>
+        <FormSection>
+          <FormField>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={userFormData.isActive}
+                onChange={(e) => setUserFormData({ ...userFormData, isActive: e.target.checked })}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <span className="text-sm text-gray-900">Active</span>
             </label>
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={closeUserModal}>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeUserModal}>
             Cancel
           </Button>
           <Button onClick={handleUserSubmit}>
             {editingUser ? 'Update User' : 'Create User'}
           </Button>
-        </div>
-      </Modal>
+        </FormActions>
+      </DialogForm>
 
       {/* Role Modal */}
-      <Modal
+      <DialogForm
         isOpen={isRoleModalOpen}
         onClose={closeRoleModal}
         title={editingRole ? 'Edit Role' : 'Add Role'}
-        size="lg"
+        size="md"
       >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Role Name *
-            </label>
-            <input
-              type="text"
+        <FormSection title="Role Information">
+          <FormField label="Role Name" required>
+            <Input
+              name="name"
               value={roleFormData.name || ''}
               onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter role name"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description *
-            </label>
-            <textarea
+          </FormField>
+          <FormField label="Description">
+            <Input
+              name="description"
               value={roleFormData.description || ''}
               onChange={(e) => setRoleFormData({ ...roleFormData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter role description"
-              rows={3}
             />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={closeRoleModal}>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeRoleModal}>
             Cancel
           </Button>
           <Button onClick={handleRoleSubmit}>
             {editingRole ? 'Update Role' : 'Create Role'}
           </Button>
-        </div>
-      </Modal>
+        </FormActions>
+      </DialogForm>
 
       {/* Workflow Modal */}
-      <Modal
+      <DialogForm
         isOpen={isWorkflowModalOpen}
         onClose={closeWorkflowModal}
         title={editingWorkflow ? 'Edit Workflow' : 'Add Workflow'}
-        size="lg"
+        size="md"
       >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Workflow Name *
-            </label>
-            <input
-              type="text"
+        <FormSection title="Workflow Information">
+          <FormField label="Workflow Name" required>
+            <Input
+              name="name"
               value={workflowFormData.name || ''}
               onChange={(e) => setWorkflowFormData({ ...workflowFormData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter workflow name"
             />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={closeWorkflowModal}>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeWorkflowModal}>
             Cancel
           </Button>
           <Button onClick={handleWorkflowSubmit}>
             {editingWorkflow ? 'Update Workflow' : 'Create Workflow'}
           </Button>
-        </div>
-      </Modal>
+        </FormActions>
+      </DialogForm>
 
       {/* State Modal */}
-      <Modal
+      <DialogForm
         isOpen={isStateModalOpen}
         onClose={closeStateModal}
         title={editingState ? 'Edit State' : 'Add State'}
-        size="lg"
+        size="md"
       >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              State Name *
-            </label>
-            <input
-              type="text"
+        <FormSection title="State Information">
+          <FormField label="State Name" required>
+            <Input
+              name="name"
               value={stateFormData.name || ''}
               onChange={(e) => setStateFormData({ ...stateFormData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter state name"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Sequence Order *
-            </label>
-            <input
+          </FormField>
+          <FormField label="Sequence Order" required>
+            <Input
+              name="sequence_order"
               type="number"
               value={stateFormData.sequence_order || ''}
               onChange={(e) => setStateFormData({ ...stateFormData, sequence_order: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter sequence order"
-              min="1"
+              min={1}
             />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={closeStateModal}>
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeStateModal}>
             Cancel
           </Button>
           <Button onClick={handleStateSubmit}>
             {editingState ? 'Update State' : 'Create State'}
           </Button>
-        </div>
-      </Modal>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

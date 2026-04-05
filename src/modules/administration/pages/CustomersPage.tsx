@@ -141,37 +141,48 @@ const CustomersPage: React.FC = () => {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={t(editingCustomer ? 'customers.editCustomer' : 'customers.addNewCustomer')} size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('customers.cancel')}</Button>
-            <Button onClick={handleSubmit}>
-              {editingCustomer ? t('customers.saveChanges') : t('customers.addCustomer')}
-            </Button>
-          </>
-        }
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={t(editingCustomer ? 'customers.editCustomer' : 'customers.addNewCustomer')}
+        size="lg"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <Input 
-          name="name" 
-          label={t('customers.customerName')} 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-        <Input 
-          name="phone" 
-          label={t('customers.phoneNumber')} 
-          value={formData.phone || ''} 
-          onChange={handleInputChange} 
-        />
-        <Input 
-          name="email" 
-          label={t('customers.emailAddress')} 
-          type="email"
-          value={formData.email || ''} 
-          onChange={handleInputChange} 
-        />
-      </Modal>
+        <FormSection>
+          <FormField label={t('customers.customerName')} required>
+            <Input
+              name="name"
+              value={formData.name || ''}
+              onChange={handleInputChange}
+              required
+            />
+          </FormField>
+          <FormField label={t('customers.phoneNumber')}>
+            <Input
+              name="phone"
+              value={formData.phone || ''}
+              onChange={handleInputChange}
+            />
+          </FormField>
+          <FormField label={t('customers.emailAddress')}>
+            <Input
+              name="email"
+              type="email"
+              value={formData.email || ''}
+              onChange={handleInputChange}
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>{t('customers.cancel')}</Button>
+          <Button type="submit">
+            {editingCustomer ? t('customers.saveChanges') : t('customers.addCustomer')}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

@@ -5,7 +5,10 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Spinner from '@/components/ui/Spinner';
 import {
   ArrowLeftIcon,
@@ -472,14 +475,14 @@ const ApplicationReviewPage: React.FC = () => {
     <>
       {activeView === 'queue' ? renderQueueView() : renderDetailView()}
 
-      {/* Decision Confirmation Modal */}
-      <Modal
-        isOpen={showDecisionModal}
+      {/* Decision Confirmation Dialog */}
+      <DialogForm
+        open={showDecisionModal}
         onClose={() => setShowDecisionModal(false)}
         title={`${decisionData.decision} Application`}
         size="lg"
-        footer={
-          <>
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={() => setShowDecisionModal(false)}>
               Cancel
             </Button>
@@ -490,72 +493,80 @@ const ApplicationReviewPage: React.FC = () => {
             >
               {isSubmitting ? 'Processing...' : `Confirm ${decisionData.decision}`}
             </Button>
-          </>
+          </FormActions>
         }
       >
-        <div className="space-y-4">
+        <FormSection>
           {decisionData.decision === ApplicationStatus.APPROVED && (
             <>
               <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Assign Class *"
-                  value={decisionData.assignedClassId}
-                  onChange={(e) => handleDecisionChange('assignedClassId', e.target.value)}
-                  placeholder="Enter class ID"
-                />
-                <Input
-                  label="Assign Stream"
-                  value={decisionData.assignedStreamId}
-                  onChange={(e) => handleDecisionChange('assignedStreamId', e.target.value)}
-                  placeholder="Enter stream ID"
-                />
+                <FormField label="Assign Class *">
+                  <Input
+                    value={decisionData.assignedClassId}
+                    onChange={(e) => handleDecisionChange('assignedClassId', e.target.value)}
+                    placeholder="Enter class ID"
+                  />
+                </FormField>
+                <FormField label="Assign Stream">
+                  <Input
+                    value={decisionData.assignedStreamId}
+                    onChange={(e) => handleDecisionChange('assignedStreamId', e.target.value)}
+                    placeholder="Enter stream ID"
+                  />
+                </FormField>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Admission Number"
-                  value={decisionData.admissionNumber}
-                  onChange={(e) => handleDecisionChange('admissionNumber', e.target.value)}
-                  placeholder="Auto-generated if empty"
-                />
-                <Input
-                  label="Start Date"
-                  type="date"
-                  value={decisionData.startDate}
-                  onChange={(e) => handleDecisionChange('startDate', e.target.value)}
-                />
+                <FormField label="Admission Number">
+                  <Input
+                    value={decisionData.admissionNumber}
+                    onChange={(e) => handleDecisionChange('admissionNumber', e.target.value)}
+                    placeholder="Auto-generated if empty"
+                  />
+                </FormField>
+                <FormField label="Start Date">
+                  <Input
+                    type="date"
+                    value={decisionData.startDate}
+                    onChange={(e) => handleDecisionChange('startDate', e.target.value)}
+                  />
+                </FormField>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Fee Structure"
-                  value={decisionData.feeStructureId}
-                  onChange={(e) => handleDecisionChange('feeStructureId', e.target.value)}
-                  placeholder="Enter fee structure ID"
-                />
-                <Input
-                  label="Dormitory (Optional)"
-                  value={decisionData.dormitoryId}
-                  onChange={(e) => handleDecisionChange('dormitoryId', e.target.value)}
-                  placeholder="Enter dormitory ID"
-                />
+                <FormField label="Fee Structure">
+                  <Input
+                    value={decisionData.feeStructureId}
+                    onChange={(e) => handleDecisionChange('feeStructureId', e.target.value)}
+                    placeholder="Enter fee structure ID"
+                  />
+                </FormField>
+                <FormField label="Dormitory (Optional)">
+                  <Input
+                    value={decisionData.dormitoryId}
+                    onChange={(e) => handleDecisionChange('dormitoryId', e.target.value)}
+                    placeholder="Enter dormitory ID"
+                  />
+                </FormField>
               </div>
             </>
           )}
           
-          <Textarea
-            label="Conditions (if any)"
-            value={decisionData.conditions}
-            onChange={(e) => handleDecisionChange('conditions', e.target.value)}
-            placeholder="Enter any conditions for this decision..."
-            rows={3}
-          />
+          <FormField label="Conditions (if any)">
+            <Textarea
+              value={decisionData.conditions}
+              onChange={(e) => handleDecisionChange('conditions', e.target.value)}
+              placeholder="Enter any conditions for this decision..."
+              rows={3}
+            />
+          </FormField>
           
-          <Textarea
-            label="Final Comments"
-            value={decisionData.finalComments}
-            onChange={(e) => handleDecisionChange('finalComments', e.target.value)}
-            placeholder="Enter final comments..."
-            rows={3}
-          />
+          <FormField label="Final Comments">
+            <Textarea
+              value={decisionData.finalComments}
+              onChange={(e) => handleDecisionChange('finalComments', e.target.value)}
+              placeholder="Enter final comments..."
+              rows={3}
+            />
+          </FormField>
 
           <div className="flex items-center space-x-2">
             <input
@@ -569,8 +580,8 @@ const ApplicationReviewPage: React.FC = () => {
               Generate invoice upon enrollment
             </label>
           </div>
-        </div>
-      </Modal>
+        </FormSection>
+      </DialogForm>
     </>
   );
 };

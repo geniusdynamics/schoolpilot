@@ -282,7 +282,7 @@ const DisciplinaryCasesPage: React.FC = () => {
 
       {/* Case Details Modal */}
       {selectedCase && (
-        <Modal
+        <DialogForm
           isOpen={!!selectedCase}
           onClose={() => setSelectedCase(null)}
           title={`Case Details: ${selectedCase.case_number}`}
@@ -370,7 +370,7 @@ const DisciplinaryCasesPage: React.FC = () => {
               </div>
             )}
           </div>
-        </Modal>
+        </DialogForm>
       )}
 
       {/* New/Edit Case Modal */}

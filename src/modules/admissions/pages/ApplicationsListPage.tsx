@@ -4,7 +4,9 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormActions from '@/components/ui/forms/FormActions';
 import { useNavigate } from 'react-router-dom';
 import {
   PlusIcon,
@@ -334,21 +336,21 @@ const ApplicationsListPage: React.FC = () => {
         />
       </Card>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={deleteModalOpen}
+      {/* Delete Confirmation Dialog */}
+      <DialogForm
+        open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         title="Confirm Delete"
         size="sm"
-        footer={
-          <>
+        actions={
+          <FormActions>
             <Button variant="secondary" onClick={() => setDeleteModalOpen(false)}>
               Cancel
             </Button>
             <Button variant="danger" onClick={confirmDelete}>
               Delete
             </Button>
-          </>
+          </FormActions>
         }
       >
         <p>
@@ -360,7 +362,7 @@ const ApplicationsListPage: React.FC = () => {
           </strong>
           ? This action cannot be undone.
         </p>
-      </Modal>
+      </DialogForm>
     </div>
   );
 };

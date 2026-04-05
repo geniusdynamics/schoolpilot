@@ -6,8 +6,11 @@ import { LibBookType, LibBookStatusEnum } from '../data/types';
 import { useBookData } from '../data/useBookData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button'; 
-import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -315,78 +318,75 @@ const DamagedLostBooksPage: React.FC = () => {
         />
       </Card>
 
-      <Modal 
+      <DialogForm 
         isOpen={isModalOpen} 
         onClose={closeModal} 
         title="Update Book Status" 
         size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-            <Button onClick={handleStatusUpdate}>
-              Update Status
-            </Button>
-          </>
-        }
       >
         {editingBook && (
-          <div className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-900">{editingBook.title}</h4>
-              <p className="text-sm text-gray-600">Accession No: {editingBook.accession_no}</p>
-              <p className="text-sm text-gray-600">Current Status: {editingBook.status}</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={statusUpdateData.damaged_status}
-                    onChange={(e) => handleInputChange('damaged_status', e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-sm font-medium">Mark as Damaged</span>
-                </label>
-                <p className="text-xs text-gray-500 mt-1">
-                  Book has physical damage but is still readable
-                </p>
+          <>
+            <FormSection columns={1}>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900">{editingBook.title}</h4>
+                <p className="text-sm text-gray-600">Accession No: {editingBook.accession_no}</p>
+                <p className="text-sm text-gray-600">Current Status: {editingBook.status}</p>
               </div>
-
-              <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={statusUpdateData.lost_status}
-                    onChange={(e) => handleInputChange('lost_status', e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-sm font-medium">Mark as Lost</span>
-                </label>
-                <p className="text-xs text-gray-500 mt-1">
-                  Book cannot be located
-                </p>
-              </div>
-            </div>
-
-            <Select
-              label="Book Status"
-              value={statusUpdateData.status}
-              onChange={(value) => handleInputChange('status', value as LibBookStatusEnum)}
-              options={Object.values(LibBookStatusEnum).map(status => ({ 
-                label: status, 
-                value: status 
-              }))}
-            />
-
-            <Textarea
-              label="Additional Notes (Optional)"
-              value={statusUpdateData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Add any relevant details about the condition or circumstances..."
-              rows={3}
-            />
-
+            </FormSection>
+            <FormSection columns={2}>
+              <FormField label="Mark as Damaged">
+                <div className="flex flex-col">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={statusUpdateData.damaged_status}
+                      onChange={(e) => handleInputChange('damaged_status', e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm font-medium">Damaged</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Book has physical damage but is still readable
+                  </p>
+                </div>
+              </FormField>
+              <FormField label="Mark as Lost">
+                <div className="flex flex-col">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={statusUpdateData.lost_status}
+                      onChange={(e) => handleInputChange('lost_status', e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm font-medium">Lost</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Book cannot be located
+                  </p>
+                </div>
+              </FormField>
+            </FormSection>
+            <FormSection columns={1}>
+              <FormField label="Book Status">
+                <Select
+                  value={statusUpdateData.status}
+                  onChange={(value) => handleInputChange('status', value as LibBookStatusEnum)}
+                  options={Object.values(LibBookStatusEnum).map(status => ({ 
+                    label: status, 
+                    value: status 
+                  }))}
+                />
+              </FormField>
+              <FormField label="Additional Notes (Optional)">
+                <Textarea
+                  value={statusUpdateData.notes}
+                  onChange={(e) => handleInputChange('notes', e.target.value)}
+                  placeholder="Add any relevant details about the condition or circumstances..."
+                  rows={3}
+                />
+              </FormField>
+            </FormSection>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">
                 <strong>Note:</strong> The book status will be automatically updated based on the flags you select:
@@ -398,9 +398,15 @@ const DamagedLostBooksPage: React.FC = () => {
                 <li>Neither flag → Status: Available</li>
               </ul>
             </div>
-          </div>
+          </>
         )}
-      </Modal>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleStatusUpdate}>
+            Update Status
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };

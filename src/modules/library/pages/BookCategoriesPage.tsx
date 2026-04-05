@@ -3,7 +3,9 @@ import { BookCategory } from '@/types';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -95,27 +97,28 @@ const BookCategoriesPage: React.FC = () => {
         <Table columns={columns} data={bookCategories} isLoading={loading.bookCategories && isModalOpen} />
       </Card>
 
-      <Modal 
+      <DialogForm 
         isOpen={isModalOpen} 
         onClose={closeModal} 
         title={editingCategory ? t('bookCategories.editBookCategory') : t('bookCategories.addNewBookCategory')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={closeModal}>{t('bookCategories.cancel')}</Button>
-            <Button onClick={handleSubmit} disabled={loading.bookCategories}>
-              {loading.bookCategories ? <Spinner size="sm"/> : (editingCategory ? t('bookCategories.saveChanges') : t('bookCategories.addCategory'))}
-            </Button>
-          </>
-        }
       >
-        <Input 
-          name="name" 
-          label={t('bookCategories.categoryName')} 
-          value={formData.name || ''} 
-          onChange={handleInputChange} 
-          required 
-        />
-      </Modal>
+        <FormSection columns={1}>
+          <FormField label={t('bookCategories.categoryName')} required>
+            <Input 
+              name="name" 
+              value={formData.name || ''} 
+              onChange={handleInputChange} 
+              required 
+            />
+          </FormField>
+        </FormSection>
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>{t('bookCategories.cancel')}</Button>
+          <Button onClick={handleSubmit} disabled={loading.bookCategories}>
+            {loading.bookCategories ? <Spinner size="sm"/> : (editingCategory ? t('bookCategories.saveChanges') : t('bookCategories.addCategory'))}
+          </Button>
+        </FormActions>
+      </DialogForm>
     </div>
   );
 };
