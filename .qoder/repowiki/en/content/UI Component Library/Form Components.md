@@ -1,516 +1,456 @@
 # Form Components
 
 <cite>
-**Referenced Files in This Document**   
+**Referenced Files in This Document**
 - [FormField.tsx](file://src/components/ui/forms/FormField.tsx)
 - [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx)
 - [SlideoutForm.tsx](file://src/components/ui/forms/SlideoutForm.tsx)
+- [DialogForm.tsx](file://src/components/ui/forms/DialogForm.tsx)
+- [WizardForm.tsx](file://src/components/ui/forms/WizardForm.tsx)
+- [MinimalForm.tsx](file://src/components/ui/forms/MinimalForm.tsx)
+- [PrintForm.tsx](file://src/components/ui/forms/PrintForm.tsx)
+- [FormContainer.tsx](file://src/components/ui/forms/FormContainer.tsx)
+- [FormHeader.tsx](file://src/components/ui/forms/FormHeader.tsx)
+- [FormSection.tsx](file://src/components/ui/forms/FormSection.tsx)
+- [FormGrid.tsx](file://src/components/ui/forms/FormGrid.tsx)
+- [FormActions.tsx](file://src/components/ui/forms/FormActions.tsx)
 - [useFormValidation.tsx](file://src/hooks/useFormValidation.tsx)
 - [Input.tsx](file://src/components/ui/Input.tsx)
 - [Textarea.tsx](file://src/components/ui/Textarea.tsx)
 - [Select.tsx](file://src/components/ui/Select.tsx)
 - [Checkbox.tsx](file://src/components/ui/Checkbox.tsx)
 - [DatePicker.tsx](file://src/components/ui/forms/DatePicker.tsx)
+- [Modal.tsx](file://src/components/ui/Modal.tsx)
 - [EducationSystemConfigPage.tsx](file://src/modules/academics/pages/EducationSystemConfigPage.tsx)
 - [StudentSubjectEnrollmentPage.tsx](file://src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Added comprehensive documentation for the new DialogForm framework as the successor to Modal-based forms
+- Documented new form composition components: FormContainer, FormHeader, FormSection, FormGrid, and FormActions
+- Added WizardForm, MinimalForm, and PrintForm components for specialized form scenarios
+- Updated migration guidance from Modal-based forms to the new DialogForm framework
+- Enhanced form composition patterns and standardized form architecture documentation
+
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [Core Form Components](#core-form-components)
-3. [Form Layout and Structure](#form-layout-and-structure)
-4. [Input Components Integration](#input-components-integration)
-5. [Validation System](#validation-system)
-6. [Usage Examples](#usage-examples)
-7. [Accessibility and User Experience](#accessibility-and-user-experience)
-8. [State Management and Data Flow](#state-management-and-data-flow)
+2. [Form Framework Architecture](#form-framework-architecture)
+3. [Core Form Components](#core-form-components)
+4. [Form Composition System](#form-composition-system)
+5. [Form Layout and Structure](#form-layout-and-structure)
+6. [Input Components Integration](#input-components-integration)
+7. [Validation System](#validation-system)
+8. [Usage Examples](#usage-examples)
+9. [Migration from Modal Forms](#migration-from-modal-forms)
+10. [Accessibility and User Experience](#accessibility-and-user-experience)
+11. [State Management and Data Flow](#state-management-and-data-flow)
 
 ## Introduction
-This document provides comprehensive documentation for the form components in the schoolpilot3 application. The form system is designed to support various data entry scenarios including multi-step processes, contextual editing, and complex validation requirements. The components are built with accessibility, responsiveness, and developer experience in mind, providing a consistent interface across the application.
+This document provides comprehensive documentation for the form components in the schoolpilot3 application. The form system has evolved from Modal-based forms to a standardized DialogForm framework that provides consistent, accessible, and extensible form solutions across the application. The new architecture emphasizes composition over inheritance, providing reusable building blocks for various form scenarios including modal dialogs, wizards, minimal forms, and print-optimized layouts.
 
 **Section sources**
-- [FormField.tsx](file://src/components/ui/forms/FormField.tsx#L1-L182)
-- [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx#L1-L486)
-- [SlideoutForm.tsx](file://src/components/ui/forms/SlideoutForm.tsx#L1-L741)
+- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
+
+## Form Framework Architecture
+The new form framework is built around a composition-based architecture that separates concerns between presentation, structure, and behavior. The DialogForm component serves as the primary entry point, combining Modal presentation with FormContainer structure and FormHeader functionality.
+
+```mermaid
+graph TB
+DialogForm[DialogForm] --> Modal[Modal]
+DialogForm --> FormContainer[FormContainer]
+DialogForm --> FormHeader[FormHeader]
+FormContainer --> FormHeader
+FormContainer --> FormSection[FormSection]
+FormContainer --> FormGrid[FormGrid]
+FormContainer --> FormActions[FormActions]
+FormSection --> FormGrid
+FormSection --> FormField[FormField]
+FormGrid --> FormField
+WizardForm[WizardForm] --> FormContainer
+MinimalForm[MinimalForm] --> FormContainer
+PrintForm[PrintForm] --> FormContainer
+FormField --> Input[Input]
+FormField --> Select[Select]
+FormField --> DatePicker[DatePicker]
+FormField --> Textarea[Textarea]
+FormField --> Checkbox[Checkbox]
+```
+
+**Diagram sources**
+- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
+- [WizardForm.tsx:1-441](file://src/components/ui/forms/WizardForm.tsx#L1-L441)
+- [MinimalForm.tsx:1-184](file://src/components/ui/forms/MinimalForm.tsx#L1-L184)
+- [PrintForm.tsx:1-304](file://src/components/ui/forms/PrintForm.tsx#L1-L304)
+
+**Section sources**
+- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
 
 ## Core Form Components
 
-### FormField Component
-The FormField component serves as the base wrapper for all form elements, providing consistent layout, labeling, and error handling across the application. It standardizes spacing, labels, help text, and validation states.
+### DialogForm Component
+The DialogForm component represents the new standardized approach to modal forms, combining Modal presentation with comprehensive form structure and validation capabilities.
 
 ```mermaid
 classDiagram
-class FormFieldProps {
-+children : ReactNode
-+label? : string
-+helperText? : string
-+error? : string
-+success? : boolean
-+required? : boolean
-+optional? : boolean
-+className? : string
-+labelClassName? : string
-+fieldId? : string
-+layout? : 'vertical' | 'horizontal'
-+size? : 'sm' | 'md' | 'lg'
-}
-class FormField {
-+getLabelColor() : string
-+SuccessIcon() : JSX.Element
-+ErrorIcon() : JSX.Element
-+enhancedChildren : ReactNode
-}
-FormField --> FormFieldProps : "uses"
-```
-
-**Diagram sources**
-- [FormField.tsx](file://src/components/ui/forms/FormField.tsx#L10-L182)
-
-**Section sources**
-- [FormField.tsx](file://src/components/ui/forms/FormField.tsx#L1-L182)
-
-### TabbedForm Component
-The TabbedForm component enables multi-step data entry through tab navigation with progress indicators. It supports validation state indicators, responsive mobile navigation, and form state preservation between tabs.
-
-```mermaid
-classDiagram
-class FormTab {
-+id : string
-+label : string
-+icon? : ReactNode
-+content : ReactNode
-+validation? : () => boolean
-+required? : boolean
-+disabled? : boolean
-}
-class TabbedFormProps {
-+tabs : FormTab[]
-+activeTab? : number
-+onTabChange? : (tabIndex : number, tabId : string) => void
-+validation? : Record<string, boolean>
-+onSubmit? : (data : any) => Promise<void>
-+loading? : boolean
-+className? : string
-+variant? : 'default' | 'pills' | 'underline'
-+size? : 'sm' | 'md' | 'lg'
-+showProgress? : boolean
-+allowTabSwitching? : boolean
-+mobileBreakpoint? : 'sm' | 'md' | 'lg'
-+preserveTabState? : boolean
-+submitButtonText? : string
-+cancelButtonText? : string
-+onCancel? : () => void
-+children? : ReactNode
-}
-class TabbedForm {
-+currentTab : number
-+visitedTabs : Set<number>
-+tabStates : Record<string, any>
-+handleTabChange(tabIndex : number) : void
-+getTabValidationState(tabIndex : number) : string
-+isTabAccessible(tabIndex : number) : boolean
-}
-TabbedForm --> FormTab : "contains"
-TabbedForm --> TabbedFormProps : "uses"
-```
-
-**Diagram sources**
-- [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx#L15-L199)
-
-**Section sources**
-- [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx#L1-L486)
-
-### SlideoutForm Component
-The SlideoutForm component provides a contextual editing interface that slides in from the side of the screen. It supports various positions, auto-save functionality, resize handles, backdrop blur effects, and enhanced accessibility features.
-
-```mermaid
-classDiagram
-class SlideoutFormProps {
+class DialogFormProps {
 +isOpen : boolean
 +onClose : () => void
 +title : string
-+children : React.ReactNode
-+width? : 'sm' | 'md' | 'lg' | 'xl' | 'full'
-+position? : 'left' | 'right'
-+overlay? : boolean
-+closeOnOverlayClick? : boolean
-+closeOnEscape? : boolean
-+footer? : React.ReactNode
++children : ReactNode
++description? : string
++progress? : number
++showProgress? : boolean
++stepLabel? : string
++icon? : ReactNode
++badge? : ReactNode
++onSubmit? : (event : FormEvent) => void
++formProps? : Partial~FormContainerProps~
++headerProps? : Partial~FormHeaderProps~
++autoSaveStatus? : 'idle' | 'saving' | 'saved' | 'error'
++lastSaved? : Date | null
++contentPadding? : 'none' | 'sm' | 'md' | 'lg'
++size? : 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
 +loading? : boolean
-+className? : string
-+onSave? : () => void | Promise<void>
-+onCancel? : () => void
-+saveLabel? : string
-+cancelLabel? : string
-+autoSave? : boolean
-+autoSaveDelay? : number
 +preventClose? : boolean
-+showCloseButton? : boolean
-+theme? : 'light' | 'dark' | 'auto'
-+swipeToClose? : boolean
-+resizable? : boolean
-+backdropBlur? : boolean
-+springConfig? : { damping? : number; stiffness? : number; mass? : number }
-+onResize? : (width : number) => void
-+minWidth? : number
-+maxWidth? : number
 }
-class SlideoutForm {
-+isAnimating : boolean
-+isVisible : boolean
-+hasUnsavedChanges : boolean
-+currentWidth : number
-+isResizing : boolean
-+x : MotionValue
-+dragProgress : Transform
-+opacity : Transform
-+scale : Transform
-+getWidthValue(widthSize : string) : number
-+handleDragEnd(event : Event, info : PanInfo) : void
+class DialogFormRef {
++form : HTMLFormElement | null
++modal : HTMLDivElement | null
++submit() : void
++reset() : void
 }
-SlideoutForm --> SlideoutFormProps : "uses"
+class DialogForm {
++formRef : RefObject
++modalRef : RefObject
++submit() : void
++reset() : void
+}
+DialogForm --> DialogFormProps : "uses"
+DialogForm --> DialogFormRef : "exposes"
 ```
 
 **Diagram sources**
-- [SlideoutForm.tsx](file://src/components/ui/forms/SlideoutForm.tsx#L15-L199)
+- [DialogForm.tsx:9-47](file://src/components/ui/forms/DialogForm.tsx#L9-L47)
 
 **Section sources**
-- [SlideoutForm.tsx](file://src/components/ui/forms/SlideoutForm.tsx#L1-L741)
+- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+
+### WizardForm Component
+The WizardForm component provides comprehensive multi-step form functionality with progress tracking, validation, and navigation controls.
+
+```mermaid
+classDiagram
+class WizardStep {
++id : string
++title : string
++description? : string
++content : ReactNode
++validate? : () => boolean | Promise~boolean~
++optional? : boolean
++icon? : ReactNode
+}
+class WizardFormProps {
++steps : WizardStep[]
++onComplete : () => void | Promise~void~
++onCancel? : () => void
++className? : string
++initialStep? : number
++allowSkip? : boolean
++validateOnNext? : boolean
++showStepDescriptions? : boolean
++variant? : 'horizontal' | 'vertical'
++showProgress? : boolean
++previousButtonText? : string
++nextButtonText? : string
++completeButtonText? : string
++cancelButtonText? : string
++disableNavigationWhileValidating? : boolean
++renderNavigation? : (props) => ReactNode
+}
+class WizardFormRef {
++next() : Promise~void~
++previous() : void
++goToStep(stepIndex : number) : void
++getCurrentStep() : number
++reset() : void
+}
+class WizardForm {
++currentStep : number
++isValidating : boolean
++isSubmitting : boolean
++completedSteps : Set~number~
++handleNext() : Promise~void~
++handlePrevious() : void
++handleComplete() : Promise~void~
++goToStep(stepIndex : number) : void
++reset() : void
+}
+WizardForm --> WizardStep : "contains"
+WizardForm --> WizardFormProps : "uses"
+WizardForm --> WizardFormRef : "exposes"
+```
+
+**Diagram sources**
+- [WizardForm.tsx:9-81](file://src/components/ui/forms/WizardForm.tsx#L9-L81)
+
+**Section sources**
+- [WizardForm.tsx:1-441](file://src/components/ui/forms/WizardForm.tsx#L1-L441)
+
+### MinimalForm Component
+The MinimalForm component provides clean, simple form layouts ideal for login forms, search interfaces, and quick data entry scenarios.
+
+```mermaid
+classDiagram
+class MinimalFormProps {
++children : ReactNode
++title? : string
++description? : string
++showActions? : boolean
++actions? : ReactNode
++centered? : boolean
++maxWidth? : 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
++card? : boolean
++background? : boolean
++onSubmit? : (event : FormEvent) => void
++className? : string
++...FormContainerProps
+}
+class MinimalFormRef {
++form : HTMLFormElement | null
++submit() : void
++reset() : void
+}
+class MinimalForm {
++formRef : RefObject
++submit() : void
++reset() : void
+}
+MinimalForm --> MinimalFormProps : "uses"
+MinimalForm --> MinimalFormRef : "exposes"
+```
+
+**Diagram sources**
+- [MinimalForm.tsx:8-36](file://src/components/ui/forms/MinimalForm.tsx#L8-L36)
+
+**Section sources**
+- [MinimalForm.tsx:1-184](file://src/components/ui/forms/MinimalForm.tsx#L1-L184)
+
+### PrintForm Component
+The PrintForm component provides print-optimized form layouts with page breaks, headers, and print-specific styling.
+
+```mermaid
+classDiagram
+class PrintFormField {
++label : string
++value : ReactNode
++colSpan? : 1 | 2 | 3 | 4
+}
+class PrintFormProps {
++children : ReactNode
++documentTitle? : string
++subtitle? : string
++organization? : string
++logoUrl? : string
++headerFields? : PrintFormField[]
++showPrintButton? : boolean
++printButtonText? : string
++closeButtonText? : string
++onClose? : () => void
++printFooter? : ReactNode
++pageSize? : 'a4' | 'letter' | 'legal'
++includeTimestamp? : boolean
++includePageNumbers? : boolean
++onSubmit? : (event : FormEvent) => void
++className? : string
++...FormContainerProps
+}
+class PrintFormRef {
++form : HTMLFormElement | null
++print() : void
++submit() : void
+}
+class PrintForm {
++formRef : RefObject
++handlePrint() : void
+}
+PrintForm --> PrintFormField : "uses"
+PrintForm --> PrintFormProps : "uses"
+PrintForm --> PrintFormRef : "exposes"
+```
+
+**Diagram sources**
+- [PrintForm.tsx:8-55](file://src/components/ui/forms/PrintForm.tsx#L8-L55)
+
+**Section sources**
+- [PrintForm.tsx:1-304](file://src/components/ui/forms/PrintForm.tsx#L1-L304)
+
+## Form Composition System
+
+### FormContainer Component
+The FormContainer serves as the foundational wrapper for all form types, providing consistent structure, styling, and accessibility attributes.
+
+```mermaid
+classDiagram
+class FormType {
+<<enumeration>>
++default
++dialog
++slideout
++tabbed
++wizard
++minimal
++print
+}
+class FormContainerProps {
++children : ReactNode
++type? : FormType
++className? : string
++size? : 'sm' | 'md' | 'lg' | 'xl' | 'full'
++formId? : string
++onSubmit? : (event : FormEvent) => void
++name? : string
++autoComplete? : 'on' | 'off'
++disabled? : boolean
++loading? : boolean
++scrollable? : boolean
++maxHeight? : string
++ariaLabel? : string
+}
+class FormContainer {
++handleSubmit(event : FormEvent) : void
+}
+FormContainer --> FormType : "uses"
+FormContainer --> FormContainerProps : "uses"
+```
+
+**Diagram sources**
+- [FormContainer.tsx:7-36](file://src/components/ui/forms/FormContainer.tsx#L7-L36)
+
+**Section sources**
+- [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
+
+### FormHeader Component
+The FormHeader component provides consistent header styling across all form types with support for titles, descriptions, progress indicators, and auto-save status.
+
+**Section sources**
+- [FormHeader.tsx:1-222](file://src/components/ui/forms/FormHeader.tsx#L1-L222)
+
+### FormSection Component
+The FormSection component provides logical grouping of form fields with responsive grid layouts, collapsible functionality, and print optimization.
+
+**Section sources**
+- [FormSection.tsx:1-210](file://src/components/ui/forms/FormSection.tsx#L1-L210)
+
+### FormGrid Component
+The FormGrid component provides flexible responsive grid layouts for form fields with customizable column counts and spacing.
+
+**Section sources**
+- [FormGrid.tsx:1-111](file://src/components/ui/forms/FormGrid.tsx#L1-L111)
+
+### FormActions Component
+The FormActions component provides standardized action button containers with responsive behavior and sticky positioning options.
+
+**Section sources**
+- [FormActions.tsx:1-118](file://src/components/ui/forms/FormActions.tsx#L1-L118)
 
 ## Form Layout and Structure
 
 ### Layout Variants
-The form components support multiple layout configurations to accommodate different design requirements:
+The form framework supports multiple layout configurations through the composition system:
 
-- **Vertical Layout**: Fields are stacked vertically with labels above inputs
-- **Horizontal Layout**: Labels and inputs are aligned horizontally, with labels taking fixed width
-- **Tabbed Layout**: Multi-step forms with tab navigation and progress indicators
-- **Slideout Layout**: Contextual editing panels that slide in from screen edges
+- **Dialog Layout**: Modal-based forms with FormHeader, FormSection, and FormActions
+- **Wizard Layout**: Multi-step forms with step indicators and navigation controls
+- **Minimal Layout**: Clean, simple forms with optional card styling and centering
+- **Print Layout**: Print-optimized forms with page breaks and print-specific styling
+- **Tabbed Layout**: Multi-tab forms with FormContainer integration
+- **Slideout Layout**: Side-panel forms with slide animation and positioning
 
 ### Size Variants
-All form components support three size variants:
+All form components support five size variants with corresponding padding and max-width constraints:
 
-- **Small (sm)**: Compact sizing for dense interfaces
-- **Medium (md)**: Default sizing for standard forms
-- **Large (lg)**: Spacious sizing for emphasis and accessibility
+- **Extra Small (xs)**: Minimal padding, compact forms
+- **Small (sm)**: Reduced padding, smaller max-width
+- **Medium (md)**: Standard padding and max-width
+- **Large (lg)**: Increased padding, larger max-width
+- **Extra Large (xl)**: Maximum padding and width
+- **Full Width (full)**: No padding with full container width
 
 ```mermaid
 flowchart TD
-Start([Form Creation]) --> LayoutSelection["Select Layout Type"]
-LayoutSelection --> |Vertical| VerticalLayout["Apply vertical flex direction<br/>with appropriate spacing"]
-LayoutSelection --> |Horizontal| HorizontalLayout["Apply horizontal flex direction<br/>with fixed label width"]
-LayoutSelection --> |Tabbed| TabbedLayout["Create tab navigation<br/>with content panels"]
-LayoutSelection --> |Slideout| SlideoutLayout["Configure slide animation<br/>and positioning"]
-VerticalLayout --> SizeSelection["Select Size Variant"]
-HorizontalLayout --> SizeSelection
+Start([Form Creation]) --> LayoutSelection["Select Form Type"]
+LayoutSelection --> |Dialog| DialogLayout["Apply DialogForm<br/>with Modal + FormContainer"]
+LayoutSelection --> |Wizard| WizardLayout["Apply WizardForm<br/>with step navigation"]
+LayoutSelection --> |Minimal| MinimalLayout["Apply MinimalForm<br/>with card/background options"]
+LayoutSelection --> |Print| PrintLayout["Apply PrintForm<br/>with print-specific styles"]
+LayoutSelection --> |Tabbed| TabbedLayout["Apply TabbedForm<br/>with tab navigation"]
+LayoutSelection --> |Slideout| SlideoutLayout["Apply SlideoutForm<br/>with slide animation"]
+DialogLayout --> SizeSelection["Select Size Variant"]
+WizardLayout --> SizeSelection
+MinimalLayout --> SizeSelection
+PrintLayout --> SizeSelection
 TabbedLayout --> SizeSelection
 SlideoutLayout --> SizeSelection
-SizeSelection --> |Small| ApplySmall["Apply small size styles<br/>reduced padding and text"]
-SizeSelection --> |Medium| ApplyMedium["Apply medium size styles<br/>standard padding and text"]
-SizeSelection --> |Large| ApplyLarge["Apply large size styles<br/>increased padding and text"]
-ApplySmall --> StylingComplete["Styling Complete"]
-ApplyMedium --> StylingComplete
-ApplyLarge --> StylingComplete
+SizeSelection --> |xs| ApplyXS["Apply extra-small styling<br/>minimal padding and constraints"]
+SizeSelection --> |sm| ApplySM["Apply small styling<br/>reduced padding and width"]
+SizeSelection --> |md| ApplyMD["Apply medium styling<br/>standard padding and width"]
+SizeSelection --> |lg| ApplyLG["Apply large styling<br/>increased padding and width"]
+SizeSelection --> |xl| ApplyXL["Apply extra-large styling<br/>maximum padding and width"]
+SizeSelection --> |full| ApplyFULL["Apply full-width styling<br/>no padding with full width"]
+ApplyXS --> StylingComplete["Styling Complete"]
+ApplySM --> StylingComplete
+ApplyMD --> StylingComplete
+ApplyLG --> StylingComplete
+ApplyXL --> StylingComplete
+ApplyFULL --> StylingComplete
 ```
 
 **Section sources**
-- [FormField.tsx](file://src/components/ui/forms/FormField.tsx#L61-L85)
-- [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx#L131-L158)
+- [FormContainer.tsx:86-93](file://src/components/ui/forms/FormContainer.tsx#L86-L93)
+- [DialogForm.tsx:138-145](file://src/components/ui/forms/DialogForm.tsx#L138-L145)
 
 ## Input Components Integration
 
 ### Input Component
-The Input component provides enhanced text input with floating labels, validation states, loading indicators, and icon support. It integrates seamlessly with the FormField wrapper.
-
-```mermaid
-classDiagram
-class ModernInputProps {
-+label : string
-+error? : string
-+success? : boolean
-+loading? : boolean
-+helperText? : string
-+variant? : 'outlined' | 'filled' | 'standard'
-+size? : 'sm' | 'md' | 'lg'
-+leftIcon? : ReactNode
-+rightIcon? : ReactNode
-+onValidate? : (value : string) => string | undefined
-+containerClassName? : string
-+floatingLabel? : boolean
-}
-class Input {
-+isFocused : boolean
-+hasValue : boolean
-+internalError : string | undefined
-+inputRef : RefObject
-+handleFocus(e : FocusEvent) : void
-+handleBlur(e : FocusEvent) : void
-+handleChange(e : ChangeEvent) : void
-+shouldFloat : boolean
-+getGlowEffect() : string
-}
-Input --> ModernInputProps : "uses"
-```
-
-**Diagram sources**
-- [Input.tsx](file://src/components/ui/Input.tsx#L15-L199)
+The Input component provides enhanced text input with floating labels, validation states, loading indicators, and icon support. It integrates seamlessly with the FormField wrapper and supports all form types.
 
 **Section sources**
-- [Input.tsx](file://src/components/ui/Input.tsx#L1-L360)
+- [Input.tsx:1-360](file://src/components/ui/Input.tsx#L1-L360)
 
 ### Textarea Component
-The Textarea component provides multi-line text input with label and error support. It follows the same styling conventions as other input components.
-
-```mermaid
-classDiagram
-class TextareaProps {
-+label? : string
-+error? : string
-+containerClassName? : string
-}
-class Textarea {
-+baseStyles : string
-+errorStyles : string
-}
-Textarea --> TextareaProps : "uses"
-```
-
-**Diagram sources**
-- [Textarea.tsx](file://src/components/ui/Textarea.tsx#L5-L32)
+The Textarea component provides multi-line text input with label and error support, following the same styling conventions as other input components.
 
 **Section sources**
-- [Textarea.tsx](file://src/components/ui/Textarea.tsx#L1-L32)
+- [Textarea.tsx:1-32](file://src/components/ui/Textarea.tsx#L1-L32)
 
 ### Select Component
-The Select component offers enhanced dropdown functionality with search, keyboard navigation, and accessibility features. It supports both single and multi-select modes.
-
-```mermaid
-classDiagram
-class SelectOption {
-+value : string
-+label : string
-+disabled? : boolean
-+description? : string
-+icon? : ReactNode
-}
-class SelectProps {
-+label? : string
-+placeholder? : string
-+error? : string
-+helperText? : string
-+disabled? : boolean
-+required? : boolean
-+loading? : boolean
-+options? : SelectOption[]
-+children? : ReactNode
-+value? : string | string[]
-+defaultValue? : string | string[]
-+onChange? : (value : string | string[] | React.ChangeEvent) => void
-+multiple? : boolean
-+maxSelections? : number
-+searchable? : boolean
-+searchPlaceholder? : string
-+noOptionsMessage? : string
-+size? : 'sm' | 'md' | 'lg'
-+variant? : 'outlined' | 'filled'
-+className? : string
-+containerClassName? : string
-+id? : string
-+name? : string
-+'aria-label'? : string
-+'aria-describedby'? : string
-+onFocus? : (event : FocusEvent) => void
-+onBlur? : (event : FocusEvent) => void
-+onSearch? : (query : string) => void
-}
-class Select {
-+isOpen : boolean
-+searchQuery : string
-+focusedIndex : number
-+internalValue : string | string[]
-+containerRef : RefObject
-+triggerRef : RefObject
-+dropdownRef : RefObject
-+searchInputRef : RefObject
-+optionRefs : RefObject[]
-+effectiveOptions : SelectOption[]
-+filteredOptions : SelectOption[]
-+selectedOptions : SelectOption[]
-+handleValueChange(newValue : string | string[]) : void
-+handleSearch(query : string) : void
-+handleKeyDown(e : KeyboardEvent) : void
-+handleBlur(e : FocusEvent) : void
-}
-Select --> SelectOption : "contains"
-Select --> SelectProps : "uses"
-```
-
-**Diagram sources**
-- [Select.tsx](file://src/components/ui/Select.tsx#L75-L199)
+The Select component offers enhanced dropdown functionality with search, keyboard navigation, and accessibility features. It supports both single and multi-select modes and integrates with all form types.
 
 **Section sources**
-- [Select.tsx](file://src/components/ui/Select.tsx#L1-L732)
+- [Select.tsx:1-732](file://src/components/ui/Select.tsx#L1-L732)
 
 ### Checkbox Component
-The Checkbox component provides standard checkbox functionality with label integration and disabled state support.
-
-```mermaid
-classDiagram
-class CheckboxProps {
-+id? : string
-+checked? : boolean
-+onChange? : (checked : boolean) => void
-+disabled? : boolean
-+className? : string
-+children? : React.ReactNode
-}
-class Checkbox {
-+handleChange(e : ChangeEvent) : void
-}
-Checkbox --> CheckboxProps : "uses"
-```
-
-**Diagram sources**
-- [Checkbox.tsx](file://src/components/ui/Checkbox.tsx#L5-L46)
+The Checkbox component provides standard checkbox functionality with label integration and disabled state support, working across all form layouts.
 
 **Section sources**
-- [Checkbox.tsx](file://src/components/ui/Checkbox.tsx#L1-L46)
+- [Checkbox.tsx:1-46](file://src/components/ui/Checkbox.tsx#L1-L46)
 
 ### DatePicker Component
-The DatePicker component provides date selection with calendar interface, supporting both single date and date range selection with keyboard navigation.
-
-```mermaid
-classDiagram
-class DatePickerProps {
-+value? : Date | null
-+onChange? : (date : Date | null) => void
-+placeholder? : string
-+disabled? : boolean
-+error? : string
-+success? : boolean
-+size? : 'sm' | 'md' | 'lg'
-+variant? : 'outlined' | 'filled'
-+minDate? : Date
-+maxDate? : Date
-+disabledDates? : Date[]
-+showTime? : boolean
-+format? : string
-+locale? : string
-+className? : string
-+isRange? : boolean
-+rangeValue? : [Date | null, Date | null]
-+onRangeChange? : (range : [Date | null, Date | null]) => void
-+'aria-label'? : string
-+'aria-describedby'? : string
-+id? : string
-}
-class CalendarState {
-+currentMonth : Date
-+selectedDate : Date | null
-+selectedRange : [Date | null, Date | null]
-+focusedDate : Date | null
-+isOpen : boolean
-}
-class DatePicker {
-+calendarState : CalendarState
-+inputRef : RefObject
-+isPending : boolean
-+formatDate(date : Date | null) : string
-+isDateDisabled(date : Date) : boolean
-+openCalendar() : void
-+closeCalendar() : void
-+handleDateSelect(date : Date | null) : void
-+handleKeyDown(event : KeyboardEvent) : void
-}
-DatePicker --> DatePickerProps : "uses"
-DatePicker --> CalendarState : "manages"
-```
-
-**Diagram sources**
-- [DatePicker.tsx](file://src/components/ui/forms/DatePicker.tsx#L75-L199)
+The DatePicker component provides date selection with calendar interface, supporting both single date and date range selection with keyboard navigation and full accessibility support.
 
 **Section sources**
-- [DatePicker.tsx](file://src/components/ui/forms/DatePicker.tsx#L1-L509)
+- [DatePicker.tsx:1-509](file://src/components/ui/forms/DatePicker.tsx#L1-L509)
 
 ## Validation System
 
 ### useFormValidation Hook
-The useFormValidation hook provides a centralized system for form validation with real-time validation, debouncing, and accessibility support. It manages validation rules, error states, and form submission.
-
-```mermaid
-classDiagram
-class ValidationRule {
-+validator : (value : T, formData? : Record) => boolean | Promise<boolean>
-+message : string
-+debounceMs? : number
-+validateOnChange? : boolean
-+validateOnBlur? : boolean
-+priority? : number
-}
-class FieldValidationConfig {
-+rules : ValidationRule[]
-+required? : boolean
-+requiredMessage? : string
-+debounceMs? : number
-+validateOnChange? : boolean
-+validateOnBlur? : boolean
-+validateOnMount? : boolean
-}
-class FormValidationConfig {
-+[fieldName : string] : FieldValidationConfig
-}
-class ValidationError {
-+message : string
-+rule? : ValidationRule
-+priority : number
-}
-class FieldValidationState {
-+isValid : boolean
-+isValidating : boolean
-+errors : ValidationError[]
-+touched : boolean
-+dirty : boolean
-}
-class FormValidationState {
-+[fieldName : string] : FieldValidationState
-}
-class UseFormValidationOptions {
-+mode? : 'onChange' | 'onBlur' | 'onSubmit' | 'all'
-+debounceMs? : number
-+announceErrors? : boolean
-+revalidateMode? : 'onChange' | 'onBlur'
-+shouldFocusError? : boolean
-}
-class useFormValidation {
-+formData : T
-+validationState : FormValidationState
-+isSubmitting : boolean
-+validateField(fieldName : string, value : any) : Promise<ValidationError[]>
-+setFieldValue(fieldName : string, value : any) : Promise<void>
-+setFieldTouched(fieldName : string, touched : boolean) : Promise<void>
-+validateForm() : Promise<boolean>
-+handleSubmit(callback : (data : T) => Promise<void>) : Promise<void>
-+resetForm() : void
-+getFieldProps(fieldName : string) : FieldProps
-+isValid : boolean
-+isValidating : boolean
-+isDirty : boolean
-+touchedFields : string[]
-}
-useFormValidation --> ValidationRule : "uses"
-useFormValidation --> FieldValidationConfig : "uses"
-useFormValidation --> FormValidationConfig : "uses"
-useFormValidation --> ValidationError : "uses"
-useFormValidation --> FieldValidationState : "uses"
-useFormValidation --> FormValidationState : "uses"
-useFormValidation --> UseFormValidationOptions : "uses"
-```
-
-**Diagram sources**
-- [useFormValidation.tsx](file://src/hooks/useFormValidation.tsx#L1-L47)
+The useFormValidation hook provides a centralized system for form validation with real-time validation, debouncing, and accessibility support. It manages validation rules, error states, and form submission across all form types.
 
 **Section sources**
-- [useFormValidation.tsx](file://src/hooks/useFormValidation.tsx#L1-L529)
+- [useFormValidation.tsx:1-529](file://src/hooks/useFormValidation.tsx#L1-L529)
 
 ### Built-in Validators
 The validation system includes several built-in validators for common use cases:
@@ -538,80 +478,102 @@ Custom --> |Checks| CustomLogic["Custom validation function"]
 ```
 
 **Section sources**
-- [useFormValidation.tsx](file://src/hooks/useFormValidation.tsx#L81-L165)
+- [useFormValidation.tsx:81-165](file://src/hooks/useFormValidation.tsx#L81-L165)
 
 ## Usage Examples
 
-### Education System Configuration
-The EducationSystemConfigPage demonstrates the use of form components for system configuration, utilizing the EducationSystemForm component within a page layout.
+### DialogForm Implementation
+The DialogForm component demonstrates the new standardized approach to modal forms, combining Modal presentation with comprehensive form structure.
 
 ```mermaid
 sequenceDiagram
-participant Page as EducationSystemConfigPage
-participant Form as EducationSystemForm
-participant Field as FormField
+participant App as Application
+participant Dialog as DialogForm
+participant Modal as Modal
+participant FormContainer as FormContainer
+participant FormHeader as FormHeader
+participant FormSection as FormSection
+participant FormGrid as FormGrid
 participant Input as Input
-participant Select as Select
-participant DatePicker as DatePicker
-Page->>Form : Render with initialData, onSave, onCancel
-Form->>Field : Create field wrapper for system name
-Field->>Input : Wrap input component with label and validation
-Form->>Field : Create field wrapper for education type
-Field->>Select : Wrap select component with options
-Form->>Field : Create field wrapper for start date
-Field->>DatePicker : Wrap date picker with validation
-Form->>Page : Call onSave with form data
-Page->>Form : Handle save success/failure
+App->>Dialog : Render with isOpen, onClose, title
+Dialog->>Modal : Wrap with Modal component
+Dialog->>FormContainer : Create FormContainer with type="dialog"
+Dialog->>FormHeader : Add FormHeader with title/description
+Dialog->>FormSection : Create FormSection with columns
+Dialog->>FormGrid : Create FormGrid with responsive layout
+Dialog->>Input : Integrate Input components with validation
+App->>Dialog : Handle form submission
+Dialog->>FormContainer : Execute onSubmit callback
+FormContainer->>App : Return validated form data
 ```
 
 **Diagram sources**
-- [EducationSystemConfigPage.tsx](file://src/modules/academics/pages/EducationSystemConfigPage.tsx#L1-L20)
+- [DialogForm.tsx:147-187](file://src/components/ui/forms/DialogForm.tsx#L147-L187)
 
 **Section sources**
-- [EducationSystemConfigPage.tsx](file://src/modules/academics/pages/EducationSystemConfigPage.tsx#L1-L20)
+- [DialogForm.tsx:55-88](file://src/components/ui/forms/DialogForm.tsx#L55-L88)
+
+### WizardForm Implementation
+The WizardForm component provides comprehensive multi-step form functionality with progress tracking and validation.
+
+```mermaid
+flowchart TD
+WizardForm["WizardForm"] --> Steps["Array of WizardStep"]
+Steps --> Step1["Step 1: Personal Info"]
+Steps --> Step2["Step 2: Contact Info"]
+Steps --> Step3["Step 3: Review & Submit"]
+WizardForm --> Navigation["Navigation Controls"]
+Navigation --> Previous["Previous Button"]
+Navigation --> Next["Next Button"]
+Navigation --> Complete["Complete Button"]
+WizardForm --> Validation["Step Validation"]
+Validation --> ValidateStep["validate() function"]
+WizardForm --> Progress["Progress Tracking"]
+Progress --> ProgressBar["Progress Bar"]
+Progress --> StepIndicator["Step Indicator"]
+```
+
+**Diagram sources**
+- [WizardForm.tsx:83-115](file://src/components/ui/forms/WizardForm.tsx#L83-L115)
+
+**Section sources**
+- [WizardForm.tsx:89-114](file://src/components/ui/forms/WizardForm.tsx#L89-L114)
+
+### Education System Configuration
+The EducationSystemConfigPage demonstrates the use of form components for system configuration, utilizing the DialogForm with FormContainer, FormHeader, and FormSection components.
+
+**Section sources**
+- [EducationSystemConfigPage.tsx:1-20](file://src/modules/academics/pages/EducationSystemConfigPage.tsx#L1-L20)
 
 ### Student Subject Enrollment
 The StudentSubjectEnrollmentPage demonstrates a complex form scenario with modal dialogs, data grids, and form validation for student enrollment management.
 
-```mermaid
-flowchart TD
-Page["StudentSubjectEnrollmentPage"] --> DataHook["useAppData()"]
-DataHook --> Students["students"]
-DataHook --> ClassSubjectAllocations["classSubjectAllocations"]
-DataHook --> AcademicYears["academicYears"]
-DataHook --> SchoolPeriods["schoolPeriods"]
-DataHook --> Classes["classes"]
-DataHook --> ClassStreams["classStreams"]
-DataHook --> Subjects["subjects"]
-Page --> Filters["Filter State"]
-Filters --> SelectedAcademicYear["selectedAcademicYearId"]
-Filters --> SelectedSchoolPeriod["selectedSchoolPeriodId"]
-Filters --> SelectedClass["selectedClassId"]
-Filters --> SelectedStream["selectedStreamId"]
-Page --> Modal["Modal State"]
-Modal --> IsModalOpen["isModalOpen"]
-Modal --> EditingEnrollment["editingEnrollment"]
-Modal --> FormData["formData"]
-Page --> Grid["DataGrid"]
-Grid --> StudentsForGrid["studentsForGrid"]
-Grid --> SubjectsForGrid["subjectsForGrid"]
-Page --> Form["Enrollment Form"]
-Form --> Input["Input"]
-Form --> Select["Select"]
-Form --> DatePicker["DatePicker"]
-Form --> Button["Button"]
-Filters --> |Updates| Grid
-Filters --> |Updates| Form
-Modal --> |Triggers| Form
-Form --> |Submits| Page
-Page --> |Handles| FormSubmission["handleSubmit"]
-```
+**Section sources**
+- [StudentSubjectEnrollmentPage.tsx:1-348](file://src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx#L1-L348)
 
-**Diagram sources**
-- [StudentSubjectEnrollmentPage.tsx](file://src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx#L1-L199)
+## Migration from Modal Forms
+The form system has migrated from direct Modal usage to the standardized DialogForm framework. This migration provides better consistency, accessibility, and extensibility across the application.
+
+### Migration Benefits
+- **Consistency**: All modal forms now use the same underlying structure and styling
+- **Accessibility**: Improved ARIA attributes and keyboard navigation support
+- **Extensibility**: Easier to extend and customize form layouts
+- **Maintainability**: Single source of truth for form modal behavior
+- **Composition**: Better separation of concerns between presentation and logic
+
+### Migration Process
+1. **Replace Modal imports** with DialogForm imports
+2. **Update component structure** to use FormContainer, FormHeader, FormSection, and FormActions
+3. **Migrate validation logic** to useFormValidation hook
+4. **Update styling** to use new form-specific CSS classes
+5. **Test accessibility** with screen readers and keyboard navigation
+
+### Legacy Support
+The Modal component remains available for legacy implementations but is no longer recommended for new form development. All new forms should use DialogForm or other components from the new form framework.
 
 **Section sources**
-- [StudentSubjectEnrollmentPage.tsx](file://src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx#L1-L348)
+- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [Modal.tsx:1-52](file://src/components/ui/Modal.tsx#L1-L52)
 
 ## Accessibility and User Experience
 
@@ -651,10 +613,9 @@ Visual --> Touch["Touch target size"]
 ```
 
 **Section sources**
-- [FormField.tsx](file://src/components/ui/forms/FormField.tsx#L1-L182)
-- [Input.tsx](file://src/components/ui/Input.tsx#L1-L360)
-- [Select.tsx](file://src/components/ui/Select.tsx#L1-L732)
-- [DatePicker.tsx](file://src/components/ui/forms/DatePicker.tsx#L1-L509)
+- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
+- [FormHeader.tsx:1-222](file://src/components/ui/forms/FormHeader.tsx#L1-L222)
 
 ### Keyboard Navigation
 The form components support comprehensive keyboard navigation for improved accessibility:
@@ -666,13 +627,13 @@ The form components support comprehensive keyboard navigation for improved acces
 - **Home/End**: Navigate to first/last options in lists
 
 **Section sources**
-- [Select.tsx](file://src/components/ui/Select.tsx#L500-L550)
-- [DatePicker.tsx](file://src/components/ui/forms/DatePicker.tsx#L300-L350)
+- [Select.tsx:500-550](file://src/components/ui/Select.tsx#L500-L550)
+- [DatePicker.tsx:300-350](file://src/components/ui/forms/DatePicker.tsx#L300-L350)
 
 ## State Management and Data Flow
 
 ### Form State Management
-The form components use React state and hooks to manage form state, validation, and user interactions:
+The form components use React state and hooks to manage form state, validation, and user interactions through a standardized composition pattern:
 
 ```mermaid
 flowchart TD
@@ -695,7 +656,8 @@ Lifecycle --> Unmount["Cleanup on unmount"]
 ```
 
 **Section sources**
-- [FormField.tsx](file://src/components/ui/forms/FormField.tsx#L1-L182)
-- [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx#L1-L486)
-- [SlideoutForm.tsx](file://src/components/ui/forms/SlideoutForm.tsx#L1-L741)
-- [useFormValidation.tsx](file://src/hooks/useFormValidation.tsx#L1-L529)
+- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [WizardForm.tsx:1-441](file://src/components/ui/forms/WizardForm.tsx#L1-L441)
+- [MinimalForm.tsx:1-184](file://src/components/ui/forms/MinimalForm.tsx#L1-L184)
+- [PrintForm.tsx:1-304](file://src/components/ui/forms/PrintForm.tsx#L1-L304)
+- [useFormValidation.tsx:1-529](file://src/hooks/useFormValidation.tsx#L1-L529)
