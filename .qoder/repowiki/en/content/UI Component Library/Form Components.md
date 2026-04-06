@@ -2,9 +2,6 @@
 
 <cite>
 **Referenced Files in This Document**
-- [FormField.tsx](file://src/components/ui/forms/FormField.tsx)
-- [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx)
-- [SlideoutForm.tsx](file://src/components/ui/forms/SlideoutForm.tsx)
 - [DialogForm.tsx](file://src/components/ui/forms/DialogForm.tsx)
 - [WizardForm.tsx](file://src/components/ui/forms/WizardForm.tsx)
 - [MinimalForm.tsx](file://src/components/ui/forms/MinimalForm.tsx)
@@ -14,24 +11,19 @@
 - [FormSection.tsx](file://src/components/ui/forms/FormSection.tsx)
 - [FormGrid.tsx](file://src/components/ui/forms/FormGrid.tsx)
 - [FormActions.tsx](file://src/components/ui/forms/FormActions.tsx)
+- [FormField.tsx](file://src/components/ui/forms/FormField.tsx)
 - [useFormValidation.tsx](file://src/hooks/useFormValidation.tsx)
-- [Input.tsx](file://src/components/ui/Input.tsx)
-- [Textarea.tsx](file://src/components/ui/Textarea.tsx)
-- [Select.tsx](file://src/components/ui/Select.tsx)
-- [Checkbox.tsx](file://src/components/ui/Checkbox.tsx)
-- [DatePicker.tsx](file://src/components/ui/forms/DatePicker.tsx)
 - [Modal.tsx](file://src/components/ui/Modal.tsx)
-- [EducationSystemConfigPage.tsx](file://src/modules/academics/pages/EducationSystemConfigPage.tsx)
-- [StudentSubjectEnrollmentPage.tsx](file://src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx)
+- [FORM_MIGRATION_PLAN.md](file://docs/FORM_MIGRATION_PLAN.md)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive documentation for the new DialogForm framework as the successor to Modal-based forms
-- Documented new form composition components: FormContainer, FormHeader, FormSection, FormGrid, and FormActions
-- Added WizardForm, MinimalForm, and PrintForm components for specialized form scenarios
-- Updated migration guidance from Modal-based forms to the new DialogForm framework
-- Enhanced form composition patterns and standardized form architecture documentation
+- Updated to reflect comprehensive form system modernization from Modal to DialogForm framework
+- Added documentation for new form components: WizardForm, MinimalForm, and PrintForm
+- Enhanced validation system documentation with useFormValidation hook improvements
+- Added migration guidance from Modal-based forms to new DialogForm framework
+- Updated form composition patterns and standardized form architecture documentation
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -47,11 +39,14 @@
 11. [State Management and Data Flow](#state-management-and-data-flow)
 
 ## Introduction
-This document provides comprehensive documentation for the form components in the schoolpilot3 application. The form system has evolved from Modal-based forms to a standardized DialogForm framework that provides consistent, accessible, and extensible form solutions across the application. The new architecture emphasizes composition over inheritance, providing reusable building blocks for various form scenarios including modal dialogs, wizards, minimal forms, and print-optimized layouts.
+This document provides comprehensive documentation for the form components in the schoolpilot3 application. The form system has undergone a comprehensive modernization, transitioning from Modal-based forms to a standardized DialogForm framework. This new architecture emphasizes composition over inheritance, providing reusable building blocks for various form scenarios including modal dialogs, wizards, minimal forms, and print-optimized layouts.
+
+The modernized form system introduces five specialized form components: DialogForm for modal presentations, WizardForm for multi-step processes, MinimalForm for clean interfaces, PrintForm for document generation, and enhanced validation through the useFormValidation hook. This framework ensures consistency, accessibility, and extensibility across all form implementations.
 
 **Section sources**
-- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
 - [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
+- [FORM_MIGRATION_PLAN.md:1-457](file://docs/FORM_MIGRATION_PLAN.md#L1-L457)
 
 ## Form Framework Architecture
 The new form framework is built around a composition-based architecture that separates concerns between presentation, structure, and behavior. The DialogForm component serves as the primary entry point, combining Modal presentation with FormContainer structure and FormHeader functionality.
@@ -79,14 +74,14 @@ FormField --> Checkbox[Checkbox]
 ```
 
 **Diagram sources**
-- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
 - [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
 - [WizardForm.tsx:1-441](file://src/components/ui/forms/WizardForm.tsx#L1-L441)
 - [MinimalForm.tsx:1-184](file://src/components/ui/forms/MinimalForm.tsx#L1-L184)
 - [PrintForm.tsx:1-304](file://src/components/ui/forms/PrintForm.tsx#L1-L304)
 
 **Section sources**
-- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
 - [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
 
 ## Core Form Components
@@ -137,7 +132,7 @@ DialogForm --> DialogFormRef : "exposes"
 - [DialogForm.tsx:9-47](file://src/components/ui/forms/DialogForm.tsx#L9-L47)
 
 **Section sources**
-- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
 
 ### WizardForm Component
 The WizardForm component provides comprehensive multi-step form functionality with progress tracking, validation, and navigation controls.
@@ -343,7 +338,7 @@ The FormHeader component provides consistent header styling across all form type
 The FormSection component provides logical grouping of form fields with responsive grid layouts, collapsible functionality, and print optimization.
 
 **Section sources**
-- [FormSection.tsx:1-210](file://src/components/ui/forms/FormSection.tsx#L1-L210)
+- [FormSection.tsx:1-211](file://src/components/ui/forms/FormSection.tsx#L1-L211)
 
 ### FormGrid Component
 The FormGrid component provides flexible responsive grid layouts for form fields with customizable column counts and spacing.
@@ -355,7 +350,13 @@ The FormGrid component provides flexible responsive grid layouts for form fields
 The FormActions component provides standardized action button containers with responsive behavior and sticky positioning options.
 
 **Section sources**
-- [FormActions.tsx:1-118](file://src/components/ui/forms/FormActions.tsx#L1-L118)
+- [FormActions.tsx:1-119](file://src/components/ui/forms/FormActions.tsx#L1-L119)
+
+### FormField Component
+The FormField component serves as a wrapper for individual form inputs, providing consistent spacing, labels, help text, and error handling across all form types.
+
+**Section sources**
+- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
 
 ## Form Layout and Structure
 
@@ -370,14 +371,14 @@ The form framework supports multiple layout configurations through the compositi
 - **Slideout Layout**: Side-panel forms with slide animation and positioning
 
 ### Size Variants
-All form components support five size variants with corresponding padding and max-width constraints:
+All form components support seven size variants with corresponding padding and max-width constraints:
 
-- **Extra Small (xs)**: Minimal padding, compact forms
-- **Small (sm)**: Reduced padding, smaller max-width
-- **Medium (md)**: Standard padding and max-width
-- **Large (lg)**: Increased padding, larger max-width
-- **Extra Large (xl)**: Maximum padding and width
-- **Full Width (full)**: No padding with full container width
+- **Extra Extra Small (xs)**: Minimal padding, compact forms
+- **Extra Small (sm)**: Reduced padding, smaller max-width
+- **Small (md)**: Standard padding and max-width
+- **Medium (lg)**: Increased padding, larger max-width
+- **Large (xl)**: Maximum padding and width
+- **Extra Large (full)**: No padding with full container width
 
 ```mermaid
 flowchart TD
@@ -394,11 +395,11 @@ MinimalLayout --> SizeSelection
 PrintLayout --> SizeSelection
 TabbedLayout --> SizeSelection
 SlideoutLayout --> SizeSelection
-SizeSelection --> |xs| ApplyXS["Apply extra-small styling<br/>minimal padding and constraints"]
-SizeSelection --> |sm| ApplySM["Apply small styling<br/>reduced padding and width"]
-SizeSelection --> |md| ApplyMD["Apply medium styling<br/>standard padding and width"]
-SizeSelection --> |lg| ApplyLG["Apply large styling<br/>increased padding and width"]
-SizeSelection --> |xl| ApplyXL["Apply extra-large styling<br/>maximum padding and width"]
+SizeSelection --> |xs| ApplyXS["Apply extra-extra-small styling<br/>minimal padding and constraints"]
+SizeSelection --> |sm| ApplySM["Apply extra-small styling<br/>reduced padding and width"]
+SizeSelection --> |md| ApplyMD["Apply small styling<br/>standard padding and width"]
+SizeSelection --> |lg| ApplyLG["Apply medium styling<br/>increased padding and width"]
+SizeSelection --> |xl| ApplyXL["Apply large styling<br/>maximum padding and width"]
 SizeSelection --> |full| ApplyFULL["Apply full-width styling<br/>no padding with full width"]
 ApplyXS --> StylingComplete["Styling Complete"]
 ApplySM --> StylingComplete
@@ -418,31 +419,31 @@ ApplyFULL --> StylingComplete
 The Input component provides enhanced text input with floating labels, validation states, loading indicators, and icon support. It integrates seamlessly with the FormField wrapper and supports all form types.
 
 **Section sources**
-- [Input.tsx:1-360](file://src/components/ui/Input.tsx#L1-L360)
+- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
 
 ### Textarea Component
 The Textarea component provides multi-line text input with label and error support, following the same styling conventions as other input components.
 
 **Section sources**
-- [Textarea.tsx:1-32](file://src/components/ui/Textarea.tsx#L1-L32)
+- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
 
 ### Select Component
 The Select component offers enhanced dropdown functionality with search, keyboard navigation, and accessibility features. It supports both single and multi-select modes and integrates with all form types.
 
 **Section sources**
-- [Select.tsx:1-732](file://src/components/ui/Select.tsx#L1-L732)
+- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
 
 ### Checkbox Component
 The Checkbox component provides standard checkbox functionality with label integration and disabled state support, working across all form layouts.
 
 **Section sources**
-- [Checkbox.tsx:1-46](file://src/components/ui/Checkbox.tsx#L1-L46)
+- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
 
 ### DatePicker Component
 The DatePicker component provides date selection with calendar interface, supporting both single date and date range selection with keyboard navigation and full accessibility support.
 
 **Section sources**
-- [DatePicker.tsx:1-509](file://src/components/ui/forms/DatePicker.tsx#L1-L509)
+- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
 
 ## Validation System
 
@@ -539,17 +540,11 @@ Progress --> StepIndicator["Step Indicator"]
 **Section sources**
 - [WizardForm.tsx:89-114](file://src/components/ui/forms/WizardForm.tsx#L89-L114)
 
-### Education System Configuration
-The EducationSystemConfigPage demonstrates the use of form components for system configuration, utilizing the DialogForm with FormContainer, FormHeader, and FormSection components.
+### Migration Examples
+The FORM_MIGRATION_PLAN provides concrete examples of migrating from legacy Modal forms to the new framework components.
 
 **Section sources**
-- [EducationSystemConfigPage.tsx:1-20](file://src/modules/academics/pages/EducationSystemConfigPage.tsx#L1-L20)
-
-### Student Subject Enrollment
-The StudentSubjectEnrollmentPage demonstrates a complex form scenario with modal dialogs, data grids, and form validation for student enrollment management.
-
-**Section sources**
-- [StudentSubjectEnrollmentPage.tsx:1-348](file://src/modules/academics/pages/StudentSubjectEnrollmentPage.tsx#L1-L348)
+- [FORM_MIGRATION_PLAN.md:124-159](file://docs/FORM_MIGRATION_PLAN.md#L124-L159)
 
 ## Migration from Modal Forms
 The form system has migrated from direct Modal usage to the standardized DialogForm framework. This migration provides better consistency, accessibility, and extensibility across the application.
@@ -568,12 +563,23 @@ The form system has migrated from direct Modal usage to the standardized DialogF
 4. **Update styling** to use new form-specific CSS classes
 5. **Test accessibility** with screen readers and keyboard navigation
 
-### Legacy Support
-The Modal component remains available for legacy implementations but is no longer recommended for new form development. All new forms should use DialogForm or other components from the new form framework.
+### Form Type Decision Matrix
+The migration plan provides clear guidance for choosing the appropriate new component:
+
+| Current Pattern | New Component | When to Use |
+|-----------------|---------------|-------------|
+| Modal with simple CRUD | DialogForm | Add/Edit/Delete modals with 1-10 fields |
+| Modal with tabs | TabbedForm | Forms with logical groupings that benefit from tab navigation |
+| Multi-step process | WizardForm | Sequential forms where each step has validation |
+| Side panel form | SlideoutForm | Forms that shouldn't block the entire screen |
+| Embedded in page | MinimalForm | Forms that are part of a larger page layout |
+| Needs printing | PrintForm | Forms that generate printable documents |
+| Search/Filter form | MinimalForm | Quick forms with minimal chrome |
 
 **Section sources**
-- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
-- [Modal.tsx:1-52](file://src/components/ui/Modal.tsx#L1-L52)
+- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
+- [Modal.tsx:1-174](file://src/components/ui/Modal.tsx#L1-L174)
+- [FORM_MIGRATION_PLAN.md:329-341](file://docs/FORM_MIGRATION_PLAN.md#L329-L341)
 
 ## Accessibility and User Experience
 
@@ -613,7 +619,7 @@ Visual --> Touch["Touch target size"]
 ```
 
 **Section sources**
-- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
 - [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
 - [FormHeader.tsx:1-222](file://src/components/ui/forms/FormHeader.tsx#L1-L222)
 
@@ -627,8 +633,7 @@ The form components support comprehensive keyboard navigation for improved acces
 - **Home/End**: Navigate to first/last options in lists
 
 **Section sources**
-- [Select.tsx:500-550](file://src/components/ui/Select.tsx#L500-L550)
-- [DatePicker.tsx:300-350](file://src/components/ui/forms/DatePicker.tsx#L300-L350)
+- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
 
 ## State Management and Data Flow
 
@@ -656,7 +661,7 @@ Lifecycle --> Unmount["Cleanup on unmount"]
 ```
 
 **Section sources**
-- [DialogForm.tsx:1-193](file://src/components/ui/forms/DialogForm.tsx#L1-L193)
+- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
 - [WizardForm.tsx:1-441](file://src/components/ui/forms/WizardForm.tsx#L1-L441)
 - [MinimalForm.tsx:1-184](file://src/components/ui/forms/MinimalForm.tsx#L1-L184)
 - [PrintForm.tsx:1-304](file://src/components/ui/forms/PrintForm.tsx#L1-L304)
