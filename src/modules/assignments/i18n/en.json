@@ -1,0 +1,105 @@
+{
+  "title": "Assignments",
+  "description": "Manage and track student assignments",
+  "navigation": {
+    "title": "Assignments",
+    "allAssignments": "All Assignments",
+    "createAssignment": "Create Assignment",
+    "myAssignments": "My Assignments",
+    "gradeAssignments": "Grade Assignments"
+  },
+  "common": {
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "submit": "Submit",
+    "grade": "Grade",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "error": "An error occurred"
+  },
+  "assignment": {
+    "title": "Assignment",
+    "plural": "Assignments",
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "instructions": "Instructions",
+      "subject": "Subject",
+      "class": "Class",
+      "teacher": "Teacher",
+      "assignedDate": "Assigned Date",
+      "dueDate": "Due Date",
+      "status": "Status",
+      "maxScore": "Maximum Score",
+      "weightPercentage": "Weight (%)",
+      "allowLateSubmission": "Allow Late Submission",
+      "latePenaltyPercentage": "Late Penalty (%)",
+      "rubric": "Rubric",
+      "attachments": "Attachments"
+    },
+    "actions": {
+      "create": "Create Assignment",
+      "edit": "Edit Assignment",
+      "delete": "Delete Assignment",
+      "publish": "Publish",
+      "close": "Close",
+      "view": "View Details"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "CLOSED": "Closed",
+      "GRADED": "Graded"
+    }
+  },
+  "submission": {
+    "title": "Submission",
+    "plural": "Submissions",
+    "fields": {
+      "student": "Student",
+      "submissionDate": "Submission Date",
+      "status": "Status",
+      "score": "Score",
+      "grade": "Grade",
+      "feedback": "Feedback",
+      "isLate": "Late Submission"
+    },
+    "actions": {
+      "submit": "Submit Assignment",
+      "grade": "Grade Submission",
+      "return": "Return to Student"
+    },
+    "status": {
+      "NOT_SUBMITTED": "Not Submitted",
+      "SUBMITTED": "Submitted",
+      "LATE": "Late",
+      "GRADED": "Graded",
+      "RETURNED": "Returned"
+    }
+  },
+  "rubric": {
+    "title": "Rubric",
+    "criterion": "Criterion",
+    "criteria": "Criteria",
+    "levels": "Performance Levels",
+    "maxPoints": "Maximum Points",
+    "weight": "Weight",
+    "actions": {
+      "addCriterion": "Add Criterion",
+      "editCriterion": "Edit Criterion",
+      "deleteCriterion": "Delete Criterion"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "submissionRate": "Submission Rate",
+    "averageScore": "Average Score",
+    "gradedCount": "Graded Count",
+    "lateSubmissionRate": "Late Submission Rate",
+    "scoreDistribution": "Score Distribution"
+  }
+}

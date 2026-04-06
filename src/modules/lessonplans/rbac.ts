@@ -1,0 +1,78 @@
+import { Permission } from '@/core/rbacService';
+
+export const lessonplansPermissions: Permission[] = [
+  {
+    id: 'lessonplans.plans.read',
+    name: 'View Lesson Plans',
+    description: 'View lesson plans',
+    resource: 'lessonplans.plans',
+    action: 'read',
+    moduleId: 'lessonplans',
+    feature: 'weekly-plans',
+  },
+  {
+    id: 'lessonplans.plans.create',
+    name: 'Create Lesson Plans',
+    description: 'Create new lesson plans',
+    resource: 'lessonplans.plans',
+    action: 'create',
+    moduleId: 'lessonplans',
+    feature: 'weekly-plans',
+  },
+  {
+    id: 'lessonplans.plans.update',
+    name: 'Update Lesson Plans',
+    description: 'Update existing lesson plans',
+    resource: 'lessonplans.plans',
+    action: 'update',
+    moduleId: 'lessonplans',
+    feature: 'weekly-plans',
+  },
+  {
+    id: 'lessonplans.plans.delete',
+    name: 'Delete Lesson Plans',
+    description: 'Delete lesson plans',
+    resource: 'lessonplans.plans',
+    action: 'delete',
+    moduleId: 'lessonplans',
+    feature: 'weekly-plans',
+  },
+  {
+    id: 'lessonplans.notes.read',
+    name: 'View Lesson Notes',
+    description: 'View lesson notes',
+    resource: 'lessonplans.notes',
+    action: 'read',
+    moduleId: 'lessonplans',
+    feature: 'daily-notes',
+  },
+  {
+    id: 'lessonplans.notes.create',
+    name: 'Create Lesson Notes',
+    description: 'Create new lesson notes',
+    resource: 'lessonplans.notes',
+    action: 'create',
+    moduleId: 'lessonplans',
+    feature: 'daily-notes',
+  },
+  {
+    id: 'lessonplans.approvals.manage',
+    name: 'Approve Plans',
+    description: 'Review and approve lesson plans',
+    resource: 'lessonplans.approvals',
+    action: 'update',
+    moduleId: 'lessonplans',
+    feature: 'plan-approval',
+  },
+  {
+    id: 'lessonplans.coverage.read',
+    name: 'View Coverage Report',
+    description: 'View syllabus coverage reports',
+    resource: 'lessonplans.coverage',
+    action: 'read',
+    moduleId: 'lessonplans',
+    feature: 'coverage-report',
+  },
+];
+
+export const lessonplansDefaultRoles = ['teacher', 'head_of_department', 'administrator'];

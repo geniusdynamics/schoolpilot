@@ -1,0 +1,197 @@
+// ABOUTME: Canonical seed data for the Portal module
+// ABOUTME: The Portal module reads from existing collections, so this provides mock portal views
+
+import type {
+  PortalAnnouncement,
+  PortalFeeSummary,
+  PortalAttendanceRecord,
+  PortalResultSummary,
+} from './types';
+
+export const initialMockAnnouncements: PortalAnnouncement[] = [
+  {
+    id: 'ANN001',
+    title: 'Welcome to Term 2, 2026',
+    content: 'We are excited to welcome all students back for Term 2. Please check your timetable and ensure all fees are paid on time.',
+    priority: 'high',
+    audience: 'all',
+    targetClassId: null,
+    authorId: 'USR001',
+    authorName: 'Principal Office',
+    publishedAt: '2026-04-01T08:00:00Z',
+    expiresAt: '2026-04-15T23:59:59Z',
+    isPublished: true,
+    createdAt: '2026-03-28T10:00:00Z',
+    updatedAt: '2026-03-28T10:00:00Z',
+    readBy: ['STU001', 'STU002'],
+  },
+  {
+    id: 'ANN002',
+    title: 'Parent-Teacher Meeting Scheduled',
+    content: 'The Term 1 parent-teacher meeting will be held on April 10th, 2026 from 9:00 AM to 3:00 PM. All parents are encouraged to attend.',
+    priority: 'urgent',
+    audience: 'parents',
+    targetClassId: null,
+    authorId: 'USR002',
+    authorName: 'Academic Office',
+    publishedAt: '2026-04-02T09:00:00Z',
+    expiresAt: '2026-04-11T23:59:59Z',
+    isPublished: true,
+    createdAt: '2026-03-30T14:00:00Z',
+    updatedAt: '2026-03-30T14:00:00Z',
+    readBy: ['PAR001'],
+  },
+  {
+    id: 'ANN003',
+    title: 'Inter-House Sports Day',
+    content: 'The annual Inter-House Sports Day will take place on April 18th, 2026. All students are expected to participate.',
+    priority: 'medium',
+    audience: 'students',
+    targetClassId: null,
+    authorId: 'USR003',
+    authorName: 'Sports Department',
+    publishedAt: '2026-04-03T07:00:00Z',
+    expiresAt: '2026-04-19T23:59:59Z',
+    isPublished: true,
+    createdAt: '2026-04-01T11:00:00Z',
+    updatedAt: '2026-04-01T11:00:00Z',
+    readBy: [],
+  },
+  {
+    id: 'ANN004',
+    title: 'Fee Payment Reminder',
+    content: 'This is a reminder that Term 2 fees are due by April 15th, 2026. Late payments will attract a penalty.',
+    priority: 'high',
+    audience: 'parents',
+    targetClassId: null,
+    authorId: 'USR004',
+    authorName: 'Finance Office',
+    publishedAt: '2026-04-01T10:00:00Z',
+    expiresAt: '2026-04-16T23:59:59Z',
+    isPublished: true,
+    createdAt: '2026-03-31T09:00:00Z',
+    updatedAt: '2026-03-31T09:00:00Z',
+    readBy: ['PAR001', 'PAR002'],
+  },
+];
+
+export const initialMockAttendanceRecords: PortalAttendanceRecord[] = [
+  {
+    id: 'ATT001',
+    studentId: 'STU001',
+    studentName: 'John Doe',
+    date: '2026-04-01',
+    periodId: 1,
+    periodName: 'Period 1',
+    status: 'Present',
+    remarks: null,
+    recordedBy: 'STF001',
+    recordedByName: 'Mr. Smith',
+    createdAt: '2026-04-01T08:15:00Z',
+  },
+  {
+    id: 'ATT002',
+    studentId: 'STU001',
+    studentName: 'John Doe',
+    date: '2026-04-01',
+    periodId: 2,
+    periodName: 'Period 2',
+    status: 'Present',
+    remarks: null,
+    recordedBy: 'STF002',
+    recordedByName: 'Ms. Johnson',
+    createdAt: '2026-04-01T09:15:00Z',
+  },
+  {
+    id: 'ATT003',
+    studentId: 'STU001',
+    studentName: 'John Doe',
+    date: '2026-04-02',
+    periodId: 1,
+    periodName: 'Period 1',
+    status: 'Late',
+    remarks: 'Arrived 15 minutes late',
+    recordedBy: 'STF001',
+    recordedByName: 'Mr. Smith',
+    createdAt: '2026-04-02T08:30:00Z',
+  },
+  {
+    id: 'ATT004',
+    studentId: 'STU001',
+    studentName: 'John Doe',
+    date: '2026-04-03',
+    periodId: 1,
+    periodName: 'Period 1',
+    status: 'Absent',
+    remarks: 'Sick leave',
+    recordedBy: 'STF001',
+    recordedByName: 'Mr. Smith',
+    createdAt: '2026-04-03T08:15:00Z',
+  },
+];
+
+export const initialMockResults: PortalResultSummary[] = [
+  {
+    examSessionId: 'EXAM001',
+    examSessionName: 'Term 1 Examinations 2026',
+    academicPeriodName: 'Term 1',
+    totalMarks: 485,
+    meanGrade: 'B+',
+    classRank: 5,
+    streamRank: 3,
+    subjects: [
+      { subjectId: 1, subjectName: 'Mathematics', marks: 78, marksOutOf: 100, grade: 'B+', points: 9, comment: 'Good performance' },
+      { subjectId: 2, subjectName: 'English', marks: 82, marksOutOf: 100, grade: 'A-', points: 11, comment: 'Excellent' },
+      { subjectId: 3, subjectName: 'Science', marks: 71, marksOutOf: 100, grade: 'B', points: 8, comment: 'Satisfactory' },
+      { subjectId: 4, subjectName: 'Social Studies', marks: 88, marksOutOf: 100, grade: 'A', points: 12, comment: 'Outstanding' },
+      { subjectId: 5, subjectName: 'Kiswahili', marks: 65, marksOutOf: 100, grade: 'B-', points: 7, comment: 'Needs improvement' },
+    ],
+  },
+];
+
+export const initialMockFeeSummaries: PortalFeeSummary[] = [
+  {
+    studentId: 'STU001',
+    studentName: 'John Doe',
+    classStreamId: 1,
+    classStreamName: 'Form 1A',
+    academicPeriodId: 1,
+    academicPeriodName: 'Term 1 2026',
+    totalFees: 45000,
+    totalPaid: 35000,
+    totalDiscount: 5000,
+    totalFine: 0,
+    currentBalance: 10000,
+    dueDate: '2026-04-15',
+    invoices: [
+      {
+        id: 'INV001',
+        invoiceNumber: 'INV-2026-001',
+        issueDate: '2026-01-10',
+        dueDate: '2026-02-10',
+        totalAmount: 45000,
+        amountPaid: 35000,
+        balance: 10000,
+        status: 'Partially Paid',
+        items: [
+          { id: 'INV001-1', description: 'Tuition Fee', amount: 30000 },
+          { id: 'INV001-2', description: 'Development Fee', amount: 5000 },
+          { id: 'INV001-3', description: 'Activity Fee', amount: 3000 },
+          { id: 'INV001-4', description: 'Lab Fee', amount: 2000 },
+          { id: 'INV001-5', description: 'Library Fee', amount: 1000 },
+          { id: 'INV001-6', description: 'Transport Fee', amount: 4000 },
+        ],
+      },
+    ],
+    payments: [
+      { id: 'PAY001', receiptNo: 'REC-2026-001', paymentDate: '2026-01-15', amount: 20000, paymentMethod: 'Bank Transfer', referenceNo: 'TXN001' },
+      { id: 'PAY002', receiptNo: 'REC-2026-002', paymentDate: '2026-02-10', amount: 15000, paymentMethod: 'Cash', referenceNo: null },
+    ],
+  },
+];
+
+// Type aliases for compatibility
+export { initialMockAnnouncements as initialMockPortalAnnouncements };
+export { initialMockAttendanceRecords as initialMockPortalAttendanceRecords };
+export { initialMockResults as initialMockPortalResults };
+export { initialMockFeeSummaries as initialMockPortalFeeSummaries };

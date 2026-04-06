@@ -1,0 +1,1 @@
+export { housesCollections } from './schema';

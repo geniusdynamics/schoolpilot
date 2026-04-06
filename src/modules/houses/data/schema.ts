@@ -1,0 +1,85 @@
+import { House, PointCategory, PointTransaction } from './types';
+
+export const housesSchema = {
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    name: { type: 'string', maxLength: 200 },
+    description: { type: 'string', maxLength: 500 },
+    color: { type: 'string', maxLength: 50 },
+    motto: { type: 'string', maxLength: 500 },
+    patronTeacherId: { type: 'string', maxLength: 100 },
+    patronTeacherName: { type: 'string', maxLength: 200 },
+    captainId: { type: 'string', maxLength: 100 },
+    captainName: { type: 'string', maxLength: 200 },
+    viceCaptainId: { type: 'string', maxLength: 100 },
+    viceCaptainName: { type: 'string', maxLength: 200 },
+    totalPoints: { type: 'number' },
+    meritPoints: { type: 'number' },
+    demeritPoints: { type: 'number' },
+    memberCount: { type: 'number' },
+    createdAt: { type: 'string', format: 'date-time' },
+    updatedAt: { type: 'string', format: 'date-time' },
+  },
+  required: ['id', 'name', 'color', 'totalPoints', 'meritPoints', 'demeritPoints', 'memberCount', 'createdAt', 'updatedAt'],
+  indexes: ['name', 'createdAt'],
+};
+
+export const pointCategoriesSchema = {
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    name: { type: 'string', maxLength: 200 },
+    type: { type: 'string', enum: ['merit', 'demerit'] },
+    defaultPoints: { type: 'number' },
+    description: { type: 'string', maxLength: 500 },
+    requiresApproval: { type: 'boolean' },
+    approverRole: { type: 'string', maxLength: 100 },
+    evidenceRequired: { type: 'boolean' },
+    maxDailyAwards: { type: 'number' },
+    isActive: { type: 'boolean' },
+  },
+  required: ['id', 'name', 'type', 'defaultPoints', 'requiresApproval', 'evidenceRequired', 'isActive'],
+  indexes: ['name', 'type', 'isActive'],
+};
+
+export const pointTransactionsSchema = {
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    studentId: { type: 'string', maxLength: 100 },
+    studentName: { type: 'string', maxLength: 200 },
+    className: { type: 'string', maxLength: 200 },
+    houseId: { type: 'string', maxLength: 100 },
+    houseName: { type: 'string', maxLength: 200 },
+    categoryId: { type: 'string', maxLength: 100 },
+    categoryName: { type: 'string', maxLength: 200 },
+    type: { type: 'string', enum: ['merit', 'demerit'] },
+    points: { type: 'number' },
+    reason: { type: 'string', maxLength: 1000 },
+    eventName: { type: 'string', maxLength: 200 },
+    eventId: { type: 'string', maxLength: 100 },
+    evidenceUrl: { type: 'string', maxLength: 500 },
+    evidenceDescription: { type: 'string', maxLength: 500 },
+    status: { type: 'string', enum: ['pending', 'approved', 'rejected'] },
+    approvedBy: { type: 'string', maxLength: 100 },
+    approvedAt: { type: 'string', format: 'date-time' },
+    awardedBy: { type: 'string', maxLength: 100 },
+    awardedByName: { type: 'string', maxLength: 200 },
+    awardedAt: { type: 'string', format: 'date-time' },
+  },
+  required: ['id', 'studentId', 'houseId', 'categoryId', 'type', 'points', 'reason', 'status', 'awardedBy', 'awardedAt'],
+  indexes: ['studentId', 'houseId', 'categoryId', 'type', 'status', 'awardedAt'],
+};
+
+export const housesCollections = {
+  houses: housesSchema,
+  point_categories: pointCategoriesSchema,
+  point_transactions: pointTransactionsSchema,
+};

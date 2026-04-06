@@ -28,6 +28,11 @@ import { hrCollections } from '../modules/hr/data/collections';
 import { inventoryCollections } from '../modules/inventory/data/collections';
 import { libraryCollections } from '../modules/library/data/collections';
 import { nutritionCollections } from '../modules/nutrition/data/collections';
+// New module collections
+import { housesCollections } from '../modules/houses/data/collections';
+import { assignmentsCollections } from '../modules/assignments/data/collections';
+import { lessonplansCollections } from '../modules/lessonplans/data/collections';
+import { pickupCollections } from '../modules/pickup/data/collections';
 
 // Debug: Check if module collections are properly imported
 console.log('=== MODULE COLLECTIONS DEBUG ===');
@@ -48,6 +53,11 @@ import * as hrTypes from '../modules/hr/data/types';
 import * as inventoryTypes from '../modules/inventory/data/types';
 import * as libraryTypes from '../modules/library/data/types';
 import * as nutritionTypes from '../modules/nutrition/data/types';
+// New module types
+import * as housesTypes from '../modules/houses/data/types';
+import * as assignmentsTypes from '../modules/assignments/data/types';
+import * as lessonplansTypes from '../modules/lessonplans/data/types';
+import * as pickupTypes from '../modules/pickup/data/types';
 
 import { createDatabaseSchema, convertToRxDBSchema } from '../utils/databaseAgnosticSchema';
 
@@ -163,6 +173,12 @@ export const collectionsDefinition: Record<string, { schema: RxJsonSchema<any>}>
   
   // Nutrition Collections
   ...nutritionCollections,
+  
+  // New Module Collections
+  ...housesCollections,
+  ...assignmentsCollections,
+  ...lessonplansCollections,
+  ...pickupCollections,
 };
 
 // Type for the database instance, mapping collection names to RxCollection types

@@ -150,7 +150,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       setIsSubmenuOpen((open: boolean) => !open); // toggle submenu
     } else {
       setSelectedModuleKey(moduleKey);
-      setIsSubmenuOpen(true); // open submenu for new module
+      // Keep submenu collapsed by default when switching modules
+      // User can manually open it by clicking the module again
+      setIsSubmenuOpen(false);
       
       // Generate the correct dashboard path for the module
       const modulePath = getModuleDashboardPath(moduleKey);

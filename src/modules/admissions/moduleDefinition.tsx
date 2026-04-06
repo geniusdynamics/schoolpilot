@@ -49,6 +49,18 @@ export const admissionsModule: ModuleDefinition = {
       icon: EyeIcon, 
       page: 'ApplicationReviewPage' 
     },
+    {
+      name: 'navigation:admissions.apply',
+      path: '/admissions/apply',
+      icon: DocumentAddIcon,
+      page: 'PublicApplicationPage',
+    },
+    {
+      name: 'navigation:admissions.track',
+      path: '/admissions/track',
+      icon: DocumentTextIcon,
+      page: 'ApplicationTrackingPage',
+    },
   ],
   features: [
     'admission-management',
@@ -77,6 +89,9 @@ export const admissionsModule: ModuleDefinition = {
     { path: '/admissions/applications/:applicationId', page: 'ApplicationDetailPage' },
     { path: '/admissions/review-queue', page: 'ApplicationReviewPage' },
     { path: '/admissions/review/:applicationId', page: 'ApplicationReviewPage' },
+    { path: '/admissions/apply', page: 'PublicApplicationPage' },
+    { path: '/admissions/track', page: 'ApplicationTrackingPage' },
+    { path: '/admissions/track/:applicationId', page: 'ApplicationTrackingPage' },
   ],
   settings: {
     category: 'admissions',
@@ -117,7 +132,8 @@ export const admissionsModule: ModuleDefinition = {
         defaultValue: true
       }
     ]
-  }
+  },
+  publicAccess: true,
 };
 
 export default admissionsModule;

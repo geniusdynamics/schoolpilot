@@ -450,3 +450,112 @@ export interface PluginUpdateInfo {
   securityUpdate: boolean;
   breaking: boolean;
 }
+
+// ============================================================================
+// External Service Plugin Interfaces
+// ============================================================================
+
+// Payment Gateway Plugin Interface
+export interface PaymentParams {
+  amount: number;
+  currency: string;
+  description: string;
+  studentId: string;
+  invoiceId?: string;
+  callbackUrl: string;
+  metadata?: Record<string, any>;
+}
+
+export interface PaymentResult {
+  success: boolean;
+  transactionId: string;
+  status: 'pending' | 'completed' | 'failed' | 'cancelled';
+  provider: string;
+  message?: string;
+  redirectUrl?: string;
+}
+
+export interface PaymentPlugin {
+  initiatePayment(params: PaymentParams): Promise<PaymentResult>;
+  verifyPayment(transactionId: string): Promise<boolean>;
+  handleCallback(data: any): void;
+  getSupportedMethods(): string[];
+}
+
+// SMS Provider Plugin Interface
+export interface SMSResult {
+  success: boolean;
+  messageId: string;
+  status: 'sent' | 'failed' | 'pending';
+  recipient: string;
+  message?: string;
+}
+
+export interface BulkSMSResult {
+  total: number;
+  successful: number;
+  failed: number;
+  results: SMSResult[];
+}
+
+export interface SMSPlugin {
+  send(phone: string, message: string): Promise<SMSResult>;
+  bulkSend(recipients: string[], message: string): Promise<BulkSMSResult>;
+  sendTemplate(phone: string, templateId: string, params: Record<string, any>): Promise<SMSResult>;
+  getDeliveryStatus(messageId: string): Promise<string>;
+}
+
+// Analytics Engine Plugin Interface (Go WASM)
+export interface AnalyticsPeriod {
+  type: 'term' | 'semester' | 'year' | 'custom';
+  startDate: string;
+  endDate: string;
+}
+
+export interface SubjectPassRate {
+  subjectId: string;
+  subjectName: string;
+  examCount: number;
+  studentCount: number;
+  passRate: number;
+  averageScore: number;
+  trend: 'up' | 'down' | 'stable';
+}
+
+export interface ClassPerformance {
+  classId: string;
+  className: string;
+  streamCount: number;
+  studentCount: number;
+  averageScore: number;
+  passRate: number;
+  topPerformers: string[];
+  bottomPerformers: string[];
+}
+
+export interface TeacherAnalytics {
+  teacherId: string;
+  teacherName?: string;
+  period: AnalyticsPeriod;
+  passRates: SubjectPassRate[];
+  classPerformance: ClassPerformance[];
+  assignmentsCreated: number;
+  assignmentsGraded: number;
+  gradingTurnaroundDays: number;
+  studentImprovement: number;
+  consistentPerformers: number;
+  strugglingStudents: number;
+  syllabusCoverage: number;
+  topicsCovered: string[];
+  topicsPending: string[];
+}
+
+export type ExportFormat = 'pdf' | 'excel' | 'csv';
+
+export interface AnalyticsEnginePlugin {
+  calculateTeacherMetrics(teacherId: string, period: AnalyticsPeriod): Promise<TeacherAnalytics>;
+  calculateClassMetrics(classId: string, period: AnalyticsPeriod): Promise<ClassPerformance>;
+  calculateSubjectMetrics(subjectId: string, period: AnalyticsPeriod): Promise<SubjectPassRate>;
+  generateTrends(teacherId: string, periods: AnalyticsPeriod[]): Promise<any[]>;
+  exportReport(format: ExportFormat, data: any): Promise<Blob>;
+}

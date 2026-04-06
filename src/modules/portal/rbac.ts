@@ -1,0 +1,78 @@
+import { Permission } from '@/core/rbacService';
+
+export const portalPermissions: Permission[] = [
+  {
+    id: 'portal.attendance.read',
+    name: 'View Attendance',
+    description: 'View own attendance records',
+    resource: 'portal.attendance',
+    action: 'read',
+    moduleId: 'portal',
+    feature: 'view-attendance',
+  },
+  {
+    id: 'portal.results.read',
+    name: 'View Results',
+    description: 'View own academic results',
+    resource: 'portal.results',
+    action: 'read',
+    moduleId: 'portal',
+    feature: 'view-results',
+  },
+  {
+    id: 'portal.children.read',
+    name: 'View Children Records',
+    description: 'View records of own children (for parents/guardians)',
+    resource: 'portal.children',
+    action: 'read',
+    moduleId: 'portal',
+    feature: 'parent-dashboard',
+  },
+  {
+    id: 'portal.fees.read',
+    name: 'View Fees',
+    description: 'View own fee statements and payment history',
+    resource: 'portal.fees',
+    action: 'read',
+    moduleId: 'portal',
+    feature: 'view-fees',
+  },
+  {
+    id: 'portal.announcements.read',
+    name: 'View Announcements',
+    description: 'View school announcements',
+    resource: 'portal.announcements',
+    action: 'read',
+    moduleId: 'portal',
+    feature: 'view-announcements',
+  },
+  {
+    id: 'portal.profile.read',
+    name: 'View Profile',
+    description: 'View own profile information',
+    resource: 'portal.profile',
+    action: 'read',
+    moduleId: 'portal',
+    feature: 'student-dashboard',
+  },
+  {
+    id: 'portal.profile.update',
+    name: 'Update Profile',
+    description: 'Update own profile information',
+    resource: 'portal.profile',
+    action: 'update',
+    moduleId: 'portal',
+    feature: 'student-dashboard',
+  },
+  {
+    id: 'portal.dashboard.read',
+    name: 'View Dashboard',
+    description: 'View personalized dashboard',
+    resource: 'portal.dashboard',
+    action: 'read',
+    moduleId: 'portal',
+    feature: 'student-dashboard',
+  },
+];
+
+export const portalDefaultRoles = ['student', 'parent', 'guardian'];

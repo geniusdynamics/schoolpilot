@@ -1,0 +1,104 @@
+{
+  "title": "Lesson Plans",
+  "description": "Plan, track, and review lesson delivery",
+  "navigation": {
+    "title": "Lesson Plans",
+    "weeklyPlans": "Weekly Plans",
+    "createPlan": "Create Plan",
+    "lessonNotes": "Lesson Notes",
+    "approvalQueue": "Approval Queue",
+    "coverageReport": "Coverage Report"
+  },
+  "common": {
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "loading": "Loading...",
+    "noData": "No data available",
+    "error": "An error occurred"
+  },
+  "weeklyPlan": {
+    "title": "Weekly Plan",
+    "plural": "Weekly Plans",
+    "fields": {
+      "teacher": "Teacher",
+      "subject": "Subject",
+      "class": "Class",
+      "weekStart": "Week Start",
+      "weekEnd": "Week End",
+      "status": "Status",
+      "objectives": "Overall Objectives",
+      "teachingAids": "Teaching Aids",
+      "references": "References",
+      "submittedAt": "Submitted At",
+      "reviewComments": "Review Comments"
+    },
+    "actions": {
+      "create": "Create Weekly Plan",
+      "edit": "Edit Plan",
+      "submit": "Submit for Review",
+      "approve": "Approve Plan",
+      "reject": "Reject Plan"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "SUBMITTED": "Submitted",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    }
+  },
+  "lessonNote": {
+    "title": "Lesson Note",
+    "plural": "Lesson Notes",
+    "fields": {
+      "teacher": "Teacher",
+      "subject": "Subject",
+      "class": "Class",
+      "date": "Date",
+      "period": "Period",
+      "topic": "Topic",
+      "subTopic": "Sub-Topic",
+      "objectives": "Objectives",
+      "introduction": "Introduction",
+      "presentation": "Presentation",
+      "development": "Development",
+      "assessment": "Assessment",
+      "conclusion": "Conclusion",
+      "reflection": "Reflection",
+      "challenges": "Challenges",
+      "studentsPresent": "Students Present",
+      "studentsAbsent": "Students Absent"
+    },
+    "actions": {
+      "create": "Create Lesson Note",
+      "edit": "Edit Note",
+      "delete": "Delete Note"
+    }
+  },
+  "approval": {
+    "title": "Approval Queue",
+    "pending": "Pending Review",
+    "approved": "Approved Plans",
+    "rejected": "Rejected Plans",
+    "reviewComments": "Review Comments",
+    "actions": {
+      "approve": "Approve",
+      "reject": "Request Changes"
+    }
+  },
+  "coverage": {
+    "title": "Coverage Report",
+    "subject": "Subject",
+    "topicsCovered": "Topics Covered",
+    "topicsPending": "Topics Pending",
+    "coveragePercentage": "Coverage Percentage",
+    "weekCovered": "Week Covered",
+    "export": "Export Report"
+  }
+}

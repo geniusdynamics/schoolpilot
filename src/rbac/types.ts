@@ -99,6 +99,10 @@ export const SYSTEM_ROLES = {
   ACCOUNTANT: 'accountant',
   LIBRARIAN: 'librarian',
   RECEPTIONIST: 'receptionist',
+  // Portal roles
+  STUDENT_PORTAL: 'student-portal',
+  PARENT_PORTAL: 'parent-portal',
+  GUARDIAN_PORTAL: 'guardian-portal',
 } as const;
 
 // Common permission sets

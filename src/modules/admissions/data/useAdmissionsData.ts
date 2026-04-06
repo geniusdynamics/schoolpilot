@@ -256,6 +256,21 @@ export const useAdmissionsData = () => {
     }
   };
 
+  // Get single application by application number (reference)
+  const getApplicationByReference = async (applicationNumber: string): Promise<Application | null> => {
+    try {
+      const db = await databaseService.getDatabase();
+      const collection = db.collections['applications'];
+
+      const results = await collection.find().where('applicationNumber').eq(applicationNumber).exec();
+      if (results.length === 0) return null;
+      return results[0].toJSON() as Application;
+    } catch (err) {
+      setError('Failed to load application');
+      return null;
+    }
+  };
+
   // Add review to application
   const addReview = async (applicationId: string, reviewData: ReviewFormData, reviewerId: string): Promise<void> => {
     setLoading(true);
@@ -543,6 +558,7 @@ export const useAdmissionsData = () => {
     updateApplication,
     deleteApplication,
     getApplication,
+    getApplicationByReference,
     addReview,
     makeDecision,
     processEnrollment,
