@@ -1,9 +1,10 @@
-// Test file for dual-database architecture with all 88 collections
-// This file tests the PouchDB-first implementation
+// Test file for database architecture with all 88 collections
+// RXDB removed - Phase 4: Now testing SQLite/PouchDB implementations
 
-import { getDatabaseManager, getRxDBIntegrationHelper } from './ProviderSelector';
+import { getDatabaseManager, getDatabaseIntegrationHelper } from './ProviderSelector';
 import { getDatabaseProviderFactory } from './DatabaseProviderFactory';
-import { collectionsDefinition } from '../rxdbService';
+// Using provider-agnostic collections (moved from rxdbService.ts)
+import { collectionsDefinition } from './collections';
 
 // Test interface for sample data
 interface TestDocument {
@@ -20,11 +21,11 @@ export async function testDualDatabaseArchitecture(): Promise<void> {
   
   try {
     // Get the integration helper
-    const integrationHelper = getRxDBIntegrationHelper();
+    const integrationHelper = getDatabaseIntegrationHelper();
     
-    // Initialize with all 88 collections from rxdbService
+    // Initialize with all 88 collections from collections.ts
     console.log(`📊 Initializing database with ${Object.keys(collectionsDefinition).length} collections...`);
-    await integrationHelper.initializeWithRxDBCollections(collectionsDefinition, 'schoolpilot-test');
+    await integrationHelper.initializeWithCollections(collectionsDefinition, 'schoolpilot-test');
     
     console.log('✅ Database initialized successfully!');
     

@@ -4,7 +4,7 @@
  * Supports both localStorage and IndexedDB with graceful fallbacks
  */
 
-import { Tab } from '../../types/tabbedWorkspace';
+import { Tab } from '@/types/tabbedWorkspace';
 
 // ============================================================================
 // Types and Interfaces

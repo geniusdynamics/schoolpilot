@@ -1,12 +1,12 @@
 /**
  * Enhanced Sync Engine
- * 
+ *
  * Advanced synchronization capabilities for SchoolPilot3.
- * 
+ *
  * @example
  * ```typescript
  * import { SyncManager, ConflictResolver } from '@/services/sync';
- * 
+ *
  * // Create sync manager
  * const syncManager = new SyncManager({
  *   autoSync: true,
@@ -17,36 +17,37 @@
  *     attendance: 'local-wins', // SchoolPilot is source of truth for attendance
  *   },
  * });
- * 
+ *
  * // Register providers
  * syncManager.registerProvider('erpnext', erpnextProvider);
  * syncManager.registerProvider('backend', backendProvider);
- * 
+ *
  * // Start auto-sync
  * syncManager.start();
- * 
+ *
  * // Handle conflicts
  * syncManager.onConflict = (conflict) => {
  *   showConflictResolutionDialog(conflict);
  * };
- * 
+ *
  * // Register background sync
  * await syncManager.registerBackgroundSync();
  * ```
  */
 
-// Core
-export { SyncManager, type SyncManagerConfig, type SyncStats, type SyncState } from './SyncManager';
-export { ConflictResolver, type ConflictResolution } from './ConflictResolver';
+// Core service implementations
+export { SyncManager } from './SyncManager';
+export { ConflictResolver } from './ConflictResolver';
 
 // Service Worker (to be imported in sw.ts)
 export { getQueue, addToQueue, removeFromQueue, processQueue } from './sw-sync';
 
-// Types
+// Local types and interfaces
+export * from './types';
+
+// Re-export related types from backend for convenience
 export type {
   Conflict,
   FieldConflict,
   ConflictResolutionStrategy,
-  SyncOperation,
-  SyncResult,
 } from '../backend/types';

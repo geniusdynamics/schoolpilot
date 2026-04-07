@@ -6,7 +6,7 @@
  */
 
 import type { Tab, ParsedTabState, TabStateSnapshot } from './types';
-import { performanceEventManager } from '../performanceEventManager';
+import { performanceEventManager } from '@/services/performance';
 import { TabStateDeriver } from './TabStateDeriver';
 
 const STORAGE_KEY = 'sp_tabs_v2';

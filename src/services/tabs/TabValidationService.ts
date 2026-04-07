@@ -4,7 +4,7 @@
  * Part of Phase 1.2 of the Tabbed Workspace improvement plan
  */
 
-import { Tab, TabState } from '../../types/tabbedWorkspace';
+import { Tab, TabState } from '@/types/tabbedWorkspace';
 
 // ============================================================================
 // Types and Interfaces

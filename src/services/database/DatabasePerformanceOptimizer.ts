@@ -2,7 +2,7 @@
 // ABOUTME: Provides indexing, caching, performance monitoring, and automatic maintenance
 
 import { ICollection, IDatabaseProvider } from './interfaces';
-import { getDatabaseConfig } from '../../config/unifiedConfig';
+import { getDatabaseConfig } from '@/config/unifiedConfig';
 
 export interface QueryPerformanceMetrics {
   queryId: string;

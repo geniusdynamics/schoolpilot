@@ -28,3 +28,10 @@ export type {
   DataEvent,
   DataEventType
 } from './types';
+
+// Legacy root-level services
+export * from './DataContextIntegrationService';
+export * from './DataServiceFactory';
+export * from './UnifiedCRUDService';
+export * from './dataModeManager';
+export * from './NetworkStateManager';

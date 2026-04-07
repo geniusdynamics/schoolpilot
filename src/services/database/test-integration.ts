@@ -1,17 +1,18 @@
-// Test integration with actual RxDB collections
-import { getRxDBIntegrationHelper } from './ProviderSelector';
-import { collectionsDefinition } from '../rxdbService';
+// Test integration with collections (RXDB removed - Phase 4)
+import { getDatabaseIntegrationHelper } from './ProviderSelector';
+// RXDB removed - Phase 2: Using provider-agnostic collections
+import { collectionsDefinition } from './collections';
 
 async function testIntegration() {
   console.log('🚀 Testing RxDB Integration with hardened schema conversion...\n');
   
-  const integrationHelper = getRxDBIntegrationHelper();
+  const integrationHelper = getDatabaseIntegrationHelper();
   
   try {
     console.log(`📦 Found ${Object.keys(collectionsDefinition).length} collections to process\n`);
     
     // Test the integration with actual collections
-    await integrationHelper.initializeWithRxDBCollections(
+    await integrationHelper.initializeWithCollections(
       collectionsDefinition,
       'test-schoolpilot'
     );

@@ -1,5 +1,6 @@
 import type { GenerationStats } from '../dataGeneration/UniversalDataGenerator';
-import { collectionsDefinition } from '../rxdbService';
+// RXDB removed - Phase 2: Using provider-agnostic collections
+import { collectionsDefinition } from './collections';
 import { SchemaConverter } from './SchemaConverter';
 import type { CollectionSchema, ICollection, IDatabaseProvider } from './interfaces';
 

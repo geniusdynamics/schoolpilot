@@ -1,10 +1,11 @@
 // ABOUTME: Unified Database Manager that consolidates RxDB, PouchDB, and SQLite providers
 // ABOUTME: Provides deployment mode-based provider selection and comprehensive database management
 
-import { getCurrentUnifiedConfig, getDatabaseConfig, validateDatabaseConfig } from '../../config/unifiedConfig';
+import { getCurrentUnifiedConfig, getDatabaseConfig, validateDatabaseConfig } from '@/config/unifiedConfig';
 import { DataServiceFactory } from '../DataServiceFactory';
 import { getDatabaseManager } from './ProviderSelector';
-import { collectionsDefinition } from '../rxdbService';
+// RXDB removed - Phase 2: Using provider-agnostic collections
+import { collectionsDefinition } from './collections';
 import { SchemaConverter } from './SchemaConverter';
 import { ICollection, IDatabaseProvider, DatabaseConfig, CollectionSchema, CollectionRequirements } from './interfaces';
 import { DatabaseProviderFactory, getDatabaseProviderFactory, ProviderType } from './DatabaseProviderFactory';
@@ -276,8 +277,9 @@ export class UnifiedDatabaseManager {
         case 'backend-api':
         case 'livestore':
           return dbConfig.provider;
-        case 'rxdb':
-          return 'rxdb';
+        // RXDB removed - Phase 4
+        // case 'rxdb':
+        //   return 'rxdb';
         default:
           console.warn(`⚠️ [UnifiedDatabaseManager] Unknown provider ${dbConfig.provider}, using automatic selection`);
       }
@@ -481,7 +483,7 @@ export class UnifiedDatabaseManager {
       for (const [collectionName, definition] of Object.entries(collectionsDefinition)) {
         try {
           // Convert RxDB schema to provider-specific format
-          const schema = this.convertSchema(definition.schema);
+          const schema = this.convertSchema(collectionName, definition.schema);
           
           // Create collection using provider
           if (this.provider && typeof this.provider.createCollection === 'function') {
@@ -511,13 +513,24 @@ export class UnifiedDatabaseManager {
   /**
    * Convert RxDB schema to provider-specific format
    */
-  private convertSchema(rxdbSchema: any): CollectionSchema {
+  private convertSchema(collectionName: string, rxdbSchema: any): CollectionSchema {
+    if (!rxdbSchema || typeof rxdbSchema !== 'object') {
+      console.warn(`[UnifiedDatabaseManager] No valid schema for collection '${collectionName}', using fallback`);
+      return {
+        version: 0,
+        type: 'object',
+        properties: {},
+        required: [],
+        indexes: [],
+        primaryKey: 'id'
+      };
+    }
+
     try {
-      const conversionResult = SchemaConverter.convertRxDBToSQLite('temp', rxdbSchema);
+      const conversionResult = SchemaConverter.convertRxDBToSQLite(collectionName, rxdbSchema);
       return conversionResult.schema;
     } catch (error) {
-      console.warn('Schema conversion failed, using fallback:', error);
-      // Fallback schema
+      console.warn(`[UnifiedDatabaseManager] Schema conversion failed for '${collectionName}', using fallback:`, error);
       return {
         version: 0,
         type: 'object',
@@ -778,7 +791,7 @@ export class UnifiedDatabaseManager {
             // Get the original schema
             const originalDefinition = collectionsDefinition[issue.collection];
             if (originalDefinition) {
-              const schema = this.convertSchema(originalDefinition.schema);
+              const schema = this.convertSchema(issue.collection, originalDefinition.schema);
               
               // Try to recreate the collection
               if (this.provider && typeof this.provider.createCollection === 'function') {
@@ -1193,7 +1206,7 @@ export class UnifiedDatabaseManager {
         };
       }
 
-      const schema = this.convertSchema(originalDefinition.schema);
+      const schema = this.convertSchema(collectionName, originalDefinition.schema);
       
       // Rebuild indexes if the collection supports it
       if (schema.indexes && typeof collection.createIndex === 'function') {

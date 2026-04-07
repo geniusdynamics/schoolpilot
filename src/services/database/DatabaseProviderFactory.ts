@@ -13,14 +13,15 @@ import {
   DatabaseError
 } from './interfaces';
 import { PouchDBProvider } from './PouchDBProvider';
-import { RxDBProvider } from './RxDBProvider';
 import { SQLiteProvider } from './SQLiteProvider';
 import { SQLiteWASMProvider } from './SQLiteWASMProvider';
 import { BackendAPIProvider } from './BackendAPIProvider';
-import { getCurrentUnifiedConfig } from '../../config/unifiedConfig';
+// RXDB removed - Phase 4: No longer importing RxDBProvider
+import { getCurrentUnifiedConfig } from '@/config/unifiedConfig';
 
 // Provider Types
-export type ProviderType = 'pouchdb' | 'rxdb' | 'sqlite' | 'sqlite-wasm' | 'sqlite-file' | 'livestore' | 'backend-api' | 'hybrid';
+// RXDB removed - Phase 4
+export type ProviderType = 'pouchdb' | 'sqlite' | 'sqlite-wasm' | 'sqlite-file' | 'livestore' | 'backend-api' | 'hybrid';
 
 // Provider creation options
 export interface ProviderCreationOptions {
@@ -52,8 +53,9 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
           return environment === 'development' ? 'sqlite-file' : 'sqlite-wasm';
         case 'pouchdb':
           return 'pouchdb';
-        case 'rxdb':
-          return 'rxdb';
+        // RXDB removed - Phase 4
+        // case 'rxdb':
+        //   return 'rxdb';
         case 'backend-api':
           return 'backend-api';
         // case 'livestore': // Temporarily disabled
@@ -89,9 +91,9 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
         return 'sqlite-wasm';
       }
       
-      // Use RxDB for advanced reactive requirements
+      // RXDB removed - Phase 4: Using PouchDB for reactivity
       if (requirements.requiresReactivity && requirements.performanceLevel === 'high') {
-        return 'rxdb';
+        return 'pouchdb';
       }
     }
     
@@ -289,11 +291,22 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
   private activeProvider: IDatabaseProvider | null = null;
   private selectionStrategy: ProviderSelectionStrategy;
 
+  private initializationPromise: Promise<void> | null = null;
+
   constructor(selectionStrategy?: ProviderSelectionStrategy) {
     this.selectionStrategy = selectionStrategy || new DefaultProviderSelectionStrategy();
     // Skip provider initialization in test environment to prevent DOM access
     if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
-      this.initializeProviders();
+      this.initializationPromise = this.initializeProviders();
+    }
+  }
+
+  /**
+   * Wait for provider initialization to complete
+   */
+  async waitForInitialization(): Promise<void> {
+    if (this.initializationPromise) {
+      await this.initializationPromise;
     }
   }
 
@@ -354,9 +367,8 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     
     if (constructorName.includes('PouchDB')) {
       return 'pouchdb';
-    } else if (constructorName.includes('RxDB')) {
-      return 'rxdb';
     } else if (constructorName.includes('SQLiteWASM')) {
+      // RXDB case removed - Phase 4
       // SQLiteWASMProvider for WASM-based SQLite
       return 'sqlite-wasm';
     } else if (constructorName.includes('SQLiteFile')) {
@@ -376,18 +388,17 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     }
   }
 
-  private initializeProviders(): void {
+  private async initializeProviders(): Promise<void> {
     try {
       console.log('[DatabaseProviderFactory] Starting provider initialization...');
       
       // Check environment variables for provider enablement
-      const enableRxDB = process.env.REACT_APP_ENABLE_RXDB === 'true';
+      // RXDB removed - Phase 4
       const enablePouchDB = process.env.REACT_APP_ENABLE_POUCHDB !== 'false'; // Default true
       const enableSQLiteWASM = process.env.REACT_APP_ENABLE_SQLITE_WASM !== 'false'; // Default true
       const enableBackendAPI = process.env.REACT_APP_ENABLE_BACKEND_API !== 'false'; // Default true
       
       console.log('[DatabaseProviderFactory] Provider enablement flags:', {
-        enableRxDB,
         enablePouchDB,
         enableSQLiteWASM,
         enableBackendAPI
@@ -406,17 +417,7 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
         console.log('[DatabaseProviderFactory] PouchDB provider disabled via environment variable');
       }
       
-      if (enableRxDB) {
-        try {
-          const rxdbProvider = new RxDBProvider();
-          this.registerProvider(rxdbProvider);
-          console.log('[DatabaseProviderFactory] RxDB provider registered, isAvailable:', rxdbProvider.isAvailable());
-        } catch (error) {
-          console.error('[DatabaseProviderFactory] Failed to register RxDB provider:', error);
-        }
-      } else {
-        console.log('[DatabaseProviderFactory] RxDB provider disabled (unlicensed - set REACT_APP_ENABLE_RXDB=true to enable)');
-      }
+      // RXDB provider initialization removed - Phase 4
       
       if (enableSQLiteWASM) {
         try {
@@ -500,7 +501,7 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
       // If primary provider failed, try fallback providers
       console.warn(`[DatabaseProviderFactory] Primary provider ${primaryProviderType} failed, trying fallbacks...`);
       
-      const fallbackProviders: ProviderType[] = ['pouchdb', 'rxdb', 'backend-api'];
+      const fallbackProviders: ProviderType[] = ['pouchdb', 'sqlite-wasm', 'backend-api'];
       
       for (const fallbackType of fallbackProviders) {
         if (fallbackType === primaryProviderType) continue; // Skip already tried provider

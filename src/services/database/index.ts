@@ -37,3 +37,8 @@ export * from './sync';
 
 // Monitoring module (Phase 4 - MetricsCollector, HealthChecker)
 export * from './monitoring';
+
+// Legacy root-level services
+export * from './databaseService';
+// RXDB removed - Phase 4: rxdbService no longer exported
+// Use databaseService or collections from './collections' instead

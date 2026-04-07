@@ -332,7 +332,7 @@ export function convertRxDBSchema(rxdbSchemaOrWrapper: any): CollectionSchema {
 }
 
 // Integration helper for existing rxdbService.ts
-export class RxDBIntegrationHelper {
+export class DatabaseIntegrationHelper {
   private databaseManager: DatabaseManager;
   
   constructor() {
@@ -340,20 +340,20 @@ export class RxDBIntegrationHelper {
   }
 
   // Initialize with existing collection definitions
-  async initializeWithRxDBCollections(
+  async initializeWithCollections(
     collectionsDefinition: Record<string, any>,
     databaseName: string = 'schoolpilot'
   ): Promise<void> {
     try {
-      console.log('🔍 [RxDBIntegrationHelper] Starting initialization...');
-      console.log('🔍 [RxDBIntegrationHelper] collectionsDefinition type:', typeof collectionsDefinition);
-      console.log('🔍 [RxDBIntegrationHelper] collectionsDefinition is null?', collectionsDefinition === null);
-      console.log('🔍 [RxDBIntegrationHelper] collectionsDefinition is undefined?', collectionsDefinition === undefined);
+      console.log('🔍 [DatabaseIntegrationHelper] Starting initialization...');
+      console.log('🔍 [DatabaseIntegrationHelper] collectionsDefinition type:', typeof collectionsDefinition);
+      console.log('🔍 [DatabaseIntegrationHelper] collectionsDefinition is null?', collectionsDefinition === null);
+      console.log('🔍 [DatabaseIntegrationHelper] collectionsDefinition is undefined?', collectionsDefinition === undefined);
       
       // Add guard for undefined or null collectionsDefinition
       if (!collectionsDefinition || typeof collectionsDefinition !== 'object') {
         const errorMsg = `collectionsDefinition is invalid: ${typeof collectionsDefinition}`;
-        console.error('❌ [RxDBIntegrationHelper]', errorMsg);
+        console.error('❌ [DatabaseIntegrationHelper]', errorMsg);
         throw new Error(errorMsg);
       }
       
@@ -361,10 +361,10 @@ export class RxDBIntegrationHelper {
       let entries;
       try {
         entries = Object.entries(collectionsDefinition);
-        console.log('🔍 [RxDBIntegrationHelper] Successfully got entries, count:', entries.length);
+        console.log('🔍 [DatabaseIntegrationHelper] Successfully got entries, count:', entries.length);
       } catch (entriesError) {
-        console.error('❌ [RxDBIntegrationHelper] Failed to get Object.entries:', entriesError);
-        console.error('❌ [RxDBIntegrationHelper] collectionsDefinition value:', collectionsDefinition);
+        console.error('❌ [DatabaseIntegrationHelper] Failed to get Object.entries:', entriesError);
+        console.error('❌ [DatabaseIntegrationHelper] collectionsDefinition value:', collectionsDefinition);
         throw new Error(`Cannot get entries from collectionsDefinition: ${entriesError.message}`);
       }
       
@@ -378,7 +378,7 @@ export class RxDBIntegrationHelper {
       
       // Convert RxDB collection definitions to our format
       for (const [name, def] of entries) {
-        console.log(`🔍 [RxDBIntegrationHelper] Processing collection: ${name}`);
+        console.log(`🔍 [DatabaseIntegrationHelper] Processing collection: ${name}`);
         
         // Derive the actual schema source - handle both { schema: ... } and raw schema forms
         const schemaSource = def && typeof def === 'object' && 'schema' in def ? def.schema : def;
@@ -386,14 +386,14 @@ export class RxDBIntegrationHelper {
         // Validate schemaSource is an object
         if (!schemaSource || typeof schemaSource !== 'object') {
           const errorMsg = `Invalid schema for collection '${name}': expected object, got ${typeof schemaSource}`;
-          console.error('❌ [RxDBIntegrationHelper]', errorMsg);
-          console.error('❌ [RxDBIntegrationHelper] Schema source value:', schemaSource);
+          console.error('❌ [DatabaseIntegrationHelper]', errorMsg);
+          console.error('❌ [DatabaseIntegrationHelper] Schema source value:', schemaSource);
           throw new Error(errorMsg);
         }
         
         try {
           const convertedSchema = convertRxDBSchema(schemaSource);
-          console.log(`✅ [RxDBIntegrationHelper] Successfully converted schema for collection '${name}'`);
+          console.log(`✅ [DatabaseIntegrationHelper] Successfully converted schema for collection '${name}'`);
           
           collectionConfigs.push({
             name,
@@ -408,7 +408,7 @@ export class RxDBIntegrationHelper {
             }
           });
         } catch (conversionError) {
-          console.error(`❌ [RxDBIntegrationHelper] Failed to convert schema for collection '${name}':`, conversionError);
+          console.error(`❌ [DatabaseIntegrationHelper] Failed to convert schema for collection '${name}':`, conversionError);
           throw new Error(`Failed to convert schema for collection '${name}': ${conversionError.message}`);
         }
       }
@@ -440,11 +440,11 @@ export class RxDBIntegrationHelper {
 }
 
 // Export singleton helper
-let integrationHelperInstance: RxDBIntegrationHelper | null = null;
+let integrationHelperInstance: DatabaseIntegrationHelper | null = null;
 
-export function getRxDBIntegrationHelper(): RxDBIntegrationHelper {
+export function getDatabaseIntegrationHelper(): DatabaseIntegrationHelper {
   if (!integrationHelperInstance) {
-    integrationHelperInstance = new RxDBIntegrationHelper();
+    integrationHelperInstance = new DatabaseIntegrationHelper();
   }
   return integrationHelperInstance;
 }

@@ -2,7 +2,7 @@
 // ABOUTME: Implements lazy loading, progressive data loading, and startup monitoring
 
 import { IDatabaseProvider, ICollection } from './interfaces';
-import { getCurrentUnifiedConfig } from '../../config/unifiedConfig';
+import { getCurrentUnifiedConfig } from '@/config/unifiedConfig';
 
 export interface StartupMetrics {
   totalStartupTime: number;

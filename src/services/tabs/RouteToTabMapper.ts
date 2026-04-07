@@ -7,8 +7,8 @@
  * @module services/tabs/RouteToTabMapper
  */
 
-import { Tab } from '../../types/tabbedWorkspace';
-import { NavItem } from '../../core/types';
+import { Tab } from '@/types/tabbedWorkspace';
+import { NavItem } from '@/core/types';
 
 /**
  * NavigationItem interface for tab navigation

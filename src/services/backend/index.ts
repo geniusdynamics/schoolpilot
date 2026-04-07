@@ -55,3 +55,8 @@ export { BackendClient } from './BackendClient';
 
 // Provider
 export { BackendProvider, type BackendProviderConfig } from './BackendProvider';
+
+// Legacy root-level services
+export * from './BackendAPIService';
+export * from './BackendServiceAdapter';
+export * from './backendDetection';

@@ -3,7 +3,7 @@
 
 import { PouchDBProvider } from './PouchDBProvider';
 import { DatabaseProviderFactory } from './DatabaseProviderFactory';
-import { getDatabaseManager, getRxDBIntegrationHelper } from './ProviderSelector';
+import { getDatabaseManager, getDatabaseIntegrationHelper } from './ProviderSelector';
 import { 
   DatabaseConfig, 
   CollectionSchema,
