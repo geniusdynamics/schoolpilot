@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import ApplicationManagement from '../components/ApplicationManagement';
+import ApplicationManagement from '@/components/ApplicationManagement';
 
 const ApplicationsPage: React.FC = () => {
   const { t } = useTranslation('administration');

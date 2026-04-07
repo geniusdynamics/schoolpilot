@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockGeneralLedgerEntries } from './mockData';
-import { GeneralLedgerEntry } from '../../../core/types';
+import { GeneralLedgerEntry } from '@/core/types';
 
 const useGeneralLedgerEntryData = () => {
   const [generalLedgerEntries, setGeneralLedgerEntries] = useState<GeneralLedgerEntry[]>([]);

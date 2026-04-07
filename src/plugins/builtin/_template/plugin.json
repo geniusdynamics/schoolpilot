@@ -1,0 +1,24 @@
+{
+  "$schema": "../../../docs/schemas/plugin-manifest.json",
+  "id": "com.yourcompany.plugin-name",
+  "name": "Plugin Display Name",
+  "version": "1.0.0",
+  "type": "integration",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Brief description of what this plugin does",
+  "author": "Your Name",
+  "license": "MIT",
+  "minAppVersion": "3.0.0",
+  "hooks": [],
+  "provides": [],
+  "settings": [
+    {
+      "key": "enabled",
+      "label": "Enable Plugin",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Whether this plugin is enabled"
+    }
+  ]
+}

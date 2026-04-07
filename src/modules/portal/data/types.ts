@@ -1,7 +1,7 @@
 // ABOUTME: TypeScript interfaces for the Portal module
 // ABOUTME: The Portal module does NOT create new collections - it reads from existing ones
 
-import { Student, ParentsGuardian, Staff } from '../../core/types';
+import { Student, ParentsGuardian, Staff } from '@/core/types';
 
 // --- Portal User Types ---
 

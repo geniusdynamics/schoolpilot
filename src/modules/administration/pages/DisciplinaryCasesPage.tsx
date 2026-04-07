@@ -7,14 +7,14 @@ import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { PlusIcon, EyeIcon, EditIcon, CheckCircleIcon } from '@/components/ui/icons';
-import { databaseService } from '@/services/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { DisciplinaryCategory, DisciplinarySeverity, DisciplinaryStatus, DisciplinaryAction } from '../data/types';
 import type { DisciplinaryCase } from '../data/types';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 const DisciplinaryCasesPage: React.FC = () => {
   const { t } = useTranslation('administration');

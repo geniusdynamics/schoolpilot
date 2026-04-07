@@ -2,7 +2,7 @@
 // ABOUTME: Provides login, logout, and user state management across the app
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { authService, AuthUser, LoginCredentials, AuthResult } from '../services/authService';
+import { authService, AuthUser, LoginCredentials, AuthResult } from '../services/auth/authService';
 
 interface AuthContextType {
   // User state

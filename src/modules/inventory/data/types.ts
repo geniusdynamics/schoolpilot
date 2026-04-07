@@ -1,7 +1,7 @@
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Inventory module.
 // ABOUTME: It ensures all inventory-related data structures are managed in one place.
 
-import { Warehouse, StockTransaction, StockLevel, RequisitionItem, Requisition, PurchaseOrderItem, PurchaseOrder, ItemCategoryInv, ItemInv, FixedAsset, AssetDepreciationLog } from '../../core/types';
+import { Warehouse, StockTransaction, StockLevel, RequisitionItem, Requisition, PurchaseOrderItem, PurchaseOrder, ItemCategoryInv, ItemInv, FixedAsset, AssetDepreciationLog } from '@/core/types';
 
 export enum InvItemTypeEnum {
     CONSUMABLE = 'Consumable',

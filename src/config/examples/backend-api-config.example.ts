@@ -176,7 +176,8 @@ export const exampleUnifiedConfig = {
   dataMode: 'production' as const,
   database: {
     provider: 'backend-api' as const,
-    allowedProviders: ['backend-api', 'rxdb', 'pouchdb'] as const,
+    // RXDB removed - Phase 1 deprecation
+    allowedProviders: ['backend-api', 'pouchdb', 'sqlite-wasm', 'livestore'] as const,
     autoDetect: false,
     apiConfig: erpNextConfig, // Use one of the above configurations
     options: {}

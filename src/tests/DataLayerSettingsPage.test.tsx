@@ -33,7 +33,7 @@ vi.mock('../modules/settings/pages/DataLayerSettingsPage', () => ({
   )
 }));
 
-import DataLayerSettingsPage from '../modules/settings/pages/DataLayerSettingsPage';
+import DataLayerSettingsPage from '@/modules/settings/pages/DataLayerSettingsPage';
 
 describe('DataLayerSettingsPage', () => {
   beforeEach(() => {

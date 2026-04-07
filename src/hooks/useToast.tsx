@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence } from 'framer-motion';
-import Toast, { ToastProps, ToastVariant } from '../components/ui/feedback/Toast';
+import Toast, { ToastProps, ToastVariant } from '@/components/ui/feedback/Toast';
 
 export interface ToastOptions {
   title?: string;

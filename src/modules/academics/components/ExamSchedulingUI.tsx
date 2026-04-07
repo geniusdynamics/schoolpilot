@@ -3,9 +3,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { ExamSchedule, ExamSession } from '../data/types';
-import { ExamScheduleManager } from '../services/ExamScheduleManager';
-import { ConflictDetectionEngine } from '../services/ConflictDetectionEngine';
-import { TimetableIntegrationService } from '../services/TimetableIntegrationService';
+import { ExamScheduleManager } from '@/services/ExamScheduleManager';
+import { ConflictDetectionEngine } from '@/services/ConflictDetectionEngine';
+import { TimetableIntegrationService } from '@/services/TimetableIntegrationService';
 import { useAppData } from '@/hooks/useAppData';
 
 interface ExamSchedulingUIProps {

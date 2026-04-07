@@ -2,8 +2,8 @@
 // ABOUTME: Provides CRUD operations and reactive queries for contract management.
 
 import { useMemo } from 'react';
-import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
-import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
+import { createDataHook, DataHookConfig } from '@/hooks/useDataHookFactory';
+import { useDataHookRegistration } from '@/hooks/useDataHookRegistration';
 import { InvContractStatusEnum, InvSupplierContractType } from './types';
 
 export const initialMockSupplierContracts: InvSupplierContractType[] = [

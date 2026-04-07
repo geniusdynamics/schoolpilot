@@ -22,9 +22,9 @@ import {
   ApplicationType,
 } from '../data/types';
 import { useToast } from '@/hooks/useToast';
-import FormContainer from '../../../components/ui/forms/FormContainer';
-import FormHeader from '../../../components/ui/forms/FormHeader';
-import WizardForm from '../../../components/ui/forms/WizardForm';
+import FormContainer from '@/components/ui/forms/FormContainer';
+import FormHeader from '@/components/ui/forms/FormHeader';
+import WizardForm from '@/components/ui/forms/WizardForm';
 
 const steps = [
   { id: 1, name: 'Student Information', icon: UserIcon },

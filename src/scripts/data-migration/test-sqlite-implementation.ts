@@ -2,7 +2,7 @@
 
 // ABOUTME: Simple test script to verify SQLite implementation with basic data
 
-import { SQLiteOPFSService } from '../../services/sqlite/SQLiteOPFSService';
+import { SQLiteOPFSService } from '@/services/sqlite/SQLiteOPFSService';
 
 async function testSQLiteImplementation() {
   console.log('Testing SQLite implementation with basic data...');

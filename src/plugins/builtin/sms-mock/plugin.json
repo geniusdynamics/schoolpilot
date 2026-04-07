@@ -1,0 +1,38 @@
+{
+  "id": "com.schoolpilot.sms-mock",
+  "name": "SMS Provider (Mock)",
+  "version": "1.0.0",
+  "type": "integration",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Mock SMS provider for development and testing. Simulates sending SMS messages with configurable success rates without sending real messages.",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM0I4MkY2IiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0yMSAxNSE0YTIgMiAwIDAgMS0yLTJWNmEyIDIgMCAwIDEgMi0yaDE0YTIgMiAwIDAgMSAyIDJ2N2EyIDIgMCAwIDEtMiAyaC0xLjVhMSAxIDAgMCAwLS43LjNsLTEuNSAxLjVhMSAxIDAgMCAxLTEuNCwwbC0xLjUtMS41YTEgMSAwIDAgMC0uNy0uM0gyMXoiLz48cGF0aCBkPSJNOCAxMmEyIDIgMCAwIDAtMiAydjdhMiAyIDAgMCAwIDIgMmgxLjVhMSAxIDAgMCAwIC43LS4zbDEuNS0xLjVhMSAxIDAgMCAxIDEuNCAwbDEuNSAxLjVhMSAxIDAgMCAwIC43LjNIMjBhMiAyIDAgMCAwIDItMnYtMiIvPjwvc3ZnPg==",
+  "provides": [
+    "sms.send",
+    "sms.bulkSend",
+    "sms.template",
+    "sms.status"
+  ],
+  "settings": [
+    {
+      "key": "successRate",
+      "label": "Mock Success Rate",
+      "type": "number",
+      "defaultValue": 0.95,
+      "description": "Probability of a mock SMS being sent successfully (0.0 - 1.0)",
+      "validation": { "min": 0, "max": 1 }
+    }
+  ],
+  "privileges": {
+    "dataRead": ["students", "parents", "staff"],
+    "dataWrite": ["sms_logs"],
+    "uiInject": false,
+    "menuModify": false,
+    "settingsAccess": true,
+    "networkAccess": false,
+    "fileSystemAccess": false,
+    "executeCode": false
+  }
+}

@@ -3,7 +3,7 @@
 
 import React, { Suspense, useEffect, useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { pageComponentResolver } from '../services/pageComponentResolver';
+import { pageComponentResolver } from '../services/ui/pageComponentResolver';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import Spinner from './ui/Spinner';
 import { AlertTriangleIcon } from './ui/icons';

@@ -2,7 +2,7 @@
 // ABOUTME: Provides drag-and-drop functionality, filtering, and bulk operations
 
 import { useState, useCallback, useMemo } from 'react';
-import { KanbanCard, KanbanColumn } from '../components/ui/data/KanbanBoard';
+import { KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
 
 export interface UseKanbanOptions<T extends KanbanCard = KanbanCard> {
   initialColumns: KanbanColumn<T>[];

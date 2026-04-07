@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for fine without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { getDatabase } from '../../../services/databaseService';
+import { getDatabase } from '@/services/database/databaseService';
 import { LibFineType } from './types';
 
 const useFineData = () => {

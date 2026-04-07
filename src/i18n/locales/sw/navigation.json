@@ -21,9 +21,29 @@
     "description": "Usimamizi wa masomo na mitihani",
     "dashboard": "Dashibodi ya Masomo",
     "subjects": "Masomo",
-    "examTypes": "Aina za Mitihani",
-    "timetable": "Ratiba",
-    "results": "Matokeo"
+    "timetablePeriods": "Vipindi vya Ratiba",
+    "timetableEntries": "Maingizo ya Ratiba",
+    "examScheduling": "Upangaji wa Mitihani",
+    "subjectPapers": "Karatasi za Masomo",
+    "classSubjectAllocations": "Ugavi wa Masomo kwa Madarasa",
+    "teacherSubjectAssignments": "Kugawa Walimu kwa Masomo",
+    "studentSubjectEnrollment": "Usajili wa Wanafunzi kwa Masomo",
+    "examSessions": "Vipindi vya Mitihani",
+    "examAnalysis": "Uchambuzi wa Mitihani",
+    "studentExamResultsEntry": "Kuingiza Matokeo ya Mitihani",
+    "gradingSchemes": "Mifumo ya Utoaji Alama",
+    "educationSystems": "Mifumo ya Elimu"
+  },
+  "assignments": {
+    "title": "Kazi za Ziada",
+    "create": "Unda Kazi",
+    "grade": "Alama za Kazi"
+  },
+  "lessonplans": {
+    "title": "Mipango ya Masomo",
+    "create": "Unda Mpango",
+    "notes": "Maelezo ya Masomo",
+    "approval": "Kuidhinisha"
   },
   "finance": {
     "title": "Fedha",
@@ -67,4 +87,27 @@
     "backupSettings": "Mipangilio ya Backup",
     "dataLayerSettings": "Mipangilio ya Safu ya Data",
     "databaseProvider": "Mtoa Huduma wa Hifadhidata",
-    "schoolProfile": "Wa
+    "schoolProfile": "Wasifu wa Shule",
+    "users": "Usimamizi wa Watumiaji"
+  },
+  "admissions": {
+    "title": "Uandikishaji",
+    "description": "Usimamizi wa uandikishaji wa wanafunzi",
+    "dashboard": "Dashibodi ya Uandikishaji",
+    "newApplication": "Maombi Mapya",
+    "applications": "Maombi",
+    "reviewQueue": "Foleni ya Ukaguzi",
+    "apply": "Omba Sasa",
+    "track": "Fuatilia Ombi"
+  },
+  "portal": {
+    "title": "Tovuti",
+    "description": "Tovuti ya wanafunzi na wazazi",
+    "dashboard": "Dashibodi ya Tovuti",
+    "attendance": "Mahudhurio",
+    "results": "Matokeo",
+    "fees": "Ada",
+    "announcements": "Matangazo",
+    "profile": "Wasifu"
+  }
+}

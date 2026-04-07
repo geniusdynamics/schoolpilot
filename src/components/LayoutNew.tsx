@@ -8,11 +8,11 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { NavItem } from '../core/types';
-import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useAuth } from '../contexts/AuthContext';
-import { useTabs } from '../hooks/tabs';
-import type { Tab } from '../services/tabs/types';
+import type { NavItem } from '@/core/types';
+import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTabs } from '@/hooks/tabs';
+import type { Tab } from '@/services/tabs/types';
 import Header from './Header';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';

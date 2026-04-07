@@ -3,7 +3,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { useModal } from '../hooks/useModal';
+import { useModal } from '@/hooks/useModal';
 
 // Mock the accessibility utilities
 vi.mock('../utils/accessibility', () => ({

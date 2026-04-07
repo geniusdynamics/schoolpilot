@@ -17,7 +17,7 @@ vi.mock('../modules/settings/pages/DataManagementSettingsPage', () => {
   };
 });
 
-import DataManagementSettingsPage from '../modules/settings/pages/DataManagementSettingsPage';
+import DataManagementSettingsPage from '@/modules/settings/pages/DataManagementSettingsPage';
 
 describe('DataManagementSettingsPage - Basic Structure', () => {
   it('should render the main page structure', () => {

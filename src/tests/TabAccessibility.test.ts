@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { TabAccessibilityManager, defaultTabAccessibilityConfig, TabAccessibilityState, TabAccessibilityCallbacks } from '../services/TabAccessibilityManager';
+import { TabAccessibilityManager, defaultTabAccessibilityConfig, TabAccessibilityState, TabAccessibilityCallbacks } from '../services/ui/TabAccessibilityManager';
 
 // Mock DOM elements for testing
 const createMockTabElement = (attributes: Record<string, any> = {}) => {

@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { performanceEventManager } from '../services/performanceEventManager';
+import { performanceEventManager } from '../services/performance/performanceEventManager';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;

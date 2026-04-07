@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import DataManagementSettingsPage from '../modules/settings/pages/DataManagementSettingsPage';
+import DataManagementSettingsPage from '@/modules/settings/pages/DataManagementSettingsPage';
 
 // Mock all external dependencies
 vi.mock('react-i18next', () => ({

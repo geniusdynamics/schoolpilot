@@ -6,7 +6,7 @@ import {
   createDatabaseSchema,
   SchemaHelpers,
   type DatabaseSchema,
-} from '../../../utils/databaseAgnosticSchema';
+} from '@/utils/databaseAgnosticSchema';
 
 export const financialYearsSchema: DatabaseSchema = createDatabaseSchema({
   title: 'financial_years',

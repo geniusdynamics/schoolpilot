@@ -4,7 +4,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import FeatureSettings from '../../components/FeatureSettings';
+import FeatureSettings from '@/components/FeatureSettings';
 
 const mockNavigate = vi.fn();
 

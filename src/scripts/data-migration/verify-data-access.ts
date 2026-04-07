@@ -3,7 +3,7 @@
 // ABOUTME: Script to verify that we can access data through the SQLite service
 // ABOUTME: This script connects to the SQLite database and verifies data access
 
-import { SQLiteOPFSService } from '../../services/sqlite/SQLiteOPFSService';
+import { SQLiteOPFSService } from '@/services/sqlite/SQLiteOPFSService';
 
 async function verifyDataAccess() {
   console.log('=== VERIFYING DATA ACCESS ===');

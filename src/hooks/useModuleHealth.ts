@@ -2,9 +2,9 @@
 // Provides access to module health data and monitoring capabilities
 
 import { useState, useEffect } from 'react';
-import { moduleHealthMonitor } from '../services/moduleHealthMonitor';
-import { ModuleHealth, ModuleHealthStatus } from '../services/enhancedModuleLoader';
-import { dynamicModuleLoader } from '../services/dynamicModuleLoader';
+import { moduleHealthMonitor } from '../services/module/moduleHealthMonitor';
+import { ModuleHealth, ModuleHealthStatus } from '../services/module/enhancedModuleLoader';
+import { dynamicModuleLoader } from '../services/module/dynamicModuleLoader';
 
 interface UseModuleHealthOptions {
   moduleId?: string;

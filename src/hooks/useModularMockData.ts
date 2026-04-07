@@ -4,43 +4,43 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AppDataContextType, AppDataLoadingStates } from '../types';
-import { createAppDataLoadingState } from '../contexts/appData/appDataCollections';
+import { createAppDataLoadingState } from '@/contexts/appData/appDataCollections';
 
 // Import all module hooks
-import { useAcademicYearData } from '../modules/academics/data/useAcademicYearData';
-import { useClassSubjectAllocationData } from '../modules/academics/data/useClassSubjectAllocationData';
-import { useEducationSystemData } from '../modules/academics/data/useEducationSystemData';
-import { useExamPaperSettingData } from '../modules/academics/data/useExamPaperSettingData';
-import { useExamSessionData } from '../modules/academics/data/useExamSessionData';
-import { useGradingSchemeData } from '../modules/academics/data/useGradingSchemeData';
-import { useGradingSchemeLevelData } from '../modules/academics/data/useGradingSchemeLevelData';
-import { useStudentExamResultData } from '../modules/academics/data/useStudentExamResultData';
-import { useStudentPaperMarkData } from '../modules/academics/data/useStudentPaperMarkData';
-import { useStudentSubjectEnrollmentData } from '../modules/academics/data/useStudentSubjectEnrollmentData';
-import { useSubjectData } from '../modules/academics/data/useSubjectData';
-import { useSubjectPaperData } from '../modules/academics/data/useSubjectPaperData';
-import { useTeacherSubjectAssignmentData } from '../modules/academics/data/useTeacherSubjectAssignmentData';
-import { useTimetableEntryData } from '../modules/academics/data/useTimetableEntryData';
-import { useTimetablePeriodDefData } from '../modules/academics/data/useTimetablePeriodDefData';
+import { useAcademicYearData } from '@/modules/academics/data/useAcademicYearData';
+import { useClassSubjectAllocationData } from '@/modules/academics/data/useClassSubjectAllocationData';
+import { useEducationSystemData } from '@/modules/academics/data/useEducationSystemData';
+import { useExamPaperSettingData } from '@/modules/academics/data/useExamPaperSettingData';
+import { useExamSessionData } from '@/modules/academics/data/useExamSessionData';
+import { useGradingSchemeData } from '@/modules/academics/data/useGradingSchemeData';
+import { useGradingSchemeLevelData } from '@/modules/academics/data/useGradingSchemeLevelData';
+import { useStudentExamResultData } from '@/modules/academics/data/useStudentExamResultData';
+import { useStudentPaperMarkData } from '@/modules/academics/data/useStudentPaperMarkData';
+import { useStudentSubjectEnrollmentData } from '@/modules/academics/data/useStudentSubjectEnrollmentData';
+import { useSubjectData } from '@/modules/academics/data/useSubjectData';
+import { useSubjectPaperData } from '@/modules/academics/data/useSubjectPaperData';
+import { useTeacherSubjectAssignmentData } from '@/modules/academics/data/useTeacherSubjectAssignmentData';
+import { useTimetableEntryData } from '@/modules/academics/data/useTimetableEntryData';
+import { useTimetablePeriodDefData } from '@/modules/academics/data/useTimetablePeriodDefData';
 
 // Import finance module hooks
-import { useFeeTemplateData } from '../modules/finance/data/useFeeTemplateData';
-import { useFeeTemplateItemData } from '../modules/finance/data/useFeeTemplateItemData';
-import { useCustomerInvoiceData } from '../modules/finance/data/useCustomerInvoiceData';
-import { useStudentInvoiceData } from '../modules/finance/data/useStudentInvoiceData';
-import { useStudentOpeningBalanceData } from '../modules/finance/data/useStudentOpeningBalanceData';
-import { useStudentPaymentData } from '../modules/finance/data/useStudentPaymentData';
-import { useChartOfAccountData } from '../modules/finance/data/useChartOfAccountData';
-import { useExpenseCategoryData } from '../modules/finance/data/useExpenseCategoryData';
-import { useBankData } from '../modules/finance/data/useBankData';
-import { useSupplierData } from '../modules/finance/data/useSupplierData';
-import { useExpenseClaimData } from '../modules/finance/data/useExpenseClaimData';
-import { useSupplierInvoiceData } from '../modules/finance/data/useSupplierInvoiceData';
-import { useFeeAdjustmentData } from '../modules/finance/data/useFeeAdjustmentData';
-import { useTransportRouteData } from '../modules/finance/data/useTransportRouteData';
-import { useInvoicePaymentApplicationData } from '../modules/finance/data/useInvoicePaymentApplicationData';
-import { useGeneralPaymentData } from '../modules/finance/data/useGeneralPaymentData';
-import { useGeneralLedgerEntryData } from '../modules/finance/data/useGeneralLedgerEntryData';
+import { useFeeTemplateData } from '@/modules/finance/data/useFeeTemplateData';
+import { useFeeTemplateItemData } from '@/modules/finance/data/useFeeTemplateItemData';
+import { useCustomerInvoiceData } from '@/modules/finance/data/useCustomerInvoiceData';
+import { useStudentInvoiceData } from '@/modules/finance/data/useStudentInvoiceData';
+import { useStudentOpeningBalanceData } from '@/modules/finance/data/useStudentOpeningBalanceData';
+import { useStudentPaymentData } from '@/modules/finance/data/useStudentPaymentData';
+import { useChartOfAccountData } from '@/modules/finance/data/useChartOfAccountData';
+import { useExpenseCategoryData } from '@/modules/finance/data/useExpenseCategoryData';
+import { useBankData } from '@/modules/finance/data/useBankData';
+import { useSupplierData } from '@/modules/finance/data/useSupplierData';
+import { useExpenseClaimData } from '@/modules/finance/data/useExpenseClaimData';
+import { useSupplierInvoiceData } from '@/modules/finance/data/useSupplierInvoiceData';
+import { useFeeAdjustmentData } from '@/modules/finance/data/useFeeAdjustmentData';
+import { useTransportRouteData } from '@/modules/finance/data/useTransportRouteData';
+import { useInvoicePaymentApplicationData } from '@/modules/finance/data/useInvoicePaymentApplicationData';
+import { useGeneralPaymentData } from '@/modules/finance/data/useGeneralPaymentData';
+import { useGeneralLedgerEntryData } from '@/modules/finance/data/useGeneralLedgerEntryData';
 // ... other module imports are kept for when we re-enable them
 
 // Dynamically import all mockData.ts files from modules for fallback data

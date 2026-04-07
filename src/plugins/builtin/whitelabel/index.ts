@@ -6,7 +6,7 @@
  */
 
 import type { PluginManifest, PluginModule, PluginContext } from '../../types';
-import { getEntitlements } from '../../../services/FeatureEntitlements';
+import { getEntitlements } from '../../../services/plugin/FeatureEntitlements';
 
 // ============================================================================
 // Types

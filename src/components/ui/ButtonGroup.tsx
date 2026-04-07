@@ -2,8 +2,8 @@
 // ABOUTME: Supports various layouts, selection states, and keyboard navigation
 
 import React, { ReactNode, Children, cloneElement, isValidElement, forwardRef } from 'react';
-import { useKeyboardNavigation, generateId } from '../../utils/accessibility';
-import { useTransition } from '../../utils/animations';
+import { useKeyboardNavigation, generateId } from '@/utils/accessibility';
+import { useTransition } from '@/utils/animations';
 
 interface ButtonGroupProps {
   children: ReactNode;

@@ -4,7 +4,7 @@
 import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
-import BackupSettingsPage from '../modules/settings/pages/BackupSettingsPage';
+import BackupSettingsPage from '@/modules/settings/pages/BackupSettingsPage';
 
 // Mock the hooks
 vi.mock('../hooks/useAppData', () => ({

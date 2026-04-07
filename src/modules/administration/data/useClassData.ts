@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockClasses } from './mockData';
-import { Class } from '../../../core/types';
+import { Class } from '@/core/types';
 
 export const useClassData = () => {
   const [data, setData] = useState<Class[]>(initialMockClasses);

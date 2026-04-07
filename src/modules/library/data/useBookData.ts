@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for book without depending on AppDataContext
 
 import { useEffect, useState } from 'react';
-import { getDatabase } from '../../../services/databaseService';
+import { getDatabase } from '@/services/database/databaseService';
 import { LibBookType } from './types';
 
 export const useBookData = () => {

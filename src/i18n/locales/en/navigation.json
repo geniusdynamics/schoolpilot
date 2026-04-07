@@ -10,6 +10,11 @@
     "applications": "Applications",
     "preNAsMarks": "Pre-NAS Marks",
     "students": "Students",
+    "studentImport": "Student Import",
+    "studentClearance": "Student Clearance",
+    "disciplinaryCases": "Disciplinary Cases",
+    "certificates": "Certificates",
+    "visitors": "Visitors",
     "staff": "Staff",
     "partners": "Partners",
     "departments": "Departments",
@@ -25,11 +30,37 @@
     "messageCampaigns": "Message Campaigns",
     "academicStructures": "Academic Structures",
     "academicYears": "Academic Years",
-    "academicPeriodDefinitions": "Academic Period Definitions"
+    "academicPeriodDefinitions": "Academic Period Definitions",
+    "schoolPeriods": "School Periods"
   },
   "academics": {
     "title": "Academics",
-    "description": "Academic management and curriculum"
+    "description": "Academic management and curriculum",
+    "dashboard": "Academics Dashboard",
+    "subjects": "Subjects",
+    "timetablePeriods": "Timetable Periods",
+    "timetableEntries": "Timetable Entries",
+    "examScheduling": "Exam Scheduling",
+    "subjectPapers": "Subject Papers",
+    "classSubjectAllocations": "Class Subject Allocations",
+    "teacherSubjectAssignments": "Teacher Subject Assignments",
+    "studentSubjectEnrollment": "Student Subject Enrollment",
+    "examSessions": "Exam Sessions",
+    "examAnalysis": "Exam Analysis",
+    "studentExamResultsEntry": "Student Exam Results Entry",
+    "gradingSchemes": "Grading Schemes",
+    "educationSystems": "Education Systems"
+  },
+  "assignments": {
+    "title": "Assignments",
+    "create": "Create Assignment",
+    "grade": "Grade Assignments"
+  },
+  "lessonplans": {
+    "title": "Lesson Plans",
+    "create": "Create Plan",
+    "notes": "Lesson Notes",
+    "approval": "Approval"
   },
   "finance": {
     "title": "Finance",
@@ -128,10 +159,12 @@
     "features": "Feature Settings",
     "tabs": "Tab Settings",
     "modules": "Module Management",
+    "plugins": "Plugin Management",
     "dependencyReport": "Dependency Report",
     "auditLog": "Audit Log",
     "databaseProvider": "Database Provider",
     "databaseSettings": "Database Settings",
+    "dataLayer": "Data Layer Settings",
     "dataLayerSettings": "Data Layer Settings",
     "dataManagement": "Data Management",
     "backupSettings": "Backup Settings",
@@ -147,5 +180,33 @@
     "pos": "Purchase Orders",
     "invoices": "Invoices",
     "profile": "Profile"
+  },
+  "admissions": {
+    "title": "Admissions",
+    "description": "Student admission management",
+    "dashboard": "Admissions Dashboard",
+    "newApplication": "New Application",
+    "applications": "Applications",
+    "reviewQueue": "Review Queue",
+    "apply": "Apply Now",
+    "track": "Track Application"
+  },
+  "portal": {
+    "title": "Portal",
+    "description": "Student and parent portal",
+    "dashboard": "Portal Dashboard",
+    "attendance": "Attendance",
+    "results": "Results",
+    "fees": "Fees",
+    "announcements": "Announcements",
+    "profile": "Profile"
+  },
+  "houses": {
+    "title": "Houses",
+    "categories": "House Categories",
+    "award": "Award Points",
+    "leaderboard": "Leaderboard",
+    "studentPoints": "Student Points",
+    "classStandings": "Class Standings"
   }
 }

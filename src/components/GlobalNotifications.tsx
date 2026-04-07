@@ -1,8 +1,8 @@
 // Global notification system for enhanced features
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNetwork } from '../contexts/NetworkContext';
-import { useSync } from '../contexts/SyncContext';
+import { useNetwork } from '@/contexts/NetworkContext';
+import { useSync } from '@/contexts/SyncContext';
 
 interface Notification {
   id: string;

@@ -6,7 +6,8 @@
 // Environment Types
 export type Environment = 'development' | 'staging' | 'production';
 export type DataMode = 'demo' | 'production';
-export type DatabaseProvider = 'rxdb' | 'pouchdb' | 'sqlite' | 'sqlite-file' | 'sqlite-wasm' | 'memory' | 'backend-api' | 'livestore' | 'hybrid';
+// NOTE: 'rxdb' removed - Phase 1 of RXDB deprecation
+export type DatabaseProvider = 'pouchdb' | 'sqlite' | 'sqlite-file' | 'sqlite-wasm' | 'memory' | 'backend-api' | 'livestore' | 'hybrid';
 
 // Environment Configuration
 export interface EnvironmentConfig {
@@ -33,7 +34,7 @@ const ENVIRONMENT_MATRIX: Record<Environment, EnvironmentConfig> = {
     name: 'development',
     allowedDataModes: ['demo', 'production'],
     defaultDataMode: 'demo',
-    allowedDatabaseProviders: ['rxdb', 'pouchdb', 'sqlite', 'memory', 'backend-api'],
+    allowedDatabaseProviders: ['pouchdb', 'sqlite', 'sqlite-file', 'sqlite-wasm', 'memory', 'backend-api', 'livestore'],
     defaultDatabaseProvider: 'sqlite',
     canSwitchDataModes: true,
     requiresConfirmation: false,
@@ -50,8 +51,9 @@ const ENVIRONMENT_MATRIX: Record<Environment, EnvironmentConfig> = {
     name: 'staging',
     allowedDataModes: ['demo', 'production'],
     defaultDataMode: 'demo',
-    allowedDatabaseProviders: ['rxdb', 'pouchdb', 'backend-api'],
-    defaultDatabaseProvider: 'rxdb',
+    // RXDB removed - using SQLite WASM as default for staging
+    allowedDatabaseProviders: ['pouchdb', 'sqlite-wasm', 'backend-api', 'livestore'],
+    defaultDatabaseProvider: 'sqlite-wasm',
     canSwitchDataModes: true,
     requiresConfirmation: true,
     features: {
@@ -67,8 +69,9 @@ const ENVIRONMENT_MATRIX: Record<Environment, EnvironmentConfig> = {
     name: 'production',
     allowedDataModes: ['production'],
     defaultDataMode: 'production',
-    allowedDatabaseProviders: ['rxdb', 'backend-api'],
-    defaultDatabaseProvider: 'rxdb',
+    // RXDB removed - using LiveStore as default for production
+    allowedDatabaseProviders: ['pouchdb', 'sqlite-wasm', 'backend-api', 'livestore'],
+    defaultDatabaseProvider: 'livestore',
     canSwitchDataModes: false,
     requiresConfirmation: true,
     features: {

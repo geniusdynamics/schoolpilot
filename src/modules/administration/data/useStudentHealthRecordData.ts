@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations plus page-friendly aliases and populated student names.
 
 import { useMemo, useState } from 'react';
-import { useAppDataInternal } from '../../../hooks/useAppData';
+import { useAppDataInternal } from '@/hooks/useAppData';
 import { initialMockStudentHealthRecords, initialMockStudents } from './mockData';
 import { AdminStudentHealthRecordType } from './types';
 

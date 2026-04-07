@@ -4,7 +4,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SlideoutForm } from '../components/ui/forms/SlideoutForm';
+import { SlideoutForm } from '@/components/ui/forms/SlideoutForm';
 
 import { vi } from 'vitest';
 

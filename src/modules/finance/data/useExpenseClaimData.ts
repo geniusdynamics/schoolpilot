@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '../../../core/types';
 
 const useExpenseClaimData = () => {
   const [expenseClaims, setExpenseClaims] = useState<any[]>([]);

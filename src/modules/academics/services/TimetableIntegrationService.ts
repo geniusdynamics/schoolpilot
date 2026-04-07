@@ -2,7 +2,7 @@
 // ABOUTME: with the school timetable system and checking for timetable conflicts
 
 import { ExamSchedule } from '../data/types';
-import { databaseService } from '../../../services/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 
 export interface TimetableSlot {
   id: string;

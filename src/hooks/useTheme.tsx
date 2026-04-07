@@ -2,7 +2,7 @@
 // ABOUTME: Handles light/dark theme switching and CSS custom property application
 
 import React, { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
-import { applyCSSCustomProperties } from '../utils/designTokens';
+import { applyCSSCustomProperties } from '@/utils/designTokens';
 
 export type Theme = 'light' | 'dark' | 'system';
 

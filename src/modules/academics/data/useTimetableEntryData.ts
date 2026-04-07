@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockTimetableEntries } from './mockData';
-import { TimetableEntry } from '../../../core/types';
+import { TimetableEntry } from '@/core/types';
 
 export const useTimetableEntryData = () => {
   const [data, setData] = useState<TimetableEntry[]>(initialMockTimetableEntries);

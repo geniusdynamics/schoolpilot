@@ -1,7 +1,7 @@
 // ABOUTME: Performance analysis utilities for statistical analysis and trend detection
 // ABOUTME: Provides helper functions for performance data analysis and visualization
 
-import { PerformanceBenchmark } from '../services/performanceBenchmark';
+import { PerformanceBenchmark } from '../services/performance/performanceBenchmark';
 import { ChartDataPoint, PerformanceChartData } from '../types/performance';
 
 /**

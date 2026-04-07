@@ -2,7 +2,7 @@
 // ABOUTME: Provides interactive examples of all animation features
 
 import React from 'react';
-import AnimationDemo from '../components/AnimationDemo';
+import AnimationDemo from '../components/__demos__/AnimationDemo';
 
 const AnimationDemoPage: React.FC = () => {
   return (

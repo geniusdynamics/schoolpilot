@@ -3,18 +3,19 @@
 // ABOUTME: Data migration script to move mock data to SQLite database
 // ABOUTME: This script reads the existing mock data and inserts it into the SQLite database
 
-import { SQLiteOPFSService } from '../../services/sqlite/SQLiteOPFSService';
-import { convertRxDBSchema } from '../../services/database/ProviderSelector';
-import { collectionsDefinition } from '../../services/rxdbService';
+import { SQLiteOPFSService } from '@/services/sqlite/SQLiteOPFSService';
+import { convertRxDBSchema } from '@/services/database/ProviderSelector';
+// RXDB removed - Phase 2: Using provider-agnostic collections
+import { collectionsDefinition } from '@/services/database/collections';
 
 // Import mock data modules directly instead of using import.meta.glob
-import * as academicsMockData from '../../modules/academics/data/mockData';
-import * as administrationMockData from '../../modules/administration/data/mockData';
-import * as financeMockData from '../../modules/finance/data/mockData';
-import * as hrMockData from '../../modules/hr/data/mockData';
-import * as inventoryMockData from '../../modules/inventory/data/mockData';
-import * as libraryMockData from '../../modules/library/data/mockData';
-import * as nutritionMockData from '../../modules/nutrition/data/mockData';
+import * as academicsMockData from '@/modules/academics/data/mockData';
+import * as administrationMockData from '@/modules/administration/data/mockData';
+import * as financeMockData from '@/modules/finance/data/mockData';
+import * as hrMockData from '@/modules/hr/data/mockData';
+import * as inventoryMockData from '@/modules/inventory/data/mockData';
+import * as libraryMockData from '@/modules/library/data/mockData';
+import * as nutritionMockData from '@/modules/nutrition/data/mockData';
 
 async function migrateMockDataToSQLite() {
   console.log('Starting data migration from mock data to SQLite database...');

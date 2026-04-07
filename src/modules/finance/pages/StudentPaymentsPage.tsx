@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { FinStudentPaymentType as StudentPayment, Student } from '../../../types';
-import Card from '../../../components/ui/Card';
+import { FinStudentPaymentType as StudentPayment, Student } from '@/types';
+import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '../../../components/ui/Button';
-import DialogForm from "../../../components/ui/forms/DialogForm";
-import FormSection from "../../../components/ui/forms/FormSection";
-import FormField from "../../../components/ui/forms/FormField";
-import FormActions from "../../../components/ui/forms/FormActions";
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, CreditCardIcon } from '../../../components/ui/icons';
-import { useAppData } from '../../../hooks/useAppData';
-import { useToast } from '../../../hooks/useToast';
-import Spinner from '../../../components/ui/Spinner';
+import Button from '@/components/ui/Button';
+import DialogForm from "@/components/ui/forms/DialogForm";
+import FormSection from "@/components/ui/forms/FormSection";
+import FormField from "@/components/ui/forms/FormField";
+import FormActions from "@/components/ui/forms/FormActions";
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import { PlusIcon, EditIcon, DeleteIcon, CreditCardIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData';
+import { useToast } from '@/hooks/useToast';
+import Spinner from '@/components/ui/Spinner';
 
 type StudentPaymentFormData = Omit<Partial<StudentPayment>, 'id' | 'created_at' | 'updated_at' | 'student_name'>;
 

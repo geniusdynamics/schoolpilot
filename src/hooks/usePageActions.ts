@@ -2,7 +2,7 @@
 // ABOUTME: Provides a simple interface for pages to define contextual actions that appear in the ActionBar
 
 import { useEffect, useCallback, useRef } from 'react';
-import { useActionRegistry, ActionDefinition, ActionGroup } from '../services/actionRegistry';
+import { useActionRegistry, ActionDefinition, ActionGroup } from '../services/ui/actionRegistry';
 import { useTabStore } from '../stores/tabStore';
 import { useAuth } from '../contexts/AuthContext';
 

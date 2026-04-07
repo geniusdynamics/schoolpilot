@@ -14,8 +14,8 @@ import React, {
   ReactNode 
 } from 'react';
 import { ChevronDownIcon, ChevronUpIcon, XMarkIcon, MagnifyingGlassIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { designTokens } from '../../utils/designTokens';
-import { useTransition, transitions } from '../../utils/animations';
+import { designTokens } from '@/utils/designTokens';
+import { useTransition, transitions } from '@/utils/animations';
 import { 
   useFocusManagement, 
   useKeyboardNavigation, 
@@ -24,7 +24,7 @@ import {
   getFormFieldIds,
   getAriaInvalid,
   announceToScreenReader 
-} from '../../utils/accessibility';
+} from '@/utils/accessibility';
 
 export interface SelectOption {
   value: string;

@@ -16,6 +16,7 @@ import { useSubjectPaperData } from './useSubjectPaperData';
 import { useTeacherSubjectAssignmentData } from './useTeacherSubjectAssignmentData';
 import { useTimetableEntryData } from './useTimetableEntryData';
 import { useTimetablePeriodDefData } from './useTimetablePeriodDefData';
+import { useLessonPlansData } from './lessonplans/useLessonPlansData';
 
 // Export all data hooks
 export {
@@ -32,7 +33,8 @@ export {
   useSubjectPaperData,
   useTeacherSubjectAssignmentData,
   useTimetableEntryData,
-  useTimetablePeriodDefData
+  useTimetablePeriodDefData,
+  useLessonPlansData
 };
 
 // Export data hook configurations for registration

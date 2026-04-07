@@ -4,7 +4,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { useToast, ToastProvider, useToastHelpers, useProgressToast } from '../hooks/useToast';
+import { useToast, ToastProvider, useToastHelpers, useProgressToast } from '@/hooks/useToast';
 
 // Test component that uses the toast hook
 const TestComponent: React.FC = () => {

@@ -8,12 +8,12 @@ import { SyncProvider } from './SyncContext';
 import { AuthProvider } from './AuthContext';
 import { UserProvider } from './UserContext';
 import { StableActionProvider } from './StableActionProvider';
-import ErrorBoundary from '../components/ErrorBoundary';
-import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
-import { useFeatureFlagStore } from '../stores/featureFlagStore';
-import { uds } from '../services/data';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
+import { useFeatureFlagStore } from '@/stores/featureFlagStore';
+import { uds } from '@/services/data';
 import { debugLog, warnLog } from '../utils';
-import Spinner from '../components/ui/Spinner';
+import Spinner from '@/components/ui/Spinner';
 
 import { BackupRestoreProvider } from './appData/BackupRestoreContext';
 import { DataGenerationProvider } from './appData/DataGenerationContext';

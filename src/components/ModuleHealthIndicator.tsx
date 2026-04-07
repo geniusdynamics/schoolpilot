@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { useModuleHealth } from '../hooks/useModuleHealth';
-import { ModuleHealthStatus } from '../services/enhancedModuleLoader';
+import { ModuleHealthStatus } from '../services/module/enhancedModuleLoader';
 import { CheckCircleIcon, AlertTriangleIcon, AlertCircleIcon, XCircleIcon } from './ui/icons';
 import ModuleHealthDashboard from './ModuleHealthDashboard';
 import Modal from './ui/Modal';

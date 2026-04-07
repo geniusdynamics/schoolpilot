@@ -3,19 +3,19 @@
 // ABOUTME: Data migration script to move mock data to LiveStore database
 // ABOUTME: This script reads the existing mock data and inserts it into the LiveStore database
 
-import { SQLiteWASMProvider } from '../../services/database/LiveStoreProvider';
+import { SQLiteWASMProvider } from '@/services/database/LiveStoreProvider';
 import { LiveStoreSchema } from '../../livestore/schema';
-import { DatabaseConfig } from '../../services/database/interfaces';
+import { DatabaseConfig } from '@/services/database/interfaces';
 
 // Import mock data modules
-import * as academicsMockData from '../../modules/academics/data/mockData';
-import * as administrationMockData from '../../modules/administration/data/mockData';
-import * as financeMockData from '../../modules/finance/data/mockData';
-import * as hrMockData from '../../modules/hr/data/mockData';
-import * as inventoryMockData from '../../modules/inventory/data/mockData';
-import * as libraryMockData from '../../modules/library/data/mockData';
-import * as nutritionMockData from '../../modules/nutrition/data/mockData';
-import * as transportMockData from '../../modules/transport/data/mockData';
+import * as academicsMockData from '@/modules/academics/data/mockData';
+import * as administrationMockData from '@/modules/administration/data/mockData';
+import * as financeMockData from '@/modules/finance/data/mockData';
+import * as hrMockData from '@/modules/hr/data/mockData';
+import * as inventoryMockData from '@/modules/inventory/data/mockData';
+import * as libraryMockData from '@/modules/library/data/mockData';
+import * as nutritionMockData from '@/modules/nutrition/data/mockData';
+import * as transportMockData from '@/modules/transport/data/mockData';
 
 interface MigrationResult {
   success: boolean;

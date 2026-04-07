@@ -9,7 +9,7 @@ import {
   InfoTooltip,
   HelpTooltip,
   ValidationTooltip
-} from '../components/ui/feedback/Tooltip';
+} from '@/components/ui/feedback/Tooltip';
 
 // Mock createPortal to render in the same container
 vi.mock('react-dom', () => ({

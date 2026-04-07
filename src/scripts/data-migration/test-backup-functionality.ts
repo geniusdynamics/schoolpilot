@@ -3,8 +3,8 @@
 // ABOUTME: Test script for backup functionality
 // ABOUTME: This script tests the backup feature we implemented
 
-import { getDatabaseManager } from '../../services/database/ProviderSelector';
-import { DatabaseConfig } from '../../services/database/interfaces';
+import { getDatabaseManager } from '@/services/database/ProviderSelector';
+import { DatabaseConfig } from '@/services/database/interfaces';
 
 async function testBackup() {
   console.log('Testing backup functionality...');

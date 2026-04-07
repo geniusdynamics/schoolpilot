@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockClassStreams } from './mockData';
-import { ClassStream } from '../../../core/types';
+import { ClassStream } from '@/core/types';
 
 export const useClassStreamData = () => {
   const [data, setData] = useState<ClassStream[]>(initialMockClassStreams);

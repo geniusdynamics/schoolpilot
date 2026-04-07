@@ -2,16 +2,16 @@
 // ABOUTME: Shows user role, demo mode indicator, and logout option
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useTabNavigation } from '../hooks/useTabNavigation';
+import { useTabNavigation } from '@/hooks/useTabNavigation';
 import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
 import { SyncStatusComponent } from './OfflineCapability';
-import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
+import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import HookErrorBoundary from './HookErrorBoundary';
-// Removed: import { safeDeps, HookErrorHandler } from '../utils/hookUtils';
+// Removed: import { safeDeps, HookErrorHandler } from '@/utils/hookUtils';
 import { HookErrorBoundary as ErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 
 interface UserMenuProps {

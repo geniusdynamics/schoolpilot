@@ -6,7 +6,7 @@
 import { useEffect, useCallback, useRef, useMemo } from 'react';
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { usePlatformInfo } from '../utils/platformDetection';
+import { usePlatformInfo } from '@/utils/platformDetection';
 
 // ===== TYPES =====
 

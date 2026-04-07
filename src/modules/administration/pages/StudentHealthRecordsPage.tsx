@@ -12,10 +12,10 @@ import { useAppData } from '@/hooks/useAppData'; // For students data only
 import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 type HealthRecordFormData = Omit<Partial<AdminStudentHealthRecordType>, 'id' | 'student_id' | 'created_at' | 'updated_at'>;
 

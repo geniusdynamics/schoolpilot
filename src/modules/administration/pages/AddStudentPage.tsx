@@ -3,14 +3,14 @@
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PersonGender, StudentStatus, Student, ParentsGuardian, ExamResultSummary } from '../../../types';
-import Card from '../../../components/ui/Card';
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
-import Button from '../../../components/ui/Button';
-import { UserCircleIcon, UsersIcon, AcademicCapIcon, ArrowLeftIcon } from '../../../components/ui/icons';
-import { useAppData } from '../../../hooks/useAppData';
-import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
+import { PersonGender, StudentStatus, Student, ParentsGuardian, ExamResultSummary } from '@/types';
+import Card from '@/components/ui/Card';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Button from '@/components/ui/Button';
+import { UserCircleIcon, UsersIcon, AcademicCapIcon, ArrowLeftIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData';
+import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
 // Removed useFormValidation import to fix infinite loop issue
 
 interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {

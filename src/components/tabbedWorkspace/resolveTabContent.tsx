@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Tab } from '../../types/tabbedWorkspace';
+import type { Tab } from '@/types/tabbedWorkspace';
 
 export const resolveTabContent = (tab: Tab): React.ReactNode => {
   if (!tab || !tab.content) {

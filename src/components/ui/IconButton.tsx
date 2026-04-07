@@ -2,9 +2,9 @@
 // ABOUTME: Provides proper ARIA labels, tooltips, and focus indicators for icon buttons
 
 import React, { ReactNode, ElementType, forwardRef } from 'react';
-import { designTokens } from '../../utils/designTokens';
-import { useTransition } from '../../utils/animations';
-import { generateId } from '../../utils/accessibility';
+import { designTokens } from '@/utils/designTokens';
+import { useTransition } from '@/utils/animations';
+import { generateId } from '@/utils/accessibility';
 
 // Spinner component for loading states
 const Spinner = ({ size = 'sm' }: { size?: 'xs' | 'sm' | 'md' }) => {

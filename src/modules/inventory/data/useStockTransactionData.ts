@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockStockTransactions } from './mockData';
-import { StockTransaction } from '../../../core/types';
+import { StockTransaction } from '@/core/types';
 
 const useStockTransactionData = () => {
   const [stockTransactions, setStockTransactions] = useState<StockTransaction[]>([]);

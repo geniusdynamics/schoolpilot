@@ -2,8 +2,8 @@
 // ABOUTME: Provides UI for configuring tab-related features with internal tabs
 
 import React from 'react';
-// import TabSettings from '../../../components/TabSettings';
-import BreadcrumbNavigation from '../../../components/BreadcrumbNavigation';
+// import TabSettings from '@/components/TabSettings';
+import BreadcrumbNavigation from '@/components/BreadcrumbNavigation';
 
 const TabSettingsPage: React.FC = () => {
   // const { t } = useTranslation(['settings', 'common']);

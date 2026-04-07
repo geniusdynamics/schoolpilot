@@ -2,7 +2,7 @@
 // ABOUTME: Separated from context file to maintain Fast Refresh compatibility
 
 import { useContext } from 'react';
-import { UnifiedConfigContext } from '../contexts/UnifiedConfigContext';
+import { UnifiedConfigContext } from '@/contexts/UnifiedConfigContext';
 import type {
   UnifiedConfigContextType,
   UnifiedAppConfig,
@@ -15,8 +15,8 @@ import type {
   EnvironmentConfig,
   DatabaseProvider,
   ProductionDemoState,
-} from '../contexts/UnifiedConfigContext';
-import { dataModeManager } from '../utils/dataModeManager';
+} from '@/contexts/UnifiedConfigContext';
+import { dataModeManager } from '@/utils/dataModeManager';
 
 /**
  * Hook to use the unified configuration context

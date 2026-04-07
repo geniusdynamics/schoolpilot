@@ -3,7 +3,7 @@
 
 import { ExamSchedule } from '../data/types';
 import { ConflictDetectionEngine } from './ConflictDetectionEngine';
-import { databaseService, generateId } from '../../../services/databaseService';
+import { databaseService, generateId } from '@/services/database/databaseService';
 
 export interface CreateExamScheduleDto {
   exam_id: string;

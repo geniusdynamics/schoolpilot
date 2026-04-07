@@ -20,8 +20,8 @@ import {
     PurchaseOrderStatus,
     RFQ,
     RFQStatus
-} from '../../../core/types';
-import { suppliers } from '../../../globalMockData';
+} from '@/core/types';
+import { suppliers } from '@/globalMockData';
 import { InvSupplierType, InvSupplierStatusEnum } from './types';
 
 // Map global suppliers to InvSupplierType for inventory module use

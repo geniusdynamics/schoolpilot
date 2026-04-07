@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react-hooks';
-import { TabContext } from '../contexts/TabContext';
-import { TabPanel } from '../components/TabPanel';
-import { useRenderCount, useTrackMemoryUsage } from '../utils/testUtils';
+import { TabContext } from '@/contexts/TabContext';
+import { TabPanel } from '@/components/TabPanel';
+import { useRenderCount, useTrackMemoryUsage } from '@/utils/testUtils';
 
 describe('Render Loop Prevention Tests', () => {
   beforeEach(() => {

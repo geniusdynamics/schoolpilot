@@ -3,7 +3,8 @@
 
 import { ModuleDefinition, NavItem } from './types';
 import { MODULE_ORDER } from '../moduleOrder';
-import { moduleConfigService } from '../services/moduleConfigService';
+import { moduleConfigService } from '../services/module/moduleConfigService';
+import { logger } from '../utils/logging';
 
 // Helper to identify core modules
 const CORE_MODULE_IDS = ['dashboard', 'settings', 'reports'];
@@ -45,9 +46,52 @@ const filterDeprecatedNavItems = (navItems: NavItem[]): NavItem[] => {
 class ModuleRegistry {
   private modules: Map<string, ModuleDefinition> = new Map();
 
-  // Register a new module
+  // Check if a module is registered
+  isRegistered(moduleId: string): boolean {
+    return this.modules.has(moduleId);
+  }
+
+  // Register a new module with strict dependency checking
   registerModule(module: ModuleDefinition): void {
+    // Validate required dependencies before registration
+    if (module.dependencies) {
+      for (const dep of module.dependencies) {
+        const depId = typeof dep === 'string' ? dep : dep.moduleId;
+        const isRequired = typeof dep === 'string' ? true : dep.required !== false;
+        const isOptional = typeof dep === 'string' ? false : dep.optional === true;
+
+        if (isRequired && !this.isRegistered(depId)) {
+          throw new Error(
+            `Module "${module.id}" requires "${depId}" which is not registered. ` +
+            `Please register "${depId}" before "${module.id}".`
+          );
+        }
+
+        // Log warning for optional dependencies that aren't registered
+        if (isOptional && !this.isRegistered(depId)) {
+          logger.warn(
+            `Module "${module.id}" has optional dependency "${depId}" which is not registered. ` +
+            `Some features may be unavailable.`
+          );
+        }
+      }
+    }
+
+    // Also check optionalDependencies array if present
+    if (module.optionalDependencies) {
+      for (const dep of module.optionalDependencies) {
+        const depId = typeof dep === 'string' ? dep : dep.moduleId;
+        if (!this.isRegistered(depId)) {
+          logger.warn(
+            `Module "${module.id}" has optional dependency "${depId}" which is not registered. ` +
+            `Some features may be unavailable.`
+          );
+        }
+      }
+    }
+
     this.modules.set(module.id, module);
+    logger.debug(`[ModuleRegistry] Registered module: ${module.id}`);
   }
 
   // Unregister a module
@@ -80,11 +124,11 @@ class ModuleRegistry {
       const isConfigEnabled = moduleConfigService.isModuleEnabled(module.id);
       const isEnabled = isCoreModule || isConfigEnabled;
       
-      console.log(`[ModuleRegistry] DEBUG: Module ${module.id} - core: ${isCoreModule}, configEnabled: ${isConfigEnabled}, finalEnabled: ${isEnabled}`);
+      logger.debug(`[ModuleRegistry] Module ${module.id} - core: ${isCoreModule}, configEnabled: ${isConfigEnabled}, finalEnabled: ${isEnabled}`);
       return isEnabled;
     });
     
-    console.log('[ModuleRegistry] DEBUG: Final enabled modules:', enabledModules.map(m => m.id));
+    logger.debug('[ModuleRegistry] Final enabled modules:', enabledModules.map(m => m.id));
     return enabledModules;
   }
 
@@ -104,7 +148,7 @@ class ModuleRegistry {
   // Get navigation items from all enabled modules
   getNavigationItems(): NavItem[] {
     let enabledModules = this.getEnabledModules();
-    console.log('[ModuleRegistry] DEBUG: getNavigationItems() - enabled modules:', enabledModules.map(m => m.id));
+    logger.debug('[ModuleRegistry] getNavigationItems() - enabled modules:', enabledModules.map(m => m.id));
     
     // Sort by MODULE_ORDER, then alphabetically for extras
     enabledModules = enabledModules.sort((a, b) => {
@@ -119,7 +163,7 @@ class ModuleRegistry {
     
     const navigationItems: NavItem[] = [];
     enabledModules.forEach(module => {
-      console.log(`[ModuleRegistry] DEBUG: Processing navigation for module ${module.id}:`, {
+      logger.debug(`[ModuleRegistry] Processing navigation for module ${module.id}:`, {
         name: module.name,
         path: module.path,
         navigationChildren: module.navigation?.length || 0,
@@ -131,7 +175,7 @@ class ModuleRegistry {
       
       // Skip modules that have no active navigation items after filtering
       if (module.navigation && module.navigation.length > 0 && filteredNavigation.length === 0) {
-        console.log(`[ModuleRegistry] DEBUG: Skipping module ${module.id} - no active navigation items after filtering`);
+        logger.debug(`[ModuleRegistry] Skipping module ${module.id} - no active navigation items after filtering`);
         return;
       }
       
@@ -147,7 +191,7 @@ class ModuleRegistry {
       navigationItems.push(mainNavItem);
     });
     
-    console.log('[ModuleRegistry] DEBUG: Final navigation items:', navigationItems.map(item => ({
+    logger.debug('[ModuleRegistry] Final navigation items:', navigationItems.map(item => ({
       name: item.name,
       path: item.path,
       childrenCount: item.children?.length || 0,

@@ -3,10 +3,10 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import UnifiedModeSwitch from '../components/UnifiedModeSwitch';
-import { AppDataProvider } from '../contexts/AppDataContext';
-import { AuthProvider } from '../contexts/AuthContext';
-import { RBACProvider } from '../contexts/RBACContext';
+import UnifiedModeSwitch from '@/components/UnifiedModeSwitch';
+import { AppDataProvider } from '@/contexts/AppDataContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { RBACProvider } from '@/contexts/RBACContext';
 
 // Mock the contexts
 vi.mock('../contexts/AppDataContext', () => ({

@@ -2,7 +2,7 @@
 // ABOUTME: Self-contained module definition for academic management
 
 import React from 'react';
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   AcademicCapIcon,
   BookOpenIcon,
@@ -16,7 +16,10 @@ import {
   DocumentDuplicateIcon,
   PuzzlePieceIcon,
   ListBulletIcon,
-} from '../../components/ui/icons';
+  ClipboardDocumentCheckIcon,
+  InboxIcon,
+  PlusIcon,
+} from '@/components/ui/icons';
 import { academicsPermissions, academicsDefaultRoles } from './rbac';
 
 export const academicsModule: ModuleDefinition = {
@@ -42,21 +45,27 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.studentExamResultsEntry', path: '/academics/student-exam-results-entry', icon: ClipboardDocumentListIcon, page: 'StudentExamResultsEntryPage' },
     { name: 'navigation:academics.gradingSchemes', path: '/academics/grading-schemes', icon: ListBulletIcon, page: 'GradingSchemesPage' },
     { name: 'navigation:academics.educationSystems', path: '/academics/education-systems', icon: ChartBarIcon, page: 'EducationSystemsPage' },
+    // Assignments sub-feature (merged from assignments module)
+    { name: 'navigation:assignments.title', path: '/academics/assignments', icon: ClipboardDocumentListIcon, page: 'assignments/AssignmentsListPage', feature: 'assignment-management' },
+    { name: 'navigation:assignments.create', path: '/academics/assignments/create', icon: PlusIcon, page: 'assignments/AssignmentsListPage', feature: 'assignment-management' },
+    { name: 'navigation:assignments.grade', path: '/academics/assignments/grade', icon: ClipboardDocumentCheckIcon, page: 'assignments/AssignmentGradingPage', feature: 'assignment-management' },
+    // Lesson Plans sub-feature (merged from lessonplans module)
+    { name: 'navigation:lessonplans.title', path: '/academics/lessonplans', icon: CalendarDaysIcon, page: 'lessonplans/WeeklyPlansPage', feature: 'lesson-planning' },
+    { name: 'navigation:lessonplans.create', path: '/academics/lessonplans/create', icon: PlusIcon, page: 'lessonplans/WeeklyPlansPage', feature: 'lesson-planning' },
+    { name: 'navigation:lessonplans.notes', path: '/academics/lessonplans/notes', icon: DocumentTextIcon, page: 'lessonplans/LessonNotesPage', feature: 'lesson-planning' },
+    { name: 'navigation:lessonplans.approval', path: '/academics/lessonplans/approval', icon: ClipboardDocumentCheckIcon, page: 'lessonplans/ApprovalPage', feature: 'lesson-planning' },
   ],
-  features: ['subject-management', 'class-management', 'timetable', 'exam-management', 'grading'],
+  features: ['subject-management', 'class-management', 'timetable', 'exam-management', 'grading', 'assignment-management', 'lesson-planning'],
   dependencies: [
     {
       moduleId: 'administration',
       version: '^1.0.0',
       required: true
-    },
+    }
+  ],
+  optionalDependencies: [
     {
       moduleId: 'finance',
-      version: '^1.0.0',
-      required: false
-    },
-    {
-      moduleId: 'reports',
       version: '^1.0.0',
       required: false
     }

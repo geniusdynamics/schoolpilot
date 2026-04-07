@@ -9,10 +9,10 @@ import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '@/components/u
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 type AcademicYearFormData = Omit<Partial<AcademicYear>, 'id' | 'created_at' | 'updated_at' | 'structure_name'> & {
     structure_id?: number; 

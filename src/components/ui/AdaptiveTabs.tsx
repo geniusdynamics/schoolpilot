@@ -6,9 +6,9 @@
 import React, { useState, useEffect, useMemo, useCallback, createContext, useContext } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { X, Plus, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '../utils/cn';
-import { usePlatformInfo, getPlatformConfig } from '../utils/platformDetection';
-import { getIcon } from '../utils/iconMap';
+import { cn } from '@/utils/cn';
+import { usePlatformInfo, getPlatformConfig } from '@/utils/platformDetection';
+import { getIcon } from '@/utils/iconMap';
 
 // ===== TYPES =====
 

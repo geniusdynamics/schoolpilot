@@ -23,7 +23,7 @@ import type {
   Supplier,
   FeeTemplate,
   ParentsGuardian
-} from '../core/types';
+} from '@/core/types';
 
 // Define the LiveStore schema for SchoolPilot3
 export const schema = {

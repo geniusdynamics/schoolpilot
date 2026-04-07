@@ -4,7 +4,7 @@ import {
   StudentExamResult, StudentPaperMark, ClassSubjectAllocation, TeacherSubjectAssignment,
   StudentSubjectEnrollment, TimetablePeriodDef, TimetableEntry, StudentExamResultWithDetails,
   DayOfWeek, ExamSchedule
-} from '../../../core/types';
+} from '@/core/types';
 import {
   SubjectGrouping, ExamSessionStatus, StudentEnrollmentStatus, EducationSystemType, 
   GradingSystemType, AcademicPeriodType, AssessmentType, EducationSystemConfiguration

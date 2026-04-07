@@ -24,7 +24,7 @@ export type {
 
 // Stores and services
 export { useTabStore } from '../../stores/tabStore';
-export { useActionRegistry } from '../../services/actionRegistry';
+export { useActionRegistry } from '../../services/ui/actionRegistry';
 export {
   allModuleActions,
   getActionsByModule,
@@ -38,7 +38,7 @@ export {
   nutritionActions,
   reportsActions,
   settingsActions
-} from '../../services/moduleActions';
+} from '../../services/module/moduleActions';
 
 // Default export
 export { TabbedWorkspace as default } from './TabbedWorkspace';

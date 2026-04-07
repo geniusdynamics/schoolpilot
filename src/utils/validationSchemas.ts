@@ -13,10 +13,10 @@ import {
   StudentStatus, 
   FinancialYearStatus, 
   InvoiceStatus
-} from '../core/types';
+} from '@/core/types';
 import { 
   ExamSessionStatus
-} from '../modules/academics/data/enums';
+} from '@/modules/academics/data/enums';
 
 // Student validation schema
 const studentSchema: EntityValidationSchema = {

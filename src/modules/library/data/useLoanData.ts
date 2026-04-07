@@ -2,9 +2,9 @@
 // ABOUTME: Provides CRUD operations for loan without depending on AppDataContext
 
 import { useState, useEffect } from 'react';
-import { getDatabase } from '../../../services/databaseService';
+import { getDatabase } from '@/services/database/databaseService';
 import { LibLoanType } from './types';
-import { useToast } from '../../../hooks/useToast';
+import { useToast } from '@/hooks/useToast';
 
 const useLoanData = () => {
   const [data, setData] = useState<LibLoanType[]>([]);

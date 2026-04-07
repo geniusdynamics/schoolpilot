@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { ChevronLeft, ChevronRight, Plus, MoreHorizontal } from 'lucide-react';
-import { useTabStore } from '../../stores/tabStore';
+import { useTabStore } from '@/stores/tabStore';
 import { Tab as TabComponent } from './Tab';
-import { cn } from '../../utils/cn';
-import { getIcon } from '../../utils/iconMap';
-import { HierarchicalTabBarProps, HierarchicalTab } from '../../types/hierarchical';
+import { cn } from '@/utils/cn';
+import { getIcon } from '@/utils/iconMap';
+import { HierarchicalTabBarProps, HierarchicalTab } from '@/types/hierarchical';
 
 // Legacy interface for backward compatibility
 interface LegacyTabBarProps {

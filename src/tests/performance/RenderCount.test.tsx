@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, test, expect, beforeEach } from 'vitest';
-import { createRenderTracker } from '../utils/testUtils';
-import { TabbedWorkspace } from '../../components/tabbedWorkspace';
+import { createRenderTracker } from '@/utils/testUtils';
+import { TabbedWorkspace } from '@/components/tabbedWorkspace';
 import { NavigationProvider } from '../../providers/NavigationProvider';
 
 describe('Render Count Tests', () => {

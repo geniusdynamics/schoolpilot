@@ -2,8 +2,8 @@
 // Provides access to module loading performance metrics and optimization capabilities
 
 import { useState, useEffect } from 'react';
-import { dynamicModuleLoader, ModuleLoadingProgress } from '../services/dynamicModuleLoader';
-import { ModulePerformanceMetrics } from '../services/enhancedModuleLoader';
+import { dynamicModuleLoader, ModuleLoadingProgress } from '../services/module/dynamicModuleLoader';
+import { ModulePerformanceMetrics } from '../services/module/enhancedModuleLoader';
 
 interface UseModuleLoadingPerformanceOptions {
   moduleId?: string;

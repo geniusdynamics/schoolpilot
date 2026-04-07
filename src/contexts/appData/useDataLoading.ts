@@ -1,4 +1,4 @@
-import { useAppData } from '../../hooks/useAppData';
+import { useAppData } from '@/hooks/useAppData';
 
 export const useDataLoading = () => {
   const {

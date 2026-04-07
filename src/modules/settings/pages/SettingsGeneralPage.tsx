@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 
 const SettingsGeneralPage: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
-  const { schoolDetails, users, isRxDBModeActive: isDatabaseModeActive } = useAppData();
+  const { schoolDetails, users, isDatabaseModeActive } = useAppData();
 
   return (
     <div className="space-y-6">

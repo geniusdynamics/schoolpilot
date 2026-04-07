@@ -1,7 +1,7 @@
 // src/modules/reports/dashboards/PerformanceDashboard.tsx
 
 import React from 'react';
-import AcademicCharts from '../components/AcademicCharts';
+import AcademicCharts from '@/components/AcademicCharts';
 
 const PerformanceDashboard: React.FC = () => {
   const data = [

@@ -1,19 +1,19 @@
 import React, { useState, useMemo } from 'react';
-import { FinFeeAdjustmentType as FeeAdjustment, Student, SchoolPeriod, FinFeeAdjustmentTypeEnum as FeeAdjustmentType, StudentStatus } from '../../../types';
-import Card from '../../../components/ui/Card';
+import { FinFeeAdjustmentType as FeeAdjustment, Student, SchoolPeriod, FinFeeAdjustmentTypeEnum as FeeAdjustmentType, StudentStatus } from '@/types';
+import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '../../../components/ui/Button';
-import DialogForm from "../../../components/ui/forms/DialogForm";
-import FormSection from "../../../components/ui/forms/FormSection";
-import FormField from "../../../components/ui/forms/FormField";
-import FormActions from "../../../components/ui/forms/FormActions";
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
-import Textarea from '../../../components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '../../../components/ui/icons';
-import { useAppData } from '../../../hooks/useAppData';
-import Spinner from '../../../components/ui/Spinner';
-import { useToast } from '../../../hooks/useToast';
+import Button from '@/components/ui/Button';
+import DialogForm from "@/components/ui/forms/DialogForm";
+import FormSection from "@/components/ui/forms/FormSection";
+import FormField from "@/components/ui/forms/FormField";
+import FormActions from "@/components/ui/forms/FormActions";
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Textarea from '@/components/ui/Textarea';
+import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData';
+import Spinner from '@/components/ui/Spinner';
+import { useToast } from '@/hooks/useToast';
 
 type FeeAdjustmentFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'student_name' | 'school_period_name' | 'adjustment_type'> & {
     adjustment_type: FeeAdjustmentType;

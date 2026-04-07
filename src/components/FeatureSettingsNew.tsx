@@ -27,7 +27,7 @@ import { useAppData } from '../contexts/AppDataContext';
 import SyncManagementPanel from './SyncManagementPanel';
 import PerformanceDashboard from './PerformanceDashboard';
 import { MemoryDashboard } from './MemoryDashboard';
-import TooltipDemo from './TooltipDemo';
+import TooltipDemo from './__demos__/TooltipDemo';
 import NetworkStatusIndicator from './NetworkStatusIndicator';
 import ConflictResolutionComponent from './ConflictResolutionInterface';
 import Card from './ui/Card';

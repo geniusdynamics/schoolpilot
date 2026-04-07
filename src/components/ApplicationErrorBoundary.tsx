@@ -2,7 +2,7 @@
 // ABOUTME: Provides recovery mechanisms and prevents complete application crashes
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { reportError } from '../config/errorTracking';
+import { reportError } from '@/config/errorTracking';
 
 interface Props {
   children: ReactNode;

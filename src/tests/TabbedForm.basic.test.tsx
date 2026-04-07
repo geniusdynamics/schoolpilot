@@ -4,7 +4,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
-import TabbedForm from '../components/ui/forms/TabbedForm';
+import TabbedForm from '@/components/ui/forms/TabbedForm';
 
 describe('TabbedForm - Basic Functionality', () => {
   const mockTabs = [

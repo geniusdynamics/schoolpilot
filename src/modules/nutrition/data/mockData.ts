@@ -12,7 +12,7 @@ import {
     StudentMealPlanStatus,
     MealType,
     WalletTransactionType
-} from '../../../core/types';
+} from '@/core/types';
 
 export const initialMockMealPlans: MealPlan[] = [
   { id: 1, name: 'Standard Lunch Plan', description: 'Daily lunch for students', cost_per_period: 7500, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },

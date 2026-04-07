@@ -6,8 +6,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import Input from '../components/ui/Input';
-import FormField from '../components/ui/forms/FormField';
+import Input from '@/components/ui/Input';
+import FormField from '@/components/ui/forms/FormField';
 
 // Mock the animation utilities to avoid issues in test environment
 vi.mock('../utils/animations', () => ({

@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, act } from '@testing-library/react';
-import { TabContext } from '../contexts/TabContext';
-import { TabPanel } from '../components/TabPanel';
-import { useRenderCount, useTrackMemoryUsage, trackEventListeners } from '../utils/testUtils';
+import { TabContext } from '@/contexts/TabContext';
+import { TabPanel } from '@/components/TabPanel';
+import { useRenderCount, useTrackMemoryUsage, trackEventListeners } from '@/utils/testUtils';
 
 describe('Memory and Performance Tests', () => {
   beforeEach(() => {

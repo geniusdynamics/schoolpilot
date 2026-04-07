@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { TabContext } from '../contexts/TabContext';
-import { AuthContext } from '../contexts/AuthContext';
+import { TabContext } from '@/contexts/TabContext';
+import { AuthContext } from '@/contexts/AuthContext';
 import { App } from '../App';
 import { LoginPage } from '../pages/LoginPage';
 import { Dashboard } from '../pages/Dashboard';

@@ -3,9 +3,9 @@
 // ABOUTME: Supports validation states, loading indicators, icons, and accessibility features
 
 import React, { InputHTMLAttributes, ReactNode, useState, useRef, useEffect } from 'react';
-import { getFormFieldIds, getAriaInvalid, createAriaDescribedBy } from '../../utils/accessibility';
-import { useTransition } from '../../utils/animations';
-import { designTokens } from '../../utils/designTokens';
+import { getFormFieldIds, getAriaInvalid, createAriaDescribedBy } from '@/utils/accessibility';
+import { useTransition } from '@/utils/animations';
+import { designTokens } from '@/utils/designTokens';
 
 export interface ModernInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label: string;

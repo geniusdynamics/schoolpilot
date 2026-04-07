@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockExpenseCategories } from './mockData';
-import { any } from '../../../core/types';
 
 const useExpenseCategoryData = () => {
   const [expenseCategories, setExpenseCategories] = useState<any[]>([]);

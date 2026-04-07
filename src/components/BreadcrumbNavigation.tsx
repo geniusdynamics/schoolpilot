@@ -6,9 +6,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
 import { AlertTriangleIcon } from './ui/icons';
-import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useTabNavigation } from '../hooks/useTabNavigation';
-import { BreadcrumbItem, BreadcrumbNavigationProps } from '../types/hierarchical';
+import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
+import { useTabNavigation } from '@/hooks/useTabNavigation';
+import { BreadcrumbItem, BreadcrumbNavigationProps } from '@/types/hierarchical';
+import { extractModuleId } from '@/utils/moduleUtils';
 
 // Legacy interface for backward compatibility
 interface LegacyBreadcrumbItem {
@@ -84,7 +85,9 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
       if (navItem?.name && navItem.name.includes(':')) {
         // This is a translation key like "navigation:settings.features"
         try {
-          const translated = t(navItem.name, { defaultValue: formatSegmentLabel(segment) });
+          // Extract clean module key using utility function
+          const translationKey = extractModuleId(navItem.name);
+          const translated = t(translationKey, { defaultValue: formatSegmentLabel(segment) });
           // Make sure we got a string, not an object
           if (typeof translated === 'string') {
             label = translated;

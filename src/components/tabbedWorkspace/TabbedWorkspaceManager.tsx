@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTabStore } from '../../stores/tabStore';
 import { useDynamicNavigation } from '../../hooks/useDynamicNavigation';
 import { extractModuleId } from '../../utils/moduleUtils';
-import { TabStateManager, defaultTabStateConfig } from '../../services/TabStateManager';
+import { TabStateManager, defaultTabStateConfig } from '../../services/ui/TabStateManager';
 
 interface TabbedWorkspaceManagerProps {
   children: React.ReactNode;

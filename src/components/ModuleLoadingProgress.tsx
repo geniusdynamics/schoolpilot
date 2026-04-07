@@ -2,7 +2,7 @@
 // ABOUTME: Provides visual feedback during actual module initialization
 
 import React, { useState, useEffect } from 'react';
-import { dynamicModuleLoader } from '../services/dynamicModuleLoader';
+import { dynamicModuleLoader } from '../services/module/dynamicModuleLoader';
 
 interface ModuleLoadingProgressProps {
   showDetails?: boolean;

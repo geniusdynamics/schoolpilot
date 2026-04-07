@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { SubTab, SubTabNavigationProps } from '../../types/hierarchical';
+import { SubTab, SubTabNavigationProps } from '@/types/hierarchical';
 
 const SubTabNavigation: React.FC<SubTabNavigationProps> = ({
   subTabs,

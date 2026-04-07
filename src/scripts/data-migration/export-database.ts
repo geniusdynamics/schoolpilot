@@ -3,7 +3,7 @@
 // ABOUTME: Script to export SQLite database to a regular file for exploration
 // ABOUTME: This script creates a backup of the OPFS database to a regular file
 
-import { SQLiteOPFSService } from '../../services/sqlite/SQLiteOPFSService';
+import { SQLiteOPFSService } from '@/services/sqlite/SQLiteOPFSService';
 import * as fs from 'fs';
 import * as path from 'path';
 

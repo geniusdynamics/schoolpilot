@@ -26,13 +26,13 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
-import DataManagementSettingsPage from '../../modules/settings/pages/DataManagementSettingsPage';
-import { AppDataProvider } from '../../contexts/AppDataContext';
-import { useAppData } from '../../hooks/useAppData';
-import { UnifiedConfigProvider } from '../../contexts/UnifiedConfigContext';
-import { useUnifiedConfig, useEnvironment } from '../../hooks/useUnifiedConfig';
-import { EnvironmentProvider } from '../../contexts/EnvironmentContext';
-import { DataServiceFactory } from '../../services/DataServiceFactory';
+import DataManagementSettingsPage from '@/modules/settings/pages/DataManagementSettingsPage';
+import { AppDataProvider } from '@/contexts/AppDataContext';
+import { useAppData } from '@/hooks/useAppData';
+import { UnifiedConfigProvider } from '@/contexts/UnifiedConfigContext';
+import { useUnifiedConfig, useEnvironment } from '@/hooks/useUnifiedConfig';
+import { EnvironmentProvider } from '@/contexts/EnvironmentContext';
+import { DataServiceFactory } from '@/services/DataServiceFactory';
 
 // Mock dependencies - must be before any imports that use these modules
 // Mock ProviderSelector

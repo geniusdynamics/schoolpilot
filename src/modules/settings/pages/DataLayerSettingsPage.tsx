@@ -2,16 +2,16 @@
 // ABOUTME: Provides comprehensive interface for database provider settings and mode switching
 
 import React, { useEffect, useMemo, useState } from 'react';
-import SyncManagementPanel from '../../../components/SyncManagementPanel';
-import { BackendConfiguration } from '../../../components/BackendConfiguration';
-import { backendArchitecture, type BackendType } from '../../../config/backendArchitecture';
-import { useDataMode } from '../../../hooks/useDataMode';
-import { getDatabaseOptionsForMode, getBackendOptionsForModeAndProvider, normalizeProvider, resolveConsolidatedConfigurationOption, type ApplicationSettingsMode, type BackendIntegrationType } from '../../../config/dataLayerConfig';
+import SyncManagementPanel from '@/components/SyncManagementPanel';
+import { BackendConfiguration } from '@/components/BackendConfiguration';
+import { backendArchitecture, type BackendType } from '@/config/backendArchitecture';
+import { useDataMode } from '@/hooks/useDataMode';
+import { getDatabaseOptionsForMode, getBackendOptionsForModeAndProvider, normalizeProvider, resolveConsolidatedConfigurationOption, type ApplicationSettingsMode, type BackendIntegrationType } from '@/config/dataLayerConfig';
 import { Settings, Info, RefreshCw } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
-import { DataServiceFactory } from '@/services/DataServiceFactory';
+import { DataServiceFactory } from '@/services/data/DataServiceFactory';
 
 export const DataLayerSettingsPage: React.FC = () => {
   const { status: dataModeStatus, switchMode, isLoading, seedData, clearData, isDemoReseedingDisabled } = useDataMode();

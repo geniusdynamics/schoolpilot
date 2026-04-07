@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockFixedAssets } from './mockData';
-import { FixedAsset } from '../../../core/types';
+import { FixedAsset } from '@/core/types';
 
 export const useFixedAssetData = () => {
   const [data, setData] = useState<FixedAsset[]>(initialMockFixedAssets);

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockFeeAdjustments } from './mockData';
-import { FeeAdjustment } from '../../../core/types';
+import { FeeAdjustment } from '@/core/types';
 
 const useFeeAdjustmentData = () => {
   const [feeAdjustments, setFeeAdjustments] = useState<FeeAdjustment[]>([]);

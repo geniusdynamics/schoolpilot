@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockBookCategories } from './mockData';
-import { BookCategory } from '../../../core/types';
+import { BookCategory } from '@/core/types';
 
 export const useBookCategoryData = () => {
   const [bookCategories, setBookCategories] = useState<BookCategory[]>([]);

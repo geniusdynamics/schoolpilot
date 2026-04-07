@@ -1,8 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import { XIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
-import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useTabs } from '../hooks/tabs';
+import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
+import { useTabs } from '@/hooks/tabs';
 // Removed unused HookErrorHandler import
 import { HookErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 import { SettingsSkeleton } from './ModuleLoadingFallback';
@@ -13,9 +13,19 @@ interface SettingsPopupProps {
 }
 
 const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) => {
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation(['navigation', 'settings', 'common']);
   const { navigationItems, isLoading } = useDynamicNavigation();
   const { openTab } = useTabs();
+  
+  // Helper function to translate item names
+  const translateItemName = useCallback((itemName: string): string => {
+    if (!itemName) return '';
+    // Parse namespace from key like "navigation:key.subkey"
+    const [namespace, key] = itemName.includes(':') 
+      ? itemName.split(':') 
+      : ['navigation', itemName];
+    return t(key, { ns: namespace });
+  }, [t]);
   
   // Memoize settings module and menu to prevent unnecessary recalculations
   const settingsModule = useMemo(() => {
@@ -83,11 +93,11 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
               {settingsMenu.map((item: any) => (
                 <li key={item.name}>
                   <button 
-                    onClick={() => handleLinkClick(item.path, t(item.name))} 
+                    onClick={() => handleLinkClick(item.path, translateItemName(item.name))} 
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-blue-50 transition-all text-left"
                   >
                     {item.icon ? React.createElement(item.icon, { className: 'w-5 h-5' }) : null}
-                    <span className="font-medium text-base">{t(item.name)}</span>
+                    <span className="font-medium text-base">{translateItemName(item.name)}</span>
                   </button>
                 </li>
               ))}

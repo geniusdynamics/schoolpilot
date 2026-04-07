@@ -14,6 +14,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeftIcon, ChevronRightIcon } from './icons';
+import { extractModuleId } from '@/utils/moduleUtils';
 
 export interface PortalNavItem {
   key: string;
@@ -36,6 +37,13 @@ const PortalSidebar: React.FC<PortalSidebarProps> = ({ navItems, activeView, onS
   // Filter nav items by RBAC
   const visibleNavItems = navItems.filter(item => !item.permission || rbacPermissions.includes(item.permission));
 
+  // Helper to translate nav item labels
+  const translateLabel = (label: string): string => {
+    // Extract clean module key if it's a translation key like "navigation:admissions.title"
+    const cleanKey = label.includes(':') ? extractModuleId(label) : label;
+    return t(cleanKey);
+  };
+
   return (
     <aside className={`transition-all duration-300 h-full flex flex-col bg-gradient-to-b from-indigo-900 via-indigo-800 to-indigo-900 shadow-xl border-r border-indigo-700 ${collapsed ? 'w-16' : 'w-56'} min-h-0 relative z-20`}> 
       {/* Collapse/Expand Button */}
@@ -54,10 +62,10 @@ const PortalSidebar: React.FC<PortalSidebarProps> = ({ navItems, activeView, onS
             className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 font-medium text-base focus:outline-none
               ${activeView === item.key ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-100 hover:bg-indigo-700 hover:text-white'}
               ${collapsed ? 'justify-center px-2' : ''}`}
-            title={t(item.label)}
+            title={translateLabel(item.label)}
           >
             <span className="w-6 h-6 flex items-center justify-center">{item.icon}</span>
-            {!collapsed && <span className="truncate">{t(item.label)}</span>}
+            {!collapsed && <span className="truncate">{translateLabel(item.label)}</span>}
           </button>
         ))}
       </nav>

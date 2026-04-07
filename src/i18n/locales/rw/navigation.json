@@ -20,10 +20,30 @@
     "title": "Amasomo",
     "description": "Gucunga amasomo n'ibizamini",
     "dashboard": "Ikibaho cy'Amasomo",
-    "subjects": "Ingingo z'amasomo",
-    "examTypes": "Ubwoko bw'ibizamini",
-    "timetable": "Gahunda y'amasomo",
-    "results": "Ibisubizo"
+    "subjects": "Inyigisho",
+    "timetablePeriods": "Igihe cy'Amasomo",
+    "timetableEntries": "Ibyanditswe mu Gicamunsi",
+    "examScheduling": "Gupanga Ibizamini",
+    "subjectPapers": "Ibipapuro by'Iyigisho",
+    "classSubjectAllocations": "Gutanga Inyigisho ku Bici",
+    "teacherSubjectAssignments": "Gushyira Abarimu ku Nyigisho",
+    "studentSubjectEnrollment": "Kwandikisha Abanyeshuri ku Nyigisho",
+    "examSessions": "Ibikorwa by'Ibizamini",
+    "examAnalysis": "Isesengura ry'Ibizamini",
+    "studentExamResultsEntry": "Kwandika Ibisubizo by'Ibizamini",
+    "gradingSchemes": "Uburyo bwo Gupima",
+    "educationSystems": "Sisiteme y'Uburezi"
+  },
+  "assignments": {
+    "title": "Imirimo",
+    "create": "Kora Umurimo",
+    "grade": "Gupima Imirimo"
+  },
+  "lessonplans": {
+    "title": "Gahunda z'Isomo",
+    "create": "Kora Gahunda",
+    "notes": "Inyandiko z'Isomo",
+    "approval": "Kwemeza"
   },
   "finance": {
     "title": "Imari",
@@ -69,4 +89,25 @@
     "databaseProvider": "Uutanga Database",
     "schoolProfile": "Umwirondoro w'Ishuri",
     "users": "Gucunga Abakoresha"
+  },
+  "admissions": {
+    "title": "Kwandikisha",
+    "description": "Gucunga ukwandikisha kw'abanyeshuri",
+    "dashboard": "Ikibaho cy'Ukwandikisha",
+    "newApplication": "Ubusabe Bushya",
+    "applications": "Ubusabe",
+    "reviewQueue": "Urutonde rw'Ibisuzumwa",
+    "apply": "Gusaba",
+    "track": "Gukurikirana Ubusabe"
+  },
+  "portal": {
+    "title": "Urubuga",
+    "description": "Urubuga rw'abanyeshuri n'ababyeyi",
+    "dashboard": "Ikibaho cy'Urubuga",
+    "attendance": "Ubwitabire",
+    "results": "Ibisubizo",
+    "fees": "Amafaranga",
+    "announcements": "Amatangazo",
+    "profile": "Umwirondoro"
   }
+}

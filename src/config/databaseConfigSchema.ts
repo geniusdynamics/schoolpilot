@@ -54,11 +54,12 @@ export interface ConfigurationMigration {
 // Database configuration validation rules
 export const DATABASE_CONFIG_VALIDATION_RULES: ValidationRule[] = [
   // Provider validation
+  // NOTE: 'rxdb' removed from valid providers - Phase 1 of RXDB deprecation
   {
     field: 'provider',
     validator: (value: DatabaseProvider) => {
       const validProviders: DatabaseProvider[] = [
-        'rxdb', 'pouchdb', 'sqlite', 'sqlite-file', 'sqlite-wasm', 
+        'pouchdb', 'sqlite', 'sqlite-file', 'sqlite-wasm', 
         'memory', 'backend-api', 'livestore', 'hybrid'
       ];
       return validProviders.includes(value);

@@ -4,7 +4,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { CogIcon, IdentificationIcon, UserGroupIcon, ArrowsRightLeftIcon, ClockIcon, CircleStackIcon } from '../../../components/ui/icons'; 
+import { CogIcon, IdentificationIcon, UserGroupIcon, ArrowsRightLeftIcon, ClockIcon, CircleStackIcon } from '@/components/ui/icons'; 
 import { useAppData } from '@/hooks/useAppData'; 
 import { User } from '@/types'; 
 import Table from '@/components/ui/Table';

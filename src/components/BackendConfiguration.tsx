@@ -7,7 +7,7 @@ import {
   backendArchitecture,
   BackendType,
   BackendConfig
-} from '../config/backendArchitecture';
+} from '@/config/backendArchitecture';
 
 interface BackendConfigurationProps {
   className?: string;

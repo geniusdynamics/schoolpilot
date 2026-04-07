@@ -68,3 +68,16 @@ export enum BreakType {
     LUNCH = 'Lunch',
     HEALTH_BREAK = 'Health Break'
 }
+
+export enum AssignmentStatus {
+    DRAFT = 'Draft',
+    PUBLISHED = 'Published',
+    ARCHIVED = 'Archived'
+}
+
+export enum SubmissionStatus {
+    SUBMITTED = 'Submitted',
+    GRADED = 'Graded',
+    PENDING_REVIEW = 'Pending Review',
+    RETURNED = 'Returned'
+}

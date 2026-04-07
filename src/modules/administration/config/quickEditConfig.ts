@@ -1,7 +1,7 @@
 // ABOUTME: Configuration for quick edit fields in student management
 // ABOUTME: Allows customization of which fields appear in the quick edit slideout
 
-import { Student, StudentStatus } from '../../../types';
+import { Student, StudentStatus } from '@/types';
 
 export interface QuickEditField {
   key: keyof Student | string;

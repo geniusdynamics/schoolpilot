@@ -3,8 +3,8 @@
 // ABOUTME: Supports multiple variants, responsive layouts, and accessibility features
 
 import React, { ReactNode, forwardRef, HTMLAttributes } from 'react';
-import { useTransition } from '../../utils/animations';
-import { useReducedMotion } from '../../utils/accessibility';
+import { useTransition } from '@/utils/animations';
+import { useReducedMotion } from '@/utils/accessibility';
 
 export type CardVariant = 'default' | 'elevated' | 'outlined' | 'filled' | 'interactive' | 'compact';
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';

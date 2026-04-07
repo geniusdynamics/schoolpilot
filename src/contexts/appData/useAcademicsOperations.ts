@@ -2,10 +2,10 @@
 // ABOUTME: Extracted from AppDataContext to reduce God Object size
 
 import { useCallback } from 'react';
-import { UnifiedDatabaseManager } from '../../services/database/UnifiedDatabaseManager';
+import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { normalizeAppDataCollections } from './appDataCollections';
-import { GradingSystemType } from '../../modules/academics/data/types';
-import { GradingEngineService } from '../../modules/academics/services/GradingEngineService';
+import { GradingSystemType } from '@/modules/academics/data/types';
+import { GradingEngineService } from '@/modules/academics/services/GradingEngineService';
 
 const roundScore = (value: number) => Number(value.toFixed(2));
 

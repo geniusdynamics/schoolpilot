@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for student import sessions and records using direct database access
 
 import { useState, useCallback } from 'react';
-import { databaseService } from '@/services/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 import type { StudentImportSession, StudentImportRecord } from '../data/types';
 import type { Student } from '@/types';
 

@@ -3,7 +3,7 @@
 // ABOUTME: Script to create a proper SQLite database file in the project directory
 // ABOUTME: This script creates an actual .db file that can be explored with SQLite tools
 
-import { SQLiteOPFSService } from '../../services/sqlite/SQLiteOPFSService';
+import { SQLiteOPFSService } from '@/services/sqlite/SQLiteOPFSService';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,15 +13,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Import mock data modules
-import * as academicsMockData from '../../modules/academics/data/mockData';
-import * as administrationMockData from '../../modules/administration/data/mockData';
-import * as financeMockData from '../../modules/finance/data/mockData';
-import * as hrMockData from '../../modules/hr/data/mockData';
-import * as inventoryMockData from '../../modules/inventory/data/mockData';
-import * as libraryMockData from '../../modules/library/data/mockData';
-import * as nutritionMockData from '../../modules/nutrition/data/mockData';
-import { convertRxDBSchema } from '../../services/database/ProviderSelector';
-import { collectionsDefinition } from '../../services/rxdbService';
+import * as academicsMockData from '@/modules/academics/data/mockData';
+import * as administrationMockData from '@/modules/administration/data/mockData';
+import * as financeMockData from '@/modules/finance/data/mockData';
+import * as hrMockData from '@/modules/hr/data/mockData';
+import * as inventoryMockData from '@/modules/inventory/data/mockData';
+import * as libraryMockData from '@/modules/library/data/mockData';
+import * as nutritionMockData from '@/modules/nutrition/data/mockData';
+import { convertRxDBSchema } from '@/services/database/ProviderSelector';
+// RXDB removed - Phase 2: Using provider-agnostic collections
+import { collectionsDefinition } from '@/services/database/collections';
 
 async function createSQLiteDatabaseFile() {
   console.log('=== Creating SQLite Database File ===');

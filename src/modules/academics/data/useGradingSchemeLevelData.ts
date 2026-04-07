@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockGradingSchemes } from './mockData';
-import { GradingSchemeLevel } from '../../../core/types';
+import { GradingSchemeLevel } from '@/core/types';
 
 // Flatten all levels from all grading schemes
 const initialMockGradingSchemeLevels: GradingSchemeLevel[] = initialMockGradingSchemes.flatMap(s => s.levels ?? []).filter((l): l is GradingSchemeLevel => !!l);

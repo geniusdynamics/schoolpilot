@@ -6,7 +6,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import Input from '../components/ui/Input';
+import Input from '@/components/ui/Input';
 
 // Mock the animation utilities
 vi.mock('../utils/animations', () => ({

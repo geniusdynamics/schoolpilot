@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
+import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
 import { useNavigate } from 'react-router-dom';
 import {
   ComputerDesktopIcon,
@@ -79,15 +79,22 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
       id: 'workspaces',
       label: t('common:workspaces') || 'Workspaces',
       icon: BuildingOfficeIcon,
-      children: navigationItems.filter(item => item.isGroup).map(item => ({
-        id: item.name,
-        label: t(`${item.name}.title`) || item.name,
-        icon: item.icon || Squares2X2Icon,
-        action: () => {
-          if (onModuleSelect) onModuleSelect(item.name);
-          setIsOpen(false);
-        }
-      }))
+      children: navigationItems.filter(item => item.isGroup).map(item => {
+        // Parse the translation key - format is "navigation:module.title"
+        const [namespace, key] = item.name.includes(':') 
+          ? item.name.split(':') 
+          : ['navigation', item.name];
+        
+        return {
+          id: item.name,
+          label: t(key, { ns: namespace }),
+          icon: item.icon || Squares2X2Icon,
+          action: () => {
+            if (onModuleSelect) onModuleSelect(item.name);
+            setIsOpen(false);
+          }
+        };
+      })
     },
     {
       id: 'website',

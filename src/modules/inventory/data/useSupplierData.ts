@@ -2,8 +2,8 @@
 // ABOUTME: Provides CRUD operations and reactive queries for supplier management.
 
 import { useMemo } from 'react';
-import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
-import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
+import { createDataHook, DataHookConfig } from '@/hooks/useDataHookFactory';
+import { useDataHookRegistration } from '@/hooks/useDataHookRegistration';
 import { InvSupplierType } from './types';
 import { initialMockSuppliers } from './mockData';
 

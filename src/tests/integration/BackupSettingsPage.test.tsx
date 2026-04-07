@@ -6,7 +6,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import BackupSettingsPage from '../../modules/settings/pages/BackupSettingsPage';
+import BackupSettingsPage from '@/modules/settings/pages/BackupSettingsPage';
 
 // Mock click function for download tests
 const mockClick = vi.fn();

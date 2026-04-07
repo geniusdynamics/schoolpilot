@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useCallback, ReactNode } from 'react';
-import { UnifiedDatabaseManager } from '../../services/database/UnifiedDatabaseManager';
+import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 
 export interface PaginationOptions {
   page: number;

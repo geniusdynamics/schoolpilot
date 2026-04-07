@@ -5,7 +5,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Modal from '../components/ui/Modal';
+import Modal from '@/components/ui/Modal';
 
 // Mock the hooks
 vi.mock('../utils/responsive', () => ({

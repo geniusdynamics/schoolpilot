@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockDormitories } from '../../administration/data/mockData';
-import { Dormitory } from '../../../core/types';
+import { Dormitory } from '@/core/types';
 
 export const useDormitoryData = () => {
   const [data, setData] = useState<Dormitory[]>(initialMockDormitories);

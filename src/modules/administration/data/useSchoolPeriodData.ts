@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockSchoolPeriods } from './mockData';
-import { SchoolPeriod } from '../../../core/types';
+import { SchoolPeriod } from '@/core/types';
 
 export const useSchoolPeriodData = () => {
   const [data, setData] = useState<SchoolPeriod[]>(initialMockSchoolPeriods);

@@ -9,7 +9,7 @@ import {
   InformationCircleIcon,
   ArrowPathIcon
 } from '../ui/icons';
-import { moduleManagementService, ModuleInfo } from '../../services/moduleManagementService';
+import { moduleManagementService, ModuleInfo } from '../../services/module/moduleManagementService';
 
 interface ModuleManagementPanelProps {
   className?: string;

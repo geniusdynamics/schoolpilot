@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations for applications, documents, reviews, and enrollment
 
 import { useState, useEffect, useCallback } from 'react';
-import { databaseService } from '@/services/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 import type {
   Application,
   ApplicationFormData,

@@ -815,6 +815,10 @@ export function createDatabaseSchema(config: {
 }
 
 // Export conversion functions for backward compatibility
+/**
+ * @deprecated RXDB removed - Phase 3. This function will be removed in Phase 4.
+ * Use convertToPouchDBSchema or provider-agnostic schemas instead.
+ */
 export const convertToRxDBSchema = (schema: DatabaseSchema) => DatabaseSchemaConverter.convertToRxDBSchema(schema);
 export const convertToPouchDBSchema = (schema: DatabaseSchema) => DatabaseSchemaConverter.convertToPouchDBSchema(schema);
 

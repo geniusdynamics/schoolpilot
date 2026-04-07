@@ -2,9 +2,9 @@
 // ABOUTME: These schemas are used by both RxDB and PouchDB services to create collections.
 
 import * as types from './types';
-import { HRPayrollPeriodStatusEnum } from '../../../core/types';
-import { createDatabaseSchema, SchemaHelpers } from '../../../utils/databaseAgnosticSchema'; 
-import type { DatabaseSchema, DatabaseProperty } from '../../../utils/databaseAgnosticSchema';
+import { HRPayrollPeriodStatusEnum } from '@/core/types';
+import { createDatabaseSchema, SchemaHelpers } from '@/utils/databaseAgnosticSchema'; 
+import type { DatabaseSchema, DatabaseProperty } from '@/utils/databaseAgnosticSchema';
 
 export const payrollPeriodsSchema: DatabaseSchema = createDatabaseSchema({
     title: 'payroll_period',

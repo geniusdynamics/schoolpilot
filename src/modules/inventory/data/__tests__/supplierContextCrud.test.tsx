@@ -22,7 +22,7 @@ vi.mock('../../../../hooks/useMemoryManagement', () => ({
   })
 }));
 
-vi.mock('../../../../services/DataConsistencyService', () => ({
+vi.mock('../../../../services/consistency/DataConsistencyService', () => ({
   globalDataConsistencyService: {
     validateEntity: vi.fn().mockResolvedValue({
       isValid: true,
@@ -31,7 +31,7 @@ vi.mock('../../../../services/DataConsistencyService', () => ({
   }
 }));
 
-vi.mock('../../../../services/performanceMonitor', () => ({
+vi.mock('../../../../services/performance/performanceMonitor', () => ({
   performanceMonitor: {
     recordDataOperation: vi.fn()
   }

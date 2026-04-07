@@ -2,7 +2,7 @@
 // ABOUTME: This is a simplified version of the PerformanceMonitor for widget use
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { performanceMonitor, PerformanceReport } from '../services/performanceMonitor';
+import { performanceMonitor, PerformanceReport } from '../services/performance/performanceMonitor';
 import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring';
 
 interface PerformanceMonitorWidgetProps {

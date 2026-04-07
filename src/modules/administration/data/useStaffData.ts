@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockStaff } from './mockData';
-import { Staff } from '../../../core/types';
+import { Staff } from '@/core/types';
 
 export const useStaffData = () => {
   const [data, setData] = useState<Staff[]>(initialMockStaff || []);

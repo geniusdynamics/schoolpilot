@@ -13,10 +13,10 @@ import { useClubAndSocietyData } from '@/modules/administration/data/useClubAndS
 import { useAppData } from '@/hooks/useAppData'; // For staff data only
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated_at' | 'patron_name' | 'type'> & {
     type: ClubType; // Make type required for the form

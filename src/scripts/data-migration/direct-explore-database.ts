@@ -3,7 +3,7 @@
 // ABOUTME: Script to directly connect to the SQLite database and explore its contents
 // ABOUTME: This script mimics the migration script's database connection
 
-import { SQLiteOPFSService } from '../../services/sqlite/SQLiteOPFSService';
+import { SQLiteOPFSService } from '@/services/sqlite/SQLiteOPFSService';
 
 async function directDatabaseExploration() {
   console.log('Directly exploring SQLite database contents...');

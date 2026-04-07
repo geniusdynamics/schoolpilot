@@ -10,7 +10,7 @@ import {
   SignalSlashIcon
 } from '@heroicons/react/24/outline';
 import { AlertTriangleIcon } from './ui/icons';
-import { useAppData } from '../hooks/useAppData';
+import { useAppData } from '@/hooks/useAppData';
 
 // Component to wrap features that may not be available offline
 interface OfflineCapableComponentProps {

@@ -2,7 +2,7 @@
 // ABOUTME: Provides structured error reporting with database-specific context and recovery suggestions
 
 import { useCallback, useRef } from 'react';
-import { reportError, reportMessage } from '../config/errorTracking';
+import { reportError, reportMessage } from '@/config/errorTracking';
 
 interface DatabaseErrorContext {
   operation?: string;

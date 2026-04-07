@@ -13,7 +13,7 @@ import {
   SchemaHelpers,
   type DatabaseSchema, 
   type DatabaseProperty, 
-} from '../../../utils/databaseAgnosticSchema';
+} from '@/utils/databaseAgnosticSchema';
 
 export const examScheduleSchema: DatabaseSchema = createDatabaseSchema({
     title: 'exam_schedule',

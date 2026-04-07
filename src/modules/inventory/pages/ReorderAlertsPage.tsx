@@ -24,8 +24,8 @@ import {
   Clock
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ReorderAlertsPanel } from '../components/ReorderAlertsPanel';
-import { useReorderMonitoring } from '../hooks/useReorderMonitoring';
+import { ReorderAlertsPanel } from '@/components/ReorderAlertsPanel';
+import { useReorderMonitoring } from '@/hooks/useReorderMonitoring';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PageContainer } from '@/components/layout/PageContainer';
 

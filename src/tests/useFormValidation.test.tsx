@@ -3,7 +3,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import useFormValidation, { validators } from '../hooks/useFormValidation';
+import useFormValidation, { validators } from '@/hooks/useFormValidation';
 
 // Mock the accessibility utils
 vi.mock('../utils/accessibility', () => ({

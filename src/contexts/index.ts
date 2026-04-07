@@ -4,7 +4,8 @@
 export { AppProviders } from './AppProviders';
 export { AuthProvider, useAuth } from './AuthContext';
 export { AppDataProvider, useAppData } from './AppDataContext';
-export { UnifiedConfigProvider, useUnifiedConfig } from './UnifiedConfigContext';
+export { UnifiedConfigProvider } from './UnifiedConfigContext';
+export { useUnifiedConfig, useConfig, useBackendStatus, useDataMode, useEnvironment, useDatabaseProvider, useProductionDemo } from '@/hooks/useUnifiedConfig';
 export { UserProvider, useUser } from './UserContext';
 export { useDataLoading } from './appData/useDataLoading';
 export { useBackupRestore } from './appData/useBackupRestore';

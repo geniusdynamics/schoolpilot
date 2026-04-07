@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useRBAC } from '../hooks/useRBAC';
-import { useAuth } from '../contexts/AuthContext';
+import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
+import { useRBAC } from '@/hooks/useRBAC';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { i18nReady } from '../i18n/i18n';
 import TopOverflowMenu from './TopOverflowMenu';

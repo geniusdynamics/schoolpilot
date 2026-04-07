@@ -2,9 +2,9 @@
 // ABOUTME: Shows real-time performance metrics and allows performance analysis
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { performanceMonitor, PerformanceReport } from '../services/performanceMonitor';
+import { performanceMonitor, PerformanceReport } from '../services/performance/performanceMonitor';
 import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring';
-import { usePerformanceEvents } from '../services/performanceEventManager';
+import { usePerformanceEvents } from '../services/performance/performanceEventManager';
 
 interface PerformanceMonitorProps {
   className?: string;

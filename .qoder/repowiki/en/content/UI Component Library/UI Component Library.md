@@ -14,6 +14,9 @@
 - [Toast.tsx](file://src/components/ui/feedback/Toast.tsx)
 - [Modal.tsx](file://src/components/ui/Modal.tsx)
 - [PageContainer.tsx](file://src/components/layout/PageContainer.tsx)
+- [icons.tsx](file://src/components/ui/icons.tsx)
+- [icons/index.tsx](file://src/components/ui/icons/index.tsx)
+- [icons/actions.tsx](file://src/components/ui/icons/actions.tsx)
 - [accessibility.ts](file://src/utils/accessibility.ts)
 - [animations.ts](file://src/utils/animations.ts)
 - [performanceAnalysis.ts](file://src/utils/performanceAnalysis.ts)
@@ -32,13 +35,11 @@
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive documentation for the new LayoutNew component with URL-driven tab system
-- Enhanced TabbedWorkspace documentation with improved tab management and accessibility features
-- Updated form components documentation with enhanced slideout form capabilities
-- Added new section on URL-driven tab architecture and state synchronization
-- Enhanced accessibility documentation with comprehensive tab accessibility features
-- Added performance optimization documentation for data-intensive components
-- Updated testing documentation with new render loop prevention and animation tests
+- Added comprehensive documentation for the expanded iconography system with new SVG icons
+- Enhanced icon component documentation with ArrowUpIcon, ArrowDownIcon, and PaperAirplaneIcon
+- Updated icon registry documentation to reflect domain-based organization
+- Added new section on icon usage patterns and best practices
+- Enhanced component integration examples with new icon implementations
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -48,19 +49,20 @@
 5. [Data Display Components](#data-display-components)
 6. [Form Components](#form-components)
 7. [Feedback Components](#feedback-components)
-8. [Complex Interface Composition](#complex-interface-composition)
-9. [Accessibility Considerations](#accessibility-considerations)
-10. [Performance Best Practices](#performance-best-practices)
-11. [URL-Driven Tab Architecture](#url-driven-tab-architecture)
-12. [Testing and Quality Assurance](#testing-and-quality-assurance)
-13. [Tabbed Mode Configuration](#tabbed-mode-configuration)
+8. [Icon System](#icon-system)
+9. [Complex Interface Composition](#complex-interface-composition)
+10. [Accessibility Considerations](#accessibility-considerations)
+11. [Performance Best Practices](#performance-best-practices)
+12. [URL-Driven Tab Architecture](#url-driven-tab-architecture)
+13. [Testing and Quality Assurance](#testing-and-quality-assurance)
+14. [Tabbed Mode Configuration](#tabbed-mode-configuration)
 
 ## Introduction
 The UI Component Library in schoolpilot3 represents a comprehensive design system that enables consistent, accessible, and responsive user interfaces across the educational platform. This library follows modern React patterns with TypeScript, providing reusable components that adhere to strict design principles while offering extensive customization options. The component architecture supports both simple use cases and complex, data-intensive applications required in educational administration systems.
 
-**Updated** Enhanced with new LayoutNew component featuring URL-driven tab architecture and improved accessibility features
+**Updated** Enhanced with expanded iconography system featuring 633+ SVG icons organized by domain categories
 
-The library has evolved to include advanced tab management systems, enhanced form components with modern interactions, and comprehensive accessibility support for screen readers and assistive technologies.
+The library has evolved to include advanced tab management systems, enhanced form components with modern interactions, comprehensive accessibility support, and a robust icon system with over 600 professionally crafted SVG icons organized by functional domains.
 
 **Section sources**
 - [LayoutNew.tsx](file://src/components/LayoutNew.tsx)
@@ -411,6 +413,87 @@ The Modal component provides a traditional dialog interface for critical actions
 
 **Section sources**
 - [Modal.tsx](file://src/components/ui/Modal.tsx)
+
+## Icon System
+The icon system provides a comprehensive collection of over 600 SVG icons organized by functional domains to support consistent visual communication across the application.
+
+### Icon Architecture
+The icon system is organized into domain-based categories for optimal discoverability and tree-shaking performance:
+
+#### Domain-Based Organization
+- **Navigation Icons**: Home, Users, UserGroup, AcademicCap, BookOpen, Cog, Archive
+- **Action Icons**: Plus, Edit, Delete, Upload, Download, ArrowUp/Down, Eye/EyeSlash
+- **Status Icons**: CheckCircle, AlertTriangle, AlertCircle, InformationCircle, Star
+- **Module-Specific Icons**: Department buildings, identification badges, academic periods
+- **Miscellaneous Icons**: Phone, Message, Printer, Lock, Paperclip, Globe
+
+#### Icon Props Interface
+All icons implement a consistent interface:
+```typescript
+interface IconProps extends React.SVGProps<SVGSVGElement> {
+  className?: string;
+  size?: number;
+  color?: string;
+  title?: string;
+}
+```
+
+#### New Icon Additions
+The recent expansion includes three new directional and action-oriented icons:
+
+**ArrowUpIcon** (`src/components/ui/icons/actions.tsx`)
+- Directional upward arrow for navigation and sorting
+- Used in DataGrid column headers for ascending sort indicators
+- Integrated with existing ArrowDownIcon for bidirectional sorting
+
+**ArrowDownIcon** (`src/components/ui/icons/actions.tsx`)
+- Directional downward arrow for navigation and sorting
+- Complements ArrowUpIcon in DataGrid column headers
+- Supports both ascending and descending sort indicators
+
+**PaperAirplaneIcon** (`src/components/ui/icons/actions.tsx`)
+- Paper airplane for send/submit actions
+- Used extensively in lesson plan submission workflows
+- Integrated into form action buttons and quick-action menus
+
+```mermaid
+graph TD
+A[Icon System] --> B[Navigation Icons]
+A --> C[Action Icons]
+A --> D[Status Icons]
+A --> E[Module Icons]
+A --> F[Miscellaneous Icons]
+B --> G[Home, Users, Cog, Archive]
+C --> H[Plus, Edit, Delete, Upload]
+C --> I[ArrowUp, ArrowDown, PaperAirplane]
+D --> J[CheckCircle, AlertTriangle, Star]
+E --> K[BuildingOffice2, Identification, Calendar]
+F --> L[Phone, Message, Printer]
+```
+
+**Diagram sources**
+- [icons/index.tsx](file://src/components/ui/icons/index.tsx)
+- [icons/actions.tsx](file://src/components/ui/icons/actions.tsx)
+
+### Icon Usage Patterns
+Icons integrate seamlessly with other components:
+
+#### Component Integration
+- **Button Icons**: ArrowUpIcon and ArrowDownIcon used in DataGrid column headers
+- **Form Actions**: PaperAirplaneIcon used in submission buttons
+- **Navigation**: ArrowLeftIcon and ArrowRightIcon for page navigation
+- **Status Indicators**: CheckIcon and XIcon for validation states
+
+#### Best Practices
+- Use semantic naming conventions (e.g., `ArrowUpIcon`, `PaperAirplaneIcon`)
+- Maintain consistent sizing (h-4, w-4 for small, h-6, w-6 for medium)
+- Apply proper color theming for different contexts
+- Ensure accessibility with proper title attributes for screen readers
+
+**Section sources**
+- [icons.tsx](file://src/components/ui/icons.tsx)
+- [icons/index.tsx](file://src/components/ui/icons/index.tsx)
+- [icons/actions.tsx](file://src/components/ui/icons/actions.tsx)
 
 ## Complex Interface Composition
 The component library enables the creation of sophisticated user interfaces by composing multiple components together. A prime example is the exam scheduling UI.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { ChevronDown, ChevronRight, Search, Filter, MoreHorizontal } from 'lucide-react';
-import { useActionRegistry, ActionDefinition, ActionGroup, ActionContext } from '../../services/actionRegistry';
+import { useActionRegistry, ActionDefinition, ActionGroup, ActionContext } from '../../services/ui/actionRegistry';
 import { useTabStore } from '../../stores/tabStore';
 import { cn } from '../../utils/cn';
 import { getIcon } from '../../utils/iconMap';

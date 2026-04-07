@@ -8,7 +8,7 @@ import {
   DataSource, 
   BackendCapabilities 
 } from '../config/backendArchitecture';
-import { backendServiceAdapter } from '../services/BackendServiceAdapter';
+import { backendServiceAdapter } from '../services/backend/BackendServiceAdapter';
 
 export interface BackendStatus {
   type: BackendType;

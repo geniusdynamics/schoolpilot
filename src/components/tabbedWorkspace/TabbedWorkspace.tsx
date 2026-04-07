@@ -6,7 +6,7 @@ import { TabBar } from './TabBar';
 import { ActionBar } from './ActionBar';
 import { BreadcrumbNavigation } from '../BreadcrumbNavigation';
 import { useTabStore } from '../../stores/tabStore';
-import { useActionRegistry } from '../../services/actionRegistry';
+import { useActionRegistry } from '../../services/ui/actionRegistry';
 import type { TabbedWorkspaceProps, Tab } from '../../types/tabbedWorkspace';
 import type { HierarchicalTab, BreadcrumbItem } from '../../types/hierarchical';
 import { resolveTabContent } from './resolveTabContent';

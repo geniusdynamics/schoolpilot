@@ -2,7 +2,7 @@
 // ABOUTME: Provides validation rule system, error management, and screen reader compatibility
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { announceToScreenReader } from '../utils/accessibility';
+import { announceToScreenReader } from '@/utils/accessibility';
 
 // Validation rule types
 export type ValidationRule<T = any> = {

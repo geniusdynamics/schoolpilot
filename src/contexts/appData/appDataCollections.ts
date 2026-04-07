@@ -1,7 +1,7 @@
 // ABOUTME: AppData collection normalization and loading-state helper utilities
 // ABOUTME: Centralizes pure mapping logic used by AppDataContext and compatibility tests
 
-import type { AppDataLoadingStates } from '../../core/types';
+import type { AppDataLoadingStates } from '@/core/types';
 
 const APP_DATA_ARRAY_KEYS = [
   'roles',

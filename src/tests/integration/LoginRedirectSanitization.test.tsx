@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import LoginPage from '../../modules/core/pages/LoginPage';
+import LoginPage from '@/modules/core/pages/LoginPage';
 
 const loginMock = vi.fn();
 

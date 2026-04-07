@@ -3,8 +3,8 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import FeatureSettings from '../../../components/FeatureSettings';
-import { useRBAC } from '../../../hooks/useRBAC';
+import FeatureSettings from '@/components/FeatureSettings';
+import { useRBAC } from '@/hooks/useRBAC';
 
 const FeatureSettingsPage: React.FC = () => {
   const { t } = useTranslation('settings');

@@ -15,10 +15,10 @@ import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefini
 import { useFinancialYearData } from '../../finance/data/useFinancialYearData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'updated_at' | 'name' | 'academic_year_name' | 'period_definition_name' | 'financial_year_name' > & {
     period_definition_id?: string;

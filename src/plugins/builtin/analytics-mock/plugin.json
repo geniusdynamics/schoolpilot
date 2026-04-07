@@ -1,0 +1,47 @@
+{
+  "id": "com.schoolpilot.analytics-mock",
+  "name": "Analytics Engine (Mock)",
+  "version": "1.0.0",
+  "type": "integration",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Mock analytics engine for development and testing. Provides simulated teacher, class, and subject metrics with realistic randomized data without requiring the Go WASM engine.",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM0I4MkY2IiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0zIDN2MThoMTgiLz48cGF0aCBkPSJNMTggMTdWNjBsLTUgMi01LTItNCAzIi8+PC9zdmc+",
+  "provides": [
+    "analytics.teacher",
+    "analytics.class",
+    "analytics.subject",
+    "analytics.trends",
+    "analytics.export"
+  ],
+  "settings": [
+    {
+      "key": "passRateMin",
+      "label": "Minimum Pass Rate",
+      "type": "number",
+      "defaultValue": 60,
+      "description": "Minimum pass rate percentage for mock data (0-100)",
+      "validation": { "min": 0, "max": 100 }
+    },
+    {
+      "key": "passRateMax",
+      "label": "Maximum Pass Rate",
+      "type": "number",
+      "defaultValue": 95,
+      "description": "Maximum pass rate percentage for mock data (0-100)",
+      "validation": { "min": 0, "max": 100 }
+    }
+  ],
+  "privileges": {
+    "dataRead": ["students", "teachers", "classes", "subjects", "exams", "assignments"],
+    "dataWrite": [],
+    "uiInject": false,
+    "menuModify": false,
+    "settingsAccess": true,
+    "networkAccess": false,
+    "fileSystemAccess": false,
+    "executeCode": false
+  }
+}

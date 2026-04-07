@@ -1,7 +1,7 @@
 // ABOUTME: Utility functions for testing Bugsink error tracking integration
 // ABOUTME: Provides methods to verify error reporting functionality
 
-import { reportError, reportMessage, Sentry } from '../config/errorTracking';
+import { reportError, reportMessage, Sentry } from '@/config/errorTracking';
 
 // Test error tracking functionality
 export const testErrorTracking = {

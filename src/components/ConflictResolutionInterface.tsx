@@ -11,7 +11,7 @@ import {
   ClockIcon
 } from '@heroicons/react/24/outline';
 import { AlertTriangleIcon } from './ui/icons';
-import { useAppData } from '../hooks/useAppData';
+import { useAppData } from '@/hooks/useAppData';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 

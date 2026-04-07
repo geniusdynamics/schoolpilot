@@ -3,10 +3,10 @@
 
 import { render } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { DataModeSwitch } from '../components/DataModeSwitch';
-import { AppDataProvider } from '../contexts/AppDataContext';
-import { AuthProvider } from '../contexts/AuthContext';
-import { RBACProvider } from '../contexts/RBACContext';
+import { DataModeSwitch } from '@/components/DataModeSwitch';
+import { AppDataProvider } from '@/contexts/AppDataContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { RBACProvider } from '@/contexts/RBACContext';
 
 // Mock the contexts
 vi.mock('../contexts/AppDataContext', () => ({

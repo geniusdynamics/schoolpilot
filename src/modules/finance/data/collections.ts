@@ -1,6 +1,6 @@
 
 // ABOUTME: Defines the RxDB collection configurations for the Finance module.
-// ABOUTME: This structure is imported by the central rxdbService to add module-specific collections.
+// ABOUTME: Module collection definitions - used by UnifiedDatabaseManager
 
 import * as schemas from './schema';
 

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockAcademicPeriodDefinitions } from './mockData';
-import { AcademicPeriodDefinition } from '../../../core/types';
+import { AcademicPeriodDefinition } from '@/core/types';
 
 export const useAcademicPeriodDefinitionData = () => {
   const [data, setData] = useState<AcademicPeriodDefinition[]>(initialMockAcademicPeriodDefinitions);

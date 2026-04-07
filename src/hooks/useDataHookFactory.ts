@@ -5,10 +5,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { hasAppDataContextContract } from '../contexts/AppDataContext';
 import { useAppDataInternal } from './useAppData';
-import { DataOperation } from '../services/DataStrategyManager';
-import { globalDataConsistencyService } from '../services/DataConsistencyService';
+import { DataOperation } from '../services/consistency/DataStrategyManager';
+import { globalDataConsistencyService } from '../services/consistency/DataConsistencyService';
 import { ValidationResult } from '../utils/dataValidation';
-import { performanceMonitor } from '../services/performanceMonitor';
+import { performanceMonitor } from '../services/performance/performanceMonitor';
 import { useMemoryAwareCache } from './useMemoryManagement';
 import { DataValidationUtils } from '../utils/dataValidationUtils';
 

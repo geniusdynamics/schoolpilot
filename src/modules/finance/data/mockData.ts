@@ -6,8 +6,8 @@ import {
   SupplierInvoice, GeneralPayment, GeneralLedgerEntry,
   FinancialYearStatus, AccountType, AccountTemplateType, ExpenseClaimantType, OpeningBalanceType,
   FeeAdjustmentType, TransportAssignmentStatus, InvoiceStatus, CustomerInvoiceStatus, SupplierInvoiceStatus, GeneralPayerType
-} from '../../../core/types';
-import { suppliers, supplierInvoices } from '../../../globalMockData';
+} from '@/core/types';
+import { suppliers, supplierInvoices } from '@/globalMockData';
 
 const generateId = (prefix: string = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 

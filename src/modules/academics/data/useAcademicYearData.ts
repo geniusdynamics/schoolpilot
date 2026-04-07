@@ -4,9 +4,9 @@
 
 import { useMemo } from 'react';
 import { initialMockAcademicYears } from '../../administration/data/mockData';
-import { AcademicYear } from '../../../core/types';
-import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
-import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
+import { AcademicYear } from '@/core/types';
+import { createDataHook, DataHookConfig } from '@/hooks/useDataHookFactory';
+import { useDataHookRegistration } from '@/hooks/useDataHookRegistration';
 
 // Create the standardized data hook using the factory
 export const useAcademicYearData = () => {

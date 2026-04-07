@@ -1,6 +1,6 @@
 import React from 'react';
 import DataTable, { TaskItem } from './data/DataTable';
-import { Tab } from '../../types/tabbedWorkspace';
+import { Tab } from '@/types/tabbedWorkspace';
 
 export interface ContentRendererProps {
   tab: Tab;

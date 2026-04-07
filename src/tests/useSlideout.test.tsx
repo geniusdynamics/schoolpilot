@@ -2,7 +2,7 @@
 // ABOUTME: Tests state management, auto-save, data updates, and hook integration
 
 import { renderHook, act } from '@testing-library/react';
-import { useSlideout } from '../hooks/useSlideout';
+import { useSlideout } from '@/hooks/useSlideout';
 
 import { vi } from 'vitest';
 

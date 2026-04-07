@@ -2,8 +2,8 @@
 // Displays real-time health status of all modules with recovery options
 
 import React, { useState, useEffect } from 'react';
-import { moduleHealthMonitor } from '../services/moduleHealthMonitor';
-import { ModuleHealth, ModuleHealthStatus } from '../services/enhancedModuleLoader';
+import { moduleHealthMonitor } from '../services/module/moduleHealthMonitor';
+import { ModuleHealth, ModuleHealthStatus } from '../services/module/enhancedModuleLoader';
 import { AlertCircleIcon, AlertTriangleIcon, CheckCircleIcon, RefreshCwIcon, XCircleIcon } from './ui/icons';
 import Button from './ui/Button';
 import Card from './ui/Card';

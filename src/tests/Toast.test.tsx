@@ -4,7 +4,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Toast from '../components/ui/feedback/Toast';
+import Toast from '@/components/ui/feedback/Toast';
 
 describe('Toast Component', () => {
   const mockOnDismiss = vi.fn();

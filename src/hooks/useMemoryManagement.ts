@@ -8,7 +8,7 @@ import {
   MemoryAlert,
   MemoryThresholds,
   databaseMemoryManager,
-} from '../services/database/MemoryManager';
+} from '@/services/database/MemoryManager';
 
 export interface MemoryManagementState {
   metrics: MemoryUsageMetrics | null;

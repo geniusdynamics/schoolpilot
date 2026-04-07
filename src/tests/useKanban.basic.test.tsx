@@ -3,8 +3,8 @@
 
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
-import useKanban from '../hooks/useKanban';
-import { KanbanCard, KanbanColumn } from '../components/ui/data/KanbanBoard';
+import useKanban from '@/hooks/useKanban';
+import { KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
 
 // Sample test data
 const sampleCards: KanbanCard[] = [

@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { TabContext } from '../contexts/TabContext';
-import { TabPanel } from '../components/TabPanel';
+import { TabContext } from '@/contexts/TabContext';
+import { TabPanel } from '@/components/TabPanel';
 import { useNavigate } from 'react-router-dom';
-import { useTabNavigation } from '../hooks/useTabNavigation';
+import { useTabNavigation } from '@/hooks/useTabNavigation';
 
 // Mock React Router hooks
 vi.mock('react-router-dom', () => ({

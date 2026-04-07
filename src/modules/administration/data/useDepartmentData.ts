@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockDepartments } from './mockData';
-import { Department } from '../../../core/types';
+import { Department } from '@/core/types';
 
 export const useDepartmentData = () => {
   const [data, setData] = useState<Department[]>(initialMockDepartments || []);

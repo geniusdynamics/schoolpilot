@@ -6,7 +6,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
-import TabbedForm, { FormTab } from '../components/ui/forms/TabbedForm';
+import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
 
 // Mock the utility functions
 vi.mock('../utils/animations', () => ({

@@ -4,9 +4,9 @@
 
 import { useMemo } from 'react';
 import { initialMockBanks } from './mockData';
-import { Bank } from '../../../core/types';
-import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
-import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
+import { Bank } from '@/core/types';
+import { createDataHook, DataHookConfig } from '@/hooks/useDataHookFactory';
+import { useDataHookRegistration } from '@/hooks/useDataHookRegistration';
 
 // Create the standardized data hook using the factory
 export const useBankData = () => {

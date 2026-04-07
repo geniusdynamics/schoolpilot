@@ -1,6 +1,7 @@
 // ABOUTME: Schema utility functions for database-agnostic schema creation
 // ABOUTME: Provides backward compatibility while supporting dual-database architecture
 
+// DEPRECATED: RXDB removed - Phase 3. convertToRxDBSchema will be removed in Phase 4.
 import { 
   createDatabaseSchema, 
   convertToRxDBSchema, 

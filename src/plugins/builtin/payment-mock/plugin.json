@@ -1,0 +1,51 @@
+{
+  "id": "com.schoolpilot.payment-mock",
+  "name": "Payment Gateway (Mock)",
+  "version": "1.0.0",
+  "type": "integration",
+  "category": "builtin",
+  "entry": "./index.ts",
+  "description": "Mock payment provider for development and testing. Simulates payment flows with configurable success rates without processing real transactions.",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTBCMzgxIiBzdHJva2Utd2lkdGg9IjIiPjxyZWN0IHg9IjEiIHk9IjQiIHdpZHRoPSIyMiIgaGVpZ2h0PSIxNiIgcng9IjIiLz48bGluZSB4MT0iMSIgeTE9IjEwIiB4Mj0iMjMiIHkyPSIxMCIvPjwvc3ZnPg==",
+  "provides": [
+    "payment.initiate",
+    "payment.verify",
+    "payment.callback",
+    "payment.methods"
+  ],
+  "settings": [
+    {
+      "key": "successRate",
+      "label": "Mock Success Rate",
+      "type": "number",
+      "defaultValue": 0.9,
+      "description": "Probability of a mock payment succeeding (0.0 - 1.0)",
+      "validation": { "min": 0, "max": 1 }
+    },
+    {
+      "key": "supportedMethods",
+      "label": "Supported Payment Methods",
+      "type": "multiselect",
+      "defaultValue": ["M-Pesa", "Card", "Bank Transfer", "Cash"],
+      "description": "Payment methods to simulate support for",
+      "options": [
+        { "label": "M-Pesa", "value": "M-Pesa" },
+        { "label": "Card", "value": "Card" },
+        { "label": "Bank Transfer", "value": "Bank Transfer" },
+        { "label": "Cash", "value": "Cash" }
+      ]
+    }
+  ],
+  "privileges": {
+    "dataRead": ["students", "invoices", "payments"],
+    "dataWrite": ["payments"],
+    "uiInject": false,
+    "menuModify": false,
+    "settingsAccess": true,
+    "networkAccess": false,
+    "fileSystemAccess": false,
+    "executeCode": false
+  }
+}

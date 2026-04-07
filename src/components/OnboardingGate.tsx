@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { FirstRunOnboarding, shouldShowOnboarding } from '../components/FirstRunOnboarding';
+import { FirstRunOnboarding, shouldShowOnboarding } from '@/components/FirstRunOnboarding';
 
 interface OnboardingGateProps {
   children: React.ReactNode;

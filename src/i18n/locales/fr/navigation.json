@@ -10,6 +10,11 @@
     "applications": "Candidatures",
     "preNAsMarks": "Notes Pré-NAS",
     "students": "Étudiants",
+    "studentImport": "Importation d'Étudiants",
+    "studentClearance": "Autorisation d'Étudiant",
+    "disciplinaryCases": "Cas Disciplinaires",
+    "certificates": "Certificats",
+    "visitors": "Visiteurs",
     "staff": "Personnel",
     "partners": "Partenaires",
     "departments": "Départements",
@@ -25,11 +30,37 @@
     "messageCampaigns": "Campagnes de Messages",
     "academicStructures": "Structures Académiques",
     "academicYears": "Années Académiques",
-    "academicPeriodDefinitions": "Définitions des Périodes Académiques"
+    "academicPeriodDefinitions": "Définitions des Périodes Académiques",
+    "schoolPeriods": "Périodes Scolaires"
   },
   "academics": {
     "title": "Académique",
-    "description": "Gestion académique et curriculum"
+    "description": "Gestion académique et programme",
+    "dashboard": "Tableau de bord Académique",
+    "subjects": "Matières",
+    "timetablePeriods": "Périodes d'Emploi du Temps",
+    "timetableEntries": "Entrées d'Emploi du Temps",
+    "examScheduling": "Planification des Examens",
+    "subjectPapers": "Épreuves",
+    "classSubjectAllocations": "Allocations Matières-Classes",
+    "teacherSubjectAssignments": "Affectations Enseignants",
+    "studentSubjectEnrollment": "Inscription aux Matières",
+    "examSessions": "Sessions d'Examen",
+    "examAnalysis": "Analyse des Examens",
+    "studentExamResultsEntry": "Saisie des Résultats",
+    "gradingSchemes": "Barèmes de Notation",
+    "educationSystems": "Systèmes Éducatifs"
+  },
+  "assignments": {
+    "title": "Devoirs",
+    "create": "Créer un Devoir",
+    "grade": "Noter les Devoirs"
+  },
+  "lessonplans": {
+    "title": "Plans de Cours",
+    "create": "Créer un Plan",
+    "notes": "Notes de Cours",
+    "approval": "Approbation"
   },
   "finance": {
     "title": "Finance",
@@ -122,16 +153,20 @@
   "settings": {
     "title": "Paramètres",
     "description": "Configuration système et préférences",
+    "unified": "Paramètres Unifiés",
     "dashboard": "Tableau de bord Paramètres",
     "general": "Paramètres Généraux",
     "features": "Paramètres des Fonctionnalités",
     "tabs": "Paramètres des Onglets",
     "modules": "Gestion des Modules",
+    "plugins": "Gestion des Plugins",
     "dependencyReport": "Rapport des Dépendances",
     "auditLog": "Journal d'Audit",
     "databaseProvider": "Fournisseur de Base de Données",
     "databaseSettings": "Paramètres de la Base de Données",
+    "dataLayer": "Paramètres de la Couche de Données",
     "dataLayerSettings": "Paramètres de la Couche de Données",
+    "dataManagement": "Gestion des Données",
     "backupSettings": "Paramètres de Sauvegarde",
     "schoolProfile": "Profil de l'École",
     "users": "Gestion des Utilisateurs",
@@ -145,5 +180,33 @@
     "pos": "Bons de Commande",
     "invoices": "Factures",
     "profile": "Profil"
+  },
+  "admissions": {
+    "title": "Admissions",
+    "description": "Gestion des admissions des élèves",
+    "dashboard": "Tableau de bord Admissions",
+    "newApplication": "Nouvelle Candidature",
+    "applications": "Candidatures",
+    "reviewQueue": "File d'Examen",
+    "apply": "Postuler",
+    "track": "Suivi de Candidature"
+  },
+  "portal": {
+    "title": "Portail",
+    "description": "Portail élèves et parents",
+    "dashboard": "Tableau de bord Portail",
+    "attendance": "Présences",
+    "results": "Résultats",
+    "fees": "Frais",
+    "announcements": "Annonces",
+    "profile": "Profil"
+  },
+  "houses": {
+    "title": "Maisons",
+    "categories": "Catégories de Maisons",
+    "award": "Attribuer des Points",
+    "leaderboard": "Classement",
+    "studentPoints": "Points des Étudiants",
+    "classStandings": "Classement des Classes"
   }
 }

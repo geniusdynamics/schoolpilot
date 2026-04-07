@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { extractModuleId } from '../utils/moduleUtils';
+import { extractModuleId } from '@/utils/moduleUtils';
 
 interface ModuleDashboardPlaceholderProps {
   moduleName: string;

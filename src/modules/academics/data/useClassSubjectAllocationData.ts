@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockClassSubjectAllocations } from './mockData';
-import { ClassSubjectAllocation } from '../../../core/types';
+import { ClassSubjectAllocation } from '@/core/types';
 
 export const useClassSubjectAllocationData = () => {
   const [data, setData] = useState<ClassSubjectAllocation[]>(initialMockClassSubjectAllocations);

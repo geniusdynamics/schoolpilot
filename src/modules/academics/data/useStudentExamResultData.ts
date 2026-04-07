@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockStudentExamResults } from './mockData';
-import { StudentExamResult } from '../../../core/types';
+import { StudentExamResult } from '@/core/types';
 
 export const useStudentExamResultData = () => {
   const [data, setData] = useState<StudentExamResult[]>(initialMockStudentExamResults);

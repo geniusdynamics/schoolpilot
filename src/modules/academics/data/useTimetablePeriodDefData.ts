@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockTimetablePeriodDefs } from './mockData';
-import { TimetablePeriodDef } from '../../../core/types';
+import { TimetablePeriodDef } from '@/core/types';
 
 export const useTimetablePeriodDefData = () => {
   const [data, setData] = useState<TimetablePeriodDef[]>(initialMockTimetablePeriodDefs);

@@ -4,9 +4,9 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { TabStateManager, defaultTabStateConfig } from '../services/TabStateManager';
-import { TabAccessibilityManager, defaultTabAccessibilityConfig } from '../services/TabAccessibilityManager';
-import { TabPerformanceManager, defaultTabPerformanceConfig } from '../services/TabPerformanceManager';
+import { TabStateManager, defaultTabStateConfig } from '../services/ui/TabStateManager';
+import { TabAccessibilityManager, defaultTabAccessibilityConfig } from '../services/ui/TabAccessibilityManager';
+import { TabPerformanceManager, defaultTabPerformanceConfig } from '../services/ui/TabPerformanceManager';
 
 // Mock platform detection utilities
 const mockPlatformDetection = {

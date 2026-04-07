@@ -3,9 +3,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { ExamSchedule } from '../data/types';
-import { ExamScheduleManager } from '../services/ExamScheduleManager';
-import { ExamSchedulingUI } from '../components/ExamSchedulingUI';
-import SchedulingCalendar from '../components/SchedulingCalendar';
+import { examScheduleManager } from '@/services/ExamScheduleManager';
+import { ExamSchedulingUI } from '@/components/ExamSchedulingUI';
+import SchedulingCalendar from '@/components/SchedulingCalendar';
 import { useAppData } from '@/hooks/useAppData';
 
 interface ExamSchedulingPageProps {
@@ -23,7 +23,7 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
   const [filterRoom, setFilterRoom] = useState<string>('');
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
 
-  const scheduleManager = new ExamScheduleManager();
+  const scheduleManager = examScheduleManager;
 
   useEffect(() => {
     loadSchedules();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '../../../components/ui/icons';
+import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import Button from '@/components/ui/Button';
 import DataGrid from '@/components/ui/data/DataGrid';
 import type { DataGridColumn } from '@/components/ui/data/DataGrid';
@@ -11,7 +11,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import { useRBAC } from '@/hooks/useRBAC';
-import { moduleConfigService } from '@/services/moduleConfigService';
+import { moduleConfigService } from '@/services/module/moduleConfigService';
 import { moduleRegistry } from '@/core/moduleRegistry';
 import { ModuleDefinition } from '@/core/types';
 

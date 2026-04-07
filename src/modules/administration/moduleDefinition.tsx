@@ -5,19 +5,19 @@ import React from 'react';
 import { ModuleDefinition } from '@/core/types';
 import {
   AcademicCapIcon,
-  UsersIcon, 
-  UserGroupIcon, 
-  UserCircleIcon, 
-  BuildingOffice2Icon, 
-  IdentificationIcon, 
-  ListBulletIcon,     
-  BuildingLibraryIcon, 
-  ClipboardDocumentListIcon, 
-  CalendarDaysIcon,   
-  EnvelopeIcon,       
-  MegaphoneIcon,      
-  PuzzlePieceIcon, 
-  DocumentDuplicateIcon, 
+  UsersIcon,
+  UserGroupIcon,
+  UserCircleIcon,
+  BuildingOffice2Icon,
+  IdentificationIcon,
+  ListBulletIcon,
+  BuildingLibraryIcon,
+  ClipboardDocumentListIcon,
+  CalendarDaysIcon,
+  EnvelopeIcon,
+  MegaphoneIcon,
+  PuzzlePieceIcon,
+  DocumentDuplicateIcon,
   ClockIcon,
   DocumentAddIcon,
   DocumentSearchIcon,
@@ -27,6 +27,9 @@ import {
   ShieldExclamationIcon,
   DocumentTextIcon,
   UserPlusIcon,
+  StarIcon,
+  PlusIcon,
+  ChartBarIcon,
 } from '@/components/ui/icons';
 
 export const administrationModule: ModuleDefinition = {
@@ -64,8 +67,15 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.academicYears', path: '/administration/academic-years', icon: CalendarDaysIcon, page: 'AcademicYearsPage' },
     { name: 'navigation:administration.academicPeriodDefinitions', path: '/administration/academic-period-definitions', icon: DocumentDuplicateIcon, page: 'AcademicPeriodDefinitionsPage' },
     { name: 'navigation:administration.schoolPeriods', path: '/administration/school-periods', icon: ClockIcon, page: 'SchoolPeriodsPage' },
+    // Houses sub-feature (merged from houses module)
+    { name: 'navigation:houses.title', path: '/administration/houses', icon: StarIcon, page: 'houses/HousesPage', feature: 'house-management' },
+    { name: 'navigation:houses.categories', path: '/administration/houses/categories', icon: ListBulletIcon, page: 'houses/CategoriesPage', feature: 'house-management' },
+    { name: 'navigation:houses.award', path: '/administration/houses/award', icon: PlusIcon, page: 'houses/AwardPointsPage', feature: 'house-management' },
+    { name: 'navigation:houses.leaderboard', path: '/administration/houses/leaderboard', icon: ChartBarIcon, page: 'houses/LeaderboardPage', feature: 'house-management' },
+    { name: 'navigation:houses.studentPoints', path: '/administration/houses/student-points', icon: UserGroupIcon, page: 'houses/StudentPointsPage', feature: 'house-management' },
+    { name: 'navigation:houses.classStandings', path: '/administration/houses/class-standings', icon: UsersIcon, page: 'houses/ClassStandingsPage', feature: 'house-management' },
   ],
-  features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance', 'admissions-management'],
+  features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance', 'admissions-management', 'house-management', 'point-transactions', 'merits', 'demerits', 'leaderboard'],
   dependencies: [],
   optionalDependencies: [
     {
@@ -119,6 +129,51 @@ export const administrationModule: ModuleDefinition = {
         key: 'admissionsRequireApproval',
         type: 'boolean',
         defaultValue: true
+      },
+      {
+        key: 'enableHouseSystem',
+        type: 'boolean',
+        defaultValue: true
+      },
+      {
+        key: 'requireApprovalForMerits',
+        type: 'boolean',
+        defaultValue: false
+      },
+      {
+        key: 'requireApprovalForDemerits',
+        type: 'boolean',
+        defaultValue: true
+      },
+      {
+        key: 'maxDailyAwards',
+        type: 'number',
+        defaultValue: 5
+      },
+      {
+        key: 'enablePickupManagement',
+        type: 'boolean',
+        defaultValue: true
+      },
+      {
+        key: 'enableQrVerification',
+        type: 'boolean',
+        defaultValue: true
+      },
+      {
+        key: 'enableParentNotifications',
+        type: 'boolean',
+        defaultValue: true
+      },
+      {
+        key: 'pickupCodeExpiryMinutes',
+        type: 'number',
+        defaultValue: 30
+      },
+      {
+        key: 'maxAuthorizedPickupPersons',
+        type: 'number',
+        defaultValue: 5
       }
     ]
   }

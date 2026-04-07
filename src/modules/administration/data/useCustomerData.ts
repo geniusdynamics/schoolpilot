@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockCustomers } from '../../administration/data/mockData';
-import { Customer } from '../../../core/types';
+import { Customer } from '@/core/types';
 
 export const useCustomerData = () => {
   const [data, setData] = useState<Customer[]>(initialMockCustomers || []);

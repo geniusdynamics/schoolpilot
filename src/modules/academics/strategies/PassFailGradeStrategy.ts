@@ -1,7 +1,7 @@
 // src/modules/academics/strategies/PassFailGradeStrategy.ts
 
 import { StudentExamResult, GradingScheme } from '../data/types';
-import { GradingStrategy } from '../services/GradingEngineService';
+import { GradingStrategy } from '@/services/GradingEngineService';
 
 export class PassFailGradeStrategy implements GradingStrategy {
   calculate(result: StudentExamResult, gradingScheme: GradingScheme): StudentExamResult {

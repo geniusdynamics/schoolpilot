@@ -14,7 +14,7 @@ import {
   ClockIcon
 } from '@heroicons/react/24/outline';
 import { usePerformanceBenchmark, useRegressionDetection } from '../hooks/usePerformanceBenchmark';
-import { PerformanceBenchmark as BenchmarkType, ComparisonResult } from '../services/performanceBenchmark';
+import { PerformanceBenchmark as BenchmarkType, ComparisonResult } from '../services/performance/performanceBenchmark';
 
 interface PerformanceBenchmarkProps {
   className?: string;

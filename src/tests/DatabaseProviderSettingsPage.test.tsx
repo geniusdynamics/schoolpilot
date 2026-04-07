@@ -52,7 +52,7 @@ vi.mock('../modules/settings/pages/DatabaseProviderSettingsPage', () => ({
   )
 }));
 
-import DatabaseProviderSettingsPage from '../modules/settings/pages/DatabaseProviderSettingsPage';
+import DatabaseProviderSettingsPage from '@/modules/settings/pages/DatabaseProviderSettingsPage';
 
 describe('DatabaseProviderSettingsPage', () => {
   beforeEach(() => {

@@ -3,7 +3,7 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import { useTooltip } from '../hooks/useTooltip';
+import { useTooltip } from '@/hooks/useTooltip';
 
 // Mock DOM methods
 const mockGetBoundingClientRect = vi.fn();

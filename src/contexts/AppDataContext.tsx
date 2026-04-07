@@ -7,8 +7,8 @@ import { getCurrentUnifiedConfig, updateAppConfig } from '../config/unifiedConfi
 import { UnifiedDatabaseManager } from '../services/database/UnifiedDatabaseManager';
 import type { AppDataContextType, AppDataLoadingStates } from '../core/types';
 import { useToastHelpers } from '../hooks/useToast';
-import { NetworkStateManager, NetworkState } from '../services/NetworkStateManager';
-import { getDataModeManager } from '../services/dataModeManager';
+import { NetworkStateManager, NetworkState } from '../services/data/NetworkStateManager';
+import { getDataModeManager } from '../services/data/dataModeManager';
 import { hasRequiredSchoolData } from '../services/database/demoDataSeed';
 import {
   createAppDataLoadingState,
@@ -18,6 +18,16 @@ import { BackupRestoreProvider, useBackupRestoreContext } from './appData/Backup
 import { DataGenerationProvider, useDataGenerationContext } from './appData/DataGenerationContext';
 import { PaginationProvider, usePaginationContext } from './appData/PaginationContext';
 import { ValidationProvider, useValidationContext } from './appData/ValidationContext';
+import {
+  SystemDataProvider,
+  AdministrationDataProvider,
+  AcademicDataProvider,
+  FinanceDataProvider,
+  HRDataProvider,
+  InventoryDataProvider,
+  LibraryDataProvider,
+  NutritionDataProvider,
+} from './data';
 
 // Sync status interface
 export interface SyncStatus {
@@ -1360,7 +1370,23 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   return (
     <AppDataValueProvider coreValue={contextValue}>
-      {children}
+      <SystemDataProvider>
+        <AdministrationDataProvider>
+          <AcademicDataProvider>
+            <FinanceDataProvider>
+              <HRDataProvider>
+                <InventoryDataProvider>
+                  <LibraryDataProvider>
+                    <NutritionDataProvider>
+                      {children}
+                    </NutritionDataProvider>
+                  </LibraryDataProvider>
+                </InventoryDataProvider>
+              </HRDataProvider>
+            </FinanceDataProvider>
+          </AcademicDataProvider>
+        </AdministrationDataProvider>
+      </SystemDataProvider>
 
       {/* Offline indicator */}
       {!isOnline && (

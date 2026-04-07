@@ -1,7 +1,7 @@
 // ABOUTME: Data hook for managing stock alert entities in the inventory module.
 // ABOUTME: Provides CRUD operations and reactive queries for inventory alert management.
 
-import { useDataHook } from '../../../hooks/useDataHook';
+import { useDataHook } from '@/hooks/useDataHook';
 import { InvStockAlertType } from './types';
 
 export const useStockAlertData = () => {

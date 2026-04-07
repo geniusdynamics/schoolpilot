@@ -10,10 +10,10 @@ import { PlusIcon, EyeIcon, CheckCircleIcon, XCircleIcon } from '@/components/ui
 import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 import type { StudentClearanceRequest, StudentClearance, ClearanceRequestStatus, ClearanceStatus, ClearanceType } from '../data/types';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 const StudentClearancePage: React.FC = () => {
   const { t } = useTranslation('administration');

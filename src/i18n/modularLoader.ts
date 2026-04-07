@@ -6,6 +6,8 @@ import i18next from 'i18next';
 // Use Vite's import.meta.glob to dynamically import translation files
 const modules = import.meta.glob('../modules/*/i18n/*.json');
 const coreModules = import.meta.glob('../modules/core/i18n/**/*.json');
+// Also load static translation files from locales directory
+const staticTranslations = import.meta.glob('./locales/**/*.json');
 
 export const loadModularTranslations = async () => {
   const resources: any = {
@@ -22,6 +24,29 @@ export const loadModularTranslations = async () => {
     resources[lang] = {
       navigation: {} // Initialize unified navigation namespace
     };
+
+    // First, load static translations from locales directory
+    for (const path in staticTranslations) {
+      // Path format: ./locales/{lang}/{namespace}.json
+      const pathParts = path.split('/');
+      if (pathParts.length >= 4) {
+        const fileLang = pathParts[2]; // e.g., 'en'
+        const namespace = pathParts[3].replace('.json', ''); // e.g., 'navigation'
+        
+        if (fileLang === lang) {
+          const module = await (staticTranslations[path] as () => Promise<{ default: any }>)();
+          const moduleData = module.default || module;
+          
+          // Initialize namespace if needed
+          if (!resources[lang][namespace]) {
+            resources[lang][namespace] = {};
+          }
+          
+          // Merge static translations
+          Object.assign(resources[lang][namespace], moduleData);
+        }
+      }
+    }
 
     for (const path in modules) {
       const moduleName = path.split('/')[2];

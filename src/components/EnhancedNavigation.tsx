@@ -1,7 +1,7 @@
 // Enhanced navigation component with network status and sync indicators
 import React from 'react';
-import { useAppData } from '../hooks/useAppData';
-import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
+import { useAppData } from '@/hooks/useAppData';
+import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 
 const EnhancedNavigation: React.FC = () => {
   const {

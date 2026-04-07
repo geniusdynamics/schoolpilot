@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockGradingSchemes } from './mockData';
-import { GradingScheme } from '../../../core/types';
+import { GradingScheme } from '@/core/types';
 
 export const useGradingSchemeData = () => {
   const [data, setData] = useState<GradingScheme[]>(initialMockGradingSchemes);

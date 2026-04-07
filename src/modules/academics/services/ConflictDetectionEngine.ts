@@ -2,7 +2,7 @@
 // ABOUTME: in exam schedules including room, invigilator, and student conflicts
 
 import { ExamSchedule } from '../data/types';
-import { databaseService } from '../../../services/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 
 export interface ConflictDetectionOptions {
   excludeScheduleId?: string;

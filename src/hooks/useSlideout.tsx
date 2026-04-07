@@ -2,7 +2,7 @@
 // ABOUTME: Provides state management, auto-save functionality, and form integration
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { announceToScreenReader } from '../utils/accessibility';
+import { announceToScreenReader } from '@/utils/accessibility';
 
 export interface UseSlideoutOptions {
   autoSave?: boolean;

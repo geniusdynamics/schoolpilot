@@ -1,7 +1,7 @@
 // Helper functions for data filtering and processing
 // Used with AppDataContext instead of API calls
 
-import type { Student, ClassStream } from '../core/types';
+import type { Student, ClassStream } from '@/core/types';
 
 /**
  * Filter students by class stream ID

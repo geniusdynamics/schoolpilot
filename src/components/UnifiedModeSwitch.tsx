@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
-import { getDataModeManager, DataMode, DataModeStatus } from '../services/dataModeManager';
+import { getDataModeManager, DataMode, DataModeStatus } from '../services/data/dataModeManager';
 import { CheckCircle, AlertTriangle, RefreshCw, Settings } from 'lucide-react';
 
 interface UnifiedModeSwitchProps {

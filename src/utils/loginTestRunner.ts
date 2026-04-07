@@ -1,7 +1,7 @@
 // ABOUTME: Comprehensive login test runner for verifying demo credentials and error tracking
 // ABOUTME: Tests all demo users, invalid credentials, and ensures login failures are reported to Bugsink
 
-import { authService } from '../services/authService';
+import { authService } from '../services/auth/authService';
 import { reportError, reportMessage } from '../config/errorTracking';
 
 interface TestResult {

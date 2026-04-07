@@ -2,10 +2,10 @@
 // ABOUTME: Provides comprehensive interface for database provider settings and mode switching
 
 import React, { useState, useEffect } from 'react';
-import { UnifiedModeSwitch } from '../components/UnifiedModeSwitch';
-import { useDataMode } from '../hooks/useDataMode';
-import { DatabaseProviderFactory } from '../services/database/DatabaseProviderFactory';
-import { getDataLayerConfig } from '../config/dataLayerConfig';
+import { UnifiedModeSwitch } from '@/components/UnifiedModeSwitch';
+import { useDataMode } from '@/hooks/useDataMode';
+import { DatabaseProviderFactory } from '@/services/database/DatabaseProviderFactory';
+import { getDataLayerConfig } from '@/config/dataLayerConfig';
 import { Database, Settings, Info, AlertCircle, CheckCircle, Server } from 'lucide-react';
 
 interface ProviderInfo {

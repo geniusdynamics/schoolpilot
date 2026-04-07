@@ -25,7 +25,7 @@ import {
   animationPresets,
   keyframes,
   transitions,
-} from '../utils/animations';
+} from '@/utils/animations';
 
 // Mock reduced motion hook and IntersectionObserver
 import { vi } from 'vitest';
@@ -49,7 +49,7 @@ vi.mock('../utils/accessibility', () => ({
   useReducedMotion: vi.fn(() => false),
 }));
 
-import { useReducedMotion } from '../utils/accessibility';
+import { useReducedMotion } from '@/utils/accessibility';
 const mockUseReducedMotion = vi.mocked(useReducedMotion);
 
 describe('Animation System', () => {

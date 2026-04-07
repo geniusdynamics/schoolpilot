@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { performanceEventManager } from '../services/performanceEventManager';
+import { performanceEventManager } from '../services/performance/performanceEventManager';
 
 const ROUTE_STORAGE_KEY = 'currentRoute';
 const LAST_VISIT_KEY = 'lastVisitTimestamp';

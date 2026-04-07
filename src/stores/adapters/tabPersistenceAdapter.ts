@@ -2,8 +2,8 @@
 // ABOUTME: Bridges Zustand persist middleware with TabPersistenceService for enhanced persistence
 
 import { StateStorage } from 'zustand/middleware';
-import { tabPersistenceService } from '../../services/tabs/TabPersistenceService';
-import { Tab } from '../../types/tabbedWorkspace';
+import { tabPersistenceService } from '@/services/tabs/TabPersistenceService';
+import { Tab } from '@/types/tabbedWorkspace';
 
 /**
  * Interface for persisted tab state

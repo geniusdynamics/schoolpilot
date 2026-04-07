@@ -2,8 +2,11 @@
 // ABOUTME: Provides granular permission management for the modular architecture
 
 import { ModuleDefinition } from './types';
-import type { SchoolDatabase } from '../services/rxdbService';
-import { rxdbService } from '../services/databaseService';
+// RXDB removed - Phase 4: SchoolDatabase type no longer available
+// Use IDatabaseProvider interface instead
+import type { IDatabaseProvider } from '../services/database/interfaces';
+// RXDB removed - Phase 4: Using unified database service
+import { databaseService } from '../services/database/databaseService';
 import type { RbacRole } from './types';
 import { isDemo } from '../config/unifiedConfig';
 

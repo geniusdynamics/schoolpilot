@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockRequisitions } from './mockData';
-import { Requisition } from '../../../core/types';
+import { Requisition } from '@/core/types';
 
 export const useRequisitionData = () => {
   const [data, setData] = useState<Requisition[]>(initialMockRequisitions);

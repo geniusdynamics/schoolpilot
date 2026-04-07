@@ -9,7 +9,7 @@ import {
     BookStatus,
     FineStatus,
     UserType
-} from '../../../core/types';
+} from '@/core/types';
 
 export const initialMockBookCategories: BookCategory[] = [
   { id: 1, name: 'Fiction' },

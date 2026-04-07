@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { DataHookConfig, EntityData } from './useDataHookFactory';
-import { moduleDataRegistry, registerDataHook } from '../services/ModuleDataRegistry';
+import { moduleDataRegistry, registerDataHook } from '../services/module/ModuleDataRegistry';
 
 /**
  * Hook for registering module data hooks with the global context

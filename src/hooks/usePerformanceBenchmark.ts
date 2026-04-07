@@ -7,7 +7,7 @@ import {
   PerformanceBenchmark, 
   ComparisonResult, 
   RegressionResult 
-} from '../services/performanceBenchmark';
+} from '../services/performance/performanceBenchmark';
 
 export interface BenchmarkState {
   baselines: PerformanceBenchmark[];

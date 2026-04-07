@@ -19,9 +19,9 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { urlTabSyncEngine } from '../../services/tabs/URLTabSyncEngine';
-import { TabStateDeriver } from '../../services/tabs/TabStateDeriver';
-import type { Tab, TabOptions, ParsedTabState } from '../../services/tabs/types';
+import { urlTabSyncEngine } from '@/services/tabs/URLTabSyncEngine';
+import { TabStateDeriver } from '@/services/tabs/TabStateDeriver';
+import type { Tab, TabOptions, ParsedTabState } from '@/services/tabs/types';
 import { useTranslation } from 'react-i18next';
 
 // Singleton engine instance

@@ -5,7 +5,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import KanbanBoard, { KanbanCard, KanbanColumn } from '../components/ui/data/KanbanBoard';
+import KanbanBoard, { KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
 
 // Mock the accessibility hook
 vi.mock('../utils/accessibility', () => ({

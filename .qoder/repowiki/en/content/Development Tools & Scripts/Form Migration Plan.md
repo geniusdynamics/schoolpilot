@@ -2,7 +2,7 @@
 
 <cite>
 **Referenced Files in This Document**
-- [FORM_MIGRATION_PLAN.md](file://docs/FORM_MIGRATION_PLAN.md)
+- [FORM_MIGRATION_PLAN.md](file://docs/migration/FORM_MIGRATION_PLAN.md)
 - [form-validation-framework-implementation.md](file://docs/guides/form-validation-framework-implementation.md)
 - [task-7-tabbed-form-implementation.md](file://docs/workflows/task-7-tabbed-form-implementation.md)
 - [task-8-slideout-form-implementation.md](file://docs/workflows/task-8-slideout-form-implementation.md)
@@ -14,19 +14,24 @@
 - [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx)
 - [SlideoutForm.tsx](file://src/components/ui/forms/SlideoutForm.tsx)
 - [PrintForm.tsx](file://src/components/ui/forms/PrintForm.tsx)
+- [WizardForm.tsx](file://src/components/ui/forms/WizardForm.tsx)
+- [FormHeader.tsx](file://src/components/ui/forms/FormHeader.tsx)
+- [MinimalForm.tsx](file://src/components/ui/forms/MinimalForm.tsx)
 - [usePrintForm.ts](file://src/hooks/usePrintForm.ts)
+- [ApplicationFormPage.tsx](file://src/modules/admissions/pages/ApplicationFormPage.tsx)
 - [run_full_migration.ts](file://scripts/migration/run_full_migration.ts)
 - [load_data.ts](file://scripts/migration/load_data.ts)
+- [index.ts](file://src/components/ui/forms/index.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Enhanced Form Type Decision Matrix with comprehensive component selection criteria
-- Added detailed migration execution steps and templates
-- Expanded framework component architecture documentation
-- Updated validation infrastructure with comprehensive rule system
-- Improved testing and quality assurance protocols
-- Enhanced risk mitigation strategies with specific implementation guidance
+- Enhanced WizardForm component documentation with comprehensive multi-step application form implementation
+- Updated form type classification to recognize WizardForm as highest priority complex form type
+- Expanded migration execution strategy to include WizardForm implementation for admissions module
+- Added detailed WizardForm patterns and best practices for multi-step application workflows
+- Enhanced form framework architecture with WizardForm integration
+- Updated form validation infrastructure to support WizardForm async validation patterns
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -48,7 +53,7 @@ The Form Migration Plan represents a comprehensive strategy to modernize and sta
 
 The migration encompasses five distinct phases, targeting high-impact forms first while establishing a robust foundation for systematic transformation. This approach balances immediate user benefits with long-term architectural improvements, ensuring minimal disruption to ongoing operations while maximizing the modernization impact.
 
-**Updated** Enhanced with comprehensive component decision matrix and detailed migration templates
+**Updated** Enhanced with comprehensive WizardForm component for multi-step admissions applications and expanded form framework architecture with WizardForm integration as the highest priority complex form type.
 
 ## Project Structure
 
@@ -71,20 +76,22 @@ I[SlideoutForm.tsx]
 J[FormContainer.tsx]
 K[FormActions.tsx]
 L[PrintForm.tsx]
+M[WizardForm.tsx]
+N[FormHeader.tsx]
+O[MinimalForm.tsx]
 end
-subgraph "Infrastructure Layer"
-M[useFormValidation.tsx]
-N[usePrintForm.ts]
-O[Auto-Save System]
-P[Print Form Support]
-Q[Form Grid System]
+subgraph "Foundation Components Layer"
+P[FormSection.tsx]
+Q[FormGrid.tsx]
+R[useFormValidation.tsx]
+S[usePrintForm.ts]
 end
 subgraph "Quality Assurance Layer"
-R[Test Suites]
-S[Accessibility Testing]
-T[Performance Monitoring]
-U[Validation Framework]
-V[Migration Scripts]
+T[Test Suites]
+U[Accessibility Testing]
+V[Performance Monitoring]
+W[Validation Framework]
+X[Migration Scripts]
 end
 A --> B
 B --> E
@@ -97,22 +104,24 @@ J --> M
 K --> M
 L --> N
 M --> R
-N --> V
+N --> R
 O --> R
-P --> S
-Q --> T
+P --> R
+Q --> R
+R --> T
+S --> X
 ```
 
 **Diagram sources**
-- [FORM_MIGRATION_PLAN.md:1-50](file://docs/FORM_MIGRATION_PLAN.md#L1-L50)
+- [FORM_MIGRATION_PLAN.md:1-50](file://docs/migration/FORM_MIGRATION_PLAN.md#L1-L50)
 - [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
-- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
+- [WizardForm.tsx:1-440](file://src/components/ui/forms/WizardForm.tsx#L1-L440)
 - [useFormValidation.tsx:1-529](file://src/hooks/useFormValidation.tsx#L1-L529)
 
 The structure demonstrates a layered approach where migration planning informs framework implementation, which in turn supports comprehensive quality assurance through validation, accessibility, and performance testing.
 
 **Section sources**
-- [FORM_MIGRATION_PLAN.md:1-50](file://docs/FORM_MIGRATION_PLAN.md#L1-L50)
+- [FORM_MIGRATION_PLAN.md:1-50](file://docs/migration/FORM_MIGRATION_PLAN.md#L1-L50)
 
 ## Core Components
 
@@ -152,16 +161,26 @@ class FormGrid {
 +string layout
 +ReactNode children
 }
+class FormHeader {
++string title
++string description
++number progress
++boolean showProgress
++ReactNode icon
++ReactNode badge
+}
 FormContainer --> FormSection : contains
 FormSection --> FormField : contains
 FormSection --> FormGrid : contains
 FormContainer --> FormActions : contains
+FormContainer --> FormHeader : contains
 ```
 
 **Diagram sources**
 - [DialogForm.tsx:90-194](file://src/components/ui/forms/DialogForm.tsx#L90-L194)
 - [FormField.tsx:8-36](file://src/components/ui/forms/FormField.tsx#L8-L36)
 - [FormContainer.tsx:1-151](file://src/components/ui/forms/FormContainer.tsx#L1-L151)
+- [FormHeader.tsx:1-222](file://src/components/ui/forms/FormHeader.tsx#L1-L222)
 
 ### Form Type Classification
 
@@ -171,16 +190,16 @@ The migration strategy categorizes forms based on complexity and usage patterns,
 |---------------|-------|------------|-------------------|
 | Modal CRUD Forms | 72 | Medium | High |
 | Tabbed Forms | 6 | Complex | Highest |
-| Wizard Forms | 1 | Complex | Highest |
+| **Wizard Forms** | **1** | **Complex** | **Highest** |
 | Slideout Forms | 1 | Medium | Medium |
 | File Upload Forms | 4 | Low | Medium |
 | Embedded Forms | 6 | Medium | Medium |
 | **Total** | **103** | | |
 
-**Updated** Enhanced with comprehensive form classification system
+**Updated** Enhanced with WizardForm as highest priority complex form type for admissions module, now recognized as a critical migration target.
 
 **Section sources**
-- [FORM_MIGRATION_PLAN.md:9-22](file://docs/FORM_MIGRATION_PLAN.md#L9-L22)
+- [FORM_MIGRATION_PLAN.md:9-22](file://docs/migration/FORM_MIGRATION_PLAN.md#L9-L22)
 
 ## Architecture Overview
 
@@ -217,6 +236,82 @@ State->>Form : Show Success Message
 The architecture emphasizes real-time validation, comprehensive error handling, and seamless integration with the existing educational management system infrastructure.
 
 ## Detailed Component Analysis
+
+### WizardForm Component
+
+The WizardForm serves as the primary component for multi-step admissions applications, providing sophisticated step navigation, validation, and progress tracking:
+
+```mermaid
+flowchart TD
+A[WizardForm Initialization] --> B[Step Configuration]
+B --> C[Form State Management]
+C --> D[Validation System Integration]
+D --> E[Navigation Control]
+E --> F[Progress Tracking]
+F --> G[Step Validation]
+G --> H[Data Collection]
+H --> I[Submission Handling]
+I --> J[Completion Callback]
+J --> K[Form Reset]
+```
+
+**Diagram sources**
+- [WizardForm.tsx:116-440](file://src/components/ui/forms/WizardForm.tsx#L116-L440)
+
+The component architecture ensures proper step progression while maintaining form functionality, supporting features like async validation, step skipping, and comprehensive accessibility compliance.
+
+#### WizardForm Advanced Features
+
+The WizardForm component provides comprehensive multi-step form handling with the following advanced features:
+
+- **Async Validation Support**: Each step can have asynchronous validation functions
+- **Step Progression Control**: Controlled navigation with validation gates
+- **Step Skipping**: Optional steps with configurable skip behavior
+- **Progress Tracking**: Visual progress indicators with completion states
+- **Custom Navigation**: Flexible navigation button customization
+- **Ref Methods**: Programmatic control via imperative handles
+- **Responsive Variants**: Horizontal and vertical layout options
+
+#### WizardForm Implementation Pattern
+
+The WizardForm follows a structured implementation pattern for multi-step applications:
+
+```typescript
+const wizardSteps: WizardStep[] = [
+  {
+    id: 'personal-info',
+    title: 'Personal Information',
+    description: 'Enter your personal details',
+    content: <PersonalInfoStep />,
+    validate: async () => await validatePersonalInfo(),
+    icon: <UserIcon />
+  },
+  {
+    id: 'academic-background',
+    title: 'Academic Background',
+    description: 'Provide your educational history',
+    content: <AcademicBackgroundStep />,
+    validate: async () => await validateAcademicBackground()
+  },
+  {
+    id: 'review',
+    title: 'Review & Submit',
+    content: <ReviewStep />
+  }
+];
+
+<WizardForm
+  steps={wizardSteps}
+  onComplete={handleSubmit}
+  onCancel={handleCancel}
+  showProgress={true}
+  validateOnNext={true}
+/>
+```
+
+**Section sources**
+- [WizardForm.tsx:1-440](file://src/components/ui/forms/WizardForm.tsx#L1-L440)
+- [ApplicationFormPage.tsx:461-471](file://src/modules/admissions/pages/ApplicationFormPage.tsx#L461-L471)
 
 ### DialogForm Component
 
@@ -280,10 +375,6 @@ FormField --> AccessibilitySupport : provides
 
 The component implements sophisticated validation state management, automatic accessibility attribute generation, and responsive layout support for various form configurations.
 
-**Section sources**
-- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
-- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
-
 ### TabbedForm Implementation
 
 The TabbedForm component addresses complex multi-step workflows with advanced navigation and validation capabilities:
@@ -312,9 +403,6 @@ Submit --> Tab1 : Validation Error
 
 The implementation supports dynamic tab navigation, progress tracking, validation state management, and responsive mobile interfaces with comprehensive accessibility features.
 
-**Section sources**
-- [task-7-tabbed-form-implementation.md:1-299](file://docs/workflows/task-7-tabbed-form-implementation.md#L1-L299)
-
 ### SlideoutForm Component
 
 The SlideoutForm provides contextual data entry with smooth animations and integrated auto-save functionality:
@@ -340,9 +428,6 @@ J --> K[Panel Closed]
 
 The component features sophisticated state management, debounced auto-save functionality, and comprehensive accessibility compliance with screen reader support and keyboard navigation.
 
-**Section sources**
-- [task-8-slideout-form-implementation.md:1-209](file://docs/workflows/task-8-slideout-form-implementation.md#L1-L209)
-
 ### PrintForm Component
 
 The PrintForm component provides print-optimized forms with specialized styling and print functionality:
@@ -365,7 +450,9 @@ H --> I[Print Completion]
 The component implements comprehensive print-specific styling, page break management, and print control functionality for generating professional documents.
 
 **Section sources**
-- [PrintForm.tsx:1-303](file://src/components/ui/forms/PrintForm.tsx#L1-L303)
+- [DialogForm.tsx:1-194](file://src/components/ui/forms/DialogForm.tsx#L1-L194)
+- [FormField.tsx:1-182](file://src/components/ui/forms/FormField.tsx#L1-L182)
+- [WizardForm.tsx:1-440](file://src/components/ui/forms/WizardForm.tsx#L1-L440)
 
 ## Migration Execution Strategy
 
@@ -379,7 +466,10 @@ Targeting the most frequently used and complex forms that directly impact daily 
 |-----------|----------------|----------|----------|
 | Student Management | Add Student Page, Student Lists | Highest | Sprint 1-2 |
 | Application Processing | Application Management, Review Forms | Highest | Sprint 1-2 |
+| **Admissions Wizard** | **Multi-step Application Form** | **Highest** | **Sprint 1-2** |
 | Academic Configuration | Education System Forms | High | Sprint 1-2 |
+
+**Updated** Enhanced with WizardForm implementation for admissions module as highest priority form type, now recognized as a critical migration target.
 
 ### Phase 2: Administration Module Consolidation
 
@@ -424,35 +514,36 @@ Finalizing remaining forms and establishing comprehensive coverage:
 | Nutrition | Meal Plans, Menus, Assignments | Low | Planned |
 | Remaining Admin | Attendance, Imports, Messages | Low | Planned |
 
-**Updated** Enhanced with detailed migration templates and execution steps
+**Updated** Enhanced with comprehensive WizardForm implementation guidance and expanded form framework architecture.
 
 **Section sources**
-- [FORM_MIGRATION_PLAN.md:25-422](file://docs/FORM_MIGRATION_PLAN.md#L25-L422)
+- [FORM_MIGRATION_PLAN.md:25-422](file://docs/migration/FORM_MIGRATION_PLAN.md#L25-L422)
 
 ## Framework Components
 
 The Form Implementation Framework provides a comprehensive set of reusable components that ensure consistency and maintainability across all migrated forms:
 
-### Core Form Components
+### Core Foundation Components
 
 | Component | Purpose | Key Features | Usage Context |
 |-----------|---------|--------------|---------------|
-| FormContainer | Base form wrapper | Layout management, size variants | All form types |
-| FormSection | Field grouping | Collapsible sections, column layouts | Complex forms |
-| FormField | Individual field wrapper | Validation integration, accessibility | All input types |
-| FormActions | Button container | Right-aligned buttons, responsive layout | All forms |
-| FormGrid | Responsive layout | Column-based layouts, adaptive sizing | Multi-field forms |
+| FormContainer | Base form wrapper | Layout management, size variants, type variants | All form types |
+| FormHeader | Form title and progress | Progress bars, auto-save status, step labels | All form types |
+| FormSection | Field grouping | Collapsible sections, column layouts, validation indicators | Complex forms |
+| FormGrid | Responsive layout | Column-based layouts, adaptive sizing, validation states | Multi-field forms |
+| FormField | Individual field wrapper | Validation integration, accessibility, error display | All input types |
+| FormActions | Button container | Right-aligned buttons, responsive layout, loading states | All forms |
 
 ### Advanced Form Components
 
 | Component | Purpose | Advanced Features | Specialized Use |
 |-----------|---------|------------------|-----------------|
-| DialogForm | Modal forms | Progress tracking, auto-save status | Standard CRUD |
-| TabbedForm | Multi-step workflows | Navigation state, validation indicators | Complex processes |
-| SlideoutForm | Contextual editing | Smooth animations, portal rendering | Quick edits |
-| WizardForm | Sequential processes | Step validation, progress tracking | Multi-stage workflows |
-| MinimalForm | Embedded forms | Lightweight, no chrome | Inline contexts |
-| PrintForm | Document generation | Print-specific styling, layout | Report forms |
+| DialogForm | Modal forms | Progress tracking, auto-save status, step indicators | Standard CRUD |
+| TabbedForm | Multi-step workflows | Navigation state, validation indicators, mobile support | Complex processes |
+| SlideoutForm | Contextual editing | Smooth animations, portal rendering, auto-save | Quick edits |
+| **WizardForm** | **Sequential processes** | **Step validation, async validation, progress tracking** | **Multi-stage workflows** |
+| MinimalForm | Embedded forms | Lightweight, no chrome, card backgrounds | Inline contexts |
+| PrintForm | Document generation | Print-specific styling, page breaks, print controls | Report forms |
 
 ### Supporting Infrastructure
 
@@ -463,10 +554,11 @@ The Form Implementation Framework provides a comprehensive set of reusable compo
 | useFormProgress | Progress tracking | Wizard/Tabbed forms | User guidance |
 | usePrintForm | Printing support | Print-enabled forms | Document generation |
 
-**Updated** Enhanced with comprehensive component architecture and integration patterns
+**Updated** Enhanced with comprehensive WizardForm component and expanded foundation component architecture, now including WizardForm as a critical form type component.
 
 **Section sources**
-- [FORM_MIGRATION_PLAN.md:425-457](file://docs/FORM_MIGRATION_PLAN.md#L425-L457)
+- [FORM_MIGRATION_PLAN.md:425-457](file://docs/migration/FORM_MIGRATION_PLAN.md#L425-L457)
+- [index.ts:36-37](file://src/components/ui/forms/index.ts#L36-L37)
 
 ## Validation Infrastructure
 
@@ -515,7 +607,7 @@ The validation system provides comprehensive accessibility support:
 - **ARIA Attributes**: Proper labeling and state indication
 - **Keyboard Navigation**: Full keyboard support for validation interaction
 
-**Updated** Enhanced with comprehensive validation rule system and accessibility features
+**Updated** Enhanced with comprehensive validation rule system and accessibility features, now supporting WizardForm async validation patterns.
 
 **Section sources**
 - [useFormValidation.tsx:1-529](file://src/hooks/useFormValidation.tsx#L1-L529)
@@ -555,7 +647,7 @@ Each migrated form undergoes comprehensive validation:
 4. **Performance Testing**: Load and stress scenarios
 5. **Regression Testing**: Impact on existing functionality
 
-**Updated** Enhanced with comprehensive testing protocols and validation frameworks
+**Updated** Enhanced with comprehensive testing protocols and validation frameworks, now including WizardForm-specific testing scenarios.
 
 **Section sources**
 - [form-validation-framework-implementation.md:178-191](file://docs/guides/form-validation-framework-implementation.md#L178-L191)
@@ -591,10 +683,10 @@ Comprehensive quality assurance ensures migration success:
 - **Manual Testing**: Human verification of critical workflows
 - **User Acceptance Testing**: End-user validation of migrated forms
 
-**Updated** Enhanced with comprehensive risk mitigation strategies and implementation guidance
+**Updated** Enhanced with comprehensive risk mitigation strategies and implementation guidance, now including WizardForm-specific risk considerations.
 
 **Section sources**
-- [FORM_MIGRATION_PLAN.md:359-384](file://docs/FORM_MIGRATION_PLAN.md#L359-L384)
+- [FORM_MIGRATION_PLAN.md:359-384](file://docs/migration/FORM_MIGRATION_PLAN.md#L359-L384)
 
 ## Progress Tracking
 
@@ -623,7 +715,7 @@ The migration includes comprehensive tracking mechanisms to monitor progress and
 | Library | 7 | 0 | 7 | Planning |
 | Nutrition | 4 | 0 | 4 | Planning |
 | Settings | 4 | 0 | 4 | Planning |
-| Admissions | 3 | 0 | 3 | Planning |
+| **Admissions** | **3** | **0** | **3** | **Planning** |
 
 ### Milestone Tracking
 
@@ -635,16 +727,18 @@ The migration follows established milestones with clear deliverables:
 - **Phase 4 Completion**: Business module integration (Sprint 7)
 - **Phase 5 Completion**: System completion (Sprint 8)
 
-**Updated** Enhanced with comprehensive progress tracking and milestone management
+**Updated** Enhanced with comprehensive progress tracking and milestone management, now including WizardForm implementation as a key milestone.
 
 **Section sources**
-- [FORM_MIGRATION_PLAN.md:387-411](file://docs/FORM_MIGRATION_PLAN.md#L387-L411)
+- [FORM_MIGRATION_PLAN.md:387-411](file://docs/migration/FORM_MIGRATION_PLAN.md#L387-L411)
 
 ## Conclusion
 
 The Form Migration Plan represents a comprehensive strategy to modernize and standardize form handling across the SchoolPilot3 educational management system. Through systematic implementation of the Form Implementation Framework, the migration addresses the challenge of managing over 100 diverse forms while establishing a foundation for long-term maintainability and user experience improvement.
 
 The five-phase approach ensures maximum impact with minimal disruption, prioritizing high-impact forms while building comprehensive infrastructure for systematic transformation. The implementation leverages proven patterns from the existing educational management system, ensuring consistency with established architectural principles.
+
+**Updated** Enhanced with comprehensive WizardForm component for multi-step admissions applications and expanded form framework architecture, now including WizardForm as the highest priority complex form type.
 
 Key achievements of the migration plan include:
 
@@ -653,9 +747,9 @@ Key achievements of the migration plan include:
 - **Performance Optimization**: Real-time validation with debouncing and efficient state management
 - **Quality Assurance**: Comprehensive testing and validation protocols
 - **Risk Mitigation**: Structured approach to minimize system disruption
+- **Advanced Wizard Support**: Sophisticated multi-step form handling for complex admissions workflows
+- **WizardForm Integration**: Comprehensive implementation of WizardForm for sequential application processes
 
 The migration establishes a robust foundation for future form development while providing immediate benefits through improved user experience, data quality, and system maintainability. The implementation demonstrates the educational management system's commitment to modernization while preserving operational continuity and user satisfaction.
 
 Through careful planning, systematic execution, and comprehensive quality assurance, the Form Migration Plan positions SchoolPilot3 for continued growth and enhancement in educational technology solutions.
-
-**Updated** Enhanced with comprehensive component decision matrix, detailed migration templates, and expanded framework architecture documentation

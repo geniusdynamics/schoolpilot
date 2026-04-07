@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DataGrid from '../../../components/ui/data/DataGrid';
-import Button from '../../../components/ui/Button';
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
-import Card from '../../../components/ui/Card';
+import DataGrid from '@/components/ui/data/DataGrid';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Card from '@/components/ui/Card';
 import {
   PlusIcon,
   EditIcon,
@@ -25,16 +25,16 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   XCircleIcon
-} from '../../../components/ui/icons';
-import { useAppData } from '../../../hooks/useAppData';
-import Spinner from '../../../components/ui/Spinner';
+} from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData';
+import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '../../../hooks/useToast';
-import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import { useToast } from '@/hooks/useToast';
+import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import { 
   AdminApplicationType, 
   AdminKCPEMarksType,

@@ -23,14 +23,14 @@ import {
   ShoppingCartIcon,
   TagIcon,
 } from '@heroicons/react/24/outline';
-import { getMarketplace } from '../../services/PluginMarketplace';
+import { getMarketplace } from '../../services/plugin/PluginMarketplace';
 import type {
   MarketplacePlugin,
   MarketplaceKeyConfig,
   MarketplaceCategory,
   MarketplaceFeatured,
   KeyValidationResult,
-} from '../../services/PluginMarketplace';
+} from '../../services/plugin/PluginMarketplace';
 import type { LoadedPlugin, AdminPluginConfig } from '../../plugins/types';
 
 // ============================================================================

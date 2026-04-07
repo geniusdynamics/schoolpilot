@@ -1,7 +1,7 @@
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Library module.
 // ABOUTME: It ensures all library-related data structures are managed in one place.
 
-import { Loan, Book, BookCategory, Fine } from '../../core/types';
+import { Loan, Book, BookCategory, Fine } from '@/core/types';
 
 export enum LibBookStatusEnum {
     AVAILABLE = 'Available',

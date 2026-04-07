@@ -2,8 +2,8 @@
 // ABOUTME: Provides buttons to trigger different types of errors for testing
 
 import React, { useState } from 'react';
-import { reportError, reportMessage, Sentry } from '../config/errorTracking';
-import testErrorTracking from '../utils/testErrorTracking';
+import { reportError, reportMessage, Sentry } from '@/config/errorTracking';
+import testErrorTracking from '@/utils/testErrorTracking';
 
 const ErrorTrackingTest: React.FC = () => {
   const [testResults, setTestResults] = useState<Record<string, boolean>>({});

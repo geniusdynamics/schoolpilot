@@ -8,7 +8,7 @@ export type {
   RegressionResult,
   Recommendation,
   BenchmarkStorage
-} from '../services/performanceBenchmark';
+} from '../services/performance/performanceBenchmark';
 
 export type {
   PerformanceReport,
@@ -16,7 +16,7 @@ export type {
   ModuleLoadingMetric,
   DataOperationMetric,
   UserInteractionMetric
-} from '../services/performanceMonitor';
+} from '../services/performance/performanceMonitor';
 
 // Additional types for UI components
 export interface BenchmarkUIState {

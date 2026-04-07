@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { databaseService } from '@/services/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 import {
   initialMockAnnouncements,
   initialMockAttendanceRecords,

@@ -1,1 +1,381 @@
-// ABOUTME: Memory management dashboard component\n// ABOUTME: Displays real-time memory metrics, alerts, and management controls\n\nimport React, { useState } from 'react';\nimport { useMemoryManagement, useMemoryAlerts } from '../hooks/useMemoryManagement';\nimport { Card } from './ui/Card';\nimport { Button } from './ui/Button';\nimport {\n  CpuChipIcon,\n  ExclamationTriangleIcon,\n  CheckCircleIcon,\n  ArrowPathIcon,\n  TrashIcon,\n  Cog6ToothIcon,\n  ChartBarIcon,\n  SignalIcon,\n} from '@heroicons/react/24/outline';\n\ninterface MemoryDashboardProps {\n  className?: string;\n}\n\nexport const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = '' }) => {\n  const {\n    metrics,\n    history,\n    activeAlerts,\n    connectionStats,\n    summary,\n    thresholds,\n    isMonitoring,\n    startMonitoring,\n    stopMonitoring,\n    forceCleanup,\n    resolveAlert,\n    updateThresholds,\n    refreshMetrics,\n  } = useMemoryManagement();\n\n  const [activeTab, setActiveTab] = useState<'overview' | 'alerts' | 'connections' | 'settings'>('overview');\n  const [showThresholdSettings, setShowThresholdSettings] = useState(false);\n  const [tempThresholds, setTempThresholds] = useState(thresholds);\n\n  const formatBytes = (bytes: number) => {\n    if (bytes === 0) return '0 B';\n    const k = 1024;\n    const sizes = ['B', 'KB', 'MB', 'GB'];\n    const i = Math.floor(Math.log(bytes) / Math.log(k));\n    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;\n  };\n\n  const formatPercentage = (value: number) => {\n    return `${value.toFixed(1)}%`;\n  };\n\n  const getMemoryUsageColor = (percentage: number) => {\n    if (percentage > thresholds.criticalThreshold) return 'text-red-600 bg-red-100';\n    if (percentage > thresholds.warningThreshold) return 'text-yellow-600 bg-yellow-100';\n    return 'text-green-600 bg-green-100';\n  };\n\n  const getAlertColor = (severity: string) => {\n    switch (severity) {\n      case 'critical': return 'text-red-600 bg-red-100 border-red-200';\n      case 'high': return 'text-red-600 bg-red-50 border-red-200';\n      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';\n      case 'low': return 'text-blue-600 bg-blue-50 border-blue-200';\n      default: return 'text-gray-600 bg-gray-50 border-gray-200';\n    }\n  };\n\n  const getTrendIcon = (trend: string) => {\n    switch (trend) {\n      case 'increasing': return '📈';\n      case 'decreasing': return '📉';\n      case 'stable': return '➡️';\n      default: return '❓';\n    }\n  };\n\n  const handleSaveThresholds = () => {\n    updateThresholds(tempThresholds);\n    setShowThresholdSettings(false);\n  };\n\n  const handleResetThresholds = () => {\n    setTempThresholds(thresholds);\n  };\n\n  return (\n    <div className={`space-y-6 ${className}`}>\n      {/* Header */}\n      <div className=\"flex items-center justify-between\">\n        <div>\n          <h2 className=\"text-2xl font-bold text-gray-900\">Memory Management</h2>\n          <p className=\"text-gray-600\">Real-time memory monitoring and optimization</p>\n        </div>\n        <div className=\"flex items-center space-x-3\">\n          <div className={`px-3 py-1 rounded-full text-sm font-medium ${\n            isMonitoring ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'\n          }`}>\n            {isMonitoring ? 'Monitoring Active' : 'Monitoring Inactive'}\n          </div>\n          {isMonitoring ? (\n            <Button onClick={stopMonitoring} variant=\"outline\" size=\"sm\">\n              Stop Monitoring\n            </Button>\n          ) : (\n            <Button onClick={() => startMonitoring()} variant=\"primary\" size=\"sm\">\n              Start Monitoring\n            </Button>\n          )}\n        </div>\n      </div>\n\n      {/* Memory Overview Cards */}\n      <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6\">\n        <Card>\n          <div className=\"p-6\">\n            <div className=\"flex items-center\">\n              <div className=\"flex-shrink-0\">\n                <CpuChipIcon className=\"h-8 w-8 text-blue-600\" />\n              </div>\n              <div className=\"ml-4\">\n                <p className=\"text-sm font-medium text-gray-500\">Memory Usage</p>\n                {metrics && metrics.totalMemory > 0 ? (\n                  <div>\n                    <p className=\"text-2xl font-semibold text-gray-900\">\n                      {formatPercentage((metrics.usedMemory / metrics.totalMemory) * 100)}\n                    </p>\n                    <p className=\"text-xs text-gray-500\">\n                      {formatBytes(metrics.usedMemory)} / {formatBytes(metrics.totalMemory)}\n                    </p>\n                  </div>\n                ) : (\n                  <p className=\"text-2xl font-semibold text-gray-900\">\n                    {metrics ? formatBytes(metrics.usedMemory) : 'N/A'}\n                  </p>\n                )}\n              </div>\n            </div>\n          </div>\n        </Card>\n\n        <Card>\n          <div className=\"p-6\">\n            <div className=\"flex items-center\">\n              <div className=\"flex-shrink-0\">\n                <ChartBarIcon className=\"h-8 w-8 text-purple-600\" />\n              </div>\n              <div className=\"ml-4\">\n                <p className=\"text-sm font-medium text-gray-500\">Memory Trend</p>\n                <div className=\"flex items-center space-x-2\">\n                  <span className=\"text-2xl\">{getTrendIcon(summary.trend)}</span>\n                  <span className=\"text-lg font-semibold text-gray-900 capitalize\">\n                    {summary.trend}\n                  </span>\n                </div>\n              </div>\n            </div>\n          </div>\n        </Card>\n\n        <Card>\n          <div className=\"p-6\">\n            <div className=\"flex items-center\">\n              <div className=\"flex-shrink-0\">\n                <SignalIcon className=\"h-8 w-8 text-green-600\" />\n              </div>\n              <div className=\"ml-4\">\n                <p className=\"text-sm font-medium text-gray-500\">Active Connections</p>\n                <p className=\"text-2xl font-semibold text-gray-900\">\n                  {connectionStats.active}\n                </p>\n                {connectionStats.stale > 0 && (\n                  <p className=\"text-xs text-yellow-600\">\n                    {connectionStats.stale} stale\n                  </p>\n                )}\n              </div>\n            </div>\n          </div>\n        </Card>\n\n        <Card>\n          <div className=\"p-6\">\n            <div className=\"flex items-center\">\n              <div className=\"flex-shrink-0\">\n                <ExclamationTriangleIcon className={`h-8 w-8 ${\n                  activeAlerts.length > 0 ? 'text-red-600' : 'text-gray-400'\n                }`} />\n              </div>\n              <div className=\"ml-4\">\n                <p className=\"text-sm font-medium text-gray-500\">Active Alerts</p>\n                <p className={`text-2xl font-semibold ${\n                  activeAlerts.length > 0 ? 'text-red-600' : 'text-gray-900'\n                }`}>\n                  {activeAlerts.length}\n                </p>\n              </div>\n            </div>\n          </div>\n        </Card>\n      </div>\n\n      {/* Tab Navigation */}\n      <div className=\"border-b border-gray-200\">\n        <nav className=\"-mb-px flex space-x-8\">\n          {[\n            { id: 'overview', label: 'Overview' },\n            { id: 'alerts', label: 'Alerts' },\n            { id: 'connections', label: 'Connections' },\n            { id: 'settings', label: 'Settings' },\n          ].map((tab) => (\n            <button\n              key={tab.id}\n              onClick={() => setActiveTab(tab.id as any)}\n              className={`py-2 px-1 border-b-2 font-medium text-sm ${\n                activeTab === tab.id\n                  ? 'border-blue-500 text-blue-600'\n                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'\n              }`}\n            >\n              {tab.label}\n            </button>\n          ))}\n        </nav>\n      </div>\n\n      {/* Tab Content */}\n      <div className=\"space-y-6\">\n        {activeTab === 'overview' && (\n          <div className=\"space-y-6\">\n            {/* Memory Usage Chart */}\n            {metrics && (\n              <Card title=\"Current Memory Usage\">\n                <div className=\"p-6\">\n                  <div className=\"space-y-4\">\n                    <div className=\"flex justify-between items-center\">\n                      <span className=\"text-gray-600\">Heap Used:</span>\n                      <span className=\"font-medium\">{formatBytes(metrics.heapUsed)}</span>\n                    </div>\n                    <div className=\"w-full bg-gray-200 rounded-full h-3\">\n                      <div \n                        className={`h-3 rounded-full ${\n                          metrics.heapTotal > 0 && (metrics.heapUsed / metrics.heapTotal) > 0.8 ? 'bg-red-500' :\n                          metrics.heapTotal > 0 && (metrics.heapUsed / metrics.heapTotal) > 0.6 ? 'bg-yellow-500' : 'bg-green-500'\n                        }`}\n                        style={{ \n                          width: metrics.heapTotal > 0 ? `${Math.min((metrics.heapUsed / metrics.heapTotal) * 100, 100)}%` : '0%'\n                        }}\n                      />\n                    </div>\n                    <div className=\"text-sm text-gray-500\">\n                      {metrics.heapTotal > 0 ? formatPercentage((metrics.heapUsed / metrics.heapTotal) * 100) : 'N/A'} of heap used\n                    </div>\n                  </div>\n                </div>\n              </Card>\n            )}\n\n            {/* Recommendations */}\n            <Card title=\"Recommendations\">\n              <div className=\"p-6\">\n                {summary.recommendations.length > 0 ? (\n                  <div className=\"space-y-3\">\n                    {summary.recommendations.map((rec, index) => (\n                      <div key={index} className=\"flex items-start space-x-3\">\n                        <div className=\"flex-shrink-0 mt-1\">\n                          <div className=\"w-2 h-2 bg-blue-500 rounded-full\"></div>\n                        </div>\n                        <p className=\"text-sm text-gray-700\">{rec}</p>\n                      </div>\n                    ))}\n                  </div>\n                ) : (\n                  <div className=\"flex items-center space-x-2\">\n                    <CheckCircleIcon className=\"h-5 w-5 text-green-500\" />\n                    <span className=\"text-sm text-gray-600\">No recommendations at this time</span>\n                  </div>\n                )}\n              </div>\n            </Card>\n\n            {/* Quick Actions */}\n            <Card title=\"Quick Actions\">\n              <div className=\"p-6\">\n                <div className=\"grid grid-cols-2 md:grid-cols-4 gap-4\">\n                  <Button\n                    onClick={refreshMetrics}\n                    variant=\"outline\"\n                    size=\"sm\"\n                    className=\"flex items-center space-x-2\"\n                  >\n                    <ArrowPathIcon className=\"h-4 w-4\" />\n                    <span>Refresh</span>\n                  </Button>\n                  \n                  <Button\n                    onClick={forceCleanup}\n                    variant=\"outline\"\n                    size=\"sm\"\n                    className=\"flex items-center space-x-2\"\n                  >\n                    <TrashIcon className=\"h-4 w-4\" />\n                    <span>Force Cleanup</span>\n                  </Button>\n                  \n                  <Button\n                    onClick={() => setShowThresholdSettings(true)}\n                    variant=\"outline\"\n                    size=\"sm\"\n                    className=\"flex items-center space-x-2\"\n                  >\n                    <Cog6ToothIcon className=\"h-4 w-4\" />\n                    <span>Settings</span>\n                  </Button>\n                  \n                  <Button\n                    onClick={() => {\n                      const data = JSON.stringify({\n                        metrics,\n                        history,\n                        alerts: activeAlerts,\n                        connectionStats,\n                        summary,\n                        timestamp: new Date(),\n                      }, null, 2);\n                      const blob = new Blob([data], { type: 'application/json' });\n                      const url = URL.createObjectURL(blob);\n                      const a = document.createElement('a');\n                      a.href = url;\n                      a.download = `memory-report-${new Date().toISOString().split('T')[0]}.json`;\n                      document.body.appendChild(a);\n                      a.click();\n                      document.body.removeChild(a);\n                      URL.revokeObjectURL(url);\n                    }}\n                    variant=\"outline\"\n                    size=\"sm\"\n                    className=\"flex items-center space-x-2\"\n                  >\n                    <ChartBarIcon className=\"h-4 w-4\" />\n                    <span>Export</span>\n                  </Button>\n                </div>\n              </div>\n            </Card>\n          </div>\n        )}\n\n        {activeTab === 'alerts' && (\n          <Card title=\"Memory Alerts\">\n            <div className=\"p-6\">\n              {activeAlerts.length > 0 ? (\n                <div className=\"space-y-4\">\n                  {activeAlerts.map((alert) => (\n                    <div key={alert.id} className={`border rounded-lg p-4 ${getAlertColor(alert.severity)}`}>\n                      <div className=\"flex items-start justify-between\">\n                        <div className=\"flex-1\">\n                          <div className=\"flex items-center space-x-2 mb-2\">\n                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${\n                              alert.severity === 'critical' ? 'bg-red-200 text-red-800' :\n                              alert.severity === 'high' ? 'bg-red-100 text-red-700' :\n                              alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-700' :\n                              'bg-blue-100 text-blue-700'\n                            }`}>\n                              {alert.severity.toUpperCase()}\n                            </span>\n                            <span className=\"text-sm font-medium capitalize\">{alert.type.replace('_', ' ')}</span>\n                          </div>\n                          <p className=\"text-sm text-gray-700 mb-2\">{alert.message}</p>\n                          <div className=\"text-xs text-gray-500\">\n                            Current: {alert.currentUsage.toFixed(2)} | Threshold: {alert.threshold}\n                          </div>\n                          <div className=\"text-xs text-gray-500\">\n                            {alert.timestamp.toLocaleString()}\n                          </div>\n                        </div>\n                        <Button\n                          onClick={() => resolveAlert(alert.id)}\n                          variant=\"outline\"\n                          size=\"sm\"\n                          className=\"ml-4\"\n                        >\n                          Resolve\n                        </Button>\n                      </div>\n                    </div>\n                  ))}\n                </div>\n              ) : (\n                <div className=\"text-center py-8\">\n                  <CheckCircleIcon className=\"mx-auto h-12 w-12 text-green-500\" />\n                  <h3 className=\"mt-2 text-sm font-medium text-gray-900\">No Active Alerts</h3>\n                  <p className=\"mt-1 text-sm text-gray-500\">All memory metrics are within normal ranges.</p>\n                </div>\n              )}\n            </div>\n          </Card>\n        )}\n\n        {activeTab === 'connections' && (\n          <Card title=\"Database Connections\">\n            <div className=\"p-6\">\n              <div className=\"grid grid-cols-1 md:grid-cols-3 gap-6\">\n                <div className=\"text-center\">\n                  <div className=\"text-3xl font-bold text-blue-600\">{connectionStats.total}</div>\n                  <div className=\"text-sm text-gray-500\">Total Connections</div>\n                </div>\n                <div className=\"text-center\">\n                  <div className=\"text-3xl font-bold text-green-600\">{connectionStats.active}</div>\n                  <div className=\"text-sm text-gray-500\">Active Connections</div>\n                </div>\n                <div className=\"text-center\">\n                  <div className=\"text-3xl font-bold text-yellow-600\">{connectionStats.stale}</div>\n                  <div className=\"text-sm text-gray-500\">Stale Connections</div>\n                </div>\n              </div>\n              \n              {Object.keys(connectionStats.byProvider).length > 0 && (\n                <div className=\"mt-6\">\n                  <h4 className=\"text-lg font-medium text-gray-900 mb-3\">By Provider</h4>\n                  <div className=\"space-y-2\">\n                    {Object.entries(connectionStats.byProvider).map(([provider, count]) => (\n                      <div key={provider} className=\"flex justify-between items-center\">\n                        <span className=\"text-sm text-gray-600 capitalize\">{provider}</span>\n                        <span className=\"text-sm font-medium\">{count}</span>\n                      </div>\n                    ))}\n                  </div>\n                </div>\n              )}\n            </div>\n          </Card>\n        )}\n\n        {activeTab === 'settings' && (\n          <Card title=\"Memory Management Settings\">\n            <div className=\"p-6\">\n              <div className=\"space-y-6\">\n                <div>\n                  <h4 className=\"text-lg font-medium text-gray-900 mb-4\">Memory Thresholds</h4>\n                  <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\n                    <div>\n                      <label className=\"block text-sm font-medium text-gray-700 mb-1\">\n                        Warning Threshold (%)\n                      </label>\n                      <input\n                        type=\"number\"\n                        min=\"0\"\n                        max=\"100\"\n                        value={tempThresholds.warningThreshold}\n                        onChange={(e) => setTempThresholds({\n                          ...tempThresholds,\n                          warningThreshold: Number(e.target.value)\n                        })}\n                        className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"\n                      />\n                    </div>\n                    <div>\n                      <label className=\"block text-sm font-medium text-gray-700 mb-1\">\n                        Critical Threshold (%)\n                      </label>\n                      <input\n                        type=\"number\"\n                        min=\"0\"\n                        max=\"100\"\n                        value={tempThresholds.criticalThreshold}\n                        onChange={(e) => setTempThresholds({\n                          ...tempThresholds,\n                          criticalThreshold: Number(e.target.value)\n                        })}\n                        className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"\n                      />\n                    </div>\n                    <div>\n                      <label className=\"block text-sm font-medium text-gray-700 mb-1\">\n                        GC Trigger Threshold (%)\n                      </label>\n                      <input\n                        type=\"number\"\n                        min=\"0\"\n                        max=\"100\"\n                        value={tempThresholds.gcTriggerThreshold}\n                        onChange={(e) => setTempThresholds({\n                          ...tempThresholds,\n                          gcTriggerThreshold: Number(e.target.value)\n                        })}\n                        className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"\n                      />\n                    </div>\n                    <div>\n                      <label className=\"block text-sm font-medium text-gray-700 mb-1\">\n                        Connection Leak Threshold\n                      </label>\n                      <input\n                        type=\"number\"\n                        min=\"1\"\n                        value={tempThresholds.connectionLeakThreshold}\n                        onChange={(e) => setTempThresholds({\n                          ...tempThresholds,\n                          connectionLeakThreshold: Number(e.target.value)\n                        })}\n                        className=\"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500\"\n                      />\n                    </div>\n                  </div>\n                  <div className=\"mt-4 flex space-x-3\">\n                    <Button onClick={handleSaveThresholds} variant=\"primary\" size=\"sm\">\n                      Save Settings\n                    </Button>\n                    <Button onClick={handleResetThresholds} variant=\"outline\" size=\"sm\">\n                      Reset\n                    </Button>\n                  </div>\n                </div>\n              </div>\n            </div>\n          </Card>\n        )}\n      </div>\n    </div>\n  );\n};\n\nexport default MemoryDashboard;\n"
+// ABOUTME: Memory management dashboard component
+// ABOUTME: Displays real-time memory metrics, alerts, and management controls
+
+import React, { useState } from 'react';
+import { useMemoryManagement, useMemoryAlerts } from '@/hooks/useMemoryManagement';
+import Card from './ui/Card';
+import Button from './ui/Button';
+import {
+  CpuChipIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ArrowPathIcon,
+  TrashIcon,
+  Cog6ToothIcon,
+  ChartBarIcon,
+  SignalIcon,
+} from '@heroicons/react/24/outline';
+
+interface MemoryDashboardProps {
+  className?: string;
+}
+
+export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = '' }) => {
+  const {
+    metrics,
+    history,
+    activeAlerts,
+    connectionStats,
+    summary,
+    thresholds,
+    isMonitoring,
+    startMonitoring,
+    stopMonitoring,
+    forceCleanup,
+    resolveAlert,
+    updateThresholds,
+    refreshMetrics,
+  } = useMemoryManagement();
+
+  const [activeTab, setActiveTab] = useState<'overview' | 'alerts' | 'connections' | 'settings'>('overview');
+  const [showThresholdSettings, setShowThresholdSettings] = useState(false);
+  const [tempThresholds, setTempThresholds] = useState(thresholds);
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  };
+
+  const formatPercentage = (value: number) => {
+    return `${value.toFixed(1)}%`;
+  };
+
+  const getMemoryUsageColor = (percentage: number) => {
+    if (percentage > thresholds.criticalThreshold) return 'text-red-600 bg-red-100';
+    if (percentage > thresholds.warningThreshold) return 'text-yellow-600 bg-yellow-100';
+    return 'text-green-600 bg-green-100';
+  };
+
+  const getAlertColor = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return 'text-red-600 bg-red-100 border-red-200';
+      case 'warning':
+        return 'text-yellow-600 bg-yellow-100 border-yellow-200';
+      default:
+        return 'text-blue-600 bg-blue-100 border-blue-200';
+    }
+  };
+
+  const handleSaveThresholds = () => {
+    updateThresholds(tempThresholds);
+    setShowThresholdSettings(false);
+  };
+
+  const memoryUsagePercent = metrics?.memoryUsagePercent ?? 0;
+  const usageColorClass = getMemoryUsageColor(memoryUsagePercent);
+
+  return (
+    <div className={`space-y-4 ${className}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CpuChipIcon className="w-6 h-6 text-indigo-600" />
+          <h2 className="text-xl font-semibold text-gray-900">Memory Management</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={refreshMetrics}
+            leftIcon={<ArrowPathIcon className="w-4 h-4" />}
+          >
+            Refresh
+          </Button>
+          <Button
+            variant={isMonitoring ? 'danger' : 'primary'}
+            size="sm"
+            onClick={isMonitoring ? stopMonitoring : startMonitoring}
+            leftIcon={isMonitoring ? <SignalIcon className="w-4 h-4" /> : <ChartBarIcon className="w-4 h-4" />}
+          >
+            {isMonitoring ? 'Stop Monitoring' : 'Start Monitoring'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        {(['overview', 'alerts', 'connections', 'settings'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
+              activeTab === tab
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Overview Tab */}
+      {activeTab === 'overview' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Memory Usage Card */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Memory Usage</span>
+              <div className={`px-2 py-1 rounded-full text-xs font-medium ${usageColorClass}`}>
+                {formatPercentage(memoryUsagePercent)}
+              </div>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">
+              {metrics ? formatBytes(metrics.usedMemory) : '—'}
+            </div>
+            <div className="text-sm text-gray-500">
+              of {metrics ? formatBytes(metrics.totalMemory) : '—'}
+            </div>
+          </Card>
+
+          {/* Active Alerts Card */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Active Alerts</span>
+              {activeAlerts.length > 0 ? (
+                <ExclamationTriangleIcon className="w-5 h-5 text-yellow-500" />
+              ) : (
+                <CheckCircleIcon className="w-5 h-5 text-green-500" />
+              )}
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{activeAlerts.length}</div>
+            <div className="text-sm text-gray-500">
+              {activeAlerts.length === 0 ? 'All clear' : `${activeAlerts.filter(a => a.severity === 'critical').length} critical`}
+            </div>
+          </Card>
+
+          {/* Connections Card */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Active Connections</span>
+              <SignalIcon className="w-5 h-5 text-blue-500" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{connectionStats.active}</div>
+            <div className="text-sm text-gray-500">
+              {connectionStats.stale} stale
+            </div>
+          </Card>
+
+          {/* Trend Card */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Trend</span>
+              <ChartBarIcon className="w-5 h-5 text-indigo-500" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900 capitalize">{summary.trend}</div>
+            <div className="text-sm text-gray-500">
+              {summary.recommendations.length} recommendations
+            </div>
+          </Card>
+
+          {/* Recommendations */}
+          {summary.recommendations.length > 0 && (
+            <Card className="p-4 md:col-span-2 lg:col-span-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Recommendations</h3>
+              <ul className="space-y-1">
+                {summary.recommendations.map((rec, index) => (
+                  <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                    <Cog6ToothIcon className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                    {rec}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Alerts Tab */}
+      {activeTab === 'alerts' && (
+        <Card className="p-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Memory Alerts</h3>
+          {activeAlerts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <CheckCircleIcon className="w-12 h-12 mx-auto mb-2 text-green-500" />
+              <p>No active alerts</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {activeAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`p-3 rounded-lg border ${getAlertColor(alert.severity)}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-medium">{alert.message}</p>
+                      <p className="text-sm opacity-75">
+                        {new Date(alert.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => resolveAlert(alert.id)}
+                    >
+                      Resolve
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Connections Tab */}
+      {activeTab === 'connections' && (
+        <Card className="p-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Connection Statistics</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-gray-900">{connectionStats.total}</div>
+              <div className="text-sm text-gray-600">Total</div>
+            </div>
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-700">{connectionStats.active}</div>
+              <div className="text-sm text-green-600">Active</div>
+            </div>
+            <div className="text-center p-3 bg-yellow-50 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-700">{connectionStats.stale}</div>
+              <div className="text-sm text-yellow-600">Stale</div>
+            </div>
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-700">
+                {Object.keys(connectionStats.byProvider).length}
+              </div>
+              <div className="text-sm text-blue-600">Providers</div>
+            </div>
+          </div>
+          {Object.entries(connectionStats.byProvider).length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">By Provider</h4>
+              <div className="space-y-1">
+                {Object.entries(connectionStats.byProvider).map(([provider, count]) => (
+                  <div key={provider} className="flex justify-between items-center py-1 px-2 bg-gray-50 rounded">
+                    <span className="text-sm text-gray-600 capitalize">{provider}</span>
+                    <span className="text-sm font-medium text-gray-900">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Settings Tab */}
+      {activeTab === 'settings' && (
+        <Card className="p-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Threshold Settings</h3>
+          {!showThresholdSettings ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-600">Warning Threshold</div>
+                  <div className="text-xl font-bold text-yellow-600">
+                    {formatPercentage(thresholds.warningThreshold)}
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-600">Critical Threshold</div>
+                  <div className="text-xl font-bold text-red-600">
+                    {formatPercentage(thresholds.criticalThreshold)}
+                  </div>
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => setShowThresholdSettings(true)}
+                leftIcon={<Cog6ToothIcon className="w-4 h-4" />}
+              >
+                Edit Thresholds
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Warning Threshold (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={tempThresholds.warningThreshold}
+                  onChange={(e) =>
+                    setTempThresholds((prev) => ({
+                      ...prev,
+                      warningThreshold: Number(e.target.value),
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Critical Threshold (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={tempThresholds.criticalThreshold}
+                  onChange={(e) =>
+                    setTempThresholds((prev) => ({
+                      ...prev,
+                      criticalThreshold: Number(e.target.value),
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="primary" onClick={handleSaveThresholds}>
+                  Save
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setTempThresholds(thresholds);
+                    setShowThresholdSettings(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Force Cleanup */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h4 className="text-sm font-medium text-gray-900 mb-2">Manual Actions</h4>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={forceCleanup}
+              leftIcon={<TrashIcon className="w-4 h-4" />}
+            >
+              Force Cleanup
+            </Button>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+export default MemoryDashboard;

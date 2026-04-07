@@ -3,10 +3,10 @@
 // ABOUTME: Test script to verify LiveStore integration with existing database interfaces
 // ABOUTME: This script tests CRUD operations, reactive subscriptions, and compatibility
 
-import { SQLiteWASMProvider } from '../services/database/LiveStoreProvider';
+import { SQLiteWASMProvider } from '@/services/database/LiveStoreProvider';
 import { LiveStoreSchema } from '../livestore/schema';
-import { DatabaseConfig, QueryOptions } from '../services/database/interfaces';
-import { Student, Staff, Class, Subject } from '../core/types';
+import { DatabaseConfig, QueryOptions } from '@/services/database/interfaces';
+import { Student, Staff, Class, Subject } from '@/core/types';
 
 interface TestResult {
   testName: string;

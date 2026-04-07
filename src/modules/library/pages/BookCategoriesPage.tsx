@@ -3,9 +3,9 @@ import { BookCategory } from '@/types';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated

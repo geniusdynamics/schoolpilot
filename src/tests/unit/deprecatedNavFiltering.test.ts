@@ -4,10 +4,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { moduleRegistry } from '../../core/moduleRegistry';
 import { ModuleDefinition, NavItem } from '../../core/types';
-import { moduleConfigService } from '../../services/moduleConfigService';
+import { moduleConfigService } from '../../services/module/moduleConfigService';
 
 // Mock the moduleConfigService
-vi.mock('../../services/moduleConfigService', () => ({
+vi.mock('../../services/module/moduleConfigService', () => ({
   moduleConfigService: {
     enableModule: vi.fn(() => true),
     disableModule: vi.fn(() => true),

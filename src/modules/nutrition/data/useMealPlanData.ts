@@ -4,9 +4,9 @@
 
 import { useMemo } from 'react';
 import { initialMockMealPlans } from './mockData';
-import { MealPlan } from '../../../core/types';
-import { createDataHook, DataHookConfig } from '../../../hooks/useDataHookFactory';
-import { useDataHookRegistration } from '../../../hooks/useDataHookRegistration';
+import { MealPlan } from '@/core/types';
+import { createDataHook, DataHookConfig } from '@/hooks/useDataHookFactory';
+import { useDataHookRegistration } from '@/hooks/useDataHookRegistration';
 
 // Create the standardized data hook using the factory
 export const useMealPlanData = () => {

@@ -4,8 +4,8 @@
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import { useDataMode } from '../hooks/useDataMode';
-import * as DataModeManagerModule from '../services/dataModeManager';
+import { useDataMode } from '@/hooks/useDataMode';
+import * as DataModeManagerModule from '@/services/data/dataModeManager';
 
 // Mock DataModeManager
 vi.mock('../services/DataModeManager');

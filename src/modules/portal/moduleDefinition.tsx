@@ -2,7 +2,7 @@
 // ABOUTME: Self-contained module definition for student/parent portal
 
 import React from 'react';
-import { ModuleDefinition } from '../../core/types';
+import { ModuleDefinition } from '@/core/types';
 import {
   HomeIcon,
   CalendarDaysIcon,
@@ -10,7 +10,7 @@ import {
   CurrencyDollarIcon,
   MegaphoneIcon,
   UserCircleIcon,
-} from '../../components/ui/icons';
+} from '@/components/ui/icons';
 import { portalPermissions, portalDefaultRoles } from './rbac';
 
 export const portalModule: ModuleDefinition = {

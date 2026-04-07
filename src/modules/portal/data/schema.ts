@@ -2,7 +2,7 @@
 // ABOUTME: The Portal module does NOT create new collections - it reads from existing ones
 // ABOUTME: This file exports an empty collections object for consistency with other modules
 
-import { createDatabaseSchema, SchemaHelpers } from '../../../utils/databaseAgnosticSchema';
+import { createDatabaseSchema, SchemaHelpers } from '@/utils/databaseAgnosticSchema';
 
 // The Portal module does not define its own collections.
 // It reads from existing collections: students, staff, parents_guardians,

@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { MoreHorizontal, Search, Settings, RefreshCw } from 'lucide-react';
 import { useTabStore } from '../../stores/tabStore';
-import { useActionRegistry, ActionDefinition, ActionContext } from '../../services/actionRegistry';
+import { useActionRegistry, ActionDefinition, ActionContext } from '../../services/ui/actionRegistry';
 import { cn } from '../../utils/cn';
 import { getIcon } from '../../utils/iconMap';
 

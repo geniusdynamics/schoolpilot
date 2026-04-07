@@ -10,8 +10,9 @@ export type SQLiteStorageType = 'file' | 'opfs' | 'memory';
 export type BackendIntegrationType = 'none' | 'api' | 'erpnext' | 'couchdb' | 'postgresql' | 'hybrid';
 
 // Provider Configuration Interface
+// NOTE: 'rxdb' provider removed in Phase 1 of RXDB deprecation
 export interface ProviderConfig {
-  provider: 'sqlite' | 'sqlite-wasm' | 'pouchdb' | 'rxdb' | 'livestore' | 'mock';
+  provider: 'sqlite' | 'sqlite-wasm' | 'pouchdb' | 'livestore' | 'mock';
   storageType?: SQLiteStorageType;
   backendIntegration?: BackendIntegrationType;
   options: Record<string, any>;
@@ -42,7 +43,7 @@ export interface ConsolidatedConfigurationOption {
   applicationMode: ApplicationSettingsMode;
   sourceMode: 'development' | 'demo' | 'production';
   provider: ProviderConfig['provider'];
-  normalizedProvider: 'sqlite' | 'sqlite-file' | 'sqlite-wasm' | 'pouchdb' | 'rxdb' | 'livestore' | 'mock';
+  normalizedProvider: 'sqlite' | 'sqlite-file' | 'sqlite-wasm' | 'pouchdb' | 'livestore' | 'mock';
   storageType?: SQLiteStorageType;
   backendIntegration: BackendIntegrationType;
   backendType: BackendType;
@@ -126,19 +127,20 @@ export const DATA_LAYER_CONFIG: DataLayerConfig = {
           couchdbUrl: process.env.COUCHDB_URL || 'http://localhost:5984'
         }
       },
-      {
-        provider: 'rxdb',
-        storageType: 'opfs',
-        backendIntegration: 'postgresql',
-        description: 'RxDB with PostgreSQL via ElectricSQL - reactive database with real-time sync',
-        options: {
-          sync: true,
-          offlineSupport: true,
-          reactive: true,
-          electricSqlUrl: process.env.ELECTRIC_SQL_URL,
-          postgresqlUrl: process.env.POSTGRESQL_URL
-        }
-      },
+      // RXDB alternative removed - Phase 1 deprecation
+      // {
+      //   provider: 'rxdb',
+      //   storageType: 'opfs',
+      //   backendIntegration: 'postgresql',
+      //   description: 'RxDB with PostgreSQL via ElectricSQL - reactive database with real-time sync',
+      //   options: {
+      //     sync: true,
+      //     offlineSupport: true,
+      //     reactive: true,
+      //     electricSqlUrl: process.env.ELECTRIC_SQL_URL,
+      //     postgresqlUrl: process.env.POSTGRESQL_URL
+      //   }
+      // },
       {
         provider: 'sqlite-wasm',
         storageType: 'opfs',
@@ -194,22 +196,21 @@ export const DATA_LAYER_CONFIG: DataLayerConfig = {
       }
     },
 
-    // PostgreSQL Integration via ElectricSQL
+    // PostgreSQL Integration via Custom API
+    // NOTE: RXDB removed - now using SQLite WASM with API backend for PostgreSQL
     postgresql: {
-      provider: 'rxdb',
+      provider: 'sqlite-wasm',
       storageType: 'opfs',
-      backendIntegration: 'postgresql',
-      description: 'RxDB with PostgreSQL via ElectricSQL for reactive real-time sync',
+      backendIntegration: 'api',
+      description: 'SQLite WASM with PostgreSQL API backend',
       options: {
         sync: true,
         offlineSupport: true,
-        reactive: true,
-        electricSqlUrl: process.env.ELECTRIC_SQL_URL,
-        postgresqlUrl: process.env.POSTGRESQL_URL,
-        postgresqlUsername: process.env.POSTGRESQL_USERNAME,
-        postgresqlPassword: process.env.POSTGRESQL_PASSWORD,
-        realTimeSync: true,
-        conflictResolution: 'last-write-wins'
+        wasmSqlite: true,
+        opfsStorage: true,
+        apiUrl: process.env.POSTGRESQL_URL || '/api/postgresql',
+        syncInterval: 30000,
+        conflictResolution: 'server-wins'
       }
     },
 
@@ -239,7 +240,7 @@ const providerLabels: Record<ConsolidatedConfigurationOption['normalizedProvider
   'sqlite-file': 'SQLite File',
   'sqlite-wasm': 'SQLite WASM',
   pouchdb: 'PouchDB',
-  rxdb: 'RxDB',
+  // rxdb removed - Phase 1 deprecation
   livestore: 'LiveStore',
   mock: 'Mock Storage'
 };
@@ -331,18 +332,19 @@ const CONSOLIDATED_CONFIGURATION_OPTIONS: ConsolidatedConfigurationOption[] = [
     DATA_LAYER_CONFIG.production.alternatives[0],
     'couchdb'
   ),
-  createConsolidatedOption(
-    'production-rxdb-postgresql',
-    'production',
-    'production',
-    DATA_LAYER_CONFIG.production.alternatives[1],
-    'postgresql'
-  ),
+  // RXDB option removed - Phase 1 deprecation
+  // createConsolidatedOption(
+  //   'production-rxdb-postgresql',
+  //   'production',
+  //   'production',
+  //   DATA_LAYER_CONFIG.production.alternatives[1],
+  //   'postgresql'
+  // ),
   createConsolidatedOption(
     'production-sqlite-api',
     'production',
     'production',
-    DATA_LAYER_CONFIG.production.alternatives[2],
+    DATA_LAYER_CONFIG.production.alternatives[1],
     'api'
   ),
   createConsolidatedOption(
@@ -359,6 +361,7 @@ const CONSOLIDATED_CONFIGURATION_OPTIONS: ConsolidatedConfigurationOption[] = [
     DATA_LAYER_CONFIG.backendIntegrations.couchdb,
     'couchdb'
   ),
+  // PostgreSQL option updated - now uses SQLite WASM instead of RXDB
   createConsolidatedOption(
     'production-postgresql',
     'production',

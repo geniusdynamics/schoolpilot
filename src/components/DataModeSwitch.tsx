@@ -2,7 +2,7 @@
 // ABOUTME: DEPRECATED - This component is deprecated in favor of UnifiedModeSwitch. Use UnifiedModeSwitch instead.
 
 import React, { useState, useEffect } from 'react';
-import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions } from '../services/dataModeManager';
+import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions } from '../services/data/dataModeManager';
 import { Settings, Database, RefreshCw, AlertTriangle, CheckCircle, Loader } from 'lucide-react';
 
 interface DataModeSwitchProps {

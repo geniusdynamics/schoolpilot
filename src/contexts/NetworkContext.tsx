@@ -2,7 +2,7 @@
 // ABOUTME: Provides network monitoring and connection quality information
 
 import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
-import { NetworkStateManager, NetworkState } from '../services/NetworkStateManager';
+import { NetworkStateManager, NetworkState } from '../services/data/NetworkStateManager';
 
 export interface NetworkContextType {
   isOnline: boolean;

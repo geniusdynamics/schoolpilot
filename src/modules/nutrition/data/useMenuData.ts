@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockMenus } from './mockData';
-import { Menu } from '../../../core/types';
+import { Menu } from '@/core/types';
 
 export const useMenuData = () => {
   const [data, setData] = useState<Menu[]>(initialMockMenus);

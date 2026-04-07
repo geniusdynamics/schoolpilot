@@ -3,9 +3,9 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Tab } from '../../types/tabbedWorkspace';
-import { useTabStore } from '../../stores/tabStore';
-import { cn } from '../../utils/cn';
+import { Tab } from '@/types/tabbedWorkspace';
+import { useTabStore } from '@/stores/tabStore';
+import { cn } from '@/utils/cn';
 
 interface TabContentProps {
   tab: Tab;

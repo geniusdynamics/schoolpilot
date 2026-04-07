@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { useModuleLoadingPerformance } from '../hooks/useModuleLoadingPerformance';
-import { ModuleLoadingPriority } from '../services/dynamicModuleLoader';
+import { ModuleLoadingPriority } from '../services/module/dynamicModuleLoader';
 import { RefreshCwIcon, ChartBarIcon, ClockIcon } from './ui/icons';
 import Card from './ui/Card';
 import Button from './ui/Button';

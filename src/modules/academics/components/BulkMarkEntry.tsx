@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Button from '@/components/ui/Button';
-import { uploadMarks, downloadMarksTemplate } from '../services/marksService';
+import { uploadMarks, downloadMarksTemplate } from '@/services/marksService';
 
 const BulkMarkEntry: React.FC = () => {
   const [uploading, setUploading] = useState(false);

@@ -1,11 +1,11 @@
 // ABOUTME: Logging utilities for debugging and development
 // ABOUTME: Provides consistent logging interface across the application
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'none';
 
 const resolveLogLevel = (): LogLevel => {
   const configuredLevel = import.meta.env?.VITE_LOG_LEVEL as LogLevel | undefined;
-  if (configuredLevel && ['debug', 'info', 'warn', 'error'].includes(configuredLevel)) {
+  if (configuredLevel && ['debug', 'info', 'warn', 'error', 'none'].includes(configuredLevel)) {
     return configuredLevel;
   }
   return import.meta.env?.DEV ? 'debug' : 'warn';
@@ -13,36 +13,41 @@ const resolveLogLevel = (): LogLevel => {
 
 const currentLogLevel = resolveLogLevel();
 const levelPriority: Record<LogLevel, number> = {
-  debug: 10,
-  info: 20,
-  warn: 30,
-  error: 40
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+  none: 4,
 };
 
 const shouldLog = (targetLevel: LogLevel): boolean =>
   levelPriority[targetLevel] >= levelPriority[currentLogLevel];
 
 export const logger = {
-  debug: (message: string, ...data: any[]): void => {
-    if (shouldLog('debug')) {
-      console.debug(message, ...data);
-    }
+  debug: (...args: unknown[]): void => {
+    if (shouldLog('debug')) console.log('[DEBUG]', ...args);
   },
-  info: (message: string, ...data: any[]): void => {
-    if (shouldLog('info')) {
-      console.info(message, ...data);
-    }
+  info: (...args: unknown[]): void => {
+    if (shouldLog('info')) console.info('[INFO]', ...args);
   },
-  warn: (message: string, ...data: any[]): void => {
-    if (shouldLog('warn')) {
-      console.warn(message, ...data);
-    }
+  warn: (...args: unknown[]): void => {
+    if (shouldLog('warn')) console.warn('[WARN]', ...args);
   },
-  error: (message: string, ...data: any[]): void => {
-    if (shouldLog('error')) {
-      console.error(message, ...data);
-    }
-  }
+  error: (...args: unknown[]): void => {
+    if (shouldLog('error')) console.error('[ERROR]', ...args);
+  },
+  group: (label: string): void => {
+    if (shouldLog('debug')) console.group(label);
+  },
+  groupEnd: (): void => {
+    if (shouldLog('debug')) console.groupEnd();
+  },
+  time: (label: string): void => {
+    if (shouldLog('debug')) console.time(label);
+  },
+  timeEnd: (label: string): void => {
+    if (shouldLog('debug')) console.timeEnd(label);
+  },
 };
 
 /**

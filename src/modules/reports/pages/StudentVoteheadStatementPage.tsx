@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import {
   buildStudentVoteheadStatement,
   StatementRow
-} from '../utils/studentVoteheadStatement';
+} from '@/utils/studentVoteheadStatement';
 
 const StudentVoteheadStatementPage: React.FC = () => {
   const { t } = useTranslation();

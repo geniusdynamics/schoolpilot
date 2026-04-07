@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { TabPerformanceManager, defaultTabPerformanceConfig, TabContentInfo } from '../services/TabPerformanceManager';
+import { TabPerformanceManager, defaultTabPerformanceConfig, TabContentInfo } from '../services/ui/TabPerformanceManager';
 
 // Mock performance API
 const mockPerformance = {

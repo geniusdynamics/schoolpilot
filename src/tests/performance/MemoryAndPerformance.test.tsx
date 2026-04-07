@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, test, expect, beforeEach } from 'vitest';
-import { createMemoryTracker, createPerformanceMonitor } from '../utils/testUtils';
-import { TabbedWorkspace } from '../../components/tabbedWorkspace';
+import { createMemoryTracker, createPerformanceMonitor } from '@/utils/testUtils';
+import { TabbedWorkspace } from '@/components/tabbedWorkspace';
 import { NavigationProvider } from '../../providers/NavigationProvider';
 
 describe('Memory and Performance Tests', () => {

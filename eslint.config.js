@@ -17,7 +17,7 @@ const serviceDirectories = [
 ];
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'coverage'] },
+  { ignores: ['dist', 'dev-dist', 'node_modules', 'coverage'] },
   {
     files: ['**/*.{js,mjs,cjs,ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -37,9 +37,29 @@ export default tseslint.config(
       ],
       '@typescript-eslint/no-explicit-any': 'off',
       'no-restricted-imports': [
-        'warn',
+        'error',
         {
-          patterns: serviceDirectories.map(dir => `${dir}/*/*`),
+          patterns: [
+            // Prevent deep imports into service directories
+            ...serviceDirectories.map(dir => ({
+              group: [`${dir}/*/*`],
+              message: 'Use the public API from the service directory index.',
+            })),
+            // Prevent deep relative imports (crossing module boundaries)
+            {
+              group: ['../../../*'],
+              message: 'Use @/ alias for cross-module imports instead of deep relative paths.',
+            },
+            // Prevent importing from other modules' internals
+            {
+              group: ['@/modules/*/components/*'],
+              message: 'Import from module barrel (@/modules/{module}) instead of internal component.',
+            },
+            {
+              group: ['@/modules/*/services/*'],
+              message: 'Import from module barrel (@/modules/{module}) instead of internal service.',
+            },
+          ],
         },
       ],
     },

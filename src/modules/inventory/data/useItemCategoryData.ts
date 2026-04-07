@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockItemCategoriesInv } from './mockData';
-import { ItemCategoryInv } from '../../../core/types';
+import { ItemCategoryInv } from '@/core/types';
 
 export const useItemCategoryData = () => {
   const [data, setData] = useState<ItemCategoryInv[]>(initialMockItemCategoriesInv);

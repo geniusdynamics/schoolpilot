@@ -6,7 +6,7 @@ import {
   ConnectionPoolMetrics,
   ConnectionPoolConfig,
   databaseConnectionPool,
-} from '../services/database/ConnectionPool';
+} from '@/services/database/ConnectionPool';
 
 export interface ConnectionPoolState {
   metrics: ConnectionPoolMetrics;

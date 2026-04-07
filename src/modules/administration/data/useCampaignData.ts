@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
-import { useAppDataInternal } from '../../../hooks/useAppData';
+import { useAppDataInternal } from '@/hooks/useAppData';
 import { initialMockCampaigns, initialMockClassStreams, initialMockStaff, initialMockTemplateComms, initialMockUsers } from './mockData';
 import { AdminCampaignType, CampaignAudienceType } from './types';
 

@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Pin, Copy, ExternalLink, MoreVertical, AlertCircle, Star } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { cn } from '../../utils/cn';
-import { Tab as TabType } from '../../types/tabbedWorkspace';
-import { HierarchicalTab, SubTab } from '../../types/hierarchical';
-import { getIcon } from '../../utils/iconMap';
-import { useTabStore } from '../../stores/tabStore';
+import { cn } from '@/utils/cn';
+import { Tab as TabType } from '@/types/tabbedWorkspace';
+import { HierarchicalTab, SubTab } from '@/types/hierarchical';
+import { getIcon } from '@/utils/iconMap';
+import { useTabStore } from '@/stores/tabStore';
 import { SubTabNavigation } from '../SubTabNavigation';
-import { useFavorites } from '../../hooks/useFavorites';
+import { useFavorites } from '@/hooks/useFavorites';
 
 // Legacy TabProps for backward compatibility
 interface LegacyTabProps {

@@ -6,7 +6,7 @@ import {
   Class, ClassStream, Student, ParentsGuardian, SchoolDetails, Staff,
   AcademicYear, SchoolPeriod, AcademicYearStructure, AcademicPeriodDefinition,
   PersonGender, StudentStatus
-} from '../../../core/types';
+} from '@/core/types';
 
 import {
   AdminPartnerType, AdminClubAndSocietyType, AdminCustomerType,

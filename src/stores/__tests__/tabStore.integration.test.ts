@@ -3,8 +3,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useTabStore } from '../tabStore';
-import { tabValidationService } from '../../services/tabs/TabValidationService';
-import { Tab } from '../../types/tabbedWorkspace';
+import { tabValidationService } from '@/services/tabs/TabValidationService';
+import { Tab } from '@/types/tabbedWorkspace';
 
 describe('tabStore + TabValidationService Integration', () => {
   beforeEach(() => {

@@ -2,7 +2,7 @@
 // ABOUTME: It displays system overview, quick settings access, and module status.
 
 import React from 'react';
-import { CogIcon, UsersIcon, CircleStackIcon, ClockIcon, IdentificationIcon } from '../../../components/ui/icons';
+import { CogIcon, UsersIcon, CircleStackIcon, ClockIcon, IdentificationIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';

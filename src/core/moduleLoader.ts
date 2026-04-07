@@ -2,7 +2,8 @@
 // ABOUTME: Uses true dynamic module loading for plugin-like architecture
 
 import { moduleRegistry } from './moduleRegistry';
-import { initializeDynamicModules, getAvailableModules } from '../services/dynamicModuleLoader';
+import { initializeDynamicModules, getAvailableModules } from '../services/module/dynamicModuleLoader';
+import { logger } from '../utils/logging';
 
 // Initialize all modules using the new dynamic system
 const loadedModules = new Map<string, Promise<any>>();
@@ -27,7 +28,7 @@ const loadModule = async (moduleId: string) => {
 };
 
 export const initializeModules = async (): Promise<void> => {
-  console.log('🚀 Initializing modules with dynamic loader...');
+  logger.debug('🚀 Initializing modules with dynamic loader...');
   
   // Use the new true dynamic module loading
   await initializeDynamicModules();

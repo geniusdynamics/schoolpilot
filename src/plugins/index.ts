@@ -46,6 +46,15 @@ export type {
 export { PluginManager, initPlugins, getPlugins } from './PluginManager';
 export { PluginsContext } from './PluginsProvider';
 
+// Subsystems
+export { PluginHookSystem } from './PluginHookSystem';
+export { PluginSettingsManager } from './PluginSettingsManager';
+export { PluginEventSystem } from './PluginEventSystem';
+export { PluginSecuritySandbox } from './PluginSecuritySandbox';
+
 // React
 export { PluginsProvider } from './PluginsProvider';
 export { usePlugins } from './usePlugins';
+
+// Loader
+export { loadAllBuiltinPlugins, getBuiltinPluginIds } from './BuiltinLoader';

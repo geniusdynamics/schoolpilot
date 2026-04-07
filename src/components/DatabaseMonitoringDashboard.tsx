@@ -1,10 +1,10 @@
 // ABOUTME: Comprehensive database monitoring dashboard
 // ABOUTME: Combines performance, memory, connection pool, and backup monitoring
 import React, { useState } from 'react';
-import { useDatabasePerformance } from '../hooks/useDatabasePerformance';
-import { useMemoryManagement } from '../hooks/useMemoryManagement';
-import { useConnectionPool } from '../hooks/useConnectionPool';
-import { useStartupPerformance } from '../hooks/useStartupPerformance';
+import { useDatabasePerformance } from '@/hooks/useDatabasePerformance';
+import { useMemoryManagement } from '@/hooks/useMemoryManagement';
+import { useConnectionPool } from '@/hooks/useConnectionPool';
+import { useStartupPerformance } from '@/hooks/useStartupPerformance';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import {

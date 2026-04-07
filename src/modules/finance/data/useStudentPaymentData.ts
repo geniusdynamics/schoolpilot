@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockStudentPayments } from './mockData';
-import { StudentPayment } from '../../../core/types';
+import { StudentPayment } from '@/core/types';
 
 const useStudentPaymentData = () => {
   const [studentPayments, setStudentPayments] = useState<StudentPayment[]>([]);

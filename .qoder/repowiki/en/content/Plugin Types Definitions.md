@@ -9,24 +9,23 @@
 - [BuiltinLoader.ts](file://src/plugins/BuiltinLoader.ts)
 - [PLUGIN_ARCHITECTURE_SPEC.md](file://docs/architecture/PLUGIN_ARCHITECTURE_SPEC.md)
 - [PLUGIN_DEVELOPMENT_MANUAL.md](file://docs/guides/PLUGIN_DEVELOPMENT_MANUAL.md)
-- [PluginMarketplace.ts](file://src/services/PluginMarketplace.ts)
-- [FeatureEntitlements.ts](file://src/services/FeatureEntitlements.ts)
-- [whitelabel/index.ts](file://src/plugins/builtin/whitelabel/index.ts)
-- [grading-engine/index.ts](file://src/plugins/builtin/grading-engine/index.ts)
-- [fee-calculator/index.ts](file://src/plugins/builtin/fee-calculator/index.ts)
+- [PluginMarketplace.ts](file://src/services/plugin/PluginMarketplace.ts)
+- [FeatureEntitlements.ts](file://src/services/plugin/FeatureEntitlements.ts)
+- [payment-mock/index.ts](file://src/plugins/builtin/payment-mock/index.ts)
+- [sms-mock/index.ts](file://src/plugins/builtin/sms-mock/index.ts)
+- [analytics-mock/index.ts](file://src/plugins/builtin/analytics-mock/index.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated plugin type system with comprehensive privilege model and security enhancements
-- Added detailed marketplace integration types and configuration structures
-- Enhanced hook system documentation with security features and execution patterns
+- Enhanced plugin system with comprehensive external service plugin interfaces for payment processing, SMS messaging, and analytics engines
 - Expanded plugin categories to include engine type for WASM-based computation
-- Updated plugin lifecycle management with enhanced event system and security measures
+- Added advanced marketplace integration types with key validation and analytics tracking
+- Integrated feature entitlement system for premium plugin access control
+- Enhanced plugin lifecycle management with comprehensive event system and security measures
 - Added comprehensive TypeScript integration patterns and React hooks support
-- Integrated advanced engine plugin support with Go WASM compilation
-- Enhanced marketplace client with key validation and analytics tracking
-- Added feature entitlement system for premium plugin access control
+- **New built-in plugins added**: payment-mock, sms-mock, analytics-mock with complete mock implementations
+- **Expanded plugin types**: Added comprehensive external service interfaces and enhanced marketplace integration
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -38,9 +37,10 @@
 7. [Hook System Types](#hook-system-types)
 8. [Security and Privileges](#security-and-privileges)
 9. [Marketplace Integration Types](#marketplace-integration-types)
-10. [Built-in Plugin Examples](#built-in-plugin-examples)
-11. [TypeScript Integration](#typescript-integration)
-12. [Architecture Overview](#architecture-overview)
+10. [External Service Plugin Interfaces](#external-service-plugin-interfaces)
+11. [Built-in Plugin Examples](#built-in-plugin-examples)
+12. [TypeScript Integration](#typescript-integration)
+13. [Architecture Overview](#architecture-overview)
 
 ## Introduction
 
@@ -48,7 +48,7 @@ The SchoolPilot3 plugin system provides a comprehensive framework for extending 
 
 The plugin type system defines the fundamental building blocks that enable developers to create various types of extensions, from simple UI modifications to complex computational engines. These types ensure type safety, provide clear contracts between the core system and plugins, and establish consistent patterns for plugin development and integration.
 
-**Updated** Enhanced with comprehensive privilege system, marketplace integration types, and advanced security model.
+**Updated** Enhanced with comprehensive privilege system, marketplace integration types, advanced security model, new external service plugin interfaces for payment processing, SMS messaging, and analytics capabilities, plus new built-in mock plugins for development and testing.
 
 ## Plugin Type System
 
@@ -466,6 +466,73 @@ The marketplace client configuration enables flexible marketplace integration wi
 **Section sources**
 - [types.ts:361-394](file://src/plugins/types.ts#L361-L394)
 
+## External Service Plugin Interfaces
+
+The external service plugin interfaces provide standardized contracts for integrating with third-party services such as payment processors, SMS providers, and analytics engines.
+
+### Payment Plugin Interface
+
+The PaymentPlugin interface defines the contract for payment gateway integration, enabling secure payment processing within the SchoolPilot3 ecosystem.
+
+**Core Methods:**
+- `initiatePayment(params: PaymentParams)`: Initiates a new payment transaction
+- `verifyPayment(transactionId: string)`: Verifies the status of a payment
+- `handleCallback(data: any)`: Processes payment callbacks from external gateways
+- `getSupportedMethods(): string[]`: Returns supported payment methods
+
+**Payment Parameters:**
+- Amount and currency specification
+- Student and invoice identification
+- Callback URL configuration
+- Metadata support for additional data
+
+**Payment Results:**
+- Transaction status tracking
+- Provider-specific information
+- Redirect URL support for external processing
+
+**Section sources**
+- [types.ts:458-483](file://src/plugins/types.ts#L458-L483)
+
+### SMS Plugin Interface
+
+The SMSPlugin interface provides a standardized way to send SMS messages through various SMS providers, supporting both individual and bulk messaging capabilities.
+
+**Core Methods:**
+- `send(phone: string, message: string)`: Sends a single SMS message
+- `bulkSend(recipients: string[], message: string)`: Sends SMS to multiple recipients
+- `sendTemplate(phone: string, templateId: string, params: Record<string, any>)`: Sends templated SMS with variable substitution
+- `getDeliveryStatus(messageId: string): Promise<string>`: Retrieves delivery status of sent message
+
+**SMS Result Types:**
+- Individual SMS result with success status
+- Bulk SMS result with aggregated statistics
+- Delivery status tracking
+
+**Section sources**
+- [types.ts:485-506](file://src/plugins/types.ts#L485-L506)
+
+### Analytics Engine Plugin Interface
+
+The AnalyticsEnginePlugin interface defines the contract for advanced analytics processing using Go-based WASM engines, providing high-performance analytical computations.
+
+**Core Methods:**
+- `calculateTeacherMetrics(teacherId: string, period: AnalyticsPeriod)`: Calculates comprehensive teacher performance metrics
+- `calculateClassMetrics(classId: string, period: AnalyticsPeriod)`: Computes class performance analytics
+- `calculateSubjectMetrics(subjectId: string, period: AnalyticsPeriod)`: Generates subject-specific analytics
+- `generateTrends(teacherId: string, periods: AnalyticsPeriod[]): Promise<any[]>`: Creates performance trend analysis
+- `exportReport(format: ExportFormat, data: any): Promise<Blob>`: Exports analytics reports in various formats
+
+**Analytics Data Structures:**
+- Period-based analytics with date ranges
+- Subject pass rate calculations with trends
+- Class performance metrics with student distributions
+- Teacher analytics with comprehensive performance indicators
+- Export format support for PDF, Excel, and CSV
+
+**Section sources**
+- [types.ts:508-561](file://src/plugins/types.ts#L508-L561)
+
 ## Built-in Plugin Examples
 
 The SchoolPilot3 system includes several built-in plugins that demonstrate the capabilities and implementation patterns for different plugin types.
@@ -504,8 +571,69 @@ The fee calculator plugin showcases specialized computational functionality for 
 - Performance optimization
 - Validation and error handling
 
+### Mock Service Plugins
+
+**Updated** Added comprehensive mock service plugins for development and testing environments, providing realistic simulation of external services without requiring actual integrations.
+
+#### Payment Mock Plugin
+
+The payment mock plugin simulates payment gateway functionality with configurable success rates and realistic transaction handling.
+
+**Capabilities:**
+- Configurable success rate (default 90%)
+- Support for multiple payment methods (M-Pesa, Card, Bank Transfer, Cash)
+- Transaction ID generation and storage
+- Payment verification simulation
+- Redirect URL support for card payments
+- Comprehensive logging and debugging
+
+**Mock Features:**
+- In-memory transaction storage
+- Randomized failure scenarios
+- Configurable success rates via settings
+- Realistic payment flow simulation
+
+#### SMS Mock Plugin
+
+The SMS mock plugin simulates SMS provider functionality with template support and delivery status tracking.
+
+**Capabilities:**
+- Configurable success rate (default 95%)
+- Template-based message sending
+- Bulk SMS support
+- Delivery status tracking (sent, delivered, failed, pending)
+- Message ID generation and storage
+- Template variable substitution
+
+**Mock Features:**
+- Predefined message templates
+- In-memory message storage
+- Simulated delivery progression
+- Configurable success rates
+
+#### Analytics Mock Plugin
+
+The analytics mock plugin provides realistic simulation of analytics engine functionality without requiring Go WASM compilation.
+
+**Capabilities:**
+- Teacher performance metrics calculation
+- Class performance analytics
+- Subject pass rate calculations
+- Trend data generation
+- Report export functionality (CSV, Excel, PDF)
+- Configurable pass rate ranges
+
+**Mock Features:**
+- Realistic but randomized data generation
+- Plausible performance trends
+- Comprehensive analytics coverage
+- Configurable data ranges
+
 **Section sources**
-- [BuiltinLoader.ts:19-23](file://src/plugins/BuiltinLoader.ts#L19-L23)
+- [BuiltinLoader.ts:20-27](file://src/plugins/BuiltinLoader.ts#L20-L27)
+- [payment-mock/index.ts:165-217](file://src/plugins/builtin/payment-mock/index.ts#L165-L217)
+- [sms-mock/index.ts:205-244](file://src/plugins/builtin/sms-mock/index.ts#L205-L244)
+- [analytics-mock/index.ts:400-448](file://src/plugins/builtin/analytics-mock/index.ts#L400-L448)
 
 ## TypeScript Integration
 
@@ -521,6 +649,7 @@ The plugin system exposes a comprehensive set of TypeScript types through organi
 - Lifecycle and event types
 - Security and privilege models
 - Marketplace integration types
+- External service plugin interfaces
 
 ### React Integration
 
@@ -562,14 +691,30 @@ J[React Hooks] --> K[Marketplace Client]
 K --> L[Admin Configuration]
 L --> M[Built-in Loader]
 end
+subgraph "External Services"
+N[Payment Plugin] --> O[Payment Gateway]
+N --> P[Payment Processing]
+Q[SMS Plugin] --> R[SMS Providers]
+Q --> S[Message Delivery]
+T[Analytics Engine] --> U[Go WASM Engines]
+T --> V[Performance Analytics]
+W[Mock Services] --> X[Development Tools]
+W --> Y[Test Environments]
+end
 A --> F
 D --> J
 E --> K
+N --> F
+Q --> F
+T --> F
+X --> F
+Y --> F
 ```
 
 **Diagram sources**
-- [types.ts:1-453](file://src/plugins/types.ts#L1-L453)
-- [PluginManager.ts:25-765](file://src/plugins/PluginManager.ts#L25-L765)
+- [types.ts:1-562](file://src/plugins/types.ts#L1-L562)
+- [PluginManager.ts:25-766](file://src/plugins/PluginManager.ts#L25-L766)
+- [BuiltinLoader.ts:20-27](file://src/plugins/BuiltinLoader.ts#L20-L27)
 
 ### Integration Points
 
@@ -581,6 +726,8 @@ The plugin type system provides well-defined integration points that enable seam
 - UI component integration and rendering
 - Security and permission management
 - Administrative configuration and control
+- External service integration through plugin interfaces
+- Development and testing support through mock services
 
 **Section sources**
 - [PLUGIN_ARCHITECTURE_SPEC.md:21-782](file://docs/architecture/PLUGIN_ARCHITECTURE_SPEC.md#L21-L782)

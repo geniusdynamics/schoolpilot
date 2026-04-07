@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockAcademicYears } from './mockData';
-import { AcademicYear } from '../../../core/types';
+import { AcademicYear } from '@/core/types';
 
 export const useAcademicYearData = () => {
   const [data, setData] = useState<AcademicYear[]>(initialMockAcademicYears);

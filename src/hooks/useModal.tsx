@@ -2,7 +2,7 @@
 // ABOUTME: Focus management, keyboard navigation, and modal state handling
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useFocusManagement } from '../utils/accessibility';
+import { useFocusManagement } from '@/utils/accessibility';
 
 export interface UseModalOptions {
   closeOnBackdrop?: boolean;

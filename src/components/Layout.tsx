@@ -20,7 +20,7 @@ import { TabbedWorkspace } from './tabbedWorkspace';
 import { useTabStore } from '../stores/tabStore';
 import { extractModuleId, getModuleDashboardPath } from '../utils/moduleUtils';
 import { TabbedWorkspaceManager } from './tabbedWorkspace/TabbedWorkspaceManager';
-import { isTabbedModeEnabled } from '../services/tabbedModeFeatureFlag';
+import { isTabbedModeEnabled } from '../services/ui/tabbedModeFeatureFlag';
 import DynamicPageComponent from './DynamicPageComponent';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

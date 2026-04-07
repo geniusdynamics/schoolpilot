@@ -2,7 +2,7 @@
 // ABOUTME: Provides UI to run login tests and view results with Bugsink error reporting
 
 import React, { useState, useRef } from 'react';
-import { loginTestRunner, type TestResult, type TestSummary } from '../utils/loginTestRunner';
+import { loginTestRunner, type TestResult, type TestSummary } from '@/utils/loginTestRunner';
 import { Play, CheckCircle, XCircle, AlertCircle, Clock, Users, Shield, Bug } from 'lucide-react';
 
 interface TestStatus {

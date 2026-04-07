@@ -12,11 +12,11 @@ import {
 import { 
   DataConsistencyService,
   globalDataConsistencyService 
-} from '../services/DataConsistencyService';
+} from '../services/consistency/DataConsistencyService';
 import { 
   UnifiedCRUDService,
   globalUnifiedCRUDService 
-} from '../services/UnifiedCRUDService';
+} from '../services/data/UnifiedCRUDService';
 import { registerCoreValidationSchemas } from '../utils/validationSchemas';
 import { PersonGender, StudentStatus, FinancialYearStatus } from '../core/types';
 

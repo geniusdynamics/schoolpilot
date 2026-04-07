@@ -2,7 +2,7 @@
 // ABOUTME: Provides real-time navigation updates and module management
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { NavItem } from '../core/types';
+import { NavItem } from '@/core/types';
 import { 
   getDynamicNavigationItems, 
   isModuleEnabled, 
@@ -10,7 +10,7 @@ import {
   disableModule,
   getEnabledModules,
   checkModuleDependencies
-} from '../core/moduleLoader';
+} from '@/core/moduleLoader';
 // Removed unused hook utilities import
 
 // NOTE: getEnabledModules now always includes core modules (dashboard, settings, reports)

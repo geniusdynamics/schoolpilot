@@ -1,5 +1,5 @@
 // Import required types from core
-import { Student, InvoiceStatus, ParentsGuardian, Subject, SubjectPaper, StudentSubjectEnrollment, TeacherSubjectAssignment, TimetableEntry } from '../../../core/types';
+import { Student, InvoiceStatus, ParentsGuardian, Subject, SubjectPaper, StudentSubjectEnrollment, TeacherSubjectAssignment, TimetableEntry } from '@/core/types';
 import * as enums from './enums';
 
 // Re-export all enums for use by other files
@@ -9,7 +9,9 @@ export {
   EducationSystemType,
   GradingSystemType,
   AcademicPeriodType,
-  AssessmentType
+  AssessmentType,
+  AssignmentStatus,
+  SubmissionStatus
 } from './enums';
 
 export interface ExamSchedule {
@@ -265,6 +267,31 @@ export interface StudentExamResultWithDetails extends StudentExamResult {
   stream_name?: string | null;
   exam_session_name?: string | null;
   marks?: StudentPaperMarkWithDetails[];
+}
+
+export interface WeeklyPlan {
+  id: string;
+  title: string;
+  subjectId: string;
+  subjectName: string;
+  teacherId: string;
+  teacherName: string;
+  gradeLevel: string;
+  classStreamId: string;
+  classStreamName: string;
+  topic: string;
+  objectives: string[];
+  materials: string[];
+  duration: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export enum PlanStatus {
+  DRAFT = 'Draft',
+  PUBLISHED = 'Published',
+  APPROVED = 'Approved',
+  ARCHIVED = 'Archived'
 }
 
 // === EDUCATION SYSTEM CONFIGURATION TYPES ===

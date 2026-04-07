@@ -8,6 +8,7 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { PluginManager, initPlugins } from './PluginManager';
 import type { PluginConfig, LoadedPlugin, PluginManifest } from './types';
 import { loadAllBuiltinPlugins } from './BuiltinLoader';
+import { logger } from '../utils/logging';
 
 interface PluginsContextValue {
   manager: PluginManager;
@@ -53,7 +54,7 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
           try {
             manager.registerBuiltinPlugin(plugin);
           } catch (error) {
-            console.error(`[PluginsProvider] Failed to register ${plugin.manifest.id}:`, error);
+            logger.error(`[PluginsProvider] Failed to register ${plugin.manifest.id}:`, error);
           }
         }
 
@@ -65,7 +66,7 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
         setPlugins(manager.getAllPlugins());
         setIsReady(true);
       } catch (error) {
-        console.error('[PluginsProvider] Failed to initialize plugins:', error);
+        logger.error('[PluginsProvider] Failed to initialize plugins:', error);
         setIsReady(true); // Still render app even if plugins fail
       }
     };

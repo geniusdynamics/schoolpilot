@@ -6,7 +6,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import KanbanBoard, { KanbanCard, KanbanColumn } from '../components/ui/data/KanbanBoard';
+import KanbanBoard, { KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
 
 // Mock the accessibility hook
 vi.mock('../utils/accessibility', () => ({

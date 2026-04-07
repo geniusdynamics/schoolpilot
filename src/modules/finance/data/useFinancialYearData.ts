@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockFinancialYears } from './mockData';
-import { FinancialYear } from '../../../core/types';
+import { FinancialYear } from '@/core/types';
 
 export const useFinancialYearData = () => {
   const [data, setData] = useState<FinancialYear[]>(initialMockFinancialYears);

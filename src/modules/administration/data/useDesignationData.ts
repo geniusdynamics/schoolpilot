@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockDesignations } from './mockData';
-import { Designation } from '../../../core/types';
+import { Designation } from '@/core/types';
 
 export const useDesignationData = () => {
   const [data, setData] = useState<Designation[]>(initialMockDesignations || []);

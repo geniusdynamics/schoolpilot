@@ -15,7 +15,7 @@ import {
   ChartBarIcon,
   InformationCircleIcon
 } from '@heroicons/react/24/outline';
-import { useAppData } from '../hooks/useAppData';
+import { useAppData } from '@/hooks/useAppData';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';

@@ -13,7 +13,7 @@
  * - demo: Mock data for testing
  */
 
-import type { DeploymentMode } from '../services/data/types';
+import type { DeploymentMode } from '@/services/data/types';
 
 export interface DeploymentConfig {
   mode: DeploymentMode;

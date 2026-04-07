@@ -5,9 +5,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
-import { DatabaseSettingsPage } from '../../modules/settings/pages/DatabaseSettingsPage';
-import { useAppData } from '../../hooks/useAppData';
-import { useUnifiedConfig } from '../../hooks/useUnifiedConfig';
+import { DatabaseSettingsPage } from '@/modules/settings/pages/DatabaseSettingsPage';
+import { useAppData } from '@/hooks/useAppData';
+import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { vi } from 'vitest';
 
 // Mock dependencies

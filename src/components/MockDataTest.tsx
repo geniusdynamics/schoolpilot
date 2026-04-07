@@ -2,7 +2,7 @@
 // ABOUTME: Displays the actual data from useAppData to confirm test markers are present
 
 import React from 'react';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '@/contexts/AppDataContext';
 
 const MockDataTest: React.FC = () => {
   const { data, loading, error } = useAppData();

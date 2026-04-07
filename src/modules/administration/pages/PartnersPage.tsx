@@ -10,10 +10,10 @@ import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon as PartnersIcon } from '
 import { usePartnerData } from '../data/usePartnerData'; // Use module-specific hook
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at' | 'partner_type'> & {
     partner_type: PartnerType; // Make type required for the form

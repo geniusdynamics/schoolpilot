@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockRFQs } from './mockData';
-import { RFQ } from '../../../core/types';
+import { RFQ } from '@/core/types';
 
 const useRFQData = () => {
   const [rfqs, setRfqs] = useState<RFQ[]>([]);

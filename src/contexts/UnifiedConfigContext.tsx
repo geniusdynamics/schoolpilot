@@ -26,8 +26,8 @@ import {
 
 // Re-export UnifiedAppConfig for convenience
 export type { UnifiedAppConfig };
-import { backendDetectionService } from '../services/backendDetection';
-import { getDataModeManager, DataModeManagerOptions } from '../services/dataModeManager';
+import { backendDetectionService } from '../services/backend/backendDetection';
+import { getDataModeManager, DataModeManagerOptions } from '../services/data/dataModeManager';
 
 const dataModeManager = getDataModeManager();
 

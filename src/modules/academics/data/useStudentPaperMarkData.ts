@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockStudentPaperMarks } from './mockData';
-import { StudentPaperMark } from '../../../core/types';
+import { StudentPaperMark } from '@/core/types';
 
 export const useStudentPaperMarkData = () => {
   const [data, setData] = useState<StudentPaperMark[]>(initialMockStudentPaperMarks);

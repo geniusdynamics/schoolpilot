@@ -6,13 +6,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { Tab, TabState, TabStore, TabContent } from '../types/tabbedWorkspace';
+import { Tab, TabState, TabStore, TabContent } from '@/types/tabbedWorkspace';
 
 // Re-export TabContent for convenience
 export type { TabContent };
-import { HierarchicalTab, BreadcrumbItem } from '../types/hierarchical';
-import { rbacService } from '../core/rbacService';
-import { tabValidationService } from '../services/tabs/TabValidationService';
+import { HierarchicalTab, BreadcrumbItem } from '@/types/hierarchical';
+import { rbacService } from '@/core/rbacService';
+import { tabValidationService } from '@/services/tabs/TabValidationService';
 import { tabPersistenceAdapter } from './adapters/tabPersistenceAdapter';
 
 interface TabStoreState extends TabStore {

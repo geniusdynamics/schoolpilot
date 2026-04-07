@@ -4,7 +4,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import DataGrid, { DataGridColumn } from '../components/ui/data/DataGrid';
+import DataGrid, { DataGridColumn } from '@/components/ui/data/DataGrid';
 
 // Mock module interface for testing
 interface Module {

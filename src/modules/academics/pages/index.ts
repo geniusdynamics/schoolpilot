@@ -16,3 +16,15 @@ export { default as TimetableEntriesPage } from './TimetableEntriesPage';
 export { default as EducationSystemsPage } from './EducationSystemsPage';
 export { default as EducationSystemConfigPage } from './EducationSystemConfigPage';
 export { default as ExamSchedulingPage } from './ExamSchedulingPage';
+
+// Assignments sub-feature pages (merged from assignments module)
+export { default as AssignmentsListPage } from './assignments/AssignmentsListPage';
+export { default as AssignmentDetailPage } from './assignments/AssignmentDetailPage';
+export { default as AssignmentGradingPage } from './assignments/AssignmentGradingPage';
+export { default as AssignmentSubmissionsPage } from './assignments/AssignmentSubmissionsPage';
+
+// Lesson Plans sub-feature pages (merged from lessonplans module)
+export { default as WeeklyPlansPage } from './lessonplans/WeeklyPlansPage';
+export { default as PlanDetailPage } from './lessonplans/PlanDetailPage';
+export { default as LessonNotesPage } from './lessonplans/LessonNotesPage';
+export { default as ApprovalPage } from './lessonplans/ApprovalPage';

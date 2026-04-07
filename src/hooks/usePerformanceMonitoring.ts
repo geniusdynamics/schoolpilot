@@ -2,7 +2,7 @@
 // ABOUTME: Provides easy-to-use performance tracking for React components
 
 import { useEffect, useCallback, useRef } from 'react';
-import { performanceMonitor, UserInteractionMetric } from '../services/performanceMonitor';
+import { performanceMonitor, UserInteractionMetric } from '../services/performance/performanceMonitor';
 
 interface UsePerformanceMonitoringOptions {
   componentName: string;

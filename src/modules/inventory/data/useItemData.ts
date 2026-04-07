@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockItemsInv } from './mockData';
-import { ItemInv } from '../../../core/types';
+import { ItemInv } from '@/core/types';
 
 export const useItemData = () => {
   const [data, setData] = useState<ItemInv[]>(initialMockItemsInv);

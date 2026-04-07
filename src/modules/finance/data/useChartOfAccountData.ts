@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockChartOfAccounts } from './mockData';
-import { ChartOfAccount } from '../../../core/types';
+import { ChartOfAccount } from '@/core/types';
 
 export const useChartOfAccountData = () => {
   const [data, setData] = useState<ChartOfAccount[]>(initialMockChartOfAccounts);

@@ -14,118 +14,357 @@
 - [database_management.md](file://docs\database\database_management.md)
 - [deployment-guide.md](file://docs\database\deployment-guide.md)
 - [UnifiedDatabaseManager.ts](file://src\services\database\UnifiedDatabaseManager.ts)
+- [rxdbService.ts](file://src\services\rxdbService.ts)
+- [databaseService.ts](file://src\services\databaseService.ts)
+- [collections.ts](file://src\modules\houses\data\collections.ts)
+- [collections.ts](file://src\modules\assignments\data\collections.ts)
+- [collections.ts](file://src\modules\lessonplans\data\collections.ts)
+- [collections.ts](file://src\modules\pickup\data\collections.ts)
+- [schema.ts](file://src\modules\houses\data\schema.ts)
+- [schema.ts](file://src\modules\assignments\data\schema.ts)
+- [schema.ts](file://src\modules\lessonplans\data\schema.ts)
+- [schema.ts](file://src\modules\pickup\data\schema.ts)
+- [types.ts](file://src\modules\houses\data\types.ts)
+- [types.ts](file://src\modules\assignments\data\types.ts)
+- [types.ts](file://src\modules\lessonplans\data\types.ts)
+- [types.ts](file://src\modules\pickup\data\types.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated ProviderSelector and DatabaseProviderFactory sections to reflect enhanced provider selection logic with LiveStore (SQLiteWASM) support
-- Added comprehensive database management system documentation covering dual-database architecture
-- Updated deployment guide with new provider selection strategies and environment-specific configurations
-- Enhanced security considerations with WASM memory protection, OPFS storage, and SQLCipher encryption
-- Added new section on SchemaConverter for RxDB to SQLite schema conversion
-- Updated code examples to reflect new LiveStore implementation and unified database management
-- Expanded performance benchmark considerations for academic and financial datasets
+- Enhanced database architecture documentation to reflect the new module collections integration with RxDB service
+- Updated RxDB service integration to support comprehensive module collections including Houses, Assignments, Lesson Plans, and Pickup modules
+- Added documentation for the new databaseService.ts that uses DataServiceFactory for provider selection
+- Updated provider selection strategy to accommodate the expanded collection set of 88 collections
+- Enhanced collection definitions to include all module collections with proper type integration
+- Updated code examples to reflect the new unified database service architecture
 
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [Dual-Database Architecture](#dual-database-architecture)
-3. [Provider Selection Strategy](#provider-selection-strategy)
-4. [Common Interfaces and Standardization](#common-interfaces-and-standardization)
-5. [DatabaseProviderFactory Implementation](#databaseproviderfactory-implementation)
-6. [SchemaConverter and Database Schema Migration](#schemaconverter-and-database-schema-migration)
-7. [Unified Database Management](#unified-database-management)
-8. [Consistent CRUD Operations](#consistent-crud-operations)
-9. [Security and Encryption Strategies](#security-and-encryption-strategies)
-10. [Deployment Guide](#deployment-guide)
-11. [Performance Benchmarks](#performance-benchmarks)
-12. [Conclusion](#conclusion)
+2. [Enhanced Module Collections Architecture](#enhanced-module-collections-architecture)
+3. [New Module Collections Implementation](#new-module-collections-implementation)
+4. [RxDB Service Integration Updates](#rxdb-service-integration-updates)
+5. [Unified Database Service Architecture](#unified-database-service-architecture)
+6. [Provider Selection Strategy](#provider-selection-strategy)
+7. [Common Interfaces and Standardization](#common-interfaces-and-standardization)
+8. [DatabaseProviderFactory Implementation](#databaseproviderfactory-implementation)
+9. [SchemaConverter and Database Schema Migration](#schemaconverter-and-database-schema-migration)
+10. [Unified Database Management](#unified-database-management)
+11. [Consistent CRUD Operations](#consistent-crud-operations)
+12. [Security and Encryption Strategies](#security-and-encryption-strategies)
+13. [Deployment Guide](#deployment-guide)
+14. [Performance Benchmarks](#performance-benchmarks)
+15. [Conclusion](#conclusion)
 
 ## Introduction
-The schoolpilot3 database architecture implements a sophisticated dual-database management system that enables seamless switching between multiple database providers. This comprehensive architecture supports four primary database providers: RxDB, PouchDB, SQLite, and LiveStore (SQLiteWASM), each optimized for specific deployment environments and use cases. The system is designed to provide consistent data access patterns while optimizing for different environments, performance needs, and feature requirements.
+The schoolpilot3 database architecture implements a sophisticated dual-database management system that enables seamless switching between multiple database providers. This comprehensive architecture supports five primary database providers: RxDB, PouchDB, SQLite, SQLiteWASM, and LiveStore, each optimized for specific deployment environments and use cases. The system now includes enhanced support for comprehensive module collections including Houses, Assignments, Lesson Plans, and Pickup modules, providing complete educational data management capabilities.
 
 **Section sources**
 - [interfaces.ts:1-253](file://src\services\database\interfaces.ts#L1-L253)
 - [DatabaseProviderFactory.ts:1-725](file://src\services\database\DatabaseProviderFactory.ts#L1-L725)
 - [ProviderSelector.ts:1-450](file://src\services\database\ProviderSelector.ts#L1-L450)
 
-## Dual-Database Architecture
-The dual-database architecture in schoolpilot3 centers around the `UnifiedDatabaseManager` and `DatabaseManager` components, which orchestrate provider selection and lifecycle management. This architecture supports seamless switching between providers based on runtime conditions and application requirements.
+## Enhanced Module Collections Architecture
+The database architecture now supports comprehensive module collections that extend beyond traditional academic and administrative functions. The enhanced architecture includes six major new module categories, each with specialized collection structures and data relationships.
 
-The system supports five primary database providers:
+### New Module Categories and Collections
 
-### Provider Types and Capabilities
-- **PouchDB**: Offline-first applications with robust IndexedDB integration and CouchDB synchronization
-- **RxDB**: Advanced reactivity and high-performance operations with real-time data updates
-- **SQLite**: Development environments with persistent storage and file-based database management
-- **SQLiteWASM**: Production environments with WebAssembly efficiency and Origin Private File System (OPFS) storage
-- **Backend API**: Enterprise integration with external API services and centralized data management
+#### Houses Module
+The Houses module manages student house systems with point-based reward and discipline tracking:
+- **houses**: Main house information and statistics
+- **point_categories**: Types of points (merit/demerit) with approval requirements
+- **point_transactions**: Individual point awards and deductions
 
-### Architecture Components
-The dual-database system consists of three main layers:
+#### Assignments Module
+The Assignments module handles academic assignment management:
+- **assignments**: Assignment creation, scheduling, and grading parameters
+- **assignment_submissions**: Student submission tracking and grading
+- **assignment_attachments**: File attachment management for submissions
+- **rubric_criteria**: Assessment criteria and scoring rubrics
+- **rubric_scores**: Detailed rubric-based grading
 
+#### Lesson Plans Module
+The Lesson Plans module supports curriculum planning and instruction tracking:
+- **weekly_plans**: Weekly lesson planning with objectives and activities
+- **lesson_notes**: Daily lesson execution notes and reflections
+
+#### Pickup Module
+The Pickup module manages student dismissal and safety protocols:
+- **pickup_codes**: Generated codes for safe pickup verification
+- **authorized_persons**: Authorized pickup individuals with identification
+- **student_authorizations**: Student-specific pickup authorization records
+- **pickup_logs**: Detailed pickup event logging and verification
+
+### Collection Relationships and Dependencies
 ```mermaid
 graph TB
-subgraph "Application Layer"
-App[Application Code]
-Hooks[React Hooks]
-Services[Service Layer]
+subgraph "Houses Module"
+Houses[houses] --> PointTransactions[point_transactions]
+PointCategories[point_categories] --> PointTransactions
+PointTransactions --> Students[students]
 end
-subgraph "Database Management Layer"
-UDM[UnifiedDatabaseManager]
-DM[DatabaseManager]
-DPS[Provider Selection Strategy]
+subgraph "Assignments Module"
+Assignments[assignments] --> Submissions[assignment_submissions]
+Submissions --> Attachments[assignment_attachments]
+Assignments --> RubricCriteria[rubric_criteria]
+Submissions --> RubricScores[rubric_scores]
 end
-subgraph "Provider Layer"
-PouchDB[PouchDB Provider]
-RxDB[RxDB Provider]
-SQLite[SQLite Provider]
-SQLiteWASM[SQLiteWASM Provider]
-BackendAPI[Backend API Provider]
+subgraph "Lesson Plans Module"
+WeeklyPlans[weekly_plans] --> DayPlans[day_plans]
+DayPlans --> PeriodPlans[period_plans]
+WeeklyPlans --> LessonNotes[lesson_notes]
 end
-subgraph "Storage Layer"
-IndexedDB[IndexedDB]
-OPFS[Origin Private File System]
-FileSystem[File System]
-RemoteDB[Remote Database]
-APIServer[API Server]
+subgraph "Pickup Module"
+PickupCodes[pickup_codes] --> PickupLogs[pickup_logs]
+StudentAuthorizations[student_authorizations] --> PickupLogs
+AuthorizedPersons[authorized_persons] --> PickupLogs
 end
-App --> Hooks
-Hooks --> Services
-Services --> UDM
-UDM --> DM
-DM --> DPS
-DPS --> PouchDB
-DPS --> RxDB
-DPS --> SQLite
-DPS --> SQLiteWASM
-DPS --> BackendAPI
-PouchDB --> IndexedDB
-SQLiteWASM --> OPFS
-SQLite --> FileSystem
-BackendAPI --> APIServer
 ```
 
 **Diagram sources**
-- [UnifiedDatabaseManager.ts](file://src\services\database\UnifiedDatabaseManager.ts)
-- [DatabaseProviderFactory.ts:22-36](file://src\services\database\DatabaseProviderFactory.ts#L22-L36)
-- [ProviderSelector.ts:31-40](file://src\services\database\ProviderSelector.ts#L31-L40)
+- [schema.ts:81-85](file://src\modules\houses\data\schema.ts#L81-L85)
+- [schema.ts:10-22](file://src\modules\assignments\data\schema.ts#L10-L22)
+- [schema.ts:37-69](file://src\modules\lessonplans\data\schema.ts#L37-L69)
+- [schema.ts:10-32](file://src\modules\pickup\data\schema.ts#L10-L32)
 
 **Section sources**
-- [database_management.md:1-139](file://docs\database\database_management.md#L1-L139)
-- [ProviderSelector.ts:31-450](file://src\services\database\ProviderSelector.ts#L31-L450)
+- [collections.ts:1-21](file://src\modules\houses\data\collections.ts#L1-L21)
+- [collections.ts:1-25](file://src\modules\assignments\data\collections.ts#L1-L25)
+- [collections.ts:1-16](file://src\modules\lessonplans\data\collections.ts#L1-L16)
+- [collections.ts:1-22](file://src\modules\pickup\data\collections.ts#L1-L22)
+
+## New Module Collections Implementation
+The new module collections are implemented through standardized collection definitions that integrate seamlessly with the existing database architecture. Each module follows the same pattern of collection configuration, schema definition, and type interfaces.
+
+### Collection Configuration Pattern
+Each module implements a consistent collection configuration structure:
+
+**Houses Module Collections**
+```typescript
+export const housesCollections = {
+  houses: {
+    schema: housesSchema,
+  },
+  point_categories: {
+    schema: pointCategoriesSchema,
+  },
+  point_transactions: {
+    schema: pointTransactionsSchema,
+  },
+};
+```
+
+**Assignments Module Collections**
+```typescript
+export const assignmentsCollections = {
+  assignments: {
+    schema: assignmentSchema,
+  },
+  assignment_submissions: {
+    schema: assignmentSubmissionSchema,
+  },
+  assignment_attachments: {
+    schema: assignmentAttachmentSchema,
+  },
+  rubric_criteria: {
+    schema: rubricCriterionSchema,
+  },
+  rubric_scores: {
+    schema: rubricScoreSchema,
+  },
+};
+```
+
+### Schema Definition Standards
+All module schemas follow the database-agnostic schema pattern with consistent properties:
+- **version**: Schema version for migration support
+- **primaryKey**: Primary key field specification
+- **type**: Object type specification
+- **properties**: Field definitions with validation rules
+- **required**: Required field specifications
+- **indexes**: Performance optimization indexes
+
+**Section sources**
+- [schema.ts:1-86](file://src\modules\houses\data\schema.ts#L1-L86)
+- [schema.ts:1-123](file://src\modules\assignments\data\schema.ts#L1-L123)
+- [schema.ts:1-104](file://src\modules\lessonplans\data\schema.ts#L1-L104)
+- [schema.ts:1-101](file://src\modules\pickup\data\schema.ts#L1-L101)
+
+## RxDB Service Integration Updates
+The RxDB service has been significantly enhanced to support the new module collections through comprehensive integration patterns and dynamic collection loading.
+
+### Enhanced Collection Import System
+The RxDB service now imports and integrates collections from all modules through a centralized import system:
+
+```typescript
+// New module collections imports
+import { housesCollections } from '../modules/houses/data/collections';
+import { assignmentsCollections } from '../modules/assignments/data/collections';
+import { lessonplansCollections } from '../modules/lessonplans/data/collections';
+import { pickupCollections } from '../modules/pickup/data/collections';
+
+// Debug logging for module collections
+console.log('=== MODULE COLLECTIONS DEBUG ===');
+console.log('academicsCollections:', academicsCollections);
+console.log('administrationCollections:', administrationCollections);
+console.log('financeCollections:', financeCollections);
+console.log('hrCollections:', hrCollections);
+console.log('inventoryCollections:', inventoryCollections);
+console.log('libraryCollections:', libraryCollections);
+console.log('nutritionCollections:', nutritionCollections);
+console.log('housesCollections:', housesCollections);
+console.log('assignmentsCollections:', assignmentsCollections);
+console.log('lessonplansCollections:', lessonplansCollections);
+console.log('pickupCollections:', pickupCollections);
+console.log('=== END MODULE COLLECTIONS DEBUG ===');
+```
+
+### Dynamic Collection Definition
+The collections definition now includes all module collections with proper type integration:
+
+```typescript
+export const collectionsDefinition: Record<string, { schema: RxJsonSchema<any>}> = { 
+  // Core Collections (24 total)
+  // ... existing core collections ...
+  
+  // Module Collections (88 total) - All enabled with PouchDB
+  // New Module Collections
+  ...housesCollections,
+  ...assignmentsCollections,
+  ...lessonplansCollections,
+  ...pickupCollections,
+};
+```
+
+### Type Integration for Module Collections
+The service integrates TypeScript types from all modules for comprehensive type safety:
+
+```typescript
+// New module types
+import * as housesTypes from '../modules/houses/data/types';
+import * as assignmentsTypes from '../modules/assignments/data/types';
+import * as lessonplansTypes from '../modules/lessonplans/data/types';
+import * as pickupTypes from '../modules/pickup/data/types';
+
+// Type integration for database collections
+export type SchoolDatabaseCollections = {
+  // ... existing core collections ...
+  
+  // Module collections
+  houses: RxCollection<housesTypes.House>;
+  point_categories: RxCollection<housesTypes.PointCategory>;
+  point_transactions: RxCollection<housesTypes.PointTransaction>;
+  
+  assignments: RxCollection<assignmentsTypes.Assignment>;
+  assignment_submissions: RxCollection<assignmentsTypes.AssignmentSubmission>;
+  assignment_attachments: RxCollection<assignmentsTypes.AssignmentAttachment>;
+  rubric_criteria: RxCollection<assignmentsTypes.RubricCriterion>;
+  rubric_scores: RxCollection<assignmentsTypes.RubricScore>;
+  
+  weekly_plans: RxCollection<lessonplansTypes.WeeklyPlan>;
+  lesson_notes: RxCollection<lessonplansTypes.LessonNote>;
+  
+  pickup_codes: RxCollection<pickupTypes.PickupCode>;
+  authorized_persons: RxCollection<pickupTypes.AuthorizedPerson>;
+  student_authorizations: RxCollection<pickupTypes.StudentAuthorization>;
+  pickup_logs: RxCollection<pickupTypes.PickupLog>;
+};
+```
+
+**Section sources**
+- [rxdbService.ts:29-60](file://src\services\rxdbService.ts#L29-L60)
+- [rxdbService.ts:127-182](file://src\services\rxdbService.ts#L127-L182)
+- [rxdbService.ts:185-250](file://src\services\rxdbService.ts#L185-L250)
+
+## Unified Database Service Architecture
+The system now includes a unified database service architecture that provides consistent database access through the DataServiceFactory, replacing the previous direct RxDB service dependency.
+
+### Database Service Implementation
+The new databaseService.ts provides a unified interface that uses the correct database provider based on environment configuration:
+
+```typescript
+// ABOUTME: New database service that uses the correct database provider based on environment configuration
+// ABOUTME: Provides same interface as rxdbService.ts but uses the DataServiceFactory
+import { Observable, BehaviorSubject } from 'rxjs';
+import {
+  getRxDBIntegrationHelper,
+  getDatabaseManager,
+  convertRxDBSchema
+} from './database/ProviderSelector';
+import { ICollection } from './database/interfaces';
+import * as allTypes from '../types';
+import {
+  unifiedConfigManager,
+  RXDB_DB_NAME,
+  RXDB_SETTINGS_COLLECTION_NAME,
+  RXDB_DUMMY_DATA_FLAG_ID
+} from '../config/unifiedConfig';
+import { DataServiceFactory } from './DataServiceFactory';
+
+// Import the same collections definition from rxdbService
+import { collectionsDefinition } from './rxdbService';
+
+// Validate collectionsDefinition at module load time
+if (!collectionsDefinition) {
+  console.error('❌ [CRITICAL] collectionsDefinition is undefined at import time!');
+  console.error('Please ensure collectionsDefinition is properly exported from rxdbService.ts');
+} else if (typeof collectionsDefinition !== 'object') {
+  console.error('❌ [CRITICAL] collectionsDefinition is not an object:', typeof collectionsDefinition);
+} else {
+  console.log('✅ [DEBUG] collectionsDefinition imported successfully with', Object.keys(collectionsDefinition).length, 'collections');
+}
+```
+
+### Provider Selection Integration
+The unified service integrates with the DataServiceFactory for intelligent provider selection:
+
+```typescript
+// ID Generation (same as rxdbService)
+export const generateId = (): string => crypto.randomUUID(); 
+let numericIdCounter = Date.now();
+export const generateNumericId = (): number => ++numericIdCounter;
+
+// Export collectionsDefinition for compatibility
+export { collectionsDefinition };
+
+// Export databaseService as alias for rxdbService for compatibility
+export const databaseService = rxdbService;
+
+// Removed auto-initialization at module load to prevent race conditions
+// Database will be initialized explicitly when needed by useDatabaseData hook
+```
+
+### Enhanced Error Handling and Validation
+The unified service includes comprehensive error handling and validation:
+
+```typescript
+// Validate collectionsDefinition at module load time
+if (!collectionsDefinition) {
+  console.error('❌ [CRITICAL] collectionsDefinition is undefined at import time!');
+  console.error('Please ensure collectionsDefinition is properly exported from rxdbService.ts');
+} else if (typeof collectionsDefinition !== 'object') {
+  console.error('❌ [CRITICAL] collectionsDefinition is not an object:', typeof collectionsDefinition);
+} else {
+  console.log('✅ [DEBUG] collectionsDefinition imported successfully with', Object.keys(collectionsDefinition).length, 'collections');
+}
+```
+
+**Section sources**
+- [databaseService.ts:1-356](file://src\services\databaseService.ts#L1-L356)
 
 ## Provider Selection Strategy
 The provider selection strategy in schoolpilot3 is implemented through the `DefaultProviderSelectionStrategy` class, which evaluates `CollectionRequirements` to determine the optimal database provider based on environment conditions and application requirements.
 
-### Selection Logic
-The strategy follows a hierarchical decision tree:
+### Enhanced Selection Logic
+The strategy now accounts for the increased number of collections and their specific requirements:
 
 1. **Configuration Override**: Check unified configuration for explicit provider selection
 2. **Environment-Based Selection**: Development vs. production environment preferences
 3. **Requirement-Based Selection**: Offline capabilities, synchronization needs, and performance requirements
-4. **Fallback Mechanism**: Graceful degradation to available providers
+4. **Collection Count Evaluation**: Consider the expanded collection set (now supporting up to 88 collections)
+5. **Fallback Mechanism**: Graceful degradation to available providers
 
-### Provider Selection Matrix
+### Enhanced Provider Selection Matrix
 ```mermaid
 flowchart TD
 A[Start Selection] --> B{Has Unified Config?}
@@ -136,26 +375,29 @@ B --> |No| E
 E --> |Yes| F{Requires Offline?}
 F --> |Yes| G[Use SQLite File]
 F --> |No| H[Use PouchDB]
-E --> |No| I{Requires Sync?}
-I --> |Yes| J[Use PouchDB]
-I --> |No| K{Requires Offline?}
-K --> |Yes| L[Use SQLite WASM]
-K --> |No| M{High Performance?}
-M --> |Yes| N[Use RxDB]
-M --> |No| O[Use PouchDB]
+E --> |No| I{Collection Count > 50?}
+I --> |Yes| J{Requires Sync?}
+J --> |Yes| K[Use PouchDB]
+J --> |No| L[Use SQLite WASM]
+I --> |No| M{Requires Offline?}
+M --> |Yes| N[Use SQLite WASM]
+M --> |No| O{High Performance?}
+O --> |Yes| P[Use RxDB]
+O --> |No| Q[Use PouchDB]
 ```
 
 **Diagram sources**
 - [DatabaseProviderFactory.ts:38-115](file://src\services\database\DatabaseProviderFactory.ts#L38-L115)
 
-### Collection Requirements
-The selection strategy evaluates the following requirements:
-- **collectionsCount**: Number of collections to be managed
+### Enhanced Collection Requirements
+The selection strategy now evaluates additional requirements for the expanded collection set:
+- **collectionsCount**: Number of collections to be managed (now up to 88)
 - **requiresOffline**: Offline capabilities requirement
 - **requiresSync**: Data synchronization requirement
 - **requiresReactivity**: Real-time data update requirement
 - **performanceLevel**: Performance requirements (basic, standard, high)
-- **storageQuota**: Required storage capacity
+- **storageQuota**: Required storage capacity for expanded datasets
+- **moduleComplexity**: Complexity of module relationships and dependencies
 
 **Section sources**
 - [DatabaseProviderFactory.ts:38-115](file://src\services\database\DatabaseProviderFactory.ts#L38-L115)
@@ -179,7 +421,7 @@ Defines configuration parameters for database initialization:
 Standardizes collection structure definition:
 - **version**: Schema version
 - **type**: Object type specification
-- **properties**: Field definitions with type, validation, and constraints
+- **properties**: Field definitions with validation rules
 - **indexes**: Index configurations for performance optimization
 - **relationships**: Entity relationship definitions
 - **primaryKey**: Primary key field specification
@@ -371,6 +613,23 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
         }
         
         if (environment === 'production') {
+            if (requirements.collectionsCount > 50) {
+                // For large collection sets, prefer providers with better scalability
+                if (requirements.requiresSync && requirements.performanceLevel === 'high') {
+                    return 'pouchdb';
+                }
+                
+                if (requirements.requiresOffline && requirements.performanceLevel === 'high') {
+                    return 'sqlite-wasm';
+                }
+                
+                if (requirements.requiresReactivity && requirements.performanceLevel === 'high') {
+                    return 'rxdb';
+                }
+                
+                return 'sqlite-wasm';
+            }
+            
             if (requirements.requiresSync && requirements.performanceLevel === 'high') {
                 return 'pouchdb';
             }
@@ -1050,7 +1309,7 @@ const developmentConfig: DatabaseConfig = {
 - [productionLiveStoreConfig.ts:227-255](file://src\config\productionLiveStoreConfig.ts#L227-L255)
 
 ## Deployment Guide
-The deployment guide covers comprehensive deployment strategies for schoolpilot3 across different environments and deployment modes. The system supports four primary deployment modes: Development, Production (Browser), Network Mode, and Enterprise Mode.
+The deployment guide covers comprehensive deployment strategies for schoolpilot3 across different environments and deployment modes. The system supports six primary deployment modes: Development, Production (Browser), Network Mode, Enterprise Mode, Hybrid Mode, and LiveStore Mode.
 
 ### Development Mode
 **Use Case**: Local development, testing, debugging
@@ -1209,6 +1468,77 @@ DB_ENABLE_CACHING=true
 3. Initialize backend provider with endpoint configuration
 4. Implement caching and retry mechanisms
 
+### Hybrid Mode
+**Use Case**: Mixed database environments combining multiple providers for optimal performance
+
+**Provider**: Combined approach using RxDB for reactive features and SQLite WASM for performance
+
+**Configuration**:
+```typescript
+{
+  provider: 'hybrid',
+  config: {
+    primaryProvider: 'rxdb',
+    secondaryProvider: 'sqlite-wasm',
+    fallbackEnabled: true,
+    syncEnabled: true,
+    cacheSize: 50000,
+  }
+}
+```
+
+**Environment Variables**:
+```bash
+NODE_ENV=production
+DB_PROVIDER=hybrid
+DB_PRIMARY_PROVIDER=rxdb
+DB_SECONDARY_PROVIDER=sqlite-wasm
+DB_FALLBACK_ENABLED=true
+DB_SYNC_ENABLED=true
+```
+
+**Setup Steps**:
+1. Configure both primary and secondary providers
+2. Set up fallback mechanisms
+3. Implement hybrid synchronization
+4. Monitor performance metrics
+
+### LiveStore Mode
+**Use Case**: Advanced database operations with LiveStore provider capabilities
+
+**Provider**: LiveStore provider with enhanced database management features
+
+**Configuration**:
+```typescript
+{
+  provider: 'livestore',
+  config: {
+    databaseName: 'schoolpilot3',
+    enableEncryption: true,
+    enableBackup: true,
+    backupInterval: 86400000,
+    maxBackupFiles: 30,
+  }
+}
+```
+
+**Environment Variables**:
+```bash
+NODE_ENV=production
+DB_PROVIDER=livestore
+DB_DATABASE_NAME=schoolpilot3
+DB_ENABLE_ENCRYPTION=true
+DB_ENABLE_BACKUP=true
+DB_BACKUP_INTERVAL=86400000
+DB_MAX_BACKUP_FILES=30
+```
+
+**Setup Steps**:
+1. Install LiveStore dependencies
+2. Configure encryption and backup settings
+3. Set up database management interfaces
+4. Implement monitoring and alerting
+
 ### Environment-Specific Configurations
 
 #### Development Environment
@@ -1252,7 +1582,7 @@ DB_BACKUP_COMPRESSION=true
 
 # Security
 DB_AUDIT_ENABLED=true
-DB_VALIDATION_STRICT=true
+DB_VALIDATION_STRICT=false
 ```
 
 #### Production Environment
@@ -1308,7 +1638,7 @@ COPY . .
 RUN npm run build
 
 # Create data directory
-RUN mkdir -p /app/data && chown -R node:node /app/data
+RUN mkdir -p /app/data && chown -R node:node /app.data
 
 # Switch to non-root user
 USER node
@@ -1699,8 +2029,14 @@ interface ProviderStatus {
 - **Expected Performance**: High write performance with strict consistency guarantees
 - **Storage Requirements**: 100MB - 500MB depending on transaction volume
 
+**Module Collections Datasets** (Houses, Assignments, Lesson Plans, Pickup):
+- **Primary Focus**: Specialized domain data with complex relationships
+- **Optimization Strategy**: Domain-specific indexing and relationship optimization
+- **Expected Performance**: Balanced performance across CRUD operations
+- **Storage Requirements**: 50MB - 200MB depending on module usage
+
 **Mixed Workload Datasets**:
-- **Primary Focus**: Balanced read/write operations
+- **Primary Focus**: Balanced read/write operations across all modules
 - **Optimization Strategy**: Balanced indexing strategy with regular maintenance
 - **Expected Performance**: Consistent performance across all operations
 - **Storage Requirements**: 1GB - 10GB depending on application usage
@@ -1747,15 +2083,18 @@ Based on benchmark results and real-world usage patterns:
 - [ProviderSelector.ts:300-350](file://src\services\database\ProviderSelector.ts#L300-L350)
 
 ## Conclusion
-The database architecture in schoolpilot3 implements a sophisticated dual-database management system that enables seamless switching between RxDB, PouchDB, SQLite, and LiveStore (SQLiteWASM) providers. The architecture is centered around the `DatabaseProviderFactory`, `ProviderSelector`, and `DatabaseManager` components, which work together to determine the optimal database provider based on runtime conditions and application requirements.
+The database architecture in schoolpilot3 implements a sophisticated dual-database management system that enables seamless switching between RxDB, PouchDB, SQLite, SQLiteWASM, and LiveStore providers. The architecture is centered around the `DatabaseProviderFactory`, `ProviderSelector`, and `DatabaseManager` components, which work together to determine the optimal database provider based on runtime conditions and application requirements.
+
+The enhanced architecture now supports comprehensive module collections including Houses, Assignments, Lesson Plans, and Pickup modules, providing complete educational data management capabilities. The RxDB service integration has been significantly updated to support these new collections through standardized schemas and type definitions.
 
 Key architectural strengths include:
-- **Flexibility**: Support for five database providers allows optimization for different environments and use cases
+- **Flexibility**: Support for six database providers allows optimization for different environments and use cases
 - **Consistency**: Standardized interfaces ensure uniform CRUD operations across all providers
 - **Resilience**: Comprehensive fallback mechanisms ensure database availability even when preferred providers are unavailable
 - **Scalability**: The factory pattern allows easy addition of new database providers and integration with external systems
 - **Security**: Multi-layered security approach with encryption, access control, and audit logging
 - **Performance**: Comprehensive performance monitoring and optimization features for production deployments
+- **Extensibility**: Modular collection architecture supports easy addition of new educational modules
 
 The system effectively balances the need for offline capabilities, real-time synchronization, enterprise integration, and performance optimization, making it well-suited for educational applications with diverse data management requirements. The comprehensive deployment guide and security considerations ensure reliable operation across different environments and regulatory requirements.
 
@@ -1764,3 +2103,4 @@ The system effectively balances the need for offline capabilities, real-time syn
 - [deployment-guide.md:1-837](file://docs\database\deployment-guide.md#L1-L837)
 - [DatabaseProviderFactory.ts:286-725](file://src\services\database\DatabaseProviderFactory.ts#L286-L725)
 - [ProviderSelector.ts:31-450](file://src\services\database\ProviderSelector.ts#L31-L450)
+- [rxdbService.ts:127-182](file://src\services\rxdbService.ts#L127-L182)

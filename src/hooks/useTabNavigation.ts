@@ -3,9 +3,9 @@
 
 import { useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTabStore, Tab, TabContent, TabGroup } from '../stores/tabStore';
-import { useAuth } from '../contexts/AuthContext';
-import { useStableActionProvider } from '../contexts/StableActionProvider';
+import { useTabStore, Tab, TabContent, TabGroup } from '@/stores/tabStore';
+import { useAuth } from '@/contexts/AuthContext';
+import { useStableActionProvider } from '@/contexts/StableActionProvider';
 import { useToastHelpers } from './useToast';
 
 // Navigation options for creating tabs

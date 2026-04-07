@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockMealConsumptionLogs } from './mockData';
-import { MealConsumptionLog } from '../../../core/types';
+import { MealConsumptionLog } from '@/core/types';
 
 export const useMealConsumptionLogData = () => {
   const [data, setData] = useState<MealConsumptionLog[]>(initialMockMealConsumptionLogs);

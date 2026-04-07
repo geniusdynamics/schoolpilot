@@ -3,10 +3,10 @@ import { StudentMealPlan, Student, MealPlan, SchoolPeriod, StudentMealPlanStatus
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, UsersIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';

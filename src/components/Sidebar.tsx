@@ -8,9 +8,9 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { APP_NAME_KEY } from '../constants';
-import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useTabNavigation } from '../hooks/useTabNavigation';
-import { NavItem } from '../core/types';
+import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
+import { useTabNavigation } from '@/hooks/useTabNavigation';
+import { NavItem } from '@/core/types';
 import {
   SchoolIcon,
   ChevronDownIcon,
@@ -156,7 +156,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen: _isOpen, toggleSidebar }) => 
     isChild = false, 
     index = 0 
   }) => {
-    const translatedName = t(item.name);
+    // Parse the translation key - format is "navigation:key.subkey"
+    // Split by colon to get namespace and key
+    const [namespace, key] = item.name.includes(':') 
+      ? item.name.split(':') 
+      : ['navigation', item.name];
+    
+    const translatedName = t(key, { ns: namespace });
     const isActive = location.pathname === item.path || 
                     (item.path !== '/' && location.pathname.startsWith(item.path));
 

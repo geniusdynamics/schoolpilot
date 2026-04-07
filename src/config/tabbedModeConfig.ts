@@ -1,7 +1,7 @@
 // ABOUTME: Configuration for tabbed mode feature flags
 // ABOUTME: Controls which modules have tabbed mode enabled
 
-import { TabbedModeConfig } from '../services/tabbedModeFeatureFlag';
+import { TabbedModeConfig } from '../services/ui/tabbedModeFeatureFlag';
 
 // Default tabbed mode configuration
 export const defaultTabbedModeConfig: TabbedModeConfig = {

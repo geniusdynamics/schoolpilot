@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
-import { TabStateManager, defaultTabStateConfig, TabStateConfig } from '../services/TabStateManager';
+import { TabStateManager, defaultTabStateConfig, TabStateConfig } from '../services/ui/TabStateManager';
 
 // Mock store for testing
 const createMockStore = () => ({

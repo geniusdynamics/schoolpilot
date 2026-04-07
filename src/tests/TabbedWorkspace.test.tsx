@@ -3,9 +3,9 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { TabbedWorkspace } from '../components/tabbedWorkspace/TabbedWorkspace';
-import { useTabStore } from '../stores/tabStore';
-import { rbacService } from '../core/rbacService';
+import { TabbedWorkspace } from '@/components/tabbedWorkspace/TabbedWorkspace';
+import { useTabStore } from '@/stores/tabStore';
+import { rbacService } from '@/core/rbacService';
 
 // Mock the stores and services
 vi.mock('../stores/tabStore');

@@ -3,21 +3,21 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppData } from '../../../hooks/useAppData';
-import { usePageActions } from '../../../hooks/usePageActions';
-import Card from '../../../components/ui/Card';
-import Button from '../../../components/ui/Button';
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
-import { DataGrid, DataGridColumn } from '../../../components/ui';
-import Spinner from '../../../components/ui/Spinner';
+import { useAppData } from '@/hooks/useAppData';
+import { usePageActions } from '@/hooks/usePageActions';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import { DataGrid, DataGridColumn } from '@/components/ui';
+import Spinner from '@/components/ui/Spinner';
 import { PlusIcon, EditIcon, DeleteIcon } from 'lucide-react';
-import { SchoolClass, ClassStream, Staff } from '../../../types/database';
-import { ActionDefinition } from '../../../types/actions';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
-import FormActions from '../../../components/ui/forms/FormActions';
+import { SchoolClass, ClassStream, Staff } from '@/types/database';
+import { ActionDefinition } from '@/types/actions';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import FormSection from '@/components/ui/forms/FormSection';
+import FormField from '@/components/ui/forms/FormField';
+import FormActions from '@/components/ui/forms/FormActions';
 
 interface ClassFormData extends Partial<Omit<SchoolClass, 'id' | 'streams'>> {}
 interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | 'class_teacher_name' | 'class_name'>> {

@@ -1,7 +1,7 @@
 // src/modules/academics/strategies/CBCGradeStrategy.ts
 
 import { StudentExamResult, GradingScheme, GradingSchemeLevel } from '../data/types';
-import { GradingStrategy } from '../services/GradingEngineService';
+import { GradingStrategy } from '@/services/GradingEngineService';
 
 export class CBCGradeStrategy implements GradingStrategy {
   calculate(result: StudentExamResult, gradingScheme?: GradingScheme): StudentExamResult {

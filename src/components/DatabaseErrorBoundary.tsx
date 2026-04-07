@@ -2,7 +2,7 @@
 // ABOUTME: Provides specialized recovery mechanisms and fallback UI for database-related errors
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { reportError } from '../config/errorTracking';
+import { reportError } from '@/config/errorTracking';
 
 interface Props {
   children: ReactNode;

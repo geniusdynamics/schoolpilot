@@ -6,7 +6,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import DataCard from '../components/ui/data/DataCard';
+import DataCard from '@/components/ui/data/DataCard';
 import { it } from 'node:test';
 import { it } from 'node:test';
 import { it } from 'node:test';

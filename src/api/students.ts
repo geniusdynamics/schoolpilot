@@ -1,8 +1,8 @@
 // Student data access helpers
 // Uses AppDataContext data instead of API calls
 
-import type { Student } from '../core/types';
-import { getStudentsForExamEntry as filterStudentsForExamEntry, getStudentsByClassStream } from '../utils/api';
+import type { Student } from '@/core/types';
+import { getStudentsForExamEntry as filterStudentsForExamEntry, getStudentsByClassStream } from '@/utils/api';
 
 /**
  * Get students for exam entry by class stream ID

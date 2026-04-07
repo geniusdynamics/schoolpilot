@@ -12,8 +12,8 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import { useDataMode } from '../hooks/useDataMode';
-import { DataModeSwitch } from '../components/DataModeSwitch';
+import { useDataMode } from '@/hooks/useDataMode';
+import { DataModeSwitch } from '@/components/DataModeSwitch';
 
 // Mock the useDataMode hook
 vi.mock('../hooks/useDataMode');

@@ -7,7 +7,7 @@ import {
   SchemaHelpers,
   type DatabaseSchema, 
   type DatabaseProperty, 
-} from '../../../utils/databaseAgnosticSchema';
+} from '@/utils/databaseAgnosticSchema';
 
 export const partnerSchema: DatabaseSchema = createDatabaseSchema({
     title: 'partner',

@@ -2,8 +2,8 @@
 // ABOUTME: These schemas are used by database services to create collections.
 
 import * as types from './types';
-import { createDatabaseSchema, SchemaHelpers } from '../../../utils/databaseAgnosticSchema';
-import type { DatabaseSchema, DatabaseProperty } from '../../../utils/databaseAgnosticSchema';
+import { createDatabaseSchema, SchemaHelpers } from '@/utils/databaseAgnosticSchema';
+import type { DatabaseSchema, DatabaseProperty } from '@/utils/databaseAgnosticSchema';
 
 export const warehouseSchema: DatabaseSchema = createDatabaseSchema({
     name: 'warehouse',

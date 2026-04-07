@@ -1,7 +1,7 @@
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the HR module.
 // ABOUTME: It ensures all HR-related data structures are managed in one place.
 
-import { StaffRecurringItem, StaffSalarySetting, HRPayrollPeriodStatusEnum, HRPayrollPeriodType, PayrollPeriod, PayrollItemType, PayslipItem, Payslip } from '../../core/types';
+import { StaffRecurringItem, StaffSalarySetting, HRPayrollPeriodStatusEnum, HRPayrollPeriodType, PayrollPeriod, PayrollItemType, PayslipItem, Payslip } from '@/core/types';
 
 // HRPayrollPeriodStatusEnum is now imported from core/types to avoid conflicts
 export enum HRPayrollItemCategoryEnum { EARNING = 'Earning', DEDUCTION = 'Deduction', CONTRIBUTION = 'Contribution (Employer)' }

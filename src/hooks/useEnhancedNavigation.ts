@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTabNavigation } from './useTabNavigation';
 import { useToastHelpers } from './useToast';
-import { tabbedModeFeatureFlag } from '../services/tabbedModeFeatureFlag';
+import { tabbedModeFeatureFlag } from '../services/ui/tabbedModeFeatureFlag';
 
 export const useEnhancedNavigation = () => {
   const navigate = useNavigate();

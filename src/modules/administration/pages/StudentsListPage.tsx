@@ -1,23 +1,23 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
-import { Student, PersonGender, StudentStatus, ParentGuardian, Department, Designation, StudentCategory, Dormitory, ClassStream, Class as SchoolClass, AcademicsExamResultSummaryType as ExamResultSummary } from '../../../types';
-import DataGrid from '../../../components/ui/data/DataGrid';
-import Button from '../../../components/ui/Button';
-import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
-import Card from '../../../components/ui/Card';
-import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon, UsersIcon, AcademicCapIcon, CogIcon } from '../../../components/ui/icons';
-// import { useMockData } from '../../../hooks/useMockData'; // Switch to useAppData
-import { useAppData } from '../../../hooks/useAppData'; // Import useAppData
-import Spinner from '../../../components/ui/Spinner';
+import { Student, PersonGender, StudentStatus, ParentGuardian, Department, Designation, StudentCategory, Dormitory, ClassStream, Class as SchoolClass, AcademicsExamResultSummaryType as ExamResultSummary } from '@/types';
+import DataGrid from '@/components/ui/data/DataGrid';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Card from '@/components/ui/Card';
+import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon, UsersIcon, AcademicCapIcon, CogIcon } from '@/components/ui/icons';
+// import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
+import { useAppData } from '@/hooks/useAppData'; // Import useAppData
+import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
-import SlideoutForm from '../../../components/ui/forms/SlideoutForm';
-import { usePageActions } from '../../../hooks/usePageActions';
-import { useToast } from '../../../hooks/useToast';
-import DialogForm from '../../../components/ui/forms/DialogForm';
-import { getQuickEditConfig, QuickEditField, QuickEditConfig } from '../config/quickEditConfig';
-import QuickEditConfigModal from '../components/QuickEditConfigModal';
+import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
+import SlideoutForm from '@/components/ui/forms/SlideoutForm';
+import { usePageActions } from '@/hooks/usePageActions';
+import { useToast } from '@/hooks/useToast';
+import DialogForm from '@/components/ui/forms/DialogForm';
+import { getQuickEditConfig, QuickEditField, QuickEditConfig } from '@/config/quickEditConfig';
+import QuickEditConfigModal from '@/components/QuickEditConfigModal';
 
 interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {
   admission_no: string; // Required

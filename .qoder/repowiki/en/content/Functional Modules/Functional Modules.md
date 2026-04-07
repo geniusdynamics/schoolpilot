@@ -24,6 +24,18 @@
 - [rbac.ts](file://src/modules/admissions/rbac.ts)
 - [AdmissionsDashboardPage.tsx](file://src/modules/admissions/pages/AdmissionsDashboardPage.tsx)
 - [useAdmissionsData.ts](file://src/modules/admissions/data/useAdmissionsData.ts)
+- [moduleDefinition.tsx](file://src/modules/analytics/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/analytics/rbac.ts)
+- [moduleDefinition.tsx](file://src/modules/assignments/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/assignments/rbac.ts)
+- [moduleDefinition.tsx](file://src/modules/houses/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/houses/rbac.ts)
+- [moduleDefinition.tsx](file://src/modules/lessonplans/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/lessonplans/rbac.ts)
+- [moduleDefinition.tsx](file://src/modules/pickup/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/pickup/rbac.ts)
+- [moduleDefinition.tsx](file://src/modules/portal/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/portal/rbac.ts)
 - [types.ts](file://src/core/types.ts)
 - [rbacService.ts](file://src/core/rbacService.ts)
 - [dynamicModuleLoader.ts](file://src/services/dynamicModuleLoader.ts)
@@ -42,19 +54,18 @@
 
 ## Update Summary
 **Changes Made**
-- Added new Admissions module with comprehensive student admission management capabilities
-- Enhanced module dashboards with improved analytics and real-time data visualization
-- Improved module data hooks with standardized factory pattern and enhanced performance monitoring
-- Added centralized module data registry for better data entity management
-- Enhanced module dependency management with health monitoring and validation
-- Updated module interaction patterns with improved cross-module data sharing
+- Added comprehensive new modules: Analytics, Assignments, Houses, Lesson Plans, Pickup, and Portal
+- Each new module includes complete RBAC configurations, internationalization support, and standardized module definitions
+- Enhanced module ecosystem with specialized functionality for teacher analytics, assignment management, house system, lesson planning, student pickup, and parent portals
+- Expanded dependency relationships and cross-module integrations
+- Updated module interaction patterns to support new workflows and data flows
 
 ## Table of Contents
 1. [Functional Modules](#functional-modules)
 2. [Modular Architecture Overview](#modular-architecture-overview)
 3. [Module Implementation Patterns](#module-implementation-patterns)
 4. [Core Module Definitions](#core-module-definitions)
-5. [New Admissions Module](#new-admissions-module)
+5. [New Comprehensive Module Ecosystem](#new-comprehensive-module-ecosystem)
 6. [Enhanced Module Dashboards](#enhanced-module-dashboards)
 7. [Improved Data Hooks and Services](#improved-data-hooks-and-services)
 8. [Enhanced Module Dependencies](#enhanced-module-dependencies)
@@ -78,7 +89,7 @@ DynamicLoader[Dynamic Module Loader]
 DataRegistry[Module Data Registry]
 ContextService[Data Context Integration]
 end
-subgraph "Functional Modules"
+subgraph "Core Modules"
 Academics[Academics Module]
 Administration[Administration Module]
 Finance[Finance Module]
@@ -89,6 +100,14 @@ Nutrition[Nutrition Module]
 Reports[Reports Module]
 Settings[Settings Module]
 Admissions[Admissions Module]
+end
+subgraph "New Specialized Modules"
+Analytics[Analytics Module]
+Assignments[Assignments Module]
+Houses[Houses Module]
+LessonPlans[Lesson Plans Module]
+Pickup[Pickup Module]
+Portal[Portal Module]
 end
 ModuleLoader --> Registry
 DynamicLoader --> Registry
@@ -105,6 +124,12 @@ Registry --> Nutrition
 Registry --> Reports
 Registry --> Settings
 Registry --> Admissions
+Registry --> Analytics
+Registry --> Assignments
+Registry --> Houses
+Registry --> LessonPlans
+Registry --> Pickup
+Registry --> Portal
 ```
 
 **Diagram sources**
@@ -130,6 +155,7 @@ The `ModuleDefinition` interface now includes enhanced properties:
 - **dependencies**: Enhanced dependency tracking with health status
 - **optionalDependencies**: Support for optional module dependencies
 - **routes**: Enhanced routing configuration with lazy loading
+- **requiresAuthentication**: New field for authentication requirements
 
 ```mermaid
 classDiagram
@@ -151,6 +177,7 @@ class ModuleDefinition {
 +ModulePerformance performance
 +ModuleRoute[] routes
 +ModuleDependency[] optionalDependencies
++boolean requiresAuthentication
 }
 class ModuleHealth {
 +ModuleHealthStatus status
@@ -383,76 +410,165 @@ The Reports module provides analytics, dashboards, and reporting capabilities ac
 - [moduleDefinition.tsx](file://src/modules/reports/moduleDefinition.tsx)
 - [rbac.ts](file://src/modules/reports/rbac.ts)
 
-## New Admissions Module
+## New Comprehensive Module Ecosystem
 
-The newly added Admissions module provides comprehensive student admission management capabilities, serving as a central hub for application processing, review workflows, and enrollment automation.
+The schoolpilot3 system now features a comprehensive module ecosystem with six new specialized modules that extend the platform's functionality across multiple operational domains.
 
-### Module Architecture
+### Analytics Module
+
+The Analytics module provides comprehensive teacher and academic analytics capabilities, computing insights from existing data without creating new collections.
 
 **Key Components:**
-- **Admissions Dashboard**: Real-time analytics and funnel visualization
-- **Application Forms**: Online application submission and management
-- **Review Queue**: Structured application review and approval workflow
-- **Document Management**: Secure document upload and verification
-- **Enrollment Automation**: Automated student record creation and fee assignment
+- **Teacher Dashboard**: Personalized analytics dashboard for educators
+- **Subject Analytics**: Detailed performance analysis by subject area
+- **Class Analytics**: Aggregate performance metrics for classroom management
+- **Report Export**: Multi-format report generation and export capabilities
 
 **Business Capabilities:**
-- Online application submission and processing
-- Multi-stage review and approval workflows
-- Document verification and management
-- Automated enrollment and student record creation
-- Waitlist management and capacity planning
-- Fee structure assignment and payment processing
-- Interview scheduling and coordination
+- Teacher performance monitoring and insights
+- Subject-level academic analysis
+- Class-wide performance tracking
+- Comparative performance analysis across periods
+- Trend analysis over academic timeframes
+- Multi-format report export (PDF, CSV, Excel)
 
 **Dependencies:**
-- Administration (required): For student and staff data integration
-- Finance (optional): For automated fee processing and payment integration
-
-```mermaid
-flowchart TD
-AdmissionsStart([Admissions Module]) --> Dashboard["Admissions Dashboard"]
-Dashboard --> Analytics["Real-time Analytics"]
-Analytics --> Funnel["Application Funnel"]
-Funnel --> StatusDistribution["Status Distribution"]
-Funnel --> ClassDistribution["Class Distribution"]
-AdmissionsStart --> Applications["Application Management"]
-Applications --> NewApplication["New Application Form"]
-Applications --> ApplicationList["Applications List"]
-Applications --> ApplicationDetail["Application Details"]
-AdmissionsStart --> Review["Review Workflow"]
-Review --> ReviewQueue["Review Queue"]
-Review --> DocumentVerification["Document Verification"]
-Review --> DecisionProcessing["Decision Processing"]
-AdmissionsStart --> Enrollment["Enrollment Automation"]
-Enrollment --> StudentCreation["Student Record Creation"]
-Enrollment --> FeeAssignment["Fee Structure Assignment"]
-Enrollment --> ClassAllocation["Class and Stream Allocation"]
-```
-
-**Diagram sources**
-- [AdmissionsDashboardPage.tsx](file://src/modules/admissions/pages/AdmissionsDashboardPage.tsx)
-- [useAdmissionsData.ts](file://src/modules/admissions/data/useAdmissionsData.ts)
+- Academics (required): For academic data and performance metrics
+- HR (required): For staff-related analytics and performance data
 
 **Section sources**
-- [moduleDefinition.tsx](file://src/modules/admissions/moduleDefinition.tsx)
-- [rbac.ts](file://src/modules/admissions/rbac.ts)
-- [AdmissionsDashboardPage.tsx](file://src/modules/admissions/pages/AdmissionsDashboardPage.tsx)
-- [useAdmissionsData.ts](file://src/modules/admissions/data/useAdmissionsData.ts)
+- [moduleDefinition.tsx](file://src/modules/analytics/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/analytics/rbac.ts)
 
-### Enhanced Dashboard Implementation
+### Assignments Module
 
-The Admissions module features a sophisticated dashboard with real-time analytics, interactive charts, and quick action buttons. The dashboard provides comprehensive visibility into the admission process and enables efficient workflow management.
+The Assignments module manages the complete lifecycle of academic assignments, from creation to grading and analytics.
 
-**Dashboard Features:**
-- **Real-time Statistics**: Live counters for applications by status
-- **Interactive Charts**: Donut charts for status and class distribution
-- **Quick Actions**: Direct navigation to key workflows
-- **Priority Notifications**: Alerts for pending review applications
-- **Performance Metrics**: Monthly and weekly application trends
+**Key Components:**
+- **Assignment Management**: Create, edit, and manage academic assignments
+- **Submission Handling**: Student submission tracking and management
+- **Grading Interface**: Digital assignment grading and feedback system
+- **Analytics Dashboard**: Assignment performance and completion analytics
+
+**Business Capabilities:**
+- Assignment creation and distribution
+- Student submission tracking and management
+- Digital assignment grading and feedback
+- Assignment analytics and performance insights
+- Template management for recurring assignments
+- Rubric-based grading support
+
+**Dependencies:**
+- Administration (required): For student and teacher data
+- Academics (required): For subject and class context
 
 **Section sources**
-- [AdmissionsDashboardPage.tsx](file://src/modules/admissions/pages/AdmissionsDashboardPage.tsx)
+- [moduleDefinition.tsx](file://src/modules/assignments/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/assignments/rbac.ts)
+
+### Houses Module
+
+The Houses module implements a comprehensive house system for student recognition, point management, and behavioral tracking.
+
+**Key Components:**
+- **House Management**: Create and manage house categories and teams
+- **Point Transaction System**: Award, deduct, and track merit/demerit points
+- **Leaderboard Management**: Real-time ranking and achievement tracking
+- **Category Management**: Define point categories and award criteria
+
+**Business Capabilities:**
+- House creation and management
+- Point awarding and deduction system
+- Merit and demerit tracking
+- Leaderboard generation and management
+- Point transaction approval workflows
+- Category-based point management
+
+**Dependencies:**
+- Administration (required): For student data and house membership
+
+**Section sources**
+- [moduleDefinition.tsx](file://src/modules/houses/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/houses/rbac.ts)
+
+### Lesson Plans Module
+
+The Lesson Plans module provides comprehensive lesson planning, tracking, and approval capabilities for educational institutions.
+
+**Key Components:**
+- **Weekly Planning**: Structured weekly lesson plan creation and management
+- **Daily Notes**: Lesson execution tracking and daily reflections
+- **Approval Workflow**: Hierarchical approval system for lesson plans
+- **Coverage Tracking**: Substitute teacher coverage and plan tracking
+
+**Business Capabilities:**
+- Weekly lesson plan creation and management
+- Daily lesson notes and reflections
+- Hierarchical plan approval workflows
+- Coverage reporting and substitute management
+- Syllabus coverage tracking and analysis
+
+**Dependencies:**
+- Academics (required): For academic context and subject alignment
+
+**Section sources**
+- [moduleDefinition.tsx](file://src/modules/lessonplans/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/lessonplans/rbac.ts)
+
+### Pickup Module
+
+The Pickup module manages student dismissal procedures, authorization tracking, and safety verification processes.
+
+**Key Components:**
+- **Pickup Authorization**: Manage authorized pickup persons and codes
+- **Verification System**: QR code and photo ID verification
+- **Pickup Logging**: Comprehensive pickup transaction logging
+- **Parent Notifications**: Automated notification system for pickups
+
+**Business Capabilities:**
+- Authorized person management and verification
+- Digital pickup code generation and validation
+- Photo ID verification for safety
+- Comprehensive pickup transaction logging
+- Parent notification and communication
+- Security-focused dismissal procedures
+
+**Dependencies:**
+- Administration (required): For student and authorized person data
+
+**Section sources**
+- [moduleDefinition.tsx](file://src/modules/pickup/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/pickup/rbac.ts)
+
+### Portal Module
+
+The Portal module provides secure access to institutional information for students, parents, and guardians through a comprehensive web portal.
+
+**Key Components:**
+- **Student Dashboard**: Personalized student information and progress
+- **Parent Dashboard**: View children's information and institutional updates
+- **Attendance Tracking**: Real-time attendance monitoring
+- **Academic Results**: Secure access to academic performance data
+- **Fee Management**: Payment history and fee statement access
+- **Announcements**: Institutional news and communications
+
+**Business Capabilities:**
+- Secure student and parent portal access
+- Personalized dashboard with relevant information
+- Attendance monitoring and reporting
+- Academic result viewing and tracking
+- Fee statement and payment history access
+- Institutional announcement viewing
+- Profile management and updates
+
+**Dependencies:**
+- Administration (required): For user and student data
+- Academics (required): For academic information
+- Finance (optional): For fee and payment information
+
+**Section sources**
+- [moduleDefinition.tsx](file://src/modules/portal/moduleDefinition.tsx)
+- [rbac.ts](file://src/modules/portal/rbac.ts)
 
 ## Enhanced Module Dashboards
 
@@ -611,15 +727,26 @@ The enhanced modular architecture enables sophisticated cross-module interaction
 **Academic-Financial Integration:**
 The Admissions module integrates with the Finance module for automated fee processing and payment integration. When applications are approved, the system automatically creates student records and assigns appropriate fee structures.
 
-**Administrative Data Sharing:**
-Modules share standardized data through the centralized registry, enabling seamless data exchange while maintaining data integrity and security.
+**Analytics-Teaching Integration:**
+The Analytics module leverages data from the Academics module to provide teacher performance insights and subject-level analysis. The Assignments module feeds into Analytics for assignment completion and performance tracking.
 
-**Workflow Coordination:**
-Enhanced navigation and tabbed mode support enable coordinated workflows across multiple modules, improving user efficiency and system usability.
+**Student Information Flow:**
+The Portal module provides authenticated access to information from Administration, Academics, and Finance modules, creating a unified view for students and parents.
+
+**Security Integration:**
+The Pickup module integrates with Administration for student and authorized person data, ensuring secure dismissal procedures.
+
+**Educational Workflow Integration:**
+The Lesson Plans module coordinates with Academics for subject context and with HR for staff scheduling, creating a comprehensive educational workflow system.
 
 **Section sources**
 - [moduleDefinition.tsx](file://src/modules/admissions/moduleDefinition.tsx)
 - [moduleDefinition.tsx](file://src/modules/finance/moduleDefinition.tsx)
+- [moduleDefinition.tsx](file://src/modules/analytics/moduleDefinition.tsx)
+- [moduleDefinition.tsx](file://src/modules/assignments/moduleDefinition.tsx)
+- [moduleDefinition.tsx](file://src/modules/portal/moduleDefinition.tsx)
+- [moduleDefinition.tsx](file://src/modules/pickup/moduleDefinition.tsx)
+- [moduleDefinition.tsx](file://src/modules/lessonplans/moduleDefinition.tsx)
 
 ## Tabbed Mode Configuration
 
@@ -697,22 +824,30 @@ EnhancedNav->>SettingsPopup : Close popup after navigation
 
 ## Conclusion
 
-The schoolpilot3 system's enhanced modular architecture provides a robust foundation for managing complex educational institution operations. The recent additions of the Admissions module, improved data management framework, and enhanced dependency system significantly strengthen the system's capabilities.
+The schoolpilot3 system's enhanced modular architecture provides a robust foundation for managing complex educational institution operations. The addition of six new comprehensive modules significantly expands the system's capabilities while maintaining architectural consistency and standards.
 
 **Key Architectural Strengths:**
-- **Comprehensive Module Ecosystem**: Complete coverage from admissions through reporting
+- **Comprehensive Module Ecosystem**: Complete coverage from admissions through specialized analytics and portal services
 - **Standardized Data Management**: Consistent patterns across all modules via enhanced hooks
 - **Advanced Dependency Management**: Sophisticated validation and health monitoring
 - **Centralized Data Integration**: Unified access patterns through the registry system
 - **Enhanced User Experience**: Improved navigation and workflow efficiency
 - **Scalable Architecture**: Foundation for future module additions and enhancements
+- **Specialized Functionality**: Domain-specific modules for distinct operational needs
 
 **Recent Enhancements:**
-- **New Admissions Module**: End-to-end student admission management with automated workflows
+- **New Analytics Module**: Comprehensive teacher and academic analytics with comparative analysis
+- **Assignments Module**: Complete assignment lifecycle management with digital grading
+- **Houses Module**: Behavioral management and recognition system with point tracking
+- **Lesson Plans Module**: Structured lesson planning with approval workflows
+- **Pickup Module**: Security-focused student dismissal and authorization system
+- **Portal Module**: Secure parent and student information access portal
 - **Enhanced Data Hooks**: Standardized factory pattern with performance monitoring and validation
 - **Centralized Registry**: Unified management of module data entities and dependencies
 - **Improved Dependencies**: Health monitoring and advanced validation capabilities
 - **Enhanced Dashboards**: Real-time analytics and interactive visualizations
 - **Tabbed Mode Integration**: Flexible navigation with granular configuration controls
+
+The new module ecosystem demonstrates the system's maturity and adaptability, providing specialized solutions for modern educational institution needs while maintaining the core architectural principles of modularity, scalability, and maintainability. Each new module follows established patterns and integrates seamlessly with existing functionality, ensuring system cohesion despite the expanded feature set.
 
 This architecture enables the system to evolve continuously, with new modules added and existing modules enhanced independently. The standardized patterns reduce development complexity while the enhanced dependency management ensures system stability and performance. The recent improvements position the system for future growth and adaptation to changing educational institution needs.

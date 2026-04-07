@@ -3,7 +3,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useTabStore } from '../tabStore';
-import { tabPersistenceService } from '../../services/tabs/TabPersistenceService';
+import { tabPersistenceService } from '@/services/tabs/TabPersistenceService';
 
 describe('Tab Persistence Integration', () => {
   beforeEach(async () => {

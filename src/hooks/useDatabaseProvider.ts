@@ -15,9 +15,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getCurrentUnifiedConfig } from '../config/unifiedConfig';
-import { DataServiceFactory } from '../services/DataServiceFactory';
+import { DataServiceFactory } from '../services/data/DataServiceFactory';
 import { getDatabaseManager } from '../services/database/ProviderSelector';
-import { collectionsDefinition } from '../services/rxdbService';
+// RXDB removed - Phase 4: Using provider-agnostic collections
+import { collectionsDefinition } from '../services/database/collections';
 import { SchemaConverter } from '../services/database/SchemaConverter';
 import { ICollection, IDatabaseProvider } from '../services/database/interfaces';
 import type { AppDataContextType } from '../core/types';

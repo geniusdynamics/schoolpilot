@@ -2,7 +2,7 @@
 // ABOUTME: Provides a clean interface for components to interact with DataModeManager
 
 import { useState, useEffect, useCallback } from 'react';
-import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions } from '../services/dataModeManager';
+import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions } from '../services/data/dataModeManager';
 
 const DEMO_CLEARED_KEY = 'schoolpilot_demo_cleared_for_production';
 
