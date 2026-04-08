@@ -31,7 +31,7 @@ const AnalyticsClassPage: React.FC = () => {
   const { t } = useTranslation('analytics');
   const { classPerformances, loading, selectedPeriod, setSelectedPeriod } = useAnalyticsData();
 
-  const [periodFilter, setPeriodFilter] = useState<string>(selectedPeriod.type);
+  const [periodFilter, setPeriodFilter] = useState<string>(selectedPeriod?.type || 'term');
   const [selectedClass, setSelectedClass] = useState<ClassPerformance | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 

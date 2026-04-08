@@ -1,0 +1,146 @@
+{
+  "title": "Portail",
+  "description": "Accès portail élèves et parents",
+  "common": {
+    "loading": "Chargement...",
+    "noData": "Aucune donnée disponible",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "open": "Ouvrir"
+  },
+  "dashboard": {
+    "welcome": "Bienvenue sur votre portail",
+    "recentAnnouncements": "Annonces Récentes",
+    "attendanceSummary": "Résumé des Présences",
+    "feeOverview": "Aperçu des Frais",
+    "recentResults": "Résultats Récents"
+  },
+  "navigation": {
+    "attendance": "Présences",
+    "results": "Résultats",
+    "fees": "Frais",
+    "announcements": "Annonces",
+    "profile": "Profil"
+  },
+  "attendance": {
+    "title": "Présences",
+    "percentage": "Pourcentage de Présence",
+    "present": "Présent",
+    "absent": "Absent",
+    "late": "En Retard",
+    "excused": "Excusé"
+  },
+  "fees": {
+    "title": "Frais",
+    "balance": "Solde",
+    "totalFees": "Frais Totaux",
+    "totalPaid": "Total Payé",
+    "amount": "Montant",
+    "dueDate": "Date d'Échéance",
+    "status": "Statut"
+  },
+  "results": {
+    "title": "Résultats",
+    "exam": "Examen",
+    "subject": "Matière",
+    "marks": "Notes",
+    "grade": "Note",
+    "position": "Position"
+  },
+  "announcements": {
+    "title": "Annonces",
+    "noAnnouncements": "Aucune annonce disponible",
+    "priority": {
+      "urgent": "Urgent",
+      "high": "Haute",
+      "medium": "Moyenne",
+      "low": "Basse"
+    }
+  },
+  "timetable": {
+    "title": "Emploi du Temps",
+    "print": "Imprimer l'Emploi du Temps",
+    "export": "Exporter l'Emploi du Temps",
+    "view": "Voir l'Emploi du Temps",
+    "create": "Créer un Emploi du Temps",
+    "manage": "Gérer l'Emploi du Temps"
+  },
+  "calendar": {
+    "title": "Calendrier Scolaire",
+    "event": "Événement",
+    "category": "Catégorie",
+    "start": "Début",
+    "end": "Fin",
+    "print": "Imprimer le Calendrier",
+    "export": "Exporter le Calendrier",
+    "categoryHouse": "Maison",
+    "categoryExamination": "Examen",
+    "categoryAssembly": "Assemblée",
+    "categorySports": "Sports",
+    "categoryAcademic": "Académique",
+    "categoryOther": "Autre",
+    "create": "Créer un Événement",
+    "manage": "Gérer le Calendrier"
+  },
+  "bulletin": {
+    "title": "Bulletin Quotidien",
+    "detention": "Retenue",
+    "registerAbsence": "Enregistrer l'Absence",
+    "outOfSchool": "Hors de l'École",
+    "offGames": "Exemption Sport",
+    "expand": "Développer",
+    "collapse": "Réduire",
+    "delete": "Supprimer",
+    "print": "Imprimer le Bulletin",
+    "export": "Exporter le Bulletin",
+    "create": "Créer un Bulletin",
+    "manage": "Gérer",
+    "postedAt": "Publié il y a {{time}} par {{author}}"
+  },
+  "whosOnline": {
+    "title": "Qui est en Ligne",
+    "loginHistory": "Historique de Connexion",
+    "accountOptions": "Options de Compte",
+    "lastSeen": "Vu il y a",
+    "myStatus": "Mon Statut",
+    "online": "En Ligne",
+    "offline": "Hors Ligne",
+    "launchMessenger": "Lancer la Messagerie",
+    "loginHistoryPlaceholder": "L'historique de connexion sera affiché ici",
+    "accountOptionsPlaceholder": "Les options de compte seront affichées ici"
+  },
+  "statistics": {
+    "title": "Statistiques et Rapports de l'École",
+    "yearGroup": "Groupe d'Année",
+    "male": "Garçons",
+    "female": "Filles",
+    "total": "Total",
+    "totalLabel": "Total",
+    "studentManager": "Gestionnaire d'Élèves",
+    "schoolManager": "Gestionnaire de l'École"
+  },
+  "blog": {
+    "title": "Blog de l'École",
+    "companyNews": "Actualités de l'Entreprise",
+    "productNews": "Actualités Produits",
+    "partnerNews": "Actualités Partenaires",
+    "newer": "Plus Récent",
+    "older": "Plus Ancien",
+    "pageOf": "Page {{current}} sur {{total}}",
+    "noNews": "Aucun article disponible"
+  },
+  "quickActions": {
+    "dataProtection": "Protection des Données",
+    "disciplineManagement": "Gestion de la Discipline",
+    "estatesManagement": "Gestion des Biens",
+    "exclusionsManagement": "Gestion des Exclusions",
+    "externalExams": "Examens Externes",
+    "offGamesManagement": "Gestion des Exemptions Sport",
+    "onlineLearning": "Apprentissage en Ligne"
+  },
+  "portal": {
+    "parent": "Portail Parent",
+    "student": "Portail Élève"
+  }
+}

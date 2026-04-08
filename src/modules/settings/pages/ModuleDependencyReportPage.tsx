@@ -12,7 +12,7 @@ import { ModuleDependencyValidator } from '@/core/services/ModuleDependencyValid
 import { DependencyVisualizer } from '@/core/services/DependencyVisualizer';
 
 const ModuleDependencyReportPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('settings');
   const [report, setReport] = useState<any>(null);
   const [graphData, setGraphData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);

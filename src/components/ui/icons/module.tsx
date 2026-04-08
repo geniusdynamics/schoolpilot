@@ -247,3 +247,40 @@ export const FunnelIcon: React.FC<IconProps> = (props) => (
 );
 
 export const FilterIcon: React.FC<IconProps> = FunnelIcon;
+
+export const BuildingOfficeIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h6.75M9 11.25h6.75M9 15.75h6.75M9 20.25h6.75" />
+  </svg>
+);
+
+export const UserMinusIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+  </svg>
+);
+
+export const DocumentCheckIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 019 9v.375M10.125 2.25A3.375 3.375 0 0113.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 013.375 3.375M9 15l2.25 2.25L15 12" />
+  </svg>
+);
+
+export const TrophyIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-6.75c-.621 0-1.125.504-1.125 1.125v3.375m9 0h1.5m-1.5 0h1.5m-12.75 0h1.5m-1.5 0h1.5m1.5-13.5V3.75c0-.621-.504-1.125-1.125-1.125h-6.75c-.621 0-1.125.504-1.125 1.125v1.5m1.5 0h1.5m-1.5 0h1.5M6.75 6.75h10.5M6.75 6.75c0 .414.336.75.75.75h.75a.75.75 0 00.75-.75M6.75 6.75c0 .414.336.75.75.75h.75a.75.75 0 00.75-.75m8.25 0c0 .414-.336.75-.75.75h-.75a.75.75 0 01-.75-.75m3 0c0 .414-.336.75-.75.75h-.75a.75.75 0 01-.75-.75" />
+  </svg>
+);
+
+export const CalculatorIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 15.75V10.5m0 0V6.75m0 4.5h4.5m-4.5 0h-4.5M5.25 6.75h13.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75V7.5a.75.75 0 01.75-.75z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 9.75h1.5v1.5h-1.5zM6.75 12.75h1.5v1.5h-1.5zM9.75 9.75h1.5v1.5h-1.5zM9.75 12.75h1.5v1.5h-1.5z" />
+  </svg>
+);
+
+export const PaintBrushIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.077-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.048 4.025a3 3 0 01-1.162.175 3 3 0 01-1.162-.175m0 0a15.998 15.998 0 01-3.388-1.62m8.938 1.695a15.998 15.998 0 003.388-1.62m-5.048 4.025a3 3 0 01-1.162.175 3 3 0 01-1.162-.175m0 0c-1.175-.393-2.28-.985-3.272-1.757M18.75 3.75a2.25 2.25 0 012.25 2.25v1.5a2.25 2.25 0 01-2.25 2.25H3.75a2.25 2.25 0 01-2.25-2.25v-1.5a2.25 2.25 0 012.25-2.25h15z" />
+  </svg>
+);

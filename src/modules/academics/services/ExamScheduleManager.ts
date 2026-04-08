@@ -277,3 +277,8 @@ export class ExamScheduleManager {
   }
 }
 
+// Export singleton instance
+export const examScheduleManager = new ExamScheduleManager();
+
+export default examScheduleManager;
+

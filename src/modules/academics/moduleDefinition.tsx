@@ -42,6 +42,7 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.studentSubjectEnrollment', path: '/academics/student-subject-enrollment', icon: UserGroupIcon, page: 'StudentSubjectEnrollmentPage' },
     { name: 'navigation:academics.examSessions', path: '/academics/exam-sessions', icon: CalendarDaysIcon, page: 'ExamSessionsPage' },
     { name: 'navigation:academics.examAnalysis', path: '/academics/exam-analysis', icon: ChartBarIcon, page: 'ExamAnalysisPage' },
+    { name: 'navigation:academics.studentExamAnalysis', path: '/academics/student-exam-analysis', icon: UsersIcon, page: 'StudentExamAnalysisPage' },
     { name: 'navigation:academics.studentExamResultsEntry', path: '/academics/student-exam-results-entry', icon: ClipboardDocumentListIcon, page: 'StudentExamResultsEntryPage' },
     { name: 'navigation:academics.gradingSchemes', path: '/academics/grading-schemes', icon: ListBulletIcon, page: 'GradingSchemesPage' },
     { name: 'navigation:academics.educationSystems', path: '/academics/education-systems', icon: ChartBarIcon, page: 'EducationSystemsPage' },

@@ -100,3 +100,15 @@ export const FolderIcon: React.FC<IconProps> = (props) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75A2.25 2.25 0 014.5 4.5h3.379c.621 0 1.21.288 1.591.788l1.26 1.684a2.25 2.25 0 001.591.788H19.5a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25H4.5A2.25 2.25 0 012.25 17.25v-10.5z" />
   </svg>
 );
+
+export const NewspaperIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M6.75 7.5V3.75A2.25 2.25 0 019 1.5h6a2.25 2.25 0 012.25 2.25V7.5m-15 0h14.25M3.75 7.5v9.75A2.25 2.25 0 006 19.5h3.75" />
+  </svg>
+);
+
+export const FlagIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-1.5M3 12h18M3 12V7.5m0 4.5v4.5m15-9.75v9.75M6 12h12M6 7.5h12M6 16.5h12" />
+  </svg>
+);

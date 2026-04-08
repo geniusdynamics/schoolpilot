@@ -1,7 +1,7 @@
 // src/modules/academics/components/GradeCalculatorWidget.tsx
 
 import React, { useState, useEffect } from 'react';
-import { GradingEngineService } from '@/services/GradingEngineService';
+import { GradingEngineService } from '../services/GradingEngineService';
 import { EducationSystemConfiguration, GradingSystemType, StudentExamResult } from '../data/types';
 import { EDUCATION_SYSTEM_TEMPLATES } from '../data/templates/education-system-templates';
 import Card from '@/components/ui/Card';

@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { ExamSchedule } from '../data/types';
-import { examScheduleManager } from '@/services/ExamScheduleManager';
-import { ExamSchedulingUI } from '@/components/ExamSchedulingUI';
+import { examScheduleManager } from '../services/ExamScheduleManager';
+import ExamSchedulingUI from '@/modules/academics/components/ExamSchedulingUI';
 import SchedulingCalendar from '@/components/SchedulingCalendar';
 import { useAppData } from '@/hooks/useAppData';
 

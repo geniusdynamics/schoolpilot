@@ -29,9 +29,17 @@ docs/AkademicoNotes/
 # CodeLLM
 .codellm/
 
+# OpenCode AI Assistant
+.opencode/
 
 # Kiro AI Assistant
 .kiro/
+
+# Sisyphus AI Assistant
+.sisyphus/
+
+# Specify AI Assistant
+.specify/
 
 # Windows NUL device (appears as file on Windows)
 nul

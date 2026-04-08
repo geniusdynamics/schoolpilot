@@ -47,6 +47,7 @@
     "studentSubjectEnrollment": "Student Subject Enrollment",
     "examSessions": "Exam Sessions",
     "examAnalysis": "Exam Analysis",
+    "studentExamAnalysis": "Student Exam Analysis",
     "studentExamResultsEntry": "Student Exam Results Entry",
     "gradingSchemes": "Grading Schemes",
     "educationSystems": "Education Systems"
@@ -147,6 +148,7 @@
     "studentMasterlist": "Student Masterlist",
     "studentVoteheadStatement": "Student Votehead Statement",
     "teacherAssignments": "Teacher Assignments",
+    "classLists": "Class Lists",
     "overdueBooks": "Overdue Books",
     "inventoryStatus": "Inventory Status"
   },
@@ -208,5 +210,13 @@
     "leaderboard": "Leaderboard",
     "studentPoints": "Student Points",
     "classStandings": "Class Standings"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "description": "Data analytics and insights",
+    "teacherDashboard": "Teacher Dashboard",
+    "subjectAnalytics": "Subject Analytics",
+    "classAnalytics": "Class Analytics",
+    "exportReports": "Export Reports"
   }
 }

@@ -27,7 +27,9 @@ import {
   AlertBanner, 
   StatCard, 
   ChartCard, 
-  ProgressRing 
+  ProgressRing,
+  WelcomeCard,
+  CalendarWidget 
 } from '../components';
 import {
   AcademicCapIcon,
@@ -485,6 +487,144 @@ const DashboardPage: React.FC = () => {
             colorScheme="violet"
             to="/finance/student-payments"
           />
+        </section>
+
+        {/* ============================================================================
+            WELCOME & CALENDAR SECTION
+        ============================================================================ */}
+        <section className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <WelcomeCard
+            userName={user?.fullName || user?.firstName || 'User'}
+            subtitle="Manage your school operations efficiently from one central dashboard."
+            avatarUrl={user?.avatarUrl}
+            className="lg:col-span-2"
+          />
+          <CalendarWidget
+            events={upcomingEvents.map(event => ({
+              date: event.start || new Date(),
+              title: event.title,
+              type: 'event'
+            }))}
+            onAddEvent={() => navigate('/academics/timetable-entries')}
+          />
+        </section>
+
+        {/* ============================================================================
+            FORM PERFORMANCE SUMMARIES
+        ============================================================================ */}
+        <section className="mt-8">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
+              <ChartBarIcon className="h-5 w-5 text-emerald-600" />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900">{t('formPerformance', 'Form Performance Summaries')}</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Form 1 */}
+            <Card className="border-gray-200 hover:shadow-md transition-shadow">
+              <div className="p-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 text-gray-600 mb-3 mx-auto">
+                  <AcademicCapIcon className="h-6 w-6" />
+                </div>
+                <h3 className="text-center text-lg font-bold text-gray-900">Form 1</h3>
+                <p className="text-center text-xs text-gray-500 mb-3">OPENER - (2024 Term 1)</p>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mean Points</span>
+                    <span className="font-semibold text-emerald-600">4.8904</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mean Marks</span>
+                    <span className="font-semibold text-emerald-600">46.3%</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <span className="text-gray-600">Mean Grade</span>
+                    <span className="px-2 py-0.5 bg-amber-50 text-amber-600 font-bold rounded">C-</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Form 2 */}
+            <Card className="border-gray-200 hover:shadow-md transition-shadow">
+              <div className="p-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 text-gray-600 mb-3 mx-auto">
+                  <AcademicCapIcon className="h-6 w-6" />
+                </div>
+                <h3 className="text-center text-lg font-bold text-gray-900">Form 2</h3>
+                <p className="text-center text-xs text-gray-500 mb-3">OPENER - (2024 Term 1)</p>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mean Points</span>
+                    <span className="font-semibold text-emerald-600">5.2156</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mean Marks</span>
+                    <span className="font-semibold text-emerald-600">52.8%</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <span className="text-gray-600">Mean Grade</span>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold rounded">C+</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Form 3 */}
+            <Card className="border-gray-200 hover:shadow-md transition-shadow">
+              <div className="p-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 text-gray-600 mb-3 mx-auto">
+                  <AcademicCapIcon className="h-6 w-6" />
+                </div>
+                <h3 className="text-center text-lg font-bold text-gray-900">Form 3</h3>
+                <p className="text-center text-xs text-gray-500 mb-3">MID TERM - (2024 Term 1)</p>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mean Points</span>
+                    <span className="font-semibold text-emerald-600">6.1458</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mean Marks</span>
+                    <span className="font-semibold text-emerald-600">61.5%</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <span className="text-gray-600">Mean Grade</span>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 font-bold rounded">B</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Form 4 */}
+            <Card className="border-gray-200 hover:shadow-md transition-shadow">
+              <div className="p-4">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gray-100 text-gray-600 mb-3 mx-auto">
+                  <AcademicCapIcon className="h-6 w-6" />
+                </div>
+                <h3 className="text-center text-lg font-bold text-gray-900">Form 4</h3>
+                <p className="text-center text-xs text-gray-500 mb-3">MID TERM - (2024 Term 1)</p>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mean Points</span>
+                    <span className="font-semibold text-emerald-600">7.2341</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Mean Marks</span>
+                    <span className="font-semibold text-emerald-600">72.3%</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <span className="text-gray-600">Mean Grade</span>
+                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 font-bold rounded">B+</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
         </section>
 
         {/* ============================================================================

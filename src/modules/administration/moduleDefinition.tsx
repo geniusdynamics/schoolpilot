@@ -63,6 +63,7 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.studentAttendance', path: '/administration/student-attendance', icon: CalendarDaysIcon, page: 'StudentAttendancePage' },
     { name: 'navigation:administration.commTemplates', path: '/administration/communication-templates', icon: EnvelopeIcon, page: 'CommunicationTemplatesPage' },
     { name: 'navigation:administration.messageCampaigns', path: '/administration/message-campaigns', icon: MegaphoneIcon, page: 'MessageCampaignsPage' },
+    { name: 'navigation:administration.newsletters', path: '/administration/newsletters', icon: DocumentTextIcon, page: 'NewslettersPage' },
     { name: 'navigation:administration.academicStructures', path: '/administration/academic-structures', icon: PuzzlePieceIcon, page: 'AcademicStructurePage' },
     { name: 'navigation:administration.academicYears', path: '/administration/academic-years', icon: CalendarDaysIcon, page: 'AcademicYearsPage' },
     { name: 'navigation:administration.academicPeriodDefinitions', path: '/administration/academic-period-definitions', icon: DocumentDuplicateIcon, page: 'AcademicPeriodDefinitionsPage' },

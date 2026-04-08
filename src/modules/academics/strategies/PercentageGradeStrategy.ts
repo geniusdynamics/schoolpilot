@@ -1,7 +1,7 @@
 // src/modules/academics/strategies/PercentageGradeStrategy.ts
 
 import { StudentExamResult } from '../data/types';
-import { GradingStrategy } from '@/services/GradingEngineService';
+import { GradingStrategy } from '../services/GradingEngineService';
 
 export class PercentageGradeStrategy implements GradingStrategy {
   calculate(result: StudentExamResult): StudentExamResult {

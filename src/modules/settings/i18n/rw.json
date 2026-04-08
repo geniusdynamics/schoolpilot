@@ -34,5 +34,25 @@
   "tabbedWorkspaceTest": {
     "pageTitle": "Igeragezwa ry'umwanya de akazi",
     "pageDescription": "Gerageza kandi ugenzure imikorere y'umwanya de akazi."
+  },
+  "dependencyReport": {
+    "title": "Raporo y'Ibifitanye isano",
+    "refresh": "Kugarura raporo",
+    "loading": "Gukora raporo y'ibifitanye isano...",
+    "totalModules": "Module zose",
+    "modulesWithIssues": "Module zifite ibibazo",
+    "totalIssues": "Ibibazo byose",
+    "issuesFound": "Ibibazo byabonetse",
+    "issueTypes": {
+      "missing": "Ibifitanye isano bidahari",
+      "version": "Ubumwe bwa verisiyo budahura",
+      "circular": "Ibifitanye isano bihinduranya"
+    },
+    "dependencyGraph": "Ishusho y'ibifitanye isano",
+    "enabled": "Byafunguwe",
+    "disabled": "Byafunzwe",
+    "dependencies": "Ibifitanye isano",
+    "noDependencies": "Nta bifitanye isano",
+    "rawData": "Amakuru y' raporo"
   }
 }

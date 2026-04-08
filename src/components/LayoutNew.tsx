@@ -230,11 +230,13 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   const handleNavItemClick = useCallback(async (item: { path: string; name?: string }) => {
     if (item.path) {
       const nextModuleId = routeModuleId(item.path);
-      if (nextModuleId && nextModuleId !== selectedModuleKey) {
+      // Don't close other tabs when navigating to dashboard - treat it like any other page
+      if (nextModuleId && nextModuleId !== selectedModuleKey && nextModuleId !== 'dashboard') {
         await transitionToModule(nextModuleId);
         return;
       }
-      openTab(item.path, { pinned: false });
+      // Use openTab for dashboard navigation to preserve other tabs
+      openTab(item.path, { pinned: item.path === '/dashboard' });
     }
   }, [openTab, selectedModuleKey, transitionToModule]);
   

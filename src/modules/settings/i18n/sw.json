@@ -34,5 +34,25 @@
   "tabbedWorkspaceTest": {
     "pageTitle": "Jaribio la Nafasi ya Kazi ya Vichupo",
     "pageDescription": "Jaribu na uhakikishe utendakazi wa nafasi ya kazi ya vichupo."
+  },
+  "dependencyReport": {
+    "title": "Ripoti ya Utegemezi wa Moduli",
+    "refresh": "Onyesha upya Ripoti",
+    "loading": "Inatengeneza ripoti ya utegemezi...",
+    "totalModules": "Jumla ya Moduli",
+    "modulesWithIssues": "Moduli zenye Matatizo",
+    "totalIssues": "Jumla ya Matatizo",
+    "issuesFound": "Matatizo Yaliyopatikana",
+    "issueTypes": {
+      "missing": "Utegemezi Uliondolewa",
+      "version": "Tofauti ya Toleo",
+      "circular": "Utegemezi wa Mzunguko"
+    },
+    "dependencyGraph": "Mchoro wa Utegemezi",
+    "enabled": "Imewashwa",
+    "disabled": "Imezimwa",
+    "dependencies": "Utegemezi",
+    "noDependencies": "Hakuna utegemezi",
+    "rawData": "Data Ghafi ya Ripoti"
   }
 }

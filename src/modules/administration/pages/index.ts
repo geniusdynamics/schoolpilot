@@ -13,7 +13,6 @@ export { default as DisciplinaryCasesPage } from './DisciplinaryCasesPage';
 export { default as CertificatesManagementPage } from './CertificatesManagementPage';
 export { default as VisitorsManagementPage } from './VisitorsManagementPage';
 export { default as StaffListPage } from './StaffListPage';
-export { default as AddStaffPage } from './AddStaffPage';
 export { default as StaffDetailPage } from './StaffDetailPage';
 export { default as PartnersPage } from './PartnersPage';
 export { default as DepartmentsPage } from './DepartmentsPage';

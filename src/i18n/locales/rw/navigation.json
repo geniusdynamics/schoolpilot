@@ -30,6 +30,7 @@
     "studentSubjectEnrollment": "Kwandikisha Abanyeshuri ku Nyigisho",
     "examSessions": "Ibikorwa by'Ibizamini",
     "examAnalysis": "Isesengura ry'Ibizamini",
+    "studentExamAnalysis": "Isesengura ry'Ibizamini by'Umwigana",
     "studentExamResultsEntry": "Kwandika Ibisubizo by'Ibizamini",
     "gradingSchemes": "Uburyo bwo Gupima",
     "educationSystems": "Sisiteme y'Uburezi"
@@ -109,5 +110,26 @@
     "fees": "Amafaranga",
     "announcements": "Amatangazo",
     "profile": "Umwirondoro"
+  },
+  "reports": {
+    "title": "Raporo",
+    "description": "Gusesengura no gutanga raporo",
+    "dashboard": "Ikibaho cy'Raporo",
+    "accountLedger": "Ibikubiye mu Konti",
+    "examResultsHorizontal": "Ibisubizo by'Ibizamini",
+    "feeCollectionSummary": "Incamake y'Amafaranga",
+    "studentFinancialSummary": "Incamake y'Imari y'Umwigana",
+    "studentMasterlist": "Urutonde rw'Abanyeshuri",
+    "studentVoteheadStatement": "Raporo y'Amafaranga",
+    "teacherAssignments": "Gushyira Abarimu",
+    "classLists": "Urutonde rw'Ishuri"
+  },
+  "analytics": {
+    "title": "Isesengura",
+    "description": "Gusesengura amakuru",
+    "teacherDashboard": "Ikibaho cy'Umuarimu",
+    "subjectAnalytics": "Isesengura ry'Inyigisho",
+    "classAnalytics": "Isesengura ry'Ishuri",
+    "exportReports": "Kohereza Raporo"
   }
 }

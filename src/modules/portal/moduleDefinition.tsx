@@ -59,6 +59,14 @@ export const portalModule: ModuleDefinition = {
       page: 'PortalProfilePage',
     },
   ],
+  routes: [
+    { path: '/portal/dashboard', page: 'PortalDashboardPage' },
+    { path: '/portal/attendance', page: 'PortalAttendancePage' },
+    { path: '/portal/results', page: 'PortalResultsPage' },
+    { path: '/portal/fees', page: 'PortalFeesPage' },
+    { path: '/portal/announcements', page: 'PortalAnnouncementsPage' },
+    { path: '/portal/profile', page: 'PortalProfilePage' },
+  ],
   features: [
     'student-dashboard',
     'parent-dashboard',

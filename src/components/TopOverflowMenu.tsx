@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
 import { useNavigate } from 'react-router-dom';
+import { useTabs } from '@/hooks/tabs';
 import {
   ComputerDesktopIcon,
   BuildingOfficeIcon,
@@ -73,7 +74,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
       id: 'desktop',
       label: t('common:desktop') || 'Desktop',
       icon: ComputerDesktopIcon,
-      action: () => navigate('/dashboard')
+      action: () => openTab('/dashboard', { pinned: true })
     },
     {
       id: 'workspaces',

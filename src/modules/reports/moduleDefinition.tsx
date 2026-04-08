@@ -41,6 +41,7 @@ const reportsModule: ModuleDefinition = {
     { name: 'navigation:reports.studentMasterlist', path: '/reports/student-masterlist', icon: UsersIcon as React.FC<any>, page: 'StudentMasterlistPage' },
     { name: 'navigation:reports.studentVoteheadStatement', path: '/reports/student-votehead-statement', icon: DocumentReportIcon as React.FC<any>, page: 'StudentVoteheadStatementPage' },
     { name: 'navigation:reports.teacherAssignments', path: '/reports/teacher-assignments', icon: UserGroupIcon as React.FC<any>, page: 'TeacherAssignmentsPage' },
+    { name: 'navigation:reports.classLists', path: '/reports/class-lists', icon: UsersIcon as React.FC<any>, page: 'ClassListsPage' },
     // Analytics sub-feature (merged from analytics module)
     { name: 'navigation:analytics.teacherDashboard', path: '/reports/analytics/dashboard', icon: AcademicCapIcon, page: 'analytics/AnalyticsTeacherDashboardPage', feature: 'teacher-analytics' },
     { name: 'navigation:analytics.subjectAnalytics', path: '/reports/analytics/subjects', icon: ChartBarIcon, page: 'analytics/AnalyticsSubjectPage', feature: 'subject-analytics' },

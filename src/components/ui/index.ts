@@ -81,3 +81,13 @@ export { Label } from './Label';
 
 // Extended Select components
 export { SelectRoot, SelectTrigger, SelectValue, SelectContent, SelectItem } from './SelectExtensions';
+
+// Navigation components
+export { default as TabNavigation } from './TabNavigation';
+export type { TabItem, TabNavigationProps } from './TabNavigation';
+export { default as PageHeaderWithTabs } from './PageHeaderWithTabs';
+export type { Tab as PageHeaderTab } from './PageHeaderWithTabs';
+
+// Filter components
+export { default as FilterBar } from './FilterBar';
+export type { FilterField, FilterOption } from './FilterBar';

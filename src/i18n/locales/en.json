@@ -265,6 +265,115 @@
       "error": "Sync error",
       "lastSync": "Last synced: {{time}}",
       "conflict": "Sync conflict detected"
+    },
+    "portal": {
+      "title": "Portal",
+      "description": "Student and parent portal access",
+      "parent": "Parent Portal",
+      "student": "Student Portal",
+      "common": {
+        "loading": "Loading...",
+        "noData": "No data available",
+        "cancel": "Cancel",
+        "save": "Save",
+        "close": "Close",
+        "open": "Open"
+      },
+      "dashboard": {
+        "welcome": "Welcome to your portal",
+        "recentAnnouncements": "Recent Announcements",
+        "attendanceSummary": "Attendance Summary",
+        "feeOverview": "Fee Overview",
+        "recentResults": "Recent Results"
+      },
+      "navigation": {
+        "attendance": "Attendance",
+        "results": "Results",
+        "fees": "Fees",
+        "announcements": "Announcements",
+        "profile": "Profile"
+      },
+      "timetable": {
+        "title": "Timetable",
+        "print": "Print Timetable",
+        "export": "Export Timetable",
+        "view": "View Timetable",
+        "create": "Create Timetable",
+        "manage": "Manage Timetable"
+      },
+      "calendar": {
+        "title": "School Calendar",
+        "event": "Event",
+        "category": "Category",
+        "start": "Start",
+        "end": "End",
+        "print": "Print Calendar",
+        "export": "Export Calendar",
+        "categoryHouse": "House",
+        "categoryExamination": "Examination",
+        "categoryAssembly": "Assembly",
+        "categorySports": "Sports",
+        "categoryAcademic": "Academic",
+        "categoryOther": "Other",
+        "create": "Create Event",
+        "manage": "Manage Calendar"
+      },
+      "bulletin": {
+        "title": "Daily Bulletin",
+        "detention": "Detention",
+        "registerAbsence": "Register Absence",
+        "outOfSchool": "Out Of School",
+        "offGames": "Off Games",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "delete": "Delete",
+        "print": "Print Bulletin",
+        "export": "Export Bulletin",
+        "create": "Create Bulletin",
+        "manage": "Manage",
+        "postedAt": "Posted {{time}} by {{author}}"
+      },
+      "whosOnline": {
+        "title": "Who's Online",
+        "loginHistory": "Login History",
+        "accountOptions": "Account Options",
+        "lastSeen": "Last seen",
+        "myStatus": "My Status",
+        "online": "Online",
+        "offline": "Offline",
+        "launchMessenger": "Launch Messenger",
+        "loginHistoryPlaceholder": "Login history will be displayed here",
+        "accountOptionsPlaceholder": "Account options will be displayed here"
+      },
+      "statistics": {
+        "title": "School Statistics & Reports",
+        "yearGroup": "Year Group",
+        "male": "Male",
+        "female": "Female",
+        "total": "Total",
+        "totalLabel": "Total",
+        "studentManager": "Student Manager",
+        "schoolManager": "School Manager"
+      },
+      "blog": {
+        "title": "School Blog",
+        "companyNews": "Company News",
+        "productNews": "Product News",
+        "partnerNews": "Partner News",
+        "newer": "Newer",
+        "older": "Older",
+        "pageOf": "Page {{current}} of {{total}}",
+        "noNews": "No news articles available"
+      },
+      "quickActions": {
+        "dataProtection": "Data Protection",
+        "disciplineManagement": "Discipline Management",
+        "estatesManagement": "Estates Management",
+        "exclusionsManagement": "Exclusions Management",
+        "externalExams": "External Exams",
+        "offGamesManagement": "Off Games Management",
+        "onlineLearning": "Online Learning"
+      }
     }
   }
 }

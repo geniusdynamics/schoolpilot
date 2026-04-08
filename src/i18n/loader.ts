@@ -16,6 +16,7 @@ import hrEn from './locales/en/hr.json';
 import inventoryEn from './locales/en/inventory.json';
 import libraryEn from './locales/en/library.json';
 import nutritionEn from './locales/en/nutrition.json'; 
+import portalEn from './locales/en/portal.json';
 
 // French resources
 import commonFr from './locales/fr/common.json';
@@ -30,6 +31,7 @@ import hrFr from './locales/fr/hr.json';
 import inventoryFr from './locales/fr/inventory.json';
 import libraryFr from './locales/fr/library.json';
 import nutritionFr from './locales/fr/nutrition.json'; 
+import portalFr from './locales/fr/portal.json';
 
 export const loadTranslations = (i18nInstance: typeof i18next) => {
   // English
@@ -45,6 +47,7 @@ export const loadTranslations = (i18nInstance: typeof i18next) => {
   i18nInstance.addResourceBundle('en', 'inventory', inventoryEn, true, true);
   i18nInstance.addResourceBundle('en', 'library', libraryEn, true, true);
   i18nInstance.addResourceBundle('en', 'nutrition', nutritionEn, true, true); 
+  i18nInstance.addResourceBundle('en', 'portal', portalEn, true, true);
 
   // French
   i18nInstance.addResourceBundle('fr', 'common', commonFr, true, true);
@@ -59,6 +62,7 @@ export const loadTranslations = (i18nInstance: typeof i18next) => {
   i18nInstance.addResourceBundle('fr', 'inventory', inventoryFr, true, true);
   i18nInstance.addResourceBundle('fr', 'library', libraryFr, true, true);
   i18nInstance.addResourceBundle('fr', 'nutrition', nutritionFr, true, true); 
+  i18nInstance.addResourceBundle('fr', 'portal', portalFr, true, true);
 
   console.log("i18n: English resources loaded for namespaces:", Object.keys(i18nInstance.services.resourceStore.data.en || {}));
   console.log("i18n: French resources loaded for namespaces:", Object.keys(i18nInstance.services.resourceStore.data.fr || {}));

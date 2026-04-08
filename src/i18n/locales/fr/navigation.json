@@ -47,6 +47,7 @@
     "studentSubjectEnrollment": "Inscription aux Matières",
     "examSessions": "Sessions d'Examen",
     "examAnalysis": "Analyse des Examens",
+    "studentExamAnalysis": "Analyse des Examens par Élève",
     "studentExamResultsEntry": "Saisie des Résultats",
     "gradingSchemes": "Barèmes de Notation",
     "educationSystems": "Systèmes Éducatifs"
@@ -147,6 +148,7 @@
     "studentMasterlist": "Liste Principale des Étudiants",
     "studentVoteheadStatement": "Relevé de Compte Étudiant par Poste Budgétaire",
     "teacherAssignments": "Affectation des Enseignants",
+    "classLists": "Listes de Classes",
     "overdueBooks": "Livres en Retard",
     "inventoryStatus": "État de l'Inventaire"
   },
@@ -208,5 +210,13 @@
     "leaderboard": "Classement",
     "studentPoints": "Points des Étudiants",
     "classStandings": "Classement des Classes"
+  },
+  "analytics": {
+    "title": "Analytique",
+    "description": "Analyse de données et informations",
+    "teacherDashboard": "Tableau de Bord Enseignant",
+    "subjectAnalytics": "Analytique des Matières",
+    "classAnalytics": "Analytique des Classes",
+    "exportReports": "Exporter les Rapports"
   }
 }

@@ -30,6 +30,7 @@
     "studentSubjectEnrollment": "Usajili wa Wanafunzi kwa Masomo",
     "examSessions": "Vipindi vya Mitihani",
     "examAnalysis": "Uchambuzi wa Mitihani",
+    "studentExamAnalysis": "Uchambuzi wa Mitihani ya Mwanafunzi",
     "studentExamResultsEntry": "Kuingiza Matokeo ya Mitihani",
     "gradingSchemes": "Mifumo ya Utoaji Alama",
     "educationSystems": "Mifumo ya Elimu"
@@ -109,5 +110,26 @@
     "fees": "Ada",
     "announcements": "Matangazo",
     "profile": "Wasifu"
+  },
+  "reports": {
+    "title": "Ripoti",
+    "description": "Tathmini na ripoti",
+    "dashboard": "Dashibodi ya Ripoti",
+    "accountLedger": "Daftari la Akaunti",
+    "examResultsHorizontal": "Matokeo ya Mitihani",
+    "feeCollectionSummary": "Muhtasari wa Makusanyo ya Ada",
+    "studentFinancialSummary": "Muhtasari wa Kifedha cha Mwanafunzi",
+    "studentMasterlist": "Orodha Kuu ya Wanafunzi",
+    "studentVoteheadStatement": "Taarifa ya Fedha ya Mwanafunzi",
+    "teacherAssignments": "Majukumu ya Walimu",
+    "classLists": "Orodha za Madarasa"
+  },
+  "analytics": {
+    "title": "Tathmini",
+    "description": "Uchanganuzi wa data na maarifa",
+    "teacherDashboard": "Dashibodi ya Mwalimu",
+    "subjectAnalytics": "Tathmini za Masomo",
+    "classAnalytics": "Tathmini za Madarasa",
+    "exportReports": "Hamisha Ripoti"
   }
 }

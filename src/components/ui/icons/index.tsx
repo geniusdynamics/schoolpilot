@@ -30,6 +30,8 @@ export {
   BuildingLibraryIcon,
   BriefcaseIcon,
   FolderIcon,
+  NewspaperIcon,
+  FlagIcon,
 } from './navigation';
 
 // Action icons
@@ -87,6 +89,7 @@ export {
   TicketIcon,
   CollectionIcon,
   BuildingOffice2Icon,
+  BuildingOfficeIcon,
   IdentificationIcon,
   ListBulletIcon,
   DatabaseIcon,
@@ -124,6 +127,11 @@ export {
   InboxIcon,
   FunnelIcon,
   FilterIcon,
+  UserMinusIcon,
+  DocumentCheckIcon,
+  TrophyIcon,
+  CalculatorIcon,
+  PaintBrushIcon,
 } from './module';
 
 // Miscellaneous icons
@@ -146,6 +154,8 @@ export {
   SchoolIcon,
   DocumentArrowUpIcon,
   LogOutIcon,
+  MoreHorizontalIcon,
+  ChatBubbleLeftRightIcon,
 } from './misc';
 
 // Re-export IconProps as default

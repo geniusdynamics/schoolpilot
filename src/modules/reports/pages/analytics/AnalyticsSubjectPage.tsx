@@ -22,7 +22,7 @@ const AnalyticsSubjectPage: React.FC = () => {
   const { t } = useTranslation('analytics');
   const { subjectPassRates, loading, selectedPeriod, setSelectedPeriod } = useAnalyticsData();
 
-  const [periodFilter, setPeriodFilter] = useState<string>(selectedPeriod.type);
+  const [periodFilter, setPeriodFilter] = useState<string>(selectedPeriod?.type || 'term');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
   // Aggregate stats

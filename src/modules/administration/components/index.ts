@@ -1,5 +1,9 @@
-// ABOUTME: Barrel exports for administration components
-// ABOUTME: Components are already exported from individual files
+// ABOUTME: Administration module components index
+// ABOUTME: Centralized exports for all administration-related components
 
-// Export all components from the components directory
-// Components are imported directly from their source files as needed
+export { default as NewsletterCard } from './NewsletterCard';
+export type { Newsletter } from './NewsletterCard';
+
+export { default as ApplicationManagement } from './ApplicationManagement';
+export { default as PreNAsMarksManagement } from './PreNAsMarksManagement';
+export { default as QuickEditConfigModal } from './QuickEditConfigModal';
