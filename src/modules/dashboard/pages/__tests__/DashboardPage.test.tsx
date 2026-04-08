@@ -51,9 +51,9 @@ Object.defineProperty(globalThis, 'ResizeObserver', {
 
 const createAppData = (overrides: Record<string, any> = {}) => ({
   students: [
-    { id: 's1', createdAt: '2026-01-05T00:00:00.000Z' },
-    { id: 's2', createdAt: '2026-02-05T00:00:00.000Z' },
-    { id: 's3', createdAt: '2026-03-05T00:00:00.000Z' }
+    { id: 's1', createdAt: '2026-01-05T00:00:00.000Z', gender: 'male' },
+    { id: 's2', createdAt: '2026-02-05T00:00:00.000Z', gender: 'female' },
+    { id: 's3', createdAt: '2026-03-05T00:00:00.000Z', gender: 'male' }
   ],
   staff: [{ id: 't1' }, { id: 't2' }],
   classes: [{ id: 'c1' }],
@@ -123,59 +123,80 @@ describe('DashboardPage', () => {
   it('renders key metrics, sections, and charts for authorized users', async () => {
     render(<DashboardPage />);
 
+    // Key statistics
     expect(await screen.findByText('Total Students')).toBeInTheDocument();
     expect(screen.getByText('Faculty Count')).toBeInTheDocument();
     expect(screen.getByText('Attendance Rate')).toBeInTheDocument();
-    expect(screen.getByText('Navigation Hub')).toBeInTheDocument();
+    expect(screen.getByText('Fee Collection')).toBeInTheDocument();
+
+    // Alert banners
+    expect(screen.getByText('New Messages')).toBeInTheDocument();
+    expect(screen.getByText('Pending Tasks')).toBeInTheDocument();
+    expect(screen.getByText('Overdue Tasks')).toBeInTheDocument();
+    expect(screen.getByText('Approvals Pending')).toBeInTheDocument();
+
+    // Charts
+    expect(screen.getByText('Students Management')).toBeInTheDocument();
     expect(screen.getByText('Enrollment Trends')).toBeInTheDocument();
-    expect(screen.getByText('Performance Analytics')).toBeInTheDocument();
+    expect(screen.getByText('Reported Students')).toBeInTheDocument();
     expect(screen.getByText('Financial Summary')).toBeInTheDocument();
+
+    // Quick navigation
+    expect(screen.getByText('Quick Navigation')).toBeInTheDocument();
   });
 
-  it('renders teacher-specific quick actions for teacher role', async () => {
-    mockUseAuth.mockReturnValue({
-      user: { id: 'u2', fullName: 'Terry Teacher', role: 'teacher' },
-      hasPermission: mockHasPermission
-    });
-
-    render(<DashboardPage />);
-
-    expect(await screen.findByText('Record Attendance')).toBeInTheDocument();
-    expect(screen.getByText('Create Assignment')).toBeInTheDocument();
-    expect(screen.getByText('Open Grade Book')).toBeInTheDocument();
-  });
-
-  it('shows high-severity notification states when offline and low attendance', async () => {
+  it('shows offline status when connection is lost', async () => {
     mockUseAppData.mockReturnValue(
       createAppData({
         isOnline: false,
         syncStatus: { state: 'error' },
-        studentAttendance: [
-          { id: 'a1', status: 'present' },
-          { id: 'a2', status: 'absent' },
-          { id: 'a3', status: 'absent' },
-          { id: 'a4', status: 'absent' }
-        ]
       })
     );
 
     render(<DashboardPage />);
 
-    expect(await screen.findByText('Attendance Rate')).toBeInTheDocument();
-    expect(screen.getByText('Notifications')).toBeInTheDocument();
-    expect(screen.getByText('You are offline. Changes will sync when connection returns.')).toBeInTheDocument();
-    expect(screen.getByText('Attendance is below 85%. Review at-risk classes.')).toBeInTheDocument();
+    expect(await screen.findByText('Total Students')).toBeInTheDocument();
+    // Check for offline indicator
+    expect(screen.getByText('Offline')).toBeInTheDocument();
   }, 15000);
 
-  it('triggers navigation from quick actions and navigation hub cards', async () => {
+  it('triggers navigation from quick actions and alert banners', async () => {
     render(<DashboardPage />);
 
-    const addStudentButton = await screen.findByText('Add Student');
+    // Click on an alert banner
+    const newMessagesBanner = await screen.findByText('New Messages');
+    fireEvent.click(newMessagesBanner);
+
+    // Click on Add Student button
+    const addStudentButton = screen.getByText('Add Student');
     fireEvent.click(addStudentButton);
 
-    const analyticsHubButton = screen.getByText('Analytics');
-    fireEvent.click(analyticsHubButton);
+    expect(mockNavigate).toHaveBeenCalledWith('/administration/students/add');
+  }, 15000);
+
+  it('renders navigation hub cards', async () => {
+    render(<DashboardPage />);
+
+    expect(await screen.findByText('Quick Navigation')).toBeInTheDocument();
+    
+    // Check for navigation items
+    expect(screen.getByText('Student Management')).toBeInTheDocument();
+    expect(screen.getByText('Attendance Tracking')).toBeInTheDocument();
+    expect(screen.getByText('Grade Books')).toBeInTheDocument();
+    expect(screen.getByText('Scheduling')).toBeInTheDocument();
+    expect(screen.getByText('Finance')).toBeInTheDocument();
+    expect(screen.getByText('Analytics')).toBeInTheDocument();
+  });
+
+  it('navigates when clicking on navigation hub cards', async () => {
+    render(<DashboardPage />);
+
+    expect(await screen.findByText('Quick Navigation')).toBeInTheDocument();
+
+    // Click on Analytics card
+    const analyticsCard = screen.getByText('Analytics');
+    fireEvent.click(analyticsCard);
 
     expect(mockNavigate).toHaveBeenCalledWith('/reports');
-  }, 15000);
+  });
 });

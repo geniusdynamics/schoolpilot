@@ -62,6 +62,7 @@ export {
   LogoutIcon,
   ArrowLeftOnRectangleIcon,
   ArrowPathIcon,
+  MinusIcon,
 } from './actions';
 
 // Status icons
