@@ -66,11 +66,14 @@ const APP_DATA_ARRAY_KEYS = [
   'payslips',
   'bookCategories',
   'books',
-  'loans',
+  'bookLoans',
+  'libraryMembers',
   'fines',
   'parentsGuardians',
   'workflows',
   'mealPlans',
+  'mealPlanItems',
+  'nutritionWallets',
   'menus',
   'merchants',
   'auditLogs',
@@ -86,7 +89,9 @@ const APP_DATA_ARRAY_KEYS = [
   'studentClearances',
   'studentClearanceRequests',
   'disciplinaryCases',
-  'disciplinaryRecords'
+  'disciplinaryRecords',
+  'admissionApplications',
+  'admissionInterviews'
 ] as const;
 
 type AppDataArrayKey = typeof APP_DATA_ARRAY_KEYS[number];
@@ -156,11 +161,14 @@ const COLLECTION_KEY_ALIASES: Record<string, AppDataArrayKey | 'schoolDetails'> 
   payslips: 'payslips',
   book_categories: 'bookCategories',
   books: 'books',
-  loans: 'loans',
+  book_loans: 'bookLoans',
+  library_members: 'libraryMembers',
   fines: 'fines',
   parents_guardians: 'parentsGuardians',
   workflows: 'workflows',
   meal_plans: 'mealPlans',
+  meal_plan_items: 'mealPlanItems',
+  nutrition_wallets: 'nutritionWallets',
   menus: 'menus',
   merchants: 'merchants',
   audit_logs: 'auditLogs',
@@ -176,7 +184,9 @@ const COLLECTION_KEY_ALIASES: Record<string, AppDataArrayKey | 'schoolDetails'> 
   student_clearances: 'studentClearances',
   student_clearance_requests: 'studentClearanceRequests',
   disciplinary_cases: 'disciplinaryCases',
-  disciplinary_records: 'disciplinaryRecords'
+  disciplinary_records: 'disciplinaryRecords',
+  admission_applications: 'admissionApplications',
+  admission_interviews: 'admissionInterviews'
 };
 
 const snakeToCamel = (value: string): string =>
