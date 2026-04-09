@@ -5,6 +5,12 @@
 // Main data hook (comprehensive)
 export { useFinanceData } from './useFinanceData';
 
+// Modular data provider (new architecture)
+export { 
+  FinanceDataProvider,
+  useFinanceDataContext 
+} from './FinanceDataProvider';
+
 // Individual entity hooks
 import { useBankData } from './useBankData';
 import { useChartOfAccountData } from './useChartOfAccountData';
