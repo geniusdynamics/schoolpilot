@@ -219,7 +219,7 @@ const SettingsWorkflowsPage: React.FC = () => {
           created_at: timestamp,
           updated_at: timestamp,
           states: []
-        });
+        } as Workflow);
         toast.showSuccess(t('workflows.createSuccess') || 'Workflow created successfully');
       }
       
@@ -255,26 +255,49 @@ const SettingsWorkflowsPage: React.FC = () => {
         // Update existing state
         await statesCollection.update(editingState.id.toString(), {
           name: stateFormData.name!.trim(),
-          sequence_order: stateFormData.sequence_order!,
-          updated_at: timestamp
+          sequence_order: stateFormData.sequence_order!
         });
         toast.showSuccess(t('workflows.stateUpdateSuccess') || 'Workflow state updated successfully');
       } else {
         // Create new state
         const newStateId = Date.now();
-        await statesCollection.insert({
+        const newState: WorkflowState = {
           id: newStateId,
           workflow_id: currentWorkflowForStates.id,
           name: stateFormData.name!.trim(),
           sequence_order: stateFormData.sequence_order!,
           created_at: timestamp,
           updated_at: timestamp
+        };
+        await statesCollection.insert(newState);
+        
+        // Update the workflow's states array
+        const updatedStates = [...(currentWorkflowForStates.states || []), newState];
+        await workflowsCollection.update(currentWorkflowForStates.id.toString(), {
+          states: updatedStates,
+          updated_at: timestamp
         });
+        
         toast.showSuccess(t('workflows.stateCreateSuccess') || 'Workflow state created successfully');
       }
       
       // Refresh the workflows collection to get updated states
       await refreshCollection('workflows');
+      
+      // Update current workflow view to show new state
+      if (!editingState && currentWorkflowForStates) {
+        setCurrentWorkflowForStates({
+          ...currentWorkflowForStates,
+          states: [...(currentWorkflowForStates.states || []), {
+            id: Date.now(),
+            workflow_id: currentWorkflowForStates.id,
+            name: stateFormData.name!.trim(),
+            sequence_order: stateFormData.sequence_order!,
+            created_at: timestamp,
+            updated_at: timestamp
+          }]
+        });
+      }
       closeStateModal();
     } catch (error) {
       console.error('Error saving workflow state:', error);
@@ -380,16 +403,16 @@ const SettingsWorkflowsPage: React.FC = () => {
 
   // Table columns
   const workflowColumns = [
-    { header: t('tableHeaders.id'), key: 'id' as keyof Workflow },
-    { header: t('tableHeaders.workflowName'), key: 'name' as keyof Workflow },
+    { header: t('tableHeaders.id'), accessor: 'id' as keyof Workflow },
+    { header: t('tableHeaders.workflowName'), accessor: 'name' as keyof Workflow },
     { 
       header: t('tableHeaders.states'), 
-      key: ((item: Workflow) => item.states?.length || 0) as (item: Workflow) => React.ReactNode 
+      accessor: ((item: Workflow) => item.states?.length || 0) as (item: Workflow) => React.ReactNode 
     },
     {
       header: t('tableHeaders.actions'), 
-      key: 'id' as keyof Workflow,
-      render: (value: any, item: Workflow) => (
+      accessor: 'id' as keyof Workflow,
+      render: (item: Workflow) => (
         <div className="space-x-1">
           {canUpdateWorkflows && (
             <Button 
@@ -429,13 +452,13 @@ const SettingsWorkflowsPage: React.FC = () => {
   ];
 
   const stateColumns = [
-    { header: t('tableHeaders.id'), key: 'id' as keyof WorkflowState },
-    { header: t('tableHeaders.stateName'), key: 'name' as keyof WorkflowState },
-    { header: t('tableHeaders.order'), key: 'sequence_order' as keyof WorkflowState },
+    { header: t('tableHeaders.id'), accessor: 'id' as keyof WorkflowState },
+    { header: t('tableHeaders.stateName'), accessor: 'name' as keyof WorkflowState },
+    { header: t('tableHeaders.order'), accessor: 'sequence_order' as keyof WorkflowState },
     {
       header: t('tableHeaders.actions'), 
-      key: 'id' as keyof WorkflowState,
-      render: (value: any, item: WorkflowState) => (
+      accessor: 'id' as keyof WorkflowState,
+      render: (item: WorkflowState) => (
         <div className="space-x-1">
           {canManageWorkflowStates && (
             <>
@@ -537,12 +560,14 @@ const SettingsWorkflowsPage: React.FC = () => {
             <FormField label={t('workflows.nameLabel') || 'Name'} required>
               <Input
                 name="name"
+                label={t('workflows.nameLabel') || 'Workflow Name'}
                 value={workflowFormData.name || ''}
                 onChange={handleWorkflowInputChange}
                 required
                 error={workflowErrors.name}
                 disabled={isSubmitting}
                 placeholder={t('workflows.namePlaceholder') || 'Enter workflow name'}
+                floatingLabel={false}
               />
             </FormField>
           </FormSection>
@@ -579,17 +604,20 @@ const SettingsWorkflowsPage: React.FC = () => {
             <FormField label={t('workflows.stateNameLabel') || 'State Name'} required>
               <Input
                 name="name"
+                label={t('workflows.stateNameLabel') || 'State Name'}
                 value={stateFormData.name || ''}
                 onChange={handleStateInputChange}
                 required
                 error={stateErrors.name}
                 disabled={isSubmitting}
                 placeholder={t('workflows.stateNamePlaceholder') || 'Enter state name'}
+                floatingLabel={false}
               />
             </FormField>
             <FormField label={t('workflows.sequenceOrderLabel') || 'Sequence Order'} required>
               <Input
                 name="sequence_order"
+                label={t('workflows.sequenceOrderLabel') || 'Sequence Order'}
                 type="number"
                 value={stateFormData.sequence_order?.toString() || ''}
                 onChange={handleStateInputChange}
@@ -598,6 +626,7 @@ const SettingsWorkflowsPage: React.FC = () => {
                 disabled={isSubmitting}
                 min={0}
                 max={9999}
+                floatingLabel={false}
               />
             </FormField>
           </FormSection>

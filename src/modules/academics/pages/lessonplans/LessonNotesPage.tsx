@@ -68,7 +68,7 @@ const LessonNotesPage: React.FC = () => {
   });
 
   const filteredNotes = useMemo(() => {
-    return lessonNotes.filter(note => {
+    return (lessonNotes || []).filter(note => {
       if (filters.searchQuery) {
         const search = filters.searchQuery.toLowerCase();
         const matchesSearch =
