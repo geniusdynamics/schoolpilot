@@ -1,4 +1,5 @@
 // ABOUTME: Barrel exports for administration hooks
 // ABOUTME: Module-specific hooks for administration
 
-// Hooks will be added here as they are created
+// Main modular hook (new architecture) - USE THIS for all Administration pages
+export { useAdministration } from './useAdministration';
