@@ -1,17 +1,52 @@
-# Mission: Fix Navigation Translations
+# Mission: Fix Module Loading Failure
 
-## Task List
+## Problem
+After major modularity refactoring, the primary sidebar showed "Loading modules..." and no modules appeared.
 
-### T1: Diagnose Navigation Translation Issue
-- [x] T1.1: Check PrimarySidebar.tsx translation usage
-- [x] T1.2: Verify navigation.json structure and keys
-- [x] T1.3: Check i18n initialization and namespace loading
+## Root Cause Analysis
+**Three issues found:**
 
-### T2: Fix Translation Keys
-- [x] T2.1: Update navigation.json with correct structure
-- [x] T2.2: Fix PrimarySidebar translation implementation
-- [x] T2.3: Verify all module definitions use correct keys
+### Issue 1: Singleton Instance Mismatch (CRITICAL - PRIMARY CAUSE)
+Import path case mismatch caused Vite to create **two separate singleton instances** of `moduleRegistry`:
+- `src/core/moduleLoader.ts` imported from `./ModuleRegistry` (capital M)
+- `src/core/moduleRegistration.ts` imported from `./moduleRegistry` (lowercase m)
+- The actual filename is `moduleRegistry.ts` (lowercase m)
+- Vite treats these as different modules, creating two separate singleton instances
+- Result: `registerAllModules()` registered with one instance, while `getDynamicNavigationItems()` read from a different (empty) instance
 
-### T3: Final Verification
-- [x] T3.1: Run build to ensure no errors
-- [x] T3.2: Verify navigation labels display correctly
+### Issue 2: Double Registration Conflict
+Even with matching instances, there was a double registration issue:
+1. `registerAllModules()` registers modules with `moduleRegistry`
+2. `initializeModules()` tries to load via `moduleLoader` factories, which also call `moduleRegistry.register()` → throws "Module already registered"
+
+### Issue 3: selectedModuleKey Mismatch
+Initial `selectedModuleKey` was set from translation keys (e.g., `navigation:dashboard`) but compared against module IDs (e.g., `dashboard`).
+
+## Fixes Applied
+
+### T1: Fix import case mismatches (CRITICAL)
+- `src/core/moduleLoader.ts`: `./ModuleRegistry` → `./moduleRegistry`
+- `src/core/ModularSystem.ts`: `./ModuleRegistry` → `./moduleRegistry`, `./ModuleLoader` → `./moduleLoader`
+- `src/hooks/useModule.ts`: `@/core/ModuleRegistry` → `@/core/moduleRegistry`
+- `src/hooks/useLazyModule.ts`: `@/core/ModuleLoader` → `@/core/moduleLoader`
+
+### T2: Fix `getDynamicNavigationItems()` to use moduleRegistry as primary source
+- `src/core/moduleLoader.ts`: Prefer `moduleRegistry.getEnabledModules()` over `moduleLoader.getEnabledModules()`
+
+### T3: Fix `initializeModules()` to call `moduleRegistry.initialize()`
+- `src/core/moduleLoader.ts`: Added `moduleRegistry.initialize()` call after loader attempt
+
+### T4: Fix `ModuleLoader.load()` to handle already-registered modules
+- `src/core/moduleLoader.ts`: Added `if (!moduleRegistry.isRegistered(moduleId))` guard
+
+### T5: Fix `selectedModuleKey` mismatch in Layout.tsx
+- `src/components/Layout.tsx`: Used `extractModuleId()` to normalize module keys
+
+## Files Modified
+1. `src/core/moduleLoader.ts` - Import fix + navigation/initialization logic
+2. `src/core/ModularSystem.ts` - Import fixes
+3. `src/hooks/useModule.ts` - Import fix
+4. `src/hooks/useLazyModule.ts` - Import fix
+5. `src/components/Layout.tsx` - Module key normalization
+
+## Status: COMPLETED - Hard refresh required
