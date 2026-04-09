@@ -1,5 +1,5 @@
 {
-  "welcomeBack": "Welcome back, {name}!",
+  "welcomeBack": "Welcome back, {{name}}!",
   "welcomeBackDefault": "Welcome back!",
   "happeningToday": "Here's what's happening in your school today.",
   "dashboardSubtitle": "Monitor academics, attendance, finance, and communication from one decision-ready dashboard.",
@@ -121,6 +121,5 @@
   "activeFeeStructures": "Active Fee Structures",
   "analyzedExams": "Analyzed Exams",
   "studentGenderDistribution": "Student Gender Distribution",
-  "studentStatusOverview": "Student Status Overview",
   "feeCollectionOverview": "Fee Collection Overview (Mock Data)"
 }

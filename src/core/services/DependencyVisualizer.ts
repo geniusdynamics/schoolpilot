@@ -11,7 +11,7 @@ class DependencyVisualizer {
     nodes: Array<{ id: string; name: string; version: string; status: 'enabled' | 'disabled' }>;
     edges: Array<{ from: string; to: string; type: 'required' | 'optional' }>;
   } {
-    const modules = moduleRegistry.getAllModules();
+    const modules = moduleRegistry.getAllMetadata();
     const enabledModules = moduleRegistry.getEnabledModules();
     
     const nodes = modules.map(module => ({
@@ -53,7 +53,7 @@ class DependencyVisualizer {
    * Generate textual dependency report
    */
   static generateTextReport(): string {
-    const modules = moduleRegistry.getAllModules();
+    const modules = moduleRegistry.getAllMetadata();
     const report: string[] = [];
     
     report.push('# Module Dependency Report');

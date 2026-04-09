@@ -95,7 +95,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
     ]);
 
     // Dynamically generate permissions for all modules
-    const dynamicPermissions = moduleRegistry.getAllModules().flatMap(module => [
+    const dynamicPermissions = moduleRegistry.getAllMetadata().flatMap(module => [
       { id: `${module.id}.read`, name: `View ${module.name}`, description: `View ${module.name} information`, module: module.id, action: 'read' as Permission['action'], resource: module.id },
       { id: `${module.id}.create`, name: `Create ${module.name} Records`, description: `Create new ${module.name} records`, module: module.id, action: 'create' as Permission['action'], resource: module.id },
       { id: `${module.id}.update`, name: `Update ${module.name} Records`, description: `Modify ${module.name} records`, module: module.id, action: 'update' as Permission['action'], resource: module.id },
@@ -365,7 +365,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
             required
           >
             <option value="">Select Module</option>
-            {moduleRegistry.getAllModules().map(module => (
+            {moduleRegistry.getAllMetadata().map(module => (
               <option key={module.id} value={module.id}>{module.name}</option>
             ))}
           </Select>

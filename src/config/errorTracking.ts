@@ -27,8 +27,8 @@ export const errorTrackingConfig: Sentry.BrowserOptions = {
   // Disable traces as Bugsink doesn't support them
   tracesSampleRate: 0,
   
-  // Enhanced debugging in development
-  debug: isDevelopment,
+  // Suppress verbose debug logging to prevent console flooding
+  debug: false,
   
   // Release information
   release: import.meta.env.VITE_APP_VERSION || '1.0.0',
@@ -84,6 +84,26 @@ export const errorTrackingConfig: Sentry.BrowserOptions = {
   },
 };
 
+// Custom transport that silently handles network errors
+const createSilentTransport = (options: any) => {
+  const fetchTransport = Sentry.makeFetchTransport(options);
+  return {
+    send: async (envelope: Parameters<typeof fetchTransport.send>[0]) => {
+      try {
+        return await fetchTransport.send(envelope);
+      } catch (error) {
+        // Silently ignore network errors to prevent console flooding
+        // when Bugsink endpoint is unreachable
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          return { statusCode: 0 };
+        }
+        throw error;
+      }
+    },
+    flush: (timeout?: number) => fetchTransport.flush(timeout),
+  };
+};
+
 // Initialize error tracking
 export const initializeErrorTracking = (): void => {
   if (!BUGSINK_DSN) {
@@ -91,16 +111,22 @@ export const initializeErrorTracking = (): void => {
     return;
   }
 
+  // Check if Bugsink endpoint is reachable (development only)
+  if (isDevelopment) {
+    const dsnUrl = new URL(BUGSINK_DSN);
+    fetch(`${dsnUrl.protocol}//${dsnUrl.host}`, { mode: 'no-cors', cache: 'no-store' })
+      .catch(() => {
+        console.warn('⚠️ Bugsink endpoint unreachable - error tracking will fail silently');
+      });
+  }
+
   try {
     Sentry.init({
       ...errorTrackingConfig,
-      // Handle transport errors gracefully
-      transport: Sentry.makeFetchTransport,
+      // Use silent transport to prevent console spam on network errors
+      transport: createSilentTransport,
       beforeSendTransaction(transaction) {
-        // Log transaction attempts for debugging
-        if (isDevelopment) {
-          console.log('📊 Sending transaction to Bugsink:', transaction.transaction);
-        }
+        // Suppress transaction logging
         return transaction;
       },
     });

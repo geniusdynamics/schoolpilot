@@ -45,7 +45,7 @@ const GlobalNotifications: React.FC = () => {
         id: 'backend-unavailable',
         type: 'info',
         message: t('notifications.backendUnavailable'),
-        persistent: true
+        persistent: false
       });
     }
     

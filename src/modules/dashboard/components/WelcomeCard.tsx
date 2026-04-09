@@ -54,7 +54,7 @@ export const WelcomeCard: React.FC<WelcomeCardProps> = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <h2 className="text-xl font-bold text-gray-900">
-            Welcome <span className="text-blue-600">{userName}</span>,
+            Welcome back, <span className="text-blue-600">{userName}</span>!
           </h2>
           <p className="mt-1 text-sm text-gray-600">{subtitle}</p>
         </div>
