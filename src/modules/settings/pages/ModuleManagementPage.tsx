@@ -73,8 +73,12 @@ const ModuleManagementPage: React.FC = () => {
       setLoading(true);
       
       // Get all available modules from registry with safe access
-      const availableModules = moduleRegistry?.getEnabledModules?.() || [];
+      const availableModules = moduleRegistry?.getAllMetadata?.() || [];
       const enabledModuleIds = moduleConfigService?.getEnabledModules?.() || [];
+
+      console.log('[ModuleManagement DEBUG] Available modules:', availableModules);
+      console.log('[ModuleManagement DEBUG] Enabled module IDs:', enabledModuleIds);
+      console.log('[ModuleManagement DEBUG] Registry size:', moduleRegistry?.size || 0);
       
       // Filter out any undefined or invalid modules with comprehensive checks
       const validModules = availableModules.filter((module: ModuleDefinition) => 
