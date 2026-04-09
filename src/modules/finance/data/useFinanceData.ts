@@ -4,30 +4,30 @@
 // ABOUTME: StudentPayments, GeneralPayments, FinancialYears, GeneralLedgerEntries
 
 import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '../../types';
-import { databaseService } from '../../services/database/databaseService';
-import * as allTypes from '../../types';
+import type { AppDataContextType } from '@/types';
+import { databaseService } from '@/services/database/databaseService';
+import * as financeTypes from '@/modules/finance/data/types';
 
 type RawInitialData = AppDataContextType['rawInitialData'];
 
 export function useFinanceData(_mockDataForSeeding: RawInitialData) {
   const [financeData] = useState<{
-    chartOfAccounts: allTypes.ChartOfAccount[];
-    banks: allTypes.Bank[];
-    suppliers: allTypes.Supplier[];
-    feeTemplates: allTypes.FeeTemplate[];
+    chartOfAccounts: financeTypes.ChartOfAccount[];
+    banks: financeTypes.Bank[];
+    suppliers: financeTypes.Supplier[];
+    feeTemplates: financeTypes.FeeTemplate[];
     feeTemplateItems: any[];
-    expenseCategories: allTypes.ExpenseCategory[];
-    expenseClaims: allTypes.ExpenseClaim[];
-    supplierInvoices: allTypes.SupplierInvoice[];
-    customerInvoices: allTypes.CustomerInvoice[];
-    studentOpeningBalances: allTypes.StudentOpeningBalance[];
-    feeAdjustments: allTypes.FeeAdjustment[];
-    transportRoutes: allTypes.TransportRoute[];
-    studentTransportAssignments: allTypes.StudentTransportAssignment[];
+    expenseCategories: financeTypes.ExpenseCategory[];
+    expenseClaims: financeTypes.ExpenseClaim[];
+    supplierInvoices: financeTypes.SupplierInvoice[];
+    customerInvoices: financeTypes.CustomerInvoice[];
+    studentOpeningBalances: financeTypes.StudentOpeningBalance[];
+    feeAdjustments: financeTypes.FeeAdjustment[];
+    transportRoutes: financeTypes.TransportRoute[];
+    studentTransportAssignments: financeTypes.StudentTransportAssignment[];
     studentInvoices: any[];
     studentInvoiceItems: any[];
-    studentPayments: allTypes.StudentPayment[];
+    studentPayments: financeTypes.StudentPayment[];
     invoicePaymentApplications: any[];
     generalPayments: any[];
     generalLedgerEntries: any[];

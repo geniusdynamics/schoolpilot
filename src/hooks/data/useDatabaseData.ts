@@ -2,16 +2,16 @@
 // ABOUTME: interface, providing full backward compatibility with useDatabaseData callers.
 
 import { useCallback } from 'react';
-import type { AppDataContextType } from '../../types';
-import { databaseService } from '../../services/database/databaseService';
-import { useSystemData } from './useSystemData';
-import { useAdministrationData } from './useAdministrationData';
-import { useAcademicData } from './useAcademicData';
-import { useFinanceData } from './useFinanceData';
-import { useHRData } from './useHRData';
-import { useInventoryData } from './useInventoryData';
-import { useLibraryData } from './useLibraryData';
-import { useNutritionData } from './useNutritionData';
+import type { AppDataContextType } from '@/types';
+import { databaseService } from '@/services/database/databaseService';
+import { useSystemData } from '@/modules/core/data/useSystemData';
+import { useAdministrationData } from '@/modules/administration/data/useAdministrationData';
+import { useAcademicData } from '@/modules/academics/data/useAcademicData';
+import { useFinanceData } from '@/modules/finance/data/useFinanceData';
+import { useHRData } from '@/modules/hr/data/useHRData';
+import { useInventoryData } from '@/modules/inventory/data/useInventoryData';
+import { useLibraryData } from '@/modules/library/data/useLibraryData';
+import { useNutritionData } from '@/modules/nutrition/data/useNutritionData';
 
 type RawInitialData = AppDataContextType['rawInitialData'];
 

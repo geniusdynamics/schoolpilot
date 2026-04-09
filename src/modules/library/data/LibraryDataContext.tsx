@@ -2,7 +2,7 @@
 // ABOUTME: Wraps useLibraryData hook and exposes it via React Context
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { useLibraryData } from '@/hooks/data/useLibraryData';
+import { useLibraryData } from './useLibraryData';
 
 export type LibraryDataContextValue = ReturnType<typeof useLibraryData>;
 

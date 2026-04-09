@@ -3,10 +3,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useAcademicData } from '../useAcademicData';
-import { databaseService } from '../../../services/database/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 
 // Mock the database service
-vi.mock('../../../services/database/databaseService', () => ({
+vi.mock('@/services/database/databaseService', () => ({
   databaseService: {
     getDatabase: vi.fn(),
     generateId: vi.fn(() => 'mock-id-123'),

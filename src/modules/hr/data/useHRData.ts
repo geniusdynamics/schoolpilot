@@ -2,8 +2,8 @@
 // ABOUTME: StaffSalarySettings, LeaveRequests
 
 import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '../../types';
-import { databaseService } from '../../services/database/databaseService';
+import type { AppDataContextType } from '@/types';
+import { databaseService } from '@/services/database/databaseService';
 
 type RawInitialData = AppDataContextType['rawInitialData'];
 

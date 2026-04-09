@@ -3,7 +3,7 @@
 // ABOUTME: Wraps useHRData hook and exposes it via React Context
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { useHRData } from '@/hooks/data/useHRData';
+import { useHRData } from './useHRData';
 
 export type HRDataContextValue = ReturnType<typeof useHRData>;
 

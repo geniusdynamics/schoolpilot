@@ -3,7 +3,7 @@
 // ABOUTME: Wraps useNutritionData hook and exposes it via React Context
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { useNutritionData } from '@/hooks/data/useNutritionData';
+import { useNutritionData } from './useNutritionData';
 
 export type NutritionDataContextValue = ReturnType<typeof useNutritionData>;
 

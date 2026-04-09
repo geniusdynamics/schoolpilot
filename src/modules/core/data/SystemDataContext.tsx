@@ -2,7 +2,7 @@
 // ABOUTME: Wraps useSystemData hook and exposes it via React Context
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { useSystemData } from '../../hooks/data/useSystemData';
+import { useSystemData } from './useSystemData';
 
 export type SystemDataContextValue = ReturnType<typeof useSystemData>;
 

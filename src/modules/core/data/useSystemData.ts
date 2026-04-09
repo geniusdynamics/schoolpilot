@@ -2,11 +2,11 @@
 // ABOUTME: Handles initialization of the database service and seeding/clearing operations
 
 import { useState, useEffect, useCallback } from 'react';
-import type { AppDataLoadingStates, AppDataContextType } from '../../types';
-import { databaseService } from '../../services/database/databaseService';
-import { rbacService } from '../../core/rbacService';
-import type { RbacRole, Permission, UserRole } from '../../core/types';
-import * as allTypes from '../../types';
+import type { AppDataLoadingStates, AppDataContextType } from '@/types';
+import { databaseService } from '@/services/database/databaseService';
+import { rbacService } from '@/core/rbacService';
+import type { RbacRole, Permission, UserRole } from '@/core/types';
+import * as allTypes from '@/types';
 
 type RawInitialData = AppDataContextType['rawInitialData'];
 

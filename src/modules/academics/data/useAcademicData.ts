@@ -2,9 +2,9 @@
 // ABOUTME: Academic Years, Terms, Education levels, Class allocations
 
 import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '../../types';
-import { databaseService } from '../../services/database/databaseService';
-import * as allTypes from '../../types';
+import type { AppDataContextType } from '@/types';
+import { databaseService } from '@/services/database/databaseService';
+import * as allTypes from '@/types';
 
 type RawInitialData = AppDataContextType['rawInitialData'];
 

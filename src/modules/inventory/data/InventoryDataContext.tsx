@@ -3,7 +3,7 @@
 // ABOUTME: Wraps useInventoryData hook and exposes it via React Context
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { useInventoryData } from '@/hooks/data/useInventoryData';
+import { useInventoryData } from './useInventoryData';
 
 export type InventoryDataContextValue = ReturnType<typeof useInventoryData>;
 

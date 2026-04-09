@@ -2,7 +2,7 @@
 // ABOUTME: Wraps useAdministrationData hook and exposes it via React Context
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { useAdministrationData } from '../../hooks/data/useAdministrationData';
+import { useAdministrationData } from './useAdministrationData';
 
 export type AdministrationDataContextValue = ReturnType<typeof useAdministrationData>;
 

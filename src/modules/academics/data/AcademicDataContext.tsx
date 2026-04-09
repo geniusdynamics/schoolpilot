@@ -3,7 +3,7 @@
 // ABOUTME: Wraps useAcademicData hook and exposes it via React Context
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { useAcademicData } from '@/hooks/data/useAcademicData';
+import { useAcademicData } from './useAcademicData';
 
 export type AcademicDataContextValue = ReturnType<typeof useAcademicData>;
 

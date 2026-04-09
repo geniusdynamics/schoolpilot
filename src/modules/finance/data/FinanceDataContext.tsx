@@ -3,7 +3,7 @@
 // ABOUTME: Wraps useFinanceData hook and exposes it via React Context
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { useFinanceData } from '@/hooks/data/useFinanceData';
+import { useFinanceData } from './useFinanceData';
 
 export type FinanceDataContextValue = ReturnType<typeof useFinanceData>;
 

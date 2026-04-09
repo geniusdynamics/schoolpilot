@@ -1,6 +1,220 @@
-// ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Administration module.
-// ABOUTME: It ensures all administration-related data structures are managed in one place.
+// ABOUTME: Administration module types - single source of truth for all administration entities
+// ABOUTME: Consolidated from core/types/administration.ts
 
+// Core administration types (moved from core/types/administration.ts)
+export interface AcademicYearStructure {
+  id: string;
+  name: string;
+}
+
+export interface AcademicPeriodDefinition {
+  id: string;
+  structure_id: string;
+  name: string;
+  sequence_order: number;
+  structure_name?: string | null;
+}
+
+export interface AcademicYear {
+  id: number;
+  name: string;
+  structure_id: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at: string;
+  structure_name?: string | null;
+}
+
+export interface SchoolPeriod {
+  id: number;
+  academic_year_id: number;
+  period_definition_id: string;
+  financial_year_id: number;
+  start_date: string;
+  end_date: string;
+  mid_break_start?: string | null;
+  mid_break_end?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  name?: string | null;
+  academic_year_name?: string | null;
+  period_definition_name?: string | null;
+  financial_year_name?: string | null;
+}
+
+export interface ExamResultSummary {
+  exam_name?: string | null;
+  english?: string | null;
+  kiswahili?: string | null;
+  mathematics?: string | null;
+  science?: string | null;
+  social_studies_religious_education?: string | null;
+  total_marks?: number | null;
+}
+
+export interface ParentsGuardian {
+  id: string;
+  user_id?: string | null;
+  name: string;
+  phone: string;
+  email?: string | null;
+  relationship_type?: string | null;
+  location?: string | null;
+  address?: string | null;
+  photo_path?: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+}
+
+export interface StudentGuardianRelationship {
+  student_id: string;
+  guardian_id: string;
+  relationship_type: string;
+  is_primary_contact: boolean;
+}
+
+export interface Student {
+  id: string;
+  admission_no: string;
+  upi_no?: string | null;
+  first_name: string;
+  middle_name?: string | null;
+  last_name: string;
+  gender: any; // Will import from core enums
+  date_of_birth?: string | null;
+  photo_path?: string | null;
+  current_class_stream_id?: number | null;
+  student_category_id?: number | null;
+  dormitory_id?: number | null;
+  admission_date?: string | null;
+  status: any; // Will import from core enums
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+  current_class_name?: string | null;
+  current_class_stream_name?: string | null;
+  student_category_name?: string | null;
+  dormitory_name?: string | null;
+  primary_guardian?: ParentsGuardian | null;
+  exam_result_summary?: ExamResultSummary | null;
+  address?: string | null;
+  remarks?: string | null;
+  religion?: string | null;
+  county?: string | null;
+  district?: string | null;
+  student_type?: string | null;
+  primary_school?: string | null;
+  marks_attained_primary?: string | null;
+  class_admitted?: string | null;
+  stream_admitted?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  display_name?: string | null;
+  user_id?: string | null;
+}
+
+export interface Staff {
+  id: string;
+  user_id?: string | null;
+  staff_no: string;
+  first_name: string;
+  last_name: string;
+  phone?: string | null;
+  department_id?: string | null;
+  designation_id?: number | null;
+  hod_of_department_id?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+  department_name?: string | null;
+  designation_title?: string | null;
+  hod_of_department_name?: string | null;
+  user_username?: string | null;
+  email?: string | null;
+  display_name?: string | null;
+}
+
+export interface Class {
+  id: number;
+  name: string;
+  streams?: ClassStream[];
+}
+
+export interface ClassStream {
+  id: number;
+  class_id: number;
+  name: string;
+  class_teacher_id?: string | null;
+  class_name?: string | null;
+  class_teacher_name?: string | null;
+}
+
+export interface Department {
+  id: string;
+  name: string;
+  is_academic: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Designation {
+  id: number;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StudentCategory {
+  id: number;
+  name: string;
+}
+
+export interface Dormitory {
+  id: number;
+  name: string;
+  master_id?: string | null;
+  master_name?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StudentHealthRecord {
+  id: string;
+  student_id: string;
+  blood_type?: string | null;
+  allergies?: string | null;
+  medical_conditions?: string | null;
+  emergency_contact_override?: string | null;
+  created_at: string;
+  updated_at: string;
+  student_name?: string | null;
+}
+
+export interface TimetablePeriodDef {
+  id: number;
+  period_name: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface StudentAttendance {
+  id: string | number;
+  student_id: string;
+  period_id: number;
+  date: string;
+  status: any; // Will import from core enums
+  reason_for_absence?: string;
+  created_at?: string;
+  updated_at?: string;
+  student_name?: string;
+  period_name?: string;
+}
+
+// Module-specific enums
 export enum PartnerType {
     SPONSOR = 'Sponsor',
     BOARD_MEMBER = 'Board Member',
@@ -459,80 +673,6 @@ export interface AdminBulkImportType {
   
   // Denormalized
   started_by_name?: string;
-}
-
-// MOVED FROM core/types.ts (module-specific):
-export interface WorkflowState {
-  id: number;
-  workflow_id: number;
-  name: string;
-  sequence_order: number;
-}
-
-export interface Workflow {
-  id: number;
-  name: string;
-  created_at: string;
-  updated_at: string;
-  states?: WorkflowState[];
-}
-
-export interface ParentsGuardian {
-  id: string;
-  user_id?: string | null;
-  name: string;
-  phone: string;
-  email?: string | null;
-  relationship_type?: string | null;
-  location?: string | null;
-  address?: string | null;
-  photo_path?: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string | null;
-}
-
-export interface StudentHealthRecord {
-  id: string;
-  student_id: string;
-  blood_type?: string | null;
-  allergies?: string | null;
-  medical_conditions?: string | null;
-  emergency_contact_override?: string | null;
-  created_at: string;
-  updated_at: string;
-  // Denormalized
-  student_name?: string | null;
-}
-
-export interface Dormitory {
-  id: number;
-  name: string;
-  master_id?: string | null;
-  // Denormalized
-  master_name?: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface StudentCategory {
-  id: number;
-  name: string;
-}
-
-export interface Designation {
-  id: number;
-  title: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Department {
-  id: string;
-  name: string;
-  is_academic: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 // === STUDENT DATA IMPORT TYPES ===

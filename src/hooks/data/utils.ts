@@ -1,7 +1,7 @@
 // ABOUTME: Shared utilities for domain-specific data hooks
 // ABOUTME: Provides helper stubs and the databaseService reference for all domain hooks
 
-import { databaseService } from '../../services/database/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 
 export { databaseService };
 
