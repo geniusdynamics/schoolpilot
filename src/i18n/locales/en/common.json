@@ -1,0 +1,18 @@
+{
+  "desktop": "Desktop",
+  "workspaces": "Workspaces",
+  "website": "Website",
+  "reload": "Reload",
+  "toggleFullWidth": "Toggle Full Width",
+  "toggleTheme": "Toggle Theme",
+  "help": "Help",
+  "about": "About",
+  "keyboardShortcuts": "Keyboard Shortcuts",
+  "notifications": {
+    "backendUnavailable": "Backend is currently unavailable. Working in offline mode.",
+    "offline": "You are currently offline. Changes will sync when connected.",
+    "syncError": "Sync error: {{error}}",
+    "unknownError": "Unknown error occurred",
+    "pendingSync": "{{count}} changes pending sync"
+  }
+}
