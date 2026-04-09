@@ -173,7 +173,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         tabIndex={-1}
       >
         {/* Control buttons */}
-        <div className="absolute top-4 right-2 z-20 flex flex-col gap-1">
+        <div className="absolute top-4 right-2 z-[70] flex flex-col gap-1">
           {!isMobile && (
             <button
               className={`
