@@ -1,0 +1,92 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "inventory",
+  "name": "Inventory Management",
+  "version": "1.0.0",
+  "description": "Inventory and asset management including stock, purchases, requisitions, and fixed assets",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["inventory", "stock", "purchase", "requisition", "assets", "warehouse"],
+  "dependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires users for approval workflows",
+      "imports": ["users", "staff"]
+    },
+    {
+      "moduleId": "finance",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Financial integration for purchase orders and invoicing"
+    }
+  ],
+  "optionalDependencies": [],
+  "conflicts": [],
+  "schemas": [
+    "item_categories",
+    "items",
+    "warehouses",
+    "stock_levels",
+    "stock_transactions",
+    "stock_alerts",
+    "requisitions",
+    "requisition_items",
+    "purchase_orders",
+    "purchase_order_items",
+    "suppliers",
+    "supplier_contracts",
+    "rfqs",
+    "fixed_assets",
+    "asset_depreciation_logs"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "items",
+      "stock",
+      "requisitions",
+      "purchaseOrders",
+      "suppliers",
+      "fixedAssets"
+    ],
+    "services": [
+      "InventoryService",
+      "PurchaseService",
+      "AssetService",
+      "StockAlertService"
+    ],
+    "hooks": [
+      "onStockLow",
+      "onRequisitionApproved",
+      "onPurchaseOrderCreated"
+    ],
+    "routes": [
+      "/inventory/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableMultiWarehouse": true,
+    "enableStockAlerts": true,
+    "enableRequisitions": true,
+    "enablePurchaseOrders": true,
+    "enableFixedAssets": true,
+    "enableAssetDepreciation": true,
+    "defaultReorderLevel": 10,
+    "autoGeneratePurchaseOrders": false,
+    "approvalRequiredForRequisitions": true
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

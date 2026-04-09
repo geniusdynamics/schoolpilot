@@ -1,87 +1,482 @@
-// ABOUTME: Module loader for registering and initializing all modules
-// ABOUTME: Uses true dynamic module loading for plugin-like architecture
+import type { ModuleMetadata, LoadedModule } from '@/core/types/module';
+import { moduleRegistry } from './ModuleRegistry';
+import { moduleLifecycle } from './ModuleLifecycle';
+import { EventEmitter } from 'events';
 
-import { moduleRegistry } from './moduleRegistry';
-import { initializeDynamicModules, getAvailableModules } from '../services/module/dynamicModuleLoader';
-import { logger } from '../utils/logging';
+export interface LoadModuleOptions {
+  timeout?: number;
+  retryCount?: number;
+  retryDelay?: number;
+  autoEnable?: boolean;
+}
 
-// Initialize all modules using the new dynamic system
-const loadedModules = new Map<string, Promise<any>>();
+export interface LoadedModuleResult {
+  moduleId: string;
+  metadata: ModuleMetadata;
+  success: boolean;
+  error?: Error;
+  loadTime: number;
+}
 
-const loadModule = async (moduleId: string) => {
-  const existing = loadedModules.get(moduleId);
-  if (existing) return existing;
+export interface ModuleChunk {
+  url: string;
+  size: number;
+  loaded: boolean;
+  error?: Error;
+}
 
-  const loadPromise = (async () => {
-    try {
-      // Using @vite-ignore because this is an intentional dynamic import
-      const module = await import(/* @vite-ignore */ `../modules/${moduleId}`);
-      return module;
-    } catch (error) {
-      loadedModules.delete(moduleId);
-      throw new Error(`Failed to load module ${moduleId}: ${error}`);
+export type ModuleLoadStatus = 'idle' | 'loading' | 'loaded' | 'error' | 'unloading';
+
+export interface ModuleLoadState {
+  moduleId: string;
+  status: ModuleLoadStatus;
+  progress: number;
+  chunks: ModuleChunk[];
+  error?: Error;
+  loadedAt?: Date;
+}
+
+/**
+ * Dynamically loads modules at runtime.
+ * Supports lazy loading, code splitting, and hot module replacement.
+ */
+export class ModuleLoader extends EventEmitter {
+  private loadStates = new Map<string, ModuleLoadState>();
+  private loadedModules = new Map<string, LoadedModule>();
+  private moduleFactories = new Map<string, () => Promise<LoadedModule>>();
+  private options: Required<LoadModuleOptions>;
+
+  // Event types
+  static readonly MODULE_LOADING = 'module:loading';
+  static readonly MODULE_LOADED = 'module:loaded';
+  static readonly MODULE_ERROR = 'module:error';
+  static readonly MODULE_UNLOADING = 'module:unloading';
+  static readonly MODULE_UNLOADED = 'module:unloaded';
+  static readonly PROGRESS_UPDATE = 'module:progress';
+
+  constructor(options: LoadModuleOptions = {}) {
+    super();
+    this.options = {
+      timeout: 30000,
+      retryCount: 3,
+      retryDelay: 1000,
+      autoEnable: true,
+      ...options
+    };
+  }
+
+  /**
+   * Register a module factory for dynamic loading
+   */
+  registerFactory(moduleId: string, factory: () => Promise<LoadedModule>): void {
+    this.moduleFactories.set(moduleId, factory);
+  }
+
+  /**
+   * Check if a module can be dynamically loaded
+   */
+  canLoad(moduleId: string): boolean {
+    return this.moduleFactories.has(moduleId);
+  }
+
+  /**
+   * Load a module dynamically
+   */
+  async load(moduleId: string, options: Partial<LoadModuleOptions> = {}): Promise<LoadedModuleResult> {
+    const opts = { ...this.options, ...options };
+    
+    // Check if already loaded
+    if (this.loadedModules.has(moduleId)) {
+      return {
+        moduleId,
+        metadata: this.loadedModules.get(moduleId)!.metadata,
+        success: true,
+        loadTime: 0
+      };
     }
-  })();
 
-  loadedModules.set(moduleId, loadPromise);
-  return loadPromise;
-};
+    // Check if factory exists
+    const factory = this.moduleFactories.get(moduleId);
+    if (!factory) {
+      const error = new Error(`No factory registered for module "${moduleId}"`);
+      return {
+        moduleId,
+        metadata: {} as ModuleMetadata,
+        success: false,
+        error,
+        loadTime: 0
+      };
+    }
 
-export const initializeModules = async (): Promise<void> => {
-  logger.debug('🚀 Initializing modules with dynamic loader...');
+    // Check if loading - if so, create a new promise that waits for completion
+    const currentState = this.loadStates.get(moduleId);
+    if (currentState?.status === 'loading') {
+      // Return a promise that waits for the load to complete
+      return this.waitForLoad(moduleId, opts.timeout);
+    }
+
+    // Start loading
+    const startTime = Date.now();
+    this.setLoadState(moduleId, { status: 'loading', progress: 0 });
+    this.emit(ModuleLoader.MODULE_LOADING, { moduleId });
+
+    let lastError: Error | undefined;
+    
+    for (let attempt = 0; attempt < opts.retryCount; attempt++) {
+      try {
+        if (attempt > 0) {
+          await this.delay(opts.retryDelay * attempt);
+        }
+
+        const loadedModule = await this.loadWithTimeout(factory, opts.timeout);
+        
+        // Store loaded module
+        this.loadedModules.set(moduleId, loadedModule);
+        
+        // Register with module registry
+        await moduleRegistry.register(loadedModule);
+        
+        if (opts.autoEnable) {
+          await moduleRegistry.enable(moduleId);
+        }
+
+        const loadTime = Date.now() - startTime;
+        
+        this.setLoadState(moduleId, { 
+          status: 'loaded', 
+          progress: 100,
+          loadedAt: new Date()
+        });
+        
+        this.emit(ModuleLoader.MODULE_LOADED, { moduleId, loadTime });
+
+        return {
+          moduleId,
+          metadata: loadedModule.metadata,
+          success: true,
+          loadTime
+        };
+
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.updateProgress(moduleId, (attempt + 1) / opts.retryCount * 50);
+      }
+    }
+
+    // All retries failed
+    this.setLoadState(moduleId, { status: 'error', progress: 0, error: lastError });
+    this.emit(ModuleLoader.MODULE_ERROR, { moduleId, error: lastError });
+
+    return {
+      moduleId,
+      metadata: {} as ModuleMetadata,
+      success: false,
+      error: lastError,
+      loadTime: Date.now() - startTime
+    };
+  }
+
+  /**
+   * Unload a dynamically loaded module
+   */
+  async unload(moduleId: string): Promise<boolean> {
+    if (!this.loadedModules.has(moduleId)) {
+      return false;
+    }
+
+    this.setLoadState(moduleId, { status: 'unloading', progress: 0 });
+    this.emit(ModuleLoader.MODULE_UNLOADING, { moduleId });
+
+    try {
+      // Disable and unregister from module registry
+      if (moduleRegistry.isEnabled(moduleId)) {
+        await moduleRegistry.disable(moduleId);
+      }
+      
+      if (moduleRegistry.isRegistered(moduleId)) {
+        await moduleRegistry.unregister(moduleId);
+      }
+
+      // Clean up
+      this.loadedModules.delete(moduleId);
+      this.loadStates.delete(moduleId);
+
+      this.emit(ModuleLoader.MODULE_UNLOADED, { moduleId });
+      
+      return true;
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.setLoadState(moduleId, { status: 'error', progress: 0, error: err });
+      this.emit(ModuleLoader.MODULE_ERROR, { moduleId, error: err });
+      return false;
+    }
+  }
+
+  /**
+   * Load multiple modules in parallel
+   */
+  async loadBatch(moduleIds: string[], options: Partial<LoadModuleOptions> = {}): Promise<LoadedModuleResult[]> {
+    const results = await Promise.all(
+      moduleIds.map(id => this.load(id, options))
+    );
+    return results;
+  }
+
+  /**
+   * Load modules in dependency order
+   */
+  async loadOrdered(moduleIds: string[], options: Partial<LoadModuleOptions> = {}): Promise<LoadedModuleResult[]> {
+    const results: LoadedModuleResult[] = [];
+    
+    for (const moduleId of moduleIds) {
+      const result = await this.load(moduleId, options);
+      results.push(result);
+      
+      if (!result.success) {
+        // Stop loading if a module fails
+        break;
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * Preload a module (load without enabling)
+   */
+  async preload(moduleId: string): Promise<boolean> {
+    const result = await this.load(moduleId, { autoEnable: false });
+    return result.success;
+  }
+
+  /**
+   * Check if a module is loaded
+   */
+  isLoaded(moduleId: string): boolean {
+    return this.loadedModules.has(moduleId);
+  }
+
+  /**
+   * Get load state for a module
+   */
+  getLoadState(moduleId: string): ModuleLoadState | undefined {
+    return this.loadStates.get(moduleId);
+  }
+
+  /**
+   * Get all loaded modules
+   */
+  getLoadedModules(): string[] {
+    return Array.from(this.loadedModules.keys());
+  }
+
+  /**
+   * Get loading progress for a module
+   */
+  getProgress(moduleId: string): number {
+    return this.loadStates.get(moduleId)?.progress || 0;
+  }
+
+  /**
+   * Check if module dependencies are satisfied
+   */
+  checkModuleDependencies(moduleId: string): { satisfied: boolean; missing: string[] } {
+    const loadedModule = this.loadedModules.get(moduleId);
+    if (!loadedModule) {
+      return { satisfied: false, missing: ['Module not loaded'] };
+    }
+
+    const dependencies = loadedModule.metadata.dependencies || [];
+    const missing: string[] = [];
+
+    for (const dep of dependencies) {
+      if (!dep.required) continue;
+      if (!this.isLoaded(dep.moduleId)) {
+        missing.push(dep.moduleId);
+      }
+    }
+
+    return {
+      satisfied: missing.length === 0,
+      missing
+    };
+  }
+
+  /**
+   * Get all enabled modules
+   */
+  getEnabledModules(): string[] {
+    return Array.from(this.loadedModules.keys()).filter(id => 
+      this.loadStates.get(id)?.status === 'loaded'
+    );
+  }
+
+  /**
+   * Wait for a module to finish loading
+   */
+  private waitForLoad(moduleId: string, timeout: number): Promise<LoadedModuleResult> {
+    return new Promise((resolve, reject) => {
+      const checkInterval = setInterval(() => {
+        const state = this.loadStates.get(moduleId);
+        
+        if (state?.status === 'loaded') {
+          clearInterval(checkInterval);
+          clearTimeout(timeoutId);
+          resolve({
+            moduleId,
+            metadata: this.loadedModules.get(moduleId)!.metadata,
+            success: true,
+            loadTime: 0
+          });
+        } else if (state?.status === 'error') {
+          clearInterval(checkInterval);
+          clearTimeout(timeoutId);
+          resolve({
+            moduleId,
+            metadata: {} as ModuleMetadata,
+            success: false,
+            error: state.error,
+            loadTime: 0
+          });
+        }
+      }, 100);
+
+      const timeoutId = setTimeout(() => {
+        clearInterval(checkInterval);
+        reject(new Error(`Timeout waiting for module "${moduleId}" to load`));
+      }, timeout);
+    });
+  }
+
+  /**
+   * Load with timeout
+   */
+  private async loadWithTimeout<T>(
+    factory: () => Promise<T>,
+    timeout: number
+  ): Promise<T> {
+    return Promise.race([
+      factory(),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Load timeout')), timeout);
+      })
+    ]);
+  }
+
+  /**
+   * Set load state
+   */
+  private setLoadState(
+    moduleId: string,
+    partial: Partial<ModuleLoadState>
+  ): void {
+    const existing = this.loadStates.get(moduleId);
+    const newState: ModuleLoadState = {
+      moduleId,
+      status: partial.status || existing?.status || 'idle',
+      progress: partial.progress ?? existing?.progress ?? 0,
+      chunks: partial.chunks || existing?.chunks || [],
+      error: partial.error,
+      loadedAt: partial.loadedAt
+    };
+    this.loadStates.set(moduleId, newState);
+  }
+
+  /**
+   * Update progress
+   */
+  private updateProgress(moduleId: string, progress: number): void {
+    const state = this.loadStates.get(moduleId);
+    if (state) {
+      state.progress = Math.min(100, Math.max(0, progress));
+      this.emit(ModuleLoader.PROGRESS_UPDATE, { moduleId, progress: state.progress });
+    }
+  }
+
+  /**
+   * Delay helper
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Clear all loaded modules
+   */
+  async clear(): Promise<void> {
+    const moduleIds = Array.from(this.loadedModules.keys());
+    for (const moduleId of moduleIds) {
+      await this.unload(moduleId);
+    }
+    this.moduleFactories.clear();
+  }
+}
+
+// Singleton instance
+export const moduleLoader = new ModuleLoader();
+
+// Standalone export functions for convenience
+export function checkModuleDependencies(moduleId: string): { satisfied: boolean; missing: string[] } {
+  return moduleLoader.checkModuleDependencies(moduleId);
+}
+
+export function getEnabledModules(): string[] {
+  return moduleLoader.getEnabledModules();
+}
+
+export function isModuleEnabled(moduleId: string): boolean {
+  return moduleLoader.isLoaded(moduleId);
+}
+
+export async function enableModule(moduleId: string): Promise<boolean> {
+  const result = await moduleLoader.load(moduleId, { autoEnable: true });
+  return result.success;
+}
+
+export async function disableModule(moduleId: string): Promise<boolean> {
+  return moduleLoader.unload(moduleId);
+}
+
+export function getDynamicNavigationItems(): Array<{ id: string; name: string; path: string; icon?: string }> {
+  const enabledModules = moduleLoader.getEnabledModules();
   
-  // Use the new true dynamic module loading
-  await initializeDynamicModules();
-};
+  // Map enabled modules to navigation items
+  // This is a simplified implementation - customize based on your needs
+  return enabledModules.map(moduleId => ({
+    id: moduleId,
+    name: moduleId.charAt(0).toUpperCase() + moduleId.slice(1),
+    path: `/${moduleId}`,
+    icon: undefined
+  }));
+}
 
-// Get dynamic navigation items
-export const getDynamicNavigationItems = () => {
-  return moduleRegistry.getNavigationItems();
-};
-
-// Check if a module is enabled
-export const isModuleEnabled = (moduleId: string): boolean => {
-  return moduleRegistry.isModuleEnabled(moduleId);
-};
-
-// Get module by ID
-export const getModule = (moduleId: string) => {
-  return moduleRegistry.getModule(moduleId);
-};
-
-// Get all enabled modules
-export const getEnabledModules = () => {
-  return moduleRegistry.getEnabledModules();
-};
-
-// Get modules by feature
-export const getModulesByFeature = (feature: string) => {
-  return moduleRegistry.getModulesByFeature(feature);
-};
-
-// Get all available features
-export const getAllFeatures = () => {
-  return moduleRegistry.getAllFeatures();
-};
-
-// Get module settings
-export const getModuleSettings = () => {
-  return moduleRegistry.getModuleSettings();
-};
-
-// Enable/disable modules
-export const enableModule = (moduleId: string): boolean => {
-  return moduleRegistry.enableModule(moduleId);
-};
-
-export const disableModule = (moduleId: string): boolean => {
-  return moduleRegistry.disableModule(moduleId);
-};
-
-// Check module dependencies
-export const checkModuleDependencies = (moduleId: string) => {
-  return moduleRegistry.checkDependencies(moduleId);
-};
-
-// Export the registry for direct access if needed
-export { moduleRegistry };
+/**
+ * Initialize all modules
+ * Loads all registered module factories and enables them
+ */
+export async function initializeModules(): Promise<void> {
+  const moduleIds = Array.from(moduleLoader['moduleFactories'].keys());
+  
+  logger.debug(`[initializeModules] Found ${moduleIds.length} registered factories:`, moduleIds);
+  
+  if (moduleIds.length === 0) {
+    // No factories registered yet, try to use moduleRegistry
+    logger.warn('[initializeModules] No module factories registered, using registry fallback');
+    await moduleRegistry.initialize();
+    return;
+  }
+  
+  // Load all modules in dependency order
+  logger.debug('[initializeModules] Loading modules in dependency order...');
+  const results = await moduleLoader.loadOrdered(moduleIds, { autoEnable: true });
+  
+  // Log results
+  const successCount = results.filter(r => r.success).length;
+  const failCount = results.filter(r => !r.success).length;
+  logger.debug(`[initializeModules] Loaded ${successCount} modules, ${failCount} failed`);
+  
+  // Log any errors
+  results.filter(r => !r.success).forEach(r => {
+    logger.error(`[initializeModules] Failed to load module ${r.moduleId}:`, r.error);
+  });
+}

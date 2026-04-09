@@ -1,0 +1,62 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "core",
+  "name": "Core System",
+  "version": "1.0.0",
+  "description": "Core system module providing base functionality for all other modules",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["core", "system", "base", "foundation"],
+  "dependencies": [],
+  "optionalDependencies": [],
+  "conflicts": [],
+  "schemas": [
+    "users",
+    "roles",
+    "permissions",
+    "audit_logs",
+    "system_settings",
+    "school_details"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "users",
+      "roles",
+      "permissions",
+      "auditLogs"
+    ],
+    "services": [
+      "AuthService",
+      "AuditService",
+      "RBACService"
+    ],
+    "hooks": [
+      "onUserLogin",
+      "onUserLogout",
+      "onPermissionChanged"
+    ],
+    "routes": [
+      "/login",
+      "/logout"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableRBAC": true,
+    "enableAuditLogging": true,
+    "sessionTimeout": 3600,
+    "maxLoginAttempts": 5
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

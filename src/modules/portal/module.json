@@ -1,0 +1,73 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "portal",
+  "name": "Parent/Student Portal",
+  "version": "1.0.0",
+  "description": "Self-service portal for parents and students",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["portal", "parents", "students", "self-service"],
+  "dependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires student and parent data",
+      "imports": ["students", "parentsGuardians"]
+    },
+    {
+      "moduleId": "academics",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Academic results and timetables"
+    },
+    {
+      "moduleId": "finance",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Fee viewing and payments"
+    }
+  ],
+  "optionalDependencies": [],
+  "conflicts": [],
+  "schemas": [
+    "portal_announcements",
+    "portal_messages"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "announcements",
+      "messages"
+    ],
+    "services": [
+      "PortalService",
+      "AnnouncementService"
+    ],
+    "hooks": [],
+    "routes": [
+      "/portal/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": false,
+    "requiresBackend": true,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableParentLogin": true,
+    "enableStudentLogin": true,
+    "enableFeeViewing": true,
+    "enableResultViewing": true,
+    "enableTimetableViewing": true,
+    "enableAttendanceViewing": true,
+    "enableMessaging": true
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

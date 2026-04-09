@@ -1,47 +1,96 @@
-// ABOUTME: Self-contained hook for any data management
-// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
+/**
+ * Student Wallet Data Hook
+ * 
+ * Provides CRUD operations for student wallet management.
+ * 
+ * @module nutrition/data/useStudentWalletData
+ */
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '@/core/types';
 
-const useStudentWalletData = () => {
-  const [studentWallets, setStudentWallets] = useState<any[]>([]);
+interface StudentWallet {
+  id: number;
+  student_id: number;
+  balance: number;
+  status: 'active' | 'inactive' | 'suspended';
+  created_at: string;
+  updated_at?: string;
+}
+
+interface UseStudentWalletDataResult {
+  data: StudentWallet[];
+  isLoading: boolean;
+  error: string | null;
+  create: (newItem: Partial<StudentWallet>) => Promise<StudentWallet>;
+  update: (id: number, updatedData: Partial<StudentWallet>) => Promise<void>;
+  remove: (id: number) => Promise<void>;
+}
+
+/**
+ * Hook for managing student wallet data
+ * @returns {UseStudentWalletDataResult} Object containing student wallets data and CRUD operations
+ */
+const useStudentWalletData = (): UseStudentWalletDataResult => {
+  const [studentWallets, setStudentWallets] = useState<StudentWallet[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      // Simulate fetching data from a mock source
-      setStudentWallets(initialMockUsers);
-      setIsLoading(false);
-    } catch (e) {
-      setError('Failed to fetch student wallets');
-      setIsLoading(false);
-    }
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Fetch from database
+        setStudentWallets([]);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch student wallets');
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
+  /**
+   * Creates a new student wallet
+   * @param {Partial<StudentWallet>} newItem - The wallet data to create
+   * @returns {Promise<StudentWallet>} The created wallet
+   */
+  const create = async (newItem: Partial<StudentWallet>): Promise<StudentWallet> => {
+    const newDataItem: StudentWallet = {
       ...newItem,
       id: Date.now(),
+      student_id: newItem.student_id || 0,
+      balance: newItem.balance || 0,
+      status: newItem.status || 'active',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    } as any;
-    setStudentWallets((prev: any[]) => [...prev, newDataItem]);
+    } as StudentWallet;
+    setStudentWallets((prev: StudentWallet[]) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setStudentWallets((prev: any[]) => prev.map((item: any) =>
+  /**
+   * Updates an existing student wallet
+   * @param {number} id - The wallet ID to update
+   * @param {Partial<StudentWallet>} updatedData - The updated wallet data
+   * @returns {Promise<void>}
+   */
+  const update = async (id: number, updatedData: Partial<StudentWallet>): Promise<void> => {
+    setStudentWallets((prev: StudentWallet[]) => prev.map((item: StudentWallet) =>
       item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
-    setStudentWallets((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  /**
+   * Removes a student wallet
+   * @param {number} id - The wallet ID to remove
+   * @returns {Promise<void>}
+   */
+  const remove = async (id: number): Promise<void> => {
+    setStudentWallets((prev: StudentWallet[]) => prev.filter((item: StudentWallet) => item.id !== id));
   };
 
   return {
@@ -55,3 +104,4 @@ const useStudentWalletData = () => {
 };
 
 export { useStudentWalletData };
+export type { StudentWallet, UseStudentWalletDataResult };

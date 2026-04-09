@@ -8,6 +8,9 @@
 import type { LoadedPlugin, PluginManifest, PluginModule } from '../types';
 import { logger } from '@/utils/logging';
 
+// Use Vite's import.meta.glob for proper dynamic imports
+const pluginModules = import.meta.glob('./builtin/*/index.ts', { eager: false });
+
 interface PluginDirectory {
   name: string;
   path: string;
@@ -18,12 +21,12 @@ interface PluginDirectory {
  * This is the source of truth for builtin plugins
  */
 const BUILTIN_PLUGINS: PluginDirectory[] = [
-  { name: 'whitelabel', path: './whitelabel' },
-  { name: 'grading-engine', path: './grading-engine' },
-  { name: 'fee-calculator', path: './fee-calculator' },
-  { name: 'analytics-mock', path: './analytics-mock' },
-  { name: 'payment-mock', path: './payment-mock' },
-  { name: 'sms-mock', path: './sms-mock' },
+  { name: 'whitelabel', path: 'whitelabel' },
+  { name: 'grading-engine', path: 'grading-engine' },
+  { name: 'fee-calculator', path: 'fee-calculator' },
+  { name: 'analytics-mock', path: 'analytics-mock' },
+  { name: 'payment-mock', path: 'payment-mock' },
+  { name: 'sms-mock', path: 'sms-mock' },
 ];
 
 /**
@@ -31,15 +34,33 @@ const BUILTIN_PLUGINS: PluginDirectory[] = [
  */
 async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin | null> {
   try {
-    // Dynamically import the plugin module
-    const pluginModule = await import(`./builtin/${dirInfo.path}.js`);
+    // Check if plugin exists in glob map
+    const modulePath = `./builtin/${dirInfo.path}/index.ts`;
+    const loader = pluginModules[modulePath];
     
-    if (!pluginModule.default || !pluginModule.default.manifest || !pluginModule.default.module) {
+    if (!loader) {
+      // Plugin doesn't exist, log at debug level only
+      logger.debug(`[BuiltinLoader] Plugin ${dirInfo.name} not found at ${modulePath}`);
+      return null;
+    }
+
+    // Load the module
+    const pluginModule = await loader();
+    
+    if (!pluginModule || typeof pluginModule !== 'object') {
       logger.warn(`[BuiltinLoader] Plugin ${dirInfo.name} has invalid structure`);
       return null;
     }
 
-    const { manifest, module } = pluginModule.default as {
+    // Handle both default export and direct export patterns
+    const mod = (pluginModule as any).default || pluginModule;
+    
+    if (!mod.manifest || !mod.module) {
+      logger.warn(`[BuiltinLoader] Plugin ${dirInfo.name} missing manifest or module`);
+      return null;
+    }
+
+    const { manifest, module } = mod as {
       manifest: PluginManifest;
       module: PluginModule;
     };
@@ -52,7 +73,13 @@ async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin
       source: 'builtin' as const,
     };
   } catch (error) {
-    logger.error(`[BuiltinLoader] Failed to load plugin ${dirInfo.name}:`, error);
+    // Only log as error if it's not a "module not found" error
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    if (errorMsg.includes('not found') || errorMsg.includes('Unknown variable')) {
+      logger.debug(`[BuiltinLoader] Plugin ${dirInfo.name} not available: ${errorMsg}`);
+    } else {
+      logger.error(`[BuiltinLoader] Failed to load plugin ${dirInfo.name}:`, error);
+    }
     return null;
   }
 }

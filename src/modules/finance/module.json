@@ -1,0 +1,101 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "finance",
+  "name": "Finance Management",
+  "version": "1.0.0",
+  "description": "Complete financial management including fees, payments, accounting, expenses, and transport finance",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["finance", "accounting", "fees", "payments", "expenses", "invoicing"],
+  "dependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires students, staff, and users for financial records",
+      "imports": ["students", "staff", "users", "classes"]
+    },
+    {
+      "moduleId": "academics",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Academic year integration for fee schedules"
+    }
+  ],
+  "optionalDependencies": [],
+  "conflicts": [],
+  "schemas": [
+    "financial_years",
+    "school_periods",
+    "chart_of_accounts",
+    "expense_categories",
+    "banks",
+    "suppliers",
+    "fee_templates",
+    "fee_template_items",
+    "student_invoices",
+    "student_invoice_items",
+    "student_payments",
+    "student_opening_balances",
+    "payment_applications",
+    "expense_claims",
+    "transport_routes",
+    "student_transport_assignments",
+    "general_ledger_entries"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "invoices",
+      "payments",
+      "fees",
+      "expenses",
+      "accounts",
+      "banks",
+      "suppliers",
+      "transport_routes"
+    ],
+    "services": [
+      "PaymentService",
+      "InvoiceService",
+      "FeeCalculationService",
+      "AccountingService"
+    ],
+    "hooks": [
+      "onPaymentReceived",
+      "onInvoiceGenerated",
+      "onFeeStructureChanged"
+    ],
+    "routes": [
+      "/finance/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "lifecycle": {
+    "onRegister": "onFinanceModuleRegister",
+    "onEnable": "onFinanceModuleEnable",
+    "onDisable": "onFinanceModuleDisable"
+  },
+  "config": {
+    "defaultCurrency": "USD",
+    "paymentMethods": ["cash", "bank", "mobile_money", "cheque"],
+    "autoGenerateInvoices": true,
+    "autoApplyPayments": true,
+    "allowPartialPayments": true,
+    "enableTransportFinance": true,
+    "enableSupplierInvoices": true,
+    "receiptPrefix": "RCP",
+    "invoicePrefix": "INV"
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

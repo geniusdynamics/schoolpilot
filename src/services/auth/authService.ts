@@ -1,9 +1,8 @@
 // ABOUTME: Authentication service for user login, logout, and session management
-// ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (PouchDB/SQLite)
+// ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (SQLite/PouchDB)
 
 import { databaseService } from '../database/databaseService';
-// RXDB removed - Phase 4: Using unified database service
-import * as unifiedDatabaseService from '../database/databaseService';
+// Using unified database service (SQLite-WASM/PouchDB)
 import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../../core/rbacService';
 import { unifiedConfigManager } from '../../config/unifiedConfig';
@@ -58,10 +57,10 @@ class AuthService {
   private isDemoMode: boolean = true;
   private currentSession: AuthSession | null = null;
   private sessionKey = 'schoolpilot_auth_session';
-  private rxDBAvailable: boolean = false;
+  private databaseAvailable: boolean = false;
   private initializationComplete: boolean = false;
   private initializationPromise: Promise<void> | null = null;
-  private detectedProvider: 'pouchdb' | 'rxdb' | 'unknown' = 'unknown';
+  private detectedProvider: 'sqlite-wasm' | 'pouchdb' | 'livestore' | 'hybrid' | 'unknown' = 'unknown';
 
   constructor() {
     // Start initialization immediately but don't wait
@@ -79,7 +78,7 @@ class AuthService {
       if (!hasIndexedDB) {
         console.warn('🔐 [AuthService] IndexedDB not available, forcing demo mode');
         this.isDemoMode = true;
-        this.rxDBAvailable = false;
+        this.databaseAvailable = false;
         this.initializationComplete = true;
         this.restoreSession();
         return;
@@ -99,13 +98,13 @@ class AuthService {
 
         await Promise.race([dbInitPromise, timeoutPromise]);
 
-        this.rxDBAvailable = databaseService.isServiceInitialized();
+        this.databaseAvailable = databaseService.isServiceInitialized();
         this.detectedProvider = databaseService.getDetectedProviderType() || 'unknown';
 
-        console.log(`Database service initialized: Provider = ${this.detectedProvider}, Available = ${this.rxDBAvailable}`);
+        console.log(`Database service initialized: Provider = ${this.detectedProvider}, Available = ${this.databaseAvailable}`);
       } catch (error) {
         console.warn('Database service initialization failed or timed out, forcing demo mode:', error);
-        this.rxDBAvailable = false;
+        this.databaseAvailable = false;
         this.detectedProvider = 'unknown';
       }
 
@@ -113,16 +112,16 @@ class AuthService {
       const config = unifiedConfigManager.getConfig();
       
       // Force demo mode if database is not available
-      if (!this.rxDBAvailable) {
+      if (!this.databaseAvailable) {
         console.warn('Database not available, forcing demo mode');
         this.isDemoMode = true;
-        unifiedConfigManager.switchToDemo();
+        await unifiedConfigManager.switchToDemo();
       } else {
         this.isDemoMode = config.mode === 'demo';
       }
       
       this.initializationComplete = true;
-      console.log(`AuthService initialized: Demo mode = ${this.isDemoMode}, DB available = ${this.rxDBAvailable}, Provider = ${this.detectedProvider}`);
+      console.log(`AuthService initialized: Demo mode = ${this.isDemoMode}, DB available = ${this.databaseAvailable}, Provider = ${this.detectedProvider}`);
       
       // Restore session from localStorage
       this.restoreSession();
@@ -131,6 +130,8 @@ class AuthService {
       console.error('AuthService initialization failed:', error);
       // Force demo mode on any initialization error
       this.isDemoMode = true;
+      this.databaseAvailable = false;
+      await unifiedConfigManager.switchToDemo().catch(() => {});
       this.initializationComplete = true;
       this.restoreSession();
     }
@@ -420,25 +421,34 @@ class AuthService {
   // ===== PRODUCTION MODE AUTHENTICATION =====
 
   private async loginProduction(credentials: LoginCredentials): Promise<AuthResult> {
-    if (!this.rxDBAvailable) {
-      return {
-        success: false,
-        message: 'Database not available. Please contact system administrator.',
-        errors: ['Database initialization failed']
-      };
+    // Ensure database is initialized before proceeding
+    if (!this.databaseAvailable) {
+      console.warn('🔐 [AuthService] Database not available, falling back to demo mode');
+      this.isDemoMode = true;
+      await unifiedConfigManager.switchToDemo();
+      return this.loginDemo(credentials);
     }
 
+    // Double-check database is actually ready
+    await databaseService.getDatabase();
+    
     try {
       // Get database provider from the dynamic service
       const provider = databaseService.getProvider();
       if (!provider) {
-        throw new Error('Database provider not available');
+        console.warn('🔐 [AuthService] Database provider not available, falling back to demo mode');
+        this.isDemoMode = true;
+        await unifiedConfigManager.switchToDemo();
+        return this.loginDemo(credentials);
       }
       
       // Get users collection
       const usersCollection = databaseService.getCollection('users');
       if (!usersCollection) {
-        throw new Error('Users collection not available');
+        console.warn('🔐 [AuthService] Users collection not available, falling back to demo mode');
+        this.isDemoMode = true;
+        await unifiedConfigManager.switchToDemo();
+        return this.loginDemo(credentials);
       }
       
       // Check if any users exist in the database

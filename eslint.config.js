@@ -59,6 +59,15 @@ export default tseslint.config(
               group: ['@/modules/*/services/*'],
               message: 'Import from module barrel (@/modules/{module}) instead of internal service.',
             },
+            // Prevent cross-module data imports (module independence)
+            {
+              group: ['../../*/data/*'],
+              message: 'Cross-module data imports are not allowed. Use useSharedData() hook instead.',
+            },
+            {
+              group: ['../../*/data'],
+              message: 'Cross-module data imports are not allowed. Use useSharedData() hook instead.',
+            },
           ],
         },
       ],

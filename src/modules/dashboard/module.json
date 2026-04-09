@@ -1,0 +1,69 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "dashboard",
+  "name": "Dashboard",
+  "version": "1.0.0",
+  "description": "Main dashboard and overview widgets",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["dashboard", "overview", "widgets", "summary"],
+  "dependencies": [],
+  "optionalDependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Student/staff statistics"
+    },
+    {
+      "moduleId": "finance",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Financial summaries"
+    },
+    {
+      "moduleId": "academics",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Academic statistics"
+    }
+  ],
+  "conflicts": [],
+  "schemas": [
+    "dashboard_widgets",
+    "dashboard_layouts"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "widgets",
+      "layouts"
+    ],
+    "services": [
+      "DashboardService",
+      "WidgetService"
+    ],
+    "hooks": [],
+    "routes": [
+      "/dashboard"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableCustomLayouts": true,
+    "enableWidgets": true,
+    "defaultLayout": "standard",
+    "refreshInterval": 300
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

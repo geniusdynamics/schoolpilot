@@ -9,3 +9,4 @@ export * from './finance';
 export * from './inventory';
 export * from './library';
 export * from './app-data';
+export * from './module';

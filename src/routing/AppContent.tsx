@@ -8,6 +8,7 @@ import { UnifiedAppConfig } from '../config/unifiedConfig';
 import { useAuth } from '../contexts/AuthContext';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 import { initializeModules } from '../core/moduleLoader';
+import '../core/moduleRegistration'; // Auto-registers module factories
 import { initializeTheme } from '../hooks/useTheme';
 import { useRoutePersistence } from '../hooks/useRoutePersistence';
 import { logger } from '../utils/logging';

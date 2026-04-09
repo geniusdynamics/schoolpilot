@@ -1,0 +1,125 @@
+name: Module Independence Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  detect-cross-module-imports:
+    name: Detect Cross-Module Imports
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run cross-module import detection
+        run: npm run lint:modules
+      
+      - name: Upload results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-module-imports-report
+          path: |
+            cross-module-imports-report.json
+
+  eslint:
+    name: ESLint Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run TypeScript check
+        run: npm run typecheck
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm run test:run
+
+  # Summary job that requires all others
+  validation-summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [detect-cross-module-imports, eslint, typecheck, test]
+    if: always()
+    
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "Cross-Module Imports: ${{ needs.detect-cross-module-imports.result }}"
+          echo "ESLint: ${{ needs.eslint.result }}"
+          echo "TypeCheck: ${{ needs.typecheck.result }}"
+          echo "Tests: ${{ needs.test.result }}"
+      
+      - name: Fail if any job failed
+        if: |
+          needs.detect-cross-module-imports.result == 'failure' ||
+          needs.eslint.result == 'failure' ||
+          needs.typecheck.result == 'failure' ||
+          needs.test.result == 'failure'
+        run: |
+          echo "❌ One or more validation checks failed"
+          exit 1
+      
+      - name: Success
+        run: |
+          echo "✅ All validation checks passed"

@@ -1,19 +1,27 @@
-// ABOUTME: Standardized hook for academic year data management
-// ABOUTME: Provides CRUD operations for academic years with AppDataContext integration
-// ABOUTME: Uses the data hook factory for consistent interface and behavior
+/**
+ * Academic Year Data Hook
+ * 
+ * Provides CRUD operations for academic year management.
+ * Uses the data hook factory for consistent interface.
+ * 
+ * @module academics/data/useAcademicYearData
+ */
 
 import { useMemo } from 'react';
-import { initialMockAcademicYears } from '../../administration/data/mockData';
 import { AcademicYear } from '@/core/types';
 import { createDataHook, DataHookConfig } from '@/hooks/useDataHookFactory';
 import { useDataHookRegistration } from '@/hooks/useDataHookRegistration';
+
+// Local initial data for academic years
+// TODO: This should ideally come from database or shared store
+const initialAcademicYears: AcademicYear[] = [];
 
 // Create the standardized data hook using the factory
 export const useAcademicYearData = () => {
   // Memoize the configuration to prevent infinite re-renders
   const config = useMemo((): DataHookConfig<AcademicYear> => ({
     entityName: 'academicYears',
-    initialData: initialMockAcademicYears,
+    initialData: initialAcademicYears,
     entityModule: 'academics',
     requiresBackend: false,
     allowOffline: true,

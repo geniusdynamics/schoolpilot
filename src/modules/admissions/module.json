@@ -1,0 +1,70 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "admissions",
+  "name": "Admissions",
+  "version": "1.0.0",
+  "description": "Student admissions and enrollment management",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["admissions", "enrollment", "applications", "registration"],
+  "dependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires student structure and classes",
+      "imports": ["classes", "academicYears"]
+    }
+  ],
+  "optionalDependencies": [
+    {
+      "moduleId": "finance",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Fee management for admissions"
+    }
+  ],
+  "conflicts": [],
+  "schemas": [
+    "admissions",
+    "admission_documents",
+    "admission_status_history"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "admissions",
+      "applications"
+    ],
+    "services": [
+      "AdmissionService",
+      "ApplicationProcessingService"
+    ],
+    "hooks": [
+      "onApplicationSubmitted",
+      "onAdmissionApproved"
+    ],
+    "routes": [
+      "/admissions/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableOnlineApplications": true,
+    "enableDocumentUploads": true,
+    "enableApplicationTracking": true,
+    "requireDocumentVerification": true,
+    "autoAssignStudentId": true
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

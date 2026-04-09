@@ -1,0 +1,77 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "hr",
+  "name": "Human Resources",
+  "version": "1.0.0",
+  "description": "HR management including payroll, salary settings, and payslips",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["hr", "payroll", "salary", "payslip", "human resources"],
+  "dependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires staff data from administration",
+      "imports": ["staff", "departments", "designations"]
+    },
+    {
+      "moduleId": "finance",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires financial accounts for payroll processing",
+      "imports": ["accounts", "banks"]
+    }
+  ],
+  "optionalDependencies": [],
+  "conflicts": [],
+  "schemas": [
+    "payroll_periods",
+    "payroll_item_types",
+    "staff_salary_settings",
+    "staff_recurring_items",
+    "payslips",
+    "payslip_items"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "payrollPeriods",
+      "payslips",
+      "salarySettings"
+    ],
+    "services": [
+      "PayrollService",
+      "PayslipService",
+      "SalaryCalculationService"
+    ],
+    "hooks": [
+      "onPayslipGenerated",
+      "onPayrollProcessed"
+    ],
+    "routes": [
+      "/hr/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "defaultPayrollFrequency": "monthly",
+    "enableRecurringItems": true,
+    "enableDeductions": true,
+    "enableBonuses": true,
+    "autoGeneratePayslips": true,
+    "payslipApprovalRequired": true,
+    "taxCalculationEnabled": true
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

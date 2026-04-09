@@ -1,0 +1,80 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "reports",
+  "name": "Reports & Analytics",
+  "version": "1.0.0",
+  "description": "Reporting and analytics across all modules",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["reports", "analytics", "statistics", "data"],
+  "dependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Core data for reporting",
+      "imports": ["students", "staff", "classes"]
+    }
+  ],
+  "optionalDependencies": [
+    {
+      "moduleId": "academics",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Academic reports"
+    },
+    {
+      "moduleId": "finance",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Financial reports"
+    },
+    {
+      "moduleId": "library",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Library reports"
+    }
+  ],
+  "conflicts": [],
+  "schemas": [
+    "report_templates",
+    "scheduled_reports"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "reports",
+      "reportTemplates"
+    ],
+    "services": [
+      "ReportService",
+      "AnalyticsService",
+      "ReportBuilderService"
+    ],
+    "hooks": [],
+    "routes": [
+      "/reports/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": false,
+    "requiresBackend": true,
+    "multiTenant": false,
+    "supportsSync": false,
+    "realTime": false
+  },
+  "config": {
+    "enableCustomReports": true,
+    "enableScheduledReports": true,
+    "enableExportPDF": true,
+    "enableExportExcel": true,
+    "enableCharts": true,
+    "enableDashboards": true
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

@@ -1,281 +1,348 @@
-// ABOUTME: Module registry system for dynamic module loading and navigation management
-// ABOUTME: This system allows modules to be registered, enabled/disabled, and their navigation to be dynamically generated
+import type { ModuleMetadata, LoadedModule } from '@/core/types/module';
+import { DependencyResolver, type ResolutionResult } from './DependencyResolver';
+import { ModuleLifecycle, type LifecycleHooks, type ModuleState } from './ModuleLifecycle';
+import { EventEmitter } from 'events';
 
-import { ModuleDefinition, NavItem } from './types';
-import { MODULE_ORDER } from '../moduleOrder';
-import { moduleConfigService } from '../services/module/moduleConfigService';
-import { logger } from '../utils/logging';
+export interface RegistryOptions {
+  autoEnable?: boolean;
+  parallelLoading?: boolean;
+  timeout?: number;
+}
 
-// Helper to identify core modules
-const CORE_MODULE_IDS = ['dashboard', 'settings', 'reports'];
+export interface RegistryEventMap {
+  'module:loading': { moduleId: string };
+  'module:loaded': { moduleId: string; state: ModuleState };
+  'module:error': { moduleId: string; error: Error };
+  'registry:ready': { modules: string[] };
+  'registry:error': { error: Error };
+}
 
-// Recursive function to filter out deprecated navigation items and prune empty groups
-const filterDeprecatedNavItems = (navItems: NavItem[]): NavItem[] => {
-  const filtered: NavItem[] = [];
-  
-  for (const item of navItems) {
-    // Skip deprecated items
-    if (item.deprecated) {
-      continue;
-    }
-    
-    // Process children recursively if they exist
-    let filteredChildren: NavItem[] = [];
-    if (item.children && item.children.length > 0) {
-      filteredChildren = filterDeprecatedNavItems(item.children);
-    }
-    
-    // If this is a group (has children) and all children were filtered out, skip it
-    if (item.isGroup && filteredChildren.length === 0) {
-      continue;
-    }
-    
-    // Create new item with filtered children
-    const filteredItem: NavItem = {
-      ...item,
-      children: filteredChildren
+/**
+ * Central registry for managing all modules.
+ * Combines dependency resolution with lifecycle management.
+ */
+export class ModuleRegistry extends EventEmitter {
+  private resolver = new DependencyResolver();
+  private lifecycle = new ModuleLifecycle();
+  private metadata = new Map<string, ModuleMetadata>();
+  private options: RegistryOptions;
+  private isReady = false;
+
+  constructor(options: RegistryOptions = {}) {
+    super();
+    this.options = {
+      autoEnable: true,
+      parallelLoading: false,
+      timeout: 30000,
+      ...options
     };
-    
-    filtered.push(filteredItem);
+
+    // Forward lifecycle events
+    this.lifecycle.on('module:registered', (e) => this.emit('module:registered', e));
+    this.lifecycle.on('module:enabled', (e) => this.emit('module:enabled', e));
+    this.lifecycle.on('module:disabled', (e) => this.emit('module:disabled', e));
+    this.lifecycle.on('module:unregistered', (e) => this.emit('module:unregistered', e));
+    this.lifecycle.on('module:error', (e) => this.emit('module:error', e));
   }
-  
-  return filtered;
-};
 
-// Module Registry Class
-class ModuleRegistry {
-  private modules: Map<string, ModuleDefinition> = new Map();
+  /**
+   * Register a module with its metadata and optional hooks
+   */
+  async register(module: LoadedModule, hooks?: LifecycleHooks): Promise<void> {
+    const { id, metadata } = module;
 
-  // Check if a module is registered
+    // Store metadata
+    this.metadata.set(id, metadata);
+
+    // Register with resolver for dependency tracking
+    this.resolver.registerModule(module);
+
+    // Register hooks if provided
+    if (hooks) {
+      this.lifecycle.registerHooks(id, hooks);
+    }
+
+    // Register with lifecycle manager
+    await this.lifecycle.register(module, metadata.config);
+  }
+
+  /**
+   * Register multiple modules at once
+   */
+  async registerBatch(modules: LoadedModule[], hooksMap?: Map<string, LifecycleHooks>): Promise<void> {
+    // First pass: register all modules with resolver and store metadata
+    for (const module of modules) {
+      this.resolver.registerModule(module);
+      this.metadata.set(module.id, module.metadata);
+    }
+
+    // Second pass: resolve dependencies and register with lifecycle
+    const resolution = this.resolver.resolve();
+    
+    if (resolution.circular.length > 0) {
+      throw new Error(
+        `Cannot register modules with circular dependencies: ${
+          resolution.circular.map(c => c.join(' -> ')).join(', ')
+        }`
+      );
+    }
+
+    // Register in dependency order
+    for (const moduleId of resolution.order) {
+      const module = modules.find(m => m.id === moduleId);
+      if (module && !this.lifecycle.isRegistered(moduleId)) {
+        const hooks = hooksMap?.get(moduleId);
+        // Register hooks BEFORE registering module so onRegister is called
+        if (hooks) {
+          this.lifecycle.registerHooks(moduleId, hooks);
+        }
+        await this.lifecycle.register(module, module.metadata.config);
+      }
+    }
+  }
+
+  /**
+   * Initialize all registered modules
+   * Resolves dependencies and enables modules in correct order
+   */
+  async initialize(): Promise<void> {
+    try {
+      const resolution = this.resolver.resolve();
+
+      if (resolution.circular.length > 0) {
+        const error = new Error(
+          `Circular dependencies detected: ${
+            resolution.circular.map(c => c.join(' -> ')).join(', ')
+          }`
+        );
+        this.emit('registry:error', { error });
+        throw error;
+      }
+
+      if (this.options.parallelLoading) {
+        await this.initializeParallel(resolution);
+      } else {
+        await this.initializeSequential(resolution);
+      }
+
+      this.isReady = true;
+      this.emit('registry:ready', { modules: this.getEnabledModules() });
+    } catch (error) {
+      this.emit('registry:error', { error: error as Error });
+      throw error;
+    }
+  }
+
+  /**
+   * Initialize modules sequentially in dependency order
+   */
+  private async initializeSequential(resolution: ResolutionResult): Promise<void> {
+    for (const moduleId of resolution.order) {
+      if (this.options.autoEnable && !this.lifecycle.isEnabled(moduleId)) {
+        this.emit('module:loading', { moduleId });
+        await this.lifecycle.enable(moduleId);
+        this.emit('module:loaded', { moduleId, state: this.lifecycle.getState(moduleId)! });
+      }
+    }
+  }
+
+  /**
+   * Initialize modules in parallel batches based on dependency levels
+   */
+  private async initializeParallel(resolution: ResolutionResult): Promise<void> {
+    const batches = this.resolver.getLoadingBatches();
+
+    for (const batch of batches) {
+      const promises = batch
+        .filter(id => this.options.autoEnable && !this.lifecycle.isEnabled(id))
+        .map(async (moduleId) => {
+          this.emit('module:loading', { moduleId });
+          try {
+            await this.lifecycle.enable(moduleId);
+            this.emit('module:loaded', { moduleId, state: this.lifecycle.getState(moduleId)! });
+          } catch (error) {
+            this.emit('module:error', { moduleId, error: error as Error });
+            throw error;
+          }
+        });
+
+      await Promise.all(promises);
+    }
+  }
+
+  /**
+   * Enable a specific module
+   */
+  async enable(moduleId: string): Promise<void> {
+    // Check if dependencies are enabled
+    const deps = this.resolver.getAllDependencies(moduleId);
+    for (const dep of deps) {
+      if (!this.lifecycle.isEnabled(dep)) {
+        throw new Error(
+          `Cannot enable "${moduleId}": dependency "${dep}" is not enabled`
+        );
+      }
+    }
+
+    await this.lifecycle.enable(moduleId);
+  }
+
+  /**
+   * Disable a specific module
+   */
+  async disable(moduleId: string): Promise<void> {
+    // Check if any dependents are still enabled
+    const enabledModules = new Set(this.lifecycle.getEnabledModules());
+    if (!this.resolver.canDisable(moduleId, enabledModules)) {
+      const dependents = this.resolver.getDependents(moduleId)
+        .filter(d => enabledModules.has(d));
+      throw new Error(
+        `Cannot disable "${moduleId}": modules depend on it: ${dependents.join(', ')}`
+      );
+    }
+
+    await this.lifecycle.disable(moduleId);
+  }
+
+  /**
+   * Unregister a module
+   */
+  async unregister(moduleId: string): Promise<void> {
+    await this.lifecycle.unregister(moduleId);
+    this.metadata.delete(moduleId);
+  }
+
+  /**
+   * Get module metadata
+   */
+  getMetadata(moduleId: string): ModuleMetadata | undefined {
+    return this.metadata.get(moduleId);
+  }
+
+  /**
+   * Get all module metadata
+   */
+  getAllMetadata(): ModuleMetadata[] {
+    return Array.from(this.metadata.values());
+  }
+
+  /**
+   * Get module state
+   */
+  getState(moduleId: string): ModuleState | undefined {
+    return this.lifecycle.getState(moduleId);
+  }
+
+  /**
+   * Get all module states
+   */
+  getAllStates(): ModuleState[] {
+    return this.lifecycle.getAllStates();
+  }
+
+  /**
+   * Check if module is enabled
+   */
+  isEnabled(moduleId: string): boolean {
+    return this.lifecycle.isEnabled(moduleId);
+  }
+
+  /**
+   * Check if module is registered
+   */
   isRegistered(moduleId: string): boolean {
-    return this.modules.has(moduleId);
+    return this.lifecycle.isRegistered(moduleId);
   }
 
-  // Register a new module with strict dependency checking
-  registerModule(module: ModuleDefinition): void {
-    // Validate required dependencies before registration
-    if (module.dependencies) {
-      for (const dep of module.dependencies) {
-        const depId = typeof dep === 'string' ? dep : dep.moduleId;
-        const isRequired = typeof dep === 'string' ? true : dep.required !== false;
-        const isOptional = typeof dep === 'string' ? false : dep.optional === true;
-
-        if (isRequired && !this.isRegistered(depId)) {
-          throw new Error(
-            `Module "${module.id}" requires "${depId}" which is not registered. ` +
-            `Please register "${depId}" before "${module.id}".`
-          );
-        }
-
-        // Log warning for optional dependencies that aren't registered
-        if (isOptional && !this.isRegistered(depId)) {
-          logger.warn(
-            `Module "${module.id}" has optional dependency "${depId}" which is not registered. ` +
-            `Some features may be unavailable.`
-          );
-        }
-      }
-    }
-
-    // Also check optionalDependencies array if present
-    if (module.optionalDependencies) {
-      for (const dep of module.optionalDependencies) {
-        const depId = typeof dep === 'string' ? dep : dep.moduleId;
-        if (!this.isRegistered(depId)) {
-          logger.warn(
-            `Module "${module.id}" has optional dependency "${depId}" which is not registered. ` +
-            `Some features may be unavailable.`
-          );
-        }
-      }
-    }
-
-    this.modules.set(module.id, module);
-    logger.debug(`[ModuleRegistry] Registered module: ${module.id}`);
+  /**
+   * Get list of enabled modules
+   */
+  getEnabledModules(): string[] {
+    return this.lifecycle.getEnabledModules();
   }
 
-  // Unregister a module
-  unregisterModule(moduleId: string): void {
-    this.modules.delete(moduleId);
+  /**
+   * Get dependency graph
+   */
+  getDependencyGraph() {
+    return this.resolver.buildGraph();
   }
 
-  // Enable a module (updates config service)
-  enableModule(moduleId: string): boolean {
-    return moduleConfigService.enableModule(moduleId);
+  /**
+   * Get loading order
+   */
+  getLoadingOrder(): string[] {
+    return this.resolver.resolve().order;
   }
 
-  // Disable a module (updates config service)
-  disableModule(moduleId: string): boolean {
-    return moduleConfigService.disableModule(moduleId);
+  /**
+   * Get loading batches (for parallel loading)
+   */
+  getLoadingBatches(): string[][] {
+    return this.resolver.getLoadingBatches();
   }
 
-  // Get all registered modules
-  getAllModules(): ModuleDefinition[] {
-    return Array.from(this.modules.values());
+  /**
+   * Get all dependencies for a module
+   */
+  getDependencies(moduleId: string): string[] {
+    return this.resolver.getAllDependencies(moduleId);
   }
 
-  // Get enabled modules only
-  getEnabledModules(): ModuleDefinition[] {
-    const allModules = Array.from(this.modules.values());
-    console.log('[ModuleRegistry] DEBUG: All registered modules:', allModules.map(m => m.id));
-    
-    const enabledModules = allModules.filter(module => {
-      const isCoreModule = CORE_MODULE_IDS.includes(module.id);
-      const isConfigEnabled = moduleConfigService.isModuleEnabled(module.id);
-      const isEnabled = isCoreModule || isConfigEnabled;
-      
-      logger.debug(`[ModuleRegistry] Module ${module.id} - core: ${isCoreModule}, configEnabled: ${isConfigEnabled}, finalEnabled: ${isEnabled}`);
-      return isEnabled;
-    });
-    
-    logger.debug('[ModuleRegistry] Final enabled modules:', enabledModules.map(m => m.id));
-    return enabledModules;
+  /**
+   * Get all dependents of a module
+   */
+  getDependents(moduleId: string): string[] {
+    return this.resolver.getDependents(moduleId);
   }
 
-  // Get a specific module
-  getModule(moduleId: string): ModuleDefinition | undefined {
-    return this.modules.get(moduleId);
+  /**
+   * Check if registry is ready
+   */
+  get ready(): boolean {
+    return this.isReady;
   }
 
-  // Check if a module is enabled (based on config service and core modules)
-  isModuleEnabled(moduleId: string): boolean {
-    if (['dashboard', 'settings', 'reports'].includes(moduleId)) {
-      return true;
-    }
-    return moduleConfigService.isModuleEnabled(moduleId);
-  }
+  /**
+   * Wait for registry to be ready
+   */
+  async waitForReady(timeout = this.options.timeout): Promise<void> {
+    if (this.isReady) return;
 
-  // Get navigation items from all enabled modules
-  getNavigationItems(): NavItem[] {
-    let enabledModules = this.getEnabledModules();
-    logger.debug('[ModuleRegistry] getNavigationItems() - enabled modules:', enabledModules.map(m => m.id));
-    
-    // Sort by MODULE_ORDER, then alphabetically for extras
-    enabledModules = enabledModules.sort((a, b) => {
-      const aIdx = MODULE_ORDER.indexOf(a.id);
-      const bIdx = MODULE_ORDER.indexOf(b.id);
-      if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-      if (aIdx !== -1) return -1;
-      if (bIdx !== -1) return 1;
-      // Both not in MODULE_ORDER: sort alphabetically
-      return a.name.localeCompare(b.name);
-    });
-    
-    const navigationItems: NavItem[] = [];
-    enabledModules.forEach(module => {
-      logger.debug(`[ModuleRegistry] Processing navigation for module ${module.id}:`, {
-        name: module.name,
-        path: module.path,
-        navigationChildren: module.navigation?.length || 0,
-        isActive: this.isModuleEnabled(module.id)
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error(`Timeout waiting for registry to be ready after ${timeout}ms`));
+      }, timeout);
+
+      this.once('registry:ready', () => {
+        clearTimeout(timer);
+        resolve();
       });
-      
-      // Filter deprecated items from module navigation
-      const filteredNavigation = module.navigation ? filterDeprecatedNavItems(module.navigation) : [];
-      
-      // Skip modules that have no active navigation items after filtering
-      if (module.navigation && module.navigation.length > 0 && filteredNavigation.length === 0) {
-        logger.debug(`[ModuleRegistry] Skipping module ${module.id} - no active navigation items after filtering`);
-        return;
-      }
-      
-      const mainNavItem: NavItem = {
-        name: module.name,
-        path: module.path,
-        icon: module.icon,
-        isGroup: filteredNavigation.length > 0,
-        modulePath: module.path,
-        children: filteredNavigation,
-        isActive: this.isModuleEnabled(module.id) // Use the updated isModuleEnabled
-      };
-      navigationItems.push(mainNavItem);
+
+      this.once('registry:error', ({ error }) => {
+        clearTimeout(timer);
+        reject(error);
+      });
     });
-    
-    logger.debug('[ModuleRegistry] Final navigation items:', navigationItems.map(item => ({
-      name: item.name,
-      path: item.path,
-      childrenCount: item.children?.length || 0,
-      isActive: item.isActive
-    })));
-    
-    return navigationItems;
   }
 
-  // Get navigation items for a specific module
-  getModuleNavigation(moduleId: string): NavItem[] {
-    const module = this.modules.get(moduleId);
-    return module ? module.navigation : [];
+  /**
+   * Get number of registered modules
+   */
+  get size(): number {
+    return this.metadata.size;
   }
 
-  // Check module dependencies
-  checkDependencies(moduleId: string): { satisfied: boolean; missing: string[] } {
-    const module = this.modules.get(moduleId);
-    if (!module || !module.dependencies) {
-      return { satisfied: true, missing: [] };
-    }
-
-    const dependencies = module.dependencies.map(dep => 
-      typeof dep === 'string' ? dep : dep.moduleId
-    );
-    
-    const missing = dependencies.filter(depId => !this.isModuleEnabled(depId));
-    return {
-      satisfied: missing.length === 0,
-      missing
-    };
-  }
-
-  // Validate module dependencies with version checking
-  async validateModuleDependencies(moduleId: string): Promise<boolean> {
-    const module = this.modules.get(moduleId);
-    if (!module) {
-      return false;
-    }
-    
-    // Use dynamic import to avoid circular dependency issues
-    const { ModuleDependencyValidator } = await import('./services/ModuleDependencyValidator');
-    return ModuleDependencyValidator.validateDependencies(module, this);
-  }
-
-  // Get modules by feature
-  getModulesByFeature(feature: string): ModuleDefinition[] {
-    return this.getEnabledModules().filter(module =>
-      module.features?.includes(feature)
-    );
-  }
-
-  // Get all available features
-  getAllFeatures(): string[] {
-    const features = new Set<string>();
-    this.getEnabledModules().forEach(module => {
-      module.features?.forEach(feature => features.add(feature));
-    });
-    return Array.from(features);
-  }
-
-  // Get settings for all modules
-  getModuleSettings(): Array<{ moduleId: string; settings: ModuleDefinition['settings'] }> {
-    return this.getEnabledModules()
-      .filter(module => module.settings)
-      .map(module => ({
-        moduleId: module.id,
-        settings: module.settings
-      }));
+  /**
+   * Clear all modules
+   */
+  async clear(): Promise<void> {
+    await this.lifecycle.clear();
+    this.metadata.clear();
+    this.resolver.clear();
+    this.isReady = false;
   }
 }
 
-// Create singleton instance
+// Singleton instance
 export const moduleRegistry = new ModuleRegistry();
-
-// Helper function to register modules from a module definition file
-export const registerModuleFromDefinition = (moduleDefinition: ModuleDefinition): void => {
-  moduleRegistry.registerModule(moduleDefinition);
-};
-
-// Helper function to get navigation items (for backward compatibility)
-export const getNavigationItems = (): NavItem[] => {
-  return moduleRegistry.getNavigationItems();
-};
-
-// Export the registry instance
-export default moduleRegistry;

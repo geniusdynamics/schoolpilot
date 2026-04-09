@@ -12,7 +12,7 @@ import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '@/components/u
 import { useSchoolPeriodData } from '../data/useSchoolPeriodData';
 import { useAcademicYearData } from '../data/useAcademicYearData';
 import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefinitionData';
-import { useFinancialYearData } from '../../finance/data/useFinancialYearData';
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -29,7 +29,7 @@ const SchoolPeriodsPage: React.FC = () => {
   const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
   const { data: academicYears } = useAcademicYearData();
   const { data: academicPeriodDefinitions } = useAcademicPeriodDefinitionData();
-  const { data: financialYears } = useFinancialYearData();
+  const { financialYears } = useAppData();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<SchoolPeriod | null>(null);

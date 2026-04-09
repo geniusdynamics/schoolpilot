@@ -1,0 +1,89 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "administration",
+  "name": "Administration",
+  "version": "1.0.0",
+  "description": "Core administration module managing students, staff, classes, departments, and school structure",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["administration", "students", "staff", "classes", "departments", "school"],
+  "dependencies": [
+    {
+      "moduleId": "core",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Core system types and utilities",
+      "imports": ["users", "roles", "permissions"]
+    }
+  ],
+  "optionalDependencies": [],
+  "conflicts": [],
+  "schemas": [
+    "students",
+    "staff",
+    "classes",
+    "class_streams",
+    "departments",
+    "designations",
+    "parents_guardians",
+    "dormitories",
+    "student_categories",
+    "partners",
+    "clubs",
+    "customers",
+    "student_health_records",
+    "student_attendance",
+    "disciplinary_records",
+    "academic_years",
+    "school_periods",
+    "academic_year_structures",
+    "academic_period_definitions"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "students",
+      "staff",
+      "classes",
+      "departments",
+      "academicYears",
+      "schoolDetails"
+    ],
+    "services": [
+      "StudentService",
+      "StaffService",
+      "ClassManagementService"
+    ],
+    "hooks": [
+      "onStudentEnrolled",
+      "onStaffHired",
+      "onClassAssigned"
+    ],
+    "routes": [
+      "/administration/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableStudentCategories": true,
+    "enableDormitoryManagement": true,
+    "enableClubManagement": true,
+    "enablePartnerManagement": true,
+    "enableHealthRecords": true,
+    "enableDisciplinaryTracking": true,
+    "defaultAcademicYear": null,
+    "studentIdFormat": "STU-{YEAR}-{SEQUENCE}",
+    "staffIdFormat": "STF-{YEAR}-{SEQUENCE}"
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

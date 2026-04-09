@@ -1,47 +1,84 @@
-// ABOUTME: Self-contained hook for any data management
-// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
+/**
+ * Warehouse Data Hook
+ * 
+ * Provides CRUD operations for warehouse management.
+ * 
+ * @module inventory/data/useWarehouseData
+ */
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
-import { any } from '@/core/types';
 
-const useWarehouseData = () => {
-  const [warehouses, setWarehouses] = useState<any[]>([]);
+interface Warehouse {
+  id: number;
+  name: string;
+  code: string;
+  location?: string;
+  manager_id?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UseWarehouseDataResult {
+  data: Warehouse[];
+  isLoading: boolean;
+  error: string | null;
+  create: (newItem: Partial<Warehouse>) => Promise<Warehouse>;
+  update: (id: number, updatedData: Partial<Warehouse>) => Promise<void>;
+  remove: (id: number) => Promise<void>;
+}
+
+/**
+ * Hook for managing warehouse data
+ * @returns Warehouse data and CRUD operations
+ */
+const useWarehouseData = (): UseWarehouseDataResult => {
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      // Simulate fetching data from a mock source
-      setWarehouses(initialMockUsers);
-      setIsLoading(false);
-    } catch (e) {
-      setError('Failed to fetch warehouses');
-      setIsLoading(false);
-    }
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Fetch from database
+        setWarehouses([]);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch warehouses');
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
-      ...newItem,
+  const create = async (newItem: Partial<Warehouse>): Promise<Warehouse> => {
+    const newDataItem: Warehouse = {
       id: Date.now(),
+      name: newItem.name || '',
+      code: newItem.code || '',
+      location: newItem.location,
+      manager_id: newItem.manager_id,
+      is_active: newItem.is_active ?? true,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as any;
-    setWarehouses((prev: any[]) => [...prev, newDataItem]);
+      updated_at: new Date().toISOString(),
+      ...newItem
+    };
+    setWarehouses((prev) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setWarehouses((prev: any[]) => prev.map((item: any) =>
+  const update = async (id: number, updatedData: Partial<Warehouse>): Promise<void> => {
+    setWarehouses((prev) => prev.map((item) =>
       item.id === id
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
-    setWarehouses((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  const remove = async (id: number): Promise<void> => {
+    setWarehouses((prev) => prev.filter((item) => item.id !== id));
   };
 
   return {
@@ -55,3 +92,4 @@ const useWarehouseData = () => {
 };
 
 export { useWarehouseData };
+export type { Warehouse, UseWarehouseDataResult };

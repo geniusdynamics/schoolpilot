@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { cn } from '@/utils/cn';
-import { FileTextIcon, EyeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, EyeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 export interface Newsletter {
   id: string;
@@ -29,7 +29,7 @@ const DocumentIcon: React.FC<{ type?: string }> = ({ type }) => {
       type === 'pdf' ? 'bg-rose-100 text-rose-600' :
       'bg-cyan-100 text-cyan-600'
     )}>
-      <FileTextIcon className="h-6 w-6" />
+      <DocumentTextIcon className="h-6 w-6" />
     </div>
   );
 };

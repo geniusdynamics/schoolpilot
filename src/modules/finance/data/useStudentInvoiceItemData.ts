@@ -1,46 +1,89 @@
-// ABOUTME: Self-contained hook for any data management
-// ABOUTME: Provides CRUD operations for any without depending on AppDataContext
+/**
+ * Student Invoice Item Data Hook
+ * 
+ * Provides CRUD operations for student invoice item management.
+ * 
+ * @module finance/data/useStudentInvoiceItemData
+ */
 
 import { useState, useEffect } from 'react';
-import { initialMockUsers } from '../../administration/data/mockData';
 
-const useStudentInvoiceItemData = () => {
-  const [studentInvoiceItems, setStudentInvoiceItems] = useState<any[]>([]);
+interface StudentInvoiceItem {
+  id: number;
+  invoice_id: number;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UseStudentInvoiceItemDataResult {
+  data: StudentInvoiceItem[];
+  isLoading: boolean;
+  error: string | null;
+  create: (newItem: Partial<StudentInvoiceItem>) => Promise<StudentInvoiceItem>;
+  update: (id: number, updatedData: Partial<StudentInvoiceItem>) => Promise<void>;
+  remove: (id: number) => Promise<void>;
+}
+
+/**
+ * Hook for managing student invoice item data
+ * @returns Student invoice item data and CRUD operations
+ */
+const useStudentInvoiceItemData = (): UseStudentInvoiceItemDataResult => {
+  const [studentInvoiceItems, setStudentInvoiceItems] = useState<StudentInvoiceItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      // Simulate fetching data from a mock source
-      setStudentInvoiceItems(initialMockUsers);
-      setIsLoading(false);
-    } catch (e) {
-      setError('Failed to fetch student invoice items');
-      setIsLoading(false);
-    }
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        // TODO: Fetch from database
+        setStudentInvoiceItems([]);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch student invoice items');
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const create = async (newItem: Partial<any>) => {
-    const newDataItem: any = {
-      ...newItem,
+  const create = async (newItem: Partial<StudentInvoiceItem>): Promise<StudentInvoiceItem> => {
+    const newDataItem: StudentInvoiceItem = {
       id: Date.now(),
+      invoice_id: newItem.invoice_id || 0,
+      description: newItem.description || '',
+      quantity: newItem.quantity || 1,
+      unit_price: newItem.unit_price || 0,
+      total_amount: (newItem.quantity || 1) * (newItem.unit_price || 0),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as any;
-    setStudentInvoiceItems((prev: any[]) => [...prev, newDataItem]);
+      updated_at: new Date().toISOString(),
+      ...newItem
+    };
+    setStudentInvoiceItems((prev) => [...prev, newDataItem]);
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<any>) => {
-    setStudentInvoiceItems((prev: any[]) => prev.map((item: any) =>
+  const update = async (id: number, updatedData: Partial<StudentInvoiceItem>): Promise<void> => {
+    setStudentInvoiceItems((prev) => prev.map((item) =>
       item.id === id
-        ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
+        ? { 
+            ...item, 
+            ...updatedData, 
+            total_amount: (updatedData.quantity || item.quantity) * (updatedData.unit_price || item.unit_price),
+            updated_at: new Date().toISOString() 
+          }
         : item
     ));
   };
 
-  const remove = async (id: number) => {
-    setStudentInvoiceItems((prev: any[]) => prev.filter((item: any) => item.id !== id));
+  const remove = async (id: number): Promise<void> => {
+    setStudentInvoiceItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   return {
@@ -54,3 +97,4 @@ const useStudentInvoiceItemData = () => {
 };
 
 export { useStudentInvoiceItemData };
+export type { StudentInvoiceItem, UseStudentInvoiceItemDataResult };

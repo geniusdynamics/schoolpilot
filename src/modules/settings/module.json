@@ -1,0 +1,60 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "settings",
+  "name": "System Settings",
+  "version": "1.0.0",
+  "description": "System configuration and settings management",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["settings", "configuration", "system", "preferences"],
+  "dependencies": [
+    {
+      "moduleId": "core",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Core system configuration"
+    }
+  ],
+  "optionalDependencies": [],
+  "conflicts": [],
+  "schemas": [
+    "system_settings",
+    "user_preferences",
+    "feature_flags"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "settings",
+      "preferences"
+    ],
+    "services": [
+      "SettingsService",
+      "ConfigurationService"
+    ],
+    "hooks": [
+      "onSettingChanged"
+    ],
+    "routes": [
+      "/settings/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableFeatureFlags": true,
+    "enableModuleManagement": true,
+    "enableUserPreferences": true,
+    "enableSystemConfig": true
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

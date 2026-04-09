@@ -1,0 +1,80 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "nutrition",
+  "name": "Nutrition Management",
+  "version": "1.0.0",
+  "description": "School nutrition and meal management including meal plans, wallets, and cafeteria",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["nutrition", "meals", "cafeteria", "wallet", "food"],
+  "dependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires students for meal assignments",
+      "imports": ["students"]
+    },
+    {
+      "moduleId": "finance",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires wallet integration for payments"
+    }
+  ],
+  "optionalDependencies": [],
+  "conflicts": [],
+  "schemas": [
+    "meal_plans",
+    "menus",
+    "menu_items",
+    "merchants",
+    "student_meal_plans",
+    "student_wallets",
+    "wallet_transactions",
+    "meal_consumption_logs"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "mealPlans",
+      "menus",
+      "studentWallets",
+      "walletTransactions"
+    ],
+    "services": [
+      "NutritionService",
+      "WalletService",
+      "MealPlanService"
+    ],
+    "hooks": [
+      "onWalletToppedUp",
+      "onMealConsumed",
+      "onLowBalance"
+    ],
+    "routes": [
+      "/nutrition/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableStudentWallets": true,
+    "enableMealPlans": true,
+    "enableMerchantManagement": true,
+    "enableConsumptionTracking": true,
+    "minimumWalletBalance": 0,
+    "autoTopUpEnabled": false,
+    "lowBalanceThreshold": 100
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

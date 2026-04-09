@@ -1,0 +1,80 @@
+{
+  "$schema": "../../schemas/module-schema.json",
+  "id": "library",
+  "name": "Library Management",
+  "version": "1.0.0",
+  "description": "School library management including books, loans, fines, and digital resources",
+  "author": {
+    "name": "SchoolPilot Team",
+    "url": "https://schoolpilot.io"
+  },
+  "license": "MIT",
+  "keywords": ["library", "books", "loans", "fines", "resources"],
+  "dependencies": [
+    {
+      "moduleId": "administration",
+      "version": "^1.0.0",
+      "required": true,
+      "reason": "Requires students and staff for library members",
+      "imports": ["students", "staff", "users"]
+    }
+  ],
+  "optionalDependencies": [
+    {
+      "moduleId": "finance",
+      "version": "^1.0.0",
+      "required": false,
+      "reason": "Financial integration for fines and payments"
+    }
+  ],
+  "conflicts": [],
+  "schemas": [
+    "book_categories",
+    "books",
+    "book_loans",
+    "fines",
+    "digital_resources",
+    "damaged_lost_books"
+  ],
+  "migrations": "./migrations",
+  "provides": {
+    "entities": [
+      "books",
+      "loans",
+      "fines",
+      "digitalResources"
+    ],
+    "services": [
+      "LibraryService",
+      "LoanService",
+      "FineService"
+    ],
+    "hooks": [
+      "onBookBorrowed",
+      "onBookReturned",
+      "onFineApplied"
+    ],
+    "routes": [
+      "/library/*"
+    ]
+  },
+  "capabilities": {
+    "offlineSupport": true,
+    "requiresBackend": false,
+    "multiTenant": false,
+    "supportsSync": true,
+    "realTime": false
+  },
+  "config": {
+    "enableFineManagement": true,
+    "enableDigitalResources": true,
+    "enableBookReservations": true,
+    "defaultLoanDays": 14,
+    "maxRenewals": 2,
+    "finePerDay": 1.0,
+    "enableBarcodeScanning": true,
+    "enableEmailReminders": true
+  },
+  "minSchoolPilotVersion": "1.0.0",
+  "targetSchoolPilotVersion": "1.0.0"
+}

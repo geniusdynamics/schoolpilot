@@ -17,3 +17,20 @@ export { useAsync } from './useAsync';
 export { usePrevious } from './usePrevious';
 export { useMediaQuery } from './useMediaQuery';
 export { useKeyPress } from './useKeyPress';
+
+// Data access hooks
+export {
+  useSharedData,
+  useSharedEntity,
+  useSharedUsers,
+  useSharedStudents,
+  useSharedStaff,
+  useSharedClasses,
+  useSharedClassStreams,
+  useSharedDepartments,
+  useSharedAcademicYears,
+  useSharedSchoolDetails,
+  SHARED_ENTITIES,
+  isSharedEntity,
+  type SharedEntity,
+} from './useSharedData';

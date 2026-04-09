@@ -9,6 +9,7 @@ import type { AppDataContextType, AppDataLoadingStates } from '../core/types';
 import { useToastHelpers } from '../hooks/useToast';
 import { NetworkStateManager, NetworkState } from '../services/data/NetworkStateManager';
 import { getDataModeManager } from '../services/data/dataModeManager';
+import { sharedDataStore } from '../services/data/SharedDataStore';
 import { hasRequiredSchoolData } from '../services/database/demoDataSeed';
 import {
   createAppDataLoadingState,
@@ -1329,6 +1330,31 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     config.environment,
     loadAllCollections
   ]); // Removed toast from dependencies to prevent re-render loop
+
+  // Sync shared entities to SharedDataStore for non-React access
+  useEffect(() => {
+    if (isInitialized && !isLoading) {
+      const normalizedData = normalizeAppDataCollections(data);
+      sharedDataStore.initialize({
+        users: normalizedData.users || [],
+        students: normalizedData.students || [],
+        staff: normalizedData.staff || [],
+        classes: normalizedData.classes || [],
+        classStreams: normalizedData.classStreams || [],
+        departments: normalizedData.departments || [],
+        designations: normalizedData.designations || [],
+        academicYears: normalizedData.academicYears || [],
+        schoolDetails: normalizedData.schoolDetails || [],
+        roles: normalizedData.roles || [],
+        parentsGuardians: normalizedData.parentsGuardians || [],
+        dormitories: normalizedData.dormitories || [],
+        studentCategories: normalizedData.studentCategories || [],
+        partners: normalizedData.partners || [],
+        clubs: normalizedData.clubs || [],
+        customers: normalizedData.customers || [],
+      });
+    }
+  }, [isInitialized, isLoading, data]);
 
   // Loading state
   if (isLoading) {
