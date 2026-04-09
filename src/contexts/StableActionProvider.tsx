@@ -80,12 +80,12 @@ export const StableActionProvider: React.FC<StableActionProviderProps> = ({
   defaultFeature
 }) => {
   const { user } = useAuth();
-  
+
   // Local state instead of Zustand store
   const [actions, setActions] = useState<Record<string, StableActionDefinition>>({});
   const [groups, setGroups] = useState<Record<string, StableActionGroup>>({});
   const [currentContext, setCurrentContext] = useState<StableActionContext | null>(null);
-  
+
   // Refs to prevent infinite updates
   const lastContextUpdate = useRef<number>(0);
   const contextUpdateTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -93,21 +93,21 @@ export const StableActionProvider: React.FC<StableActionProviderProps> = ({
   // Build stable context
   const buildContext = useCallback((): StableActionContext | null => {
     if (!user) return null;
-    
+
     return {
       module: defaultModule,
       submodule: defaultSubmodule,
       feature: defaultFeature,
       user: {
-        id: user.id || '',
-        name: user.fullName || '',
-        email: user.email || '',
-        role: user.role || 'guest',
-        permissions: user.permissions || []
+        id: user?.id || '',
+        name: user?.fullName || '',
+        email: user?.email || '',
+        role: user?.role || 'guest',
+        permissions: user?.permissions || []
       },
       data: {}
     };
-  }, [user?.id, user?.role, user?.fullName, user?.email, defaultModule, defaultSubmodule, defaultFeature]);
+  }, [user?.id, user?.role, user?.fullName, user?.email, user?.permissions, defaultModule, defaultSubmodule, defaultFeature]);
 
   // Update context with throttling
   useEffect(() => {

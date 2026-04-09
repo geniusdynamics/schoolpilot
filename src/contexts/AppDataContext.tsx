@@ -11,6 +11,7 @@ import { NetworkStateManager, NetworkState } from '../services/data/NetworkState
 import { getDataModeManager } from '../services/data/dataModeManager';
 import { sharedDataStore } from '../services/data/SharedDataStore';
 import { hasRequiredSchoolData } from '../services/database/demoDataSeed';
+import { moduleRegistry } from '../core/moduleRegistry';
 import {
   createAppDataLoadingState,
   normalizeAppDataCollections
@@ -1397,21 +1398,41 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
   return (
     <AppDataValueProvider coreValue={contextValue}>
       <SystemDataProvider>
-        <AdministrationDataProvider>
-          <AcademicDataProvider>
-            <FinanceDataProvider>
-              <HRDataProvider>
-                <InventoryDataProvider>
-                  <LibraryDataProvider>
-                    <NutritionDataProvider>
-                      {children}
-                    </NutritionDataProvider>
-                  </LibraryDataProvider>
-                </InventoryDataProvider>
-              </HRDataProvider>
-            </FinanceDataProvider>
-          </AcademicDataProvider>
-        </AdministrationDataProvider>
+        {moduleRegistry.isEnabled('administration') && (
+          <AdministrationDataProvider>
+            {moduleRegistry.isEnabled('academics') && (
+              <AcademicDataProvider>
+                {moduleRegistry.isEnabled('finance') && (
+                  <FinanceDataProvider>
+                    {moduleRegistry.isEnabled('hr') && (
+                      <HRDataProvider>
+                        {moduleRegistry.isEnabled('inventory') && (
+                          <InventoryDataProvider>
+                            {moduleRegistry.isEnabled('library') && (
+                              <LibraryDataProvider>
+                                {moduleRegistry.isEnabled('nutrition') && (
+                                  <NutritionDataProvider>
+                                    {children}
+                                  </NutritionDataProvider>
+                                )}
+                                {!moduleRegistry.isEnabled('nutrition') && children}
+                              </LibraryDataProvider>
+                            )}
+                            {!moduleRegistry.isEnabled('library') && children}
+                          </InventoryDataProvider>
+                        )}
+                        {!moduleRegistry.isEnabled('inventory') && children}
+                      </HRDataProvider>
+                    )}
+                    {!moduleRegistry.isEnabled('hr') && children}
+                  </FinanceDataProvider>
+                )}
+                {!moduleRegistry.isEnabled('finance') && children}
+              </AcademicDataProvider>
+            )}
+            {!moduleRegistry.isEnabled('academics') && children}
+          </AdministrationDataProvider>
+        )}
       </SystemDataProvider>
 
       {/* Offline indicator */}
