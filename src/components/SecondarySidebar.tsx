@@ -114,7 +114,9 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     return null;
   }
 
-  const sidebarWidth = isMinimized ? 'w-14' : 'w-52';
+  // When minimized in full-width mode, match TopOverflowMenu size (w-16 sm:w-20)
+  // Otherwise, use standard minimized width (w-14)
+  const sidebarWidth = (isMinimized && isFullWidth && isAsPrimary) ? 'w-16 sm:w-20' : (isMinimized ? 'w-14' : 'w-52');
   // When full-width and acting as primary, position at far left (left-0)
   // Otherwise, position next to primary sidebar (left-16 sm:left-20)
   const leftPosition = (isFullWidth && isAsPrimary) ? 'left-0' : 'left-16 sm:left-20';
