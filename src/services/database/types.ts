@@ -1,5 +1,5 @@
 // src/services/database/types.ts
-// ABOUTME: Database service types - re-exports from core types for rxdbService compatibility
+// ABOUTME: Database service types - re-exports from modules for rxdbService compatibility
 
 export type {
   SchoolDetails,
@@ -13,6 +13,7 @@ export type {
   RbacRole,
 } from '@/core/types/common';
 
+// Administration types - now from administration module
 export type {
   AcademicYearStructure,
   AcademicPeriodDefinition,
@@ -29,8 +30,9 @@ export type {
   StudentCategory,
   Dormitory,
   TimetablePeriodDef,
-} from '@/core/types/administration';
+} from '@/modules/administration/data/types';
 
+// Academic types - now from academics module
 export type {
   ClassSubjectAllocation,
   ExamPaperSetting,
@@ -39,8 +41,9 @@ export type {
   StudentSubjectEnrollment,
   TeacherSubjectAssignment,
   TimetableEntry,
-} from '@/core/types/academic';
+} from '@/modules/academics/data/types';
 
+// Finance types - now from finance module
 export type {
   FinancialYear,
   ChartOfAccount,
@@ -55,8 +58,9 @@ export type {
   PayrollItemType,
   StaffSalarySetting,
   Payslip,
-} from '@/core/types/finance';
+} from '@/modules/finance/data/types';
 
+// Inventory types - now from inventory module
 export type {
   Warehouse,
   ItemCategoryInv,
@@ -66,8 +70,9 @@ export type {
   StockTransaction,
   Requisition,
   PurchaseOrder,
-} from '@/core/types/inventory';
+} from '@/modules/inventory/data/types';
 
+// Library types - now from library module
 export type {
   BookCategory,
   Book,
@@ -76,7 +81,7 @@ export type {
   MealPlan,
   Menu,
   Merchant,
-} from '@/core/types/library';
+} from '@/modules/library/data/types';
 
 export {
   PersonGender,
