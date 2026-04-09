@@ -348,9 +348,6 @@ export default {
   gradeQuickEditConfig,
   classStreamQuickEditConfig,
   subjectQuickEditConfig,
-  QuickEditField,
-  QuickEditConfig,
-  QuickEditContext,
 };
 
 // Aliases for backward compatibility

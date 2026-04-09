@@ -10,10 +10,12 @@ import {
 } from './dataValidation';
 import { 
   PersonGender, 
-  StudentStatus, 
+  StudentStatus
+} from '@/core/types';
+import { 
   FinancialYearStatus, 
   InvoiceStatus
-} from '@/core/types';
+} from '@/modules/finance/data/types';
 import { 
   ExamSessionStatus
 } from '@/modules/academics/data/enums';
