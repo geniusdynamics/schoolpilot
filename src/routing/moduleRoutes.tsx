@@ -6,6 +6,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { moduleRegistry } from '../core/moduleRegistry';
+import { moduleLoader } from '../core/moduleLoader';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { getStoredRouteFromSession } from '../hooks/useRoutePersistence';
@@ -24,6 +25,7 @@ import {
   ROUTE_PATHS,
 } from './routeConfig';
 import { pageModules, dashboardModules, getPageComponent } from './pageLoader';
+import { ModuleRouteLoader } from './ModuleRouteLoader';
 
 /** Standard loading spinner fallback for full-page Suspense boundaries */
 const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
@@ -38,12 +40,14 @@ const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
 /** Generates deprecated route redirects for all deprecated nav items across enabled modules */
 const generateDeprecatedRouteRedirects = (): React.ReactElement[] => {
   const deprecatedRoutes: React.ReactElement[] = [];
-  const enabledModules = moduleRegistry.getEnabledModules();
+  const enabledModuleIds = moduleRegistry.getEnabledModules();
 
-  enabledModules.forEach(module => {
-    if (module.navigation) {
-      module.navigation.forEach(navItem => {
-        if (navItem.deprecated && navItem.path) {
+  enabledModuleIds.forEach(moduleId => {
+    if (!moduleId) return; // Skip undefined/null entries
+    const metadata = moduleRegistry.getMetadata(moduleId);
+    if (metadata?.navigation) {
+      metadata.navigation.forEach((navItem: any) => {
+        if (navItem?.deprecated && navItem?.path) {
           deprecatedRoutes.push(
             <Route
               key={navItem.path}
@@ -89,10 +93,8 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
   }, [modulesInitialized, navigationItems.length]);
 
   const initialRoute = getStoredRouteFromSession();
-  const startupRoute =
-    initialRoute && initialRoute !== ROUTE_PATHS.ROOT && initialRoute !== ROUTE_PATHS.LOGIN
-      ? initialRoute
-      : ROUTE_PATHS.DASHBOARD;
+  // Always start on dashboard — tab sync engine handles restoring other tabs
+  const startupRoute = ROUTE_PATHS.DASHBOARD;
 
   return (
     <Routes>
@@ -186,9 +188,12 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
       {generateDeprecatedRouteRedirects()}
 
       {/* Dynamic Module Dashboard Routes */}
-      {moduleRegistry.getEnabledModules().map(module => {
-        const dashboardPath = `/${module.id}/dashboard`;
-        const dashboardKey = `../modules/${module.id}/pages/${module.id.charAt(0).toUpperCase() + module.id.slice(1)}DashboardPage.tsx`;
+      {moduleRegistry.getEnabledModules().filter(Boolean).map(moduleId => {
+        const metadata = moduleRegistry.getMetadata(moduleId);
+        if (!metadata || moduleId === 'dashboard') return null;
+
+        const dashboardPath = `/${moduleId}/dashboard`;
+        const dashboardKey = `../modules/${moduleId}/pages/${moduleId.charAt(0).toUpperCase() + moduleId.slice(1)}DashboardPage.tsx`;
 
         const dashboardExport = dashboardModules[dashboardKey];
         if (!dashboardExport) return null;
@@ -197,13 +202,15 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
 
         return (
           <Route
-            key={module.path}
+            key={moduleId}
             path={dashboardPath}
             element={
-              <ProtectedRoute requiredModule={module.id} requiredPermission={`${module.id}.view`}>
-                <Suspense fallback={<PageSpinner label={`Loading ${t(module.name)} dashboard...`} />}>
-                  <DashboardComponent />
-                </Suspense>
+              <ProtectedRoute requiredModule={moduleId} requiredPermission={`${moduleId}.view`}>
+                <ModuleRouteLoader moduleId={moduleId}>
+                  <Suspense fallback={<PageSpinner label={`Loading ${t(metadata.name)} dashboard...`} />}>
+                    <DashboardComponent />
+                  </Suspense>
+                </ModuleRouteLoader>
               </ProtectedRoute>
             }
           />
@@ -211,8 +218,15 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
       })}
 
       {/* Register custom/dynamic routes from all enabled modules */}
-      {moduleRegistry.getEnabledModules().flatMap(module =>
-        (module.routes || []).map(route => {
+      {moduleRegistry.getEnabledModules().filter(Boolean).flatMap(moduleId => {
+        const metadata = moduleRegistry.getMetadata(moduleId);
+        if (!metadata || moduleId === 'dashboard') return [];
+
+        // Get routes from module metadata (provided by module definition)
+        const routes = metadata.provides?.routes || [];
+
+        return routes.map(route => {
+          if (!route || !route.path || typeof route.path !== 'string') return null;
           const pathSegments = route.path.split('/').filter(Boolean);
           const moduleDir = pathSegments[0] || '';
 
@@ -226,7 +240,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
           }
           if (!PageComponent) return null;
 
-          const moduleName = moduleDir || module.id;
+          const moduleName = moduleDir || moduleId;
           const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
 
           return (
@@ -235,39 +249,28 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
               path={route.path}
               element={
                 <ProtectedRoute requiredModule={moduleName} requiredPermission={requiredPermission}>
-                  <Suspense fallback={<PageSpinner label="Loading page..." />}>
-                    <PageComponent />
-                  </Suspense>
+                  <ModuleRouteLoader moduleId={moduleName}>
+                    <Suspense fallback={<PageSpinner label="Loading page..." />}>
+                      <PageComponent />
+                    </Suspense>
+                  </ModuleRouteLoader>
                 </ProtectedRoute>
               }
             />
           );
-        })
-      )}
+        });
+      })}
 
       {/* Dynamic Navigation Routes */}
       {navigationItems
-        .filter(item => !item.modulePath || accessibleModules.includes(item.modulePath.replace('/', '')))
+        .filter(item => item && (!item.modulePath || accessibleModules.includes(item.modulePath.replace('/', ''))))
         .flatMap(module => {
-          logger.debug('🗺️ [DynamicRoutes] Processing module:', module.name, 'children:', module.children?.length);
-          return (module.children || []).map(nav => {
-            logger.debug('🗺️ [DynamicRoutes] Processing nav item:', {
-              name: nav.name,
-              path: nav.path,
-              page: nav.page,
-              deprecated: nav.deprecated,
-            });
-
+          return (module.children || []).filter(nav => nav && nav.path).map(nav => {
             const PageComponent = getPageComponent(nav);
-            if (!PageComponent) {
-              logger.warn('⚠️ [DynamicRoutes] No component found for:', nav.path, 'page:', nav.page);
-              return null;
-            }
-
-            logger.debug('✅ [DynamicRoutes] Creating route for:', nav.path, 'with component:', nav.page);
+            if (!PageComponent) return null;
 
             const modulePath = nav.modulePath?.replace('/', '') || '';
-            const moduleName = modulePath || nav.path.split('/')[1] || '';
+            const moduleName = modulePath || (nav.path ? nav.path.split('/')[1] : '') || '';
             const requiredPermission = moduleName ? `${moduleName}.view` : undefined;
 
             return (

@@ -1,5 +1,5 @@
 import type { ModuleMetadata, LoadedModule } from '@/core/types/module';
-import { moduleRegistry } from './ModuleRegistry';
+import { moduleRegistry } from './moduleRegistry';
 import { moduleLifecycle } from './ModuleLifecycle';
 import { EventEmitter } from 'events';
 
@@ -133,8 +133,10 @@ export class ModuleLoader extends EventEmitter {
         // Store loaded module
         this.loadedModules.set(moduleId, loadedModule);
         
-        // Register with module registry
-        await moduleRegistry.register(loadedModule);
+        // Register with module registry — handle already-registered modules gracefully
+        if (!moduleRegistry.isRegistered(moduleId)) {
+          await moduleRegistry.register(loadedModule);
+        }
         
         if (opts.autoEnable) {
           await moduleRegistry.enable(moduleId);
@@ -421,10 +423,19 @@ export function checkModuleDependencies(moduleId: string): { satisfied: boolean;
 }
 
 export function getEnabledModules(): string[] {
-  return moduleLoader.getEnabledModules();
+  // Prefer moduleRegistry (the source of truth), fall back to moduleLoader
+  const registryModules = moduleRegistry.getEnabledModules().filter(Boolean);
+  if (registryModules.length > 0) {
+    return registryModules;
+  }
+  return moduleLoader.getEnabledModules().filter(Boolean);
 }
 
 export function isModuleEnabled(moduleId: string): boolean {
+  // Check moduleRegistry first (source of truth), fall back to moduleLoader
+  if (moduleRegistry.isRegistered(moduleId)) {
+    return moduleRegistry.isEnabled(moduleId);
+  }
   return moduleLoader.isLoaded(moduleId);
 }
 
@@ -437,17 +448,70 @@ export async function disableModule(moduleId: string): Promise<boolean> {
   return moduleLoader.unload(moduleId);
 }
 
-export function getDynamicNavigationItems(): Array<{ id: string; name: string; path: string; icon?: string }> {
-  const enabledModules = moduleLoader.getEnabledModules();
-  
-  // Map enabled modules to navigation items
-  // This is a simplified implementation - customize based on your needs
-  return enabledModules.map(moduleId => ({
-    id: moduleId,
-    name: moduleId.charAt(0).toUpperCase() + moduleId.slice(1),
-    path: `/${moduleId}`,
-    icon: undefined
-  }));
+export function getDynamicNavigationItems(): Array<{ id: string; name: string; path: string; icon?: string; isGroup?: boolean; children?: any[] }> {
+  try {
+    // Use moduleRegistry as the primary source of truth for enabled modules,
+    // with moduleLoader as a fallback. This handles the case where modules are
+    // registered directly with the registry (e.g., via registerAllModules())
+    // but not loaded through the factory system.
+    const registryEnabledModules = moduleRegistry.getEnabledModules().filter(Boolean);
+    const loaderEnabledModules = moduleLoader.getEnabledModules().filter(Boolean);
+
+    // Prefer registry, fall back to loader
+    const enabledModules = registryEnabledModules.length > 0
+      ? registryEnabledModules
+      : loaderEnabledModules;
+
+    const navigationItems: any[] = [];
+
+    // Get navigation from each enabled module's metadata
+    // Dashboard is excluded — it's a static page, not a module
+    for (const moduleId of enabledModules) {
+      if (!moduleId || moduleId === 'dashboard') continue;
+
+      const metadata = moduleRegistry.getMetadata(moduleId);
+      if (metadata) {
+        // Create a group item for the module
+        const moduleGroup: any = {
+          id: moduleId,
+          name: metadata.name || moduleId.charAt(0).toUpperCase() + moduleId.slice(1),
+          path: metadata.path || `/${moduleId}`,
+          modulePath: metadata.path || `/${moduleId}`,
+          icon: metadata.icon,
+          isGroup: true,
+          children: []
+        };
+
+        // Add the module's navigation items as children with null checks
+        if (metadata.navigation && Array.isArray(metadata.navigation)) {
+          moduleGroup.children = metadata.navigation
+            .filter((item: any) => item != null) // Filter out null/undefined items
+            .map((item: any) => ({
+              ...item,
+              id: item.id || `${moduleId}-${item.path || 'unknown'}`,
+              modulePath: metadata.path || `/${moduleId}`,
+              name: item.name || 'Unknown'
+            }));
+        }
+
+        navigationItems.push(moduleGroup);
+      } else {
+        // Fallback to basic navigation if metadata not found
+        navigationItems.push({
+          id: moduleId,
+          name: moduleId.charAt(0).toUpperCase() + moduleId.slice(1),
+          path: `/${moduleId}`,
+          isGroup: true,
+          children: []
+        });
+      }
+    }
+
+    return navigationItems;
+  } catch (error) {
+    console.error('[getDynamicNavigationItems] Error:', error);
+    return []; // Return empty array on error
+  }
 }
 
 /**
@@ -473,10 +537,23 @@ export async function initializeModules(): Promise<void> {
   // Log results
   const successCount = results.filter(r => r.success).length;
   const failCount = results.filter(r => !r.success).length;
-  logger.debug(`[initializeModules] Loaded ${successCount} modules, ${failCount} failed`);
+  logger.debug(`[initializeModules] Loaded ${successCount} modules via loader, ${failCount} failed`);
   
   // Log any errors
   results.filter(r => !r.success).forEach(r => {
     logger.error(`[initializeModules] Failed to load module ${r.moduleId}:`, r.error);
   });
+
+  // IMPORTANT: Always initialize the moduleRegistry to enable any modules
+  // that were registered directly (e.g., via registerAllModules()) but not
+  // yet enabled. This handles the case where modules are registered with the
+  // registry before the loader factories run.
+  try {
+    if (!moduleRegistry.ready) {
+      logger.debug('[initializeModules] Initializing moduleRegistry to enable registered modules...');
+      await moduleRegistry.initialize();
+    }
+  } catch (err) {
+    logger.error('[initializeModules] moduleRegistry.initialize() failed:', err);
+  }
 }

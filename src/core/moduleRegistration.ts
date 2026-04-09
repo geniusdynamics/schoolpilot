@@ -1,5 +1,5 @@
-// ABOUTME: Central module registration - imports and registers all module factories
-// ABOUTME: This file ensures all modules are available for dynamic loading
+// ABOUTME: Central module registration - dynamically imports and registers all module factories
+// ABOUTME: This file ensures all modules are available for dynamic loading without static imports
 
 import { moduleLoader } from './moduleLoader';
 import { moduleRegistry } from './moduleRegistry';
@@ -8,35 +8,51 @@ import type { LoadedModule, ModuleMetadata } from './types/module';
 import type { ModuleDefinition } from './types';
 import { logger } from '@/utils/logging';
 
-// Import all module definitions
-import academicsModule from '@/modules/academics/moduleDefinition';
-import administrationModule from '@/modules/administration/moduleDefinition';
-import admissionsModule from '@/modules/admissions/moduleDefinition';
-import financeModule from '@/modules/finance/moduleDefinition';
-import hrModule from '@/modules/hr/moduleDefinition';
-import inventoryModule from '@/modules/inventory/moduleDefinition';
-import libraryModule from '@/modules/library/moduleDefinition';
-import nutritionModule from '@/modules/nutrition/moduleDefinition';
-import portalModule from '@/modules/portal/moduleDefinition';
-import reportsModule from '@/modules/reports/moduleDefinition';
-import settingsModule from '@/modules/settings/moduleDefinition';
-import coreModules from '@/modules/core/moduleDefinition';
+// Dynamic module import map - import directly from moduleDefinition files
+// Note: dashboard is NOT a module — it's a static page accessible via the logo and the overflow menu
+const moduleImports: Record<string, () => Promise<{ default: any }>> = {
+  administration: () => import('@/modules/administration/moduleDefinition'),
+  academics: () => import('@/modules/academics/moduleDefinition'),
+  admissions: () => import('@/modules/admissions/moduleDefinition'),
+  finance: () => import('@/modules/finance/moduleDefinition'),
+  hr: () => import('@/modules/hr/moduleDefinition'),
+  inventory: () => import('@/modules/inventory/moduleDefinition'),
+  library: () => import('@/modules/library/moduleDefinition'),
+  nutrition: () => import('@/modules/nutrition/moduleDefinition'),
+  portal: () => import('@/modules/portal/moduleDefinition'),
+  reports: () => import('@/modules/reports/moduleDefinition'),
+  settings: () => import('@/modules/settings/moduleDefinition'),
+};
 
-// Module definitions array (flatten coreModules array)
-const allModuleDefinitions: ModuleDefinition[] = [
-  ...(Array.isArray(coreModules) ? coreModules : [coreModules]),
-  administrationModule,
-  admissionsModule,
-  academicsModule,
-  portalModule,
-  financeModule,
-  hrModule,
-  inventoryModule,
-  libraryModule,
-  nutritionModule,
-  reportsModule,
-  settingsModule,
-];
+// Dynamic module loader
+async function loadModuleDefinition(moduleId: string): Promise<ModuleDefinition> {
+  const importer = moduleImports[moduleId];
+  if (!importer) {
+    throw new Error(`No import function defined for module: ${moduleId}`);
+  }
+
+  const module: any = await importer();
+
+  // Try default export first, then named export
+  if (module.default) {
+    return module.default;
+  }
+
+  // Fall back to named export (e.g., administrationModule, academicsModule)
+  const namedExport = module[`${moduleId}Module`] || module[moduleId];
+  if (namedExport) {
+    return namedExport;
+  }
+
+  throw new Error(`Module ${moduleId} has no valid export (no default or named export found)`);
+}
+
+// Lifecycle hooks map (will be populated dynamically)
+const lifecycleHooks: Record<string, {
+  onRegister?: () => Promise<void>;
+  onEnable?: () => Promise<void>;
+  onDisable?: () => Promise<void>;
+}> = {};
 
 /**
  * Convert ModuleDefinition to LoadedModule format
@@ -49,6 +65,9 @@ function convertToLoadedModule(def: ModuleDefinition): LoadedModule {
     version: def.version || '1.0.0',
     author: { name: 'SchoolPilot Team' },
     license: 'MIT',
+    navigation: def.navigation || [],
+    path: def.path,
+    icon: def.icon,
     dependencies: (def.dependencies || []).map(dep => ({
       moduleId: dep.moduleId,
       version: dep.version,
@@ -82,22 +101,25 @@ function convertToLoadedModule(def: ModuleDefinition): LoadedModule {
     targetSchoolPilotVersion: def.targetSchoolPilotVersion || '1.0.0',
   };
 
+  // Default lifecycle hooks - modules can override these in their module definitions
+  const hooks = {
+    onRegister: async () => {
+      logger.debug(`[ModuleRegistration] ${def.id} registered`);
+    },
+    onEnable: async () => {
+      logger.debug(`[ModuleRegistration] ${def.id} enabled`);
+    },
+    onDisable: async () => {
+      logger.debug(`[ModuleRegistration] ${def.id} disabled`);
+    },
+  };
+
   return {
     id: def.id,
     metadata,
     // Module components will be loaded lazily via the moduleDefinition
     components: {},
-    hooks: {
-      onRegister: async () => {
-        logger.debug(`[ModuleRegistration] ${def.id} registered`);
-      },
-      onEnable: async () => {
-        logger.debug(`[ModuleRegistration] ${def.id} enabled`);
-      },
-      onDisable: async () => {
-        logger.debug(`[ModuleRegistration] ${def.id} disabled`);
-      },
-    },
+    hooks,
   };
 }
 
@@ -105,61 +127,101 @@ function convertToLoadedModule(def: ModuleDefinition): LoadedModule {
  * Register all module factories with the module loader
  */
 export function registerModuleFactories(): void {
-  logger.debug('[ModuleRegistration] Registering module factories...');
+  logger.debug('[ModuleRegistration] Registering dynamic module factories...');
   
-  for (const moduleDef of allModuleDefinitions) {
+  const moduleIds = Object.keys(moduleImports);
+  
+  for (const moduleId of moduleIds) {
     const factory = async (): Promise<LoadedModule> => {
+      const moduleDef = await loadModuleDefinition(moduleId);
       return convertToLoadedModule(moduleDef);
     };
     
-    moduleLoader.registerFactory(moduleDef.id, factory);
-    logger.debug(`[ModuleRegistration] Registered factory for: ${moduleDef.id}`);
+    moduleLoader.registerFactory(moduleId, factory);
+    logger.debug(`[ModuleRegistration] Registered factory for: ${moduleId}`);
   }
   
-  logger.debug(`[ModuleRegistration] Registered ${allModuleDefinitions.length} module factories`);
+  logger.debug(`[ModuleRegistration] Registered ${moduleIds.length} dynamic module factories`);
 }
 
 /**
  * Register all modules directly with the module registry
- * This is an alternative approach that bypasses the loader factories
+ * This loads modules dynamically and registers them
  */
 export async function registerAllModules(): Promise<void> {
-  logger.debug('[ModuleRegistration] Registering all modules with registry...');
-  
-  const loadedModules = allModuleDefinitions.map(convertToLoadedModule);
-  
-  // Register in dependency order
-  const resolution = modularSystem.getDependencyGraph();
-  
-  for (const module of loadedModules) {
-    if (!moduleRegistry.isRegistered(module.id)) {
-      try {
-        await moduleRegistry.register(module, module.hooks);
-        logger.debug(`[ModuleRegistration] Registered module: ${module.id}`);
-      } catch (error) {
-        logger.error(`[ModuleRegistration] Failed to register module ${module.id}:`, error);
+  logger.debug('[ModuleRegistration] Dynamically loading and registering all modules...');
+
+  const moduleIds = Object.keys(moduleImports);
+  const loadedModules: LoadedModule[] = [];
+
+  for (const moduleId of moduleIds) {
+    try {
+      const importer = moduleImports[moduleId];
+      if (!importer) continue;
+      
+      const moduleExport: any = await importer();
+      let moduleDefs: ModuleDefinition[];
+      
+      // Handle modules that export an array (like core) vs single module definition
+      if (moduleExport.default && Array.isArray(moduleExport.default)) {
+        moduleDefs = moduleExport.default;
+      } else if (moduleExport.default) {
+        moduleDefs = [moduleExport.default];
+      } else {
+        // Fall back to named export
+        const namedExport = moduleExport[`${moduleId}Module`] || moduleExport[moduleId];
+        if (namedExport) {
+          moduleDefs = [namedExport];
+        } else {
+          logger.warn(`[ModuleRegistration] Module ${moduleId} has no valid export, skipping`);
+          continue;
+        }
       }
+
+      for (const moduleDef of moduleDefs) {
+        if (!moduleDef || !moduleDef.id) {
+          logger.warn(`[ModuleRegistration] Skipping module with missing id in ${moduleId}`);
+          continue;
+        }
+        
+        const loadedModule = convertToLoadedModule(moduleDef);
+        loadedModules.push(loadedModule);
+
+        if (!moduleRegistry.isRegistered(moduleDef.id)) {
+          await moduleRegistry.register(loadedModule, loadedModule.hooks);
+          logger.debug(`[ModuleRegistration] Registered module: ${moduleDef.id} with ${loadedModule.metadata.navigation?.length || 0} navigation items`);
+        } else {
+          logger.debug(`[ModuleRegistration] Module ${moduleDef.id} already registered`);
+        }
+      }
+    } catch (error) {
+      logger.error(`[ModuleRegistration] Failed to load/register module ${moduleId}:`, error);
     }
   }
-  
-  logger.debug(`[ModuleRegistration] Registered ${loadedModules.length} modules`);
+
+  logger.debug(`[ModuleRegistration] Loaded and registered ${loadedModules.length} modules`);
 }
 
 /**
  * Initialize all modules - registers factories and loads modules
  */
 export async function initializeAllModules(): Promise<void> {
-  logger.debug('[ModuleRegistration] Initializing all modules...');
-  
+  logger.debug('[ModuleRegistration] Initializing all modules dynamically...');
+
   // Register factories first
   registerModuleFactories();
-  
-  // Register modules with registry
+
+  // Register modules with registry (loads them dynamically)
   await registerAllModules();
-  
+
+  logger.debug('[ModuleRegistration] About to enable modules via moduleRegistry.initialize()');
+
   // Enable all modules
   await moduleRegistry.initialize();
-  
+
+  const enabledModules = moduleRegistry.getEnabledModules();
+  logger.debug(`[ModuleRegistration] After initialization, enabled modules: ${enabledModules.length}`, enabledModules);
+
   logger.debug('[ModuleRegistration] All modules initialized');
 }
 
