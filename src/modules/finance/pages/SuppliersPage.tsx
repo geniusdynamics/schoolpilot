@@ -10,7 +10,7 @@ import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
+import { useFinance } from '@/modules/finance/hooks/useFinance';
 import Spinner from '@/components/ui/Spinner';
 
 type SupplierFormData = Omit<Partial<Supplier>, 'id' | 'created_at' | 'updated_at'>;
@@ -22,7 +22,7 @@ const SuppliersPage: React.FC = () => {
     addSupplier, 
     updateSupplier, 
     deleteSupplier 
-  } = useAppData();
+  } = useFinance();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
