@@ -7,7 +7,7 @@ import { useLocation } from 'react-router-dom';
 import { UnifiedAppConfig } from '../config/unifiedConfig';
 import { useAuth } from '../contexts/AuthContext';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
-import { initializeModules } from '../core/moduleLoader';
+import { initializeAllModules } from '../core/moduleRegistration';
 import '../core/moduleRegistration'; // Auto-registers module factories
 import { initializeTheme } from '../hooks/useTheme';
 import { useRoutePersistence } from '../hooks/useRoutePersistence';
@@ -190,16 +190,14 @@ export const AppInner: React.FC = () => {
           });
 
           await measureAsync(
-            () => Promise.race([initializeModules(), emergencyTimeout]),
+            () => Promise.race([initializeAllModules(), emergencyTimeout]),
             'module_initialization'
           );
 
-          const registeredModules = moduleRegistry.getAllModules();
           const enabledModules = moduleRegistry.getEnabledModules();
-          const navigationItems = moduleRegistry.getNavigationItems();
 
           logger.debug(
-            `📊 [App] Module verification complete: ${registeredModules.length} total, ${enabledModules.length} enabled, ${navigationItems.length} nav items`
+            `📊 [App] Module verification complete: ${enabledModules.length} enabled`
           );
 
           setModulesInitialized(true);
