@@ -70,14 +70,6 @@ const normalizeModuleId = (value?: string): string => {
 // Module style definitions
 const getModuleStyle = (moduleKey: string): ModuleStyle => {
   const colorSchemes: Record<string, ModuleStyle> = {
-    dashboard: {
-      background: 'bg-gradient-to-br from-blue-500/10 via-blue-400/8 to-blue-600/12',
-      border: 'border-blue-400/20',
-      accent: 'text-blue-600',
-      hover: 'hover:bg-blue-500/15',
-      activeLink: 'border-blue-400 text-blue-600 bg-blue-50/80',
-      hoverLink: 'hover:bg-blue-100/60 hover:text-blue-800'
-    },
     administration: {
       background: 'bg-gradient-to-br from-purple-500/10 via-purple-400/8 to-purple-600/12',
       border: 'border-purple-400/20',
@@ -206,41 +198,32 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
       return undefined;
     }
 
-    const directMatch = navigationItems.find(item =>
-      item.isGroup && normalizeModuleId(item.modulePath || item.path || item.name) === selectedModuleId
+    const validItems = navigationItems.filter(item => item != null);
+
+    const directMatch = validItems.find(item =>
+      item?.isGroup && normalizeModuleId(item?.modulePath || item?.path || item?.name) === selectedModuleId
     );
     if (directMatch) {
       return directMatch;
     }
 
-    return navigationItems.find(item =>
-      item.isGroup && (item.path || '').startsWith(`/${selectedModuleId}`)
+    return validItems.find(item =>
+      item?.isGroup && (item?.path || '').startsWith(`/${selectedModuleId}`)
     );
   }, [navigationItems, selectedModuleId]);
 
   // Build submenus
   const subMenus = useMemo(() => {
     let items = [];
-    if (propItems && propItems.length > 0) {
-      items = propItems;
-    } else {
-      items = selectedModule && selectedModule.children ? selectedModule.children : [];
+    if (propItems && Array.isArray(propItems) && propItems.length > 0) {
+      items = propItems.filter((item: any) => item != null);
+    } else if (selectedModule?.children && Array.isArray(selectedModule.children)) {
+      items = selectedModule.children.filter((item: any) => item != null);
     }
 
-    // Add Favorites group if we are in dashboard
-    if (selectedModuleId === 'dashboard' && favorites.length > 0) {
-      const favoritesGroup = {
-        name: 'Favorites',
-        isGroup: true,
-        icon: 'StarIcon',
-        children: favorites.map((fav: any) => ({
-          name: fav.title,
-          path: fav.url,
-          icon: fav.icon ? () => null : 'StarIcon',
-          id: fav.id
-        }))
-      };
-      return [favoritesGroup, ...items];
+    // Dashboard is not a module — no secondary sidebar content for it
+    if (selectedModuleId === 'dashboard') {
+      return [];
     }
 
     return items;
@@ -300,7 +283,8 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
 
   // Filter items based on search
   const filterItems = useCallback((items: any[]) => {
-    return items.filter(item => {
+    if (!Array.isArray(items)) return [];
+    return items.filter(item => item != null).filter(item => {
       const itemName = typeof item.name === 'string' ? item.name : '';
       try {
         // Parse namespace from key like "navigation:key.subkey"
@@ -311,8 +295,8 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
         const searchLower = search.toLowerCase();
         
         return (typeof itemLabel === 'string' && itemLabel.toLowerCase().includes(searchLower)) ||
-          (item.children && item.children.some((child: any) => {
-            const childName = typeof child.name === 'string' ? child.name : '';
+          (item.children && Array.isArray(item.children) && item.children.filter((child: any) => child != null).some((child: any) => {
+            const childName = typeof child?.name === 'string' ? child.name : '';
             try {
               const [childNs, childKey] = childName.includes(':') 
                 ? childName.split(':') 

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
 import { useNavigate } from 'react-router-dom';
 import { useTabs } from '@/hooks/tabs';
+import { useFullWidth } from '@/contexts/FullWidthContext';
 import {
   ComputerDesktopIcon,
   BuildingOfficeIcon,
@@ -35,7 +36,7 @@ interface MenuItem {
 }
 
 const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
-  currentModule = 'dashboard',
+  currentModule = '',
   onModuleSelect
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,6 +45,8 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
   const { t } = useTranslation('navigation');
   const { navigationItems } = useDynamicNavigation(true);
   const navigate = useNavigate();
+  const { openTab } = useTabs();
+  const { isFullWidth, toggleFullWidth, enableFullWidth } = useFullWidth();
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -59,7 +62,11 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
   }, []);
 
   // Get current module display info
+  const isOnDashboard = !currentModule || currentModule === 'dashboard';
   const getCurrentModuleInfo = () => {
+    if (isOnDashboard) {
+      return { name: t('common:dashboard') || 'Dashboard', icon: ComputerDesktopIcon };
+    }
     return {
       name: t(`${currentModule}.title`) || currentModule,
       icon: Squares2X2Icon
@@ -71,8 +78,8 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
   // Main menu items
   const mainMenuItems: MenuItem[] = [
     {
-      id: 'desktop',
-      label: t('common:desktop') || 'Desktop',
+      id: 'dashboard',
+      label: t('common:dashboard') || 'Dashboard',
       icon: ComputerDesktopIcon,
       action: () => openTab('/dashboard', { pinned: true })
     },
@@ -82,15 +89,20 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
       icon: BuildingOfficeIcon,
       children: navigationItems.filter(item => item.isGroup).map(item => {
         // Parse the translation key - format is "navigation:module.title"
-        const [namespace, key] = item.name.includes(':') 
-          ? item.name.split(':') 
+        const [namespace, key] = item.name.includes(':')
+          ? item.name.split(':')
           : ['navigation', item.name];
-        
+
+        // Try to get the title from nested structure (e.g., navigation.reports.title)
+        const label = t(`${key}.title`, { ns: namespace, defaultValue: t(key, { ns: namespace }) });
+
         return {
           id: item.name,
-          label: t(key, { ns: namespace }),
+          label: typeof label === 'string' ? label : key,
           icon: item.icon || Squares2X2Icon,
           action: () => {
+            // Enable full-width mode so secondary sidebar becomes primary
+            enableFullWidth();
             if (onModuleSelect) onModuleSelect(item.name);
             setIsOpen(false);
           }
@@ -112,10 +124,12 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
     },
     {
       id: 'toggleWidth',
-      label: t('common:toggleFullWidth') || 'Toggle Full Width',
+      label: isFullWidth
+        ? (t('common:exitFullWidth') || 'Exit Full Width')
+        : (t('common:toggleFullWidth') || 'Toggle Full Width'),
       icon: ArrowsPointingOutIcon,
       action: () => {
-        document.body.classList.toggle('full-width');
+        toggleFullWidth();
         setIsOpen(false);
       }
     },
@@ -166,32 +180,58 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className={`
           w-full flex items-center justify-between px-2 py-2 rounded-lg
-          bg-slate-800/80 hover:bg-slate-700/80
-          text-white transition-all duration-200
-          border border-white/10 hover:border-white/20
-          ${isOpen ? 'bg-slate-700/80 border-white/20' : ''}
+          transition-all duration-300 ease-out
+          border
+          ${isOnDashboard
+            ? `
+              bg-blue-500/30 border-blue-400/40
+              shadow-lg shadow-blue-500/20
+              hover:bg-blue-500/40 hover:border-blue-300/50
+            `
+            : `
+              bg-slate-800/80 border-white/10
+              hover:bg-slate-700/80 hover:border-white/20
+            `
+          }
+          ${isOpen
+            ? isOnDashboard
+              ? 'bg-blue-500/40 border-blue-300/50'
+              : 'bg-slate-700/80 border-white/20'
+            : ''
+          }
+          text-white
         `}
       >
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
-          <currentModuleInfo.icon className="w-5 h-5 text-white" />
+        <div className={`
+          w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
+          transition-all duration-300
+          ${isOnDashboard
+            ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-md shadow-blue-500/30'
+            : 'bg-gradient-to-br from-blue-500 to-fuchsia-500'
+          }
+        `}>
+          <currentModuleInfo.icon className={`w-5 h-5 text-white transition-all duration-300 ${isOnDashboard ? 'drop-shadow-lg' : ''}`} />
         </div>
         <ChevronDownIcon className={`
-          w-4 h-4 text-white/60 transition-transform duration-200
+          w-4 h-4 transition-all duration-200
+          ${isOnDashboard ? 'text-blue-300' : 'text-white/60'}
           ${isOpen ? 'rotate-180' : ''}
         `} />
       </button>
 
       {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="
-          absolute top-full left-0 mt-2
-          w-64 bg-slate-900/95 backdrop-blur-xl
-          rounded-xl border border-white/10
-          shadow-2xl shadow-black/50
-          overflow-hidden z-50
-        ">
+      <div className={`
+        absolute top-full left-0 mt-1
+        min-w-fit w-auto bg-slate-900/95 backdrop-blur-xl
+        rounded-xl border border-white/10
+        shadow-2xl shadow-black/50
+        z-50
+        transition-all duration-200 ease-out
+        origin-top
+        ${isOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible pointer-events-none'}
+      `}>
           {/* Main Menu Items */}
-          <div className="p-2 max-h-96 overflow-y-auto custom-scrollbar">
+          <div className="p-2">
             {mainMenuItems.map((item) => (
               <React.Fragment key={item.id}>
                 {item.divider ? (
@@ -208,7 +248,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
                     >
                       <div className="flex items-center gap-3">
                         <item.icon className="w-5 h-5" />
-                        <span className="text-sm">{item.label}</span>
+                        <span className="text-sm whitespace-nowrap">{item.label}</span>
                       </div>
                       {item.children && (
                         <ChevronRightIcon className="w-4 h-4 text-white/40" />
@@ -219,7 +259,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
                     {item.children && activeSubmenu === item.id && (
                       <div className="
                         absolute left-full top-0 ml-2
-                        w-56 bg-slate-800/95 backdrop-blur-xl
+                        min-w-fit w-auto bg-slate-800/95 backdrop-blur-xl
                         rounded-xl border border-white/10
                         shadow-2xl shadow-black/50
                         p-2 z-50
@@ -235,7 +275,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
                             "
                           >
                             {child.icon && <child.icon className="w-5 h-5" />}
-                            <span className="text-sm">{child.label}</span>
+                            <span className="text-sm whitespace-nowrap">{child.label}</span>
                           </button>
                         ))}
                       </div>
@@ -246,7 +286,6 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
             ))}
           </div>
         </div>
-      )}
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {

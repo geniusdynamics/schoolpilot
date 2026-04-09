@@ -2,6 +2,7 @@
 // ABOUTME: It includes the mobile sidebar toggle, page title/welcome message, and user profile area.
 
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BellIcon, CogIcon } from './ui/icons';
 import LanguageSwitcher from './ui/LanguageSwitcher';
 import UserMenu from './UserMenu';
@@ -11,6 +12,7 @@ import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 const notifications = 3; // Example notification count
 
 const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
+  const navigate = useNavigate();
   const { config } = useUnifiedConfig();
   const [showHeader, setShowHeader] = useState(true);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -40,13 +42,17 @@ const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
       style={{ height: '48px' }}
     >
       <div className="max-w-full mx-auto flex items-center justify-between h-12 px-3 sm:px-6">
-        {/* Left: Logo & App Name */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
+        {/* Left: Logo & App Name — click to go to Dashboard */}
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
+          title="Go to Dashboard"
+        >
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-md select-none">
             E
           </div>
           <span className="font-bold text-lg sm:text-xl text-slate-800 tracking-tight hidden xs:block">schoolpilot</span>
-        </div>
+        </button>
         
         {/* Center: Compact Search Bar - Hidden on mobile, responsive on tablet+ */}
         <div className="hidden md:flex flex-1 justify-center mx-4">

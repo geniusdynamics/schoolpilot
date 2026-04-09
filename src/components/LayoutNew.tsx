@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { NavItem } from '@/core/types';
 import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFullWidth } from '@/contexts/FullWidthContext';
 import { useTabs } from '@/hooks/tabs';
 import type { Tab } from '@/services/tabs/types';
 import Header from './Header';
@@ -56,6 +57,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { hasModuleAccess, hasPermission } = useAuth();
   const { getMainModules, isLoading: navLoading, navigationItems } = useDynamicNavigation(true);
+  const { isFullWidth, isSecondaryAsPrimary } = useFullWidth();
   
   // New tab system
   const {
@@ -100,14 +102,17 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   const [isReady, setIsReady] = useState(false);
 
   const moduleDashboardRoute = useCallback((moduleId: string) => {
+    // Dashboard is a static page, not a module
+    if (moduleId === 'dashboard') {
+      return '/dashboard';
+    }
+
     const modules = getMainModules();
     const selectedModule = modules.find(module => normalizeModuleId(module.modulePath || module.path || module.name) === moduleId);
     const preferredChild = selectedModule?.children?.find(child => child.path?.includes('/dashboard'));
     const firstChildPath = selectedModule?.children?.find(child => !!child.path)?.path;
     const moduleBasePath = selectedModule?.modulePath || selectedModule?.path || `/${moduleId}`;
-    const fallbackDashboardPath = moduleId === 'dashboard'
-      ? '/dashboard'
-      : `${moduleBasePath.replace(/\/$/, '')}/dashboard`;
+    const fallbackDashboardPath = `${moduleBasePath.replace(/\/$/, '')}/dashboard`;
 
     return preferredChild?.path || firstChildPath || fallbackDashboardPath;
   }, [getMainModules]);
@@ -139,6 +144,14 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   }, [hasModuleAccess, hasPermission, navigationItems]);
 
   const transitionToModule = useCallback(async (moduleId: string) => {
+    // Dashboard is a static page — navigate directly, no module session needed
+    if (moduleId === 'dashboard') {
+      setSelectedModuleKey('');
+      setIsSubmenuOpen(false);
+      openTab('/dashboard', { pinned: true });
+      return;
+    }
+
     const nextRoute = moduleDashboardRoute(moduleId);
     const canAccessModule = await hasModuleAccess(moduleId);
 
@@ -151,10 +164,10 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     await switchModuleSession(nextRoute, {
       preservePinned: true,
       refresh: true,
-      pinned: moduleId === 'dashboard',
+      pinned: false,
       canPreserveTab: canRestorePinnedTab
     });
-  }, [canRestorePinnedTab, hasModuleAccess, moduleDashboardRoute, switchModuleSession]);
+  }, [canRestorePinnedTab, hasModuleAccess, moduleDashboardRoute, switchModuleSession, openTab]);
   
   // Initialize - create a tab for current route if not exists
   useEffect(() => {
@@ -174,14 +187,23 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
       const moduleMatch = path.match(/^\/([^\/]+)/);
       if (moduleMatch && moduleMatch[1]) {
         const moduleId = normalizeModuleId(moduleMatch[1]);
-        setSelectedModuleKey(moduleId);
         
-        // Auto-open submenu if we have a valid module
-        const mainModules = getMainModules();
-        const hasModule = mainModules.some(m => normalizeModuleId(m.modulePath || m.path || m.name) === moduleId);
-        if (hasModule) {
-          setIsSubmenuOpen(true);
+        // Dashboard is not a module — it's a static page
+        if (moduleId === 'dashboard') {
+          setSelectedModuleKey('');
+          setIsSubmenuOpen(false);
+        } else {
+          setSelectedModuleKey(moduleId);
+          // Auto-open submenu if we have a valid module
+          const mainModules = getMainModules();
+          const hasModule = mainModules.some(m => normalizeModuleId(m.modulePath || m.path || m.name) === moduleId);
+          if (hasModule) {
+            setIsSubmenuOpen(true);
+          }
         }
+      } else {
+        setSelectedModuleKey('');
+        setIsSubmenuOpen(false);
       }
       setIsReady(true);
     }
@@ -195,12 +217,18 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     }
 
     if (moduleId === selectedModuleKey) {
-      // Toggle submenu if clicking same module
-      setIsSubmenuOpen(prev => !prev);
+      // In full-width mode, don't toggle closed - keep the sidebar open as it's the primary nav
+      if (!isSecondaryAsPrimary) {
+        setIsSubmenuOpen(prev => !prev);
+      }
     } else {
       await transitionToModule(moduleId);
+      // In full-width mode, ensure submenu is open when switching modules
+      if (isSecondaryAsPrimary) {
+        setIsSubmenuOpen(true);
+      }
     }
-  }, [selectedModuleKey, transitionToModule]);
+  }, [selectedModuleKey, transitionToModule, isSecondaryAsPrimary]);
   
   // Handle tab click
   const handleTabClick = useCallback((tabId: string) => {
@@ -304,24 +332,28 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
       
       <div className="flex flex-1 pt-16">
         {/* Fixed sidebars - positioned with CSS position:fixed, no flex space */}
-        <PrimarySidebar 
-          selectedModuleKey={selectedModuleKey} 
-          onModuleSelect={handleModuleSelect} 
+        <PrimarySidebar
+          selectedModuleKey={selectedModuleKey}
+          onModuleSelect={handleModuleSelect}
         />
-        
-        <SecondarySidebar 
-          selectedModuleKey={selectedModuleKey} 
-          isOpen={isSubmenuOpen} 
+
+        <SecondarySidebar
+          selectedModuleKey={selectedModuleKey}
+          isOpen={isSubmenuOpen}
           onClose={() => setIsSubmenuOpen(false)}
           onItemClick={handleNavItemClick}
           items={currentModuleNav}
+          isFullWidth={isFullWidth}
+          isAsPrimary={isSecondaryAsPrimary}
         />
-        
+
         {/* Main Content Area */}
-        <main 
-          className="flex-1 flex flex-col overflow-hidden min-w-0"
+        <main
+          className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300 ease-out"
           style={{
-            marginLeft: isSubmenuOpen ? 'calc(5rem + 14rem)' : '5rem'
+            marginLeft: isFullWidth
+              ? (isSubmenuOpen ? '14rem' : '0rem')
+              : (isSubmenuOpen ? 'calc(5rem + 14rem)' : '5rem')
           }}
         >
           {/* Tab Bar */}

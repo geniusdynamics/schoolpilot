@@ -13,8 +13,8 @@ import {
 } from '@/core/moduleLoader';
 // Removed unused hook utilities import
 
-// NOTE: getEnabledModules now always includes core modules (dashboard, settings, reports)
-// so navigationItems will always include these regardless of config.
+// NOTE: Dashboard is NOT a module — it's a static page accessible via the logo and overflow menu.
+// getEnabledModules returns module IDs only (no dashboard).
 
 export const useDynamicNavigation = (autoLoad: boolean = true) => {
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([]);
@@ -34,9 +34,9 @@ export const useDynamicNavigation = (autoLoad: boolean = true) => {
       setNavigationItems(Array.isArray(items) ? items : []);
       console.log('[useDynamicNavigation] navigationItems:', items);
       
-      // Get enabled module IDs
+      // Get enabled module IDs (getEnabledModules returns string[], not objects)
       const modules = getEnabledModules();
-      setEnabledModules(modules.map(m => m.id));
+      setEnabledModules(Array.isArray(modules) ? modules : []);
       console.log('[useDynamicNavigation] enabledModules:', modules);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Error loading navigation items');

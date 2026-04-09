@@ -57,14 +57,20 @@ interface SecondarySidebarProps {
   onClose: () => void;
   items?: any[];
   onItemClick?: (item: { path: string; name?: string }) => void;
+  /** Whether full-width mode is active (primary sidebar hidden) */
+  isFullWidth?: boolean;
+  /** Whether this sidebar should act as the primary sidebar (at far left) */
+  isAsPrimary?: boolean;
 }
 
-const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ 
-  selectedModuleKey, 
-  isOpen, 
+const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
+  selectedModuleKey,
+  isOpen,
   onClose,
   items: propItems,
-  onItemClick
+  onItemClick,
+  isFullWidth = false,
+  isAsPrimary = false
 }) => {
   const { t } = useTranslation(['navigation', 'common']);
   
@@ -109,9 +115,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   }
 
   const sidebarWidth = isMinimized ? 'w-14' : 'w-52';
+  // When full-width and acting as primary, position at far left (left-0)
+  // Otherwise, position next to primary sidebar (left-16 sm:left-20)
+  const leftPosition = (isFullWidth && isAsPrimary) ? 'left-0' : 'left-16 sm:left-20';
   const sidebarClasses = isMobile
-    ? 'w-44 sm:w-24 fixed top-0 left-16 sm:left-20 z-40 shadow-2xl h-screen pt-16'
-    : `${sidebarWidth} fixed top-0 left-16 sm:left-20 z-40 h-screen pt-16 transition-all duration-300 ease-in-out`;
+    ? `w-44 sm:w-24 fixed top-0 ${leftPosition} z-40 shadow-2xl h-screen pt-16`
+    : `${sidebarWidth} fixed top-0 ${leftPosition} z-40 h-screen pt-16 transition-all duration-300 ease-in-out`;
 
   if (isLoading) {
     return <SidebarSkeleton />;
@@ -121,9 +130,9 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     <HookErrorBoundary>
       {/* Mobile backdrop */}
       {isMobile && (
-        <div 
+        <div
           className={`
-            fixed inset-0 top-12 left-16 sm:left-20 z-30 transition-all duration-300 ease-in-out
+            fixed inset-0 top-12 ${(isFullWidth && isAsPrimary) ? 'left-0' : 'left-16 sm:left-20'} z-30 transition-all duration-300 ease-in-out
             ${isOpen 
               ? 'bg-transparent opacity-100 pointer-events-auto mobile-fade-in' 
               : 'bg-transparent opacity-0 pointer-events-none mobile-fade-out'
@@ -302,7 +311,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                 ref={provided.innerRef}
                               >
                                 {item.children.map((child: any, childIndex: number) => (
-                                  <Draggable key={child.id || child.path} draggableId={child.id || child.path} index={childIndex}>
+                                  <Draggable key={child?.id || child?.path || `fav-${childIndex}`} draggableId={child?.id || child?.path || `fav-${childIndex}`} index={childIndex}>
                                     {(provided, snapshot) => (
                                       <li 
                                         ref={provided.innerRef}

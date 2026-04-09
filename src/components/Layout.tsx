@@ -123,7 +123,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           if (module.children) {
             for (const child of module.children) {
               if (child.path === currentPath) {
-                matchingModule = module.name;
+                // Extract the clean module ID from the translation key (e.g., "navigation:academics.title" → "academics")
+                matchingModule = extractModuleId(module.name);
                 break;
               }
             }
@@ -132,13 +133,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
         
         // If we found a matching module, use it; otherwise use the first module
-        const moduleToSelect = matchingModule || mainModules[0].name;
+        // Always extract the clean module ID from the translation key
+        const moduleToSelect = matchingModule || extractModuleId(mainModules[0].name);
         setSelectedModuleKey(moduleToSelect);
         
         // Only navigate to dashboard if we're on the root path AND the first module is dashboard
         // AND there's no stored route from a previous session
         const storedRoute = getStoredRoute();
-        if (currentPath === '/' && mainModules[0].name === 'navigation:dashboard' && !storedRoute) {
+        if (currentPath === '/' && extractModuleId(mainModules[0].name) === 'dashboard' && !storedRoute) {
           navigate('/dashboard', { replace: true });
         }
       }

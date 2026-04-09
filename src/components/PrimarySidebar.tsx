@@ -4,6 +4,7 @@ import { useRBAC } from '@/hooks/useRBAC';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { i18nReady } from '../i18n/i18n';
+import { useFullWidth } from '@/contexts/FullWidthContext';
 import TopOverflowMenu from './TopOverflowMenu';
 
 // Error boundary for PrimarySidebar
@@ -38,13 +39,8 @@ class PrimarySidebarErrorBoundary extends React.Component<
 
 // Enhanced module-specific styling with badge/label support
 const getModuleStyle = (moduleKey: string, isSelected: boolean) => {
+  // Dashboard is not a module — it's a static page via logo/overflow menu
   const colorSchemes = {
-    dashboard: {
-      base: 'bg-blue-500/20 border-blue-400/30 hover:bg-blue-500/30',
-      selected: 'bg-blue-500/40 border-blue-300/50 shadow-blue-500/30',
-      iconColor: 'text-blue-400',
-      badgeColor: 'bg-blue-500 text-white border-blue-400/50'
-    },
     administration: {
       base: 'bg-purple-500/20 border-purple-400/30 hover:bg-purple-500/30',
       selected: 'bg-purple-500/40 border-purple-300/50 shadow-purple-500/30',
@@ -150,18 +146,19 @@ const handleModuleClick = (moduleId: string, onModuleSelect: (key: string) => vo
 
 
 // Main component with fixed hook order
-const PrimarySidebarContent: React.FC<{ 
-  selectedModuleKey: string; 
-  onModuleSelect: (key: string) => void; 
+const PrimarySidebarContent: React.FC<{
+  selectedModuleKey: string;
+  onModuleSelect: (key: string) => void;
 }> = ({ selectedModuleKey, onModuleSelect }) => {
   // CRITICAL: All hooks MUST be called in the exact same order every render
   // No conditional hooks, no early returns before all hooks are called
-  
+
   // 1. Custom hooks (always called first)
   const { navigationItems = [], isLoading = true } = useDynamicNavigation(true) || {};
   const { accessibleModules = [] } = useRBAC() || {};
   const { user = null } = useAuth() || {};
   const { t, i18n } = useTranslation('navigation', { useSuspense: false });
+  const { isFullWidth } = useFullWidth();
   
   // 2. State hooks (always called in same order)
   const [isMouseNearSidebar, setIsMouseNearSidebar] = useState(false);
@@ -258,13 +255,13 @@ const PrimarySidebarContent: React.FC<{
     
     const { backgroundStyle, iconColor, badgeColor } = getModuleStyle(moduleId, isSelected);
     
-    // Badge visibility logic (simplified)
+    // Badge visibility logic (original)
     const badgeVisible = isSelected || (isHovered && isMouseNearSidebar) || (windowWidth < 1024 && isHovered);
     const badgeClasses = badgeVisible 
       ? 'opacity-100 translate-y-0 scale-100' 
       : 'opacity-0 translate-y-1 scale-95';
     
-    // Border color logic (simplified)
+    // Border color logic
     const getBorderColor = () => {
       const colorMap: Record<string, string> = {
         'bg-blue': 'border-t-blue-500',
@@ -285,7 +282,7 @@ const PrimarySidebarContent: React.FC<{
       }
       return 'border-t-gray-500';
     };
-
+    
     return (
       <div
         key={itemName}
@@ -300,7 +297,7 @@ const PrimarySidebarContent: React.FC<{
           backdrop-blur-md border
           shadow-lg shadow-black/20
           transition-all duration-500 ease-out
-          pointer-events-none z-30
+          pointer-events-none z-[60]
           max-w-[120px] sm:max-w-none truncate
           ${badgeColor}
           ${badgeClasses}
@@ -384,71 +381,97 @@ const PrimarySidebarContent: React.FC<{
       lg:backdrop-blur-xl md:backdrop-blur-sm
       border-r border-white/10
       shadow-2xl shadow-black/20
-      pt-4 pb-4 sm:pt-4 sm:pb-6
-      transition-all duration-300 ease-out
+      transition-all duration-500 ease-out
       ${isMouseNearSidebar ? 'sidebar-active' : 'sidebar-inactive'}
+      ${isFullWidth ? '-translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'}
     `;
-  }, [isMouseNearSidebar]);
+  }, [isMouseNearSidebar, isFullWidth]);
+
+  // Top overflow menu stays visible - positioned at top of sidebar area
+  const topMenuClassName = useMemo(() => {
+    return `
+      fixed top-0 left-0 z-[60]
+      w-16 sm:w-20
+      pt-4 px-1
+      transition-all duration-500 ease-out
+      ${isFullWidth ? 'translate-x-0 opacity-100' : 'translate-x-0 opacity-100'}
+    `;
+  }, [isFullWidth]);
 
   // Loading state (no early return before all hooks)
   if (isLoading || !isClient) {
     return (
-      <aside className={sidebarClassName}>
-        <div className="flex flex-col gap-2 sm:gap-3 w-full items-center animate-pulse">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl" />
-          ))}
+      <>
+        {/* Top Overflow Menu - always visible */}
+        <div className={topMenuClassName}>
+          <TopOverflowMenu
+            currentModule={selectedModuleKey}
+            onModuleSelect={onModuleSelect}
+          />
         </div>
-      </aside>
+        <aside className={sidebarClassName}>
+          <div className="flex flex-col gap-2 sm:gap-3 w-full items-center animate-pulse pt-16">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl" />
+            ))}
+          </div>
+        </aside>
+      </>
     );
   }
 
   return (
-    <aside className={sidebarClassName}>
-      {/* Top Overflow Menu (ERPNext-style) at the top */}
-      <div className="flex-shrink-0 mb-4 w-full px-1">
+    <>
+      {/* Top Overflow Menu - always visible at top, outside sliding sidebar */}
+      <div className={topMenuClassName}>
         <TopOverflowMenu
           currentModule={selectedModuleKey}
           onModuleSelect={onModuleSelect}
         />
       </div>
 
-      {/* Content container - responsive spacing and scrolling */}
-      <div className="flex flex-col gap-2 sm:gap-3 w-full items-center overflow-y-auto overflow-x-hidden custom-scrollbar flex-1">
-        {Array.isArray(mainModules) && mainModules.length > 0
-          ? mainModules.map((module, index) => renderModuleItem(module, index))
-          : <div className="text-white/50 text-xs text-center p-4">Loading modules...</div>
-        }
-      </div>
+      {/* Main Sidebar - slides out in full-width mode */}
+      <aside className={sidebarClassName}>
+        {/* Spacer for TopOverflowMenu */}
+        <div className="h-16 sm:h-20 flex-shrink-0" />
 
-      {/* Custom scrollbar styles */}
-      <style>{`
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: rgba(255, 255, 255, 0.2);
-          border-radius: 2px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: rgba(255, 255, 255, 0.3);
-        }
-      `}</style>
-    </aside>
+        {/* Content container - responsive spacing and scrolling */}
+        <div className="flex flex-col gap-2 sm:gap-3 w-full items-center overflow-y-auto overflow-x-hidden custom-scrollbar flex-1">
+          {Array.isArray(mainModules) && mainModules.length > 0
+            ? mainModules.map((module, index) => renderModuleItem(module, index))
+            : <div className="text-white/50 text-xs text-center p-4">Loading modules...</div>
+          }
+        </div>
+
+        {/* Custom scrollbar styles */}
+        <style>{`
+          .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+          }
+        `}</style>
+      </aside>
+    </>
   );
 };
 
 // Main component with error boundary
-const PrimarySidebar: React.FC<{ 
-  selectedModuleKey: string; 
-  onModuleSelect: (key: string) => void; 
+const PrimarySidebar: React.FC<{
+  selectedModuleKey: string;
+  onModuleSelect: (key: string) => void;
 }> = (props) => {
   return (
     <PrimarySidebarErrorBoundary>
