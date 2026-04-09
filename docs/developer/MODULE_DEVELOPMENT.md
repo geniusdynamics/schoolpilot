@@ -1,193 +1,435 @@
-# Module Development Guide
+# Module Development Guide - SchoolPilot
 
-This guide explains how to create and modify modules in SchoolPilot3.
+> **Last Updated:** April 10, 2026  
+> **Architecture:** Modular CRUD with Auto-Discovery
+
+This guide explains how to create new modules in SchoolPilot using our **modular auto-discovery architecture**.
+
+---
+
+## Quick Summary
+
+**The New Way (Modular CRUD):**
+- ✅ Each module defines its own collections (auto-discovered)
+- ✅ Each module has its own DataProvider (CRUD operations)
+- ✅ Each module exports a hook (data + CRUD combined)
+- ✅ Pages use only the module hook
+- ✅ No core file editing required!
+
+**Key Concept:**
+```
+Module Collection Config → Core Registry → AppDataContext
+YourDataProvider → useYourModule → Pages
+```
+
+---
 
 ## Module Overview
 
-Modules are self-contained feature areas that encapsulate related functionality. Each module typically includes:
+Modules are self-contained feature areas that encapsulate related functionality:
 
-- **Pages** - Route-level components
-- **Data hooks** - Data fetching and manipulation
+- **collectionConfig.ts** - Registers collections (auto-discovered by core)
+- **DataProvider** - CRUD operations with validation & notifications
+- **useYourModule hook** - Combines data from AppDataContext + CRUD from DataProvider
+- **Pages** - Use the module hook only
 - **Components** - Reusable UI elements
-- **Types** - TypeScript type definitions
+- **Types** - TypeScript definitions
+
+---
 
 ## Creating a New Module
 
 ### 1. Create Module Structure
 
-Create the following directory structure under `src/modules/{module-name}/`:
+Create the following directory structure:
 
 ```
-src/modules/students/
-├── index.ts                 # Module definition
-├── routes.tsx               # Route definitions
-├── pages/
-│   ├── index.tsx            # Page router
-│   ├── StudentListPage.tsx  # List view
-│   └── StudentDetailPage.tsx # Detail view
+src/modules/your-module/
 ├── data/
-│   ├── index.ts             # Hook exports
-│   ├── useStudentData.ts    # Data fetching
-│   └── types.ts             # Type definitions
+│   ├── collectionConfig.ts      # ⚡ REQUIRED: Auto-discoverable collections
+│   ├── YourDataProvider.tsx     # ⚡ REQUIRED: CRUD operations
+│   ├── types.ts                 # RECOMMENDED: TypeScript types
+│   └── index.ts                 # RECOMMENDED: Data exports
+├── hooks/
+│   ├── useYourModule.ts         # ⚡ REQUIRED: Main module hook
+│   └── index.ts                 # RECOMMENDED: Hook exports
+├── pages/
+│   ├── YourMainPage.tsx         # REQUIRED: At least one page
+│   └── index.ts                 # RECOMMENDED: Page exports
 ├── components/
-│   ├── StudentCard.tsx      # Reusable components
-│   └── StudentForm.tsx      # Forms
-└── __tests__/
-    └── StudentListPage.test.tsx
+│   └── YourComponent.tsx        # RECOMMENDED: Reusable components
+├── moduleDefinition.tsx         # ⚡ REQUIRED: Module registration
+└── index.ts                     # RECOMMENDED: Barrel exports
 ```
 
-### 2. Define Module (index.ts)
+**See also:** `docs/guides/MODULE_DEVELOPMENT_GUIDE.md` for detailed step-by-step instructions.
+
+### 2. Register Collections (collectionConfig.ts)
+
+This is the **most important file** - it auto-registers your collections with the core system:
 
 ```typescript
-// ABOUTME: Students module definition and registration
+// src/modules/your-module/data/collectionConfig.ts
+import type { ModuleCollectionsConfig } from '@/core/types/moduleCollections';
 
-import type { ModuleDefinition } from '../../core/moduleRegistry';
-
-export const studentsModule: ModuleDefinition = {
-  id: 'students',
-  name: 'Students',
-  description: 'Student management and enrollment',
-  version: '1.0.0',
-
-  routes: [
-    {
-      path: '/students',
-      component: () => import('./pages/StudentListPage'),
-      exact: true,
-      meta: {
-        title: 'Students',
-        icon: 'Users',
-        permission: 'view_students',
-      },
-    },
-    {
-      path: '/students/:id',
-      component: () => import('./pages/StudentDetailPage'),
-      meta: {
-        title: 'Student Details',
-        permission: 'view_students',
-      },
-    },
-  ],
-
-  navigationItems: [
-    {
-      label: 'Students',
-      path: '/students',
-      icon: 'Users',
-      permission: 'view_students',
-    },
-  ],
-
-  collections: ['students', 'student_enrollments', 'student_attendance'],
+export const yourModuleCollections: ModuleCollectionsConfig = {
+  moduleName: 'your-module',
+  aliases: {
+    // DB collection name (snake_case) : AppData key (camelCase)
+    your_entities: 'yourEntities',
+    another_collection: 'anotherCollection',
+    related_items: 'relatedItems',
+  },
+  // Optional: include schemas for database
+  schemas: {
+    your_entities: yourEntitiesSchema,
+  },
 };
 
-export default studentsModule;
+export default yourModuleCollections;
 ```
 
-### 3. Register the Module
+**Key Points:**
+- `moduleName`: Unique identifier for your module
+- `aliases`: Maps database collection names to AppData keys
+- `schemas`: (Optional) Database schemas used by UnifiedDatabaseManager
 
-In your module's entry point or a registration file:
-
+Then import it in the core registry:
 ```typescript
-// Register the module
-import { registerModule } from '../../core/moduleRegistry';
-import { studentsModule } from './index';
+// src/contexts/appData/moduleCollectionRegistry.ts
+import { yourModuleCollections } from '@/modules/your-module/data/collectionConfig';
 
-registerModule(studentsModule);
+const MODULE_CONFIGS: ModuleCollectionsConfig[] = [
+  // ... existing modules
+  yourModuleCollections, // ← Add your module (1 line!)
+];
 ```
 
-## Data Hooks Pattern
+---
 
-### useStudentData.ts
+## Data Provider Pattern (NEW)
+
+### 3. Create Your Data Provider
+
+DataProviders handle CRUD operations with validation and toast notifications:
 
 ```typescript
-// ABOUTME: Hook for accessing and managing student data
+// src/modules/your-module/data/YourDataProvider.tsx
+import React, { createContext, useContext, useCallback } from 'react';
+import { databaseService } from '@/services/database';
+import { useToastHelpers } from '@/hooks/useToast';
+import { useValidation } from '@/hooks/useValidation';
+import type { YourEntity } from './types';
 
-import { useCallback } from 'react';
-import { useAppData } from '../../../hooks/useAppData';
-import type { Student, StudentCreateInput } from './types';
-
-export interface UseStudentDataReturn {
-  students: Student[];
-  isLoading: boolean;
-  error: Error | null;
-  addStudent: (data: StudentCreateInput) => Promise<void>;
-  updateStudent: (id: number, data: Partial<Student>) => Promise<void>;
-  deleteStudent: (id: number) => Promise<void>;
-  getStudentById: (id: number) => Student | undefined;
+interface YourDataContextType {
+  // CRUD Operations
+  addYourEntity: (data: Partial<YourEntity>) => Promise<YourEntity>;
+  updateYourEntity: (id: string, data: Partial<YourEntity>) => Promise<void>;
+  deleteYourEntity: (id: string) => Promise<void>;
+  bulkAdd: (items: Partial<YourEntity>[]) => Promise<YourEntity[]>;
 }
 
-export const useStudentData = (): UseStudentDataReturn => {
-  const { students, addRecord, updateRecord, deleteRecord, isLoading, error } = useAppData();
+const YourDataContext = createContext<YourDataContextType | undefined>(undefined);
 
-  const addStudent = useCallback(async (data: StudentCreateInput) => {
-    await addRecord('students', data);
-  }, [addRecord]);
+export const YourDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { showSuccess, showError, showConfirm } = useToastHelpers();
+  const { validate, validators } = useValidation();
 
-  const updateStudent = useCallback(async (id: number, data: Partial<Student>) => {
-    await updateRecord('students', id, data);
-  }, [updateRecord]);
+  // Validation helper
+  const validateEntity = (data: Partial<YourEntity>) => {
+    return validate(data, {
+      name: [validators.required('Name is required')],
+      email: [validators.email('Invalid email format')],
+    });
+  };
 
-  const deleteStudent = useCallback(async (id: number) => {
-    await deleteRecord('students', id);
-  }, [deleteRecord]);
+  // Create
+  const addYourEntity = useCallback(async (data: Partial<YourEntity>) => {
+    const errors = validateEntity(data);
+    if (errors.length > 0) {
+      showError(errors[0].message);
+      throw new Error(errors[0].message);
+    }
 
-  const getStudentById = useCallback((id: number) => {
-    return students.find(s => s.id === id);
-  }, [students]);
+    try {
+      const db = databaseService.getManager();
+      const collection = db.getCollection('your_entities');
+      
+      const newEntity = {
+        id: crypto.randomUUID(),
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      await collection?.insert(newEntity);
+      showSuccess('Entity created successfully');
+      return newEntity;
+    } catch (error) {
+      showError('Failed to create entity');
+      throw error;
+    }
+  }, [showSuccess, showError, validate, validators]);
+
+  // Update
+  const updateYourEntity = useCallback(async (id: string, data: Partial<YourEntity>) => {
+    try {
+      const db = databaseService.getManager();
+      const collection = db.getCollection('your_entities');
+      
+      await collection?.update(id, {
+        ...data,
+        updated_at: new Date().toISOString(),
+      });
+      
+      showSuccess('Entity updated successfully');
+    } catch (error) {
+      showError('Failed to update entity');
+      throw error;
+    }
+  }, [showSuccess, showError]);
+
+  // Delete with confirmation
+  const deleteYourEntity = useCallback(async (id: string) => {
+    const confirmed = await showConfirm('Are you sure you want to delete this entity?');
+    if (!confirmed) return;
+
+    try {
+      const db = databaseService.getManager();
+      const collection = db.getCollection('your_entities');
+      
+      await collection?.remove(id);
+      showSuccess('Entity deleted successfully');
+    } catch (error) {
+      showError('Failed to delete entity');
+      throw error;
+    }
+  }, [showSuccess, showError, showConfirm]);
+
+  // Batch create
+  const bulkAdd = useCallback(async (items: Partial<YourEntity>[]) => {
+    const created: YourEntity[] = [];
+    for (const item of items) {
+      const entity = await addYourEntity(item);
+      created.push(entity);
+    }
+    showSuccess(`Created ${created.length} entities`);
+    return created;
+  }, [addYourEntity, showSuccess]);
+
+  return (
+    <YourDataContext.Provider value={{
+      addYourEntity,
+      updateYourEntity,
+      deleteYourEntity,
+      bulkAdd,
+    }}>
+      {children}
+    </YourDataContext.Provider>
+  );
+};
+
+export const useYourDataContext = () => {
+  const context = useContext(YourDataContext);
+  if (!context) throw new Error('useYourDataContext must be used within YourDataProvider');
+  return context;
+};
+```
+
+---
+
+## Module Hook Pattern (NEW)
+
+### 4. Create Your Module Hook
+
+The module hook combines data from AppDataContext with CRUD from DataProvider:
+
+```typescript
+// src/modules/your-module/hooks/useYourModule.ts
+import { useAppData } from '@/hooks/useAppData';
+import { useYourDataContext } from '../data/YourDataProvider';
+import type { YourEntity } from '../data/types';
+
+export interface UseYourModuleReturn {
+  // Data (from AppDataContext)
+  yourEntities: YourEntity[];
+  anotherCollection: any[];
+  relatedItems: any[];
+  loading: Record<string, boolean>;
+
+  // CRUD Operations (from YourDataProvider)
+  addYourEntity: (data: Partial<YourEntity>) => Promise<YourEntity>;
+  updateYourEntity: (id: string, data: Partial<YourEntity>) => Promise<void>;
+  deleteYourEntity: (id: string) => Promise<void>;
+  bulkAdd: (items: Partial<YourEntity>[]) => Promise<YourEntity[]>;
+}
+
+export const useYourModule = (): UseYourModuleReturn => {
+  // Get read-only data from AppDataContext
+  const {
+    yourEntities,
+    anotherCollection,
+    relatedItems,
+    loading,
+  } = useAppData();
+
+  // Get CRUD operations from YourDataProvider
+  const {
+    addYourEntity,
+    updateYourEntity,
+    deleteYourEntity,
+    bulkAdd,
+  } = useYourDataContext();
 
   return {
-    students,
-    isLoading,
-    error,
-    addStudent,
-    updateStudent,
-    deleteStudent,
-    getStudentById,
+    // Data with null-safety defaults
+    yourEntities: yourEntities || [],
+    anotherCollection: anotherCollection || [],
+    relatedItems: relatedItems || [],
+    loading,
+
+    // CRUD Operations
+    addYourEntity,
+    updateYourEntity,
+    deleteYourEntity,
+    bulkAdd,
   };
 };
+
+export default useYourModule;
 ```
 
-### types.ts
+**Why this pattern?**
+- **Separation of concerns**: Data loading vs CRUD operations
+- **AppDataContext** handles data coordination (one source of truth)
+- **DataProvider** handles business logic (validation, notifications)
+- **Module Hook** combines both for easy page consumption
+
+### 5. Define Types (types.ts)
 
 ```typescript
-// ABOUTME: Type definitions for students module
+// ABOUTME: Type definitions for your module
 
-export interface Student {
-  id: number;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  gender: 'male' | 'female' | 'other';
+export interface YourEntity {
+  id: string;
+  name: string;
+  description?: string;
   email?: string;
-  phone?: string;
-  address?: string;
-  enrollmentDate: string;
-  classId?: number;
-  status: 'active' | 'inactive' | 'graduated' | 'transferred';
-  createdAt?: string;
-  updatedAt?: string;
+  status: 'active' | 'inactive';
+  created_at: string;
+  updated_at: string;
 }
 
-export interface StudentCreateInput {
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  gender: 'male' | 'female' | 'other';
-  email?: string;
-  phone?: string;
-  address?: string;
-  enrollmentDate: string;
-  classId?: number;
-}
+export type YourEntityFormData = Omit<YourEntity, 'id' | 'created_at' | 'updated_at'>;
 
-export interface StudentFilters {
-  classId?: number;
-  status?: Student['status'];
+export interface YourEntityFilters {
+  status?: YourEntity['status'];
   search?: string;
 }
 ```
+
+---
+
+## Page Components (UPDATED)
+
+### YourEntitiesPage.tsx
+
+Pages should use the **module hook**, never `useAppData` directly:
+
+```typescript
+// ABOUTME: Your entities page component
+
+import React, { useState } from 'react';
+import { useYourModule } from '../hooks/useYourModule';  // ✅ Module hook
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import { DataGrid } from '@/components/ui/data';
+import DialogForm from '@/components/ui/forms/DialogForm';
+
+const YourEntitiesPage: React.FC = () => {
+  // ✅ CORRECT: Use module hook (data + CRUD)
+  const {
+    yourEntities,
+    loading,
+    addYourEntity,
+    updateYourEntity,
+    deleteYourEntity,
+  } = useYourModule();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEntity, setEditingEntity] = useState<any>(null);
+
+  const handleSubmit = async (formData: any) => {
+    if (editingEntity) {
+      await updateYourEntity(editingEntity.id, formData);
+    } else {
+      await addYourEntity(formData);
+    }
+    setIsModalOpen(false);
+    setEditingEntity(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteYourEntity(id);  // Shows confirmation dialog automatically
+  };
+
+  // ✅ CORRECT: Use optional chaining for loading checks
+  if (loading?.all) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="p-6">
+      <Card title="Your Entities">
+        <div className="mb-4">
+          <Button onClick={() => setIsModalOpen(true)}>
+            Add Entity
+          </Button>
+        </div>
+
+        <DataGrid
+          data={yourEntities}
+          columns={[
+            { key: 'name', header: 'Name' },
+            { key: 'status', header: 'Status' },
+            {
+              key: 'actions',
+              header: 'Actions',
+              render: (row: any) => (
+                <>
+                  <Button onClick={() => { setEditingEntity(row); setIsModalOpen(true); }}>
+                    Edit
+                  </Button>
+                  <Button onClick={() => handleDelete(row.id)} variant="danger">
+                    Delete
+                  </Button>
+                </>
+              ),
+            },
+          ]}
+        />
+      </Card>
+
+      <DialogForm
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); setEditingEntity(null); }}
+        onSubmit={handleSubmit}
+        title={editingEntity ? 'Edit Entity' : 'Add Entity'}
+      >
+        {/* Form fields */}
+      </DialogForm>
+    </div>
+  );
+};
+
+export default YourEntitiesPage;
+```
+
+**Important:**
+- ✅ Use module hook (`useYourModule`) - not `useAppData`
+- ✅ Use null-safety: `entities || []`, `loading?.all`
+- ✅ DataProvider handles validation and toast notifications
+- ✅ Delete confirmations handled automatically in DataProvider
 
 ## Page Components
 
@@ -397,74 +639,148 @@ describe('StudentListPage', () => {
 });
 ```
 
-## Best Practices
+---
 
-### 1. Lazy Load Pages
+## Best Practices (UPDATED)
+
+### 1. Always Use Module Hooks in Pages
 
 ```typescript
-// Good - Lazy load pages for better performance
+// ✅ CORRECT - Use module hook
+import { useFinance } from '@/modules/finance/hooks/useFinance';
+const { banks, addBank } = useFinance();
+
+// ❌ WRONG - Don't use useAppData directly in pages
+import { useAppData } from '@/hooks/useAppData';
+const { banks, addBank } = useAppData();  // Deprecated!
+```
+
+### 2. Use Collection Auto-Discovery
+
+```typescript
+// ✅ CORRECT - Define collections in your module
+// src/modules/your-module/data/collectionConfig.ts
+export const yourModuleCollections: ModuleCollectionsConfig = {
+  moduleName: 'your-module',
+  aliases: { your_entities: 'yourEntities' },  // Auto-discovered!
+};
+
+// ❌ WRONG - Don't manually edit APP_DATA_ARRAY_KEYS in core files
+// src/contexts/appData/appDataCollections.ts
+const APP_DATA_ARRAY_KEYS = [
+  // ...don't add entries here anymore!
+];
+```
+
+### 3. Implement DataProvider with Full Features
+
+```typescript
+// ✅ CORRECT - Complete DataProvider implementation
+export const YourDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { showSuccess, showError, showConfirm } = useToastHelpers();
+  const { validate, validators } = useValidation();
+
+  // 1. Validate before operations
+  const validateEntity = (data: Partial<YourEntity>) => {
+    return validate(data, {
+      name: [validators.required('Name is required')],
+    });
+  };
+
+  // 2. Add with validation and toast
+  const addYourEntity = useCallback(async (data: Partial<YourEntity>) => {
+    const errors = validateEntity(data);
+    if (errors.length > 0) {
+      showError(errors[0].message);
+      throw new Error(errors[0].message);
+    }
+    // ... proceed with database operation
+    showSuccess('Entity created successfully');
+  }, []);
+
+  // 3. Delete with confirmation
+  const deleteYourEntity = useCallback(async (id: string) => {
+    const confirmed = await showConfirm('Are you sure?');
+    if (!confirmed) return;
+    // ... proceed with delete
+    showSuccess('Entity deleted successfully');
+  }, []);
+
+  // ...
+};
+```
+
+### 4. Lazy Load Pages
+
+```typescript
+// ✅ CORRECT - Lazy load pages for better performance
+const YourPage = React.lazy(() => import('./pages/YourPage'));
+
 routes: [
   {
-    path: '/students',
-    component: () => import('./pages/StudentListPage'),
+    path: '/your-module',
+    component: () => import('./pages/YourPage'),
   },
 ];
 
-// Avoid - Eager loading
-import { StudentListPage } from './pages/StudentListPage';
+// ❌ WRONG - Eager loading
+import { YourPage } from './pages/YourPage';  // Don't do this
 ```
 
-### 2. Use Custom Hooks for Data Access
+### 5. Handle Loading and Error States with Null Safety
 
 ```typescript
-// Good - Encapsulated data logic
-const { students, addStudent } = useStudentData();
+// ✅ CORRECT - Null safety and optional chaining
+const { yourEntities = [], loading } = useYourModule();
 
-// Avoid - Direct context access
-const { data } = useAppData();
-const students = data.students || [];
+// Check loading state
+if (loading?.all || loading?.yourEntities) {
+  return <Spinner />;
+}
+
+// Safe array operations
+const filtered = yourEntities?.filter(e => e.active) || [];
 ```
 
-### 3. Handle Loading and Error States
+### 6. Use TypeScript Properly
 
 ```typescript
-// Good - Proper loading/error handling
-const { students, isLoading, error } = useStudentData();
-
-if (isLoading) return <Spinner />;
-if (error) return <ErrorMessage error={error} />;
-return <StudentList students={students} />;
-```
-
-### 4. Use TypeScript Properly
-
-```typescript
-// Good - Proper typing
-interface StudentCardProps {
-  student: Student;
+// ✅ CORRECT - Proper typing
+interface YourEntityCardProps {
+  entity: YourEntity;
   onClick?: () => void;
 }
 
-// Avoid - Any type
-interface StudentCardProps {
-  student: any;
+// ❌ WRONG - Any type
+interface YourEntityCardProps {
+  entity: any;  // Don't use any
   onClick: any;
 }
 ```
 
-### 5. Keep Components Small
+### 7. Keep Components Small
 
 ```typescript
-// Good - Small, focused components
-export const StudentCard: React.FC<StudentCardProps> = ({ student }) => {
+// ✅ CORRECT - Small, focused components
+export const EntityCard: React.FC<EntityCardProps> = ({ entity }) => {
   return (
     <div className="card">
-      <StudentName name={student.name} />
-      <StudentStatus status={student.status} />
+      <EntityName name={entity.name} />
+      <EntityStatus status={entity.status} />
     </div>
   );
 };
 ```
+
+### 8. Name Conventions
+
+| Element | Naming Pattern | Example |
+|---------|----------------|---------|
+| DataProvider | `ModuleDataProvider` | `FinanceDataProvider` |
+| Module Hook | `useModule` | `useFinance` |
+| Collection Config | `moduleCollections` | `financeModuleCollections` |
+| Types File | `types.ts` | `src/modules/finance/data/types.ts` |
+| Schema File | `schema.ts` | `src/modules/finance/data/schema.ts` |
 
 ## Module Communication
 
@@ -488,20 +804,129 @@ const { currentClass } = useClassContext();
 
 ## Troubleshooting
 
-### Module Not Appearing
+### Collections Not Appearing in AppDataContext
 
-1. Check module is registered in `moduleRegistry`
-2. Verify route path is correct
-3. Check user has required permissions
+1. ✅ Check `collectionConfig.ts` is exporting correctly:
+   ```typescript
+   export const yourModuleCollections: ModuleCollectionsConfig = { ... };
+   export default yourModuleCollections;
+   ```
 
-### Data Not Loading
+2. ✅ Verify import in `moduleCollectionRegistry.ts`:
+   ```typescript
+   import { yourModuleCollections } from '@/modules/your-module/data/collectionConfig';
+   ```
 
-1. Check collection name is correct
-2. Verify database provider is working
-3. Check for errors in browser console
+3. ✅ Add to `MODULE_CONFIGS` array:
+   ```typescript
+   const MODULE_CONFIGS = [
+     // ... existing
+     yourModuleCollections,  // ← Your module here
+   ];
+   ```
 
-### Navigation Issues
+4. ✅ Check browser console for registry info:
+   ```typescript
+   import { getModuleRegistryInfo } from '@/contexts/appData/moduleCollectionRegistry';
+   console.log(getModuleRegistryInfo());
+   ```
 
-1. Verify routes are defined in module
-2. Check path parameters match route definition
-3. Ensure navigation permissions are set correctly
+### CRUD Operations Not Working
+
+1. ✅ Is `YourDataProvider` wrapping your routes?
+   ```tsx
+   <YourDataProvider>{children}</YourDataProvider>
+   ```
+
+2. ✅ Is `useYourDataContext` being called inside the provider?
+   ```typescript
+   // ✅ Correct: Called inside component wrapped by provider
+   const { addEntity } = useYourDataContext();
+   ```
+
+3. ✅ Check database collection name matches `collectionConfig.ts`:
+   ```typescript
+   // collectionConfig.ts
+   aliases: { your_entities: 'yourEntities' }
+   
+   // DataProvider
+   db.getCollection('your_entities')  // Must match!
+   ```
+
+4. ✅ Check for TypeScript errors - collection name mismatches will show errors
+
+### Module Hook Returns Undefined Data
+
+1. ✅ Use null-safety defaults:
+   ```typescript
+   const { yourEntities = [] } = useYourModule();
+   ```
+
+2. ✅ Use optional chaining for loading:
+   ```typescript
+   if (loading?.all) { return <Spinner />; }
+   ```
+
+3. ✅ Safe array operations:
+   ```typescript
+   const filtered = yourEntities?.filter(e => e.active) || [];
+   ```
+
+### Type Errors in useYourModule
+
+1. ✅ Ensure types are exported from `data/types.ts`:
+   ```typescript
+   export interface YourEntity { ... }
+   ```
+
+2. ✅ Import types correctly:
+   ```typescript
+   import type { YourEntity } from '../data/types';
+   ```
+
+3. ✅ Ensure `useAppData` returns expected collections (check collectionConfig.ts)
+
+---
+
+## Example Modules (Reference)
+
+| Module | Key Files |
+|--------|-----------|
+| **Finance** | `FinanceDataProvider.tsx`, `useFinance.ts`, `collectionConfig.ts` |
+| **Administration** | `AdministrationDataProvider.tsx`, `useAdministration.ts`, `collectionConfig.ts` |
+| **HR** | `HRDataProvider.tsx`, `useHR.ts`, `collectionConfig.ts` |
+| **Library** | `LibraryDataProvider.tsx`, `useLibrary.ts`, `collectionConfig.ts` |
+
+---
+
+## Related Documentation
+
+| Document | Purpose |
+|----------|---------|
+| `docs/guides/MODULE_DEVELOPMENT_GUIDE.md` | **Complete step-by-step tutorial** for new modules |
+| `docs/planning/modularity/MODULAR_ARCHITECTURE_REPORT.md` | Architecture overview and design decisions |
+| `docs/CRUD_ARCHITECTURE_STATUS.md` | Current CRUD implementation status |
+| `src/contexts/appData/moduleCollectionRegistry.ts` | Auto-discovery implementation |
+| `src/hooks/useValidation.ts` | Validation system reference |
+| `src/hooks/useCrudFactory.ts` | CRUD factory for advanced use |
+
+---
+
+## Summary
+
+**Building a new module requires:**
+
+1. ✅ **collectionConfig.ts** - Define collections (auto-discovered)
+2. ✅ **DataProvider** - Implement CRUD with validation & toasts
+3. ✅ **useYourModule.ts** - Combine data + CRUD for pages
+4. ✅ **Pages** - Use `useYourModule()` hook (not `useAppData`)
+5. ✅ **moduleDefinition.tsx** - Register module in system
+6. ✅ **Register in core** - Add to `moduleCollectionRegistry.ts`
+
+**Key Principle:** Auto-discovery enables true modularity - define collections in your module, core handles the rest!
+
+---
+
+*Last Updated: April 10, 2026*  
+*Architecture: Modular Auto-Discovery System*  
+*Total Collections: 94 across 8 modules*
