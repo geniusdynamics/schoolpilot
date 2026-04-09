@@ -19,8 +19,8 @@ import {
   EyeIcon,
   ExclamationTriangleIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData } from '../../data/lessonplans/useLessonPlansData';
-import { WeeklyPlan, PlanStatus } from '../../data/types';
+import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
+import { WeeklyPlan } from '../../data/types';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
