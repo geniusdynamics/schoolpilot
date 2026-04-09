@@ -43,8 +43,8 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
   // Gather unique subjects and classes for filters
   const allSubjects = useMemo(() => {
     const subjects = new Set<string>();
-    teacherAnalytics.forEach((ta) => {
-      ta.topicsCovered.forEach((s) => subjects.add(s));
+    (teacherAnalytics || []).forEach((ta) => {
+      (ta.topicsCovered || []).forEach((s) => subjects.add(s));
       if (ta.subjectName) subjects.add(ta.subjectName);
     });
     return Array.from(subjects).sort();
@@ -52,33 +52,33 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
 
   const allClasses = useMemo(() => {
     const classes = new Set<string>();
-    teacherAnalytics.forEach((ta) => {
-      ta.classPerformance.forEach((cp) => classes.add(cp.className));
+    (teacherAnalytics || []).forEach((ta) => {
+      (ta.classPerformance || []).forEach((cp) => classes.add(cp.className));
     });
     return Array.from(classes).sort();
   }, [teacherAnalytics]);
 
   // Build DataGrid rows
   const teacherRows: TeacherRow[] = useMemo(() => {
-    return teacherAnalytics.map((ta) => ({
+    return (teacherAnalytics || []).map((ta) => ({
       teacherId: ta.teacherId,
       teacherName: ta.teacherName,
-      subjects: ta.subjectName || ta.topicsCovered.slice(0, 3).join(', '),
-      classes: ta.classPerformance.map((c) => c.className).slice(0, 3).join(', '),
-      totalStudents: ta.classPerformance.reduce((sum, c) => sum + c.studentCount, 0),
+      subjects: ta.subjectName || (ta.topicsCovered || []).slice(0, 3).join(', '),
+      classes: (ta.classPerformance || []).map((c) => c.className).slice(0, 3).join(', '),
+      totalStudents: (ta.classPerformance || []).reduce((sum, c) => sum + c.studentCount, 0),
       avgStudentScore: Math.round(
-        ta.classPerformance.length > 0
-          ? ta.classPerformance.reduce((sum, c) => sum + c.averageScore, 0) / ta.classPerformance.length
+        (ta.classPerformance || []).length > 0
+          ? (ta.classPerformance || []).reduce((sum, c) => sum + c.averageScore, 0) / (ta.classPerformance || []).length
           : 0
       ),
       passRate: Math.round(
-        ta.passRates.length > 0
-          ? ta.passRates.reduce((sum, p) => sum + p.passRate, 0) / ta.passRates.length
+        (ta.passRates || []).length > 0
+          ? (ta.passRates || []).reduce((sum, p) => sum + p.passRate, 0) / (ta.passRates || []).length
           : 0
       ),
-      attendanceRate: Math.round(ta.attendanceRate),
-      assignmentsGiven: ta.assignmentsCreated,
-      gradingBacklog: ta.assignmentsCreated - ta.assignmentsGraded,
+      attendanceRate: Math.round(ta.attendanceRate || 0),
+      assignmentsGiven: ta.assignmentsCreated || 0,
+      gradingBacklog: (ta.assignmentsCreated || 0) - (ta.assignmentsGraded || 0),
     }));
   }, [teacherAnalytics]);
 
@@ -99,7 +99,7 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
 
   // Aggregate stats
   const stats = useMemo(() => {
-    const totalTeachers = teacherAnalytics.length;
+    const totalTeachers = (teacherAnalytics || []).length;
     const avgPassRate =
       teacherRows.length > 0
         ? Math.round(teacherRows.reduce((sum, r) => sum + r.passRate, 0) / teacherRows.length)

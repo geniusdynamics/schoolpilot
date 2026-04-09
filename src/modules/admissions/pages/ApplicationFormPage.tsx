@@ -111,6 +111,10 @@ const ApplicationFormPage: React.FC = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate('/admissions/applications');
+  };
+
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
@@ -459,7 +463,7 @@ const ApplicationFormPage: React.FC = () => {
             description="Complete all steps to submit your application"
           />
           <WizardForm
-            steps={wizardSteps}
+            steps={steps}
             onComplete={handleSubmit}
             onCancel={handleCancel}
             showProgress={true}
