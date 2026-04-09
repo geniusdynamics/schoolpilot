@@ -1191,6 +1191,292 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     }));
   }, [dbManager, loadAllCollections]);
 
+  // ===== FINANCE CRUD OPERATIONS =====
+  
+  // Banks
+  const addBank = useCallback(async (bankData: any) => {
+    const collection = dbManager.getCollection('banks');
+    const newBank = { ...bankData, id: bankData.id || Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newBank);
+      await loadAllCollections();
+      return newBank;
+    }
+    throw new Error('Banks collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateBank = useCallback(async (bankId: string, bankData: any) => {
+    const collection = dbManager.getCollection('banks');
+    if (collection?.update) {
+      const result = await collection.update(bankId, { ...bankData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Banks collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteBank = useCallback(async (bankId: string) => {
+    const collection = dbManager.getCollection('banks');
+    if (collection?.remove) {
+      await collection.remove(bankId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
+  // Chart of Accounts
+  const addChartOfAccount = useCallback(async (accountData: any) => {
+    const collection = dbManager.getCollection('chart_of_accounts');
+    const newAccount = { ...accountData, id: accountData.id || Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newAccount);
+      await loadAllCollections();
+      return newAccount;
+    }
+    throw new Error('Chart of accounts collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateChartOfAccount = useCallback(async (accountId: string, accountData: any) => {
+    const collection = dbManager.getCollection('chart_of_accounts');
+    if (collection?.update) {
+      const result = await collection.update(accountId, { ...accountData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Chart of accounts collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteChartOfAccount = useCallback(async (accountId: string) => {
+    const collection = dbManager.getCollection('chart_of_accounts');
+    if (collection?.remove) {
+      await collection.remove(accountId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
+  // Fee Templates
+  const addFeeTemplate = useCallback(async (templateData: any) => {
+    const collection = dbManager.getCollection('fee_templates');
+    const newTemplate = { ...templateData, id: templateData.id || Date.now(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newTemplate);
+      await loadAllCollections();
+      return newTemplate;
+    }
+    throw new Error('Fee templates collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateFeeTemplate = useCallback(async (templateId: string, templateData: any) => {
+    const collection = dbManager.getCollection('fee_templates');
+    if (collection?.update) {
+      const result = await collection.update(templateId, { ...templateData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Fee templates collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteFeeTemplate = useCallback(async (templateId: string) => {
+    const collection = dbManager.getCollection('fee_templates');
+    if (collection?.remove) {
+      await collection.remove(templateId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
+  // Student Payments
+  const recordStudentPayment = useCallback(async (paymentData: any) => {
+    const collection = dbManager.getCollection('student_payments');
+    const newPayment = { ...paymentData, id: paymentData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newPayment);
+      await loadAllCollections();
+      return newPayment;
+    }
+    throw new Error('Student payments collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  // ===== ADMINISTRATION CRUD OPERATIONS =====
+
+  // Students
+  const addStudent = useCallback(async (studentData: any) => {
+    const collection = dbManager.getCollection('students');
+    const newStudent = { ...studentData, id: studentData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newStudent);
+      await loadAllCollections();
+      return newStudent;
+    }
+    throw new Error('Students collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateStudent = useCallback(async (studentId: string, studentData: any) => {
+    const collection = dbManager.getCollection('students');
+    if (collection?.update) {
+      const result = await collection.update(studentId, { ...studentData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Students collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteStudent = useCallback(async (studentId: string) => {
+    const collection = dbManager.getCollection('students');
+    if (collection?.remove) {
+      await collection.remove(studentId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
+  // Staff
+  const addStaff = useCallback(async (staffData: any) => {
+    const collection = dbManager.getCollection('staff');
+    const newStaff = { ...staffData, id: staffData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newStaff);
+      await loadAllCollections();
+      return newStaff;
+    }
+    throw new Error('Staff collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateStaff = useCallback(async (staffId: string, staffData: any) => {
+    const collection = dbManager.getCollection('staff');
+    if (collection?.update) {
+      const result = await collection.update(staffId, { ...staffData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Staff collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteStaff = useCallback(async (staffId: string) => {
+    const collection = dbManager.getCollection('staff');
+    if (collection?.remove) {
+      await collection.remove(staffId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
+  // Classes
+  const addClass = useCallback(async (classData: any) => {
+    const collection = dbManager.getCollection('classes');
+    const newClass = { ...classData, id: classData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newClass);
+      await loadAllCollections();
+      return newClass;
+    }
+    throw new Error('Classes collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateClass = useCallback(async (classId: string, classData: any) => {
+    const collection = dbManager.getCollection('classes');
+    if (collection?.update) {
+      const result = await collection.update(classId, { ...classData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Classes collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteClass = useCallback(async (classId: string) => {
+    const collection = dbManager.getCollection('classes');
+    if (collection?.remove) {
+      await collection.remove(classId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
+  // Class Streams
+  const addClassStream = useCallback(async (streamData: any) => {
+    const collection = dbManager.getCollection('class_streams');
+    const newStream = { ...streamData, id: streamData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newStream);
+      await loadAllCollections();
+      return newStream;
+    }
+    throw new Error('Class streams collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateClassStream = useCallback(async (streamId: string, streamData: any) => {
+    const collection = dbManager.getCollection('class_streams');
+    if (collection?.update) {
+      const result = await collection.update(streamId, { ...streamData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Class streams collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteClassStream = useCallback(async (streamId: string) => {
+    const collection = dbManager.getCollection('class_streams');
+    if (collection?.remove) {
+      await collection.remove(streamId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
+  // Departments
+  const addDepartment = useCallback(async (deptData: any) => {
+    const collection = dbManager.getCollection('departments');
+    const newDept = { ...deptData, id: deptData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newDept);
+      await loadAllCollections();
+      return newDept;
+    }
+    throw new Error('Departments collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateDepartment = useCallback(async (deptId: string, deptData: any) => {
+    const collection = dbManager.getCollection('departments');
+    if (collection?.update) {
+      const result = await collection.update(deptId, { ...deptData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Departments collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteDepartment = useCallback(async (deptId: string) => {
+    const collection = dbManager.getCollection('departments');
+    if (collection?.remove) {
+      await collection.remove(deptId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
+  // Academic Years
+  const addAcademicYear = useCallback(async (yearData: any) => {
+    const collection = dbManager.getCollection('academic_years');
+    const newYear = { ...yearData, id: yearData.id || crypto.randomUUID(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    if (collection) {
+      await collection.insert(newYear);
+      await loadAllCollections();
+      return newYear;
+    }
+    throw new Error('Academic years collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const updateAcademicYear = useCallback(async (yearId: string, yearData: any) => {
+    const collection = dbManager.getCollection('academic_years');
+    if (collection?.update) {
+      const result = await collection.update(yearId, { ...yearData, updated_at: new Date().toISOString() });
+      await loadAllCollections();
+      return result;
+    }
+    throw new Error('Academic years collection not available');
+  }, [dbManager, loadAllCollections]);
+
+  const deleteAcademicYear = useCallback(async (yearId: string) => {
+    const collection = dbManager.getCollection('academic_years');
+    if (collection?.remove) {
+      await collection.remove(yearId);
+      await loadAllCollections();
+    }
+  }, [dbManager, loadAllCollections]);
+
   // Listen for data changed events from decoupled providers
   useEffect(() => {
     const handleDataChanged = () => {
@@ -1283,6 +1569,30 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       updateTimetableEntry,
       deleteTimetableEntry,
       
+      // ===== FINANCE CRUD OPERATIONS =====
+      // Banks
+      addBank, updateBank, deleteBank,
+      // Chart of Accounts
+      addChartOfAccount, updateChartOfAccount, deleteChartOfAccount,
+      // Fee Templates
+      addFeeTemplate, updateFeeTemplate, deleteFeeTemplate,
+      // Student Payments
+      recordStudentPayment,
+      
+      // ===== ADMINISTRATION CRUD OPERATIONS =====
+      // Students
+      addStudent, updateStudent, deleteStudent,
+      // Staff
+      addStaff, updateStaff, deleteStaff,
+      // Classes
+      addClass, updateClass, deleteClass,
+      // Class Streams
+      addClassStream, updateClassStream, deleteClassStream,
+      // Departments
+      addDepartment, updateDepartment, deleteDepartment,
+      // Academic Years
+      addAcademicYear, updateAcademicYear, deleteAcademicYear,
+      
       // Legacy compatibility
       refresh: refreshData,
       isRxDBModeActive: isInitialized,
@@ -1328,6 +1638,18 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     addTimetableEntry,
     updateTimetableEntry,
     deleteTimetableEntry,
+    // Finance CRUD
+    addBank, updateBank, deleteBank,
+    addChartOfAccount, updateChartOfAccount, deleteChartOfAccount,
+    addFeeTemplate, updateFeeTemplate, deleteFeeTemplate,
+    recordStudentPayment,
+    // Administration CRUD
+    addStudent, updateStudent, deleteStudent,
+    addStaff, updateStaff, deleteStaff,
+    addClass, updateClass, deleteClass,
+    addClassStream, updateClassStream, deleteClassStream,
+    addDepartment, updateDepartment, deleteDepartment,
+    addAcademicYear, updateAcademicYear, deleteAcademicYear,
     config.environment,
     loadAllCollections
   ]); // Removed toast from dependencies to prevent re-render loop
