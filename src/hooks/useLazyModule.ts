@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { moduleLoader, type LoadModuleOptions, type LoadedModuleResult } from '@/core/ModuleLoader';
+import { moduleLoader, type LoadModuleOptions, type LoadedModuleResult } from '@/core/moduleLoader';
 import { moduleBundler } from '@/core/ModuleBundler';
-import type { ModuleLoadState } from '@/core/ModuleLoader';
+import type { ModuleLoadState } from '@/core/moduleLoader';
 
 export interface UseLazyModuleOptions extends LoadModuleOptions {
   preload?: boolean;

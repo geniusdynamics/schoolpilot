@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { moduleRegistry } from '@/core/ModuleRegistry';
+import { moduleRegistry } from '@/core/moduleRegistry';
 import type { ModuleMetadata, ModuleState } from '@/core/types/module';
 
 export interface UseModuleOptions {
