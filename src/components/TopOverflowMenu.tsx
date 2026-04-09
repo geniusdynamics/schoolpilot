@@ -175,31 +175,17 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
 
   return (
     <div ref={menuRef} className="relative w-full">
-      {/* Trigger Button - Compact: just logo + down arrow */}
+      {/* Trigger Button - Styled to match SecondarySidebar */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
           w-full flex items-center justify-between px-2 py-2 rounded-lg
           transition-all duration-300 ease-out
-          border
-          ${isOnDashboard
-            ? `
-              bg-blue-500/30 border-blue-400/40
-              shadow-lg shadow-blue-500/20
-              hover:bg-blue-500/40 hover:border-blue-300/50
-            `
-            : `
-              bg-slate-800/80 border-white/10
-              hover:bg-slate-700/80 hover:border-white/20
-            `
-          }
-          ${isOpen
-            ? isOnDashboard
-              ? 'bg-blue-500/40 border-blue-300/50'
-              : 'bg-slate-700/80 border-white/20'
-            : ''
-          }
-          text-white
+          border bg-white/90 border-slate-200/60
+          shadow-sm shadow-slate-300/20
+          hover:bg-white hover:border-slate-300/80
+          hover:shadow-md
+          ${isOpen ? 'bg-white border-slate-300/80 shadow-md' : ''}
         `}
       >
         <div className={`
@@ -207,24 +193,24 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
           transition-all duration-300
           ${isOnDashboard
             ? 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-md shadow-blue-500/30'
-            : 'bg-gradient-to-br from-blue-500 to-fuchsia-500'
+            : 'bg-gradient-to-br from-slate-500 to-slate-700'
           }
         `}>
           <currentModuleInfo.icon className={`w-5 h-5 text-white transition-all duration-300 ${isOnDashboard ? 'drop-shadow-lg' : ''}`} />
         </div>
         <ChevronDownIcon className={`
-          w-4 h-4 transition-all duration-200
-          ${isOnDashboard ? 'text-blue-300' : 'text-white/60'}
+          w-4 h-4 transition-all duration-200 text-slate-500
           ${isOpen ? 'rotate-180' : ''}
         `} />
       </button>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - Styled like SecondarySidebar */}
       <div className={`
         absolute top-full left-0 mt-1
-        min-w-fit w-auto bg-slate-900/95 backdrop-blur-xl
-        rounded-xl border border-white/10
-        shadow-2xl shadow-black/50
+        min-w-fit w-auto
+        bg-white/95 backdrop-blur-xl
+        rounded-xl border border-slate-200/60
+        shadow-2xl shadow-slate-500/20
         z-50
         transition-all duration-200 ease-out
         origin-top
@@ -235,33 +221,34 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
             {mainMenuItems.map((item) => (
               <React.Fragment key={item.id}>
                 {item.divider ? (
-                  <div className="my-2 border-t border-white/10" />
+                  <div className="my-2 border-t border-slate-200/60" />
                 ) : (
                   <div className="relative group">
                     <button
                       onClick={() => handleItemClick(item)}
                       className="
                         w-full flex items-center justify-between px-3 py-2 rounded-lg
-                        text-white/80 hover:text-white hover:bg-white/10
+                        text-slate-700 hover:text-slate-900
+                        hover:bg-slate-100/80
                         transition-colors duration-150
                       "
                     >
                       <div className="flex items-center gap-3">
-                        <item.icon className="w-5 h-5" />
-                        <span className="text-sm whitespace-nowrap">{item.label}</span>
+                        <item.icon className="w-5 h-5 text-slate-600" />
+                        <span className="text-sm whitespace-nowrap font-medium">{item.label}</span>
                       </div>
                       {item.children && (
-                        <ChevronRightIcon className="w-4 h-4 text-white/40" />
+                        <ChevronRightIcon className="w-4 h-4 text-slate-400" />
                       )}
                     </button>
 
-                    {/* Submenu */}
+                    {/* Submenu - Styled like SecondarySidebar */}
                     {item.children && activeSubmenu === item.id && (
                       <div className="
                         absolute left-full top-0 ml-2
-                        min-w-fit w-auto bg-slate-800/95 backdrop-blur-xl
-                        rounded-xl border border-white/10
-                        shadow-2xl shadow-black/50
+                        min-w-fit w-auto bg-white/95 backdrop-blur-xl
+                        rounded-xl border border-slate-200/60
+                        shadow-2xl shadow-slate-500/20
                         p-2 z-50
                       ">
                         {item.children.map((child) => (
@@ -270,12 +257,13 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
                             onClick={() => handleItemClick(child)}
                             className="
                               w-full flex items-center gap-3 px-3 py-2 rounded-lg
-                              text-white/80 hover:text-white hover:bg-white/10
+                              text-slate-700 hover:text-slate-900
+                              hover:bg-slate-100/80
                               transition-colors duration-150
                             "
                           >
-                            {child.icon && <child.icon className="w-5 h-5" />}
-                            <span className="text-sm whitespace-nowrap">{child.label}</span>
+                            {child.icon && <child.icon className="w-5 h-5 text-slate-600" />}
+                            <span className="text-sm whitespace-nowrap font-medium">{child.label}</span>
                           </button>
                         ))}
                       </div>

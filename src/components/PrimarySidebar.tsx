@@ -387,12 +387,13 @@ const PrimarySidebarContent: React.FC<{
     `;
   }, [isMouseNearSidebar, isFullWidth]);
 
-  // Top overflow menu stays visible - positioned at top of sidebar area
+  // Top overflow menu stays visible - aligned with header (48px height, vertically centered)
   const topMenuClassName = useMemo(() => {
     return `
       fixed top-0 left-0 z-[60]
-      w-16 sm:w-20
-      pt-4 px-1
+      w-16 sm:w-20 h-12
+      flex items-center justify-center
+      px-2
       transition-all duration-500 ease-out
       ${isFullWidth ? 'translate-x-0 opacity-100' : 'translate-x-0 opacity-100'}
     `;
@@ -410,7 +411,8 @@ const PrimarySidebarContent: React.FC<{
           />
         </div>
         <aside className={sidebarClassName}>
-          <div className="flex flex-col gap-2 sm:gap-3 w-full items-center animate-pulse pt-16">
+          <div className="h-16 flex-shrink-0" />
+          <div className="flex flex-col gap-2 sm:gap-3 w-full items-center animate-pulse">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl" />
             ))}
@@ -432,8 +434,8 @@ const PrimarySidebarContent: React.FC<{
 
       {/* Main Sidebar - slides out in full-width mode */}
       <aside className={sidebarClassName}>
-        {/* Spacer for TopOverflowMenu */}
-        <div className="h-16 sm:h-20 flex-shrink-0" />
+        {/* Spacer for TopOverflowMenu - matches h-12 header height + breathing room for hover */}
+        <div className="h-16 flex-shrink-0" />
 
         {/* Content container - responsive spacing and scrolling */}
         <div className="flex flex-col gap-2 sm:gap-3 w-full items-center overflow-y-auto overflow-x-hidden custom-scrollbar flex-1">
