@@ -141,39 +141,48 @@ export interface ModuleMetadata {
    * @example "../../schemas/module-schema.json"
    */
   $schema?: string;
-  
+
   /** Unique module identifier (kebab-case) */
   id: string;
-  
+
   /** Human-readable module name */
   name: string;
-  
-  /** 
+
+  /**
    * Module version (semver)
    * @example "1.0.0"
    */
   version: string;
-  
+
   /** Brief description of the module */
   description?: string;
-  
+
   /** Module author/maintainer */
   author?: ModuleAuthor;
-  
-  /** 
+
+  /**
    * License identifier (SPDX)
    * @example "MIT", "Apache-2.0", "GPL-3.0"
    */
   license?: string;
-  
+
   /** Module homepage/documentation URL */
   homepage?: string;
-  
+
   /** Module repository URL */
   repository?: string;
-  
+
   /** Keywords for discovery */
   keywords?: string[];
+
+  /** Navigation items for this module */
+  navigation?: any[];
+
+  /** Base path for this module's routes */
+  path?: string;
+
+  /** Icon component for this module */
+  icon?: any;
   
   /** 
    * Required module dependencies

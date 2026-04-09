@@ -1,24 +1,10 @@
 // src/core/types/app-data.ts
 // ABOUTME: AppDataType, AppDataLoadingStates, AppDataContextType — the global context type shared across the app.
-
-import type {
-  FinStudentInvoiceType,
-  FinStudentInvoiceItemType,
-  FinStudentPaymentType,
-  FinFeeAdjustmentType,
-  FinInvoicePaymentApplicationType,
-  FinCustomerInvoiceType,
-  FinSupplierInvoiceType,
-  FinGeneralPaymentType,
-  FinGeneralLedgerEntryType,
-  FinStudentOpeningBalanceType,
-  FinTransportRouteType,
-  FinStudentTransportAssignmentType,
-} from '../../modules/finance/data/types';
-import type { EducationSystemConfiguration } from '../../modules/academics/data/types';
-import type { InvSupplierContractType } from '../../modules/inventory/data/types';
+// ABOUTME: Now imports types from their respective modules to avoid circular dependencies
 
 import type { SchoolDetails, Role, User, AuditLog, Workflow, Permission, UserRole } from './common';
+
+// Import types from modules
 import type {
   AcademicYearStructure,
   AcademicPeriodDefinition,
@@ -34,7 +20,9 @@ import type {
   StudentCategory,
   Dormitory,
   TimetablePeriodDef,
-} from './administration';
+  StudentAttendance,
+} from '../../modules/administration/data/types';
+
 import type {
   ClassSubjectAllocation,
   ExamPaperSetting,
@@ -43,7 +31,9 @@ import type {
   StudentSubjectEnrollment,
   TeacherSubjectAssignment,
   TimetableEntry,
-} from './academic';
+  EducationSystemConfiguration,
+} from '../../modules/academics/data/types';
+
 import type {
   FinancialYear,
   ChartOfAccount,
@@ -58,7 +48,20 @@ import type {
   PayrollItemType,
   StaffSalarySetting,
   Payslip,
-} from './finance';
+  FinStudentInvoiceType,
+  FinStudentInvoiceItemType,
+  FinStudentPaymentType,
+  FinFeeAdjustmentType,
+  FinInvoicePaymentApplicationType,
+  FinCustomerInvoiceType,
+  FinSupplierInvoiceType,
+  FinGeneralPaymentType,
+  FinGeneralLedgerEntryType,
+  FinStudentOpeningBalanceType,
+  FinTransportRouteType,
+  FinStudentTransportAssignmentType,
+} from '../../modules/finance/data/types';
+
 import type {
   Warehouse,
   ItemCategoryInv,
@@ -68,7 +71,9 @@ import type {
   StockTransaction,
   Requisition,
   PurchaseOrder,
-} from './inventory';
+  InvSupplierContractType,
+} from '../../modules/inventory/data/types';
+
 import type {
   BookCategory,
   Book,
@@ -77,7 +82,7 @@ import type {
   MealPlan,
   Menu,
   Merchant,
-} from './library';
+} from '../../modules/library/data/types';
 
 // Define a base type for all data arrays
 export type AppDataType = {

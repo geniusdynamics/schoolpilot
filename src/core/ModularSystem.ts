@@ -5,14 +5,14 @@
  * Combines ModuleRegistry, ServiceRegistry, ModuleExports, and ModuleLoader.
  */
 
-import { moduleRegistry } from './ModuleRegistry';
+import { moduleRegistry } from './moduleRegistry';
 import { serviceRegistry } from './ServiceRegistry';
 import { moduleExports } from './ModuleExports';
-import { moduleLoader } from './ModuleLoader';
+import { moduleLoader } from './moduleLoader';
 import { moduleBundler } from './ModuleBundler';
 import type { LoadedModule, ModuleMetadata, LifecycleHooks } from './types/module';
 import type { ServiceRegistration } from './ServiceRegistry';
-import type { LoadModuleOptions } from './ModuleLoader';
+import type { LoadModuleOptions } from './moduleLoader';
 import { EventEmitter } from 'events';
 
 export interface ModularSystemConfig {

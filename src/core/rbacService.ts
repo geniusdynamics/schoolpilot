@@ -6,7 +6,7 @@ import { ModuleDefinition } from './types';
 // Use IDatabaseProvider interface instead
 import type { IDatabaseProvider } from '../services/database/interfaces';
 // RXDB removed - Phase 4: Using unified database service
-import { databaseService } from '../services/database/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 import type { RbacRole } from './types';
 import { isDemo } from '../config/unifiedConfig';
 
