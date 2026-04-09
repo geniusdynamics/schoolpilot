@@ -1,9 +1,14 @@
 #!/usr/bin/env tsx
 /**
- * Detect Cross-Module Imports
+ * Detect Cross-Module Imports and Architectural Violations
  * 
  * This script identifies imports that violate module independence principles.
- * It scans all module files and reports cross-module data imports.
+ * It scans all files and reports:
+ * 1. Core importing from modules
+ * 2. Importing from old context locations
+ * 3. Importing from old hook locations
+ * 4. Cross-module data imports within modules
+ * 5. Core importing from module schemas/collections
  * 
  * Usage:
  *   npx tsx scripts/detect-cross-module-imports.ts
@@ -22,37 +27,33 @@ interface Violation {
   file: string;
   line: number;
   import: string;
-  fromModule: string;
-  toModule: string;
+  type: 'core-imports-module' | 'old-context-import' | 'old-hook-import' | 'cross-module-data' | 'core-imports-schema';
+  fromModule?: string;
+  toModule?: string;
   severity: 'error' | 'warning';
 }
 
+const SRC_PATH = 'src';
 const MODULES_PATH = 'src/modules';
+const CORE_PATH = 'src/core';
 
 async function detectViolations(): Promise<Violation[]> {
   const violations: Violation[] = [];
   
-  // Find all TypeScript files in modules
-  const files = await glob(`${MODULES_PATH}/**/*.ts`, {
-    ignore: ['**/*.d.ts', '**/node_modules/**']
+  // Find all TypeScript files in src
+  const files = await glob(`${SRC_PATH}/**/*.{ts,tsx}`, {
+    ignore: ['**/*.d.ts', '**/node_modules/**', '**/dist/**']
   });
   
-  // Also check TSX files
-  const tsxFiles = await glob(`${MODULES_PATH}/**/*.tsx`, {
-    ignore: ['**/*.d.ts', '**/node_modules/**']
-  });
-  
-  const allFiles = [...files, ...tsxFiles];
-  
-  for (const file of allFiles) {
+  for (const file of files) {
     const content = await readFile(file, 'utf-8');
     const lines = content.split('\n');
-    
-    // Extract module name from path - handle both / and \
     const normalizedPath = file.replace(/\\/g, '/');
+    
+    // Extract module name from path if in modules directory
     const moduleMatch = normalizedPath.match(/modules\/([^/]+)/);
-    if (!moduleMatch) continue;
-    const fromModule = moduleMatch[1];
+    const fromModule = moduleMatch ? moduleMatch[1] : null;
+    const isCoreFile = normalizedPath.includes('/core/');
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -61,23 +62,89 @@ async function detectViolations(): Promise<Violation[]> {
       // Skip comments
       if (line.trim().startsWith('//')) continue;
       
-      // Match: from '../../moduleName/data/...'
-      // This regex handles both single and double quotes
-      const match = line.match(/from\s+['"]\.\.\/\.\.\/([^/]+)\/data\//);
-      if (match) {
-        const toModule = match[1];
-        
-        // Skip if importing from same module
-        if (toModule === fromModule) continue;
-        
+      // 1. Core importing from modules (ERROR) - exclude moduleRegistration.ts
+      if (isCoreFile && !normalizedPath.includes('moduleRegistration.ts')) {
+        const moduleImportMatch = line.match(/from\s+['"]@\/modules\/([^'"]+)/);
+        if (moduleImportMatch) {
+          violations.push({
+            file: normalizedPath,
+            line: lineNumber,
+            import: line.trim(),
+            type: 'core-imports-module',
+            toModule: moduleImportMatch[1],
+            severity: 'error'
+          });
+        }
+      }
+      
+      // 2. Core importing from module schemas/collections (ERROR)
+      if (isCoreFile) {
+        const schemaMatch = line.match(/from\s+['"]@\/modules\/([^'"]+)\/data\/schema/);
+        if (schemaMatch) {
+          violations.push({
+            file: normalizedPath,
+            line: lineNumber,
+            import: line.trim(),
+            type: 'core-imports-schema',
+            toModule: schemaMatch[1],
+            severity: 'error'
+          });
+        }
+        const collectionsMatch = line.match(/from\s+['"]@\/modules\/([^'"]+)\/data\/collections/);
+        if (collectionsMatch) {
+          violations.push({
+            file: normalizedPath,
+            line: lineNumber,
+            import: line.trim(),
+            type: 'core-imports-schema',
+            toModule: collectionsMatch[1],
+            severity: 'error'
+          });
+        }
+      }
+      
+      // 3. Importing from old context locations (ERROR)
+      const oldContextMatch = line.match(/from\s+['"]@\/contexts\/data\/([^'"]+)/);
+      if (oldContextMatch) {
         violations.push({
           file: normalizedPath,
           line: lineNumber,
           import: line.trim(),
-          fromModule,
-          toModule,
+          type: 'old-context-import',
           severity: 'error'
         });
+      }
+      // 4. Importing from old hook locations (ERROR)
+      const oldHookMatch = line.match(/from\s+['"]@\/hooks\/data\/use[FBHAI][^'"]+/);
+      if (oldHookMatch) {
+        violations.push({
+          file: normalizedPath,
+          line: lineNumber,
+          import: line.trim(),
+          type: 'old-hook-import',
+          severity: 'error'
+        });
+      }
+      
+      // 5. Cross-module data imports within modules (ERROR)
+      if (fromModule) {
+        const relativeModuleMatch = line.match(/from\s+['"]\.\.\/\.\.\/([^/]+)\/data\//);
+        if (relativeModuleMatch) {
+          const toModule = relativeModuleMatch[1];
+          
+          // Skip if importing from same module
+          if (toModule !== fromModule) {
+            violations.push({
+              file: normalizedPath,
+              line: lineNumber,
+              import: line.trim(),
+              type: 'cross-module-data',
+              fromModule,
+              toModule,
+              severity: 'error'
+            });
+          }
+        }
       }
     }
   }
