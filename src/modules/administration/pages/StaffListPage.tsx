@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Staff, Department, Designation } from '@/types';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -6,7 +7,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Card from '@/components/ui/Card';
-import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon } from '@/components/ui/icons';
+import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon, EyeIcon } from '@/components/ui/icons';
 // import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
 import { useAppData } from '@/hooks/useAppData'; // Import useAppData
 import Spinner from '@/components/ui/Spinner';
@@ -24,6 +25,7 @@ interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'upda
 
 
 const StaffListPage: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     staff, loading, addStaffMember, updateStaffMember, deleteStaffMember: mockDeleteStaff,
     departments, 
@@ -100,6 +102,10 @@ const StaffListPage: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this staff member?')) {
       await mockDeleteStaff(staffId);
     }
+  };
+
+  const handleView = (staffId: string) => {
+    navigate(`/administration/staff/${staffId}`);
   };
 
   const filteredStaff = useMemo(() => {
@@ -188,6 +194,7 @@ const StaffListPage: React.FC = () => {
       sticky: 'right',
       render: (value, item) => (
         <div className="space-x-2">
+          <Button size="sm" variant="ghost" onClick={() => handleView(item.id)} leftIcon={<EyeIcon className="w-4 h-4" />}>View</Button>
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>

@@ -80,11 +80,6 @@
     "supportsSync": true,
     "realTime": false
   },
-  "lifecycle": {
-    "onRegister": "onFinanceModuleRegister",
-    "onEnable": "onFinanceModuleEnable",
-    "onDisable": "onFinanceModuleDisable"
-  },
   "config": {
     "defaultCurrency": "USD",
     "paymentMethods": ["cash", "bank", "mobile_money", "cheque"],

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ExpenseClaim, FinExpenseClaimantTypeEnum, Staff, Student, FinExpenseCategoryType } from '@/types';
+import { ExpenseClaim, ExpenseClaimantType, ExpenseCategory } from '@/modules/finance';
+import { Staff, Student } from '@/modules/administration';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -16,7 +17,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 type ExpenseClaimFormData = Omit<Partial<ExpenseClaim>, 'id' | 'created_at' | 'updated_at' | 'claimant_name' | 'expense_category_name' | 'claimant_type'> & {
-    claimant_type: FinExpenseClaimantTypeEnum; // Ensure this is required for form logic
+    claimant_type: ExpenseClaimantType; // Ensure this is required for form logic
 };
 
 const ExpensesPage: React.FC = () => {
@@ -35,7 +36,7 @@ const ExpensesPage: React.FC = () => {
   const [editingClaim, setEditingClaim] = useState<ExpenseClaim | null>(null);
   
   const initialFormData: ExpenseClaimFormData = { 
-    claimant_type: FinExpenseClaimantTypeEnum.STAFF, 
+    claimant_type: ExpenseClaimantType.STAFF, 
     claimant_id: undefined, 
     claim_date: new Date().toISOString().split('T')[0], 
     description: '', 
@@ -45,9 +46,9 @@ const ExpensesPage: React.FC = () => {
   const [formData, setFormData] = useState<ExpenseClaimFormData>(initialFormData);
 
   const claimantList = useMemo(() => {
-    if (formData.claimant_type === FinExpenseClaimantTypeEnum.STAFF) {
+    if (formData.claimant_type === ExpenseClaimantType.STAFF) {
       return (staff || []).filter(s => s.is_active).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Staff)` }));
-    } else if (formData.claimant_type === FinExpenseClaimantTypeEnum.STUDENT) {
+    } else if (formData.claimant_type === ExpenseClaimantType.STUDENT) {
       return (students || []).filter(s => s.status === 'Active').map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Student)` }));
     }
     return [];
@@ -156,8 +157,8 @@ const ExpensesPage: React.FC = () => {
       width: 100,
       render: (value) => (
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-          value === FinExpenseClaimantTypeEnum.STAFF ? 'bg-blue-100 text-blue-800' :
-          value === FinExpenseClaimantTypeEnum.STUDENT ? 'bg-green-100 text-green-800' :
+          value === ExpenseClaimantType.STAFF ? 'bg-blue-100 text-blue-800' :
+          value === ExpenseClaimantType.STUDENT ? 'bg-green-100 text-green-800' :
           'bg-gray-100 text-gray-800'
         }`}>
           {value}
@@ -291,7 +292,7 @@ const ExpensesPage: React.FC = () => {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Select name="claimant_type" label="Claimant Type" value={formData.claimant_type} onChange={handleInputChange} required>
-                {Object.values(FinExpenseClaimantTypeEnum).map(type => (<option key={type} value={type}>{type}</option>))}
+                {Object.values(ExpenseClaimantType).map(type => (<option key={type} value={type}>{type}</option>))}
             </Select>
             <Select name="claimant_id" label="Claimant" value={formData.claimant_id || ''} onChange={handleInputChange} required>
                 <option value="">Select Claimant</option>

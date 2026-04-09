@@ -3,3 +3,6 @@
 
 export { default as academicsModule } from './moduleDefinition';
 export * from './pages';
+
+// Lifecycle
+export * from './lifecycle';

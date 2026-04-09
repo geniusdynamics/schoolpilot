@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { FinStudentTransportAssignmentType as StudentTransportAssignment, Student, FinTransportRouteType as TransportRoute, SchoolPeriod, FinTransportAssignmentStatusEnum as TransportAssignmentStatus, StudentStatus } from '@/types';
+import { StudentTransportAssignment, TransportRoute, TransportAssignmentStatus } from '@/modules/finance';
+import { Student } from '@/modules/administration';
+import { SchoolPeriod, StudentStatus } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';

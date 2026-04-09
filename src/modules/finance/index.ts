@@ -25,3 +25,6 @@ export * from './services';
 
 // Hooks
 export * from './hooks';
+
+// Lifecycle
+export * from './lifecycle';

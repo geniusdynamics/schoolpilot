@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { FinCustomerInvoiceType as CustomerInvoice, FinCustomerInvoiceItemType as CustomerInvoiceItem, Customer, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinCustomerInvoiceStatusEnum } from '@/types';
+import { CustomerInvoice, CustomerInvoiceItem, ChartOfAccount, AccountType, CustomerInvoiceStatus } from '@/modules/finance';
+import { Customer } from '@/modules/administration';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -16,7 +17,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status'> & {
-    status: FinCustomerInvoiceStatusEnum;
+    status: CustomerInvoiceStatus;
 };
 type CustomerInvoiceItemFormData = Omit<Partial<CustomerInvoiceItem>, 'id' | 'invoice_id' | 'revenue_account_name'>;
 
@@ -43,14 +44,14 @@ const CustomerInvoicesPage: React.FC = () => {
     invoice_number: '', 
     issue_date: new Date().toISOString().split('T')[0], 
     due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default 30 days due
-    status: FinCustomerInvoiceStatusEnum.DUE,
+    status: CustomerInvoiceStatus.DUE,
   };
   const [invoiceFormData, setInvoiceFormData] = useState<CustomerInvoiceFormData>(initialInvoiceFormData);
 
   const initialItemFormData: CustomerInvoiceItemFormData = { description: '', amount: 0, revenue_account_id: undefined };
   const [itemFormData, setItemFormData] = useState<CustomerInvoiceItemFormData>(initialItemFormData);
 
-  const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === FinAccountTypeEnum.REVENUE && coa.is_active), [chartOfAccounts]);
+  const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
 
   // Invoice Modal
   const openInvoiceModal = (invoice?: CustomerInvoice) => {
@@ -61,7 +62,7 @@ const CustomerInvoicesPage: React.FC = () => {
         invoice_number: invoice.invoice_number, 
         issue_date: invoice.issue_date, 
         due_date: invoice.due_date, 
-        status: invoice.status || FinCustomerInvoiceStatusEnum.DUE,
+        status: invoice.status || CustomerInvoiceStatus.DUE,
       } : 
       initialInvoiceFormData
     );
@@ -248,9 +249,9 @@ const CustomerInvoicesPage: React.FC = () => {
       width: 100,
       render: (value) => (
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-          value === FinCustomerInvoiceStatusEnum.PAID ? 'bg-green-100 text-green-800' :
-          value === FinCustomerInvoiceStatusEnum.DUE ? 'bg-yellow-100 text-yellow-800' :
-          value === FinCustomerInvoiceStatusEnum.OVERDUE ? 'bg-red-100 text-red-800' :
+          value === CustomerInvoiceStatus.PAID ? 'bg-green-100 text-green-800' :
+          value === CustomerInvoiceStatus.DUE ? 'bg-yellow-100 text-yellow-800' :
+          value === CustomerInvoiceStatus.VOIDED ? 'bg-red-100 text-red-800' :
           'bg-gray-100 text-gray-800'
         }`}>
           {value}
@@ -416,7 +417,7 @@ const CustomerInvoicesPage: React.FC = () => {
             <Input name="issue_date" label="Issue Date" type="date" value={invoiceFormData.issue_date || ''} onChange={handleInvoiceInputChange} required />
             <Input name="due_date" label="Due Date" type="date" value={invoiceFormData.due_date || ''} onChange={handleInvoiceInputChange} />
             <Select name="status" label="Status" value={invoiceFormData.status} onChange={handleInvoiceInputChange} required>
-                {Object.values(FinCustomerInvoiceStatusEnum).map(s => <option key={s} value={s}>{s}</option>)}
+                {Object.values(CustomerInvoiceStatus).map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
         </div>
       </DialogForm>

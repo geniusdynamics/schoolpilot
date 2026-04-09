@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FinGeneralPaymentType as GeneralPayment, FinGeneralPaymentItemType as GeneralPaymentItem, FinGeneralPayerTypeEnum as GeneralPayerType, Student, Staff, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '@/types';
+import { GeneralPayment, GeneralPaymentItem, GeneralPayerType, ChartOfAccount, AccountType } from '@/modules/finance';
+import { Student, Staff } from '@/modules/administration';
 import { AdminCustomerType as Customer, AdminPartnerType as Partner } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';

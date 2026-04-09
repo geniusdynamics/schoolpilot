@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FinStudentPaymentType as StudentPayment, Student } from '@/types';
+import { StudentPayment } from '@/modules/finance';
+import { Student } from '@/modules/administration';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';

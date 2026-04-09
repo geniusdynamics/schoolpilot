@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FinFeeTemplateType as FeeTemplate, FinFeeTemplateItemType as FeeTemplateItem, SchoolPeriod, StudentCategory, FinChartOfAccountType as ChartOfAccount, FinExpenseCategoryType as ExpenseCategory, FinAccountTypeEnum } from '@/types';
+import { FeeTemplate, FeeTemplateItem, ChartOfAccount, ExpenseCategory, AccountType } from '@/modules/finance';
+import { SchoolPeriod, StudentCategory } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -43,7 +44,7 @@ const FeeTemplatesPage: React.FC = () => {
   const [templateFormData, setTemplateFormData] = useState<FeeTemplateFormData>(initialTemplateFormData);
   const [itemFormData, setItemFormData] = useState<FeeItemFormData>(initialItemFormData);
 
-  const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === FinAccountTypeEnum.REVENUE && coa.is_active), [chartOfAccounts]);
+  const revenueAccounts = useMemo(() => (chartOfAccounts || []).filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
 
   // Template Modal
   const openTemplateModal = (template?: FeeTemplate) => {

@@ -5,7 +5,8 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { FinFeeTemplateType as FeeTemplate, SchoolPeriod, StudentCategory, ClassStream, FinStudentInvoiceType as StudentInvoice } from '@/types';
+import { FeeTemplate, StudentInvoice } from '@/modules/finance';
+import { SchoolPeriod, StudentCategory, ClassStream } from '@/core/types';
 import { useTranslation } from 'react-i18next';
 
 const EffectFeeStructuresPage: React.FC = () => {

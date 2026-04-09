@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { FinStudentOpeningBalanceType as StudentOpeningBalance, Student, FinOpeningBalanceTypeEnum as OpeningBalanceType, StudentStatus } from '@/types';
+import { StudentOpeningBalance, OpeningBalanceType } from '@/modules/finance';
+import { Student } from '@/modules/administration';
+import { StudentStatus } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';

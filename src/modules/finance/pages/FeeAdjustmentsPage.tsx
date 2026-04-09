@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { FinFeeAdjustmentType as FeeAdjustment, Student, SchoolPeriod, FinFeeAdjustmentTypeEnum as FeeAdjustmentType, StudentStatus } from '@/types';
+import { FeeAdjustment, FeeAdjustmentType } from '@/modules/finance';
+import { Student } from '@/modules/administration';
+import { SchoolPeriod, StudentStatus } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';

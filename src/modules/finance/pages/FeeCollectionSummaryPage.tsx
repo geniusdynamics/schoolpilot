@@ -10,8 +10,8 @@ import Spinner from '@/components/ui/Spinner';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { SchoolPeriod, Class as SchoolClass } from '@/types'; 
-import { FinStudentInvoiceType, FinInvoiceStatusEnum, FinInvoicePaymentApplicationType } from '@/types'; 
+import { SchoolPeriod, Class as SchoolClass } from '@/core/types'; 
+import { StudentInvoice, InvoiceStatus, InvoicePaymentApplication } from '@/modules/finance'; 
 
 interface FeeCollectionSummaryRow {
   votehead: string;
@@ -50,7 +50,7 @@ const FeeCollectionSummaryPage: React.FC = () => {
     
     const invoicesForPeriod = (studentInvoices || []).filter(inv =>
       inv.school_period_id === selectedSchoolPeriodId &&
-      inv.status !== FinInvoiceStatusEnum.VOIDED &&
+      inv.status !== InvoiceStatus.VOIDED &&
       (!selectedClassId || (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id && (classStreams || []).find(cs => cs.id === (students || []).find(s => s.id === inv.student_id)?.current_class_stream_id)?.class_id === selectedClassId)
     );
 

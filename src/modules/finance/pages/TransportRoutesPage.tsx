@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FinTransportRouteType as TransportRoute, FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum as AccountType } from '@/types';
+import { TransportRoute, ChartOfAccount, AccountType } from '@/modules/finance';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';

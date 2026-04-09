@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FinChartOfAccountType as ChartOfAccount, FinAccountTypeEnum, FinAccountTemplateTypeEnum, FinExpenseCategoryType } from '@/types';
+import { FinChartOfAccountType as ChartOfAccount, AccountType, AccountTemplateType, FinExpenseCategoryType } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -15,8 +15,8 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
 type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' | 'updated_at' | 'expense_category_name' | 'type' | 'template_type'> & {
-    type: FinAccountTypeEnum; // Make type required for the form
-    template_type: FinAccountTemplateTypeEnum; // Make template_type required
+    type: AccountType; // Make type required for the form
+    template_type: AccountTemplateType; // Make template_type required
 };
 
 const ChartOfAccountsPage: React.FC = () => {
@@ -39,8 +39,8 @@ const ChartOfAccountsPage: React.FC = () => {
   const initialFormData: ChartOfAccountFormData = { 
     account_code: '', 
     name: '', 
-    type: FinAccountTypeEnum.ASSET, 
-    template_type: FinAccountTemplateTypeEnum.CUSTOM,
+    type: AccountType.ASSET, 
+    template_type: AccountTemplateType.CUSTOM,
     is_active: true, 
     expense_category_id: undefined 
   };
@@ -137,11 +137,11 @@ const ChartOfAccountsPage: React.FC = () => {
       width: 120,
       render: (value) => (
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-          value === FinAccountTypeEnum.ASSET ? 'bg-green-100 text-green-800' :
-          value === FinAccountTypeEnum.LIABILITY ? 'bg-red-100 text-red-800' :
-          value === FinAccountTypeEnum.EQUITY ? 'bg-blue-100 text-blue-800' :
-          value === FinAccountTypeEnum.REVENUE ? 'bg-purple-100 text-purple-800' :
-          value === FinAccountTypeEnum.EXPENSE ? 'bg-orange-100 text-orange-800' :
+          value === AccountType.ASSET ? 'bg-green-100 text-green-800' :
+          value === AccountType.LIABILITY ? 'bg-red-100 text-red-800' :
+          value === AccountType.EQUITY ? 'bg-blue-100 text-blue-800' :
+          value === AccountType.REVENUE ? 'bg-purple-100 text-purple-800' :
+          value === AccountType.EXPENSE ? 'bg-orange-100 text-orange-800' :
           'bg-gray-100 text-gray-800'
         }`}>
           {value}
@@ -156,7 +156,7 @@ const ChartOfAccountsPage: React.FC = () => {
       width: 120,
       render: (value) => (
         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-          value === FinAccountTemplateTypeEnum.SYSTEM ? 'bg-indigo-100 text-indigo-800' :
+          value === AccountTemplateType.CORE ? 'bg-indigo-100 text-indigo-800' :
           'bg-gray-100 text-gray-800'
         }`}>
           {value}
@@ -270,16 +270,16 @@ const ChartOfAccountsPage: React.FC = () => {
             <Input name="name" label="Account Name" value={formData.name || ''} onChange={handleInputChange} required className="md:col-span-2" />
             
             <Select name="type" label="Account Type" value={formData.type || ''} onChange={handleInputChange} required>
-                {Object.values(FinAccountTypeEnum).map(type => (<option key={type} value={type}>{type}</option>))}
+                {Object.values(AccountType).map(type => (<option key={type} value={type}>{type}</option>))}
             </Select>
             <Select name="template_type" label="Template Type" value={formData.template_type || ''} onChange={handleInputChange} required>
-                {Object.values(FinAccountTemplateTypeEnum).map(type => (<option key={type} value={type}>{type}</option>))}
+                {Object.values(AccountTemplateType).map(type => (<option key={type} value={type}>{type}</option>))}
             </Select>
 
-            {formData.type === FinAccountTypeEnum.EXPENSE && (
+            {formData.type === AccountType.EXPENSE && (
                  <Select name="expense_category_id" label="Expense Category (for Expense Type)" value={formData.expense_category_id || ''} onChange={handleInputChange}>
                     <option value="">Select Expense Category</option>
-                    {initialMockExpenseCategories.map((cat: FinExpenseCategoryType) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                    {initialMockExpenseCategories.map((cat: ExpenseCategory) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
                 </Select>
             )}
            

@@ -101,7 +101,8 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/student-clearance', page: 'StudentClearancePage' },
     { path: '/administration/disciplinary-cases', page: 'DisciplinaryCasesPage' },
     { path: '/administration/certificates', page: 'CertificatesManagementPage' },
-    { path: '/administration/visitors', page: 'VisitorsManagementPage' }
+    { path: '/administration/visitors', page: 'VisitorsManagementPage' },
+    { path: '/administration/staff/:staffId', page: 'StaffDetailPage' }
   ],
   settings: {
     category: 'administration',
