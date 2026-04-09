@@ -2,9 +2,15 @@
 // ABOUTME: It re-exports types, mock data, schemas, collection configurations, and data hooks.
 
 export * from './types';
-export * from './mockData';
 export * from './schema';
 export * from './collections';
+export * from './mockData';
+
+// Modular data provider (new architecture)
+export { 
+  InventoryDataProvider,
+  useInventoryDataContext 
+} from './InventoryDataProvider';
 
 // Data hooks
 export * from './useWarehouseData';
