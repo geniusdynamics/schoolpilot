@@ -9,9 +9,6 @@ export * from './module';
 export * from './app-data';
 export * from './moduleCollections'; // Auto-discovery system for module collections
 
-// Module Data API types
-export * from './moduleDataApi';
-
 // Module-specific types - MOVED to modules:
 // - academic.ts → @/modules/academics/data/types
 // - administration.ts → @/modules/administration/data/types
