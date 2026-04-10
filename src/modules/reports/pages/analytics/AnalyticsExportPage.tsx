@@ -66,8 +66,8 @@ const AnalyticsExportPage: React.FC = () => {
   // Gather unique values for filters
   const allSubjects = useMemo(() => {
     const subjects = new Set<string>();
-    (subjectPassRates || []).forEach((s) => subjects.add(s.subjectName));
-    (teacherAnalytics || []).forEach((ta) => {
+    subjectPassRates.forEach((s) => subjects.add(s.subjectName));
+    teacherAnalytics.forEach((ta) => {
       if (ta.subjectName) subjects.add(ta.subjectName);
     });
     return Array.from(subjects).sort();
@@ -75,12 +75,12 @@ const AnalyticsExportPage: React.FC = () => {
 
   const allClasses = useMemo(() => {
     const classes = new Set<string>();
-    (classPerformances || []).forEach((c) => classes.add(c.className));
+    classPerformances.forEach((c) => classes.add(c.className));
     return Array.from(classes).sort();
   }, [classPerformances]);
 
   const allTeachers = useMemo(() => {
-    return (teacherAnalytics || []).map((ta) => ta.teacherName).sort();
+    return teacherAnalytics.map((ta) => ta.teacherName).sort();
   }, [teacherAnalytics]);
 
   // Metrics
@@ -88,19 +88,19 @@ const AnalyticsExportPage: React.FC = () => {
     {
       key: 'teacher-records',
       label: 'Teacher Records',
-      value: (teacherAnalytics || []).length,
+      value: teacherAnalytics.length,
       icon: <AcademicCapIcon className="h-6 w-6 text-blue-700" />,
     },
     {
       key: 'subject-records',
       label: 'Subject Records',
-      value: (subjectPassRates || []).length,
+      value: subjectPassRates.length,
       icon: <BookOpenIcon className="h-6 w-6 text-emerald-700" />,
     },
     {
       key: 'class-records',
       label: 'Class Records',
-      value: (classPerformances || []).length,
+      value: classPerformances.length,
       icon: <UserGroupIcon className="h-6 w-6 text-violet-700" />,
     },
     {
@@ -149,17 +149,17 @@ const AnalyticsExportPage: React.FC = () => {
   const previewData = useMemo(() => {
     switch (config.dataType) {
       case 'teachers':
-        return (teacherAnalytics || []).map((ta) => ({
+        return teacherAnalytics.map((ta) => ({
           Teacher: ta.teacherName,
           Subject: ta.subjectName || 'N/A',
-          Classes: (ta.classPerformance || []).length,
-          Students: (ta.classPerformance || []).reduce((s, c) => s + c.studentCount, 0),
-          'Avg Score': `${Math.round((ta.classPerformance || []).reduce((s, c) => s + c.averageScore, 0) / ((ta.classPerformance || []).length || 1))}%`,
-          'Pass Rate': `${Math.round((ta.passRates || []).reduce((s, p) => s + p.passRate, 0) / ((ta.passRates || []).length || 1))}%`,
-          Attendance: `${Math.round(ta.attendanceRate || 0)}%`,
+          Classes: ta.classPerformance.length,
+          Students: ta.classPerformance.reduce((s, c) => s + c.studentCount, 0),
+          'Avg Score': `${Math.round(ta.classPerformance.reduce((s, c) => s + c.averageScore, 0) / (ta.classPerformance.length || 1))}%`,
+          'Pass Rate': `${Math.round(ta.passRates.reduce((s, p) => s + p.passRate, 0) / (ta.passRates.length || 1))}%`,
+          Attendance: `${Math.round(ta.attendanceRate)}%`,
         }));
       case 'subjects':
-        return (subjectPassRates || []).map((sp) => ({
+        return subjectPassRates.map((sp) => ({
           Subject: sp.subjectName,
           Students: sp.studentCount,
           Exams: sp.examCount,
@@ -170,7 +170,7 @@ const AnalyticsExportPage: React.FC = () => {
           Trend: sp.trend,
         }));
       case 'classes':
-        return (classPerformances || []).map((cp) => ({
+        return classPerformances.map((cp) => ({
           Class: cp.className,
           Stream: cp.streamName || 'N/A',
           Students: cp.studentCount,

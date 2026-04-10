@@ -81,10 +81,6 @@ const ApplicationsListPage: React.FC = () => {
     navigate(`/admissions/applications/${application.id}`);
   };
 
-  const handleNewApplication = () => {
-    navigate('/admissions/new-application');
-  };
-
   const handleEdit = (application: Application) => {
     if (application.status === ApplicationStatus.DRAFT) {
       navigate(`/admissions/applications/${application.id}/edit`);
@@ -256,7 +252,8 @@ const ApplicationsListPage: React.FC = () => {
               Export
             </Button>
             <Button
-              onClick={handleNewApplication}
+              as="a"
+              href="/admissions/new-application"
               leftIcon={<PlusIcon className="w-5 h-5" />}
             >
               New Application
@@ -330,7 +327,7 @@ const ApplicationsListPage: React.FC = () => {
                 Get started by creating a new application.
               </p>
               <div className="mt-6">
-                <Button onClick={handleNewApplication}>
+                <Button as="a" href="/admissions/new-application">
                   New Application
                 </Button>
               </div>
