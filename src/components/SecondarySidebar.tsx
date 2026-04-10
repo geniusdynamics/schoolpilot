@@ -19,19 +19,15 @@ function getFallbackIcon(moduleKey: string) {
 }
 
 // Icon wrapper component
-const IconWrapper: React.FC<{
-  icon?: React.ComponentType<any>;
-  moduleKey: string;
+const IconWrapper: React.FC<{ 
+  icon?: React.ComponentType<any>; 
+  moduleKey: string; 
   className?: string;
   isMinimized?: boolean;
   isMobile?: boolean;
-  isFullWidth?: boolean;
-  isAsPrimary?: boolean;
-}> = ({ icon, moduleKey, className = "", isMinimized = false, isMobile = false, isFullWidth = false, isAsPrimary = false }) => {
-  // In full-width minimized mode, use larger icons to match TopOverflowMenu
-  const isFullWidthMinimized = isFullWidth && isAsPrimary && isMinimized;
-  const iconSize = isMobile ? "w-5 h-5" : (isFullWidthMinimized ? "w-6 h-6" : "w-4 h-4");
-  const wrapperSize = isMobile ? "w-6 h-6" : (isFullWidthMinimized ? "w-8 h-8" : (isMinimized ? "w-5 h-5" : "w-5 h-5"));
+}> = ({ icon, moduleKey, className = "", isMinimized = false, isMobile = false }) => {
+  const iconSize = isMobile ? "w-5 h-5" : "w-4 h-4";
+  const wrapperSize = isMinimized ? "w-5 h-5" : isMobile ? "w-6 h-6" : "w-5 h-5";
   
   return (
     <div className={`
@@ -286,13 +282,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       tabIndex={0}
                     >
                       <span className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-2'}`}>
-                        <IconWrapper
-                          icon={item.icon}
-                          moduleKey={moduleKey}
+                        <IconWrapper 
+                          icon={item.icon} 
+                          moduleKey={moduleKey} 
                           isMinimized={isMinimized}
                           isMobile={isMobile}
-                          isFullWidth={isFullWidth}
-                          isAsPrimary={isAsPrimary}
                         />
                         {!isMinimized && <span className="truncate text-xs">{translateItemName(item.name)}</span>}
                       </span>
@@ -332,12 +326,10 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                           className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left`}
                                           tabIndex={0}
                                         >
-                                          <IconWrapper
-                                            icon={child.icon}
+                                          <IconWrapper 
+                                            icon={child.icon} 
                                             moduleKey={moduleKey}
                                             isMobile={isMobile}
-                                            isFullWidth={isFullWidth}
-                                            isAsPrimary={isAsPrimary}
                                           />
                                           <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{child.name}</span>
                                         </button>
@@ -359,12 +351,10 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                 className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left`}
                                 tabIndex={0}
                               >
-                                <IconWrapper
-                                  icon={child.icon}
+                                <IconWrapper 
+                                  icon={child.icon} 
                                   moduleKey={moduleKey}
                                   isMobile={isMobile}
-                                  isFullWidth={isFullWidth}
-                                  isAsPrimary={isAsPrimary}
                                 />
                                 <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{child.name}</span>
                               </button>
@@ -383,13 +373,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       title={isMinimized ? translateItemName(item.name) : undefined}
                       tabIndex={0}
                     >
-                      <IconWrapper
-                        icon={item.icon}
-                        moduleKey={moduleKey}
+                      <IconWrapper 
+                        icon={item.icon} 
+                        moduleKey={moduleKey} 
                         isMinimized={isMinimized}
                         isMobile={isMobile}
-                        isFullWidth={isFullWidth}
-                        isAsPrimary={isAsPrimary}
                       />
                       {!isMinimized && <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{translateItemName(item.name)}</span>}
                     </button>
