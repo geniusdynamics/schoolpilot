@@ -10,7 +10,7 @@ import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CircleStackIcon, BanknotesIcon } from '@/components/ui/icons';
-import { useFinance } from '@/modules/finance/hooks/useFinance';
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -22,14 +22,16 @@ type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' 
 const ChartOfAccountsPage: React.FC = () => {
   const { 
     chartOfAccounts, 
+    expenseCategories, 
     loading, 
     addChartOfAccount, 
     updateChartOfAccount, 
-    deleteChartOfAccount
-  } = useFinance();
+    deleteChartOfAccount,
+    rawInitialData
+  } = useAppData(); // Updated
 
   // Get expense categories with fallback to empty array
-  const initialMockExpenseCategories = [] as any[];
+  const initialMockExpenseCategories = rawInitialData?.expenseCategories || [];
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<ChartOfAccount | null>(null);
