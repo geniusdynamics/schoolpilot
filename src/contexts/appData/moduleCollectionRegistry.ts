@@ -10,7 +10,6 @@ import type { ModuleCollectionsConfig, ModuleCollectionsRegistry } from '@/core/
  */
 import { financeModuleCollections } from '@/modules/finance/data/collectionConfig';
 import { administrationModuleCollections } from '@/modules/administration/data/collectionConfig';
-import { academicsModuleCollections } from '@/modules/academics/data/collectionConfig';
 import { hrModuleCollections } from '@/modules/hr/data/collectionConfig';
 import { inventoryModuleCollections } from '@/modules/inventory/data/collectionConfig';
 import { libraryModuleCollections } from '@/modules/library/data/collectionConfig';
@@ -24,7 +23,6 @@ import { admissionsModuleCollections } from '@/modules/admissions/data/collectio
 const MODULE_CONFIGS: ModuleCollectionsConfig[] = [
   financeModuleCollections,
   administrationModuleCollections,
-  academicsModuleCollections,
   hrModuleCollections,
   inventoryModuleCollections,
   libraryModuleCollections,
