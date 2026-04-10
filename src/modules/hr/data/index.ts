@@ -5,13 +5,6 @@ export * from './types';
 export * from './mockData';
 export * from './schema';
 export * from './collections';
-
-// Modular data provider (new architecture)
-export { 
-  HRDataProvider,
-  useHRDataContext 
-} from './HRDataProvider';
-
 export { usePayrollPeriodData } from './usePayrollPeriodData';
 export { usePayrollItemTypeData } from './usePayrollItemTypeData';
 export { useStaffSalarySettingData } from './useStaffSalarySettingData';
