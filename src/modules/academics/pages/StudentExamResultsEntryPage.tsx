@@ -12,7 +12,7 @@ import { ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import { getStudentsForExamEntry } from '@/utils/api';
+import { getStudentsForExamEntry } from '@/api/students';
 
 interface MarkInput {
   [studentId: string]: {
