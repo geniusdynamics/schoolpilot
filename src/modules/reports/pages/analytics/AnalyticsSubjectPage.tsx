@@ -27,7 +27,7 @@ const AnalyticsSubjectPage: React.FC = () => {
 
   // Aggregate stats
   const stats = useMemo(() => {
-    if (!subjectPassRates || subjectPassRates.length === 0) return { avgPassRate: 0, avgScore: 0, lowPassSubjects: 0, totalSubjects: 0, totalStudents: 0 };
+    if (subjectPassRates.length === 0) return { avgPassRate: 0, avgScore: 0, lowPassSubjects: 0, totalSubjects: 0, totalStudents: 0 };
     const avgPassRate = Math.round(subjectPassRates.reduce((s, sp) => s + sp.passRate, 0) / subjectPassRates.length);
     const avgScore = Math.round(subjectPassRates.reduce((s, sp) => s + sp.averageScore, 0) / subjectPassRates.length);
     const lowPassSubjects = subjectPassRates.filter((sp) => sp.passRate < 50).length;

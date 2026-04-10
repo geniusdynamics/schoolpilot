@@ -6,33 +6,32 @@
 import { useState, useCallback } from 'react';
 import type { AppDataContextType } from '@/types';
 import { databaseService } from '@/services/database/databaseService';
-import { useToast } from '@/hooks/useToast';
-import * as allTypes from '@/modules/finance/data/types';
+import * as financeTypes from '@/modules/finance/data/types';
 
 type RawInitialData = AppDataContextType['rawInitialData'];
 
 export function useFinanceData(_mockDataForSeeding: RawInitialData) {
   const [financeData] = useState<{
-    chartOfAccounts: allTypes.ChartOfAccount[];
-    banks: allTypes.Bank[];
-    suppliers: allTypes.Supplier[];
-    feeTemplates: allTypes.FeeTemplate[];
-    feeTemplateItems: allTypes.FeeTemplateItem[];
-    expenseCategories: allTypes.ExpenseCategory[];
-    expenseClaims: allTypes.ExpenseClaim[];
-    supplierInvoices: allTypes.SupplierInvoice[];
-    customerInvoices: allTypes.CustomerInvoice[];
-    studentOpeningBalances: allTypes.StudentOpeningBalance[];
-    feeAdjustments: allTypes.FeeAdjustment[];
-    transportRoutes: allTypes.TransportRoute[];
-    studentTransportAssignments: allTypes.StudentTransportAssignment[];
-    studentInvoices: allTypes.StudentInvoice[];
-    studentInvoiceItems: allTypes.StudentInvoiceItem[];
-    studentPayments: allTypes.StudentPayment[];
-    invoicePaymentApplications: allTypes.InvoicePaymentApplication[];
-    generalPayments: allTypes.GeneralPayment[];
-    generalLedgerEntries: allTypes.GeneralLedgerEntry[];
-    financialYears: allTypes.FinancialYear[];
+    chartOfAccounts: financeTypes.ChartOfAccount[];
+    banks: financeTypes.Bank[];
+    suppliers: financeTypes.Supplier[];
+    feeTemplates: financeTypes.FeeTemplate[];
+    feeTemplateItems: any[];
+    expenseCategories: financeTypes.ExpenseCategory[];
+    expenseClaims: financeTypes.ExpenseClaim[];
+    supplierInvoices: financeTypes.SupplierInvoice[];
+    customerInvoices: financeTypes.CustomerInvoice[];
+    studentOpeningBalances: financeTypes.StudentOpeningBalance[];
+    feeAdjustments: financeTypes.FeeAdjustment[];
+    transportRoutes: financeTypes.TransportRoute[];
+    studentTransportAssignments: financeTypes.StudentTransportAssignment[];
+    studentInvoices: any[];
+    studentInvoiceItems: any[];
+    studentPayments: financeTypes.StudentPayment[];
+    invoicePaymentApplications: any[];
+    generalPayments: any[];
+    generalLedgerEntries: any[];
+    financialYears: any[];
   }>({
     chartOfAccounts: [],
     banks: [],
@@ -56,171 +55,109 @@ export function useFinanceData(_mockDataForSeeding: RawInitialData) {
     financialYears: [],
   });
 
-  const toast = useToast();
-
   // ── Chart of Accounts ─────────────────────────────────────────────────────────
   const addChartOfAccount = useCallback(async (accountData: Omit<allTypes.ChartOfAccount, 'id'>) => {
     try {
       const db = await databaseService.getDatabase();
       const accountWithId = { ...accountData, id: databaseService.generateId() };
       const result = await db.chart_of_accounts?.insert(accountWithId);
-      toast.showSuccess('Chart of account created successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding chart of account:', error); 
-      toast.showError(`Failed to create chart of account: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error adding chart of account:', error); throw error; }
+  }, []);
 
   const updateChartOfAccount = useCallback(async (accountId: string, accountData: Partial<allTypes.ChartOfAccount>) => {
     try {
       const db = await databaseService.getDatabase();
       const result = await db.chart_of_accounts?.update(accountId, accountData);
-      toast.showSuccess('Chart of account updated successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating chart of account:', error); 
-      toast.showError(`Failed to update chart of account: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error updating chart of account:', error); throw error; }
+  }, []);
 
   const deleteChartOfAccount = useCallback(async (accountId: string) => {
     try {
       const db = await databaseService.getDatabase();
       await db.chart_of_accounts?.remove(accountId);
-      toast.showSuccess('Chart of account deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting chart of account:', error); 
-      toast.showError(`Failed to delete chart of account: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error deleting chart of account:', error); throw error; }
+  }, []);
 
   // ── Banks ─────────────────────────────────────────────────────────────────────
   const addBank = useCallback(async (bankData: Omit<allTypes.Bank, 'id'>) => {
     try {
       const db = await databaseService.getDatabase();
-      const bankWithId = { ...bankData, id: Date.now() };
+      const bankWithId = { ...bankData, id: databaseService.generateId() };
       const result = await db.banks?.insert(bankWithId);
-      toast.showSuccess('Bank created successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding bank:', error); 
-      toast.showError(`Failed to create bank: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error adding bank:', error); throw error; }
+  }, []);
 
   const updateBank = useCallback(async (bankId: string, bankData: Partial<allTypes.Bank>) => {
     try {
       const db = await databaseService.getDatabase();
       const result = await db.banks?.update(bankId, bankData);
-      toast.showSuccess('Bank updated successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating bank:', error); 
-      toast.showError(`Failed to update bank: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error updating bank:', error); throw error; }
+  }, []);
 
   const deleteBank = useCallback(async (bankId: string) => {
     try {
       const db = await databaseService.getDatabase();
       await db.banks?.remove(bankId);
-      toast.showSuccess('Bank deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting bank:', error); 
-      toast.showError(`Failed to delete bank: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error deleting bank:', error); throw error; }
+  }, []);
 
   // ── Suppliers ─────────────────────────────────────────────────────────────────
   const addSupplier = useCallback(async (supplierData: Omit<allTypes.Supplier, 'id'>) => {
     try {
       const db = await databaseService.getDatabase();
-      const supplierWithId = { ...supplierData, id: crypto.randomUUID() };
+      const supplierWithId = { ...supplierData, id: databaseService.generateId() };
       const result = await db.suppliers?.insert(supplierWithId);
-      toast.showSuccess('Supplier created successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding supplier:', error); 
-      toast.showError(`Failed to create supplier: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error adding supplier:', error); throw error; }
+  }, []);
 
   const updateSupplier = useCallback(async (supplierId: string, supplierData: Partial<allTypes.Supplier>) => {
     try {
       const db = await databaseService.getDatabase();
       const result = await db.suppliers?.update(supplierId, supplierData);
-      toast.showSuccess('Supplier updated successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating supplier:', error); 
-      toast.showError(`Failed to update supplier: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error updating supplier:', error); throw error; }
+  }, []);
 
   const deleteSupplier = useCallback(async (supplierId: string) => {
     try {
       const db = await databaseService.getDatabase();
       await db.suppliers?.remove(supplierId);
-      toast.showSuccess('Supplier deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting supplier:', error); 
-      toast.showError(`Failed to delete supplier: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error deleting supplier:', error); throw error; }
+  }, []);
 
   // ── Fee Templates ─────────────────────────────────────────────────────────────
   const addFeeTemplate = useCallback(async (templateData: Omit<allTypes.FeeTemplate, 'id'>) => {
     try {
       const db = await databaseService.getDatabase();
-      const templateWithId = { ...templateData, id: Date.now() };
+      const templateWithId = { ...templateData, id: databaseService.generateId() };
       const result = await db.fee_templates?.insert(templateWithId);
-      toast.showSuccess('Fee template created successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding fee template:', error); 
-      toast.showError(`Failed to create fee template: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error adding fee template:', error); throw error; }
+  }, []);
 
   const updateFeeTemplate = useCallback(async (templateId: string, templateData: Partial<allTypes.FeeTemplate>) => {
     try {
       const db = await databaseService.getDatabase();
       const result = await db.fee_templates?.update(templateId, templateData);
-      toast.showSuccess('Fee template updated successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating fee template:', error); 
-      toast.showError(`Failed to update fee template: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error updating fee template:', error); throw error; }
+  }, []);
 
   const deleteFeeTemplate = useCallback(async (templateId: string) => {
     try {
       const db = await databaseService.getDatabase();
       await db.fee_templates?.remove(templateId);
-      toast.showSuccess('Fee template deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting fee template:', error); 
-      toast.showError(`Failed to delete fee template: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error deleting fee template:', error); throw error; }
+  }, []);
 
   // ── Expense Claims ────────────────────────────────────────────────────────────
   const addExpenseClaim = useCallback(async (claimData: Omit<allTypes.ExpenseClaim, 'id'>) => {
@@ -566,37 +503,5 @@ export function useFinanceData(_mockDataForSeeding: RawInitialData) {
     applyPaymentToInvoices,
     addGeneralPayment, updateGeneralPayment, deleteGeneralPayment,
     addFinancialYear, updateFinancialYear, deleteFinancialYear,
-    
-    // Aliases for page compatibility
-    // Banks
-    createBank: addBank,
-    // Chart of Accounts
-    createChartOfAccount: addChartOfAccount,
-    // Suppliers
-    createSupplier: addSupplier,
-    // Fee Templates
-    createFeeTemplate: addFeeTemplate,
-    // Expense Claims
-    createExpenseClaim: addExpenseClaim,
-    // Expense Categories
-    createExpenseCategory: addExpenseCategory,
-    // Customer Invoices
-    createCustomerInvoice: addCustomerInvoice,
-    // Supplier Invoices
-    createSupplierInvoice: addSupplierInvoice,
-    // Student Opening Balances
-    createStudentOpeningBalance: addStudentOpeningBalance,
-    // Fee Adjustments
-    createFeeAdjustment: addFeeAdjustment,
-    // Transport Routes
-    createTransportRoute: addTransportRoute,
-    // Student Transport Assignments
-    createStudentTransportAssignment: addStudentTransportAssignment,
-    // Student Payments
-    createStudentPayment: addStudentPayment,
-    // General Payments
-    createGeneralPayment: addGeneralPayment,
-    // Financial Years
-    createFinancialYear: addFinancialYear,
   };
 }

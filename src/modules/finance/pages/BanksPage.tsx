@@ -10,7 +10,7 @@ import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BanknotesIcon } from '@/components/ui/icons';
-import { useFinance } from '@/modules/finance/hooks/useFinance';
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
@@ -24,7 +24,7 @@ const BanksPage: React.FC = () => {
     addBank, 
     updateBank, 
     deleteBank 
-  } = useFinance();
+  } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBank, setEditingBank] = useState<Bank | null>(null);

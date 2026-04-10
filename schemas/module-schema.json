@@ -1,0 +1,228 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schoolpilot.io/schemas/module-schema.json",
+  "title": "SchoolPilot Module Metadata",
+  "description": "Schema for module.json configuration files",
+  "type": "object",
+  "required": ["id", "name", "version"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this schema for validation"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique module identifier (kebab-case)",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable module name",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "description": "Module version (semver)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the module"
+    },
+    "author": {
+      "type": "object",
+      "description": "Module author information",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": ["name"]
+    },
+    "license": {
+      "type": "string",
+      "description": "License identifier (SPDX)"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Required module dependencies",
+      "items": {
+        "$ref": "#/definitions/dependency"
+      }
+    },
+    "optionalDependencies": {
+      "type": "array",
+      "description": "Optional module dependencies",
+      "items": {
+        "$ref": "#/definitions/dependency"
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "description": "Conflicting modules",
+      "items": {
+        "type": "string"
+      }
+    },
+    "schemas": {
+      "type": "array",
+      "description": "Database schemas provided by this module",
+      "items": {
+        "type": "string"
+      }
+    },
+    "migrations": {
+      "type": "string",
+      "description": "Migrations directory path (relative to module root)",
+      "default": "./migrations"
+    },
+    "provides": {
+      "type": "object",
+      "description": "Resources provided by this module",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hooks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Module capabilities",
+      "properties": {
+        "offlineSupport": {
+          "type": "boolean",
+          "default": false
+        },
+        "requiresBackend": {
+          "type": "boolean",
+          "default": false
+        },
+        "multiTenant": {
+          "type": "boolean",
+          "default": false
+        },
+        "supportsSync": {
+          "type": "boolean",
+          "default": false
+        },
+        "realTime": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "description": "Lifecycle hook functions",
+      "properties": {
+        "onRegister": {
+          "type": "string"
+        },
+        "onEnable": {
+          "type": "string"
+        },
+        "onDisable": {
+          "type": "string"
+        },
+        "onSeed": {
+          "type": "string"
+        },
+        "onUnregister": {
+          "type": "string"
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "description": "Default configuration values"
+    },
+    "minSchoolPilotVersion": {
+      "type": "string",
+      "description": "Minimum SchoolPilot version required"
+    },
+    "targetSchoolPilotVersion": {
+      "type": "string",
+      "description": "Target SchoolPilot version for compatibility"
+    }
+  },
+  "definitions": {
+    "dependency": {
+      "type": "object",
+      "required": ["moduleId", "version", "required"],
+      "properties": {
+        "moduleId": {
+          "type": "string",
+          "description": "Module ID of the dependency"
+        },
+        "version": {
+          "type": "string",
+          "description": "Semver version range"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether this is a required dependency"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Explanation of why this dependency is needed"
+        },
+        "imports": {
+          "type": "array",
+          "description": "Entities imported from this module",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

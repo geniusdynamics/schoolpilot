@@ -131,7 +131,7 @@ export const AppContent: React.FC<AppContentProps> = ({ modulesInitialized, conf
       </div>
 
       {/* Global notifications (if enabled) */}
-      {(config.features as any).globalNotifications && config.environment !== 'demo' && (
+      {(config.features as any).enableNotifications && config.environment !== 'demo' && (
         <GlobalNotifications />
       )}
 

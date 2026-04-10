@@ -1,15 +1,6 @@
 // ABOUTME: Serves as the main CSL entry point for the Administration module's data definitions.
 // ABOUTME: It re-exports types, mock data, schemas, and collection configurations.
 
-// Main comprehensive data hook
-export { useAdministrationData } from './useAdministrationData';
-
-// Modular data provider (new architecture)
-export { 
-  AdministrationDataProvider,
-  useAdministrationDataContext 
-} from './AdministrationDataProvider';
-
 export * from './types';
 export * from './mockData';
 export * from './schema';

@@ -1,11 +1,7 @@
-// ABOUTME: DEPRECATED - Use @/modules/academics/data/AcademicDataContext instead
-// ABOUTME: This is a legacy context wrapper from pre-modular architecture
-// TODO: Remove after migrating all consumers to module-specific data hooks
-
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { useAppData } from '../AppDataContext';
 
-/** @deprecated Use @/modules/academics/data/AcademicDataContext instead */
+// Define the Academics Domain State
 export interface AcademicsDomainState {
   students: any[];
   classes: any[];
@@ -14,10 +10,8 @@ export interface AcademicsDomainState {
   studentExamResults: any[];
 }
 
-/** @deprecated Use @/modules/academics/data/AcademicDataContext instead */
 export const AcademicsContext = createContext<AcademicsDomainState | undefined>(undefined);
 
-/** @deprecated Use @/modules/academics/data/AcademicDataProvider instead */
 export const AcademicsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const appData = useAppData();
 
@@ -42,7 +36,6 @@ export const AcademicsProvider: React.FC<{ children: ReactNode }> = ({ children 
   );
 };
 
-/** @deprecated Use @/modules/academics/data/hooks instead */
 export const useAcademicsDomain = () => {
   const context = useContext(AcademicsContext);
   if (!context) {

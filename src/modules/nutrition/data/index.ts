@@ -2,12 +2,6 @@
 // ABOUTME: Registers data hooks with the global context
 // ABOUTME: Provides consistent data access patterns
 
-// Modular data provider (new architecture)
-export { 
-  NutritionDataProvider,
-  useNutritionDataContext 
-} from './NutritionDataProvider';
-
 import { useMealConsumptionLogData } from './useMealConsumptionLogData';
 import { useMealPlanData } from './useMealPlanData';
 import { useMenuData } from './useMenuData';

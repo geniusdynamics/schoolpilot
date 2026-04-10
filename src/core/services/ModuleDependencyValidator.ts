@@ -137,7 +137,7 @@ class ModuleDependencyValidator {
 
   private static _detectCircularDependenciesSync(moduleRegistry: any): string[][] {
     
-    const modules = moduleRegistry.getAllMetadata();
+    const modules = moduleRegistry.getAllModules();
     const graph = new Map<string, string[]>();
     const cycles: string[][] = [];
     
@@ -218,7 +218,7 @@ class ModuleDependencyValidator {
          issues: []
        };
      }
-
+     
      try {
        return this._generateCompatibilityReportSync(moduleRegistry);
      } catch (error) {
@@ -240,22 +240,23 @@ class ModuleDependencyValidator {
       details: string;
     }>;
   } {
-    const modules = moduleRegistry.getAllMetadata();
+    
+    const modules = moduleRegistry.getAllModules();
     const issues: Array<{
       moduleId: string;
       type: 'missing' | 'version' | 'circular';
       details: string;
     }> = [];
-
+    
     // Check each module's dependencies
     for (const module of modules) {
       const enabledModules = moduleRegistry.getEnabledModules();
       const dependencies = module.dependencies || [];
-
+      
       for (const dep of dependencies) {
         const depId = typeof dep === 'string' ? dep : dep.moduleId;
         const depModule = enabledModules.find(m => m.id === depId);
-
+        
         if (!depModule && (typeof dep === 'string' || dep.required)) {
           issues.push({
             moduleId: module.id,
@@ -274,7 +275,7 @@ class ModuleDependencyValidator {
         }
       }
     }
-
+    
     // Check for circular dependencies
     const cycles = this._detectCircularDependenciesSync(moduleRegistry);
     for (const cycle of cycles) {
@@ -284,7 +285,7 @@ class ModuleDependencyValidator {
         details: `Circular dependency detected: ${cycle.join(' -> ')}`
       });
     }
-
+    
     return {
       totalModules: modules.length,
       modulesWithIssues: new Set(issues.map(i => i.moduleId)).size,

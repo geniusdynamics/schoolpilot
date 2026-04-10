@@ -42,9 +42,9 @@ export const ReorderAlertsPage: React.FC = () => {
     isLoading,
     error,
     totalAlertsCount,
-    highPriorityAlerts = [],
-    mediumPriorityAlerts = [],
-    lowPriorityAlerts = []
+    highPriorityAlerts,
+    mediumPriorityAlerts,
+    lowPriorityAlerts
   } = useReorderMonitoring();
 
   const getAlertSummaryCards = () => {

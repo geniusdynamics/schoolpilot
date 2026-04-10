@@ -117,19 +117,14 @@ export const initializeDynamicModules = async (): Promise<void> => {
 ```
 src/modules/[module-name]/
 ├── moduleDefinition.tsx     // Module definition and metadata
-├── data/
-│   ├── collectionConfig.ts     // ⚡ AUTO-DISCOVERY: Register collections
-│   ├── YourDataProvider.tsx     // CRUD operations, validation, notifications
-│   ├── collections.ts           // Database collection configs
-│   ├── schema.ts              // Database schemas
-│   ├── types.ts               // TypeScript types
-│   └── mockData.ts            // Mock data for development
-├── hooks/
-│   ├── useYourModule.ts        // Main hook (data + CRUD)
-│   └── useYourValidation.ts   // Validation rules (optional)
-├── pages/                       // Module-specific pages
-├── components/                  // Module-specific components
-└── services/                    // Module-specific services (optional)
+├── pages/                   // Module-specific pages
+├── components/              // Module-specific components
+├── data/                    // Module data, schemas, and types
+│   ├── collections.ts
+│   ├── schema.ts
+│   ├── types.ts
+│   └── mockData.ts
+└── services/                // Module-specific services (optional)
 ```
 
 ### Module Definition Properties
@@ -147,222 +142,52 @@ Each module definition includes:
 - **features**: Array of features provided by module
 - **dependencies**: Array of required module IDs
 - **settings**: Module-specific configuration options
-- **provider**: React component wrapping module with DataProvider
-
-## Collection Auto-Discovery System (NEW)
-
-### The Problem (Old Approach)
-
-Previously, adding collections required editing **core files**:
-
-```typescript
-// ❌ OLD: src/contexts/appData/appDataCollections.ts
-// Had to manually maintain this array!
-const APP_DATA_ARRAY_KEYS = [
-  'students',
-  'staff',
-  // ... 90+ entries
-  'yourNewEntities', // ← Had to add manually!
-  // ...
-] as const;
-```
-
-**Problems:**
-- ❌ Core files modified for every new collection
-- ❌ Merge conflicts in central file
-- ❌ Tight coupling between modules and core
-- ❌ Not truly modular
-
-### The Solution (Auto-Discovery)
-
-Now, modules **self-register** their collections:
-
-```typescript
-// ✅ NEW: src/modules/your-module/data/collectionConfig.ts
-// Module defines its own collections!
-export const yourModuleCollections: ModuleCollectionsConfig = {
-  moduleName: 'your-module',
-  aliases: {
-    // DB collection name : AppData key
-    your_entities: 'yourEntities',     // ← Auto-discovered!
-    another_collection: 'anotherCollection',
-  },
-  schemas: {
-    your_entities: yourEntitiesSchema,
-  },
-};
-```
-
-**Benefits:**
-- ✅ No core file editing for new collections
-- ✅ Each module owns its data definition
-- ✅ True modularity - drop-in modules
-- ✅ Automatic aggregation by core
-
-### How Auto-Discovery Works
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  MODULES (Each defines its collections)                         │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │ finance/data/collectionConfig.ts                          │  │
-│  │ { banks: 'banks', fee_templates: 'feeTemplates', ... }  │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │ administration/data/collectionConfig.ts                     │  │
-│  │ { students: 'students', classes: 'classes', ... }         │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │ [new-module]/data/collectionConfig.ts                     │  │
-│  │ { your_entities: 'yourEntities', ... }                    │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-                                ↓
-                    ┌───────────▼───────────┐
-                    │ CORE REGISTRY           │
-                    │ moduleCollectionRegistry.ts
-                    │                         │
-                    │ • Imports all configs   │
-                    │ • Aggregates aliases    │
-                    │ • Generates:            │
-                    │   - APP_DATA_ARRAY_KEYS │
-                    │   - COLLECTION_KEY_ALIASES│
-                    └───────────┬───────────┘
-                                ↓
-                    ┌───────────▼───────────┐
-                    │ AppDataContext        │
-                    │                       │
-                    │ Uses auto-generated   │
-                    │ arrays for:           │
-                    │ • Data loading        │
-                    │ • Collection mapping  │
-                    │ • Type definitions    │
-                    └───────────────────────┘
-```
-
-### Core Registry Implementation
-
-```typescript
-// src/contexts/appData/moduleCollectionRegistry.ts
-import { financeModuleCollections } from '@/modules/finance/data/collectionConfig';
-import { administrationModuleCollections } from '@/modules/administration/data/collectionConfig';
-import { yourModuleCollections } from '@/modules/your-module/data/collectionConfig';
-
-const MODULE_CONFIGS: ModuleCollectionsConfig[] = [
-  financeModuleCollections,
-  administrationModuleCollections,
-  yourModuleCollections, // ← Add new module here (1 line!)
-];
-
-// Auto-generate the registry
-export const MODULE_COLLECTIONS_REGISTRY = generateRegistry(MODULE_CONFIGS);
-
-// Exports used by AppDataContext
-export const APP_DATA_ARRAY_KEYS = MODULE_COLLECTIONS_REGISTRY.appDataKeys;
-export const COLLECTION_KEY_ALIASES = MODULE_COLLECTIONS_REGISTRY.aliases;
-```
-
-### Adding a New Module (3 Steps)
-
-1. **Create `collectionConfig.ts` in your module:**
-   ```typescript
-   export const yourModuleCollections: ModuleCollectionsConfig = {
-     moduleName: 'your-module',
-     aliases: { your_entities: 'yourEntities' },
-   };
-   ```
-
-2. **Import in `moduleCollectionRegistry.ts`:**
-   ```typescript
-   import { yourModuleCollections } from '@/modules/your-module/data/collectionConfig';
-   ```
-
-3. **Add to `MODULE_CONFIGS` array:**
-   ```typescript
-   const MODULE_CONFIGS = [
-     // ... existing modules
-     yourModuleCollections,
-   ];
-   ```
-
-**That's it!** Core automatically:
-- Adds collections to `APP_DATA_ARRAY_KEYS`
-- Creates mappings in `COLLECTION_KEY_ALIASES`
-- Initializes arrays as empty `[]`
-- Provides types for TypeScript
 
 ## Future Enhancements
 
-### 1. Runtime Module Registration
+### 1. Dynamic Module Discovery
 ```typescript
-// Future: Register modules at runtime
-import { registerModuleCollections } from '@/contexts/appData/moduleCollectionRegistry';
-
-// Plugin system could call:
-registerModuleCollections({
-  moduleName: 'external-plugin',
-  aliases: { plugin_data: 'pluginData' },
-});
+// Future implementation
+export const discoverModules = async (): Promise<ModuleDefinition[]> => {
+  // Scan modules directory
+  // Look for moduleDefinition.tsx files
+  // Dynamically import them
+  // Return discovered modules
+};
 ```
 
-### 2. Module Marketplace
-- Pre-built modules as npm packages
-- One-line installation: `npm install @schoolpilot/hr-module`
-- Auto-registration on import
-
-### 3. Hot Module Loading
+### 2. Hot Module Loading
 - Modules can be loaded/unloaded at runtime
 - Configuration changes without restart
 - Plugin marketplace integration
 
-### 4. Module Dependencies
+### 3. Module Dependencies
 - Automatic dependency resolution
 - Version compatibility checking
 - Circular dependency detection
 
-### 5. Module Settings UI
+### 4. Module Settings UI
 - Dynamic settings forms based on module definitions
 - Real-time configuration updates
 - Settings validation and persistence
 
 ## Migration Path
 
-### From Centralized to Modular (COMPLETED ✓)
+### From Centralized to Modular
 
-The migration has been completed:
+1. **Extract Core Modules**: Move system-level modules to `core/moduleDefinition.ts`
+2. **Create Individual Definitions**: Create `moduleDefinition.tsx` for each module
+3. **Update Module Loader**: Use dynamic loading instead of static imports
+4. **Test Module Independence**: Verify modules work independently
+5. **Update Documentation**: Document new module development process
 
-1. ✅ **Extract Core Modules**: System-level modules moved to `core/moduleDefinition.ts`
-2. ✅ **Create Data Providers**: Each module has its own CRUD provider (e.g., `FinanceDataProvider.tsx`)
-3. ✅ **Auto-Discovery**: Collections auto-register via `collectionConfig.ts`
-4. ✅ **Module Hooks**: Standardized hooks for each module (e.g., `useFinance.ts`)
-5. ✅ **Test Module Independence**: All modules work independently
-6. ✅ **Documentation**: This report + Module Development Guide
+### Adding New Modules
 
-### Status: All Modules Migrated
-
-| Module | DataProvider | Hook | Collection Config | Status |
-|--------|--------------|------|-------------------|--------|
-| **Administration** | ✅ `AdministrationDataProvider` | ✅ `useAdministration` | ✅ `collectionConfig.ts` | Complete |
-| **Finance** | ✅ `FinanceDataProvider` | ✅ `useFinance` | ✅ `collectionConfig.ts` | Complete |
-| **HR** | ✅ `HRDataProvider` | ✅ `useHR` | ✅ `collectionConfig.ts` | Complete |
-| **Inventory** | ✅ `InventoryDataProvider` | ✅ `useInventory` | ✅ `collectionConfig.ts` | Complete |
-| **Library** | ✅ `LibraryDataProvider` | ✅ `useLibrary` | ✅ `collectionConfig.ts` | Complete |
-| **Nutrition** | ✅ `NutritionDataProvider` | ✅ `useNutrition` | ✅ `collectionConfig.ts` | Complete |
-| **Admissions** | ✅ `AdmissionsDataProvider` | ✅ `useAdmissions` | ✅ `collectionConfig.ts` | Complete |
-| **Academics** | ✅ `AcademicDataProvider` | ✅ `useAcademics` | ✅ `collectionConfig.ts` | Complete |
-
-### Adding New Modules (Quick Reference)
-
-See: `docs/guides/MODULE_DEVELOPMENT_GUIDE.md`
-
-**Summary:**
-1. ✅ **Create Module Directory**: `src/modules/[new-module]/`
-2. ✅ **Create Collection Config**: `data/collectionConfig.ts` (auto-discovered)
-3. ✅ **Create Data Provider**: `data/YourDataProvider.tsx` (CRUD operations)
-4. ✅ **Create Module Hook**: `hooks/useYourModule.ts` (data + CRUD)
-5. ✅ **Create Module Definition**: `moduleDefinition.tsx`
-6. ✅ **Implement Pages**: Use `useYourModule()` hook
-7. ✅ **Register in Core**: Add to `moduleCollectionRegistry.ts` (1 import + 1 line)
+1. **Create Module Directory**: `src/modules/[new-module]/`
+2. **Create Module Definition**: `moduleDefinition.tsx`
+3. **Implement Module Features**: Pages, components, data
+4. **Register Module**: Module will be auto-discovered
+5. **Configure Settings**: Add module-specific configuration
 
 ## Benefits Realized
 

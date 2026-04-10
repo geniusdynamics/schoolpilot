@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAdministration } from '../hooks/useAdministration';
+import { useAppData } from '@/hooks/useAppData';
 import { usePageActions } from '@/hooks/usePageActions';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -37,7 +37,7 @@ const ClassesPage: React.FC = () => {
     addClassStream,
     updateClassStream,
     deleteClassStream,
-  } = useAdministration(); 
+  } = useAppData(); 
 
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
   const [isStreamModalOpen, setIsStreamModalOpen] = useState(false);

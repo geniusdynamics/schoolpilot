@@ -217,7 +217,7 @@ class ModuleConfigService {
   // Add missing methods that are called by moduleManagementService
   getAllModuleInfo(): ModuleInfo[] {
     console.log('[ModuleConfigService] Getting all module info...');
-    const allModules = moduleRegistry.getAllMetadata();
+    const allModules = moduleRegistry.getAllModules();
     const coreModules = ['dashboard', 'settings', 'reports'];
     
     return allModules.map(module => {
@@ -244,7 +244,7 @@ class ModuleConfigService {
     
     try {
       // Check for circular dependencies
-      const allModules = moduleRegistry.getAllMetadata();
+      const allModules = moduleRegistry.getAllModules();
       for (const module of allModules) {
         if (module.dependencies) {
           const visited = new Set<string>();
@@ -291,7 +291,7 @@ class ModuleConfigService {
 
   checkDependencies(moduleId: string): { satisfied: boolean; missing: string[] } {
     console.log('[ModuleConfigService] Checking dependencies for:', moduleId);
-    const module = moduleRegistry.getMetadata(moduleId);
+    const module = moduleRegistry.getModule(moduleId);
     if (!module || !module.dependencies) {
       return { satisfied: true, missing: [] };
     }
@@ -305,13 +305,13 @@ class ModuleConfigService {
 
   getModuleDependencies(moduleId: string): string[] {
     console.log('[ModuleConfigService] Getting dependencies for:', moduleId);
-    const module = moduleRegistry.getMetadata(moduleId);
+    const module = moduleRegistry.getModule(moduleId);
     return module?.dependencies || [];
   }
 
   getConfig(): { moduleDependencies: Record<string, string[]> } {
     console.log('[ModuleConfigService] Getting full config...');
-    const allModules = moduleRegistry.getAllMetadata();
+    const allModules = moduleRegistry.getAllModules();
     const moduleDependencies: Record<string, string[]> = {};
     
     allModules.forEach(module => {

@@ -14,20 +14,20 @@ const AcademicsDashboardPage: React.FC = () => {
   const { t } = useTranslation('academics');
   const { 
     loading, 
-    subjects = [], 
-    subjectPapers = [], 
-    examSessions = [], 
-    gradingSchemes = [],
-    departments = [] 
+    subjects, 
+    subjectPapers, 
+    examSessions, 
+    gradingSchemes,
+    departments 
   } = useAppData(); 
 
-  const pageIsLoading = loading?.all || loading?.subjects || loading?.subjectPapers || loading?.examSessions || loading?.gradingSchemes || loading?.departments;
+  const pageIsLoading = loading.all || loading.subjects || loading.subjectPapers || loading.examSessions || loading.gradingSchemes || loading.departments;
 
   if (pageIsLoading) { 
     return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
   }
 
-  const academicDepartments = departments?.filter(d => d.is_academic) || [];
+  const academicDepartments = departments.filter(d => d.is_academic);
   const subjectsPerDepartment: BarChartData[] = academicDepartments.map(dept => ({
     name: dept.name,
     uv: subjects.filter(sub => sub.department_id === dept.id).length, 
