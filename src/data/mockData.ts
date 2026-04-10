@@ -1,79 +1,99 @@
-// ABOUTME: This file provides basic mock data structure for AppDataContext when enhanced data layer is disabled
-// ABOUTME: Contains simplified data objects that match the expected application data structure
+// ABOUTME: DEPRECATED - This file is being phased out in favor of module-specific mock data
+// ABOUTME: Use @/modules/{module}/data/mockData.ts instead
+// TODO: Remove this file after all imports are migrated to module-specific sources
 
+/** @deprecated Use @/modules/academics/data/mockData instead */
+export const academicYears: any[] = [];
+
+/** @deprecated Use @/modules/academics/data/mockData instead */
+export const subjects: any[] = [];
+
+/** @deprecated Use @/modules/academics/data/mockData instead */
+export const classes: any[] = [];
+
+/** @deprecated Use @/modules/academics/data/mockData instead */
+export const classStreams: any[] = [];
+
+/** @deprecated Use @/modules/administration/data/mockData instead */
+export const departments: any[] = [];
+
+/** @deprecated Use @/modules/administration/data/mockData instead */
+export const staff: any[] = [];
+
+/** @deprecated Use @/modules/finance/data/mockData instead */
+export const feeTemplates: any[] = [];
+
+/** @deprecated Use @/modules/finance/data/mockData instead */
+export const studentPayments: any[] = [];
+
+/** @deprecated Use @/modules/finance/data/mockData instead */
+export const studentInvoices: any[] = [];
+
+/** @deprecated Use @/modules/inventory/data/mockData instead */
+export const warehouses: any[] = [];
+
+/** @deprecated Use @/modules/inventory/data/mockData instead */
+export const items: any[] = [];
+
+/** @deprecated Use @/modules/inventory/data/mockData instead */
+export const stockTransactions: any[] = [];
+
+/** @deprecated Use @/modules/library/data/mockData instead */
+export const books: any[] = [];
+
+/** @deprecated Use @/modules/library/data/mockData instead */
+export const loans: any[] = [];
+
+/** @deprecated Use @/modules/nutrition/data/mockData instead */
+export const mealPlans: any[] = [];
+
+/** @deprecated Use @/modules/nutrition/data/mockData instead */
+export const nutritionRecords: any[] = [];
+
+// Legacy mockData object (for backward compatibility)
+/** @deprecated Use module-specific mockData exports instead */
 export const mockData = {
-  // Academic data
-  academicYears: [
-    { id: 1, name: 'AY 2023/2024', start_date: '2023-09-01', end_date: '2024-08-31', is_active: true }
-  ],
-  subjects: [
-    { id: 1, name: 'English', code: 'ENG', created_at: new Date().toISOString() },
-    { id: 2, name: 'Mathematics', code: 'MATH', created_at: new Date().toISOString() },
-    { id: 3, name: 'Science', code: 'SCI', created_at: new Date().toISOString() }
-  ],
-  classes: [
-    { id: 1, name: 'Form 1', level: 1, created_at: new Date().toISOString() },
-    { id: 2, name: 'Form 2', level: 2, created_at: new Date().toISOString() }
-  ],
-  classStreams: [
-    { id: 1, class_id: 1, name: 'Form 1 A', capacity: 40 },
-    { id: 2, class_id: 1, name: 'Form 1 B', capacity: 40 }
-  ],
-
-  // Administration data
-  departments: [
-    { id: 'DEPT001', name: 'Academics', created_at: new Date().toISOString() },
-    { id: 'DEPT002', name: 'Administration', created_at: new Date().toISOString() }
-  ],
-  staff: [
-    { id: 'STF001', first_name: 'John', last_name: 'Doe', department_id: 'DEPT001', is_active: true }
-  ],
-
-  // Finance data
-  feeTemplates: [
-    { id: 1, name: 'Tuition Fee', amount: 15000, created_at: new Date().toISOString() }
-  ],
-  studentPayments: [],
-  studentInvoices: [],
-
-  // Inventory data
-  warehouses: [
-    { id: 1, name: 'Main Store', location: 'Block A', created_at: new Date().toISOString() }
-  ],
-  items: [],
-  stockTransactions: [],
-
-  // Library data
-  books: [],
-  loans: [],
-
-  // Nutrition data
-  mealPlans: [],
-  menus: [],
-
-  // Loading states
+  academicYears,
+  subjects,
+  classes,
+  classStreams,
+  departments,
+  staff,
+  feeTemplates,
+  studentPayments,
+  studentInvoices,
+  warehouses,
+  items,
+  stockTransactions,
+  books,
+  loans,
+  mealPlans,
+  nutritionRecords,
   loading: false,
 
-  // CRUD operations (mock implementations)
+  /** @deprecated Use module-specific data hooks instead */
   addStudent: async (data: any) => {
-    console.log('Mock: Adding student', data);
+    console.warn('[DEPRECATED] mockData.addStudent is deprecated');
   },
+  /** @deprecated Use module-specific data hooks instead */
   updateStudent: async (id: string, data: any) => {
-    console.log('Mock: Updating student', id, data);
+    console.warn('[DEPRECATED] mockData.updateStudent is deprecated');
   },
+  /** @deprecated Use module-specific data hooks instead */
   deleteStudent: async (id: string) => {
-    console.log('Mock: Deleting student', id);
+    console.warn('[DEPRECATED] mockData.deleteStudent is deprecated');
   },
-
-  // Utility functions
+  /** @deprecated Use module-specific data hooks instead */
   getStudentDetailsById: (id: string) => {
-    console.log('Mock: Getting student details for', id);
+    console.warn('[DEPRECATED] mockData.getStudentDetailsById is deprecated');
     return null;
   },
+  /** @deprecated Use module-specific data hooks instead */
   getStudentFinancialDetailsById: (id: string) => {
-    console.log('Mock: Getting student financial details for', id);
+    console.warn('[DEPRECATED] mockData.getStudentFinancialDetailsById is deprecated');
     return null;
   }
 };
 
+/** @deprecated Use module-specific mockData exports instead */
 export default mockData;
