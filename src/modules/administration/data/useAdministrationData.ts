@@ -4,8 +4,7 @@
 import { useState, useCallback } from 'react';
 import type { AppDataContextType } from '@/types';
 import { databaseService } from '@/services/database/databaseService';
-import { useToast } from '@/hooks/useToast';
-import * as allTypes from './types';
+import * as allTypes from '@/types';
 
 type RawInitialData = AppDataContextType['rawInitialData'];
 
@@ -49,7 +48,6 @@ export function useAdministrationData(mockDataForSeeding: RawInitialData) {
   });
 
   const [localAttendance, setLocalAttendance] = useState<any[]>([]);
-  const toast = useToast();
 
   // ── Helper: cached collections ──────────────────────────────────────────────
   const getCachedCollection = useCallback(<T,>(cached: T[], fallback: T[] | undefined): T[] => {
@@ -88,42 +86,27 @@ export function useAdministrationData(mockDataForSeeding: RawInitialData) {
   const addStudent = useCallback(async (studentData: Omit<allTypes.Student, 'id'>) => {
     try {
       const db = await databaseService.getDatabase();
-      const studentWithId = { ...studentData, id: crypto.randomUUID() };
+      const studentWithId = { ...studentData, id: databaseService.generateId() };
       const result = await db.students?.insert(studentWithId);
-      toast.showSuccess('Student created successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding student:', error); 
-      toast.showError(`Failed to create student: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error adding student:', error); throw error; }
+  }, []);
 
   const updateStudent = useCallback(async (studentId: string, studentData: Partial<allTypes.Student>) => {
     try {
       const db = await databaseService.getDatabase();
       const result = await db.students?.update(studentId, studentData);
-      toast.showSuccess('Student updated successfully');
       return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating student:', error); 
-      toast.showError(`Failed to update student: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error updating student:', error); throw error; }
+  }, []);
 
   const deleteStudent = useCallback(async (studentId: string) => {
     try {
       const db = await databaseService.getDatabase();
       await db.students?.remove(studentId);
-      toast.showSuccess('Student deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting student:', error); 
-      toast.showError(`Failed to delete student: ${error}`);
-      throw error; 
-    }
-  }, [toast]);
+    } catch (error) { console.error('Error deleting student:', error); throw error; }
+  }, []);
 
   // ── Staff ─────────────────────────────────────────────────────────────────────
   const addStaffMember = useCallback(async (staffData: Omit<any, 'id'>) => {
@@ -529,20 +512,5 @@ export function useAdministrationData(mockDataForSeeding: RawInitialData) {
     addCustomer, updateCustomer, deleteCustomer,
     addStudentHealthRecord, updateStudentHealthRecord,
     saveStudentAttendance, getStudentAttendanceByFilters,
-    
-    // Aliases for page compatibility
-    createStudent: addStudent,
-    createStaffMember: addStaffMember,
-    createParentGuardian: addParentGuardian,
-    createDepartment: addDepartment,
-    createDesignation: addDesignation,
-    createStudentCategory: addStudentCategory,
-    createDormitory: addDormitory,
-    createClass: addClass,
-    createClassStream: addClassStream,
-    createPartner: addPartner,
-    createClub: addClub,
-    createCustomer: addCustomer,
-    createStudentHealthRecord: addStudentHealthRecord,
   };
 }

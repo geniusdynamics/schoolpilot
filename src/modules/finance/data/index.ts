@@ -2,10 +2,6 @@
 // ABOUTME: Registers data hooks with the global context
 // ABOUTME: Provides consistent data access patterns
 
-// Main data hook (comprehensive)
-export { useFinanceData } from './useFinanceData';
-
-// Individual entity hooks
 import { useBankData } from './useBankData';
 import { useChartOfAccountData } from './useChartOfAccountData';
 import { useCustomerInvoiceData } from './useCustomerInvoiceData';
