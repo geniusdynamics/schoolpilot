@@ -1,5 +1,5 @@
 {
-  "welcomeBack": "Karibu tena, {{name}}!",
+  "welcomeBack": "Karibu tena, {name}!",
   "welcomeBackDefault": "Karibu tena!",
   "happeningToday": "Haya ni yale yanayotokea shuleni kwako leo.",
   "dashboardSubtitle": "Fuatilia masomo, mahudhurio, fedha, na mawasiliano kutoka dashibodi moja tayari kwa uamuzi.",

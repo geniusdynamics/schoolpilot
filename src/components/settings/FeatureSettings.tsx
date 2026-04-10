@@ -381,9 +381,12 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     <div className={`max-w-6xl mx-auto ${className}`}>
       {/* Header */}
       <div className="mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Feature Settings</h1>
-          <p className="text-gray-600">Manage offline capabilities, sync settings, and application features</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Feature Settings</h1>
+            <p className="text-gray-600">Manage offline capabilities, sync settings, and application features</p>
+          </div>
+          <NetworkStatusIndicator showDetails={true} className="bg-white p-3 rounded-lg shadow" />
         </div>
       </div>
 

@@ -23,13 +23,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
-import {
-  AlertBanner,
-  StatCard,
-  ChartCard,
+import { 
+  AlertBanner, 
+  StatCard, 
+  ChartCard, 
   ProgressRing,
   WelcomeCard,
-  CalendarWidget
+  CalendarWidget 
 } from '../components';
 import {
   AcademicCapIcon,
@@ -490,93 +490,15 @@ const DashboardPage: React.FC = () => {
         </section>
 
         {/* ============================================================================
-            UPCOMING EVENTS, ANNOUNCEMENTS & CALENDAR SECTION
+            WELCOME & CALENDAR SECTION
         ============================================================================ */}
-        <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {/* Upcoming Events */}
-          <Card
-            title={t('upcomingEvents', 'Upcoming Events')}
-            className="border-gray-200 shadow-sm"
-            icon={<CalendarDaysIcon className="h-5 w-5 text-blue-600" />}
-            actions={
-              <Button variant="ghost" size="sm" onClick={() => navigate('/academics/timetable-entries')}>
-                {t('viewAll', 'View All')}
-              </Button>
-            }
-          >
-            <ul className="space-y-3" aria-label={t('upcomingEvents', 'Upcoming Events')}>
-              {upcomingEvents.length === 0 && (
-                <li className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 text-center">
-                  {t('noUpcomingEvents', 'No upcoming events scheduled.')}
-                </li>
-              )}
-              {upcomingEvents.map((event, index) => (
-                <li
-                  key={event.id}
-                  className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:bg-gray-100"
-                >
-                  <div className={`
-                    flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg
-                    ${index === 0 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}
-                  `}>
-                    <CalendarDaysIcon className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{event.title}</p>
-                    <p className="text-xs text-gray-500">{event.start?.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</p>
-                  </div>
-                  {index === 0 && (
-                    <span className="flex-shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      {t('soon', 'Soon')}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          {/* Recent Announcements */}
-          <Card
-            title={t('recentAnnouncements', 'Recent Announcements')}
-            className="border-gray-200 shadow-sm"
-            icon={<MegaphoneIcon className="h-5 w-5 text-violet-600" />}
-            actions={
-              <Button variant="ghost" size="sm" onClick={() => navigate('/administration/message-campaigns')}>
-                {t('viewAll', 'View All')}
-              </Button>
-            }
-          >
-            <ul className="space-y-3" aria-label={t('recentAnnouncements', 'Recent Announcements')}>
-              {recentAnnouncements.length === 0 && (
-                <li className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 text-center">
-                  {t('noAnnouncements', 'No recent announcements yet.')}
-                </li>
-              )}
-              {recentAnnouncements.map((announcement) => (
-                <li
-                  key={announcement.id}
-                  className="rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:bg-gray-100"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{announcement.title}</p>
-                      <p className="mt-1 line-clamp-2 text-xs text-gray-600">{announcement.details}</p>
-                    </div>
-                    {announcement.priority === 'high' && (
-                      <span className="flex-shrink-0 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
-                        {t('urgent', 'Urgent')}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-2 text-xs text-gray-400">
-                    {announcement.updatedAt?.toLocaleDateString()}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          {/* Calendar Widget */}
+        <section className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <WelcomeCard
+            userName={user?.fullName || user?.firstName || 'User'}
+            subtitle="Manage your school operations efficiently from one central dashboard."
+            avatarUrl={user?.avatarUrl}
+            className="lg:col-span-2"
+          />
           <CalendarWidget
             events={upcomingEvents.map(event => ({
               date: event.start || new Date(),
@@ -1085,6 +1007,94 @@ const DashboardPage: React.FC = () => {
               </div>
             </Card>
           </div>
+        </section>
+
+        {/* ============================================================================
+            UPCOMING EVENTS & ANNOUNCEMENTS SECTION
+        ============================================================================ */}
+        <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {/* Upcoming Events */}
+          <Card 
+            title={t('upcomingEvents', 'Upcoming Events')} 
+            className="border-gray-200 shadow-sm"
+            icon={<CalendarDaysIcon className="h-5 w-5 text-blue-600" />}
+            actions={
+              <Button variant="ghost" size="sm" onClick={() => navigate('/academics/timetable-entries')}>
+                {t('viewAll', 'View All')}
+              </Button>
+            }
+          >
+            <ul className="space-y-3" aria-label={t('upcomingEvents', 'Upcoming Events')}>
+              {upcomingEvents.length === 0 && (
+                <li className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 text-center">
+                  {t('noUpcomingEvents', 'No upcoming events scheduled.')}
+                </li>
+              )}
+              {upcomingEvents.map((event, index) => (
+                <li 
+                  key={event.id} 
+                  className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:bg-gray-100"
+                >
+                  <div className={`
+                    flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg
+                    ${index === 0 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}
+                  `}>
+                    <CalendarDaysIcon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{event.title}</p>
+                    <p className="text-xs text-gray-500">{event.start?.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+                  </div>
+                  {index === 0 && (
+                    <span className="flex-shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      {t('soon', 'Soon')}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          {/* Recent Announcements */}
+          <Card 
+            title={t('recentAnnouncements', 'Recent Announcements')} 
+            className="border-gray-200 shadow-sm"
+            icon={<MegaphoneIcon className="h-5 w-5 text-violet-600" />}
+            actions={
+              <Button variant="ghost" size="sm" onClick={() => navigate('/administration/message-campaigns')}>
+                {t('viewAll', 'View All')}
+              </Button>
+            }
+          >
+            <ul className="space-y-3" aria-label={t('recentAnnouncements', 'Recent Announcements')}>
+              {recentAnnouncements.length === 0 && (
+                <li className="rounded-lg bg-gray-50 p-4 text-sm text-gray-600 text-center">
+                  {t('noAnnouncements', 'No recent announcements yet.')}
+                </li>
+              )}
+              {recentAnnouncements.map((announcement) => (
+                <li 
+                  key={announcement.id} 
+                  className="rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:bg-gray-100"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{announcement.title}</p>
+                      <p className="mt-1 line-clamp-2 text-xs text-gray-600">{announcement.details}</p>
+                    </div>
+                    {announcement.priority === 'high' && (
+                      <span className="flex-shrink-0 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
+                        {t('urgent', 'Urgent')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-gray-400">
+                    {announcement.updatedAt?.toLocaleDateString()}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </Card>
         </section>
 
         {/* ============================================================================

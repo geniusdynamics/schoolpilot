@@ -1,5 +1,5 @@
 {
-  "welcomeBack": "Bon retour, {{name}}!",
+  "welcomeBack": "Bon retour, {name}!",
   "welcomeBackDefault": "Bon retour!",
   "happeningToday": "Voici ce qui se passe dans votre école aujourd'hui.",
   "dashboardSubtitle": "Surveillez les académiques, la présence, les finances et la communication depuis un tableau de bord prêt à décider.",

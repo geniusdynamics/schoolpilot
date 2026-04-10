@@ -1,5 +1,5 @@
 {
-  "welcomeBack": "Murakaza neza, {{name}}!",
+  "welcomeBack": "Murakaza neza, {name}!",
   "welcomeBackDefault": "Murakaza neza!",
   "happeningToday": "Ibi ni ibiri gukorerwa mu mashuri yanyu uyu munsi.",
   "dashboardSubtitle": "Kurikirana amasomo, abitabira, imari, n'ibiganiro ukoresheje ikibaho cy'icyemezo kimwe.",

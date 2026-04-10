@@ -54,11 +54,11 @@ export class ModuleHealthMonitor {
         const versionMismatchDeps: string[] = [];
         
         for (const dep of module.dependencies) {
-          const depId = typeof dep === 'string' ? dep : dep.moduleId;
+          const depId = typeof dep === 'string' ? dep : dep.id;
           const required = typeof dep === 'string' ? true : dep.required !== false;
           const version = typeof dep === 'string' ? undefined : dep.version;
           
-          const depModule = moduleRegistry.getMetadata(depId);
+          const depModule = moduleRegistry.getModule(depId);
           
           if (!depModule) {
             if (required) {
@@ -219,7 +219,7 @@ export class ModuleHealthMonitor {
     this.checkInProgress = true;
     
     try {
-      const modules = moduleRegistry.getAllMetadata();
+      const modules = moduleRegistry.getAllModules();
       
       for (const module of modules) {
         await this.checkModuleHealth(module.id);
@@ -237,7 +237,7 @@ export class ModuleHealthMonitor {
   async checkModuleHealth(moduleId: string): Promise<ModuleHealth | null> {
     console.log(`🔍 [ModuleHealthMonitor] Checking health of module: ${moduleId}`);
     
-    const module = moduleRegistry.getMetadata(moduleId);
+    const module = moduleRegistry.getModule(moduleId);
     
     if (!module) {
       console.warn(`⚠️ [ModuleHealthMonitor] Module not found: ${moduleId}`);

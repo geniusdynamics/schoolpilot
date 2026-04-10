@@ -134,7 +134,7 @@ class DynamicModuleLoader {
       }
 
       // Validate module dependencies
-      const registeredModules = moduleRegistry.getAllMetadata();
+      const registeredModules = moduleRegistry.getAllModules();
       console.log(`📦 [DynamicModuleLoader] Validating dependencies for ${registeredModules.length} modules`);
 
       for (const module of registeredModules) {
