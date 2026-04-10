@@ -228,9 +228,20 @@
     "deleteWorkflowStateToBeDeveloped": "Delete workflow state functionality not yet implemented"
   },
   "common": {
-    "cancel": "common:cancel",
-    "save": "common:save",
-    "true": "T",
-    "active": "a"
+    "totalTeachers": "Total Enseignants"
+  },
+  "export": {
+    "title": "Exporter le Rapport"
+  },
+  "analytics": {
+    "title": "Analytique",
+    "description": "Analytiques et informations sur la performance des enseignants",
+    "dashboard": {
+      "title": "Tableau de Bord Enseignant",
+      "passRate": "Taux de Réussite",
+      "overview": "Aperçu",
+      "attendanceRate": "Taux de Présence",
+      "assignmentsGraded": "Devoirs Notés"
+    }
   }
 }
