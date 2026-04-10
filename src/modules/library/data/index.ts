@@ -6,12 +6,6 @@ export * from './mockData';
 export * from './schema';
 export * from './collections';
 
-// Modular data provider (new architecture)
-export { 
-  LibraryDataProvider,
-  useLibraryDataContext 
-} from './LibraryDataProvider';
-
 export { isGlobalProvider as isBookCategoryGlobalProvider, useBookCategoryData } from './useBookCategoryData';
 export { isGlobalProvider as isBookGlobalProvider, useBookData } from './useBookData';
 export { isGlobalProvider as isLoanGlobalProvider, useLoanData } from './useLoanData';
