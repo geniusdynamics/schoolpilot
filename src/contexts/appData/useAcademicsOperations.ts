@@ -1,6 +1,5 @@
-// ABOUTME: DEPRECATED - Use @/modules/academics/data/useAcademicData instead
-// ABOUTME: This is a legacy hook from pre-modular architecture
-// TODO: Remove after migrating all consumers to module-specific data hooks
+// ABOUTME: Hook containing all Academics-specific data operations
+// ABOUTME: Extracted from AppDataContext to reduce God Object size
 
 import { useCallback } from 'react';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
@@ -110,10 +109,6 @@ const calculateMeanGrade = (
   }
 };
 
-/**
- * @deprecated Use @/modules/academics/data/useAcademicData instead
- * This legacy hook is being phased out in favor of modular data hooks
- */
 export const useAcademicsOperations = (
   dbManager: UnifiedDatabaseManager,
   data: Record<string, any[]>,
