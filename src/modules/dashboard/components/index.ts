@@ -12,3 +12,5 @@ export { default as ProgressRing } from './ProgressRing';
 export { default as WelcomeCard } from './WelcomeCard';
 export { default as CalendarWidget } from './CalendarWidget';
 export type { CalendarEvent } from './CalendarWidget';
+
+export { default as QuickNavigation } from './QuickNavigation';

@@ -88,6 +88,16 @@ export type { TabItem, TabNavigationProps } from './TabNavigation';
 export { default as PageHeaderWithTabs } from './PageHeaderWithTabs';
 export type { Tab as PageHeaderTab } from './PageHeaderWithTabs';
 
+// Page Tabs - reusable page-level tabs with filters (follows ClassListsPage pattern)
+export { 
+  default as PageTabs,
+  SimplePageTabs 
+} from './PageTabs';
+export type { 
+  PageTab, 
+  PageTabsProps 
+} from './PageTabs';
+
 // Filter components
 export { default as FilterBar } from './FilterBar';
 export type { FilterField, FilterOption } from './FilterBar';

@@ -109,9 +109,9 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
       {/* User Button */}
       <button
         onClick={toggleDropdown}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
       >
-        <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+        <div className="w-8 h-8 bg-slate-400 rounded-full flex items-center justify-center">
           <UserCircleIcon className="w-5 h-5 text-white" />
         </div>
         <div className="text-left">
@@ -123,7 +123,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="absolute top-full right-2 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center">

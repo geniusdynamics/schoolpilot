@@ -224,7 +224,7 @@ const ExamAnalysisPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-8">
       {/* Tab Navigation */}
-      <TabNavigation tabs={tabs} variant="buttons" />
+      <TabNavigation tabs={tabs} variant="sidebar" />
 
       {/* Filter Section */}
       <Card>

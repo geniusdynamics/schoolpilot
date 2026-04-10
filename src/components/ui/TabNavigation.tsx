@@ -18,7 +18,7 @@ export interface TabItem {
 
 interface TabNavigationProps {
   tabs: TabItem[];
-  variant?: 'default' | 'pills' | 'underline' | 'buttons';
+  variant?: 'default' | 'pills' | 'underline' | 'buttons' | 'sidebar';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   activeTabId?: string;
@@ -49,6 +49,12 @@ const variantStyles = {
     tab: 'px-4 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-md transition-all flex items-center gap-2',
     active: 'text-emerald-700 bg-white hover:bg-white hover:text-emerald-700 shadow-sm',
     disabled: 'opacity-50 cursor-not-allowed hover:text-white/80 hover:bg-transparent',
+  },
+  sidebar: {
+    container: 'bg-gray-100/80 p-1.5 rounded-xl gap-1 backdrop-blur-sm border border-gray-200/50',
+    tab: 'px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 bg-white/50 border border-gray-200/60 hover:bg-white/80 hover:border-gray-300/60 rounded-lg transition-all flex items-center gap-2 shadow-sm hover:shadow-md',
+    active: 'text-slate-900 bg-white border-gray-300 shadow-md ring-2 ring-gray-200/50 hover:bg-white',
+    disabled: 'opacity-50 cursor-not-allowed hover:text-slate-600 hover:bg-white/50 hover:border-gray-200/60',
   },
 };
 

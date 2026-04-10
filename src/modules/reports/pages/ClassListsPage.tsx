@@ -148,7 +148,7 @@ const ClassListsPage: React.FC = () => {
       {/* Tab Navigation */}
       <TabNavigation 
         tabs={tabs} 
-        variant="buttons"
+        variant="sidebar"
         activeTabId={activeTab}
         onTabChange={setActiveTab}
       />

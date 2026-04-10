@@ -370,37 +370,32 @@ const DashboardPage: React.FC = () => {
       {/* ============================================================================
           HERO SECTION
       ============================================================================ */}
-      <section className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-6 py-8 text-white shadow-lg sm:px-8 sm:py-10">
-        {/* Decorative elements */}
-        <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-cyan-400/10 blur-3xl" />
-        
+      {/* Compact Welcome Banner */}
+      <section className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-4 py-4 text-white shadow-md sm:px-6">
         <div className="relative mx-auto max-w-7xl">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm">
-                  <AcademicCapIcon className="h-7 w-7 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                    {user?.fullName ? t('welcomeBack', { name: user.fullName }) : t('welcomeBackDefault', 'Welcome back!')}
-                  </h1>
-                  <p className="mt-1 text-sm text-blue-100">
-                    {t('dashboardSubtitle', 'Monitor academics, attendance, finance, and communication from one decision-ready dashboard.')}
-                  </p>
-                </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
+                <AcademicCapIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold tracking-tight sm:text-xl">
+                  {user?.fullName ? t('welcomeBack', { name: user.fullName }) : t('welcomeBackDefault', 'Welcome back!')}
+                </h1>
+                <p className="text-xs text-blue-100">
+                  {t('dashboardSubtitle', 'Monitor academics, attendance, finance, and communication.')}
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-white/10 px-4 py-2 backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg bg-white/10 px-3 py-1.5 backdrop-blur-sm">
                 <p className="text-xs text-blue-200">{t('lastUpdated', 'Last updated')}</p>
-                <p className="text-sm font-medium">{currentTime.toLocaleString()}</p>
+                <p className="text-xs font-medium">{currentTime.toLocaleString()}</p>
               </div>
-              <div className={`rounded-xl px-4 py-2 backdrop-blur-sm ${isOnline ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
-                <div className="flex items-center gap-2">
-                  <span className={`h-2 w-2 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                  <span className="text-sm font-medium">{isOnline ? t('online', 'Online') : t('offline', 'Offline')}</span>
+              <div className={`rounded-lg px-3 py-1.5 backdrop-blur-sm ${isOnline ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
+                <div className="flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span className="text-xs font-medium">{isOnline ? t('online', 'Online') : t('offline', 'Offline')}</span>
                 </div>
               </div>
             </div>
@@ -408,11 +403,91 @@ const DashboardPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Quick Navigation */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* ============================================================================
-            ALERT BANNERS ROW
-        ============================================================================ */}
-        <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-4">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Quick Navigation
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { 
+                key: 'students', 
+                label: t('studentManagement', 'Student Management'), 
+                desc: t('manageProfilesAdmissions', 'Profiles, admissions, guardians, and records'),
+                path: '/administration/students',
+                icon: <UsersIcon className="h-5 w-5" />,
+                color: 'blue',
+              },
+              { 
+                key: 'attendance', 
+                label: t('attendanceTracking', 'Attendance Tracking'), 
+                desc: t('monitorPresencePatterns', 'Daily registers, trends, and interventions'),
+                path: '/administration/student-attendance',
+                icon: <CalendarDaysIcon className="h-5 w-5" />,
+                color: 'emerald',
+              },
+              { 
+                key: 'gradebooks', 
+                label: t('gradeBooks', 'Grade Books'), 
+                desc: t('assessmentsAndOutcomes', 'Assessments, grading schemes, and outcomes'),
+                path: '/academics/exam-analysis',
+                icon: <BookOpenIcon className="h-5 w-5" />,
+                color: 'violet',
+              },
+              { 
+                key: 'scheduling', 
+                label: t('scheduling', 'Scheduling'), 
+                desc: t('timetablesExamsAndSessions', 'Timetables, exam sessions, and periods'),
+                path: '/academics/timetable-entries',
+                icon: <TableCellsIcon className="h-5 w-5" />,
+                color: 'amber',
+              },
+              { 
+                key: 'finance', 
+                label: t('finance', 'Finance'), 
+                desc: t('feeCollectionInvoices', 'Fee collection, invoices, and payments'),
+                path: '/finance/student-payments',
+                icon: <CurrencyDollarIcon className="h-5 w-5" />,
+                color: 'cyan',
+              },
+              { 
+                key: 'analytics', 
+                label: t('analytics', 'Analytics'), 
+                desc: t('insightsForLeadership', 'Enrollment, finance, and performance insights'),
+                path: '/reports',
+                icon: <ChartBarIcon className="h-5 w-5" />,
+                color: 'indigo',
+              },
+            ].map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => navigate(item.path)}
+                className={`
+                  flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-4 text-left
+                  transition-all duration-200 hover:shadow-md hover:border-${item.color}-200 hover:bg-${item.color}-50
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-${item.color}-500
+                `}
+              >
+                <div className={`
+                  flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg
+                  bg-${item.color}-100 text-${item.color}-600
+                `}>
+                  {item.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900">{item.label}</p>
+                  <p className="mt-1 text-xs text-gray-500 line-clamp-2">{item.desc}</p>
+                </div>
+                <ArrowRightIcon className="h-5 w-5 flex-shrink-0 text-gray-400" />
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Alert Banners - New Messages, Tasks, etc */}
+        <section className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <AlertBanner
             type="message"
             count={recentAnnouncements.length}
@@ -1084,88 +1159,6 @@ const DashboardPage: React.FC = () => {
                 </Button>
               </div>
             </Card>
-          </div>
-        </section>
-
-        {/* ============================================================================
-            QUICK NAVIGATION SECTION
-        ============================================================================ */}
-        <section className="mt-8">
-          <h2 className="mb-4 text-lg font-bold text-gray-900">{t('quickNavigation', 'Quick Navigation')}</h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { 
-                key: 'students', 
-                label: t('studentManagement', 'Student Management'), 
-                desc: t('manageProfilesAdmissions', 'Profiles, admissions, guardians, and records'),
-                path: '/administration/students',
-                icon: <UsersIcon className="h-5 w-5" />,
-                color: 'blue',
-              },
-              { 
-                key: 'attendance', 
-                label: t('attendanceTracking', 'Attendance Tracking'), 
-                desc: t('monitorPresencePatterns', 'Daily registers, trends, and interventions'),
-                path: '/administration/student-attendance',
-                icon: <CalendarDaysIcon className="h-5 w-5" />,
-                color: 'emerald',
-              },
-              { 
-                key: 'gradebooks', 
-                label: t('gradeBooks', 'Grade Books'), 
-                desc: t('assessmentsAndOutcomes', 'Assessments, grading schemes, and outcomes'),
-                path: '/academics/exam-analysis',
-                icon: <BookOpenIcon className="h-5 w-5" />,
-                color: 'violet',
-              },
-              { 
-                key: 'scheduling', 
-                label: t('scheduling', 'Scheduling'), 
-                desc: t('timetablesExamsAndSessions', 'Timetables, exam sessions, and periods'),
-                path: '/academics/timetable-entries',
-                icon: <TableCellsIcon className="h-5 w-5" />,
-                color: 'amber',
-              },
-              { 
-                key: 'finance', 
-                label: t('finance', 'Finance'), 
-                desc: t('feeCollectionInvoices', 'Fee collection, invoices, and payments'),
-                path: '/finance/student-payments',
-                icon: <CurrencyDollarIcon className="h-5 w-5" />,
-                color: 'cyan',
-              },
-              { 
-                key: 'analytics', 
-                label: t('analytics', 'Analytics'), 
-                desc: t('insightsForLeadership', 'Enrollment, finance, and performance insights'),
-                path: '/reports',
-                icon: <ChartBarIcon className="h-5 w-5" />,
-                color: 'indigo',
-              },
-            ].map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => navigate(item.path)}
-                className={`
-                  flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-4 text-left
-                  transition-all duration-200 hover:shadow-md hover:border-${item.color}-200 hover:bg-${item.color}-50
-                  focus:outline-none focus-visible:ring-2 focus-visible:ring-${item.color}-500
-                `}
-              >
-                <div className={`
-                  flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg
-                  bg-${item.color}-100 text-${item.color}-600
-                `}>
-                  {item.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900">{item.label}</p>
-                  <p className="mt-1 text-xs text-gray-500 line-clamp-2">{item.desc}</p>
-                </div>
-                <ArrowRightIcon className="h-5 w-5 flex-shrink-0 text-gray-400" />
-              </button>
-            ))}
           </div>
         </section>
 
