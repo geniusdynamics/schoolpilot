@@ -226,6 +226,24 @@ export interface ModuleMetadata {
   /** Default configuration values */
   config?: Record<string, any>;
   
+  /** RBAC permissions provided by this module */
+  rbacPermissions?: {
+    id: string;
+    name: string;
+    description: string;
+    resource: string;
+    action: 'create' | 'read' | 'update' | 'delete' | 'execute';
+    feature?: string;
+  }[];
+  
+  /** Feature flags provided by this module */
+  featureFlags?: {
+    id: string;
+    name: string;
+    description: string;
+    defaultValue: boolean;
+  }[];
+  
   /** Minimum SchoolPilot version required */
   minSchoolPilotVersion?: string;
   

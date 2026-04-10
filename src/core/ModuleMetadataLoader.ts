@@ -459,6 +459,74 @@ class ModuleMetadataLoader {
   }
 
   /**
+   * Get all RBAC permissions from loaded modules
+   * This aggregates rbacPermissions from all module.json files
+   */
+  getAllRbacPermissions(): Array<{
+    id: string;
+    name: string;
+    description: string;
+    resource: string;
+    action: 'create' | 'read' | 'update' | 'delete' | 'execute';
+    feature?: string;
+    moduleId: string;
+  }> {
+    const permissions: Array<{
+      id: string;
+      name: string;
+      description: string;
+      resource: string;
+      action: 'create' | 'read' | 'update' | 'delete' | 'execute';
+      feature?: string;
+      moduleId: string;
+    }> = [];
+
+    for (const [moduleId, module] of this.modules) {
+      const modulePermissions = module.metadata.rbacPermissions || [];
+      for (const permission of modulePermissions) {
+        permissions.push({
+          ...permission,
+          moduleId,
+        });
+      }
+    }
+
+    return permissions;
+  }
+
+  /**
+   * Get all feature flags from loaded modules
+   * This aggregates featureFlags from all module.json files
+   */
+  getAllFeatureFlags(): Array<{
+    id: string;
+    name: string;
+    description: string;
+    defaultValue: boolean;
+    moduleId: string;
+  }> {
+    const flags: Array<{
+      id: string;
+      name: string;
+      description: string;
+      defaultValue: boolean;
+      moduleId: string;
+    }> = [];
+
+    for (const [moduleId, module] of this.modules) {
+      const moduleFlags = module.metadata.featureFlags || [];
+      for (const flag of moduleFlags) {
+        flags.push({
+          ...flag,
+          moduleId,
+        });
+      }
+    }
+
+    return flags;
+  }
+
+  /**
    * Reset loader (for testing)
    */
   reset(): void {
