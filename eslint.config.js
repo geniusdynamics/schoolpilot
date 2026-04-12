@@ -36,6 +36,13 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       '@typescript-eslint/no-explicit-any': 'off',
+      
+      // Phase 6: Infinite Loop Prevention Rules
+      // Enforce exhaustive dependencies in hooks
+      'react-hooks/exhaustive-deps': 'error',
+      
+      // Enforce rules of hooks
+      'react-hooks/rules-of-hooks': 'error',
       'no-restricted-imports': [
         'error',
         {
