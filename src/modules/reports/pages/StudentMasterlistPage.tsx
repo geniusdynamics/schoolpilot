@@ -52,9 +52,10 @@ const StudentMasterlistPage: React.FC = () => {
     setIsGenerating(false);
   }, [students, selectedClassId, selectedStreamId, selectedStatus, selectedGender, classStreams]);
   
+  // Generate report on initial mount
   useEffect(() => {
     handleGenerateReport();
-  }, [students, handleGenerateReport]); 
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps 
 
 
   const columns = [

@@ -77,9 +77,10 @@ const FeeCollectionSummaryPage: React.FC = () => {
   }, [selectedSchoolPeriodId, selectedClassId, studentInvoices, invoicePaymentApplications, students, classStreams]);
   
 
+  // Generate report on initial mount if period is selected
   useEffect(() => {
-    if(selectedSchoolPeriodId) handleGenerateReport();
-  }, [studentInvoices, invoicePaymentApplications, selectedSchoolPeriodId, handleGenerateReport]);
+    if (selectedSchoolPeriodId) handleGenerateReport();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
     { header: 'Votehead', accessor: 'votehead' as keyof FeeCollectionSummaryRow },

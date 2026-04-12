@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+import React, { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
 import { User } from '../types';
 
 interface UserContextType {
@@ -24,8 +24,14 @@ export const UserProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     };
   });
 
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
+    currentUser,
+    setCurrentUser
+  }), [currentUser]);
+
   return (
-    <UserContext.Provider value={{ currentUser, setCurrentUser }}>
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );

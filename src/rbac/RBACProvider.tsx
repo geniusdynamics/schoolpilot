@@ -4,7 +4,7 @@
  * React context provider for role-based access control.
  */
 
-import React, { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { RBACEngine, initRBAC } from './RBACEngine';
 import type { RBACConfig, RBACUser, Role } from './types';
 
@@ -62,8 +62,16 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({
     setCurrentUser(user);
   }, []);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    engine,
+    currentUser,
+    setUser,
+    isLoading
+  }), [engine, currentUser, setUser, isLoading]);
+
   return (
-    <RBACContext.Provider value={{ engine, currentUser, setUser, isLoading }}>
+    <RBACContext.Provider value={contextValue}>
       {children}
     </RBACContext.Provider>
   );

@@ -41,9 +41,10 @@ const TeacherAssignmentsPage: React.FC = () => {
     setIsGenerating(false);
   }, [teacherSubjectAssignments, selectedAcademicYearId, selectedTeacherId, academicYears]);
 
+  // Generate report on initial mount
   useEffect(() => {
     handleGenerateReport();
-  }, [teacherSubjectAssignments, academicYears, handleGenerateReport]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
     { header: 'Academic Year', accessor: 'academic_year_name' as keyof TeacherSubjectAssignment },

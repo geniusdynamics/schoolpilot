@@ -1,7 +1,7 @@
 // ABOUTME: Authentication context for managing user state and authentication
 // ABOUTME: Provides login, logout, and user state management across the app
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { authService, AuthUser, LoginCredentials, AuthResult } from '../services/auth/authService';
 
 interface AuthContextType {
@@ -139,7 +139,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return authService.hasModuleAccess(moduleId);
   }, []);
 
-  const value: AuthContextType = {
+  // Memoize context value to prevent unnecessary re-renders
+  const value: AuthContextType = useMemo(() => ({
     user,
     isAuthenticated: !!user,
     isLoading,
@@ -149,7 +150,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     hasPermission,
     hasModuleAccess,
     isDemoMode
-  };
+  }), [user, isLoading, login, logout, refreshUser, hasPermission, hasModuleAccess, isDemoMode]);
 
   return (
     <AuthContext.Provider value={value}>

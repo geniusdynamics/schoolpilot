@@ -104,11 +104,12 @@ const InventoryStatusReport: React.FC = () => {
     setIsGenerating(false);
   }, [generateInventoryStatus, selectedWarehouse, selectedCategory, selectedStatus, warehouses, itemCategoriesInv]);
 
+  // Generate report on initial mount once data is loaded
   useEffect(() => {
     if (!loading.itemsInv && !loading.warehouses && !loading.itemCategoriesInv && !loading.stockLevels) {
       handleGenerateReport();
     }
-  }, [handleGenerateReport, loading]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {

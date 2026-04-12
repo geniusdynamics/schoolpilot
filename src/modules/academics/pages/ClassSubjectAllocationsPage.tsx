@@ -14,7 +14,8 @@ import {
   PlusIcon, 
   EditIcon, 
   BookOpenIcon, 
-  FolderIcon
+  FolderIcon,
+  CogIcon
 } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';

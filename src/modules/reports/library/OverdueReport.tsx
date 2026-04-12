@@ -92,11 +92,12 @@ const OverdueReport: React.FC = () => {
     setIsGenerating(false);
   }, [generateOverdueItems, selectedBorrowerType, minDaysOverdue]);
 
+  // Generate report on initial mount once data is loaded
   useEffect(() => {
     if (!loading.loans && !loading.books && !loading.students && !loading.staff) {
       handleGenerateReport();
     }
-  }, [handleGenerateReport, loading]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
     { header: 'Book Title', accessor: 'bookTitle' as keyof OverdueItem },

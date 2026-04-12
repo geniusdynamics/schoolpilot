@@ -4,7 +4,7 @@
  * React context provider for the plugin system.
  */
 
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { PluginManager, initPlugins } from './PluginManager';
 import type { PluginConfig, LoadedPlugin, PluginManifest } from './types';
 import { loadAllBuiltinPlugins } from './BuiltinLoader';
@@ -74,12 +74,19 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
     loadPlugins();
   }, [manager, manifests]);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    manager,
+    plugins,
+    setPlugins
+  }), [manager, plugins, setPlugins]);
+
   if (!isReady) {
     return null;
   }
 
   return (
-    <PluginsContext.Provider value={{ manager, plugins, setPlugins }}>
+    <PluginsContext.Provider value={contextValue}>
       {children}
     </PluginsContext.Provider>
   );

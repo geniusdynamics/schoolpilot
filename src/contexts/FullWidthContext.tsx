@@ -7,7 +7,7 @@
  * - Creates an app-focused experience where the current module's menu is primary
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 
 interface FullWidthContextType {
   /** Whether full-width mode is active (primary sidebar hidden) */
@@ -77,14 +77,15 @@ export const FullWidthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setSecondaryAsPrimary(false);
   }, []);
 
-  const value = {
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     isFullWidth,
     toggleFullWidth,
     enableFullWidth,
     disableFullWidth,
     isSecondaryAsPrimary,
     setSecondaryAsPrimary,
-  };
+  }), [isFullWidth, toggleFullWidth, enableFullWidth, disableFullWidth, isSecondaryAsPrimary]);
 
   return (
     <FullWidthContext.Provider value={value}>

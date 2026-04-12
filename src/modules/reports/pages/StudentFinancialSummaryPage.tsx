@@ -99,9 +99,10 @@ const StudentFinancialSummaryPage: React.FC = () => {
     setIsGenerating(false);
   }, [students, selectedClassId, selectedStreamId, selectedSchoolPeriodId, studentInvoices, studentPayments, feeAdjustments, classStreams]);
 
+  // Generate report on initial mount if period is selected
   useEffect(() => {
-     if (selectedSchoolPeriodId) handleGenerateReport();
-  }, [students, studentInvoices, studentPayments, feeAdjustments, selectedSchoolPeriodId, handleGenerateReport]); // Re-generate if base data changes
+    if (selectedSchoolPeriodId) handleGenerateReport();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const columns = [

@@ -4,7 +4,7 @@
  * Provides configuration state and management functions to React components
  */
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode, ReactElement } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode, ReactElement } from 'react';
 import {
   UnifiedAppConfig,
   unifiedConfigManager,
@@ -428,8 +428,8 @@ export function UnifiedConfigProvider({
     }
   }, [autoDetectBackend, backendDetectionInterval, isBackendChecking, checkBackendStatus]);
 
-  // Context Value
-  const contextValue: UnifiedConfigContextType = {
+  // Context Value - Memoized to prevent unnecessary re-renders
+  const contextValue: UnifiedConfigContextType = useMemo(() => ({
     // Configuration State
     config,
     isLoading,
@@ -478,7 +478,37 @@ export function UnifiedConfigProvider({
     // Utility Functions
     getDataModeStatus,
     validateServices,
-  };
+  }), [
+    config,
+    isLoading,
+    error,
+    backendStatus,
+    isBackendChecking,
+    updateConfig,
+    resetConfig,
+    applyPreset,
+    checkBackendStatus,
+    refreshBackendStatus,
+    switchDataMode,
+    getDataModeStateEnhanced,
+    canSwitchToMode,
+    getAllowedDataModesForEnv,
+    getCurrentEnvironment,
+    getEnvironmentConfigCurrent,
+    updateEnvironment,
+    getCurrentDatabaseProvider,
+    getAllowedDatabaseProvidersForEnv,
+    updateDatabaseProvider,
+    getProductionDemoStateCurrent,
+    transitionToLiveMode,
+    isProductionDemoAvailable,
+    switchToDemo,
+    switchToProduction,
+    clearDemoData,
+    isDemoDataActive,
+    getDataModeStatus,
+    validateServices,
+  ]);
 
   return (
     <UnifiedConfigContext.Provider value={contextValue}>
