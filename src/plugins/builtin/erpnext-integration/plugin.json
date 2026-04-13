@@ -1,0 +1,235 @@
+{
+  "id": "com.schoolpilot.erpnext-integration",
+  "name": "ERPNext Integration",
+  "version": "1.0.0",
+  "type": "integration",
+  "entry": "./index.ts",
+  "description": "Connect SchoolPilot3 to ERPNext for comprehensive education management",
+  "author": "SchoolPilot Team",
+  "license": "MIT",
+  "category": "verified",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBkPSJNMTIgMkw0IDZWMTJDNCA5LjM0IDEyIDE4IDEyIDE4QzEyIDE4IDIwIDkuMzQgMjAgMTJWNkwxMiAyWiIgZmlsbD0iIzMzNzVGRiIvPgo8L3N2Zz4=",
+  
+  "integration": {
+    "backendType": "erpnext",
+    "providerId": "erpnext",
+    "providerClass": "ERPNextProvider",
+    
+    "entities": [
+      "Student",
+      "Student Group",
+      "Student Category",
+      "Course",
+      "Program",
+      "Academic Year",
+      "Academic Term",
+      "Program Enrollment",
+      "Course Enrollment",
+      "Student Attendance",
+      "Course Schedule",
+      "Assessment Result",
+      "Fee Structure",
+      "Fees",
+      "Employee",
+      "Salary Structure"
+    ],
+    
+    "entityMappings": {
+      "students": {
+        "localEntity": "students",
+        "backendEntity": "Student",
+        "fieldMappings": {
+          "id": "name",
+          "firstName": "first_name",
+          "middleName": "middle_name",
+          "lastName": "last_name",
+          "email": "student_email_id",
+          "phone": "student_mobile_number",
+          "dateOfBirth": "date_of_birth",
+          "gender": "gender",
+          "bloodGroup": "blood_group",
+          "nationality": "nationality",
+          "status": "status",
+          "photo": "image"
+        }
+      },
+      "employees": {
+        "localEntity": "employees",
+        "backendEntity": "Employee",
+        "fieldMappings": {
+          "id": "name",
+          "firstName": "first_name",
+          "middleName": "middle_name",
+          "lastName": "last_name",
+          "email": "company_email",
+          "phone": "cell_number",
+          "dateOfBirth": "date_of_birth",
+          "dateOfJoining": "date_of_joining",
+          "designation": "designation",
+          "department": "department",
+          "status": "status",
+          "photo": "image"
+        }
+      },
+      "courses": {
+        "localEntity": "courses",
+        "backendEntity": "Course",
+        "fieldMappings": {
+          "id": "name",
+          "name": "course_name",
+          "code": "course_code",
+          "department": "department",
+          "description": "description"
+        }
+      },
+      "fees": {
+        "localEntity": "fees",
+        "backendEntity": "Fees",
+        "fieldMappings": {
+          "id": "name",
+          "studentId": "student",
+          "studentName": "student_name",
+          "program": "program",
+          "postingDate": "posting_date",
+          "dueDate": "due_date",
+          "grandTotal": "grand_total",
+          "outstandingAmount": "outstanding_amount",
+          "status": "status"
+        }
+      }
+    },
+    
+    "authMethods": ["apikey", "oauth2"],
+    
+    "capabilities": {
+      "entities": ["Student", "Employee", "Course", "Fees"],
+      "authMethods": ["apikey", "oauth2"],
+      "fileUpload": true,
+      "realtime": false,
+      "batchOperations": true,
+      "webhooks": true
+    }
+  },
+  
+  "settings": [
+    {
+      "key": "baseUrl",
+      "label": "ERPNext Server URL",
+      "type": "string",
+      "required": true,
+      "description": "Your ERPNext server URL (e.g., https://erp.school.com)",
+      "validation": {
+        "pattern": "^https?://.*"
+      }
+    },
+    {
+      "key": "apiKey",
+      "label": "API Key",
+      "type": "string",
+      "required": true,
+      "description": "ERPNext API Key (generated from User settings)"
+    },
+    {
+      "key": "apiSecret",
+      "label": "API Secret",
+      "type": "string",
+      "required": true,
+      "description": "ERPNext API Secret (generated from User settings)"
+    },
+    {
+      "key": "domain",
+      "label": "Domain",
+      "type": "select",
+      "options": [
+        {"label": "Education", "value": "education"},
+        {"label": "Healthcare", "value": "healthcare"},
+        {"label": "Manufacturing", "value": "manufacturing"}
+      ],
+      "defaultValue": "education",
+      "description": "ERPNext domain for specialized features"
+    },
+    {
+      "key": "syncInterval",
+      "label": "Sync Interval (seconds)",
+      "type": "number",
+      "defaultValue": 300,
+      "validation": {
+        "min": 60,
+        "max": 3600
+      },
+      "description": "How often to sync data with ERPNext (60-3600 seconds)"
+    },
+    {
+      "key": "syncDirection",
+      "label": "Sync Direction",
+      "type": "select",
+      "options": [
+        {"label": "Bidirectional", "value": "bidirectional"},
+        {"label": "To ERPNext Only", "value": "to-backend"},
+        {"label": "From ERPNext Only", "value": "from-backend"}
+      ],
+      "defaultValue": "bidirectional",
+      "description": "Direction of data synchronization"
+    },
+    {
+      "key": "conflictResolution",
+      "label": "Conflict Resolution",
+      "type": "select",
+      "options": [
+        {"label": "Remote Wins (ERPNext)", "value": "remote-wins"},
+        {"label": "Local Wins (SchoolPilot)", "value": "local-wins"},
+        {"label": "Timestamp Wins", "value": "timestamp-wins"},
+        {"label": "Manual Resolution", "value": "manual"}
+      ],
+      "defaultValue": "timestamp-wins",
+      "description": "How to resolve sync conflicts"
+    },
+    {
+      "key": "enableWebhooks",
+      "label": "Enable Webhooks",
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "Enable real-time updates via ERPNext webhooks"
+    },
+    {
+      "key": "webhookSecret",
+      "label": "Webhook Secret",
+      "type": "string",
+      "description": "Secret key for webhook verification (required if webhooks enabled)"
+    },
+    {
+      "key": "batchSize",
+      "label": "Batch Size",
+      "type": "number",
+      "defaultValue": 50,
+      "validation": {
+        "min": 10,
+        "max": 500
+      },
+      "description": "Number of records to sync in each batch"
+    },
+    {
+      "key": "timeout",
+      "label": "Request Timeout (ms)",
+      "type": "number",
+      "defaultValue": 30000,
+      "validation": {
+        "min": 5000,
+        "max": 120000
+      },
+      "description": "Timeout for API requests in milliseconds"
+    }
+  ],
+  
+  "hooks": [
+    "backend.provider.register",
+    "sync.before",
+    "sync.after",
+    "data.beforeSave",
+    "data.afterLoad"
+  ],
+  
+  "minAppVersion": "1.0.0",
+  "requires": [],
+  "conflicts": ["com.schoolpilot.frappe-integration"]
+}

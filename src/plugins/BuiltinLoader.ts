@@ -26,7 +26,12 @@ const BUILTIN_PLUGINS: PluginDirectory[] = [
   { name: 'fee-calculator', path: 'fee-calculator' },
   { name: 'analytics-mock', path: 'analytics-mock' },
   { name: 'payment-mock', path: 'payment-mock' },
-  { name: 'sms-mock', path: 'sms-mock' },
+  { name: 'sms-gateway', path: 'sms-gateway' },
+  // Backend Integration Plugins
+  { name: 'erpnext-integration', path: 'erpnext-integration' },
+  { name: 'frappe-integration', path: 'frappe-integration' },
+  { name: 'saas-backend', path: 'saas-backend' },
+  { name: 'generic-rest', path: 'generic-rest' },
 ];
 
 /**

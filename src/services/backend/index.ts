@@ -60,3 +60,24 @@ export { BackendProvider, type BackendProviderConfig } from './BackendProvider';
 export * from './BackendAPIService';
 export * from './BackendServiceAdapter';
 export * from './backendDetection';
+
+// ============================================================================
+// New Plugin-Based Backend Architecture
+// ============================================================================
+
+// Core interfaces and types
+export type {
+  IBackendProvider,
+  BatchResult,
+  ConflictResolution,
+  BackendProviderFactory,
+  BackendProviderMetadata,
+} from './IBackendProvider';
+
+// Provider registry
+export {
+  BackendProviderRegistry,
+  getBackendProviderRegistry,
+  type ProviderRegisteredEvent,
+  type ActiveProviderChangedEvent,
+} from './BackendProviderRegistry';

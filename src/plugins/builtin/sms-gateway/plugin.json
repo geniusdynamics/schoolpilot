@@ -1,0 +1,241 @@
+{
+  "id": "com.schoolpilot.sms-gateway",
+  "name": "Generic SMS Gateway",
+  "version": "1.0.0",
+  "type": "integration",
+  "category": "community",
+  "entry": "./index.ts",
+  "description": "Connect to any SMS API provider with configurable HTTP endpoints, authentication, and message formatting. Supports Twilio, Nexmo, Africa's Talking, and custom SMS gateways.",
+  "author": "SchoolPilot3 Team",
+  "license": "MIT",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMTBCOTgxIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0yMSAxNWE0IDIgMCAwIDEtMi0yVjZhMiAyIDAgMCAxIDItMmgxNGEyIDIgMCAwIDEgMiAydjdhMiAyIDAgMCAxLTIgMmgtMS41YTEgMSAwIDAgMC0uNy4zbC0xLjUgMS41YTEgMSAwIDAgMS0xLjQgMGwtMS41LTEuNWExIDEgMCAwIDAtLjctLjNIMjF6Ii8+PC9zdmc+",
+  "provides": [
+    "sms.send",
+    "sms.bulkSend",
+    "sms.template",
+    "sms.status"
+  ],
+  "settings": [
+    {
+      "key": "provider",
+      "label": "SMS Provider",
+      "type": "select",
+      "required": true,
+      "options": [
+        {"label": "Custom API", "value": "custom"},
+        {"label": "Twilio", "value": "twilio"},
+        {"label": "Nexmo/Vonage", "value": "nexmo"},
+        {"label": "Africa's Talking", "value": "africastalking"},
+        {"label": "MessageBird", "value": "messagebird"},
+        {"label": "Plivo", "value": "plivo"},
+        {"label": "Clickatell", "value": "clickatell"}
+      ],
+      "defaultValue": "custom",
+      "description": "Select your SMS provider or choose Custom for any other API"
+    },
+    {
+      "key": "apiUrl",
+      "label": "API URL",
+      "type": "string",
+      "required": true,
+      "description": "Base URL of the SMS API (e.g., https://api.sms-provider.com)",
+      "validation": {
+        "pattern": "^https?://.*"
+      }
+    },
+    {
+      "key": "authType",
+      "label": "Authentication Type",
+      "type": "select",
+      "options": [
+        {"label": "API Key (Header)", "value": "apikey"},
+        {"label": "Bearer Token", "value": "bearer"},
+        {"label": "Basic Auth", "value": "basic"},
+        {"label": "Custom Headers", "value": "custom"},
+        {"label": "Query Parameters", "value": "query"},
+        {"label": "None", "value": "none"}
+      ],
+      "defaultValue": "apikey",
+      "description": "How to authenticate with the API"
+    },
+    {
+      "key": "apiKey",
+      "label": "API Key",
+      "type": "string",
+      "description": "API Key (for API Key or Bearer auth)"
+    },
+    {
+      "key": "apiSecret",
+      "label": "API Secret",
+      "type": "string",
+      "description": "API Secret (for some providers)"
+    },
+    {
+      "key": "apiKeyHeader",
+      "label": "API Key Header Name",
+      "type": "string",
+      "defaultValue": "X-API-Key",
+      "description": "Header name for API key (default: X-API-Key)"
+    },
+    {
+      "key": "username",
+      "label": "Username",
+      "type": "string",
+      "description": "Username (for Basic auth)"
+    },
+    {
+      "key": "password",
+      "label": "Password",
+      "type": "string",
+      "description": "Password (for Basic auth)"
+    },
+    {
+      "key": "customHeaders",
+      "label": "Custom Headers (JSON)",
+      "type": "json",
+      "description": "Custom headers as JSON object",
+      "defaultValue": {}
+    },
+    {
+      "key": "sendEndpoint",
+      "label": "Send SMS Endpoint",
+      "type": "string",
+      "defaultValue": "/sms/send",
+      "description": "Endpoint path for sending SMS (e.g., /sms/send, /messages)"
+    },
+    {
+      "key": "httpMethod",
+      "label": "HTTP Method",
+      "type": "select",
+      "options": [
+        {"label": "POST", "value": "POST"},
+        {"label": "GET", "value": "GET"},
+        {"label": "PUT", "value": "PUT"}
+      ],
+      "defaultValue": "POST",
+      "description": "HTTP method for sending SMS"
+    },
+    {
+      "key": "requestFormat",
+      "label": "Request Format",
+      "type": "select",
+      "options": [
+        {"label": "JSON", "value": "json"},
+        {"label": "Form Data (URL Encoded)", "value": "form"},
+        {"label": "Query Parameters", "value": "query"}
+      ],
+      "defaultValue": "json",
+      "description": "How to format the request body"
+    },
+    {
+      "key": "phoneField",
+      "label": "Phone Number Field Name",
+      "type": "string",
+      "defaultValue": "to",
+      "description": "Field name for recipient phone number (e.g., 'to', 'phone', 'recipient')"
+    },
+    {
+      "key": "messageField",
+      "label": "Message Field Name",
+      "type": "string",
+      "defaultValue": "message",
+      "description": "Field name for message text (e.g., 'message', 'text', 'body')"
+    },
+    {
+      "key": "senderIdField",
+      "label": "Sender ID Field Name",
+      "type": "string",
+      "defaultValue": "from",
+      "description": "Field name for sender ID (optional, e.g., 'from', 'sender')"
+    },
+    {
+      "key": "senderId",
+      "label": "Sender ID",
+      "type": "string",
+      "description": "Your sender ID or phone number"
+    },
+    {
+      "key": "additionalFields",
+      "label": "Additional Fields (JSON)",
+      "type": "json",
+      "description": "Additional fields to include in every request",
+      "defaultValue": {}
+    },
+    {
+      "key": "responseFormat",
+      "label": "Response Format",
+      "type": "select",
+      "options": [
+        {"label": "JSON", "value": "json"},
+        {"label": "XML", "value": "xml"},
+        {"label": "Plain Text", "value": "text"}
+      ],
+      "defaultValue": "json",
+      "description": "Expected response format from API"
+    },
+    {
+      "key": "successField",
+      "label": "Success Field Path",
+      "type": "string",
+      "defaultValue": "success",
+      "description": "Path to success indicator in response (e.g., 'success', 'status', 'data.success')"
+    },
+    {
+      "key": "successValue",
+      "label": "Success Value",
+      "type": "string",
+      "defaultValue": "true",
+      "description": "Value that indicates success (e.g., 'true', 'sent', '200', 'ok')"
+    },
+    {
+      "key": "messageIdField",
+      "label": "Message ID Field Path",
+      "type": "string",
+      "defaultValue": "messageId",
+      "description": "Path to message ID in response (e.g., 'messageId', 'id', 'data.message_id')"
+    },
+    {
+      "key": "statusEndpoint",
+      "label": "Status Check Endpoint",
+      "type": "string",
+      "description": "Endpoint for checking message status (optional, e.g., /sms/status/{messageId})"
+    },
+    {
+      "key": "timeout",
+      "label": "Request Timeout (ms)",
+      "type": "number",
+      "defaultValue": 30000,
+      "validation": {
+        "min": 5000,
+        "max": 120000
+      }
+    },
+    {
+      "key": "retryAttempts",
+      "label": "Retry Attempts",
+      "type": "number",
+      "defaultValue": 3,
+      "validation": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "key": "enableLogging",
+      "label": "Enable Request Logging",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Log all SMS requests for debugging"
+    }
+  ],
+  "privileges": {
+    "dataRead": ["students", "parents", "staff"],
+    "dataWrite": ["sms_logs"],
+    "uiInject": false,
+    "menuModify": false,
+    "settingsAccess": true,
+    "networkAccess": true,
+    "fileSystemAccess": false,
+    "executeCode": false
+  }
+}

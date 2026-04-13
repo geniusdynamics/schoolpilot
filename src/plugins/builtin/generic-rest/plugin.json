@@ -1,0 +1,225 @@
+{
+  "id": "com.schoolpilot.generic-rest",
+  "name": "Generic REST API",
+  "version": "1.0.0",
+  "type": "integration",
+  "entry": "./index.ts",
+  "description": "Connect to any REST API with configurable endpoints, authentication, and field mappings",
+  "author": "SchoolPilot Team",
+  "license": "MIT",
+  "category": "community",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBkPSJNMTIgMkw0IDZWMTJDNCA5LjM0IDEyIDE4IDEyIDE4QzEyIDE4IDIwIDkuMzQgMjAgMTJWNkwxMiAyWiIgZmlsbD0iIzY0NzVGRiIvPgo8L3N2Zz4=",
+  
+  "integration": {
+    "backendType": "generic-json-api",
+    "providerId": "generic-rest",
+    "providerClass": "GenericRESTProvider",
+    
+    "entities": ["*"],
+    
+    "entityMappings": {
+      "configurable": true,
+      "note": "Entity mappings are configured per-installation via the configuration UI"
+    },
+    
+    "authMethods": ["apikey", "bearer", "basic", "oauth2", "custom"],
+    
+    "capabilities": {
+      "entities": ["*"],
+      "authMethods": ["apikey", "bearer", "basic", "oauth2", "custom"],
+      "fileUpload": true,
+      "realtime": false,
+      "batchOperations": false,
+      "webhooks": false
+    }
+  },
+  
+  "settings": [
+    {
+      "key": "baseUrl",
+      "label": "API Base URL",
+      "type": "string",
+      "required": true,
+      "description": "Base URL of the REST API (e.g., https://api.example.com)",
+      "validation": {
+        "pattern": "^https?://.*"
+      }
+    },
+    {
+      "key": "authType",
+      "label": "Authentication Type",
+      "type": "select",
+      "options": [
+        {"label": "API Key", "value": "apikey"},
+        {"label": "Bearer Token", "value": "bearer"},
+        {"label": "Basic Auth", "value": "basic"},
+        {"label": "OAuth2", "value": "oauth2"},
+        {"label": "Custom Headers", "value": "custom"},
+        {"label": "None", "value": "none"}
+      ],
+      "defaultValue": "apikey",
+      "description": "How to authenticate with the API"
+    },
+    {
+      "key": "apiKey",
+      "label": "API Key",
+      "type": "string",
+      "description": "API Key (for API Key auth)"
+    },
+    {
+      "key": "apiKeyHeader",
+      "label": "API Key Header Name",
+      "type": "string",
+      "defaultValue": "X-API-Key",
+      "description": "Header name for API key (default: X-API-Key)"
+    },
+    {
+      "key": "bearerToken",
+      "label": "Bearer Token",
+      "type": "string",
+      "description": "Bearer token (for Bearer auth)"
+    },
+    {
+      "key": "username",
+      "label": "Username",
+      "type": "string",
+      "description": "Username (for Basic auth)"
+    },
+    {
+      "key": "password",
+      "label": "Password",
+      "type": "string",
+      "description": "Password (for Basic auth)"
+    },
+    {
+      "key": "customHeaders",
+      "label": "Custom Headers (JSON)",
+      "type": "json",
+      "description": "Custom headers as JSON object (for Custom auth)"
+    },
+    {
+      "key": "entityEndpoints",
+      "label": "Entity Endpoints (JSON)",
+      "type": "json",
+      "required": true,
+      "description": "Map of entity names to endpoint configurations",
+      "defaultValue": {
+        "students": {
+          "basePath": "/students",
+          "idField": "id",
+          "methods": {
+            "list": "GET /students",
+            "get": "GET /students/:id",
+            "create": "POST /students",
+            "update": "PUT /students/:id",
+            "delete": "DELETE /students/:id"
+          }
+        }
+      }
+    },
+    {
+      "key": "fieldMappings",
+      "label": "Field Mappings (JSON)",
+      "type": "json",
+      "description": "Map local fields to API fields per entity",
+      "defaultValue": {
+        "students": {
+          "id": "id",
+          "firstName": "first_name",
+          "lastName": "last_name",
+          "email": "email"
+        }
+      }
+    },
+    {
+      "key": "responseDataPath",
+      "label": "Response Data Path",
+      "type": "string",
+      "defaultValue": "data",
+      "description": "Path to data in API responses (e.g., 'data', 'results', or empty for root)"
+    },
+    {
+      "key": "paginationStyle",
+      "label": "Pagination Style",
+      "type": "select",
+      "options": [
+        {"label": "Offset/Limit", "value": "offset"},
+        {"label": "Page/Per Page", "value": "page"},
+        {"label": "Cursor", "value": "cursor"},
+        {"label": "None", "value": "none"}
+      ],
+      "defaultValue": "offset",
+      "description": "How the API handles pagination"
+    },
+    {
+      "key": "paginationParams",
+      "label": "Pagination Parameters (JSON)",
+      "type": "json",
+      "description": "Parameter names for pagination",
+      "defaultValue": {
+        "limit": "limit",
+        "offset": "offset",
+        "page": "page",
+        "perPage": "per_page"
+      }
+    },
+    {
+      "key": "filterStyle",
+      "label": "Filter Style",
+      "type": "select",
+      "options": [
+        {"label": "Query Parameters", "value": "query"},
+        {"label": "JSON Body", "value": "body"},
+        {"label": "Custom", "value": "custom"}
+      ],
+      "defaultValue": "query",
+      "description": "How to send filters to the API"
+    },
+    {
+      "key": "timeout",
+      "label": "Request Timeout (ms)",
+      "type": "number",
+      "defaultValue": 30000,
+      "validation": {
+        "min": 5000,
+        "max": 120000
+      }
+    },
+    {
+      "key": "retryAttempts",
+      "label": "Retry Attempts",
+      "type": "number",
+      "defaultValue": 3,
+      "validation": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "key": "enableCache",
+      "label": "Enable Cache",
+      "type": "boolean",
+      "defaultValue": true
+    },
+    {
+      "key": "cacheTimeout",
+      "label": "Cache Timeout (seconds)",
+      "type": "number",
+      "defaultValue": 300,
+      "validation": {
+        "min": 60,
+        "max": 3600
+      }
+    }
+  ],
+  
+  "hooks": [
+    "backend.provider.register",
+    "data.beforeSave",
+    "data.afterLoad"
+  ],
+  
+  "minAppVersion": "1.0.0",
+  "requires": [],
+  "conflicts": []
+}

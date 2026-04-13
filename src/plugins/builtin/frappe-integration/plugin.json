@@ -1,0 +1,161 @@
+{
+  "id": "com.schoolpilot.frappe-integration",
+  "name": "Frappe Integration",
+  "version": "1.0.0",
+  "type": "integration",
+  "entry": "./index.ts",
+  "description": "Connect to Frappe Framework using the official Frappe React SDK with real-time updates and optimized React hooks",
+  "author": "SchoolPilot Team",
+  "license": "MIT",
+  "category": "verified",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBkPSJNMTIgMkw0IDZWMTJDNCA5LjM0IDEyIDE4IDEyIDE4QzEyIDE4IDIwIDkuMzQgMjAgMTJWNkwxMiAyWiIgZmlsbD0iIzAwN0FGRiIvPgo8L3N2Zz4=",
+  
+  "integration": {
+    "backendType": "frappe",
+    "providerId": "frappe",
+    "providerClass": "FrappeProvider",
+    
+    "entities": ["*"],
+    
+    "entityMappings": {
+      "dynamic": true,
+      "note": "Frappe supports all DocTypes dynamically. Mappings are configured per-installation."
+    },
+    
+    "authMethods": ["apikey", "oauth2", "jwt"],
+    
+    "capabilities": {
+      "entities": ["*"],
+      "authMethods": ["apikey", "oauth2", "jwt"],
+      "fileUpload": true,
+      "realtime": true,
+      "batchOperations": true,
+      "webhooks": true
+    }
+  },
+  
+  "settings": [
+    {
+      "key": "siteUrl",
+      "label": "Frappe Site URL",
+      "type": "string",
+      "required": true,
+      "description": "Your Frappe site URL (e.g., https://mysite.frappe.cloud)",
+      "validation": {
+        "pattern": "^https?://.*"
+      }
+    },
+    {
+      "key": "authType",
+      "label": "Authentication Type",
+      "type": "select",
+      "options": [
+        {"label": "API Key/Secret", "value": "token"},
+        {"label": "OAuth2", "value": "oauth2"},
+        {"label": "JWT", "value": "jwt"}
+      ],
+      "defaultValue": "token",
+      "description": "Authentication method to use"
+    },
+    {
+      "key": "apiKey",
+      "label": "API Key",
+      "type": "string",
+      "description": "Frappe API Key (required for token auth)"
+    },
+    {
+      "key": "apiSecret",
+      "label": "API Secret",
+      "type": "string",
+      "description": "Frappe API Secret (required for token auth)"
+    },
+    {
+      "key": "enableSocketIO",
+      "label": "Enable Real-time Updates",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Enable Socket.IO for real-time document updates"
+    },
+    {
+      "key": "socketPort",
+      "label": "Socket.IO Port",
+      "type": "number",
+      "defaultValue": 9000,
+      "description": "Socket.IO server port (usually 9000)"
+    },
+    {
+      "key": "syncInterval",
+      "label": "Sync Interval (seconds)",
+      "type": "number",
+      "defaultValue": 300,
+      "validation": {
+        "min": 60,
+        "max": 3600
+      },
+      "description": "Fallback sync interval when real-time is disabled"
+    },
+    {
+      "key": "conflictResolution",
+      "label": "Conflict Resolution",
+      "type": "select",
+      "options": [
+        {"label": "Remote Wins (Frappe)", "value": "remote-wins"},
+        {"label": "Local Wins (SchoolPilot)", "value": "local-wins"},
+        {"label": "Timestamp Wins", "value": "timestamp-wins"},
+        {"label": "Manual Resolution", "value": "manual"}
+      ],
+      "defaultValue": "timestamp-wins"
+    },
+    {
+      "key": "enableCache",
+      "label": "Enable Client-side Cache",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Cache frequently accessed documents"
+    },
+    {
+      "key": "cacheTimeout",
+      "label": "Cache Timeout (seconds)",
+      "type": "number",
+      "defaultValue": 300,
+      "validation": {
+        "min": 60,
+        "max": 3600
+      }
+    },
+    {
+      "key": "batchSize",
+      "label": "Batch Size",
+      "type": "number",
+      "defaultValue": 100,
+      "validation": {
+        "min": 10,
+        "max": 1000
+      },
+      "description": "Number of records to fetch/sync in each batch"
+    },
+    {
+      "key": "timeout",
+      "label": "Request Timeout (ms)",
+      "type": "number",
+      "defaultValue": 30000,
+      "validation": {
+        "min": 5000,
+        "max": 120000
+      }
+    }
+  ],
+  
+  "hooks": [
+    "backend.provider.register",
+    "sync.before",
+    "sync.after",
+    "data.beforeSave",
+    "data.afterLoad",
+    "realtime.document.update"
+  ],
+  
+  "minAppVersion": "1.0.0",
+  "requires": [],
+  "conflicts": ["com.schoolpilot.erpnext-integration"]
+}

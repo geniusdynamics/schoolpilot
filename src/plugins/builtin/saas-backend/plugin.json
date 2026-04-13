@@ -1,0 +1,222 @@
+{
+  "id": "com.schoolpilot.saas-backend",
+  "name": "SchoolPilot SaaS Backend",
+  "version": "1.0.0",
+  "type": "integration",
+  "entry": "./index.ts",
+  "description": "Connect to SchoolPilot's custom Go SaaS backend with GraphQL and REST APIs",
+  "author": "SchoolPilot Team",
+  "license": "MIT",
+  "category": "verified",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBkPSJNMTIgMkw0IDZWMTJDNCA5LjM0IDEyIDE4IDEyIDE4QzEyIDE4IDIwIDkuMzQgMjAgMTJWNkwxMiAyWiIgZmlsbD0iIzEwQjk4MSIvPgo8L3N2Zz4=",
+  
+  "integration": {
+    "backendType": "saas-api",
+    "providerId": "saas-backend",
+    "providerClass": "SaaSBackendProvider",
+    
+    "entities": [
+      "students",
+      "employees",
+      "courses",
+      "programs",
+      "classes",
+      "subjects",
+      "fees",
+      "payments",
+      "attendance",
+      "grades",
+      "assignments",
+      "exams",
+      "timetables",
+      "announcements",
+      "events"
+    ],
+    
+    "authMethods": ["jwt", "oauth2"],
+    
+    "capabilities": {
+      "entities": ["students", "employees", "courses", "fees", "attendance", "grades"],
+      "authMethods": ["jwt", "oauth2"],
+      "fileUpload": true,
+      "realtime": true,
+      "batchOperations": true,
+      "webhooks": true
+    }
+  },
+  
+  "settings": [
+    {
+      "key": "apiUrl",
+      "label": "API URL",
+      "type": "string",
+      "required": true,
+      "description": "SchoolPilot SaaS API URL (e.g., https://api.schoolpilot.com)",
+      "validation": {
+        "pattern": "^https?://.*"
+      }
+    },
+    {
+      "key": "graphqlUrl",
+      "label": "GraphQL URL",
+      "type": "string",
+      "description": "GraphQL endpoint URL (optional, defaults to /graphql)",
+      "validation": {
+        "pattern": "^https?://.*"
+      }
+    },
+    {
+      "key": "authType",
+      "label": "Authentication Type",
+      "type": "select",
+      "options": [
+        {"label": "JWT", "value": "jwt"},
+        {"label": "OAuth2", "value": "oauth2"}
+      ],
+      "defaultValue": "jwt",
+      "description": "Authentication method"
+    },
+    {
+      "key": "clientId",
+      "label": "Client ID",
+      "type": "string",
+      "required": true,
+      "description": "OAuth2 Client ID or JWT Client ID"
+    },
+    {
+      "key": "clientSecret",
+      "label": "Client Secret",
+      "type": "string",
+      "required": true,
+      "description": "OAuth2 Client Secret or JWT Secret"
+    },
+    {
+      "key": "tenantId",
+      "label": "Tenant ID",
+      "type": "string",
+      "required": true,
+      "description": "Your school/organization tenant ID"
+    },
+    {
+      "key": "apiVersion",
+      "label": "API Version",
+      "type": "select",
+      "options": [
+        {"label": "v1", "value": "v1"},
+        {"label": "v2", "value": "v2"}
+      ],
+      "defaultValue": "v1",
+      "description": "API version to use"
+    },
+    {
+      "key": "useGraphQL",
+      "label": "Use GraphQL",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Use GraphQL for queries (faster and more efficient)"
+    },
+    {
+      "key": "enableWebSocket",
+      "label": "Enable WebSocket",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Enable WebSocket for real-time updates"
+    },
+    {
+      "key": "wsUrl",
+      "label": "WebSocket URL",
+      "type": "string",
+      "description": "WebSocket endpoint (optional, defaults to wss://api.schoolpilot.com/ws)"
+    },
+    {
+      "key": "syncInterval",
+      "label": "Sync Interval (seconds)",
+      "type": "number",
+      "defaultValue": 300,
+      "validation": {
+        "min": 60,
+        "max": 3600
+      }
+    },
+    {
+      "key": "conflictResolution",
+      "label": "Conflict Resolution",
+      "type": "select",
+      "options": [
+        {"label": "Remote Wins (Server)", "value": "remote-wins"},
+        {"label": "Local Wins (Client)", "value": "local-wins"},
+        {"label": "Timestamp Wins", "value": "timestamp-wins"},
+        {"label": "Manual Resolution", "value": "manual"}
+      ],
+      "defaultValue": "remote-wins"
+    },
+    {
+      "key": "batchSize",
+      "label": "Batch Size",
+      "type": "number",
+      "defaultValue": 100,
+      "validation": {
+        "min": 10,
+        "max": 1000
+      }
+    },
+    {
+      "key": "timeout",
+      "label": "Request Timeout (ms)",
+      "type": "number",
+      "defaultValue": 30000,
+      "validation": {
+        "min": 5000,
+        "max": 120000
+      }
+    },
+    {
+      "key": "enableCache",
+      "label": "Enable Client Cache",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Cache responses for better performance"
+    },
+    {
+      "key": "cacheTimeout",
+      "label": "Cache Timeout (seconds)",
+      "type": "number",
+      "defaultValue": 300,
+      "validation": {
+        "min": 60,
+        "max": 3600
+      }
+    },
+    {
+      "key": "enableCompression",
+      "label": "Enable Compression",
+      "type": "boolean",
+      "defaultValue": true,
+      "description": "Enable gzip compression for requests"
+    },
+    {
+      "key": "retryAttempts",
+      "label": "Retry Attempts",
+      "type": "number",
+      "defaultValue": 3,
+      "validation": {
+        "min": 0,
+        "max": 5
+      },
+      "description": "Number of retry attempts for failed requests"
+    }
+  ],
+  
+  "hooks": [
+    "backend.provider.register",
+    "sync.before",
+    "sync.after",
+    "data.beforeSave",
+    "data.afterLoad",
+    "realtime.update"
+  ],
+  
+  "minAppVersion": "1.0.0",
+  "requires": [],
+  "conflicts": []
+}

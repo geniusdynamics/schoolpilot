@@ -246,7 +246,7 @@ export class PluginManager {
     // Call activate hook
     if (plugin.module.activate) {
       try {
-        await plugin.module.activate.call(context);
+        await plugin.module.activate(context);
       } catch (error) {
         plugin.status = 'error';
         plugin.error = error instanceof Error ? error.message : String(error);
@@ -281,7 +281,7 @@ export class PluginManager {
     if (plugin.module.deactivate) {
       try {
         const context = this.createPluginContext(plugin.manifest);
-        await plugin.module.deactivate.call(context);
+        await plugin.module.deactivate(context);
       } catch (error) {
         logger.error(`Error deactivating plugin ${pluginId}:`, error);
       }
