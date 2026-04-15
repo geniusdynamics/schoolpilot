@@ -117,7 +117,6 @@ export { SyncManagementPanel } from './SyncManagementPanel';
 export { DatabaseMonitoringDashboard } from './DatabaseMonitoringDashboard';
 export { ConflictResolutionInterface } from './ConflictResolutionInterface';
 export { GlobalNotifications } from './GlobalNotifications';
-export { MockDataTest } from './MockDataTest';
 
 // --- Module System ---
 export { ModuleDashboardPlaceholder } from './ModuleDashboardPlaceholder';
