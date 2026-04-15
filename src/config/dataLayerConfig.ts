@@ -54,21 +54,24 @@ export interface ConsolidatedConfigurationOption {
 }
 
 export const DATA_LAYER_CONFIG: DataLayerConfig = {
-  // Development Mode: SQLite with file storage for easy database exploration
+  // Development Mode: SQLite WASM with OPFS for browser-based persistence
   development: {
-    provider: 'sqlite',
-    storageType: 'file',
+    provider: 'sqlite-wasm',
+    storageType: 'opfs',
     backendIntegration: 'none',
-    description: 'SQLite with file storage for development - easy database inspection and exploration',
+    description: 'SQLite WASM with OPFS for development - persistent browser storage',
     recommended: true,
     options: {
       persistence: true,
       cacheSize: 1000,
-      filePath: './data/schoolpilot-dev.db',
       enableWAL: true,
       enableForeignKeys: true,
       busyTimeout: 5000,
-      debugMode: true
+      debugMode: true,
+      wasmSqlite: true,
+      opfsStorage: true,
+      crossTabPersistence: false,
+      dbName: 'schoolpilot-dev.db'
     }
   },
 

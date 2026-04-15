@@ -1,14 +1,13 @@
 // ABOUTME: System domain hook — SchoolDetails, Roles, Users, AppSettings, RBAC, Audit, Workflows
-// ABOUTME: Handles initialization of the database service and seeding/clearing operations
+// ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useState, useEffect, useCallback } from 'react';
-import type { AppDataLoadingStates, AppDataContextType } from '@/types';
+import { useEffect, useCallback } from 'react';
+import type { AppDataLoadingStates } from '@/types';
 import { databaseService } from '@/services/database/databaseService';
-import { rbacService } from '@/core/rbacService';
 import type { RbacRole, Permission, UserRole } from '@/core/types';
 import * as allTypes from '@/types';
-
-type RawInitialData = AppDataContextType['rawInitialData'];
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
+import { useDatabaseDocument } from '@/hooks/useDatabaseDocument';
 
 // Loading keys owned by this domain
 const SYSTEM_LOADING_KEYS = [
@@ -16,302 +15,193 @@ const SYSTEM_LOADING_KEYS = [
   'templatesComm', 'campaigns', 'auditLogs', 'workflows', 'permissions', 'userRoles',
 ] as const;
 
-export function useSystemData(mockDataForSeeding: RawInitialData) {
-  const [loading, setLoading] = useState<Partial<AppDataLoadingStates>>(() =>
-    Object.fromEntries(SYSTEM_LOADING_KEYS.map(k => [k, true])) as Partial<AppDataLoadingStates>
-  );
-  const [initializationError, setInitializationError] = useState<Error | null>(null);
-  const [isUsingRxDBDummyData, setIsUsingRxDBDummyData] = useState<boolean>(false);
-  const [systemData, setSystemData] = useState<{
-    schoolDetails: allTypes.SchoolDetails | null;
-    roles: allTypes.Role[];
-    users: allTypes.User[];
-    appSettings: any | null;
-    templatesComm: any[];
-    campaigns: any[];
-    auditLogs: allTypes.AuditLog[];
-    workflows: any[];
-    workflowStates: any[];
-  }>({
-    schoolDetails: null,
-    roles: [],
-    users: [],
-    appSettings: null,
-    templatesComm: [],
-    campaigns: [],
-    auditLogs: [],
-    workflows: [],
-    workflowStates: [],
-  });
-  const [rbac, setRbac] = useState<{ permissions: Permission[]; roles: RbacRole[]; userRoles: UserRole[] }>({
-    permissions: [],
-    roles: [],
-    userRoles: [],
-  });
+export function useSystemData() {
+  const schoolDetailsDoc = useDatabaseDocument<allTypes.SchoolDetails>('school_details');
+  const usersCollection = useDatabaseCollection<allTypes.User>('users');
+  const rolesCollection = useDatabaseCollection<allTypes.Role>('roles');
+  const campaignsCollection = useDatabaseCollection<any>('campaigns');
+  const templatesCommCollection = useDatabaseCollection<any>('template_comms');
+  const auditLogsCollection = useDatabaseCollection<allTypes.AuditLog>('audit_logs');
+  const workflowsCollection = useDatabaseCollection<any>('workflows');
+  const workflowStatesCollection = useDatabaseCollection<any>('workflow_states');
+
+  const loading: Partial<AppDataLoadingStates> = Object.fromEntries(
+    SYSTEM_LOADING_KEYS.map(k => [
+      k,
+      schoolDetailsDoc.loading ||
+      usersCollection.loading ||
+      rolesCollection.loading ||
+      campaignsCollection.loading ||
+      templatesCommCollection.loading ||
+      auditLogsCollection.loading ||
+      workflowsCollection.loading ||
+      workflowStatesCollection.loading
+    ])
+  ) as Partial<AppDataLoadingStates>;
+
+  const initializationError =
+    schoolDetailsDoc.error ||
+    usersCollection.error ||
+    rolesCollection.error ||
+    campaignsCollection.error ||
+    templatesCommCollection.error ||
+    auditLogsCollection.error ||
+    workflowsCollection.error ||
+    workflowStatesCollection.error ||
+    null;
 
   useEffect(() => {
-    let isMounted = true;
-    const init = async () => {
-      try {
-        await databaseService.initializeDatabase();
-        if (isMounted) {
-          setIsUsingRxDBDummyData(false);
-          setRbac({ permissions: [], roles: [], userRoles: [] });
-          setLoading(Object.fromEntries(SYSTEM_LOADING_KEYS.map(k => [k, false])) as Partial<AppDataLoadingStates>);
-        }
-      } catch (err: any) {
-        if (isMounted) {
-          setInitializationError(err);
-          setLoading(Object.fromEntries(SYSTEM_LOADING_KEYS.map(k => [k, false])) as Partial<AppDataLoadingStates>);
-        }
-      }
-    };
-    init();
-    return () => { isMounted = false; };
+    databaseService.initializeDatabase().catch((err) => {
+      console.error('[useSystemData] Failed to initialize database:', err);
+    });
   }, []);
 
   // ── Seed / Clear ────────────────────────────────────────────────────────────
   const triggerSeedRxDB = useCallback(async () => {
     try {
       await databaseService.seedDatabaseWithMockData();
-      setIsUsingRxDBDummyData(true);
+      await Promise.all([
+        schoolDetailsDoc.refresh(),
+        usersCollection.refresh(),
+        rolesCollection.refresh(),
+        campaignsCollection.refresh(),
+        templatesCommCollection.refresh(),
+        auditLogsCollection.refresh(),
+        workflowsCollection.refresh(),
+        workflowStatesCollection.refresh(),
+      ]);
       console.log('Database seeded with mock data successfully');
     } catch (error) {
       console.error('Failed to seed database:', error);
     }
-  }, [mockDataForSeeding]);
+  }, [schoolDetailsDoc, usersCollection, rolesCollection, campaignsCollection, templatesCommCollection, auditLogsCollection, workflowsCollection, workflowStatesCollection]);
 
   const triggerClearRxDB = useCallback(async () => {
     try {
       await databaseService.clearDatabase();
-      setIsUsingRxDBDummyData(false);
+      await Promise.all([
+        schoolDetailsDoc.refresh(),
+        usersCollection.refresh(),
+        rolesCollection.refresh(),
+        campaignsCollection.refresh(),
+        templatesCommCollection.refresh(),
+        auditLogsCollection.refresh(),
+        workflowsCollection.refresh(),
+        workflowStatesCollection.refresh(),
+      ]);
       console.log('Database cleared successfully');
     } catch (error) {
       console.error('Failed to clear database:', error);
     }
-  }, []);
+  }, [schoolDetailsDoc, usersCollection, rolesCollection, campaignsCollection, templatesCommCollection, auditLogsCollection, workflowsCollection, workflowStatesCollection]);
 
   // ── School Details ───────────────────────────────────────────────────────────
   const updateSchoolDetails = useCallback(async (schoolDetails: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.school_details?.update(schoolDetails.id, schoolDetails);
-      return result?.doc || null;
-    } catch (error) {
-      console.error('Error updating school details:', error);
-      throw error;
-    }
-  }, []);
+    return schoolDetailsDoc.save(schoolDetails);
+  }, [schoolDetailsDoc]);
 
   // ── Users ────────────────────────────────────────────────────────────────────
   const addUser = useCallback(async (userData: Omit<allTypes.User, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const userWithId = { ...userData, id: databaseService.generateId() };
-      const result = await db.users?.insert(userWithId);
-      return result?.doc || null;
-    } catch (error) {
-      console.error('Error adding user:', error);
-      throw error;
-    }
-  }, []);
+    return usersCollection.insert(userData);
+  }, [usersCollection]);
 
   const updateUser = useCallback(async (userId: string, userData: Partial<allTypes.User>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.users?.update(userId, userData);
-      return result?.doc || null;
-    } catch (error) {
-      console.error('Error updating user:', error);
-      throw error;
-    }
-  }, []);
+    return usersCollection.update(userId, userData);
+  }, [usersCollection]);
 
   const deleteUser = useCallback(async (userId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.users?.remove(userId);
-      return true;
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      throw error;
-    }
-  }, []);
+    return usersCollection.remove(userId);
+  }, [usersCollection]);
 
   // ── Roles ────────────────────────────────────────────────────────────────────
   const addRole = useCallback(async (roleData: Omit<allTypes.Role, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const roleWithId = { ...roleData, id: databaseService.generateNumericId() };
-      const result = await db.roles?.insert(roleWithId);
-      return result?.doc || null;
-    } catch (error) {
-      console.error('Error adding role:', error);
-      throw error;
-    }
-  }, []);
+    return rolesCollection.insert(roleData);
+  }, [rolesCollection]);
 
   const updateRole = useCallback(async (roleId: string, roleData: Partial<allTypes.Role>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.roles?.update(roleId, roleData);
-      return result?.doc || null;
-    } catch (error) {
-      console.error('Error updating role:', error);
-      throw error;
-    }
-  }, []);
+    return rolesCollection.update(roleId, roleData);
+  }, [rolesCollection]);
 
   const deleteRole = useCallback(async (roleId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.roles?.remove(roleId);
-      return true;
-    } catch (error) {
-      console.error('Error deleting role:', error);
-      throw error;
-    }
-  }, []);
+    return rolesCollection.remove(roleId);
+  }, [rolesCollection]);
 
   // ── Audit Log ────────────────────────────────────────────────────────────────
   const addAuditLog = useCallback(async (logData: Omit<allTypes.AuditLog, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const logWithId = { ...logData, id: databaseService.generateId() };
-      const result = await db.audit_logs?.insert(logWithId);
-      return result?.doc || null;
-    } catch (error) {
-      console.error('Error adding audit log:', error);
-      throw error;
-    }
-  }, []);
+    return auditLogsCollection.insert(logData);
+  }, [auditLogsCollection]);
 
   // ── Templates / Campaigns ────────────────────────────────────────────────────
   const addTemplateComm = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.template_comms?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding template_comm:', error); throw error; }
-  }, []);
+    return templatesCommCollection.insert(data);
+  }, [templatesCommCollection]);
 
   const updateTemplateComm = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.template_comms?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating template_comm:', error); throw error; }
-  }, []);
+    return templatesCommCollection.update(id, data);
+  }, [templatesCommCollection]);
 
   const deleteTemplateComm = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.template_comms?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting template_comm:', error); throw error; }
-  }, []);
+    return templatesCommCollection.remove(id);
+  }, [templatesCommCollection]);
 
   const addCampaign = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.campaigns?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding campaign:', error); throw error; }
-  }, []);
+    return campaignsCollection.insert(data);
+  }, [campaignsCollection]);
 
   const updateCampaign = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.campaigns?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating campaign:', error); throw error; }
-  }, []);
+    return campaignsCollection.update(id, data);
+  }, [campaignsCollection]);
 
   const deleteCampaign = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.campaigns?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting campaign:', error); throw error; }
-  }, []);
+    return campaignsCollection.remove(id);
+  }, [campaignsCollection]);
 
   // ── Workflows ────────────────────────────────────────────────────────────────
   const addWorkflow = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.workflows?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding workflow:', error); throw error; }
-  }, []);
+    return workflowsCollection.insert(data);
+  }, [workflowsCollection]);
 
   const updateWorkflow = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.workflows?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating workflow:', error); throw error; }
-  }, []);
+    return workflowsCollection.update(id, data);
+  }, [workflowsCollection]);
 
   const deleteWorkflow = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.workflows?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting workflow:', error); throw error; }
-  }, []);
+    return workflowsCollection.remove(id);
+  }, [workflowsCollection]);
 
   const addWorkflowState = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.workflow_states?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding workflow state:', error); throw error; }
-  }, []);
+    return workflowStatesCollection.insert(data);
+  }, [workflowStatesCollection]);
 
   const updateWorkflowState = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.workflow_states?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating workflow state:', error); throw error; }
-  }, []);
+    return workflowStatesCollection.update(id, data);
+  }, [workflowStatesCollection]);
 
   const deleteWorkflowState = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.workflow_states?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting workflow state:', error); throw error; }
-  }, []);
+    return workflowStatesCollection.remove(id);
+  }, [workflowStatesCollection]);
+
+  // RBAC placeholder - will be populated when RBAC service is integrated with DB
+  const rbac = { permissions: [] as Permission[], roles: [] as RbacRole[], userRoles: [] as UserRole[] };
 
   return {
     // Loading / meta
     loading,
     initializationError,
     isRxDBModeActive: true as const,
-    isUsingRxDBDummyData,
+    isUsingRxDBDummyData: false,
     triggerSeedRxDB,
     triggerClearRxDB,
 
     // Data
-    schoolDetails: systemData.schoolDetails,
-    roles: rbac.roles.map((role, idx) => ({
-      id: idx + 1,
-      name: role.name,
-      description: role.description,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })),
-    users: systemData.users,
-    appSettings: systemData.appSettings,
-    templatesComm: systemData.templatesComm,
-    campaigns: systemData.campaigns,
-    auditLogs: systemData.auditLogs,
-    workflows: systemData.workflows,
+    schoolDetails: schoolDetailsDoc.data,
+    roles: rolesCollection.data,
+    users: usersCollection.data,
+    appSettings: null,
+    templatesComm: templatesCommCollection.data,
+    campaigns: campaignsCollection.data,
+    auditLogs: auditLogsCollection.data,
+    workflows: workflowsCollection.data,
     permissions: rbac.permissions,
     userRoles: rbac.userRoles,
 

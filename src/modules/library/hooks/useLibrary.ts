@@ -1,21 +1,41 @@
-import { useAppData } from '@/hooks/useAppData';
-import { useLibraryDataContext } from '../data/LibraryDataProvider';
+// ABOUTME: Main hook for Library module pages
+// ABOUTME: Uses useLibraryData() for database-backed data and CRUD
+// ABOUTME: This is the ONLY hook Library pages should use
+
+import { useLibraryData } from '../data/useLibraryData';
 
 export const useLibrary = () => {
-  const appData = useAppData();
-  const ctx = useLibraryDataContext();
+  const libraryData = useLibraryData();
+
   return {
-    books: appData.books,
-    bookLoans: appData.bookLoans,
-    libraryMembers: appData.libraryMembers,
-    loading: appData.loading,
-    addBook: ctx.addBook,
-    updateBook: ctx.updateBook,
-    deleteBook: ctx.deleteBook,
-    addBookLoan: ctx.addBookLoan,
-    updateBookLoan: ctx.updateBookLoan,
-    deleteBookLoan: ctx.deleteBookLoan,
-    returnBook: ctx.returnBook,
+    // Data
+    books: libraryData.books,
+    bookLoans: libraryData.bookLoans,
+    libraryMembers: libraryData.libraryMembers,
+    bookCategories: libraryData.bookCategories,
+    fines: libraryData.fines,
+    loading: false,
+
+    // Book CRUD
+    addBook: libraryData.addBook,
+    updateBook: libraryData.updateBook,
+    deleteBook: libraryData.deleteBook,
+
+    // Book Loan CRUD
+    addBookLoan: libraryData.addBookLoan,
+    updateBookLoan: libraryData.updateBookLoan,
+    deleteBookLoan: libraryData.deleteBookLoan,
+    returnBook: libraryData.returnBook,
+
+    // Book Category CRUD
+    addBookCategory: libraryData.addBookCategory,
+    updateBookCategory: libraryData.updateBookCategory,
+    deleteBookCategory: libraryData.deleteBookCategory,
+
+    // Fine CRUD
+    addFine: libraryData.addFine,
+    updateFineStatus: libraryData.updateFineStatus,
   };
 };
+
 export default useLibrary;

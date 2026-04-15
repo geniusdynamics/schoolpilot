@@ -1,10 +1,10 @@
-// ABOUTME: Compositor hook — assembles all domain hooks into the unified AppDataContextType
+// ABOUTME: Compositor hook Ã¢â‚¬â€ assembles all domain hooks into the unified AppDataContextType
 // ABOUTME: interface, providing full backward compatibility with useDatabaseData callers.
 
 import { useCallback } from 'react';
 import type { AppDataContextType } from '@/types';
 import { databaseService } from '@/services/database/databaseService';
-import { useSystemData } from '@/modules/core/data/useSystemData';
+import { useSystemData } from '@/core/data/useSystemData';
 import { useAdministrationData } from '@/modules/administration/data/useAdministrationData';
 import { useAcademicData } from '@/modules/academics/data/useAcademicData';
 import { useFinanceData } from '@/modules/finance/data/useFinanceData';
@@ -13,26 +13,24 @@ import { useInventoryData } from '@/modules/inventory/data/useInventoryData';
 import { useLibraryData } from '@/modules/library/data/useLibraryData';
 import { useNutritionData } from '@/modules/nutrition/data/useNutritionData';
 
-type RawInitialData = AppDataContextType['rawInitialData'];
-
-export function useDatabaseData(mockDataForSeeding: RawInitialData): AppDataContextType {
-  const system = useSystemData(mockDataForSeeding);
-  const admin = useAdministrationData(mockDataForSeeding);
-  const academic = useAcademicData(mockDataForSeeding);
-  const finance = useFinanceData(mockDataForSeeding);
-  const hr = useHRData(mockDataForSeeding);
-  const inventory = useInventoryData(mockDataForSeeding);
-  const library = useLibraryData(mockDataForSeeding);
+export function useDatabaseData(): AppDataContextType {
+  const system = useSystemData();
+  const admin = useAdministrationData();
+  const academic = useAcademicData();
+  const finance = useFinanceData();
+  const hr = useHRData();
+  const inventory = useInventoryData();
+  const library = useLibraryData();
 
   // Nutrition needs cross-domain refs for wallet/consumption logic
-  const nutrition = useNutritionData(mockDataForSeeding, {
+  const nutrition = useNutritionData({
     students: admin.students,
     menus: [] as any[], // menus come from nutrition itself; resolved internally
     studentMealPlans: [] as any[],
     studentWallets: [] as any[],
   });
 
-  // ── Cross-domain helpers ──────────────────────────────────────────────────────
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Cross-domain helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const getStudentFinancialDetailsById = useCallback(async (studentId: string): Promise<any> => {
     try {
       const db = await databaseService.getDatabase();
@@ -55,7 +53,7 @@ export function useDatabaseData(mockDataForSeeding: RawInitialData): AppDataCont
   return {
     // Meta / loading
     loading,
-    rawInitialData: mockDataForSeeding,
+    rawInitialData: null,
     initializationError: system.initializationError,
     isRxDBModeActive: system.isRxDBModeActive,
     isUsingRxDBDummyData: system.isUsingRxDBDummyData,

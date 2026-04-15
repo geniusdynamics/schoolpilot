@@ -10,7 +10,7 @@ export * from './mockData';
 export { 
   InventoryDataProvider,
   useInventoryDataContext 
-} from './InventoryDataProvider';
+} from './InventoryDataContext';
 
 // Data hooks
 export * from './useWarehouseData';

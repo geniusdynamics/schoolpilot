@@ -7,7 +7,6 @@ import {
   IDatabaseProviderFactory,
   ICollection,
   DatabaseConfig,
-  CollectionSchema,
   CollectionRequirements,
   ProviderStatus,
   DatabaseError
@@ -47,10 +46,11 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
       console.log(`[ProviderSelectionStrategy] Using configured provider: ${config.database.provider}`);
       
       switch (config.database.provider) {
-        case 'sqlite':
+        case 'sqlite': {
           // Choose SQLite variant based on environment
           const environment = config.environment || 'production';
           return environment === 'development' ? 'sqlite-file' : 'sqlite-wasm';
+        }
         case 'pouchdb':
           return 'pouchdb';
         // RXDB removed - Phase 4
@@ -74,7 +74,7 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
     // Development environment preferences
     if (isDevelopment) {
       if (requirements.requiresOffline) {
-        return 'sqlite-file'; // File-based SQLite for development persistence
+        return 'sqlite-wasm'; // SQLite WASM with OPFS for browser development persistence
       }
       return 'pouchdb'; // PouchDB for development flexibility
     }
@@ -654,7 +654,6 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
   // IDatabaseProviderFactory interface implementation
   async createProvider(type: string, config: DatabaseConfig): Promise<IDatabaseProvider> {
     // Convert string type to ProviderType and use enhanced createProvider
-    const providerType = type as ProviderType;
     const requirements: CollectionRequirements = {
       collectionsCount: 88,
       requiresOffline: true,

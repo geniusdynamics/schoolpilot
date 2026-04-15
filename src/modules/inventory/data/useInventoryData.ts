@@ -1,139 +1,74 @@
 // ABOUTME: Inventory domain hook — Warehouses, ItemCategories, StockItems, FixedAssets,
 // ABOUTME: AssetDepreciationLogs, Requisitions, PurchaseOrders, StockTransactions, RFQs
+// ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '@/types';
+import { useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/types';
 
-type RawInitialData = AppDataContextType['rawInitialData'];
-
-export function useInventoryData(_mockDataForSeeding: RawInitialData) {
-  const [inventoryData] = useState<{
-    warehouses: any[];
-    itemCategoriesInv: any[];
-    itemsInv: any[];
-    fixedAssets: any[];
-    requisitions: any[];
-    purchaseOrders: any[];
-    stockLevels: any[];
-    stockTransactions: any[];
-    rfqs: any[];
-  }>({
-    warehouses: [],
-    itemCategoriesInv: [],
-    itemsInv: [],
-    fixedAssets: [],
-    requisitions: [],
-    purchaseOrders: [],
-    stockLevels: [],
-    stockTransactions: [],
-    rfqs: [],
-  });
+export function useInventoryData() {
+  const warehousesCollection = useDatabaseCollection<any>('warehouses');
+  const itemCategoriesInvCollection = useDatabaseCollection<any>('item_categories_inv');
+  const itemsInvCollection = useDatabaseCollection<any>('items_inv');
+  const fixedAssetsCollection = useDatabaseCollection<any>('fixed_assets');
+  const requisitionsCollection = useDatabaseCollection<any>('requisitions');
+  const purchaseOrdersCollection = useDatabaseCollection<any>('purchase_orders');
+  const stockLevelsCollection = useDatabaseCollection<any>('stock_levels');
+  const stockTransactionsCollection = useDatabaseCollection<any>('stock_transactions');
+  const rfqsCollection = useDatabaseCollection<any>('rfqs');
 
   // ── Warehouses ────────────────────────────────────────────────────────────────
   const addWarehouse = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.warehouses?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding warehouse:', error); throw error; }
-  }, []);
+    return warehousesCollection.insert(data);
+  }, [warehousesCollection]);
 
   const updateWarehouse = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.warehouses?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating warehouse:', error); throw error; }
-  }, []);
+    return warehousesCollection.update(id, data);
+  }, [warehousesCollection]);
 
   const deleteWarehouse = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.warehouses?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting warehouse:', error); throw error; }
-  }, []);
+    return warehousesCollection.remove(id);
+  }, [warehousesCollection]);
 
   // ── Item Categories ───────────────────────────────────────────────────────────
   const addItemCategoryInv = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.item_categories_inv?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding item category:', error); throw error; }
-  }, []);
+    return itemCategoriesInvCollection.insert(data);
+  }, [itemCategoriesInvCollection]);
 
   const updateItemCategoryInv = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.item_categories_inv?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating item category:', error); throw error; }
-  }, []);
+    return itemCategoriesInvCollection.update(id, data);
+  }, [itemCategoriesInvCollection]);
 
   const deleteItemCategoryInv = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.item_categories_inv?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting item category:', error); throw error; }
-  }, []);
+    return itemCategoriesInvCollection.remove(id);
+  }, [itemCategoriesInvCollection]);
 
   // ── Inventory Items ───────────────────────────────────────────────────────────
   const addItemInv = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.items_inv?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding inventory item:', error); throw error; }
-  }, []);
+    return itemsInvCollection.insert(data);
+  }, [itemsInvCollection]);
 
   const updateItemInv = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.items_inv?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating inventory item:', error); throw error; }
-  }, []);
+    return itemsInvCollection.update(id, data);
+  }, [itemsInvCollection]);
 
   const deleteItemInv = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.items_inv?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting inventory item:', error); throw error; }
-  }, []);
+    return itemsInvCollection.remove(id);
+  }, [itemsInvCollection]);
 
   // ── Fixed Assets ──────────────────────────────────────────────────────────────
   const addFixedAsset = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.fixed_assets?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding fixed asset:', error); throw error; }
-  }, []);
+    return fixedAssetsCollection.insert(data);
+  }, [fixedAssetsCollection]);
 
   const updateFixedAsset = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.fixed_assets?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating fixed asset:', error); throw error; }
-  }, []);
+    return fixedAssetsCollection.update(id, data);
+  }, [fixedAssetsCollection]);
 
   const deleteFixedAsset = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.fixed_assets?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting fixed asset:', error); throw error; }
-  }, []);
+    return fixedAssetsCollection.remove(id);
+  }, [fixedAssetsCollection]);
 
   const addAssetDepreciationLog = useCallback(async (logData: Omit<allTypes.AssetDepreciationLog, 'id'>) => {
     try {
@@ -146,111 +81,63 @@ export function useInventoryData(_mockDataForSeeding: RawInitialData) {
 
   // ── Requisitions ──────────────────────────────────────────────────────────────
   const addRequisition = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.requisitions?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding requisition:', error); throw error; }
-  }, []);
+    return requisitionsCollection.insert(data);
+  }, [requisitionsCollection]);
 
   const updateRequisition = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.requisitions?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating requisition:', error); throw error; }
-  }, []);
+    return requisitionsCollection.update(id, data);
+  }, [requisitionsCollection]);
 
   const deleteRequisition = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.requisitions?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting requisition:', error); throw error; }
-  }, []);
+    return requisitionsCollection.remove(id);
+  }, [requisitionsCollection]);
 
   const updateRequisitionStatus = useCallback(async (requisitionId: string, status: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.requisitions?.update(requisitionId, { status });
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating requisition status:', error); throw error; }
-  }, []);
+    return requisitionsCollection.update(requisitionId, { status });
+  }, [requisitionsCollection]);
 
   // ── Purchase Orders ───────────────────────────────────────────────────────────
   const addPurchaseOrder = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.purchase_orders?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding purchase order:', error); throw error; }
-  }, []);
+    return purchaseOrdersCollection.insert(data);
+  }, [purchaseOrdersCollection]);
 
   const updatePurchaseOrder = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.purchase_orders?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating purchase order:', error); throw error; }
-  }, []);
+    return purchaseOrdersCollection.update(id, data);
+  }, [purchaseOrdersCollection]);
 
   const deletePurchaseOrder = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.purchase_orders?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting purchase order:', error); throw error; }
-  }, []);
+    return purchaseOrdersCollection.remove(id);
+  }, [purchaseOrdersCollection]);
 
   // ── Stock Transactions ────────────────────────────────────────────────────────
   const addStockTransaction = useCallback(async (transactionData: Omit<allTypes.StockTransaction, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const transactionWithId = { ...transactionData, id: databaseService.generateId() };
-      const result = await db.stock_transactions?.insert(transactionWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding stock transaction:', error); throw error; }
-  }, []);
+    return stockTransactionsCollection.insert(transactionData);
+  }, [stockTransactionsCollection]);
 
   // ── RFQs ──────────────────────────────────────────────────────────────────────
   const addRfq = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.rfqs?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding RFQ:', error); throw error; }
-  }, []);
+    return rfqsCollection.insert(data);
+  }, [rfqsCollection]);
 
   const updateRfq = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.rfqs?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating RFQ:', error); throw error; }
-  }, []);
+    return rfqsCollection.update(id, data);
+  }, [rfqsCollection]);
 
   const deleteRfq = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.rfqs?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting RFQ:', error); throw error; }
-  }, []);
+    return rfqsCollection.remove(id);
+  }, [rfqsCollection]);
 
   return {
     // Data
-    warehouses: inventoryData.warehouses,
-    itemCategoriesInv: inventoryData.itemCategoriesInv,
-    itemsInv: inventoryData.itemsInv,
-    fixedAssets: inventoryData.fixedAssets,
-    requisitions: inventoryData.requisitions,
-    purchaseOrders: inventoryData.purchaseOrders,
-    stockLevels: inventoryData.stockLevels,
-    stockTransactions: inventoryData.stockTransactions,
-    rfqs: inventoryData.rfqs,
+    warehouses: warehousesCollection.data,
+    itemCategoriesInv: itemCategoriesInvCollection.data,
+    itemsInv: itemsInvCollection.data,
+    fixedAssets: fixedAssetsCollection.data,
+    requisitions: requisitionsCollection.data,
+    purchaseOrders: purchaseOrdersCollection.data,
+    stockLevels: stockLevelsCollection.data,
+    stockTransactions: stockTransactionsCollection.data,
+    rfqs: rfqsCollection.data,
 
     // CRUD
     addWarehouse, updateWarehouse, deleteWarehouse,

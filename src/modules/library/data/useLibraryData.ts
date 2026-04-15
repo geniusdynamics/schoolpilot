@@ -1,124 +1,86 @@
 // ABOUTME: Library domain hook — Books, BookCategories, Loans, Fines
+// ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '@/types';
+import { useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/types';
 
-type RawInitialData = AppDataContextType['rawInitialData'];
-
-export function useLibraryData(_mockDataForSeeding: RawInitialData) {
-  const [libraryData] = useState<{
-    bookCategories: any[];
-    books: any[];
-    loans: allTypes.Loan[];
-    fines: allTypes.Fine[];
-  }>({
-    bookCategories: [],
-    books: [],
-    loans: [],
-    fines: [],
-  });
+export function useLibraryData() {
+  const bookCategoriesCollection = useDatabaseCollection<any>('book_categories');
+  const booksCollection = useDatabaseCollection<any>('books');
+  const bookLoansCollection = useDatabaseCollection<allTypes.Loan>('book_loans');
+  const libraryMembersCollection = useDatabaseCollection<any>('library_members');
+  const finesCollection = useDatabaseCollection<allTypes.Fine>('fines');
 
   // ── Book Categories ───────────────────────────────────────────────────────────
   const addBookCategory = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.book_categories?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding book category:', error); throw error; }
-  }, []);
+    return bookCategoriesCollection.insert(data);
+  }, [bookCategoriesCollection]);
 
   const updateBookCategory = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.book_categories?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating book category:', error); throw error; }
-  }, []);
+    return bookCategoriesCollection.update(id, data);
+  }, [bookCategoriesCollection]);
 
   const deleteBookCategory = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.book_categories?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting book category:', error); throw error; }
-  }, []);
+    return bookCategoriesCollection.remove(id);
+  }, [bookCategoriesCollection]);
 
   // ── Books ─────────────────────────────────────────────────────────────────────
   const addBook = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.books?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding book:', error); throw error; }
-  }, []);
+    return booksCollection.insert(data);
+  }, [booksCollection]);
 
   const updateBook = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.books?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating book:', error); throw error; }
-  }, []);
+    return booksCollection.update(id, data);
+  }, [booksCollection]);
 
   const deleteBook = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.books?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting book:', error); throw error; }
-  }, []);
+    return booksCollection.remove(id);
+  }, [booksCollection]);
 
-  // ── Loans ─────────────────────────────────────────────────────────────────────
-  const addLoan = useCallback(async (loanData: Omit<allTypes.Loan, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const loanWithId = { ...loanData, id: databaseService.generateId() };
-      const result = await db.loans?.insert(loanWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding loan:', error); throw error; }
-  }, []);
+  // ── Book Loans ───────────────────────────────────────────────────────────────
+  const addBookLoan = useCallback(async (loanData: Omit<allTypes.Loan, 'id'>) => {
+    return bookLoansCollection.insert(loanData);
+  }, [bookLoansCollection]);
 
-  const updateLoan = useCallback(async (loanId: string, loanData: Partial<allTypes.Loan>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.loans?.update(loanId, loanData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating loan:', error); throw error; }
-  }, []);
+  const updateBookLoan = useCallback(async (loanId: string, loanData: Partial<allTypes.Loan>) => {
+    return bookLoansCollection.update(loanId, loanData);
+  }, [bookLoansCollection]);
+
+  const deleteBookLoan = useCallback(async (loanId: string) => {
+    return bookLoansCollection.remove(loanId);
+  }, [bookLoansCollection]);
+
+  const returnBook = useCallback(async (loanId: string) => {
+    return bookLoansCollection.update(loanId, {
+      returned_at: new Date().toISOString(),
+      status: 'Returned',
+      updated_at: new Date().toISOString(),
+    } as Partial<allTypes.Loan>);
+  }, [bookLoansCollection]);
 
   // ── Fines ─────────────────────────────────────────────────────────────────────
   const addFine = useCallback(async (fineData: Omit<allTypes.Fine, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const fineWithId = { ...fineData, id: databaseService.generateId() };
-      const result = await db.fines?.insert(fineWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding fine:', error); throw error; }
-  }, []);
+    return finesCollection.insert(fineData);
+  }, [finesCollection]);
 
   const updateFineStatus = useCallback(async (fineId: string, status: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.fines?.update(fineId, { status });
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating fine status:', error); throw error; }
-  }, []);
+    return finesCollection.update(fineId, { status });
+  }, [finesCollection]);
 
   return {
     // Data
-    bookCategories: libraryData.bookCategories,
-    books: libraryData.books,
-    loans: libraryData.loans,
-    fines: libraryData.fines,
+    bookCategories: bookCategoriesCollection.data,
+    books: booksCollection.data,
+    bookLoans: bookLoansCollection.data,
+    libraryMembers: libraryMembersCollection.data,
+    fines: finesCollection.data,
 
     // CRUD
     addBookCategory, updateBookCategory, deleteBookCategory,
     addBook, updateBook, deleteBook,
-    addLoan, updateLoan,
+    addBookLoan, updateBookLoan, deleteBookLoan, returnBook,
     addFine, updateFineStatus,
   };
 }

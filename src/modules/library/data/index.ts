@@ -10,7 +10,7 @@ export * from './collections';
 export { 
   LibraryDataProvider,
   useLibraryDataContext 
-} from './LibraryDataProvider';
+} from './LibraryDataContext';
 
 export { isGlobalProvider as isBookCategoryGlobalProvider, useBookCategoryData } from './useBookCategoryData';
 export { isGlobalProvider as isBookGlobalProvider, useBookData } from './useBookData';

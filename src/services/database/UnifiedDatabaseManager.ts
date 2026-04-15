@@ -2,8 +2,6 @@
 // ABOUTME: Provides deployment mode-based provider selection and comprehensive database management
 
 import { getCurrentUnifiedConfig, getDatabaseConfig, validateDatabaseConfig } from '@/config/unifiedConfig';
-import { DataServiceFactory } from '../DataServiceFactory';
-import { getDatabaseManager } from './ProviderSelector';
 // RXDB removed - Phase 2: Using provider-agnostic collections
 import { collectionsDefinition } from './collections';
 import { SchemaConverter } from './SchemaConverter';
@@ -142,6 +140,9 @@ export class UnifiedDatabaseManager {
 
       // Initialize the selected provider
       await this.initializeProvider();
+
+      // Check schema version and clear if outdated
+      await this.checkAndHandleSchemaVersion();
 
       // Create collections from schema definition
       await this.createCollections();
@@ -407,7 +408,6 @@ export class UnifiedDatabaseManager {
       console.log(`🔧 [UnifiedDatabaseManager] Initializing ${this.providerType} provider using factory...`);
 
       // Create database configuration using enhanced config
-      const unifiedConfig = getCurrentUnifiedConfig();
       const dbConfig = getDatabaseConfig();
       
       // Create provider-specific database configuration with safe defaults
@@ -467,6 +467,26 @@ export class UnifiedDatabaseManager {
   }
 
   /**
+   * Check schema version and clear database if outdated
+   */
+  private async checkAndHandleSchemaVersion(): Promise<void> {
+    try {
+      const appVersion = import.meta.env.VITE_APP_VERSION || '1.0.0';
+      const storedVersion = localStorage.getItem('sp-db-version');
+
+      if (storedVersion && storedVersion !== appVersion) {
+        console.log(`🔄 [UnifiedDatabaseManager] Schema version changed from ${storedVersion} to ${appVersion}. Clearing database...`);
+        await this.clearAllData();
+        console.log('✅ [UnifiedDatabaseManager] Database cleared for schema update');
+      }
+
+      localStorage.setItem('sp-db-version', appVersion);
+    } catch (error) {
+      console.warn('⚠️ [UnifiedDatabaseManager] Failed to check schema version:', error);
+    }
+  }
+
+  /**
    * Create collections from unified schema definition
    */
   private async createCollections(): Promise<void> {
@@ -514,16 +534,23 @@ export class UnifiedDatabaseManager {
    * Convert RxDB schema to provider-specific format
    */
   private convertSchema(collectionName: string, rxdbSchema: any): CollectionSchema {
+    const fallbackSchema: CollectionSchema = {
+      version: 0,
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        data: { type: 'object' },
+        created_at: { type: 'string' },
+        updated_at: { type: 'string' }
+      },
+      required: ['id'],
+      indexes: [{ fields: ['id'] }, { fields: ['created_at'] }],
+      primaryKey: 'id'
+    };
+
     if (!rxdbSchema || typeof rxdbSchema !== 'object') {
       console.warn(`[UnifiedDatabaseManager] No valid schema for collection '${collectionName}', using fallback`);
-      return {
-        version: 0,
-        type: 'object',
-        properties: {},
-        required: [],
-        indexes: [],
-        primaryKey: 'id'
-      };
+      return fallbackSchema;
     }
 
     try {
@@ -531,14 +558,7 @@ export class UnifiedDatabaseManager {
       return conversionResult.schema;
     } catch (error) {
       console.warn(`[UnifiedDatabaseManager] Schema conversion failed for '${collectionName}', using fallback:`, error);
-      return {
-        version: 0,
-        type: 'object',
-        properties: {},
-        required: [],
-        indexes: [],
-        primaryKey: 'id'
-      };
+      return fallbackSchema;
     }
   }
 

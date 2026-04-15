@@ -10,7 +10,7 @@ export * from './collections';
 export { 
   HRDataProvider,
   useHRDataContext 
-} from './HRDataProvider';
+} from './HRDataContext';
 
 export { usePayrollPeriodData } from './usePayrollPeriodData';
 export { usePayrollItemTypeData } from './usePayrollItemTypeData';

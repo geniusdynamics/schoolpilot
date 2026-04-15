@@ -8,7 +8,7 @@ export { useAdministrationData } from './useAdministrationData';
 export { 
   AdministrationDataProvider,
   useAdministrationDataContext 
-} from './AdministrationDataProvider';
+} from './AdministrationDataContext';
 
 export * from './types';
 export * from './mockData';

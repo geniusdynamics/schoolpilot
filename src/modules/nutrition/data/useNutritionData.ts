@@ -1,12 +1,11 @@
 // ABOUTME: Nutrition domain hook — MealPlans, Menus, StudentMealPlans,
 // ABOUTME: MealConsumptionLogs, Merchants, StudentWallets, WalletTransactions
+// ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '@/types';
+import { useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/types';
-
-type RawInitialData = AppDataContextType['rawInitialData'];
 
 // Cross-domain data refs needed for wallet/consumption logic
 export interface NutritionCrossDomainRefs {
@@ -16,104 +15,57 @@ export interface NutritionCrossDomainRefs {
   studentWallets: any[];
 }
 
-export function useNutritionData(_mockDataForSeeding: RawInitialData, crossDomainRefs?: NutritionCrossDomainRefs) {
-  const [nutritionData] = useState<{
-    mealPlans: any[];
-    menus: any[];
-    merchants: any[];
-    studentMealPlans: any[];
-    studentWallets: any[];
-  }>({
-    mealPlans: [],
-    menus: [],
-    merchants: [],
-    studentMealPlans: [],
-    studentWallets: [],
-  });
+export function useNutritionData(crossDomainRefs?: NutritionCrossDomainRefs) {
+  const mealPlansCollection = useDatabaseCollection<any>('meal_plans');
+  const menusCollection = useDatabaseCollection<any>('menus');
+  const merchantsCollection = useDatabaseCollection<any>('merchants');
+  const studentMealPlansCollection = useDatabaseCollection<any>('student_meal_plans');
+  const studentWalletsCollection = useDatabaseCollection<any>('student_wallets');
 
-  // Resolve cross-domain data (passed in or fall back to local empty arrays)
+  // Resolve cross-domain data (passed in or fall back to local DB-backed data)
   const getStudents = useCallback(() => crossDomainRefs?.students ?? [], [crossDomainRefs]);
-  const getMenus = useCallback(() => crossDomainRefs?.menus ?? nutritionData.menus, [crossDomainRefs, nutritionData.menus]);
-  const getStudentMealPlans = useCallback(() => crossDomainRefs?.studentMealPlans ?? nutritionData.studentMealPlans, [crossDomainRefs, nutritionData.studentMealPlans]);
-  const getStudentWallets = useCallback(() => crossDomainRefs?.studentWallets ?? nutritionData.studentWallets, [crossDomainRefs, nutritionData.studentWallets]);
+  const getMenus = useCallback(() => crossDomainRefs?.menus ?? menusCollection.data, [crossDomainRefs, menusCollection.data]);
+  const getStudentMealPlans = useCallback(() => crossDomainRefs?.studentMealPlans ?? studentMealPlansCollection.data, [crossDomainRefs, studentMealPlansCollection.data]);
+  const getStudentWallets = useCallback(() => crossDomainRefs?.studentWallets ?? studentWalletsCollection.data, [crossDomainRefs, studentWalletsCollection.data]);
 
   // ── Meal Plans ────────────────────────────────────────────────────────────────
   const addMealPlan = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.meal_plans?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding meal plan:', error); throw error; }
-  }, []);
+    return mealPlansCollection.insert(data);
+  }, [mealPlansCollection]);
 
   const updateMealPlan = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.meal_plans?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating meal plan:', error); throw error; }
-  }, []);
+    return mealPlansCollection.update(id, data);
+  }, [mealPlansCollection]);
 
   const deleteMealPlan = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.meal_plans?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting meal plan:', error); throw error; }
-  }, []);
+    return mealPlansCollection.remove(id);
+  }, [mealPlansCollection]);
 
   // ── Menus ─────────────────────────────────────────────────────────────────────
   const addMenu = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.menus?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding menu:', error); throw error; }
-  }, []);
+    return menusCollection.insert(data);
+  }, [menusCollection]);
 
   const updateMenu = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.menus?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating menu:', error); throw error; }
-  }, []);
+    return menusCollection.update(id, data);
+  }, [menusCollection]);
 
   const deleteMenu = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.menus?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting menu:', error); throw error; }
-  }, []);
+    return menusCollection.remove(id);
+  }, [menusCollection]);
 
   // ── Student Meal Plans ────────────────────────────────────────────────────────
   const addStudentMealPlan = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.student_meal_plans?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding student meal plan:', error); throw error; }
-  }, []);
+    return studentMealPlansCollection.insert(data);
+  }, [studentMealPlansCollection]);
 
   const updateStudentMealPlan = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.student_meal_plans?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating student meal plan:', error); throw error; }
-  }, []);
+    return studentMealPlansCollection.update(id, data);
+  }, [studentMealPlansCollection]);
 
   const deleteStudentMealPlan = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.student_meal_plans?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting student meal plan:', error); throw error; }
-  }, []);
+    return studentMealPlansCollection.remove(id);
+  }, [studentMealPlansCollection]);
 
   // ── Meal Consumption Logs ─────────────────────────────────────────────────────
   const addMealConsumptionLog = useCallback(async (logData: Omit<allTypes.MealConsumptionLog, 'id'>) => {
@@ -147,8 +99,8 @@ export function useNutritionData(_mockDataForSeeding: RawInitialData, crossDomai
           student_name: student ? `${(student as any).first_name || ''} ${(student as any).last_name || ''}`.trim() : undefined,
         });
 
-        if (currentWallet) {
-          await db.student_wallets?.update(String(logData.student_id), {
+        if (currentWallet?.id) {
+          await db.student_wallets?.update(String(currentWallet.id), {
             ...currentWallet,
             balance: nextBalance,
             last_updated: new Date().toISOString(),
@@ -181,29 +133,16 @@ export function useNutritionData(_mockDataForSeeding: RawInitialData, crossDomai
 
   // ── Merchants ─────────────────────────────────────────────────────────────────
   const addMerchant = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.merchants?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding merchant:', error); throw error; }
-  }, []);
+    return merchantsCollection.insert(data);
+  }, [merchantsCollection]);
 
   const updateMerchant = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.merchants?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating merchant:', error); throw error; }
-  }, []);
+    return merchantsCollection.update(id, data);
+  }, [merchantsCollection]);
 
   const deleteMerchant = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.merchants?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting merchant:', error); throw error; }
-  }, []);
+    return merchantsCollection.remove(id);
+  }, [merchantsCollection]);
 
   // ── Wallet Transactions ───────────────────────────────────────────────────────
   const addWalletTransaction = useCallback(async (transactionData: Omit<allTypes.WalletTransaction, 'id'>) => {
@@ -227,8 +166,8 @@ export function useNutritionData(_mockDataForSeeding: RawInitialData, crossDomai
 
       const result = await db.wallet_transactions?.insert(transactionWithId);
 
-      if (currentWallet) {
-        await db.student_wallets?.update(String(transactionData.student_id), {
+      if (currentWallet?.id) {
+        await db.student_wallets?.update(String(currentWallet.id), {
           ...currentWallet,
           balance: nextBalance,
           last_updated: new Date().toISOString(),
@@ -248,11 +187,11 @@ export function useNutritionData(_mockDataForSeeding: RawInitialData, crossDomai
 
   return {
     // Data
-    mealPlans: nutritionData.mealPlans,
-    menus: nutritionData.menus,
-    merchants: nutritionData.merchants,
-    studentMealPlans: nutritionData.studentMealPlans,
-    studentWallets: nutritionData.studentWallets,
+    mealPlans: mealPlansCollection.data,
+    menus: menusCollection.data,
+    merchants: merchantsCollection.data,
+    studentMealPlans: studentMealPlansCollection.data,
+    studentWallets: studentWalletsCollection.data,
 
     // CRUD
     addMealPlan, updateMealPlan, deleteMealPlan,

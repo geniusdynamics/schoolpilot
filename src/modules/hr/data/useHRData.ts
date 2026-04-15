@@ -1,76 +1,42 @@
 // ABOUTME: HR domain hook — PayrollPeriods, PayrollItemTypes, Payslips,
 // ABOUTME: StaffSalarySettings, LeaveRequests
+// ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '@/types';
+import { useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 
-type RawInitialData = AppDataContextType['rawInitialData'];
-
-export function useHRData(_mockDataForSeeding: RawInitialData) {
-  const [hrData] = useState<{
-    payrollPeriods: any[];
-    payrollItemTypes: any[];
-    staffSalarySettings: any[];
-    payslips: any[];
-  }>({
-    payrollPeriods: [],
-    payrollItemTypes: [],
-    staffSalarySettings: [],
-    payslips: [],
-  });
+export function useHRData() {
+  const payrollPeriodsCollection = useDatabaseCollection<any>('payroll_periods');
+  const payrollItemTypesCollection = useDatabaseCollection<any>('payroll_item_types');
+  const staffSalarySettingsCollection = useDatabaseCollection<any>('staff_salary_settings');
+  const payslipsCollection = useDatabaseCollection<any>('payslips');
 
   // ── Payroll Periods ───────────────────────────────────────────────────────────
   const addPayrollPeriod = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.payroll_periods?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding payroll period:', error); throw error; }
-  }, []);
+    return payrollPeriodsCollection.insert(data);
+  }, [payrollPeriodsCollection]);
 
   const updatePayrollPeriod = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.payroll_periods?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating payroll period:', error); throw error; }
-  }, []);
+    return payrollPeriodsCollection.update(id, data);
+  }, [payrollPeriodsCollection]);
 
   const deletePayrollPeriod = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.payroll_periods?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting payroll period:', error); throw error; }
-  }, []);
+    return payrollPeriodsCollection.remove(id);
+  }, [payrollPeriodsCollection]);
 
   // ── Payroll Item Types ────────────────────────────────────────────────────────
   const addPayrollItemType = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.payroll_item_types?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding payroll item type:', error); throw error; }
-  }, []);
+    return payrollItemTypesCollection.insert(data);
+  }, [payrollItemTypesCollection]);
 
   const updatePayrollItemType = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.payroll_item_types?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating payroll item type:', error); throw error; }
-  }, []);
+    return payrollItemTypesCollection.update(id, data);
+  }, [payrollItemTypesCollection]);
 
   const deletePayrollItemType = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.payroll_item_types?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting payroll item type:', error); throw error; }
-  }, []);
+    return payrollItemTypesCollection.remove(id);
+  }, [payrollItemTypesCollection]);
 
   // ── Staff Salary Settings ─────────────────────────────────────────────────────
   const updateStaffSalarySetting = useCallback(async (staffId: string, salaryData: any) => {
@@ -83,19 +49,15 @@ export function useHRData(_mockDataForSeeding: RawInitialData) {
 
   // ── Payslip Generation ────────────────────────────────────────────────────────
   const generatePayslipsForPeriod = useCallback(async (periodId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.payroll_periods?.update(periodId, { payslips_generated: true });
-      return result?.doc || null;
-    } catch (error) { console.error('Error generating payslips for period:', error); throw error; }
-  }, []);
+    return payrollPeriodsCollection.update(periodId, { payslips_generated: true });
+  }, [payrollPeriodsCollection]);
 
   return {
     // Data
-    payrollPeriods: hrData.payrollPeriods,
-    payrollItemTypes: hrData.payrollItemTypes,
-    staffSalarySettings: hrData.staffSalarySettings,
-    payslips: hrData.payslips,
+    payrollPeriods: payrollPeriodsCollection.data,
+    payrollItemTypes: payrollItemTypesCollection.data,
+    staffSalarySettings: staffSalarySettingsCollection.data,
+    payslips: payslipsCollection.data,
 
     // CRUD
     addPayrollPeriod, updatePayrollPeriod, deletePayrollPeriod,

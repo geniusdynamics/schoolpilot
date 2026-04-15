@@ -9,7 +9,7 @@ export { useFinanceData } from './useFinanceData';
 export { 
   FinanceDataProvider,
   useFinanceDataContext 
-} from './FinanceDataProvider';
+} from './FinanceDataContext';
 
 // Individual entity hooks
 import { useBankData } from './useBankData';

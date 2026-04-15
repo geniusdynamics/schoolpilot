@@ -1,74 +1,38 @@
 // ABOUTME: Administration domain hook — Students, Staff, Classes, Departments, Dormitories,
 // ABOUTME: Clubs, Partners, Attendance, Guardians, Health Records, Disciplinary records
+// ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '@/types';
+import { useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
-import { useToast } from '@/hooks/useToast';
+import { useToastHelpers } from '@/hooks/useToast';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from './types';
+import type { StudentDetailProfile } from '@/modules/academics/data/types';
 
-type RawInitialData = AppDataContextType['rawInitialData'];
+export function useAdministrationData() {
+  const studentsCollection = useDatabaseCollection<allTypes.Student>('students');
+  const staffCollection = useDatabaseCollection<any>('staff');
+  const classesCollection = useDatabaseCollection<allTypes.Class>('classes');
+  const classStreamsCollection = useDatabaseCollection<allTypes.ClassStream>('class_streams');
+  const departmentsCollection = useDatabaseCollection<allTypes.Department>('departments');
+  const designationsCollection = useDatabaseCollection<allTypes.Designation>('designations');
+  const studentCategoriesCollection = useDatabaseCollection<allTypes.StudentCategory>('student_categories');
+  const dormitoriesCollection = useDatabaseCollection<allTypes.Dormitory>('dormitories');
+  const parentsGuardiansCollection = useDatabaseCollection<any>('parents_guardians');
+  const partnersCollection = useDatabaseCollection<any>('partners');
+  const clubsCollection = useDatabaseCollection<any>('clubs');
+  const customersCollection = useDatabaseCollection<any>('customers');
+  const studentHealthRecordsCollection = useDatabaseCollection<allTypes.StudentHealthRecord>('student_health_records');
+  const studentAttendanceCollection = useDatabaseCollection<any>('student_attendance');
+  const disciplinaryRecordsCollection = useDatabaseCollection<any>('disciplinary_records');
+  const healthIncidentReportsCollection = useDatabaseCollection<any>('health_incident_reports');
+  const studentClassHistoryCollection = useDatabaseCollection<any>('student_class_history');
+  const studentGuardianRelationshipsCollection = useDatabaseCollection<allTypes.StudentGuardianRelationship>('student_guardian_relationships');
 
-export function useAdministrationData(mockDataForSeeding: RawInitialData) {
-  const [adminData] = useState<{
-    students: allTypes.Student[];
-    staff: any[];
-    classes: allTypes.Class[];
-    classStreams: allTypes.ClassStream[];
-    departments: allTypes.Department[];
-    designations: allTypes.Designation[];
-    studentCategories: allTypes.StudentCategory[];
-    dormitories: allTypes.Dormitory[];
-    parentsGuardians: any[];
-    partners: any[];
-    clubs: any[];
-    customers: any[];
-    studentHealthRecords: allTypes.StudentHealthRecord[];
-    studentAttendance: any[];
-    disciplinaryRecords: any[];
-    healthIncidentReports: any[];
-    studentClassHistory: any[];
-  }>({
-    students: [],
-    staff: [],
-    classes: [],
-    classStreams: [],
-    departments: [],
-    designations: [],
-    studentCategories: [],
-    dormitories: [],
-    parentsGuardians: [],
-    partners: [],
-    clubs: [],
-    customers: [],
-    studentHealthRecords: [],
-    studentAttendance: [],
-    disciplinaryRecords: [],
-    healthIncidentReports: [],
-    studentClassHistory: [],
-  });
-
-  const [localAttendance, setLocalAttendance] = useState<any[]>([]);
-  const toast = useToast();
-
-  // ── Helper: cached collections ──────────────────────────────────────────────
-  const getCachedCollection = useCallback(<T,>(cached: T[], fallback: T[] | undefined): T[] => {
-    if (Array.isArray(cached) && cached.length > 0) return cached;
-    return Array.isArray(fallback) ? fallback : cached;
-  }, []);
-
-  const getCachedStudents = useCallback(
-    () => getCachedCollection(adminData.students, mockDataForSeeding?.students),
-    [adminData.students, getCachedCollection, mockDataForSeeding]
-  );
-
-  const getCachedStudentAttendance = useCallback(
-    () => getCachedCollection([...adminData.studentAttendance, ...localAttendance], mockDataForSeeding?.studentAttendance),
-    [adminData.studentAttendance, localAttendance, getCachedCollection, mockDataForSeeding]
-  );
+  const toast = useToastHelpers();
 
   // ── Students ─────────────────────────────────────────────────────────────────
-  const getStudentDetailsById = useCallback(async (studentId: string): Promise<allTypes.StudentDetailProfile | null> => {
+  const getStudentDetailsById = useCallback(async (studentId: string): Promise<StudentDetailProfile | null> => {
     try {
       const db = await databaseService.getDatabase();
       const student = await db.students?.findById(studentId);
@@ -78,7 +42,7 @@ export function useAdministrationData(mockDataForSeeding: RawInitialData) {
       const guardians = guardianIds.length > 0
         ? await db.parents_guardians?.find({ selector: { id: { $in: guardianIds } } }) || []
         : [];
-      return { ...student, guardians } as allTypes.StudentDetailProfile;
+      return { ...student, guardians } as StudentDetailProfile;
     } catch (error) {
       console.error('Error fetching student details:', error);
       return null;
@@ -87,380 +51,210 @@ export function useAdministrationData(mockDataForSeeding: RawInitialData) {
 
   const addStudent = useCallback(async (studentData: Omit<allTypes.Student, 'id'>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const studentWithId = { ...studentData, id: crypto.randomUUID() };
-      const result = await db.students?.insert(studentWithId);
+      const result = await studentsCollection.insert(studentData);
       toast.showSuccess('Student created successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding student:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error adding student:', error);
       toast.showError(`Failed to create student: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [studentsCollection, toast]);
 
   const updateStudent = useCallback(async (studentId: string, studentData: Partial<allTypes.Student>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const result = await db.students?.update(studentId, studentData);
+      const result = await studentsCollection.update(studentId, studentData);
       toast.showSuccess('Student updated successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating student:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error updating student:', error);
       toast.showError(`Failed to update student: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [studentsCollection, toast]);
 
   const deleteStudent = useCallback(async (studentId: string) => {
     try {
-      const db = await databaseService.getDatabase();
-      await db.students?.remove(studentId);
+      await studentsCollection.remove(studentId);
       toast.showSuccess('Student deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting student:', error); 
+    } catch (error) {
+      console.error('Error deleting student:', error);
       toast.showError(`Failed to delete student: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [studentsCollection, toast]);
 
   // ── Staff ─────────────────────────────────────────────────────────────────────
   const addStaffMember = useCallback(async (staffData: Omit<any, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const staffWithId = { ...staffData, id: databaseService.generateId() };
-      const result = await db.staff?.insert(staffWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding staff member:', error); throw error; }
-  }, []);
+    return staffCollection.insert(staffData);
+  }, [staffCollection]);
 
   const updateStaffMember = useCallback(async (staffId: string, staffData: Partial<any>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.staff?.update(staffId, staffData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating staff member:', error); throw error; }
-  }, []);
+    return staffCollection.update(staffId, staffData);
+  }, [staffCollection]);
 
   const deleteStaffMember = useCallback(async (staffId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.staff?.remove(staffId);
-      return true;
-    } catch (error) { console.error('Error deleting staff member:', error); throw error; }
-  }, []);
+    return staffCollection.remove(staffId);
+  }, [staffCollection]);
 
   // ── Parents / Guardians ───────────────────────────────────────────────────────
   const addParentGuardian = useCallback(async (guardianData: Omit<any, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...guardianData, id: databaseService.generateId() };
-      const result = await db.parents_guardians?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding parent/guardian:', error); throw error; }
-  }, []);
+    return parentsGuardiansCollection.insert(guardianData);
+  }, [parentsGuardiansCollection]);
 
   const updateParentGuardian = useCallback(async (guardianId: string, guardianData: Partial<any>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.parents_guardians?.update(guardianId, guardianData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating parent/guardian:', error); throw error; }
-  }, []);
+    return parentsGuardiansCollection.update(guardianId, guardianData);
+  }, [parentsGuardiansCollection]);
 
   const deleteParentGuardian = useCallback(async (guardianId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.parents_guardians?.remove(guardianId);
-      return true;
-    } catch (error) { console.error('Error deleting parent/guardian:', error); throw error; }
-  }, []);
+    return parentsGuardiansCollection.remove(guardianId);
+  }, [parentsGuardiansCollection]);
 
   const addStudentGuardianRelationship = useCallback(async (data: Omit<allTypes.StudentGuardianRelationship, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.student_guardian_relationships?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding student-guardian relationship:', error); throw error; }
-  }, []);
+    return studentGuardianRelationshipsCollection.insert(data);
+  }, [studentGuardianRelationshipsCollection]);
 
   const updateStudentGuardianRelationship = useCallback(async (id: string, data: Partial<allTypes.StudentGuardianRelationship>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.student_guardian_relationships?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating student-guardian relationship:', error); throw error; }
-  }, []);
+    return studentGuardianRelationshipsCollection.update(id, data);
+  }, [studentGuardianRelationshipsCollection]);
 
   const deleteStudentGuardianRelationship = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.student_guardian_relationships?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting student-guardian relationship:', error); throw error; }
-  }, []);
+    return studentGuardianRelationshipsCollection.remove(id);
+  }, [studentGuardianRelationshipsCollection]);
 
   // ── Departments / Designations ────────────────────────────────────────────────
   const addDepartment = useCallback(async (data: Omit<allTypes.Department, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.departments?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding department:', error); throw error; }
-  }, []);
+    return departmentsCollection.insert(data);
+  }, [departmentsCollection]);
 
   const updateDepartment = useCallback(async (id: string, data: Partial<allTypes.Department>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.departments?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating department:', error); throw error; }
-  }, []);
+    return departmentsCollection.update(id, data);
+  }, [departmentsCollection]);
 
   const deleteDepartment = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.departments?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting department:', error); throw error; }
-  }, []);
+    return departmentsCollection.remove(id);
+  }, [departmentsCollection]);
 
   const addDesignation = useCallback(async (data: Omit<allTypes.Designation, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.designations?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding designation:', error); throw error; }
-  }, []);
+    return designationsCollection.insert(data);
+  }, [designationsCollection]);
 
   const updateDesignation = useCallback(async (id: string, data: Partial<allTypes.Designation>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.designations?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating designation:', error); throw error; }
-  }, []);
+    return designationsCollection.update(id, data);
+  }, [designationsCollection]);
 
   const deleteDesignation = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.designations?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting designation:', error); throw error; }
-  }, []);
+    return designationsCollection.remove(id);
+  }, [designationsCollection]);
 
   // ── Student Categories ────────────────────────────────────────────────────────
   const addStudentCategory = useCallback(async (data: Omit<allTypes.StudentCategory, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.student_categories?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding student category:', error); throw error; }
-  }, []);
+    return studentCategoriesCollection.insert(data);
+  }, [studentCategoriesCollection]);
 
   const updateStudentCategory = useCallback(async (id: string, data: Partial<allTypes.StudentCategory>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.student_categories?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating student category:', error); throw error; }
-  }, []);
+    return studentCategoriesCollection.update(id, data);
+  }, [studentCategoriesCollection]);
 
   const deleteStudentCategory = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.student_categories?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting student category:', error); throw error; }
-  }, []);
+    return studentCategoriesCollection.remove(id);
+  }, [studentCategoriesCollection]);
 
   // ── Dormitories ───────────────────────────────────────────────────────────────
   const addDormitory = useCallback(async (data: Omit<allTypes.Dormitory, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.dormitories?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding dormitory:', error); throw error; }
-  }, []);
+    return dormitoriesCollection.insert(data);
+  }, [dormitoriesCollection]);
 
   const updateDormitory = useCallback(async (id: string, data: Partial<allTypes.Dormitory>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.dormitories?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating dormitory:', error); throw error; }
-  }, []);
+    return dormitoriesCollection.update(id, data);
+  }, [dormitoriesCollection]);
 
   const deleteDormitory = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.dormitories?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting dormitory:', error); throw error; }
-  }, []);
+    return dormitoriesCollection.remove(id);
+  }, [dormitoriesCollection]);
 
   // ── Classes / Streams ─────────────────────────────────────────────────────────
   const addClass = useCallback(async (data: Omit<allTypes.Class, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.classes?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding class:', error); throw error; }
-  }, []);
+    return classesCollection.insert(data);
+  }, [classesCollection]);
 
   const updateClass = useCallback(async (id: string, data: Partial<allTypes.Class>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.classes?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating class:', error); throw error; }
-  }, []);
+    return classesCollection.update(id, data);
+  }, [classesCollection]);
 
   const deleteClass = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.classes?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting class:', error); throw error; }
-  }, []);
+    return classesCollection.remove(id);
+  }, [classesCollection]);
 
   const addClassStream = useCallback(async (data: Omit<allTypes.ClassStream, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.class_streams?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding class stream:', error); throw error; }
-  }, []);
+    return classStreamsCollection.insert(data);
+  }, [classStreamsCollection]);
 
   const updateClassStream = useCallback(async (id: string, data: Partial<allTypes.ClassStream>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.class_streams?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating class stream:', error); throw error; }
-  }, []);
+    return classStreamsCollection.update(id, data);
+  }, [classStreamsCollection]);
 
   const deleteClassStream = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.class_streams?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting class stream:', error); throw error; }
-  }, []);
+    return classStreamsCollection.remove(id);
+  }, [classStreamsCollection]);
 
   // ── Partners / Clubs / Customers ──────────────────────────────────────────────
   const addPartner = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.partners?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding Partner:', error); throw error; }
-  }, []);
+    return partnersCollection.insert(data);
+  }, [partnersCollection]);
+
   const updatePartner = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.partners?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating Partner:', error); throw error; }
-  }, []);
+    return partnersCollection.update(id, data);
+  }, [partnersCollection]);
+
   const deletePartner = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.partners?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting Partner:', error); throw error; }
-  }, []);
+    return partnersCollection.remove(id);
+  }, [partnersCollection]);
 
   const addClub = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.clubs?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding Club:', error); throw error; }
-  }, []);
+    return clubsCollection.insert(data);
+  }, [clubsCollection]);
+
   const updateClub = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.clubs?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating Club:', error); throw error; }
-  }, []);
+    return clubsCollection.update(id, data);
+  }, [clubsCollection]);
+
   const deleteClub = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.clubs?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting Club:', error); throw error; }
-  }, []);
+    return clubsCollection.remove(id);
+  }, [clubsCollection]);
 
   const addCustomer = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.customers?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding Customer:', error); throw error; }
-  }, []);
+    return customersCollection.insert(data);
+  }, [customersCollection]);
+
   const updateCustomer = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.customers?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating Customer:', error); throw error; }
-  }, []);
+    return customersCollection.update(id, data);
+  }, [customersCollection]);
+
   const deleteCustomer = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.customers?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting Customer:', error); throw error; }
-  }, []);
+    return customersCollection.remove(id);
+  }, [customersCollection]);
 
   // ── Student Health ────────────────────────────────────────────────────────────
   const addStudentHealthRecord = useCallback(async (data: Omit<allTypes.StudentHealthRecord, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.student_health_records?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding student health record:', error); throw error; }
-  }, []);
+    return studentHealthRecordsCollection.insert(data);
+  }, [studentHealthRecordsCollection]);
 
   const updateStudentHealthRecord = useCallback(async (id: string, data: Partial<allTypes.StudentHealthRecord>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.student_health_records?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating student health record:', error); throw error; }
-  }, []);
+    return studentHealthRecordsCollection.update(id, data);
+  }, [studentHealthRecordsCollection]);
 
   // ── Attendance ────────────────────────────────────────────────────────────────
   const saveStudentAttendance = useCallback(async (attendanceData: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...attendanceData, id: databaseService.generateId() };
-      const result = await db.student_attendance?.insert(d);
-      const saved = result?.doc || d;
-      setLocalAttendance(prev => [...prev, saved]);
-      return saved;
-    } catch (error) { console.error('Error saving student attendance:', error); throw error; }
-  }, []);
+    return studentAttendanceCollection.insert(attendanceData);
+  }, [studentAttendanceCollection]);
 
   const getStudentAttendanceByFilters = useCallback(
     (dateOrFilters: string | { selector?: Record<string, unknown> }, classStreamId?: number, periodId?: number) => {
       try {
-        const attendanceRecords = getCachedStudentAttendance();
-        const students = getCachedStudents();
+        const attendanceRecords = studentAttendanceCollection.data;
+        const students = studentsCollection.data;
 
         if (typeof dateOrFilters === 'string') {
           if (classStreamId === undefined || periodId === undefined) return [];
@@ -489,28 +283,28 @@ export function useAdministrationData(mockDataForSeeding: RawInitialData) {
         return [];
       }
     },
-    [getCachedStudentAttendance, getCachedStudents]
+    [studentAttendanceCollection.data, studentsCollection.data]
   );
 
   return {
     // Data
-    students: adminData.students,
-    staff: adminData.staff,
-    classes: adminData.classes,
-    classStreams: adminData.classStreams,
-    departments: adminData.departments,
-    designations: adminData.designations,
-    studentCategories: adminData.studentCategories,
-    dormitories: adminData.dormitories,
-    parentsGuardians: adminData.parentsGuardians,
-    partners: adminData.partners,
-    clubs: adminData.clubs,
-    customers: adminData.customers,
-    studentHealthRecords: adminData.studentHealthRecords,
-    studentAttendance: adminData.studentAttendance,
-    disciplinaryRecords: adminData.disciplinaryRecords,
-    healthIncidentReports: adminData.healthIncidentReports,
-    studentClassHistory: adminData.studentClassHistory,
+    students: studentsCollection.data,
+    staff: staffCollection.data,
+    classes: classesCollection.data,
+    classStreams: classStreamsCollection.data,
+    departments: departmentsCollection.data,
+    designations: designationsCollection.data,
+    studentCategories: studentCategoriesCollection.data,
+    dormitories: dormitoriesCollection.data,
+    parentsGuardians: parentsGuardiansCollection.data,
+    partners: partnersCollection.data,
+    clubs: clubsCollection.data,
+    customers: customersCollection.data,
+    studentHealthRecords: studentHealthRecordsCollection.data,
+    studentAttendance: studentAttendanceCollection.data,
+    disciplinaryRecords: disciplinaryRecordsCollection.data,
+    healthIncidentReports: healthIncidentReportsCollection.data,
+    studentClassHistory: studentClassHistoryCollection.data,
 
     // CRUD
     getStudentDetailsById,
@@ -529,7 +323,7 @@ export function useAdministrationData(mockDataForSeeding: RawInitialData) {
     addCustomer, updateCustomer, deleteCustomer,
     addStudentHealthRecord, updateStudentHealthRecord,
     saveStudentAttendance, getStudentAttendanceByFilters,
-    
+
     // Aliases for page compatibility
     createStudent: addStudent,
     createStaffMember: addStaffMember,

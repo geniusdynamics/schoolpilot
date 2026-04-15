@@ -6,7 +6,7 @@
 export { 
   NutritionDataProvider,
   useNutritionDataContext 
-} from './NutritionDataProvider';
+} from './NutritionDataContext';
 
 import { useMealConsumptionLogData } from './useMealConsumptionLogData';
 import { useMealPlanData } from './useMealPlanData';

@@ -2,551 +2,359 @@
 // ABOUTME: ExpenseClaims, ExpenseCategories, CustomerInvoices, SupplierInvoices, StudentOpeningBalances,
 // ABOUTME: FeeAdjustments, TransportRoutes, StudentTransportAssignments, StudentInvoices,
 // ABOUTME: StudentPayments, GeneralPayments, FinancialYears, GeneralLedgerEntries
+// ABOUTME: Uses real database-backed hooks for persistent data
 
-import { useState, useCallback } from 'react';
-import type { AppDataContextType } from '@/types';
+import { useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
-import { useToast } from '@/hooks/useToast';
+import { useToastHelpers } from '@/hooks/useToast';
+import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/modules/finance/data/types';
 
-type RawInitialData = AppDataContextType['rawInitialData'];
+export function useFinanceData() {
+  const chartOfAccountsCollection = useDatabaseCollection<allTypes.ChartOfAccount>('chart_of_accounts');
+  const banksCollection = useDatabaseCollection<allTypes.Bank>('banks');
+  const suppliersCollection = useDatabaseCollection<allTypes.Supplier>('suppliers');
+  const feeTemplatesCollection = useDatabaseCollection<allTypes.FeeTemplate>('fee_templates');
+  const feeTemplateItemsCollection = useDatabaseCollection<allTypes.FeeTemplateItem>('fee_template_items');
+  const expenseCategoriesCollection = useDatabaseCollection<allTypes.ExpenseCategory>('expense_categories');
+  const expenseClaimsCollection = useDatabaseCollection<allTypes.ExpenseClaim>('expense_claims');
+  const supplierInvoicesCollection = useDatabaseCollection<allTypes.SupplierInvoice>('supplier_invoices');
+  const customerInvoicesCollection = useDatabaseCollection<allTypes.CustomerInvoice>('customer_invoices');
+  const studentOpeningBalancesCollection = useDatabaseCollection<allTypes.StudentOpeningBalance>('student_opening_balances');
+  const feeAdjustmentsCollection = useDatabaseCollection<allTypes.FeeAdjustment>('fee_adjustments');
+  const transportRoutesCollection = useDatabaseCollection<allTypes.TransportRoute>('transport_routes');
+  const studentTransportAssignmentsCollection = useDatabaseCollection<allTypes.StudentTransportAssignment>('student_transport_assignments');
+  const studentInvoicesCollection = useDatabaseCollection<allTypes.StudentInvoice>('student_invoices');
+  const studentInvoiceItemsCollection = useDatabaseCollection<allTypes.StudentInvoiceItem>('student_invoice_items');
+  const studentPaymentsCollection = useDatabaseCollection<allTypes.StudentPayment>('student_payments');
+  const invoicePaymentApplicationsCollection = useDatabaseCollection<allTypes.InvoicePaymentApplication>('invoice_payment_applications');
+  const generalPaymentsCollection = useDatabaseCollection<allTypes.GeneralPayment>('general_payments');
+  const generalLedgerEntriesCollection = useDatabaseCollection<allTypes.GeneralLedgerEntry>('general_ledger_entries');
+  const financialYearsCollection = useDatabaseCollection<allTypes.FinancialYear>('financial_years');
 
-export function useFinanceData(_mockDataForSeeding: RawInitialData) {
-  const [financeData] = useState<{
-    chartOfAccounts: allTypes.ChartOfAccount[];
-    banks: allTypes.Bank[];
-    suppliers: allTypes.Supplier[];
-    feeTemplates: allTypes.FeeTemplate[];
-    feeTemplateItems: allTypes.FeeTemplateItem[];
-    expenseCategories: allTypes.ExpenseCategory[];
-    expenseClaims: allTypes.ExpenseClaim[];
-    supplierInvoices: allTypes.SupplierInvoice[];
-    customerInvoices: allTypes.CustomerInvoice[];
-    studentOpeningBalances: allTypes.StudentOpeningBalance[];
-    feeAdjustments: allTypes.FeeAdjustment[];
-    transportRoutes: allTypes.TransportRoute[];
-    studentTransportAssignments: allTypes.StudentTransportAssignment[];
-    studentInvoices: allTypes.StudentInvoice[];
-    studentInvoiceItems: allTypes.StudentInvoiceItem[];
-    studentPayments: allTypes.StudentPayment[];
-    invoicePaymentApplications: allTypes.InvoicePaymentApplication[];
-    generalPayments: allTypes.GeneralPayment[];
-    generalLedgerEntries: allTypes.GeneralLedgerEntry[];
-    financialYears: allTypes.FinancialYear[];
-  }>({
-    chartOfAccounts: [],
-    banks: [],
-    suppliers: [],
-    feeTemplates: [],
-    feeTemplateItems: [],
-    expenseCategories: [],
-    expenseClaims: [],
-    supplierInvoices: [],
-    customerInvoices: [],
-    studentOpeningBalances: [],
-    feeAdjustments: [],
-    transportRoutes: [],
-    studentTransportAssignments: [],
-    studentInvoices: [],
-    studentInvoiceItems: [],
-    studentPayments: [],
-    invoicePaymentApplications: [],
-    generalPayments: [],
-    generalLedgerEntries: [],
-    financialYears: [],
-  });
-
-  const toast = useToast();
+  const toast = useToastHelpers();
 
   // ── Chart of Accounts ─────────────────────────────────────────────────────────
   const addChartOfAccount = useCallback(async (accountData: Omit<allTypes.ChartOfAccount, 'id'>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const accountWithId = { ...accountData, id: databaseService.generateId() };
-      const result = await db.chart_of_accounts?.insert(accountWithId);
+      const result = await chartOfAccountsCollection.insert(accountData);
       toast.showSuccess('Chart of account created successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding chart of account:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error adding chart of account:', error);
       toast.showError(`Failed to create chart of account: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [chartOfAccountsCollection, toast]);
 
   const updateChartOfAccount = useCallback(async (accountId: string, accountData: Partial<allTypes.ChartOfAccount>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const result = await db.chart_of_accounts?.update(accountId, accountData);
+      const result = await chartOfAccountsCollection.update(accountId, accountData);
       toast.showSuccess('Chart of account updated successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating chart of account:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error updating chart of account:', error);
       toast.showError(`Failed to update chart of account: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [chartOfAccountsCollection, toast]);
 
   const deleteChartOfAccount = useCallback(async (accountId: string) => {
     try {
-      const db = await databaseService.getDatabase();
-      await db.chart_of_accounts?.remove(accountId);
+      await chartOfAccountsCollection.remove(accountId);
       toast.showSuccess('Chart of account deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting chart of account:', error); 
+    } catch (error) {
+      console.error('Error deleting chart of account:', error);
       toast.showError(`Failed to delete chart of account: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [chartOfAccountsCollection, toast]);
 
   // ── Banks ─────────────────────────────────────────────────────────────────────
   const addBank = useCallback(async (bankData: Omit<allTypes.Bank, 'id'>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const bankWithId = { ...bankData, id: Date.now() };
-      const result = await db.banks?.insert(bankWithId);
+      const result = await banksCollection.insert(bankData);
       toast.showSuccess('Bank created successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding bank:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error adding bank:', error);
       toast.showError(`Failed to create bank: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [banksCollection, toast]);
 
   const updateBank = useCallback(async (bankId: string, bankData: Partial<allTypes.Bank>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const result = await db.banks?.update(bankId, bankData);
+      const result = await banksCollection.update(bankId, bankData);
       toast.showSuccess('Bank updated successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating bank:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error updating bank:', error);
       toast.showError(`Failed to update bank: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [banksCollection, toast]);
 
   const deleteBank = useCallback(async (bankId: string) => {
     try {
-      const db = await databaseService.getDatabase();
-      await db.banks?.remove(bankId);
+      await banksCollection.remove(bankId);
       toast.showSuccess('Bank deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting bank:', error); 
+    } catch (error) {
+      console.error('Error deleting bank:', error);
       toast.showError(`Failed to delete bank: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [banksCollection, toast]);
 
   // ── Suppliers ─────────────────────────────────────────────────────────────────
   const addSupplier = useCallback(async (supplierData: Omit<allTypes.Supplier, 'id'>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const supplierWithId = { ...supplierData, id: crypto.randomUUID() };
-      const result = await db.suppliers?.insert(supplierWithId);
+      const result = await suppliersCollection.insert(supplierData);
       toast.showSuccess('Supplier created successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding supplier:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error adding supplier:', error);
       toast.showError(`Failed to create supplier: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [suppliersCollection, toast]);
 
   const updateSupplier = useCallback(async (supplierId: string, supplierData: Partial<allTypes.Supplier>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const result = await db.suppliers?.update(supplierId, supplierData);
+      const result = await suppliersCollection.update(supplierId, supplierData);
       toast.showSuccess('Supplier updated successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating supplier:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error updating supplier:', error);
       toast.showError(`Failed to update supplier: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [suppliersCollection, toast]);
 
   const deleteSupplier = useCallback(async (supplierId: string) => {
     try {
-      const db = await databaseService.getDatabase();
-      await db.suppliers?.remove(supplierId);
+      await suppliersCollection.remove(supplierId);
       toast.showSuccess('Supplier deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting supplier:', error); 
+    } catch (error) {
+      console.error('Error deleting supplier:', error);
       toast.showError(`Failed to delete supplier: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [suppliersCollection, toast]);
 
   // ── Fee Templates ─────────────────────────────────────────────────────────────
   const addFeeTemplate = useCallback(async (templateData: Omit<allTypes.FeeTemplate, 'id'>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const templateWithId = { ...templateData, id: Date.now() };
-      const result = await db.fee_templates?.insert(templateWithId);
+      const result = await feeTemplatesCollection.insert(templateData);
       toast.showSuccess('Fee template created successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error adding fee template:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error adding fee template:', error);
       toast.showError(`Failed to create fee template: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [feeTemplatesCollection, toast]);
 
   const updateFeeTemplate = useCallback(async (templateId: string, templateData: Partial<allTypes.FeeTemplate>) => {
     try {
-      const db = await databaseService.getDatabase();
-      const result = await db.fee_templates?.update(templateId, templateData);
+      const result = await feeTemplatesCollection.update(templateId, templateData);
       toast.showSuccess('Fee template updated successfully');
-      return result?.doc || null;
-    } catch (error) { 
-      console.error('Error updating fee template:', error); 
+      return result;
+    } catch (error) {
+      console.error('Error updating fee template:', error);
       toast.showError(`Failed to update fee template: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [feeTemplatesCollection, toast]);
 
   const deleteFeeTemplate = useCallback(async (templateId: string) => {
     try {
-      const db = await databaseService.getDatabase();
-      await db.fee_templates?.remove(templateId);
+      await feeTemplatesCollection.remove(templateId);
       toast.showSuccess('Fee template deleted successfully');
       return true;
-    } catch (error) { 
-      console.error('Error deleting fee template:', error); 
+    } catch (error) {
+      console.error('Error deleting fee template:', error);
       toast.showError(`Failed to delete fee template: ${error}`);
-      throw error; 
+      throw error;
     }
-  }, [toast]);
+  }, [feeTemplatesCollection, toast]);
 
   // ── Expense Claims ────────────────────────────────────────────────────────────
   const addExpenseClaim = useCallback(async (claimData: Omit<allTypes.ExpenseClaim, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const claimWithId = { ...claimData, id: databaseService.generateId() };
-      const result = await db.expense_claims?.insert(claimWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding expense claim:', error); throw error; }
-  }, []);
+    return expenseClaimsCollection.insert(claimData);
+  }, [expenseClaimsCollection]);
 
   const updateExpenseClaim = useCallback(async (claimId: string, claimData: Partial<allTypes.ExpenseClaim>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.expense_claims?.update(claimId, claimData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating expense claim:', error); throw error; }
-  }, []);
+    return expenseClaimsCollection.update(claimId, claimData);
+  }, [expenseClaimsCollection]);
 
   const deleteExpenseClaim = useCallback(async (claimId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.expense_claims?.remove(claimId);
-      return true;
-    } catch (error) { console.error('Error deleting expense claim:', error); throw error; }
-  }, []);
+    return expenseClaimsCollection.remove(claimId);
+  }, [expenseClaimsCollection]);
 
   // ── Expense Categories ────────────────────────────────────────────────────────
   const addExpenseCategory = useCallback(async (categoryData: Omit<allTypes.ExpenseCategory, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const categoryWithId = { ...categoryData, id: databaseService.generateId() };
-      const result = await db.expense_categories?.insert(categoryWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding expense category:', error); throw error; }
-  }, []);
+    return expenseCategoriesCollection.insert(categoryData);
+  }, [expenseCategoriesCollection]);
 
   const updateExpenseCategory = useCallback(async (categoryId: string, categoryData: Partial<allTypes.ExpenseCategory>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.expense_categories?.update(categoryId, categoryData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating expense category:', error); throw error; }
-  }, []);
+    return expenseCategoriesCollection.update(categoryId, categoryData);
+  }, [expenseCategoriesCollection]);
 
   const deleteExpenseCategory = useCallback(async (categoryId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.expense_categories?.remove(categoryId);
-      return true;
-    } catch (error) { console.error('Error deleting expense category:', error); throw error; }
-  }, []);
+    return expenseCategoriesCollection.remove(categoryId);
+  }, [expenseCategoriesCollection]);
 
   // ── Customer Invoices ─────────────────────────────────────────────────────────
   const addCustomerInvoice = useCallback(async (invoiceData: Omit<allTypes.CustomerInvoice, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const invoiceWithId = { ...invoiceData, id: databaseService.generateId() };
-      const result = await db.customer_invoices?.insert(invoiceWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding customer invoice:', error); throw error; }
-  }, []);
+    return customerInvoicesCollection.insert(invoiceData);
+  }, [customerInvoicesCollection]);
 
   const updateCustomerInvoice = useCallback(async (invoiceId: string, invoiceData: Partial<allTypes.CustomerInvoice>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.customer_invoices?.update(invoiceId, invoiceData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating customer invoice:', error); throw error; }
-  }, []);
+    return customerInvoicesCollection.update(invoiceId, invoiceData);
+  }, [customerInvoicesCollection]);
 
   const deleteCustomerInvoice = useCallback(async (invoiceId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.customer_invoices?.remove(invoiceId);
-      return true;
-    } catch (error) { console.error('Error deleting customer invoice:', error); throw error; }
-  }, []);
+    return customerInvoicesCollection.remove(invoiceId);
+  }, [customerInvoicesCollection]);
 
   // ── Supplier Invoices ─────────────────────────────────────────────────────────
   const addSupplierInvoice = useCallback(async (invoiceData: Omit<allTypes.SupplierInvoice, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const invoiceWithId = { ...invoiceData, id: databaseService.generateId() };
-      const result = await db.supplier_invoices?.insert(invoiceWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding supplier invoice:', error); throw error; }
-  }, []);
+    return supplierInvoicesCollection.insert(invoiceData);
+  }, [supplierInvoicesCollection]);
 
   const updateSupplierInvoice = useCallback(async (invoiceId: string, invoiceData: Partial<allTypes.SupplierInvoice>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.supplier_invoices?.update(invoiceId, invoiceData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating supplier invoice:', error); throw error; }
-  }, []);
+    return supplierInvoicesCollection.update(invoiceId, invoiceData);
+  }, [supplierInvoicesCollection]);
 
   const deleteSupplierInvoice = useCallback(async (invoiceId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.supplier_invoices?.remove(invoiceId);
-      return true;
-    } catch (error) { console.error('Error deleting supplier invoice:', error); throw error; }
-  }, []);
+    return supplierInvoicesCollection.remove(invoiceId);
+  }, [supplierInvoicesCollection]);
 
   // ── Student Opening Balances ──────────────────────────────────────────────────
   const addStudentOpeningBalance = useCallback(async (balanceData: Omit<allTypes.StudentOpeningBalance, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const balanceWithId = { ...balanceData, id: databaseService.generateId() };
-      const result = await db.student_opening_balances?.insert(balanceWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding student opening balance:', error); throw error; }
-  }, []);
+    return studentOpeningBalancesCollection.insert(balanceData);
+  }, [studentOpeningBalancesCollection]);
 
   const updateStudentOpeningBalance = useCallback(async (balanceId: string, balanceData: Partial<allTypes.StudentOpeningBalance>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.student_opening_balances?.update(balanceId, balanceData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating student opening balance:', error); throw error; }
-  }, []);
+    return studentOpeningBalancesCollection.update(balanceId, balanceData);
+  }, [studentOpeningBalancesCollection]);
 
   const deleteStudentOpeningBalance = useCallback(async (balanceId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.student_opening_balances?.remove(balanceId);
-      return true;
-    } catch (error) { console.error('Error deleting student opening balance:', error); throw error; }
-  }, []);
+    return studentOpeningBalancesCollection.remove(balanceId);
+  }, [studentOpeningBalancesCollection]);
 
   // ── Fee Adjustments ───────────────────────────────────────────────────────────
   const addFeeAdjustment = useCallback(async (adjustmentData: Omit<allTypes.FeeAdjustment, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const adjustmentWithId = { ...adjustmentData, id: databaseService.generateId() };
-      const result = await db.fee_adjustments?.insert(adjustmentWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding fee adjustment:', error); throw error; }
-  }, []);
+    return feeAdjustmentsCollection.insert(adjustmentData);
+  }, [feeAdjustmentsCollection]);
 
   const updateFeeAdjustment = useCallback(async (adjustmentId: string, adjustmentData: Partial<allTypes.FeeAdjustment>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.fee_adjustments?.update(adjustmentId, adjustmentData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating fee adjustment:', error); throw error; }
-  }, []);
+    return feeAdjustmentsCollection.update(adjustmentId, adjustmentData);
+  }, [feeAdjustmentsCollection]);
 
   const deleteFeeAdjustment = useCallback(async (adjustmentId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.fee_adjustments?.remove(adjustmentId);
-      return true;
-    } catch (error) { console.error('Error deleting fee adjustment:', error); throw error; }
-  }, []);
+    return feeAdjustmentsCollection.remove(adjustmentId);
+  }, [feeAdjustmentsCollection]);
 
   // ── Transport Routes ──────────────────────────────────────────────────────────
   const addTransportRoute = useCallback(async (routeData: Omit<allTypes.TransportRoute, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const routeWithId = { ...routeData, id: databaseService.generateId() };
-      const result = await db.transport_routes?.insert(routeWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding transport route:', error); throw error; }
-  }, []);
+    return transportRoutesCollection.insert(routeData);
+  }, [transportRoutesCollection]);
 
   const updateTransportRoute = useCallback(async (routeId: string, routeData: Partial<allTypes.TransportRoute>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.transport_routes?.update(routeId, routeData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating transport route:', error); throw error; }
-  }, []);
+    return transportRoutesCollection.update(routeId, routeData);
+  }, [transportRoutesCollection]);
 
   const deleteTransportRoute = useCallback(async (routeId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.transport_routes?.remove(routeId);
-      return true;
-    } catch (error) { console.error('Error deleting transport route:', error); throw error; }
-  }, []);
+    return transportRoutesCollection.remove(routeId);
+  }, [transportRoutesCollection]);
 
   // ── Student Transport Assignments ─────────────────────────────────────────────
   const addStudentTransportAssignment = useCallback(async (assignmentData: Omit<allTypes.StudentTransportAssignment, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const assignmentWithId = { ...assignmentData, id: databaseService.generateId() };
-      const result = await db.student_transport_assignments?.insert(assignmentWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding student transport assignment:', error); throw error; }
-  }, []);
+    return studentTransportAssignmentsCollection.insert(assignmentData);
+  }, [studentTransportAssignmentsCollection]);
 
   const updateStudentTransportAssignment = useCallback(async (assignmentId: string, assignmentData: Partial<allTypes.StudentTransportAssignment>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.student_transport_assignments?.update(assignmentId, assignmentData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating student transport assignment:', error); throw error; }
-  }, []);
+    return studentTransportAssignmentsCollection.update(assignmentId, assignmentData);
+  }, [studentTransportAssignmentsCollection]);
 
   const deleteStudentTransportAssignment = useCallback(async (assignmentId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.student_transport_assignments?.remove(assignmentId);
-      return true;
-    } catch (error) { console.error('Error deleting student transport assignment:', error); throw error; }
-  }, []);
+    return studentTransportAssignmentsCollection.remove(assignmentId);
+  }, [studentTransportAssignmentsCollection]);
 
   // ── Student Invoices / Payments ───────────────────────────────────────────────
   const generateStudentInvoices = useCallback(async (invoiceData: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const invoiceWithId = { ...invoiceData, id: databaseService.generateId() };
-      const result = await db.customer_invoices?.insert(invoiceWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error generating student invoices:', error); throw error; }
-  }, []);
+    return customerInvoicesCollection.insert(invoiceData);
+  }, [customerInvoicesCollection]);
 
   const addStudentPayment = useCallback(async (paymentData: Omit<allTypes.StudentPayment, 'id'>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const paymentWithId = { ...paymentData, id: databaseService.generateId() };
-      const result = await db.student_payments?.insert(paymentWithId);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding student payment:', error); throw error; }
-  }, []);
+    return studentPaymentsCollection.insert(paymentData);
+  }, [studentPaymentsCollection]);
 
   const updateStudentPayment = useCallback(async (paymentId: string, paymentData: Partial<allTypes.StudentPayment>) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.student_payments?.update(paymentId, paymentData);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating student payment:', error); throw error; }
-  }, []);
+    return studentPaymentsCollection.update(paymentId, paymentData);
+  }, [studentPaymentsCollection]);
 
   const deleteStudentPayment = useCallback(async (paymentId: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.student_payments?.remove(paymentId);
-      return true;
-    } catch (error) { console.error('Error deleting student payment:', error); throw error; }
-  }, []);
+    return studentPaymentsCollection.remove(paymentId);
+  }, [studentPaymentsCollection]);
 
   const applyPaymentToInvoices = useCallback(async (paymentId: string, invoiceIds: string[]) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.student_payments?.update(paymentId, { applied_to_invoices: invoiceIds });
-      return result?.doc || null;
-    } catch (error) { console.error('Error applying payment to invoices:', error); throw error; }
-  }, []);
+    return studentPaymentsCollection.update(paymentId, { applied_to_invoices: invoiceIds });
+  }, [studentPaymentsCollection]);
 
   // ── General Payments ──────────────────────────────────────────────────────────
   const addGeneralPayment = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.general_payments?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding general payment:', error); throw error; }
-  }, []);
+    return generalPaymentsCollection.insert(data);
+  }, [generalPaymentsCollection]);
 
   const updateGeneralPayment = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.general_payments?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating general payment:', error); throw error; }
-  }, []);
+    return generalPaymentsCollection.update(id, data);
+  }, [generalPaymentsCollection]);
 
   const deleteGeneralPayment = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.general_payments?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting general payment:', error); throw error; }
-  }, []);
+    return generalPaymentsCollection.remove(id);
+  }, [generalPaymentsCollection]);
 
   // ── Financial Years ───────────────────────────────────────────────────────────
   const addFinancialYear = useCallback(async (data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const d = { ...data, id: databaseService.generateId() };
-      const result = await db.financial_years?.insert(d);
-      return result?.doc || null;
-    } catch (error) { console.error('Error adding financial year:', error); throw error; }
-  }, []);
+    return financialYearsCollection.insert(data);
+  }, [financialYearsCollection]);
 
   const updateFinancialYear = useCallback(async (id: string, data: any) => {
-    try {
-      const db = await databaseService.getDatabase();
-      const result = await db.financial_years?.update(id, data);
-      return result?.doc || null;
-    } catch (error) { console.error('Error updating financial year:', error); throw error; }
-  }, []);
+    return financialYearsCollection.update(id, data);
+  }, [financialYearsCollection]);
 
   const deleteFinancialYear = useCallback(async (id: string) => {
-    try {
-      const db = await databaseService.getDatabase();
-      await db.financial_years?.remove(id);
-      return true;
-    } catch (error) { console.error('Error deleting financial year:', error); throw error; }
-  }, []);
+    return financialYearsCollection.remove(id);
+  }, [financialYearsCollection]);
 
   return {
     // Data
-    chartOfAccounts: financeData.chartOfAccounts,
-    banks: financeData.banks,
-    suppliers: financeData.suppliers,
-    feeTemplates: financeData.feeTemplates,
-    feeTemplateItems: financeData.feeTemplateItems,
-    expenseCategories: financeData.expenseCategories,
-    expenseClaims: financeData.expenseClaims,
-    supplierInvoices: financeData.supplierInvoices,
-    customerInvoices: financeData.customerInvoices,
-    studentOpeningBalances: financeData.studentOpeningBalances,
-    feeAdjustments: financeData.feeAdjustments,
-    transportRoutes: financeData.transportRoutes,
-    studentTransportAssignments: financeData.studentTransportAssignments,
-    studentInvoices: financeData.studentInvoices,
-    studentInvoiceItems: financeData.studentInvoiceItems,
-    studentPayments: financeData.studentPayments,
-    invoicePaymentApplications: financeData.invoicePaymentApplications,
-    generalPayments: financeData.generalPayments,
-    generalLedgerEntries: financeData.generalLedgerEntries,
-    financialYears: financeData.financialYears,
+    chartOfAccounts: chartOfAccountsCollection.data,
+    banks: banksCollection.data,
+    suppliers: suppliersCollection.data,
+    feeTemplates: feeTemplatesCollection.data,
+    feeTemplateItems: feeTemplateItemsCollection.data,
+    expenseCategories: expenseCategoriesCollection.data,
+    expenseClaims: expenseClaimsCollection.data,
+    supplierInvoices: supplierInvoicesCollection.data,
+    customerInvoices: customerInvoicesCollection.data,
+    studentOpeningBalances: studentOpeningBalancesCollection.data,
+    feeAdjustments: feeAdjustmentsCollection.data,
+    transportRoutes: transportRoutesCollection.data,
+    studentTransportAssignments: studentTransportAssignmentsCollection.data,
+    studentInvoices: studentInvoicesCollection.data,
+    studentInvoiceItems: studentInvoiceItemsCollection.data,
+    studentPayments: studentPaymentsCollection.data,
+    invoicePaymentApplications: invoicePaymentApplicationsCollection.data,
+    generalPayments: generalPaymentsCollection.data,
+    generalLedgerEntries: generalLedgerEntriesCollection.data,
+    financialYears: financialYearsCollection.data,
 
     // CRUD
     addChartOfAccount, updateChartOfAccount, deleteChartOfAccount,
@@ -566,37 +374,22 @@ export function useFinanceData(_mockDataForSeeding: RawInitialData) {
     applyPaymentToInvoices,
     addGeneralPayment, updateGeneralPayment, deleteGeneralPayment,
     addFinancialYear, updateFinancialYear, deleteFinancialYear,
-    
+
     // Aliases for page compatibility
-    // Banks
     createBank: addBank,
-    // Chart of Accounts
     createChartOfAccount: addChartOfAccount,
-    // Suppliers
     createSupplier: addSupplier,
-    // Fee Templates
     createFeeTemplate: addFeeTemplate,
-    // Expense Claims
     createExpenseClaim: addExpenseClaim,
-    // Expense Categories
     createExpenseCategory: addExpenseCategory,
-    // Customer Invoices
     createCustomerInvoice: addCustomerInvoice,
-    // Supplier Invoices
     createSupplierInvoice: addSupplierInvoice,
-    // Student Opening Balances
     createStudentOpeningBalance: addStudentOpeningBalance,
-    // Fee Adjustments
     createFeeAdjustment: addFeeAdjustment,
-    // Transport Routes
     createTransportRoute: addTransportRoute,
-    // Student Transport Assignments
     createStudentTransportAssignment: addStudentTransportAssignment,
-    // Student Payments
     createStudentPayment: addStudentPayment,
-    // General Payments
     createGeneralPayment: addGeneralPayment,
-    // Financial Years
     createFinancialYear: addFinancialYear,
   };
 }
