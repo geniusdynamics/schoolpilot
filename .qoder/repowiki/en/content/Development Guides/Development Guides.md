@@ -19,6 +19,13 @@
 - [index.html](file://coverage/index.html)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Updated documentation structure to reflect the move from "Development Guides.md" to "Guides.md" in the docs directory
+- Revised all file references to point to the new documentation location
+- Updated content organization to align with the restructured documentation system
+- Maintained all technical accuracy while updating file paths and references
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -33,6 +40,8 @@
 
 ## Introduction
 This document provides comprehensive development guides for contributors and developers working on SchoolPilot3. It explains the development workflow, coding standards, and best practices for the modular architecture. It covers module development processes, data layer integration, UI component creation, migration strategies for legacy features, and architectural improvements. It also includes contribution guidelines, code review processes, development environment setup, debugging techniques, performance profiling, testing requirements, documentation standards, release procedures, and practical examples for common development tasks.
+
+**Updated** The documentation has been restructured and moved to the "Guides.md" format in the docs directory, providing a more organized and accessible reference for developers.
 
 ## Project Structure
 SchoolPilot3 is a modular React application with a dual-mode data layer supporting both development (SQLite OPFS) and production (PouchDB/LiveStore) environments. The project emphasizes TypeScript, React 19 compatibility, and a component-driven architecture with shared UI libraries and domain-driven modules.
