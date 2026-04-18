@@ -1,16 +1,25 @@
-# Mock Data Dev Guide
+# Mock Data Development Guide
 
 <cite>
 **Referenced Files in This Document**
-- [mock-data-dev-guide.md](file://docs/guides/mock-data-dev-guide.md)
 - [useModularMockData.ts](file://src/hooks/useModularMockData.ts)
 - [globalMockData.ts](file://src/globalMockData.ts)
-- [debug-mock-data.ts](file://src/scripts/data-migration/debug-mock-data.ts)
-- [migrate-mock-data-to-livestore.ts](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts)
-- [migrate-mock-data-to-sqlite.ts](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts)
-- [schema.ts](file://src/livestore/schema.ts)
-- [types.ts](file://src/types.ts)
+- [mockData.ts](file://src/modules/academics/data/mockData.ts)
+- [mockData.ts](file://src/modules/administration/data/mockData.ts)
+- [useDatabaseProvider.ts](file://src/hooks/useDatabaseProvider.ts)
+- [demoDataSeed.ts](file://src/services/database/demoDataSeed.ts)
+- [Advanced Database Handler Architecture](file://docs/architecture/advanced-database-handler-architecture.md)
+- [Database Modernization Plan](file://docs/database/DATA-layer-modernization-plan.md)
+- [Database README](file://docs/database/README.md)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated documentation to reflect the transition from mock data development system to migration/testing infrastructure
+- Revised architecture diagrams to show mock data's current role as fallback and migration support
+- Updated development workflows to emphasize mock data's role in backward compatibility
+- Added new sections covering migration strategies and provider switching
+- Revised troubleshooting guidance to focus on migration scenarios
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -18,235 +27,203 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
+6. [Migration Strategies](#migration-strategies)
+7. [Development Workflows](#development-workflows)
 8. [Troubleshooting Guide](#troubleshooting-guide)
 9. [Conclusion](#conclusion)
 
 ## Introduction
-This guide explains how to develop and maintain mock data for the SchoolPilot3 application. The mock data system enables full UI development, testing, and demonstrations without external dependencies by providing an in-memory simulation of the backend and database. It supports both a centralized hook-based approach and provider-agnostic migration scripts for seeding databases.
+This guide explains how to develop and maintain the mock data system within the SchoolPilot3 application. The system has evolved from a primary development data source to a specialized migration and testing infrastructure that maintains backward compatibility while supporting database-backed operations. Mock data now serves as fallback data for development, testing, and migration scenarios rather than primary application data.
 
 ## Project Structure
-The mock data development ecosystem spans documentation, hooks, global shared data, and migration scripts:
+The mock data development ecosystem focuses on modular data services, migration capabilities, and fallback mechanisms:
 
 ```mermaid
 graph TB
-subgraph "Documentation"
-A["docs/guides/mock-data-dev-guide.md"]
+subgraph "Mock Data Architecture"
+A["useModularMockData Hook"]
+B["Dynamic Module Imports"]
+C["Global Mock Data"]
+D["Fallback Data Sources"]
 end
-subgraph "Hooks"
-B["src/hooks/useModularMockData.ts"]
-C["src/globalMockData.ts"]
+subgraph "Migration Infrastructure"
+E["Data Migration Scripts"]
+F["Provider Switching"]
+G["Backward Compatibility"]
 end
-subgraph "Scripts"
-D["src/scripts/data-migration/debug-mock-data.ts"]
-E["src/scripts/data-migration/migrate-mock-data-to-livestore.ts"]
-F["src/scripts/data-migration/migrate-mock-data-to-sqlite.ts"]
-end
-subgraph "Schema"
-G["src/livestore/schema.ts"]
-end
-subgraph "Types"
-H["src/types.ts"]
+subgraph "Development Support"
+H["Testing Framework"]
+I["Demo Mode"]
+J["Development Tools"]
 end
 A --> B
 B --> C
-D --> B
-E --> G
+C --> D
+D --> E
+E --> F
 F --> G
-B --> H
+G --> H
+H --> I
+I --> J
 ```
 
 **Diagram sources**
-- [mock-data-dev-guide.md:1-83](file://docs/guides/mock-data-dev-guide.md#L1-L83)
-- [useModularMockData.ts:1-583](file://src/hooks/useModularMockData.ts#L1-L583)
-- [globalMockData.ts:1-26](file://src/globalMockData.ts#L1-L26)
-- [debug-mock-data.ts:1-34](file://src/scripts/data-migration/debug-mock-data.ts#L1-L34)
-- [migrate-mock-data-to-livestore.ts:1-270](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts#L1-L270)
-- [migrate-mock-data-to-sqlite.ts:1-176](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts#L1-L176)
-- [schema.ts:1-475](file://src/livestore/schema.ts#L1-L475)
-- [types.ts:1-6](file://src/types.ts#L1-L6)
-
-**Section sources**
-- [mock-data-dev-guide.md:1-83](file://docs/guides/mock-data-dev-guide.md#L1-L83)
-- [useModularMockData.ts:1-583](file://src/hooks/useModularMockData.ts#L1-L583)
-- [globalMockData.ts:1-26](file://src/globalMockData.ts#L1-L26)
-- [debug-mock-data.ts:1-34](file://src/scripts/data-migration/debug-mock-data.ts#L1-L34)
-- [migrate-mock-data-to-livestore.ts:1-270](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts#L1-L270)
-- [migrate-mock-data-to-sqlite.ts:1-176](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts#L1-L176)
-- [schema.ts:1-475](file://src/livestore/schema.ts#L1-L475)
-- [types.ts:1-6](file://src/types.ts#L1-L6)
+- [useModularMockData.ts:46-57](file://src/hooks/useModularMockData.ts#L46-L57)
+- [useDatabaseProvider.ts:62-63](file://src/hooks/useDatabaseProvider.ts#L62-L63)
+- [demoDataSeed.ts:28](file://src/services/database/demoDataSeed.ts#L28)
 
 ## Core Components
-- Centralized mock data hook: Aggregates module-specific mock data and exposes CRUD operations conforming to the application data context interface.
-- Global shared mock data: Provides canonical entities reused across modules (e.g., suppliers and invoices).
-- Migration scripts: Support moving mock data into LiveStore and SQLite providers for production-like environments.
-- Debug script: Inspects available mock data across modules for verification and troubleshooting.
+The mock data system consists of several key components that serve different purposes in the application lifecycle:
+
+- **useModularMockData Hook**: Central orchestrator that aggregates module-specific mock data and provides unified interface
+- **Dynamic Module Import System**: Automatically discovers and imports mock data from all modules
+- **Global Mock Data Repository**: Shared canonical data for cross-module references
+- **Fallback Data Mechanisms**: Provides safe defaults when database operations fail
+- **Migration Support**: Enables seamless transition from mock data to database-backed operations
 
 Key responsibilities:
-- Dynamic discovery and aggregation of mock data from module directories.
-- Maintaining normalized state and denormalized display fields for related entities.
-- Providing CRUD functions that update in-memory state consistently.
-- Enabling seamless migration to provider-backed databases.
-
-**Section sources**
-- [mock-data-dev-guide.md:14-83](file://docs/guides/mock-data-dev-guide.md#L14-L83)
-- [useModularMockData.ts:62-583](file://src/hooks/useModularMockData.ts#L62-L583)
-- [globalMockData.ts:1-26](file://src/globalMockData.ts#L1-L26)
+- Automatic discovery and aggregation of module mock data
+- Maintaining backward compatibility for legacy features
+- Supporting development and testing workflows
+- Enabling smooth migration to database-backed operations
+- Providing fallback mechanisms for error scenarios
 
 ## Architecture Overview
-The mock data architecture combines a modular hook system with provider-agnostic migration capabilities:
+The mock data architecture implements a hybrid approach that supports both development and migration scenarios:
 
 ```mermaid
 sequenceDiagram
 participant Dev as "Developer"
-participant Hook as "useModularMockData.ts"
-participant Modules as "Module Hooks"
-participant Global as "globalMockData.ts"
-participant Script as "Migration Scripts"
-participant Schema as "LiveStore Schema"
-Dev->>Hook : Initialize mock data context
-Hook->>Modules : Import and consume module hooks
-Hook->>Global : Merge fallback mock data
-Hook-->>Dev : Return AppDataContextType with CRUD
-Dev->>Script : Run migration to database
-Script->>Schema : Map mock keys to collection names
-Script->>Schema : Insert records in batches
-Script-->>Dev : Migration summary and logs
+participant Hook as "useModularMockData"
+participant Modules as "Module Mock Data"
+participant Global as "Global Mock Data"
+participant Migration as "Migration System"
+Dev->>Hook : Request mock data
+Hook->>Modules : Import dynamic module data
+Modules-->>Hook : Return module mock data
+Hook->>Global : Access global canonical data
+Global-->>Hook : Return shared data
+Hook->>Migration : Check migration requirements
+Migration-->>Hook : Return migration status
+Hook-->>Dev : Unified mock data interface
 ```
 
 **Diagram sources**
-- [useModularMockData.ts:9-583](file://src/hooks/useModularMockData.ts#L9-L583)
-- [globalMockData.ts:1-26](file://src/globalMockData.ts#L1-L26)
-- [migrate-mock-data-to-livestore.ts:61-161](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts#L61-L161)
-- [migrate-mock-data-to-sqlite.ts:20-176](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts#L20-L176)
-- [schema.ts:29-379](file://src/livestore/schema.ts#L29-L379)
+- [useModularMockData.ts:62](file://src/hooks/useModularMockData.ts#L62)
+- [useDatabaseProvider.ts:147-176](file://src/hooks/useDatabaseProvider.ts#L147-L176)
 
 ## Detailed Component Analysis
 
 ### useModularMockData Hook
-The hook orchestrates mock data across modules, dynamically importing module-specific hooks and aggregating fallback mock data. It exposes normalized datasets and CRUD functions while maintaining loading states.
-
-Key behaviors:
-- Imports module hooks for academics and finance domains.
-- Aggregates raw initial data from module mock files via globbing.
-- Resolves display names for related entities (e.g., student names, supplier names).
-- Returns a complete AppDataContextType with CRUD operations and loading flags.
+The central orchestrator that manages the entire mock data ecosystem:
 
 ```mermaid
 flowchart TD
-Start(["Initialize useModularMockData"]) --> LoadHooks["Load module hooks<br/>and fallback mock data"]
-LoadHooks --> ResolveNames["Resolve display names<br/>for related entities"]
-ResolveNames --> ExposeData["Expose normalized datasets<br/>and CRUD functions"]
-ExposeData --> ReturnContext["Return AppDataContextType"]
+Start(["Mock Data Request"]) --> Dynamic["Dynamic Module Import"]
+Dynamic --> Aggregate["Aggregate Module Data"]
+Aggregate --> Global["Load Global Mock Data"]
+Global --> Resolve["Resolve Cross-References"]
+Resolve --> Validate["Validate Data Integrity"]
+Validate --> Return["Return Unified Interface"]
 ```
 
 **Diagram sources**
-- [useModularMockData.ts:62-583](file://src/hooks/useModularMockData.ts#L62-L583)
+- [useModularMockData.ts:46-57](file://src/hooks/useModularMockData.ts#L46-L57)
+- [useModularMockData.ts:137-186](file://src/hooks/useModularMockData.ts#L137-L186)
+
+### Dynamic Module Import System
+The system automatically discovers and imports mock data from all modules:
+
+- **Automatic Discovery**: Uses `import.meta.glob()` to find all `mockData.ts` files
+- **Module Aggregation**: Combines data from multiple modules into unified structure
+- **Fallback Mechanism**: Provides backup data when modules are unavailable
+- **Version Compatibility**: Supports different mock data formats across modules
+
+### Global Mock Data Repository
+Provides canonical data used across multiple modules:
+
+- **Shared Suppliers**: Standard supplier data for procurement modules
+- **Invoice Templates**: Common invoice structures for financial modules
+- **Cross-Module References**: Consistent data for inter-module relationships
+- **Canonical Examples**: Representative data for demonstration purposes
 
 **Section sources**
-- [useModularMockData.ts:62-583](file://src/hooks/useModularMockData.ts#L62-L583)
+- [globalMockData.ts:6-26](file://src/globalMockData.ts#L6-L26)
 
-### Global Shared Mock Data
-Provides canonical entities used across multiple modules, ensuring consistency in demos and tests.
+## Migration Strategies
 
-Highlights:
-- Suppliers array with contact details and metadata.
-- Supplier invoices with amounts, statuses, and related supplier names.
-
-**Section sources**
-- [globalMockData.ts:1-26](file://src/globalMockData.ts#L1-L26)
-
-### Migration Scripts
-Two migration scripts support seeding databases from mock data:
-
-- LiveStore migration: Initializes a provider, aggregates mock data, maps keys to collection names, and inserts records in batches with error tracking.
-- SQLite migration: Converts RxDB schemas to provider-agnostic formats, creates collections, and seeds data with batched inserts.
+### Mock Data to Database Migration
+The system provides comprehensive migration strategies for transitioning from mock data to database-backed operations:
 
 ```mermaid
-sequenceDiagram
-participant CLI as "CLI"
-participant LiveStore as "LiveStore Migration"
-participant SQLite as "SQLite Migration"
-participant Schema as "LiveStore Schema"
-CLI->>LiveStore : Run migrate-mock-data-to-livestore.ts
-LiveStore->>Schema : Map mock keys to collection names
-LiveStore->>Schema : Insert records in batches
-LiveStore-->>CLI : Summary and errors
-CLI->>SQLite : Run migrate-mock-data-to-sqlite.ts
-SQLite->>Schema : Convert RxDB schema to provider format
-SQLite->>Schema : Create collections and seed data
-SQLite-->>CLI : Completion status
+flowchart LR
+MockData["Mock Data System"] --> Migration["Migration Scripts"]
+Migration --> Validation["Data Validation"]
+Validation --> Database["Database Collections"]
+Database --> Provider["Database Provider"]
+Provider --> Production["Production Ready"]
 ```
 
 **Diagram sources**
-- [migrate-mock-data-to-livestore.ts:28-270](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts#L28-L270)
-- [migrate-mock-data-to-sqlite.ts:20-176](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts#L20-L176)
-- [schema.ts:29-379](file://src/livestore/schema.ts#L29-L379)
+- [useDatabaseProvider.ts:147-176](file://src/hooks/useDatabaseProvider.ts#L147-L176)
+- [demoDataSeed.ts:206-219](file://src/services/database/demoDataSeed.ts#L206-L219)
+
+### Provider Switching Strategy
+Seamless switching between database providers during development and production:
+
+- **Development Provider**: SQLite with local file persistence
+- **Production Provider**: Backend API with remote synchronization
+- **Testing Provider**: In-memory database for unit tests
+- **Fallback Provider**: Mock data system for error scenarios
 
 **Section sources**
-- [migrate-mock-data-to-livestore.ts:28-270](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts#L28-L270)
-- [migrate-mock-data-to-sqlite.ts:20-176](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts#L20-L176)
+- [Database Modernization Plan:222-244](file://docs/database/DATA-layer-modernization-plan.md#L222-L244)
+- [Advanced Database Handler Architecture:513-553](file://docs/architecture/advanced-database-handler-architecture.md#L513-L553)
 
-### Debug Script
-Inspects available mock data across modules to verify structure and counts.
+## Development Workflows
 
-Usage:
-- Logs keys and lengths for each module's mock data exports.
-- Helps validate that new mock data files are properly recognized.
+### Mock Data Development Workflow
+The current workflow emphasizes mock data's role in backward compatibility and migration:
 
-**Section sources**
-- [debug-mock-data.ts:1-34](file://src/scripts/data-migration/debug-mock-data.ts#L1-L34)
+1. **Module Development**: Create mock data for new modules using established patterns
+2. **Data Validation**: Ensure mock data conforms to application requirements
+3. **Integration Testing**: Test mock data integration with other modules
+4. **Migration Preparation**: Prepare mock data for potential migration scenarios
+5. **Backward Compatibility**: Maintain mock data for legacy feature support
 
-## Dependency Analysis
-The mock data system exhibits clear separation of concerns:
+### Module Development Pattern
+Each module follows a consistent development pattern for mock data:
 
-```mermaid
-graph TB
-Types["src/types.ts"] --> Hook["src/hooks/useModularMockData.ts"]
-Global["src/globalMockData.ts"] --> Hook
-Hook --> Scripts["Migration Scripts"]
-Scripts --> Schema["src/livestore/schema.ts"]
-Docs["docs/guides/mock-data-dev-guide.md"] --> Hook
-Docs --> Scripts
-```
-
-**Diagram sources**
-- [types.ts:1-6](file://src/types.ts#L1-L6)
-- [useModularMockData.ts:62-583](file://src/hooks/useModularMockData.ts#L62-L583)
-- [globalMockData.ts:1-26](file://src/globalMockData.ts#L1-L26)
-- [migrate-mock-data-to-livestore.ts:61-161](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts#L61-L161)
-- [migrate-mock-data-to-sqlite.ts:20-176](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts#L20-L176)
-- [schema.ts:29-379](file://src/livestore/schema.ts#L29-L379)
-- [mock-data-dev-guide.md:1-83](file://docs/guides/mock-data-dev-guide.md#L1-L83)
+- **Data Types**: Define TypeScript interfaces for all entities
+- **Mock Data Generation**: Create representative mock data sets
+- **Cross-Module References**: Establish relationships with other modules
+- **Global Data Sharing**: Share common data through global mock repository
+- **Testing Coverage**: Include comprehensive test scenarios
 
 **Section sources**
-- [types.ts:1-6](file://src/types.ts#L1-L6)
-- [useModularMockData.ts:62-583](file://src/hooks/useModularMockData.ts#L62-L583)
-- [globalMockData.ts:1-26](file://src/globalMockData.ts#L1-L26)
-- [migrate-mock-data-to-livestore.ts:61-161](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts#L61-L161)
-- [migrate-mock-data-to-sqlite.ts:20-176](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts#L20-L176)
-- [schema.ts:29-379](file://src/livestore/schema.ts#L29-L379)
-- [mock-data-dev-guide.md:1-83](file://docs/guides/mock-data-dev-guide.md#L1-L83)
-
-## Performance Considerations
-- Batched insertion: Migration scripts insert records in batches to manage memory usage and improve throughput.
-- Loading states: The hook initializes loading flags and transitions them off after a short timeout to simulate realistic initialization delays.
-- Denormalization: Display fields are resolved within CRUD functions to mimic backend enrichment, reducing downstream computation needs.
-
-[No sources needed since this section provides general guidance]
+- [mockData.ts:1-200](file://src/modules/academics/data/mockData.ts#L1-L200)
+- [mockData.ts:1-200](file://src/modules/administration/data/mockData.ts#L1-L200)
 
 ## Troubleshooting Guide
-Common issues and resolutions:
-- Missing mock data keys: Use the debug script to verify that expected keys exist and contain data.
-- Provider initialization failures: Check migration script logs for initialization errors and schema conversion issues.
-- Inconsistent entity relationships: Ensure denormalized fields (e.g., display names) are populated consistently in CRUD functions.
-- Schema mismatches: Confirm that mock data keys align with collection names and that schema conversions are applied correctly.
+
+### Common Mock Data Issues
+- **Module Import Failures**: Check that mock data files follow naming conventions
+- **Data Validation Errors**: Verify mock data conforms to schema requirements
+- **Cross-Module Reference Issues**: Ensure proper data relationships between modules
+- **Migration Conflicts**: Resolve conflicts between mock data and database operations
+- **Performance Issues**: Monitor memory usage with large mock datasets
+
+### Debugging Mock Data Operations
+- **Enable Debug Logging**: Set debug flags for mock data operations
+- **Monitor Module Loading**: Track dynamic import success rates
+- **Validate Data Flow**: Trace data through aggregation and resolution processes
+- **Test Migration Scenarios**: Verify seamless switching between mock and database modes
 
 **Section sources**
-- [debug-mock-data.ts:1-34](file://src/scripts/data-migration/debug-mock-data.ts#L1-L34)
-- [migrate-mock-data-to-livestore.ts:33-59](file://src/scripts/data-migration/migrate-mock-data-to-livestore.ts#L33-L59)
-- [migrate-mock-data-to-sqlite.ts:47-58](file://src/scripts/data-migration/migrate-mock-data-to-sqlite.ts#L47-L58)
+- [Database README:363-389](file://docs/database/README.md#L363-L389)
+- [Advanced Database Handler Architecture:629-649](file://docs/architecture/advanced-database-handler-architecture.md#L629-L649)
 
 ## Conclusion
-The mock data development system provides a robust, modular foundation for building and validating UI features without backend dependencies. By leveraging dynamic imports, normalized state management, and provider-agnostic migration scripts, developers can efficiently create, iterate, and deploy mock data across modules while maintaining consistency and performance.
+The mock data system provides a robust foundation for maintaining backward compatibility while supporting the transition to database-backed operations. By serving as migration infrastructure and fallback mechanism, the system enables smooth evolution toward modern database architectures while preserving existing functionality and development workflows.
+
+The shift from primary development data source to specialized migration/testing infrastructure represents a strategic evolution that maintains developer productivity while preparing the application for future database-centric operations. This approach ensures that mock data continues to provide value through comprehensive testing, demonstration capabilities, and seamless migration support.

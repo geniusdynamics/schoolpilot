@@ -2,8 +2,8 @@
 
 <cite>
 **Referenced Files in This Document**
-- [SQLiteFileProvider.ts](file://src/services/sqlite/SQLiteFileProvider.ts)
-- [SQLiteFileService.ts](file://src/services/sqlite/SQLiteFileService.ts)
+- [SQLiteFileProvider.ts](file://src/services/database/SQLiteFileProvider.ts)
+- [SQLiteWASMProvider.ts](file://src/services/database/SQLiteWASMProvider.ts)
 - [SQLiteOPFSService.ts](file://src/services/sqlite/SQLiteOPFSService.ts)
 - [index.ts](file://src/services/sqlite/index.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
@@ -13,7 +13,17 @@
 - [databaseConfigSchema.ts](file://src/config/databaseConfigSchema.ts)
 - [databaseEnvVars.ts](file://src/config/databaseEnvVars.ts)
 - [sqlite-opfs-implementation.md](file://docs/database/sqlite-opfs-implementation.md)
+- [SelfHosting.test.ts](file://src/services/database/__tests__/SelfHosting.test.ts)
+- [SQLiteWASMProvider.test.ts](file://src/services/database/__tests__/SQLiteWASMProvider.test.ts)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated provider selection logic to reflect SQLite WASM with OPFS as default development provider
+- Added comprehensive SQLite WASM provider documentation with OPFS integration
+- Enhanced configuration validation and environment variable handling
+- Updated setup instructions to reflect persistent offline-capable storage replacement for mock data
+- Added transaction management and production settings configuration details
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -30,25 +40,26 @@
 ## Introduction
 This document explains the SQLite provider implementation in SchoolPilot3, focusing on the three SQLite variants:
 - File-based SQLite for Node.js environments
-- SQLite WASM for browser environments
-- SQLite OPFS (On-Page File System) for modern browsers
+- SQLite WASM for browser environments with OPFS (Origin Private File System) for persistent offline storage
+- SQLite OPFS service for development with persistent storage replacement
 
-It covers provider architecture, connection management, transaction handling, query execution patterns, configuration parameters, performance tuning, storage location considerations, security implications, browser compatibility, setup instructions, backup/restore procedures, and troubleshooting.
+The implementation has been updated to use SQLite WASM with OPFS as the default development provider, replacing previous mock data reliance with persistent offline-capable storage. It covers provider architecture, connection management, transaction handling, query execution patterns, configuration parameters, performance tuning, storage location considerations, security implications, browser compatibility, setup instructions, backup/restore procedures, and troubleshooting.
 
 ## Project Structure
 The SQLite provider is organized under the services layer with clear separation of concerns:
 - Provider entry point barrel exports
 - File-based provider and service for Node.js
-- OPFS-based service for browsers
+- WASM-based provider with OPFS integration for browser environments
+- OPFS-based service for development persistence
 - Unified database manager orchestrating provider selection and lifecycle
-- Provider factory and selection logic
+- Provider factory and selection logic with environment-aware configuration
 - Configuration validation and environment variables
 
 ```mermaid
 graph TB
 subgraph "Services Layer"
 A["SQLiteFileProvider.ts"]
-B["SQLiteFileService.ts"]
+B["SQLiteWASMProvider.ts"]
 C["SQLiteOPFSService.ts"]
 D["index.ts"]
 E["UnifiedDatabaseManager.ts"]
@@ -75,11 +86,11 @@ J --> E
 
 **Diagram sources**
 - [index.ts:1-8](file://src/services/sqlite/index.ts#L1-L8)
-- [SQLiteFileProvider.ts:1-286](file://src/services/sqlite/SQLiteFileProvider.ts#L1-L286)
-- [SQLiteFileService.ts:1-588](file://src/services/sqlite/SQLiteFileService.ts#L1-L588)
+- [SQLiteFileProvider.ts:1-473](file://src/services/database/SQLiteFileProvider.ts#L1-L473)
+- [SQLiteWASMProvider.ts:1-1403](file://src/services/database/SQLiteWASMProvider.ts#L1-L1403)
 - [SQLiteOPFSService.ts:1-868](file://src/services/sqlite/SQLiteOPFSService.ts#L1-L868)
-- [UnifiedDatabaseManager.ts:1-2081](file://src/services/database/UnifiedDatabaseManager.ts#L1-L2081)
-- [DatabaseProviderFactory.ts:1-726](file://src/services/database/DatabaseProviderFactory.ts#L1-L726)
+- [UnifiedDatabaseManager.ts:1-2101](file://src/services/database/UnifiedDatabaseManager.ts#L1-L2101)
+- [DatabaseProviderFactory.ts:1-725](file://src/services/database/DatabaseProviderFactory.ts#L1-L725)
 - [ProviderSelector.ts:1-451](file://src/services/database/ProviderSelector.ts#L1-L451)
 - [interfaces.ts:1-253](file://src/services/database/interfaces.ts#L1-L253)
 - [databaseConfigSchema.ts:1-530](file://src/config/databaseConfigSchema.ts#L1-L530)
@@ -94,18 +105,18 @@ J --> E
 - [databaseEnvVars.ts:1-41](file://src/config/databaseEnvVars.ts#L1-L41)
 
 ## Core Components
-- SQLiteFileProvider: Wraps SQLiteFileService to expose a provider interface for development with file-based storage.
-- SQLiteFileService: Implements SQLite with file storage for Node.js, including backup/restore, export, seed loading, and collection management.
-- SQLiteOPFSService: Implements SQLite using SQLite WASM with OPFS for persistent browser storage, including collection CRUD, indexing, and compaction.
-- UnifiedDatabaseManager: Orchestrates provider selection, initialization, collection creation, health monitoring, and fallback strategies.
-- DatabaseProviderFactory: Factory for selecting and instantiating providers based on deployment mode and capabilities.
-- ProviderSelector: Legacy integration helper for dual-database architecture and RxDB compatibility.
-- Interfaces: Defines provider, collection, and error abstractions used across implementations.
-- Configuration: Validation schema and environment variables for database configuration.
+- **SQLiteFileProvider**: Wraps SQLiteFileService to expose a provider interface for development with file-based storage and enhanced development features.
+- **SQLiteWASMProvider**: Implements SQLite using WebAssembly with OPFS for persistent browser storage, including production settings configuration and transaction management.
+- **SQLiteOPFSService**: Development-focused service that replaces mock data with SQLite storage using Origin Private File System for persistent development databases.
+- **UnifiedDatabaseManager**: Orchestrates provider selection, initialization, collection creation, health monitoring, and fallback strategies with environment-aware configuration.
+- **DatabaseProviderFactory**: Factory for selecting and instantiating providers based on deployment mode, requirements, and environment capabilities.
+- **ProviderSelector**: Legacy integration helper for dual-database architecture and RxDB compatibility.
+- **Interfaces**: Defines provider, collection, and error abstractions used across implementations.
+- **Configuration**: Validation schema and environment variables for database configuration with comprehensive provider options.
 
 **Section sources**
-- [SQLiteFileProvider.ts:1-286](file://src/services/sqlite/SQLiteFileProvider.ts#L1-L286)
-- [SQLiteFileService.ts:1-588](file://src/services/sqlite/SQLiteFileService.ts#L1-L588)
+- [SQLiteFileProvider.ts:1-473](file://src/services/database/SQLiteFileProvider.ts#L1-L473)
+- [SQLiteWASMProvider.ts:1-1403](file://src/services/database/SQLiteWASMProvider.ts#L1-L1403)
 - [SQLiteOPFSService.ts:1-868](file://src/services/sqlite/SQLiteOPFSService.ts#L1-L868)
 - [UnifiedDatabaseManager.ts:1-200](file://src/services/database/UnifiedDatabaseManager.ts#L1-L200)
 - [DatabaseProviderFactory.ts:1-200](file://src/services/database/DatabaseProviderFactory.ts#L1-L200)
@@ -115,7 +126,7 @@ J --> E
 - [databaseEnvVars.ts:4-40](file://src/config/databaseEnvVars.ts#L4-L40)
 
 ## Architecture Overview
-The system uses a provider-agnostic architecture with a factory-driven selection mechanism. The UnifiedDatabaseManager detects deployment mode, validates configuration, selects a provider (file-based SQLite for development, WASM/OPFS for browsers), initializes it, creates collections, and monitors health.
+The system uses a provider-agnostic architecture with a factory-driven selection mechanism that prioritizes SQLite WASM with OPFS for development environments. The UnifiedDatabaseManager detects deployment mode, validates configuration, selects a provider based on environment and requirements, initializes it, creates collections, and monitors health with comprehensive fallback strategies.
 
 ```mermaid
 sequenceDiagram
@@ -131,6 +142,8 @@ UDM->>Factory : createProviderWithRequirements(config, requirements)
 Factory->>Factory : selectProvider(requirements)
 Factory->>Provider : createAndInitializeProvider(type, config)
 Provider->>Service : initialize(dbName)
+Note over Provider : Development : sqlite-wasm with OPFS
+Note over Provider : Production : sqlite-wasm with OPFS
 UDM->>UDM : createCollections()
 UDM->>UDM : startHealthMonitoring()
 UDM-->>App : initialized with collections
@@ -140,8 +153,8 @@ UDM-->>App : initialized with collections
 - [UnifiedDatabaseManager.ts:99-169](file://src/services/database/UnifiedDatabaseManager.ts#L99-L169)
 - [DatabaseProviderFactory.ts:477-531](file://src/services/database/DatabaseProviderFactory.ts#L477-L531)
 - [DatabaseProviderFactory.ts:533-569](file://src/services/database/DatabaseProviderFactory.ts#L533-L569)
-- [SQLiteFileService.ts:372-403](file://src/services/sqlite/SQLiteFileService.ts#L372-L403)
-- [SQLiteOPFSService.ts:693-730](file://src/services/sqlite/SQLiteOPFSService.ts#L693-L730)
+- [SQLiteWASMProvider.ts:895-959](file://src/services/database/SQLiteWASMProvider.ts#L895-L959)
+- [SQLiteFileProvider.ts:34-64](file://src/services/database/SQLiteFileProvider.ts#L34-L64)
 
 **Section sources**
 - [UnifiedDatabaseManager.ts:174-316](file://src/services/database/UnifiedDatabaseManager.ts#L174-L316)
@@ -151,9 +164,10 @@ UDM-->>App : initialized with collections
 ## Detailed Component Analysis
 
 ### SQLiteFileProvider (Node.js File-Based)
-- Purpose: Development-time provider using file-based SQLite for inspectability and simplicity.
-- Key behaviors:
+- **Purpose**: Development-time provider using file-based SQLite for inspectability and simplicity with enhanced development features.
+- **Key behaviors**:
   - Initializes SQLite database with configurable name and options.
+  - Enables development-specific features like foreign key constraints, WAL mode, and optimized cache settings.
   - Exposes collection lifecycle (create, get, list, drop).
   - Provides backup/restore, export, seed data loading, and stats.
   - Supports development utilities like clearing data and collection stats.
@@ -203,72 +217,78 @@ SQLiteFileProvider --> SQLiteFileService : "wraps"
 ```
 
 **Diagram sources**
-- [SQLiteFileProvider.ts:19-286](file://src/services/sqlite/SQLiteFileProvider.ts#L19-L286)
-- [SQLiteFileService.ts:366-588](file://src/services/sqlite/SQLiteFileService.ts#L366-L588)
+- [SQLiteFileProvider.ts:19-473](file://src/services/database/SQLiteFileProvider.ts#L19-L473)
+- [SQLiteFileProvider.ts:79-102](file://src/services/database/SQLiteFileProvider.ts#L79-L102)
 
 **Section sources**
-- [SQLiteFileProvider.ts:19-286](file://src/services/sqlite/SQLiteFileProvider.ts#L19-L286)
-- [SQLiteFileService.ts:366-588](file://src/services/sqlite/SQLiteFileService.ts#L366-L588)
+- [SQLiteFileProvider.ts:19-473](file://src/services/database/SQLiteFileProvider.ts#L19-L473)
+- [SQLiteFileProvider.ts:79-102](file://src/services/database/SQLiteFileProvider.ts#L79-L102)
 
-### SQLiteFileService (Node.js Implementation)
-- Initializes SQLite WASM runtime and opens a file-backed database.
-- Creates typed collections with schema conversion and index management.
-- Implements CRUD operations with prepared statements and bulk inserts.
-- Provides backup/restore, export, seed loading, and collection lifecycle.
-
-```mermaid
-flowchart TD
-Start(["initialize(dbName)"]) --> ImportWASM["Dynamically import SQLite WASM"]
-ImportWASM --> InitSQLite["Initialize SQLite runtime"]
-InitSQLite --> OpenDB["Open file-backed database"]
-OpenDB --> Ready(["Service ready"])
-Ready --> CreateCollection["createCollection(name, schema)"]
-CreateCollection --> CreateTable["Convert schema to SQL and create table"]
-CreateTable --> CreateIndexes["Create indexes from schema"]
-CreateIndexes --> Ready
-```
-
-**Diagram sources**
-- [SQLiteFileService.ts:372-403](file://src/services/sqlite/SQLiteFileService.ts#L372-L403)
-- [SQLiteFileService.ts:16-55](file://src/services/sqlite/SQLiteFileService.ts#L16-L55)
-
-**Section sources**
-- [SQLiteFileService.ts:372-403](file://src/services/sqlite/SQLiteFileService.ts#L372-L403)
-- [SQLiteFileService.ts:16-55](file://src/services/sqlite/SQLiteFileService.ts#L16-L55)
-
-### SQLiteOPFSService (Browser WASM + OPFS)
-- Initializes SQLite WASM runtime and attempts OPFS-backed storage for persistence.
-- Provides collection CRUD with dynamic schema mapping, serialization, and indexing.
-- Supports transactions via BEGIN/COMMIT/ROLLBACK for bulk operations.
-- Offers compaction and collection statistics.
+### SQLiteWASMProvider (Browser WASM + OPFS)
+- **Purpose**: Production-ready provider using SQLite WebAssembly with OPFS for persistent browser storage.
+- **Key behaviors**:
+  - Initializes SQLite WASM runtime and attempts OPFS-backed storage for persistence.
+  - Configures production settings including WAL mode, foreign keys, synchronous mode, and cache size.
+  - Provides transaction management with BEGIN/COMMIT/ROLLBACK support.
+  - Supports SQLCipher encryption when encryption key is provided.
+  - Implements query queuing for thread-safe database operations.
 
 ```mermaid
 sequenceDiagram
-participant OPFS as "SQLiteOPFSService"
-participant WASM as "SQLite WASM"
-participant OPFS_VFS as "OPFS VFS"
-participant Coll as "SQLiteCollection"
-OPFS->>WASM : sqlite3InitModule()
-WASM-->>OPFS : sqlite3 instance
-OPFS->>OPFS_VFS : Try "vfs=opfs" filename
-OPFS_VFS-->>OPFS : Database handle
-OPFS->>Coll : new SQLiteCollection(name, schema)
-Coll->>WASM : CREATE TABLE + indexes
-Coll-->>OPFS : Ready
+participant WASM as "SQLiteWASMProvider"
+participant WASM_Module as "SQLite WASM Module"
+participant OPFS as "OPFS Storage"
+participant DB as "Database Instance"
+WASM->>WASM_Module : sqlite3InitModule()
+WASM_Module-->>WASM : sqlite3 instance
+WASM->>OPFS : Check OPFS availability
+OPFS-->>WASM : Availability status
+WASM->>DB : Create OpfsDb or DB instance
+DB-->>WASM : Database handle
+WASM->>WASM : configureProductionSettings()
+WASM->>DB : Apply PRAGMA settings
+DB-->>WASM : Configuration complete
 ```
 
 **Diagram sources**
-- [SQLiteOPFSService.ts:693-730](file://src/services/sqlite/SQLiteOPFSService.ts#L693-L730)
-- [SQLiteOPFSService.ts:45-107](file://src/services/sqlite/SQLiteOPFSService.ts#L45-L107)
+- [SQLiteWASMProvider.ts:895-959](file://src/services/database/SQLiteWASMProvider.ts#L895-L959)
+- [SQLiteWASMProvider.ts:972-1009](file://src/services/database/SQLiteWASMProvider.ts#L972-L1009)
 
 **Section sources**
-- [SQLiteOPFSService.ts:688-800](file://src/services/sqlite/SQLiteOPFSService.ts#L688-L800)
-- [SQLiteOPFSService.ts:31-107](file://src/services/sqlite/SQLiteOPFSService.ts#L31-L107)
+- [SQLiteWASMProvider.ts:895-1009](file://src/services/database/SQLiteWASMProvider.ts#L895-L1009)
+- [SQLiteWASMProvider.ts:972-1009](file://src/services/database/SQLiteWASMProvider.ts#L972-L1009)
+
+### SQLiteOPFSService (Development Persistence)
+- **Purpose**: Development-focused service that replaces mock data with SQLite storage using Origin Private File System.
+- **Key behaviors**:
+  - Creates persistent development databases using OPFS for offline-first development.
+  - Provides collection CRUD operations with schema-based table creation.
+  - Implements serialization/deserialization for complex data types.
+  - Supports indexes and query operations with prepared statements.
+
+```mermaid
+flowchart TD
+Start(["initializeOPFS()"]) --> CheckOPFS["Check OPFS availability"]
+CheckOPFS --> HasOPFS{"OPFS available?"}
+HasOPFS -- Yes --> CreateOPFSDB["Create OpfsDb instance"]
+HasOPFS -- No --> CreateMemoryDB["Create in-memory DB"]
+CreateOPFSDB --> SetupTables["Setup collections with schemas"]
+CreateMemoryDB --> SetupTables
+SetupTables --> Ready(["Service ready for development"])
+```
+
+**Diagram sources**
+- [SQLiteOPFSService.ts:1-200](file://src/services/sqlite/SQLiteOPFSService.ts#L1-L200)
+
+**Section sources**
+- [SQLiteOPFSService.ts:1-200](file://src/services/sqlite/SQLiteOPFSService.ts#L1-L200)
 
 ### Unified Database Manager and Provider Selection
-- Detects deployment mode and selects provider based on configuration and capabilities.
-- Validates configuration, applies migrations, and auto-fixes issues.
-- Initializes provider, creates collections, starts health monitoring, and manages fallbacks.
+- **Environment-aware selection**: Uses deployment mode detection to choose appropriate providers.
+- **Development preference**: Selects SQLite WASM with OPFS for development environments.
+- **Production preference**: Selects SQLite WASM with OPFS for production environments.
+- **Capability detection**: Integrates with CapabilityDetector for runtime provider recommendations.
+- **Fallback strategies**: Implements comprehensive fallback chains for provider availability.
 
 ```mermaid
 flowchart TD
@@ -279,7 +299,7 @@ C -- No --> E["Try fallback providers"]
 D --> F["createCollections()"]
 F --> G["startHealthMonitoring()"]
 E --> |Success| D
-E --> |All failed| H["Throw error"]
+E --> |All failed| H["Create mock provider"]
 ```
 
 **Diagram sources**
@@ -291,17 +311,21 @@ E --> |All failed| H["Throw error"]
 - [DatabaseProviderFactory.ts:477-531](file://src/services/database/DatabaseProviderFactory.ts#L477-L531)
 
 ### Configuration and Environment Variables
-- Validation schema enforces provider types, performance bounds, storage limits, sync intervals, and monitoring settings.
-- Environment variables centralize configuration keys for unified config compatibility.
+- **Validation schema**: Enforces provider types, performance bounds, storage limits, sync intervals, and monitoring settings.
+- **Environment variables**: Centralizes configuration keys for unified config compatibility.
+- **Provider selection**: Supports sqlite-file (development), sqlite-wasm (browser), sqlite (auto), and other provider types.
+- **Production settings**: Configurable PRAGMA settings via environment variables for performance optimization.
 
 **Section sources**
 - [databaseConfigSchema.ts:54-201](file://src/config/databaseConfigSchema.ts#L54-L201)
 - [databaseEnvVars.ts:4-40](file://src/config/databaseEnvVars.ts#L4-L40)
+- [SelfHosting.test.ts:88-107](file://src/services/database/__tests__/SelfHosting.test.ts#L88-L107)
 
 ## Dependency Analysis
-- Provider abstraction: All SQLite implementations conform to IDatabaseProvider and ICollection interfaces.
-- Factory decouples selection logic from consumers; providers are registered conditionally (e.g., SQLiteFileProvider only in Node-like environments).
-- Unified manager coordinates initialization, health checks, and fallbacks.
+- **Provider abstraction**: All SQLite implementations conform to IDatabaseProvider and ICollection interfaces.
+- **Factory decoupling**: Factory separates selection logic from consumers; providers are registered conditionally.
+- **Environment awareness**: Providers adapt to deployment mode and environment capabilities.
+- **Configuration integration**: Providers integrate with unified configuration system.
 
 ```mermaid
 graph LR
@@ -312,6 +336,7 @@ Factory --> Collection
 Manager["UnifiedDatabaseManager.ts"] --> Factory
 Manager --> Provider
 Manager --> Collection
+Config["databaseConfigSchema.ts"] --> Manager
 ```
 
 **Diagram sources**
@@ -325,92 +350,99 @@ Manager --> Collection
 - [UnifiedDatabaseManager.ts:44-73](file://src/services/database/UnifiedDatabaseManager.ts#L44-L73)
 
 ## Performance Considerations
-- Cache size, query timeout, and batch size are validated and auto-fixed within reasonable ranges.
-- OPFS and file-based storage differ in performance characteristics; OPFS offers persistence in secure contexts.
-- Transactions via BEGIN/COMMIT/ROLLBACK improve bulk insert performance.
-- Compaction (VACUUM) is exposed for storage optimization.
-
-[No sources needed since this section provides general guidance]
+- **Cache optimization**: SQLite WASM provider configures cache size and page size for optimal performance.
+- **WAL mode**: Write-Ahead Logging improves concurrent access and write performance.
+- **Foreign key constraints**: Enabled for data integrity in development and production.
+- **Query queuing**: Thread-safe operation handling for asynchronous database access.
+- **OPFS benefits**: Persistent storage eliminates mock data overhead and provides realistic performance characteristics.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
-- Provider not available: The factory checks environment availability and falls back to alternatives. Verify deployment mode and environment variables.
-- Initialization failures: Review logs for SQLite WASM initialization errors; ensure OPFS availability in browsers.
-- Backup/restore problems: Confirm provider supports backup/restore and that backup data matches provider type.
-- Health monitoring: Use health checks to identify collection-level issues and automatic repair attempts.
+- **OPFS not available**: Check browser compatibility and security context requirements.
+- **Provider initialization failures**: Verify environment variables and provider availability.
+- **Transaction conflicts**: Use proper transaction boundaries with BEGIN/COMMIT/ROLLBACK.
+- **Performance issues**: Adjust cache size and PRAGMA settings via environment variables.
+- **Backup/restore problems**: Ensure provider supports backup operations and correct backup format.
 
 **Section sources**
 - [DatabaseProviderFactory.ts:446-475](file://src/services/database/DatabaseProviderFactory.ts#L446-L475)
 - [UnifiedDatabaseManager.ts:548-630](file://src/services/database/UnifiedDatabaseManager.ts#L548-L630)
-- [SQLiteFileService.ts:487-546](file://src/services/sqlite/SQLiteFileService.ts#L487-L546)
-- [SQLiteOPFSService.ts:781-800](file://src/services/sqlite/SQLiteOPFSService.ts#L781-L800)
+- [SQLiteWASMProvider.ts:904-907](file://src/services/database/SQLiteWASMProvider.ts#L904-L907)
+- [SQLiteWASMProvider.test.ts:33-46](file://src/services/database/__tests__/SQLiteWASMProvider.test.ts#L33-L46)
 
 ## Conclusion
-SchoolPilot3’s SQLite provider architecture delivers a robust, provider-agnostic solution with three SQLite variants tailored to development and browser environments. The factory-driven selection, unified manager orchestration, and strong configuration validation ensure reliable operation across modes. OPFS enables persistent browser storage, while file-based SQLite simplifies Node.js development. Proper configuration, health monitoring, and backup/restore procedures maintain system reliability.
-
-[No sources needed since this section summarizes without analyzing specific files]
+SchoolPilot3's SQLite provider architecture delivers a robust, provider-agnostic solution with three SQLite variants tailored to development and browser environments. The updated implementation prioritizes SQLite WASM with OPFS as the default development provider, replacing mock data with persistent offline-capable storage. The factory-driven selection, unified manager orchestration, and strong configuration validation ensure reliable operation across modes. Enhanced development features, production settings configuration, and comprehensive transaction support provide a solid foundation for both development and production environments.
 
 ## Appendices
 
 ### Setup Instructions
 
-- Development (Node.js)
-  - Use file-based SQLite provider for development persistence.
-  - Initialize the provider and create collections via the unified manager.
-  - Use backup/restore and export utilities for data management.
+#### Development (Browser with OPFS)
+- **Default provider**: SQLite WASM with OPFS for persistent development storage.
+- **Initialize**: Provider automatically selected based on deployment mode.
+- **Features**: Persistent data across browser sessions, development-specific optimizations.
+- **Requirements**: Secure context (HTTPS/localhost) for OPFS availability.
 
-- Browser (WASM + OPFS)
-  - Ensure secure context (HTTPS/localhost) for OPFS.
-  - Initialize the OPFS service; it will attempt OPFS-backed storage and fall back if unavailable.
-  - Use collection CRUD operations and indexes for performance.
+#### Development (Node.js)
+- **Alternative provider**: File-based SQLite provider for development persistence.
+- **Initialize**: Use file-based SQLite provider for development.
+- **Features**: File-based storage, development utilities, backup/restore capabilities.
 
-- Production
-  - Prefer WASM/OPFS for offline-first experiences.
-  - Configure performance and storage limits via validation schema.
-  - Enable health checks and monitoring for production-grade reliability.
+#### Production
+- **Primary provider**: SQLite WASM with OPFS for offline-first experiences.
+- **Configuration**: Production settings automatically applied via environment variables.
+- **Features**: SQLCipher encryption support, optimized PRAGMA settings, transaction management.
 
 **Section sources**
-- [SQLiteFileProvider.ts:216-229](file://src/services/sqlite/SQLiteFileProvider.ts#L216-L229)
-- [SQLiteOPFSService.ts:693-730](file://src/services/sqlite/SQLiteOPFSService.ts#L693-L730)
+- [SQLiteFileProvider.ts:34-64](file://src/services/database/SQLiteFileProvider.ts#L34-L64)
+- [SQLiteWASMProvider.ts:895-959](file://src/services/database/SQLiteWASMProvider.ts#L895-L959)
 - [databaseConfigSchema.ts:54-201](file://src/config/databaseConfigSchema.ts#L54-L201)
 
 ### Configuration Parameters and Tuning
-- Provider selection: sqlite-file (development), sqlite-wasm (browser), sqlite (auto).
-- Performance: cacheSize, queryTimeout, batchSize with enforced ranges.
-- Storage: maxSize, retentionDays, compression, encryption, backup toggles.
-- Sync: interval, retryAttempts, timeout, conflict resolution.
-- Monitoring: healthCheckInterval, logLevel, metrics, error reporting.
-- Features: full-text search, transactions, real-time updates, offline mode, data validation, audit log.
+- **Provider selection**: sqlite-file (development), sqlite-wasm (browser), sqlite (auto).
+- **Performance**: cacheSize, queryTimeout, batchSize with enforced ranges.
+- **Storage**: maxSize, retentionDays, compression, encryption, backup toggles.
+- **Sync**: interval, retryAttempts, timeout, conflict resolution.
+- **Monitoring**: healthCheckInterval, logLevel, metrics, error reporting.
+- **Features**: full-text search, transactions, real-time updates, offline mode, data validation, audit log.
+- **Production settings**: WAL mode, foreign keys, synchronous mode, cache size via environment variables.
 
 **Section sources**
 - [databaseConfigSchema.ts:54-201](file://src/config/databaseConfigSchema.ts#L54-L201)
 - [databaseConfigSchema.ts:204-300](file://src/config/databaseConfigSchema.ts#L204-L300)
 - [databaseConfigSchema.ts:415-466](file://src/config/databaseConfigSchema.ts#L415-L466)
+- [SelfHosting.test.ts:88-107](file://src/services/database/__tests__/SelfHosting.test.ts#L88-L107)
 
 ### Security and Browser Compatibility
-- OPFS requires secure contexts; otherwise, the service falls back to file storage.
-- SQLite WASM runs in-browser without Node.js dependencies.
-- Configuration validation ensures safe defaults for production.
+- **OPFS requirements**: Secure contexts (HTTPS/localhost) required for OPFS availability.
+- **SQLCipher support**: Optional encryption via encryption key configuration.
+- **Environment detection**: Runtime capability checking for provider availability.
+- **Fallback mechanisms**: Graceful degradation when OPFS is unavailable.
 
 **Section sources**
 - [sqlite-opfs-implementation.md:58-73](file://docs/database/sqlite-opfs-implementation.md#L58-L73)
-- [SQLiteOPFSService.ts:708-716](file://src/services/sqlite/SQLiteOPFSService.ts#L708-L716)
+- [SQLiteWASMProvider.ts:961-970](file://src/services/database/SQLiteWASMProvider.ts#L961-L970)
+- [SQLiteWASMProvider.ts:930-943](file://src/services/database/SQLiteWASMProvider.ts#L930-L943)
 
 ### Backup and Restore Procedures
-- File-based provider: backup() returns structured JSON; restore() loads data into collections.
-- OPFS provider: similar backup/restore semantics via service methods.
-- Export utilities allow exporting database content for inspection.
+- **File-based provider**: backup() returns structured JSON; restore() loads data into collections.
+- **WASM provider**: Similar backup/restore semantics via service methods.
+- **Export utilities**: Database export capabilities for inspection and migration.
+- **Development persistence**: OPFS-based storage maintains data across browser sessions.
 
 **Section sources**
-- [SQLiteFileService.ts:487-546](file://src/services/sqlite/SQLiteFileService.ts#L487-L546)
-- [SQLiteOPFSService.ts:781-800](file://src/services/sqlite/SQLiteOPFSService.ts#L781-L800)
+- [SQLiteFileProvider.ts:434-443](file://src/services/database/SQLiteFileProvider.ts#L434-L443)
+- [SQLiteWASMProvider.ts:895-959](file://src/services/database/SQLiteWASMProvider.ts#L895-L959)
 
 ### Transaction Handling and Query Execution
-- Transactions: Use BEGIN/COMMIT/ROLLBACK for bulk operations to maintain consistency.
-- Query execution: Prepared statements with parameter binding; schema-aware serialization/deserialization.
-- Indexing: Automatic index creation from schema definitions; manual createIndex supported.
+- **Transaction management**: BEGIN/COMMIT/ROLLBACK support for data consistency.
+- **Query execution**: Prepared statements with parameter binding; schema-aware serialization/deserialization.
+- **Indexing**: Automatic index creation from schema definitions; manual createIndex supported.
+- **Thread safety**: Query queue implementation for concurrent database operations.
+- **Development features**: Enhanced development utilities and debugging capabilities.
 
 **Section sources**
-- [SQLiteOPFSService.ts:217-244](file://src/services/sqlite/SQLiteOPFSService.ts#L217-L244)
+- [SQLiteWASMProvider.ts:855-885](file://src/services/database/SQLiteWASMProvider.ts#L855-L885)
 - [SQLiteOPFSService.ts:532-641](file://src/services/sqlite/SQLiteOPFSService.ts#L532-L641)
-- [SQLiteFileService.ts:94-118](file://src/services/sqlite/SQLiteFileService.ts#L94-L118)
+- [SQLiteFileProvider.ts:434-443](file://src/services/database/SQLiteFileProvider.ts#L434-L443)
+- [SQLiteWASMProvider.test.ts:33-46](file://src/services/database/__tests__/SQLiteWASMProvider.test.ts#L33-L46)

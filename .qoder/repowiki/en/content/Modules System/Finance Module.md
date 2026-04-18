@@ -5,10 +5,23 @@
 - [index.ts](file://src/modules/finance/index.ts)
 - [moduleDefinition.tsx](file://src/modules/finance/moduleDefinition.tsx)
 - [rbac.ts](file://src/modules/finance/rbac.ts)
-- [collectionConfig.ts](file://src/modules/finance/data/collectionConfig.ts)
-- [useSafeFinanceContext.ts](file://src/modules/finance/data/useSafeFinanceContext.ts)
+- [FinanceDataProvider.tsx](file://src/modules/finance/data/FinanceDataProvider.tsx)
+- [useFinanceData.ts](file://src/modules/finance/data/useFinanceData.ts)
+- [useBankData.ts](file://src/modules/finance/data/useBankData.ts)
+- [types.ts](file://src/modules/finance/data/types.ts)
+- [schema.ts](file://src/modules/finance/data/schema.ts)
+- [useDataHookFactory.ts](file://src/hooks/useDataHookFactory.ts)
 - [CONTEXT.md](file://CONTEXT.md)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated comprehensive database integration section to reflect new FinanceDataProvider architecture with enhanced facade pattern implementation
+- Revised data layer documentation to show unified database-backed approach using useFinanceData hook and individual entity hooks
+- Enhanced facade pattern documentation with detailed FinanceDataProvider implementation and database integration
+- Updated architecture overview to show new modular data provider pattern with database service integration
+- Expanded coverage of new data hook factory implementation with AppDataContext integration
+- Updated examples to include new FinanceDataProvider usage patterns and database-backed CRUD operations
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -16,274 +29,368 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
+6. [Comprehensive Database Integration](#comprehensive-database-integration)
+7. [Dependency Analysis](#dependency-analysis)
+8. [Performance Considerations](#performance-considerations)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Conclusion](#conclusion)
 
 ## Introduction
-This document describes the Finance module functionality within the system. It focuses on the fee management system (templates, adjustments, collection tracking), accounting integration (chart of accounts, bank management, expense tracking), student payment processing and invoicing, financial year management, general ledger integration, supplier management, payment application workflows, financial data models, transaction processing, and reporting capabilities. The content is derived from the module’s barrel exports, module definition, RBAC permissions, data collection configuration, and safe context hook.
+This document describes the Finance module functionality within the system, featuring a completely rewritten database-backed approach with enhanced facade pattern implementation. The module now provides comprehensive financial management through a unified database integration system with 15+ collections, featuring the new FinanceDataProvider architecture that maintains full CRUD functionality while providing enhanced database integration. The content reflects the latest database integration improvements with the new FinanceDataProvider pattern, expanded financial ecosystem coverage, and comprehensive collection-driven architecture with database-agnostic schemas.
 
 ## Project Structure
-The Finance module follows a standardized modular structure with clear separation of concerns:
-- Module definition and registration
-- RBAC permissions and roles
-- Data layer with typed schemas, collections, and hooks
-- Pages, components, services, and lifecycle hooks
-- Safe context hook for graceful module disablement
+The Finance module follows a modernized modular structure with enhanced database integration through the new FinanceDataProvider architecture and comprehensive collection management:
+
+- Module definition and registration with extensive navigation and feature flags
+- RBAC permissions and roles for granular access control
+- Enhanced data layer with FinanceDataProvider facade pattern and individual entity hooks
+- Database-agnostic schemas supporting both RxDB and PouchDB implementations
+- Comprehensive CRUD operations through database service integration
+- AppDataContext integration for centralized data management
 
 ```mermaid
 graph TB
 A["Finance Module<br/>Barrel Export (index.ts)"] --> B["Module Definition<br/>moduleDefinition.tsx"]
 A --> C["RBAC Permissions<br/>rbac.ts"]
-A --> D["Data Layer<br/>data/*"]
-D --> E["Collections Config<br/>collectionConfig.ts"]
-D --> F["Safe Context Hook<br/>useSafeFinanceContext.ts"]
-B --> G["Dependencies<br/>administration, academics (required)<br/>inventory (optional)"]
+A --> D["Enhanced Data Layer<br/>FinanceDataProvider + Hooks"]
+D --> E["FinanceDataProvider<br/>Facade Pattern"]
+D --> F["Individual Entity Hooks<br/>useBankData, useChartOfAccountData, etc."]
+D --> G["Database Service Integration<br/>databaseService"]
+B --> H["Navigation<br/>15+ Finance Pages"]
+B --> I["Dependencies<br/>administration (required)<br/>Optional features: transport, contracts"]
 ```
 
 **Diagram sources**
 - [index.ts:1-31](file://src/modules/finance/index.ts#L1-L31)
 - [moduleDefinition.tsx](file://src/modules/finance/moduleDefinition.tsx)
 - [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
-- [useSafeFinanceContext.ts:1-35](file://src/modules/finance/data/useSafeFinanceContext.ts#L1-L35)
+- [FinanceDataProvider.tsx:1-612](file://src/modules/finance/data/FinanceDataProvider.tsx#L1-L612)
+- [useBankData.ts:1-29](file://src/modules/finance/data/useBankData.ts#L1-L29)
 
 **Section sources**
 - [index.ts:1-31](file://src/modules/finance/index.ts#L1-L31)
 - [CONTEXT.md:312-356](file://CONTEXT.md#L312-L356)
 
 ## Core Components
-- Module definition and registration: Declares module identity, version, dependencies, routes, data hooks, and permissions.
-- RBAC permissions: Defines granular permissions for payment processing and financial reporting.
-- Data collections: Centralized configuration of RxDB schemas and collection aliases for all financial entities.
-- Safe context hook: Provides a fallback set of empty arrays when the module is disabled, ensuring robust UI rendering.
+The Finance module now provides comprehensive financial management through the enhanced FinanceDataProvider architecture with database-backed CRUD operations:
 
-Key responsibilities:
-- Fee management: Templates, adjustments, and collection tracking via dedicated collections.
-- Accounting integration: Chart of accounts, bank management, and expense categories/claims.
-- Student financials: Invoices, payments, and applications against invoices.
-- Supplier/customer management: Invoices and payments for external parties.
-- General ledger: Entries and financial year boundaries.
-- Reporting: Permissions to view financial reports.
+### Module Definition and Registration
+- Declares module identity, version, dependencies, 15+ navigation routes, data hooks, and permissions
+- Supports both required (administration) and optional dependencies
+- Features include fee management, payment processing, accounting, expense tracking, and transport finance
+- Includes comprehensive feature flags for enabling/disabling specific financial functionalities
+
+### RBAC Permissions
+- Granular permissions for payment processing and financial reporting
+- Four payment operation permissions (read, create, update, delete)
+- One reporting permission for financial insights
+- Default roles include finance officer and administrator
+
+### Enhanced Data Provider Architecture
+The module now features a sophisticated FinanceDataProvider facade pattern that encapsulates all financial data operations:
+
+#### FinanceDataProvider Facade Pattern
+- Centralized data management through React Context Provider
+- Comprehensive CRUD operations for all 15+ financial entities
+- Built-in validation using ValidationSchema system
+- Database service integration with automatic transaction handling
+- Toast notification integration for user feedback
+- Loading state management for async operations
+
+#### Individual Entity Hooks
+- Modular data hooks using the data hook factory pattern
+- Consistent CRUD interface across all financial entities
+- Automatic AppDataContext registration and synchronization
+- Support for offline operations with caching
+- Type-safe entity management with validation
 
 **Section sources**
 - [moduleDefinition.tsx](file://src/modules/finance/moduleDefinition.tsx)
 - [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
-- [useSafeFinanceContext.ts:1-35](file://src/modules/finance/data/useSafeFinanceContext.ts#L1-L35)
+- [FinanceDataProvider.tsx:1-612](file://src/modules/finance/data/FinanceDataProvider.tsx#L1-L612)
+- [useBankData.ts:1-29](file://src/modules/finance/data/useBankData.ts#L1-L29)
 
 ## Architecture Overview
-The Finance module integrates with the broader system through:
-- Module registration and lifecycle
-- Data layer auto-discovery via collection configuration
-- RBAC enforcement for sensitive operations
-- Safe context pattern for optional module enablement
+The Finance module integrates comprehensively with the broader system through the new FinanceDataProvider architecture and enhanced database integration:
 
 ```mermaid
 graph TB
-subgraph "System"
+subgraph "Enhanced System Architecture"
 M["Module Registry"]
 R["RBAC Engine"]
-D["Unified Database Manager"]
+FDP["FinanceDataProvider<br/>Facade Pattern"]
+DS["Database Service"]
+DB["Unified Database<br/>RxDB/PouchDB"]
+UDM["UnifiedDatabaseManager"]
 end
-F["Finance Module"] --> M
+subgraph "Finance Module Ecosystem"
+F["Finance Module"]
+FP["FinanceDataProvider<br/>Centralized CRUD"]
+EH["Entity Hooks<br/>Individual CRUD"]
+FD["Database-Agnostic Schemas"]
+FS["Financial Services"]
+end
+F --> M
 F --> R
-F --> D
-D --> C["Financial Collections<br/>financial_years, chart_of_accounts, banks,<br/>suppliers, fee_templates, expense_categories,<br/>student_invoices, student_payments,<br/>invoice_payment_applications, general_payments,<br/>general_ledger_entries"]
+F --> FDP
+FDP --> DS
+DS --> DB
+DB --> UDM
+UDM --> FDP
+FDP --> FP
+FDP --> EH
+EH --> FD
+FD --> FS
 ```
 
 **Diagram sources**
 - [moduleDefinition.tsx](file://src/modules/finance/moduleDefinition.tsx)
 - [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [FinanceDataProvider.tsx:1-612](file://src/modules/finance/data/FinanceDataProvider.tsx#L1-L612)
+- [useDataHookFactory.ts:1-557](file://src/hooks/useDataHookFactory.ts#L1-L557)
 
 ## Detailed Component Analysis
 
-### Fee Management System
-Fee templates, adjustments, and collection tracking are represented by dedicated collections. The system supports:
-- Template creation and inheritance for fee components
-- Adjustment records for exceptions or waivers
-- Tracking of fee collections and application to student balances
+### FinanceDataProvider Facade Pattern
+The new FinanceDataProvider implements a comprehensive facade pattern that encapsulates all financial data operations with enhanced database integration:
 
 ```mermaid
-erDiagram
-FEE_TEMPLATES ||--o{ FEE_TEMPLATE_ITEMS : "contains"
-STUDENT_OPENING_BALANCES ||--o{ STUDENT_INVOICES : "generates"
-STUDENT_INVOICES ||--o{ STUDENT_INVOICE_ITEMS : "contains"
-STUDENT_INVOICES ||--o{ INVOICE_PAYMENT_APPLICATIONS : "applies"
-STUDENT_PAYMENTS ||--|| INVOICE_PAYMENT_APPLICATIONS : "applies_to"
-GENERAL_PAYMENTS ||--o{ INVOICE_PAYMENT_APPLICATIONS : "optionally applies"
+classDiagram
+class FinanceDataProvider {
++banks : Bank[]
++chartOfAccounts : ChartOfAccount[]
++suppliers : Supplier[]
++feeTemplates : FeeTemplate[]
++addBank(data) Bank
++updateBank(id, data) Bank
++deleteBank(id) void
++validateBank(data) ValidationResult
++bulkAddBanks(items) Bank[]
++bulkDeleteBanks(ids) void
++addChartOfAccount(data) ChartOfAccount
++updateChartOfAccount(id, data) ChartOfAccount
++deleteChartOfAccount(id) void
++validateChartOfAccount(data) ValidationResult
++addSupplier(data) Supplier
++updateSupplier(id, data) Supplier
++deleteSupplier(id) void
++addFeeTemplate(data) FeeTemplate
++updateFeeTemplate(id, data) FeeTemplate
++deleteFeeTemplate(id) void
++validateFeeTemplate(data) ValidationResult
++addFinancialYear(data) FinancialYear
++updateFinancialYear(id, data) FinancialYear
++deleteFinancialYear(id) void
++closeFinancialYear(id) FinancialYear
++validateBank(data) ValidationResult
++validateChartOfAccount(data) ValidationResult
++validateFeeTemplate(data) ValidationResult
+}
 ```
 
 **Diagram sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [FinanceDataProvider.tsx:11-612](file://src/modules/finance/data/FinanceDataProvider.tsx#L11-L612)
 
 **Section sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [FinanceDataProvider.tsx:1-612](file://src/modules/finance/data/FinanceDataProvider.tsx#L1-L612)
 
-### Accounting Integration
-The accounting backbone includes:
-- Chart of accounts for posting transactions
-- Bank management for cash/bank accounts
-- Expense categories and claims for operational costs
-- Financial years to bound accounting periods
-
-```mermaid
-flowchart TD
-Start(["Accounting Entry"]) --> COA["Select Chart of Accounts"]
-COA --> Bank["Select Bank/Cash Account"]
-Bank --> Category["Select Expense Category"]
-Category --> Year["Select Financial Year"]
-Year --> Post["Post Journal Entry"]
-Post --> GL["Update General Ledger Entries"]
-GL --> End(["Entry Complete"])
-```
-
-**Diagram sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
-
-**Section sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
-
-### Student Payment Processing and Invoicing
-Student financials are modeled with separate entities for invoices and payments, with application logic linking payments to invoices.
+### Enhanced Data Hook Factory Implementation
+The individual entity hooks now utilize the enhanced data hook factory pattern for consistent database integration:
 
 ```mermaid
 sequenceDiagram
-participant Student as "Student"
-participant Invoice as "Student Invoice"
-participant Payment as "Student Payment"
-participant Application as "Invoice Payment Application"
-Student->>Invoice : "Generate invoice for term/components"
-Invoice-->>Student : "Invoice details"
-Student->>Payment : "Make payment"
-Payment-->>Application : "Create application to invoice"
-Application-->>Invoice : "Apply payment toward balance"
-Invoice-->>Student : "Updated invoice status"
+participant Component as "React Component"
+participant Hook as "useBankData Hook"
+participant Factory as "Data Hook Factory"
+participant Context as "AppDataContext"
+participant DB as "Database Service"
+Component->>Hook : Call useBankData()
+Hook->>Factory : createDataHook(config)
+Factory->>Context : Register with AppDataContext
+Factory->>DB : Initialize database connection
+DB-->>Factory : Database instance ready
+Factory-->>Hook : Hook with CRUD operations
+Hook-->>Component : Hook with data and operations
 ```
 
 **Diagram sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [useBankData.ts:12-28](file://src/modules/finance/data/useBankData.ts#L12-L28)
+- [useDataHookFactory.ts:65-557](file://src/hooks/useDataHookFactory.ts#L65-L557)
 
 **Section sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [useBankData.ts:1-29](file://src/modules/finance/data/useBankData.ts#L1-L29)
+- [useDataHookFactory.ts:1-557](file://src/hooks/useDataHookFactory.ts#L1-L557)
 
-### Supplier and Customer Management
-Supplier and customer invoice workflows support procurement and revenue recording.
-
-```mermaid
-sequenceDiagram
-participant Supplier as "Supplier"
-participant SI as "Supplier Invoice"
-participant GP as "General Payment"
-participant CI as "Customer Invoice"
-Supplier->>SI : "Issue supplier invoice"
-GP-->>SI : "Apply payment from bank"
-SI-->>Supplier : "Supplier invoice settled"
-participant Customer as "Customer"
-Customer->>CI : "Issue customer invoice"
-GP-->>CI : "Apply receipt against invoice"
-CI-->>Customer : "Customer invoice settled"
-```
-
-**Diagram sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
-
-**Section sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
-
-### Financial Year Management
-Financial years bound accounting periods and ensure proper cutoffs for ledger entries and reporting.
+### Database Service Integration
+The Finance module now features comprehensive database service integration with automatic transaction handling and validation:
 
 ```mermaid
 flowchart TD
-FY_Start["Create Financial Year"] --> Open["Open for Posting"]
-Open --> Transactions["Record Transactions"]
-Transactions --> Close["Close Period"]
-Close --> Report["Generate Reports"]
-Report --> Reopen["Next Financial Year"]
+Start(["Finance Operation Request"]) --> Validation["Validate Data<br/>with ValidationSchema"]
+Validation --> DBCheck{"Database Available?"}
+DBCheck --> |Yes| DBInsert["Insert/Update/Delete<br/>via Database Service"]
+DBCheck --> |No| Cache["Cache Operation<br/>for Later Sync"]
+DBInsert --> Success["Operation Successful<br/>Return Result"]
+Cache --> Pending["Mark as Pending<br/>Sync"]
+Success --> Toast["Show Success Toast<br/>User Feedback"]
+Pending --> Toast
+Toast --> End(["Operation Complete"])
 ```
 
 **Diagram sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [FinanceDataProvider.tsx:126-153](file://src/modules/finance/data/FinanceDataProvider.tsx#L126-L153)
+- [FinanceDataProvider.tsx:232-258](file://src/modules/finance/data/FinanceDataProvider.tsx#L232-L258)
 
 **Section sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [FinanceDataProvider.tsx:126-153](file://src/modules/finance/data/FinanceDataProvider.tsx#L126-L153)
+- [FinanceDataProvider.tsx:232-258](file://src/modules/finance/data/FinanceDataProvider.tsx#L232-L258)
 
-### General Ledger Integration
-General ledger entries capture summarized postings from journals and support financial reporting.
+### Comprehensive CRUD Operations
+The enhanced FinanceDataProvider provides comprehensive CRUD operations with validation and error handling:
 
 ```mermaid
 sequenceDiagram
-participant GL as "General Ledger Entries"
-participant JE as "Journal Entries"
-participant COA as "Chart of Accounts"
-JE->>COA : "Validate account codes"
-JE->>GL : "Summarize debits/credits"
-GL-->>JE : "Accrue balances"
+participant Client as "Client Code"
+participant Provider as "FinanceDataProvider"
+participant Validator as "Validation System"
+participant DB as "Database Service"
+participant Toast as "Toast System"
+Client->>Provider : addBank(bankData)
+Provider->>Validator : validate(bankData)
+Validator-->>Provider : validationResult
+Provider->>DB : insert(bankData)
+DB-->>Provider : newBank
+Provider->>Toast : showSuccess("Bank created successfully")
+Provider-->>Client : newBank
 ```
 
 **Diagram sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [FinanceDataProvider.tsx:126-153](file://src/modules/finance/data/FinanceDataProvider.tsx#L126-L153)
 
 **Section sources**
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
+- [FinanceDataProvider.tsx:126-153](file://src/modules/finance/data/FinanceDataProvider.tsx#L126-L153)
 
-### Reporting Capabilities
-The module exposes read permissions for financial reports, enabling dashboards and analytics.
+## Comprehensive Database Integration
+The Finance module now integrates through the enhanced FinanceDataProvider architecture with comprehensive financial ecosystem coverage:
 
-```mermaid
-flowchart TD
-Reports["Financial Reports"] --> Permissions["finance.reports.read"]
-Permissions --> Dashboard["Finance Dashboard"]
-Dashboard --> Charts["Charts and KPIs"]
-```
+### Core Finance Collections
+- **financial_years**: Financial period boundaries and fiscal year management with status tracking
+- **chart_of_accounts**: Complete accounting hierarchy with parent-child relationships and account templates
+- **expense_categories**: Expense classification system for operational tracking
+- **banks**: Bank account management with cash/bank account integration and GL account linking
+- **suppliers**: Supplier directory with contact and payment terms
 
-**Diagram sources**
-- [rbac.ts:40-49](file://src/modules/finance/rbac.ts#L40-L49)
+### Fee and Invoicing Collections
+- **fee_templates**: Standard fee structures with component-based pricing and school period associations
+- **fee_template_items**: Individual fee components within templates with revenue account linking
+- **expense_claims**: Employee expense reimbursement tracking with workflow states
+- **student_opening_balances**: Initial student account balances with type categorization
+- **fee_adjustments**: Fee modifications and waivers with reason tracking
+
+### Transport Collections
+- **transport_routes**: Bus route management with monthly fee calculations and GL revenue account linking
+- **student_transport_assignments**: Student route assignments with status tracking and cost overrides
+
+### Student Financial Collections
+- **student_invoices**: Student fee invoice generation and management with itemized billing
+- **student_payments**: Payment processing for student accounts with method tracking
+- **invoice_payment_applications**: Payment allocation to specific invoices with amount tracking
+
+### External Financial Collections
+- **customer_invoices**: Revenue recognition from external customers with itemized billing
+- **supplier_invoices**: Procurement invoice management with payment tracking
+- **general_payments**: Bank payment processing with multi-item support
+- **general_ledger_entries**: Consolidated financial posting with source tracking
+
+### Collection Relationships
+The enhanced FinanceDataProvider creates a comprehensive financial data model with clear relationships:
+- Hierarchical chart of accounts supporting multi-level accounting
+- Supplier contract management integrating with purchase processes
+- Transport route management connecting to student assignment workflows
+- Comprehensive payment application system supporting multiple invoice types
+- Financial year boundaries controlling posting periods and reporting cycles
 
 **Section sources**
-- [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
+- [FinanceDataProvider.tsx:11-612](file://src/modules/finance/data/FinanceDataProvider.tsx#L11-L612)
+- [types.ts:1-435](file://src/modules/finance/data/types.ts#L1-L435)
+- [schema.ts:1-384](file://src/modules/finance/data/schema.ts#L1-L384)
 
 ## Dependency Analysis
-The Finance module declares explicit dependencies on other modules and defines its own permissions and routes.
+The Finance module maintains strategic dependencies while expanding functionality through the enhanced FinanceDataProvider architecture:
 
 ```mermaid
 graph TB
-Finance["Finance Module"] --> Admin["administration (required)"]
-Finance --> Acad["academics (required)"]
-Finance -. optional .-> Inv["inventory (optional)"]
-Finance --> Routes["financeRoutes"]
-Finance --> Hooks["financeDataHooks"]
-Finance --> Perms["financePermissions"]
+Finance["Finance Module v1.0.0"] --> Admin["administration (required)"]
+Finance --> Version["^1.0.0"]
+Finance --> Navigation["15+ Navigation Pages"]
+Finance --> Permissions["financePermissions"]
+Finance --> Roles["financeDefaultRoles"]
+Finance --> Provider["FinanceDataProvider<br/>Enhanced Facade Pattern"]
+Finance --> Hooks["Individual Entity Hooks<br/>useBankData, useChartOfAccountData, etc."]
+Finance --> Settings["Feature Flags:<br/>enableFeeManagement<br/>enablePaymentProcessing<br/>enableExpenseTracking"]
+subgraph "Enhanced Navigation Structure"
+Dashboard["Finance Dashboard"]
+Accounts["Chart of Accounts"]
+Fees["Fee Management"]
+Payments["Student Payments"]
+Reports["Financial Reports"]
+Transport["Transport Finance"]
+End["Complete Navigation"]
+end
+Navigation --> Dashboard
+Navigation --> Accounts
+Navigation --> Fees
+Navigation --> Payments
+Navigation --> Reports
+Navigation --> Transport
 ```
 
 **Diagram sources**
 - [moduleDefinition.tsx](file://src/modules/finance/moduleDefinition.tsx)
 - [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
+- [FinanceDataProvider.tsx:1-612](file://src/modules/finance/data/FinanceDataProvider.tsx#L1-L612)
 
 **Section sources**
 - [moduleDefinition.tsx](file://src/modules/finance/moduleDefinition.tsx)
 - [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
 
 ## Performance Considerations
-- Use the safe context hook to avoid heavy computations when the module is disabled.
-- Leverage RxDB reactive queries and indexing for efficient financial data retrieval.
-- Batch general ledger updates during period-end close to minimize write amplification.
-- Apply pagination and virtualization for large datasets like invoices and payments.
+Enhanced performance considerations for the new FinanceDataProvider architecture with comprehensive database integration:
+
+- **Database Service Optimization**: The FinanceDataProvider efficiently manages database connections through the database service for optimal performance
+- **Validation Caching**: Built-in validation schemas with caching for improved validation performance
+- **Toast Integration**: Centralized toast notifications minimize UI overhead while providing user feedback
+- **Memory Management**: Enhanced memory-aware caching through the data hook factory for efficient data operations
+- **Batch Operations**: Optimized batch processing for financial year closing and period-end activities through FinanceDataProvider
+- **Database Connection Pooling**: Unified connection management for concurrent financial operations
+- **Schema Validation**: Compile-time schema validation reduces runtime errors and improves performance
+- **AppDataContext Integration**: Seamless integration with AppDataContext prevents data synchronization overhead
 
 ## Troubleshooting Guide
-Common issues and resolutions:
-- Module disabled: The safe context hook returns empty arrays; verify module enablement in the registry.
-- Missing collections: Ensure collection configuration is loaded by the unified database manager.
-- Permission denied: Confirm RBAC grants for payment processing and report viewing.
-- Data inconsistencies: Validate financial year boundaries and chart of accounts mappings.
+Comprehensive troubleshooting for the enhanced FinanceDataProvider architecture with database integration:
+
+### Common Issues and Resolutions
+- **Database Connection Issues**: Verify database service initialization and connection status
+- **Validation Failures**: Check validation schemas and ensure data conforms to schema requirements
+- **FinanceDataProvider Not Found**: Ensure FinanceDataProvider is properly wrapped around components
+- **Entity Hook Registration**: Verify individual entity hooks are properly registered with AppDataContext
+- **Data Synchronization**: Check AppDataContext synchronization and ensure data consistency
+- **CRUD Operation Failures**: Review database service logs and error handling in FinanceDataProvider
+- **Performance Issues**: Monitor database query performance and optimize entity hook usage
+- **Validation Schema Errors**: Ensure all validation schemas are correctly defined and match entity types
+
+### Database Integration Issues
+- **FinanceDataProvider Context**: Verify FinanceDataProvider is properly wrapping application components
+- **Database Service Initialization**: Ensure database service is properly initialized before FinanceDataProvider usage
+- **Entity Hook Factory**: Check data hook factory configuration and ensure proper entity registration
+- **AppDataContext Integration**: Verify AppDataContext is properly configured for data synchronization
+- **Validation System**: Ensure validation schemas are correctly defined and applied to CRUD operations
+- **Transaction Consistency**: Verify atomicity in multi-entity financial transactions through FinanceDataProvider
 
 **Section sources**
-- [useSafeFinanceContext.ts:1-35](file://src/modules/finance/data/useSafeFinanceContext.ts#L1-L35)
-- [collectionConfig.ts:46-79](file://src/modules/finance/data/collectionConfig.ts#L46-L79)
-- [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
+- [FinanceDataProvider.tsx:1-612](file://src/modules/finance/data/FinanceDataProvider.tsx#L1-L612)
+- [useBankData.ts:1-29](file://src/modules/finance/data/useBankData.ts#L1-L29)
+- [useDataHookFactory.ts:1-557](file://src/hooks/useDataHookFactory.ts#L1-L557)
 
 ## Conclusion
-The Finance module provides a structured foundation for fee management, accounting integration, student payment processing, supplier/customer workflows, general ledger posting, and reporting. Its modular design, RBAC permissions, and collection-driven data model enable scalable and maintainable financial operations across the system.
+The Finance module now provides a comprehensive, database-backed financial management system with enhanced FinanceDataProvider architecture featuring the new facade pattern implementation. The enhanced architecture supports fee management, accounting integration, student payment processing, supplier/customer workflows, transport finance, general ledger posting, and advanced reporting capabilities through unified database integration. The modular design with FinanceDataProvider facade pattern, individual entity hooks, and comprehensive collection-driven data model enables scalable and maintainable financial operations across the entire educational institution system. The enhanced database integration ensures robust financial data management, reliable transaction processing, and comprehensive reporting capabilities essential for modern educational finance operations. The unified database approach with database-agnostic schemas and enhanced facade pattern provides flexibility for future database provider changes while maintaining data consistency and performance across all financial entities.

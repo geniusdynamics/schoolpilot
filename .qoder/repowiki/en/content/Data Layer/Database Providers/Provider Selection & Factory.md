@@ -10,7 +10,16 @@
 - [ProviderSelector.ts](file://src/services/database/ProviderSelector.ts)
 - [DataServiceFactory.ts](file://src/services/data/DataServiceFactory.ts)
 - [useDatabaseProvider.ts](file://src/hooks/useDatabaseProvider.ts)
+- [unifiedConfig.ts](file://src/config/unifiedConfig.ts)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated provider selection strategy to use unified configuration system
+- Enhanced development vs production provider selection logic
+- Added intelligent fallback mechanisms and environment-aware defaults
+- Removed RxDB references and updated provider capabilities
+- Improved configuration integration with environment detection
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -26,6 +35,8 @@
 ## Introduction
 This document explains the database provider selection and factory system in SchoolPilot3. It covers the provider factory pattern, capability detection mechanisms, and runtime selection logic used to choose the optimal database provider. The ProviderSelector algorithm evaluates environment capabilities, browser support, and deployment requirements to pick the best provider among SQLite WASM, PouchDB, Backend API, and others. It also documents configuration options for manual provider selection, fallback strategies, environment-specific overrides, factory registration, extensibility for custom providers, testing strategies, debugging techniques, and performance comparisons.
 
+**Updated** Enhanced provider factory with intelligent selection between SQLite WASM for development, PouchDB for production, and backward compatibility with existing configurations.
+
 ## Project Structure
 The database provider system spans configuration, factory, selector, and integration layers:
 - Configuration: Environment matrix, validation schema, runtime loaders, and environment variables
@@ -40,6 +51,7 @@ EM["Environment Matrix<br/>(environmentMatrix.ts)"]
 DCS["Config Schema & Validator<br/>(databaseConfigSchema.ts)"]
 DCR["Runtime Config Loader<br/>(databaseConfigRuntime.ts)"]
 DEV["Env Var Registry<br/>(databaseEnvVars.ts)"]
+UC["Unified Config<br/>(unifiedConfig.ts)"]
 end
 subgraph "Factory Layer"
 DPFF["DatabaseProviderFactory<br/>(DatabaseProviderFactory.ts)"]
@@ -55,6 +67,7 @@ end
 EM --> DPF_STRAT
 DCS --> DCR
 DEV --> DCR
+UC --> DPF_STRAT
 DCR --> DSF
 DSF --> DPFF
 DPFF --> PS
@@ -66,7 +79,8 @@ PS --> UDH
 - [databaseConfigSchema.ts:1-530](file://src/config/databaseConfigSchema.ts#L1-L530)
 - [databaseConfigRuntime.ts:1-331](file://src/config/databaseConfigRuntime.ts#L1-L331)
 - [databaseEnvVars.ts:1-41](file://src/config/databaseEnvVars.ts#L1-L41)
-- [DatabaseProviderFactory.ts:1-726](file://src/services/database/DatabaseProviderFactory.ts#L1-L726)
+- [unifiedConfig.ts:1-221](file://src/config/unifiedConfig.ts#L1-L221)
+- [DatabaseProviderFactory.ts:1-725](file://src/services/database/DatabaseProviderFactory.ts#L1-L725)
 - [ProviderSelector.ts:1-451](file://src/services/database/ProviderSelector.ts#L1-L451)
 - [DataServiceFactory.ts:1-159](file://src/services/data/DataServiceFactory.ts#L1-L159)
 - [useDatabaseProvider.ts:1-456](file://src/hooks/useDatabaseProvider.ts#L1-L456)
@@ -76,7 +90,8 @@ PS --> UDH
 - [databaseConfigSchema.ts:1-530](file://src/config/databaseConfigSchema.ts#L1-L530)
 - [databaseConfigRuntime.ts:1-331](file://src/config/databaseConfigRuntime.ts#L1-L331)
 - [databaseEnvVars.ts:1-41](file://src/config/databaseEnvVars.ts#L1-L41)
-- [DatabaseProviderFactory.ts:1-726](file://src/services/database/DatabaseProviderFactory.ts#L1-L726)
+- [unifiedConfig.ts:1-221](file://src/config/unifiedConfig.ts#L1-L221)
+- [DatabaseProviderFactory.ts:1-725](file://src/services/database/DatabaseProviderFactory.ts#L1-L725)
 - [ProviderSelector.ts:1-451](file://src/services/database/ProviderSelector.ts#L1-L451)
 - [DataServiceFactory.ts:1-159](file://src/services/data/DataServiceFactory.ts#L1-L159)
 - [useDatabaseProvider.ts:1-456](file://src/hooks/useDatabaseProvider.ts#L1-L456)
@@ -94,7 +109,7 @@ PS --> UDH
 - [environmentMatrix.ts:1-152](file://src/config/environmentMatrix.ts#L1-L152)
 - [databaseConfigSchema.ts:305-530](file://src/config/databaseConfigSchema.ts#L305-L530)
 - [databaseConfigRuntime.ts:77-248](file://src/config/databaseConfigRuntime.ts#L77-L248)
-- [DatabaseProviderFactory.ts:288-726](file://src/services/database/DatabaseProviderFactory.ts#L288-L726)
+- [DatabaseProviderFactory.ts:288-725](file://src/services/database/DatabaseProviderFactory.ts#L288-L725)
 - [ProviderSelector.ts:31-242](file://src/services/database/ProviderSelector.ts#L31-L242)
 - [DataServiceFactory.ts:37-159](file://src/services/data/DataServiceFactory.ts#L37-L159)
 - [useDatabaseProvider.ts:48-456](file://src/hooks/useDatabaseProvider.ts#L48-L456)
@@ -118,6 +133,7 @@ App->>Hook : Initialize database
 Hook->>DSF : createDataService(environment)
 DSF->>DPFF : createProvider(config, requirements)
 DPFF->>Strat : selectProvider(requirements)
+Strat->>Strat : getCurrentUnifiedConfig()
 Strat-->>DPFF : providerType
 DPFF->>Prov : initialize(config)
 Prov-->>DPFF : status
@@ -133,6 +149,7 @@ Hook-->>App : initialized provider + data
 - [DataServiceFactory.ts:37-151](file://src/services/data/DataServiceFactory.ts#L37-L151)
 - [DatabaseProviderFactory.ts:477-531](file://src/services/database/DatabaseProviderFactory.ts#L477-L531)
 - [DatabaseProviderFactory.ts:40-117](file://src/services/database/DatabaseProviderFactory.ts#L40-L117)
+- [unifiedConfig.ts:114](file://src/config/unifiedConfig.ts#L114)
 
 ## Detailed Component Analysis
 
@@ -179,34 +196,37 @@ DatabaseManager --> DatabaseProviderFactory : "orchestrates"
 ```
 
 **Diagram sources**
-- [DatabaseProviderFactory.ts:288-726](file://src/services/database/DatabaseProviderFactory.ts#L288-L726)
+- [DatabaseProviderFactory.ts:288-725](file://src/services/database/DatabaseProviderFactory.ts#L288-L725)
 - [ProviderSelector.ts:31-242](file://src/services/database/ProviderSelector.ts#L31-L242)
 
 **Section sources**
-- [DatabaseProviderFactory.ts:288-726](file://src/services/database/DatabaseProviderFactory.ts#L288-L726)
+- [DatabaseProviderFactory.ts:288-725](file://src/services/database/DatabaseProviderFactory.ts#L288-L725)
 - [ProviderSelector.ts:31-242](file://src/services/database/ProviderSelector.ts#L31-L242)
 
-### Provider Selection Strategy (ProviderSelector Algorithm)
-The selection strategy evaluates:
-- User-configured provider override
-- Environment defaults
-- Requirement flags (offline, sync, reactivity, performance)
-- Backend API availability
+### Enhanced Provider Selection Strategy (ProviderSelector Algorithm)
+The selection strategy now uses unified configuration for intelligent provider selection:
+
+**Updated** Enhanced with unified configuration integration and environment-aware logic:
 
 ```mermaid
 flowchart TD
-Start(["Start"]) --> CheckUserCfg["Check user-configured provider"]
-CheckUserCfg --> |Present| UseUser["Use configured provider"]
-CheckUserCfg --> |Absent| EnvCheck["Determine environment"]
+Start(["Start"]) --> CheckUserCfg["Check unifiedConfig.database.provider"]
+CheckUserCfg --> |Present| CheckSqlite{"Is 'sqlite'?"}
+CheckUserCfg --> |Absent| CheckEnv["Get environment from unifiedConfig"]
+CheckSqlite --> |Yes| EnvCheck["Check environment"]
 EnvCheck --> Dev{"Development?"}
-Dev --> |Yes| ReqOffline{"Requires offline?"}
-Dev --> |No| Prod{"Production?"}
-ReqOffline --> |Yes| UseSqliteFile["Select sqlite-file"]
+Dev --> |Yes| UseSqliteFile["Select sqlite-file"]
+Dev --> |No| UseSqliteWASM["Select sqlite-wasm"]
+CheckUserCfg --> |No| CheckEnv
+CheckEnv --> Dev2{"Development?"}
+Dev2 --> |Yes| ReqOffline{"Requires offline?"}
+Dev2 --> |No| Prod{"Production?"}
+ReqOffline --> |Yes| UseSqliteWASM2["Select sqlite-wasm"]
 ReqOffline --> |No| UsePouchDB["Select pouchdb"]
 Prod --> Sync{"Requires sync & high perf?"}
 Sync --> |Yes| UsePouchDB2["Select pouchdb"]
-Sync --> |No| Offline{"Requires offline & high perf?"}
-Offline --> |Yes| UseSqliteWASM["Select sqlite-wasm"]
+Prod --> Offline{"Requires offline & high perf?"}
+Offline --> |Yes| UseSqliteWASM3["Select sqlite-wasm"]
 Offline --> |No| Reactivity{"Requires reactivity & high perf?"}
 Reactivity --> |Yes| UsePouchDB3["Select pouchdb"]
 Reactivity --> |No| Sync2{"Requires sync?"}
@@ -214,7 +234,7 @@ Sync2 --> |Yes| ApiCfg{"Backend API configured?"}
 ApiCfg --> |Yes| UseBackendAPI["Select backend-api"]
 ApiCfg --> |No| UsePouchDB4["Select pouchdb"]
 Sync2 --> |No| Offline2{"Requires offline?"}
-Offline2 --> |Yes| UseSqliteWASM2["Select sqlite-wasm"]
+Offline2 --> |Yes| UseSqliteWASM4["Select sqlite-wasm"]
 Offline2 --> |No| Fallback["Default fallback: pouchdb"]
 UseUser --> End(["End"])
 UsePouchDB --> End
@@ -225,14 +245,18 @@ UsePouchDB2 --> End
 UsePouchDB3 --> End
 UsePouchDB4 --> End
 UseSqliteWASM2 --> End
+UseSqliteWASM3 --> End
+UseSqliteWASM4 --> End
 Fallback --> End
 ```
 
 **Diagram sources**
-- [DatabaseProviderFactory.ts:40-117](file://src/services/database/DatabaseProviderFactory.ts#L40-L117)
+- [DatabaseProviderFactory.ts:39-117](file://src/services/database/DatabaseProviderFactory.ts#L39-L117)
+- [unifiedConfig.ts:114](file://src/config/unifiedConfig.ts#L114)
 
 **Section sources**
-- [DatabaseProviderFactory.ts:40-117](file://src/services/database/DatabaseProviderFactory.ts#L40-L117)
+- [DatabaseProviderFactory.ts:39-117](file://src/services/database/DatabaseProviderFactory.ts#L39-L117)
+- [unifiedConfig.ts:114](file://src/config/unifiedConfig.ts#L114)
 
 ### Capability Detection and Browser Support
 Capability detection is integrated into provider registration and selection:
@@ -348,6 +372,7 @@ DCR --> DSF["Data Service Factory"]
 DSF --> DPFF["Provider Factory"]
 DPFF --> PS["Provider Selector"]
 PS --> UDH["useDatabaseProvider"]
+UC["Unified Config"] --> DPF_STRAT
 ```
 
 **Diagram sources**
@@ -355,18 +380,20 @@ PS --> UDH["useDatabaseProvider"]
 - [databaseConfigSchema.ts:1-530](file://src/config/databaseConfigSchema.ts#L1-L530)
 - [databaseConfigRuntime.ts:1-331](file://src/config/databaseConfigRuntime.ts#L1-L331)
 - [DataServiceFactory.ts:1-159](file://src/services/data/DataServiceFactory.ts#L1-L159)
-- [DatabaseProviderFactory.ts:1-726](file://src/services/database/DatabaseProviderFactory.ts#L1-L726)
+- [DatabaseProviderFactory.ts:1-725](file://src/services/database/DatabaseProviderFactory.ts#L1-L725)
 - [ProviderSelector.ts:1-451](file://src/services/database/ProviderSelector.ts#L1-L451)
 - [useDatabaseProvider.ts:1-456](file://src/hooks/useDatabaseProvider.ts#L1-L456)
+- [unifiedConfig.ts:1-221](file://src/config/unifiedConfig.ts#L1-L221)
 
 **Section sources**
 - [environmentMatrix.ts:1-152](file://src/config/environmentMatrix.ts#L1-L152)
 - [databaseConfigSchema.ts:1-530](file://src/config/databaseConfigSchema.ts#L1-L530)
 - [databaseConfigRuntime.ts:1-331](file://src/config/databaseConfigRuntime.ts#L1-L331)
 - [DataServiceFactory.ts:1-159](file://src/services/data/DataServiceFactory.ts#L1-L159)
-- [DatabaseProviderFactory.ts:1-726](file://src/services/database/DatabaseProviderFactory.ts#L1-L726)
+- [DatabaseProviderFactory.ts:1-725](file://src/services/database/DatabaseProviderFactory.ts#L1-L725)
 - [ProviderSelector.ts:1-451](file://src/services/database/ProviderSelector.ts#L1-L451)
 - [useDatabaseProvider.ts:1-456](file://src/hooks/useDatabaseProvider.ts#L1-L456)
+- [unifiedConfig.ts:1-221](file://src/config/unifiedConfig.ts#L1-L221)
 
 ## Performance Considerations
 - SQLite WASM excels in offline-first scenarios with strong query performance
@@ -374,6 +401,11 @@ PS --> UDH["useDatabaseProvider"]
 - Backend API reduces client-side overhead but depends on network reliability
 - LiveStore configurations in production emphasize caching and performance metrics
 - Use environment-specific storage settings (OPFS, memory, file) to optimize performance
+
+**Updated** Enhanced performance considerations with environment-aware provider selection:
+- Development: SQLite WASM with OPFS for optimal development experience
+- Production: PouchDB for synchronization capabilities
+- Staging: SQLite WASM for testing production-like behavior
 
 ## Troubleshooting Guide
 Common issues and resolutions:
@@ -388,4 +420,6 @@ Common issues and resolutions:
 - [useDatabaseProvider.ts:148-176](file://src/hooks/useDatabaseProvider.ts#L148-L176)
 
 ## Conclusion
-SchoolPilot3’s database provider selection and factory system provides a robust, configurable, and extensible foundation for choosing and managing database providers. The combination of environment-aware defaults, capability detection, and comprehensive fallback logic ensures reliable operation across diverse deployment scenarios. The factory pattern and selector architecture enable easy extension with custom providers and maintainability through clear separation of concerns.
+SchoolPilot3's database provider selection and factory system provides a robust, configurable, and extensible foundation for choosing and managing database providers. The combination of environment-aware defaults, capability detection, and comprehensive fallback logic ensures reliable operation across diverse deployment scenarios. The factory pattern and selector architecture enable easy extension with custom providers and maintainability through clear separation of concerns.
+
+**Updated** The enhanced provider selection strategy now intelligently chooses between SQLite WASM for development environments and PouchDB for production, while maintaining backward compatibility with existing configurations and providing seamless fallback mechanisms for optimal application reliability.
