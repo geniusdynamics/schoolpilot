@@ -30,6 +30,8 @@ import {
   StarIcon,
   PlusIcon,
   ChartBarIcon,
+  UserIcon,
+  ArrowPathIcon,
 } from '@/components/ui/icons';
 
 export const administrationModule: ModuleDefinition = {
@@ -45,6 +47,8 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.applications', path: '/administration/applications', icon: DocumentAddIcon, page: 'ApplicationsPage' },
     { name: 'navigation:administration.preNAsMarks', path: '/administration/prenas-marks', icon: DocumentSearchIcon, page: 'PreNAsMarksPage' },
     { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentsListPage' },
+    { name: 'navigation:administration.studentMasterlist', path: '/administration/student-masterlist', icon: UserIcon, page: 'StudentMasterlistPage' },
+    { name: 'navigation:administration.studentPromotion', path: '/administration/student-promotion', icon: ArrowPathIcon, page: 'StudentPromotionPage' },
     { name: 'navigation:administration.studentImport', path: '/administration/student-import', icon: ArrowUpTrayIcon, page: 'StudentDataImportPage' },
     { name: 'navigation:administration.studentClearance', path: '/administration/student-clearance', icon: ClipboardDocumentCheckIcon, page: 'StudentClearancePage' },
     { name: 'navigation:administration.disciplinaryCases', path: '/administration/disciplinary-cases', icon: ShieldExclamationIcon, page: 'DisciplinaryCasesPage' },

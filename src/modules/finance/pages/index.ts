@@ -16,3 +16,6 @@ export { default as StudentTransportAssignmentsPage } from './StudentTransportAs
 export { default as SupplierInvoicesPage } from './SupplierInvoicesPage';
 export { default as SuppliersPage } from './SuppliersPage';
 export { default as TransportRoutesPage } from './TransportRoutesPage';
+export { default as StudentFinancialSummaryPage } from './StudentFinancialSummaryPage';
+export { default as VoteheadStatementPage } from './VoteheadStatementPage';
+export { default as AccountLedgerPage } from './AccountLedgerPage';
