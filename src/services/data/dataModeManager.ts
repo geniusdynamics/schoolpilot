@@ -252,7 +252,10 @@ export class DataModeManager extends EventEmitter {
     }
   }
 
-  async seedDemoData(volume: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise' = 'medium'): Promise<void> {
+  async seedDemoData(
+    volume: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise' = 'medium',
+    modules?: string[]
+  ): Promise<void> {
     try {
       const provider = this.dbFactory.getActiveProvider();
       if (!provider) {
@@ -261,6 +264,7 @@ export class DataModeManager extends EventEmitter {
 
       const stats = await seedProviderWithDemoData(provider, {
         volume,
+        modules,
         clearExisting: true
       });
 

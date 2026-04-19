@@ -623,3 +623,68 @@ export const initialMockExamSchedules: ExamSchedule[] = [
 ];
 
 export const examSchedules = initialMockExamSchedules;
+
+// Comprehensive Academic Data Generation
+// Import generators for creating additional realistic academic data
+import { generateAcademicData, GRADING_SCHEMES, SUBJECT_DEFINITIONS } from '@/services/dataGeneration/generators/academicGenerator';
+
+/**
+ * Generates comprehensive academic data with exam workflows and results
+ * Use this function to generate additional exam data with results
+ * 
+ * @param schoolPeriodId School period for exams
+ * @param classStreamIds Class stream IDs
+ * @param studentIds Student IDs to generate results for
+ * @param staffIds Staff IDs for teacher assignments
+ * @returns Generated academic data including exams, results, and rankings
+ */
+export function generateComprehensiveAcademicData(
+  schoolPeriodId: number,
+  classStreamIds: number[],
+  studentIds: string[],
+  staffIds: string[]
+): {
+  subjects: Subject[];
+  subjectPapers: SubjectPaper[];
+  examSessions: ExamSession[];
+  examPaperSettings: ExamPaperSetting[];
+  gradingSchemes: GradingScheme[];
+  classSubjectAllocations: ClassSubjectAllocation[];
+  teacherSubjectAssignments: TeacherSubjectAssignment[];
+  studentSubjectEnrollments: StudentSubjectEnrollment[];
+  studentExamResults: StudentExamResult[];
+  studentPaperMarks: StudentPaperMark[];
+} {
+  return generateAcademicData({
+    schoolPeriodId,
+    classStreamIds,
+    studentIds,
+    staffIds,
+    gradingSchemeId: 1 // A-E Grading (8-4-4)
+  });
+}
+
+// Export comprehensive grading schemes for reference
+export const comprehensiveGradingSchemes = GRADING_SCHEMES;
+export const comprehensiveSubjectDefinitions = SUBJECT_DEFINITIONS;
+
+// Pre-generated comprehensive academic data (lazily evaluated)
+// Note: These use placeholder IDs - replace with actual IDs when using
+export const comprehensiveAcademicData = generateComprehensiveAcademicData(
+  7, // Term 1 - AY 2024/2025
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // Class stream IDs
+  Array.from({ length: 100 }, (_, i) => `STU${String(i + 1).padStart(3, '0')}`), // 100 students
+  Array.from({ length: 25 }, (_, i) => `STF${String(i + 1).padStart(3, '0')}`) // 25 staff
+);
+
+// Combined exports for seeding
+export const allSubjects = comprehensiveAcademicData.subjects;
+export const allSubjectPapers = comprehensiveAcademicData.subjectPapers;
+export const allExamSessions = comprehensiveAcademicData.examSessions;
+export const allExamPaperSettings = comprehensiveAcademicData.examPaperSettings;
+export const allGradingSchemes = comprehensiveAcademicData.gradingSchemes;
+export const allClassSubjectAllocations = comprehensiveAcademicData.classSubjectAllocations;
+export const allTeacherSubjectAssignments = comprehensiveAcademicData.teacherSubjectAssignments;
+export const allStudentSubjectEnrollments = comprehensiveAcademicData.studentSubjectEnrollments;
+export const allStudentExamResults = comprehensiveAcademicData.studentExamResults;
+export const allStudentPaperMarks = comprehensiveAcademicData.studentPaperMarks;

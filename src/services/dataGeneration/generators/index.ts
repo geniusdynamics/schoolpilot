@@ -13,3 +13,9 @@ export { TransportGenerator } from './TransportGenerator';
 export { CommunicationGenerator } from './CommunicationGenerator';
 export { InventoryGenerator } from './InventoryGenerator';
 export { HealthGenerator } from './HealthGenerator';
+
+// New comprehensive generators with realistic scenarios
+export { generateStudentData, generateHealthRecords, generateAttendanceRecords } from './studentGenerator';
+export { generateAcademicData, GRADING_SCHEMES, SUBJECT_DEFINITIONS } from './academicGenerator';
+export { FinanceGenerator } from './FinanceGenerator';
+export * from './dataUtils';

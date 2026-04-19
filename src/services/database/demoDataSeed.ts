@@ -81,9 +81,15 @@ const MODULE_NAME_ALIASES: Record<string, string> = {
   administration: 'administration',
   finance: 'finance',
   hr: 'hr',
+  hr_payroll: 'hr',
+  payroll: 'hr',
   inventory: 'inventory',
   library: 'library',
-  nutrition: 'nutrition'
+  nutrition: 'nutrition',
+  transport: 'administration', // Transport data is in administration module
+  communications: 'administration', // Communications templates in administration
+  students: 'administration', // Students are in administration module
+  core: 'administration' // Core data is in administration module
 };
 
 const COLLECTION_PRIORITY = [

@@ -12,7 +12,7 @@ export interface UseDataModeReturn {
   error: string | null;
   switchMode: (mode: DataMode, options?: ModeTransitionOptions) => Promise<void>;
   clearData: (options?: { force?: boolean; confirmationToken?: string }) => Promise<void>;
-  seedData: (volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise') => Promise<void>;
+  seedData: (volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise', modules?: string[]) => Promise<void>;
   refreshStatus: () => Promise<void>;
   resetError: () => void;
   isDemoCleared: boolean;
@@ -78,11 +78,11 @@ export function useDataMode(): UseDataModeReturn {
     }
   }, [dataModeManager, refreshStatus, markDemoCleared]);
 
-  const seedData = useCallback(async (volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise') => {
+  const seedData = useCallback(async (volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise', modules?: string[]) => {
     try {
       setIsLoading(true);
       setError(null);
-      await dataModeManager.seedDemoData(volume);
+      await dataModeManager.seedDemoData(volume, modules);
       await refreshStatus();
     } catch (err) {
       console.error('Failed to seed data:', err);

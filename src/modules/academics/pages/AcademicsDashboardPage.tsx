@@ -8,7 +8,6 @@ import {
   BeakerIcon,
   BookOpenIcon,
   ShieldCheckIcon,
-  ChartPieIcon as ExamIcon,
   AcademicCapIcon,
   CalendarDaysIcon,
   TableCellsIcon,
@@ -130,7 +129,7 @@ const AcademicsDashboardPage: React.FC = () => {
       key: 'exam-sessions',
       label: t('dashboard.examSessions') || 'Exam Sessions',
       value: examSessions.length,
-      icon: <ExamIcon className="h-6 w-6" />,
+      icon: <AcademicCapIcon className="h-6 w-6" />,
       trend: activeExamSessions > 0 ? 'up' : 'neutral',
       trendValue: activeExamSessions > 0 ? `${activeExamSessions} active` : 'None active',
       to: '/academics/exam-sessions',
@@ -197,7 +196,7 @@ const AcademicsDashboardPage: React.FC = () => {
       label: 'Exam Sessions',
       description: 'Schedule examinations',
       to: '/academics/exam-sessions',
-      icon: <ExamIcon className="h-5 w-5" />,
+      icon: <AcademicCapIcon className="h-5 w-5" />,
       colorScheme: 'violet',
     },
     {
@@ -221,7 +220,7 @@ const AcademicsDashboardPage: React.FC = () => {
       label: 'Exam Analysis',
       description: 'View performance reports',
       to: '/academics/exam-analysis',
-      icon: <ChartPieIcon className="h-5 w-5" />,
+      icon: <AcademicCapIcon className="h-5 w-5" />,
       colorScheme: 'cyan',
     },
     {
@@ -350,7 +349,7 @@ const AcademicsDashboardPage: React.FC = () => {
                     activity.type === 'subject' ? 'bg-blue-100 text-blue-600' :
                     'bg-amber-100 text-amber-600'}
                 `}>
-                  {activity.type === 'exam' ? <ExamIcon className="h-4 w-4" /> :
+                  {activity.type === 'exam' ? <AcademicCapIcon className="h-4 w-4" /> :
                    activity.type === 'grading' ? <ShieldCheckIcon className="h-4 w-4" /> :
                    activity.type === 'subject' ? <BookOpenIcon className="h-4 w-4" /> :
                    <TableCellsIcon className="h-4 w-4" />}

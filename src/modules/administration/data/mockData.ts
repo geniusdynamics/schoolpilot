@@ -696,3 +696,72 @@ export const dormitories = initialMockDormitories;
 export const classes = initialMockClasses;
 export const classStreams = initialMockClassStreams;
 export const parentsGuardians = initialMockParentsGuardians;
+
+// Comprehensive Data Generation - Uses realistic scenario-based generation
+// Import generators for creating additional realistic data
+import { generateStudentData, generateHealthRecords, generateAttendanceRecords } from '@/services/dataGeneration/generators/studentGenerator';
+
+/**
+ * Generates comprehensive student data with realistic family relationships
+ * Use this function to generate additional students beyond the initial mock data
+ * 
+ * @param count Number of students to generate
+ * @returns Generated student data including students, guardians, and relationships
+ */
+export function generateComprehensiveStudentData(count: number): {
+  students: Student[];
+  guardians: ParentsGuardian[];
+  relationships: any[];
+} {
+  const classStreamIds = initialMockClassStreams.map(cs => cs.id);
+  const dormitoryIds = initialMockDormitories.map(d => d.id);
+  
+  // Calculate starting index based on existing students
+  const startIndex = initialMockStudents.length + 1;
+  
+  return generateStudentData({
+    count,
+    startIndex,
+    classStreamIds,
+    academicYearId: initialMockAcademicYears[2]?.id || 3, // Use current academic year
+    dormitoryIds,
+    includeSiblings: true,
+    siblingProbability: 0.15
+  });
+}
+
+/**
+ * Generates health records for students
+ */
+export function generateComprehensiveHealthRecords(studentIds: string[]): any[] {
+  return generateHealthRecords(studentIds);
+}
+
+/**
+ * Generates attendance records for students
+ */
+export function generateComprehensiveAttendanceRecords(
+  studentIds: string[],
+  schoolPeriodId: number,
+  daysToGenerate: number = 90
+): any[] {
+  return generateAttendanceRecords(studentIds, schoolPeriodId, daysToGenerate);
+}
+
+// Export generated comprehensive data (lazily evaluated)
+export const comprehensiveStudents = generateComprehensiveStudentData(50);
+export const comprehensiveHealthRecords = generateComprehensiveHealthRecords(
+  [...initialMockStudents.map(s => s.id), ...comprehensiveStudents.students.map(s => s.id)]
+);
+export const comprehensiveAttendanceRecords = generateComprehensiveAttendanceRecords(
+  [...initialMockStudents.map(s => s.id), ...comprehensiveStudents.students.map(s => s.id)],
+  initialMockSchoolPeriods[6]?.id || 7,
+  90
+);
+
+// Combined exports for seeding
+export const allStudents = [...initialMockStudents, ...comprehensiveStudents.students];
+export const allParentsGuardians = [...initialMockParentsGuardians, ...comprehensiveStudents.guardians];
+export const allStudentGuardianRelationships = comprehensiveStudents.relationships;
+export const allStudentHealthRecords = comprehensiveHealthRecords;
+export const allStudentAttendance = comprehensiveAttendanceRecords;
