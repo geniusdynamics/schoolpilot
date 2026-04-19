@@ -984,3 +984,16 @@ export interface VisitorLog {
   updated_at: string;
 }
 
+// === STUDENT CLASS HISTORY TYPES ===
+// Mirrors adm_student_class_history from Akademico DB
+
+export interface StudentClassHistoryEntry {
+  id: string;
+  student_id: string;
+  class_stream_id: string;
+  academic_year_id: string;
+  start_date: string;
+  end_date?: string | null;
+  created_at: string;
+}
+
