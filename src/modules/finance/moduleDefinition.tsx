@@ -16,7 +16,7 @@ import {
   DocumentDuplicateIcon,
   CreditCardIcon,
   TableCellsIcon,
-  DocumentArrowDownIcon,
+  DownloadIcon,
   WalletIcon,
 } from '@/components/ui/icons';
 import { financePermissions, financeDefaultRoles } from './rbac';
@@ -40,7 +40,7 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.feeCollectionSummary', path: '/finance/fee-collection-summary', icon: ChartBarIcon, page: 'FeeCollectionSummaryPage' },
     { name: 'navigation:finance.studentFinancialSummary', path: '/finance/student-financial-summary', icon: WalletIcon, page: 'StudentFinancialSummaryPage' },
     { name: 'navigation:finance.voteheadStatement', path: '/finance/votehead-statement', icon: TableCellsIcon, page: 'VoteheadStatementPage' },
-    { name: 'navigation:finance.accountLedger', path: '/finance/account-ledger', icon: DocumentArrowDownIcon, page: 'AccountLedgerPage' },
+    { name: 'navigation:finance.accountLedger', path: '/finance/account-ledger', icon: DownloadIcon, page: 'AccountLedgerPage' },
     { name: 'navigation:finance.generalReceipts', path: '/finance/general-receipts', icon: ClipboardDocumentListIcon, page: 'GeneralReceiptsPage' },
     { name: 'navigation:finance.customerInvoices', path: '/finance/customer-invoices', icon: DocumentTextIcon, page: 'CustomerInvoicesPage' },
     { name: 'navigation:finance.supplierInvoices', path: '/finance/supplier-invoices', icon: DocumentTextIcon, page: 'SupplierInvoicesPage' },
