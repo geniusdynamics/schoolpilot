@@ -9,6 +9,10 @@
     "dashboard": "Dashibodi ya Utawala",
     "applications": "Maombi",
     "students": "Wanafunzi",
+    "newsletters": "Jarida",
+    "studentMasterlist": "Orodha Kuu ya Wanafunzi",
+    "studentPromotion": "Uendelezaji wa Wanafunzi",
+    "auditLogViewer": "Mtazamo wa Kumbukumbu ya Ukaguzi",
     "staff": "Wafanyakazi",
     "partners": "Washirika",
     "departments": "Idara",
@@ -50,10 +54,28 @@
     "title": "Fedha",
     "description": "Usimamizi wa fedha na malipo",
     "dashboard": "Dashibodi ya Fedha",
-    "fees": "Ada",
-    "payments": "Malipo",
+    "chartOfAccounts": "Orodha ya Akaunti",
+    "feeTemplates": "Mifumo ya Ada",
+    "effectFeeStructures": "Muundo wa Ada",
+    "feeAdjustments": "Marekebisho ya Ada",
+    "studentPayments": "Malipo ya Wanafunzi",
+    "studentOpeningBalances": "Salio la Kuanzia la Wanafunzi",
+    "feeCollectionSummary": "Muhtasari wa Mkusanyo wa Ada",
+    "studentFinancialSummary": "Muhtasari wa Kifedha cha Mwanafunzi",
+    "voteheadStatement": "Taarifa ya Kichwa cha Kura",
+    "accountLedger": "Daftari la Akaunti",
+    "invoiceGeneration": "Uzalishaji wa Ankara",
+    "paymentAllocation": "Ugawaji wa Malipo",
+    "generalReceipts": "Risiti za Kawaida",
+    "customerInvoices": "Ankara za Wateja",
+    "supplierInvoices": "Ankara za Wauzaji",
     "expenses": "Gharama",
-    "banks": "Benki"
+    "banks": "Benki",
+    "suppliers": "Wauzaji",
+    "transportRoutes": "Njia za Usafiri",
+    "studentTransportAssignments": "Ugawaji wa Usafiri kwa Wanafunzi",
+    "fees": "Ada",
+    "payments": "Malipo"
   },
   "hr": {
     "title": "Rasilimali za Kibinadamu",
@@ -131,5 +153,13 @@
     "subjectAnalytics": "Tathmini za Masomo",
     "classAnalytics": "Tathmini za Madarasa",
     "exportReports": "Hamisha Ripoti"
+  },
+  "houses": {
+    "title": "Nyumba",
+    "categories": "Kategoria za Nyumba",
+    "award": "Toa Pointi",
+    "leaderboard": "Ubingo",
+    "studentPoints": "Pointi za Wanafunzi",
+    "classStandings": "Ubingo wa Madarasa"
   }
 }

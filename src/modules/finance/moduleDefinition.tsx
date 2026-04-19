@@ -41,6 +41,8 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.studentFinancialSummary', path: '/finance/student-financial-summary', icon: WalletIcon, page: 'StudentFinancialSummaryPage' },
     { name: 'navigation:finance.voteheadStatement', path: '/finance/votehead-statement', icon: TableCellsIcon, page: 'VoteheadStatementPage' },
     { name: 'navigation:finance.accountLedger', path: '/finance/account-ledger', icon: DownloadIcon, page: 'AccountLedgerPage' },
+    { name: 'navigation:finance.invoiceGeneration', path: '/finance/invoice-generation', icon: DocumentDuplicateIcon, page: 'InvoiceGenerationPage' },
+    { name: 'navigation:finance.paymentAllocation', path: '/finance/payment-allocation', icon: CreditCardIcon, page: 'PaymentAllocationPage' },
     { name: 'navigation:finance.generalReceipts', path: '/finance/general-receipts', icon: ClipboardDocumentListIcon, page: 'GeneralReceiptsPage' },
     { name: 'navigation:finance.customerInvoices', path: '/finance/customer-invoices', icon: DocumentTextIcon, page: 'CustomerInvoicesPage' },
     { name: 'navigation:finance.supplierInvoices', path: '/finance/supplier-invoices', icon: DocumentTextIcon, page: 'SupplierInvoicesPage' },

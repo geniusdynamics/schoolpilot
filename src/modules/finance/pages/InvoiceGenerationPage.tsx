@@ -196,7 +196,7 @@ const InvoiceGenerationPage: React.FC = () => {
                 onClick={handleGenerate}
                 disabled={isGenerating || !selectedPeriodId || !selectedTemplateId}
                 className="w-full"
-                leftIcon={isGenerating ? <Spinner size="sm" /> : <DocumentPlusIcon className="w-5 h-5" />}
+                leftIcon={isGenerating ? <Spinner size="sm" /> : <DocumentAddIcon className="w-5 h-5" />}
               >
                 {isGenerating
                   ? t('invoiceGeneration.generating') || 'Generating...'

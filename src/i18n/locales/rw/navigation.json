@@ -9,6 +9,10 @@
     "dashboard": "Ikibaho cy'Ubuyobozi",
     "applications": "Ibyifuzo",
     "students": "Abanyeshuri",
+    "newsletters": "Ibimenyetso",
+    "studentMasterlist": "Urutonde rw'Abanyeshuri",
+    "studentPromotion": "Kwongera umwanya w'abanyeshuri",
+    "auditLogViewer": "Igaragaza ry'Inyandiko z'ikinyabizwi",
     "staff": "Abakozi",
     "partners": "Abafatanyabikorwa",
     "departments": "Amashami",
@@ -50,10 +54,27 @@
     "title": "Imari",
     "description": "Gucunga imari n'amafaranga",
     "dashboard": "Ikibaho cy'Imari",
+    "chartOfAccounts": "Urutonde rw'konti",
+    "feeTemplates": "Inyandiko z'amafaranga",
+    "effectFeeStructures": "Imiterere y'amafaranga",
+    "feeAdjustments": "Guhindura amafaranga",
+    "studentPayments": "Imishinga y'abanyeshuri",
+    "studentOpeningBalances": "Imishinga y'ibanze",
+    "feeCollectionSummary": "Incamake y'amafaranga",
+    "studentFinancialSummary": "Incamake y'imari y'umwigana",
+    "voteheadStatement": "Urutonde rw'amafaranga",
+    "accountLedger": "Ibikubiye mu konti",
+    "invoiceGeneration": "Kohereza inyandiko z'amarango",
+    "paymentAllocation": "Gushyira imishinga aho zihagaze",
+    "generalReceipts": "Inyandiko z'amarango rusange",
+    "customerInvoices": "Inyandiko z'amarango za ba客户",
+    "supplierInvoices": "Inyandiko z'amarango z'abatanga",
     "fees": "Amafaranga y'ishuri",
-    "payments": "Kwishyura",
     "expenses": "Amafaranga yakoreshejwe",
-    "banks": "Amabanki"
+    "banks": "Amabanki",
+    "suppliers": "Abatanga",
+    "transportRoutes": "Inzira z'ubwikirezi",
+    "studentTransportAssignments": "Gushyira abanyeshuri ku nzira z'ubwikirezi"
   },
   "hr": {
     "title": "Umutungo w'Abantu",
@@ -131,5 +152,13 @@
     "subjectAnalytics": "Isesengura ry'Inyigisho",
     "classAnalytics": "Isesengura ry'Ishuri",
     "exportReports": "Kohereza Raporo"
+  },
+  "houses": {
+    "title": "Inzu",
+    "categories": "Itsinda ry'Inzu",
+    "award": "Gutanga ibiceru",
+    "leaderboard": "Urutonde",
+    "studentPoints": "Ibiceru by'abanyeshuri",
+    "classStandings": "Urutonde rw'ishuri"
   }
 }

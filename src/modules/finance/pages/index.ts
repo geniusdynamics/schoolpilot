@@ -19,3 +19,5 @@ export { default as TransportRoutesPage } from './TransportRoutesPage';
 export { default as StudentFinancialSummaryPage } from './StudentFinancialSummaryPage';
 export { default as VoteheadStatementPage } from './VoteheadStatementPage';
 export { default as AccountLedgerPage } from './AccountLedgerPage';
+export { default as InvoiceGenerationPage } from './InvoiceGenerationPage';
+export { default as PaymentAllocationPage } from './PaymentAllocationPage';

@@ -13,16 +13,16 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import { useToast } from '@/hooks/useToast';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import type { AuditAction, AuditLogEntry } from '../services/types';
-import { 
-  DocumentTextIcon, 
-  MagnifyingGlassIcon, 
+import {
+  DocumentTextIcon,
+  MagnifyingGlassIcon,
   CalendarIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   ArrowPathIcon,
   UserIcon,
   TableCellsIcon,
-  ClipboardDocumentIcon
+  ClipboardDocumentListIcon
 } from '@/components/ui/icons';
 
 const AuditLogViewerPage: React.FC = () => {
@@ -237,7 +237,7 @@ const AuditLogViewerPage: React.FC = () => {
           }}
           title={t('viewDetails')}
         >
-          <ClipboardDocumentIcon className="w-4 h-4" />
+          <ClipboardDocumentListIcon className="w-4 h-4" />
         </Button>
       )
     }
