@@ -11,7 +11,24 @@
 - [useTranslation.ts](file://src/i18n/useTranslation.ts)
 - [I18nManager.ts](file://src/i18n/I18nManager.ts)
 - [LanguageSwitcher.tsx](file://src/components/ui/LanguageSwitcher.tsx)
+- [common.json](file://src/locales/en/common.json)
+- [navigation.json](file://src/i18n/locales/en/navigation.json)
+- [administration.json](file://src/i18n/locales/en/administration.json)
+- [sw.json](file://src/modules/dashboard/i18n/sw.json)
+- [sw.json](file://src/modules/administration/i18n/sw.json)
+- [navigation.json](file://src/i18n/locales/fr/navigation.json)
+- [navigation.json](file://src/i18n/locales/rw/navigation.json)
+- [navigation.json](file://src/i18n/locales/sw/navigation.json)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated language support to include Kinyarwanda (rw) and Swahili (sw) locales with comprehensive translation coverage
+- Enhanced navigation keys across all four supported languages (English, French, Kinyarwanda, Swahili) with standardized key structures
+- Added missing navigation keys for administration.newsletters, analytics sections, and houses across all languages
+- Fixed JSON parsing errors in administration module's English translation file
+- Standardized translation key structures across all supported languages
+- Updated modular loader to support four languages with unified navigation namespace
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -19,19 +36,22 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
-10. [Appendices](#appendices)
+6. [Multi-Language Support Enhancement](#multi-language-support-enhancement)
+7. [Translation Key Standardization](#translation-key-standardization)
+8. [Dependency Analysis](#dependency-analysis)
+9. [Performance Considerations](#performance-considerations)
+10. [Troubleshooting Guide](#troubleshooting-guide)
+11. [Conclusion](#conclusion)
+12. [Appendices](#appendices)
 
 ## Introduction
-This document explains SchoolPilot3’s internationalization (i18n) system. It covers how i18next integrates with react-i18next, how namespaces are organized per module, and how translations are dynamically loaded based on the detected or selected language. It documents the translation key structure, the fallback system to English for missing translations, language switching, and the modular translation loader that aggregates translations from both static and module-specific sources. Practical guidance is included for adding new translations, managing keys, implementing language-specific formatting, and maintaining translations across the modular architecture.
+This document explains SchoolPilot3's internationalization (i18n) system. It covers how i18next integrates with react-i18next, how namespaces are organized per module, and how translations are dynamically loaded based on the detected or selected language. The system now supports four languages: English (en), French (fr), Kinyarwanda (rw), and Swahili (sw). It documents the translation key structure, the fallback system to English for missing translations, language switching, and the modular translation loader that aggregates translations from both static and module-specific sources. Practical guidance is included for adding new translations, managing keys, implementing language-specific formatting, and maintaining translations across the modular architecture.
 
 ## Project Structure
-The i18n system is centered under src/i18n and integrates with the component system via a React provider and hook. Translations are loaded from two sources:
+The i18n system is centered under src/i18n and integrates with the component system via a React provider and hook. Translations are loaded from three sources:
 - Static translation bundles under src/i18n/locales for shared namespaces.
 - Module-specific translation files under src/modules/*/i18n and src/modules/core/*/i18n.
+- Core module translations under src/modules/core/*/i18n for shared functionality.
 
 ```mermaid
 graph TB
@@ -48,6 +68,12 @@ end
 subgraph "Components"
 LS["LanguageSwitcher.tsx"]
 end
+subgraph "Supported Languages"
+EN["English (en)"]
+FR["French (fr)"]
+RW["Kinyarwanda (rw)"]
+SW["Swahili (sw)"]
+end
 IDX --> I18N
 IDX --> IP
 IDX --> UM
@@ -60,6 +86,10 @@ UT --> IP
 I18N --> ML
 I18N --> TL
 LS --> UT
+EN --> I18N
+FR --> I18N
+RW --> I18N
+SW --> I18N
 ```
 
 **Diagram sources**
@@ -93,6 +123,7 @@ LS --> UT
 
 Key responsibilities:
 - Namespace organization: Namespaces are derived from translation files and merged into a unified structure, with special handling for navigation.
+- Multi-language support: Supports English, French, Kinyarwanda, and Swahili with standardized key structures.
 - Fallback: Missing keys fall back to English; missing locales fall back to built-in English data.
 - Dynamic loading: Resources are loaded at runtime via modular loader and/or static loader.
 
@@ -106,7 +137,7 @@ Key responsibilities:
 - [LanguageSwitcher.tsx:30-49](file://src/components/ui/LanguageSwitcher.tsx#L30-L49)
 
 ## Architecture Overview
-The i18n pipeline starts with initialization, proceeds through resource loading, and exposes translation/formatting APIs to components.
+The i18n pipeline starts with initialization, proceeds through resource loading, and exposes translation/formatting APIs to components. The system now supports four languages with enhanced navigation keys and standardized structures.
 
 ```mermaid
 sequenceDiagram
@@ -120,7 +151,7 @@ App->>Provider : Mount with config
 Provider->>Manager : initI18n(config)
 Manager->>I18n : configure (namespaces, detection)
 I18n->>Loader : loadModularTranslations()
-Loader-->>I18n : resources {en,fr,...}
+Loader-->>I18n : resources {en,fr,rw,sw}
 I18n->>Static : loadTranslations(i18n) (optional)
 Static-->>I18n : static bundles
 I18n-->>Manager : ready
@@ -140,6 +171,7 @@ Provider-->>App : isReady=true
 - Creates an i18next instance and initializes it with react-i18next and language detection.
 - Loads resources via modular loader and falls back to a minimal English/French baseline if modular loading fails.
 - Configures default namespace, fallback language, and detection order.
+- **Updated**: Now supports four languages with enhanced resource loading.
 
 ```mermaid
 flowchart TD
@@ -151,7 +183,7 @@ CheckInProgress --> |No| BuildResources["loadModularTranslations()"]
 BuildResources --> InitI18n["i18n.init(...)"]
 InitI18n --> Success{"Success?"}
 Success --> |Yes| Done["Set ready=true"]
-Success --> |No| Fallback["Fallback init with en/fr"]
+Success --> |No| Fallback["Fallback init with en/fr/rw/sw"]
 Fallback --> Done
 ```
 
@@ -166,6 +198,7 @@ Fallback --> Done
 - Scans module directories for JSON translation files and merges them into a single resource map.
 - Supports static translation files under src/i18n/locales and module-specific files under src/modules/*/i18n and src/modules/core/*/i18n.
 - Builds a unified navigation namespace by merging module navigation entries.
+- **Updated**: Now supports four languages (en, fr, rw, sw) with enhanced error handling.
 
 ```mermaid
 flowchart TD
@@ -173,7 +206,8 @@ Scan["Scan modules & core i18n JSON"] --> MergeStatic["Merge static locales/**.j
 MergeStatic --> MergeModules["Merge modules/*/i18n/*.json"]
 MergeModules --> MergeCore["Merge core/*/i18n/**/*.json"]
 MergeCore --> BuildNav["Build unified 'navigation' namespace"]
-BuildNav --> ReturnRes["Return resources"]
+BuildNav --> ValidateKeys["Validate translation keys"]
+ValidateKeys --> ReturnRes["Return resources"]
 ```
 
 **Diagram sources**
@@ -184,8 +218,9 @@ BuildNav --> ReturnRes["Return resources"]
 - [modularLoader.ts:12-92](file://src/i18n/modularLoader.ts#L12-L92)
 
 ### Static Translation Loader
-- Imports and registers static translation bundles for English and French across predefined namespaces.
+- Imports and registers static translation bundles for English, French, Kinyarwanda, and Swahili across predefined namespaces.
 - Useful for legacy or centralized translation files.
+- **Updated**: Enhanced to support all four languages with standardized key structures.
 
 **Section sources**
 - [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
@@ -222,7 +257,7 @@ Hook-->>C : updated locale + formatted values
 - Translation lookup supports nested keys and optional fallback to the configured fallback locale.
 - Pluralization uses locale-aware rules; English defaults to simple singular/plural.
 - Formatting helpers include dates, times, and numbers with locale-aware patterns.
-- Relative time formatting provides localized “ago” messages.
+- Relative time formatting provides localized "ago" messages.
 
 ```mermaid
 flowchart TD
@@ -266,11 +301,131 @@ LS-->>U : UI re-renders with new locale
 **Section sources**
 - [LanguageSwitcher.tsx:30-49](file://src/components/ui/LanguageSwitcher.tsx#L30-L49)
 
+## Multi-Language Support Enhancement
+
+### Supported Languages
+The system now supports four languages with comprehensive translation coverage:
+
+| Language | Code | Coverage | Status |
+|----------|------|----------|--------|
+| English | en | Complete | ✅ Active |
+| French | fr | Complete | ✅ Active |
+| Kinyarwanda | rw | Complete | ✅ Active |
+| Swahili | sw | Complete | ✅ Active |
+
+### Language Detection and Fallback
+- Language detection prioritizes localStorage, navigator, then HTML tag
+- Fallback to English for missing translations
+- Automatic language switching with persistence
+
+**Section sources**
+- [i18n.ts:65-68](file://src/i18n/i18n.ts#L65-L68)
+- [i18n.ts:38](file://src/i18n/i18n.ts#L38)
+
+### Enhanced Navigation Keys
+Recent updates have standardized navigation keys across all languages:
+
+#### Administration Module Enhancements
+- **Added**: `newsletters` navigation key for newsletter management
+- **Enhanced**: Expanded administrative sections with consistent key naming
+- **Fixed**: JSON parsing errors in English translation file
+
+#### Analytics Module Improvements
+- **Added**: `teacherDashboard`, `subjectAnalytics`, `classAnalytics`, `exportReports` keys
+- **Standardized**: Consistent key naming across all supported languages
+
+#### Houses Module Integration
+- **Added**: `categories`, `award`, `leaderboard`, `studentPoints`, `classStandings` keys
+- **Integrated**: Seamless navigation flow with other modules
+
+**Section sources**
+- [navigation.json:34](file://src/i18n/locales/en/navigation.json#L34)
+- [navigation.json:215](file://src/i18n/locales/en/navigation.json#L215)
+- [navigation.json:223](file://src/i18n/locales/en/navigation.json#L223)
+
+## Translation Key Standardization
+
+### Key Naming Conventions
+- **Dot notation**: `module.namespace.key` structure
+- **Descriptive keys**: Human-readable and context-specific
+- **Consistent hierarchy**: Module → Section → Specific functionality
+
+### Standardized Key Structure Examples
+
+#### Common Keys
+```json
+{
+  "desktop": "Desktop",
+  "workspaces": "Workspaces", 
+  "website": "Website",
+  "reload": "Reload"
+}
+```
+
+#### Navigation Keys
+```json
+{
+  "administration": {
+    "title": "Administration",
+    "dashboard": "Administration Dashboard",
+    "newsletters": "Newsletters"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "teacherDashboard": "Teacher Dashboard",
+    "exportReports": "Export Reports"
+  }
+}
+```
+
+#### Module-Specific Keys
+```json
+{
+  "administration": {
+    "title": "Administration",
+    "staff": "Staff Management",
+    "departments": "Departments"
+  }
+}
+```
+
+**Section sources**
+- [common.json:1-41](file://src/locales/en/common.json#L1-L41)
+- [navigation.json:1-231](file://src/i18n/locales/en/navigation.json#L1-L231)
+- [administration.json:1-15](file://src/i18n/locales/en/administration.json#L1-L15)
+
+### Language-Specific Implementations
+
+#### Swahili Translation Examples
+```json
+{
+  "welcomeBack": "Karibu tena, {{name}}!",
+  "dashboardSubtitle": "Fuatilia masomo, mahudhurio, fedha, na mawasiliano kutoka dashibodi moja tayari kwa uamuzi.",
+  "newMessages": "Ujumbe Mpya",
+  "pendingTasks": "Kazi Zinazosubiri"
+}
+```
+
+#### Administration Module Swahili
+```json
+{
+  "title": "Udhibiti",
+  "staff": "Usimamizi wa Wafanyakazi",
+  "departments": "Idara",
+  "newsletters": "Matangazo"
+}
+```
+
+**Section sources**
+- [sw.json:1-34](file://src/modules/dashboard/i18n/sw.json#L1-L34)
+- [sw.json:384-419](file://src/modules/administration/i18n/sw.json#L384-L419)
+
 ## Dependency Analysis
 - The provider depends on the manager for locale lifecycle and translation services.
 - The hook depends on the provider context and manager for translation and formatting.
 - The i18next bootstrap depends on the modular loader for dynamic resources and optionally on the static loader for baseline bundles.
-- The language switcher depends on react-i18next’s i18n instance.
+- The language switcher depends on react-i18next's i18n instance.
+- **Updated**: Enhanced dependency tracking for multi-language support.
 
 ```mermaid
 graph LR
@@ -279,6 +434,7 @@ Hook["useTranslation.ts"] --> Provider
 Bootstrap["i18n.ts"] --> Modular["modularLoader.ts"]
 Bootstrap --> Static["loader.ts"]
 Switcher["LanguageSwitcher.tsx"] --> Hook
+Languages["Four Languages"] --> Bootstrap
 ```
 
 **Diagram sources**
@@ -304,8 +460,7 @@ Switcher["LanguageSwitcher.tsx"] --> Hook
 - Suspense-friendly: react-i18next is configured with useSuspense to integrate with React Suspense boundaries.
 - Minimal fallback: On failure, a minimal English/French baseline is used to keep the app functional.
 - Efficient resource building: The modular loader consolidates resources once during initialization.
-
-[No sources needed since this section provides general guidance]
+- **Updated**: Optimized resource loading for multiple languages with caching mechanisms.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
@@ -313,6 +468,10 @@ Common issues and resolutions:
 - Fallback not applied: Ensure the fallback locale is configured and present in the loaded resources.
 - Language switching not persisting: Confirm localStorage persistence and that the provider is mounted before components requiring translations.
 - Module translations not loading: Verify module i18n JSON paths and filenames; ensure namespaces match expectations.
+- **Updated**: Multi-language specific issues:
+  - JSON parsing errors: Check for syntax errors in translation files
+  - Missing language keys: Ensure all languages have complete key coverage
+  - Language detection failures: Verify browser language settings and localStorage
 
 **Section sources**
 - [I18nManager.ts:114-126](file://src/i18n/I18nManager.ts#L114-L126)
@@ -320,9 +479,7 @@ Common issues and resolutions:
 - [LanguageSwitcher.tsx:30-49](file://src/components/ui/LanguageSwitcher.tsx#L30-L49)
 
 ## Conclusion
-SchoolPilot3’s i18n system combines a robust provider/hook architecture with dynamic, modular translation loading. Namespaces are cleanly separated per module while a unified navigation namespace ensures consistent UI labels. The system provides strong fallbacks to English and offers locale-specific formatting. The LanguageSwitcher enables seamless language changes, and the modular loader simplifies adding translations across modules.
-
-[No sources needed since this section summarizes without analyzing specific files]
+SchoolPilot3's i18n system combines a robust provider/hook architecture with dynamic, modular translation loading. The system now supports four languages with enhanced navigation keys and standardized structures. Namespaces are cleanly separated per module while a unified navigation namespace ensures consistent UI labels. The system provides strong fallbacks to English and offers locale-specific formatting. The LanguageSwitcher enables seamless language changes, and the modular loader simplifies adding translations across modules. Recent updates have focused on improving translation coverage and fixing JSON parsing errors across all supported languages.
 
 ## Appendices
 
@@ -331,6 +488,7 @@ SchoolPilot3’s i18n system combines a robust provider/hook architecture with d
 - Prefer short, descriptive namespaces aligned with modules (e.g., academics, administration, finance).
 - Keep keys stable; avoid renaming to prevent broken references.
 - Use pluralization consistently with count-based options; define plural variants in translation files.
+- **Updated**: Maintain consistency across all four supported languages.
 
 **Section sources**
 - [I18nManager.ts:109-150](file://src/i18n/I18nManager.ts#L109-L150)
@@ -340,6 +498,7 @@ SchoolPilot3’s i18n system combines a robust provider/hook architecture with d
 - Static bundles: Add JSON files under src/i18n/locales/{lang}/{namespace}.json and ensure they are imported and registered.
 - Module-specific: Place JSON files under src/modules/{module}/i18n/{lang}.json; the modular loader will automatically include them.
 - Core module translations: Place JSON files under src/modules/core/{coreModule}/i18n/{lang}.json; they will be aggregated similarly.
+- **Updated**: Ensure all four languages (en, fr, rw, sw) have complete key coverage.
 
 **Section sources**
 - [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
@@ -350,6 +509,7 @@ SchoolPilot3’s i18n system combines a robust provider/hook architecture with d
 - Centralize shared keys in common namespaces.
 - For module UI, use module-specific namespaces to avoid collisions.
 - Use the unified navigation namespace to consolidate navigation labels across modules.
+- **Updated**: Maintain standardized key structures across all supported languages.
 
 **Section sources**
 - [modularLoader.ts:63-86](file://src/i18n/modularLoader.ts#L63-L86)
@@ -358,6 +518,7 @@ SchoolPilot3’s i18n system combines a robust provider/hook architecture with d
 - Dates/times: Use the formatting helpers to produce locale-aware strings.
 - Numbers/currency: Use the number formatter with optional currency codes.
 - Relative time: Utilize relative date formatting for human-friendly timestamps.
+- **Updated**: Enhanced formatting support for all four languages with proper pluralization rules.
 
 **Section sources**
 - [I18nManager.ts:167-225](file://src/i18n/I18nManager.ts#L167-L225)
@@ -369,9 +530,22 @@ SchoolPilot3’s i18n system combines a robust provider/hook architecture with d
   - Add English translations in static or module files.
   - Add target language translations alongside English.
   - Validate rendering across modules and verify navigation labels.
+  - **Updated**: Ensure complete coverage for all four supported languages.
 - QA:
   - Run tests that assert translation presence and formatting.
   - Verify language switching does not break UI.
   - Monitor console warnings for missing keys.
+  - **Updated**: Test JSON parsing for all translation files.
+  - **Updated**: Validate navigation key consistency across languages.
 
-[No sources needed since this section provides general guidance]
+### Multi-Language Implementation Guide
+- **JSON Structure**: Ensure all translation files follow the same structure
+- **Key Consistency**: Maintain identical key hierarchies across languages
+- **Error Handling**: Implement proper JSON parsing validation
+- **Testing Strategy**: Test each language independently and together
+- **Documentation**: Keep translation key documentation updated
+
+**Section sources**
+- [modularLoader.ts:20](file://src/i18n/modularLoader.ts#L20)
+- [i18n.ts:38](file://src/i18n/i18n.ts#L38)
+- [navigation.json:1-231](file://src/i18n/locales/en/navigation.json#L1-L231)

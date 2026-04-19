@@ -5,9 +5,15 @@
 - [InventoryDashboardPage.tsx](file://src/modules/inventory/pages/InventoryDashboardPage.tsx)
 - [SchoolProcurementDashboardPage.tsx](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx)
 - [VendorPortalDashboardPage.tsx](file://src/modules/inventory/pages/VendorPortalDashboardPage.tsx)
+- [StockLevelsPage.tsx](file://src/modules/inventory/pages/StockLevelsPage.tsx)
 - [useInventory.ts](file://src/modules/inventory/hooks/useInventory.ts)
+- [useStockLevelService.ts](file://src/modules/inventory/hooks/useStockLevelService.ts)
 - [useInventoryData.ts](file://src/modules/inventory/data/useInventoryData.ts)
+- [useStockLevelData.ts](file://src/modules/inventory/data/useStockLevelData.ts)
 - [InventoryDataContext.tsx](file://src/modules/inventory/data/InventoryDataContext.tsx)
+- [StockLevelService.ts](file://src/modules/inventory/services/StockLevelService.ts)
+- [registerServices.ts](file://src/modules/inventory/services/registerServices.ts)
+- [reorderMonitoringService.ts](file://src/modules/inventory/services/reorderMonitoringService.ts)
 - [useDatabaseCollection.ts](file://src/hooks/useDatabaseCollection.ts)
 - [schema.ts](file://src/modules/inventory/data/schema.ts)
 - [types.ts](file://src/modules/inventory/data/types.ts)
@@ -17,7 +23,6 @@
 - [mockData.ts](file://src/modules/inventory/data/mockData.ts)
 - [useWarehouseData.ts](file://src/modules/inventory/data/useWarehouseData.ts)
 - [useItemData.ts](file://src/modules/inventory/data/useItemData.ts)
-- [useStockLevelData.ts](file://src/modules/inventory/data/useStockLevelData.ts)
 - [useRequisitionData.ts](file://src/modules/inventory/data/useRequisitionData.ts)
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
@@ -25,12 +30,12 @@
 
 ## Update Summary
 **Changes Made**
-- Updated documentation to reflect the new database infrastructure with useDatabaseCollection integration
-- Revised data access patterns to leverage centralized database collection hooks
-- Enhanced documentation of the modular data provider architecture
-- Updated integration patterns to show database-backed CRUD operations
-- Revised troubleshooting guidance for database collection management
-- Updated data layer architecture to reflect the new useDatabaseCollection pattern
+- Updated documentation to reflect the new StockLevelService replacing database triggers
+- Documented the client-side stock level processing architecture
+- Added comprehensive coverage of the StockLevelService implementation and dependencies
+- Updated stock management workflow to show service-based processing
+- Enhanced reorder monitoring documentation with service integration
+- Added service registry integration for StockLevelService
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -39,19 +44,23 @@
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
 6. [Database Integration](#database-integration)
-7. [Dependency Analysis](#dependency-analysis)
-8. [Performance Considerations](#performance-considerations)
-9. [Troubleshooting Guide](#troubleshooting-guide)
-10. [Conclusion](#conclusion)
-11. [Appendices](#appendices)
+7. [Stock Level Service Architecture](#stock-level-service-architecture)
+8. [Dependency Analysis](#dependency-analysis)
+9. [Performance Considerations](#performance-considerations)
+10. [Troubleshooting Guide](#troubleshooting-guide)
+11. [Conclusion](#conclusion)
+12. [Appendices](#appendices)
 
 ## Introduction
 The Inventory module provides a comprehensive asset and supply chain management solution for educational institutions with full database backend integration. It encompasses fixed asset tracking, consumable inventory management, warehouse operations, procurement workflows, and vendor collaboration. The module supports end-to-end procurement from requisitions to purchase orders, RFQs, and supplier contracts, while maintaining real-time stock visibility and automated reorder monitoring. The implementation leverages a modern database infrastructure with useDatabaseCollection hooks for centralized CRUD operations and reactive data management.
 
+**Updated** The module now features a sophisticated StockLevelService that replaces traditional database triggers with client-side stock level tracking, providing more reliable and controllable inventory management through dedicated service architecture. This service replaces the PostgreSQL trigger `inv.fn_update_stock_level()` and the trigger `trg_inv_updateStockLevel` which previously maintained the `stock_levels` table in sync with `stock_transactions`.
+
 ## Project Structure
 The Inventory module follows a modernized architecture with centralized database integration and modular data providers:
 - Data layer: database-agnostic schemas, RxDB collections, and provider patterns
-- UI layer: dashboard pages and reusable components
+- UI layer: dashboard pages and reusable components including dedicated stock level monitoring
+- Services: business logic services like StockLevelService for complex operations
 - Hooks: domain-specific data access patterns with useDatabaseCollection integration
 - Mock data: seed data for development and demonstration modes
 
@@ -61,7 +70,14 @@ subgraph "UI Layer"
 IDP["InventoryDashboardPage.tsx"]
 SPD["SchoolProcurementDashboardPage.tsx"]
 VPD["VendorPortalDashboardPage.tsx"]
+SLP["StockLevelsPage.tsx"]
 UIHOOK["useInventory.ts"]
+SLHOOK["useStockLevelService.ts"]
+end
+subgraph "Service Layer"
+SLS["StockLevelService.ts"]
+RS["registerServices.ts"]
+RMS["reorderMonitoringService.ts"]
 end
 subgraph "Data Layer"
 SCHEMA["schema.ts"]
@@ -87,7 +103,10 @@ end
 IDP --> UIHOOK
 SPD --> UIHOOK
 VPD --> UIHOOK
+SLP --> SLHOOK
 UIHOOK --> UID
+SLHOOK --> SLS
+SLS --> DBC
 UID --> DBC
 DP --> UID
 DP --> SCHEMA
@@ -102,18 +121,25 @@ WHD --> DP
 ITD --> DP
 SLD --> DP
 RQD --> DP
+RS --> SLS
+RMS --> SLS
 ```
 
 **Diagram sources**
 - [InventoryDashboardPage.tsx:1-57](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L1-L57)
 - [SchoolProcurementDashboardPage.tsx:1-111](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx#L1-L111)
 - [VendorPortalDashboardPage.tsx:1-106](file://src/modules/inventory/pages/VendorPortalDashboardPage.tsx#L1-L106)
+- [StockLevelsPage.tsx:1-107](file://src/modules/inventory/pages/StockLevelsPage.tsx#L1-L107)
 - [useInventory.ts:1-41](file://src/modules/inventory/hooks/useInventory.ts#L1-L41)
+- [useStockLevelService.ts:1-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L1-L187)
+- [StockLevelService.ts:1-202](file://src/modules/inventory/services/StockLevelService.ts#L1-L202)
+- [registerServices.ts:1-17](file://src/modules/inventory/services/registerServices.ts#L1-L17)
+- [reorderMonitoringService.ts:1-138](file://src/modules/inventory/services/reorderMonitoringService.ts#L1-L138)
 - [useInventoryData.ts:1-155](file://src/modules/inventory/data/useInventoryData.ts#L1-L155)
 - [InventoryDataContext.tsx:1-36](file://src/modules/inventory/data/InventoryDataContext.tsx#L1-L36)
 - [schema.ts:1-288](file://src/modules/inventory/data/schema.ts#L1-L288)
 - [types.ts:1-294](file://src/modules/inventory/data/types.ts#L1-L294)
-- [collections.ts:1-51](file://src/modules/inventory/data/collections.ts#L1-L51)
+- [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
 - [mockData.ts:1-260](file://src/modules/inventory/data/mockData.ts#L1-L260)
 - [useWarehouseData.ts:1-96](file://src/modules/inventory/data/useWarehouseData.ts#L1-L96)
@@ -121,19 +147,22 @@ RQD --> DP
 - [useStockLevelData.ts:1-99](file://src/modules/inventory/data/useStockLevelData.ts#L1-L99)
 - [useRequisitionData.ts:1-41](file://src/modules/inventory/data/useRequisitionData.ts#L1-L41)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
-- [databaseService.ts](file://src/services/database/databaseService.ts)
-- [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
 
 **Section sources**
 - [InventoryDashboardPage.tsx:1-57](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L1-L57)
 - [SchoolProcurementDashboardPage.tsx:1-111](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx#L1-L111)
 - [VendorPortalDashboardPage.tsx:1-106](file://src/modules/inventory/pages/VendorPortalDashboardPage.tsx#L1-L106)
+- [StockLevelsPage.tsx:1-107](file://src/modules/inventory/pages/StockLevelsPage.tsx#L1-L107)
 - [useInventory.ts:1-41](file://src/modules/inventory/hooks/useInventory.ts#L1-L41)
+- [useStockLevelService.ts:1-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L1-L187)
+- [StockLevelService.ts:1-202](file://src/modules/inventory/services/StockLevelService.ts#L1-L202)
+- [registerServices.ts:1-17](file://src/modules/inventory/services/registerServices.ts#L1-L17)
+- [reorderMonitoringService.ts:1-138](file://src/modules/inventory/services/reorderMonitoringService.ts#L1-L138)
 - [useInventoryData.ts:1-155](file://src/modules/inventory/data/useInventoryData.ts#L1-L155)
 - [InventoryDataContext.tsx:1-36](file://src/modules/inventory/data/InventoryDataContext.tsx#L1-L36)
 - [schema.ts:1-288](file://src/modules/inventory/data/schema.ts#L1-L288)
 - [types.ts:1-294](file://src/modules/inventory/data/types.ts#L1-L294)
-- [collections.ts:1-51](file://src/modules/inventory/data/collections.ts#L1-L51)
+- [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
 - [mockData.ts:1-260](file://src/modules/inventory/data/mockData.ts#L1-L260)
 - [useWarehouseData.ts:1-96](file://src/modules/inventory/data/useWarehouseData.ts#L1-L96)
@@ -167,10 +196,11 @@ The module centers around seven primary domains with comprehensive database inte
   - Supplier contracts and performance tracking with version control
 
 - **Stock Management**
-  - Real-time stock levels with atomic transaction updates
-  - Automated reorder monitoring with configurable thresholds
-  - Expiry warnings and stock alerts with notification systems
-  - Issue/receipt tracking and adjustments with audit trails
+  - **Updated** Client-side stock level tracking through StockLevelService replacing database triggers
+  - Real-time stock levels with atomic transaction updates and service orchestration
+  - Automated reorder monitoring with configurable thresholds and service-based processing
+  - Expiry warnings and stock alerts with notification systems and service coordination
+  - Issue/receipt tracking and adjustments with audit trails and service validation
 
 - **Database Infrastructure**
   - useDatabaseCollection hook for centralized CRUD operations
@@ -191,6 +221,7 @@ The module centers around seven primary domains with comprehensive database inte
 - [types.ts:122-170](file://src/modules/inventory/data/types.ts#L122-L170)
 - [mockData.ts:104-157](file://src/modules/inventory/data/mockData.ts#L104-L157)
 - [collections.ts:6-48](file://src/modules/inventory/data/collections.ts#L6-L48)
+- [StockLevelService.ts:7-86](file://src/modules/inventory/services/StockLevelService.ts#L7-L86)
 
 ## Architecture Overview
 The Inventory module employs a modernized layered architecture with centralized database integration and useDatabaseCollection hooks:
@@ -213,6 +244,12 @@ class InventoryDataContext {
 +addStockTransaction(data)
 +updateStockTransaction(id, data)
 +deleteStockTransaction(id)
+}
+class StockLevelService {
++onStockTransaction(transaction) StockLevelUpdateResult
++onStockTransactions(transactions) StockLevelUpdateResult[]
++getStockLevel(itemId, warehouseId) StockLevelRecord
++calculateDelta(type, quantity) number
 }
 class UseDatabaseCollection {
 +data : T[]
@@ -238,6 +275,7 @@ class DashboardPages {
 +InventoryDashboardPage
 +SchoolProcurementDashboardPage
 +VendorPortalDashboardPage
++StockLevelsPage
 }
 class DataHooks {
 +useWarehouseData()
@@ -245,26 +283,38 @@ class DataHooks {
 +useStockLevelData()
 +useRequisitionData()
 +useInventoryData()
++useStockLevelService()
+}
+class ServiceRegistry {
++register(service)
++get(name) any
 }
 InventoryDataContext --> UseDatabaseCollection : "uses"
+StockLevelService --> UseDatabaseCollection : "processes"
 UseDatabaseCollection --> DatabaseService : "integrates with"
 DatabaseService --> UnifiedDatabaseManager : "communicates with"
 UnifiedDatabaseManager --> RxDBCollections : "manages"
 DashboardPages --> InventoryDataContext : "consumes"
 DataHooks --> InventoryDataContext : "wraps"
+DataHooks --> StockLevelService : "uses"
+ServiceRegistry --> StockLevelService : "registers"
 ```
 
 **Diagram sources**
 - [InventoryDataContext.tsx:10-33](file://src/modules/inventory/data/InventoryDataContext.tsx#L10-L33)
+- [StockLevelService.ts:87-200](file://src/modules/inventory/services/StockLevelService.ts#L87-L200)
 - [useDatabaseCollection.ts:24-227](file://src/hooks/useDatabaseCollection.ts#L24-L227)
 - [useInventoryData.ts:10-154](file://src/modules/inventory/data/useInventoryData.ts#L10-L154)
 - [InventoryDashboardPage.tsx:7-12](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L7-L12)
 - [SchoolProcurementDashboardPage.tsx:8-11](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx#L8-L11)
 - [VendorPortalDashboardPage.tsx:8-11](file://src/modules/inventory/pages/VendorPortalDashboardPage.tsx#L8-L11)
+- [StockLevelsPage.tsx:11-18](file://src/modules/inventory/pages/StockLevelsPage.tsx#L11-L18)
 - [useWarehouseData.ts:35-92](file://src/modules/inventory/data/useWarehouseData.ts#L35-L92)
 - [useItemData.ts:8-41](file://src/modules/inventory/data/useItemData.ts#L8-L41)
 - [useStockLevelData.ts:37-95](file://src/modules/inventory/data/useStockLevelData.ts#L37-L95)
 - [useRequisitionData.ts:8-41](file://src/modules/inventory/data/useRequisitionData.ts#L8-L41)
+- [useStockLevelService.ts:24-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L24-L187)
+- [registerServices.ts:6-16](file://src/modules/inventory/services/registerServices.ts#L6-L16)
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
 
@@ -275,13 +325,17 @@ The architecture ensures:
 - Extensible collection definitions with automatic indexing
 - Seamless offline-first operation with conflict resolution
 - Modular data provider architecture for clean separation of concerns
+- **Updated** Service-based stock level processing replacing database triggers
+- **New** Service registry integration for StockLevelService management
 
 **Section sources**
 - [InventoryDataContext.tsx:1-36](file://src/modules/inventory/data/InventoryDataContext.tsx#L1-L36)
+- [StockLevelService.ts:1-202](file://src/modules/inventory/services/StockLevelService.ts#L1-L202)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
 - [useInventoryData.ts:1-155](file://src/modules/inventory/data/useInventoryData.ts#L1-L155)
-- [collections.ts:1-51](file://src/modules/inventory/data/collections.ts#L1-L51)
+- [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
+- [registerServices.ts:1-17](file://src/modules/inventory/services/registerServices.ts#L1-L17)
 
 ## Detailed Component Analysis
 
@@ -558,11 +612,11 @@ CollectionConfig --> DatabaseSchema : "uses"
 
 **Section sources**
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
-- [collections.ts:1-51](file://src/modules/inventory/data/collections.ts#L1-L51)
+- [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
 
 ### Dashboard Components
-The module provides three specialized dashboards with comprehensive database integration through the useInventory hook:
+The module provides four specialized dashboards with comprehensive database integration through the useInventory hook:
 
 #### Inventory Dashboard
 Focuses on operational stock readiness and procurement pipeline with real-time database updates:
@@ -583,6 +637,13 @@ Supports external supplier engagement with comprehensive opportunity tracking:
 - Supplier snapshot: top performing suppliers with performance ratings from database collections
 - Order and invoice queue monitoring with automatic status updates
 - RFQ opportunities and invoice processing status with live data refresh
+
+#### **Updated** Stock Levels Dashboard
+Provides dedicated monitoring of current stock levels across all warehouses:
+- Real-time stock level visualization with filtering by warehouse and item category
+- Current quantities on hand with item and warehouse identification
+- Interactive data grid with sorting and filtering capabilities
+- Loading states and empty state handling for better user experience
 
 ```mermaid
 sequenceDiagram
@@ -607,6 +668,7 @@ Hook-->>Dashboard : Rendered dashboard with computed metrics
 - [InventoryDashboardPage.tsx:7-53](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L7-L53)
 - [SchoolProcurementDashboardPage.tsx:8-107](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx#L8-L107)
 - [VendorPortalDashboardPage.tsx:8-102](file://src/modules/inventory/pages/VendorPortalDashboardPage.tsx#L8-L102)
+- [StockLevelsPage.tsx:11-107](file://src/modules/inventory/pages/StockLevelsPage.tsx#L11-L107)
 - [useInventory.ts:7-41](file://src/modules/inventory/hooks/useInventory.ts#L7-L41)
 - [useInventoryData.ts:10-154](file://src/modules/inventory/data/useInventoryData.ts#L10-L154)
 - [useDatabaseCollection.ts:24-227](file://src/hooks/useDatabaseCollection.ts#L24-L227)
@@ -615,6 +677,7 @@ Hook-->>Dashboard : Rendered dashboard with computed metrics
 - [InventoryDashboardPage.tsx:1-57](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L1-L57)
 - [SchoolProcurementDashboardPage.tsx:1-111](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx#L1-L111)
 - [VendorPortalDashboardPage.tsx:1-106](file://src/modules/inventory/pages/VendorPortalDashboardPage.tsx#L1-L106)
+- [StockLevelsPage.tsx:1-107](file://src/modules/inventory/pages/StockLevelsPage.tsx#L1-L107)
 - [useInventory.ts:1-41](file://src/modules/inventory/hooks/useInventory.ts#L1-L41)
 
 ### Procurement Workflows
@@ -652,22 +715,21 @@ Procurement entities and relationships with database persistence:
 - [types.ts:184-220](file://src/modules/inventory/data/types.ts#L184-L220)
 
 ### Stock Management and Alerts
-Stock management encompasses real-time tracking and automated monitoring with comprehensive database integration:
+**Updated** Stock management now operates through a sophisticated service-based approach replacing database triggers:
 
 ```mermaid
 flowchart TD
-Txn[Stock Transaction] --> Update["Update Stock Level"]
-Update --> Check["Check Thresholds"]
-Check --> Low{"Below Reorder Point?"}
-Check --> High{"Above Max Stock?"}
-Check --> Expire{"Near Expiry?"}
-Low --> Alert1["Create LOW_STOCK Alert"]
-High --> Alert2["Create OVERSTOCK Alert"]
-Expire --> Alert3["Create EXPIRY_WARNING Alert"]
-Alert1 --> Ack["Acknowledge/Resolve"]
-Alert2 --> Ack
-Alert3 --> Ack
-Ack --> Clear["Clear Alert"]
+Txn[Stock Transaction] --> Service["StockLevelService.processTransaction"]
+Service --> Find["Find Existing Stock Level"]
+Find --> Exists{"Stock Level Exists?"}
+Exists --> |Yes| Update["Update Existing Level"]
+Exists --> |No| Create["Create New Stock Level"]
+Update --> Delta["Calculate Quantity Delta"]
+Create --> Delta
+Delta --> Persist["Persist to Database"]
+Persist --> Refresh["Refresh Collection"]
+Refresh --> Alert["Generate Alerts if Needed"]
+Alert --> Ack["Acknowledge/Resolve"]
 ```
 
 Stock alert types with database-driven automation:
@@ -677,6 +739,8 @@ Stock alert types with database-driven automation:
 - EXPIRED: past expiry with potential write-off through automated alerts
 
 **Section sources**
+- [StockLevelService.ts:94-146](file://src/modules/inventory/services/StockLevelService.ts#L94-L146)
+- [StockLevelService.ts:178-199](file://src/modules/inventory/services/StockLevelService.ts#L178-L199)
 - [schema.ts:101-142](file://src/modules/inventory/data/schema.ts#L101-L142)
 - [schema.ts:268-287](file://src/modules/inventory/data/schema.ts#L268-L287)
 - [mockData.ts:126-181](file://src/modules/inventory/data/mockData.ts#L126-L181)
@@ -703,6 +767,11 @@ class InventoryDataContext {
 +updateStockTransaction()
 +deleteStockTransaction()
 }
+class StockLevelService {
++onStockTransaction()
++onStockTransactions()
++getStockLevel()
+}
 class UseDatabaseCollection {
 +data : T[]
 +loading : boolean
@@ -719,6 +788,7 @@ class DomainHooks {
 +useStockLevelData()
 +useRequisitionData()
 +useInventoryData()
++useStockLevelService()
 }
 class MockData {
 +initialMockWarehouses
@@ -733,24 +803,29 @@ class MockData {
 InventoryDataContext --> UseDatabaseCollection : "uses"
 InventoryDataContext --> MockData : "seeds"
 DomainHooks --> InventoryDataContext : "wrap"
+DomainHooks --> StockLevelService : "use"
 ```
 
 **Diagram sources**
 - [InventoryDataContext.tsx:10-33](file://src/modules/inventory/data/InventoryDataContext.tsx#L10-L33)
+- [StockLevelService.ts:87-200](file://src/modules/inventory/services/StockLevelService.ts#L87-L200)
 - [useDatabaseCollection.ts:24-227](file://src/hooks/useDatabaseCollection.ts#L24-L227)
 - [useWarehouseData.ts:35-92](file://src/modules/inventory/data/useWarehouseData.ts#L35-L92)
 - [useItemData.ts:8-41](file://src/modules/inventory/data/useItemData.ts#L8-L41)
 - [useStockLevelData.ts:37-95](file://src/modules/inventory/data/useStockLevelData.ts#L37-L95)
 - [useRequisitionData.ts:8-41](file://src/modules/inventory/data/useRequisitionData.ts#L8-L41)
+- [useStockLevelService.ts:24-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L24-L187)
 - [mockData.ts:45-260](file://src/modules/inventory/data/mockData.ts#L45-L260)
 
 **Section sources**
 - [InventoryDataContext.tsx:1-36](file://src/modules/inventory/data/InventoryDataContext.tsx#L1-L36)
+- [StockLevelService.ts:1-202](file://src/modules/inventory/services/StockLevelService.ts#L1-L202)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
 - [useWarehouseData.ts:1-96](file://src/modules/inventory/data/useWarehouseData.ts#L1-L96)
 - [useItemData.ts:1-41](file://src/modules/inventory/data/useItemData.ts#L1-L41)
 - [useStockLevelData.ts:1-99](file://src/modules/inventory/data/useStockLevelData.ts#L1-L99)
 - [useRequisitionData.ts:1-41](file://src/modules/inventory/data/useRequisitionData.ts#L1-L41)
+- [useStockLevelService.ts:1-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L1-L187)
 - [mockData.ts:1-260](file://src/modules/inventory/data/mockData.ts#L1-L260)
 
 ## Database Integration
@@ -784,10 +859,58 @@ The database service provides centralized access to all inventory collections:
 **Section sources**
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
 - [schema.ts:1-288](file://src/modules/inventory/data/schema.ts#L1-L288)
-- [collections.ts:1-51](file://src/modules/inventory/data/collections.ts#L1-L51)
+- [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
+
+## Stock Level Service Architecture
+**New** The module introduces a sophisticated StockLevelService that replaces traditional database triggers with client-side processing:
+
+### Service Design Principles
+The StockLevelService provides a clean separation of concerns for stock level management:
+
+- **Dependency Injection**: Clean architecture with injectable dependencies for testability
+- **Business Logic Encapsulation**: Centralized stock level calculation and validation
+- **Transaction Processing**: Atomic stock level updates synchronized with database operations
+- **Error Handling**: Comprehensive error handling with graceful degradation
+
+### Core Service Methods
+The service provides essential stock level operations:
+
+- **onStockTransaction**: Processes individual stock transactions with delta calculation
+- **onStockTransactions**: Handles batch processing of multiple transactions
+- **getStockLevel**: Retrieves current stock levels for items and warehouses
+- **calculateDelta**: Determines quantity changes based on transaction types
+
+### Transaction Type Handling
+The service intelligently handles different transaction types:
+
+- **Receipt/Return to Store**: Adds quantities to stock levels
+- **Issue/Return to Supplier**: Subtracts quantities from stock levels
+- **Stock Adjustment**: Applies custom quantity adjustments with validation
+
+### Database Integration
+The service integrates seamlessly with the existing database infrastructure:
+
+- **Collection Access**: Uses useDatabaseCollection for reactive data access
+- **CRUD Operations**: Performs insert/update operations through database service
+- **State Management**: Manages loading states and error conditions
+- **Real-time Updates**: Automatically refreshes collections after operations
+
+### Service Registry Integration
+The StockLevelService is registered with the service registry for centralized management:
+
+- **Singleton Pattern**: Registered as a singleton service for consistent access
+- **Factory Pattern**: Uses factory pattern to create instances with runtime dependencies
+- **Module Integration**: Integrated into the inventory module namespace
+
+**Section sources**
+- [StockLevelService.ts:25-86](file://src/modules/inventory/services/StockLevelService.ts#L25-L86)
+- [StockLevelService.ts:94-146](file://src/modules/inventory/services/StockLevelService.ts#L94-L146)
+- [StockLevelService.ts:178-199](file://src/modules/inventory/services/StockLevelService.ts#L178-L199)
+- [useStockLevelService.ts:31-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L31-L187)
+- [registerServices.ts:6-16](file://src/modules/inventory/services/registerServices.ts#L6-L16)
 
 ## Dependency Analysis
 The module exhibits clean dependency boundaries with comprehensive database service integration and minimal cross-module coupling:
@@ -810,26 +933,38 @@ L[useInventory.ts]
 M[InventoryDashboardPage.tsx]
 N[SchoolProcurementDashboardPage.tsx]
 O[VendorPortalDashboardPage.tsx]
+P[StockLevelsPage.tsx]
+Q[StockLevelService.ts]
+R[useStockLevelService.ts]
+S[registerServices.ts]
+T[reorderMonitoringService.ts]
 end
 subgraph "Database Layer"
-P[databaseService.ts]
-Q[UnifiedDatabaseManager.ts]
-R[RxDB Collections]
-S[useDatabaseCollection.ts]
+U[databaseService.ts]
+V[UnifiedDatabaseManager.ts]
+W[RxDB Collections]
+X[useDatabaseCollection.ts]
 end
 subgraph "External Dependencies"
-T[toast service]
-U[React Context]
-V[TypeScript Types]
-W[useInventory hook]
-X[useDatabaseCollection hook]
-Y[InventoryDataContext]
-Z[InventoryDataProvider]
+Y[toast service]
+Z[React Context]
+AA[TypeScript Types]
+BB[useInventory hook]
+CC[useDatabaseCollection hook]
+DD[InventoryDataContext]
+EE[InventoryDataProvider]
+FF[StockLevelService]
+GG[useStockLevelService]
+HH[ServiceRegistry]
+II[ReorderMonitoringService]
 end
-M --> W
-N --> W
-O --> W
-W --> K
+M --> BB
+N --> BB
+O --> BB
+P --> GG
+BB --> K
+GG --> FF
+FF --> X
 K --> X
 E --> K
 E --> A
@@ -837,15 +972,18 @@ E --> B
 E --> C
 E --> D
 E --> F
-X --> P
-P --> Q
-Q --> R
-K --> T
-K --> U
+X --> U
+U --> V
+V --> W
+K --> Y
+K --> Z
 G --> E
 H --> E
 I --> E
 J --> E
+S --> FF
+T --> FF
+HH --> FF
 ```
 
 **Diagram sources**
@@ -864,6 +1002,11 @@ J --> E
 - [InventoryDashboardPage.tsx:1-3](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L1-L3)
 - [SchoolProcurementDashboardPage.tsx:1-3](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx#L1-L3)
 - [VendorPortalDashboardPage.tsx:1-3](file://src/modules/inventory/pages/VendorPortalDashboardPage.tsx#L1-L3)
+- [StockLevelsPage.tsx:1-3](file://src/modules/inventory/pages/StockLevelsPage.tsx#L1-L3)
+- [StockLevelService.ts:1-3](file://src/modules/inventory/services/StockLevelService.ts#L1-L3)
+- [useStockLevelService.ts:1-3](file://src/modules/inventory/hooks/useStockLevelService.ts#L1-L3)
+- [registerServices.ts:1-3](file://src/modules/inventory/services/registerServices.ts#L1-L3)
+- [reorderMonitoringService.ts:1-3](file://src/modules/inventory/services/reorderMonitoringService.ts#L1-L3)
 - [useDatabaseCollection.ts:4-6](file://src/hooks/useDatabaseCollection.ts#L4-L6)
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
@@ -872,14 +1015,22 @@ Key observations:
 - All internal dependencies flow inward toward the provider with database service integration
 - UI components depend on the shared useInventory hook with database-backed data
 - useInventoryData encapsulates useDatabaseCollection interactions with comprehensive error handling
+- **Updated** useStockLevelService provides specialized stock level processing through StockLevelService
+- StockLevelService depends on useDatabaseCollection for database operations
+- **New** registerServices provides centralized service registration with factory pattern
+- **New** reorderMonitoringService integrates with StockLevelService for alert generation
 - Mock data serves as the default data source in demo mode with seamless database switching
 - useDatabaseCollection provides centralized access to all collection types with type safety
 
 **Section sources**
-- [collections.ts:1-51](file://src/modules/inventory/data/collections.ts#L1-L51)
+- [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
 - [InventoryDataContext.tsx:1-36](file://src/modules/inventory/data/InventoryDataContext.tsx#L1-L36)
+- [StockLevelService.ts:1-202](file://src/modules/inventory/services/StockLevelService.ts#L1-L202)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
+- [useStockLevelService.ts:1-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L1-L187)
+- [registerServices.ts:1-17](file://src/modules/inventory/services/registerServices.ts#L1-L17)
+- [reorderMonitoringService.ts:1-138](file://src/modules/inventory/services/reorderMonitoringService.ts#L1-L138)
 
 ## Performance Considerations
 - **Database indexing**: schemas define indexes on frequently queried fields (status, dates, names, composite keys)
@@ -892,6 +1043,8 @@ Key observations:
 - **Collection caching**: RxDB collections provide in-memory caching for frequently accessed data
 - **Query optimization**: database service optimizes queries with appropriate indexes and filters
 - **Reactive updates**: useDatabaseCollection provides automatic UI updates through collection subscriptions
+- **Service-based processing**: StockLevelService reduces database trigger overhead through client-side computation
+- **Dependency injection**: Service-based architecture improves testability and reduces coupling
 
 ## Troubleshooting Guide
 Common issues and resolutions with database-specific guidance:
@@ -914,6 +1067,13 @@ Common issues and resolutions with database-specific guidance:
 - **Check metric calculations** for null values from database collection queries
 - **Monitor collection synchronization** status for real-time data updates
 
+### **Updated** Stock Level Service Issues
+- **Verify StockLevelService dependencies** are properly injected through useStockLevelService
+- **Check transaction processing** through onStockTransaction method for proper delta calculation
+- **Monitor service error states** through useStockLevelService error handling
+- **Validate collection refresh** after stock level updates through useDatabaseCollection.refresh()
+- **Confirm service registration** in service registry for proper dependency management
+
 ### Stock Alert Discrepancies
 - **Verify reorder point configuration** in item definitions with database constraints
 - **Confirm stock transaction timestamps** with database time zone handling
@@ -932,16 +1092,27 @@ Common issues and resolutions with database-specific guidance:
 - **Monitor loading states** during database operations
 - **Validate error handling** for database connection failures
 
+### **New** Service Registry Issues
+- **Verify StockLevelService registration** in registerServices.ts
+- **Check service factory pattern** for proper instantiation
+- **Monitor service lifecycle** through service registry
+- **Validate singleton pattern** for consistent service access
+
 **Section sources**
 - [InventoryDataContext.tsx:58-75](file://src/modules/inventory/data/InventoryDataContext.tsx#L58-L75)
 - [InventoryDashboardPage.tsx:10-12](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L10-L12)
+- [StockLevelService.ts:25-86](file://src/modules/inventory/services/StockLevelService.ts#L25-L86)
 - [schema.ts:268-287](file://src/modules/inventory/data/schema.ts#L268-L287)
 - [useDatabaseCollection.ts:72-83](file://src/hooks/useDatabaseCollection.ts#L72-L83)
+- [useStockLevelService.ts:24-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L24-L187)
+- [registerServices.ts:6-16](file://src/modules/inventory/services/registerServices.ts#L6-L16)
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
 
 ## Conclusion
 The Inventory module delivers a robust, database-backed foundation for institutional asset and supply chain management with comprehensive useDatabaseCollection integration. Its modular design, centralized database infrastructure, and specialized dashboards support efficient day-to-day operations while enabling strategic oversight with real-time data synchronization. The implementation demonstrates strong separation of concerns, reactive data patterns, and scalable collection definitions that accommodate future enhancements with seamless database abstraction.
+
+**Updated** The introduction of StockLevelService significantly enhances the module's capabilities by replacing database triggers with client-side processing, providing more reliable stock level management, improved error handling, and better performance characteristics through service-based architecture. The service registry integration ensures proper service lifecycle management and dependency injection for maintainable code.
 
 ## Appendices
 
@@ -951,9 +1122,12 @@ The module exposes comprehensive CRUD operations through the useInventoryData ho
 - **Warehouse operations**: create, update, delete with toast notifications and database persistence
 - **Item operations**: create, update, delete with timestamp management and schema validation
 - **Stock transaction operations**: create, update, delete with validation and audit trails
+- **Stock level service operations**: process transactions, get stock levels with service-based processing
 - **Data hooks**: domain-specific access patterns for UI components with database integration
 - **Database service operations**: centralized access to RxDB collections with type safety
 - **useDatabaseCollection**: standardized CRUD operations with automatic subscriptions
+- **StockLevelService**: business logic operations for stock level management
+- **Service registry**: centralized service management and dependency injection
 
 **Section sources**
 - [useInventoryData.ts:22-32](file://src/modules/inventory/data/useInventoryData.ts#L22-L32)
@@ -962,6 +1136,9 @@ The module exposes comprehensive CRUD operations through the useInventoryData ho
 - [useItemData.ts:8-41](file://src/modules/inventory/data/useItemData.ts#L8-L41)
 - [useStockLevelData.ts:24-31](file://src/modules/inventory/data/useStockLevelData.ts#L24-L31)
 - [useRequisitionData.ts:8-41](file://src/modules/inventory/data/useRequisitionData.ts#L8-L41)
+- [StockLevelService.ts:87-200](file://src/modules/inventory/services/StockLevelService.ts#L87-L200)
+- [useStockLevelService.ts:24-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L24-L187)
+- [registerServices.ts:6-16](file://src/modules/inventory/services/registerServices.ts#L6-L16)
 
 ### Reporting Capabilities
 The dashboards provide built-in reporting through comprehensive database integration:
@@ -969,12 +1146,14 @@ The dashboards provide built-in reporting through comprehensive database integra
 - **Stock alert summaries** with severity classification and database-driven updates
 - **Supplier performance snapshots** and invoice queues with live data synchronization
 - **Recent activity panels** for trend analysis with database query optimization
+- **Stock levels dashboard** with filtering and real-time monitoring capabilities
 - **Cross-collection reporting** with database relationship management
 
 **Section sources**
 - [SchoolProcurementDashboardPage.tsx:17-43](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx#L17-L43)
 - [VendorPortalDashboardPage.tsx:16-42](file://src/modules/inventory/pages/VendorPortalDashboardPage.tsx#L16-L42)
 - [InventoryDashboardPage.tsx:21-42](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L21-L42)
+- [StockLevelsPage.tsx:66-107](file://src/modules/inventory/pages/StockLevelsPage.tsx#L66-L107)
 
 ### Database Schema Reference
 Comprehensive schema definitions with RxDB integration:
@@ -985,5 +1164,5 @@ Comprehensive schema definitions with RxDB integration:
 
 **Section sources**
 - [schema.ts:1-288](file://src/modules/inventory/data/schema.ts#L1-L288)
-- [collections.ts:1-51](file://src/modules/inventory/data/collections.ts#L1-L51)
+- [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)

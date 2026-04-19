@@ -15,7 +15,25 @@
 - [modules.json](file://src/config/modules.json)
 - [MODULE_STRUCTURE_STANDARD.md](file://docs/architecture/MODULE_STRUCTURE_STANDARD.md)
 - [package.json](file://package.json)
+- [registerServices.ts](file://src/modules/administration/services/registerServices.ts)
+- [registerServices.ts](file://src/modules/academics/services/registerServices.ts)
+- [registerServices.ts](file://src/modules/finance/services/registerServices.ts)
+- [registerServices.ts](file://src/modules/inventory/services/registerServices.ts)
+- [InvoiceStatusService.ts](file://src/modules/finance/services/InvoiceStatusService.ts)
+- [StockLevelService.ts](file://src/modules/inventory/services/StockLevelService.ts)
+- [StudentManagementService.ts](file://src/modules/administration/services/StudentManagementService.ts)
+- [StudentPromotionService.ts](file://src/modules/administration/services/StudentPromotionService.ts)
+- [GradingEngineService.ts](file://src/modules/academics/services/GradingEngineService.ts)
+- [useService.ts](file://src/hooks/useService.ts)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated service architecture section to reflect new service-based implementation replacing database triggers/stored procedures
+- Added comprehensive documentation for service registration patterns across all modules
+- Enhanced service dependency injection documentation with concrete examples
+- Updated architecture diagrams to show service-based business logic flow
+- Added detailed service implementation examples from Finance, Inventory, Administration, and Academics modules
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -23,17 +41,18 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
-10. [Appendices](#appendices)
+6. [Service-Based Architecture](#service-based-architecture)
+7. [Dependency Analysis](#dependency-analysis)
+8. [Performance Considerations](#performance-considerations)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Conclusion](#conclusion)
+11. [Appendices](#appendices)
 
 ## Introduction
-This document explains SchoolPilot3’s modular architecture system with a domain-driven design approach. Each business module (administration, academics, finance, hr, inventory, library, nutrition, reports, settings) is self-contained and contributes to a unified system through a module federation pattern. The system supports dynamic loading, lifecycle management, dependency resolution, and type-safe inter-module communication. It also documents the module structure standards, dependency management with version constraints, and integration with the central database schema.
+This document explains SchoolPilot3's modular architecture system with a domain-driven design approach. Each business module (administration, academics, finance, hr, inventory, library, nutrition, reports, settings) is self-contained and contributes to a unified system through a module federation pattern. The system supports dynamic loading, lifecycle management, dependency resolution, and type-safe inter-module communication. **Updated**: The system now implements a comprehensive service-based architecture that replaces traditional database triggers and stored procedures with sophisticated service implementations across all modules.
 
 ## Project Structure
-SchoolPilot3 organizes modules under a consistent structure that promotes separation of concerns and maintainability. The core modular system resides in the src/core directory and orchestrates module registration, loading, lifecycle, and exports. Each business module lives under src/modules/<module-name> and follows a standardized layout.
+SchoolPilot3 organizes modules under a consistent structure that promotes separation of concerns and maintainability. The core modular system resides in the src/core directory and orchestrates module registration, loading, lifecycle, and exports. Each business module lives under src/modules/<module-name> and follows a standardized layout with integrated service implementations.
 
 ```mermaid
 graph TB
@@ -46,12 +65,12 @@ SER["ServiceRegistry"]
 ME["ModuleExportsManager"]
 DR["DependencyResolver"]
 end
-subgraph "Business Modules"
-ADM["Administration Module"]
-ACD["Academics Module"]
-FIN["Finance Module"]
+subgraph "Business Modules with Services"
+ADM["Administration Module<br/>StudentManagementService<br/>StudentPromotionService"]
+ACD["Academics Module<br/>GradingEngineService<br/>StudentService"]
+FIN["Finance Module<br/>InvoiceStatusService<br/>InvoiceGenerationService<br/>PaymentAllocationService"]
 HRM["HR Module"]
-INV["Inventory Module"]
+INV["Inventory Module<br/>StockLevelService"]
 LIB["Library Module"]
 NUT["Nutrition Module"]
 REP["Reports Module"]
@@ -114,7 +133,7 @@ The modular system is composed of several cohesive subsystems that work together
 - [DependencyResolver.ts:19-252](file://src/core/DependencyResolver.ts#L19-L252)
 
 ## Architecture Overview
-The modular architecture follows a module federation pattern where each module defines its metadata, navigation, dependencies, and provides resources. The system enforces type safety through shared TypeScript interfaces and manages inter-module communication via services and exports.
+The modular architecture follows a module federation pattern where each module defines its metadata, navigation, dependencies, and provides resources. **Updated**: The system now enforces type safety through shared TypeScript interfaces and manages inter-module communication via services and exports, with comprehensive service implementations replacing database triggers and stored procedures.
 
 ```mermaid
 sequenceDiagram
@@ -134,6 +153,7 @@ ML->>SER : initializeAll()
 MS->>ME : registerModule(exports)
 App-->>MS : getService(moduleId, name)
 MS-->>App : service instance
+Note over SER : Services replace<br/>database triggers/stored<br/>procedures
 ```
 
 **Diagram sources**
@@ -241,6 +261,118 @@ Modules contribute to the central system by:
 - [module.ts:15-398](file://src/core/types/module.ts#L15-L398)
 - [moduleRegistration.ts:60-124](file://src/core/moduleRegistration.ts#L60-L124)
 
+## Service-Based Architecture
+
+**Updated**: SchoolPilot3 has implemented a comprehensive service-based architecture that systematically replaces database triggers and stored procedures with sophisticated service implementations across all business modules.
+
+### Service Registration Pattern
+Each module implements a centralized service registration system that integrates with the global ServiceRegistry:
+
+```mermaid
+graph TB
+subgraph "Service Registration Flow"
+REG["registerServices.ts<br/>(Module-specific)"] --> SR["ServiceRegistry"]
+SR --> INST["Service Instances"]
+INST --> DEPS["Service Dependencies"]
+DEPS --> FACT["Factory Functions"]
+end
+```
+
+**Diagram sources**
+- [registerServices.ts:1-34](file://src/modules/administration/services/registerServices.ts#L1-L34)
+- [registerServices.ts:1-22](file://src/modules/academics/services/registerServices.ts#L1-L22)
+- [registerServices.ts:1-59](file://src/modules/finance/services/registerServices.ts#L1-L59)
+- [registerServices.ts:1-17](file://src/modules/inventory/services/registerServices.ts#L1-L17)
+
+### Core Service Implementations
+
+#### Finance Module Services
+The Finance module implements three core P0 services that replace database triggers:
+
+- **InvoiceStatusService**: Replaces `trg_fin_updateInvoiceStatus` trigger
+- **InvoiceGenerationService**: Handles automated invoice creation
+- **PaymentAllocationService**: Manages payment application logic
+
+```mermaid
+sequenceDiagram
+participant DB as "Database"
+participant TRG as "Old Trigger"
+participant SVC as "InvoiceStatusService"
+participant APP as "Application Logic"
+DB->>TRG : Payment Application Created
+TRG->>DB : Automatic Status Update
+Note over TRG : Database Trigger
+APP->>SVC : updateInvoiceStatus(invoiceId)
+SVC->>DB : Query Invoice Data
+SVC->>DB : Sum Payment Applications
+SVC->>DB : Update Invoice Status
+Note over SVC : Service-based Logic
+```
+
+**Diagram sources**
+- [InvoiceStatusService.ts:75-91](file://src/modules/finance/services/InvoiceStatusService.ts#L75-L91)
+
+#### Inventory Module Services
+The Inventory module implements StockLevelService that replaces complex trigger logic:
+
+- **StockLevelService**: Replaces `inv.fn_update_stock_level()` and `trg_inv_updateStockLevel` triggers
+- Handles stock transaction processing with precise delta calculations
+- Maintains synchronized stock levels across multiple warehouses
+
+#### Administration Module Services
+The Administration module provides comprehensive student management services:
+
+- **StudentManagementService**: Core student record operations
+- **StudentPromotionService**: Replaces `sp_adm_promoteStudent` stored procedure
+- **AuditLoggerService**: Centralized audit trail management
+
+#### Academics Module Services
+The Academics module implements educational grading services:
+
+- **GradingEngineService**: Replaces complex academic grading logic
+- **StudentService**: Student academic record management
+- Supports multiple grading systems (Letter, Percentage, CBC, GPA, Pass/Fail)
+
+**Section sources**
+- [registerServices.ts:1-34](file://src/modules/administration/services/registerServices.ts#L1-L34)
+- [registerServices.ts:1-22](file://src/modules/academics/services/registerServices.ts#L1-L22)
+- [registerServices.ts:1-59](file://src/modules/finance/services/registerServices.ts#L1-L59)
+- [registerServices.ts:1-17](file://src/modules/inventory/services/registerServices.ts#L1-L17)
+- [InvoiceStatusService.ts:1-248](file://src/modules/finance/services/InvoiceStatusService.ts#L1-L248)
+- [StockLevelService.ts:1-202](file://src/modules/inventory/services/StockLevelService.ts#L1-L202)
+- [StudentManagementService.ts:1-39](file://src/modules/administration/services/StudentManagementService.ts#L1-L39)
+- [StudentPromotionService.ts:1-449](file://src/modules/administration/services/StudentPromotionService.ts#L1-L449)
+- [GradingEngineService.ts:1-44](file://src/modules/academics/services/GradingEngineService.ts#L1-L44)
+
+### Service Dependency Injection
+Services implement sophisticated dependency injection patterns to replace hardcoded database dependencies:
+
+```mermaid
+graph TB
+subgraph "Service Dependency Injection"
+DEPS["Service Dependencies Interface"] --> SVC["Service Implementation"]
+SVC --> DAO["Data Access Objects"]
+DAO --> DB["Database Provider"]
+end
+```
+
+**Diagram sources**
+- [InvoiceStatusService.ts:35-44](file://src/modules/finance/services/InvoiceStatusService.ts#L35-L44)
+- [StockLevelService.ts:29-38](file://src/modules/inventory/services/StockLevelService.ts#L29-L38)
+- [StudentPromotionService.ts:37-42](file://src/modules/administration/services/StudentPromotionService.ts#L37-L42)
+
+### Service Lifecycle Management
+Services are managed through the ServiceRegistry with automatic initialization and dependency resolution:
+
+- **Lazy Initialization**: Services are created on-demand
+- **Singleton Pattern**: Ensures single instance per service type
+- **Dependency Resolution**: Automatic injection of required dependencies
+- **Event Emission**: Service lifecycle events for monitoring
+
+**Section sources**
+- [ServiceRegistry.ts:47-114](file://src/core/ServiceRegistry.ts#L47-L114)
+- [useService.ts:25-111](file://src/hooks/useService.ts#L25-L111)
+
 ## Dependency Analysis
 The system enforces dependency management with version constraints and resolves loading order to prevent circular dependencies. The module configuration demonstrates inter-module dependencies (e.g., reports depends on administration, academics, and finance).
 
@@ -267,8 +399,7 @@ A --> N["Nutrition"]
 - Retry and timeout: ModuleLoader applies retry attempts with exponential backoff-like delays and configurable timeouts.
 - Lazy loading: Modules are loaded on demand via factories, minimizing initial bundle size.
 - Caching: ServiceRegistry caches singleton instances to avoid repeated initialization overhead.
-
-[No sources needed since this section provides general guidance]
+- **Updated**: Service-based architecture reduces database load by implementing business logic in application layer, improving performance and maintainability.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
@@ -276,6 +407,7 @@ Common issues and resolutions:
 - Module load failures: Investigate retry logs and error emissions from ModuleLoader.
 - Service initialization errors: Check ServiceRegistry events and factory dependencies.
 - Export validation failures: Review ModuleExportsManager validation results for undeclared or missing exports.
+- **Updated**: Service dependency injection failures: Verify service dependencies are properly registered and injected.
 
 **Section sources**
 - [moduleRegistry.ts:112-133](file://src/core/moduleRegistry.ts#L112-L133)
@@ -284,9 +416,7 @@ Common issues and resolutions:
 - [ModuleExports.ts:210-270](file://src/core/ModuleExports.ts#L210-L270)
 
 ## Conclusion
-SchoolPilot3’s modular architecture enables scalable, maintainable, and type-safe development across business domains. Through module federation, dynamic loading, lifecycle management, and robust dependency resolution, the system supports flexible growth and integration. The standardized module structure and strict type contracts ensure predictable inter-module communication and reliable system behavior.
-
-[No sources needed since this section summarizes without analyzing specific files]
+SchoolPilot3's modular architecture enables scalable, maintainable, and type-safe development across business domains. **Updated**: The comprehensive service-based architecture successfully replaces traditional database triggers and stored procedures with sophisticated service implementations, providing better maintainability, testability, and business logic control. Through module federation, dynamic loading, lifecycle management, and robust dependency resolution, the system supports flexible growth and integration. The standardized module structure and strict type contracts ensure predictable inter-module communication and reliable system behavior.
 
 ## Appendices
 
@@ -294,6 +424,7 @@ SchoolPilot3’s modular architecture enables scalable, maintainable, and type-s
 - Standard structure: components/, data/, hooks/, i18n/, pages/, services/, strategies/, index.ts, lifecycle.ts, moduleDefinition.tsx, module.json, rbac.ts
 - Subdirectory guidelines: Use subdirectories for distinct feature areas with multiple related files
 - Cross-module dependencies: Prefer shared data hooks and service access over direct imports
+- **Updated**: Service registration: Each module must implement a registerServices.ts file for centralized service registration
 
 **Section sources**
 - [MODULE_STRUCTURE_STANDARD.md:1-109](file://docs/architecture/MODULE_STRUCTURE_STANDARD.md#L1-L109)
@@ -302,6 +433,7 @@ SchoolPilot3’s modular architecture enables scalable, maintainable, and type-s
 - Dynamic factories: ModuleRegistration registers factories for all modules and converts module definitions to LoadedModule format
 - Batch registration: Modules can be registered and initialized in dependency order
 - Auto-enable: Modules can be automatically enabled upon registration
+- **Updated**: Service initialization: Modules initialize services through centralized registration files
 
 **Section sources**
 - [moduleRegistration.ts:129-230](file://src/core/moduleRegistration.ts#L129-L230)
@@ -310,7 +442,8 @@ SchoolPilot3’s modular architecture enables scalable, maintainable, and type-s
 ### Inter-Module Communication Patterns
 - Services: Use ServiceRegistry to register and retrieve cross-module services
 - Exports: Use ModuleExportsManager to register and validate exports; search and find services across modules
-- Navigation: Dynamic navigation items are built from enabled modules’ metadata
+- Navigation: Dynamic navigation items are built from enabled modules' metadata
+- **Updated**: Service-based communication: Replace direct database calls with service invocations for better abstraction
 
 **Section sources**
 - [ServiceRegistry.ts:47-114](file://src/core/ServiceRegistry.ts#L47-L114)
@@ -323,6 +456,7 @@ Steps to create a new module:
 2. Declare exports (services, entities, hooks, components, utils, types) and register them via ModuleExportsManager
 3. Register the module with ModuleRegistry and initialize services with ServiceRegistry
 4. Integrate navigation and settings as needed
+5. **Updated**: Implement service registration in registerServices.ts for centralized service management
 
 **Section sources**
 - [administration moduleDefinition.tsx:35-184](file://src/modules/administration/moduleDefinition.tsx#L35-L184)
@@ -351,3 +485,45 @@ Modules declare schemas and migrations in their metadata. The central database s
 
 **Section sources**
 - [package.json:66-161](file://package.json#L66-L161)
+
+### Service-Based Migration Examples
+
+#### Finance Module Migration
+The Finance module demonstrates comprehensive service replacement:
+
+```mermaid
+graph TB
+subgraph "Before: Database Triggers"
+OLD["trg_fin_updateInvoiceStatus<br/>trg_fin_updateInvoiceAmounts<br/>trg_fin_paymentApplicationTrigger"]
+end
+subgraph "After: Service Architecture"
+NEW["InvoiceStatusService<br/>InvoiceGenerationService<br/>PaymentAllocationService"]
+end
+OLD --> NEW
+```
+
+**Diagram sources**
+- [InvoiceStatusService.ts:2-3](file://src/modules/finance/services/InvoiceStatusService.ts#L2-L3)
+
+#### Inventory Module Migration
+The Inventory module shows trigger replacement:
+
+```mermaid
+graph TB
+subgraph "Before: Complex Triggers"
+OLD2["inv.fn_update_stock_level()<br/>trg_inv_updateStockLevel<br/>Multiple Trigger Dependencies"]
+end
+subgraph "After: Service Architecture"
+NEW2["StockLevelService<br/>Transaction Processing<br/>Warehouse Management"]
+end
+OLD2 --> NEW2
+```
+
+**Diagram sources**
+- [StockLevelService.ts:1-3](file://src/modules/inventory/services/StockLevelService.ts#L1-L3)
+
+**Section sources**
+- [InvoiceStatusService.ts:1-248](file://src/modules/finance/services/InvoiceStatusService.ts#L1-L248)
+- [StockLevelService.ts:1-202](file://src/modules/inventory/services/StockLevelService.ts#L1-L202)
+- [StudentPromotionService.ts:1-449](file://src/modules/administration/services/StudentPromotionService.ts#L1-L449)
+- [GradingEngineService.ts:1-44](file://src/modules/academics/services/GradingEngineService.ts#L1-L44)

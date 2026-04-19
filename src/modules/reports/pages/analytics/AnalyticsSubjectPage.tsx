@@ -27,12 +27,13 @@ const AnalyticsSubjectPage: React.FC = () => {
 
   // Aggregate stats
   const stats = useMemo(() => {
-    if (!subjectPassRates || subjectPassRates.length === 0) return { avgPassRate: 0, avgScore: 0, lowPassSubjects: 0, totalSubjects: 0, totalStudents: 0 };
-    const avgPassRate = Math.round(subjectPassRates.reduce((s, sp) => s + sp.passRate, 0) / subjectPassRates.length);
-    const avgScore = Math.round(subjectPassRates.reduce((s, sp) => s + sp.averageScore, 0) / subjectPassRates.length);
-    const lowPassSubjects = subjectPassRates.filter((sp) => sp.passRate < 50).length;
-    const totalStudents = subjectPassRates.reduce((s, sp) => s + sp.studentCount, 0);
-    return { avgPassRate, avgScore, lowPassSubjects, totalSubjects: subjectPassRates.length, totalStudents };
+    const rates = subjectPassRates || [];
+    if (rates.length === 0) return { avgPassRate: 0, avgScore: 0, lowPassSubjects: 0, totalSubjects: 0, totalStudents: 0 };
+    const avgPassRate = Math.round(rates.reduce((s, sp) => s + (sp.passRate || 0), 0) / rates.length);
+    const avgScore = Math.round(rates.reduce((s, sp) => s + (sp.averageScore || 0), 0) / rates.length);
+    const lowPassSubjects = rates.filter((sp) => (sp.passRate || 0) < 50).length;
+    const totalStudents = rates.reduce((s, sp) => s + (sp.totalStudents || 0), 0);
+    return { avgPassRate, avgScore, lowPassSubjects, totalSubjects: rates.length, totalStudents };
   }, [subjectPassRates]);
 
   const metrics: DashboardMetric[] = [

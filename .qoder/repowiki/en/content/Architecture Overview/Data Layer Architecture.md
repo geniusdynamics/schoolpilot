@@ -2,26 +2,34 @@
 
 <cite>
 **Referenced Files in This Document**
-- [index.ts](file://src/services/database/index.ts)
+- [UnifiedDataService.ts](file://src/services/data/UnifiedDataService.ts)
+- [DatabaseProviderFactory.ts](file://src/services/database/DatabaseProviderFactory.ts)
+- [types.ts](file://src/services/data/types.ts)
+- [index.ts](file://src/services/data/providers/index.ts)
+- [interfaces.ts](file://src/services/database/interfaces.ts)
 - [dataLayerConfig.ts](file://src/config/dataLayerConfig.ts)
 - [useDatabaseProvider.ts](file://src/hooks/useDatabaseProvider.ts)
 - [databaseConfigSchema.ts](file://src/config/databaseConfigSchema.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
-- [DatabaseProviderFactory.ts](file://src/services/database/DatabaseProviderFactory.ts)
 - [SchemaConverter.ts](file://src/services/database/schema/SchemaConverter.ts)
 - [SQLiteWASMProvider.ts](file://src/services/database/SQLiteWASMProvider.ts)
 - [SQLiteProvider.ts](file://src/services/database/SQLiteProvider.ts)
+- [AppDataContext.tsx](file://src/contexts/AppDataContext.tsx)
+- [UniversalDataGenerator.ts](file://src/services/dataGeneration/UniversalDataGenerator.ts)
+- [BackendServiceAdapter.ts](file://src/services/backend/BackendServiceAdapter.ts)
+- [DataServiceFactory.ts](file://src/services/data/DataServiceFactory.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated architecture documentation to reflect the new SQLite WASM with OPFS implementation as the primary production provider
-- Enhanced provider factory documentation to show the new dual-mode database architecture supporting development and production environments
-- Added comprehensive documentation for the database abstraction layer and provider-agnostic design
-- Updated configuration strategies to reflect the new multi-provider configuration system
+- Updated architecture documentation to reflect the transition from database-side logic to comprehensive TypeScript service implementations
+- Enhanced documentation to cover the new unified data service architecture with provider-agnostic design
+- Added documentation for the new AppDataContext pattern that maintains backward compatibility while providing real-time data processing capabilities
+- Updated provider selection logic to include the new data service factory pattern
 - Documented the enhanced schema conversion layer and unified configuration management
-- Added monitoring and health management capabilities for the new database providers
+- Added monitoring and health management capabilities for the new data providers
 - Updated provider selection logic with capability detection integration
+- **Updated** Service-based architecture replaces database triggers with client-side service implementations while maintaining provider abstraction
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -40,18 +48,20 @@
 14. [Appendices](#appendices)
 
 ## Introduction
-This document explains SchoolPilot3's modernized multi-provider data layer architecture that provides a provider-agnostic approach to database management. The system has evolved from a mock data-based architecture to a sophisticated, schema-version-aware system that supports seamless provider switching, automatic fallback mechanisms, and comprehensive health monitoring.
+This document explains SchoolPilot3's modernized multi-provider data layer architecture that has evolved from database-side logic to comprehensive TypeScript service implementations. The system now features a provider-agnostic approach to database management with enhanced real-time data processing capabilities while maintaining backward compatibility through the AppDataContext pattern.
 
 The architecture now features:
 - **Provider-Agnostic Design**: Unified interface that abstracts provider-specific implementations
-- **SQLite WASM with OPFS**: Primary production provider offering persistent browser storage
+- **Comprehensive TypeScript Services**: Client-side service implementations replacing database-side logic
+- **Enhanced AppDataContext Pattern**: Maintains backward compatibility while providing real-time data processing
 - **Dual-Mode Architecture**: Separate configurations for development (SQLite file) and production (SQLite WASM + OPFS)
 - **Enhanced Fallback System**: Intelligent provider selection with capability-aware fallback chains
 - **Comprehensive Monitoring**: Real-time health checking and diagnostic reporting
 - **Unified Configuration**: Centralized configuration management across all providers
+- **Service-Based Architecture**: Client-side service implementations replace database triggers while maintaining provider abstraction
 
 ## Project Structure
-The data layer is organized into several key modules that work together to provide a robust, provider-agnostic database solution:
+The data layer is organized into several key modules that work together to provide a robust, provider-agnostic database solution with comprehensive service implementations:
 
 ```mermaid
 graph TB
@@ -59,11 +69,13 @@ subgraph "Configuration Layer"
 DLC["dataLayerConfig.ts"]
 DCS["databaseConfigSchema.ts"]
 UC["UnifiedConfig"]
+DSF["DataServiceFactory"]
 end
 subgraph "Management Layer"
 UDM["UnifiedDatabaseManager"]
 DPF["DatabaseProviderFactory"]
 SD["SchemaDetector"]
+UDS["UnifiedDataService"]
 end
 subgraph "Provider Layer"
 SWP["SQLiteWASMProvider"]
@@ -71,6 +83,7 @@ SP["SQLiteProvider"]
 PDP["PouchDBProvider"]
 BAP["BackendAPIProvider"]
 SC["SchemaConverter"]
+DPF2["DataProviderFactory"]
 end
 subgraph "Detection & Monitoring"
 CD["CapabilityDetector"]
@@ -79,12 +92,15 @@ VM["ValidationManager"]
 end
 subgraph "Integration Layer"
 UDP["useDatabaseProvider.ts"]
-DSF["DataServiceFactory"]
+ADC["AppDataContext"]
+UDG["UniversalDataGenerator"]
+BSA["BackendServiceAdapter"]
 end
 DLC --> DPF
 DCS --> DPF
 UDM --> DPF
 UDM --> CD
+UDS --> DP
 DPF --> SWP
 DPF --> SP
 DPF --> PDP
@@ -98,6 +114,12 @@ HM --> UDM
 VM --> DCS
 UDP --> DSF
 DSF --> UDM
+UDS --> DP
+DPF2 --> SP
+DPF2 --> PDP
+ADC --> UDS
+UDG --> UDS
+BSA --> UDS
 ```
 
 **Diagram sources**
@@ -108,6 +130,11 @@ DSF --> UDM
 - [SchemaConverter.ts:1-389](file://src/services/database/schema/SchemaConverter.ts#L1-L389)
 - [SQLiteWASMProvider.ts:1-800](file://src/services/database/SQLiteWASMProvider.ts#L1-L800)
 - [SQLiteProvider.ts:1-117](file://src/services/database/SQLiteProvider.ts#L1-L117)
+- [UnifiedDataService.ts:1-721](file://src/services/data/UnifiedDataService.ts#L1-L721)
+- [types.ts:1-226](file://src/services/data/types.ts#L1-L226)
+- [index.ts:1-103](file://src/services/data/providers/index.ts#L1-L103)
+- [DataServiceFactory.ts:1-33](file://src/services/data/DataServiceFactory.ts#L1-L33)
+- [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
 
 **Section sources**
 - [index.ts:1-44](file://src/services/database/index.ts#L1-L44)
@@ -128,6 +155,16 @@ The central orchestrator that manages database initialization, provider selectio
 - Schema version management and automatic migration
 - Health monitoring with automatic repair capabilities
 - Collection creation and schema conversion
+
+### UnifiedDataService
+The new unified service layer that provides a consistent API across all storage backends. This service routes operations to the appropriate provider based on configuration and deployment mode.
+
+**Key Responsibilities:**
+- Provider selection based on deployment mode
+- Cache management for improved performance
+- Real-time subscription handling
+- Operation queuing and batch processing
+- Error handling and recovery mechanisms
 
 ### DatabaseProviderFactory
 Implements the factory pattern for creating database providers with intelligent selection logic based on requirements, environment, and capability detection.
@@ -166,15 +203,38 @@ Provides SQLite database access with support for multiple storage types (OPFS, f
 - **File**: Traditional file-based SQLite for Node.js environments
 - **Memory**: In-memory SQLite for testing and temporary data
 
+### PouchDBProvider
+Implements the DataProvider interface using PouchDB with CouchDB sync protocol for networked and SaaS deployment modes.
+
+**Key Features:**
+- Offline-first architecture with automatic sync
+- Conflict detection and resolution
+- Real-time change feed
+- Full-text search via pouchdb-quick-search
+- Transaction support for ACID compliance
+
+### BackendServiceAdapter
+**Updated** Provides adapter pattern for backend service integration, replacing database triggers with client-side service implementations while maintaining provider abstraction.
+
+**Key Features:**
+- Service operation routing between local database and backend API
+- Unified CRUD service integration
+- Real-time subscription bridging
+- Error handling and retry mechanisms
+- Optimistic update coordination
+
 **Section sources**
 - [UnifiedDatabaseManager.ts:42-800](file://src/services/database/UnifiedDatabaseManager.ts#L42-L800)
+- [UnifiedDataService.ts:36-721](file://src/services/data/UnifiedDataService.ts#L36-L721)
 - [DatabaseProviderFactory.ts:288-725](file://src/services/database/DatabaseProviderFactory.ts#L288-L725)
 - [SchemaConverter.ts:57-389](file://src/services/database/schema/SchemaConverter.ts#L57-L389)
 - [SQLiteWASMProvider.ts:1-800](file://src/services/database/SQLiteWASMProvider.ts#L1-L800)
 - [SQLiteProvider.ts:1-117](file://src/services/database/SQLiteProvider.ts#L1-L117)
+- [PouchDBProvider.ts:1-200](file://src/services/data/providers/PouchDBProvider.ts#L1-L200)
+- [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
 
 ## Architecture Overview
-The architecture follows a layered approach with clear separation of concerns:
+The architecture follows a layered approach with clear separation of concerns and comprehensive service implementations:
 
 ```mermaid
 classDiagram
@@ -185,6 +245,16 @@ class UnifiedDatabaseManager {
 +performHealthCheck()
 +getCapabilityReport()
 +checkAndHandleSchemaVersion()
+}
+class UnifiedDataService {
++initialize(mode, options)
++find(collection, query)
++findOne(collection, id)
++create(collection, data, options)
++update(collection, id, data, options)
++delete(collection, id, options)
++subscribe(collection, query)
++destroy()
 }
 class DatabaseProviderFactory {
 +createProviderWithRequirements(config, requirements)
@@ -215,30 +285,44 @@ class SQLiteProvider {
 }
 class PouchDBProvider {
 +initialize(config)
-+createCollection(name, schema)
-+getCollection(name)
-+getStatus()
++find(collection, query)
++findOne(collection, id)
++create(collection, data, options)
++update(collection, id, data, options)
++delete(collection, id, options)
++subscribe(collection, query)
++sync()
 }
 class BackendAPIProvider {
 +initialize(config)
 +createCollection(name, schema)
 +getStatus()
 }
+class BackendServiceAdapter {
++executeLocalOperation(operation)
++executeRemoteOperation(operation)
++handleRealtimeSync()
+}
 UnifiedDatabaseManager --> DatabaseProviderFactory : "uses"
+UnifiedDataService --> DataProvider : "routes operations to"
 DatabaseProviderFactory --> SQLiteWASMProvider : "creates"
 DatabaseProviderFactory --> SQLiteProvider : "creates"
 DatabaseProviderFactory --> PouchDBProvider : "creates"
 DatabaseProviderFactory --> BackendAPIProvider : "creates"
 SchemaConverter --> SQLiteWASMProvider : "converts schemas for"
 SchemaConverter --> SQLiteProvider : "converts schemas for"
+BackendServiceAdapter --> UnifiedDataService : "coordinates with"
 ```
 
 **Diagram sources**
 - [UnifiedDatabaseManager.ts:42-800](file://src/services/database/UnifiedDatabaseManager.ts#L42-L800)
+- [UnifiedDataService.ts:36-721](file://src/services/data/UnifiedDataService.ts#L36-L721)
 - [DatabaseProviderFactory.ts:288-725](file://src/services/database/DatabaseProviderFactory.ts#L288-L725)
 - [SchemaConverter.ts:57-389](file://src/services/database/schema/SchemaConverter.ts#L57-L389)
 - [SQLiteWASMProvider.ts:1-800](file://src/services/database/SQLiteWASMProvider.ts#L1-L800)
 - [SQLiteProvider.ts:1-117](file://src/services/database/SQLiteProvider.ts#L1-L117)
+- [PouchDBProvider.ts:1-200](file://src/services/data/providers/PouchDBProvider.ts#L1-L200)
+- [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
 
 ## Detailed Component Analysis
 
@@ -267,6 +351,27 @@ The UnifiedDatabaseManager serves as the central coordinator for all database op
 - [UnifiedDatabaseManager.ts:97-170](file://src/services/database/UnifiedDatabaseManager.ts#L97-L170)
 - [UnifiedDatabaseManager.ts:472-487](file://src/services/database/UnifiedDatabaseManager.ts#L472-L487)
 - [UnifiedDatabaseManager.ts:583-650](file://src/services/database/UnifiedDatabaseManager.ts#L583-L650)
+
+### Unified Data Service
+The new UnifiedDataService provides a consistent API across all storage backends and handles provider selection based on deployment mode.
+
+**Service Architecture:**
+- **Provider Abstraction**: Routes operations to appropriate provider implementation
+- **Cache Management**: Implements intelligent caching with TTL-based invalidation
+- **Real-time Subscriptions**: Handles both native and fallback subscription mechanisms
+- **Operation Queuing**: Manages write operations with batch processing
+- **Error Recovery**: Implements automatic retry and fallback mechanisms
+
+**Deployment Mode Support:**
+- **Standalone Mode**: Uses SQLite provider with OPFS storage
+- **Networked Mode**: Uses PouchDB provider with CouchDB sync
+- **Hosted Mode**: Uses Backend API provider for cloud deployments
+- **SaaS Mode**: Uses PouchDB with remote sync capabilities
+- **ERPNext Mode**: Uses specialized ERPNext provider integration
+
+**Section sources**
+- [UnifiedDataService.ts:36-721](file://src/services/data/UnifiedDataService.ts#L36-L721)
+- [index.ts:42-103](file://src/services/data/providers/index.ts#L42-L103)
 
 ### Database Provider Factory
 The factory implements intelligent provider selection based on multiple factors including requirements, environment, and runtime capabilities.
@@ -344,6 +449,45 @@ The SQLite provider offers flexible storage options supporting multiple backends
 
 **Section sources**
 - [SQLiteProvider.ts:1-117](file://src/services/database/SQLiteProvider.ts#L1-L117)
+
+### PouchDB Provider
+The PouchDB provider implements the DataProvider interface with comprehensive offline-first capabilities and real-time synchronization.
+
+**Key Features:**
+- **Offline-First Architecture**: Full offline support with automatic sync
+- **Conflict Resolution**: Advanced conflict detection and resolution
+- **Real-time Subscriptions**: Native RxJS observable support
+- **Full-text Search**: Integrated search capabilities via plugins
+- **Change Tracking**: Comprehensive change feed and tracking
+
+**Subscription Management:**
+- **Native Subscriptions**: Direct PouchDB change feeds
+- **Polling Fallback**: Automatic fallback to polling mechanisms
+- **Event Broadcasting**: Consistent event patterns across providers
+- **Memory Management**: Efficient subscription lifecycle management
+
+**Section sources**
+- [PouchDBProvider.ts:1-200](file://src/services/data/providers/PouchDBProvider.ts#L1-L200)
+
+### Backend Service Adapter
+**Updated** Provides adapter pattern for backend service integration, replacing database triggers with client-side service implementations while maintaining provider abstraction.
+
+**Key Responsibilities:**
+- **Service Operation Routing**: Coordinates between local database operations and backend API calls
+- **Unified CRUD Integration**: Bridges local database operations with remote service calls
+- **Real-time Synchronization**: Manages bidirectional data synchronization
+- **Error Handling**: Implements comprehensive error recovery and retry mechanisms
+- **Optimistic Updates**: Coordinates local updates with remote synchronization
+
+**Operation Flow:**
+1. **Local Operation Execution**: Executes operations against local database provider
+2. **Remote Operation Coordination**: Routes operations to backend service when needed
+3. **Real-time Sync Management**: Handles live synchronization between local and remote data
+4. **Conflict Resolution**: Manages data conflicts during synchronization
+5. **Error Recovery**: Implements automatic retry and fallback mechanisms
+
+**Section sources**
+- [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
 
 ## Schema Version Management
 The system implements comprehensive schema version management to ensure data integrity and seamless upgrades.
@@ -519,15 +663,17 @@ Comprehensive troubleshooting capabilities are built into the system.
 - [databaseConfigSchema.ts:471-492](file://src/config/databaseConfigSchema.ts#L471-L492)
 
 ## Conclusion
-SchoolPilot3's data layer architecture represents a significant evolution from mock data systems to a sophisticated, provider-agnostic database management solution. The architecture provides:
+SchoolPilot3's data layer architecture represents a significant evolution from mock data systems to a sophisticated, provider-agnostic database management solution with comprehensive TypeScript service implementations. The architecture provides:
 
 - **Reliability**: Comprehensive fallback mechanisms and automatic recovery
 - **Flexibility**: Support for multiple providers with seamless switching
 - **Maintainability**: Centralized configuration and schema management
 - **Performance**: Optimized for various deployment scenarios
 - **Observability**: Complete monitoring and diagnostic capabilities
+- **Backward Compatibility**: Enhanced AppDataContext pattern ensuring seamless migration
+- **Service-Based Architecture**: Client-side service implementations replace database triggers while maintaining provider abstraction
 
-The system successfully abstracts provider-specific complexities while maintaining optimal performance across different environments and use cases.
+The system successfully abstracts provider-specific complexities while maintaining optimal performance across different environments and use cases, with the new service layer providing enhanced real-time data processing capabilities.
 
 ## Appendices
 
@@ -550,3 +696,35 @@ The system successfully abstracts provider-specific complexities while maintaini
 
 **Section sources**
 - [DatabaseProviderFactory.ts:391-457](file://src/services/database/DatabaseProviderFactory.ts#L391-L457)
+- [types.ts:9-31](file://src/services/data/types.ts#L9-L31)
+
+### Data Service Architecture
+- **Unified Interface**: Consistent API across all provider implementations
+- **Real-time Processing**: Native subscription support with fallback mechanisms
+- **Cache Management**: Intelligent caching with TTL-based invalidation
+- **Error Handling**: Comprehensive error recovery and retry mechanisms
+
+**Section sources**
+- [UnifiedDataService.ts:36-721](file://src/services/data/UnifiedDataService.ts#L36-L721)
+- [types.ts:135-182](file://src/services/data/types.ts#L135-L182)
+
+### Service-Based Architecture Details
+**Updated** The service-based architecture replaces database triggers with client-side service implementations while maintaining provider abstraction.
+
+**Key Components:**
+- **Service Layer**: Client-side implementations handle business logic previously managed by database triggers
+- **Provider Abstraction**: Maintains compatibility with multiple database providers
+- **Real-time Coordination**: Service adapters manage synchronization between local and remote data
+- **Error Recovery**: Comprehensive error handling and retry mechanisms
+- **Performance Optimization**: Caching and batching strategies for improved responsiveness
+
+**Benefits:**
+- **Maintainability**: Business logic centralized in TypeScript services
+- **Testability**: Easier unit testing of service implementations
+- **Flexibility**: Provider-agnostic service layer
+- **Performance**: Optimized client-side processing
+- **Reliability**: Robust error handling and recovery
+
+**Section sources**
+- [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
+- [UnifiedDataService.ts:36-721](file://src/services/data/UnifiedDataService.ts#L36-L721)

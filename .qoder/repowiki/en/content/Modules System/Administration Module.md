@@ -13,7 +13,6 @@
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [DynamicPageComponent.tsx](file://src/components/DynamicPageComponent.tsx)
 - [Layout.tsx](file://src/components/Layout.tsx)
-- [PrimarySidebar.tsx](file://src/components/PrimarySidebar.tsx)
 - [AdministrationDataContext.test.tsx](file://src/contexts/data/__tests__/AdministrationDataContext.test.tsx)
 - [useAdministrationData.test.ts](file://src/hooks/data/__tests__/useAdministrationData.test.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
@@ -23,18 +22,27 @@
 - [ModuleDashboardShell.tsx](file://src/components/ModuleDashboardShell.tsx)
 - [DonutChart.tsx](file://src/components/ui/DonutChart.tsx)
 - [types.ts](file://src/modules/administration/data/types.ts)
+- [StudentPromotionService.ts](file://src/modules/administration/services/StudentPromotionService.ts)
+- [AuditLoggerService.ts](file://src/modules/administration/services/AuditLoggerService.ts)
+- [useStudentMasterlist.ts](file://src/modules/administration/hooks/useStudentMasterlist.ts)
+- [useStudentPromotion.ts](file://src/modules/administration/hooks/useStudentPromotion.ts)
+- [useAuditLogger.ts](file://src/modules/administration/hooks/useAuditLogger.ts)
+- [services/index.ts](file://src/modules/administration/services/index.ts)
+- [types.ts](file://src/modules/administration/services/types.ts)
+- [StudentMasterlistPage.tsx](file://src/modules/administration/pages/StudentMasterlistPage.tsx)
+- [StudentPromotionPage.tsx](file://src/modules/administration/pages/StudentPromotionPage.tsx)
+- [AuditLogViewerPage.tsx](file://src/modules/administration/pages/AuditLogViewerPage.tsx)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Complete rewrite of administration module data hooks to use new database-backed approach with useDatabaseCollection infrastructure
-- All CRUD operations now use useDatabaseCollection hook instead of mock data dependencies
-- Enhanced database integration patterns with real-time collection subscriptions
-- Updated architecture to reflect database-backed data flows and reactive updates
-- Expanded collection configuration documentation with comprehensive schema definitions
-- Added real-time data synchronization patterns and transactional safety
-- Integrated comprehensive collection management with 16+ administrative collections
-- Implemented standardized database service integration with provider-agnostic architecture
+- Added comprehensive database engine business logic with StudentPromotionService replacing stored procedures
+- Integrated AuditLoggerService replacing database triggers with TypeScript services
+- Introduced new React hooks: useStudentMasterlist, useStudentPromotion, useAuditLogger
+- Enhanced student management with promotion workflows, audit trails, and computed views
+- Added new UI pages: StudentMasterlistPage, StudentPromotionPage, AuditLogViewerPage
+- Modernized database operations with provider-agnostic collection adapters
+- Added soft-delete functionality and promotion reversal capabilities
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -42,18 +50,26 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Database Integration Patterns](#database-integration-patterns)
-6. [Detailed Component Analysis](#detailed-component-analysis)
-7. [Real-time Data Synchronization](#real-time-data-synchronization)
-8. [Collection Configuration and Schema Management](#collection-configuration-and-schema-management)
-9. [Dependency Analysis](#dependency-analysis)
-10. [Performance Considerations](#performance-considerations)
-11. [Troubleshooting Guide](#troubleshooting-guide)
-12. [Conclusion](#conclusion)
+6. [Business Logic Services](#business-logic-services)
+7. [React Hooks Integration](#react-hooks-integration)
+8. [Student Management Enhancement](#student-management-enhancement)
+9. [Audit and Compliance Features](#audit-and-compliance-features)
+10. [Computed Views and Data Denormalization](#computed-views-and-data-denormalization)
+11. [User Interface Pages](#user-interface-pages)
+12. [Detailed Component Analysis](#detailed-component-analysis)
+13. [Real-time Data Synchronization](#real-time-data-synchronization)
+14. [Collection Configuration and Schema Management](#collection-configuration-and-schema-management)
+15. [Dependency Analysis](#dependency-analysis)
+16. [Performance Considerations](#performance-considerations)
+17. [Troubleshooting Guide](#troubleshooting-guide)
+18. [Conclusion](#conclusion)
 
 ## Introduction
 The Administration module serves as the central operational hub for managing educational institution data and workflows through comprehensive database-backed operations. The module now utilizes a sophisticated database integration system with 16+ collections supporting student management, staff administration, academic calendar coordination, and institutional organization. This represents a significant evolution from previous implementations, featuring real-time data synchronization, robust CRUD operations, and enterprise-grade database management.
 
 The module encompasses comprehensive functionality across multiple domains: student lifecycle management (enrollment, attendance, health records), staff administration (department assignments, designations), academic year structures, class/stream organization, communication systems, and co-curricular activities. The architecture emphasizes modularity, data consistency, operational efficiency, and real-time synchronization through standardized collection naming and centralized database access patterns.
+
+**Updated** Enhanced with comprehensive business logic services including StudentPromotionService for class transfers and promotions, AuditLoggerService for compliance tracking, and new React hooks for streamlined development workflows. The module now includes dedicated UI pages for student masterlist viewing, student promotion management, and audit log monitoring.
 
 ## Project Structure
 The Administration module follows a sophisticated structured organization pattern that separates concerns across data management, presentation, and integration layers. The module leverages React's Context API for state management while implementing comprehensive database-backed operations through the useDatabaseCollection hook and UnifiedDatabaseManager service.
@@ -66,10 +82,15 @@ B[Data Layer]
 C[Context Layer]
 D[Integration Layer]
 E[Database Layer]
+F[Services Layer]
+G[Hooks Layer]
 A --> A1[AdministrationDashboardPage]
 A --> A2[Student Management Pages]
 A --> A3[Staff Management Pages]
 A --> A4[Academic Management Pages]
+A --> A5[StudentMasterlistPage]
+A --> A6[StudentPromotionPage]
+A --> A7[AuditLogViewerPage]
 B --> B1[collectionConfig.ts]
 B --> B2[useAdministrationData hook]
 B --> B3[AdministrationDataProvider]
@@ -81,6 +102,12 @@ D --> D3[Layout Integration]
 E --> E1[useDatabaseCollection hook]
 E --> E2[databaseService]
 E --> E3[Collection Management]
+F --> F1[StudentPromotionService]
+F --> F2[AuditLoggerService]
+F --> F3[Business Logic Services]
+G --> G1[useStudentMasterlist]
+G --> G2[useStudentPromotion]
+G --> G3[useAuditLogger]
 end
 ```
 
@@ -92,6 +119,14 @@ end
 - [collectionConfig.ts:1-57](file://src/modules/administration/data/collectionConfig.ts#L1-L57)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
 - [databaseService.ts:1-379](file://src/services/database/databaseService.ts#L1-L379)
+- [StudentPromotionService.ts:1-449](file://src/modules/administration/services/StudentPromotionService.ts#L1-L449)
+- [AuditLoggerService.ts:1-270](file://src/modules/administration/services/AuditLoggerService.ts#L1-L270)
+- [useStudentMasterlist.ts:1-253](file://src/modules/administration/hooks/useStudentMasterlist.ts#L1-L253)
+- [useStudentPromotion.ts:1-119](file://src/modules/administration/hooks/useStudentPromotion.ts#L1-L119)
+- [useAuditLogger.ts:1-133](file://src/modules/administration/hooks/useAuditLogger.ts#L1-L133)
+- [StudentMasterlistPage.tsx:1-338](file://src/modules/administration/pages/StudentMasterlistPage.tsx#L1-L338)
+- [StudentPromotionPage.tsx:1-654](file://src/modules/administration/pages/StudentPromotionPage.tsx#L1-L654)
+- [AuditLogViewerPage.tsx:1-200](file://src/modules/administration/pages/AuditLogViewerPage.tsx#L1-L200)
 
 **Section sources**
 - [AdministrationDashboardPage.tsx:1-84](file://src/modules/administration/pages/AdministrationDashboardPage.tsx#L1-L84)
@@ -118,6 +153,8 @@ The AdministrationDashboardPage serves as the primary user interface, providing 
 ### Database Service Integration
 The module integrates with the useDatabaseCollection hook and databaseService for provider selection, collection management, and real-time data synchronization. This integration ensures optimal database performance, automatic failover, and enterprise-grade data management capabilities.
 
+**Updated** Enhanced with business logic services and React hooks that provide specialized functionality for student promotions, audit logging, and computed data views. The module now includes dedicated UI pages for student masterlist management, promotion workflows, and audit trail monitoring.
+
 **Section sources**
 - [AdministrationDataContext.tsx:1-35](file://src/modules/administration/data/AdministrationDataContext.tsx#L1-L35)
 - [AdministrationDataProvider.tsx:1-606](file://src/modules/administration/data/AdministrationDataProvider.tsx#L1-L606)
@@ -135,48 +172,71 @@ A[AdministrationDashboardPage]
 B[Student Management Views]
 C[Staff Management Views]
 D[Academic Management Views]
+E[Student Promotion Interface]
+F[Audit Logging Interface]
+G[Student Masterlist Interface]
+H[Student Promotion Page]
+I[Audit Log Viewer]
 end
 subgraph "Data Access Layer"
-E[AdministrationDataProvider]
-F[useAdministrationData Hook]
-G[Collection Configuration]
-H[Validation System]
+J[AdministrationDataProvider]
+K[useAdministrationData Hook]
+L[Collection Configuration]
+M[Validation System]
+end
+subgraph "Business Logic Layer"
+N[StudentPromotionService]
+O[AuditLoggerService]
+P[Business Logic Services]
 end
 subgraph "Database Integration Layer"
-I[useDatabaseCollection Hook]
-J[databaseService]
-K[Collection Management]
-L[Real-time Sync]
+Q[useDatabaseCollection Hook]
+R[databaseService]
+S[Collection Management]
+T[Real-time Sync]
 end
 subgraph "Integration Layer"
-M[ModuleCollectionRegistry]
-N[DynamicPageComponent]
-O[Layout Integration]
+U[ModuleCollectionRegistry]
+V[DynamicPageComponent]
+W[Layout Integration]
+X[React Hooks Integration]
 end
 subgraph "System Layer"
-P[React Context API]
-Q[Standardized Collections]
-R[Cross-Module Dependencies]
-S[Database Providers]
+Y[React Context API]
+Z[Standardized Collections]
+AA[Cross-Module Dependencies]
+BB[Database Providers]
+CC[Service Layer Architecture]
 end
 end
-A --> E
-B --> E
-C --> E
-D --> E
-E --> F
-F --> G
-G --> H
-I --> J
+A --> J
+B --> J
+C --> J
+D --> J
+E --> N
+F --> O
+G --> J
+H --> N
+I --> O
 J --> K
 K --> L
-M --> G
-N --> M
-O --> N
-E --> P
-G --> Q
-H --> R
-I --> S
+L --> M
+N --> Q
+O --> Q
+Q --> R
+R --> S
+S --> T
+U --> L
+V --> U
+W --> V
+X --> N
+X --> O
+J --> Y
+L --> Z
+M --> AA
+Q --> BB
+N --> CC
+O --> CC
 ```
 
 **Diagram sources**
@@ -185,8 +245,16 @@ I --> S
 - [AdministrationDataProvider.tsx:1-606](file://src/modules/administration/data/AdministrationDataProvider.tsx#L1-L606)
 - [useAdministrationData.ts:1-343](file://src/modules/administration/data/useAdministrationData.ts#L1-L343)
 - [collectionConfig.ts:1-57](file://src/modules/administration/data/collectionConfig.ts#L1-L57)
+- [StudentPromotionService.ts:1-449](file://src/modules/administration/services/StudentPromotionService.ts#L1-L449)
+- [AuditLoggerService.ts:1-270](file://src/modules/administration/services/AuditLoggerService.ts#L1-L270)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
 - [databaseService.ts:1-379](file://src/services/database/databaseService.ts#L1-L379)
+- [useStudentMasterlist.ts:1-253](file://src/modules/administration/hooks/useStudentMasterlist.ts#L1-L253)
+- [useStudentPromotion.ts:1-119](file://src/modules/administration/hooks/useStudentPromotion.ts#L1-L119)
+- [useAuditLogger.ts:1-133](file://src/modules/administration/hooks/useAuditLogger.ts#L1-L133)
+- [StudentMasterlistPage.tsx:1-338](file://src/modules/administration/pages/StudentMasterlistPage.tsx#L1-L338)
+- [StudentPromotionPage.tsx:1-654](file://src/modules/administration/pages/StudentPromotionPage.tsx#L1-L654)
+- [AuditLogViewerPage.tsx:1-200](file://src/modules/administration/pages/AuditLogViewerPage.tsx#L1-L200)
 
 The architecture emphasizes loose coupling between components while maintaining strong integration points for data consistency, real-time synchronization, and operational efficiency. The use of standardized collections ensures that all administrative entities follow consistent naming and organizational patterns with database-backed persistence.
 
@@ -212,23 +280,24 @@ The database integration supports real-time data synchronization through reactiv
 ### Transactional Operations
 All CRUD operations are wrapped in transactional contexts to ensure data consistency and integrity. The database service handles rollback scenarios and error recovery automatically.
 
+**Updated** Enhanced with provider-agnostic collection adapters that allow services to work with any database backend without tight coupling. The StudentPromotionService and AuditLoggerService utilize these adapters for database independence.
+
 ```mermaid
 sequenceDiagram
 participant UI as User Interface
 participant Provider as AdministrationDataProvider
 participant Hook as useAdministrationData
+participant Service as StudentPromotionService
 participant Collection as useDatabaseCollection
-participant Service as databaseService
+participant AuditService as AuditLoggerService
 UI->>Provider : CRUD Operation Request
 Provider->>Hook : Execute Operation
-Hook->>Collection : Use Collection Hook
-Collection->>Service : Get Database Instance
-Service->>Collection : Access Collection
-Collection->>Service : Database Operation
-Service->>Collection : Persist Data
-Collection->>Service : Confirm Success
-Service->>Collection : Trigger Reactive Update
-Collection->>Hook : Notify Changes
+Hook->>Service : Use Business Logic Service
+Service->>Collection : Database Operations
+Collection->>Service : Data Response
+Service->>AuditService : Log Audit Trail
+AuditService->>Collection : Write Audit Entry
+Service->>Hook : Return Result
 Hook->>Provider : Return Updated Data
 Provider->>UI : Update Interface
 ```
@@ -236,14 +305,186 @@ Provider->>UI : Update Interface
 **Diagram sources**
 - [AdministrationDataProvider.tsx:128-154](file://src/modules/administration/data/AdministrationDataProvider.tsx#L128-L154)
 - [useAdministrationData.ts:52-86](file://src/modules/administration/data/useAdministrationData.ts#L52-L86)
+- [StudentPromotionService.ts:94-186](file://src/modules/administration/services/StudentPromotionService.ts#L94-L186)
 - [useDatabaseCollection.ts:37-83](file://src/hooks/useDatabaseCollection.ts#L37-L83)
-- [databaseService.ts:142-147](file://src/services/database/databaseService.ts#L142-L147)
+- [AuditLoggerService.ts:221-254](file://src/modules/administration/services/AuditLoggerService.ts#L221-L254)
 
 **Section sources**
 - [AdministrationDataProvider.tsx:1-606](file://src/modules/administration/data/AdministrationDataProvider.tsx#L1-L606)
 - [useAdministrationData.ts:1-343](file://src/modules/administration/data/useAdministrationData.ts#L1-L343)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
 - [databaseService.ts:1-379](file://src/services/database/databaseService.ts#L1-L379)
+
+## Business Logic Services
+The Administration module now includes comprehensive business logic services that replace traditional database triggers and stored procedures with TypeScript implementations. These services provide robust, testable business rules and maintain audit trails for compliance.
+
+### StudentPromotionService
+The StudentPromotionService replaces the MySQL stored procedure `sp_adm_promoteStudent` and PostgreSQL function `adm.promote_student` with a comprehensive TypeScript implementation. It handles student class transfers and promotions while maintaining immutable history and audit trails.
+
+Key features include:
+- Student validation and status checking
+- Class stream existence verification
+- Immutable class history management
+- Automatic audit trail generation
+- Soft-delete functionality
+- Promotion reversal capabilities
+
+### AuditLoggerService
+The AuditLoggerService replaces the database trigger `trg_log_adm_students_after_update` with a flexible TypeScript service that provides comprehensive audit logging across all modules. It supports configurable field tracking and automatic diff computation.
+
+Features include:
+- Generic audit logging for any entity type
+- Configurable field tracking with diff computation
+- Support for all CRUD operations (INSERT, UPDATE, DELETE, SOFT_DELETE)
+- Automatic user context injection
+- Non-blocking audit logging that doesn't interfere with main operations
+
+### Service Architecture
+Both services follow a provider-agnostic design using collection adapters, allowing them to work with any database backend without tight coupling. They implement proper error handling, logging, and transaction safety.
+
+**Section sources**
+- [StudentPromotionService.ts:1-449](file://src/modules/administration/services/StudentPromotionService.ts#L1-L449)
+- [AuditLoggerService.ts:1-270](file://src/modules/administration/services/AuditLoggerService.ts#L1-L270)
+- [services/index.ts:1-18](file://src/modules/administration/services/index.ts#L1-L18)
+- [types.ts:1-25](file://src/modules/administration/services/types.ts#L1-L25)
+
+## React Hooks Integration
+The Administration module introduces three new React hooks that provide streamlined access to business logic services and computed data views, replacing the need for direct service instantiation in components.
+
+### useStudentMasterlist
+The useStudentMasterlist hook replaces the `vw_adm_student_masterlist` view with a computed React hook that denormalizes student data by joining multiple collections. It provides real-time computed views with filtering and refresh capabilities.
+
+Key features:
+- Denormalizes data from students, class_streams, classes, categories, dormitories, and guardians
+- Filters out soft-deleted students
+- Automatic data refresh and loading states
+- Computed view with memoization for performance
+
+### useStudentPromotion
+The useStudentPromotion hook wraps the StudentPromotionService with database collection integration, providing a React-friendly interface for student promotion workflows. It includes soft-delete and promotion reversal capabilities.
+
+Features:
+- Single and bulk student promotion
+- Soft-delete functionality with audit logging
+- Promotion history retrieval
+- Promotion reversal capabilities
+- Automatic user context injection
+
+### useAuditLogger
+The useAuditLogger hook provides automatic user context injection for audit logging operations, simplifying audit trail creation throughout the application.
+
+Features:
+- Automatic user ID and name injection
+- All audit operation types (INSERT, UPDATE, DELETE, SOFT_DELETE)
+- Diff-based update logging
+- Service instance access for advanced usage
+
+**Section sources**
+- [useStudentMasterlist.ts:1-253](file://src/modules/administration/hooks/useStudentMasterlist.ts#L1-L253)
+- [useStudentPromotion.ts:1-119](file://src/modules/administration/hooks/useStudentPromotion.ts#L1-L119)
+- [useAuditLogger.ts:1-133](file://src/modules/administration/hooks/useAuditLogger.ts#L1-L133)
+
+## Student Management Enhancement
+The Administration module significantly enhances student management capabilities through the integration of business logic services and computed views, providing comprehensive functionality beyond basic CRUD operations.
+
+### Promotion Workflows
+The student promotion system provides sophisticated class transfer and advancement capabilities with full audit trail support. The workflow ensures data integrity while maintaining historical records.
+
+### Soft-delete and Recovery
+Enhanced student lifecycle management includes soft-delete functionality that maintains audit trails while preserving data for potential recovery. This replaces physical deletion with reversible status changes.
+
+### Historical Tracking
+Immutable class history ensures that student progression is permanently recorded with timestamps, enabling reporting and compliance requirements. The system maintains chronological order and supports promotion reversal.
+
+### Masterlist Computed View
+The student masterlist provides a comprehensive denormalized view of student information, joining related collections to eliminate complex queries in the presentation layer. This improves performance and simplifies data access patterns.
+
+**Section sources**
+- [StudentPromotionService.ts:94-186](file://src/modules/administration/services/StudentPromotionService.ts#L94-L186)
+- [StudentPromotionService.ts:204-232](file://src/modules/administration/services/StudentPromotionService.ts#L204-L232)
+- [StudentPromotionService.ts:237-258](file://src/modules/administration/services/StudentPromotionService.ts#L237-L258)
+- [StudentPromotionService.ts:263-349](file://src/modules/administration/services/StudentPromotionService.ts#L263-L349)
+- [useStudentMasterlist.ts:58-251](file://src/modules/administration/hooks/useStudentMasterlist.ts#L58-L251)
+
+## Audit and Compliance Features
+The Administration module implements comprehensive audit and compliance features through the AuditLoggerService, providing detailed tracking of all system changes with configurable field monitoring and non-blocking logging.
+
+### Audit Trail Generation
+The audit system automatically captures all CRUD operations with detailed change tracking, including old and new values for updated fields. The system supports configurable field tracking to minimize audit log size while maintaining compliance requirements.
+
+### Non-blocking Operations
+Audit logging is designed as a non-blocking operation that doesn't interfere with main business operations. If audit logging fails, the primary operation continues successfully, ensuring system reliability.
+
+### User Context Integration
+The audit system automatically captures user context including user ID, username, IP address, and user agent for comprehensive tracking and compliance reporting.
+
+### Compliance Support
+The audit system supports regulatory compliance requirements with detailed change tracking, timestamped records, and immutable audit trails that can be exported for regulatory review.
+
+**Section sources**
+- [AuditLoggerService.ts:48-270](file://src/modules/administration/services/AuditLoggerService.ts#L48-L270)
+- [useAuditLogger.ts:82-131](file://src/modules/administration/hooks/useAuditLogger.ts#L82-L131)
+
+## Computed Views and Data Denormalization
+The Administration module implements sophisticated computed views and data denormalization patterns through React hooks, eliminating the need for complex database joins in the presentation layer while maintaining data consistency.
+
+### useStudentMasterlist Implementation
+The useStudentMasterlist hook provides a comprehensive computed view that denormalizes student information by joining multiple collections. It builds lookup maps for O(1) access patterns and filters out soft-deleted records.
+
+### Performance Optimization
+The computed view uses memoization and lookup maps to achieve optimal performance with large datasets. It automatically refreshes when underlying collections change, ensuring data consistency without manual intervention.
+
+### Data Filtering and Transformation
+The hook applies business logic filtering (soft-deleted records) and data transformation (name concatenation, fallback values) to provide clean, ready-to-use data for presentation components.
+
+### Real-time Updates
+The computed view responds to real-time database updates through the useDatabaseCollection hook, ensuring that UI components always display current data without manual refresh operations.
+
+**Section sources**
+- [useStudentMasterlist.ts:58-251](file://src/modules/administration/hooks/useStudentMasterlist.ts#L58-L251)
+
+## User Interface Pages
+The Administration module now includes dedicated user interface pages that provide comprehensive functionality for student management, promotion workflows, and audit trail monitoring through database-backed operations.
+
+### StudentMasterlistPage
+The StudentMasterlistPage provides a comprehensive interface for viewing and managing student masterlist data with advanced filtering, sorting, and export capabilities. It replaces the database view with a fully interactive web interface.
+
+Key features:
+- Real-time student data display with computed denormalization
+- Advanced filtering by class, stream, status, and gender
+- Search functionality across admission numbers, names, and UPI numbers
+- CSV export capabilities for data analysis and reporting
+- Row click navigation to student detail pages
+- Refresh functionality for data synchronization
+
+### StudentPromotionPage
+The StudentPromotionPage offers a comprehensive interface for managing student class promotions with both single and bulk promotion capabilities. It provides validation, confirmation dialogs, and real-time feedback.
+
+Key features:
+- Single student promotion with validation and confirmation
+- Bulk promotion for entire classes with selection controls
+- Academic year selection and promotion date configuration
+- Student history display with chronological ordering
+- Confirmation dialogs with warning messages
+- Success/error notifications with toast messages
+- Mode switching between single and bulk operations
+
+### AuditLogViewerPage
+The AuditLogViewerPage provides a dedicated interface for viewing and analyzing audit trail data across all administrative operations. It supports filtering, searching, and detailed audit entry inspection.
+
+Key features:
+- Comprehensive audit log display with pagination
+- Filtering by action type, table name, and date ranges
+- Search functionality across audit entries
+- Detailed audit entry inspection with old/new data comparison
+- Export capabilities for compliance reporting
+- User context filtering and navigation
+- Real-time audit log updates
+
+**Section sources**
+- [StudentMasterlistPage.tsx:1-338](file://src/modules/administration/pages/StudentMasterlistPage.tsx#L1-L338)
+- [StudentPromotionPage.tsx:1-654](file://src/modules/administration/pages/StudentPromotionPage.tsx#L1-L654)
+- [AuditLogViewerPage.tsx:1-200](file://src/modules/administration/pages/AuditLogViewerPage.tsx#L1-L200)
 
 ## Detailed Component Analysis
 
@@ -259,6 +500,8 @@ Student attendance is managed through dedicated collections that track daily att
 #### Academic Year Management
 The academic year management system coordinates with the broader academic module to ensure proper alignment between student enrollment, course scheduling, and assessment cycles. This integration maintains data consistency across module boundaries with real-time updates.
 
+**Updated** Enhanced with promotion workflows, soft-delete functionality, and comprehensive audit trails for compliance and reporting. The StudentPromotionService and AuditLoggerService replace traditional database triggers with TypeScript implementations.
+
 ```mermaid
 classDiagram
 class StudentManagement {
@@ -271,6 +514,10 @@ class StudentManagement {
 +addStudentGuardianRelationship(relationshipData)
 +updateStudentGuardianRelationship(id, updates)
 +deleteStudentGuardianRelationship(id)
++promoteStudent(promotionParams)
++softDeleteStudent(studentId, identifyingData)
++getStudentClassHistory(studentId)
++revertPromotion(studentId)
 }
 class Student {
 +id : string
@@ -279,12 +526,14 @@ class Student {
 +healthRecords : StudentHealthRecord[]
 +enrollmentStatus : string
 +currentClassStreamId : string
++deletedAt : string?
 }
 class StudentGuardianRelationship {
 +id : string
 +studentId : string
 +guardianId : string
 +relationshipType : string
++isPrimaryContact : boolean
 }
 class StudentHealthRecord {
 +id : string
@@ -293,21 +542,31 @@ class StudentHealthRecord {
 +allergies : string[]
 +emergencyContacts : EmergencyContact[]
 }
-class AttendanceSystem {
-+saveStudentAttendance(attendanceData)
-+getStudentAttendanceByFilters(filters)
-+calculateAttendanceRate(studentId)
-+generateDailyReports(date)
+class StudentPromotionService {
++promoteStudent(params) PromotionResult
++promoteStudents(paramsList) PromotionResult[]
++softDeleteStudent(studentId, identifyingData) boolean
++getStudentClassHistory(studentId) StudentClassHistoryEntry[]
++revertPromotion(studentId) PromotionResult
+}
+class AuditLoggerService {
++logInsert(tableName, recordPk, newData) AuditLogEntry
++logUpdate(tableName, recordPk, oldData, newData) AuditLogEntry
++logSoftDelete(tableName, recordPk, identifyingData) AuditLogEntry
++computeDiff(oldData, newData, trackedFields) DiffResult
 }
 StudentManagement --> Student : manages
 StudentManagement --> StudentGuardianRelationship : coordinates
 StudentManagement --> StudentHealthRecord : maintains
-StudentManagement --> AttendanceSystem : tracks
+StudentManagement --> StudentPromotionService : uses
+StudentPromotionService --> AuditLoggerService : logs
 ```
 
 **Diagram sources**
 - [useAdministrationData.ts:35-341](file://src/modules/administration/data/useAdministrationData.ts#L35-L341)
 - [collectionConfig.ts:8-36](file://src/modules/administration/data/collectionConfig.ts#L8-L36)
+- [StudentPromotionService.ts:67-82](file://src/modules/administration/services/StudentPromotionService.ts#L67-L82)
+- [AuditLoggerService.ts:48-62](file://src/modules/administration/services/AuditLoggerService.ts#L48-L62)
 
 **Section sources**
 - [useAdministrationData.ts:1-343](file://src/modules/administration/data/useAdministrationData.ts#L1-L343)
@@ -325,53 +584,6 @@ Staff designations provide role-based access control and organizational position
 #### Staff Assignment and Tracking
 The system tracks staff assignments across departments, periods, and responsibilities while maintaining historical records for performance evaluation and compliance reporting with real-time updates.
 
-```mermaid
-classDiagram
-class StaffManagement {
-+addStaffMember(staffData)
-+updateStaffMember(staffId, updates)
-+deleteStaffMember(staffId)
-+assignStaffToDepartment(staffId, departmentId)
-+updateStaffDesignation(staffId, newDesignation)
-+manageDepartmentHierarchy(departmentId, hierarchy)
-+trackStaffPerformance(staffId, metrics)
-}
-class Department {
-+id : string
-+name : string
-+description : string
-+parentId : string
-+headId : string
-+createdAt : string
-+updatedAt : string
-}
-class Designation {
-+id : number
-+title : string
-+level : number
-+departmentScope : string[]
-+permissions : string[]
-}
-class StaffMember {
-+id : string
-+personalInfo : PersonalInfo
-+employmentInfo : EmploymentInfo
-+departmentAssignments : DepartmentAssignment[]
-+performanceHistory : PerformanceRecord[]
-+createdAt : string
-+updatedAt : string
-}
-StaffManagement --> Department : organizes
-StaffManagement --> Designation : assigns
-StaffManagement --> StaffMember : manages
-Department --> StaffMember : contains
-Designation --> StaffMember : defines roles
-```
-
-**Diagram sources**
-- [useAdministrationData.ts:127-175](file://src/modules/administration/data/useAdministrationData.ts#L127-L175)
-- [collectionConfig.ts:18-20](file://src/modules/administration/data/collectionConfig.ts#L18-L20)
-
 **Section sources**
 - [useAdministrationData.ts:1-343](file://src/modules/administration/data/useAdministrationData.ts#L1-L343)
 - [collectionConfig.ts:1-57](file://src/modules/administration/data/collectionConfig.ts#L1-L57)
@@ -387,40 +599,6 @@ Campaign management enables targeted messaging to specific student groups, staff
 
 #### Visitor Management
 Visitor coordination includes registration processes, access control, scheduling, and activity tracking with database-backed persistence. The system maintains visitor logs, appointment scheduling, and facility access management with real-time synchronization.
-
-```mermaid
-sequenceDiagram
-participant Admin as Administrator
-participant Provider as AdministrationDataProvider
-participant Collection as useDatabaseCollection
-participant Service as databaseService
-Admin->>Provider : Create Newsletter
-Provider->>Collection : Insert Newsletter Document
-Collection->>Service : Persist NewsletterContent
-Service->>Collection : Confirm Success
-Collection->>Provider : Return Document
-Provider->>Admin : Show Success Message
-Admin->>Provider : Schedule Distribution
-Provider->>Collection : Update Distribution Status
-Collection->>Service : Persist Status Change
-Service->>Collection : Trigger Sync
-Collection->>Provider : Notify Changes
-Provider->>Admin : Update Dashboard
-Admin->>Provider : Launch Campaign
-Provider->>Collection : Create Campaign Record
-Collection->>Service : Insert Campaign Document
-Service->>Collection : Reference Template
-Service->>Collection : Apply Target Groups
-Collection->>Service : Refresh Data
-Service->>Collection : Real-time Update
-Collection->>Provider : Notify Changes
-Provider->>Admin : Show Campaign Status
-```
-
-**Diagram sources**
-- [AdministrationDataProvider.tsx:424-443](file://src/modules/administration/data/AdministrationDataProvider.tsx#L424-L443)
-- [useAdministrationData.ts:203-237](file://src/modules/administration/data/useAdministrationData.ts#L203-L237)
-- [collectionConfig.ts:39-40](file://src/modules/administration/data/collectionConfig.ts#L39-L40)
 
 **Section sources**
 - [AdministrationDataProvider.tsx:1-606](file://src/modules/administration/data/AdministrationDataProvider.tsx#L1-L606)
@@ -438,28 +616,6 @@ Point tracking systems enable recognition programs, behavioral management, and c
 
 #### Class Standings
 Standing calculations provide academic and behavioral performance tracking across house systems with live data updates. The system generates reports and maintains historical performance data for administrative review with database-backed persistence.
-
-```mermaid
-flowchart TD
-Start([House System Initialization]) --> DefineHouses["Define House Structure<br/>- House Names<br/>- House Leaders<br/>- Facilities<br/>- Database Persistence"]
-DefineHouses --> AssignStudents["Assign Students to Houses<br/>- Random Allocation<br/>- Preference-Based<br/>- Academic Grouping<br/>- Immediate Sync"]
-AssignStudents --> TrackPoints["Track Point System<br/>- Academic Points<br/>- Behavioral Points<br/>- Activity Points<br/>- Real-time Updates"]
-TrackPoints --> CalculateStandings["Calculate Standings<br/>- Weekly Rankings<br/>- Monthly Totals<br/>- Annual Champions<br/>- Live Calculations"]
-CalculateStandings --> GenerateReports["Generate Reports<br/>- House Statistics<br/>- Individual Progress<br/>- Competitive Insights<br/>- Database Export"]
-GenerateReports --> UpdateSystem["Update System<br/>- Point Adjustments<br/>- House Changes<br/>- Leadership Updates<br/>- Transactional Safety"]
-UpdateSystem --> DefineHouses
-style Start fill:#e1f5fe
-style DefineHouses fill:#f3e5f5
-style AssignStudents fill:#e8f5e8
-style TrackPoints fill:#fff3e0
-style CalculateStandings fill:#fce4ec
-style GenerateReports fill:#f1f8e9
-style UpdateSystem fill:#e0f2f1
-```
-
-**Diagram sources**
-- [useAdministrationData.ts:152-162](file://src/modules/administration/data/useAdministrationData.ts#L152-L162)
-- [collectionConfig.ts:29-31](file://src/modules/administration/data/collectionConfig.ts#L29-L31)
 
 **Section sources**
 - [useAdministrationData.ts:1-343](file://src/modules/administration/data/useAdministrationData.ts#L1-L343)
@@ -496,6 +652,12 @@ The real-time synchronization system includes conflict resolution mechanisms to 
 ### Performance Optimization
 Real-time updates are optimized through selective subscription patterns, where only relevant data changes trigger UI updates. This prevents unnecessary re-renders and maintains optimal performance even with frequent data modifications.
 
+**Updated** Enhanced with business logic services that maintain data consistency through proper transaction handling and audit trail generation.
+
+**Section sources**
+- [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
+- [databaseService.ts:1-379](file://src/services/database/databaseService.ts#L1-L379)
+
 ## Collection Configuration and Schema Management
 The Administration module implements comprehensive collection configuration and schema management through the ModuleCollectionsConfig system, providing standardized naming conventions and schema validation for all database collections.
 
@@ -530,42 +692,77 @@ E[useDatabaseCollection Hook]
 F[databaseService]
 G[Collection Management]
 H[Real-time Sync]
+I[Business Logic Services]
+J[React Hooks]
+K[Audit Services]
+L[Computed Views]
+M[UI Pages]
 end
 subgraph "Internal Dependencies"
-I[AdministrationDataProvider]
-J[Collection Configuration]
-K[Module Registry]
-L[Feature Flags]
-M[Validation System]
-N[Toast Notifications]
+N[AdministrationDataProvider]
+O[Collection Configuration]
+P[Module Registry]
+Q[Feature Flags]
+R[Validation System]
+S[Toast Notifications]
+T[StudentPromotionService]
+U[AuditLoggerService]
+V[useStudentMasterlist]
+W[useStudentPromotion]
+X[useAuditLogger]
+Y[StudentMasterlistPage]
+Z[StudentPromotionPage]
+AA[AuditLogViewerPage]
 end
 subgraph "Module Dependencies"
-O[Academics Module]
-P[Finance Module]
-Q[HR Module]
-R[Admissions Module]
-S[Reports Module]
-T[Settings Module]
+BB[Academics Module]
+CC[Finance Module]
+DD[HR Module]
+EE[Admissions Module]
+FF[Reports Module]
+GG[Settings Module]
+HH[Student Management]
+II[Staff Management]
+JJ[Audit Management]
+KK[Communication Module]
 end
-A --> I
-B --> J
-C --> K
-D --> K
+A --> N
+B --> O
+C --> P
+D --> P
 E --> F
 F --> G
 G --> H
-I --> O
-J --> P
-K --> Q
-L --> R
-M --> I
-N --> I
-I -.-> U[Shared Data Types]
-J -.-> V[Common Interfaces]
-K -.-> W[Module Contracts]
-X[Database Providers] --> E
-Y[Collection Schemas] --> J
-Z[Real-time Events] --> H
+I --> T
+I --> U
+J --> V
+J --> W
+J --> X
+K --> U
+L --> V
+M --> Y
+M --> Z
+M --> AA
+N --> HH
+O --> II
+P --> JJ
+Q --> KK
+R --> N
+S --> N
+T --> HH
+U --> JJ
+V --> HH
+W --> HH
+X --> JJ
+Y --> HH
+Z --> HH
+AA --> JJ
+BB --> N
+CC --> N
+DD --> N
+EE --> N
+FF --> N
+GG --> N
 ```
 
 **Diagram sources**
@@ -575,6 +772,14 @@ Z[Real-time Events] --> H
 - [AdministrationDataProvider.tsx:1-606](file://src/modules/administration/data/AdministrationDataProvider.tsx#L1-L606)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
 - [databaseService.ts:1-379](file://src/services/database/databaseService.ts#L1-L379)
+- [StudentPromotionService.ts:1-449](file://src/modules/administration/services/StudentPromotionService.ts#L1-L449)
+- [AuditLoggerService.ts:1-270](file://src/modules/administration/services/AuditLoggerService.ts#L1-L270)
+- [useStudentMasterlist.ts:1-253](file://src/modules/administration/hooks/useStudentMasterlist.ts#L1-L253)
+- [useStudentPromotion.ts:1-119](file://src/modules/administration/hooks/useStudentPromotion.ts#L1-L119)
+- [useAuditLogger.ts:1-133](file://src/modules/administration/hooks/useAuditLogger.ts#L1-L133)
+- [StudentMasterlistPage.tsx:1-338](file://src/modules/administration/pages/StudentMasterlistPage.tsx#L1-L338)
+- [StudentPromotionPage.tsx:1-654](file://src/modules/administration/pages/StudentPromotionPage.tsx#L1-L654)
+- [AuditLogViewerPage.tsx:1-200](file://src/modules/administration/pages/AuditLogViewerPage.tsx#L1-L200)
 
 The dependency graph reveals a sophisticated integration pattern where the Administration module serves as a central coordinator for institutional data while maintaining loose coupling with specialized modules. This architecture supports both operational independence and strategic integration across the system through database-backed operations.
 
@@ -602,6 +807,15 @@ The databaseService automatically selects optimal database providers based on sy
 ### Transaction Management
 The database service handles transaction management efficiently, minimizing lock contention and optimizing database performance through intelligent batching and connection pooling.
 
+**Updated** Enhanced with business logic services that implement proper transaction handling and caching strategies to optimize performance while maintaining data consistency. The StudentPromotionService and AuditLoggerService utilize collection adapters for database independence and improved performance.
+
+### Business Logic Service Optimization
+The business logic services implement caching strategies and efficient collection access patterns to minimize database round trips and improve response times for complex operations like student promotions and audit logging.
+
+**Section sources**
+- [StudentPromotionService.ts:355-366](file://src/modules/administration/services/StudentPromotionService.ts#L355-L366)
+- [AuditLoggerService.ts:259-261](file://src/modules/administration/services/AuditLoggerService.ts#L259-L261)
+
 ## Troubleshooting Guide
 Common issues and solutions for the Administration module include database connectivity problems, real-time synchronization conflicts, and integration challenges with other modules through database-backed operations.
 
@@ -617,6 +831,12 @@ Collection naming inconsistencies or schema validation errors can cause integrat
 ### CRUD Operation Failures
 Database operation failures may be caused by validation errors, constraint violations, or database connectivity issues. Check validation schemas, database constraints, and connection status to resolve operation failures.
 
+### Business Logic Service Errors
+Errors in business logic services like StudentPromotionService or AuditLoggerService typically indicate collection adapter issues or invalid input parameters. Verify that collection adapters are properly instantiated and that input parameters meet validation requirements.
+
+### React Hook Integration Issues
+Issues with React hooks like useStudentMasterlist, useStudentPromotion, or useAuditLogger often stem from missing collection data or user context problems. Ensure that database collections are loaded and that user context is available when using hooks that depend on authentication.
+
 ### Navigation and Routing
 The Administration module integrates with the dynamic page routing system. Ensure that module routes are properly configured and that the DynamicPageComponent is correctly handling module-specific navigation patterns with database-backed data.
 
@@ -631,6 +851,12 @@ The Administration module represents a comprehensive database-backed solution fo
 
 The module's strength lies in its systematic approach to administrative data management through database-backed operations, supporting complex organizational structures while maintaining simplicity in day-to-day operations. Through standardized collections, centralized database access, strategic integration with other system modules, and real-time synchronization capabilities, the Administration module provides a solid foundation for educational institution management.
 
+**Updated** The recent addition of comprehensive business logic services (StudentPromotionService, AuditLoggerService) and React hooks (useStudentMasterlist, useStudentPromotion, useAuditLogger) significantly enhances the module's capabilities by replacing traditional database triggers and stored procedures with TypeScript implementations. These additions provide better maintainability, testability, and flexibility while ensuring compliance and operational efficiency.
+
 The implementation of 16+ collections supporting comprehensive administrative functions, combined with real-time data synchronization and enterprise-grade database management through the useDatabaseCollection hook and databaseService, positions the module for future enhancements in communication capabilities, reporting mechanisms, and external system integration while maintaining core architectural principles and performance characteristics.
+
+The new business logic services and React hooks represent a paradigm shift toward application-level business logic that is easier to test, debug, and extend. This modernization ensures that the Administration module remains at the forefront of educational institution management technology while providing a solid foundation for future innovations in student lifecycle management, audit compliance, and data analytics.
+
+The addition of dedicated UI pages (StudentMasterlistPage, StudentPromotionPage, AuditLogViewerPage) further enhances the module's usability and provides comprehensive interfaces for administrative tasks. These pages leverage the new business logic services and React hooks to deliver a modern, responsive user experience while maintaining data integrity and audit compliance.
 
 Future enhancements could focus on expanding communication capabilities with advanced messaging features, improving reporting mechanisms with real-time dashboards, and enhancing integration with external systems through standardized APIs while maintaining the module's core database-backed architecture and performance characteristics.
