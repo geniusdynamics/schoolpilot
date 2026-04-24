@@ -1,0 +1,36 @@
+{
+  "title": "Uandikishaji",
+  "navigation": {
+    "admissions": {
+      "title": "Uandikishaji",
+      "description": "Simamia uandikishaji na maombi ya wanafunzi",
+      "dashboard": "Dashibodi ya Uandikishaji",
+      "newApplication": "Ombi Jipya",
+      "applications": "Maombi",
+      "reviewQueue": "Foleni ya Ukaguzi",
+      "apply": "Omba Sasa",
+      "track": "Fuatilia Ombi"
+    }
+  },
+  "dashboard": {
+    "title": "Dashibodi ya Uandikishaji",
+    "subtitle": "Muhtasari wa shughuli za uandikishaji na takwimu",
+    "stats": {
+      "pendingReview": "Inasubiri Ukaguzi",
+      "approved": "Imeidhinishwa",
+      "rejected": "Imekataliwa",
+      "enrolled": "Imeandikishwa",
+      "totalApplications": "Jumla ya Maombi",
+      "thisMonth": "Mwezi Huu",
+      "applicationsByStatus": "Maombi kwa Hali",
+      "applicationsByClass": "Maombi kwa Darasa",
+      "recentActivity": "Shughuli za Hivi Karibuni"
+    },
+    "quickActions": {
+      "newApplication": "Ombi Jipya",
+      "viewApplications": "Angalia Maombi",
+      "reviewQueue": "Foleni ya Ukaguzi",
+      "exportReport": "Hamisha Ripoti"
+    }
+  }
+}

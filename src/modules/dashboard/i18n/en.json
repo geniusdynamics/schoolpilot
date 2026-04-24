@@ -1,4 +1,10 @@
 {
+  "navigation": {
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Main dashboard overview"
+    }
+  },
   "welcomeBack": "Welcome back, {{name}}!",
   "welcomeBackDefault": "Welcome back!",
   "happeningToday": "Here's what's happening in your school today.",

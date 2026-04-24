@@ -168,9 +168,29 @@
       "studentSubjectEnrollment": "Student Subject Enrollment",
       "examSessions": "Exam Sessions",
       "examAnalysis": "Exam Analysis",
+      "studentExamAnalysis": "Student Exam Analysis",
       "studentExamResultsEntry": "Student Exam Results Entry",
       "gradingSchemes": "Grading Schemes",
-      "educationSystems": "Education Systems"
+      "educationSystems": "Education Systems",
+      "eventsManager": "Events Manager",
+      "examTokens": "Exam Tokens",
+      "marksEntryByToken": "Marks Entry by Token",
+      "verifyMarksCrossCheck": "Verify Marks Cross Check",
+      "verifyMarksByStructure": "Verify Marks by Structure",
+      "examGazette": "Exam Gazette",
+      "distributeResults": "Distribute Results",
+      "boardExamResults": "Board Exam Results"
+    },
+    "assignments": {
+      "title": "Assignments",
+      "create": "Create Assignment",
+      "grade": "Grade Assignments"
+    },
+    "lessonplans": {
+      "title": "Lesson Plans",
+      "create": "Create Plan",
+      "notes": "Lesson Notes",
+      "approval": "Approval"
     }
   },
   "tableHeaders": {

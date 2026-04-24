@@ -1,4 +1,10 @@
 {
+  "navigation": {
+    "dashboard": {
+      "title": "Tableau de Bord",
+      "description": "Aperçu du tableau de bord principal"
+    }
+  },
   "welcomeBack": "Bon retour, {{name}}!",
   "welcomeBackDefault": "Bon retour!",
   "happeningToday": "Voici ce qui se passe dans votre école aujourd'hui.",

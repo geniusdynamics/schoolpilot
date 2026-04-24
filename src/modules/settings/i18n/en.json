@@ -24,7 +24,9 @@
       "tabbedModeTest": "Tabbed Mode Test",
       "dataLayer": "Data Layer",
       "databaseProvider": "Database Provider",
-      "plugins": "Plugins"
+      "plugins": "Plugins",
+      "dataManagement": "Data Management",
+      "backupSettings": "Backup Settings"
     }
   },
   "general": {

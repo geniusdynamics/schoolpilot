@@ -1,4 +1,27 @@
 {
+  "navigation": {
+    "inventory": {
+      "title": "Inventaire",
+      "description": "Gérer l'inventaire, les achats, les actifs et le contrôle des stocks",
+      "dashboard": "Tableau de Bord",
+      "items": "Articles",
+      "itemCategories": "Catégories d'Articles",
+      "stockLevels": "Niveaux de Stock",
+      "reorderAlerts": "Alertes de Réapprovisionnement",
+      "stockReception": "Réception de Stock",
+      "stockReturns": "Retours de Stock",
+      "requisitions": "Demandes",
+      "purchaseOrders": "Bons de Commande",
+      "stockIssuance": "Sortie de Stock",
+      "suppliers": "Fournisseurs",
+      "supplierContracts": "Contrats Fournisseurs",
+      "fixedAssets": "Immobilisations",
+      "warehouses": "Entrepôts",
+      "schoolProcurementDashboard": "Tableau de Bord des Achats",
+      "vendorPortalDashboard": "Tableau de Bord du Portail Fournisseur",
+      "stationery": "Papeterie"
+    }
+  },
   "dashboard": {
     "title": "TB Inventaire et Achats",
     "overview": "Aperçu Magasins & Fournitures",

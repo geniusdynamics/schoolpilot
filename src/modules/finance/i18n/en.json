@@ -24,7 +24,24 @@
       "supplierInvoices": "Supplier Invoices",
       "suppliers": "Suppliers",
       "transportRoutes": "Transport Routes",
-      "studentTransportAssignments": "Student Transport Assignments"
+      "studentTransportAssignments": "Student Transport Assignments",
+      "studentFinancialSummary": "Student Financial Summary",
+      "voteheadStatement": "Votehead Statement",
+      "accountLedger": "Account Ledger",
+      "invoiceGeneration": "Invoice Generation",
+      "paymentAllocation": "Payment Allocation",
+      "feesFines": "Fees Fines",
+      "feesInstallments": "Fees Installments",
+      "feesReceiptTemplate": "Fees Receipt Template",
+      "dayBook": "Day Book",
+      "cashBook": "Cash Book",
+      "studentsPaidBook": "Students Paid Book",
+      "feesDueReport": "Fees Due Report",
+      "previousSessionFees": "Previous Session Fees",
+      "journalRegister": "Journal Register",
+      "trialBalance": "Trial Balance",
+      "incomeStatement": "Income Statement",
+      "balanceSheet": "Balance Sheet"
     }
   },
   "dashboard": {

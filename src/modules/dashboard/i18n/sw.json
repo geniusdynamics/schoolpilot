@@ -1,4 +1,10 @@
 {
+  "navigation": {
+    "dashboard": {
+      "title": "Dashibodi",
+      "description": "Muhtasari wa dashibodi kuu"
+    }
+  },
   "welcomeBack": "Karibu tena, {{name}}!",
   "welcomeBackDefault": "Karibu tena!",
   "happeningToday": "Haya ni yale yanayotokea shuleni kwako leo.",

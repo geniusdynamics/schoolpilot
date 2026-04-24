@@ -168,9 +168,29 @@
       "studentSubjectEnrollment": "Usajili wa Wanafunzi katika Masomo",
       "examSessions": "Vipindi vya Mitihani",
       "examAnalysis": "Uchambuzi wa Mtihani",
+      "studentExamAnalysis": "Uchambuzi wa Mitihani ya Mwanafunzi",
       "studentExamResultsEntry": "Uingizaji wa Matokeo ya Mitihani ya Wanafunzi",
       "gradingSchemes": "Mifumo ya Alama",
-      "educationSystems": "Mifumo ya Elimu"
+      "educationSystems": "Mifumo ya Elimu",
+      "eventsManager": "Msimamizi wa Matukio",
+      "examTokens": "Tokeni za Mitihani",
+      "marksEntryByToken": "Kuingiza Alama kwa Tokeni",
+      "verifyMarksCrossCheck": "Thibitisha Alama kwa Ukaguzi Mkali",
+      "verifyMarksByStructure": "Thibitisha Alama kwa Muundo",
+      "examGazette": "Gazeti la Mitihani",
+      "distributeResults": "Sambaza Matokeo",
+      "boardExamResults": "Matokeo ya Mitihani ya Bodi"
+    },
+    "assignments": {
+      "title": "Kazi za Ziada",
+      "create": "Unda Kazi",
+      "grade": "Alama za Kazi"
+    },
+    "lessonplans": {
+      "title": "Mipango ya Masomo",
+      "create": "Unda Mpango",
+      "notes": "Maelezo ya Masomo",
+      "approval": "Kuidhinisha"
     }
   },
   "tableHeaders": {

@@ -10,7 +10,19 @@
       "studentFinancialSummary": "Incamake y'Imari y'Umunyeshuri",
       "studentMasterlist": "Urutonde Rukuru rw'Abanyeshuri",
       "studentVoteheadStatement": "Raporo y'Umutwe w'Amajwi w'Umunyeshuri",
-      "teacherAssignments": "Gutanga Inshingano ku Barimu"
+      "teacherAssignments": "Gutanga Inshingano ku Barimu",
+      "dashboard": "Ikibaho cy'Iraporo",
+      "classLists": "Urutonde rw'Amasomo",
+      "overdueBooks": "Ibitabo byarenze igihe",
+      "inventoryStatus": "Imiterere y'Ibikoresho"
+    },
+    "analytics": {
+      "title": "Isesengura",
+      "description": "Isesengura ry'amakuru n'ubumenyi",
+      "teacherDashboard": "Ikibaho cy'Umwalimu",
+      "subjectAnalytics": "Isesengura ry'Igisomo",
+      "classAnalytics": "Isesengura ry'Ishuri",
+      "exportReports": "Kohereza Raporo"
     }
   },
   "accountLedgerPage": {

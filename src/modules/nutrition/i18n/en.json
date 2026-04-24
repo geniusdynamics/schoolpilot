@@ -10,7 +10,8 @@
       "merchants": "Merchants",
       "studentMealAssignments": "Student Meal Assignments",
       "mealConsumptionLog": "Meal Consumption Log",
-      "studentWallet": "Student Wallet"
+      "studentWallet": "Student Wallet",
+      "kitchenManagement": "Kitchen Management"
     }
   }
 }

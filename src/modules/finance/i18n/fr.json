@@ -18,7 +18,24 @@
       "banks": "Banques",
       "suppliers": "Fournisseurs",
       "transportRoutes": "Routes de Transport",
-      "studentTransportAssignments": "Affectations Transport Étudiants"
+      "studentTransportAssignments": "Affectations Transport Étudiants",
+      "studentFinancialSummary": "Résumé Financier Étudiant",
+      "voteheadStatement": "Déclaration Votehead",
+      "accountLedger": "Grand Livre Comptable",
+      "invoiceGeneration": "Génération de Factures",
+      "paymentAllocation": "Allocation de Paiement",
+      "feesFines": "Amendes de Frais",
+      "feesInstallments": "Versements de Frais",
+      "feesReceiptTemplate": "Modèle de Reçu de Frais",
+      "dayBook": "Livre Journal",
+      "cashBook": "Livre de Caisse",
+      "studentsPaidBook": "Livre des Étudiants Payés",
+      "feesDueReport": "Rapport des Frais Dus",
+      "previousSessionFees": "Frais de Session Précédente",
+      "journalRegister": "Registre du Journal",
+      "trialBalance": "Balance de Vérification",
+      "incomeStatement": "Compte de Résultat",
+      "balanceSheet": "Bilan"
     }
   },
   "dashboard": {

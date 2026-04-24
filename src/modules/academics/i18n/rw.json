@@ -168,9 +168,29 @@
       "studentSubjectEnrollment": "Kwandikisha Abanyeshuri mu Masomo",
       "examSessions": "Ibihe by'Ibizamini",
       "examAnalysis": "Isesengura ry'Ikizamini",
+      "studentExamAnalysis": "Isesengura ry'Ibizamini by'Umwigana",
       "studentExamResultsEntry": "Kwinjiza Ibisubizo by'Ibizamini by'Abanyeshuri",
       "gradingSchemes": "Uburyo bwo Gutanga Amanota",
-      "educationSystems": "Sisitemu z'Uburezi"
+      "educationSystems": "Sisitemu z'Uburezi",
+      "eventsManager": "Gucunga Ibyabaye",
+      "examTokens": "Ibimenyetso by'Ibizamini",
+      "marksEntryByToken": "Kwandika Amanota ukoresheje Ikimenyetso",
+      "verifyMarksCrossCheck": "Kugenzura Amanota mu Buryo Bukomeye",
+      "verifyMarksByStructure": "Kugenzura Amanota ukurikije Imiterere",
+      "examGazette": "Ikinyamakuru cy'Ibizamini",
+      "distributeResults": "Gutanga Ibisubizo",
+      "boardExamResults": "Ibisubizo by'Ibizamini by'Inama"
+    },
+    "assignments": {
+      "title": "Imirimo",
+      "create": "Kora Umurimo",
+      "grade": "Gupima Imirimo"
+    },
+    "lessonplans": {
+      "title": "Gahunda z'Isomo",
+      "create": "Kora Gahunda",
+      "notes": "Inyandiko z'Isomo",
+      "approval": "Kwemeza"
     }
   },
   "tableHeaders": {

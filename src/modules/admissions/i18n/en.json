@@ -7,7 +7,9 @@
       "dashboard": "Dashboard",
       "newApplication": "New Application",
       "applications": "Applications",
-      "reviewQueue": "Review Queue"
+      "reviewQueue": "Review Queue",
+      "apply": "Apply Now",
+      "track": "Track Application"
     }
   },
   "dashboard": {

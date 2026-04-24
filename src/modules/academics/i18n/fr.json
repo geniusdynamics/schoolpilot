@@ -168,9 +168,29 @@
       "studentSubjectEnrollment": "Inscription des élèves aux matières",
       "examSessions": "Sessions d'examen",
       "examAnalysis": "Analyse des examens",
+      "studentExamAnalysis": "Analyse des examens par élève",
       "studentExamResultsEntry": "Saisie des résultats d'examen des élèves",
       "gradingSchemes": "Systèmes de notation",
-      "educationSystems": "Systèmes éducatifs"
+      "educationSystems": "Systèmes éducatifs",
+      "eventsManager": "Gestionnaire d'événements",
+      "examTokens": "Jetons d'examen",
+      "marksEntryByToken": "Saisie des notes par jeton",
+      "verifyMarksCrossCheck": "Vérification croisée des notes",
+      "verifyMarksByStructure": "Vérification des notes par structure",
+      "examGazette": "Gazette des examens",
+      "distributeResults": "Distribuer les résultats",
+      "boardExamResults": "Résultats des examens du conseil"
+    },
+    "assignments": {
+      "title": "Devoirs",
+      "create": "Créer un devoir",
+      "grade": "Noter les devoirs"
+    },
+    "lessonplans": {
+      "title": "Plans de cours",
+      "create": "Créer un plan",
+      "notes": "Notes de cours",
+      "approval": "Approbation"
     }
   },
   "tableHeaders": {

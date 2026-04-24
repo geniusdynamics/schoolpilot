@@ -1,4 +1,18 @@
 {
+  "navigation": {
+    "nutrition": {
+      "title": "Nutrition",
+      "description": "Gérer les plans de repas, les menus et les programmes de nutrition scolaire",
+      "dashboard": "Tableau de Bord",
+      "mealPlans": "Plans de Repas",
+      "menus": "Menus",
+      "merchants": "Marchands",
+      "studentMealAssignments": "Attributions des Repas aux Élèves",
+      "mealConsumptionLog": "Journal de Consommation des Repas",
+      "studentWallet": "Portefeuille de l'Élève",
+      "kitchenManagement": "Gestion de la Cuisine"
+    }
+  },
   "mealPlans": {
     "managementTitle": "Gestion des Plans de Repas",
     "managementDescription": "Définir et gérer les plans de repas offerts par l'école.",

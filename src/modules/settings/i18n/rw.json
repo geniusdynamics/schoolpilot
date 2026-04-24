@@ -17,7 +17,17 @@
       "workflows": "Imirimo",
       "tabs": "Igenamiterere ry'amatabure",
       "tabbedWorkspaceTest": "Igeragezwa ry'umwanya de akazi",
-      "dashboard": "Kibaho"
+      "dashboard": "Kibaho",
+      "unified": "Igenamiterere ryunze",
+      "general": "Rusange",
+      "dataManagement": "Gucunga amakuru",
+      "databaseSettings": "Igenamiterere ry'ububiko",
+      "backupSettings": "Igenamiterere ryo kubika",
+      "dependencyReport": "Raporo y'ibifitanye isano",
+      "tabbedModeSettings": "Igenamiterere ry'imikorere y'amatabure",
+      "tabbedModeTest": "Igeragezwa ry'imikorere y'amatabure",
+      "dataLayer": "Urwego rw'amakuru",
+      "plugins": "Ibyongerwa"
     }
   },
   "tabs": {

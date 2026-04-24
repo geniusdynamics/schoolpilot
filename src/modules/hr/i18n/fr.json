@@ -1,4 +1,16 @@
 {
+  "navigation": {
+    "hr": {
+      "title": "Ressources Humaines",
+      "description": "Gérer les ressources humaines, la paie et la rémunération du personnel",
+      "dashboard": "Tableau de Bord",
+      "payrollItemTypes": "Types d'Éléments de Paie",
+      "payrollPeriods": "Périodes de Paie",
+      "payslips": "Fiches de Paie",
+      "staffSalarySettings": "Paramètres Salariaires du Personnel",
+      "staffBioData": "Données Biographiques du Personnel"
+    }
+  },
   "dashboard": {
     "title": "Tableau de Bord RH",
     "totalStaff": "Total Personnel",

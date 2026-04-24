@@ -1,0 +1,108 @@
+{
+  "title": "Urubuga",
+  "description": "Urubuga rw'abanyeshuri n'ababyeyi kubona amakuru y'ishuri",
+  "navigation": {
+    "portal": {
+      "title": "Urubuga",
+      "description": "Urubuga rw'abanyeshuri n'ababyeyi",
+      "dashboard": "Ikibaho cy'Urubuga",
+      "attendance": "Kwitabira",
+      "results": "Ibisubizo",
+      "fees": "Amafaranga y'ishuri",
+      "announcements": "Amatangazo",
+      "profile": "Umwirondoro"
+    }
+  },
+  "common": {
+    "create": "Kurema",
+    "edit": "Guhindura",
+    "delete": "Gusiba",
+    "save": "Kubika",
+    "cancel": "Kuraguza",
+    "back": "Gusubira inyuma",
+    "next": "Komeza",
+    "search": "Gushakisha",
+    "filter": "Gushungura",
+    "loading": "Gupakurura...",
+    "noData": "Nta makuru ahari",
+    "error": "Ikosa ryabaye"
+  },
+  "dashboard": {
+    "title": "Ikibaho cyanjye",
+    "welcome": "Murakaza neza",
+    "quickLinks": "Ihuza ryihuse",
+    "recentAnnouncements": "Amatangazo y'ibyak最近",
+    "attendanceSummary": "Incamake y'kwitabira",
+    "feeOverview": "Incamake y'amafaranga y'ishuri",
+    "recentResults": "Ibisubizo by'ibyak最近"
+  },
+  "attendance": {
+    "title": "Kwitabira kwanjye",
+    "totalDays": "Iminsi yose",
+    "present": "Yitabiye",
+    "absent": "Ntabwo yitabiye",
+    "late": "Yatinze",
+    "excused": "Yababariwe",
+    "percentage": "Igipimo cy'kwitabira",
+    "records": "Inyandiko z'kwitabira",
+    "date": "Itariki",
+    "period": "Igihe",
+    "status": "Imiterere",
+    "remarks": "Ibisobanuro",
+    "recordedBy": "Yanditswe na"
+  },
+  "results": {
+    "title": "Ibisubizo byanjye",
+    "examSession": "Igice c'ibizamini",
+    "totalMarks": "Amanota yose",
+    "meanGrade": "Ipimwa rusange",
+    "classRank": "Imiterere y'isomo",
+    "streamRank": "Imiterere y'umugezi",
+    "subject": "Igisomo",
+    "marks": "Amanota",
+    "grade": "Ipimwa",
+    "points": "Amanota",
+    "comment": "Igitekerezo",
+    "noResults": "Nta bisubizo byabonetse"
+  },
+  "fees": {
+    "title": "Ibanze ry'amafaranga y'ishuri",
+    "totalFees": "Amafaranga yose y'ishuri",
+    "totalPaid": "Amafaranga yose yishyuwe",
+    "balance": "Asigaye",
+    "dueDate": "Itariki yo kwishyura",
+    "invoices": "Amafakitiri",
+    "payments": "Kwishyura",
+    "invoiceNumber": "Nomero y'ifakitire",
+    "receiptNumber": "Nomero y'akwita",
+    "paymentMethod": "Uburyo bwo kwishyura",
+    "paymentDate": "Itariki yo kwishyura",
+    "amount": "Amafaranga",
+    "status": "Imiterere",
+    "items": "Ibintu by'amafaranga y'ishuri"
+  },
+  "announcements": {
+    "title": "Amatangazo",
+    "priority": "Iby'ingenzi",
+    "audience": "Abateganijwe",
+    "publishedAt": "Yasohowe",
+    "expiresAt": "Izarangira",
+    "author": "Umwanditsi",
+    "content": "Ibirimo",
+    "noAnnouncements": "Nta matangazo ahari",
+    "read": "Wanditse ko yasomwe",
+    "unread": "Itasomwe",
+    "priorityHigh": "Cy'ingenzi",
+    "priorityMedium": "Hagati",
+    "priorityLow": "Ntacyo",
+    "priorityUrgent": "Byihutirwa"
+  },
+  "profile": {
+    "title": "Umwirondoro wanjye",
+    "personalInfo": "Amakuru y'ibanze",
+    "contactInfo": "Amakuru yo kuvugana",
+    "academicInfo": "Amakuru y'uburezi",
+    "editProfile": "Hindura umwirondoro",
+    "saveProfile": "Kubika impinduka"
+  }
+}

@@ -10,7 +10,19 @@
       "studentFinancialSummary": "Student Financial Summary",
       "studentMasterlist": "Student Masterlist",
       "studentVoteheadStatement": "Student Votehead Statement",
-      "teacherAssignments": "Teacher Assignments"
+      "teacherAssignments": "Teacher Assignments",
+      "dashboard": "Reports Dashboard",
+      "classLists": "Class Lists",
+      "overdueBooks": "Overdue Books",
+      "inventoryStatus": "Inventory Status"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Data analytics and insights",
+      "teacherDashboard": "Teacher Dashboard",
+      "subjectAnalytics": "Subject Analytics",
+      "classAnalytics": "Class Analytics",
+      "exportReports": "Export Reports"
     }
   },
   "accountLedgerPage": {

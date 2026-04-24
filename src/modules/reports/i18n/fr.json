@@ -1,4 +1,29 @@
 {
+  "navigation": {
+    "reports": {
+      "title": "Rapports",
+      "description": "Générer et consulter divers rapports et analyses",
+      "accountLedger": "Grand Livre Comptable",
+      "examResultsHorizontal": "Relevé de Notes Horizontal",
+      "feeCollectionSummary": "Résumé de la Collecte des Frais",
+      "studentFinancialSummary": "Résumé Financier Étudiant",
+      "studentMasterlist": "Liste Principale des Étudiants",
+      "studentVoteheadStatement": "Relevé de Compte par Poste Budgétaire",
+      "teacherAssignments": "Affectation des Enseignants",
+      "dashboard": "Tableau de Bord des Rapports",
+      "classLists": "Listes de Classes",
+      "overdueBooks": "Livres en Retard",
+      "inventoryStatus": "État des Stocks"
+    },
+    "analytics": {
+      "title": "Analytique",
+      "description": "Analyses et informations sur les données",
+      "teacherDashboard": "Tableau de Bord Enseignant",
+      "subjectAnalytics": "Analyse par Matière",
+      "classAnalytics": "Analyse par Classe",
+      "exportReports": "Exporter les Rapports"
+    }
+  },
   "tableHeaders": {
     "admNo": "N° Adm",
     "studentName": "Nom de l'Étudiant",
@@ -192,14 +217,6 @@
     "noData": "Aucune donnée de collecte des frais trouvée pour les critères sélectionnés.",
     "selectFiltersMessage": "Veuillez sélectionner les filtres et cliquer sur \"Générer Résumé\"."
   },
-  "navigation:reports.title": "Tous les Rapports",
-  "navigation:reports.accountLedger": "Grand Livre Comptable",
-  "navigation:reports.examResultsHorizontal": "Relevé de Notes des Examens",
-  "navigation:reports.feeCollectionSummary": "Résumé de la Collecte des Frais",
-  "navigation:reports.studentFinancialSummary": "Résumé Financier Étudiant",
-  "navigation:reports.studentMasterlist": "Liste Principale des Étudiants",
-  "navigation:reports.studentVoteheadStatement": "Relevé de Compte Étudiant par Poste Budgétaire",
-  "navigation:reports.teacherAssignments": "Affectation des Enseignants",
   "validation": {
     "classStreamSubjectAcademicYearRequired": "Class Stream, Subject, and Academic Year are required.",
     "subjectAlreadyAllocated": "This subject is already allocated to this class stream for the selected academic year.",

@@ -17,7 +17,17 @@
       "workflows": "Mtiririko wa kazi",
       "tabs": "Mipangilio ya Vichupo",
       "tabbedWorkspaceTest": "Jaribio la Nafasi ya Kazi ya Vichupo",
-      "dashboard": "Dashibodi"
+      "dashboard": "Dashibodi",
+      "unified": "Mipangilio ya Muungano",
+      "general": "Jumla",
+      "dataManagement": "Usimamizi wa Data",
+      "databaseSettings": "Mipangilio ya Hifadhidata",
+      "backupSettings": "Mipangilio ya Backup",
+      "dependencyReport": "Ripoti ya Utegemezi",
+      "tabbedModeSettings": "Mipangilio ya Hali ya Vichupo",
+      "tabbedModeTest": "Jaribio la Hali ya Vichupo",
+      "dataLayer": "Safu ya Data",
+      "plugins": "Vifaa vya Nyongeza"
     }
   },
   "tabs": {

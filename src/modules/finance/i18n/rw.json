@@ -24,7 +24,24 @@
       "supplierInvoices": "Amafakitiri y'abatanga",
       "suppliers": "Abatanga",
       "transportRoutes": "Inzira z'ubwikorezi",
-      "studentTransportAssignments": "Gutanga ubwikorezi ku banyeshuri"
+      "studentTransportAssignments": "Gutanga ubwikorezi ku banyeshuri",
+      "studentFinancialSummary": "Incamake y'imari y'umunyeshuri",
+      "voteheadStatement": "Ibanze ry'umutwe",
+      "accountLedger": "Urutonde rw'amakonti",
+      "invoiceGeneration": "Gukora amafakitiri",
+      "paymentAllocation": "Gutanga kwishyura",
+      "feesFines": "Amafaranga y'ihazabu",
+      "feesInstallments": "Ibyicaro by'amafaranga y'ishuri",
+      "feesReceiptTemplate": "Inyandikorugero y'akwita ka amafaranga y'ishuri",
+      "dayBook": "Igitabo cy'umunsi",
+      "cashBook": "Igitabo cy'amafaranga",
+      "studentsPaidBook": "Igitabo cy'abanyeshuri bishyuye",
+      "feesDueReport": "Raporo y'amafaranga y'ishuri asigaye",
+      "previousSessionFees": "Amafaranga y'ishuri y'igihe cyabanjirije",
+      "journalRegister": "Inyandiko y'ibikorwa",
+      "trialBalance": "Igeragezwa ry'imari",
+      "incomeStatement": "Ibanze ry'amafaranga yinjira",
+      "balanceSheet": "Urutonde rw'imari"
     }
   },
   "dashboard": {

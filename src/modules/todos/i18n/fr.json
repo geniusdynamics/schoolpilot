@@ -1,0 +1,8 @@
+{
+  "navigation": {
+    "todos": {
+      "title": "Taches",
+      "description": "Gestion des taches et rappels"
+    }
+  }
+}

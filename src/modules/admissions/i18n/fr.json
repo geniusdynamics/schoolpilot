@@ -1,0 +1,36 @@
+{
+  "title": "Admissions",
+  "navigation": {
+    "admissions": {
+      "title": "Admissions",
+      "description": "Gérer les admissions et les candidatures des étudiants",
+      "dashboard": "Tableau de Bord des Admissions",
+      "newApplication": "Nouvelle Candidature",
+      "applications": "Candidatures",
+      "reviewQueue": "File d'Attente d'Évaluation",
+      "apply": "Postuler",
+      "track": "Suivre la Candidature"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de Bord des Admissions",
+    "subtitle": "Aperçu des activités et statistiques d'admission",
+    "stats": {
+      "pendingReview": "En Attente d'Évaluation",
+      "approved": "Approuvées",
+      "rejected": "Rejetées",
+      "enrolled": "Inscrits",
+      "totalApplications": "Total des Candidatures",
+      "thisMonth": "Ce Mois",
+      "applicationsByStatus": "Candidatures par Statut",
+      "applicationsByClass": "Candidatures par Classe",
+      "recentActivity": "Activité Récente"
+    },
+    "quickActions": {
+      "newApplication": "Nouvelle Candidature",
+      "viewApplications": "Voir les Candidatures",
+      "reviewQueue": "File d'Attente d'Évaluation",
+      "exportReport": "Exporter le Rapport"
+    }
+  }
+}

@@ -19,7 +19,8 @@
       "fixedAssets": "Fixed Assets",
       "warehouses": "Warehouses",
       "schoolProcurementDashboard": "School Procurement Dashboard",
-      "vendorPortalDashboard": "Vendor Portal Dashboard"
+      "vendorPortalDashboard": "Vendor Portal Dashboard",
+      "stationery": "Stationery"
     }
   }
 }

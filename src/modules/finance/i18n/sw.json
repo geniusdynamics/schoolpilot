@@ -24,7 +24,24 @@
       "supplierInvoices": "Ankara za Wasambazaji",
       "suppliers": "Wasambazaji",
       "transportRoutes": "Njia za Usafiri",
-      "studentTransportAssignments": "Mgawo wa Usafiri wa Wanafunzi"
+      "studentTransportAssignments": "Mgawo wa Usafiri wa Wanafunzi",
+      "studentFinancialSummary": "Muhtasari wa Kifedha wa Mwanafunzi",
+      "voteheadStatement": "Taarifa ya Votehead",
+      "accountLedger": "Daftari la Akaunti",
+      "invoiceGeneration": "Uzalishaji wa Ankara",
+      "paymentAllocation": "Ugawaji wa Malipo",
+      "feesFines": "Faini za Ada",
+      "feesInstallments": "Malipo ya Ada",
+      "feesReceiptTemplate": "Kiolezo cha Risiti ya Ada",
+      "dayBook": "Daftari la Siku",
+      "cashBook": "Daftari la Fedha",
+      "studentsPaidBook": "Daftari la Wanafunzi Waliolipa",
+      "feesDueReport": "Ripoti ya Ada Zilizobaki",
+      "previousSessionFees": "Ada za Kipindi Kilichopita",
+      "journalRegister": "Daftari la Jarida",
+      "trialBalance": "Mizani ya Jaribio",
+      "incomeStatement": "Taarifa ya Mapato",
+      "balanceSheet": "Mizani"
     }
   },
   "dashboard": {
