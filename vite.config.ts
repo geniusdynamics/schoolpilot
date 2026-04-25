@@ -95,6 +95,13 @@ export default defineConfig(({ mode }) => {
         host: env.VITE_HOST || '0.0.0.0',
         strictPort: env.VITE_STRICT_PORT === 'true',
         fs: { strict: false },
+        watch: {
+          ignored: [
+            '**/.git_disabled/**',
+            '**/AkademicoNotes/**',
+            '**/.git/**',
+          ],
+        },
         headers: {
           'Cross-Origin-Opener-Policy': 'same-origin',
           'Cross-Origin-Embedder-Policy': 'require-corp',
@@ -185,12 +192,9 @@ export default defineConfig(({ mode }) => {
           'react-dom',
           'react-router-dom',
           'rxjs',
-          'rxdb',
           'pouchdb',
           'pouchdb-browser',
           'pouchdb-find',
-          'pouchdb-adapter-http',
-          'pouchdb-adapter-idb',
           'semver',
         ],
         exclude: ['@sqlite.org/sqlite-wasm']

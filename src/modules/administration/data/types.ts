@@ -997,3 +997,273 @@ export interface StudentClassHistoryEntry {
   created_at: string;
 }
 
+// === NEW TYPES FOR ADMINISTRATION PAGES (from inline mock data migration) ===
+
+export interface AttendanceReport {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  month: string;
+  year: number;
+  total_days: number;
+  present_days: number;
+  absent_days: number;
+  late_days: number;
+  percentage: number;
+}
+
+export type TriggerType = 'Attendance' | 'Fees Due' | 'Exam Results' | 'Announcements' | 'Birthday';
+export type RecipientType = 'Student' | 'Staff' | 'Parent' | 'All';
+
+export interface AutoSMSSetting {
+  id: string;
+  trigger_type: TriggerType;
+  trigger_name: string;
+  recipient_type: RecipientType;
+  template_id: string;
+  template_name: string;
+  is_enabled: boolean;
+  send_time?: string;
+  conditions?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type PassType = 'Early Departure' | 'Medical Emergency' | 'Personal' | 'Other';
+export type PassStatus = 'Pending' | 'Approved' | 'Rejected' | 'Issued' | 'Returned';
+
+export interface GatePass {
+  id: string;
+  student_id: string;
+  student_name: string;
+  class_name: string;
+  section: string;
+  pass_type: PassType;
+  reason: string;
+  departure_time: string;
+  return_time?: string;
+  authorized_by: string;
+  status: PassStatus;
+  approved_by?: string;
+  approved_at?: string;
+  issued_by?: string;
+  issued_at?: string;
+  created_at: string;
+}
+
+// Source: BulkAssignRollNumbersPage.tsx
+export interface StudentRollNumber {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+}
+
+// Source: DynamicAttendancePage.tsx
+export type DynamicAttendanceStatus = 'Present' | 'Absent' | 'Late';
+
+export interface SessionAttendance {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  session_id: string;
+  session_name: string;
+  check_in_time?: string;
+  check_out_time?: string;
+  status: DynamicAttendanceStatus;
+  notes?: string;
+}
+
+// Source: ScholarshipTrackingPage.tsx
+export type ScholarshipStatus = 'Active' | 'Inactive' | 'Pending';
+
+export interface ScholarshipRecord {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  scholarship_type: string;
+  amount: number;
+  academic_year: string;
+  status: ScholarshipStatus;
+  start_date: string;
+  end_date: string;
+  criteria: string;
+  notes?: string;
+}
+
+// Source: SMSReportsPage.tsx
+export type SMSStatus = 'Sent' | 'Delivered' | 'Failed' | 'Pending';
+
+export interface SMSReport {
+  id: string;
+  recipient: string;
+  recipient_name: string;
+  recipient_type: 'Student' | 'Staff' | 'Parent';
+  phone: string;
+  message: string;
+  template: string;
+  sent_date: string;
+  sent_time: string;
+  status: SMSStatus;
+  delivery_date?: string;
+  error_message?: string;
+  sender: string;
+}
+
+// Source: StaffWalletPage.tsx
+export type WalletTransactionType = 'Advance' | 'Loan' | 'Deduction' | 'Repayment';
+export type WalletTransactionStatus = 'Pending' | 'Approved' | 'Rejected' | 'Completed';
+
+export interface WalletTransaction {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  employee_id: string;
+  department: string;
+  transaction_type: WalletTransactionType;
+  amount: number;
+  date: string;
+  description: string;
+  status: WalletTransactionStatus;
+  balance: number;
+}
+
+// Source: StaffAttendancePage.tsx
+export type StaffAttendanceStatus = 'Present' | 'Absent' | 'Late' | 'On Leave';
+
+export interface StaffAttendanceRecord {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  employee_id: string;
+  department: string;
+  designation: string;
+  date: string;
+  check_in_time?: string;
+  check_out_time?: string;
+  status: StaffAttendanceStatus;
+  notes?: string;
+}
+
+// Source: StaffIDCardsPage.tsx
+export interface StaffIDCard {
+  id: string;
+  staff_id: string;
+  staff_name: string;
+  employee_id: string;
+  department: string;
+  designation: string;
+  photo_url?: string;
+  joining_date: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+// Source: StudentBioDataPage.tsx
+export interface MedicalCondition {
+  id: string;
+  condition: string;
+  diagnosis_date: string;
+  severity: 'Mild' | 'Moderate' | 'Severe';
+  treatment: string;
+  notes: string;
+}
+
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  address: string;
+  is_primary: boolean;
+}
+
+export interface StudentDocument {
+  id: string;
+  document_type: string;
+  document_number: string;
+  issue_date: string;
+  expiry_date?: string;
+  issuing_authority: string;
+}
+
+export interface StudentBioData {
+  id: string;
+  student_id: string;
+  name: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+  date_of_birth: string;
+  gender: string;
+  blood_group: string;
+  nationality: string;
+  religion: string;
+  mother_tongue: string;
+  phone: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  father_name: string;
+  father_phone: string;
+  father_occupation: string;
+  mother_name: string;
+  mother_phone: string;
+  mother_occupation: string;
+  guardian_name?: string;
+  guardian_phone?: string;
+  guardian_relationship?: string;
+  medical_conditions: MedicalCondition[];
+  emergency_contacts: EmergencyContact[];
+  documents: StudentDocument[];
+  allergies: string[];
+  created_at: string;
+}
+
+// Source: StudentIDCardsPage.tsx
+export interface StudentIDCard {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_id: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+  photo_url?: string;
+  dob: string;
+  blood_group: string;
+  emergency_contact: string;
+  academic_year: string;
+}
+
+// Source: TransferCertificatePage.tsx
+export interface TransferCertificateStudent {
+  id: string;
+  student_id: string;
+  name: string;
+  class_name: string;
+  section: string;
+  roll_number: string;
+  admission_date: string;
+  father_name: string;
+  mother_name: string;
+  date_of_birth: string;
+  address: string;
+}

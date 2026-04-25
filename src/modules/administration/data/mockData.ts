@@ -12,7 +12,11 @@ import {
   AdminPartnerType, AdminClubAndSocietyType, AdminCustomerType,
   AdminStudentHealthRecordType, AdminStudentAttendanceType,
   AdminTemplateCommType, AdminCampaignType,
-  PartnerType, ClubType, AttendanceStatus, TemplateType, CampaignStatus, CampaignAudienceType
+  PartnerType, ClubType, AttendanceStatus, TemplateType, CampaignStatus, CampaignAudienceType,
+  AttendanceReport, AutoSMSSetting, GatePass,
+  StudentRollNumber, SessionAttendance, ScholarshipRecord,
+  SMSReport, WalletTransaction,
+  StaffAttendanceRecord, StaffIDCard, StudentBioData, StudentIDCard, TransferCertificateStudent
 } from './types';
 
 export const initialMockSchoolDetails: SchoolDetails = {
@@ -765,3 +769,875 @@ export const allParentsGuardians = [...initialMockParentsGuardians, ...comprehen
 export const allStudentGuardianRelationships = comprehensiveStudents.relationships;
 export const allStudentHealthRecords = comprehensiveHealthRecords;
 export const allStudentAttendance = comprehensiveAttendanceRecords;
+
+// === NEW MOCK DATA EXPORTS FOR ADMINISTRATION PAGES ===
+
+// Source: AttendanceReportsPage.tsx
+export const initialMockAttendanceReports: AttendanceReport[] = [
+  {
+    id: 'ar-1',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    month: '2024-01',
+    year: 2024,
+    total_days: 22,
+    present_days: 20,
+    absent_days: 1,
+    late_days: 1,
+    percentage: 90.9
+  },
+  {
+    id: 'ar-2',
+    student_id: '2',
+    student_name: 'Jane Smith',
+    admission_no: 'ADM-002',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    month: '2024-01',
+    year: 2024,
+    total_days: 22,
+    present_days: 22,
+    absent_days: 0,
+    late_days: 0,
+    percentage: 100
+  },
+  {
+    id: 'ar-3',
+    student_id: '3',
+    student_name: 'Michael Johnson',
+    admission_no: 'ADM-003',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    month: '2024-01',
+    year: 2024,
+    total_days: 22,
+    present_days: 18,
+    absent_days: 3,
+    late_days: 1,
+    percentage: 81.8
+  },
+  {
+    id: 'ar-4',
+    student_id: '4',
+    student_name: 'Emily Davis',
+    admission_no: 'ADM-004',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    month: '2024-01',
+    year: 2024,
+    total_days: 22,
+    present_days: 21,
+    absent_days: 1,
+    late_days: 0,
+    percentage: 95.5
+  },
+  {
+    id: 'ar-5',
+    student_id: '5',
+    student_name: 'Robert Wilson',
+    admission_no: 'ADM-005',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    month: '2024-01',
+    year: 2024,
+    total_days: 22,
+    present_days: 19,
+    absent_days: 2,
+    late_days: 1,
+    percentage: 86.4
+  }
+];
+
+// Source: AutoSMSSettingsPage.tsx
+export const initialMockAutoSMSSettings: AutoSMSSetting[] = [
+  {
+    id: 'as-1',
+    trigger_type: 'Attendance',
+    trigger_name: 'Daily Attendance Notification',
+    recipient_type: 'Parent',
+    template_id: 'tpl-001',
+    template_name: 'Attendance Alert',
+    is_enabled: true,
+    send_time: '09:30',
+    conditions: 'When marked absent',
+    created_at: '2024-01-01',
+    updated_at: '2024-01-15'
+  },
+  {
+    id: 'as-2',
+    trigger_type: 'Fees Due',
+    trigger_name: 'Fee Due Reminder',
+    recipient_type: 'Parent',
+    template_id: 'tpl-002',
+    template_name: 'Fee Reminder',
+    is_enabled: true,
+    send_time: '10:00',
+    conditions: '7 days before due date',
+    created_at: '2024-01-01',
+    updated_at: '2024-01-15'
+  },
+  {
+    id: 'as-3',
+    trigger_type: 'Exam Results',
+    trigger_name: 'Result Publication',
+    recipient_type: 'Student',
+    template_id: 'tpl-003',
+    template_name: 'Result Notification',
+    is_enabled: true,
+    send_time: '14:00',
+    conditions: 'When results are published',
+    created_at: '2024-01-01',
+    updated_at: '2024-01-15'
+  },
+  {
+    id: 'as-4',
+    trigger_type: 'Announcements',
+    trigger_name: 'School Announcements',
+    recipient_type: 'All',
+    template_id: 'tpl-004',
+    template_name: 'Announcement Template',
+    is_enabled: false,
+    send_time: '08:00',
+    conditions: 'Immediate',
+    created_at: '2024-01-01',
+    updated_at: '2024-01-15'
+  }
+];
+
+// Source: GatePassPage.tsx
+export const initialMockGatePasses: GatePass[] = [
+  {
+    id: 'gp-1',
+    student_id: 'STU-001',
+    student_name: 'John Doe',
+    class_name: 'Grade 10',
+    section: 'A',
+    pass_type: 'Early Departure',
+    reason: 'Family emergency - need to attend to sick relative',
+    departure_time: '2024-01-20T10:30:00',
+    return_time: '2024-01-20T14:00:00',
+    authorized_by: 'Robert Doe (Father)',
+    status: 'Approved',
+    approved_by: 'Principal',
+    approved_at: '2024-01-20T10:00:00',
+    issued_by: 'Security Guard',
+    issued_at: '2024-01-20T10:35:00',
+    created_at: '2024-01-20T09:30:00'
+  },
+  {
+    id: 'gp-2',
+    student_id: 'STU-002',
+    student_name: 'Jane Smith',
+    class_name: 'Grade 10',
+    section: 'B',
+    pass_type: 'Medical Emergency',
+    reason: 'Severe headache - needs medical attention',
+    departure_time: '2024-01-19T11:00:00',
+    authorized_by: 'William Smith (Father)',
+    status: 'Issued',
+    approved_by: 'School Nurse',
+    approved_at: '2024-01-19T10:50:00',
+    issued_by: 'School Nurse',
+    issued_at: '2024-01-19T11:05:00',
+    created_at: '2024-01-19T10:45:00'
+  },
+  {
+    id: 'gp-3',
+    student_id: 'STU-003',
+    student_name: 'Michael Johnson',
+    class_name: 'Grade 9',
+    section: 'A',
+    pass_type: 'Personal',
+    reason: 'Family function - cousin wedding',
+    departure_time: '2024-01-18T13:00:00',
+    return_time: '2024-01-18T17:00:00',
+    authorized_by: 'Johnson Family',
+    status: 'Pending',
+    created_at: '2024-01-18T09:00:00'
+  }
+];
+
+// Source: BulkAssignRollNumbersPage.tsx
+export const initialMockStudentRollNumbers: StudentRollNumber[] = [
+  {
+    id: 'rn-1',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    section: 'A',
+    roll_number: '1'
+  },
+  {
+    id: 'rn-2',
+    student_id: '2',
+    student_name: 'Jane Smith',
+    admission_no: 'ADM-002',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    section: 'A',
+    roll_number: '2'
+  },
+  {
+    id: 'rn-3',
+    student_id: '3',
+    student_name: 'Michael Johnson',
+    admission_no: 'ADM-003',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    section: 'B',
+    roll_number: ''
+  },
+  {
+    id: 'rn-4',
+    student_id: '4',
+    student_name: 'Emily Davis',
+    admission_no: 'ADM-004',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    section: 'B',
+    roll_number: ''
+  },
+  {
+    id: 'rn-5',
+    student_id: '5',
+    student_name: 'Robert Wilson',
+    admission_no: 'ADM-005',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    section: 'A',
+    roll_number: ''
+  }
+];
+
+// Source: DynamicAttendancePage.tsx
+export const initialMockSessionAttendance: SessionAttendance[] = [
+  {
+    id: 'da-1',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    session_id: '1',
+    session_name: 'Morning Session',
+    check_in_time: '08:15',
+    check_out_time: '14:30',
+    status: 'Present',
+    notes: ''
+  },
+  {
+    id: 'da-2',
+    student_id: '2',
+    student_name: 'Jane Smith',
+    admission_no: 'ADM-002',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    session_id: '1',
+    session_name: 'Morning Session',
+    check_in_time: '08:30',
+    status: 'Present',
+    notes: ''
+  },
+  {
+    id: 'da-3',
+    student_id: '3',
+    student_name: 'Michael Johnson',
+    admission_no: 'ADM-003',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    session_id: '1',
+    session_name: 'Morning Session',
+    status: 'Absent',
+    notes: 'Not checked in'
+  },
+  {
+    id: 'da-4',
+    student_id: '4',
+    student_name: 'Emily Davis',
+    admission_no: 'ADM-004',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    session_id: '1',
+    session_name: 'Morning Session',
+    check_in_time: '08:45',
+    status: 'Late',
+    notes: 'Arrived 15 minutes late'
+  },
+  {
+    id: 'da-5',
+    student_id: '5',
+    student_name: 'Robert Wilson',
+    admission_no: 'ADM-005',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    session_id: '2',
+    session_name: 'Afternoon Session',
+    status: 'Absent',
+    notes: ''
+  }
+];
+
+// Source: ScholarshipTrackingPage.tsx
+export const initialMockScholarshipRecords: ScholarshipRecord[] = [
+  {
+    id: 'sch-1',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    scholarship_type: 'Merit Scholarship',
+    amount: 5000,
+    academic_year: '2024-2025',
+    status: 'Active',
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    criteria: 'Top 5% in class',
+    notes: 'Renewable annually'
+  },
+  {
+    id: 'sch-2',
+    student_id: '2',
+    student_name: 'Jane Smith',
+    admission_no: 'ADM-002',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    scholarship_type: 'Need-Based Scholarship',
+    amount: 3000,
+    academic_year: '2024-2025',
+    status: 'Active',
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    criteria: 'Family income below threshold',
+    notes: ''
+  },
+  {
+    id: 'sch-3',
+    student_id: '3',
+    student_name: 'Michael Johnson',
+    admission_no: 'ADM-003',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    scholarship_type: 'Sports Scholarship',
+    amount: 4000,
+    academic_year: '2024-2025',
+    status: 'Active',
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    criteria: 'State-level sports achievement',
+    notes: 'Football team captain'
+  },
+  {
+    id: 'sch-4',
+    student_id: '4',
+    student_name: 'Emily Davis',
+    admission_no: 'ADM-004',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    scholarship_type: 'Merit Scholarship',
+    amount: 5000,
+    academic_year: '2023-2024',
+    status: 'Inactive',
+    start_date: '2023-01-01',
+    end_date: '2023-12-31',
+    criteria: 'Top 10% in class',
+    notes: 'Completed'
+  },
+  {
+    id: 'sch-5',
+    student_id: '5',
+    student_name: 'Robert Wilson',
+    admission_no: 'ADM-005',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    scholarship_type: 'Need-Based Scholarship',
+    amount: 2500,
+    academic_year: '2024-2025',
+    status: 'Pending',
+    start_date: '2024-04-01',
+    end_date: '2024-12-31',
+    criteria: 'Financial hardship',
+    notes: 'Awaiting approval'
+  }
+];
+
+// Source: SMSReportsPage.tsx
+export const initialMockSMSReports: SMSReport[] = [
+  {
+    id: 'sms-1',
+    recipient: 'STU-001',
+    recipient_name: 'John Doe',
+    recipient_type: 'Student',
+    phone: '+1234567890',
+    message: 'Your attendance for today has been marked as Present.',
+    template: 'Attendance Notification',
+    sent_date: '2024-01-15',
+    sent_time: '09:30',
+    status: 'Delivered',
+    delivery_date: '2024-01-15',
+    sender: 'System'
+  },
+  {
+    id: 'sms-2',
+    recipient: 'STU-002',
+    recipient_name: 'Jane Smith',
+    recipient_type: 'Student',
+    phone: '+1234567891',
+    message: 'Your fees for the current term are due. Please pay by the deadline.',
+    template: 'Fee Reminder',
+    sent_date: '2024-01-15',
+    sent_time: '10:00',
+    status: 'Delivered',
+    delivery_date: '2024-01-15',
+    sender: 'System'
+  },
+  {
+    id: 'sms-3',
+    recipient: 'STU-003',
+    recipient_name: 'Michael Johnson',
+    recipient_type: 'Student',
+    phone: '+1234567892',
+    message: 'Your attendance for today has been marked as Absent.',
+    template: 'Attendance Notification',
+    sent_date: '2024-01-15',
+    sent_time: '11:00',
+    status: 'Failed',
+    error_message: 'Invalid phone number',
+    sender: 'System'
+  },
+  {
+    id: 'sms-4',
+    recipient: 'STF-001',
+    recipient_name: 'Dr. Sarah Johnson',
+    recipient_type: 'Staff',
+    phone: '+1234567893',
+    message: 'Meeting scheduled for tomorrow at 10 AM in the conference room.',
+    template: 'Meeting Notification',
+    sent_date: '2024-01-14',
+    sent_time: '16:00',
+    status: 'Delivered',
+    delivery_date: '2024-01-14',
+    sender: 'Admin'
+  },
+  {
+    id: 'sms-5',
+    recipient: 'PAR-001',
+    recipient_name: 'Robert Wilson',
+    recipient_type: 'Parent',
+    phone: '+1234567894',
+    message: 'Your child was absent today. Please contact the school.',
+    template: 'Absence Alert',
+    sent_date: '2024-01-14',
+    sent_time: '15:00',
+    status: 'Pending',
+    sender: 'System'
+  }
+];
+
+// Source: StaffWalletPage.tsx
+export const initialMockWalletTransactions: WalletTransaction[] = [
+  {
+    id: 'wt-1',
+    staff_id: '1',
+    staff_name: 'Dr. Sarah Johnson',
+    employee_id: 'EMP-001',
+    department: 'Academic',
+    transaction_type: 'Advance',
+    amount: 5000,
+    date: '2024-01-15',
+    description: 'Medical emergency advance',
+    status: 'Approved',
+    balance: 5000
+  },
+  {
+    id: 'wt-2',
+    staff_id: '1',
+    staff_name: 'Dr. Sarah Johnson',
+    employee_id: 'EMP-001',
+    department: 'Academic',
+    transaction_type: 'Repayment',
+    amount: 1000,
+    date: '2024-02-15',
+    description: 'Monthly repayment',
+    status: 'Completed',
+    balance: 4000
+  },
+  {
+    id: 'wt-3',
+    staff_id: '2',
+    staff_name: 'Prof. Michael Chen',
+    employee_id: 'EMP-002',
+    department: 'Academic',
+    transaction_type: 'Loan',
+    amount: 25000,
+    date: '2024-01-20',
+    description: 'Home renovation loan',
+    status: 'Approved',
+    balance: 25000
+  },
+  {
+    id: 'wt-4',
+    staff_id: '3',
+    staff_name: 'Ms. Emily Davis',
+    employee_id: 'EMP-003',
+    department: 'Academic',
+    transaction_type: 'Deduction',
+    amount: 500,
+    date: '2024-02-01',
+    description: 'Absenteeism penalty',
+    status: 'Completed',
+    balance: -500
+  },
+  {
+    id: 'wt-5',
+    staff_id: '4',
+    staff_name: 'Mr. Robert Wilson',
+    employee_id: 'EMP-004',
+    department: 'Administration',
+    transaction_type: 'Advance',
+    amount: 3000,
+    date: '2024-02-10',
+    description: 'Travel advance',
+    status: 'Pending',
+    balance: 3000
+  }
+];
+
+// Source: StaffAttendancePage.tsx
+export const staffAttendanceRecords: StaffAttendanceRecord[] = [
+  {
+    id: 'sa-1',
+    staff_id: '1',
+    staff_name: 'Dr. Sarah Johnson',
+    employee_id: 'EMP-001',
+    department: 'Academic',
+    designation: 'Principal',
+    date: new Date().toISOString().split('T')[0],
+    check_in_time: '08:00',
+    check_out_time: '16:30',
+    status: 'Present',
+    notes: ''
+  },
+  {
+    id: 'sa-2',
+    staff_id: '2',
+    staff_name: 'Prof. Michael Chen',
+    employee_id: 'EMP-002',
+    department: 'Academic',
+    designation: 'Vice Principal',
+    date: new Date().toISOString().split('T')[0],
+    check_in_time: '08:15',
+    status: 'Present',
+    notes: ''
+  },
+  {
+    id: 'sa-3',
+    staff_id: '3',
+    staff_name: 'Ms. Emily Davis',
+    employee_id: 'EMP-003',
+    department: 'Academic',
+    designation: 'Math Teacher',
+    date: new Date().toISOString().split('T')[0],
+    status: 'On Leave',
+    notes: 'Medical leave'
+  },
+  {
+    id: 'sa-4',
+    staff_id: '4',
+    staff_name: 'Mr. Robert Wilson',
+    employee_id: 'EMP-004',
+    department: 'Administration',
+    designation: 'Accountant',
+    date: new Date().toISOString().split('T')[0],
+    check_in_time: '08:45',
+    status: 'Late',
+    notes: 'Traffic delay'
+  },
+  {
+    id: 'sa-5',
+    staff_id: '5',
+    staff_name: 'Mrs. Lisa Anderson',
+    employee_id: 'EMP-005',
+    department: 'Administration',
+    designation: 'HR Manager',
+    date: new Date().toISOString().split('T')[0],
+    check_in_time: '08:00',
+    check_out_time: '17:00',
+    status: 'Present',
+    notes: ''
+  }
+];
+
+// Source: StaffIDCardsPage.tsx
+export const staffIDCards: StaffIDCard[] = [
+  {
+    id: 'sidc-1',
+    staff_id: '1',
+    staff_name: 'Dr. Sarah Johnson',
+    employee_id: 'EMP-001',
+    department: 'Academic',
+    designation: 'Principal',
+    photo_url: '/placeholder-photo.jpg',
+    joining_date: '2015-06-15',
+    phone: '+1234567890',
+    email: 'sarah.johnson@school.edu',
+    address: '123 Education Lane'
+  },
+  {
+    id: 'sidc-2',
+    staff_id: '2',
+    staff_name: 'Prof. Michael Chen',
+    employee_id: 'EMP-002',
+    department: 'Academic',
+    designation: 'Vice Principal',
+    photo_url: '/placeholder-photo.jpg',
+    joining_date: '2017-08-20',
+    phone: '+1234567891',
+    email: 'michael.chen@school.edu',
+    address: '456 Academic Road'
+  },
+  {
+    id: 'sidc-3',
+    staff_id: '3',
+    staff_name: 'Ms. Emily Davis',
+    employee_id: 'EMP-003',
+    department: 'Academic',
+    designation: 'Math Teacher',
+    photo_url: '/placeholder-photo.jpg',
+    joining_date: '2019-03-10',
+    phone: '+1234567892',
+    email: 'emily.davis@school.edu',
+    address: '789 Teacher Street'
+  },
+  {
+    id: 'sidc-4',
+    staff_id: '4',
+    staff_name: 'Mr. Robert Wilson',
+    employee_id: 'EMP-004',
+    department: 'Administration',
+    designation: 'Accountant',
+    photo_url: '/placeholder-photo.jpg',
+    joining_date: '2018-11-25',
+    phone: '+1234567893',
+    email: 'robert.wilson@school.edu',
+    address: '321 Finance Avenue'
+  },
+  {
+    id: 'sidc-5',
+    staff_id: '5',
+    staff_name: 'Mrs. Lisa Anderson',
+    employee_id: 'EMP-005',
+    department: 'Administration',
+    designation: 'HR Manager',
+    photo_url: '/placeholder-photo.jpg',
+    joining_date: '2020-07-30',
+    phone: '+1234567894',
+    email: 'lisa.anderson@school.edu',
+    address: '654 HR Boulevard'
+  }
+];
+
+// Source: StudentBioDataPage.tsx
+export const studentBioData: StudentBioData[] = [
+  {
+    id: 'stu-1',
+    student_id: 'STU-001',
+    name: 'John Doe',
+    class_name: 'Grade 10',
+    section: 'A',
+    roll_number: '001',
+    date_of_birth: '2008-05-20',
+    gender: 'Male',
+    blood_group: 'O+',
+    nationality: 'Kenyan',
+    religion: 'Christian',
+    mother_tongue: 'English',
+    phone: '+254700123456',
+    email: 'john.doe@student.edu',
+    address: '123 Education Lane',
+    city: 'Nairobi',
+    state: 'Nairobi County',
+    postal_code: '00100',
+    father_name: 'Robert Doe',
+    father_phone: '+254700789012',
+    father_occupation: 'Engineer',
+    mother_name: 'Mary Doe',
+    mother_phone: '+254700345678',
+    mother_occupation: 'Teacher',
+    medical_conditions: [
+      { id: 'm1', condition: 'Asthma', diagnosis_date: '2015-03-10', severity: 'Moderate', treatment: 'Inhaler as needed', notes: 'Triggered by dust and pollen' }
+    ],
+    emergency_contacts: [
+      { id: 'e1', name: 'Robert Doe', relationship: 'Father', phone: '+254700789012', address: '123 Education Lane, Nairobi', is_primary: true },
+      { id: 'e2', name: 'Mary Doe', relationship: 'Mother', phone: '+254700345678', address: '123 Education Lane, Nairobi', is_primary: false }
+    ],
+    documents: [
+      { id: 'd1', document_type: 'Birth Certificate', document_number: 'BC-2008-12345', issue_date: '2008-06-15', issuing_authority: 'Civil Registration' },
+      { id: 'd2', document_type: 'National ID', document_number: '12345678', issue_date: '2023-01-10', issuing_authority: 'Immigration Department' }
+    ],
+    allergies: ['Peanuts', 'Dust'],
+    created_at: '2019-01-15'
+  },
+  {
+    id: 'stu-2',
+    student_id: 'STU-002',
+    name: 'Jane Smith',
+    class_name: 'Grade 10',
+    section: 'B',
+    roll_number: '002',
+    date_of_birth: '2008-08-15',
+    gender: 'Female',
+    blood_group: 'A+',
+    nationality: 'Kenyan',
+    religion: 'Christian',
+    mother_tongue: 'Swahili',
+    phone: '+254700234567',
+    email: 'jane.smith@student.edu',
+    address: '456 Academic Road',
+    city: 'Mombasa',
+    state: 'Mombasa County',
+    postal_code: '80100',
+    father_name: 'William Smith',
+    father_phone: '+254700456789',
+    father_occupation: 'Doctor',
+    mother_name: 'Elizabeth Smith',
+    mother_phone: '+254700567890',
+    mother_occupation: 'Nurse',
+    medical_conditions: [],
+    emergency_contacts: [
+      { id: 'e1', name: 'William Smith', relationship: 'Father', phone: '+254700456789', address: '456 Academic Road, Mombasa', is_primary: true }
+    ],
+    documents: [
+      { id: 'd1', document_type: 'Birth Certificate', document_number: 'BC-2008-67890', issue_date: '2008-09-20', issuing_authority: 'Civil Registration' }
+    ],
+    allergies: [],
+    created_at: '2019-01-15'
+  }
+];
+
+// Source: StudentIDCardsPage.tsx
+export const studentIDCards: StudentIDCard[] = [
+  {
+    id: 'idc-1',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    section: 'A',
+    roll_number: '1',
+    photo_url: '/placeholder-photo.jpg',
+    dob: '2008-05-15',
+    blood_group: 'O+',
+    emergency_contact: '+1234567890',
+    academic_year: '2024-2025'
+  },
+  {
+    id: 'idc-2',
+    student_id: '2',
+    student_name: 'Jane Smith',
+    admission_no: 'ADM-002',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    section: 'A',
+    roll_number: '2',
+    photo_url: '/placeholder-photo.jpg',
+    dob: '2008-08-20',
+    blood_group: 'A+',
+    emergency_contact: '+1234567891',
+    academic_year: '2024-2025'
+  },
+  {
+    id: 'idc-3',
+    student_id: '3',
+    student_name: 'Michael Johnson',
+    admission_no: 'ADM-003',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    section: 'B',
+    roll_number: '1',
+    photo_url: '/placeholder-photo.jpg',
+    dob: '2008-03-10',
+    blood_group: 'B+',
+    emergency_contact: '+1234567892',
+    academic_year: '2024-2025'
+  },
+  {
+    id: 'idc-4',
+    student_id: '4',
+    student_name: 'Emily Davis',
+    admission_no: 'ADM-004',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    section: 'B',
+    roll_number: '2',
+    photo_url: '/placeholder-photo.jpg',
+    dob: '2008-11-25',
+    blood_group: 'AB+',
+    emergency_contact: '+1234567893',
+    academic_year: '2024-2025'
+  },
+  {
+    id: 'idc-5',
+    student_id: '5',
+    student_name: 'Robert Wilson',
+    admission_no: 'ADM-005',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    section: 'A',
+    roll_number: '1',
+    photo_url: '/placeholder-photo.jpg',
+    dob: '2007-07-30',
+    blood_group: 'O-',
+    emergency_contact: '+1234567894',
+    academic_year: '2024-2025'
+  }
+];
+
+// Source: TransferCertificatePage.tsx
+export const transferCertificateStudents: TransferCertificateStudent[] = [
+  {
+    id: 'stu-1',
+    student_id: 'STU-001',
+    name: 'John Doe',
+    class_name: 'Grade 10',
+    section: 'A',
+    roll_number: '001',
+    admission_date: '2019-01-15',
+    father_name: 'Robert Doe',
+    mother_name: 'Mary Doe',
+    date_of_birth: '2008-05-20',
+    address: '123 Education Lane, City'
+  },
+  {
+    id: 'stu-2',
+    student_id: 'STU-002',
+    name: 'Jane Smith',
+    class_name: 'Grade 10',
+    section: 'B',
+    roll_number: '002',
+    admission_date: '2019-01-15',
+    father_name: 'William Smith',
+    mother_name: 'Elizabeth Smith',
+    date_of_birth: '2008-08-15',
+    address: '456 Academic Road, City'
+  },
+  {
+    id: 'stu-3',
+    student_id: 'STU-003',
+    name: 'Michael Johnson',
+    class_name: 'Grade 9',
+    section: 'A',
+    roll_number: '001',
+    admission_date: '2020-01-10',
+    father_name: 'David Johnson',
+    mother_name: 'Sarah Johnson',
+    date_of_birth: '2009-03-10',
+    address: '789 School Street, City'
+  }
+];

@@ -30,6 +30,10 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import {
+  initialMockExamPerformanceOverTimeData,
+  initialMockStreamPerformanceData
+} from '../data/mockData';
 
 interface SubjectAnalysisData {
   subjectId: number;
@@ -40,20 +44,6 @@ interface SubjectAnalysisData {
   averageScore: number;
   totalMarksPossible: number; 
 }
-
-// Mock data for performance over time chart
-const performanceOverTimeData = [
-  { name: 'Form 1 Alpha', exam1: 4.8, exam2: 4.6, exam3: 4.5 },
-  { name: 'Form 1 Moxie', exam1: 4.5, exam2: 4.4, exam3: 4.3 },
-  { name: 'Form 1 North', exam1: 4.2, exam2: 4.1, exam3: 4.0 },
-];
-
-// Mock data for stream performance area chart
-const streamPerformanceData = [
-  { name: '1 North', points: 4.2 },
-  { name: '1 Alpha', points: 4.6 },
-  { name: '1 Moxie', points: 4.8 },
-];
 
 const ExamAnalysisPage: React.FC = () => {
   const { t } = useTranslation('academics');
@@ -292,7 +282,7 @@ const ExamAnalysisPage: React.FC = () => {
             </div>
             <div className="p-4">
               <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={streamPerformanceData}>
+                <AreaChart data={initialMockStreamPerformanceData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
                   <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} domain={[3.5, 5]} />
@@ -338,7 +328,7 @@ const ExamAnalysisPage: React.FC = () => {
             </div>
             <div className="p-4">
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={performanceOverTimeData}>
+                <LineChart data={initialMockExamPerformanceOverTimeData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 12 }} />
                   <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} />

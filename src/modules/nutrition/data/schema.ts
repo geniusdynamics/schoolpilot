@@ -135,3 +135,52 @@ export const walletTransactionSchema: DatabaseSchema = createDatabaseSchema({
     required: ['id', 'student_id', 'transaction_date', 'transaction_type', 'amount', 'description', 'running_balance'],
     indexes: ['student_id', 'transaction_date']
 });
+
+// === REPORT / VIEW COLLECTIONS (seeded from mockData) ===
+
+export const foodItemSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'food_item',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the food item' }),
+        name: SchemaHelpers.string({ description: 'Food item name', maxLength: 200 }),
+        category: SchemaHelpers.string({ description: 'Category', maxLength: 100 }),
+        unit: SchemaHelpers.string({ description: 'Unit of measure', maxLength: 50 }),
+        quantity: SchemaHelpers.number({ description: 'Quantity' }),
+        min_stock_level: SchemaHelpers.number({ description: 'Minimum stock level' }),
+        cost_per_unit: SchemaHelpers.number({ description: 'Cost per unit' }),
+        total_cost: SchemaHelpers.number({ description: 'Total cost' }),
+        supplier: SchemaHelpers.string({ description: 'Supplier name', maxLength: 200 }),
+        last_restocked: SchemaHelpers.string({ description: 'Last restocked date', maxLength: 20 }),
+        expiry_date: SchemaHelpers.string({ description: 'Expiry date', maxLength: 20 }),
+        status: SchemaHelpers.string({ description: 'Inventory status', maxLength: 50, enum: ['In Stock', 'Low Stock', 'Out of Stock'] }),
+        dietary_suitable: SchemaHelpers.object({ description: 'Dietary restrictions' }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'name', 'category', 'unit', 'quantity', 'min_stock_level', 'cost_per_unit', 'total_cost', 'supplier', 'last_restocked', 'status', 'created_at', 'updated_at'],
+    indexes: ['name', 'category', 'status', 'supplier']
+});
+
+export const kitchenMealPlanSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'kitchen_meal_plan',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        id: SchemaHelpers.id({ description: 'Unique identifier for the kitchen meal plan' }),
+        meal_type: SchemaHelpers.string({ description: 'Meal type', maxLength: 50, enum: ['Breakfast', 'Lunch', 'Snack'] }),
+        day: SchemaHelpers.string({ description: 'Day of week', maxLength: 20 }),
+        menu_items: SchemaHelpers.object({ description: 'Menu items' }),
+        dietary_options: SchemaHelpers.object({ description: 'Dietary options' }),
+        estimated_cost_per_student: SchemaHelpers.number({ description: 'Estimated cost per student' }),
+        total_students: SchemaHelpers.number({ description: 'Total students', integer: true }),
+        total_cost: SchemaHelpers.number({ description: 'Total cost' }),
+        created_at: SchemaHelpers.timestamp({ description: 'Record creation timestamp' }),
+        updated_at: SchemaHelpers.timestamp({ description: 'Record last update timestamp' }),
+    },
+    required: ['id', 'meal_type', 'day', 'estimated_cost_per_student', 'total_students', 'total_cost', 'created_at', 'updated_at'],
+    indexes: ['meal_type', 'day']
+});

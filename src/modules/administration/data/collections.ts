@@ -85,6 +85,23 @@ export const administrationCollections = {
   visitor_logs: {
     schema: schemas.visitorLogSchema,
   },
+
+  // === REPORT / VIEW COLLECTIONS ===
+  staff_attendance_records: {
+    schema: schemas.staffAttendanceRecordSchema,
+  },
+  staff_id_cards: {
+    schema: schemas.staffIDCardSchema,
+  },
+  student_bio_data: {
+    schema: schemas.studentBioDataSchema,
+  },
+  student_id_cards: {
+    schema: schemas.studentIDCardSchema,
+  },
+  transfer_certificate_students: {
+    schema: schemas.transferCertificateStudentSchema,
+  },
 };
 
 // Type helper for consumers of this module's collections (optional)

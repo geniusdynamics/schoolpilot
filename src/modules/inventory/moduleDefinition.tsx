@@ -44,6 +44,7 @@ export const inventoryModule: ModuleDefinition = {
     { name: 'navigation:inventory.warehouses', path: '/inventory/warehouses', icon: BuildingOffice2Icon, page: 'WarehousesPage' },
     { name: 'navigation:inventory.schoolProcurementDashboard', path: '/inventory/school-procurement-dashboard', icon: ChartBarIcon, page: 'SchoolProcurementDashboardPage' },
     { name: 'navigation:inventory.vendorPortalDashboard', path: '/inventory/vendor-portal-dashboard', icon: UserGroupIcon, page: 'VendorPortalDashboardPage' },
+    { name: 'navigation:inventory.stationery', path: '/inventory/stationery', icon: CubeIcon, page: 'StationeryPage' },
   ],
   features: ['inventory-management', 'procurement', 'asset-tracking', 'stock-control'],
   dependencies: [

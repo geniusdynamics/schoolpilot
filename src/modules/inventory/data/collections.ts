@@ -45,6 +45,11 @@ export const inventoryCollections = {
   stock_alerts: {
     schema: schemas.stockAlertSchema,
   },
+
+  // === REPORT / VIEW COLLECTIONS ===
+  stationery_items: {
+    schema: schemas.stationeryItemSchema,
+  },
 };
 
 // Type helper for consumers of this module's collections (optional)

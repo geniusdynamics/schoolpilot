@@ -85,7 +85,9 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     const [namespace, key] = itemName.includes(':') 
       ? itemName.split(':') 
       : ['navigation', itemName];
-    return t(key, { ns: namespace });
+    const translated = t(key, { ns: namespace, defaultValue: key });
+    // If translation returns the key itself, it means translation is missing
+    return translated === key ? itemName : translated;
   };
   
   const {
@@ -339,7 +341,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                             isFullWidth={isFullWidth}
                                             isAsPrimary={isAsPrimary}
                                           />
-                                          <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{child.name}</span>
+                                          <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{translateItemName(child.name)}</span>
                                         </button>
                                       </li>
                                     )}
@@ -366,7 +368,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                   isFullWidth={isFullWidth}
                                   isAsPrimary={isAsPrimary}
                                 />
-                                <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{child.name}</span>
+                                <span className={`font-medium ${isMobile ? 'text-base leading-relaxed' : 'text-sm'} truncate`}>{translateItemName(child.name)}</span>
                               </button>
                             </li>
                           ))}

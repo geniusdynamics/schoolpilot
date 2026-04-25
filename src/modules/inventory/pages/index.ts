@@ -15,3 +15,4 @@ export { default as FixedAssetsPage } from './FixedAssetsPage';
 export { default as WarehousesPage } from './WarehousesPage';
 export { default as SchoolProcurementDashboardPage } from './SchoolProcurementDashboardPage';
 export { default as VendorPortalDashboardPage } from './VendorPortalDashboardPage';
+export { default as StationeryPage } from './StationeryPage';

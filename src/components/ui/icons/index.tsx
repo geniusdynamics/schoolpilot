@@ -65,6 +65,9 @@ export {
   ArrowLeftOnRectangleIcon,
   ArrowPathIcon,
   MinusIcon,
+  PencilIcon,
+  PlayIcon,
+  StopIcon,
 } from './actions';
 
 // Status icons
@@ -132,6 +135,8 @@ export {
   TrophyIcon,
   CalculatorIcon,
   PaintBrushIcon,
+  KeyIcon,
+  WrenchIcon,
 } from './module';
 
 // Miscellaneous icons
@@ -156,6 +161,7 @@ export {
   LogOutIcon,
   MoreHorizontalIcon,
   ChatBubbleLeftRightIcon,
+  HeartIcon,
 } from './misc';
 
 // Re-export IconProps as default

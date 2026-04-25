@@ -90,3 +90,34 @@ export interface NutrWalletTransactionType {
 // WalletTransaction interface is now imported from core/types to avoid conflicts
 
 // Note: StudentWallet and Merchant interfaces are imported from core/types to avoid conflicts
+
+// Source: KitchenManagementPage.tsx
+export type DietaryRestriction = 'None' | 'Vegetarian' | 'Vegan' | 'Gluten-Free' | 'Dairy-Free' | 'Nut-Free' | 'Halal' | 'Kosher' | 'Other';
+export type InventoryStatus = 'In Stock' | 'Low Stock' | 'Out of Stock';
+
+export interface FoodItem {
+  id: string;
+  name: string;
+  category: string;
+  unit: string;
+  quantity: number;
+  min_stock_level: number;
+  cost_per_unit: number;
+  total_cost: number;
+  supplier: string;
+  last_restocked: string;
+  expiry_date?: string;
+  status: InventoryStatus;
+  dietary_suitable: DietaryRestriction[];
+}
+
+export interface KitchenMealPlan {
+  id: string;
+  meal_type: 'Breakfast' | 'Lunch' | 'Snack';
+  day: string;
+  menu_items: string[];
+  dietary_options: DietaryRestriction[];
+  estimated_cost_per_student: number;
+  total_students: number;
+  total_cost: number;
+}

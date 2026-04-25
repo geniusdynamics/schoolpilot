@@ -12,6 +12,7 @@ import {
   ChartBarIcon,
   ClipboardDocumentListIcon,
   CalendarDaysIcon,
+  CalendarIcon,
   UsersIcon,
   DocumentDuplicateIcon,
   PuzzlePieceIcon,
@@ -19,6 +20,7 @@ import {
   ClipboardDocumentCheckIcon,
   InboxIcon,
   PlusIcon,
+  MegaphoneIcon,
 } from '@/components/ui/icons';
 import { academicsPermissions, academicsDefaultRoles } from './rbac';
 
@@ -46,6 +48,14 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.studentExamResultsEntry', path: '/academics/student-exam-results-entry', icon: ClipboardDocumentListIcon, page: 'StudentExamResultsEntryPage' },
     { name: 'navigation:academics.gradingSchemes', path: '/academics/grading-schemes', icon: ListBulletIcon, page: 'GradingSchemesPage' },
     { name: 'navigation:academics.educationSystems', path: '/academics/education-systems', icon: ChartBarIcon, page: 'EducationSystemsPage' },
+    { name: 'navigation:academics.eventsManager', path: '/academics/events-manager', icon: CalendarIcon, page: 'EventsManagerPage' },
+    { name: 'navigation:academics.examTokens', path: '/academics/exam-tokens', icon: DocumentDuplicateIcon, page: 'ExamTokensPage' },
+    { name: 'navigation:academics.marksEntryByToken', path: '/academics/marks-entry-by-token', icon: DocumentDuplicateIcon, page: 'MarksEntryByTokenPage' },
+    { name: 'navigation:academics.verifyMarksCrossCheck', path: '/academics/verify-marks-cross-check', icon: DocumentDuplicateIcon, page: 'VerifyMarksCrossCheckPage' },
+    { name: 'navigation:academics.verifyMarksByStructure', path: '/academics/verify-marks-by-structure', icon: DocumentDuplicateIcon, page: 'VerifyMarksByStructurePage' },
+    { name: 'navigation:academics.examGazette', path: '/academics/exam-gazette', icon: DocumentTextIcon, page: 'ExamGazettePage' },
+    { name: 'navigation:academics.distributeResults', path: '/academics/distribute-results', icon: MegaphoneIcon, page: 'DistributeResultsPage' },
+    { name: 'navigation:academics.boardExamResults', path: '/academics/board-exam-results', icon: DocumentTextIcon, page: 'BoardExamResultsPage' },
     // Assignments sub-feature (merged from assignments module)
     { name: 'navigation:assignments.title', path: '/academics/assignments', icon: ClipboardDocumentListIcon, page: 'assignments/AssignmentsListPage', feature: 'assignment-management' },
     { name: 'navigation:assignments.create', path: '/academics/assignments/create', icon: PlusIcon, page: 'assignments/AssignmentsListPage', feature: 'assignment-management' },

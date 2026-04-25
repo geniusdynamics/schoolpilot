@@ -291,3 +291,22 @@ export type InvRequisitionItemType = RequisitionItem;
 export type InvRequisitionType = Requisition;
 export type InvPurchaseOrderItemType = PurchaseOrderItem;
 export type InvPurchaseOrderType = PurchaseOrder;
+
+// Source: StationeryPage.tsx
+export type StationeryCategory = 'Paper' | 'Pens' | 'Notebooks' | 'Files' | 'Art Supplies' | 'Office Supplies' | 'Other';
+export type AllocationStatus = 'Available' | 'Allocated' | 'Low Stock' | 'Out of Stock';
+
+export interface StationeryItem {
+  id: string;
+  name: string;
+  category: StationeryCategory;
+  description: string;
+  unit: string;
+  quantity: number;
+  min_stock_level: number;
+  allocated_to?: string;
+  department?: string;
+  status: AllocationStatus;
+  last_restocked: string;
+  created_at: string;
+}

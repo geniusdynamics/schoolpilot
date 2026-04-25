@@ -285,3 +285,27 @@ export const stockAlertSchema: DatabaseSchema = createDatabaseSchema({
     required: ['id', 'item_id', 'warehouse_id', 'alert_type', 'created_at'],
     indexes: ['item_id', 'warehouse_id', 'alert_type', 'acknowledged_at']
 });
+
+// === REPORT / VIEW COLLECTIONS (seeded from mockData) ===
+
+export const stationeryItemSchema: DatabaseSchema = createDatabaseSchema({
+    name: 'stationery_item',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.id('Unique identifier for the stationery item'),
+        name: SchemaHelpers.string('Item name', { maxLength: 200 }),
+        category: SchemaHelpers.string('Category', { maxLength: 50, enum: ['Paper', 'Pens', 'Notebooks', 'Files', 'Art Supplies', 'Office Supplies', 'Other'] }),
+        description: SchemaHelpers.string('Description', { maxLength: 500, nullable: true }),
+        unit: SchemaHelpers.string('Unit of measure', { maxLength: 50 }),
+        quantity: SchemaHelpers.number('Quantity', { minimum: 0, maximum: 999999999, integer: true }),
+        min_stock_level: SchemaHelpers.number('Minimum stock level', { minimum: 0, maximum: 999999999, integer: true }),
+        allocated_to: SchemaHelpers.string('Allocated to', { maxLength: 200, nullable: true }),
+        department: SchemaHelpers.string('Department', { maxLength: 100, nullable: true }),
+        status: SchemaHelpers.string('Status', { maxLength: 50, enum: ['Available', 'Allocated', 'Low Stock', 'Out of Stock'] }),
+        last_restocked: SchemaHelpers.string('Last restocked date', { maxLength: 20 }),
+        created_at: SchemaHelpers.timestamp('Record creation timestamp'),
+        updated_at: SchemaHelpers.timestamp('Record last update timestamp'),
+    },
+    required: ['id', 'name', 'category', 'unit', 'quantity', 'min_stock_level', 'status', 'last_restocked', 'created_at', 'updated_at'],
+    indexes: ['name', 'category', 'status', 'department']
+});

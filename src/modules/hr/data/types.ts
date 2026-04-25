@@ -83,3 +83,66 @@ export interface HRPayslipType {
 // PayslipItem interface is now imported from core/types to avoid conflicts
 
 // Payslip interface is now imported from core/types to avoid conflicts
+
+// === NEW TYPES FOR HR PAGES (from inline mock data migration) ===
+
+// Source: StaffBioDataPage.tsx
+export interface Qualification {
+  id: string;
+  degree: string;
+  institution: string;
+  year: string;
+  field: string;
+}
+
+export interface EmploymentHistory {
+  id: string;
+  organization: string;
+  position: string;
+  start_date: string;
+  end_date?: string;
+  reason_for_leaving?: string;
+}
+
+export type ContractStatus = 'Active' | 'Expired' | 'Terminated';
+
+export interface Contract {
+  id: string;
+  contract_type: string;
+  start_date: string;
+  end_date: string;
+  salary: number;
+  status: ContractStatus;
+}
+
+export interface PerformanceReview {
+  id: string;
+  review_period: string;
+  rating: number;
+  reviewer: string;
+  comments: string;
+  date: string;
+}
+
+export interface StaffBioData {
+  id: string;
+  staff_id: string;
+  name: string;
+  designation: string;
+  department: string;
+  date_of_birth: string;
+  gender: string;
+  marital_status: string;
+  blood_group: string;
+  phone: string;
+  email: string;
+  address: string;
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
+  emergency_contact_relation: string;
+  qualifications: Qualification[];
+  employment_history: EmploymentHistory[];
+  contracts: Contract[];
+  performance_reviews: PerformanceReview[];
+  created_at: string;
+}

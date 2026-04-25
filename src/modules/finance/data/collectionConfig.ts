@@ -41,6 +41,17 @@ const ALIASES: Record<string, string> = {
   supplier_invoices: 'supplierInvoices',
   general_payments: 'generalPayments',
   general_ledger_entries: 'generalLedgerEntries',
+
+  // Report / View collections
+  balance_sheet_items: 'balanceSheetItems',
+  cash_book_entries: 'cashBookEntries',
+  day_book_entries: 'dayBookEntries',
+  receipt_templates: 'receiptTemplates',
+  income_statement_items: 'incomeStatementItems',
+  journal_entries: 'journalEntries',
+  previous_session_fees: 'previousSessionFees',
+  student_payment_records: 'studentPaymentRecords',
+  trial_balance_items: 'trialBalanceItems',
 };
 
 /**

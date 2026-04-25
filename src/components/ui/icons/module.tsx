@@ -284,3 +284,15 @@ export const PaintBrushIcon: React.FC<IconProps> = (props) => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.077-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.048 4.025a3 3 0 01-1.162.175 3 3 0 01-1.162-.175m0 0a15.998 15.998 0 01-3.388-1.62m8.938 1.695a15.998 15.998 0 003.388-1.62m-5.048 4.025a3 3 0 01-1.162.175 3 3 0 01-1.162-.175m0 0c-1.175-.393-2.28-.985-3.272-1.757M18.75 3.75a2.25 2.25 0 012.25 2.25v1.5a2.25 2.25 0 01-2.25 2.25H3.75a2.25 2.25 0 01-2.25-2.25v-1.5a2.25 2.25 0 012.25-2.25h15z" />
   </svg>
 );
+
+export const KeyIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-3.814c0-.783.314-1.534.873-2.088l7.167-7.045a2.249 2.249 0 00-.232-3.12 6 6 0 0110.045-4.091 6 6 0 01-.092 9.06z" />
+  </svg>
+);
+
+export const WrenchIcon: React.FC<IconProps> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 2.25a2.121 2.121 0 01-.78 1.56l-1.27 1.27a2.122 2.122 0 01-3-3l1.27-1.27a2.121 2.121 0 012.79-.21l2.49 1.63c.53.35.78 1.01.49 1.58l-.87 1.58M10.5 8.25a3 3 0 00-3 3v.75M10.5 8.25V5.25M10.5 11.25V15m0-3.75h6M13.5 11.25V15m0-3.75V5.25M13.5 15h3.75M17.25 15V9.75M17.25 15l1.5-3M17.25 15l3 1.5M15 18.75h3.75M16.875 20.25h1.5M16.875 20.25l-1.5-3M16.875 20.25l3 1.5M16.875 20.25l-1.5-3L8.25 15m7.5 3.75L8.25 15M10.5 18.75L8.25 15M10.5 18.75L12 20.25" />
+  </svg>
+);

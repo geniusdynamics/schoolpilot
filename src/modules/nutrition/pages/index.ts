@@ -7,3 +7,4 @@ export { default as MerchantsPage } from './MerchantsPage';
 export { default as NutritionDashboardPage } from './NutritionDashboardPage';
 export { default as StudentMealAssignmentsPage } from './StudentMealAssignmentsPage';
 export { default as StudentWalletPage } from './StudentWalletPage';
+export { default as KitchenManagementPage } from './KitchenManagementPage';

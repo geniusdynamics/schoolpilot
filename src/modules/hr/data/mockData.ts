@@ -13,6 +13,7 @@ import {
     PayrollTaxImplication,
     PayslipStatus
 } from '@/core/types';
+import { StaffBioData } from './types';
 
 export const initialMockPayrollPeriods: PayrollPeriod[] = [
   { id: 1, name: 'July 2024 Payroll', start_date: '2024-07-01', end_date: '2024-07-31', financial_year_id: 2, school_period_id: 3, status: PayrollPeriodStatus.OPEN, financial_year_name: 'FY 2024', school_period_name: 'Term 3 - AY 2023/2024' },
@@ -285,6 +286,75 @@ export const payrollPeriods = initialMockPayrollPeriods;
 export const payrollItemTypes = initialMockPayrollItemTypes;
 export const staffSalarySettings = initialMockStaffSalarySettings;
 export const payslips = initialMockPayslips;
+
+// === NEW MOCK DATA EXPORTS FOR HR PAGES ===
+
+// Source: StaffBioDataPage.tsx
+export const initialMockStaffBioData: StaffBioData[] = [
+  {
+    id: 'staff-1',
+    staff_id: 'STF-001',
+    name: 'Dr. Sarah Johnson',
+    designation: 'Senior Teacher',
+    department: 'Academics',
+    date_of_birth: '1985-03-15',
+    gender: 'Female',
+    marital_status: 'Married',
+    blood_group: 'O+',
+    phone: '+254700123456',
+    email: 'sarah.johnson@school.edu',
+    address: '123 Education Lane, City',
+    emergency_contact_name: 'John Johnson',
+    emergency_contact_phone: '+254700789012',
+    emergency_contact_relation: 'Spouse',
+    qualifications: [
+      { id: 'q1', degree: 'Ph.D. in Mathematics', institution: 'University of Nairobi', year: '2015', field: 'Mathematics' },
+      { id: 'q2', degree: 'M.Ed. in Education', institution: 'Kenyatta University', year: '2010', field: 'Education' }
+    ],
+    employment_history: [
+      { id: 'eh1', organization: 'Nairobi High School', position: 'Mathematics Teacher', start_date: '2016-01-01', end_date: '2020-12-31' },
+      { id: 'eh2', organization: 'Greenwood High', position: 'Senior Teacher', start_date: '2021-01-01' }
+    ],
+    contracts: [
+      { id: 'c1', contract_type: 'Permanent', start_date: '2021-01-01', end_date: '2025-12-31', salary: 80000, status: 'Active' }
+    ],
+    performance_reviews: [
+      { id: 'pr1', review_period: '2023 Annual', rating: 4.5, reviewer: 'Principal', comments: 'Excellent performance', date: '2023-12-15' }
+    ],
+    created_at: '2021-01-01T00:00:00Z'
+  },
+  {
+    id: 'staff-2',
+    staff_id: 'STF-002',
+    name: 'Prof. Michael Chen',
+    designation: 'Head of Science',
+    department: 'Academics',
+    date_of_birth: '1978-07-22',
+    gender: 'Male',
+    marital_status: 'Married',
+    blood_group: 'A+',
+    phone: '+254700234567',
+    email: 'michael.chen@school.edu',
+    address: '456 Science Road, City',
+    emergency_contact_name: 'Lisa Chen',
+    emergency_contact_phone: '+254700890123',
+    emergency_contact_relation: 'Spouse',
+    qualifications: [
+      { id: 'q3', degree: 'Ph.D. in Physics', institution: 'MIT', year: '2008', field: 'Physics' }
+    ],
+    employment_history: [
+      { id: 'eh3', organization: 'Greenwood High', position: 'Science Teacher', start_date: '2010-01-01', end_date: '2018-12-31' },
+      { id: 'eh4', organization: 'Greenwood High', position: 'Head of Science', start_date: '2019-01-01' }
+    ],
+    contracts: [
+      { id: 'c2', contract_type: 'Permanent', start_date: '2019-01-01', end_date: '2026-12-31', salary: 95000, status: 'Active' }
+    ],
+    performance_reviews: [
+      { id: 'pr2', review_period: '2023 Annual', rating: 4.8, reviewer: 'Principal', comments: 'Outstanding leadership', date: '2023-12-15' }
+    ],
+    created_at: '2010-01-01T00:00:00Z'
+  }
+];
 
 
 

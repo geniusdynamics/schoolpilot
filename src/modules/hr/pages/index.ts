@@ -5,3 +5,4 @@ export { default as PayrollItemTypesPage } from './PayrollItemTypesPage';
 export { default as PayrollPeriodsPage } from './PayrollPeriodsPage';
 export { default as PayslipsPage } from './PayslipsPage';
 export { default as StaffSalarySettingsPage } from './StaffSalarySettingsPage';
+export { default as StaffBioDataPage } from './StaffBioDataPage';

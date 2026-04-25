@@ -246,6 +246,52 @@ export interface EnrollmentDetails {
   updatedAt: string;
 }
 
+// Program Type for filtering
+export enum ProgramType {
+  ALL = 'All',
+  PRIMARY = 'Primary',
+  SECONDARY = 'Secondary'
+}
+
+// Time period for filtering
+export enum TimePeriod {
+  YTD = 'YTD',
+  YOY = 'YoY',
+  MOM = 'MoM'
+}
+
+// Funnel Stage Interface
+export interface FunnelStage {
+  stage: string;
+  count: number;
+  percentage: number;
+  color: string;
+}
+
+// Monthly Data Point for time-series charts
+export interface MonthlyDataPoint {
+  month: string;
+  enquiries: number;
+  conversions: number;
+  applications: number;
+  enrolled: number;
+}
+
+// Pipeline Status Counts
+export interface PipelineCounts {
+  contacts: number;
+  enquired: number;
+  applied: number;
+  admitted: number;
+  enrolled: number;
+}
+
+// Trend data
+export interface TrendData {
+  direction: 'up' | 'down' | 'neutral';
+  value: string;
+}
+
 // Application Statistics Interface
 export interface ApplicationStatistics {
   totalApplications: number;
@@ -255,6 +301,9 @@ export interface ApplicationStatistics {
   deferred: number;
   waitlisted: number;
   enrolled: number;
+  
+  // Pipeline counts
+  pipeline: PipelineCounts;
   
   // Breakdown by class
   byClass: {
@@ -273,6 +322,27 @@ export interface ApplicationStatistics {
   thisMonth: number;
   thisWeek: number;
   today: number;
+  
+  // Time-series data for charts
+  monthlyData: MonthlyDataPoint[];
+  
+  // Conversion funnel data
+  funnel: FunnelStage[];
+  
+  // Post-admissions data
+  postAdmissions: {
+    declined: number;
+    enrolled: number;
+    total: number;
+  };
+  
+  // Trends
+  trends: {
+    enquiries: TrendData;
+    applications: TrendData;
+    enrollment: TrendData;
+    conversionRate: TrendData;
+  };
 }
 
 // Application Filter Interface
@@ -386,5 +456,9 @@ export type {
   DocumentUpload,
   ReviewFormData,
   DecisionFormData,
-  ApplicationActivity
+  ApplicationActivity,
+  FunnelStage,
+  MonthlyDataPoint,
+  PipelineCounts,
+  TrendData
 };

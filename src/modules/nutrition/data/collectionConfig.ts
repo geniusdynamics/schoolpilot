@@ -9,6 +9,10 @@ export const nutritionModuleCollections: ModuleCollectionsConfig = {
     nutrition_wallets: 'nutritionWallets',
     menus: 'menus',
     merchants: 'merchants',
+
+    // Report / View collections
+    food_inventory: 'foodInventory',
+    kitchen_meal_plans: 'kitchenMealPlans',
   },
 };
 

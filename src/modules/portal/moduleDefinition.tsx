@@ -23,37 +23,37 @@ export const portalModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     {
-      name: 'navigation:dashboard',
+      name: 'navigation:portal.dashboard',
       path: '/portal/dashboard',
       icon: HomeIcon,
       page: 'PortalDashboardPage',
     },
     {
-      name: 'navigation:attendance',
+      name: 'navigation:portal.attendance',
       path: '/portal/attendance',
       icon: CalendarDaysIcon,
       page: 'PortalAttendancePage',
     },
     {
-      name: 'navigation:results',
+      name: 'navigation:portal.results',
       path: '/portal/results',
       icon: ChartBarIcon,
       page: 'PortalResultsPage',
     },
     {
-      name: 'navigation:fees',
+      name: 'navigation:portal.fees',
       path: '/portal/fees',
       icon: CurrencyDollarIcon,
       page: 'PortalFeesPage',
     },
     {
-      name: 'navigation:announcements',
+      name: 'navigation:portal.announcements',
       path: '/portal/announcements',
       icon: MegaphoneIcon,
       page: 'PortalAnnouncementsPage',
     },
     {
-      name: 'navigation:profile',
+      name: 'navigation:portal.profile',
       path: '/portal/profile',
       icon: UserCircleIcon,
       page: 'PortalProfilePage',

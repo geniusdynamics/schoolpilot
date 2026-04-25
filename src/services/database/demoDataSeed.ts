@@ -72,7 +72,26 @@ const COLLECTION_NAME_EXCEPTIONS: Record<string, string> = {
   studentTransportAssignments: 'student_transport_assignments',
   generalPayments: 'general_payments',
   generalLedgerEntries: 'general_ledger_entries',
-  educationSystemConfigurations: 'education_system_configurations'
+  educationSystemConfigurations: 'education_system_configurations',
+
+  // Report / View collections
+  staffAttendanceRecords: 'staff_attendance_records',
+  staffIDCards: 'staff_id_cards',
+  studentBioData: 'student_bio_data',
+  studentIDCards: 'student_id_cards',
+  transferCertificateStudents: 'transfer_certificate_students',
+  balanceSheetItems: 'balance_sheet_items',
+  cashBookEntries: 'cash_book_entries',
+  dayBookEntries: 'day_book_entries',
+  receiptTemplates: 'receipt_templates',
+  incomeStatementItems: 'income_statement_items',
+  journalEntries: 'journal_entries',
+  previousSessionFees: 'previous_session_fees',
+  studentPaymentRecords: 'student_payment_records',
+  trialBalanceItems: 'trial_balance_items',
+  stationeryItems: 'stationery_items',
+  foodInventory: 'food_inventory',
+  kitchenMealPlans: 'kitchen_meal_plans'
 };
 
 const MODULE_NAME_ALIASES: Record<string, string> = {

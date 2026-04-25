@@ -63,5 +63,8 @@ export {
 // Export types
 export * from './types';
 
+// Export mock data
+export * from './mockData';
+
 // Export schemas
 export * from './schema';

@@ -164,6 +164,25 @@ export type AppDataType = {
   generalLedgerEntries: FinGeneralLedgerEntryType[];
   rfqs: RFQ[];
   educationSystemConfigurations: EducationSystemConfiguration[];
+
+  // Report / View collections
+  staffAttendanceRecords: any[];
+  staffIDCards: any[];
+  studentBioData: any[];
+  studentIDCards: any[];
+  transferCertificateStudents: any[];
+  balanceSheetItems: any[];
+  cashBookEntries: any[];
+  dayBookEntries: any[];
+  receiptTemplates: any[];
+  incomeStatementItems: any[];
+  journalEntries: any[];
+  previousSessionFees: any[];
+  studentPaymentRecords: any[];
+  trialBalanceItems: any[];
+  stationeryItems: any[];
+  foodInventory: any[];
+  kitchenMealPlans: any[];
 };
 
 // Loading states should only map over the data types

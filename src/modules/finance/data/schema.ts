@@ -381,3 +381,171 @@ export const generalLedgerEntriesSchema: DatabaseSchema = createDatabaseSchema({
     },
     required: ['id', 'transaction_date', 'effective_date', 'financial_year_id', 'account_id', 'description']
 });
+
+// === REPORT / VIEW COLLECTIONS (seeded from mockData) ===
+
+export const balanceSheetItemSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'balance_sheet_item',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        category: SchemaHelpers.string({ enum: ['Asset', 'Liability', 'Equity'], maxLength: 50 }),
+        subcategory: SchemaHelpers.string({ maxLength: 100 }),
+        account_name: SchemaHelpers.string({ maxLength: 200 }),
+        amount: SchemaHelpers.number({ minimum: -999999999.99, maximum: 999999999.99 }),
+        percentage: SchemaHelpers.number({ minimum: 0, maximum: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'category', 'subcategory', 'account_name', 'amount', 'created_at', 'updated_at']
+});
+
+export const cashBookEntrySchema: DatabaseSchema = createDatabaseSchema({
+    title: 'cash_book_entry',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        transaction_date: SchemaHelpers.string({ maxLength: 20 }),
+        description: SchemaHelpers.string({ maxLength: 500 }),
+        reference_no: SchemaHelpers.string({ maxLength: 50 }),
+        payment_method: SchemaHelpers.string({ maxLength: 50 }),
+        debit: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        credit: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        balance: SchemaHelpers.number({ minimum: -999999.99, maximum: 999999.99 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'transaction_date', 'description', 'reference_no', 'payment_method', 'debit', 'credit', 'balance', 'created_at', 'updated_at']
+});
+
+export const dayBookEntrySchema: DatabaseSchema = createDatabaseSchema({
+    title: 'day_book_entry',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        transaction_date: SchemaHelpers.string({ maxLength: 20 }),
+        description: SchemaHelpers.string({ maxLength: 500 }),
+        reference_no: SchemaHelpers.string({ maxLength: 50 }),
+        account_name: SchemaHelpers.string({ maxLength: 200 }),
+        debit: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        credit: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        source: SchemaHelpers.string({ maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'transaction_date', 'description', 'reference_no', 'account_name', 'debit', 'credit', 'source', 'created_at', 'updated_at']
+});
+
+export const receiptTemplateSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'receipt_template',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        name: SchemaHelpers.string({ maxLength: 200 }),
+        school_name: SchemaHelpers.string({ maxLength: 200 }),
+        school_address: SchemaHelpers.string({ maxLength: 500 }),
+        school_phone: SchemaHelpers.string({ maxLength: 50 }),
+        school_email: SchemaHelpers.string({ maxLength: 255 }),
+        header_text: SchemaHelpers.string({ maxLength: 500 }),
+        footer_text: SchemaHelpers.string({ maxLength: 500 }),
+        logo_url: SchemaHelpers.string({ maxLength: 500 }),
+        is_default: SchemaHelpers.boolean(),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'name', 'school_name', 'school_address', 'school_phone', 'school_email', 'header_text', 'footer_text', 'is_default', 'created_at', 'updated_at']
+});
+
+export const incomeStatementItemSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'income_statement_item',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        category: SchemaHelpers.string({ enum: ['Revenue', 'Expense'], maxLength: 50 }),
+        account_name: SchemaHelpers.string({ maxLength: 200 }),
+        amount: SchemaHelpers.number({ minimum: -999999999.99, maximum: 999999999.99 }),
+        percentage: SchemaHelpers.number({ minimum: 0, maximum: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'category', 'account_name', 'amount', 'created_at', 'updated_at']
+});
+
+export const journalEntrySchema: DatabaseSchema = createDatabaseSchema({
+    title: 'journal_entry',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        voucher_no: SchemaHelpers.string({ maxLength: 50 }),
+        transaction_date: SchemaHelpers.string({ maxLength: 20 }),
+        description: SchemaHelpers.string({ maxLength: 500 }),
+        reference: SchemaHelpers.string({ maxLength: 100 }),
+        debit_account: SchemaHelpers.string({ maxLength: 200 }),
+        credit_account: SchemaHelpers.string({ maxLength: 200 }),
+        debit_amount: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        credit_amount: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        status: SchemaHelpers.string({ enum: ['Posted', 'Draft', 'Cancelled'], maxLength: 50 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'voucher_no', 'transaction_date', 'description', 'reference', 'debit_account', 'credit_account', 'debit_amount', 'credit_amount', 'status', 'created_at', 'updated_at']
+});
+
+export const previousSessionFeeSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'previous_session_fee',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        student_id: SchemaHelpers.string({ maxLength: 100 }),
+        student_name: SchemaHelpers.string({ maxLength: 200 }),
+        admission_no: SchemaHelpers.string({ maxLength: 50 }),
+        class_name: SchemaHelpers.string({ maxLength: 100 }),
+        previous_session: SchemaHelpers.string({ maxLength: 100 }),
+        carry_over_amount: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        amount_paid: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        balance_remaining: SchemaHelpers.number({ minimum: -999999.99, maximum: 999999.99 }),
+        status: SchemaHelpers.string({ enum: ['Pending', 'Partial', 'Paid', 'Waived'], maxLength: 50 }),
+        current_session: SchemaHelpers.string({ maxLength: 100 }),
+        notes: SchemaHelpers.string({ maxLength: 500 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'student_id', 'student_name', 'admission_no', 'class_name', 'previous_session', 'carry_over_amount', 'status', 'current_session', 'notes', 'created_at', 'updated_at']
+});
+
+export const studentPaymentRecordSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'student_payment_record',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        student_id: SchemaHelpers.string({ maxLength: 100 }),
+        student_name: SchemaHelpers.string({ maxLength: 200 }),
+        admission_no: SchemaHelpers.string({ maxLength: 50 }),
+        class_name: SchemaHelpers.string({ maxLength: 100 }),
+        receipt_no: SchemaHelpers.string({ maxLength: 50 }),
+        transaction_date: SchemaHelpers.string({ maxLength: 20 }),
+        amount_paid: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        payment_method: SchemaHelpers.string({ maxLength: 50 }),
+        reference_no: SchemaHelpers.string({ maxLength: 100 }),
+        fee_type: SchemaHelpers.string({ maxLength: 100 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'student_id', 'student_name', 'admission_no', 'class_name', 'receipt_no', 'transaction_date', 'amount_paid', 'payment_method', 'reference_no', 'fee_type', 'created_at', 'updated_at']
+});
+
+export const trialBalanceItemSchema: DatabaseSchema = createDatabaseSchema({
+    title: 'trial_balance_item',
+    primaryKey: 'id',
+    properties: {
+        id: SchemaHelpers.string({ maxLength: 100 }),
+        account_code: SchemaHelpers.string({ maxLength: 50 }),
+        account_name: SchemaHelpers.string({ maxLength: 200 }),
+        account_type: SchemaHelpers.string({ enum: ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'], maxLength: 50 }),
+        debit_balance: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        credit_balance: SchemaHelpers.number({ minimum: 0, maximum: 999999.99 }),
+        created_at: SchemaHelpers.timestamp(),
+        updated_at: SchemaHelpers.timestamp(),
+    },
+    required: ['id', 'account_code', 'account_name', 'account_type', 'debit_balance', 'credit_balance', 'created_at', 'updated_at']
+});

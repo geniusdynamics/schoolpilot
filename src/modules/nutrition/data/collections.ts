@@ -25,6 +25,14 @@ export const nutritionCollections = {
   wallet_transactions: {
     schema: schemas.walletTransactionSchema,
   },
+
+  // === REPORT / VIEW COLLECTIONS ===
+  food_inventory: {
+    schema: schemas.foodItemSchema,
+  },
+  kitchen_meal_plans: {
+    schema: schemas.kitchenMealPlanSchema,
+  },
 };
 
 // Type helper for consumers of this module's collections (optional)

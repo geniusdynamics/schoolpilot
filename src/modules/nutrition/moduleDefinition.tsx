@@ -10,6 +10,7 @@ import {
   UserGroupIcon,
   CurrencyDollarIcon,
   CalendarDaysIcon,
+  CubeIcon,
 } from '@/components/ui/icons';
 import { nutritionPermissions, nutritionDefaultRoles } from './rbac';
 
@@ -29,6 +30,7 @@ export const nutritionModule: ModuleDefinition = {
     { name: 'navigation:nutrition.studentMealAssignments', path: '/nutrition/student-meal-assignments', icon: UserGroupIcon, page: 'StudentMealAssignmentsPage' },
     { name: 'navigation:nutrition.mealConsumptionLog', path: '/nutrition/meal-consumption-log', icon: ClipboardDocumentListIcon, page: 'MealConsumptionLogPage' },
     { name: 'navigation:nutrition.studentWallet', path: '/nutrition/student-wallet', icon: CurrencyDollarIcon, page: 'StudentWalletPage' },
+    { name: 'navigation:nutrition.kitchenManagement', path: '/nutrition/kitchen-management', icon: CubeIcon, page: 'KitchenManagementPage' },
   ],
   features: ['meal-planning', 'menu-management', 'student-nutrition', 'wallet-management'],
   dependencies: [

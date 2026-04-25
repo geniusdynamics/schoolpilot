@@ -7,6 +7,10 @@ import {
   FinancialYearStatus, AccountType, AccountTemplateType, ExpenseClaimantType, OpeningBalanceType,
   FeeAdjustmentType, TransportAssignmentStatus, InvoiceStatus, CustomerInvoiceStatus, SupplierInvoiceStatus, GeneralPayerType
 } from '@/core/types';
+import {
+  FeeDueRecord, BalanceSheetItem, CashBookEntry, DayBookEntry, ReceiptTemplate,
+  IncomeStatementItem, JournalEntry, PreviousSessionFee, StudentPaymentRecord, TrialBalanceItem
+} from './types';
 import { suppliers, supplierInvoices } from '@/globalMockData';
 
 const generateId = (prefix: string = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -259,3 +263,196 @@ export const invoicePaymentApplications = initialMockInvoicePaymentApplications;
 export const customerInvoices = initialMockCustomerInvoices;
 export const generalPayments = initialMockGeneralPayments;
 export const generalLedgerEntries = initialMockGeneralLedgerEntries;
+
+// === NEW MOCK DATA EXPORTS FOR FINANCE PAGES ===
+
+// Source: FeesDueReportPage.tsx
+export const initialMockFeeDueRecords: FeeDueRecord[] = [
+  {
+    id: 'due-1',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    class_name: 'Grade 10 - A',
+    guardian_name: 'Robert Doe',
+    guardian_phone: '+254 712 345 678',
+    total_amount_due: 50000,
+    amount_paid: 0,
+    balance_due: 50000,
+    due_date: new Date(Date.now() - 15 * 86400000).toISOString().split('T')[0],
+    days_overdue: 15,
+    aging_category: '1-30 Days',
+    school_period: 'Term 1 2024'
+  },
+  {
+    id: 'due-2',
+    student_id: '2',
+    student_name: 'Jane Smith',
+    admission_no: 'ADM-002',
+    class_name: 'Grade 10 - B',
+    guardian_name: 'Mary Smith',
+    guardian_phone: '+254 723 456 789',
+    total_amount_due: 45000,
+    amount_paid: 20000,
+    balance_due: 25000,
+    due_date: new Date(Date.now() - 45 * 86400000).toISOString().split('T')[0],
+    days_overdue: 45,
+    aging_category: '31-60 Days',
+    school_period: 'Term 1 2024'
+  },
+  {
+    id: 'due-3',
+    student_id: '3',
+    student_name: 'Michael Johnson',
+    admission_no: 'ADM-003',
+    class_name: 'Grade 11 - A',
+    guardian_name: 'James Johnson',
+    guardian_phone: '+254 734 567 890',
+    total_amount_due: 60000,
+    amount_paid: 0,
+    balance_due: 60000,
+    due_date: new Date(Date.now() - 95 * 86400000).toISOString().split('T')[0],
+    days_overdue: 95,
+    aging_category: '90+ Days',
+    school_period: 'Term 1 2024'
+  },
+  {
+    id: 'due-4',
+    student_id: '4',
+    student_name: 'Emily Davis',
+    admission_no: 'ADM-004',
+    class_name: 'Grade 9 - A',
+    guardian_name: 'David Davis',
+    guardian_phone: '+254 745 678 901',
+    total_amount_due: 55000,
+    amount_paid: 55000,
+    balance_due: 0,
+    due_date: new Date(Date.now() + 10 * 86400000).toISOString().split('T')[0],
+    days_overdue: -10,
+    aging_category: 'Current',
+    school_period: 'Term 1 2024'
+  },
+  {
+    id: 'due-5',
+    student_id: '5',
+    student_name: 'Robert Wilson',
+    admission_no: 'ADM-005',
+    class_name: 'Grade 12 - A',
+    guardian_name: 'Thomas Wilson',
+    guardian_phone: '+254 756 789 012',
+    total_amount_due: 70000,
+    amount_paid: 30000,
+    balance_due: 40000,
+    due_date: new Date(Date.now() - 75 * 86400000).toISOString().split('T')[0],
+    days_overdue: 75,
+    aging_category: '61-90 Days',
+    school_period: 'Term 1 2024'
+  }
+];
+
+// Source: BalanceSheetPage.tsx
+export const balanceSheetItems: BalanceSheetItem[] = [
+  { id: 'bs-1', category: 'Asset', subcategory: 'Current Assets', account_name: 'Cash at Bank', amount: 2500000, percentage: 71.4 },
+  { id: 'bs-2', category: 'Asset', subcategory: 'Current Assets', account_name: 'Petty Cash', amount: 50000, percentage: 1.4 },
+  { id: 'bs-3', category: 'Asset', subcategory: 'Current Assets', account_name: 'Accounts Receivable', amount: 850000, percentage: 24.3 },
+  { id: 'bs-4', category: 'Asset', subcategory: 'Current Assets', account_name: 'Prepaid Expenses', amount: 100000, percentage: 2.9 },
+  { id: 'bs-5', category: 'Asset', subcategory: 'Non-Current Assets', account_name: 'Land and Buildings', amount: 15000000, percentage: 85.7 },
+  { id: 'bs-6', category: 'Asset', subcategory: 'Non-Current Assets', account_name: 'Equipment and Furniture', amount: 2500000, percentage: 14.3 },
+  { id: 'bs-7', category: 'Liability', subcategory: 'Current Liabilities', account_name: 'Accounts Payable', amount: 450000, percentage: 78.9 },
+  { id: 'bs-8', category: 'Liability', subcategory: 'Current Liabilities', account_name: 'Accrued Expenses', amount: 120000, percentage: 21.1 },
+  { id: 'bs-9', category: 'Liability', subcategory: 'Non-Current Liabilities', account_name: 'Long-term Loans', amount: 5000000, percentage: 100 },
+  { id: 'bs-10', category: 'Equity', subcategory: 'Equity', account_name: "Capital / Owner's Equity", amount: 20000000, percentage: 100 },
+  { id: 'bs-11', category: 'Equity', subcategory: 'Equity', account_name: 'Retained Earnings', amount: 930000, percentage: 4.7 }
+];
+
+// Source: CashBookPage.tsx
+export const cashBookEntries: CashBookEntry[] = [
+  { id: 'cash-1', transaction_date: new Date().toISOString().split('T')[0], description: 'Student Fee Payment - John Doe', reference_no: 'RCP-2024-001', payment_method: 'Cash', debit: 0, credit: 50000, balance: 50000, created_at: new Date().toISOString() },
+  { id: 'cash-2', transaction_date: new Date().toISOString().split('T')[0], description: 'Office Supplies Purchase (Cash)', reference_no: 'EXP-2024-045', payment_method: 'Cash', debit: 5000, credit: 0, balance: 45000, created_at: new Date().toISOString() },
+  { id: 'cash-3', transaction_date: new Date().toISOString().split('T')[0], description: 'Student Fee Payment - Jane Smith', reference_no: 'RCP-2024-002', payment_method: 'Cash', debit: 0, credit: 45000, balance: 90000, created_at: new Date().toISOString() },
+  { id: 'cash-4', transaction_date: new Date().toISOString().split('T')[0], description: 'Petty Cash Replenishment', reference_no: 'CASH-2024-089', payment_method: 'Cash', debit: 20000, credit: 0, balance: 70000, created_at: new Date().toISOString() },
+  { id: 'cash-5', transaction_date: new Date().toISOString().split('T')[0], description: 'Transport Fee Collection', reference_no: 'RCP-2024-003', payment_method: 'Cash', debit: 0, credit: 10000, balance: 80000, created_at: new Date().toISOString() },
+  { id: 'cash-6', transaction_date: new Date().toISOString().split('T')[0], description: 'Canteen Payment - Supplier', reference_no: 'PAY-2024-090', payment_method: 'Cash', debit: 15000, credit: 0, balance: 65000, created_at: new Date().toISOString() }
+];
+
+// Source: DayBookPage.tsx
+export const dayBookEntries: DayBookEntry[] = [
+  { id: 'day-1', transaction_date: new Date().toISOString().split('T')[0], description: 'Student Fee Payment - John Doe', reference_no: 'RCP-2024-001', account_name: 'Student Fees Revenue', debit: 0, credit: 50000, source: 'Student Payment', created_at: new Date().toISOString() },
+  { id: 'day-2', transaction_date: new Date().toISOString().split('T')[0], description: 'Office Supplies Purchase', reference_no: 'EXP-2024-045', account_name: 'Office Expenses', debit: 5000, credit: 0, source: 'Expense', created_at: new Date().toISOString() },
+  { id: 'day-3', transaction_date: new Date().toISOString().split('T')[0], description: 'Student Fee Payment - Jane Smith', reference_no: 'RCP-2024-002', account_name: 'Student Fees Revenue', debit: 0, credit: 45000, source: 'Student Payment', created_at: new Date().toISOString() },
+  { id: 'day-4', transaction_date: new Date().toISOString().split('T')[0], description: 'Salary Payment - Teaching Staff', reference_no: 'PAY-2024-089', account_name: 'Salaries Expense', debit: 150000, credit: 0, source: 'Payroll', created_at: new Date().toISOString() },
+  { id: 'day-5', transaction_date: new Date().toISOString().split('T')[0], description: 'Transport Fee Collection', reference_no: 'RCP-2024-003', account_name: 'Transport Revenue', debit: 0, credit: 10000, source: 'Student Payment', created_at: new Date().toISOString() }
+];
+
+// Source: FeesReceiptTemplatePage.tsx
+export const receiptTemplates: ReceiptTemplate[] = [
+  {
+    id: 'tpl-1',
+    name: 'Default Receipt',
+    school_name: 'Example School',
+    school_address: '123 Education Street, City, Country',
+    school_phone: '+123 456 7890',
+    school_email: 'info@exampleschool.edu',
+    header_text: 'OFFICIAL RECEIPT',
+    footer_text: 'Thank you for your payment. Please keep this receipt for your records.',
+    logo_url: '',
+    is_default: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+// Source: IncomeStatementPage.tsx
+export const incomeStatementItems: IncomeStatementItem[] = [
+  { id: 'is-1', category: 'Revenue', account_name: 'Student Fees Revenue', amount: 3500000, percentage: 88.6 },
+  { id: 'is-2', category: 'Revenue', account_name: 'Transport Revenue', amount: 450000, percentage: 11.4 },
+  { id: 'is-3', category: 'Expense', account_name: 'Salaries Expense', amount: 1800000, percentage: 72.6 },
+  { id: 'is-4', category: 'Expense', account_name: 'Office Expenses', amount: 320000, percentage: 12.9 },
+  { id: 'is-5', category: 'Expense', account_name: 'Utilities Expense', amount: 150000, percentage: 6.1 },
+  { id: 'is-6', category: 'Expense', account_name: 'Maintenance Expense', amount: 95000, percentage: 3.8 },
+  { id: 'is-7', category: 'Expense', account_name: 'Transportation Expense', amount: 65000, percentage: 2.6 },
+  { id: 'is-8', category: 'Expense', account_name: 'Marketing Expense', amount: 40000, percentage: 1.6 },
+  { id: 'is-9', category: 'Expense', account_name: 'Other Expenses', amount: 15000, percentage: 0.4 }
+];
+
+// Source: JournalRegisterPage.tsx
+export const journalEntries: JournalEntry[] = [
+  { id: 'jv-1', voucher_no: 'JV-2024-001', transaction_date: new Date().toISOString().split('T')[0], description: 'Student Fee Payment - John Doe', reference: 'RCP-2024-001', debit_account: 'Cash at Bank', credit_account: 'Student Fees Revenue', debit_amount: 50000, credit_amount: 50000, status: 'Posted', created_at: new Date().toISOString() },
+  { id: 'jv-2', voucher_no: 'JV-2024-002', transaction_date: new Date(Date.now() - 86400000).toISOString().split('T')[0], description: 'Office Supplies Purchase', reference: 'EXP-2024-045', debit_account: 'Office Expenses', credit_account: 'Cash at Bank', debit_amount: 5000, credit_amount: 5000, status: 'Posted', created_at: new Date(Date.now() - 86400000).toISOString() },
+  { id: 'jv-3', voucher_no: 'JV-2024-003', transaction_date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0], description: 'Salary Payment - Teaching Staff', reference: 'PAY-2024-089', debit_account: 'Salaries Expense', credit_account: 'Cash at Bank', debit_amount: 150000, credit_amount: 150000, status: 'Posted', created_at: new Date(Date.now() - 86400000 * 2).toISOString() },
+  { id: 'jv-4', voucher_no: 'JV-2024-004', transaction_date: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0], description: 'Transport Fee Collection', reference: 'RCP-2024-003', debit_account: 'Cash at Bank', credit_account: 'Transport Revenue', debit_amount: 10000, credit_amount: 10000, status: 'Posted', created_at: new Date(Date.now() - 86400000 * 3).toISOString() },
+  { id: 'jv-5', voucher_no: 'JV-2024-005', transaction_date: new Date(Date.now() - 86400000 * 5).toISOString().split('T')[0], description: 'Petty Cash Replenishment', reference: 'CASH-2024-089', debit_account: 'Petty Cash', credit_account: 'Cash at Bank', debit_amount: 20000, credit_amount: 20000, status: 'Posted', created_at: new Date(Date.now() - 86400000 * 5).toISOString() }
+];
+
+// Source: PreviousSessionFeesPage.tsx
+export const previousSessionFees: PreviousSessionFee[] = [
+  { id: 'psf-1', student_id: '1', student_name: 'John Doe', admission_no: 'ADM-001', class_name: 'Grade 10 - A', previous_session: 'Term 3 2023', carry_over_amount: 15000, amount_paid: 15000, balance_remaining: 0, status: 'Paid', current_session: 'Term 1 2024', notes: 'Fully paid in January', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'psf-2', student_id: '2', student_name: 'Jane Smith', admission_no: 'ADM-002', class_name: 'Grade 10 - B', previous_session: 'Term 3 2023', carry_over_amount: 20000, amount_paid: 10000, balance_remaining: 10000, status: 'Partial', current_session: 'Term 1 2024', notes: 'Partial payment, remaining balance to be paid', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'psf-3', student_id: '3', student_name: 'Michael Johnson', admission_no: 'ADM-003', class_name: 'Grade 11 - A', previous_session: 'Term 3 2023', carry_over_amount: 5000, amount_paid: 0, balance_remaining: 5000, status: 'Pending', current_session: 'Term 1 2024', notes: 'Outstanding balance from previous session', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'psf-4', student_id: '4', student_name: 'Emily Davis', admission_no: 'ADM-004', class_name: 'Grade 9 - A', previous_session: 'Term 2 2023', carry_over_amount: 10000, amount_paid: 0, balance_remaining: 0, status: 'Waived', current_session: 'Term 1 2024', notes: 'Waived due to scholarship', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+];
+
+// Source: StudentsPaidBookPage.tsx
+export const studentPaymentRecords: StudentPaymentRecord[] = [
+  { id: 'pay-1', student_id: '1', student_name: 'John Doe', admission_no: 'ADM-001', class_name: 'Grade 10 - A', receipt_no: 'RCP-2024-001', transaction_date: new Date().toISOString().split('T')[0], amount_paid: 50000, payment_method: 'Cash', reference_no: 'REF-001', fee_type: 'Tuition Fee', created_at: new Date().toISOString() },
+  { id: 'pay-2', student_id: '2', student_name: 'Jane Smith', admission_no: 'ADM-002', class_name: 'Grade 10 - B', receipt_no: 'RCP-2024-002', transaction_date: new Date().toISOString().split('T')[0], amount_paid: 45000, payment_method: 'Bank Transfer', reference_no: 'REF-002', fee_type: 'Tuition Fee', created_at: new Date().toISOString() },
+  { id: 'pay-3', student_id: '3', student_name: 'Michael Johnson', admission_no: 'ADM-003', class_name: 'Grade 11 - A', receipt_no: 'RCP-2024-003', transaction_date: new Date(Date.now() - 86400000).toISOString().split('T')[0], amount_paid: 60000, payment_method: 'M-Pesa', reference_no: 'REF-003', fee_type: 'Tuition Fee', created_at: new Date(Date.now() - 86400000).toISOString() },
+  { id: 'pay-4', student_id: '1', student_name: 'John Doe', admission_no: 'ADM-001', class_name: 'Grade 10 - A', receipt_no: 'RCP-2024-004', transaction_date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0], amount_paid: 10000, payment_method: 'Cash', reference_no: 'REF-004', fee_type: 'Activity Fee', created_at: new Date(Date.now() - 86400000 * 2).toISOString() },
+  { id: 'pay-5', student_id: '4', student_name: 'Emily Davis', admission_no: 'ADM-004', class_name: 'Grade 9 - A', receipt_no: 'RCP-2024-005', transaction_date: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0], amount_paid: 55000, payment_method: 'Bank Transfer', reference_no: 'REF-005', fee_type: 'Tuition Fee', created_at: new Date(Date.now() - 86400000 * 3).toISOString() }
+];
+
+// Source: TrialBalancePage.tsx
+export const trialBalanceItems: TrialBalanceItem[] = [
+  { id: 'tb-1', account_code: '1001', account_name: 'Cash at Bank', account_type: 'Asset', debit_balance: 2500000, credit_balance: 0 },
+  { id: 'tb-2', account_code: '1002', account_name: 'Petty Cash', account_type: 'Asset', debit_balance: 50000, credit_balance: 0 },
+  { id: 'tb-3', account_code: '1003', account_name: 'Accounts Receivable', account_type: 'Asset', debit_balance: 850000, credit_balance: 0 },
+  { id: 'tb-4', account_code: '2001', account_name: 'Accounts Payable', account_type: 'Liability', debit_balance: 0, credit_balance: 450000 },
+  { id: 'tb-5', account_code: '2002', account_name: 'Accrued Expenses', account_type: 'Liability', debit_balance: 0, credit_balance: 120000 },
+  { id: 'tb-6', account_code: '3001', account_name: 'Capital / Equity', account_type: 'Equity', debit_balance: 0, credit_balance: 2000000 },
+  { id: 'tb-7', account_code: '4001', account_name: 'Student Fees Revenue', account_type: 'Revenue', debit_balance: 0, credit_balance: 3500000 },
+  { id: 'tb-8', account_code: '4002', account_name: 'Transport Revenue', account_type: 'Revenue', debit_balance: 0, credit_balance: 450000 },
+  { id: 'tb-9', account_code: '5001', account_name: 'Salaries Expense', account_type: 'Expense', debit_balance: 1800000, credit_balance: 0 },
+  { id: 'tb-10', account_code: '5002', account_name: 'Office Expenses', account_type: 'Expense', debit_balance: 320000, credit_balance: 0 },
+  { id: 'tb-11', account_code: '5003', account_name: 'Utilities Expense', account_type: 'Expense', debit_balance: 150000, credit_balance: 0 },
+  { id: 'tb-12', account_code: '5004', account_name: 'Maintenance Expense', account_type: 'Expense', debit_balance: 95000, credit_balance: 0 }
+];

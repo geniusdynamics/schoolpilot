@@ -16,6 +16,14 @@ export { default as TimetableEntriesPage } from './TimetableEntriesPage';
 export { default as EducationSystemsPage } from './EducationSystemsPage';
 export { default as EducationSystemConfigPage } from './EducationSystemConfigPage';
 export { default as ExamSchedulingPage } from './ExamSchedulingPage';
+export { default as EventsManagerPage } from './EventsManagerPage';
+export { default as ExamTokensPage } from './ExamTokensPage';
+export { default as MarksEntryByTokenPage } from './MarksEntryByTokenPage';
+export { default as VerifyMarksCrossCheckPage } from './VerifyMarksCrossCheckPage';
+export { default as VerifyMarksByStructurePage } from './VerifyMarksByStructurePage';
+export { default as ExamGazettePage } from './ExamGazettePage';
+export { default as DistributeResultsPage } from './DistributeResultsPage';
+export { default as BoardExamResultsPage } from './BoardExamResultsPage';
 
 // Assignments sub-feature pages (merged from assignments module)
 export { default as AssignmentsListPage } from './assignments/AssignmentsListPage';

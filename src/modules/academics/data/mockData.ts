@@ -688,3 +688,596 @@ export const allTeacherSubjectAssignments = comprehensiveAcademicData.teacherSub
 export const allStudentSubjectEnrollments = comprehensiveAcademicData.studentSubjectEnrollments;
 export const allStudentExamResults = comprehensiveAcademicData.studentExamResults;
 export const allStudentPaperMarks = comprehensiveAcademicData.studentPaperMarks;
+
+// === NEW MOCK DATA EXPORTS FOR ACADEMICS PAGES ===
+// Source: BoardExamResultsPage.tsx
+export const initialMockBoardExamResults: BoardExamResult[] = [
+  {
+    id: 'ber-1',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    board_exam_type: 'IGCSE',
+    subject_name: 'Mathematics',
+    paper_code: '0580/42',
+    grade: 'A*',
+    marks_obtained: 95,
+    max_marks: 100,
+    percentage: 95,
+    exam_date: '2024-06-15',
+    center_number: 'KE001',
+    candidate_number: '12345',
+    entered_at: new Date().toISOString()
+  },
+  {
+    id: 'ber-2',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    board_exam_type: 'IGCSE',
+    subject_name: 'Physics',
+    paper_code: '0625/42',
+    grade: 'A',
+    marks_obtained: 88,
+    max_marks: 100,
+    percentage: 88,
+    exam_date: '2024-06-20',
+    center_number: 'KE001',
+    candidate_number: '12345',
+    entered_at: new Date().toISOString()
+  },
+  {
+    id: 'ber-3',
+    student_id: '2',
+    student_name: 'Jane Smith',
+    admission_no: 'ADM-002',
+    board_exam_type: 'A-Level',
+    subject_name: 'Mathematics',
+    paper_code: '9709/33',
+    grade: 'A',
+    marks_obtained: 92,
+    max_marks: 100,
+    percentage: 92,
+    exam_date: '2024-06-18',
+    center_number: 'KE002',
+    candidate_number: '12346',
+    entered_at: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: 'ber-4',
+    student_id: '3',
+    student_name: 'Michael Johnson',
+    admission_no: 'ADM-003',
+    board_exam_type: 'IB',
+    subject_name: 'Mathematics HL',
+    paper_code: 'MATHHL',
+    grade: '6',
+    marks_obtained: 85,
+    max_marks: 100,
+    percentage: 85,
+    exam_date: '2024-05-10',
+    center_number: 'KE003',
+    candidate_number: '12347',
+    entered_at: new Date(Date.now() - 86400000 * 2).toISOString()
+  },
+  {
+    id: 'ber-5',
+    student_id: '4',
+    student_name: 'Emily Davis',
+    admission_no: 'ADM-004',
+    board_exam_type: 'SAT',
+    subject_name: 'Math',
+    paper_code: 'SAT-MATH',
+    grade: '750',
+    marks_obtained: 750,
+    max_marks: 800,
+    percentage: 93.75,
+    exam_date: '2024-03-15',
+    center_number: 'KE004',
+    candidate_number: '12348',
+    entered_at: new Date(Date.now() - 86400000 * 3).toISOString()
+  }
+];
+
+// Source: DistributeResultsPage.tsx
+export const initialMockResultDistributions: ResultDistribution[] = [
+  {
+    id: 'dist-1',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    distribution_method: 'Portal',
+    status: 'Distributed',
+    scheduled_date: new Date().toISOString(),
+    distributed_at: new Date().toISOString(),
+    recipients_count: 5,
+    success_count: 5,
+    failure_count: 0,
+    notes: 'Results published to student portal'
+  },
+  {
+    id: 'dist-2',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    distribution_method: 'SMS',
+    status: 'Distributed',
+    scheduled_date: new Date(Date.now() - 86400000).toISOString(),
+    distributed_at: new Date(Date.now() - 86400000).toISOString(),
+    recipients_count: 4,
+    success_count: 3,
+    failure_count: 1,
+    notes: 'SMS sent to 3 students, 1 failed'
+  },
+  {
+    id: 'dist-3',
+    exam_session_id: '2',
+    exam_session_name: 'Mid-Term Exams',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    distribution_method: 'Email',
+    status: 'Pending',
+    scheduled_date: new Date(Date.now() + 86400000).toISOString(),
+    recipients_count: 6,
+    success_count: 0,
+    failure_count: 0,
+    notes: 'Scheduled for tomorrow'
+  },
+  {
+    id: 'dist-4',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    class_id: '4',
+    class_name: 'Grade 9 - A',
+    distribution_method: 'Print',
+    status: 'Distributed',
+    scheduled_date: new Date(Date.now() - 86400000 * 2).toISOString(),
+    distributed_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    recipients_count: 7,
+    success_count: 7,
+    failure_count: 0,
+    notes: 'Printed copies distributed'
+  }
+];
+
+// Source: EventsManagerPage.tsx
+export const initialMockSchoolEvents: SchoolEvent[] = [
+  {
+    id: 'evt-1',
+    title: 'Mid-Term Examinations',
+    description: 'Mid-term examinations for all classes from Grade 1 to Grade 12',
+    event_type: 'Exam',
+    start_date: '2024-02-15',
+    end_date: '2024-02-28',
+    location: 'School Campus',
+    status: 'Upcoming',
+    organizer: 'Academic Department',
+    participants: 'All Students',
+    created_at: '2024-01-10'
+  },
+  {
+    id: 'evt-2',
+    title: 'Annual Sports Day',
+    description: 'Annual sports competition and prize distribution ceremony',
+    event_type: 'Sports',
+    start_date: '2024-03-10',
+    end_date: '2024-03-10',
+    location: 'School Ground',
+    status: 'Upcoming',
+    organizer: 'Sports Department',
+    participants: 'All Students and Staff',
+    created_at: '2024-01-05'
+  },
+  {
+    id: 'evt-3',
+    title: 'Spring Break',
+    description: 'Spring vacation for students and staff',
+    event_type: 'Holiday',
+    start_date: '2024-04-01',
+    end_date: '2024-04-15',
+    location: 'School Closed',
+    status: 'Upcoming',
+    organizer: 'Administration',
+    participants: 'All',
+    created_at: '2024-01-01'
+  },
+  {
+    id: 'evt-4',
+    title: 'Parent-Teacher Meeting',
+    description: 'Quarterly parent-teacher meeting to discuss student progress',
+    event_type: 'Meeting',
+    start_date: '2024-01-25',
+    end_date: '2024-01-25',
+    location: 'School Hall',
+    status: 'Upcoming',
+    organizer: 'Administration',
+    participants: 'Parents and Teachers',
+    created_at: '2024-01-08'
+  },
+  {
+    id: 'evt-5',
+    title: 'Science Fair',
+    description: 'Annual science exhibition showcasing student projects',
+    event_type: 'Function',
+    start_date: '2024-02-05',
+    end_date: '2024-02-05',
+    location: 'School Auditorium',
+    status: 'Upcoming',
+    organizer: 'Science Department',
+    participants: 'Grades 6-12',
+    created_at: '2024-01-03'
+  }
+];
+
+// Source: ExamGazettePage.tsx
+export const initialMockExamGazettes: ExamGazette[] = [
+  {
+    id: 'gaz-1',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    generated_at: new Date().toISOString(),
+    total_students: 5,
+    students: [
+      { id: 'gs-1', student_id: '1', student_name: 'Jane Smith', admission_no: 'ADM-002', rank: 1, total_marks: 465, average: 93, grade: 'A', position: '1st' },
+      { id: 'gs-2', student_id: '2', student_name: 'John Doe', admission_no: 'ADM-001', rank: 2, total_marks: 445, average: 89, grade: 'A', position: '2nd' },
+      { id: 'gs-3', student_id: '3', student_name: 'Emily Davis', admission_no: 'ADM-004', rank: 3, total_marks: 420, average: 84, grade: 'A', position: '3rd' },
+      { id: 'gs-4', student_id: '4', student_name: 'Michael Johnson', admission_no: 'ADM-003', rank: 4, total_marks: 390, average: 78, grade: 'B', position: '4th' },
+      { id: 'gs-5', student_id: '5', student_name: 'Robert Wilson', admission_no: 'ADM-005', rank: 5, total_marks: 375, average: 75, grade: 'B', position: '5th' }
+    ],
+    subjects: [
+      { id: 'gsj-1', subject_id: '1', subject_name: 'Mathematics', marks_obtained: 85, max_marks: 100, grade: 'A' },
+      { id: 'gsj-2', subject_id: '2', subject_name: 'English', marks_obtained: 92, max_marks: 100, grade: 'A' },
+      { id: 'gsj-3', subject_id: '3', subject_name: 'Science', marks_obtained: 78, max_marks: 100, grade: 'B' },
+      { id: 'gsj-4', subject_id: '4', subject_name: 'History', marks_obtained: 88, max_marks: 100, grade: 'A' },
+      { id: 'gsj-5', subject_id: '5', subject_name: 'Geography', marks_obtained: 82, max_marks: 100, grade: 'A' }
+    ]
+  },
+  {
+    id: 'gaz-2',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    generated_at: new Date(Date.now() - 86400000).toISOString(),
+    total_students: 4,
+    students: [
+      { id: 'gs-6', student_id: '6', student_name: 'Sarah Brown', admission_no: 'ADM-006', rank: 1, total_marks: 450, average: 90, grade: 'A', position: '1st' },
+      { id: 'gs-7', student_id: '7', student_name: 'David Lee', admission_no: 'ADM-007', rank: 2, total_marks: 425, average: 85, grade: 'A', position: '2nd' },
+      { id: 'gs-8', student_id: '8', student_name: 'Lisa Chen', admission_no: 'ADM-008', rank: 3, total_marks: 400, average: 80, grade: 'A', position: '3rd' },
+      { id: 'gs-9', student_id: '9', student_name: 'James Miller', admission_no: 'ADM-009', rank: 4, total_marks: 380, average: 76, grade: 'B', position: '4th' }
+    ],
+    subjects: [
+      { id: 'gsj-6', subject_id: '1', subject_name: 'Mathematics', marks_obtained: 90, max_marks: 100, grade: 'A' },
+      { id: 'gsj-7', subject_id: '2', subject_name: 'English', marks_obtained: 85, max_marks: 100, grade: 'A' },
+      { id: 'gsj-8', subject_id: '3', subject_name: 'Science', marks_obtained: 82, max_marks: 100, grade: 'A' },
+      { id: 'gsj-9', subject_id: '4', subject_name: 'History', marks_obtained: 88, max_marks: 100, grade: 'A' },
+      { id: 'gsj-10', subject_id: '5', subject_name: 'Geography', marks_obtained: 80, max_marks: 100, grade: 'A' }
+    ]
+  }
+];
+
+// Source: ExamTokensPage.tsx
+export const initialMockExamTokens: ExamToken[] = [
+  {
+    id: 'token-1',
+    token_code: 'TKN-2024-ABCD1234',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    teacher_id: '1',
+    teacher_name: 'John Smith',
+    subject_id: '1',
+    subject_name: 'Mathematics',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    generated_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 86400000 * 7).toISOString(),
+    status: 'Active'
+  },
+  {
+    id: 'token-2',
+    token_code: 'TKN-2024-EFGH5678',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    teacher_id: '2',
+    teacher_name: 'Jane Doe',
+    subject_id: '2',
+    subject_name: 'English',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    generated_at: new Date(Date.now() - 86400000).toISOString(),
+    expires_at: new Date(Date.now() + 86400000 * 6).toISOString(),
+    status: 'Used',
+    used_at: new Date(Date.now() - 3600000).toISOString()
+  },
+  {
+    id: 'token-3',
+    token_code: 'TKN-2024-IJKL9012',
+    exam_session_id: '2',
+    exam_session_name: 'Mid-Term Exams',
+    teacher_id: '3',
+    teacher_name: 'Michael Johnson',
+    subject_id: '3',
+    subject_name: 'Science',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    generated_at: new Date(Date.now() - 86400000 * 10).toISOString(),
+    expires_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+    status: 'Expired'
+  }
+];
+
+// Source: MarksEntryByTokenPage.tsx
+export const initialMockMarksEntrySessions: MarksEntrySession[] = [
+  {
+    id: 'session-1',
+    token_code: 'TKN-2024-ABCD1234',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '1',
+    subject_name: 'Mathematics',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    teacher_id: '1',
+    teacher_name: 'John Smith',
+    status: 'In Progress',
+    marks: [
+      { id: 'mark-1', student_id: '1', student_name: 'John Doe', admission_no: 'ADM-001', marks_obtained: 85, marks_total: 100, grade: 'A', remarks: 'Excellent' },
+      { id: 'mark-2', student_id: '2', student_name: 'Jane Smith', admission_no: 'ADM-002', marks_obtained: 92, marks_total: 100, grade: 'A', remarks: 'Outstanding' },
+      { id: 'mark-3', student_id: '3', student_name: 'Michael Johnson', admission_no: 'ADM-003', marks_obtained: 78, marks_total: 100, grade: 'B', remarks: 'Good' }
+    ],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: 'session-2',
+    token_code: 'TKN-2024-EFGH5678',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '2',
+    subject_name: 'English',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    teacher_id: '2',
+    teacher_name: 'Jane Doe',
+    status: 'Completed',
+    marks: [
+      { id: 'mark-4', student_id: '4', student_name: 'Emily Davis', admission_no: 'ADM-004', marks_obtained: 88, marks_total: 100, grade: 'A', remarks: 'Very Good' },
+      { id: 'mark-5', student_id: '5', student_name: 'Robert Wilson', admission_no: 'ADM-005', marks_obtained: 75, marks_total: 100, grade: 'B', remarks: 'Good' }
+    ],
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    updated_at: new Date(Date.now() - 86400000).toISOString()
+  }
+];
+
+// Source: VerifyMarksByStructurePage.tsx
+export const initialMockStructureValidationItems: StructureValidationItem[] = [
+  {
+    id: 'sv-1',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '1',
+    subject_name: 'Mathematics',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    structure_component: 'Paper 1 - Theory',
+    expected_max_marks: 80,
+    actual_max_marks: 80,
+    marks_difference: 0,
+    status: 'Valid',
+    notes: 'Matches exam structure'
+  },
+  {
+    id: 'sv-2',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '1',
+    subject_name: 'Mathematics',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    structure_component: 'Paper 2 - Practical',
+    expected_max_marks: 20,
+    actual_max_marks: 20,
+    marks_difference: 0,
+    status: 'Valid',
+    notes: 'Matches exam structure'
+  },
+  {
+    id: 'sv-3',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '2',
+    subject_name: 'English',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    structure_component: 'Paper 1 - Comprehension',
+    expected_max_marks: 50,
+    actual_max_marks: 50,
+    marks_difference: 0,
+    status: 'Valid',
+    notes: 'Matches exam structure'
+  },
+  {
+    id: 'sv-4',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '2',
+    subject_name: 'English',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    structure_component: 'Paper 2 - Writing',
+    expected_max_marks: 50,
+    actual_max_marks: 45,
+    marks_difference: -5,
+    status: 'Invalid',
+    notes: 'Max marks do not match structure'
+  },
+  {
+    id: 'sv-5',
+    exam_session_id: '2',
+    exam_session_name: 'Mid-Term Exams',
+    subject_id: '3',
+    subject_name: 'Science',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    structure_component: 'Theory Paper',
+    expected_max_marks: 70,
+    actual_max_marks: 70,
+    marks_difference: 0,
+    status: 'Valid',
+    notes: 'Matches exam structure'
+  },
+  {
+    id: 'sv-6',
+    exam_session_id: '2',
+    exam_session_name: 'Mid-Term Exams',
+    subject_id: '3',
+    subject_name: 'Science',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    structure_component: 'Practical',
+    expected_max_marks: 30,
+    actual_max_marks: 28,
+    marks_difference: -2,
+    status: 'Warning',
+    notes: 'Minor discrepancy in max marks'
+  }
+];
+
+// Source: VerifyMarksCrossCheckPage.tsx
+export const initialMockCrossCheckRecords: CrossCheckRecord[] = [
+  {
+    id: 'cc-1',
+    student_id: '1',
+    student_name: 'John Doe',
+    admission_no: 'ADM-001',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '1',
+    subject_name: 'Mathematics',
+    class_id: '1',
+    class_name: 'Grade 10 - A',
+    primary_teacher_id: '1',
+    primary_teacher_name: 'John Smith',
+    primary_marks: 85,
+    verifying_teacher_id: '2',
+    verifying_teacher_name: 'Jane Doe',
+    verified_marks: 85,
+    marks_difference: 0,
+    status: 'Verified',
+    verified_at: new Date().toISOString(),
+    notes: 'Marks match perfectly'
+  },
+  {
+    id: 'cc-2',
+    student_id: '2',
+    student_name: 'Jane Smith',
+    admission_no: 'ADM-002',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '2',
+    subject_name: 'English',
+    class_id: '2',
+    class_name: 'Grade 10 - B',
+    primary_teacher_id: '3',
+    primary_teacher_name: 'Michael Johnson',
+    primary_marks: 92,
+    verifying_teacher_id: '4',
+    verifying_teacher_name: 'Emily Davis',
+    verified_marks: 88,
+    marks_difference: -4,
+    status: 'Discrepancy',
+    verified_at: new Date(Date.now() - 86400000).toISOString(),
+    notes: '4 mark difference found - needs review'
+  },
+  {
+    id: 'cc-3',
+    student_id: '3',
+    student_name: 'Michael Johnson',
+    admission_no: 'ADM-003',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '3',
+    subject_name: 'Science',
+    class_id: '3',
+    class_name: 'Grade 11 - A',
+    primary_teacher_id: '5',
+    primary_teacher_name: 'Robert Wilson',
+    primary_marks: 78,
+    verifying_teacher_id: '2',
+    verifying_teacher_name: 'Jane Doe',
+    verified_marks: 78,
+    marks_difference: 0,
+    status: 'Pending',
+    notes: null
+  },
+  {
+    id: 'cc-4',
+    student_id: '4',
+    student_name: 'Emily Davis',
+    admission_no: 'ADM-004',
+    exam_session_id: '1',
+    exam_session_name: 'Term 1 Final Exams',
+    subject_id: '1',
+    subject_name: 'Mathematics',
+    class_id: '4',
+    class_name: 'Grade 9 - A',
+    primary_teacher_id: '1',
+    primary_teacher_name: 'John Smith',
+    primary_marks: 75,
+    verifying_teacher_id: '3',
+    verifying_teacher_name: 'Michael Johnson',
+    verified_marks: 75,
+    marks_difference: 0,
+    status: 'Verified',
+    verified_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    notes: 'Verified and confirmed'
+  }
+];
+
+// Source: StudentExamAnalysisPage.tsx - Chart data
+export const initialMockSubjectPerformanceData: SubjectPerformanceDataPoint[] = [
+  { subject: 'English', student: 89, class: 76 },
+  { subject: 'Kiswahili', student: 88, class: 75 },
+  { subject: 'Mathematics', student: 59, class: 62 },
+  { subject: 'Biology', student: 72, class: 68 },
+  { subject: 'Physics', student: 65, class: 58 },
+  { subject: 'Chemistry', student: 78, class: 71 },
+  { subject: 'History', student: 82, class: 74 },
+  { subject: 'Geography', student: 71, class: 69 },
+  { subject: 'C.R.E', student: 85, class: 77 },
+  { subject: 'Agriculture', student: 76, class: 72 },
+  { subject: 'Business', student: 69, class: 65 },
+  { subject: 'Computer', student: 91, class: 78 }
+];
+
+export const initialMockPerformanceOverTimeData: PerformanceOverTimeDataPoint[] = [
+  { exam: 'Opener', student: 68, class: 64 },
+  { exam: 'Mid Term', student: 71, class: 66 },
+  { exam: 'End Term', student: 74, class: 68 }
+];
+
+export const initialMockSubjectBreakdownData: SubjectBreakdownDataPoint[] = [
+  { name: 'English', marks: 89, change: 15, grade: 'A', rank: 2 },
+  { name: 'Kiswahili', marks: 88, change: 11, grade: 'A', rank: 3 },
+  { name: 'Mathematics', marks: 59, change: -7, grade: 'B-', rank: 13 },
+  { name: 'Biology', marks: 72, change: 5, grade: 'B+', rank: 6 },
+  { name: 'Physics', marks: 65, change: 3, grade: 'B', rank: 8 },
+  { name: 'Chemistry', marks: 78, change: 8, grade: 'B+', rank: 4 }
+];
+
+// Source: ExamAnalysisPage.tsx - Chart data
+export const initialMockExamPerformanceOverTimeData: ExamPerformanceOverTimeDataPoint[] = [
+  { name: 'Form 1 Alpha', exam1: 4.8, exam2: 4.6, exam3: 4.5 },
+  { name: 'Form 1 Moxie', exam1: 4.5, exam2: 4.4, exam3: 4.3 },
+  { name: 'Form 1 North', exam1: 4.2, exam2: 4.1, exam3: 4.0 }
+];
+
+export const initialMockStreamPerformanceData: StreamPerformanceDataPoint[] = [
+  { name: '1 North', points: 4.2 },
+  { name: '1 Alpha', points: 4.6 },
+  { name: '1 Moxie', points: 4.8 }
+];

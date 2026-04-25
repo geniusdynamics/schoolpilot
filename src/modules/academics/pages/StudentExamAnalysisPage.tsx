@@ -22,39 +22,11 @@ import {
   Legend,
 
 } from 'recharts';
-
-// Mock data for subject performance comparison
-const subjectPerformanceData = [
-  { subject: 'English', student: 89, class: 76 },
-  { subject: 'Kiswahili', student: 88, class: 75 },
-  { subject: 'Mathematics', student: 59, class: 62 },
-  { subject: 'Biology', student: 72, class: 68 },
-  { subject: 'Physics', student: 65, class: 58 },
-  { subject: 'Chemistry', student: 78, class: 71 },
-  { subject: 'History', student: 82, class: 74 },
-  { subject: 'Geography', student: 71, class: 69 },
-  { subject: 'C.R.E', student: 85, class: 77 },
-  { subject: 'Agriculture', student: 76, class: 72 },
-  { subject: 'Business', student: 69, class: 65 },
-  { subject: 'Computer', student: 91, class: 78 },
-];
-
-// Mock data for performance over time
-const performanceOverTimeData = [
-  { exam: 'Opener', student: 68, class: 64 },
-  { exam: 'Mid Term', student: 71, class: 66 },
-  { exam: 'End Term', student: 74, class: 68 },
-];
-
-// Mock subject breakdown data
-const subjectBreakdownData = [
-  { name: 'English', marks: 89, change: 15, grade: 'A', rank: 2 },
-  { name: 'Kiswahili', marks: 88, change: 11, grade: 'A', rank: 3 },
-  { name: 'Mathematics', marks: 59, change: -7, grade: 'B-', rank: 13 },
-  { name: 'Biology', marks: 72, change: 5, grade: 'B+', rank: 6 },
-  { name: 'Physics', marks: 65, change: 3, grade: 'B', rank: 8 },
-  { name: 'Chemistry', marks: 78, change: 8, grade: 'B+', rank: 4 },
-];
+import {
+  initialMockSubjectPerformanceData,
+  initialMockPerformanceOverTimeData,
+  initialMockSubjectBreakdownData
+} from '../data/mockData';
 
 const StudentExamAnalysisPage: React.FC = () => {
   useTranslation('academics');
@@ -160,7 +132,7 @@ const StudentExamAnalysisPage: React.FC = () => {
         </div>
         <div className="p-4">
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={subjectPerformanceData}>
+            <AreaChart data={initialMockSubjectPerformanceData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis 
                 dataKey="subject" 
@@ -216,7 +188,7 @@ const StudentExamAnalysisPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {subjectBreakdownData.map((subject) => (
+                {initialMockSubjectBreakdownData.map((subject) => (
                   <tr key={subject.name} className="hover:bg-gray-50/50">
                     <td className="px-4 py-3 text-sm text-gray-900">{subject.name}</td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{subject.marks}%</td>
@@ -250,7 +222,7 @@ const StudentExamAnalysisPage: React.FC = () => {
           </div>
           <div className="p-4">
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={performanceOverTimeData}>
+              <LineChart data={initialMockPerformanceOverTimeData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="exam" tick={{ fill: '#6b7280', fontSize: 12 }} />
                 <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} domain={[60, 80]} />

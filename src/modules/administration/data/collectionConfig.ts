@@ -50,6 +50,13 @@ export const administrationModuleCollections: ModuleCollectionsConfig = {
     // Imports
     student_import_sessions: 'studentImportSessions',
     student_import_records: 'studentImportRecords',
+
+    // Report / View collections
+    staff_attendance_records: 'staffAttendanceRecords',
+    staff_id_cards: 'staffIDCards',
+    student_bio_data: 'studentBioData',
+    student_id_cards: 'studentIDCards',
+    transfer_certificate_students: 'transferCertificateStudents',
   },
 };
 

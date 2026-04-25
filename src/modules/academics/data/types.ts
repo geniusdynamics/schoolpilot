@@ -346,6 +346,222 @@ export interface ResultApprovalEntity {
   audit_trail: AuditLog[];
 }
 
+// === NEW TYPES FOR ACADEMICS PAGES (from inline mock data migration) ===
+
+export type BoardExamType = 'IGCSE' | 'A-Level' | 'IB' | 'SAT' | 'Other';
+
+export interface BoardExamResult {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  board_exam_type: BoardExamType;
+  subject_name: string;
+  paper_code: string;
+  grade: string;
+  marks_obtained: number;
+  max_marks: number;
+  percentage: number;
+  exam_date: string;
+  center_number: string;
+  candidate_number: string;
+  entered_at: string;
+}
+
+export type DistributionMethod = 'Portal' | 'SMS' | 'Email' | 'Print';
+export type DistributionStatus = 'Pending' | 'Distributed' | 'Failed';
+
+export interface ResultDistribution {
+  id: string;
+  exam_session_id: string;
+  exam_session_name: string;
+  class_id: string;
+  class_name: string;
+  distribution_method: DistributionMethod;
+  status: DistributionStatus;
+  scheduled_date: string;
+  distributed_at?: string | null;
+  recipients_count: number;
+  success_count: number;
+  failure_count: number;
+  notes?: string;
+}
+
+export type EventType = 'Exam' | 'Holiday' | 'Function' | 'Meeting' | 'Sports' | 'Other';
+export type EventStatus = 'Upcoming' | 'Ongoing' | 'Completed' | 'Cancelled';
+
+export interface SchoolEvent {
+  id: string;
+  title: string;
+  description: string;
+  event_type: EventType;
+  start_date: string;
+  end_date: string;
+  location: string;
+  status: EventStatus;
+  organizer: string;
+  participants?: string;
+  created_at: string;
+}
+
+export interface GazetteStudent {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  rank: number;
+  total_marks: number;
+  average: number;
+  grade: string;
+  position: string;
+}
+
+export interface GazetteSubject {
+  id: string;
+  subject_id: string;
+  subject_name: string;
+  marks_obtained: number;
+  max_marks: number;
+  grade: string;
+}
+
+export interface ExamGazette {
+  id: string;
+  exam_session_id: string;
+  exam_session_name: string;
+  class_id: string;
+  class_name: string;
+  generated_at: string;
+  total_students: number;
+  students: GazetteStudent[];
+  subjects: GazetteSubject[];
+}
+
+export type ExamTokenStatus = 'Active' | 'Used' | 'Expired' | 'Revoked';
+
+export interface ExamToken {
+  id: string;
+  token_code: string;
+  exam_session_id: string;
+  exam_session_name: string;
+  teacher_id: string;
+  teacher_name: string;
+  subject_id: string;
+  subject_name: string;
+  class_id: string;
+  class_name: string;
+  generated_at: string;
+  expires_at: string;
+  status: ExamTokenStatus;
+  used_at?: string | null;
+}
+
+export interface StudentMark {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  marks_obtained: number;
+  marks_total: number;
+  grade: string;
+  remarks: string;
+}
+
+export type MarksEntrySessionStatus = 'Pending' | 'In Progress' | 'Completed';
+
+export interface MarksEntrySession {
+  id: string;
+  token_code: string;
+  exam_session_id: string;
+  exam_session_name: string;
+  subject_id: string;
+  subject_name: string;
+  class_id: string;
+  class_name: string;
+  teacher_id: string;
+  teacher_name: string;
+  status: MarksEntrySessionStatus;
+  marks: StudentMark[];
+  created_at: string;
+  updated_at: string;
+}
+
+export type ValidationStatus = 'Valid' | 'Invalid' | 'Warning';
+
+export interface StructureValidationItem {
+  id: string;
+  exam_session_id: string;
+  exam_session_name: string;
+  subject_id: string;
+  subject_name: string;
+  class_id: string;
+  class_name: string;
+  structure_component: string;
+  expected_max_marks: number;
+  actual_max_marks: number;
+  marks_difference: number;
+  status: ValidationStatus;
+  notes?: string;
+}
+
+export type CrossCheckStatus = 'Pending' | 'Verified' | 'Discrepancy' | 'Resolved';
+
+export interface CrossCheckRecord {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  exam_session_id: string;
+  exam_session_name: string;
+  subject_id: string;
+  subject_name: string;
+  class_id: string;
+  class_name: string;
+  primary_teacher_id: string;
+  primary_teacher_name: string;
+  primary_marks: number;
+  verifying_teacher_id: string;
+  verifying_teacher_name: string;
+  verified_marks: number;
+  marks_difference: number;
+  status: CrossCheckStatus;
+  verified_at?: string | null;
+  notes?: string | null;
+}
+
+// Chart data types for StudentExamAnalysisPage and ExamAnalysisPage
+export interface SubjectPerformanceDataPoint {
+  subject: string;
+  student: number;
+  class: number;
+}
+
+export interface PerformanceOverTimeDataPoint {
+  exam: string;
+  student: number;
+  class: number;
+}
+
+export interface SubjectBreakdownDataPoint {
+  name: string;
+  marks: number;
+  change: number;
+  grade: string;
+  rank: number;
+}
+
+export interface ExamPerformanceOverTimeDataPoint {
+  name: string;
+  exam1: number;
+  exam2: number;
+  exam3: number;
+}
+
+export interface StreamPerformanceDataPoint {
+  name: string;
+  points: number;
+}
+
 // Type aliases for schema compatibility
 export type AcademicsSubjectType = Subject;
 export type AcademicsSubjectPaperType = SubjectPaper;

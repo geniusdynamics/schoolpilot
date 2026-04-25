@@ -66,6 +66,35 @@ export const financeCollections = {
   general_ledger_entries: {
     schema: schemas.generalLedgerEntriesSchema,
   },
+
+  // === REPORT / VIEW COLLECTIONS ===
+  balance_sheet_items: {
+    schema: schemas.balanceSheetItemSchema,
+  },
+  cash_book_entries: {
+    schema: schemas.cashBookEntrySchema,
+  },
+  day_book_entries: {
+    schema: schemas.dayBookEntrySchema,
+  },
+  receipt_templates: {
+    schema: schemas.receiptTemplateSchema,
+  },
+  income_statement_items: {
+    schema: schemas.incomeStatementItemSchema,
+  },
+  journal_entries: {
+    schema: schemas.journalEntrySchema,
+  },
+  previous_session_fees: {
+    schema: schemas.previousSessionFeeSchema,
+  },
+  student_payment_records: {
+    schema: schemas.studentPaymentRecordSchema,
+  },
+  trial_balance_items: {
+    schema: schemas.trialBalanceItemSchema,
+  },
 };
 
 // Type helper for consumers of this module's collections (optional)

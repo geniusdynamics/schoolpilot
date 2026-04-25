@@ -74,6 +74,14 @@ export enum GeneralPayerType {
   OTHER = 'Other' 
 }
 
+export enum InstallmentStatus {
+  PENDING = 'Pending',
+  PARTIAL = 'Partial',
+  PAID = 'Paid',
+  OVERDUE = 'Overdue',
+  WAIVED = 'Waived'
+}
+
 export enum ExpenseClaimantType { 
   STUDENT = 'Student', 
   STAFF = 'Staff' 
@@ -318,6 +326,23 @@ export interface StudentPayment {
   student_name?: string | null;
 }
 
+export interface FeeInstallment {
+  id: string;
+  student_id: string;
+  school_period_id: number;
+  installment_number: number;
+  due_date: string;
+  amount_due: number;
+  amount_paid: number;
+  status: InstallmentStatus;
+  invoice_id?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  student_name?: string | null;
+  school_period_name?: string | null;
+}
+
 export interface InvoicePaymentApplication {
   id: string;
   payment_id: string;
@@ -432,3 +457,145 @@ export type FinGeneralPaymentItemType = GeneralPaymentItem;
 export type FinGeneralPaymentType = GeneralPayment;
 /** @deprecated Use GeneralLedgerEntry instead */
 export type FinGeneralLedgerEntryType = GeneralLedgerEntry;
+
+// === NEW TYPES FOR FINANCE PAGES (from inline mock data migration) ===
+
+// Source: FeesDueReportPage.tsx
+export type AgingCategory = 'Current' | '1-30 Days' | '31-60 Days' | '61-90 Days' | '90+ Days';
+
+export interface FeeDueRecord {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_name: string;
+  guardian_name: string;
+  guardian_phone: string;
+  total_amount_due: number;
+  amount_paid: number;
+  balance_due: number;
+  due_date: string;
+  days_overdue: number;
+  aging_category: AgingCategory;
+  school_period: string;
+}
+
+// Source: BalanceSheetPage.tsx
+export interface BalanceSheetItem {
+  id: string;
+  category: 'Asset' | 'Liability' | 'Equity';
+  subcategory: string;
+  account_name: string;
+  amount: number;
+  percentage?: number;
+}
+
+// Source: CashBookPage.tsx
+export interface CashBookEntry {
+  id: string;
+  transaction_date: string;
+  description: string;
+  reference_no: string;
+  payment_method: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  created_at: string;
+}
+
+// Source: DayBookPage.tsx
+export interface DayBookEntry {
+  id: string;
+  transaction_date: string;
+  description: string;
+  reference_no: string;
+  account_name: string;
+  debit: number;
+  credit: number;
+  source: string;
+  created_at: string;
+}
+
+// Source: FeesReceiptTemplatePage.tsx
+export interface ReceiptTemplate {
+  id: string;
+  name: string;
+  school_name: string;
+  school_address: string;
+  school_phone: string;
+  school_email: string;
+  header_text: string;
+  footer_text: string;
+  logo_url?: string;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Source: IncomeStatementPage.tsx
+export interface IncomeStatementItem {
+  id: string;
+  category: 'Revenue' | 'Expense';
+  account_name: string;
+  amount: number;
+  percentage?: number;
+}
+
+// Source: JournalRegisterPage.tsx
+export interface JournalEntry {
+  id: string;
+  voucher_no: string;
+  transaction_date: string;
+  description: string;
+  reference: string;
+  debit_account: string;
+  credit_account: string;
+  debit_amount: number;
+  credit_amount: number;
+  status: 'Posted' | 'Draft' | 'Cancelled';
+  created_at: string;
+}
+
+// Source: PreviousSessionFeesPage.tsx
+export interface PreviousSessionFee {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_name: string;
+  previous_session: string;
+  carry_over_amount: number;
+  amount_paid: number;
+  balance_remaining: number;
+  status: 'Pending' | 'Partial' | 'Paid' | 'Waived';
+  current_session: string;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Source: StudentsPaidBookPage.tsx
+export interface StudentPaymentRecord {
+  id: string;
+  student_id: string;
+  student_name: string;
+  admission_no: string;
+  class_name: string;
+  receipt_no: string;
+  transaction_date: string;
+  amount_paid: number;
+  payment_method: string;
+  reference_no: string;
+  fee_type: string;
+  created_at: string;
+}
+
+// Source: TrialBalancePage.tsx
+export interface TrialBalanceItem {
+  id: string;
+  account_code: string;
+  account_name: string;
+  account_type: 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense';
+  debit_balance: number;
+  credit_balance: number;
+}

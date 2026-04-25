@@ -13,6 +13,7 @@ import {
     MealType,
     WalletTransactionType
 } from '@/core/types';
+import { FoodItem, KitchenMealPlan } from './types';
 
 export const initialMockMealPlans: MealPlan[] = [
   { id: 1, name: 'Standard Lunch Plan', description: 'Daily lunch for students', cost_per_period: 7500, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
@@ -188,3 +189,19 @@ export const merchants = initialMockMerchants;
 export const mealConsumptionLogs = initialMockMealConsumptionLogs;
 export const studentWallets = initialMockStudentWallets;
 export const walletTransactions = initialMockWalletTransactions;
+
+// Source: KitchenManagementPage.tsx
+export const foodInventory: FoodItem[] = [
+  { id: 'food-1', name: 'Rice', category: 'Grains', unit: 'kg', quantity: 150, min_stock_level: 50, cost_per_unit: 80, total_cost: 12000, supplier: 'Local Grains Co.', last_restocked: '2024-01-15', expiry_date: '2024-12-31', status: 'In Stock', dietary_suitable: ['Vegetarian', 'Vegan', 'Gluten-Free'] },
+  { id: 'food-2', name: 'Chicken Breast', category: 'Proteins', unit: 'kg', quantity: 30, min_stock_level: 20, cost_per_unit: 350, total_cost: 10500, supplier: 'Fresh Poultry Ltd.', last_restocked: '2024-01-18', expiry_date: '2024-01-25', status: 'In Stock', dietary_suitable: ['None'] },
+  { id: 'food-3', name: 'Fresh Vegetables Mix', category: 'Vegetables', unit: 'kg', quantity: 8, min_stock_level: 15, cost_per_unit: 120, total_cost: 960, supplier: 'Organic Farms', last_restocked: '2024-01-19', expiry_date: '2024-01-22', status: 'Low Stock', dietary_suitable: ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Nut-Free'] },
+  { id: 'food-4', name: 'Milk', category: 'Dairy', unit: 'liters', quantity: 0, min_stock_level: 50, cost_per_unit: 60, total_cost: 0, supplier: 'Dairy Farmers Co.', last_restocked: '2024-01-10', expiry_date: '2024-01-20', status: 'Out of Stock', dietary_suitable: ['Vegetarian', 'Gluten-Free', 'Nut-Free'] },
+  { id: 'food-5', name: 'Bread', category: 'Bakery', unit: 'loaves', quantity: 40, min_stock_level: 30, cost_per_unit: 50, total_cost: 2000, supplier: 'Local Bakery', last_restocked: '2024-01-20', expiry_date: '2024-01-23', status: 'In Stock', dietary_suitable: ['Vegetarian'] },
+  { id: 'food-6', name: 'Gluten-Free Pasta', category: 'Grains', unit: 'kg', quantity: 25, min_stock_level: 10, cost_per_unit: 180, total_cost: 4500, supplier: 'Specialty Foods', last_restocked: '2024-01-12', expiry_date: '2025-06-30', status: 'In Stock', dietary_suitable: ['Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free', 'Nut-Free'] }
+];
+
+export const kitchenMealPlans: KitchenMealPlan[] = [
+  { id: 'meal-1', meal_type: 'Breakfast', day: 'Monday', menu_items: ['Porridge', 'Bread', 'Milk', 'Fruits'], dietary_options: ['Vegetarian', 'Gluten-Free'], estimated_cost_per_student: 50, total_students: 200, total_cost: 10000 },
+  { id: 'meal-2', meal_type: 'Lunch', day: 'Monday', menu_items: ['Rice', 'Chicken Curry', 'Vegetables', 'Yogurt'], dietary_options: ['None', 'Vegetarian'], estimated_cost_per_student: 120, total_students: 200, total_cost: 24000 },
+  { id: 'meal-3', meal_type: 'Snack', day: 'Monday', menu_items: ['Fruits', 'Cookies', 'Juice'], dietary_options: ['Vegetarian', 'Vegan', 'Gluten-Free'], estimated_cost_per_student: 40, total_students: 200, total_cost: 8000 }
+];

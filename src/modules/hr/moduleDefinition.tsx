@@ -9,6 +9,7 @@ import {
   DocumentTextIcon,
   CalendarDaysIcon,
   ClipboardDocumentListIcon,
+  UserIcon,
 } from '@/components/ui/icons';
 import { hrPermissions, hrDefaultRoles } from './rbac';
 
@@ -26,6 +27,7 @@ export const hrModule: ModuleDefinition = {
     { name: 'navigation:hr.payrollPeriods', path: '/hr/payroll-periods', icon: CalendarDaysIcon, page: 'PayrollPeriodsPage' },
     { name: 'navigation:hr.payslips', path: '/hr/payslips', icon: ClipboardDocumentListIcon, page: 'PayslipsPage' },
     { name: 'navigation:hr.staffSalarySettings', path: '/hr/staff-salary-settings', icon: CurrencyDollarIcon, page: 'StaffSalarySettingsPage' },
+    { name: 'navigation:hr.staffBioData', path: '/hr/staff-bio-data', icon: UserIcon, page: 'StaffBioDataPage' },
   ],
   features: ['payroll-management', 'staff-compensation', 'hr-records'],
   dependencies: [

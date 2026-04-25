@@ -22,7 +22,7 @@ import {
     RFQStatus
 } from '@/core/types';
 import { suppliers } from '@/globalMockData';
-import { InvSupplierType, InvSupplierStatusEnum } from './types';
+import { InvSupplierType, InvSupplierStatusEnum, StationeryItem } from './types';
 
 // Map global suppliers to InvSupplierType for inventory module use
 export const initialMockSuppliers: InvSupplierType[] = suppliers.map(supplier => ({
@@ -257,3 +257,13 @@ export const stockLevels = initialMockStockLevels;
 export const stockTransactions = initialMockStockTransactions;
 export const assetDepreciationLogs = initialMockAssetDepreciationLogs;
 export const rfqs = initialMockRFQs;
+
+// Source: StationeryPage.tsx
+export const stationeryItems: StationeryItem[] = [
+  { id: 'stn-1', name: 'A4 Paper Ream', category: 'Paper', description: '500 sheets per ream, 80 GSM', unit: 'Reams', quantity: 50, min_stock_level: 20, allocated_to: 'Administration', department: 'Administration', status: 'Available', last_restocked: '2024-01-15', created_at: '2024-01-01' },
+  { id: 'stn-2', name: 'Blue Ballpoint Pens', category: 'Pens', description: 'Pack of 10 blue ballpoint pens', unit: 'Packs', quantity: 15, min_stock_level: 10, allocated_to: 'Academics', department: 'Academics', status: 'Available', last_restocked: '2024-01-10', created_at: '2024-01-01' },
+  { id: 'stn-3', name: 'Spiral Notebooks', category: 'Notebooks', description: '200 pages, ruled, A4 size', unit: 'Pieces', quantity: 8, min_stock_level: 20, allocated_to: 'Students', department: 'Academics', status: 'Low Stock', last_restocked: '2024-01-05', created_at: '2024-01-01' },
+  { id: 'stn-4', name: 'File Folders', category: 'Files', description: 'Plastic file folders, assorted colors', unit: 'Pieces', quantity: 100, min_stock_level: 30, allocated_to: 'Administration', department: 'Administration', status: 'Available', last_restocked: '2024-01-12', created_at: '2024-01-01' },
+  { id: 'stn-5', name: 'Watercolor Set', category: 'Art Supplies', description: '12 color watercolor set with brushes', unit: 'Sets', quantity: 0, min_stock_level: 5, allocated_to: 'Art Department', department: 'Academics', status: 'Out of Stock', last_restocked: '2023-12-20', created_at: '2024-01-01' },
+  { id: 'stn-6', name: 'Stapler Machine', category: 'Office Supplies', description: 'Heavy duty stapler', unit: 'Pieces', quantity: 25, min_stock_level: 10, allocated_to: 'All Departments', department: 'Administration', status: 'Allocated', last_restocked: '2024-01-08', created_at: '2024-01-01' }
+];

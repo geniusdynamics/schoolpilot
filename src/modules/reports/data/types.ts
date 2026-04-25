@@ -39,3 +39,25 @@ export interface ReportParameter {
   enabled?: boolean;
   direction?: ReportSortDirection;
 }
+
+// === NEW TYPES FOR REPORTS PAGES (from inline mock data migration) ===
+
+// Source: ClassListsPage.tsx
+export interface GradeBreakdown {
+  form: string;
+  grades: Record<string, number>;
+  entries: number;
+  meanMarks: number;
+  meanMarksDeviation: number;
+  meanPoints: number;
+  meanPointsDeviation: number;
+  grade: string;
+  subjectTeacher: string;
+  tscNo: string;
+  isSummary?: boolean;
+}
+
+export interface ClassChartData {
+  name: string;
+  mean: number;
+}
