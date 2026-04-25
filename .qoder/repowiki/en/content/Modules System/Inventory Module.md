@@ -26,16 +26,18 @@
 - [useRequisitionData.ts](file://src/modules/inventory/data/useRequisitionData.ts)
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
+- [loader.ts](file://src/i18n/loader.ts)
+- [fr.json](file://src/i18n/locales/fr/inventory.json)
+- [fr.json](file://src/modules/inventory/i18n/fr.json)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated documentation to reflect the new StockLevelService replacing database triggers
-- Documented the client-side stock level processing architecture
-- Added comprehensive coverage of the StockLevelService implementation and dependencies
-- Updated stock management workflow to show service-based processing
-- Enhanced reorder monitoring documentation with service integration
-- Added service registry integration for StockLevelService
+- Updated documentation to reflect extensive French translations for the Inventory module
+- Added comprehensive multilingual support documentation including French localization
+- Documented the new French translation keys covering navigation, dashboards, and functional components
+- Enhanced internationalization architecture with centralized translation loading
+- Updated UI components to support bilingual display with French language resources
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -45,23 +47,25 @@
 5. [Detailed Component Analysis](#detailed-component-analysis)
 6. [Database Integration](#database-integration)
 7. [Stock Level Service Architecture](#stock-level-service-architecture)
-8. [Dependency Analysis](#dependency-analysis)
-9. [Performance Considerations](#performance-considerations)
-10. [Troubleshooting Guide](#troubleshooting-guide)
-11. [Conclusion](#conclusion)
-12. [Appendices](#appendices)
+8. [Internationalization and Multilingual Support](#internationalization-and-multilingual-support)
+9. [Dependency Analysis](#dependency-analysis)
+10. [Performance Considerations](#performance-considerations)
+11. [Troubleshooting Guide](#troubleshooting-guide)
+12. [Conclusion](#conclusion)
+13. [Appendices](#appendices)
 
 ## Introduction
-The Inventory module provides a comprehensive asset and supply chain management solution for educational institutions with full database backend integration. It encompasses fixed asset tracking, consumable inventory management, warehouse operations, procurement workflows, and vendor collaboration. The module supports end-to-end procurement from requisitions to purchase orders, RFQs, and supplier contracts, while maintaining real-time stock visibility and automated reorder monitoring. The implementation leverages a modern database infrastructure with useDatabaseCollection hooks for centralized CRUD operations and reactive data management.
+The Inventory module provides a comprehensive asset and supply chain management solution for educational institutions with full database backend integration and enhanced multilingual support. It encompasses fixed asset tracking, consumable inventory management, warehouse operations, procurement workflows, and vendor collaboration. The module supports end-to-end procurement from requisitions to purchase orders, RFQs, and supplier contracts, while maintaining real-time stock visibility and automated reorder monitoring. The implementation leverages a modern database infrastructure with useDatabaseCollection hooks for centralized CRUD operations and reactive data management.
 
-**Updated** The module now features a sophisticated StockLevelService that replaces traditional database triggers with client-side stock level tracking, providing more reliable and controllable inventory management through dedicated service architecture. This service replaces the PostgreSQL trigger `inv.fn_update_stock_level()` and the trigger `trg_inv_updateStockLevel` which previously maintained the `stock_levels` table in sync with `stock_transactions`.
+**Updated** The module now features comprehensive French translations with 23 new translation entries, providing full bilingual support for French-speaking users alongside the existing English interface. The internationalization architecture ensures seamless language switching and consistent localization across all inventory management components.
 
 ## Project Structure
-The Inventory module follows a modernized architecture with centralized database integration and modular data providers:
+The Inventory module follows a modernized architecture with centralized database integration, multilingual support, and modular data providers:
 - Data layer: database-agnostic schemas, RxDB collections, and provider patterns
-- UI layer: dashboard pages and reusable components including dedicated stock level monitoring
+- UI layer: dashboard pages and reusable components including dedicated stock level monitoring with bilingual support
 - Services: business logic services like StockLevelService for complex operations
 - Hooks: domain-specific data access patterns with useDatabaseCollection integration
+- Internationalization: centralized translation loading with English and French language support
 - Mock data: seed data for development and demonstration modes
 
 ```mermaid
@@ -93,6 +97,12 @@ UNIFIEDDB["UnifiedDatabaseManager.ts"]
 RXDBCOLS["RxDB Collections"]
 DBC["useDatabaseCollection.ts"]
 end
+subgraph "Internationalization"
+I18NLOADER["loader.ts"]
+FRINVENTORY["fr.json (inventory)"]
+FRMODULE["fr.json (module)"]
+ENINVENTORY["en.json (inventory)"]
+end
 subgraph "Hooks"
 WHD["useWarehouseData.ts"]
 ITD["useItemData.ts"]
@@ -123,6 +133,9 @@ SLD --> DP
 RQD --> DP
 RS --> SLS
 RMS --> SLS
+I18NLOADER --> FRINVENTORY
+I18NLOADER --> FRMODULE
+I18NLOADER --> ENINVENTORY
 ```
 
 **Diagram sources**
@@ -147,6 +160,9 @@ RMS --> SLS
 - [useStockLevelData.ts:1-99](file://src/modules/inventory/data/useStockLevelData.ts#L1-L99)
 - [useRequisitionData.ts:1-41](file://src/modules/inventory/data/useRequisitionData.ts#L1-L41)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
+- [loader.ts:1-69](file://src/i18n/loader.ts#L1-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
+- [fr.json:1-16](file://src/i18n/locales/fr/inventory.json#L1-L16)
 
 **Section sources**
 - [InventoryDashboardPage.tsx:1-57](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L1-L57)
@@ -170,9 +186,12 @@ RMS --> SLS
 - [useStockLevelData.ts:1-99](file://src/modules/inventory/data/useStockLevelData.ts#L1-L99)
 - [useRequisitionData.ts:1-41](file://src/modules/inventory/data/useRequisitionData.ts#L1-L41)
 - [useDatabaseCollection.ts:1-228](file://src/hooks/useDatabaseCollection.ts#L1-L228)
+- [loader.ts:1-69](file://src/i18n/loader.ts#L1-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
+- [fr.json:1-16](file://src/i18n/locales/fr/inventory.json#L1-L16)
 
 ## Core Components
-The module centers around seven primary domains with comprehensive database integration through the useDatabaseCollection pattern:
+The module centers around seven primary domains with comprehensive database integration through the useDatabaseCollection pattern and enhanced multilingual support:
 
 - **Asset Management**
   - Fixed assets with depreciation tracking and lifecycle management
@@ -214,6 +233,12 @@ The module centers around seven primary domains with comprehensive database inte
   - Reactive data updates through provider context
   - Error handling and loading state management
 
+- **Internationalization Support**
+  - **New** Comprehensive French translations for all UI components
+  - **New** Centralized translation loading with i18n integration
+  - **New** Bilingual navigation and dashboard components
+  - **New** Localized procurement workflows and stock management interfaces
+
 **Section sources**
 - [useInventoryData.ts:10-19](file://src/modules/inventory/data/useInventoryData.ts#L10-L19)
 - [useDatabaseCollection.ts:24-227](file://src/hooks/useDatabaseCollection.ts#L24-L227)
@@ -222,9 +247,11 @@ The module centers around seven primary domains with comprehensive database inte
 - [mockData.ts:104-157](file://src/modules/inventory/data/mockData.ts#L104-L157)
 - [collections.ts:6-48](file://src/modules/inventory/data/collections.ts#L6-L48)
 - [StockLevelService.ts:7-86](file://src/modules/inventory/services/StockLevelService.ts#L7-L86)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
 
 ## Architecture Overview
-The Inventory module employs a modernized layered architecture with centralized database integration and useDatabaseCollection hooks:
+The Inventory module employs a modernized layered architecture with centralized database integration, multilingual support, and useDatabaseCollection hooks:
 
 ```mermaid
 classDiagram
@@ -289,6 +316,24 @@ class ServiceRegistry {
 +register(service)
 +get(name) any
 }
+class I18nLoader {
++loadTranslations(i18nInstance)
++addResourceBundle(language, namespace, translations)
+}
+class FrenchTranslations {
++navigation : object
++dashboard : object
++warehouses : object
++itemCategories : object
++items : object
++stockLevels : object
++requisitions : object
++purchaseOrders : object
++suppliers : object
++supplierContracts : object
++fixedAssets : object
++warehouses : object
+}
 InventoryDataContext --> UseDatabaseCollection : "uses"
 StockLevelService --> UseDatabaseCollection : "processes"
 UseDatabaseCollection --> DatabaseService : "integrates with"
@@ -298,6 +343,8 @@ DashboardPages --> InventoryDataContext : "consumes"
 DataHooks --> InventoryDataContext : "wraps"
 DataHooks --> StockLevelService : "uses"
 ServiceRegistry --> StockLevelService : "registers"
+I18nLoader --> FrenchTranslations : "loads"
+I18nLoader --> EnglishTranslations : "loads"
 ```
 
 **Diagram sources**
@@ -315,8 +362,8 @@ ServiceRegistry --> StockLevelService : "registers"
 - [useRequisitionData.ts:8-41](file://src/modules/inventory/data/useRequisitionData.ts#L8-L41)
 - [useStockLevelService.ts:24-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L24-L187)
 - [registerServices.ts:6-16](file://src/modules/inventory/services/registerServices.ts#L6-L16)
-- [databaseService.ts](file://src/services/database/databaseService.ts)
-- [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
 
 The architecture ensures:
 - Centralized database access via useDatabaseCollection hook pattern
@@ -327,6 +374,8 @@ The architecture ensures:
 - Modular data provider architecture for clean separation of concerns
 - **Updated** Service-based stock level processing replacing database triggers
 - **New** Service registry integration for StockLevelService management
+- **New** Comprehensive internationalization architecture with French translations
+- **New** Centralized translation loading with i18n integration
 
 **Section sources**
 - [InventoryDataContext.tsx:1-36](file://src/modules/inventory/data/InventoryDataContext.tsx#L1-L36)
@@ -336,6 +385,8 @@ The architecture ensures:
 - [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
 - [registerServices.ts:1-17](file://src/modules/inventory/services/registerServices.ts#L1-L17)
+- [loader.ts:1-69](file://src/i18n/loader.ts#L1-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
 
 ## Detailed Component Analysis
 
@@ -616,34 +667,38 @@ CollectionConfig --> DatabaseSchema : "uses"
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
 
 ### Dashboard Components
-The module provides four specialized dashboards with comprehensive database integration through the useInventory hook:
+The module provides four specialized dashboards with comprehensive database integration through the useInventory hook and enhanced multilingual support:
 
 #### Inventory Dashboard
-Focuses on operational stock readiness and procurement pipeline with real-time database updates:
+Focuses on operational stock readiness and procurement pipeline with real-time database updates and French localization:
 - Metrics: inventory items, stock records, open requisitions, active purchase orders with live collection data
 - Notifications: low stock alerts with severity-based messaging and automatic database-driven updates
 - Quick actions: direct navigation to core inventory screens with database-backed filtering
+- **Updated** French interface with localized navigation and dashboard titles
 
 #### School Procurement Dashboard
-Enables procurement oversight and budget utilization tracking with comprehensive data aggregation:
+Enables procurement oversight and budget utilization tracking with comprehensive data aggregation and bilingual support:
 - Metrics: open requisitions, approved orders, active suppliers, committed spend with real-time calculation
 - Utilization ratio: commitment vs. requested value percentage with database-driven precision
 - Recent requisitions panel for visibility with live collection updates
 - Procurement pipeline visualization with cross-collection data integration
+- **Updated** French interface with localized procurement metrics and supplier information
 
 #### Vendor Portal Dashboard
-Supports external supplier engagement with comprehensive opportunity tracking:
+Supports external supplier engagement with comprehensive opportunity tracking and multilingual interface:
 - Metrics: open RFQs, active orders, pending invoices, invoice value with real-time database synchronization
 - Supplier snapshot: top performing suppliers with performance ratings from database collections
 - Order and invoice queue monitoring with automatic status updates
 - RFQ opportunities and invoice processing status with live data refresh
+- **Updated** French interface with localized vendor portal metrics and supplier communications
 
 #### **Updated** Stock Levels Dashboard
-Provides dedicated monitoring of current stock levels across all warehouses:
+Provides dedicated monitoring of current stock levels across all warehouses with comprehensive French localization:
 - Real-time stock level visualization with filtering by warehouse and item category
 - Current quantities on hand with item and warehouse identification
 - Interactive data grid with sorting and filtering capabilities
 - Loading states and empty state handling for better user experience
+- **Updated** French interface with localized stock level displays and filtering options
 
 ```mermaid
 sequenceDiagram
@@ -681,7 +736,7 @@ Hook-->>Dashboard : Rendered dashboard with computed metrics
 - [useInventory.ts:1-41](file://src/modules/inventory/hooks/useInventory.ts#L1-L41)
 
 ### Procurement Workflows
-The module supports end-to-end procurement from requisition to fulfillment with comprehensive database integration:
+The module supports end-to-end procurement from requisition to fulfillment with comprehensive database integration and multilingual support:
 
 ```mermaid
 flowchart TD
@@ -715,7 +770,7 @@ Procurement entities and relationships with database persistence:
 - [types.ts:184-220](file://src/modules/inventory/data/types.ts#L184-L220)
 
 ### Stock Management and Alerts
-**Updated** Stock management now operates through a sophisticated service-based approach replacing database triggers:
+**Updated** Stock management now operates through a sophisticated service-based approach replacing database triggers with comprehensive multilingual support:
 
 ```mermaid
 flowchart TD
@@ -746,7 +801,7 @@ Stock alert types with database-driven automation:
 - [mockData.ts:126-181](file://src/modules/inventory/data/mockData.ts#L126-L181)
 
 ### Data Access Patterns
-The module implements flexible data access through specialized hooks with comprehensive database service integration:
+The module implements flexible data access through specialized hooks with comprehensive database service integration and multilingual support:
 
 ```mermaid
 classDiagram
@@ -800,10 +855,16 @@ class MockData {
 +initialMockRFQs
 +initialMockSuppliers
 }
+class I18nLoader {
++loadTranslations(i18nInstance)
++addResourceBundle(language, namespace, translations)
+}
 InventoryDataContext --> UseDatabaseCollection : "uses"
 InventoryDataContext --> MockData : "seeds"
 DomainHooks --> InventoryDataContext : "wrap"
 DomainHooks --> StockLevelService : "use"
+I18nLoader --> FrenchTranslations : "loads"
+I18nLoader --> EnglishTranslations : "loads"
 ```
 
 **Diagram sources**
@@ -816,6 +877,7 @@ DomainHooks --> StockLevelService : "use"
 - [useRequisitionData.ts:8-41](file://src/modules/inventory/data/useRequisitionData.ts#L8-L41)
 - [useStockLevelService.ts:24-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L24-L187)
 - [mockData.ts:45-260](file://src/modules/inventory/data/mockData.ts#L45-L260)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
 
 **Section sources**
 - [InventoryDataContext.tsx:1-36](file://src/modules/inventory/data/InventoryDataContext.tsx#L1-L36)
@@ -827,6 +889,7 @@ DomainHooks --> StockLevelService : "use"
 - [useRequisitionData.ts:1-41](file://src/modules/inventory/data/useRequisitionData.ts#L1-L41)
 - [useStockLevelService.ts:1-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L1-L187)
 - [mockData.ts:1-260](file://src/modules/inventory/data/mockData.ts#L1-L260)
+- [loader.ts:1-69](file://src/i18n/loader.ts#L1-L69)
 
 ## Database Integration
 The Inventory module implements comprehensive database integration through the useDatabaseCollection hook pattern with the following key components:
@@ -912,8 +975,85 @@ The StockLevelService is registered with the service registry for centralized ma
 - [useStockLevelService.ts:31-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L31-L187)
 - [registerServices.ts:6-16](file://src/modules/inventory/services/registerServices.ts#L6-L16)
 
+## Internationalization and Multilingual Support
+**New** The Inventory module now provides comprehensive multilingual support with extensive French translations:
+
+### Translation Architecture
+The internationalization system implements a centralized translation loading mechanism:
+
+- **Namespace Organization**: Translations organized by functional areas (navigation, dashboard, forms, etc.)
+- **Language Resources**: Separate JSON files for English and French translations
+- **Dynamic Loading**: Runtime loading of translation resources based on user language preference
+- **Fallback Mechanisms**: Graceful fallback to English when French translations are unavailable
+
+### French Translation Coverage
+The French translation file contains 334 lines of comprehensive localization:
+
+#### Navigation Translations
+- **Main Navigation**: Complete navigation menu translations including inventory, items, categories, stock levels, reorder alerts, etc.
+- **Dashboard Navigation**: French equivalents for school procurement dashboard and vendor portal dashboard
+- **Functional Navigation**: Translated labels for stock reception, returns, issuance, and other inventory operations
+
+#### Dashboard Translations
+- **Inventory Dashboard**: Complete dashboard title, description, and metric labels in French
+- **School Procurement Dashboard**: French procurement metrics, utilization ratios, and supplier information
+- **Vendor Portal Dashboard**: French vendor portal metrics, RFQ opportunities, and order processing status
+
+#### Form and Modal Translations
+- **Warehouse Management**: French labels for warehouse creation, editing, and deletion modals
+- **Item Categories**: Translated category management interface with add/edit modal labels
+- **Item Management**: Complete item catalog interface with French field labels and validation messages
+- **Stock Level Forms**: French stock level management forms and validation messages
+
+#### Data Grid Translations
+- **Column Headers**: All data grid column headers translated including item names, quantities, dates, statuses
+- **Action Buttons**: French labels for edit, delete, save, cancel, and other action buttons
+- **Filter Labels**: Translated filter options for warehouse, category, status, and other criteria
+
+#### Entity-Specific Translations
+- **Fixed Assets**: Complete French translation for asset management including depreciation and valuation
+- **Requisitions**: French procurement workflow labels including request dates, staff names, and department information
+- **Purchase Orders**: Translated order management interface with supplier and item details
+- **Suppliers**: French supplier management interface with contact and performance information
+- **Supplier Contracts**: Complete contract management interface with French terms and conditions
+
+### Translation Loading System
+The centralized translation loader manages resource bundles for both languages:
+
+```mermaid
+sequenceDiagram
+participant App as "Application"
+participant Loader as "I18n Loader"
+participant English as "English Resources"
+participant French as "French Resources"
+participant i18n as "i18next Instance"
+App->>Loader : loadTranslations(i18nInstance)
+Loader->>English : Load English JSON files
+Loader->>French : Load French JSON files
+English-->>i18n : addResourceBundle('en', 'namespace', translations)
+French-->>i18n : addResourceBundle('fr', 'namespace', translations)
+i18n-->>App : Translation resources ready
+```
+
+**Diagram sources**
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
+
+### Implementation Details
+The translation system integrates seamlessly with the existing React component architecture:
+
+- **Resource Bundle Loading**: Each namespace (common, navigation, dashboard, reports, etc.) loads both English and French resources
+- **Component Integration**: UI components access translations through the standard i18n pattern
+- **Language Switching**: Runtime language switching supported through i18next configuration
+- **Consistent Localization**: All user-facing text elements utilize the translation system
+
+**Section sources**
+- [loader.ts:1-69](file://src/i18n/loader.ts#L1-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
+- [fr.json:1-16](file://src/i18n/locales/fr/inventory.json#L1-L16)
+
 ## Dependency Analysis
-The module exhibits clean dependency boundaries with comprehensive database service integration and minimal cross-module coupling:
+The module exhibits clean dependency boundaries with comprehensive database service integration, multilingual support, and minimal cross-module coupling:
 
 ```mermaid
 graph LR
@@ -945,26 +1085,38 @@ V[UnifiedDatabaseManager.ts]
 W[RxDB Collections]
 X[useDatabaseCollection.ts]
 end
-subgraph "External Dependencies"
-Y[toast service]
-Z[React Context]
-AA[TypeScript Types]
-BB[useInventory hook]
-CC[useDatabaseCollection hook]
-DD[InventoryDataContext]
-EE[InventoryDataProvider]
-FF[StockLevelService]
-GG[useStockLevelService]
-HH[ServiceRegistry]
-II[ReorderMonitoringService]
+subgraph "Internationalization Layer"
+Y[loader.ts]
+Z[fr.json (inventory)]
+AA[fr.json (module)]
+BB[en.json (inventory)]
 end
-M --> BB
-N --> BB
-O --> BB
-P --> GG
-BB --> K
-GG --> FF
-FF --> X
+subgraph "External Dependencies"
+CC[toast service]
+DD[React Context]
+EE[TypeScript Types]
+FF[useInventory hook]
+GG[useDatabaseCollection hook]
+HH[InventoryDataContext]
+II[InventoryDataProvider]
+JJ[StockLevelService]
+KK[useStockLevelService]
+LL[ServiceRegistry]
+MM[ReorderMonitoringService]
+NN[i18next]
+OO[Translation Resources]
+PP[Language Switching]
+QQ[React i18n]
+RR[French Localization]
+SS[English Fallback]
+end
+M --> FF
+N --> FF
+O --> FF
+P --> KK
+FF --> K
+KK --> JJ
+JJ --> X
 K --> X
 E --> K
 E --> A
@@ -975,15 +1127,23 @@ E --> F
 X --> U
 U --> V
 V --> W
-K --> Y
-K --> Z
+K --> CC
+K --> DD
 G --> E
 H --> E
 I --> E
 J --> E
-S --> FF
-T --> FF
-HH --> FF
+S --> JJ
+T --> JJ
+LL --> JJ
+Y --> Z
+Y --> AA
+Y --> BB
+NN --> OO
+OO --> PP
+PP --> QQ
+QQ --> RR
+QQ --> SS
 ```
 
 **Diagram sources**
@@ -1010,6 +1170,9 @@ HH --> FF
 - [useDatabaseCollection.ts:4-6](file://src/hooks/useDatabaseCollection.ts#L4-L6)
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
+- [fr.json:1-16](file://src/i18n/locales/fr/inventory.json#L1-L16)
 
 Key observations:
 - All internal dependencies flow inward toward the provider with database service integration
@@ -1019,8 +1182,11 @@ Key observations:
 - StockLevelService depends on useDatabaseCollection for database operations
 - **New** registerServices provides centralized service registration with factory pattern
 - **New** reorderMonitoringService integrates with StockLevelService for alert generation
+- **New** loader.ts manages centralized translation loading for both English and French
+- **New** fr.json files provide comprehensive French localization for all UI components
 - Mock data serves as the default data source in demo mode with seamless database switching
 - useDatabaseCollection provides centralized access to all collection types with type safety
+- **New** i18n integration provides seamless language switching with consistent localization
 
 **Section sources**
 - [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
@@ -1031,6 +1197,8 @@ Key observations:
 - [useStockLevelService.ts:1-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L1-L187)
 - [registerServices.ts:1-17](file://src/modules/inventory/services/registerServices.ts#L1-L17)
 - [reorderMonitoringService.ts:1-138](file://src/modules/inventory/services/reorderMonitoringService.ts#L1-L138)
+- [loader.ts:1-69](file://src/i18n/loader.ts#L1-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
 
 ## Performance Considerations
 - **Database indexing**: schemas define indexes on frequently queried fields (status, dates, names, composite keys)
@@ -1045,6 +1213,9 @@ Key observations:
 - **Reactive updates**: useDatabaseCollection provides automatic UI updates through collection subscriptions
 - **Service-based processing**: StockLevelService reduces database trigger overhead through client-side computation
 - **Dependency injection**: Service-based architecture improves testability and reduces coupling
+- **Translation caching**: i18n resources are cached after initial load to improve performance
+- **Language switching**: Efficient language switching without full page reloads
+- **Resource bundling**: Translation files are bundled with application for optimal loading performance
 
 ## Troubleshooting Guide
 Common issues and resolutions with database-specific guidance:
@@ -1098,6 +1269,20 @@ Common issues and resolutions with database-specific guidance:
 - **Monitor service lifecycle** through service registry
 - **Validate singleton pattern** for consistent service access
 
+### **New** Internationalization Issues
+- **Verify translation loading** through loader.ts for both English and French resources
+- **Check i18n instance configuration** for proper namespace registration
+- **Monitor translation bundle loading** in browser console
+- **Validate fallback mechanisms** when French translations are unavailable
+- **Confirm language switching** functionality through i18next configuration
+
+### **New** French Translation Issues
+- **Verify fr.json completeness** with all required translation keys
+- **Check translation key consistency** between English and French files
+- **Validate nested object structure** in French translation files
+- **Monitor translation loading errors** in development console
+- **Confirm UI component integration** with translation system
+
 **Section sources**
 - [InventoryDataContext.tsx:58-75](file://src/modules/inventory/data/InventoryDataContext.tsx#L58-L75)
 - [InventoryDashboardPage.tsx:10-12](file://src/modules/inventory/pages/InventoryDashboardPage.tsx#L10-L12)
@@ -1108,11 +1293,15 @@ Common issues and resolutions with database-specific guidance:
 - [registerServices.ts:6-16](file://src/modules/inventory/services/registerServices.ts#L6-L16)
 - [databaseService.ts](file://src/services/database/databaseService.ts)
 - [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
 
 ## Conclusion
-The Inventory module delivers a robust, database-backed foundation for institutional asset and supply chain management with comprehensive useDatabaseCollection integration. Its modular design, centralized database infrastructure, and specialized dashboards support efficient day-to-day operations while enabling strategic oversight with real-time data synchronization. The implementation demonstrates strong separation of concerns, reactive data patterns, and scalable collection definitions that accommodate future enhancements with seamless database abstraction.
+The Inventory module delivers a robust, database-backed foundation for institutional asset and supply chain management with comprehensive useDatabaseCollection integration and enhanced multilingual support. Its modular design, centralized database infrastructure, specialized dashboards, and comprehensive French translations support efficient day-to-day operations while enabling strategic oversight with real-time data synchronization. The implementation demonstrates strong separation of concerns, reactive data patterns, and scalable collection definitions that accommodate future enhancements with seamless database abstraction.
 
 **Updated** The introduction of StockLevelService significantly enhances the module's capabilities by replacing database triggers with client-side processing, providing more reliable stock level management, improved error handling, and better performance characteristics through service-based architecture. The service registry integration ensures proper service lifecycle management and dependency injection for maintainable code.
+
+**New** The comprehensive French translation implementation provides full bilingual support for French-speaking users, demonstrating the module's commitment to internationalization and accessibility. The centralized translation loading system ensures seamless language switching and consistent localization across all inventory management components.
 
 ## Appendices
 
@@ -1128,6 +1317,8 @@ The module exposes comprehensive CRUD operations through the useInventoryData ho
 - **useDatabaseCollection**: standardized CRUD operations with automatic subscriptions
 - **StockLevelService**: business logic operations for stock level management
 - **Service registry**: centralized service management and dependency injection
+- **Translation loading**: centralized internationalization with English and French support
+- **Language switching**: runtime language change with consistent localization
 
 **Section sources**
 - [useInventoryData.ts:22-32](file://src/modules/inventory/data/useInventoryData.ts#L22-L32)
@@ -1139,15 +1330,18 @@ The module exposes comprehensive CRUD operations through the useInventoryData ho
 - [StockLevelService.ts:87-200](file://src/modules/inventory/services/StockLevelService.ts#L87-L200)
 - [useStockLevelService.ts:24-187](file://src/modules/inventory/hooks/useStockLevelService.ts#L24-L187)
 - [registerServices.ts:6-16](file://src/modules/inventory/services/registerServices.ts#L6-L16)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
 
 ### Reporting Capabilities
-The dashboards provide built-in reporting through comprehensive database integration:
+The dashboards provide built-in reporting through comprehensive database integration and multilingual support:
 - **Procurement pipeline metrics** and utilization ratios with real-time calculation
 - **Stock alert summaries** with severity classification and database-driven updates
 - **Supplier performance snapshots** and invoice queues with live data synchronization
 - **Recent activity panels** for trend analysis with database query optimization
 - **Stock levels dashboard** with filtering and real-time monitoring capabilities
 - **Cross-collection reporting** with database relationship management
+- **Bilingual reporting interfaces** supporting French and English language preferences
 
 **Section sources**
 - [SchoolProcurementDashboardPage.tsx:17-43](file://src/modules/inventory/pages/SchoolProcurementDashboardPage.tsx#L17-L43)
@@ -1166,3 +1360,18 @@ Comprehensive schema definitions with RxDB integration:
 - [schema.ts:1-288](file://src/modules/inventory/data/schema.ts#L1-L288)
 - [collections.ts:1-52](file://src/modules/inventory/data/collections.ts#L1-L52)
 - [collectionConfig.ts:1-19](file://src/modules/inventory/data/collectionConfig.ts#L1-L19)
+
+### Translation Reference
+Comprehensive translation coverage for multilingual support:
+- **Navigation translations**: Complete navigation menu localization
+- **Dashboard translations**: All dashboard interface elements in French
+- **Form translations**: Complete form and modal interface localization
+- **Data grid translations**: All table column headers and action labels
+- **Entity translations**: Full localization for all inventory entities
+- **Workflow translations**: Procurement and stock management workflow labels
+- **Alert translations**: Stock alert and notification message localization
+
+**Section sources**
+- [fr.json:1-334](file://src/modules/inventory/i18n/fr.json#L1-L334)
+- [fr.json:1-16](file://src/i18n/locales/fr/inventory.json#L1-L16)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)

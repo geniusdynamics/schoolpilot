@@ -8,7 +8,15 @@
 - [AdmissionsDashboardPage.tsx](file://src/modules/admissions/pages/AdmissionsDashboardPage.tsx)
 - [collectionConfig.ts](file://src/modules/admissions/data/collectionConfig.ts)
 - [data/index.ts](file://src/modules/admissions/data/index.ts)
+- [loader.ts](file://src/i18n/loader.ts)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added comprehensive internationalization section documenting French and Kinyarwanda language support
+- Updated module architecture diagram to include i18n integration
+- Enhanced data layer section to reflect translation resource management
+- Added language support configuration documentation
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -16,11 +24,12 @@
 3. [Core Components](#core-components)
 4. [Navigation and Routing](#navigation-and-routing)
 5. [Data Layer](#data-layer)
-6. [Role-Based Access Control](#role-based-access-control)
-7. [Dashboard Implementation](#dashboard-implementation)
-8. [Module Dependencies](#module-dependencies)
-9. [Configuration Management](#configuration-management)
-10. [Conclusion](#conclusion)
+6. [Internationalization Support](#internationalization-support)
+7. [Role-Based Access Control](#role-based-access-control)
+8. [Dashboard Implementation](#dashboard-implementation)
+9. [Module Dependencies](#module-dependencies)
+10. [Configuration Management](#configuration-management)
+11. [Conclusion](#conclusion)
 
 ## Introduction
 
@@ -28,9 +37,11 @@ The Admissions Module is a comprehensive student admission management system des
 
 The module serves as a centralized hub for admission processes, integrating seamlessly with other school management systems including administration, finance, and academic modules. It supports both internal staff workflows and public-facing applications, making it a versatile solution for various educational institution needs.
 
+**Updated** Enhanced internationalization support now includes comprehensive French and Kinyarwanda translations, expanding the module's global reach and accessibility.
+
 ## Module Architecture
 
-The Admissions Module follows a structured modular architecture that promotes maintainability, scalability, and reusability within the EduGen ecosystem.
+The Admissions Module follows a structured modular architecture that promotes maintainability, scalability, and reusability within the EduGen ecosystem. The architecture now includes comprehensive internationalization support through the i18n system.
 
 ```mermaid
 graph TB
@@ -58,23 +69,25 @@ subgraph "Access Control"
 C --> P[Permission Definitions]
 C --> Q[Role Management]
 end
+subgraph "Internationalization"
+R[i18n Loader] --> S[Translation Resources]
+S --> T[English Resources]
+S --> U[French Resources]
+S --> V[Kinyarwanda Resources]
+end
 ```
 
 **Diagram sources**
 - [index.ts:1-25](file://src/modules/admissions/index.ts#L1-L25)
-- [moduleDefinition.tsx:1-140](file://src/modules/admissions/moduleDefinition.tsx#L1-L140)
+- [moduleDefinition.tsx:19-139](file://src/modules/admissions/moduleDefinition.tsx#L19-L139)
+- [loader.ts:1-69](file://src/i18n/loader.ts#L1-L69)
 
-The module architecture emphasizes separation of concerns through distinct layers:
-
-- **Index Barrel**: Centralized exports for clean cross-module imports
-- **Definition Layer**: Module configuration and metadata
-- **Data Layer**: Type-safe data access patterns
-- **Presentation Layer**: User interface components and dashboards
-- **Access Control**: Comprehensive permission management
+The module architecture emphasizes separation of concerns through distinct layers, with the addition of comprehensive internationalization support that enables multi-language functionality across all module components.
 
 **Section sources**
 - [index.ts:1-25](file://src/modules/admissions/index.ts#L1-L25)
 - [moduleDefinition.tsx:19-139](file://src/modules/admissions/moduleDefinition.tsx#L19-L139)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
 
 ## Core Components
 
@@ -242,6 +255,60 @@ The data provider pattern enables efficient caching, automatic updates, and seam
 
 **Section sources**
 - [data/index.ts:1-11](file://src/modules/admissions/data/index.ts#L1-L11)
+
+## Internationalization Support
+
+**Updated** The Admissions Module now provides comprehensive internationalization support through a sophisticated translation management system.
+
+The module leverages a centralized i18n loader that manages translation resources for multiple languages, with particular emphasis on French and Kinyarwanda support.
+
+```mermaid
+graph LR
+subgraph "Translation Architecture"
+A[i18n Loader] --> B[English Resources]
+A --> C[French Resources]
+A --> D[Kinyarwanda Resources]
+end
+subgraph "Resource Bundles"
+B --> E[common.json]
+B --> F[navigation.json]
+B --> G[dashboard.json]
+B --> H[reports.json]
+B --> I[settings.json]
+end
+subgraph "French Translations"
+C --> J[commonFr.json]
+C --> K[navigationFr.json]
+C --> L[dashboardFr.json]
+C --> M[reportsFr.json]
+C --> N[settingsFr.json]
+end
+subgraph "Kinyarwanda Translations"
+D --> O[commonRw.json]
+D --> P[navigationRw.json]
+D --> Q[dashboardRw.json]
+D --> R[reportsRw.json]
+D --> S[settingsRw.json]
+end
+```
+
+**Diagram sources**
+- [loader.ts:21-34](file://src/i18n/loader.ts#L21-L34)
+- [loader.ts:52-65](file://src/i18n/loader.ts#L52-L65)
+
+The internationalization system supports multiple namespaces including common, navigation, dashboard, reports, settings, academics, administration, finance, hr, inventory, library, nutrition, and portal, ensuring comprehensive coverage of all module functionalities.
+
+**Section sources**
+- [loader.ts:21-34](file://src/i18n/loader.ts#L21-L34)
+- [loader.ts:52-65](file://src/i18n/loader.ts#L52-L65)
+
+### Translation Resource Management
+
+The module implements a systematic approach to managing translation resources through dedicated JSON files organized by namespace and language.
+
+**Section sources**
+- [loader.ts:6-19](file://src/i18n/loader.ts#L6-L19)
+- [loader.ts:21-34](file://src/i18n/loader.ts#L21-L34)
 
 ## Role-Based Access Control
 
@@ -422,4 +489,6 @@ The Admissions Module represents a sophisticated, enterprise-grade solution for 
 
 Key strengths of the module include its comprehensive RBAC system, flexible configuration options, integrated dashboard functionality, and strategic module dependencies. The implementation demonstrates best practices in modern React development while maintaining the specialized requirements of educational administration.
 
-The module's design supports both current operational needs and future expansion possibilities, making it a scalable foundation for institutional growth and evolving educational requirements.
+**Updated** The recent enhancement of comprehensive French and Kinyarwanda translations significantly expands the module's internationalization capabilities, making it accessible to a broader global audience while maintaining the high standards of functionality and user experience that characterize the EduGen platform.
+
+The module's design supports both current operational needs and future expansion possibilities, making it a scalable foundation for institutional growth and evolving educational requirements. The addition of robust internationalization support ensures that the module can effectively serve diverse educational communities across different linguistic and cultural contexts.

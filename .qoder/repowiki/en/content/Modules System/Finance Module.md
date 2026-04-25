@@ -12,15 +12,15 @@
 - [pages/VoteheadStatementPage.tsx](file://src/modules/finance/pages/VoteheadStatementPage.tsx)
 - [studentVoteheadStatement.ts](file://src/utils/studentVoteheadStatement.ts)
 - [CONTEXT.md](file://CONTEXT.md)
+- [loader.ts](file://src/i18n/loader.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated to reflect new comprehensive financial services architecture with InvoiceStatusService, InvoiceGenerationService, and PaymentAllocationService
-- Documented new React hook wrappers: useInvoiceStatus, useInvoiceGeneration, and usePaymentAllocation
-- Enhanced service registration system with dependency injection pattern
-- Updated navigation structure to include new financial processing features
-- Revised data layer documentation to show service-oriented architecture replacing database-side processing
+- Updated to reflect enhanced multilingual support with German, French, Kinyarwanda, and Swahili translations
+- Added comprehensive translation resources for all major financial module components
+- Expanded internationalization infrastructure to support African and European markets
+- Enhanced language switching capabilities with improved translation coverage
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -33,12 +33,15 @@
 8. [Enhanced Reporting Capabilities](#enhanced-reporting-capabilities)
 9. [Data Layer Evolution](#data-layer-evolution)
 10. [Navigation and Features](#navigation-and-features)
-11. [Performance Considerations](#performance-considerations)
-12. [Troubleshooting Guide](#troubleshooting-guide)
-13. [Conclusion](#conclusion)
+11. [Internationalization and Multilingual Support](#internationalization-and-multilingual-support)
+12. [Performance Considerations](#performance-considerations)
+13. [Troubleshooting Guide](#troubleshooting-guide)
+14. [Conclusion](#conclusion)
 
 ## Introduction
 This document describes the Finance module functionality within the system, featuring a comprehensive transformation to a service-oriented architecture with TypeScript implementations replacing traditional stored procedures and database-side financial processing. The module now provides advanced financial management capabilities through a modernized approach with specialized financial services, computed view hooks, and comprehensive reporting features. The architecture emphasizes modular design with specialized services for invoice management, payment processing, and financial analytics, supported by a robust hooks ecosystem for real-time data computation and presentation.
+
+**Updated** Enhanced multilingual support with comprehensive German, French, Kinyarwanda, and Swahili translation resources for expanded international market reach.
 
 ## Project Structure
 The Finance module follows a modernized structure with enhanced service architecture and comprehensive hook-based data management:
@@ -49,6 +52,7 @@ The Finance module follows a modernized structure with enhanced service architec
 - React hooks ecosystem for computed views and financial analytics
 - Enhanced data layer with computed view hooks replacing PostgreSQL views
 - Comprehensive financial reporting and analytics capabilities
+- **Updated** Expanded internationalization with four new language locales
 
 ```mermaid
 graph TB
@@ -60,6 +64,10 @@ D --> F["Service Registration<br/>registerServices.ts"]
 D --> G["Hook Wrappers<br/>useInvoiceStatus, useInvoiceGeneration, usePaymentAllocation"]
 B --> H["23 Navigation Routes<br/>Comprehensive Financial Management"]
 B --> I["Feature Flags<br/>Fee Management, Payment Processing, Accounting, Expense Tracking, Transport Finance"]
+J["Internationalization<br/>Enhanced Multilingual Support"] --> K["German Translations"]
+J --> L["French Translations"]
+J --> M["Kinyarwanda Translations"]
+J --> N["Swahili Translations"]
 ```
 
 **Diagram sources**
@@ -69,6 +77,7 @@ B --> I["Feature Flags<br/>Fee Management, Payment Processing, Accounting, Expen
 - [hooks/index.ts:1-19](file://src/modules/finance/hooks/index.ts#L1-L19)
 - [services/index.ts:1-33](file://src/modules/finance/services/index.ts#L1-L33)
 - [services/registerServices.ts:1-59](file://src/modules/finance/services/registerServices.ts#L1-L59)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
 
 **Section sources**
 - [index.ts:1-31](file://src/modules/finance/index.ts#L1-L31)
@@ -504,6 +513,70 @@ The Finance module provides comprehensive navigation covering all aspects of fin
 **Section sources**
 - [moduleDefinition.tsx:32-54](file://src/modules/finance/moduleDefinition.tsx#L32-L54)
 
+## Internationalization and Multilingual Support
+**Updated** The Finance module now features comprehensive multilingual support with enhanced internationalization capabilities:
+
+### Enhanced Translation Infrastructure
+The internationalization system has been significantly expanded to support multiple African and European markets:
+
+#### Supported Languages
+- **German (de)**: Complete financial terminology and localized formatting
+- **French (fr)**: Comprehensive financial translations with regional variations
+- **Kinyarwanda (rw)**: Rwanda-specific financial terms and local conventions
+- **Swahili (sw)**: East African financial terminology and cultural adaptations
+
+#### Translation Resource Structure
+The enhanced translation system provides comprehensive coverage across all financial domains:
+
+```mermaid
+graph TB
+subgraph "Translation Resources"
+EN["English (Default)"] --> EN_FINANCE["finance.json"]
+EN --> EN_COMMON["common.json"]
+EN --> EN_NAVIGATION["navigation.json"]
+EN --> EN_DASHBOARD["dashboard.json"]
+FR["French (fr)"] --> FR_FINANCE["finance.json"]
+FR --> FR_COMMON["common.json"]
+FR --> FR_NAVIGATION["navigation.json"]
+FR --> FR_DASHBOARD["dashboard.json"]
+DE["German (de)"] --> DE_FINANCE["finance.json"]
+DE --> DE_COMMON["common.json"]
+DE --> DE_NAVIGATION["navigation.json"]
+DE --> DE_DASHBOARD["dashboard.json"]
+RW["Kinyarwanda (rw)"] --> RW_FINANCE["finance.json"]
+RW --> RW_COMMON["common.json"]
+RW --> RW_NAVIGATION["navigation.json"]
+RW --> RW_DASHBOARD["dashboard.json"]
+SW["Swahili (sw)"] --> SW_FINANCE["finance.json"]
+SW --> SW_COMMON["common.json"]
+SW --> SW_NAVIGATION["navigation.json"]
+SW --> SW_DASHBOARD["dashboard.json"]
+end
+```
+
+**Diagram sources**
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+
+#### Financial Domain Coverage
+Each language provides comprehensive coverage of financial terminology:
+
+- **Fee Management Terms**: Fee templates, adjustments, waivers, and collections
+- **Payment Processing**: Payment methods, allocations, applications, and reconciliations
+- **Accounting Terminology**: Chart of accounts, ledgers, receipts, and invoices
+- **Reporting Vocabulary**: Financial statements, summaries, and analytics
+- **Administrative Phrases**: Navigation, dashboards, settings, and system messages
+
+#### Language Switching Implementation
+The enhanced system supports seamless language switching with preserved financial context:
+
+- **Dynamic Locale Loading**: Translations loaded on-demand based on user preferences
+- **Financial Context Preservation**: Currency formats, date conventions, and number systems
+- **Regional Adaptations**: Local banking practices, tax regulations, and financial standards
+- **Cultural Sensitivity**: Appropriate financial terminology and communication styles
+
+**Section sources**
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+
 ## Performance Considerations
 Enhanced performance considerations for the new service-oriented architecture:
 
@@ -516,6 +589,7 @@ Enhanced performance considerations for the new service-oriented architecture:
 - **Batch Processing**: Optimized batch operations for financial year closing
 - **Service Orchestration**: Coordinated service execution for complex financial operations
 - **Lazy Loading**: Services loaded only when needed to reduce initial bundle size
+- ****Updated** Translation Resource Optimization**: Efficient loading and caching of multilingual resources
 
 ## Troubleshooting Guide
 Comprehensive troubleshooting for the enhanced service-oriented architecture:
@@ -545,10 +619,20 @@ Comprehensive troubleshooting for the enhanced service-oriented architecture:
 - **Service Integration**: Ensure proper service hook registration and initialization
 - **Data Synchronization**: Monitor real-time data updates and cache consistency
 
+### **Updated** Internationalization Issues
+- **Translation Loading Failures**: Verify resource bundle loading for new languages
+- **Missing Translation Keys**: Check for untranslated financial terms across languages
+- **Formatting Issues**: Ensure currency and number formatting matches locale conventions
+- **Language Switching Problems**: Verify dynamic locale loading and context preservation
+- **Regional Compliance**: Check adherence to local financial regulations and standards
+
 **Section sources**
 - [hooks/index.ts:1-19](file://src/modules/finance/hooks/index.ts#L1-L19)
 - [moduleDefinition.tsx:24-87](file://src/modules/finance/moduleDefinition.tsx#L24-L87)
 - [services/registerServices.ts:1-59](file://src/modules/finance/services/registerServices.ts#L1-L59)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
 
 ## Conclusion
 The Finance module now provides a comprehensive, service-oriented financial management system with advanced TypeScript implementations replacing traditional stored procedures and database-side financial processing. The enhanced architecture supports sophisticated financial services including invoice management, payment processing, and intelligent financial analytics through a robust hooks ecosystem and centralized service registration system. The modular design with specialized P0 services, computed view hooks, and comprehensive reporting capabilities enables scalable and maintainable financial operations across the entire educational institution system. The service-oriented approach with dependency injection, lazy initialization, and comprehensive error handling positions the Finance module as a modern, enterprise-grade financial management solution with superior performance and maintainability.
+
+**Updated** The enhanced multilingual support with German, French, Kinyarwanda, and Swahili translations expands the module's international reach, providing comprehensive financial management capabilities across diverse linguistic and cultural contexts. This expansion supports the growing global education sector's need for localized financial solutions while maintaining the technical excellence and scalability of the underlying service-oriented architecture.

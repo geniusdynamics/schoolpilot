@@ -13,42 +13,51 @@
 - [useExamResultsHorizontal.ts](file://src/modules/academics/hooks/useExamResultsHorizontal.ts)
 - [useTeacherAssignments.ts](file://src/modules/academics/hooks/useTeacherAssignments.ts)
 - [hooks/index.ts](file://src/modules/academics/hooks/index.ts)
+- [sw.json](file://src/modules/academics/i18n/sw.json)
+- [rw.json](file://src/modules/academics/i18n/rw.json)
+- [de.json](file://src/modules/administration/i18n/de.json)
+- [loader.ts](file://src/i18n/loader.ts)
+- [I18nManager.ts](file://src/i18n/I18nManager.ts)
+- [types.ts](file://src/i18n/types.ts)
+- [LanguageSwitcher.tsx](file://src/components/ui/LanguageSwitcher.tsx)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Added new computed view hooks useExamResultsHorizontal and useTeacherAssignments that replace database views with client-side TypeScript implementations
-- Updated data layer architecture to include advanced computed view functionality for exam results and teacher assignments
-- Enhanced academic data hooks documentation with comprehensive computed view processing capabilities
-- Updated facade pattern implementation to support sophisticated client-side data aggregation
-- Added detailed exam results horizontal processing and teacher assignment aggregation workflows
+- Added comprehensive internationalization support with German, French, Kinyarwanda, and Swahili translations
+- Expanded supported locales from 2 to 4 languages (en, fr, de, sw, rw)
+- Integrated modular translation loading system for dynamic locale support
+- Enhanced language switcher with expanded language options
+- Updated academic module navigation with localized labels
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
-5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Data Layer Architecture](#data-layer-architecture)
-7. [Computed View Hooks](#computed-view-hooks)
-8. [Academic Data Models](#academic-data-models)
-9. [Validation Rules and Business Logic](#validation-rules-and-business-logic)
-10. [Audit Trail and Compliance](#audit-trail-and-compliance)
-11. [Performance Considerations](#performance-considerations)
-12. [Troubleshooting Guide](#troubleshooting-guide)
-13. [Conclusion](#conclusion)
+5. [Internationalization System](#internationalization-system)
+6. [Detailed Component Analysis](#detailed-component-analysis)
+7. [Data Layer Architecture](#data-layer-architecture)
+8. [Computed View Hooks](#computed-view-hooks)
+9. [Academic Data Models](#academic-data-models)
+10. [Validation Rules and Business Logic](#validation-rules-and-business-logic)
+11. [Audit Trail and Compliance](#audit-trail-and-compliance)
+12. [Performance Considerations](#performance-considerations)
+13. [Troubleshooting Guide](#troubleshooting-guide)
+14. [Conclusion](#conclusion)
 
 ## Introduction
-This document describes the Academics module functionality and its integration within the broader educational management system. The module has undergone significant refactoring to eliminate mock data dependencies and integrate with the new database service infrastructure. It now provides comprehensive academic management capabilities including education system configuration, grading schemes, subject management, academic calendars, exam scheduling, paper setting management, result processing workflows, and advanced computed view functionality for exam results and teacher assignments. The recent addition of useExamResultsHorizontal and useTeacherAssignments hooks represents a major architectural advancement, replacing database views with sophisticated client-side TypeScript implementations that provide enhanced performance and flexibility.
+This document describes the Academics module functionality and its integration within the broader educational management system. The module has undergone significant expansion to include comprehensive internationalization support with German, French, Kinyarwanda, and Swahili translations. The module now provides complete academic management capabilities including education system configuration, grading schemes, subject management, academic calendars, exam scheduling, paper setting management, result processing workflows, and advanced computed view functionality for exam results and teacher assignments. The recent enhancement adds 21 new translation entries for each supported language, significantly expanding the module's international reach and accessibility.
 
 ## Project Structure
-The Academics module is organized as a self-contained module with enhanced data layer integration and computed view capabilities:
-- A module definition that declares navigation entries, features, dependencies, and settings
+The Academics module is organized as a self-contained module with enhanced data layer integration, computed view capabilities, and comprehensive internationalization support:
+- A module definition that declares navigation entries, features, dependencies, and settings with localized labels
 - A lifecycle that registers services upon enabling the module
 - A comprehensive data layer using database service integration with computed view hooks
 - A dashboard page that visualizes academic metrics and departmental subject counts
 - Facade pattern implementation for seamless database operations
 - Computed view hooks that replace database views with client-side processing and sophisticated data aggregation
+- Internationalization system supporting English, French, German, Swahili, and Kinyarwanda
 
 ```mermaid
 graph TB
@@ -64,6 +73,8 @@ HOOKS["hooks/index.ts<br/>Barrel exports for computed view hooks"]
 TYPES["types.ts<br/>Comprehensive academic data models"]
 SAFE["useSafeAcademicContext.ts<br/>Safe context wrapper for module state"]
 AY["useAcademicYearData.ts<br/>Academic year management hook"]
+I18N["i18n/<locale>.json<br/>Translation files for 5 languages"]
+LS["LanguageSwitcher.tsx<br/>Enhanced language selector with 8 languages"]
 end
 MD --> IDX
 IDX --> DP
@@ -74,10 +85,11 @@ DATA --> TYPES
 SAFE --> DATA
 CVH --> HOOKS
 CTA --> HOOKS
+I18N --> LS
 ```
 
 **Diagram sources**
-- [moduleDefinition.tsx:25-96](file://src/modules/academics/moduleDefinition.tsx#L25-L96)
+- [moduleDefinition.tsx:27-106](file://src/modules/academics/moduleDefinition.tsx#L27-L106)
 - [index.ts:4-8](file://src/modules/academics/index.ts#L4-L8)
 - [lifecycle.ts:9-23](file://src/modules/academics/lifecycle.ts#L9-L23)
 - [AcademicsDashboardPage.tsx:13-82](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L13-L82)
@@ -90,22 +102,23 @@ CTA --> HOOKS
 - [useAcademicYearData.ts:1-36](file://src/modules/academics/data/useAcademicYearData.ts#L1-L36)
 
 **Section sources**
-- [moduleDefinition.tsx:25-96](file://src/modules/academics/moduleDefinition.tsx#L25-L96)
+- [moduleDefinition.tsx:27-106](file://src/modules/academics/moduleDefinition.tsx#L27-L106)
 - [index.ts:4-8](file://src/modules/academics/index.ts#L4-L8)
 - [lifecycle.ts:9-23](file://src/modules/academics/lifecycle.ts#L9-L23)
 - [AcademicsDashboardPage.tsx:13-82](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L13-L82)
 
 ## Core Components
-- **Module definition**: Declares navigation entries for subjects, timetables, exam scheduling, papers, allocations, assignments, and lesson plans; defines features and dependencies; exposes settings toggles.
+- **Module definition**: Declares navigation entries for subjects, timetables, exam scheduling, papers, allocations, assignments, and lesson plans with localized labels; defines features and dependencies; exposes settings toggles.
 - **Lifecycle**: Provides hooks for registration, enabling (service registration), and disabling (placeholder).
 - **Data layer**: Comprehensive database-backed hooks for all academic entities including subjects, exams, timetables, grading schemes, and student management, enhanced with computed view hooks.
 - **Dashboard**: Aggregates and visualizes academic metrics such as total subjects, subject papers, exam sessions, grading schemes, and departmental subject distribution.
 - **Computed view hooks**: Sophisticated hooks that replace database views with client-side data processing and aggregation for exam results and teacher assignments, providing enhanced performance and flexibility.
 - **Facade pattern**: Centralized academic data access through useAcademicData hook with specialized CRUD operations for each entity type and computed view functionality.
+- **Internationalization**: Comprehensive translation support for 5 languages (English, French, German, Swahili, Kinyarwanda) with modular loading system.
 
 **Section sources**
-- [moduleDefinition.tsx:33-58](file://src/modules/academics/moduleDefinition.tsx#L33-L58)
-- [moduleDefinition.tsx:59-95](file://src/modules/academics/moduleDefinition.tsx#L59-L95)
+- [moduleDefinition.tsx:35-68](file://src/modules/academics/moduleDefinition.tsx#L35-L68)
+- [moduleDefinition.tsx:69-106](file://src/modules/academics/moduleDefinition.tsx#L69-L106)
 - [lifecycle.ts:9-23](file://src/modules/academics/lifecycle.ts#L9-L23)
 - [AcademicsDashboardPage.tsx:37-68](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L37-L68)
 - [useAcademicData.ts:10-279](file://src/modules/academics/data/useAcademicData.ts#L10-L279)
@@ -113,7 +126,7 @@ CTA --> HOOKS
 - [useTeacherAssignments.ts:29-45](file://src/modules/academics/hooks/useTeacherAssignments.ts#L29-L45)
 
 ## Architecture Overview
-The module integrates with the core module system and database service infrastructure. It depends on administrative services and optionally integrates with financial services. The dashboard consumes application data to render metrics and charts, while the data layer provides robust database-backed operations enhanced with computed view hooks for advanced analytics and reporting. The new computed view hooks represent a significant architectural advancement, moving from server-side database views to sophisticated client-side TypeScript implementations.
+The module integrates with the core module system and database service infrastructure. It depends on administrative services and optionally integrates with financial services. The dashboard consumes application data to render metrics and charts, while the data layer provides robust database-backed operations enhanced with computed view hooks for advanced analytics and reporting. The new computed view hooks represent a significant architectural advancement, moving from server-side database views to sophisticated client-side TypeScript implementations. The internationalization system supports five languages with modular loading and dynamic language switching.
 
 ```mermaid
 graph TB
@@ -131,6 +144,13 @@ CTA["useTeacherAssignments.ts"]
 HOOKS["hooks/index.ts"]
 TYPES["types.ts"]
 SAFE["useSafeAcademicContext.ts"]
+I18N["I18nManager.ts"]
+LS["LanguageSwitcher.tsx"]
+EN["en.json"]
+FR["fr.json"]
+DE["de.json"]
+SW["sw.json"]
+RW["rw.json"]
 Core --> AM
 AM --> MD
 AM --> LC
@@ -145,22 +165,112 @@ CTA --> HOOKS
 SAFE --> DATA
 AM -. optional .-> Finance
 AM --> Admin
+I18N --> LS
+LS --> EN
+LS --> FR
+LS --> DE
+LS --> SW
+LS --> RW
 ```
 
 **Diagram sources**
-- [moduleDefinition.tsx:60-73](file://src/modules/academics/moduleDefinition.tsx#L60-L73)
+- [moduleDefinition.tsx:70-83](file://src/modules/academics/moduleDefinition.tsx#L70-L83)
 - [lifecycle.ts:3-34](file://src/modules/academics/lifecycle.ts#L3-L34)
 - [AcademicsDashboardPage.tsx:15-22](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L15-L22)
 - [useAcademicData.ts:5-8](file://src/modules/academics/data/useAcademicData.ts#L5-L8)
 - [useExamResultsHorizontal.ts:55-62](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L55-L62)
 - [useTeacherAssignments.ts:46-53](file://src/modules/academics/hooks/useTeacherAssignments.ts#L46-L53)
+- [I18nManager.ts:17-32](file://src/i18n/I18nManager.ts#L17-L32)
+- [LanguageSwitcher.tsx:10-28](file://src/components/ui/LanguageSwitcher.tsx#L10-L28)
+
+## Internationalization System
+
+### Supported Languages and Coverage
+The Academics module now supports five languages with comprehensive translation coverage:
+- **English (en)**: Base language with complete academic terminology
+- **French (fr)**: European Francophone market support
+- **German (de)**: Central European market penetration
+- **Swahili (sw)**: East African regional language support
+- **Kinyarwanda (rw)**: Central African language support
+
+Each language includes 21 new translation entries covering:
+- Dashboard navigation and metrics
+- Subject management interfaces
+- Class and teacher allocation screens
+- Student enrollment workflows
+- Exam scheduling and analysis
+- Timetable management
+- Common UI elements
+
+### Translation File Structure
+The internationalization system uses a modular approach with separate JSON files for each language and namespace:
+
+```mermaid
+graph TB
+subgraph "Translation Files"
+EN["en.json<br/>English translations"]
+FR["fr.json<br/>French translations"]
+DE["de.json<br/>German translations"]
+SW["sw.json<br/>Swahili translations"]
+RW["rw.json<br/>Kinyarwanda translations"]
+end
+subgraph "Namespace Organization"
+COMMON["common.json<br/>Shared UI elements"]
+NAV["navigation.json<br/>Navigation labels"]
+DASHBOARD["dashboard.json<br/>Dashboard metrics"]
+ACADEMICS["academics.json<br/>Academic module terms"]
+end
+EN --> COMMON
+EN --> NAV
+EN --> DASHBOARD
+EN --> ACADEMICS
+FR --> COMMON
+FR --> NAV
+FR --> DASHBOARD
+FR --> ACADEMICS
+DE --> COMMON
+DE --> NAV
+DE --> DASHBOARD
+DE --> ACADEMICS
+SW --> COMMON
+SW --> NAV
+SW --> DASHBOARD
+SW --> ACADEMICS
+RW --> COMMON
+RW --> NAV
+RW --> DASHBOARD
+RW --> ACADEMICS
+```
+
+**Diagram sources**
+- [sw.json:1-229](file://src/modules/academics/i18n/sw.json#L1-L229)
+- [rw.json:1-229](file://src/modules/academics/i18n/rw.json#L1-L229)
+- [de.json:1-223](file://src/modules/administration/i18n/de.json#L1-L223)
+
+### Language Switcher Integration
+The enhanced language switcher now supports eight languages with stable references and proper error handling:
+
+**Updated** Expanded language options from 6 to 8 languages including German, Swahili, and Kinyarwanda with proper flag representations and country codes.
+
+**Section sources**
+- [LanguageSwitcher.tsx:10-28](file://src/components/ui/LanguageSwitcher.tsx#L10-L28)
+- [types.ts:7](file://src/i18n/types.ts#L7)
+
+### Modular Translation Loading
+The internationalization system uses a modular loading approach that dynamically imports translation files:
+
+**Updated** Enhanced loader to support five languages with unified namespace organization and proper error handling for missing translations.
+
+**Section sources**
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+- [I18nManager.ts:282-306](file://src/i18n/I18nManager.ts#L282-L306)
 
 ## Detailed Component Analysis
 
 ### Module Definition
-The module definition encapsulates comprehensive navigation for academic workflows and maintains strict dependency management:
+The module definition encapsulates comprehensive navigation for academic workflows with localized labels and maintains strict dependency management:
 - Navigation entries for core academic workflows (dashboard, subjects, timetable periods/entries, exam scheduling, subject papers, allocations, student enrollment, exam sessions, analysis, results entry, grading schemes, education systems)
-- Sub-features merged from assignments and lesson plans modules
+- Sub-features merged from assignments and lesson plans modules with localized labels
 - Features list indicating capabilities (subject-management, class-management, timetable, exam-management, grading, assignment-management, lesson-planning)
 - Dependencies on administration (required) and finance (optional)
 - Settings toggles for enabling/disabling exam management, timetable management, and grading schemes
@@ -205,11 +315,11 @@ ModuleDefinition --> Settings : "has"
 ```
 
 **Diagram sources**
-- [moduleDefinition.tsx:25-96](file://src/modules/academics/moduleDefinition.tsx#L25-L96)
+- [moduleDefinition.tsx:27-106](file://src/modules/academics/moduleDefinition.tsx#L27-L106)
 
 **Section sources**
-- [moduleDefinition.tsx:33-58](file://src/modules/academics/moduleDefinition.tsx#L33-L58)
-- [moduleDefinition.tsx:59-95](file://src/modules/academics/moduleDefinition.tsx#L59-L95)
+- [moduleDefinition.tsx:35-68](file://src/modules/academics/moduleDefinition.tsx#L35-L68)
+- [moduleDefinition.tsx:69-106](file://src/modules/academics/moduleDefinition.tsx#L69-L106)
 
 ### Lifecycle Management
 The lifecycle manages service registration when the module is enabled and logs registration/disable events. The service registration mechanism is delegated to a dedicated registration function.
@@ -233,10 +343,11 @@ Mod-->>Core : "Enabled"
 - [lifecycle.ts:9-23](file://src/modules/academics/lifecycle.ts#L9-L23)
 
 ### Dashboard Metrics and Charts
-The dashboard aggregates academic metrics and departmental subject distribution using the new database-backed data layer:
+The dashboard aggregates academic metrics and departmental subject distribution using the new database-backed data layer with internationalization support:
 - Metrics: Total subjects, total subject papers, exam sessions, grading schemes
 - Chart: Bar chart of subjects per academic department
 - Notifications: Status messages based on department availability
+- Localization: All text elements rendered in user's selected language
 
 ```mermaid
 flowchart TD
@@ -261,10 +372,10 @@ BuildNotif --> End(["Render dashboard"])
 - [AcademicsDashboardPage.tsx:15-68](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L15-L68)
 
 ## Data Layer Architecture
-The academic module now implements a comprehensive database service integration with facade pattern implementation and computed view functionality:
+The academic module now implements a comprehensive database service integration with facade pattern implementation, computed view functionality, and internationalization support:
 
 ### Database Service Integration
-The useAcademicData hook serves as the central facade for all academic data operations, utilizing the database service infrastructure and enhanced with computed view hooks:
+The useAcademicData hook serves as the central facade for all academic data operations, utilizing the database service infrastructure and enhanced with computed view hooks and localization:
 
 ```mermaid
 graph TB
@@ -275,6 +386,7 @@ DB["databaseService<br/>Database Service Interface"]
 COL["useDatabaseCollection<br/>Collection Hook Factory"]
 TYPES["types.ts<br/>Academic Data Models"]
 SAFE["useSafeAcademicContext.ts<br/>Safe Context Wrapper"]
+I18N["I18nManager.ts<br/>Internationalization Manager"]
 DATA --> DB
 DATA --> COL
 DATA --> CVH
@@ -283,6 +395,7 @@ DATA --> TYPES
 SAFE --> DATA
 CVH --> COL
 CTA --> COL
+I18N --> DATA
 ```
 
 **Diagram sources**
@@ -290,19 +403,20 @@ CTA --> COL
 - [useExamResultsHorizontal.ts:55-62](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L55-L62)
 - [useTeacherAssignments.ts:46-53](file://src/modules/academics/hooks/useTeacherAssignments.ts#L46-L53)
 - [useSafeAcademicContext.ts:1-27](file://src/modules/academics/data/useSafeAcademicContext.ts#L1-L27)
+- [I18nManager.ts:17-32](file://src/i18n/I18nManager.ts#L17-L32)
 
 ### Academic Year Management
-The useAcademicYearData hook demonstrates the transition from mock data to database-backed operations:
+The useAcademicYearData hook demonstrates the transition from mock data to database-backed operations with internationalization support.
 
-**Updated** Eliminated local initial data storage and integrated with database service for persistent academic year management.
+**Updated** Eliminated local initial data storage and integrated with database service for persistent academic year management with localized display formatting.
 
 **Section sources**
 - [useAcademicYearData.ts:10-36](file://src/modules/academics/data/useAcademicYearData.ts#L10-L36)
 
 ### Safe Context Implementation
-The useSafeAcademicContext hook provides module-aware data access with automatic fallback when the module is disabled:
+The useSafeAcademicContext hook provides module-aware data access with automatic fallback when the module is disabled and supports internationalized error messages.
 
-**Updated** Enhanced to properly handle module state detection and provide empty data structures when the academics module is not enabled.
+**Updated** Enhanced to properly handle module state detection, provide empty data structures when the academics module is not enabled, and support localized error reporting.
 
 **Section sources**
 - [useSafeAcademicContext.ts:5-27](file://src/modules/academics/data/useSafeAcademicContext.ts#L5-L27)
@@ -310,7 +424,7 @@ The useSafeAcademicContext hook provides module-aware data access with automatic
 ## Computed View Hooks
 
 ### useExamResultsHorizontal Hook
-The useExamResultsHorizontal hook represents a sophisticated replacement for the vw_edm_exam_results_horizontal database view, implementing comprehensive client-side data processing and aggregation:
+The useExamResultsHorizontal hook represents a sophisticated replacement for the vw_edm_exam_results_horizontal database view, implementing comprehensive client-side data processing and aggregation with internationalization support:
 
 **Purpose**: Pivots student exam results into a horizontal format with subject scores as columns, mirroring the SQL view functionality but executed client-side with enhanced performance and flexibility.
 
@@ -346,7 +460,7 @@ BuildRows --> ReturnData["Return ExamResultsHorizontalRow[]<br/>with memoized re
 - [useExamResultsHorizontal.ts:55-227](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L55-L227)
 
 ### useTeacherAssignments Hook
-The useTeacherAssignments hook represents a comprehensive replacement for the vw_edm_teacher_assignments database view, implementing sophisticated client-side data processing and aggregation:
+The useTeacherAssignments hook represents a comprehensive replacement for the vw_edm_teacher_assignments database view, implementing sophisticated client-side data processing and aggregation with internationalization support:
 
 **Purpose**: Joins teacher_subject_assignments with class_subject_allocations, staff, class_streams, classes, subjects, and academic_years to produce a flat table of academic assignments with enhanced data resolution capabilities.
 
@@ -504,6 +618,8 @@ The academic module implements comprehensive audit trail functionality for compl
 - Advanced lookup map construction provides O(1) access patterns for efficient data resolution
 - Weighted score calculations include precision control and mathematical accuracy
 - Batch refresh operations coordinate multiple collection updates efficiently
+- Modular translation loading reduces initial bundle size and improves startup performance
+- Language switching operates without page reloads for better user experience
 
 ## Troubleshooting Guide
 - If the dashboard remains blank, verify that loading flags for subjects, subject papers, exam sessions, grading schemes, and departments are resolved
@@ -518,13 +634,17 @@ The academic module implements comprehensive audit trail functionality for compl
 - If computed view performance is slow, consider implementing pagination or filtering for large datasets
 - For memory issues with computed views, monitor the size of lookup maps and consider implementing data pagination
 - If weighted score calculations appear incorrect, verify that marks_out_of and weight_percentage values are properly formatted and non-zero
+- For internationalization issues, verify that translation files are properly loaded and language codes match supported locales
+- If language switching fails, check browser locale detection and ensure translation bundles are available for the requested language
+- For missing translation keys, verify that all 21 required keys are present in each language file and properly formatted
 
 **Section sources**
 - [AcademicsDashboardPage.tsx:24-28](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L24-L28)
 - [AcademicsDashboardPage.tsx:30-34](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L30-L34)
-- [moduleDefinition.tsx:33-58](file://src/modules/academics/moduleDefinition.tsx#L33-L58)
+- [moduleDefinition.tsx:35-68](file://src/modules/academics/moduleDefinition.tsx#L35-L68)
 - [useExamResultsHorizontal.ts:64-75](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L64-L75)
 - [useTeacherAssignments.ts:55-66](file://src/modules/academics/hooks/useTeacherAssignments.ts#L55-L66)
+- [LanguageSwitcher.tsx:30-32](file://src/components/ui/LanguageSwitcher.tsx#L30-L32)
 
 ## Conclusion
-The Academics module has been significantly enhanced with comprehensive database service integration, sophisticated computed view hooks, and facade pattern implementation. The addition of useExamResultsHorizontal and useTeacherAssignments hooks represents a major architectural advancement, replacing database views with efficient client-side TypeScript implementations that provide enhanced performance, flexibility, and maintainability. These computed view hooks demonstrate sophisticated data processing capabilities including weighted score calculations, hierarchical data resolution, and comprehensive fallback mechanisms. The refactoring eliminates mock data dependencies while providing robust academic management capabilities with advanced analytics and reporting features. The module now offers complete support for education system configuration, grading schemes, subject management, academic calendars, exam scheduling, paper setting management, result processing workflows, and comprehensive audit trail functionality. Future development should focus on optimizing computed view performance, enhancing real-time synchronization capabilities, expanding analytics features for comprehensive academic reporting, implementing advanced filtering and search capabilities for large-scale academic data management, and adding support for additional computed view scenarios beyond exam results and teacher assignments.
+The Academics module has been significantly enhanced with comprehensive database service integration, sophisticated computed view hooks, facade pattern implementation, and extensive internationalization support. The addition of German, French, Kinyarwanda, and Swahili translations represents a major expansion of the module's global reach, with 21 new translation entries for each supported language. The enhanced internationalization system supports five languages with modular loading, dynamic language switching, and comprehensive academic terminology coverage. The addition of useExamResultsHorizontal and useTeacherAssignments hooks represents a major architectural advancement, replacing database views with efficient client-side TypeScript implementations that provide enhanced performance, flexibility, and maintainability. These computed view hooks demonstrate sophisticated data processing capabilities including weighted score calculations, hierarchical data resolution, and comprehensive fallback mechanisms. The refactoring eliminates mock data dependencies while providing robust academic management capabilities with advanced analytics, multilingual support, and comprehensive audit trail functionality. The module now offers complete support for education system configuration, grading schemes, subject management, academic calendars, exam scheduling, paper setting management, result processing workflows, and comprehensive internationalization features. Future development should focus on optimizing computed view performance, enhancing real-time synchronization capabilities, expanding analytics features for comprehensive academic reporting, implementing advanced filtering and search capabilities for large-scale academic data management, adding support for additional computed view scenarios beyond exam results and teacher assignments, and continuing to expand internationalization coverage to additional languages and regions.

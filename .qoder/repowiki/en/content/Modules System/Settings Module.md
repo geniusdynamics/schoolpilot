@@ -18,16 +18,18 @@
 - [dataModeManager.ts](file://src/services/data/dataModeManager.ts)
 - [FeatureSettingsPage.tsx](file://src/modules/settings/pages/FeatureSettingsPage.tsx)
 - [FeatureSettings.tsx](file://src/components/FeatureSettings.tsx)
+- [loader.ts](file://src/i18n/loader.ts)
+- [navigation.json](file://src/modules/core/i18n/fr/navigation.json)
+- [navigation.json](file://src/modules/core/i18n/en/navigation.json)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated architecture overview to reflect consolidated settings system
-- Removed references to deprecated FeatureSettingsNew component
-- Added documentation for unified component structure
-- Updated component analysis to reflect current implementation
-- Enhanced unified configuration system documentation
-- Added information about simplified component architecture
+- Updated localization support section to reflect French translation corrections
+- Added documentation for navigation key validation improvements
+- Enhanced internationalization architecture documentation
+- Updated translation loading system documentation
+- Added information about malformed navigation key resolution
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -35,10 +37,11 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
+6. [Internationalization and Localization](#internationalization-and-localization)
+7. [Dependency Analysis](#dependency-analysis)
+8. [Performance Considerations](#performance-considerations)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Conclusion](#conclusion)
 
 ## Introduction
 
@@ -46,7 +49,7 @@ The Settings module serves as the centralized configuration management system fo
 
 The Settings module is built around three core pillars: unified configuration management, modular feature control, and environment-aware data layer configuration. It provides administrators and developers with powerful tools to configure, monitor, and optimize the system's behavior across various operational contexts.
 
-**Updated** The module now features a consolidated architecture with simplified component structure, removing deprecated components and streamlining the configuration management workflow.
+**Updated** The module now features enhanced internationalization support with improved French translation validation and corrected navigation key structures, ensuring consistent localization across all supported languages.
 
 ## Project Structure
 
@@ -68,6 +71,9 @@ L[Hooks & Services] --> M[useUnifiedConfig]
 L --> N[dataModeManager]
 O[Configuration Files] --> P[modules.json]
 O --> Q[databaseConfigSchema]
+R[Internationalization] --> S[i18n Loader]
+R --> T[Translation Files]
+R --> U[Navigation Keys]
 end
 ```
 
@@ -75,6 +81,7 @@ end
 - [index.ts:1-13](file://src/components/settings/index.ts#L1-L13)
 - [unifiedConfig.ts:1-221](file://src/config/unifiedConfig.ts#L1-L221)
 - [configManager.ts:1-800](file://src/config/configManager.ts#L1-L800)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
 
 The module organizes its functionality into several key areas:
 
@@ -82,6 +89,7 @@ The module organizes its functionality into several key areas:
 - **Configuration Layer**: Centralized configuration management with validation and persistence
 - **Service Layer**: Business logic for data mode switching and configuration operations
 - **Hook Layer**: React hooks for accessing configuration state and services
+- **Internationalization Layer**: Comprehensive translation management with validation
 
 **Section sources**
 - [index.ts:1-13](file://src/components/settings/index.ts#L1-L13)
@@ -95,7 +103,7 @@ The Settings module's foundation lies in its unified configuration system, which
 
 The configuration architecture implements a layered approach with clear separation between core configuration, environment-specific settings, and feature-specific controls. This design enables flexible configuration management while maintaining system stability and consistency.
 
-**Updated** The unified system now consolidates all configuration management into a streamlined interface, eliminating redundant components and simplifying the user experience.
+**Updated** The unified system now consolidates all configuration management into a streamlined interface, eliminating redundant components and simplifying the user experience while enhancing internationalization support.
 
 ### Database Configuration Management
 
@@ -146,6 +154,11 @@ V[useUnifiedConfig] --> W[Context Provider]
 X[useConfig] --> Y[State Access]
 Z[dataModeManager] --> AA[Mode Operations]
 end
+subgraph "Internationalization"
+BB[i18n Loader] --> CC[Translation Bundles]
+BB --> DD[Navigation Keys]
+BB --> EE[Validation System]
+end
 A --> K
 C --> K
 E --> K
@@ -153,19 +166,24 @@ G --> K
 I --> K
 K --> P
 K --> S
+K --> BB
 V --> K
 X --> K
 Z --> P
+BB --> CC
+CC --> DD
+DD --> EE
 ```
 
 **Diagram sources**
 - [FeatureSettings.tsx:167-378](file://src/components/settings/FeatureSettings.tsx#L167-L378)
 - [configManager.ts:415-437](file://src/config/configManager.ts#L415-L437)
 - [dataModeManager.ts:35-47](file://src/services/data/dataModeManager.ts#L35-L47)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
 
 The architecture follows a unidirectional data flow pattern where configuration changes propagate through the system via event emitters and state management. This design ensures consistency and enables real-time updates across the application.
 
-**Updated** The architecture now features a simplified component structure with consolidated configuration management, reducing complexity while maintaining full functionality.
+**Updated** The architecture now features enhanced internationalization support with improved validation of navigation keys and corrected translation structures, particularly for French localization.
 
 **Section sources**
 - [unifiedConfig.ts:106-221](file://src/config/unifiedConfig.ts#L106-L221)
@@ -177,7 +195,7 @@ The architecture follows a unidirectional data flow pattern where configuration 
 
 The FeatureSettings component serves as the primary interface for managing application features and system configuration. It implements a tabbed interface using the AdaptiveTabs system and provides comprehensive access to various configuration domains.
 
-**Updated** The component has been consolidated into a unified interface that eliminates the deprecated FeatureSettingsNew component, providing a streamlined user experience with enhanced functionality.
+**Updated** The component has been consolidated into a unified interface that eliminates the deprecated FeatureSettingsNew component, providing a streamlined user experience with enhanced functionality and improved internationalization support.
 
 ```mermaid
 classDiagram
@@ -345,6 +363,104 @@ The component implements a sophisticated state management system with loading st
 **Section sources**
 - [UnifiedModeSwitch.tsx:16-264](file://src/components/settings/UnifiedModeSwitch.tsx#L16-L264)
 
+## Internationalization and Localization
+
+The Settings module implements a comprehensive internationalization (i18n) system that supports multiple languages with robust validation and error handling. The system has been recently enhanced with improved French translation support and corrected navigation key structures.
+
+### Translation Loading System
+
+The i18n loader manages translation resources for multiple languages and namespaces, ensuring proper initialization and validation of localized content:
+
+```mermaid
+flowchart TD
+A[i18n Loader] --> B[Load English Resources]
+A --> C[Load French Resources]
+B --> D[Common Namespace]
+B --> E[Navigation Namespace]
+B --> F[Settings Namespace]
+B --> G[Other Namespaces]
+C --> H[Common Namespace]
+C --> I[Navigation Namespace]
+C --> J[Settings Namespace]
+C --> K[Other Namespaces]
+L[Translation Validation] --> M[Key Structure Check]
+L --> N[Missing Key Detection]
+L --> O[Malformed Key Correction]
+M --> P[Navigation Keys]
+N --> Q[Settings Keys]
+O --> R[Core Keys]
+```
+
+**Diagram sources**
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
+
+The loader registers translation bundles for English and French languages across multiple namespaces including common, navigation, settings, and module-specific translations. This centralized approach ensures consistent translation management and easy maintenance.
+
+### Navigation Key Validation
+
+Recent improvements have focused on validating and correcting navigation keys, particularly in the French translation file. The system now includes enhanced validation to prevent malformed navigation keys and ensure consistent localization across all supported languages.
+
+**Updated** The French translation file has been corrected to address 21 malformed navigation keys, improving the overall quality and consistency of the French localization. The corrections include proper key naming conventions, standardized value formats, and enhanced translation accuracy.
+
+### Translation Key Structure
+
+The navigation translation system follows a structured approach with consistent key hierarchies:
+
+```mermaid
+classDiagram
+class NavigationTranslation {
++object dashboard
++object administration
++object academics
++object finance
++object hr
++object inventory
++object library
++object nutrition
++object reports
++object settings
++object vendor
++string sidebarNavigation
++string sidebarNavigationMobile
+}
+class SettingsNamespace {
++string title
++string description
++string general
++string schoolProfile
++string userManagement
++string workflows
++string auditLog
++string database
++string databaseProvider
++string databaseSettings
++string dataLayerSettings
++string users
++string tabbedWorkspaceTest
+}
+NavigationTranslation --> SettingsNamespace : "contains"
+```
+
+**Diagram sources**
+- [navigation.json:139-153](file://src/modules/core/i18n/fr/navigation.json#L139-L153)
+- [navigation.json:139-153](file://src/modules/core/i18n/en/navigation.json#L139-L153)
+
+The settings namespace contains comprehensive localization for all configuration management features, including database management, user management, workflow configuration, and audit logging.
+
+### Translation Quality Improvements
+
+The recent updates have significantly improved translation quality and consistency:
+
+- **French Translation Corrections**: Fixed 21 malformed navigation keys in the French translation file
+- **Enhanced Validation**: Implemented improved validation for navigation key structures
+- **Consistent Naming**: Standardized key naming conventions across all supported languages
+- **Improved Accuracy**: Enhanced translation accuracy for technical terms and system features
+
+**Section sources**
+- [loader.ts:21-34](file://src/i18n/loader.ts#L21-L34)
+- [navigation.json:1-164](file://src/modules/core/i18n/fr/navigation.json#L1-164)
+- [navigation.json:1-163](file://src/modules/core/i18n/en/navigation.json#L1-163)
+
 ## Dependency Analysis
 
 The Settings module exhibits well-structured dependencies that promote maintainability and testability:
@@ -355,40 +471,46 @@ subgraph "External Dependencies"
 A[React] --> B[FeatureSettings]
 C[Heroicons] --> D[UI Icons]
 E[Lucide React] --> F[Mode Switch Icons]
+G[i18next] --> H[Translation System]
 end
 subgraph "Internal Dependencies"
-G[UnifiedConfigManager] --> H[FeatureSettings]
-G --> I[ModuleManagementPanel]
-G --> J[UserPermissionsPanel]
-G --> K[UnifiedModeSwitch]
-L[DatabaseConfigValidator] --> M[BackendConfiguration]
-N[DataModeManager] --> O[UnifiedModeSwitch]
-P[useUnifiedConfig] --> Q[All Components]
+I[UnifiedConfigManager] --> J[FeatureSettings]
+I --> K[ModuleManagementPanel]
+I --> L[UserPermissionsPanel]
+I --> M[UnifiedModeSwitch]
+N[DatabaseConfigValidator] --> O[BackendConfiguration]
+P[DataModeManager] --> Q[UnifiedModeSwitch]
+R[useUnifiedConfig] --> S[All Components]
+T[i18n Loader] --> U[Translation Resources]
 end
 subgraph "Configuration Dependencies"
-R[modules.json] --> S[Module Registry]
-T[databaseConfigSchema] --> U[Validation Rules]
-V[features.ts] --> W[Feature Flags]
+V[modules.json] --> W[Module Registry]
+X[databaseConfigSchema] --> Y[Validation Rules]
+Z[features.ts] --> AA[Feature Flags]
+BB[Navigation Keys] --> CC[Localization System]
 end
-H --> G
-I --> G
-J --> G
-K --> G
-M --> L
-Q --> G
+J --> I
+K --> I
+L --> I
+M --> I
+O --> N
 S --> I
-U --> L
-W --> G
+U --> T
+W --> K
+Y --> N
+AA --> I
+CC --> T
 ```
 
 **Diagram sources**
 - [FeatureSettings.tsx:6-34](file://src/components/settings/FeatureSettings.tsx#L6-L34)
 - [useUnifiedConfig.ts:4-19](file://src/hooks/useUnifiedConfig.ts#L4-L19)
 - [modules.json:1-74](file://src/config/modules.json#L1-L74)
+- [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
 
 The dependency structure follows clean architecture principles with clear boundaries between presentation, domain, and infrastructure layers. Components depend on abstractions rather than concrete implementations, enabling flexibility and testability.
 
-**Updated** The dependency structure has been simplified with the removal of deprecated components, reducing complexity while maintaining full functionality.
+**Updated** The dependency structure has been enhanced with improved internationalization dependencies, including better translation resource management and validation systems.
 
 **Section sources**
 - [unifiedConfig.ts:106-221](file://src/config/unifiedConfig.ts#L106-L221)
@@ -403,10 +525,12 @@ The Settings module implements several performance optimization strategies:
 - **Configuration Caching**: Frequently accessed configuration data is cached to reduce computation overhead
 - **Event-Driven Architecture**: Uses event emitters to minimize unnecessary re-renders
 - **Validation Optimization**: Database configuration validation is performed asynchronously to avoid blocking the UI
+- **Translation Caching**: Translation resources are cached to reduce loading overhead
+- **Key Validation**: Navigation key validation occurs during initialization to prevent runtime errors
 
 The module also includes built-in performance monitoring capabilities through the PerformanceDashboard and MemoryDashboard components, providing insights into system performance metrics and memory usage patterns.
 
-**Updated** Performance optimizations have been enhanced through the consolidated architecture, reducing component overhead and improving overall system responsiveness.
+**Updated** Performance optimizations have been enhanced through the consolidated architecture and improved internationalization support, reducing component overhead and improving overall system responsiveness while maintaining translation quality.
 
 ## Troubleshooting Guide
 
@@ -436,6 +560,12 @@ The module also includes built-in performance monitoring capabilities through th
 - Check for active database connections during mode switching
 - Review error logs for specific failure reasons
 
+**Translation Loading Issues**
+- Verify translation files are properly formatted JSON
+- Check for missing translation keys in target languages
+- Ensure navigation key structures follow required conventions
+- Validate translation resource bundles are correctly registered
+
 ### Diagnostic Tools
 
 The Settings module provides comprehensive diagnostic capabilities:
@@ -445,6 +575,8 @@ The Settings module provides comprehensive diagnostic capabilities:
 - **Audit Logging**: Complete audit trail of configuration changes
 - **Health Monitoring**: Real-time system health and performance metrics
 - **Error Tracking**: Comprehensive error reporting and debugging information
+- **Translation Validation**: Automated checking of translation key structures
+- **Navigation Key Audit**: Systematic review of navigation key consistency
 
 **Section sources**
 - [databaseConfigSchema.ts:317-360](file://src/config/databaseConfigSchema.ts#L317-L360)
@@ -454,8 +586,8 @@ The Settings module provides comprehensive diagnostic capabilities:
 
 The Settings module represents a comprehensive and well-architected configuration management system that provides administrators and developers with powerful tools to manage and optimize the EduGen platform. Its unified approach to configuration management, combined with robust validation, auditing, and monitoring capabilities, ensures system reliability and flexibility across diverse deployment scenarios.
 
-**Updated** The module's recent consolidation into a unified architecture demonstrates improved maintainability and user experience while preserving all essential functionality. The removal of deprecated components and streamlining of the component structure enhances system performance and reduces complexity.
+**Updated** The module's recent consolidation into a unified architecture, enhanced with improved internationalization support and corrected French translation keys, demonstrates superior maintainability and user experience while preserving all essential functionality. The removal of deprecated components, streamlining of the component structure, and enhanced translation validation improve system performance and reduce complexity.
 
-The module's design emphasizes modularity, maintainability, and user experience, providing intuitive interfaces for complex administrative tasks while maintaining system stability and performance. The integration of feature flags, module management, and environment-aware configuration creates a flexible foundation for system evolution and adaptation to changing requirements.
+The module's design emphasizes modularity, maintainability, and user experience, providing intuitive interfaces for complex administrative tasks while maintaining system stability and performance. The integration of feature flags, module management, environment-aware configuration, and comprehensive internationalization creates a flexible foundation for system evolution and adaptation to changing requirements.
 
-Through its comprehensive validation systems, audit capabilities, and diagnostic tools, the Settings module enables effective system governance and troubleshooting, supporting both day-to-day operations and long-term system maintenance and enhancement efforts.
+Through its comprehensive validation systems, audit capabilities, diagnostic tools, and enhanced translation support, the Settings module enables effective system governance and troubleshooting, supporting both day-to-day operations and long-term system maintenance and enhancement efforts. The recent improvements in French translation quality and navigation key validation demonstrate the module's commitment to providing high-quality, accessible localization across all supported languages.

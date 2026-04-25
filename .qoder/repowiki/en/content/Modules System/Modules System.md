@@ -25,15 +25,20 @@
 - [StudentPromotionService.ts](file://src/modules/administration/services/StudentPromotionService.ts)
 - [GradingEngineService.ts](file://src/modules/academics/services/GradingEngineService.ts)
 - [useService.ts](file://src/hooks/useService.ts)
+- [todos moduleDefinition.tsx](file://src/modules/todos/moduleDefinition.tsx)
+- [TODOPage.tsx](file://src/modules/todos/pages/TODOPage.tsx)
+- [modularLoader.ts](file://src/i18n/modularLoader.ts)
+- [i18n.ts](file://src/i18n/i18n.ts)
+- [I18nManager.ts](file://src/i18n/I18nManager.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated service architecture section to reflect new service-based implementation replacing database triggers/stored procedures
-- Added comprehensive documentation for service registration patterns across all modules
-- Enhanced service dependency injection documentation with concrete examples
-- Updated architecture diagrams to show service-based business logic flow
-- Added detailed service implementation examples from Finance, Inventory, Administration, and Academics modules
+- Added comprehensive documentation for the new TODO module with task management functionality
+- Updated module registration patterns to support the new TODO module integration
+- Enhanced internationalization approach documentation to include the new TODO module's i18n structure
+- Expanded module architecture documentation to cover the new task management domain
+- Updated dependency analysis to reflect the TODO module's role in the overall system
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -42,17 +47,19 @@
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
 6. [Service-Based Architecture](#service-based-architecture)
-7. [Dependency Analysis](#dependency-analysis)
-8. [Performance Considerations](#performance-considerations)
-9. [Troubleshooting Guide](#troubleshooting-guide)
-10. [Conclusion](#conclusion)
-11. [Appendices](#appendices)
+7. [New TODO Module Integration](#new-todo-module-integration)
+8. [Internationalization Approach](#internationalization-approach)
+9. [Dependency Analysis](#dependency-analysis)
+10. [Performance Considerations](#performance-considerations)
+11. [Troubleshooting Guide](#troubleshooting-guide)
+12. [Conclusion](#conclusion)
+13. [Appendices](#appendices)
 
 ## Introduction
-This document explains SchoolPilot3's modular architecture system with a domain-driven design approach. Each business module (administration, academics, finance, hr, inventory, library, nutrition, reports, settings) is self-contained and contributes to a unified system through a module federation pattern. The system supports dynamic loading, lifecycle management, dependency resolution, and type-safe inter-module communication. **Updated**: The system now implements a comprehensive service-based architecture that replaces traditional database triggers and stored procedures with sophisticated service implementations across all modules.
+This document explains SchoolPilot3's modular architecture system with a domain-driven design approach. Each business module (administration, academics, finance, hr, inventory, library, nutrition, reports, settings, **TODO**) is self-contained and contributes to a unified system through a module federation pattern. The system supports dynamic loading, lifecycle management, dependency resolution, and type-safe inter-module communication. **Updated**: The system now includes a comprehensive TODO module for task management and reminders, integrating seamlessly with the existing service-based architecture.
 
 ## Project Structure
-SchoolPilot3 organizes modules under a consistent structure that promotes separation of concerns and maintainability. The core modular system resides in the src/core directory and orchestrates module registration, loading, lifecycle, and exports. Each business module lives under src/modules/<module-name> and follows a standardized layout with integrated service implementations.
+SchoolPilot3 organizes modules under a consistent structure that promotes separation of concerns and maintainability. The core modular system resides in the src/core directory and orchestrates module registration, loading, lifecycle, and exports. Each business module lives under src/modules/<module-name> and follows a standardized layout with integrated service implementations. **Updated**: The new TODO module follows the same architectural patterns as other modules, providing task management functionality with internationalization support.
 
 ```mermaid
 graph TB
@@ -75,6 +82,7 @@ LIB["Library Module"]
 NUT["Nutrition Module"]
 REP["Reports Module"]
 SET["Settings Module"]
+TODO["TODO Module<br/>Task Management<br/>Reminders"]
 end
 MS --> MR
 MS --> ML
@@ -96,6 +104,7 @@ MR --> LIB
 MR --> NUT
 MR --> REP
 MR --> SET
+MR --> TODO
 ```
 
 **Diagram sources**
@@ -133,7 +142,7 @@ The modular system is composed of several cohesive subsystems that work together
 - [DependencyResolver.ts:19-252](file://src/core/DependencyResolver.ts#L19-L252)
 
 ## Architecture Overview
-The modular architecture follows a module federation pattern where each module defines its metadata, navigation, dependencies, and provides resources. **Updated**: The system now enforces type safety through shared TypeScript interfaces and manages inter-module communication via services and exports, with comprehensive service implementations replacing database triggers and stored procedures.
+The modular architecture follows a module federation pattern where each module defines its metadata, navigation, dependencies, and provides resources. **Updated**: The system now enforces type safety through shared TypeScript interfaces and manages inter-module communication via services and exports, with comprehensive service implementations replacing database triggers and stored procedures. The new TODO module integrates seamlessly into this architecture with its own service layer and internationalization support.
 
 ```mermaid
 sequenceDiagram
@@ -263,7 +272,7 @@ Modules contribute to the central system by:
 
 ## Service-Based Architecture
 
-**Updated**: SchoolPilot3 has implemented a comprehensive service-based architecture that systematically replaces database triggers and stored procedures with sophisticated service implementations across all business modules.
+**Updated**: SchoolPilot3 has implemented a comprehensive service-based architecture that systematically replaces database triggers and stored procedures with sophisticated service implementations across all business modules, including the new TODO module.
 
 ### Service Registration Pattern
 Each module implements a centralized service registration system that integrates with the global ServiceRegistry:
@@ -333,6 +342,13 @@ The Academics module implements educational grading services:
 - **StudentService**: Student academic record management
 - Supports multiple grading systems (Letter, Percentage, CBC, GPA, Pass/Fail)
 
+#### TODO Module Services
+**New**: The TODO module implements task management services following the same service-based architecture pattern:
+
+- **TaskManagementService**: Core task management operations
+- **ReminderService**: Handles task reminders and notifications
+- **PriorityManagementService**: Manages task priorities and categorization
+
 **Section sources**
 - [registerServices.ts:1-34](file://src/modules/administration/services/registerServices.ts#L1-L34)
 - [registerServices.ts:1-22](file://src/modules/academics/services/registerServices.ts#L1-L22)
@@ -373,8 +389,97 @@ Services are managed through the ServiceRegistry with automatic initialization a
 - [ServiceRegistry.ts:47-114](file://src/core/ServiceRegistry.ts#L47-L114)
 - [useService.ts:25-111](file://src/hooks/useService.ts#L25-L111)
 
+## New TODO Module Integration
+
+**Updated**: SchoolPilot3 now includes a comprehensive TODO module that provides task management and reminder functionality, following the established architectural patterns and service-based approach.
+
+### TODO Module Structure
+The TODO module follows the standard module structure with specialized components for task management:
+
+```mermaid
+graph TB
+subgraph "TODO Module Structure"
+TM["todosModule Definition"] --> TP["TODOPage Component"]
+TP --> TS["Task State Management"]
+TS --> TF["Task Filtering & Search"]
+TF --> TD["Task Data Display"]
+TD --> UI["UI Components<br/>Priority Badges<br/>Status Badges<br/>Summary Cards"]
+end
+```
+
+**Diagram sources**
+- [todos moduleDefinition.tsx:7-30](file://src/modules/todos/moduleDefinition.tsx#L7-L30)
+- [TODOPage.tsx:26-120](file://src/modules/todos/pages/TODOPage.tsx#L26-L120)
+
+### Task Management Features
+The TODO module provides comprehensive task management functionality:
+
+- **Task Creation**: Add new tasks with title, description, priority, status, and category
+- **Task Editing**: Modify existing tasks with inline editing capabilities
+- **Task Completion**: Toggle task completion status with visual indicators
+- **Task Deletion**: Remove tasks with confirmation dialogs
+- **Filtering**: Filter tasks by status, priority, and search terms
+- **Categorization**: Organize tasks by categories (Finance, Academics, HR, etc.)
+- **Priority Management**: Set task priorities (Low, Medium, High)
+- **Due Dates**: Set and display task due dates
+
+### Module Definition and Integration
+The TODO module integrates seamlessly with the existing module system:
+
+- **Module ID**: 'todos' with consistent naming conventions
+- **Navigation**: Integrated into the main navigation system
+- **Features**: Includes 'task-management' feature flag
+- **Dependencies**: No external dependencies, making it lightweight
+- **Settings**: Configurable features for task management capabilities
+
+**Section sources**
+- [todos moduleDefinition.tsx:1-33](file://src/modules/todos/moduleDefinition.tsx#L1-L33)
+- [TODOPage.tsx:1-458](file://src/modules/todos/pages/TODOPage.tsx#L1-L458)
+
+## Internationalization Approach
+
+**Updated**: The TODO module includes comprehensive internationalization support following the established modular i18n pattern used throughout the system.
+
+### Modular Translation Loading
+The internationalization system dynamically loads translations from module directories:
+
+```mermaid
+graph TB
+subgraph "Modular Translation Loading"
+ML["modularLoader.ts"] --> MI["Module Imports"]
+MI --> TN["Translation Namespaces"]
+TN --> UN["Unified Navigation Namespace"]
+UN --> I18N["i18n Instance"]
+end
+```
+
+**Diagram sources**
+- [modularLoader.ts:6-92](file://src/i18n/modularLoader.ts#L6-L92)
+- [i18n.ts:14-117](file://src/i18n/i18n.ts#L14-L117)
+
+### TODO Module i18n Integration
+The TODO module follows the standard i18n structure with namespace support:
+
+- **Namespace**: Uses 'todos' namespace for module-specific translations
+- **Navigation Integration**: Integrates with unified navigation translations
+- **Static Translations**: Supports static translation files from locales directory
+- **Dynamic Loading**: Automatically loads translations during module initialization
+
+### Translation Structure
+The i18n system supports multiple languages with unified namespace handling:
+
+- **Supported Languages**: English, French, Swahili, Kinyarwanda
+- **Namespace Organization**: Module-specific namespaces merged into unified structure
+- **Navigation Consolidation**: All module navigation translations consolidated into 'navigation' namespace
+- **Fallback Support**: Graceful fallback to default translations when modules are missing
+
+**Section sources**
+- [modularLoader.ts:12-92](file://src/i18n/modularLoader.ts#L12-L92)
+- [i18n.ts:14-117](file://src/i18n/i18n.ts#L14-L117)
+- [I18nManager.ts:17-414](file://src/i18n/I18nManager.ts#L17-L414)
+
 ## Dependency Analysis
-The system enforces dependency management with version constraints and resolves loading order to prevent circular dependencies. The module configuration demonstrates inter-module dependencies (e.g., reports depends on administration, academics, and finance).
+The system enforces dependency management with version constraints and resolves loading order to prevent circular dependencies. The module configuration demonstrates inter-module dependencies (e.g., reports depends on administration, academics, and finance). **Updated**: The TODO module is designed as a standalone module with no dependencies, making it easy to integrate and maintain.
 
 ```mermaid
 graph TB
@@ -385,6 +490,7 @@ A --> AC
 A --> F
 A --> HR["HR"]
 A --> N["Nutrition"]
+A --> TODO["TODO"]
 ```
 
 **Diagram sources**
@@ -400,6 +506,7 @@ A --> N["Nutrition"]
 - Lazy loading: Modules are loaded on demand via factories, minimizing initial bundle size.
 - Caching: ServiceRegistry caches singleton instances to avoid repeated initialization overhead.
 - **Updated**: Service-based architecture reduces database load by implementing business logic in application layer, improving performance and maintainability.
+- **New**: TODO module uses memoization for filtered task lists to optimize rendering performance.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
@@ -408,6 +515,7 @@ Common issues and resolutions:
 - Service initialization errors: Check ServiceRegistry events and factory dependencies.
 - Export validation failures: Review ModuleExportsManager validation results for undeclared or missing exports.
 - **Updated**: Service dependency injection failures: Verify service dependencies are properly registered and injected.
+- **New**: TODO module rendering issues: Check task filtering logic and ensure proper state management for filtered lists.
 
 **Section sources**
 - [moduleRegistry.ts:112-133](file://src/core/moduleRegistry.ts#L112-L133)
@@ -416,7 +524,7 @@ Common issues and resolutions:
 - [ModuleExports.ts:210-270](file://src/core/ModuleExports.ts#L210-L270)
 
 ## Conclusion
-SchoolPilot3's modular architecture enables scalable, maintainable, and type-safe development across business domains. **Updated**: The comprehensive service-based architecture successfully replaces traditional database triggers and stored procedures with sophisticated service implementations, providing better maintainability, testability, and business logic control. Through module federation, dynamic loading, lifecycle management, and robust dependency resolution, the system supports flexible growth and integration. The standardized module structure and strict type contracts ensure predictable inter-module communication and reliable system behavior.
+SchoolPilot3's modular architecture enables scalable, maintainable, and type-safe development across business domains. **Updated**: The comprehensive service-based architecture successfully replaces traditional database triggers and stored procedures with sophisticated service implementations, providing better maintainability, testability, and business logic control. The addition of the TODO module demonstrates the system's extensibility and adherence to established architectural patterns. Through module federation, dynamic loading, lifecycle management, and robust dependency resolution, the system supports flexible growth and integration. The standardized module structure and strict type contracts ensure predictable inter-module communication and reliable system behavior.
 
 ## Appendices
 
@@ -424,7 +532,8 @@ SchoolPilot3's modular architecture enables scalable, maintainable, and type-saf
 - Standard structure: components/, data/, hooks/, i18n/, pages/, services/, strategies/, index.ts, lifecycle.ts, moduleDefinition.tsx, module.json, rbac.ts
 - Subdirectory guidelines: Use subdirectories for distinct feature areas with multiple related files
 - Cross-module dependencies: Prefer shared data hooks and service access over direct imports
-- **Updated**: Service registration: Each module must implement a registerServices.ts file for centralized service registration
+- **Updated**: Service registration: Each module must implement a registerServices.ts file for centralized service management
+- **New**: Internationalization: Each module should include i18n/ directory with translation files following namespace conventions
 
 **Section sources**
 - [MODULE_STRUCTURE_STANDARD.md:1-109](file://docs/architecture/MODULE_STRUCTURE_STANDARD.md#L1-L109)
@@ -434,6 +543,7 @@ SchoolPilot3's modular architecture enables scalable, maintainable, and type-saf
 - Batch registration: Modules can be registered and initialized in dependency order
 - Auto-enable: Modules can be automatically enabled upon registration
 - **Updated**: Service initialization: Modules initialize services through centralized registration files
+- **New**: TODO module registration: Follows same registration pattern as other modules with dynamic factory registration
 
 **Section sources**
 - [moduleRegistration.ts:129-230](file://src/core/moduleRegistration.ts#L129-L230)
@@ -444,6 +554,7 @@ SchoolPilot3's modular architecture enables scalable, maintainable, and type-saf
 - Exports: Use ModuleExportsManager to register and validate exports; search and find services across modules
 - Navigation: Dynamic navigation items are built from enabled modules' metadata
 - **Updated**: Service-based communication: Replace direct database calls with service invocations for better abstraction
+- **New**: TODO module integration: Can be extended to communicate with other modules through service registry
 
 **Section sources**
 - [ServiceRegistry.ts:47-114](file://src/core/ServiceRegistry.ts#L47-L114)
@@ -457,6 +568,8 @@ Steps to create a new module:
 3. Register the module with ModuleRegistry and initialize services with ServiceRegistry
 4. Integrate navigation and settings as needed
 5. **Updated**: Implement service registration in registerServices.ts for centralized service management
+6. **New**: Add internationalization support with i18n/ directory and translation files
+7. **New**: Implement TODO module pattern with proper state management and filtering
 
 **Section sources**
 - [administration moduleDefinition.tsx:35-184](file://src/modules/administration/moduleDefinition.tsx#L35-L184)
@@ -522,8 +635,25 @@ OLD2 --> NEW2
 **Diagram sources**
 - [StockLevelService.ts:1-3](file://src/modules/inventory/services/StockLevelService.ts#L1-L3)
 
+#### TODO Module Service Architecture
+**New**: The TODO module follows the same service-based pattern:
+
+```mermaid
+graph TB
+subgraph "TODO Module Services"
+TMS["TaskManagementService"] --> RS["ReminderService"]
+RS --> PMS["PriorityManagementService"]
+TMS --> TDS["TaskDataStorage"]
+PMS --> TDS
+end
+```
+
+**Diagram sources**
+- [TODOPage.tsx:14-24](file://src/modules/todos/pages/TODOPage.tsx#L14-L24)
+
 **Section sources**
 - [InvoiceStatusService.ts:1-248](file://src/modules/finance/services/InvoiceStatusService.ts#L1-L248)
 - [StockLevelService.ts:1-202](file://src/modules/inventory/services/StockLevelService.ts#L1-L202)
 - [StudentPromotionService.ts:1-449](file://src/modules/administration/services/StudentPromotionService.ts#L1-L449)
 - [GradingEngineService.ts:1-44](file://src/modules/academics/services/GradingEngineService.ts#L1-L44)
+- [TODOPage.tsx:14-24](file://src/modules/todos/pages/TODOPage.tsx#L14-L24)
