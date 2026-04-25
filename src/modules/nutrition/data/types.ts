@@ -1,7 +1,7 @@
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Nutrition & Wallet module.
 // ABOUTME: It ensures all nutrition-related data structures are managed in one place.
 
-import { WalletTransactionType, StudentMealPlan, Menu, StudentWallet, Merchant, MealPlan, MealType, StudentMealPlanStatus, MealConsumptionLog, WalletTransaction } from '@/core/types';
+import { WalletTransactionType, StudentMealPlan, Menu, StudentWallet, Merchant, MealPlan, MealType, StudentMealPlanStatus, MealConsumptionLog, WalletTransaction } from '@/modules/library/data/types';
 
 export enum NutrStudentMealPlanStatusEnum { ACTIVE = 'Active', INACTIVE = 'Inactive', CANCELLED = 'Cancelled' }
 export enum NutrMealTypeEnum { BREAKFAST = 'Breakfast', SNACK_MORNING = 'Morning Snack', LUNCH = 'Lunch', SNACK_EVENING = 'Evening Snack', SUPPER = 'Supper' }

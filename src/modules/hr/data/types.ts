@@ -1,15 +1,23 @@
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the HR module.
 // ABOUTME: It ensures all HR-related data structures are managed in one place.
 
-import { StaffRecurringItem, StaffSalarySetting, HRPayrollPeriodStatusEnum, HRPayrollPeriodType, PayrollPeriod, PayrollItemType, PayslipItem, Payslip } from '@/core/types';
+import { HRPayrollPeriodStatusEnum } from '@/core/types';
 
-// HRPayrollPeriodStatusEnum is now imported from core/types to avoid conflicts
 export enum HRPayrollItemCategoryEnum { EARNING = 'Earning', DEDUCTION = 'Deduction', CONTRIBUTION = 'Contribution (Employer)' }
 export enum HRPayrollTaxImplicationEnum { TAXABLE = 'Taxable', NON_TAXABLE = 'Non-Taxable', TAX_RELIEF = 'Tax Relief' }
 export enum HRPayslipStatusEnum { DRAFT = 'Draft', PROCESSED = 'Processed', PAID = 'Paid', CANCELLED = 'Cancelled' }
 
-
-// HRPayrollPeriodType interface is now imported from core/types to avoid conflicts
+export interface PayrollPeriod {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  financial_year_id: number;
+  school_period_id: number;
+  status: HRPayrollPeriodStatusEnum;
+  financial_year_name?: string;
+  school_period_name?: string;
+}
 
 export interface HRPayrollItemTypeType {
   id: number;
@@ -72,17 +80,12 @@ export interface HRPayslipType {
   payroll_period_name?: string;
 }
 
-// PayrollPeriod interface is now imported from core/types to avoid conflicts
-
-// PayrollItemType interface is now imported from core/types to avoid conflicts
-
-// StaffRecurringItem interface is now imported from core/types to avoid conflicts
-
-// StaffSalarySetting interface is now imported from core/types to avoid conflicts
-
-// PayslipItem interface is now imported from core/types to avoid conflicts
-
-// Payslip interface is now imported from core/types to avoid conflicts
+// Non-prefixed type aliases for backward compatibility
+export type PayrollItemType = HRPayrollItemTypeType;
+export type StaffRecurringItem = HRStaffRecurringItemType;
+export type StaffSalarySetting = HRStaffSalarySettingType;
+export type PayslipItem = HRPayslipItemType;
+export type Payslip = HRPayslipType;
 
 // === NEW TYPES FOR HR PAGES (from inline mock data migration) ===
 

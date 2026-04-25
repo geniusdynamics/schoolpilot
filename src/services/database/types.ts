@@ -54,11 +54,15 @@ export type {
   FeeTemplateItem,
   ExpenseClaim,
   RFQ,
+} from '@/modules/finance/data/types';
+
+// HR types - now from hr module
+export type {
   PayrollPeriod,
   PayrollItemType,
   StaffSalarySetting,
   Payslip,
-} from '@/modules/finance/data/types';
+} from '@/modules/hr/data/types';
 
 // Inventory types - now from inventory module
 export type {

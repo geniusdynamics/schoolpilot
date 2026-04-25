@@ -12,7 +12,8 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import type { Payslip, Staff, PayrollPeriod } from '@/types';
+import type { Staff } from '@/modules/administration/data/types';
+import type { Payslip, PayrollPeriod } from '@/modules/hr/data/types';
 
 interface GeneratePayslipFormData {
   staff_id: number | null;

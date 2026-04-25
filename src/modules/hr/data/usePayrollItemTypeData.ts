@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { initialMockPayrollItemTypes } from './mockData';
-import { PayrollItemType } from '@/core/types';
+import { PayrollItemType } from './types';
 
 export const usePayrollItemTypeData = () => {
   const [data, setData] = useState<PayrollItemType[]>(initialMockPayrollItemTypes);

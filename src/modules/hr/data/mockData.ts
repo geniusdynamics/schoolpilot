@@ -2,18 +2,20 @@
 // ABOUTME: This data is used in "demo" mode and for seeding RxDB in "production" mode.
 
 import {
+    PayrollPeriodStatus,
+    PayrollItemCategory,
+    PayrollTaxImplication,
+    PayslipStatus
+} from '@/core/types';
+import {
     PayrollPeriod,
     PayrollItemType,
     StaffSalarySetting,
     StaffRecurringItem,
     Payslip,
     PayslipItem,
-    PayrollPeriodStatus,
-    PayrollItemCategory,
-    PayrollTaxImplication,
-    PayslipStatus
-} from '@/core/types';
-import { StaffBioData } from './types';
+    StaffBioData
+} from './types';
 
 export const initialMockPayrollPeriods: PayrollPeriod[] = [
   { id: 1, name: 'July 2024 Payroll', start_date: '2024-07-01', end_date: '2024-07-31', financial_year_id: 2, school_period_id: 3, status: PayrollPeriodStatus.OPEN, financial_year_name: 'FY 2024', school_period_name: 'Term 3 - AY 2023/2024' },
