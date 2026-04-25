@@ -7,7 +7,7 @@ import { BackendConfiguration } from '@/components/BackendConfiguration';
 import { backendArchitecture, type BackendType } from '@/config/backendArchitecture';
 import { useDataMode } from '@/hooks/useDataMode';
 import { getDatabaseOptionsForMode, getBackendOptionsForModeAndProvider, normalizeProvider, resolveConsolidatedConfigurationOption, type ApplicationSettingsMode, type BackendIntegrationType } from '@/config/dataLayerConfig';
-import { Settings, Info, RefreshCw } from 'lucide-react';
+import { Settings, Info, RefreshCw, AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
@@ -15,7 +15,7 @@ import { DataServiceFactory } from '@/services/data/DataServiceFactory';
 import { MODULE_SEEDER_OPTIONS, type SeederModuleId } from '@/services/database/seederModuleConfig';
 
 export const DataLayerSettingsPage: React.FC = () => {
-  const { status: dataModeStatus, switchMode, isLoading, seedData, clearData, isDemoReseedingDisabled } = useDataMode();
+  const { status: dataModeStatus, switchMode, isLoading, seedData, clearData, isDemoReseedingDisabled, isDemoCleared } = useDataMode();
   const currentMode = dataModeStatus?.currentMode || 'development';
   const [activeTab, setActiveTab] = useState<'mode' | 'sync'>('mode');
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -68,8 +68,24 @@ export const DataLayerSettingsPage: React.FC = () => {
     }
   };
 
+  // Determine if switching to demo should be blocked (demo data was cleared)
+  const isSwitchToDemoBlocked = useMemo(() => {
+    // Block if trying to switch to demo and demo data has been cleared
+    return selectedConfiguration?.applicationMode === 'demo' && isDemoCleared;
+  }, [selectedConfiguration?.applicationMode, isDemoCleared]);
+
   const applyConsolidatedSelection = async () => {
     if (!selectedConfiguration) return;
+    
+    // HARD ENFORCEMENT: Prevent switching to demo if demo data was cleared
+    if (isSwitchToDemoBlocked) {
+      setSaveMessage({ 
+        type: 'error', 
+        text: 'Cannot switch to demo mode: Demo data has been permanently cleared to transition to production. This operation is blocked to prevent data loss.' 
+      });
+      return;
+    }
+    
     setIsSaving(true);
     setSaveMessage(null);
 
@@ -316,6 +332,18 @@ export const DataLayerSettingsPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {isSwitchToDemoBlocked && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+                      <div className="flex items-start space-x-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-amber-800">
+                          <p className="font-medium">Production Mode Locked</p>
+                          <p className="mt-1">Demo data has been cleared to transition to production. Switching back to demo mode is permanently disabled to prevent accidental data loss.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {saveMessage && (
                     <div className={`rounded-lg border px-4 py-3 text-sm ${saveMessage.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : saveMessage.type === 'success' ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-blue-50 text-blue-700'}`}>
                       {saveMessage.text}
@@ -330,7 +358,13 @@ export const DataLayerSettingsPage: React.FC = () => {
                     </div>
                     <div className="flex gap-2">
                       <Button variant="outline" onClick={handleResetToDefault}>Reset</Button>
-                      <Button onClick={handleSaveConfiguration} disabled={isSaving}>{isSaving ? 'Applying...' : 'Apply Configuration'}</Button>
+                      <Button 
+                        onClick={handleSaveConfiguration} 
+                        disabled={isSaving || isSwitchToDemoBlocked}
+                        title={isSwitchToDemoBlocked ? 'Cannot switch to demo mode: Demo data has been permanently cleared' : ''}
+                      >
+                        {isSaving ? 'Applying...' : 'Apply Configuration'}
+                      </Button>
                     </div>
                   </div>
                 </div>

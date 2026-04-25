@@ -2,9 +2,10 @@
 // ABOUTME: Provides a clean interface for components to interact with DataModeManager
 
 import { useState, useEffect, useCallback } from 'react';
-import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions } from '../services/data/dataModeManager';
+import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions, isDemoDataCleared as checkIsDemoDataCleared, markDemoDataCleared as serviceMarkDemoCleared } from '../services/data/dataModeManager';
 
-const DEMO_CLEARED_KEY = 'schoolpilot_demo_cleared_for_production';
+// Use the same key as the service for consistency
+const DEMO_CLEARED_KEY = 'schoolpilot_demo_data_cleared';
 
 export interface UseDataModeReturn {
   status: DataModeStatus | null;
@@ -29,7 +30,7 @@ export function useDataMode(): UseDataModeReturn {
   const dataModeManager = getDataModeManager();
 
   const markDemoCleared = useCallback(() => {
-    localStorage.setItem(DEMO_CLEARED_KEY, 'true');
+    serviceMarkDemoCleared();
     setIsDemoCleared(true);
   }, []);
 
@@ -129,6 +130,12 @@ export function useDataMode(): UseDataModeReturn {
       refreshStatus();
     };
 
+    // Listen for permanent demo data clearance from service
+    const handleDemoDataPermanentlyCleared = () => {
+      setIsDemoCleared(true);
+      refreshStatus();
+    };
+
     const handleDataSeeded = () => {
       refreshStatus();
     };
@@ -138,6 +145,7 @@ export function useDataMode(): UseDataModeReturn {
     dataModeManager.on('transitionStarted', handleTransitionStarted);
     dataModeManager.on('transitionCompleted', handleTransitionCompleted);
     dataModeManager.on('dataCleared', handleDataCleared);
+    dataModeManager.on('demoDataPermanentlyCleared', handleDemoDataPermanentlyCleared);
     dataModeManager.on('dataSeeded', handleDataSeeded);
 
     return () => {
@@ -146,6 +154,7 @@ export function useDataMode(): UseDataModeReturn {
       dataModeManager.off('transitionStarted', handleTransitionStarted);
       dataModeManager.off('transitionCompleted', handleTransitionCompleted);
       dataModeManager.off('dataCleared', handleDataCleared);
+      dataModeManager.off('demoDataPermanentlyCleared', handleDemoDataPermanentlyCleared);
       dataModeManager.off('dataSeeded', handleDataSeeded);
     };
   }, [dataModeManager, refreshStatus, markDemoCleared]);

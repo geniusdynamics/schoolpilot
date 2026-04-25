@@ -30,6 +30,37 @@ export interface DataModeStatus {
   dataCount: number;
   lastSwitched: Date;
   isTransitioning: boolean;
+  isDemoDataCleared: boolean;
+}
+
+// Storage key for tracking whether demo data has been cleared
+const DEMO_DATA_CLEARED_KEY = 'schoolpilot_demo_data_cleared';
+
+/**
+ * Check if demo data has been permanently cleared.
+ * Once cleared, reverting to demo mode is blocked to prevent data loss.
+ */
+export function isDemoDataCleared(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(DEMO_DATA_CLEARED_KEY) === 'true';
+}
+
+/**
+ * Permanently mark demo data as cleared.
+ * This is a one-way operation that blocks future demo mode transitions.
+ */
+export function markDemoDataCleared(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(DEMO_DATA_CLEARED_KEY, 'true');
+}
+
+/**
+ * Reset the demo data cleared flag.
+ * Should only be used in development or for complete system reset.
+ */
+export function resetDemoDataCleared(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(DEMO_DATA_CLEARED_KEY);
 }
 
 export class DataModeManager extends EventEmitter {
@@ -97,6 +128,17 @@ export class DataModeManager extends EventEmitter {
           if (this.currentMode === newMode) {
             console.log(`Already in ${newMode} mode`);
             return;
+          }
+
+          // HARD ENFORCEMENT: Prevent switching to demo mode if demo data has been cleared
+          if (newMode === 'demo' && isDemoDataCleared()) {
+            const error = new Error(
+              'DEMO_MODE_BLOCKED: Demo data has been permanently cleared. ' +
+              'Switching back to demo mode is not allowed to prevent production data loss. ' +
+              'The system must remain in production mode.'
+            );
+            this.emit('error', error);
+            throw error;
           }
 
           this.emit('transitionStarted', { from: this.currentMode, to: newMode });
@@ -245,6 +287,13 @@ export class DataModeManager extends EventEmitter {
         console.warn('Failed to write audit log for data clearance:', auditError);
       }
 
+      // PERMANENT ENFORCEMENT: If clearing data in demo mode, mark demo as permanently cleared
+      // This prevents accidental return to demo mode after transitioning to production
+      if (this.currentMode === 'demo') {
+        markDemoDataCleared();
+        this.emit('demoDataPermanentlyCleared');
+      }
+
       this.emit('dataCleared');
     } catch (error) {
       console.error('Failed to clear data:', error);
@@ -257,6 +306,17 @@ export class DataModeManager extends EventEmitter {
     modules?: string[]
   ): Promise<void> {
     try {
+      // HARD ENFORCEMENT: Prevent seeding demo data if demo data has been permanently cleared
+      if (isDemoDataCleared()) {
+        const error = new Error(
+          'DEMO_SEED_BLOCKED: Demo data has been permanently cleared. ' +
+          'Re-seeding demo data is not allowed to prevent overwriting production data. ' +
+          'The system must remain in production mode.'
+        );
+        this.emit('error', error);
+        throw error;
+      }
+
       const provider = this.dbFactory.getActiveProvider();
       if (!provider) {
         throw new Error('No active database provider');
@@ -323,7 +383,8 @@ export class DataModeManager extends EventEmitter {
       activeProvider: provider?.name || 'none',
       dataCount,
       lastSwitched: this.lastSwitched,
-      isTransitioning: this.isTransitioning
+      isTransitioning: this.isTransitioning,
+      isDemoDataCleared: isDemoDataCleared()
     };
   }
 
