@@ -8,7 +8,6 @@
  */
 
 import { Tab } from '@/types/tabbedWorkspace';
-import { NavItem } from '@/core/types';
 
 /**
  * NavigationItem interface for tab navigation

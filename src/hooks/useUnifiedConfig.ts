@@ -16,7 +16,7 @@ import type {
   DatabaseProvider,
   ProductionDemoState,
 } from '@/contexts/UnifiedConfigContext';
-import { dataModeManager } from '@/utils/dataModeManager';
+import { dataModeManager } from '@/services/data/dataModeManager';
 
 /**
  * Hook to use the unified configuration context

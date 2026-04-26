@@ -2,9 +2,9 @@
 // ABOUTME: Works with both demo mode (mock data) and production mode (RxDB)
 
 import { useAppData } from '../../hooks/useAppData';
+import { useUnifiedConfig } from '../../hooks/useUnifiedConfig';
 // RXDB removed - Phase 4: Using unified database service
 import * as databaseService from '../database/databaseService';
-import type { RbacRole } from '../../core/types';
 
 // Types for User Permissions System
 export interface Permission {

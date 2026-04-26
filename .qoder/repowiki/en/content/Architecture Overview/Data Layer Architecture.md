@@ -2,7 +2,13 @@
 
 <cite>
 **Referenced Files in This Document**
-- [UnifiedDataService.ts](file://src/services/data/UnifiedDataService.ts)
+- [AppDataContext.tsx](file://src/contexts/AppDataContext.tsx)
+- [appDataCollections.ts](file://src/contexts/appData/appDataCollections.ts)
+- [moduleCollectionRegistry.ts](file://src/contexts/appData/moduleCollectionRegistry.ts)
+- [collectionConfig.ts](file://src/modules/finance/data/collectionConfig.ts)
+- [collectionConfig.ts](file://src/modules/administration/data/collectionConfig.ts)
+- [collectionConfig.ts](file://src/modules/academics/data/collectionConfig.ts)
+- [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
 - [DatabaseProviderFactory.ts](file://src/services/database/DatabaseProviderFactory.ts)
 - [types.ts](file://src/services/data/types.ts)
 - [index.ts](file://src/services/data/providers/index.ts)
@@ -10,26 +16,37 @@
 - [dataLayerConfig.ts](file://src/config/dataLayerConfig.ts)
 - [useDatabaseProvider.ts](file://src/hooks/useDatabaseProvider.ts)
 - [databaseConfigSchema.ts](file://src/config/databaseConfigSchema.ts)
-- [UnifiedDatabaseManager.ts](file://src/services/database/UnifiedDatabaseManager.ts)
 - [SchemaConverter.ts](file://src/services/database/schema/SchemaConverter.ts)
 - [SQLiteWASMProvider.ts](file://src/services/database/SQLiteWASMProvider.ts)
 - [SQLiteProvider.ts](file://src/services/database/SQLiteProvider.ts)
-- [AppDataContext.tsx](file://src/contexts/AppDataContext.tsx)
 - [UniversalDataGenerator.ts](file://src/services/dataGeneration/UniversalDataGenerator.ts)
 - [BackendServiceAdapter.ts](file://src/services/backend/BackendServiceAdapter.ts)
 - [DataServiceFactory.ts](file://src/services/data/DataServiceFactory.ts)
+- [schemaUtils.ts](file://src/utils/schemaUtils.ts)
+- [dataModeManager.ts](file://src/services/data/dataModeManager.ts)
+- [useDataMode.ts](file://src/hooks/useDataMode.ts)
+- [DataLayerSettingsPage.tsx](file://src/modules/settings/pages/DataLayerSettingsPage.tsx)
+- [FirstRunOnboarding.tsx](file://src/components/FirstRunOnboarding.tsx)
+- [DataModeSwitch.tsx](file://src/components/DataModeSwitch.tsx)
+- [UnifiedConfigContext.tsx](file://src/contexts/UnifiedConfigContext.tsx)
+- [configurationSwitching.test.ts](file://src/tests/integration/configurationSwitching.test.ts)
+- [useDataMode.test.ts](file://src/tests/useDataMode.test.ts)
+- [DataModeManager.test.ts](file://src/services/database/__tests__/DataModeManager.test.ts)
+- [productionDemo.ts](file://src/config/productionDemo.ts)
+- [OfflineQueue.ts](file://src/services/database/sync/OfflineQueue.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated architecture documentation to reflect the transition from database-side logic to comprehensive TypeScript service implementations
-- Enhanced documentation to cover the new unified data service architecture with provider-agnostic design
-- Added documentation for the new AppDataContext pattern that maintains backward compatibility while providing real-time data processing capabilities
-- Updated provider selection logic to include the new data service factory pattern
-- Documented the enhanced schema conversion layer and unified configuration management
-- Added monitoring and health management capabilities for the new data providers
+- Enhanced documentation to reflect new demo mode protection system with permanent demo data clearing safeguards
+- Updated DataModeManager implementation details with hard enforcement mechanisms preventing accidental mode transitions
+- Added documentation for user interface components that now display warning banners and disable Apply Configuration button when demo mode is locked
+- Updated provider selection logic to include enhanced fallback chains with capability-aware selection
+- Documented the comprehensive schema conversion layer and unified configuration management
+- Added monitoring and health management capabilities for the enhanced data providers
 - Updated provider selection logic with capability detection integration
-- **Updated** Service-based architecture replaces database triggers with client-side service implementations while maintaining provider abstraction
+- Enhanced documentation to cover the new centralized database-loaded data architecture
+- Added comprehensive documentation for the enhanced Data Mode Safety System with thread-safe queue processing
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -48,20 +65,23 @@
 14. [Appendices](#appendices)
 
 ## Introduction
-This document explains SchoolPilot3's modernized multi-provider data layer architecture that has evolved from database-side logic to comprehensive TypeScript service implementations. The system now features a provider-agnostic approach to database management with enhanced real-time data processing capabilities while maintaining backward compatibility through the AppDataContext pattern.
+This document explains SchoolPilot3's modernized multi-provider data layer architecture that has evolved from database-side logic to comprehensive TypeScript service implementations. The system now features a provider-agnostic approach to database management with enhanced real-time data processing capabilities while maintaining backward compatibility through the enhanced AppDataContext pattern.
 
 The architecture now features:
 - **Provider-Agnostic Design**: Unified interface that abstracts provider-specific implementations
 - **Comprehensive TypeScript Services**: Client-side service implementations replacing database-side logic
-- **Enhanced AppDataContext Pattern**: Maintains backward compatibility while providing real-time data processing
+- **Enhanced AppDataContext Pattern**: Expanded interface supporting centralized database-loaded data management
+- **Auto-Discovered Module Collections**: Dynamic collection registration system eliminating manual configuration
 - **Dual-Mode Architecture**: Separate configurations for development (SQLite file) and production (SQLite WASM + OPFS)
 - **Enhanced Fallback System**: Intelligent provider selection with capability-aware fallback chains
 - **Comprehensive Monitoring**: Real-time health checking and diagnostic reporting
 - **Unified Configuration**: Centralized configuration management across all providers
 - **Service-Based Architecture**: Client-side service implementations replace database triggers while maintaining provider abstraction
+- **Enhanced Data Mode Safety**: Hard enforcement mechanisms preventing accidental mode transitions after demo data has been cleared
+- **Thread-Safe Queue Processing**: Sequential mode switching with proper error handling and rollback capabilities
 
 ## Project Structure
-The data layer is organized into several key modules that work together to provide a robust, provider-agnostic database solution with comprehensive service implementations:
+The data layer is organized into several key modules that work together to provide a robust, provider-agnostic database solution with comprehensive service implementations and centralized data management:
 
 ```mermaid
 graph TB
@@ -70,6 +90,12 @@ DLC["dataLayerConfig.ts"]
 DCS["databaseConfigSchema.ts"]
 UC["UnifiedConfig"]
 DSF["DataServiceFactory"]
+MCR["ModuleCollectionRegistry"]
+AC["appDataCollections.ts"]
+DMM["DataModeManager"]
+DDC["Demo Data Control"]
+PDC["Production Demo Config"]
+OQ["OfflineQueue"]
 end
 subgraph "Management Layer"
 UDM["UnifiedDatabaseManager"]
@@ -92,10 +118,19 @@ VM["ValidationManager"]
 end
 subgraph "Integration Layer"
 UDP["useDatabaseProvider.ts"]
-ADC["AppDataContext"]
+ADC["EnhancedAppDataContext"]
 UDG["UniversalDataGenerator"]
 BSA["BackendServiceAdapter"]
+USM["useDataMode Hook"]
+FRON["FirstRunOnboarding"]
+DLS["DataLayerSettingsPage"]
 end
+DMM --> DDC
+USM --> DMM
+DLS --> USM
+FRON --> DMM
+MCR --> AC
+AC --> ADC
 DLC --> DPF
 DCS --> DPF
 UDM --> DPF
@@ -120,6 +155,8 @@ DPF2 --> PDP
 ADC --> UDS
 UDG --> UDS
 BSA --> UDS
+PDC --> DMM
+OQ --> DMM
 ```
 
 **Diagram sources**
@@ -135,6 +172,14 @@ BSA --> UDS
 - [index.ts:1-103](file://src/services/data/providers/index.ts#L1-L103)
 - [DataServiceFactory.ts:1-33](file://src/services/data/DataServiceFactory.ts#L1-L33)
 - [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
+- [moduleCollectionRegistry.ts:1-120](file://src/contexts/appData/moduleCollectionRegistry.ts#L1-L120)
+- [appDataCollections.ts:1-69](file://src/contexts/appData/appDataCollections.ts#L1-L69)
+- [dataModeManager.ts:1-432](file://src/services/data/dataModeManager.ts#L1-L432)
+- [useDataMode.ts:1-177](file://src/hooks/useDataMode.ts#L1-L177)
+- [DataLayerSettingsPage.tsx:1-492](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L1-L492)
+- [FirstRunOnboarding.tsx:1-493](file://src/components/FirstRunOnboarding.tsx#L1-L493)
+- [productionDemo.ts:1-301](file://src/config/productionDemo.ts#L1-L301)
+- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
 
 **Section sources**
 - [index.ts:1-44](file://src/services/database/index.ts#L1-L44)
@@ -143,8 +188,32 @@ BSA --> UDS
 - [UnifiedDatabaseManager.ts:1-800](file://src/services/database/UnifiedDatabaseManager.ts#L1-L800)
 - [DatabaseProviderFactory.ts:1-725](file://src/services/database/DatabaseProviderFactory.ts#L1-L725)
 - [SchemaConverter.ts:1-389](file://src/services/database/schema/SchemaConverter.ts#L1-L389)
+- [moduleCollectionRegistry.ts:1-120](file://src/contexts/appData/moduleCollectionRegistry.ts#L1-L120)
+- [appDataCollections.ts:1-69](file://src/contexts/appData/appDataCollections.ts#L1-L69)
+- [dataModeManager.ts:1-432](file://src/services/data/dataModeManager.ts#L1-L432)
 
 ## Core Components
+
+### Enhanced AppDataContext
+The expanded AppDataContext interface provides centralized database-loaded data management with comprehensive CRUD operations, real-time synchronization, and advanced data management capabilities.
+
+**Enhanced Features:**
+- **Centralized Data Management**: Unified access to all database-loaded collections
+- **Real-time Synchronization**: Bidirectional sync with backend providers
+- **Advanced Data Operations**: Enhanced refresh, pagination, and cleanup capabilities
+- **Provider Intelligence**: Automatic capability detection and optimization
+- **Data Strategy Management**: Configurable data access strategies
+- **Validation Framework**: Comprehensive data validation and integrity checking
+
+### Module Collection Registry System
+The new auto-discovered module collection system eliminates manual configuration requirements and provides dynamic collection registration across all modules.
+
+**Key Features:**
+- **Automatic Discovery**: Modules register collections without manual core edits
+- **Centralized Aliasing**: Consistent naming conventions across the application
+- **Schema Integration**: Automatic schema registration and validation
+- **Module Metadata**: Track collection counts and module relationships
+- **Debug Utilities**: Comprehensive module registry inspection tools
 
 ### UnifiedDatabaseManager
 The central orchestrator that manages database initialization, provider selection, health monitoring, and fallback mechanisms. It implements a comprehensive fallback chain and integrates capability detection for optimal provider selection.
@@ -214,7 +283,7 @@ Implements the DataProvider interface using PouchDB with CouchDB sync protocol f
 - Transaction support for ACID compliance
 
 ### BackendServiceAdapter
-**Updated** Provides adapter pattern for backend service integration, replacing database triggers with client-side service implementations while maintaining provider abstraction.
+Provides adapter pattern for backend service integration, replacing database triggers with client-side service implementations while maintaining provider abstraction.
 
 **Key Features:**
 - Service operation routing between local database and backend API
@@ -223,7 +292,28 @@ Implements the DataProvider interface using PouchDB with CouchDB sync protocol f
 - Error handling and retry mechanisms
 - Optimistic update coordination
 
+### DataModeManager
+The new centralized data mode management system that provides hard enforcement mechanisms for preventing accidental mode transitions after demo data has been cleared. This system implements comprehensive safety controls to protect production data integrity.
+
+**Enhanced Safety Features:**
+- **Hard Enforcement**: Prevents switching to demo mode if demo data has been permanently cleared
+- **Permanent Demo Data Flag**: One-way operation that blocks future demo mode transitions
+- **Thread-Safe Queue Processing**: Sequential mode switching with proper error handling
+- **Audit Logging**: Comprehensive logging of all data clearance and mode transition operations
+- **Production Data Protection**: Enhanced security measures for production environment data
+- **Rollback Mechanisms**: Automatic rollback on failed mode transitions
+- **Transition State Management**: Proper tracking of mode switching states
+
+**Enhanced Thread-Safe Queue Processing:**
+- **Sequential Processing**: All mode switching operations are queued and processed sequentially
+- **Error Isolation**: Individual queue items can fail without affecting others
+- **Automatic Cleanup**: Queue items are automatically cleaned up after processing
+- **State Persistence**: Queue state is maintained across application restarts
+
 **Section sources**
+- [AppDataContext.tsx:102-183](file://src/contexts/AppDataContext.tsx#L102-L183)
+- [moduleCollectionRegistry.ts:48-84](file://src/contexts/appData/moduleCollectionRegistry.ts#L48-L84)
+- [appDataCollections.ts:44-68](file://src/contexts/appData/appDataCollections.ts#L44-L68)
 - [UnifiedDatabaseManager.ts:42-800](file://src/services/database/UnifiedDatabaseManager.ts#L42-L800)
 - [UnifiedDataService.ts:36-721](file://src/services/data/UnifiedDataService.ts#L36-L721)
 - [DatabaseProviderFactory.ts:288-725](file://src/services/database/DatabaseProviderFactory.ts#L288-L725)
@@ -232,12 +322,35 @@ Implements the DataProvider interface using PouchDB with CouchDB sync protocol f
 - [SQLiteProvider.ts:1-117](file://src/services/database/SQLiteProvider.ts#L1-L117)
 - [PouchDBProvider.ts:1-200](file://src/services/data/providers/PouchDBProvider.ts#L1-L200)
 - [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
+- [dataModeManager.ts:1-432](file://src/services/data/dataModeManager.ts#L1-L432)
 
 ## Architecture Overview
-The architecture follows a layered approach with clear separation of concerns and comprehensive service implementations:
+The architecture follows a layered approach with clear separation of concerns and comprehensive service implementations, featuring centralized data management, auto-discovered module collections, and enhanced safety mechanisms:
 
 ```mermaid
 classDiagram
+class EnhancedAppDataContext {
++initialize()
++setFallbackChain(chain)
++getFallbackChain()
++performHealthCheck()
++getCapabilityReport()
++checkAndHandleSchemaVersion()
++refreshCollection()
++refreshDataWithProgress()
++getCollectionPage()
++cleanupOldData()
++getProviderCapabilities()
++validateData()
++getDataSourceConfig()
++updateDataStrategy()
+}
+class ModuleCollectionRegistry {
++generateRegistry()
++APP_DATA_ARRAY_KEYS
++COLLECTION_KEY_ALIASES
++getModuleRegistryInfo()
+}
 class UnifiedDatabaseManager {
 +initialize()
 +setFallbackChain(chain)
@@ -303,6 +416,37 @@ class BackendServiceAdapter {
 +executeRemoteOperation(operation)
 +handleRealtimeSync()
 }
+class DataModeManager {
++switchMode(newMode, options)
++clearAllData(options)
++seedDemoData(volume, modules)
++isDemoDataCleared()
++markDemoDataCleared()
++resetDemoDataCleared()
++processQueue()
++initializeMode()
++switchQueue : Array
++isTransitioning : boolean
+}
+class useDataMode {
++switchMode(mode, options)
++clearData(options)
++seedData(volume, modules)
++isDemoReseedingDisabled
++isDemoCleared
++markDemoCleared()
+}
+class OfflineQueue {
++enqueue(operation)
++process(executor)
++getStatus()
++retryOperation(id, executor)
++clear()
++size()
++isEmpty()
+}
+EnhancedAppDataContext --> ModuleCollectionRegistry : "uses"
+EnhancedAppDataContext --> UnifiedDatabaseManager : "integrates with"
 UnifiedDatabaseManager --> DatabaseProviderFactory : "uses"
 UnifiedDataService --> DataProvider : "routes operations to"
 DatabaseProviderFactory --> SQLiteWASMProvider : "creates"
@@ -312,9 +456,14 @@ DatabaseProviderFactory --> BackendAPIProvider : "creates"
 SchemaConverter --> SQLiteWASMProvider : "converts schemas for"
 SchemaConverter --> SQLiteProvider : "converts schemas for"
 BackendServiceAdapter --> UnifiedDataService : "coordinates with"
+DataModeManager --> DatabaseProviderFactory : "controls"
+useDataMode --> DataModeManager : "wraps"
+DataModeManager --> OfflineQueue : "uses for thread-safe processing"
 ```
 
 **Diagram sources**
+- [AppDataContext.tsx:102-183](file://src/contexts/AppDataContext.tsx#L102-L183)
+- [moduleCollectionRegistry.ts:48-84](file://src/contexts/appData/moduleCollectionRegistry.ts#L48-L84)
 - [UnifiedDatabaseManager.ts:42-800](file://src/services/database/UnifiedDatabaseManager.ts#L42-L800)
 - [UnifiedDataService.ts:36-721](file://src/services/data/UnifiedDataService.ts#L36-L721)
 - [DatabaseProviderFactory.ts:288-725](file://src/services/database/DatabaseProviderFactory.ts#L288-L725)
@@ -323,8 +472,80 @@ BackendServiceAdapter --> UnifiedDataService : "coordinates with"
 - [SQLiteProvider.ts:1-117](file://src/services/database/SQLiteProvider.ts#L1-L117)
 - [PouchDBProvider.ts:1-200](file://src/services/data/providers/PouchDBProvider.ts#L1-L200)
 - [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
+- [dataModeManager.ts:66-432](file://src/services/data/dataModeManager.ts#L66-L432)
+- [useDataMode.ts:1-177](file://src/hooks/useDataMode.ts#L1-L177)
+- [OfflineQueue.ts:66-458](file://src/services/database/sync/OfflineQueue.ts#L66-L458)
 
 ## Detailed Component Analysis
+
+### Enhanced AppDataContext
+The expanded AppDataContext interface provides comprehensive centralized database-loaded data management with advanced operational capabilities and real-time synchronization.
+
+**Enhanced Interface Features:**
+- **Database Operations**: Refresh, backup, restore, and clear operations
+- **Sync Management**: Force sync, pause/resume, cancel operations with settings
+- **Collection Statistics**: Health monitoring and performance metrics
+- **Enhanced Refresh**: Single collection refresh with throttling
+- **Progress Tracking**: Batch refresh with progress callbacks
+- **Pagination Support**: Configurable pagination with sorting and filtering
+- **Memory Management**: Automated cleanup of old data
+- **Provider Intelligence**: Capability detection and optimization
+- **Data Strategy**: Configurable data access strategies
+- **Validation Framework**: Comprehensive data integrity checking
+
+**Data Loading System:**
+- **Auto-Discovery**: Automatic collection discovery from module registries
+- **Normalization**: Consistent camelCase key mapping from snake_case collections
+- **Loading States**: Granular loading state management per collection
+- **Error Handling**: Graceful degradation and error recovery mechanisms
+
+**Section sources**
+- [AppDataContext.tsx:102-183](file://src/contexts/AppDataContext.tsx#L102-L183)
+- [AppDataContext.tsx:405-426](file://src/contexts/AppDataContext.tsx#L405-L426)
+- [AppDataContext.tsx:664-727](file://src/contexts/AppDataContext.tsx#L664-L727)
+- [AppDataContext.tsx:732-778](file://src/contexts/AppDataContext.tsx#L732-L778)
+
+### Module Collection Registry System
+The auto-discovered module collection system provides dynamic collection registration eliminating manual configuration requirements across all modules.
+
+**Registry Architecture:**
+- **Static Imports**: Modules register through centralized import statements
+- **Automatic Generation**: Registry generated from module configurations
+- **Alias Mapping**: Consistent naming conventions across the application
+- **Schema Integration**: Automatic schema registration and validation
+- **Module Tracking**: Metadata about module collections and relationships
+
+**Collection Configuration Pattern:**
+- **Finance Module**: Comprehensive financial entity collections
+- **Administration Module**: Core educational institution entities
+- **Academics Module**: Academic scheduling and grading systems
+- **Custom Modules**: Extensible pattern for new module development
+
+**Section sources**
+- [moduleCollectionRegistry.ts:48-84](file://src/contexts/appData/moduleCollectionRegistry.ts#L48-L84)
+- [collectionConfig.ts:13-55](file://src/modules/finance/data/collectionConfig.ts#L13-L55)
+- [collectionConfig.ts:4-61](file://src/modules/administration/data/collectionConfig.ts#L4-L61)
+- [collectionConfig.ts:4-25](file://src/modules/academics/data/collectionConfig.ts#L4-L25)
+
+### AppData Collection Normalization
+The collection normalization system provides automatic mapping between database collection names and application data keys, ensuring consistent data access patterns.
+
+**Normalization Features:**
+- **Snake Case to Camel Case**: Automatic conversion of collection names
+- **Alias Resolution**: Module-defined aliases for consistent naming
+- **Default Values**: Safe fallbacks for missing collections
+- **Type Safety**: Compile-time type checking for collection keys
+- **Auto-Discovery**: Integration with module collection registry
+
+**Loading State Management:**
+- **Granular Loading**: Individual collection loading states
+- **Aggregate States**: Overall application loading status
+- **School Details**: Special handling for core application data
+- **Performance Optimization**: Efficient state updates and memoization
+
+**Section sources**
+- [appDataCollections.ts:29-68](file://src/contexts/appData/appDataCollections.ts#L29-L68)
+- [appDataCollections.ts:32-42](file://src/contexts/appData/appDataCollections.ts#L32-L42)
 
 ### Unified Database Manager
 The UnifiedDatabaseManager serves as the central coordinator for all database operations, implementing sophisticated provider selection and fallback mechanisms.
@@ -470,7 +691,7 @@ The PouchDB provider implements the DataProvider interface with comprehensive of
 - [PouchDBProvider.ts:1-200](file://src/services/data/providers/PouchDBProvider.ts#L1-L200)
 
 ### Backend Service Adapter
-**Updated** Provides adapter pattern for backend service integration, replacing database triggers with client-side service implementations while maintaining provider abstraction.
+Provides adapter pattern for backend service integration, replacing database triggers with client-side service implementations while maintaining provider abstraction.
 
 **Key Responsibilities:**
 - **Service Operation Routing**: Coordinates between local database operations and backend API calls
@@ -488,6 +709,166 @@ The PouchDB provider implements the DataProvider interface with comprehensive of
 
 **Section sources**
 - [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
+
+### Data Mode Manager
+The DataModeManager provides centralized control over data layer modes with enhanced safety mechanisms to prevent accidental mode transitions after demo data has been cleared.
+
+**Enhanced Safety Controls:**
+- **Hard Enforcement**: Prevents switching to demo mode if demo data has been permanently cleared
+- **Permanent Demo Data Flag**: One-way operation that blocks future demo mode transitions
+- **Thread-Safe Queue Processing**: Sequential mode switching with proper error handling
+- **Audit Logging**: Comprehensive logging of all data clearance and mode transition operations
+- **Production Data Protection**: Enhanced security measures for production environment data
+- **Rollback Mechanisms**: Automatic rollback on failed mode transitions
+- **Transition State Management**: Proper tracking of mode switching states
+
+**Enhanced Thread-Safe Queue Processing:**
+- **Sequential Processing**: All mode switching operations are queued and processed sequentially
+- **Error Isolation**: Individual queue items can fail without affecting others
+- **Automatic Cleanup**: Queue items are automatically cleaned up after processing
+- **State Persistence**: Queue state is maintained across application restarts
+
+**Key Features:**
+- **Mode Switching**: Thread-safe sequential mode switching with rollback capabilities
+- **Data Clearance**: Controlled data clearing with audit logging and safety checks
+- **Demo Data Management**: Enhanced demo data seeding with permanent clearing safeguards
+- **Status Monitoring**: Real-time status tracking with transition state management
+- **Error Handling**: Comprehensive error handling with rollback and recovery mechanisms
+
+**Safety Mechanisms:**
+- **Demo Data Locked**: Prevents re-seeding demo data after permanent clearing
+- **Production Protection**: Enhanced security for production environment data
+- **Transition Validation**: Validates all mode transitions before execution
+- **State Persistence**: Maintains state across application restarts
+
+**Section sources**
+- [dataModeManager.ts:66-432](file://src/services/data/dataModeManager.ts#L66-L432)
+
+### useDataMode Hook
+The useDataMode hook provides a comprehensive interface for components to interact with the DataModeManager, including enhanced demo data clearing safeguards and UI state management.
+
+**Enhanced Features:**
+- **Demo Data State Management**: Tracks whether demo data has been permanently cleared
+- **UI State Synchronization**: Synchronizes UI state with data mode changes
+- **Error Handling**: Comprehensive error handling and user feedback
+- **Loading States**: Proper loading state management during operations
+- **Event Listeners**: Automatic cleanup of event listeners on component unmount
+
+**Key Functions:**
+- **switchMode**: Handles mode switching with proper error handling
+- **clearData**: Manages data clearing with safety checks and demo data protection
+- **seedData**: Handles demo data seeding with volume and module selection
+- **Status Tracking**: Monitors data mode status and transition states
+- **Demo Data Control**: Manages demo data clearing and reseeding restrictions
+
+**Section sources**
+- [useDataMode.ts:1-177](file://src/hooks/useDataMode.ts#L1-L177)
+
+### Data Layer Settings Page
+The DataLayerSettingsPage component provides a comprehensive interface for managing data layer configuration, including enhanced demo data clearing safeguards and UI warnings for locked demo mode.
+
+**Enhanced UI Features:**
+- **Demo Mode Lock Warning**: Displays warning banner when demo data has been cleared
+- **Apply Configuration Button**: Disabled when demo mode is locked to prevent accidental transitions
+- **Configuration Validation**: Prevents switching to demo mode after permanent clearing
+- **Status Indicators**: Visual indicators for demo data clearing status
+- **Advanced Options**: Hidden advanced configuration options with proper validation
+
+**Key Components:**
+- **Configuration Controls**: Apply Configuration and Reset buttons with validation
+- **Demo Data Management**: Seed, clear, and status controls for demo data
+- **Status Display**: Current mode, provider, record count, and last sync information
+- **Warning System**: Visual and interactive warnings for locked demo mode
+- **Advanced Configuration**: Technical details and backend integration settings
+
+**Enhanced Safety Features:**
+- **Hard Enforcement**: Prevents switching to demo mode if demo data has been permanently cleared
+- **Visual Warnings**: Clear warning banners and disabled buttons when demo mode is locked
+- **User Guidance**: Comprehensive messaging explaining why demo mode switching is blocked
+- **State Persistence**: Maintains safety state across page reloads and navigation
+
+**Section sources**
+- [DataLayerSettingsPage.tsx:1-492](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L1-L492)
+
+### First Run Onboarding
+The FirstRunOnboarding component guides users through initial setup with enhanced demo data clearing safeguards that prevent accidental re-seeding after production transition.
+
+**Enhanced Onboarding Features:**
+- **Demo Data Clearing**: Marks demo data as permanently cleared for production transition
+- **Path Selection**: Two clear pathways - demo mode with re-seeding or direct production mode
+- **Environment Detection**: Automatic detection of environment capabilities for optimal recommendations
+- **State Management**: Persists onboarding state and demo data clearing status
+- **Production Ready**: Direct production mode option for immediate deployment
+
+**Onboarding Pathways:**
+- **Demo Mode Path**: Load demo data for exploration, then transition to production
+- **Production Mode Path**: Direct production setup with environment-appropriate defaults
+- **Environment Recommendations**: Automatic provider and mode recommendations based on capabilities
+- **State Persistence**: Onboarding state persisted across browser sessions
+
+**Section sources**
+- [FirstRunOnboarding.tsx:1-493](file://src/components/FirstRunOnboarding.tsx#L1-L493)
+
+### Data Mode Switch Component
+The DataModeSwitch component provides a user interface for switching between data modes with enhanced safety controls and real-time status updates.
+
+**Enhanced Features:**
+- **Status Display**: Real-time display of current data mode and transition states
+- **Safety Controls**: Prevents switching to demo mode when locked
+- **Transition Management**: Handles mode switching with proper loading states
+- **Error Handling**: Comprehensive error handling and user feedback
+- **Configuration Integration**: Integrates with unified configuration system
+
+**Key Functionality:**
+- **Mode Status**: Displays current mode, transition state, and available modes
+- **Switch Controls**: Buttons for switching between development, demo, and production modes
+- **Clear Data**: Option to clear all data with safety checks and confirmations
+- **Status Refresh**: Automatic status refresh with error handling
+- **Transition Options**: Configurable transition options with seed data management
+
+**Section sources**
+- [DataModeSwitch.tsx:1-117](file://src/components/DataModeSwitch.tsx#L1-L117)
+
+### Enhanced Data Mode Safety System
+The enhanced data mode safety system provides hard enforcement mechanisms to prevent accidental mode transitions after demo data has been cleared, ensuring production data integrity.
+
+**Enhanced Safety Features:**
+- **Permanent Demo Data Flag**: One-way operation marking demo data as permanently cleared
+- **Hard Enforcement**: Prevents switching to demo mode if demo data has been cleared
+- **Thread-Safe Processing**: Sequential mode switching with proper error handling
+- **Audit Logging**: Comprehensive logging of all safety-critical operations
+- **UI Integration**: Warning banners and disabled buttons in user interfaces
+- **Rollback Mechanisms**: Automatic rollback on failed mode transitions
+- **State Persistence**: Maintains safety state across application restarts
+
+**Key Components:**
+- **DataModeManager**: Centralized control with safety enforcement mechanisms
+- **useDataMode Hook**: UI state management with safety awareness
+- **DataLayerSettingsPage**: Configuration interface with safety warnings
+- **FirstRunOnboarding**: Onboarding process with demo data clearing safeguards
+- **DataModeSwitch Component**: Direct mode switching with safety controls
+- **OfflineQueue**: Thread-safe queue processing for mode switching operations
+
+**Enhanced Thread-Safe Queue Processing:**
+- **Sequential Processing**: All mode switching operations are queued and processed sequentially
+- **Error Isolation**: Individual queue items can fail without affecting others
+- **Automatic Cleanup**: Queue items are automatically cleaned up after processing
+- **State Persistence**: Queue state is maintained across application restarts
+
+**Benefits:**
+- **Data Integrity**: Prevention of accidental demo mode re-entry after production transition
+- **User Experience**: Clear warnings and guidance for safety-critical operations
+- **System Reliability**: Enhanced error handling and recovery for safety mechanisms
+- **Compliance**: Auditable trail of all safety-critical data operations
+- **Peace of Mind**: Assurance that production data remains protected
+
+**Section sources**
+- [dataModeManager.ts:1-432](file://src/services/data/dataModeManager.ts#L1-L432)
+- [useDataMode.ts:1-177](file://src/hooks/useDataMode.ts#L1-L177)
+- [DataLayerSettingsPage.tsx:1-492](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L1-L492)
+- [FirstRunOnboarding.tsx:1-493](file://src/components/FirstRunOnboarding.tsx#L1-L493)
+- [DataModeSwitch.tsx:1-117](file://src/components/DataModeSwitch.tsx#L1-L117)
+- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)
 
 ## Schema Version Management
 The system implements comprehensive schema version management to ensure data integrity and seamless upgrades.
@@ -645,6 +1026,8 @@ Comprehensive troubleshooting capabilities are built into the system.
 - **Schema Migration Errors**: Validation and recovery mechanisms
 - **Health Check Failures**: Self-healing and diagnostic reporting
 - **Configuration Validation Errors**: Auto-fix and repair capabilities
+- **Demo Mode Safety Errors**: Enhanced error handling for safety mechanisms
+- **Thread-Safe Queue Errors**: Proper handling of concurrent mode switching
 
 **Diagnostic Tools:**
 - **Capability Reports**: Runtime environment assessment
@@ -657,6 +1040,13 @@ Comprehensive troubleshooting capabilities are built into the system.
 - **Manual Intervention**: Step-by-step troubleshooting procedures
 - **Configuration Repair**: Automated configuration fixes
 - **Provider Switching**: Manual provider selection and testing
+
+**Enhanced Safety Troubleshooting:**
+- **Demo Data Locked Errors**: Guidance for production data protection
+- **Mode Transition Failures**: Troubleshooting for safety mechanism violations
+- **Data Clearance Issues**: Resolving conflicts with permanent demo data clearing
+- **Audit Log Analysis**: Understanding safety mechanism enforcement
+- **Queue Processing Issues**: Debugging thread-safe queue problems
 
 **Section sources**
 - [UnifiedDatabaseManager.ts:563-630](file://src/services/database/UnifiedDatabaseManager.ts#L563-L630)
@@ -672,8 +1062,13 @@ SchoolPilot3's data layer architecture represents a significant evolution from m
 - **Observability**: Complete monitoring and diagnostic capabilities
 - **Backward Compatibility**: Enhanced AppDataContext pattern ensuring seamless migration
 - **Service-Based Architecture**: Client-side service implementations replace database triggers while maintaining provider abstraction
+- **Auto-Discovery System**: Dynamic module collection registration eliminating manual configuration
+- **Centralized Data Management**: Unified access to all database-loaded collections with advanced operational capabilities
+- **Enhanced Safety Mechanisms**: Hard enforcement protections against accidental mode transitions after demo data clearing
+- **Thread-Safe Queue Processing**: Sequential mode switching with proper error handling and rollback capabilities
+- **Production-Ready Security**: Comprehensive safeguards for production environment data integrity
 
-The system successfully abstracts provider-specific complexities while maintaining optimal performance across different environments and use cases, with the new service layer providing enhanced real-time data processing capabilities.
+The system successfully abstracts provider-specific complexities while maintaining optimal performance across different environments and use cases, with the new service layer providing enhanced real-time data processing capabilities and comprehensive data management operations. The enhanced demo mode protection system ensures data integrity and prevents accidental transitions that could compromise production data, while the thread-safe queue processing guarantees reliable mode switching operations even under concurrent usage scenarios.
 
 ## Appendices
 
@@ -709,7 +1104,7 @@ The system successfully abstracts provider-specific complexities while maintaini
 - [types.ts:135-182](file://src/services/data/types.ts#L135-L182)
 
 ### Service-Based Architecture Details
-**Updated** The service-based architecture replaces database triggers with client-side service implementations while maintaining provider abstraction.
+The service-based architecture replaces database triggers with client-side service implementations while maintaining provider abstraction.
 
 **Key Components:**
 - **Service Layer**: Client-side implementations handle business logic previously managed by database triggers
@@ -728,3 +1123,90 @@ The system successfully abstracts provider-specific complexities while maintaini
 **Section sources**
 - [BackendServiceAdapter.ts:108-149](file://src/services/backend/BackendServiceAdapter.ts#L108-L149)
 - [UnifiedDataService.ts:36-721](file://src/services/data/UnifiedDataService.ts#L36-L721)
+
+### Auto-Discovery System Details
+The auto-discovery system provides dynamic module collection registration eliminating manual configuration requirements.
+
+**Key Features:**
+- **Static Import Pattern**: Modules register through centralized import statements
+- **Automatic Registry Generation**: Dynamic registry creation from module configurations
+- **Consistent Naming**: Standardized alias mapping across the application
+- **Schema Integration**: Automatic schema registration and validation
+- **Module Metadata**: Comprehensive tracking of module collections and relationships
+
+**Benefits:**
+- **Maintainability**: Eliminates manual core edits when adding new collections
+- **Consistency**: Standardized naming conventions across all modules
+- **Extensibility**: Easy addition of new modules without core modifications
+- **Type Safety**: Compile-time validation of collection configurations
+- **Debugging**: Comprehensive module registry inspection tools
+
+**Section sources**
+- [moduleCollectionRegistry.ts:48-84](file://src/contexts/appData/moduleCollectionRegistry.ts#L48-L84)
+- [collectionConfig.ts:84-91](file://src/modules/finance/data/collectionConfig.ts#L84-L91)
+- [collectionConfig.ts:4-61](file://src/modules/administration/data/collectionConfig.ts#L4-L61)
+- [collectionConfig.ts:4-25](file://src/modules/academics/data/collectionConfig.ts#L4-L25)
+
+### Enhanced Data Collection Management
+The enhanced data collection management system provides centralized database-loaded data with comprehensive CRUD operations and real-time synchronization.
+
+**Key Features:**
+- **Centralized Access**: Unified interface for all database-loaded collections
+- **Real-time Sync**: Bidirectional synchronization with backend providers
+- **Advanced Operations**: Enhanced refresh, pagination, and cleanup capabilities
+- **Provider Intelligence**: Automatic capability detection and optimization
+- **Data Strategy**: Configurable data access strategies
+- **Validation Framework**: Comprehensive data integrity checking
+
+**Benefits:**
+- **Developer Experience**: Simplified data access patterns
+- **Performance**: Optimized data loading and caching
+- **Reliability**: Robust error handling and recovery
+- **Maintainability**: Centralized data management operations
+- **Scalability**: Support for growing data volumes and complexity
+
+**Section sources**
+- [AppDataContext.tsx:102-183](file://src/contexts/AppDataContext.tsx#L102-L183)
+- [AppDataContext.tsx:664-727](file://src/contexts/AppDataContext.tsx#L664-L727)
+- [AppDataContext.tsx:732-778](file://src/contexts/AppDataContext.tsx#L732-L778)
+
+### Enhanced Data Mode Safety System
+The enhanced data mode safety system provides hard enforcement mechanisms to prevent accidental mode transitions after demo data has been cleared, ensuring production data integrity.
+
+**Safety Features:**
+- **Permanent Demo Data Flag**: One-way operation marking demo data as permanently cleared
+- **Hard Enforcement**: Prevents switching to demo mode if demo data has been cleared
+- **Thread-Safe Processing**: Sequential mode switching with proper error handling
+- **Audit Logging**: Comprehensive logging of all safety-critical operations
+- **UI Integration**: Warning banners and disabled buttons in user interfaces
+- **Rollback Mechanisms**: Automatic rollback on failed mode transitions
+- **State Persistence**: Maintains safety state across application restarts
+
+**Key Components:**
+- **DataModeManager**: Centralized control with safety enforcement mechanisms
+- **useDataMode Hook**: UI state management with safety awareness
+- **DataLayerSettingsPage**: Configuration interface with safety warnings
+- **FirstRunOnboarding**: Onboarding process with demo data clearing safeguards
+- **DataModeSwitch Component**: Direct mode switching with safety controls
+- **OfflineQueue**: Thread-safe queue processing for mode switching operations
+
+**Enhanced Thread-Safe Queue Processing:**
+- **Sequential Processing**: All mode switching operations are queued and processed sequentially
+- **Error Isolation**: Individual queue items can fail without affecting others
+- **Automatic Cleanup**: Queue items are automatically cleaned up after processing
+- **State Persistence**: Queue state is maintained across application restarts
+
+**Benefits:**
+- **Data Integrity**: Prevention of accidental demo mode re-entry after production transition
+- **User Experience**: Clear warnings and guidance for safety-critical operations
+- **System Reliability**: Enhanced error handling and recovery for safety mechanisms
+- **Compliance**: Auditable trail of all safety-critical data operations
+- **Peace of Mind**: Assurance that production data remains protected
+
+**Section sources**
+- [dataModeManager.ts:1-432](file://src/services/data/dataModeManager.ts#L1-L432)
+- [useDataMode.ts:1-177](file://src/hooks/useDataMode.ts#L1-L177)
+- [DataLayerSettingsPage.tsx:1-492](file://src/modules/settings/pages/DataLayerSettingsPage.tsx#L1-L492)
+- [FirstRunOnboarding.tsx:1-493](file://src/components/FirstRunOnboarding.tsx#L1-L493)
+- [DataModeSwitch.tsx:1-117](file://src/components/DataModeSwitch.tsx#L1-L117)
+- [OfflineQueue.ts:1-458](file://src/services/database/sync/OfflineQueue.ts#L1-L458)

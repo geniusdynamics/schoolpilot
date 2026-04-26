@@ -1,4 +1,4 @@
-import { moduleRegistry } from './moduleRegistry';
+import { moduleRegistry } from '../moduleRegistry';
 
 /**
  * Core Services Registry

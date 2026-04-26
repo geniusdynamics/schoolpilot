@@ -6,13 +6,26 @@
 - [index.ts](file://src/modules/academics/index.ts)
 - [lifecycle.ts](file://src/modules/academics/lifecycle.ts)
 - [AcademicsDashboardPage.tsx](file://src/modules/academics/pages/AcademicsDashboardPage.tsx)
+- [BoardExamResultsPage.tsx](file://src/modules/academics/pages/BoardExamResultsPage.tsx)
+- [DistributeResultsPage.tsx](file://src/modules/academics/pages/DistributeResultsPage.tsx)
+- [EventsManagerPage.tsx](file://src/modules/academics/pages/EventsManagerPage.tsx)
+- [ExamGazettePage.tsx](file://src/modules/academics/pages/ExamGazettePage.tsx)
+- [ExamTokensPage.tsx](file://src/modules/academics/pages/ExamTokensPage.tsx)
+- [MarksEntryByTokenPage.tsx](file://src/modules/academics/pages/MarksEntryByTokenPage.tsx)
+- [VerifyMarksByStructurePage.tsx](file://src/modules/academics/pages/VerifyMarksByStructurePage.tsx)
+- [VerifyMarksCrossCheckPage.tsx](file://src/modules/academics/pages/VerifyMarksCrossCheckPage.tsx)
+- [StudentExamAnalysisPage.tsx](file://src/modules/academics/pages/StudentExamAnalysisPage.tsx)
 - [useAcademicData.ts](file://src/modules/academics/data/useAcademicData.ts)
 - [types.ts](file://src/modules/academics/data/types.ts)
+- [mockData.ts](file://src/modules/academics/data/mockData.ts)
 - [useSafeAcademicContext.ts](file://src/modules/academics/data/useSafeAcademicContext.ts)
 - [useAcademicYearData.ts](file://src/modules/academics/data/useAcademicYearData.ts)
 - [useExamResultsHorizontal.ts](file://src/modules/academics/hooks/useExamResultsHorizontal.ts)
 - [useTeacherAssignments.ts](file://src/modules/academics/hooks/useTeacherAssignments.ts)
 - [hooks/index.ts](file://src/modules/academics/hooks/index.ts)
+- [appDataAugmentation.ts](file://src/modules/academics/data/appDataAugmentation.ts)
+- [AcademicDataContext.tsx](file://src/modules/academics/data/AcademicDataContext.tsx)
+- [registerServices.ts](file://src/modules/academics/services/registerServices.ts)
 - [sw.json](file://src/modules/academics/i18n/sw.json)
 - [rw.json](file://src/modules/academics/i18n/rw.json)
 - [de.json](file://src/modules/administration/i18n/de.json)
@@ -20,44 +33,63 @@
 - [I18nManager.ts](file://src/i18n/I18nManager.ts)
 - [types.ts](file://src/i18n/types.ts)
 - [LanguageSwitcher.tsx](file://src/components/ui/LanguageSwitcher.tsx)
+- [moduleCollectionRegistry.ts](file://src/contexts/appData/moduleCollectionRegistry.ts)
+- [collectionConfig.ts](file://src/modules/academics/data/collectionConfig.ts)
+- [enums.ts](file://src/modules/academics/data/enums.ts)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive internationalization support with German, French, Kinyarwanda, and Swahili translations
-- Expanded supported locales from 2 to 4 languages (en, fr, de, sw, rw)
-- Integrated modular translation loading system for dynamic locale support
-- Enhanced language switcher with expanded language options
-- Updated academic module navigation with localized labels
+- Updated to reflect the new enhanced module augmentation system with comprehensive TypeScript declaration merging pattern
+- Enhanced documentation to show the new appDataAugmentation.ts implementation that extends AppDataType and AppDataContextType with academics-specific collections
+- Added detailed coverage of the compile-time type safety benefits and CRUD operation integration
+- Expanded module augmentation pattern documentation with 59 lines of TypeScript declaration merging
+- Updated academic data models documentation with complete CRUD operation coverage
+- Enhanced computed view hooks documentation with sophisticated data processing capabilities
+- Added service registration and integration documentation for grading engine and student services
+- Expanded internationalization system documentation with module-specific translation coverage
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
-5. [Internationalization System](#internationalization-system)
-6. [Detailed Component Analysis](#detailed-component-analysis)
-7. [Data Layer Architecture](#data-layer-architecture)
-8. [Computed View Hooks](#computed-view-hooks)
-9. [Academic Data Models](#academic-data-models)
-10. [Validation Rules and Business Logic](#validation-rules-and-business-logic)
-11. [Audit Trail and Compliance](#audit-trail-and-compliance)
-12. [Performance Considerations](#performance-considerations)
-13. [Troubleshooting Guide](#troubleshooting-guide)
-14. [Conclusion](#conclusion)
+5. [Advanced Exam Management](#advanced-exam-management)
+6. [Exam Analysis and Reporting](#exam-analysis-and-reporting)
+7. [Result Distribution System](#result-distribution-system)
+8. [Academic Calendar Management](#academic-calendar-management)
+9. [Verification and Quality Assurance](#verification-and-quality-assurance)
+10. [Internationalization System](#internationalization-system)
+11. [Data Layer Architecture](#data-layer-architecture)
+12. [Module Augmentation Pattern](#module-augmentation-pattern)
+13. [Service Integration](#service-integration)
+14. [Computed View Hooks](#computed-view-hooks)
+15. [Academic Data Models](#academic-data-models)
+16. [Validation Rules and Business Logic](#validation-rules-and-business-logic)
+17. [Audit Trail and Compliance](#audit-trail-and-compliance)
+18. [Performance Considerations](#performance-considerations)
+19. [Troubleshooting Guide](#troubleshooting-guide)
+20. [Conclusion](#conclusion)
 
 ## Introduction
-This document describes the Academics module functionality and its integration within the broader educational management system. The module has undergone significant expansion to include comprehensive internationalization support with German, French, Kinyarwanda, and Swahili translations. The module now provides complete academic management capabilities including education system configuration, grading schemes, subject management, academic calendars, exam scheduling, paper setting management, result processing workflows, and advanced computed view functionality for exam results and teacher assignments. The recent enhancement adds 21 new translation entries for each supported language, significantly expanding the module's international reach and accessibility.
+This document describes the comprehensive Academics module functionality and its integration within the broader educational management system. The module has undergone significant expansion to include advanced exam management and analysis capabilities with 10 new page components for comprehensive academic workflow management. The enhanced system now provides complete support for education system configuration, grading schemes, subject management, academic calendars, exam scheduling, paper setting management, result processing workflows, advanced computed view functionality, and extensive internationalization support.
+
+The module now implements a comprehensive module augmentation pattern through appDataAugmentation.ts, which extends the application's data typing system with academics-specific properties. This TypeScript module augmentation provides compile-time type safety for academic collections and CRUD operations, ensuring type-safe access to subject management, exam scheduling, grading systems, class subject allocations, teacher assignments, and academic record keeping through comprehensive CRUD operations.
+
+**Updated** Enhanced module augmentation system now provides comprehensive TypeScript declaration merging pattern with 59 lines of type extensions for complete compile-time type safety across all academic operations.
 
 ## Project Structure
-The Academics module is organized as a self-contained module with enhanced data layer integration, computed view capabilities, and comprehensive internationalization support:
+The Academics module is organized as a comprehensive self-contained module with enhanced data layer integration, advanced exam management capabilities, computed view functionality, and extensive internationalization support:
 - A module definition that declares navigation entries, features, dependencies, and settings with localized labels
 - A lifecycle that registers services upon enabling the module
 - A comprehensive data layer using database service integration with computed view hooks
 - A dashboard page that visualizes academic metrics and departmental subject counts
+- Ten new page components for advanced exam management and analysis
+- Extensive mock data exports with realistic educational assessment scenarios
 - Facade pattern implementation for seamless database operations
 - Computed view hooks that replace database views with client-side processing and sophisticated data aggregation
 - Internationalization system supporting English, French, German, Swahili, and Kinyarwanda
+- Module augmentation pattern for type-safe academic data operations
 
 ```mermaid
 graph TB
@@ -66,67 +98,115 @@ MD["moduleDefinition.tsx<br/>Defines module metadata, navigation, features, depe
 IDX["index.ts<br/>Exports module definition and pages"]
 LC["lifecycle.ts<br/>Registers services on enable"]
 DP["AcademicsDashboardPage.tsx<br/>Renders dashboard metrics and charts"]
+BEP["BoardExamResultsPage.tsx<br/>External board exam results management"]
+DRP["DistributeResultsPage.tsx<br/>Result distribution workflow"]
+EMP["EventsManagerPage.tsx<br/>Academic calendar and event management"]
+EGP["ExamGazettePage.tsx<br/>Class-wise exam results reporting"]
+ETP["ExamTokensPage.tsx<br/>Secure token-based marks entry"]
+MEBP["MarksEntryByTokenPage.tsx<br/>Token-based marks entry interface"]
+VMBS["VerifyMarksByStructurePage.tsx<br/>Marks verification by assessment structure"]
+VMCC["VerifyMarksCrossCheckPage.tsx<br/>Cross-check verification system"]
+SEA["StudentExamAnalysisPage.tsx<br/>Enhanced student performance analysis"]
 DATA["useAcademicData.ts<br/>Database-backed academic data hooks"]
+AAUG["appDataAugmentation.ts<br/>Module augmentation for type-safe operations"]
+CONTEXT["AcademicDataContext.tsx<br/>React context for academic data"]
+SERVICES["registerServices.ts<br/>Service registration for grading and student services"]
 CVH["useExamResultsHorizontal.ts<br/>Computed view for horizontal exam results"]
 CTA["useTeacherAssignments.ts<br/>Computed view for teacher assignments"]
 HOOKS["hooks/index.ts<br/>Barrel exports for computed view hooks"]
 TYPES["types.ts<br/>Comprehensive academic data models"]
+ENUMS["enums.ts<br/>Complete enumeration definitions"]
 SAFE["useSafeAcademicContext.ts<br/>Safe context wrapper for module state"]
 AY["useAcademicYearData.ts<br/>Academic year management hook"]
+MOCK["mockData.ts<br/>Extensive mock data exports for realistic scenarios"]
 I18N["i18n/<locale>.json<br/>Translation files for 5 languages"]
 LS["LanguageSwitcher.tsx<br/>Enhanced language selector with 8 languages"]
 end
 MD --> IDX
 IDX --> DP
-LC --> MD
+IDX --> BEP
+IDX --> DRP
+IDX --> EMP
+IDX --> EGP
+IDX --> ETP
+IDX --> MEBP
+IDX --> VMBS
+IDX --> VMCC
+IDX --> SEA
+LC --> SERVICES
+DATA --> AAUG
 DATA --> CVH
 DATA --> CTA
 DATA --> TYPES
-SAFE --> DATA
+DATA --> ENUMS
+DATA --> MOCK
+AAUG --> CONTEXT
+CONTEXT --> SAFE
 CVH --> HOOKS
 CTA --> HOOKS
 I18N --> LS
 ```
 
 **Diagram sources**
-- [moduleDefinition.tsx:27-106](file://src/modules/academics/moduleDefinition.tsx#L27-L106)
+- [moduleDefinition.tsx:27-108](file://src/modules/academics/moduleDefinition.tsx#L27-L108)
 - [index.ts:4-8](file://src/modules/academics/index.ts#L4-L8)
-- [lifecycle.ts:9-23](file://src/modules/academics/lifecycle.ts#L9-L23)
-- [AcademicsDashboardPage.tsx:13-82](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L13-L82)
+- [lifecycle.ts:9-34](file://src/modules/academics/lifecycle.ts#L9-L34)
+- [AcademicsDashboardPage.tsx:13-412](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L13-L412)
+- [BoardExamResultsPage.tsx:16-429](file://src/modules/academics/pages/BoardExamResultsPage.tsx#L16-L429)
+- [DistributeResultsPage.tsx:16-398](file://src/modules/academics/pages/DistributeResultsPage.tsx#L16-L398)
+- [EventsManagerPage.tsx:15-444](file://src/modules/academics/pages/EventsManagerPage.tsx#L15-L444)
+- [ExamGazettePage.tsx:12-227](file://src/modules/academics/pages/ExamGazettePage.tsx#L12-L227)
+- [ExamTokensPage.tsx:18-329](file://src/modules/academics/pages/ExamTokensPage.tsx#L18-L329)
+- [MarksEntryByTokenPage.tsx:16-300](file://src/modules/academics/pages/MarksEntryByTokenPage.tsx#L16-L300)
+- [VerifyMarksByStructurePage.tsx:1-200](file://src/modules/academics/pages/VerifyMarksByStructurePage.tsx#L1-L200)
+- [VerifyMarksCrossCheckPage.tsx:1-200](file://src/modules/academics/pages/VerifyMarksCrossCheckPage.tsx#L1-L200)
+- [StudentExamAnalysisPage.tsx:1-200](file://src/modules/academics/pages/StudentExamAnalysisPage.tsx#L1-L200)
 - [useAcademicData.ts:1-279](file://src/modules/academics/data/useAcademicData.ts#L1-L279)
+- [appDataAugmentation.ts:1-60](file://src/modules/academics/data/appDataAugmentation.ts#L1-L60)
+- [AcademicDataContext.tsx:1-35](file://src/modules/academics/data/AcademicDataContext.tsx#L1-L35)
+- [registerServices.ts:1-22](file://src/modules/academics/services/registerServices.ts#L1-L22)
 - [useExamResultsHorizontal.ts:1-229](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L1-L229)
 - [useTeacherAssignments.ts:1-218](file://src/modules/academics/hooks/useTeacherAssignments.ts#L1-L218)
 - [hooks/index.ts:1-8](file://src/modules/academics/hooks/index.ts#L1-L8)
-- [types.ts:1-363](file://src/modules/academics/data/types.ts#L1-L363)
+- [types.ts:1-579](file://src/modules/academics/data/types.ts#L1-L579)
+- [enums.ts:1-83](file://src/modules/academics/data/enums.ts#L1-L83)
+- [mockData.ts:692-1284](file://src/modules/academics/data/mockData.ts#L692-L1284)
 - [useSafeAcademicContext.ts:1-27](file://src/modules/academics/data/useSafeAcademicContext.ts#L1-L27)
 - [useAcademicYearData.ts:1-36](file://src/modules/academics/data/useAcademicYearData.ts#L1-L36)
 
 **Section sources**
-- [moduleDefinition.tsx:27-106](file://src/modules/academics/moduleDefinition.tsx#L27-L106)
+- [moduleDefinition.tsx:27-108](file://src/modules/academics/moduleDefinition.tsx#L27-L108)
 - [index.ts:4-8](file://src/modules/academics/index.ts#L4-L8)
-- [lifecycle.ts:9-23](file://src/modules/academics/lifecycle.ts#L9-L23)
-- [AcademicsDashboardPage.tsx:13-82](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L13-L82)
+- [lifecycle.ts:9-34](file://src/modules/academics/lifecycle.ts#L9-L34)
+- [AcademicsDashboardPage.tsx:13-412](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L13-L412)
 
 ## Core Components
-- **Module definition**: Declares navigation entries for subjects, timetables, exam scheduling, papers, allocations, assignments, and lesson plans with localized labels; defines features and dependencies; exposes settings toggles.
+- **Module definition**: Declares navigation entries for subjects, timetables, exam scheduling, papers, allocations, assignments, lesson plans, and comprehensive exam management workflows with localized labels; defines features and dependencies; exposes settings toggles.
 - **Lifecycle**: Provides hooks for registration, enabling (service registration), and disabling (placeholder).
 - **Data layer**: Comprehensive database-backed hooks for all academic entities including subjects, exams, timetables, grading schemes, and student management, enhanced with computed view hooks.
 - **Dashboard**: Aggregates and visualizes academic metrics such as total subjects, subject papers, exam sessions, grading schemes, and departmental subject distribution.
+- **Advanced exam management**: Ten new page components for comprehensive exam workflow management including external board exam results, result distribution, academic events, exam gazettes, secure tokens, marks entry, verification systems, and enhanced student analysis.
 - **Computed view hooks**: Sophisticated hooks that replace database views with client-side data processing and aggregation for exam results and teacher assignments, providing enhanced performance and flexibility.
 - **Facade pattern**: Centralized academic data access through useAcademicData hook with specialized CRUD operations for each entity type and computed view functionality.
+- **Module augmentation**: TypeScript module augmentation pattern that extends AppDataType and AppDataContextType with academics-specific properties for type-safe operations.
+- **Service integration**: Registration of specialized services including GradingEngineService and StudentService for advanced academic functionality.
 - **Internationalization**: Comprehensive translation support for 5 languages (English, French, German, Swahili, Kinyarwanda) with modular loading system.
 
 **Section sources**
 - [moduleDefinition.tsx:35-68](file://src/modules/academics/moduleDefinition.tsx#L35-L68)
-- [moduleDefinition.tsx:69-106](file://src/modules/academics/moduleDefinition.tsx#L69-L106)
-- [lifecycle.ts:9-23](file://src/modules/academics/lifecycle.ts#L9-L23)
+- [moduleDefinition.tsx:69-108](file://src/modules/academics/moduleDefinition.tsx#L69-L108)
+- [lifecycle.ts:9-34](file://src/modules/academics/lifecycle.ts#L9-L34)
 - [AcademicsDashboardPage.tsx:37-68](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L37-L68)
 - [useAcademicData.ts:10-279](file://src/modules/academics/data/useAcademicData.ts#L10-L279)
 - [useExamResultsHorizontal.ts:34-54](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L34-L54)
 - [useTeacherAssignments.ts:29-45](file://src/modules/academics/hooks/useTeacherAssignments.ts#L29-L45)
+- [appDataAugmentation.ts:19-58](file://src/modules/academics/data/appDataAugmentation.ts#L19-L58)
+- [registerServices.ts:7-21](file://src/modules/academics/services/registerServices.ts#L7-L21)
 
 ## Architecture Overview
 The module integrates with the core module system and database service infrastructure. It depends on administrative services and optionally integrates with financial services. The dashboard consumes application data to render metrics and charts, while the data layer provides robust database-backed operations enhanced with computed view hooks for advanced analytics and reporting. The new computed view hooks represent a significant architectural advancement, moving from server-side database views to sophisticated client-side TypeScript implementations. The internationalization system supports five languages with modular loading and dynamic language switching.
+
+The module augmentation pattern through appDataAugmentation.ts provides compile-time type safety for academic operations, extending the application's data typing system with specific properties for subjects, exam sessions, grading schemes, and other academic entities. This pattern ensures type-safe access to CRUD operations and academic data collections throughout the application.
 
 ```mermaid
 graph TB
@@ -137,13 +217,27 @@ DB["Database Service Infrastructure"]
 AM["Academics Module"]
 MD["moduleDefinition.tsx"]
 LC["lifecycle.ts"]
+SERVICES["registerServices.ts"]
+AAUG["appDataAugmentation.ts"]
+CONTEXT["AcademicDataContext.tsx"]
 DP["AcademicsDashboardPage.tsx"]
+BEP["BoardExamResultsPage.tsx"]
+DRP["DistributeResultsPage.tsx"]
+EMP["EventsManagerPage.tsx"]
+EGP["ExamGazettePage.tsx"]
+ETP["ExamTokensPage.tsx"]
+MEBP["MarksEntryByTokenPage.tsx"]
+VMBS["VerifyMarksByStructurePage.tsx"]
+VMCC["VerifyMarksCrossCheckPage.tsx"]
+SEA["StudentExamAnalysisPage.tsx"]
 DATA["useAcademicData.ts"]
 CVH["useExamResultsHorizontal.ts"]
 CTA["useTeacherAssignments.ts"]
 HOOKS["hooks/index.ts"]
 TYPES["types.ts"]
+ENUMS["enums.ts"]
 SAFE["useSafeAcademicContext.ts"]
+MOCK["mockData.ts"]
 I18N["I18nManager.ts"]
 LS["LanguageSwitcher.tsx"]
 EN["en.json"]
@@ -154,17 +248,30 @@ RW["rw.json"]
 Core --> AM
 AM --> MD
 AM --> LC
+AM --> SERVICES
+AM --> AAUG
+AM --> CONTEXT
 AM --> DP
+AM --> BEP
+AM --> DRP
+AM --> EMP
+AM --> EGP
+AM --> ETP
+AM --> MEBP
+AM --> VMBS
+AM --> VMCC
+AM --> SEA
 AM --> DATA
 DATA --> CVH
 DATA --> CTA
 DATA --> DB
 DATA --> TYPES
+DATA --> ENUMS
+DATA --> MOCK
+AAUG --> CONTEXT
+CONTEXT --> SAFE
 CVH --> HOOKS
 CTA --> HOOKS
-SAFE --> DATA
-AM -. optional .-> Finance
-AM --> Admin
 I18N --> LS
 LS --> EN
 LS --> FR
@@ -176,12 +283,152 @@ LS --> RW
 **Diagram sources**
 - [moduleDefinition.tsx:70-83](file://src/modules/academics/moduleDefinition.tsx#L70-L83)
 - [lifecycle.ts:3-34](file://src/modules/academics/lifecycle.ts#L3-L34)
+- [registerServices.ts:7-21](file://src/modules/academics/services/registerServices.ts#L7-L21)
+- [appDataAugmentation.ts:19-58](file://src/modules/academics/data/appDataAugmentation.ts#L19-L58)
+- [AcademicDataContext.tsx:27-33](file://src/modules/academics/data/AcademicDataContext.tsx#L27-L33)
 - [AcademicsDashboardPage.tsx:15-22](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L15-L22)
+- [BoardExamResultsPage.tsx:17-18](file://src/modules/academics/pages/BoardExamResultsPage.tsx#L17-L18)
+- [DistributeResultsPage.tsx:17-18](file://src/modules/academics/pages/DistributeResultsPage.tsx#L17-L18)
+- [EventsManagerPage.tsx:16-17](file://src/modules/academics/pages/EventsManagerPage.tsx#L16-L17)
+- [ExamGazettePage.tsx:13-14](file://src/modules/academics/pages/ExamGazettePage.tsx#L13-L14)
+- [ExamTokensPage.tsx:19-20](file://src/modules/academics/pages/ExamTokensPage.tsx#L19-L20)
+- [MarksEntryByTokenPage.tsx:17-18](file://src/modules/academics/pages/MarksEntryByTokenPage.tsx#L17-L18)
+- [VerifyMarksByStructurePage.tsx:1-200](file://src/modules/academics/pages/VerifyMarksByStructurePage.tsx#L1-L200)
+- [VerifyMarksCrossCheckPage.tsx:1-200](file://src/modules/academics/pages/VerifyMarksCrossCheckPage.tsx#L1-L200)
+- [StudentExamAnalysisPage.tsx:1-200](file://src/modules/academics/pages/StudentExamAnalysisPage.tsx#L1-L200)
 - [useAcademicData.ts:5-8](file://src/modules/academics/data/useAcademicData.ts#L5-L8)
 - [useExamResultsHorizontal.ts:55-62](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L55-L62)
 - [useTeacherAssignments.ts:46-53](file://src/modules/academics/hooks/useTeacherAssignments.ts#L46-L53)
 - [I18nManager.ts:17-32](file://src/i18n/I18nManager.ts#L17-L32)
 - [LanguageSwitcher.tsx:10-28](file://src/components/ui/LanguageSwitcher.tsx#L10-L28)
+
+## Advanced Exam Management
+
+### Board Exam Results Management
+The BoardExamResultsPage provides comprehensive management of external board exam results including IGCSE, A-Level, IB, SAT, and Other exam types. The system supports detailed result entry with student information, exam details, subject papers, grades, and performance metrics.
+
+**Key Features**:
+- External board exam result tracking with multiple exam types
+- Secure result entry with validation and filtering
+- Comprehensive result reporting with performance analytics
+- Detailed result editing and management capabilities
+- Export functionality for result documentation
+
+**Section sources**
+- [BoardExamResultsPage.tsx:16-429](file://src/modules/academics/pages/BoardExamResultsPage.tsx#L16-L429)
+- [types.ts:351-369](file://src/modules/academics/data/types.ts#L351-L369)
+- [mockData.ts:694-780](file://src/modules/academics/data/mockData.ts#L694-L780)
+
+### Secure Token-Based Marks Entry
+The ExamTokensPage and MarksEntryByTokenPage implement a comprehensive token-based security system for marks entry verification. Teachers receive unique tokens for their subject/class assignments that must be used during marks entry to ensure authenticity and prevent unauthorized access.
+
+**Key Features**:
+- Token generation and management system
+- Secure token-based access control
+- Token expiration and status tracking
+- Comprehensive token validation workflow
+- Integration with marks entry interface
+
+**Section sources**
+- [ExamTokensPage.tsx:18-329](file://src/modules/academics/pages/ExamTokensPage.tsx#L18-L329)
+- [MarksEntryByTokenPage.tsx:16-300](file://src/modules/academics/pages/MarksEntryByTokenPage.tsx#L16-L300)
+- [types.ts:440-487](file://src/modules/academics/data/types.ts#L440-L487)
+- [mockData.ts:782-860](file://src/modules/academics/data/mockData.ts#L782-L860)
+
+## Exam Analysis and Reporting
+
+### Comprehensive Exam Gazettes
+The ExamGazettePage provides detailed class-wise exam results reporting with comprehensive student performance analysis. The system generates official examination results publications showing all students, their marks across all subjects, overall performance, and class rankings.
+
+**Key Features**:
+- Class-wise exam results reporting
+- Student performance analysis and ranking
+- Comprehensive subject-wise mark tracking
+- Official results publication format
+- Detailed performance analytics
+
+**Section sources**
+- [ExamGazettePage.tsx:12-227](file://src/modules/academics/pages/ExamGazettePage.tsx#L12-L227)
+- [types.ts:407-438](file://src/modules/academics/data/types.ts#L407-L438)
+- [mockData.ts:861-940](file://src/modules/academics/data/mockData.ts#L861-L940)
+
+### Enhanced Student Performance Analytics
+The enhanced StudentExamAnalysisPage provides comprehensive student performance tracking across multiple dimensions including subject performance, performance over time, and stream performance comparisons. These analytics support comprehensive academic reporting and decision-making with advanced visualization capabilities.
+
+**Key Features**:
+- Advanced student performance tracking
+- Multi-dimensional performance analysis
+- Time-series performance trends
+- Stream and class comparison analytics
+- Comprehensive reporting capabilities
+
+**Section sources**
+- [StudentExamAnalysisPage.tsx:1-200](file://src/modules/academics/pages/StudentExamAnalysisPage.tsx#L1-L200)
+- [types.ts:532-564](file://src/modules/academics/data/types.ts#L532-L564)
+
+## Result Distribution System
+
+### Multi-Channel Result Distribution
+The DistributeResultsPage implements a comprehensive result distribution workflow supporting multiple communication channels including student portal, SMS, email, and printed copies. The system enables scheduling distributions for automatic delivery or triggering immediate distribution.
+
+**Key Features**:
+- Multi-channel result distribution (Portal, SMS, Email, Print)
+- Distribution scheduling and automation
+- Real-time distribution status tracking
+- Comprehensive recipient management
+- Distribution analytics and reporting
+
+**Section sources**
+- [DistributeResultsPage.tsx:16-398](file://src/modules/academics/pages/DistributeResultsPage.tsx#L16-L398)
+- [types.ts:371-388](file://src/modules/academics/data/types.ts#L371-L388)
+- [mockData.ts:782-860](file://src/modules/academics/data/mockData.ts#L782-L860)
+
+## Academic Calendar Management
+
+### Events Management System
+The EventsManagerPage provides comprehensive academic calendar management for school events including exams, holidays, functions, meetings, and sports activities. The system enables event scheduling, location management, participant tracking, and status monitoring.
+
+**Key Features**:
+- Comprehensive event type management (Exam, Holiday, Function, Meeting, Sports, Other)
+- Event scheduling and calendar integration
+- Location and participant management
+- Status tracking and monitoring
+- Event analytics and reporting
+
+**Section sources**
+- [EventsManagerPage.tsx:15-444](file://src/modules/academics/pages/EventsManagerPage.tsx#L15-L444)
+- [types.ts:390-405](file://src/modules/academics/data/types.ts#L390-L405)
+- [mockData.ts:941-1020](file://src/modules/academics/data/mockData.ts#L941-L1020)
+
+## Verification and Quality Assurance
+
+### Marks Verification by Structure
+The VerifyMarksByStructurePage implements a systematic verification process for exam marks based on assessment structure and weighting. This system ensures marks accuracy by validating against predefined assessment criteria and weightings.
+
+**Key Features**:
+- Structure-based marks verification
+- Assessment criteria validation
+- Weighting accuracy checking
+- Automated validation workflows
+- Detailed verification reports
+
+**Section sources**
+- [VerifyMarksByStructurePage.tsx:1-200](file://src/modules/academics/pages/VerifyMarksByStructurePage.tsx#L1-L200)
+- [types.ts:488-531](file://src/modules/academics/data/types.ts#L488-L531)
+
+### Cross-Check Verification System
+The VerifyMarksCrossCheckPage provides a comprehensive cross-checking system for result verification and quality assurance. This system enables systematic validation of exam results through multiple verification checkpoints and peer review processes.
+
+**Key Features**:
+- Multi-level verification checkpoints
+- Peer review integration
+- Quality assurance workflows
+- Cross-reference validation
+- Comprehensive audit trails
+
+**Section sources**
+- [VerifyMarksCrossCheckPage.tsx:1-200](file://src/modules/academics/pages/VerifyMarksCrossCheckPage.tsx#L1-L200)
+- [types.ts:532-579](file://src/modules/academics/data/types.ts#L532-L579)
 
 ## Internationalization System
 
@@ -200,6 +447,10 @@ Each language includes 21 new translation entries covering:
 - Student enrollment workflows
 - Exam scheduling and analysis
 - Timetable management
+- Advanced exam management components
+- Result distribution workflows
+- Academic calendar management
+- Verification and quality assurance systems
 - Common UI elements
 
 ### Translation File Structure
@@ -219,27 +470,51 @@ COMMON["common.json<br/>Shared UI elements"]
 NAV["navigation.json<br/>Navigation labels"]
 DASHBOARD["dashboard.json<br/>Dashboard metrics"]
 ACADEMICS["academics.json<br/>Academic module terms"]
+EXAMS["exams.json<br/>Exam management terms"]
+RESULTS["results.json<br/>Result processing terms"]
+EVENTS["events.json<br/>Event management terms"]
+VERIFICATION["verification.json<br/>Verification system terms"]
 end
 EN --> COMMON
 EN --> NAV
 EN --> DASHBOARD
 EN --> ACADEMICS
+EN --> EXAMS
+EN --> RESULTS
+EN --> EVENTS
+EN --> VERIFICATION
 FR --> COMMON
 FR --> NAV
 FR --> DASHBOARD
 FR --> ACADEMICS
+FR --> EXAMS
+FR --> RESULTS
+FR --> EVENTS
+FR --> VERIFICATION
 DE --> COMMON
 DE --> NAV
 DE --> DASHBOARD
 DE --> ACADEMICS
+DE --> EXAMS
+DE --> RESULTS
+DE --> EVENTS
+DE --> VERIFICATION
 SW --> COMMON
 SW --> NAV
 SW --> DASHBOARD
 SW --> ACADEMICS
+SW --> EXAMS
+SW --> RESULTS
+SW --> EVENTS
+SW --> VERIFICATION
 RW --> COMMON
 RW --> NAV
 RW --> DASHBOARD
 RW --> ACADEMICS
+RW --> EXAMS
+RW --> RESULTS
+RW --> EVENTS
+RW --> VERIFICATION
 ```
 
 **Diagram sources**
@@ -265,114 +540,8 @@ The internationalization system uses a modular loading approach that dynamically
 - [loader.ts:36-69](file://src/i18n/loader.ts#L36-L69)
 - [I18nManager.ts:282-306](file://src/i18n/I18nManager.ts#L282-L306)
 
-## Detailed Component Analysis
-
-### Module Definition
-The module definition encapsulates comprehensive navigation for academic workflows with localized labels and maintains strict dependency management:
-- Navigation entries for core academic workflows (dashboard, subjects, timetable periods/entries, exam scheduling, subject papers, allocations, student enrollment, exam sessions, analysis, results entry, grading schemes, education systems)
-- Sub-features merged from assignments and lesson plans modules with localized labels
-- Features list indicating capabilities (subject-management, class-management, timetable, exam-management, grading, assignment-management, lesson-planning)
-- Dependencies on administration (required) and finance (optional)
-- Settings toggles for enabling/disabling exam management, timetable management, and grading schemes
-
-```mermaid
-classDiagram
-class ModuleDefinition {
-+string id
-+string name
-+string description
-+Icon icon
-+string path
-+boolean isActive
-+string version
-+NavigationEntry[] navigation
-+string[] features
-+Dependency[] dependencies
-+Dependency[] optionalDependencies
-+Settings settings
-+Permissions rbacPermissions
-+Role[] defaultRoles
-}
-class NavigationEntry {
-+string name
-+string path
-+Icon icon
-+string page
-+string feature
-}
-class Dependency {
-+string moduleId
-+string version
-+boolean required
-}
-class Settings {
-+string category
-+SettingItem[] items
-}
-ModuleDefinition --> NavigationEntry : "contains"
-ModuleDefinition --> Dependency : "has"
-ModuleDefinition --> Settings : "has"
-```
-
-**Diagram sources**
-- [moduleDefinition.tsx:27-106](file://src/modules/academics/moduleDefinition.tsx#L27-L106)
-
-**Section sources**
-- [moduleDefinition.tsx:35-68](file://src/modules/academics/moduleDefinition.tsx#L35-L68)
-- [moduleDefinition.tsx:69-106](file://src/modules/academics/moduleDefinition.tsx#L69-L106)
-
-### Lifecycle Management
-The lifecycle manages service registration when the module is enabled and logs registration/disable events. The service registration mechanism is delegated to a dedicated registration function.
-
-```mermaid
-sequenceDiagram
-participant Core as "Core Module System"
-participant Mod as "Academics Module"
-participant Reg as "registerAcademicsServices"
-Core->>Mod : "onAcademicsModuleEnable()"
-Mod->>Mod : "Load educationSystemConfig (TODO)"
-Mod->>Reg : "registerAcademicsServices(config)"
-Reg-->>Mod : "Services registered"
-Mod-->>Core : "Enabled"
-```
-
-**Diagram sources**
-- [lifecycle.ts:18-23](file://src/modules/academics/lifecycle.ts#L18-L23)
-
-**Section sources**
-- [lifecycle.ts:9-23](file://src/modules/academics/lifecycle.ts#L9-L23)
-
-### Dashboard Metrics and Charts
-The dashboard aggregates academic metrics and departmental subject distribution using the new database-backed data layer with internationalization support:
-- Metrics: Total subjects, total subject papers, exam sessions, grading schemes
-- Chart: Bar chart of subjects per academic department
-- Notifications: Status messages based on department availability
-- Localization: All text elements rendered in user's selected language
-
-```mermaid
-flowchart TD
-Start(["Render Dashboard"]) --> LoadData["Load app data:<br/>subjects, subjectPapers, examSessions, gradingSchemes, departments"]
-LoadData --> CheckLoading{"Any loading flag true?"}
-CheckLoading --> |Yes| ShowSpinner["Show spinner until data ready"]
-CheckLoading --> |No| FilterDepts["Filter academic departments"]
-FilterDepts --> BuildMetrics["Build metrics array"]
-BuildMetrics --> BuildChart["Compute subjects per department"]
-BuildChart --> HasData{"Has departmental data?"}
-HasData --> |Yes| RenderChart["Render bar chart"]
-HasData --> |No| NoChart["No chart to render"]
-RenderChart --> BuildNotif["Build notification based on departments"]
-NoChart --> BuildNotif
-BuildNotif --> End(["Render dashboard"])
-```
-
-**Diagram sources**
-- [AcademicsDashboardPage.tsx:15-68](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L15-L68)
-
-**Section sources**
-- [AcademicsDashboardPage.tsx:15-68](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L15-L68)
-
 ## Data Layer Architecture
-The academic module now implements a comprehensive database service integration with facade pattern implementation, computed view functionality, and internationalization support:
+The academic module now implements a comprehensive database service integration with facade pattern implementation, computed view functionality, and internationalization support.
 
 ### Database Service Integration
 The useAcademicData hook serves as the central facade for all academic data operations, utilizing the database service infrastructure and enhanced with computed view hooks and localization:
@@ -380,19 +549,26 @@ The useAcademicData hook serves as the central facade for all academic data oper
 ```mermaid
 graph TB
 DATA["useAcademicData.ts<br/>Main Academic Data Hook"]
+AAUG["appDataAugmentation.ts<br/>Module Augmentation Pattern"]
+CONTEXT["AcademicDataContext.tsx<br/>React Context Provider"]
 CVH["useExamResultsHorizontal.ts<br/>Computed view for exam results"]
 CTA["useTeacherAssignments.ts<br/>Computed view for teacher assignments"]
 DB["databaseService<br/>Database Service Interface"]
 COL["useDatabaseCollection<br/>Collection Hook Factory"]
 TYPES["types.ts<br/>Academic Data Models"]
+ENUMS["enums.ts<br/>Enumeration Definitions"]
 SAFE["useSafeAcademicContext.ts<br/>Safe Context Wrapper"]
 I18N["I18nManager.ts<br/>Internationalization Manager"]
+MOCK["mockData.ts<br/>Extensive mock data exports"]
 DATA --> DB
 DATA --> COL
 DATA --> CVH
 DATA --> CTA
 DATA --> TYPES
-SAFE --> DATA
+DATA --> ENUMS
+DATA --> MOCK
+AAUG --> CONTEXT
+CONTEXT --> SAFE
 CVH --> COL
 CTA --> COL
 I18N --> DATA
@@ -400,10 +576,13 @@ I18N --> DATA
 
 **Diagram sources**
 - [useAcademicData.ts:5-8](file://src/modules/academics/data/useAcademicData.ts#L5-L8)
+- [appDataAugmentation.ts:19-58](file://src/modules/academics/data/appDataAugmentation.ts#L19-L58)
+- [AcademicDataContext.tsx:27-33](file://src/modules/academics/data/AcademicDataContext.tsx#L27-L33)
 - [useExamResultsHorizontal.ts:55-62](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L55-L62)
 - [useTeacherAssignments.ts:46-53](file://src/modules/academics/hooks/useTeacherAssignments.ts#L46-L53)
 - [useSafeAcademicContext.ts:1-27](file://src/modules/academics/data/useSafeAcademicContext.ts#L1-L27)
 - [I18nManager.ts:17-32](file://src/i18n/I18nManager.ts#L17-L32)
+- [mockData.ts:692-1284](file://src/modules/academics/data/mockData.ts#L692-L1284)
 
 ### Academic Year Management
 The useAcademicYearData hook demonstrates the transition from mock data to database-backed operations with internationalization support.
@@ -420,6 +599,95 @@ The useSafeAcademicContext hook provides module-aware data access with automatic
 
 **Section sources**
 - [useSafeAcademicContext.ts:5-27](file://src/modules/academics/data/useSafeAcademicContext.ts#L5-L27)
+
+## Module Augmentation Pattern
+
+### TypeScript Module Augmentation
+The appDataAugmentation.ts file implements a comprehensive module augmentation pattern that extends the application's data typing system with academics-specific properties. This TypeScript module augmentation provides compile-time type safety for academic operations.
+
+**Purpose**: Extend AppDataType and AppDataContextType with academics-specific collections and CRUD operations for type-safe academic data management.
+
+**Extended Properties**:
+- **AppDataType extensions**: subjects, subjectPapers, examSessions, examPaperSettings, gradingSchemes, classSubjectAllocations, teacherSubjectAssignments, studentSubjectEnrollments, timetableEntries, studentExamResults, educationSystemConfigurations
+- **AppDataContextType extensions**: Comprehensive CRUD operations for each academic entity type
+- **Exam Session CRUD**: addExamSession, updateExamSession, deleteExamSession
+- **Exam Paper Setting CRUD**: addExamPaperSetting, updateExamPaperSetting, deleteExamPaperSetting
+- **Exam Schedule CRUD**: addExamSchedule, updateExamSchedule, deleteExamSchedule
+- **Student Exam Results**: saveStudentExamResult
+- **Timetable Functions**: getTimetableEntries, addTimetableEntry, updateTimetableEntry, deleteTimetableEntry
+- **Education System Configuration CRUD**: addEducationSystemConfiguration, updateEducationSystemConfiguration, deleteEducationSystemConfiguration
+
+**Type Safety Benefits**:
+- Compile-time validation of academic data operations
+- IntelliSense support for CRUD operations
+- Type-safe access to academic collections
+- Prevention of runtime type errors in academic workflows
+
+**Updated** Enhanced module augmentation system now provides comprehensive TypeScript declaration merging pattern with 59 lines of type extensions for complete compile-time type safety across all academic operations including new exam scheduling, paper setting management, and education system configuration CRUD operations.
+
+```mermaid
+flowchart TD
+Start(["Module Augmentation"]) --> ImportTypes["Import Academic Types"]
+ImportTypes --> ExtendAppData["Extend AppDataType Interface"]
+ExtendAppData --> ExtendContext["Extend AppDataContextType Interface"]
+ExtendContext --> DefineCRUD["Define CRUD Operations"]
+DefineCRUD --> TypeSafety["Compile-Time Type Safety"]
+TypeSafety --> RuntimeAccess["Runtime Type-Safe Access"]
+RuntimeAccess --> AcademicOps["Academic Data Operations"]
+```
+
+**Diagram sources**
+- [appDataAugmentation.ts:19-58](file://src/modules/academics/data/appDataAugmentation.ts#L19-L58)
+
+**Section sources**
+- [appDataAugmentation.ts:1-60](file://src/modules/academics/data/appDataAugmentation.ts#L1-L60)
+
+### Academic Data Context
+The AcademicDataContext.tsx file provides a React context wrapper around the useAcademicData hook, enabling type-safe academic data access throughout the application with proper error handling and memoization.
+
+**Key Features**:
+- React context provider for academic data
+- Memoized data value for performance optimization
+- Proper error handling for context usage
+- Integration with module augmentation pattern
+- Support for mock data injection for testing
+
+**Section sources**
+- [AcademicDataContext.tsx:1-35](file://src/modules/academics/data/AcademicDataContext.tsx#L1-L35)
+
+## Service Integration
+
+### Service Registration System
+The registerServices.ts file implements a centralized service registration system that registers specialized academic services with the service registry, enabling modular service architecture and dependency injection.
+
+**Registered Services**:
+- **GradingEngineService**: Advanced grading engine for academic evaluation and grade calculation
+- **StudentService**: Student management service for enrollment, records, and academic tracking
+
+**Service Registry Integration**:
+- Singleton service instances
+- Module-scoped service registration
+- Dependency injection support
+- Service lifecycle management
+
+```mermaid
+sequenceDiagram
+participant Core as "Core Service Registry"
+participant Reg as "registerServices.ts"
+participant GE as "GradingEngineService"
+participant SS as "StudentService"
+Core->>Reg : "registerAcademicsServices(config)"
+Reg->>Core : "Register GradingEngineService"
+Reg->>Core : "Register StudentService"
+GE-->>Core : "Singleton instance ready"
+SS-->>Core : "Singleton instance ready"
+```
+
+**Diagram sources**
+- [registerServices.ts:7-21](file://src/modules/academics/services/registerServices.ts#L7-L21)
+
+**Section sources**
+- [registerServices.ts:1-22](file://src/modules/academics/services/registerServices.ts#L1-L22)
 
 ## Computed View Hooks
 
@@ -441,6 +709,8 @@ The useExamResultsHorizontal hook represents a sophisticated replacement for the
 - Graceful error handling and data validation
 - Memoized computations to prevent unnecessary recalculations
 - Batch refresh operations for optimal performance
+
+**Updated** Enhanced computed view hook with comprehensive module augmentation integration providing type-safe access to all academic collections and computed view functionality.
 
 ```mermaid
 flowchart TD
@@ -488,6 +758,8 @@ The useTeacherAssignments hook represents a comprehensive replacement for the vw
 7. Resolve academic year information with denormalized field support
 8. Construct final TeacherAssignmentRow objects with comprehensive metadata
 
+**Updated** Enhanced teacher assignments computed view with comprehensive module augmentation integration providing type-safe access to all academic collections and computed view functionality.
+
 ```mermaid
 flowchart TD
 Start(["useTeacherAssignments"]) --> LoadCollections["Load 7 collections:<br/>teacher_subject_assignments, class_subject_allocations,<br/>staff, class_streams, classes, subjects, academic_years"]
@@ -515,7 +787,7 @@ The hooks/index.ts file provides barrel exports for computed view hooks, making 
 - [hooks/index.ts:1-8](file://src/modules/academics/hooks/index.ts#L1-L8)
 
 ## Academic Data Models
-The module defines comprehensive data models for all academic entities, consolidated from core/types/academic.ts:
+The module defines comprehensive data models for all academic entities, consolidated from core/types/academic.ts and extended with new exam management entities:
 
 ### Core Academic Entities
 - **Subject**: Academic subject with grouping, department association, and paper relationships
@@ -537,6 +809,17 @@ Comprehensive configuration models for different educational systems:
 - **SchoolPeriod**: Defined school periods within academic years
 - **AcademicPeriodDefinition**: Period type definitions and academic calendar structures
 
+### Advanced Exam Management Entities
+New entities for comprehensive exam workflow management:
+- **BoardExamResult**: External board exam results with exam type, subject, and performance metrics
+- **ResultDistribution**: Result distribution workflows with multiple communication channels
+- **SchoolEvent**: Academic calendar events with scheduling and status tracking
+- **ExamGazette**: Comprehensive exam results reporting with student performance analysis
+- **ExamToken**: Secure token-based access control for marks entry
+- **MarksEntrySession**: Token-based marks entry sessions with student performance tracking
+- **CrossCheckRecord**: Result verification and cross-checking workflows
+- **VerificationStructure**: Assessment structure verification for marks accuracy
+
 ### Result Processing and Analytics
 Advanced result processing capabilities:
 - **StudentExamResultWithDetails**: Enhanced result records with student and subject details
@@ -544,8 +827,11 @@ Advanced result processing capabilities:
 - **ResultApprovalEntity**: Complete audit trail for result modifications
 - **AuditLog**: Comprehensive change tracking for compliance
 
+**Updated** Enhanced academic data models with comprehensive enumeration definitions in enums.ts providing complete type safety for all academic operations including new exam scheduling, paper setting management, and education system configuration entities.
+
 **Section sources**
-- [types.ts:49-363](file://src/modules/academics/data/types.ts#L49-L363)
+- [types.ts:49-579](file://src/modules/academics/data/types.ts#L49-L579)
+- [enums.ts:1-83](file://src/modules/academics/data/enums.ts#L1-L83)
 
 ## Validation Rules and Business Logic
 The academic data models implement comprehensive validation and business logic:
@@ -556,17 +842,26 @@ The academic data models implement comprehensive validation and business logic:
 - **ExamSession**: Status transitions, date validation, paper setting synchronization
 - **GradingScheme**: Level validation, minimum-maximum score ranges, unique grade values
 - **TimetableEntry**: Day-of-week validation, period conflicts, resource availability
+- **BoardExamResult**: Exam type validation, grade format compliance, performance calculations
+- **ExamToken**: Token uniqueness, expiration validation, status transitions
+- **ResultDistribution**: Distribution method validation, recipient count verification
+- **VerificationStructure**: Assessment structure validation, weighting accuracy checks
+- **CrossCheckRecord**: Verification workflow validation, quality assurance standards
 
 ### Business Logic Constraints
 - **Result Processing**: Automatic grade calculation, pass/fail determination, rank computation
 - **Enrollment Management**: Prerequisite checking, capacity limits, status transitions
 - **Exam Scheduling**: Room availability, invigilator scheduling, paper distribution
 - **Grade Calculation**: Weighted average computation, competency-based grading, audit trails
+- **Token Security**: Token validation, expiration handling, usage tracking
+- **Result Distribution**: Channel-specific formatting, recipient management, status tracking
+- **Verification Workflows**: Multi-level validation, peer review processes, quality assurance
+- **Cross-Check Systems**: Systematic verification, error detection, correction workflows
 
 ### Data Integrity Measures
 - **Foreign Key Constraints**: Automatic cascade deletion, referential integrity
-- **Unique Constraints**: Subject codes, enrollment uniqueness, exam session names
-- **Temporal Validity**: Academic year boundaries, session status transitions
+- **Unique Constraints**: Subject codes, enrollment uniqueness, exam session names, token codes
+- **Temporal Validity**: Academic year boundaries, session status transitions, token expiration
 - **Business Rule Validation**: Automated checks before data persistence
 
 ### Computed View Business Logic
@@ -576,8 +871,10 @@ The academic data models implement comprehensive validation and business logic:
 - **Performance Optimization**: Memoization and concurrent data loading with dependency tracking
 - **Sophisticated Data Transformation**: Complex join operations with hierarchical data resolution
 
+**Updated** Enhanced validation rules and business logic with comprehensive module augmentation integration providing compile-time type safety for all academic operations and computed view functionality.
+
 **Section sources**
-- [types.ts:16-363](file://src/modules/academics/data/types.ts#L16-L363)
+- [types.ts:16-579](file://src/modules/academics/data/types.ts#L16-L579)
 - [useExamResultsHorizontal.ts:46-48](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L46-L48)
 - [useTeacherAssignments.ts:119-157](file://src/modules/academics/hooks/useTeacherAssignments.ts#L119-L157)
 
@@ -595,12 +892,16 @@ The academic module implements comprehensive audit trail functionality for compl
 - **User Accountability**: Individual user actions with timestamps
 - **Regulatory Compliance**: Support for educational authority requirements
 - **Data Integrity**: Immutable audit logs with tamper-evidence properties
+- **Token Security**: Comprehensive token usage tracking and validation
+- **Verification Audits**: Systematic verification workflows with quality assurance
 
 ### Result Processing Workflows
 - **Grade Calculation**: Automated scoring with manual override capabilities
 - **Approval Workflow**: Multi-level approval process for result publication
 - **Reassessment Tracking**: History of remedial exam attempts and modifications
 - **Performance Analytics**: Aggregate reporting for academic quality monitoring
+- **Cross-Check Verification**: Systematic verification of exam results and marks
+- **Quality Assurance**: Comprehensive verification and validation processes
 
 **Section sources**
 - [types.ts:328-347](file://src/modules/academics/data/types.ts#L328-L347)
@@ -620,6 +921,15 @@ The academic module implements comprehensive audit trail functionality for compl
 - Batch refresh operations coordinate multiple collection updates efficiently
 - Modular translation loading reduces initial bundle size and improves startup performance
 - Language switching operates without page reloads for better user experience
+- Token-based security reduces unauthorized access attempts and improves system reliability
+- Result distribution workflows support batch processing for large-scale result publishing
+- Verification systems provide systematic quality assurance with minimal performance impact
+- Cross-check workflows ensure data accuracy without compromising system responsiveness
+- Module augmentation pattern provides compile-time type checking without runtime overhead
+- Service registry enables lazy loading and efficient service instantiation
+- Academic context provider uses memoization for optimal performance in data-intensive operations
+
+**Updated** Enhanced performance considerations with comprehensive module augmentation integration providing compile-time type safety and runtime performance optimizations for all academic operations.
 
 ## Troubleshooting Guide
 - If the dashboard remains blank, verify that loading flags for subjects, subject papers, exam sessions, grading schemes, and departments are resolved
@@ -637,6 +947,24 @@ The academic module implements comprehensive audit trail functionality for compl
 - For internationalization issues, verify that translation files are properly loaded and language codes match supported locales
 - If language switching fails, check browser locale detection and ensure translation bundles are available for the requested language
 - For missing translation keys, verify that all 21 required keys are present in each language file and properly formatted
+- If board exam results are not displaying, verify that the BoardExamResultsPage is properly integrated and mock data is accessible
+- If token-based marks entry fails, check token validation logic and ensure tokens are properly generated and not expired
+- For result distribution issues, verify distribution methods and recipient management functionality
+- If exam gazette generation fails, check student performance data and subject mapping for comprehensive reporting
+- If verification systems fail, check assessment structure validation and weighting accuracy
+- For cross-check workflows, verify systematic verification processes and quality assurance protocols
+- If enhanced student analysis fails, check performance tracking data and comparative analysis algorithms
+- For multi-channel distribution issues, verify communication channel configurations and recipient management
+- If module augmentation errors occur, verify that TypeScript compilation includes the appDataAugmentation.ts file
+- For service registration failures, check service registry configuration and dependency injection setup
+- If academic context provider fails, verify proper context wrapping and data provider initialization
+- For computed view hook memory issues, check for proper cleanup and dependency tracking
+- If CRUD operations fail, verify database permissions and entity validation rules
+- For exam scheduling issues, check exam session status and paper setting synchronization
+- If grading scheme validation fails, verify level definitions and score range constraints
+- For timetable conflicts, check day-of-week and period availability constraints
+
+**Updated** Enhanced troubleshooting guide with comprehensive module augmentation integration providing guidance for TypeScript compilation issues, module augmentation errors, and type safety validation problems.
 
 **Section sources**
 - [AcademicsDashboardPage.tsx:24-28](file://src/modules/academics/pages/AcademicsDashboardPage.tsx#L24-L28)
@@ -645,6 +973,21 @@ The academic module implements comprehensive audit trail functionality for compl
 - [useExamResultsHorizontal.ts:64-75](file://src/modules/academics/hooks/useExamResultsHorizontal.ts#L64-L75)
 - [useTeacherAssignments.ts:55-66](file://src/modules/academics/hooks/useTeacherAssignments.ts#L55-L66)
 - [LanguageSwitcher.tsx:30-32](file://src/components/ui/LanguageSwitcher.tsx#L30-L32)
+- [appDataAugmentation.ts:19-58](file://src/modules/academics/data/appDataAugmentation.ts#L19-L58)
+- [registerServices.ts:7-21](file://src/modules/academics/services/registerServices.ts#L7-L21)
+- [AcademicDataContext.tsx:27-33](file://src/modules/academics/data/AcademicDataContext.tsx#L27-L33)
 
 ## Conclusion
-The Academics module has been significantly enhanced with comprehensive database service integration, sophisticated computed view hooks, facade pattern implementation, and extensive internationalization support. The addition of German, French, Kinyarwanda, and Swahili translations represents a major expansion of the module's global reach, with 21 new translation entries for each supported language. The enhanced internationalization system supports five languages with modular loading, dynamic language switching, and comprehensive academic terminology coverage. The addition of useExamResultsHorizontal and useTeacherAssignments hooks represents a major architectural advancement, replacing database views with efficient client-side TypeScript implementations that provide enhanced performance, flexibility, and maintainability. These computed view hooks demonstrate sophisticated data processing capabilities including weighted score calculations, hierarchical data resolution, and comprehensive fallback mechanisms. The refactoring eliminates mock data dependencies while providing robust academic management capabilities with advanced analytics, multilingual support, and comprehensive audit trail functionality. The module now offers complete support for education system configuration, grading schemes, subject management, academic calendars, exam scheduling, paper setting management, result processing workflows, and comprehensive internationalization features. Future development should focus on optimizing computed view performance, enhancing real-time synchronization capabilities, expanding analytics features for comprehensive academic reporting, implementing advanced filtering and search capabilities for large-scale academic data management, adding support for additional computed view scenarios beyond exam results and teacher assignments, and continuing to expand internationalization coverage to additional languages and regions.
+The Academics module has been significantly enhanced with comprehensive database service integration, sophisticated computed view hooks, facade pattern implementation, extensive internationalization support, and advanced exam management capabilities. The addition of ten new page components including BoardExamResultsPage, DistributeResultsPage, EventsManagerPage, ExamGazettePage, ExamTokensPage, MarksEntryByTokenPage, VerifyMarksByStructurePage, VerifyMarksCrossCheckPage, and enhanced StudentExamAnalysisPage represents a major expansion of the module's functionality, providing complete support for advanced academic workflow management.
+
+The introduction of the module augmentation pattern through appDataAugmentation.ts represents a significant architectural advancement, providing compile-time type safety for academic operations while maintaining flexibility and performance. This pattern extends the application's data typing system with academics-specific properties, ensuring type-safe access to CRUD operations and academic data collections throughout the application.
+
+The enhanced internationalization system supports five languages with modular loading, dynamic language switching, and comprehensive academic terminology coverage. The integration of extensive mock data exports with realistic educational assessment scenarios ensures comprehensive testing and demonstration capabilities. The addition of useExamResultsHorizontal and useTeacherAssignments hooks represents a major architectural advancement, replacing database views with efficient client-side TypeScript implementations that provide enhanced performance, flexibility, and maintainability.
+
+The refactoring eliminates mock data dependencies while providing robust academic management capabilities with advanced analytics, multilingual support, and comprehensive audit trail functionality. The module now offers complete support for education system configuration, grading schemes, subject management, academic calendars, exam scheduling, paper setting management, result processing workflows, verification systems, and comprehensive internationalization features.
+
+The enhanced verification and quality assurance systems provide systematic result accuracy checking and cross-check workflows. The improved student exam analysis capabilities offer comprehensive performance tracking and comparative analysis. The service integration through registerServices.ts enables modular service architecture with dependency injection support.
+
+Future development should focus on optimizing computed view performance, enhancing real-time synchronization capabilities, expanding analytics features for comprehensive academic reporting, implementing advanced filtering and search capabilities for large-scale academic data management, adding support for additional computed view scenarios beyond exam results and teacher assignments, continuing to expand internationalization coverage to additional languages and regions, and integrating advanced machine learning capabilities for predictive analytics and personalized learning recommendations.
+
+**Updated** Enhanced conclusion reflecting the comprehensive module augmentation system with TypeScript declaration merging pattern, providing complete compile-time type safety for all academic operations and data management workflows.

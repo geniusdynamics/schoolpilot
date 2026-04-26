@@ -46,7 +46,7 @@ import {
   Package
 } from 'lucide-react';
 import { useReorderMonitoring, usePeriodicReorderMonitoring } from '@/hooks/useReorderMonitoring';
-import { ReorderAlert } from '@/services/reorderMonitoringService';
+import { reorderMonitoringService, ReorderAlert } from '../services/reorderMonitoringService';
 import { useTranslation } from 'react-i18next';
 
 interface ReorderAlertsPanelProps {

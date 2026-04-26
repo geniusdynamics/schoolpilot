@@ -3,7 +3,7 @@ import {
   checkReorderRequirements,
   ReorderAlert,
   ReorderMonitoringResult
-} from '@/services/reorderMonitoringService';
+} from '../services/reorderMonitoringService';
 
 export interface UseReorderMonitoringReturn {
   // State

@@ -5,7 +5,7 @@ import React, { ReactNode } from 'react';
 import { LiveStoreProvider as BaseLiveStoreProvider } from '@livestore/react';
 import { LiveStore } from '@livestore/livestore';
 import { WebAdapter } from '@livestore/adapter-web';
-import { schema } from './schema';
+import { schema } from '../../livestore/schema';
 
 // LiveStore Provider Props
 interface LiveStoreProviderProps {

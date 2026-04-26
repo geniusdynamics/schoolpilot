@@ -6,22 +6,18 @@
 - [TODOPage.tsx](file://src/modules/todos/pages/TODOPage.tsx)
 - [index.ts](file://src/modules/todos/pages/index.ts)
 - [en.json](file://src/modules/todos/i18n/en.json)
-- [fr.json](file://src/modules/todos/i18n/fr.json)
-- [rw.json](file://src/modules/todos/i18n/rw.json)
-- [sw.json](file://src/modules/todos/i18n/sw.json)
 - [todos.json](file://src/i18n/locales/en/todos.json)
 - [moduleRegistration.ts](file://src/core/moduleRegistration.ts)
-- [coreModule.tsx](file://src/modules/core/moduleDefinition.tsx)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated internationalization section to reflect expanded language support (French, Kinyarwanda, Swahili)
-- Enhanced task management features section with comprehensive CRUD operations
-- Added drag-and-drop functionality documentation
-- Updated priority and status management with real-time filtering capabilities
-- Enhanced responsive design documentation
-- Updated module registration system section with current status
+- Updated module architecture section to reflect the actual module structure with proper internationalization support
+- Enhanced task management features section with comprehensive CRUD operations and drag-and-drop functionality
+- Updated internationalization section to show current language support (English only)
+- Added module registration system section with current status and registration requirements
+- Updated data model and types section with accurate TypeScript interfaces
+- Enhanced UI components and layout section with responsive design documentation
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -55,25 +51,19 @@ B --> E[State Management]
 B --> F[Form Handling]
 subgraph "Internationalization"
 G[i18n/en.json]
-H[i18n/fr.json]
-I[i18n/rw.json]
-J[i18n/sw.json]
-K[todos.json]
+H[i18n/todos.json]
 end
 A --> G
 A --> H
-A --> I
-A --> J
-A --> K
 end
 subgraph "System Integration"
-L[ModuleRegistration.ts] --> A
-M[Core Module] --> L
+I[ModuleRegistration.ts] --> A
+J[Core Module] --> I
 end
-A -.-> N[Dynamic Loading]
-O[Responsive Design] --> B
-P[Drag & Drop] --> B
-Q[Real-time Filtering] --> B
+A -.-> K[Dynamic Loading]
+L[Responsive Design] --> B
+M[Drag & Drop] --> B
+N[Real-time Filtering] --> B
 ```
 
 **Diagram sources**
@@ -133,7 +123,7 @@ The module definition specifies:
 - **Navigation Integration**: Path '/todos' with ListBulletIcon for sidebar navigation
 - **Feature Capabilities**: Comprehensive task management with priority, category, reminder, and drag-and-drop support
 - **Settings Configuration**: Flexible configuration for task management features
-- **Internationalization**: Built-in support for multiple languages
+- **Internationalization**: Built-in support for navigation translations
 
 **Section sources**
 - [moduleDefinition.tsx:1-33](file://src/modules/todos/moduleDefinition.tsx#L1-L33)
@@ -193,9 +183,6 @@ string category
 date due_date
 date created_at
 date completed_at
-string createdBy
-string assignedTo
-boolean isArchived
 }
 PRIORITY {
 enum Low
@@ -206,7 +193,6 @@ STATUS {
 enum Pending
 enum "In Progress"
 enum Completed
-enum Archived
 }
 CATEGORY {
 string General
@@ -240,7 +226,6 @@ The module implements a sophisticated priority and status system enabling effect
 | Pending | Blue badge | Blue background | New tasks, awaiting action |
 | In Progress | Yellow badge | Yellow background | Active work in progress |
 | Completed | Green badge | Green background | Successfully finished tasks |
-| Archived | Gray badge | Gray background | Completed tasks moved to archive |
 
 **Section sources**
 - [TODOPage.tsx:166-190](file://src/modules/todos/pages/TODOPage.tsx#L166-L190)
@@ -254,11 +239,9 @@ flowchart TD
 Start([Task Display]) --> FilterInit[Initialize Filters]
 FilterInit --> StatusFilter[Status Filter]
 FilterInit --> PriorityFilter[Priority Filter]
-FilterInit --> CategoryFilter[Category Filter]
 FilterInit --> SearchFilter[Real-time Search]
 StatusFilter --> ApplyFilters[Apply All Filters]
 PriorityFilter --> ApplyFilters
-CategoryFilter --> ApplyFilters
 SearchFilter --> ApplyFilters
 ApplyFilters --> DisplayResults[Display Filtered Results]
 DisplayResults --> UserAction{User Action?}
@@ -301,73 +284,64 @@ The module provides comprehensive CRUD (Create, Read, Update, Delete) operations
 
 ## Internationalization Support
 
-The TODO module implements comprehensive internationalization support, ensuring accessibility across different languages and locales within the SchoolPilot ecosystem with complete multilingual support.
+The TODO module implements comprehensive internationalization support, ensuring accessibility across different languages and locales within the SchoolPilot ecosystem. Currently, the module provides English translations for navigation and core functionality.
 
-### Expanded Translation Structure
+### Translation Structure
 
 ```mermaid
 graph LR
 subgraph "Translation Files"
-A[todos.json] --> B[Main Translations]
-C[en.json] --> D[Navigation Translations]
-E[fr.json] --> F[French Translations]
-G[rw.json] --> H[Kinyarwanda Translations]
-I[sw.json] --> J[Swahili Translations]
+A[en.json] --> B[Navigation Translations]
+C[todos.json] --> D[Core Module Translations]
 end
 subgraph "Usage Context"
-K[UI Components] --> L[useTranslation Hook]
-L --> M[Translation Keys]
+E[UI Components] --> F[useTranslation Hook]
+F --> G[Translation Keys]
 end
-B --> K
-D --> K
-E --> K
-F --> K
-G --> K
-H --> K
-I --> K
-M --> K
+B --> E
+C --> E
+G --> E
 ```
 
 **Diagram sources**
-- [todos.json:1-37](file://src/i18n/locales/en/todos.json#L1-L37)
 - [en.json:1-9](file://src/modules/todos/i18n/en.json#L1-L9)
-- [fr.json:1-9](file://src/modules/todos/i18n/fr.json#L1-L9)
-- [rw.json:1-9](file://src/modules/todos/i18n/rw.json#L1-L9)
-- [sw.json:1-9](file://src/modules/todos/i18n/sw.json#L1-L9)
+- [todos.json:1-37](file://src/i18n/locales/en/todos.json#L1-L37)
 
-### Complete Language Support
+### Current Language Support
 
-The internationalization system now provides translations for key UI elements and functional terminology across four languages:
+The internationalization system currently provides translations for key UI elements and functional terminology in English:
 
-| Translation Key | English Value | French Value | Kinyarwanda Value | Swahili Value |
-|---|---|---|---|---|
-| title | Todos | Taches | Imirimo | Majukumu |
-| description | Task management and reminders | Gestion des taches et rappels | Gucunga imirimo nibibutsa | Usimamizi wa majukumu na vikumbusho |
-| taskList | Task List | Liste de taches | Urutonde rw'imirimo | Orodha ya Majukumu |
-| addTask | Add Task | Ajouter une tache | Ongerako imirimo | Ongeza Kazi |
-| editTask | Edit Task | Modifier la tache | Haraza imirimo | Hariri Kazi |
-| deleteTask | Delete Task | Supprimer la tache | Ggwa imirimo | Futa Kazi |
-| taskTitle | Task Title | Titre de la tache | Umutwe w'imirimo | Kichwa cha Kazi |
-| dueDate | Due Date | Date d'echeance | Ituku ry'umutima | Tarehe ya Kufikia |
-| priority | Priority | Priorite | Isabwa | Kipaumbele |
-| status | Status | Statut | Icango | Hali |
-| completed | Completed | Termine | Kigane | Imekamilika |
-| pending | Pending | En attente | Gitemwe | Inasubiri |
-| inProgress | In Progress | En cours | Riheruka | Inaendelea |
-| filterByStatus | Filter by Status | Filtrer par statut | Fuga isango | Chuja kwa Hali |
-| filterByPriority | Filter by Priority | Filtrer par priorite | Fuga isabwa | Chuja kwa Kipaumbele |
-| noTasks | No tasks found | Aucune tache trouvee | Nta mirimo yasohotseka | Hakuna Majukumu Yamepatikana |
+| Translation Key | English Value |
+|---|---|
+| navigation.todos.title | Todos |
+| navigation.todos.description | Task management and reminders |
+| title | Todos |
+| description | Task management and reminders |
+| taskList | Task List |
+| addTask | Add Task |
+| editTask | Edit Task |
+| deleteTask | Delete Task |
+| taskTitle | Task Title |
+| taskDescription | Task Description |
+| dueDate | Due Date |
+| priority | Priority |
+| category | Category |
+| status | Status |
+| completed | Completed |
+| pending | Pending |
+| inProgress | In Progress |
+| filterByStatus | Filter by Status |
+| filterByPriority | Filter by Priority |
+| noTasks | No tasks found |
+| taskManagement | Task Management |
 
 **Section sources**
-- [todos.json:1-37](file://src/i18n/locales/en/todos.json#L1-L37)
 - [en.json:1-9](file://src/modules/todos/i18n/en.json#L1-L9)
-- [fr.json:1-9](file://src/modules/todos/i18n/fr.json#L1-L9)
-- [rw.json:1-9](file://src/modules/todos/i18n/rw.json#L1-L9)
-- [sw.json:1-9](file://src/modules/todos/i18n/sw.json#L1-L9)
+- [todos.json:1-37](file://src/i18n/locales/en/todos.json#L1-L37)
 
 ## Module Registration System
 
-The TODO module participates in the dynamic module registration system that enables flexible module loading and integration within the SchoolPilot framework, though it requires proper registration to be fully functional.
+The TODO module participates in the dynamic module registration system that enables flexible module loading and integration within the SchoolPilot framework. The module is properly structured and ready for registration.
 
 ```mermaid
 sequenceDiagram
@@ -434,9 +408,6 @@ class TODO {
 +string due_date
 +string created_at
 +string completed_at
-+string createdBy
-+string assignedTo
-+boolean isArchived
 }
 class Priority {
 <<enumeration>>
@@ -449,7 +420,6 @@ class Status {
 Pending
 InProgress
 Completed
-Archived
 }
 class FormData {
 +string title
@@ -504,24 +474,22 @@ J[PlusIcon]
 K[TrashIcon]
 L[PencilIcon]
 M[CalendarIcon]
-N[DragHandleIcon]
 end
 A --> I
 A --> J
 A --> K
 A --> L
 A --> M
-A --> N
 end
 subgraph "Layout Structure"
-O[Page Container] --> P[Header Section]
-O --> Q[Summary Cards]
-O --> R[Filter Controls]
-O --> S[Task List]
-O --> T[Modal Form]
-O --> U[Responsive Breakpoints]
+N[Page Container] --> O[Header Section]
+N --> P[Summary Cards]
+N --> Q[Filter Controls]
+N --> R[Task List]
+N --> S[Modal Form]
+N --> T[Responsive Breakpoints]
 end
-A --> O
+A --> N
 ```
 
 **Diagram sources**
@@ -581,11 +549,9 @@ The component maintains several key state variables for managing task data, user
 | editingTODO | TODO \| null | Tracks currently edited task | Deep cloning, validation feedback |
 | selectedStatus | string | Current status filter selection | Real-time filtering, instant updates |
 | selectedPriority | string | Current priority filter selection | Multi-criteria filtering |
-| selectedCategory | string | Current category filter selection | Advanced filtering options |
 | searchTerm | string | Current search term for task filtering | Debounced search, fuzzy matching |
 | formData | Partial~TODO~ | Form data for task creation/editing | Real-time validation, error handling |
 | mockTODOs | TODO[] | Array of task objects for display | Memoized filtering, performance optimization |
-| dragState | object | Tracks drag-and-drop operations | Touch support, gesture recognition |
 
 **Section sources**
 - [TODOPage.tsx:29-44](file://src/modules/todos/pages/TODOPage.tsx#L29-L44)

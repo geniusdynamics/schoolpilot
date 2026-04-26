@@ -4,7 +4,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { rbacService, SYSTEM_ROLES } from '@/core/rbacService';
 import { getEnabledModules } from '@/core/moduleLoader';
-import type { RbacRole } from '@/core/types';
 import { unifiedConfigManager, isDemo } from '@/config/unifiedConfig';
 // Removed problematic hook utilities import
 

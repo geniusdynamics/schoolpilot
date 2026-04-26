@@ -18,7 +18,6 @@ import Select from '../ui/Select';
 import Modal from '../ui/Modal';
 import Table from '../ui/Table';
 import { moduleRegistry } from '@/core/moduleRegistry';
-import type { RbacRole } from '@/core/types';
 
 // Types for User Permissions System
 export interface Permission {
