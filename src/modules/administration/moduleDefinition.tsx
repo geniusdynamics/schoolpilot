@@ -1,41 +1,32 @@
 // ABOUTME: Administration module definition
 // ABOUTME: Self-contained module definition for student and staff management
+// ABOUTME: Hub-and-spoke navigation: hub pages shown in both modes, standalone pages deprecated and fullwidth-only
 
 import React from 'react';
 import { ModuleDefinition } from '@/core/types';
 import {
   AcademicCapIcon,
-  UsersIcon,
-  UserGroupIcon,
-  UserCircleIcon,
-  UserIcon,
-  BuildingOffice2Icon,
-  IdentificationIcon,
-  ListBulletIcon,
-  BuildingLibraryIcon,
-  ClipboardDocumentListIcon,
-  CalendarDaysIcon,
-  EnvelopeIcon,
-  MegaphoneIcon,
-  PuzzlePieceIcon,
-  DocumentDuplicateIcon,
+  UsersIcon, 
+  UserGroupIcon, 
+  BuildingOffice2Icon, 
+  IdentificationIcon, 
+  ListBulletIcon,     
+  BuildingLibraryIcon, 
+  ClipboardDocumentListIcon, 
+  CalendarDaysIcon,   
+  EnvelopeIcon,       
+  MegaphoneIcon,      
+  PuzzlePieceIcon, 
+  DocumentDuplicateIcon, 
   ClockIcon,
-  DocumentAddIcon,
-  DocumentSearchIcon,
-  CheckBadgeIcon,
+  DocumentTextIcon,
+  CogIcon,
+  ShieldCheckIcon,
   ArrowUpTrayIcon,
   ClipboardDocumentCheckIcon,
-  ShieldExclamationIcon,
-  DocumentTextIcon,
-  UserPlusIcon,
-  StarIcon,
-  PlusIcon,
-  ChartBarIcon,
-  BellIcon,
-  ArrowPathIcon,
-  TicketIcon,
-  ChatBubbleLeftRightIcon,
-  CurrencyDollarIcon,
+  DocumentAddIcon,
+  DocumentSearchIcon,
+  UserCircleIcon,
 } from '@/components/ui/icons';
 
 export const administrationModule: ModuleDefinition = {
@@ -47,60 +38,46 @@ export const administrationModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:administration.dashboard', path: '/administration/dashboard', icon: AcademicCapIcon, page: 'AdministrationDashboardPage' },
-    { name: 'navigation:administration.applications', path: '/administration/applications', icon: DocumentAddIcon, page: 'ApplicationsPage' },
-    { name: 'navigation:administration.preNAsMarks', path: '/administration/prenas-marks', icon: DocumentSearchIcon, page: 'PreNAsMarksPage' },
-    { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentsListPage' },
-    { name: 'navigation:administration.studentImport', path: '/administration/student-import', icon: ArrowUpTrayIcon, page: 'StudentDataImportPage' },
-    { name: 'navigation:administration.studentClearance', path: '/administration/student-clearance', icon: ClipboardDocumentCheckIcon, page: 'StudentClearancePage' },
-    { name: 'navigation:administration.disciplinaryCases', path: '/administration/disciplinary-cases', icon: ShieldExclamationIcon, page: 'DisciplinaryCasesPage' },
-    { name: 'navigation:administration.certificates', path: '/administration/certificates', icon: DocumentTextIcon, page: 'CertificatesManagementPage' },
-    { name: 'navigation:administration.visitors', path: '/administration/visitors', icon: UserPlusIcon, page: 'VisitorsManagementPage' },
-    { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffListPage' },
-    { name: 'navigation:administration.partners', path: '/administration/partners', icon: UserCircleIcon, page: 'PartnersPage' },
-    { name: 'navigation:administration.departments', path: '/administration/departments', icon: BuildingOffice2Icon, page: 'DepartmentsPage' },
-    { name: 'navigation:administration.designations', path: '/administration/designations', icon: IdentificationIcon, page: 'DesignationsPage' },
-    { name: 'navigation:administration.studentCategories', path: '/administration/student-categories', icon: ListBulletIcon, page: 'StudentCategoriesPage' },
-    { name: 'navigation:administration.dormitories', path: '/administration/dormitories', icon: BuildingLibraryIcon, page: 'DormitoriesPage' },
-    { name: 'navigation:administration.clubs', path: '/administration/clubs', icon: UserGroupIcon, page: 'ClubsPage' },
-    { name: 'navigation:administration.customers', path: '/administration/customers', icon: UsersIcon, page: 'CustomersPage' },
-    { name: 'navigation:administration.classes', path: '/administration/classes', icon: UserGroupIcon, page: 'ClassesPage' },
-    { name: 'navigation:administration.studentHealth', path: '/administration/student-health', icon: ClipboardDocumentListIcon, page: 'StudentHealthRecordsPage' },
-    { name: 'navigation:administration.studentAttendance', path: '/administration/student-attendance', icon: CalendarDaysIcon, page: 'StudentAttendancePage' },
-    { name: 'navigation:administration.commTemplates', path: '/administration/communication-templates', icon: EnvelopeIcon, page: 'CommunicationTemplatesPage' },
-    { name: 'navigation:administration.messageCampaigns', path: '/administration/message-campaigns', icon: MegaphoneIcon, page: 'MessageCampaignsPage' },
-    { name: 'navigation:administration.newsletters', path: '/administration/newsletters', icon: DocumentTextIcon, page: 'NewslettersPage' },
-    { name: 'navigation:administration.academicStructures', path: '/administration/academic-structures', icon: PuzzlePieceIcon, page: 'AcademicStructurePage' },
-    { name: 'navigation:administration.academicYears', path: '/administration/academic-years', icon: CalendarDaysIcon, page: 'AcademicYearsPage' },
-    { name: 'navigation:administration.academicPeriodDefinitions', path: '/administration/academic-period-definitions', icon: DocumentDuplicateIcon, page: 'AcademicPeriodDefinitionsPage' },
-    { name: 'navigation:administration.schoolPeriods', path: '/administration/school-periods', icon: ClockIcon, page: 'SchoolPeriodsPage' },
-    { name: 'navigation:administration.attendanceReports', path: '/administration/attendance-reports', icon: DocumentTextIcon, page: 'AttendanceReportsPage' },
-    { name: 'navigation:administration.autoSMSSettings', path: '/administration/auto-sms-settings', icon: BellIcon, page: 'AutoSMSSettingsPage' },
-    { name: 'navigation:administration.birthCertificate', path: '/administration/birth-certificate', icon: DocumentTextIcon, page: 'BirthCertificatePage' },
-    { name: 'navigation:administration.bulkAssignRollNumbers', path: '/administration/bulk-assign-roll-numbers', icon: ArrowPathIcon, page: 'BulkAssignRollNumbersPage' },
-    { name: 'navigation:administration.bulkStaffUpdate', path: '/administration/bulk-staff-update', icon: ArrowPathIcon, page: 'BulkStaffUpdatePage' },
-    { name: 'navigation:administration.bulkStudentUpdate', path: '/administration/bulk-student-update', icon: UserIcon, page: 'BulkStudentUpdatePage' },
-    { name: 'navigation:administration.characterCertificate', path: '/administration/character-certificate', icon: DocumentTextIcon, page: 'CharacterCertificatePage' },
-    { name: 'navigation:administration.dynamicAttendance', path: '/administration/dynamic-attendance', icon: ClockIcon, page: 'DynamicAttendancePage' },
-    { name: 'navigation:administration.gatePass', path: '/administration/gate-pass', icon: TicketIcon, page: 'GatePassPage' },
-    { name: 'navigation:administration.manualAttendance', path: '/administration/manual-attendance', icon: CalendarDaysIcon, page: 'ManualAttendancePage' },
-    { name: 'navigation:administration.smsReports', path: '/administration/sms-reports', icon: ChatBubbleLeftRightIcon, page: 'SMSReportsPage' },
-    { name: 'navigation:administration.scholarshipTracking', path: '/administration/scholarship-tracking', icon: CurrencyDollarIcon, page: 'ScholarshipTrackingPage' },
-    { name: 'navigation:administration.staffAttendance', path: '/administration/staff-attendance', icon: CalendarDaysIcon, page: 'StaffAttendancePage' },
-    { name: 'navigation:administration.staffIDCards', path: '/administration/staff-id-cards', icon: IdentificationIcon, page: 'StaffIDCardsPage' },
-    { name: 'navigation:administration.staffWallet', path: '/administration/staff-wallet', icon: CurrencyDollarIcon, page: 'StaffWalletPage' },
-    { name: 'navigation:administration.studentBioData', path: '/administration/student-bio-data', icon: UserIcon, page: 'StudentBioDataPage' },
-    { name: 'navigation:administration.studentIDCards', path: '/administration/student-id-cards', icon: IdentificationIcon, page: 'StudentIDCardsPage' },
-    { name: 'navigation:administration.transferCertificate', path: '/administration/transfer-certificate', icon: DocumentTextIcon, page: 'TransferCertificatePage' },
-    // Houses sub-feature (merged from houses module)
-    { name: 'navigation:houses.title', path: '/administration/houses', icon: StarIcon, page: 'houses/HousesPage', feature: 'house-management' },
-    { name: 'navigation:houses.categories', path: '/administration/houses/categories', icon: ListBulletIcon, page: 'houses/CategoriesPage', feature: 'house-management' },
-    { name: 'navigation:houses.award', path: '/administration/houses/award', icon: PlusIcon, page: 'houses/AwardPointsPage', feature: 'house-management' },
-    { name: 'navigation:houses.leaderboard', path: '/administration/houses/leaderboard', icon: ChartBarIcon, page: 'houses/LeaderboardPage', feature: 'house-management' },
-    { name: 'navigation:houses.studentPoints', path: '/administration/houses/student-points', icon: UserGroupIcon, page: 'houses/StudentPointsPage', feature: 'house-management' },
-    { name: 'navigation:houses.classStandings', path: '/administration/houses/class-standings', icon: UsersIcon, page: 'houses/ClassStandingsPage', feature: 'house-management' },
+    // Hub pages (visible in BOTH standard and fullwidth modes)
+    { name: 'navigation:administration.dashboard', path: '/administration/dashboard', icon: AcademicCapIcon, page: 'AdministrationDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentsListPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffListPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.configuration', path: '/administration/configuration', icon: CogIcon, page: 'SchoolConfigurationPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.academicCalendar', path: '/administration/academic-calendar', icon: CalendarDaysIcon, page: 'AcademicCalendarPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.certificates', path: '/administration/certificates', icon: DocumentTextIcon, page: 'CertificatesPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.communication', path: '/administration/communication', icon: EnvelopeIcon, page: 'CommunicationHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.security', path: '/administration/security', icon: ShieldCheckIcon, page: 'SecurityHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.attendance', path: '/administration/attendance', icon: CalendarDaysIcon, page: 'StudentAttendanceHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.staffOperations', path: '/administration/staff/operations', icon: UserGroupIcon, page: 'StaffOperationsPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.bulkOperations', path: '/administration/students/bulk-ops', icon: ArrowUpTrayIcon, page: 'StudentBulkOperationsPage', showInModes: ['standard', 'fullwidth'] },
+
+    // Deprecated standalone pages (fullwidth mode only, redirect to hub+tab)
+    { name: 'navigation:administration.studentImport', path: '/administration/student-import', icon: ArrowUpTrayIcon, page: 'StudentDataImportPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/students/bulk-ops?tab=data-import' },
+    { name: 'navigation:administration.studentClearance', path: '/administration/student-clearance', icon: ClipboardDocumentCheckIcon, page: 'StudentClearancePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/students?tab=clearance' },
+    // Standalone pages (visible in both modes - no hub consolidation yet)
+    { name: 'navigation:administration.applications', path: '/administration/applications', icon: DocumentAddIcon, page: 'ApplicationsPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.preNAsMarks', path: '/administration/prenas-marks', icon: DocumentSearchIcon, page: 'PreNAsMarksPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.disciplinaryCases', path: '/administration/disciplinary-cases', icon: ShieldCheckIcon, page: 'DisciplinaryCasesPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.visitors', path: '/administration/visitors', icon: ShieldCheckIcon, page: 'VisitorsManagementPage', showInModes: ['standard', 'fullwidth'] },
+    // Deprecated pages (fullwidth only, redirect to hub+tab)
+    { name: 'navigation:administration.partners', path: '/administration/partners', icon: UserCircleIcon, page: 'PartnersPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/configuration?tab=partners' },
+    { name: 'navigation:administration.departments', path: '/administration/departments', icon: BuildingOffice2Icon, page: 'DepartmentsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/configuration?tab=departments' },
+    { name: 'navigation:administration.designations', path: '/administration/designations', icon: IdentificationIcon, page: 'DesignationsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/configuration?tab=designations' },
+    { name: 'navigation:administration.studentCategories', path: '/administration/student-categories', icon: ListBulletIcon, page: 'StudentCategoriesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/configuration?tab=categories' },
+    { name: 'navigation:administration.dormitories', path: '/administration/dormitories', icon: BuildingLibraryIcon, page: 'DormitoriesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/configuration?tab=dormitories' },
+    { name: 'navigation:administration.clubs', path: '/administration/clubs', icon: UserGroupIcon, page: 'ClubsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/configuration?tab=clubs' },
+    { name: 'navigation:administration.customers', path: '/administration/customers', icon: UsersIcon, page: 'CustomersPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/configuration?tab=partners' },
+    { name: 'navigation:administration.classes', path: '/administration/classes', icon: UserGroupIcon, page: 'ClassesPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.studentHealth', path: '/administration/student-health', icon: ClipboardDocumentListIcon, page: 'StudentHealthRecordsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/students?tab=health' },
+    { name: 'navigation:administration.studentAttendance', path: '/administration/student-attendance', icon: CalendarDaysIcon, page: 'StudentAttendancePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/attendance?tab=student-view' },
+    { name: 'navigation:administration.commTemplates', path: '/administration/communication-templates', icon: EnvelopeIcon, page: 'CommunicationTemplatesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/communication?tab=templates' },
+    { name: 'navigation:administration.messageCampaigns', path: '/administration/message-campaigns', icon: MegaphoneIcon, page: 'MessageCampaignsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/communication?tab=campaigns' },
+    { name: 'navigation:administration.academicStructures', path: '/administration/academic-structures', icon: PuzzlePieceIcon, page: 'AcademicStructurePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/academic-calendar?tab=structure' },
+    { name: 'navigation:administration.academicYears', path: '/administration/academic-years', icon: CalendarDaysIcon, page: 'AcademicYearsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/academic-calendar?tab=academic-years' },
+    { name: 'navigation:administration.academicPeriodDefinitions', path: '/administration/academic-period-definitions', icon: DocumentDuplicateIcon, page: 'AcademicPeriodDefinitionsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/academic-calendar?tab=period-definitions' },
+    { name: 'navigation:administration.schoolPeriods', path: '/administration/school-periods', icon: ClockIcon, page: 'SchoolPeriodsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/academic-calendar?tab=school-periods' },
   ],
-  features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance', 'admissions-management', 'house-management', 'point-transactions', 'merits', 'demerits', 'leaderboard'],
+  features: ['student-management', 'staff-management', 'academic-structure', 'communication', 'attendance', 'admissions-management'],
   dependencies: [],
   optionalDependencies: [
     {
@@ -115,8 +92,18 @@ export const administrationModule: ModuleDefinition = {
     }
   ],
   routes: [
+    // Hub page routes
+    { path: '/administration/configuration', page: 'SchoolConfigurationPage' },
+    { path: '/administration/academic-calendar', page: 'AcademicCalendarPage' },
+    { path: '/administration/communication', page: 'CommunicationHubPage' },
+    { path: '/administration/security', page: 'SecurityHubPage' },
+    { path: '/administration/attendance', page: 'StudentAttendanceHubPage' },
+    { path: '/administration/staff/operations', page: 'StaffOperationsPage' },
+    { path: '/administration/students/bulk-ops', page: 'StudentBulkOperationsPage' },
+    // Existing routes
     { path: '/administration/applications', page: 'ApplicationsPage' },
     { path: '/administration/prenas-marks', page: 'PreNAsMarksPage' },
+    { path: '/administration/classes', page: 'ClassesPage' },
     { path: '/administration/students', page: 'StudentsListPage' },
     { path: '/administration/students/add', page: 'AddStudentPage' },
     { path: '/administration/students/:studentId', page: 'StudentDetailPage' },
@@ -126,7 +113,7 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/disciplinary-cases', page: 'DisciplinaryCasesPage' },
     { path: '/administration/certificates', page: 'CertificatesManagementPage' },
     { path: '/administration/visitors', page: 'VisitorsManagementPage' },
-    { path: '/administration/staff/:staffId', page: 'StaffDetailPage' }
+    { path: '/administration/student-health', page: 'StudentHealthRecordsPage' }
   ],
   settings: {
     category: 'administration',
@@ -155,51 +142,6 @@ export const administrationModule: ModuleDefinition = {
         key: 'admissionsRequireApproval',
         type: 'boolean',
         defaultValue: true
-      },
-      {
-        key: 'enableHouseSystem',
-        type: 'boolean',
-        defaultValue: true
-      },
-      {
-        key: 'requireApprovalForMerits',
-        type: 'boolean',
-        defaultValue: false
-      },
-      {
-        key: 'requireApprovalForDemerits',
-        type: 'boolean',
-        defaultValue: true
-      },
-      {
-        key: 'maxDailyAwards',
-        type: 'number',
-        defaultValue: 5
-      },
-      {
-        key: 'enablePickupManagement',
-        type: 'boolean',
-        defaultValue: true
-      },
-      {
-        key: 'enableQrVerification',
-        type: 'boolean',
-        defaultValue: true
-      },
-      {
-        key: 'enableParentNotifications',
-        type: 'boolean',
-        defaultValue: true
-      },
-      {
-        key: 'pickupCodeExpiryMinutes',
-        type: 'number',
-        defaultValue: 30
-      },
-      {
-        key: 'maxAuthorizedPickupPersons',
-        type: 'number',
-        defaultValue: 5
       }
     ]
   }

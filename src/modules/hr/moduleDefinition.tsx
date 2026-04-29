@@ -1,5 +1,5 @@
 // ABOUTME: HR module definition
-// ABOUTME: Self-contained module definition for human resources management
+// ABOUTME: Self-contained module definition for human resources management with hub-and-spoke navigation
 
 import React from 'react';
 import { ModuleDefinition } from '@/core/types';
@@ -22,12 +22,18 @@ export const hrModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
+    // Dashboard (always visible)
     { name: 'navigation:hr.dashboard', path: '/hr/dashboard', icon: UserGroupIcon, page: 'HRDashboardPage' },
-    { name: 'navigation:hr.payrollItemTypes', path: '/hr/payroll-item-types', icon: DocumentTextIcon, page: 'PayrollItemTypesPage' },
-    { name: 'navigation:hr.payrollPeriods', path: '/hr/payroll-periods', icon: CalendarDaysIcon, page: 'PayrollPeriodsPage' },
-    { name: 'navigation:hr.payslips', path: '/hr/payslips', icon: ClipboardDocumentListIcon, page: 'PayslipsPage' },
-    { name: 'navigation:hr.staffSalarySettings', path: '/hr/staff-salary-settings', icon: CurrencyDollarIcon, page: 'StaffSalarySettingsPage' },
-    { name: 'navigation:hr.staffBioData', path: '/hr/staff-bio-data', icon: UserIcon, page: 'StaffBioDataPage' },
+
+    // Hub pages (standard mode)
+    { name: 'navigation:hr.payroll', path: '/hr/payroll', icon: CurrencyDollarIcon, page: 'PayrollHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:hr.staffBioData', path: '/hr/staff-bio-data', icon: UserIcon, page: 'StaffBioDataPage', showInModes: ['standard', 'fullwidth'] },
+
+    // Deprecated standalone pages (fullwidth mode only)
+    { name: 'navigation:hr.payrollItemTypes', path: '/hr/payroll-item-types', icon: DocumentTextIcon, page: 'PayrollItemTypesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/hr/payroll?tab=item-types' },
+    { name: 'navigation:hr.payrollPeriods', path: '/hr/payroll-periods', icon: CalendarDaysIcon, page: 'PayrollPeriodsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/hr/payroll?tab=periods' },
+    { name: 'navigation:hr.payslips', path: '/hr/payslips', icon: ClipboardDocumentListIcon, page: 'PayslipsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/hr/payroll?tab=payslips' },
+    { name: 'navigation:hr.staffSalarySettings', path: '/hr/staff-salary-settings', icon: CurrencyDollarIcon, page: 'StaffSalarySettingsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/hr/payroll?tab=salary-settings' },
   ],
   features: ['payroll-management', 'staff-compensation', 'hr-records'],
   dependencies: [
@@ -52,6 +58,15 @@ export const hrModule: ModuleDefinition = {
       }
     ]
   },
+  routes: [
+    { path: '/hr/dashboard', page: 'HRDashboardPage' },
+    { path: '/hr/payroll', page: 'PayrollHubPage' },
+    { path: '/hr/staff-bio-data', page: 'StaffBioDataPage' },
+    { path: '/hr/payroll-item-types', page: 'PayrollItemTypesPage' },
+    { path: '/hr/payroll-periods', page: 'PayrollPeriodsPage' },
+    { path: '/hr/payslips', page: 'PayslipsPage' },
+    { path: '/hr/staff-salary-settings', page: 'StaffSalarySettingsPage' },
+  ],
   rbacPermissions: hrPermissions,
   defaultRoles: hrDefaultRoles,
 };

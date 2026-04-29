@@ -25,41 +25,60 @@ export const admissionsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { 
-      name: 'navigation:admissions.dashboard', 
-      path: '/admissions/dashboard', 
-      icon: ChartBarIcon, 
-      page: 'AdmissionsDashboardPage' 
+    {
+      name: 'navigation:admissions.dashboard',
+      path: '/admissions/dashboard',
+      icon: ChartBarIcon,
+      page: 'AdmissionsDashboardPage',
+      showInModes: ['standard', 'fullwidth'],
     },
-    { 
-      name: 'navigation:admissions.newApplication', 
-      path: '/admissions/new-application', 
-      icon: DocumentAddIcon, 
-      page: 'ApplicationFormPage' 
+    {
+      name: 'navigation:admissions.newApplication',
+      path: '/admissions/new-application',
+      icon: DocumentAddIcon,
+      page: 'ApplicationFormPage',
+      showInModes: ['standard', 'fullwidth'],
     },
-    { 
-      name: 'navigation:admissions.applications', 
-      path: '/admissions/applications', 
-      icon: ClipboardDocumentListIcon, 
-      page: 'ApplicationsListPage' 
+    {
+      name: 'navigation:admissions.applicationsHub',
+      path: '/admissions/applications-hub',
+      icon: ClipboardDocumentListIcon,
+      page: 'ApplicationsHubPage',
+      showInModes: ['standard', 'fullwidth'],
     },
-    { 
-      name: 'navigation:admissions.reviewQueue', 
-      path: '/admissions/review-queue', 
-      icon: EyeIcon, 
-      page: 'ApplicationReviewPage' 
+    {
+      name: 'navigation:admissions.applications',
+      path: '/admissions/applications',
+      icon: ClipboardDocumentListIcon,
+      page: 'ApplicationsListPage',
+      deprecated: true,
+      showInModes: ['fullwidth'],
+      redirectTo: '/admissions/applications-hub?tab=applications',
+    },
+    {
+      name: 'navigation:admissions.reviewQueue',
+      path: '/admissions/review-queue',
+      icon: EyeIcon,
+      page: 'ApplicationReviewPage',
+      deprecated: true,
+      showInModes: ['fullwidth'],
+      redirectTo: '/admissions/applications-hub?tab=review-queue',
     },
     {
       name: 'navigation:admissions.apply',
       path: '/admissions/apply',
       icon: DocumentAddIcon,
       page: 'PublicApplicationPage',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
       name: 'navigation:admissions.track',
       path: '/admissions/track',
       icon: DocumentTextIcon,
       page: 'ApplicationTrackingPage',
+      deprecated: true,
+      showInModes: ['fullwidth'],
+      redirectTo: '/admissions/applications-hub?tab=tracking',
     },
   ],
   features: [
@@ -85,6 +104,7 @@ export const admissionsModule: ModuleDefinition = {
   routes: [
     { path: '/admissions/dashboard', page: 'AdmissionsDashboardPage' },
     { path: '/admissions/new-application', page: 'ApplicationFormPage' },
+    { path: '/admissions/applications-hub', page: 'ApplicationsHubPage' },
     { path: '/admissions/applications', page: 'ApplicationsListPage' },
     { path: '/admissions/applications/:applicationId', page: 'ApplicationDetailPage' },
     { path: '/admissions/review-queue', page: 'ApplicationReviewPage' },
@@ -92,6 +112,7 @@ export const admissionsModule: ModuleDefinition = {
     { path: '/admissions/apply', page: 'PublicApplicationPage' },
     { path: '/admissions/track', page: 'ApplicationTrackingPage' },
     { path: '/admissions/track/:applicationId', page: 'ApplicationTrackingPage' },
+    { path: '/admissions/form-builder', page: 'FormBuilderPage' },
   ],
   settings: {
     category: 'admissions',
