@@ -4,18 +4,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRBAC } from '@/hooks/useRBAC';
-import { useAppData } from '@/hooks/useAppData';
-import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Table from '@/components/ui/Table';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import { FormSection, FormField, FormActions } from '@/components/ui/forms';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Spinner from '@/components/ui/Spinner';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useRBAC } from '../../../hooks/useRBAC';
+import { useAppData } from '../../../hooks/useAppData';
+import { useUnifiedConfig } from '../../../hooks/useUnifiedConfig';
+import Card from '../../../components/ui/Card';
+import Button from '../../../components/ui/Button';
+import Table from '../../../components/ui/Table';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import { FormSection, FormField, FormActions } from '../../../components/ui/forms';
+import Input from '../../../components/ui/Input';
+import Select from '../../../components/ui/Select';
+import Spinner from '../../../components/ui/Spinner';
 import { 
   CogIcon, 
   DatabaseIcon, 
@@ -26,10 +26,10 @@ import {
   DeleteIcon,
   ListBulletIcon,
   ArrowLeftOnRectangleIcon
-} from '@/components/ui/icons';
+} from '../../../components/ui/icons';
 import FeatureSettingsPage from './FeatureSettingsPage';
-import { User, Role, Workflow, WorkflowState } from '@/types';
-const UnifiedSettingsPage: React.FC = () => {
+import { User, Role, Workflow, WorkflowState } from '../../../types';
+export const UnifiedSettingsContent: React.FC = () => {
   const navigate = useNavigate();
   const { config: unifiedConfig, isLoading: isConfigLoading } = useUnifiedConfig();
   const [activeTab, setActiveTab] = useState('system');
@@ -979,6 +979,10 @@ type WorkflowFormData = {
 type WorkflowStateFormData = {
   name?: string;
   sequence_order?: number;
+};
+
+const UnifiedSettingsPage: React.FC = () => {
+  return <UnifiedSettingsContent />;
 };
 
 export default UnifiedSettingsPage;

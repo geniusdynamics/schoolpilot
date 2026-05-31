@@ -9,7 +9,7 @@ import { PlusIcon, EditIcon, CopyIcon, EyeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import EducationSystemConfigPage from './EducationSystemConfigPage';
 
-const EducationSystemsPage: React.FC = () => {
+export const EducationSystemsPageContent: React.FC = () => {
   const { 
     educationSystemConfigurations = [], 
     loading = false, 
@@ -137,6 +137,10 @@ const EducationSystemsPage: React.FC = () => {
     </div>
   );
 };
+const EducationSystemsPage: React.FC = () => (
+  <div className="space-y-6">
+    <EducationSystemsPageContent />
+  </div>
+);
 
 export default EducationSystemsPage;
-

@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 type BankFormData = Omit<Partial<Bank>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
 
-const BanksPage: React.FC = () => {
+export const BanksPageContent: React.FC = () => {
   const { 
     banks, 
     chartOfAccounts,
@@ -228,5 +228,10 @@ const BanksPage: React.FC = () => {
     </div>
   );
 };
+const BanksPage: React.FC = () => (
+  <div className="space-y-6">
+    <BanksPageContent />
+  </div>
+);
 
 export default BanksPage;

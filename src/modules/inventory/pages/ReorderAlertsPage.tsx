@@ -32,7 +32,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 /**
  * Reorder Alerts Page - Main dashboard for automated reorder management
  */
-export const ReorderAlertsPage: React.FC = () => {
+export const ReorderAlertsContent: React.FC = () => {
   const { t } = useTranslation('inventory');
   const [activeTab, setActiveTab] = useState('alerts');
   
@@ -268,6 +268,10 @@ export const ReorderAlertsPage: React.FC = () => {
       </div>
     </PageContainer>
   );
+};
+
+const ReorderAlertsPage: React.FC = () => {
+  return <ReorderAlertsContent />;
 };
 
 export default ReorderAlertsPage;

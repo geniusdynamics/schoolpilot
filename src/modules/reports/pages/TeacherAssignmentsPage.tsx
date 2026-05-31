@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import { Staff, AcademicYear, TeacherSubjectAssignment } from '@/types';
 import { useTranslation } from 'react-i18next';
 
-const TeacherAssignmentsPage: React.FC = () => {
+export const TeacherAssignmentsPageContent: React.FC = () => {
   const { staff, academicYears, teacherSubjectAssignments, loading } = useAppData();
   const { t } = useTranslation('reports');
 
@@ -94,5 +94,10 @@ const TeacherAssignmentsPage: React.FC = () => {
     </div>
   );
 };
+const TeacherAssignmentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <TeacherAssignmentsPageContent />
+  </div>
+);
 
 export default TeacherAssignmentsPage;

@@ -41,7 +41,7 @@ interface AttendanceRow {
   recordedByName: string;
 }
 
-const PortalAttendancePage: React.FC = () => {
+export const PortalAttendanceContent: React.FC = () => {
   const { t } = useTranslation('portal');
   const {
     attendanceRecords,
@@ -277,6 +277,10 @@ const PortalAttendancePage: React.FC = () => {
       </Card>
     </div>
   );
+};
+
+const PortalAttendancePage: React.FC = () => {
+  return <PortalAttendanceContent />;
 };
 
 export default PortalAttendancePage;

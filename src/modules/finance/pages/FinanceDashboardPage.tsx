@@ -28,7 +28,7 @@ import ModuleDashboardShell, {
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
 
-const FinanceDashboardPage: React.FC = () => {
+export const FinanceDashboardPageContent: React.FC = () => {
   const {
     loading,
     feeTemplates,
@@ -393,5 +393,10 @@ const FinanceDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const FinanceDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <FinanceDashboardPageContent />
+  </div>
+);
 
 export default FinanceDashboardPage;

@@ -17,7 +17,7 @@ import Spinner from '@/components/ui/Spinner';
 
 type AssignmentFormData = Omit<Partial<TeacherSubjectAssignment>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name' | 'teacher_name'>;
 
-const TeacherSubjectAssignmentPage: React.FC = () => {
+export const TeacherSubjectAssignmentPageContent: React.FC = () => {
   const { t } = useTranslation();
   const { 
     teacherSubjectAssignments, 
@@ -180,5 +180,11 @@ const TeacherSubjectAssignmentPage: React.FC = () => {
     </div>
   );
 };
+
+const TeacherSubjectAssignmentPage: React.FC = () => (
+  <div className="space-y-6">
+    <TeacherSubjectAssignmentPageContent />
+  </div>
+);
 
 export default TeacherSubjectAssignmentPage;

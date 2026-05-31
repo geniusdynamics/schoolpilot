@@ -14,7 +14,7 @@ import UserPermissionsPanel from '@/components/settings/UserPermissionsPanel';
 import Spinner from '@/components/ui/Spinner';
 import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 
-const SettingsPage: React.FC = () => {
+export const SettingsContent: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const { 
     users, 
@@ -215,6 +215,10 @@ const SettingsPage: React.FC = () => {
       </Card>
     </ModuleDashboardShell>
   );
+};
+
+const SettingsPage: React.FC = () => {
+  return <SettingsContent />;
 };
 
 export default SettingsPage;

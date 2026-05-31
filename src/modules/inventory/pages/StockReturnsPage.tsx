@@ -71,7 +71,7 @@ const RETURN_REASONS = [
   'Other'
 ];
 
-const StockReturnsPage: React.FC = () => {
+export const StockReturnsPageContent: React.FC = () => {
   const [returns, setReturns] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingReturn, setEditingReturn] = useState<StockReturnForm | null>(null);
@@ -629,5 +629,10 @@ const StockReturnsPage: React.FC = () => {
     </Box>
   );
 };
+const StockReturnsPage: React.FC = () => (
+  <div className="space-y-6">
+    <StockReturnsPageContent />
+  </div>
+);
 
 export default StockReturnsPage;

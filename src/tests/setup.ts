@@ -48,6 +48,47 @@ if (typeof global !== 'undefined') {
   global.matchMedia = window.matchMedia;
 }
 
+// Mock localStorage for tests
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => { store[key] = value; }),
+    removeItem: vi.fn((key: string) => { delete store[key]; }),
+    clear: vi.fn(() => { store = {}; }),
+    get length() { return Object.keys(store).length; },
+    key: vi.fn((index: number) => Object.keys(store)[index] ?? null),
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+  configurable: true,
+});
+
+// Mock indexedDB for tests
+const indexedDBMock = {
+  open: vi.fn().mockReturnValue({
+    result: null,
+    error: null,
+    onerror: null,
+    onsuccess: null,
+    onupgradeneeded: null,
+  }),
+  deleteDatabase: vi.fn(),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  cmp: vi.fn((_a: unknown, _b: unknown) => 0),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  databases: vi.fn(async () => []),
+};
+
+Object.defineProperty(window, 'indexedDB', {
+  value: indexedDBMock,
+  writable: true,
+  configurable: true,
+});
+
 // Mock console methods to reduce noise in tests
 beforeAll(() => {
   vi.spyOn(console, 'log').mockImplementation(() => {});

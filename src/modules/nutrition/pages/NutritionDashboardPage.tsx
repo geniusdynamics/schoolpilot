@@ -26,7 +26,7 @@ import ModuleDashboardShell, {
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
 
-const NutritionDashboardPage: React.FC = () => {
+export const NutritionDashboardPageContent: React.FC = () => {
   const {
     mealPlans,
     studentMealPlans,
@@ -368,5 +368,10 @@ const NutritionDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const NutritionDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <NutritionDashboardPageContent />
+  </div>
+);
 
 export default NutritionDashboardPage;

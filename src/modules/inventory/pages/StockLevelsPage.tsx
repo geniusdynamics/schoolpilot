@@ -8,7 +8,7 @@ import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
-const StockLevelsPage: React.FC = () => {
+export const StockLevelsPageContent: React.FC = () => {
   const { 
     stockLevels, 
     warehouses, 
@@ -102,5 +102,10 @@ const StockLevelsPage: React.FC = () => {
     </div>
   );
 };
+const StockLevelsPage: React.FC = () => (
+  <div className="space-y-6">
+    <StockLevelsPageContent />
+  </div>
+);
 
 export default StockLevelsPage;

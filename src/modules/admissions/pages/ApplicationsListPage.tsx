@@ -39,7 +39,7 @@ const statusColors: Record<ApplicationStatus, string> = {
   [ApplicationStatus.ENROLLED]: 'bg-teal-100 text-teal-800',
 };
 
-const ApplicationsListPage: React.FC = () => {
+export const ApplicationsListPageContent: React.FC = () => {
   const navigate = useNavigate();
   const { applications, loading, deleteApplication } = useAdmissionsData();
   const { showToast } = useToast();
@@ -79,10 +79,6 @@ const ApplicationsListPage: React.FC = () => {
 
   const handleView = (application: Application) => {
     navigate(`/admissions/applications/${application.id}`);
-  };
-
-  const handleNewApplication = () => {
-    navigate('/admissions/new-application');
   };
 
   const handleEdit = (application: Application) => {
@@ -256,7 +252,8 @@ const ApplicationsListPage: React.FC = () => {
               Export
             </Button>
             <Button
-              onClick={handleNewApplication}
+              as="a"
+              href="/admissions/new-application"
               leftIcon={<PlusIcon className="w-5 h-5" />}
             >
               New Application
@@ -330,7 +327,7 @@ const ApplicationsListPage: React.FC = () => {
                 Get started by creating a new application.
               </p>
               <div className="mt-6">
-                <Button onClick={handleNewApplication}>
+                <Button as="a" href="/admissions/new-application">
                   New Application
                 </Button>
               </div>
@@ -369,5 +366,10 @@ const ApplicationsListPage: React.FC = () => {
     </div>
   );
 };
+const ApplicationsListPage: React.FC = () => (
+  <div className="space-y-6">
+    <ApplicationsListPageContent />
+  </div>
+);
 
 export default ApplicationsListPage;

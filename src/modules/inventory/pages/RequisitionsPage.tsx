@@ -3,7 +3,6 @@ import { Requisition, RequisitionItem, RequisitionStatus, Staff, ItemInv } from 
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
@@ -23,7 +22,7 @@ type RequisitionItemFormData = Omit<Partial<RequisitionItem>, 'id' | 'requisitio
     unit_price?: number; // Made optional for form, will be derived if not set
 };
 
-const RequisitionsPage: React.FC = () => {
+export const RequisitionsPageContent: React.FC = () => {
   const { 
     requisitions, 
     staff,
@@ -489,5 +488,10 @@ const RequisitionsPage: React.FC = () => {
     </div>
   );
 };
+const RequisitionsPage: React.FC = () => (
+  <div className="space-y-6">
+    <RequisitionsPageContent />
+  </div>
+);
 
 export default RequisitionsPage;

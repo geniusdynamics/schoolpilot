@@ -105,6 +105,8 @@ export interface NavItem {
   isActive?: boolean; // Whether this module/feature is active
   page?: string; // Optional explicit page component name for dynamic import
   deprecated?: boolean; // Mark item as deprecated; UI should hide or redirect
+  redirectTo?: string; // Destination for deprecated routes
+  showInModes?: ('standard' | 'fullwidth')[]; // Which layout modes show this item
 }
 
 export interface LanguageOption {

@@ -15,7 +15,7 @@ import type { ExamToken } from '../data/types';
 
 type ExamTokenFormData = Omit<Partial<ExamToken>, 'id' | 'generated_at' | 'used_at'>;
 
-const ExamTokensPage: React.FC = () => {
+export const ExamTokensPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { examSessions, teachers, subjects, classes, loading } = useAppData();
 
@@ -324,5 +324,11 @@ const ExamTokensPage: React.FC = () => {
     </div>
   );
 };
+
+const ExamTokensPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamTokensPageContent />
+  </div>
+);
 
 export default ExamTokensPage;

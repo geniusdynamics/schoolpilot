@@ -234,7 +234,7 @@ describe('TabPerformanceManager', () => {
       expect(metrics.peakMemoryUsage).toBeGreaterThan(0);
     });
 
-    it('should clean up inactive tabs after timeout', (done) => {
+    it('should clean up inactive tabs after timeout', async () => {
       const config = performanceManager.getConfig();
       config.tabMemory.inactiveTabTimeout = 100; // 100ms for testing
       performanceManager.updateConfig(config);
@@ -243,13 +243,12 @@ describe('TabPerformanceManager', () => {
 
       performanceManager.scheduleTabCleanup('tab-1');
 
-      setTimeout(() => {
+      await vi.waitFor(() => {
         expect(consoleSpy).toHaveBeenCalledWith(
           expect.stringContaining('Cleaned up inactive tab: tab-1')
         );
-        consoleSpy.mockRestore();
-        done();
-      }, 150);
+      }, { timeout: 500, interval: 50 });
+      consoleSpy.mockRestore();
     });
 
     it('should cancel cleanup when tab becomes active', () => {

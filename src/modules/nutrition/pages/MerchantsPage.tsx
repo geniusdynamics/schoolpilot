@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 type MerchantFormData = Omit<Partial<Merchant>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
 
-const MerchantsPage: React.FC = () => {
+export const MerchantsPageContent: React.FC = () => {
   const { 
     merchants, 
     chartOfAccounts,
@@ -197,5 +197,10 @@ const MerchantsPage: React.FC = () => {
     </div>
   );
 };
+const MerchantsPage: React.FC = () => (
+  <div className="space-y-6">
+    <MerchantsPageContent />
+  </div>
+);
 
 export default MerchantsPage;

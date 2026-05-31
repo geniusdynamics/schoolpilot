@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 type FineFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
-const FeesFinesPage: React.FC = () => {
+export const FeesFinesPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { 
     feeAdjustments,
@@ -322,5 +322,11 @@ const FeesFinesPage: React.FC = () => {
     </div>
   );
 };
+
+const FeesFinesPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeesFinesPageContent />
+  </div>
+);
 
 export default FeesFinesPage;

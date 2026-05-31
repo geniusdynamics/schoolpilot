@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockStudentRollNumbers } from '../data/mockData';
 import type { StudentRollNumber } from '../data/types';
 
-const BulkAssignRollNumbersPage: React.FC = () => {
+export const BulkAssignRollNumbersContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { students, classes, loading } = useAppData();
 
@@ -330,5 +330,11 @@ const BulkAssignRollNumbersPage: React.FC = () => {
     </div>
   );
 };
+
+const BulkAssignRollNumbersPage: React.FC = () => (
+  <div className="space-y-6">
+    <BulkAssignRollNumbersContent />
+  </div>
+);
 
 export default BulkAssignRollNumbersPage;

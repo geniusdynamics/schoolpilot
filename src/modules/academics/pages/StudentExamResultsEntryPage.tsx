@@ -20,7 +20,7 @@ interface MarkInput {
   };
 }
 
-const StudentExamResultsEntryPage: React.FC = () => {
+export const StudentExamResultsEntryPageContent: React.FC = () => {
   const {
     studentExamResults,
     students,
@@ -105,7 +105,6 @@ const StudentExamResultsEntryPage: React.FC = () => {
     try {
       for (const student of studentsForEntry) {
         const studentMarksForPapers: Array<Omit<StudentPaperMark, 'id' | 'student_exam_result_id'>> = [];
-        let studentTotalMarks = 0;
         let hasMarks = false;
 
         for (const paperSetting of paperSettingsForSession) {
@@ -128,7 +127,6 @@ const StudentExamResultsEntryPage: React.FC = () => {
             paper_setting_id: paperSetting.id,
             score,
           });
-          studentTotalMarks += score;
           hasMarks = true;
         }
 
@@ -139,7 +137,6 @@ const StudentExamResultsEntryPage: React.FC = () => {
         await saveStudentExamResult({
           student_id: student.id,
           exam_session_id: selectedExamSessionId,
-          total_marks: studentTotalMarks,
           marks: studentMarksForPapers,
         });
       }
@@ -234,5 +231,11 @@ const StudentExamResultsEntryPage: React.FC = () => {
     </div>
   );
 };
+
+const StudentExamResultsEntryPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentExamResultsEntryPageContent />
+  </div>
+);
 
 export default StudentExamResultsEntryPage;

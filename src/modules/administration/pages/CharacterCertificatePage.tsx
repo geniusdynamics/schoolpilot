@@ -20,7 +20,7 @@ interface Student {
   address: string;
 }
 
-const CharacterCertificatePage: React.FC = () => {
+export const CharacterCertificateContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { loading } = useAppData();
 
@@ -290,5 +290,11 @@ const CharacterCertificatePage: React.FC = () => {
     </div>
   );
 };
+
+const CharacterCertificatePage: React.FC = () => (
+  <div className="space-y-6">
+    <CharacterCertificateContent />
+  </div>
+);
 
 export default CharacterCertificatePage;

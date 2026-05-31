@@ -5,7 +5,7 @@ import React from 'react';
 // import TabSettings from '@/components/TabSettings';
 import BreadcrumbNavigation from '@/components/BreadcrumbNavigation';
 
-const TabSettingsPage: React.FC = () => {
+export const TabSettingsContent: React.FC = () => {
   // const { t } = useTranslation(['settings', 'common']);
   
   return (
@@ -34,6 +34,10 @@ const TabSettingsPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+const TabSettingsPage: React.FC = () => {
+  return <TabSettingsContent />;
 };
 
 export default TabSettingsPage;

@@ -27,7 +27,7 @@ import ModuleDashboardShell, {
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
 
-const HRDashboardPage: React.FC = () => {
+export const HRDashboardPageContent: React.FC = () => {
   const {
     staff,
     payrollPeriods,
@@ -360,5 +360,10 @@ const HRDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const HRDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <HRDashboardPageContent />
+  </div>
+);
 
 export default HRDashboardPage;

@@ -7,6 +7,7 @@ import { DropResult } from 'react-beautiful-dnd';
 import { useDynamicNavigation } from './useDynamicNavigation';
 import { useRBAC } from './useRBAC';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFullWidth } from '@/contexts/FullWidthContext';
 import { useTabNavigation } from './useTabNavigation';
 import { useToastHelpers } from './useToast';
 import { useFavorites } from './useFavorites';
@@ -213,6 +214,8 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
   }, [navigationItems, selectedModuleId]);
 
   // Build submenus
+  const { isFullWidth } = useFullWidth();
+
   const subMenus = useMemo(() => {
     let items = [];
     if (propItems && Array.isArray(propItems) && propItems.length > 0) {
@@ -226,8 +229,19 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
       return [];
     }
 
+    const currentMode = isFullWidth ? 'fullwidth' : 'standard';
+
+    items = items.filter((item: any) => {
+      // Always hide deprecated items from sidebar navigation
+      if (item.deprecated === true) return false;
+
+      // If no showInModes specified, default to standard-only (not fullwidth)
+      const modes = item.showInModes || ['standard'];
+      return modes.includes(currentMode);
+    });
+
     return items;
-  }, [selectedModule, propItems, selectedModuleId, favorites]);
+  }, [selectedModule, propItems, selectedModuleId, favorites, isFullWidth]);
 
   const moduleKey = useMemo(() => selectedModuleId || 'settings', [selectedModuleId]);
   const moduleStyle = useMemo(() => getModuleStyle(moduleKey), [moduleKey]);
@@ -347,7 +361,10 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
         throw new Error(`You don't have permission to access ${pathModule}`);
       }
 
-      const result = await navigateToTab(item.path, {
+      // Use redirectTo for deprecated items, otherwise use item.path
+      const targetPath = item.redirectTo || item.path;
+
+      const result = await navigateToTab(targetPath, {
         title: itemTitle,
         icon: item.icon,
         module: pathModule,
@@ -364,7 +381,8 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
       });
 
       console.info('Tab navigation successful:', {
-        path: item.path,
+        path: targetPath,
+        originalPath: item.path,
         module: pathModule,
         submodule,
         tabId: result.tabId,

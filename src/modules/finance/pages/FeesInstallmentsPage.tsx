@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 type InstallmentFormData = Omit<Partial<FeeInstallment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
-const FeesInstallmentsPage: React.FC = () => {
+export const FeesInstallmentsPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { 
     students,
@@ -361,5 +361,11 @@ const FeesInstallmentsPage: React.FC = () => {
     </div>
   );
 };
+
+const FeesInstallmentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeesInstallmentsPageContent />
+  </div>
+);
 
 export default FeesInstallmentsPage;

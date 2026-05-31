@@ -57,7 +57,7 @@ const mockEvents = [
   },
 ];
 
-const NewslettersPage: React.FC = () => {
+export const NewslettersContent: React.FC = () => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { t } = useTranslation('administration');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -213,5 +213,11 @@ const NewslettersPage: React.FC = () => {
     </div>
   );
 };
+
+const NewslettersPage: React.FC = () => (
+  <div className="space-y-6">
+    <NewslettersContent />
+  </div>
+);
 
 export default NewslettersPage;

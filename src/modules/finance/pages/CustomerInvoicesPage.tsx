@@ -21,7 +21,7 @@ type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at
 };
 type CustomerInvoiceItemFormData = Omit<Partial<CustomerInvoiceItem>, 'id' | 'invoice_id' | 'revenue_account_name'>;
 
-const CustomerInvoicesPage: React.FC = () => {
+export const CustomerInvoicesPageContent: React.FC = () => {
   const { 
     customerInvoices, 
     customers, // from adm.customers
@@ -467,5 +467,10 @@ const CustomerInvoicesPage: React.FC = () => {
     </div>
   );
 };
+const CustomerInvoicesPage: React.FC = () => (
+  <div className="space-y-6">
+    <CustomerInvoicesPageContent />
+  </div>
+);
 
 export default CustomerInvoicesPage;

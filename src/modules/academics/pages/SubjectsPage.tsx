@@ -1,8 +1,11 @@
+// ABOUTME: Subjects management page with content extraction for hub-and-spoke pattern
+// ABOUTME: Exports SubjectsContent for use in SubjectsHubPage
+
 import React, { useState } from 'react';
 import { Subject } from '@/core/types';
 import { SubjectGrouping } from '../data/enums';
 import { useTranslation } from 'react-i18next';
-import { useAppData } from '@/hooks/useAppData'; 
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 
 import Card from '@/components/ui/Card';
@@ -20,7 +23,7 @@ interface SubjectFormData extends Omit<Partial<Subject>, 'id' | 'department_name
   department_id?: string | null;
 }
 
-const SubjectsPage: React.FC = () => {
+export const SubjectsContent: React.FC = () => {
   const { subjects: subjectsState, loading, rawInitialData } = useAppData();
   // Get departments with fallback to empty array
   const initialMockDepartments = rawInitialData?.departments || [];
@@ -173,5 +176,11 @@ const SubjectsPage: React.FC = () => {
     </div>
   );
 };
+
+const SubjectsPage: React.FC = () => (
+  <div className="space-y-6">
+    <SubjectsContent />
+  </div>
+);
 
 export default SubjectsPage;

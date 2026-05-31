@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 type ItemCategoryFormData = Omit<Partial<ItemCategoryInv>, 'id'>;
 
-const ItemCategoriesPage: React.FC = () => {
+export const ItemCategoriesPageContent: React.FC = () => {
   const { itemCategoriesInv, loading, addItemCategoryInv, updateItemCategoryInv, deleteItemCategoryInv } = useAppData(); // Updated
   const { t } = useTranslation('inventory');
   
@@ -171,5 +171,10 @@ const ItemCategoriesPage: React.FC = () => {
     </div>
   );
 };
+const ItemCategoriesPage: React.FC = () => (
+  <div className="space-y-6">
+    <ItemCategoriesPageContent />
+  </div>
+);
 
 export default ItemCategoriesPage;

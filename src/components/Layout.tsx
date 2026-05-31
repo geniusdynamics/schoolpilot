@@ -5,11 +5,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
+import { useFullWidth } from '../contexts/FullWidthContext';
 import { ChevronUpIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
+import TopOverflowMenu from './TopOverflowMenu';
 import LoadingScreen from './LoadingScreen';
 import SettingsPopup from './SettingsPopup';
 import BreadcrumbNavigation from './BreadcrumbNavigation';
@@ -37,6 +39,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Full-width mode
+  const { isFullWidth } = useFullWidth();
+
   // Tab store for managing tabbed workspace
   const { tabs, activeTabId, createTab, initialize, isStoreInitialized } = useTabStore();
   
@@ -123,8 +128,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           if (module.children) {
             for (const child of module.children) {
               if (child.path === currentPath) {
-                // Extract the clean module ID from the translation key (e.g., "navigation:academics.title" → "academics")
-                matchingModule = extractModuleId(module.name);
+                matchingModule = module.name;
                 break;
               }
             }
@@ -133,14 +137,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
         
         // If we found a matching module, use it; otherwise use the first module
-        // Always extract the clean module ID from the translation key
-        const moduleToSelect = matchingModule || extractModuleId(mainModules[0].name);
+        const moduleToSelect = matchingModule || mainModules[0].name;
         setSelectedModuleKey(moduleToSelect);
         
         // Only navigate to dashboard if we're on the root path AND the first module is dashboard
         // AND there's no stored route from a previous session
         const storedRoute = getStoredRoute();
-        if (currentPath === '/' && extractModuleId(mainModules[0].name) === 'dashboard' && !storedRoute) {
+        if (currentPath === '/' && mainModules[0].name === 'navigation:dashboard' && !storedRoute) {
           navigate('/dashboard', { replace: true });
         }
       }
@@ -199,13 +202,22 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <div className="flex flex-col min-h-screen w-screen bg-slate-100">
         <Header onSettings={() => setShowSettings(true)} />
         <div className="flex flex-1 pt-16 md:pt-16">
+          {/* Floating TopOverflowMenu — utmost top-left, same level as top navbar; z-[60] keeps it above PrimarySidebar (z-50) */}
+          <div className="fixed top-0 left-0 z-[60] w-16 sm:w-20">
+            <TopOverflowMenu
+              currentModule={selectedModuleKey}
+              onModuleSelect={handleModuleSelect}
+            />
+          </div>
           {/* Fixed sidebars - positioned with CSS position:fixed, no flex space */}
-          <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} />
-          <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} />
+          <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} collapsed={isFullWidth} />
+          <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} isSecondaryAsPrimary={isFullWidth} />
           <main 
             className="flex-1 overflow-hidden"
             style={{
-              marginLeft: isSubmenuOpen ? 'calc(5rem + 13rem)' : '5rem'
+              marginLeft: isFullWidth
+                ? (isSubmenuOpen ? '13rem' : '0rem')
+                : (isSubmenuOpen ? 'calc(5rem + 13rem)' : '5rem')
             }}
           >
             {isTabbedMode ? (

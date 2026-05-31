@@ -22,7 +22,7 @@ interface StaffRecord {
   address: string;
 }
 
-const BulkStaffUpdatePage: React.FC = () => {
+export const BulkStaffUpdateContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { staff, loading } = useAppData();
 
@@ -354,4 +354,11 @@ const BulkStaffUpdatePage: React.FC = () => {
   );
 };
 
+const BulkStaffUpdatePage: React.FC = () => (
+  <div className="space-y-6">
+    <BulkStaffUpdateContent />
+  </div>
+);
+
 export default BulkStaffUpdatePage;
+

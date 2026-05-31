@@ -16,7 +16,7 @@ import FormActions from '@/components/ui/forms/FormActions';
 
 type StudentCategoryFormData = Omit<Partial<StudentCategory>, 'id'>;
 
-const StudentCategoriesPage: React.FC = () => {
+export const StudentCategoriesContent: React.FC = () => {
   const { studentCategories, loading, addStudentCategory, updateStudentCategory, deleteStudentCategory } = useAppData();
   const { t } = useTranslation('administration');
   
@@ -149,5 +149,11 @@ const StudentCategoriesPage: React.FC = () => {
     </div>
   );
 };
+
+const StudentCategoriesPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentCategoriesContent />
+  </div>
+);
 
 export default StudentCategoriesPage;

@@ -40,7 +40,7 @@ import { InvSupplierType, InvSupplierStatusEnum } from '../data/types';
 import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 
-const SuppliersPage: React.FC = () => {
+export const SuppliersPageContent: React.FC = () => {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const {
@@ -456,5 +456,10 @@ const SuppliersPage: React.FC = () => {
     </Box>
   );
 };
+const SuppliersPage: React.FC = () => (
+  <div className="space-y-6">
+    <SuppliersPageContent />
+  </div>
+);
 
 export default SuppliersPage;

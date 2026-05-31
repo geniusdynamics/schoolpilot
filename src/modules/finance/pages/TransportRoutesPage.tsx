@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 type TransportRouteFormData = Omit<Partial<TransportRoute>, 'id' | 'created_at' | 'updated_at' | 'gl_revenue_account_name'>;
 
-const TransportRoutesPage: React.FC = () => {
+export const TransportRoutesPageContent: React.FC = () => {
   const { 
     transportRoutes, 
     chartOfAccounts,
@@ -183,5 +183,10 @@ const TransportRoutesPage: React.FC = () => {
     </div>
   );
 };
+const TransportRoutesPage: React.FC = () => (
+  <div className="space-y-6">
+    <TransportRoutesPageContent />
+  </div>
+);
 
 export default TransportRoutesPage;

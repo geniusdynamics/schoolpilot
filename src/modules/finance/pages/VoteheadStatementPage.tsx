@@ -18,7 +18,7 @@ import { useAppData } from '@/hooks/useAppData';
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(value);
 
-const VoteheadStatementPage: React.FC = () => {
+export const VoteheadStatementPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { data: statementRows, loading, error, refresh } = useVoteheadStatement();
   const { students, schoolPeriods, loading: appLoading } = useAppData();
@@ -332,5 +332,10 @@ const VoteheadStatementPage: React.FC = () => {
     </div>
   );
 };
+const VoteheadStatementPage: React.FC = () => (
+  <div className="space-y-6">
+    <VoteheadStatementPageContent />
+  </div>
+);
 
 export default VoteheadStatementPage;

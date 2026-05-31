@@ -5,8 +5,8 @@
  * Enables dependency injection and testability.
  */
 
-import type { ValidationError, ValidationResult } from '@/utils/dataValidation';
-import type { EntityData } from '@/hooks/useDataHookFactory';
+import type { ValidationError, ValidationResult } from '../../utils/dataValidation';
+import type { EntityData } from '../../hooks/useDataHookFactory';
 import type { NetworkState } from '../data/NetworkStateManager';
 
 // ============================================================================

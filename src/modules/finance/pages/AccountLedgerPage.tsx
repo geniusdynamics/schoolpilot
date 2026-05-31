@@ -34,7 +34,7 @@ const formatDate = (dateStr: string) => {
   }
 };
 
-const AccountLedgerPage: React.FC = () => {
+export const AccountLedgerPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { data: ledgerRows, loading, error, refresh } = useAccountLedger();
   const { chartOfAccounts, loading: appLoading } = useAppData();
@@ -325,5 +325,10 @@ const AccountLedgerPage: React.FC = () => {
     </div>
   );
 };
+const AccountLedgerPage: React.FC = () => (
+  <div className="space-y-6">
+    <AccountLedgerPageContent />
+  </div>
+);
 
 export default AccountLedgerPage;

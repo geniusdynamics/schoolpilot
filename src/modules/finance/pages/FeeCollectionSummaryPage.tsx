@@ -20,7 +20,7 @@ interface FeeCollectionSummaryRow {
   arrears: number;
 }
 
-const FeeCollectionSummaryPage: React.FC = () => {
+export const FeeCollectionSummaryPageContent: React.FC = () => {
   const { t } = useTranslation('reports');
   const { 
     schoolPeriods, 
@@ -221,5 +221,10 @@ const FeeCollectionSummaryPage: React.FC = () => {
     </div>
   );
 };
+const FeeCollectionSummaryPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeeCollectionSummaryPageContent />
+  </div>
+);
 
 export default FeeCollectionSummaryPage;

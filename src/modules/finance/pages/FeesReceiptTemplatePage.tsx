@@ -15,7 +15,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { ReceiptTemplate } from '../data/types';
 
-const FeesReceiptTemplatePage: React.FC = () => {
+export const FeesReceiptTemplatePageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { receiptTemplates, loading } = useAppData();
 
@@ -385,5 +385,11 @@ const FeesReceiptTemplatePage: React.FC = () => {
     </div>
   );
 };
+
+const FeesReceiptTemplatePage: React.FC = () => (
+  <div className="space-y-6">
+    <FeesReceiptTemplatePageContent />
+  </div>
+);
 
 export default FeesReceiptTemplatePage;

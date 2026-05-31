@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 type MealPlanFormData = Omit<Partial<MealPlan>, 'id' | 'created_at' | 'updated_at'>;
 
-const MealPlansPage: React.FC = () => {
+export const MealPlansPageContent: React.FC = () => {
   const { mealPlans, loading, addMealPlan, updateMealPlan, deleteMealPlan } = useAppData();
   const { t } = useTranslation('nutrition');
   
@@ -222,5 +222,10 @@ const MealPlansPage: React.FC = () => {
     </div>
   );
 };
+const MealPlansPage: React.FC = () => (
+  <div className="space-y-6">
+    <MealPlansPageContent />
+  </div>
+);
 
 export default MealPlansPage;

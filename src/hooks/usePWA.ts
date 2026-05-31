@@ -99,6 +99,17 @@ export function usePWA(): [PWAState, PWAActions] {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
+    const isDev = process.env.NODE_ENV === 'development';
+
+    if (isDev) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const reg of registrations) {
+          reg.unregister();
+        }
+      });
+      return;
+    }
+
     const registerSW = async () => {
       try {
         const reg = await navigator.serviceWorker.register('/sw.js');

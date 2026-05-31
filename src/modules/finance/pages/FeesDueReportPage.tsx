@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockFeeDueRecords } from '../data/mockData';
 import type { FeeDueRecord } from '../data/types';
 
-const FeesDueReportPage: React.FC = () => {
+export const FeesDueReportPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { students, schoolPeriods, loading } = useAppData();
 
@@ -274,5 +274,10 @@ const FeesDueReportPage: React.FC = () => {
     </div>
   );
 };
+const FeesDueReportPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeesDueReportPageContent />
+  </div>
+);
 
 export default FeesDueReportPage;

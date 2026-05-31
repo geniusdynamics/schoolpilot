@@ -11,6 +11,8 @@
       "studentImport": "Student Import",
       "studentClearance": "Student Clearance",
       "disciplinaryCases": "Disciplinary Cases",
+      "certificates": "Certificates",
+      "visitors": "Visitors",
       "staff": "Staff",
       "partners": "Partners",
       "departments": "Departments",
@@ -28,38 +30,13 @@
       "academicYears": "Academic Years",
       "academicPeriodDefinitions": "Academic Period Definitions",
       "schoolPeriods": "School Periods",
-      "studentMasterlist": "Student Masterlist",
-      "studentPromotion": "Student Promotion",
-      "auditLogViewer": "Audit Log Viewer",
-      "certificates": "Certificates",
-      "transferCertificate": "Transfer Certificate",
-      "characterCertificate": "Character Certificate",
-      "birthCertificate": "Birth Certificate",
-      "gatePass": "Gate Pass",
-      "studentBioData": "Student Bio Data",
-      "visitors": "Visitors",
-      "staffAttendance": "Staff Attendance",
-      "staffIDCards": "Staff ID Cards",
-      "staffWallet": "Staff Wallet",
-      "bulkStaffUpdate": "Bulk Staff Update",
-      "attendanceReports": "Attendance Reports",
-      "manualAttendance": "Manual Attendance",
-      "dynamicAttendance": "Dynamic Attendance",
-      "bulkStudentUpdate": "Bulk Student Update",
-      "studentIDCards": "Student ID Cards",
-      "bulkAssignRollNumbers": "Bulk Assign Roll Numbers",
-      "scholarshipTracking": "Scholarship Tracking",
-      "smsReports": "SMS Reports",
-      "autoSMSSettings": "Auto-SMS Settings",
-      "newsletters": "Newsletters"
-    },
-    "houses": {
-      "title": "Houses",
-      "categories": "House Categories",
-      "award": "Award Points",
-      "leaderboard": "Leaderboard",
-      "studentPoints": "Student Points",
-      "classStandings": "Class Standings"
+      "configuration": "School Configuration",
+      "academicCalendar": "Academic Calendar",
+      "communication": "Communication",
+      "security": "Security & Gate Pass",
+      "attendance": "Attendance",
+      "staffOperations": "Staff Operations",
+      "bulkOperations": "Bulk Operations"
     }
   },
   "dashboard": {
@@ -343,6 +320,12 @@
     "deleteWorkflowStateToBeDeveloped": "Delete workflow state functionality not yet implemented",
     "attendanceSavedSuccessfully": "Attendance Saved Successfully"
   },
+  "common": {
+    "cancel": "common:cancel",
+    "save": "common:save",
+    "true": "T",
+    "active": "a"
+  },
   "admissions": {
     "title": "Admissions",
     "description": "Student admissions management and application processing",
@@ -514,27 +497,82 @@
   "common": {
     "verified": "Verified",
     "unverified": "Unverified",
+    "clearFilters": "Clear Filters",
     "addMarks": "Add Marks",
-    "editMarks": "Edit Marks",
-    "edit": "Edit",
-    "delete": "Delete",
-    "verify": "Verify",
-    "unverify": "Unverify",
-    "bulkImport": "Bulk Import"
+    "updateMarks": "Update Marks",
+    "cancel": "Cancel"
   },
-  "messages": {
-    "validationError": "Please fill in all required fields",
-    "marksAdded": "Marks added successfully",
-    "marksUpdated": "Marks updated successfully",
-    "marksDeleted": "Marks deleted successfully",
-    "marksVerified": "Marks verified successfully",
-    "saveError": "Error saving marks",
-    "confirmDelete": "Are you sure you want to delete these marks?",
-    "noMarksFound": "No marks found"
-  },
-  "bulkImport": {
-    "title": "Bulk Import Marks",
-    "description": "Upload a CSV or Excel file to import multiple marks records at once.",
-    "selectFile": "Select File to Upload"
+  "studentImport": {
+    "title": "Student Data Import",
+    "description": "Import student data from CSV files with validation and progress tracking",
+    "progress": "Import Progress",
+    "newImport": "New Import",
+    "history": "Import History",
+    "steps": {
+      "upload": "Upload",
+      "preview": "Preview",
+      "importing": "Import",
+      "results": "Results"
+    },
+    "upload": {
+      "dropZone": "Drag & drop your CSV file here",
+      "dropActive": "Drop your file here",
+      "orClick": "or click to browse files",
+      "supportedFormats": "Supported formats: CSV (Excel coming soon)",
+      "downloadTemplate": "Download CSV Template"
+    },
+    "preview": {
+      "title": "Preview Import Data",
+      "totalRecords": "Total Records",
+      "valid": "Valid",
+      "warnings": "Warnings",
+      "invalid": "Invalid",
+      "importButton": "Import {count} Valid Records"
+    },
+    "importing": {
+      "title": "Importing Students",
+      "progress": "Progress",
+      "success": "Successfully Imported",
+      "failed": "Failed",
+      "remaining": "Remaining",
+      "pleaseWait": "Please do not close this window while importing..."
+    },
+    "results": {
+      "title": "Import Results",
+      "totalRecords": "Total Records",
+      "imported": "Imported",
+      "failed": "Failed",
+      "finalStatus": "Final Status"
+    },
+    "columns": {
+      "row": "Row",
+      "admissionNumber": "Admission No",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "dateOfBirth": "Date of Birth",
+      "gender": "Gender",
+      "grade": "Grade",
+      "guardian": "Guardian",
+      "guardianPhone": "Guardian Phone",
+      "status": "Status",
+      "errors": "Errors",
+      "importStatus": "Import Status",
+      "error": "Error"
+    },
+    "validation": {
+      "admissionNumberRequired": "Admission number is required",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "dateOfBirthRequired": "Date of birth is required",
+      "genderRequired": "Valid gender is required",
+      "gradeLevelRequired": "Grade level is required",
+      "guardianNameRequired": "Guardian name is required",
+      "guardianPhoneRequired": "Guardian phone is required",
+      "invalidDateFormat": "Date of birth must be in YYYY-MM-DD format",
+      "invalidEmail": "Invalid email format",
+      "invalidPhone": "Phone number contains invalid characters",
+      "futureDate": "Date of birth cannot be in the future",
+      "unusualAge": "Unusual age detected"
+    }
   }
 }

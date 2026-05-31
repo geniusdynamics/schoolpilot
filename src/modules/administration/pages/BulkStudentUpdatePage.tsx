@@ -24,7 +24,7 @@ interface StudentRecord {
   address: string;
 }
 
-const BulkStudentUpdatePage: React.FC = () => {
+export const BulkStudentUpdateContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { students, classes, loading } = useAppData();
 
@@ -374,5 +374,11 @@ const BulkStudentUpdatePage: React.FC = () => {
     </div>
   );
 };
+
+const BulkStudentUpdatePage: React.FC = () => (
+  <div className="space-y-6">
+    <BulkStudentUpdateContent />
+  </div>
+);
 
 export default BulkStudentUpdatePage;

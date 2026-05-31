@@ -23,7 +23,7 @@ interface PreviewStudent extends ActiveStudentRecord {
   hasExistingInvoice: boolean;
 }
 
-const InvoiceGenerationPage: React.FC = () => {
+export const InvoiceGenerationPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { generateTermlyInvoices, isGenerating, error: serviceError } = useInvoiceGeneration();
   const { schoolPeriods, feeTemplates, feeTemplateItems, loading: appLoading } = useAppData();
@@ -311,5 +311,11 @@ const InvoiceGenerationPage: React.FC = () => {
     </div>
   );
 };
+
+const InvoiceGenerationPage: React.FC = () => (
+  <div className="space-y-6">
+    <InvoiceGenerationPageContent />
+  </div>
+);
 
 export default InvoiceGenerationPage;

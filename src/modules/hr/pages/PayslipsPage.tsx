@@ -22,7 +22,7 @@ interface GeneratePayslipFormData {
   notes: string;
 }
 
-const PayslipsPage: React.FC = () => {
+export const PayslipsPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const { payslips, loading: appDataLoading, refreshCollection } = useAppData();
   const { staff } = useAppData();
@@ -340,5 +340,11 @@ const PayslipsPage: React.FC = () => {
     </div>
   );
 };
+
+const PayslipsPage: React.FC = () => (
+  <div className="space-y-6">
+    <PayslipsPageContent />
+  </div>
+);
 
 export default PayslipsPage;

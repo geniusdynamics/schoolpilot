@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockAttendanceReports } from '../data/mockData';
 import type { AttendanceReport } from '../data/types';
 
-const AttendanceReportsPage: React.FC = () => {
+export const AttendanceReportsContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { students, classes, loading } = useAppData();
 
@@ -235,5 +235,11 @@ const AttendanceReportsPage: React.FC = () => {
     </div>
   );
 };
+
+const AttendanceReportsPage: React.FC = () => (
+  <div className="space-y-6">
+    <AttendanceReportsContent />
+  </div>
+);
 
 export default AttendanceReportsPage;

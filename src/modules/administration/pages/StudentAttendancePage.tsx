@@ -209,3 +209,5 @@ const StudentAttendancePage: React.FC = () => {
 };
 
 export default StudentAttendancePage;
+
+export const StudentAttendanceContent = StudentAttendancePage;

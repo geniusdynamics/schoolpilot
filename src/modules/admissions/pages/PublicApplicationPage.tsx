@@ -88,7 +88,7 @@ interface UploadedDoc {
 }
 
 // ─── Component ──────────────────────────────────────────────────────
-const PublicApplicationPage: React.FC = () => {
+export const PublicApplicationPageContent: React.FC = () => {
   const { t } = useTranslation('admissions');
   const { createApplication } = useAdmissionsData();
   const { showToast } = useToast();
@@ -893,5 +893,10 @@ const PublicApplicationPage: React.FC = () => {
     </div>
   );
 };
+const PublicApplicationPage: React.FC = () => (
+  <div className="space-y-6">
+    <PublicApplicationPageContent />
+  </div>
+);
 
 export default PublicApplicationPage;

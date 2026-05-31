@@ -5,7 +5,7 @@ import { useAppData } from '@/hooks/useAppData';
 import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardPanel, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 import { ArchiveIcon, ClockIcon, CurrencyDollarIcon, DocumentReportIcon } from '@/components/ui/icons';
 
-const VendorPortalDashboardPage: React.FC = () => {
+export const VendorPortalDashboardPageContent: React.FC = () => {
   const { rfqs, purchaseOrders, supplierInvoices, suppliers } = useAppData();
 
   const openRfqs = rfqs.filter((rfq: any) => String(rfq.status || '').toLowerCase().includes('open'));
@@ -101,5 +101,10 @@ const VendorPortalDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const VendorPortalDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <VendorPortalDashboardPageContent />
+  </div>
+);
 
 export default VendorPortalDashboardPage;

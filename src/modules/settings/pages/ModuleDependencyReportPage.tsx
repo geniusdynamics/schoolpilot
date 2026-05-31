@@ -11,7 +11,7 @@ import { moduleRegistry } from '@/core/moduleRegistry';
 import { ModuleDependencyValidator } from '@/core/services/ModuleDependencyValidator';
 import { DependencyVisualizer } from '@/core/services/DependencyVisualizer';
 
-const ModuleDependencyReportPage: React.FC = () => {
+export const ModuleDependencyReportContent: React.FC = () => {
   const { t } = useTranslation('settings');
   const { t: tNav } = useTranslation('navigation');
   const [report, setReport] = useState<any>(null);
@@ -145,6 +145,10 @@ const ModuleDependencyReportPage: React.FC = () => {
       </Card>
     </div>
   );
+};
+
+const ModuleDependencyReportPage: React.FC = () => {
+  return <ModuleDependencyReportContent />;
 };
 
 export default ModuleDependencyReportPage;

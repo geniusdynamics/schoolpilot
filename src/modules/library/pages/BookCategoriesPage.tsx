@@ -3,10 +3,9 @@ import { BookCategory } from '@/types';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
@@ -15,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 type BookCategoryFormData = Omit<Partial<BookCategory>, 'id'>;
 
-const BookCategoriesPage: React.FC = () => {
+export const BookCategoriesPageContent: React.FC = () => {
   const { bookCategories, loading, addBookCategory, updateBookCategory, deleteBookCategory } = useAppData(); // Updated
   const { t } = useTranslation('library');
   
@@ -123,5 +122,10 @@ const BookCategoriesPage: React.FC = () => {
     </div>
   );
 };
+const BookCategoriesPage: React.FC = () => (
+  <div className="space-y-6">
+    <BookCategoriesPageContent />
+  </div>
+);
 
 export default BookCategoriesPage;

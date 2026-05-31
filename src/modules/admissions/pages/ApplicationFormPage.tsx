@@ -65,7 +65,7 @@ const initialFormData: ApplicationFormData = {
   subLocation: '',
 };
 
-const ApplicationFormPage: React.FC = () => {
+export const ApplicationFormPageContent: React.FC = () => {
   const navigate = useNavigate();
   const { createApplication } = useAdmissionsData();
   const { showToast } = useToast();
@@ -109,10 +109,6 @@ const ApplicationFormPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleCancel = () => {
-    navigate('/admissions/applications');
   };
 
   const isStepValid = () => {
@@ -463,7 +459,7 @@ const ApplicationFormPage: React.FC = () => {
             description="Complete all steps to submit your application"
           />
           <WizardForm
-            steps={steps}
+            steps={wizardSteps}
             onComplete={handleSubmit}
             onCancel={handleCancel}
             showProgress={true}
@@ -478,5 +474,10 @@ const ApplicationFormPage: React.FC = () => {
     </div>
   );
 };
+const ApplicationFormPage: React.FC = () => (
+  <div className="space-y-6">
+    <ApplicationFormPageContent />
+  </div>
+);
 
 export default ApplicationFormPage;

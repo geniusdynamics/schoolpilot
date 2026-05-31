@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockBoardExamResults } from '../data/mockData';
 import type { BoardExamResult } from '../data/types';
 
-const BoardExamResultsPage: React.FC = () => {
+export const BoardExamResultsPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { students, loading } = useAppData();
 
@@ -424,5 +424,10 @@ const BoardExamResultsPage: React.FC = () => {
     </div>
   );
 };
+const BoardExamResultsPage: React.FC = () => (
+  <div className="space-y-6">
+    <BoardExamResultsPageContent />
+  </div>
+);
 
 export default BoardExamResultsPage;

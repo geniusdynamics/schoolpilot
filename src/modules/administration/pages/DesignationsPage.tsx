@@ -16,10 +16,10 @@ import FormActions from '@/components/ui/forms/FormActions';
 
 type DesignationFormData = Omit<Partial<Designation>, 'id' | 'created_at' | 'updated_at'>;
 
-const DesignationsPage: React.FC = () => {
+export const DesignationsContent: React.FC = () => {
   const { designations, loading, addDesignation, updateDesignation, deleteDesignation } = useDesignationData();
   const { t } = useTranslation('administration');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDesignation, setEditingDesignation] = useState<Designation | null>(null);
   const initialFormData: DesignationFormData = { title: '' };
@@ -66,19 +66,19 @@ const DesignationsPage: React.FC = () => {
   };
 
   const columns: DataGridColumn<Designation>[] = [
-    { 
-      key: 'id', 
-      header: 'ID', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'id',
+      header: 'ID',
+      sortable: true,
+      filterable: true,
       width: 80,
       render: (value, item) => <span className="font-mono text-sm">{value}</span>
     },
-    { 
-      key: 'title', 
-      header: 'Designation Title', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'title',
+      header: 'Designation Title',
+      sortable: true,
+      filterable: true,
       width: 250,
       render: (value, item) => <span className="font-medium">{value}</span>
     },
@@ -107,15 +107,15 @@ const DesignationsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <>
       <Card title={t('designations.management')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           {t('designations.addDesignation')}
         </Button>
       }>
-        <DataGrid 
-          columns={columns} 
-          data={designations || []} 
+        <DataGrid
+          columns={columns}
+          data={designations || []}
           loading={loading.designations}
           sortable={true}
           filterable={true}
@@ -155,8 +155,14 @@ const DesignationsPage: React.FC = () => {
           </Button>
         </FormActions>
       </DialogForm>
-    </div>
+    </>
   );
 };
+
+const DesignationsPage: React.FC = () => (
+  <div className="space-y-6">
+    <DesignationsContent />
+  </div>
+);
 
 export default DesignationsPage;

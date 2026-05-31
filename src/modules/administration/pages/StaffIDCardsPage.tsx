@@ -209,3 +209,6 @@ const StaffIDCardsPage: React.FC = () => {
 };
 
 export default StaffIDCardsPage;
+
+export const StaffIDCardsContent = StaffIDCardsPage;
+

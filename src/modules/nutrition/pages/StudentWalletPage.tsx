@@ -12,7 +12,7 @@ type WalletTransactionFormData = {
     description: string;
 };
 
-const StudentWalletPage: React.FC = () => {
+export const StudentWalletPageContent: React.FC = () => {
   const { 
     studentWallets, 
     students,
@@ -277,5 +277,10 @@ const StudentWalletPage: React.FC = () => {
     </div>
   );
 };
+const StudentWalletPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentWalletPageContent />
+  </div>
+);
 
 export default StudentWalletPage;

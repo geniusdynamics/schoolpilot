@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockResultDistributions } from '../data/mockData';
 import type { ResultDistribution } from '../data/types';
 
-const DistributeResultsPage: React.FC = () => {
+export const DistributeResultsPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { examSessions, classes, students, loading } = useAppData();
 
@@ -393,5 +393,10 @@ const DistributeResultsPage: React.FC = () => {
     </div>
   );
 };
+const DistributeResultsPage: React.FC = () => (
+  <div className="space-y-6">
+    <DistributeResultsPageContent />
+  </div>
+);
 
 export default DistributeResultsPage;

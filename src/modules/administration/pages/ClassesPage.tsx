@@ -24,7 +24,7 @@ interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | '
   class_teacher_id?: string; 
 }
 
-const ClassesPage: React.FC = () => {
+export const ClassesContent: React.FC = () => {
   const { t } = useTranslation(['administration', 'common']);
   const { 
     classes, 
@@ -357,5 +357,11 @@ const ClassesPage: React.FC = () => {
     </div>
   );
 };
+
+const ClassesPage: React.FC = () => (
+  <div className="space-y-6">
+    <ClassesContent />
+  </div>
+);
 
 export default ClassesPage;

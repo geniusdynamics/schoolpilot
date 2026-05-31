@@ -21,7 +21,7 @@ interface FinancialSummaryRow {
   balance: number;
 }
 
-const StudentFinancialSummaryPage: React.FC = () => {
+export const StudentFinancialSummaryPageContent: React.FC = () => {
   const { 
     students, 
     classes, 
@@ -160,5 +160,10 @@ const StudentFinancialSummaryPage: React.FC = () => {
     </div>
   );
 };
+const StudentFinancialSummaryPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentFinancialSummaryPageContent />
+  </div>
+);
 
 export default StudentFinancialSummaryPage;

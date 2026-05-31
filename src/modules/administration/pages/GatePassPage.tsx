@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockGatePasses } from '../data/mockData';
 import type { GatePass, PassType, PassStatus } from '../data/types';
 
-const GatePassPage: React.FC = () => {
+export const GatePassContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { loading } = useAppData();
 
@@ -448,5 +448,11 @@ const GatePassPage: React.FC = () => {
     </div>
   );
 };
+
+const GatePassPage: React.FC = () => (
+  <div className="space-y-6">
+    <GatePassContent />
+  </div>
+);
 
 export default GatePassPage;

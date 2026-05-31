@@ -19,7 +19,7 @@ type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at'
     partner_type: PartnerType; // Make type required for the form
 };
 
-const PartnersPage: React.FC = () => {
+export const PartnersContent: React.FC = () => {
   const {
     data: partners,
     create: addPartner,
@@ -260,5 +260,11 @@ const PartnersPage: React.FC = () => {
     </div>
   );
 };
+
+const PartnersPage: React.FC = () => (
+  <div className="space-y-6">
+    <PartnersContent />
+  </div>
+);
 
 export default PartnersPage;

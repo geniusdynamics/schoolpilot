@@ -1,33 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import { ClassStream, AcademicYear } from '@/types';
-import { ClassSubjectAllocation } from '@/modules/academics/data/types';
+import { ClassSubjectAllocation, Subject } from '@/modules/academics/data/types'; // Corrected imports
 import Card from '@/components/ui/Card';
-
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
-import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
-import { 
-  PlusIcon, 
-  EditIcon, 
-  BookOpenIcon, 
-  FolderIcon,
-  CogIcon
-} from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
+import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
+import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { Subject as CoreSubject } from '@/core/types';
-import { useNavigate } from 'react-router-dom';
 
 type AllocationFormData = Omit<Partial<ClassSubjectAllocation>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name'>;
 
-const ClassSubjectAllocationsPage: React.FC = () => {
+export const ClassSubjectAllocationsContent: React.FC = () => {
   const { t } = useTranslation(['academics', 'common']);
-  const navigate = useNavigate();
   const { 
     classSubjectAllocations, 
     classStreams,
@@ -35,12 +26,12 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     academicYears,
     loading,
     addClassSubjectAllocation, 
-    updateClassSubjectAllocation 
-  } = useAppData();
+    updateClassSubjectAllocation, 
+    deleteClassSubjectAllocation 
+  } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAllocation, setEditingAllocation] = useState<ClassSubjectAllocation | null>(null);
-  const [activeTab, setActiveTab] = useState('subject-classes');
   
   const initialFormData: AllocationFormData = { 
     class_stream_id: undefined, 
@@ -48,7 +39,6 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     academic_year_id: undefined,
   };
   const [formData, setFormData] = useState<AllocationFormData>(initialFormData);
-
 
   const openModal = (allocation?: ClassSubjectAllocation) => {
     setEditingAllocation(allocation || null);
@@ -106,19 +96,33 @@ const ClassSubjectAllocationsPage: React.FC = () => {
     closeModal();
   };
 
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this subject allocation?')) {
+      try {
+        await deleteClassSubjectAllocation(id);
+      } catch (error) {
+        console.error('Error deleting allocation:', error);
+        alert('Error deleting allocation');
+      }
+    }
+  };
 
-
-  // Transform data for the modern table view
-  const tableData = useMemo(() => {
-    return (classSubjectAllocations || []).map((allocation, index) => ({
-      id: index + 1,
-      name: `${allocation.class_stream_name} - ${allocation.subject_name}`,
-      className: allocation.class_stream_name,
-      subjectName: allocation.subject_name,
-      academicYear: allocation.academic_year_name,
-      raw: allocation,
-    }));
-  }, [classSubjectAllocations]);
+  const columns: DataGridColumn<ClassSubjectAllocation>[] = [
+    { header: 'ID', key: 'id' },
+    { header: 'Class Stream', key: 'class_stream_name' },
+    { header: 'Subject', key: 'subject_name' },
+    { header: 'Academic Year', key: 'academic_year_name' },
+    {
+      header: 'Actions',
+      key: 'id',
+      render: (value: any, item: ClassSubjectAllocation) => (
+        <div className="space-x-2">
+          <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
 
   const isLoadingPage = loading.classSubjectAllocations || loading.classStreams || loading.subjects || loading.academicYears;
 
@@ -131,152 +135,17 @@ const ClassSubjectAllocationsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4 pb-8">
-      {/* Compact Header with Tabs */}
-      <PageHeaderWithTabs 
-        title="Class Subject Allocations"
-        subtitle="Manage subject assignments to classes and streams"
-        tabs={[
-          { id: 'my-classes', label: 'My Classes' },
-          { id: 'manage-classes', label: 'Manage Classes' },
-          { id: 'add-new-class', label: 'Add New Class' },
-        ]}
-        activeTab={activeTab}
-        onTabChange={(tabId) => {
-          if (tabId === 'manage-classes') navigate('/administration/classes');
-          else if (tabId === 'add-new-class') navigate('/administration/classes/new');
-          else setActiveTab(tabId);
-        }}
-        action={
-          <Button 
-            onClick={() => openModal()} 
-            leftIcon={<PlusIcon className="w-4 h-4" />}
-            size="sm"
-          >
-            Add Allocation
-          </Button>
-        }
-        variant="compact"
-        colorScheme="blue"
-      />
-
-      {/* Subject Classes Section */}
-      <Card>
-        <div className="p-4 border-b border-gray-100 flex items-center gap-2">
-          <BookOpenIcon className="h-5 w-5 text-gray-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Subject Classes</h2>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  #
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {tableData.map((row) => (
-                <tr key={row.raw.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {row.id}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {row.name}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="secondary"
-                        onClick={() => openModal(row.raw)}
-                        leftIcon={<EditIcon className="w-3.5 h-3.5" />}
-                      >
-                        Manage
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {tableData.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            <BookOpenIcon className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-            <p>No subject class allocations found.</p>
-            <p className="text-sm mt-1">Click "Add Allocation" to create one.</p>
-          </div>
-        )}
+    <div className="space-y-6">
+      <Card title={t('classSubjectAllocations.title')} actions={
+        <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classSubjectAllocations.addButton')}</Button>
+      }>
+        <p className="text-sm text-gray-600 mb-4">
+          Assign subjects to specific class streams for a given academic year.
+        </p>
+        <DataGrid columns={columns} data={classSubjectAllocations} loading={loading.classSubjectAllocations} />
       </Card>
 
-      {/* Streams Section */}
-      <Card>
-        <div className="p-4 border-b border-gray-100 flex items-center gap-2">
-          <FolderIcon className="h-5 w-5 text-gray-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Streams</h2>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  #
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Class Teacher
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {(classStreams || []).slice(0, 10).map((stream, index) => (
-                <tr key={stream.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-900">
-                    {stream.name}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                    {stream.class_teacher_name || 'Not Assigned'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button 
-                      size="sm" 
-                      variant="secondary"
-                      onClick={() => navigate(`/administration/classes?stream=${stream.id}`)}
-                      leftIcon={<CogIcon className="w-3.5 h-3.5" />}
-                    >
-                      Manage
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      <DialogForm 
-        open={isModalOpen} 
-        onClose={closeModal} 
-        title={editingAllocation ? t('classSubjectAllocations.modalEditTitle') : t('classSubjectAllocations.modalAddTitle')} 
-        size="lg"
+      <DialogForm open={isModalOpen} onClose={closeModal} title={editingAllocation ? t('classSubjectAllocations.modalEditTitle') : t('classSubjectAllocations.modalAddTitle')} size="lg"
         actions={
           <FormActions>
             <Button variant="secondary" onClick={closeModal}>{t('common:cancel')}</Button>
@@ -330,6 +199,10 @@ const ClassSubjectAllocationsPage: React.FC = () => {
       </DialogForm>
     </div>
   );
+};
+
+const ClassSubjectAllocationsPage: React.FC = () => {
+  return <ClassSubjectAllocationsContent />;
 };
 
 export default ClassSubjectAllocationsPage;

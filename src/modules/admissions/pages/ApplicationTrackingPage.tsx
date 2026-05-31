@@ -94,7 +94,7 @@ const getStatusLabel = (status: ApplicationStatus, t: (key: string) => string): 
 };
 
 // ─── Component ─────────────────────────────────────────────────────
-const ApplicationTrackingPage: React.FC = () => {
+export const ApplicationTrackingPageContent: React.FC = () => {
   const { t } = useTranslation('admissions');
   const { getApplicationByReference } = useAdmissionsData();
   const { showToast } = useToast();
@@ -566,5 +566,10 @@ const ApplicationTrackingPage: React.FC = () => {
     </div>
   );
 };
+const ApplicationTrackingPage: React.FC = () => (
+  <div className="space-y-6">
+    <ApplicationTrackingPageContent />
+  </div>
+);
 
 export default ApplicationTrackingPage;

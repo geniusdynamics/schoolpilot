@@ -43,7 +43,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation('navigation');
   const { navigationItems } = useDynamicNavigation(true);
-  const { toggleFullWidth } = useFullWidth();
+  const { toggleFullWidth, isFullWidth } = useFullWidth();
   const navigate = useNavigate();
 
   // Close menu when clicking outside
@@ -82,11 +82,11 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
       label: t('common:workspaces') || 'Workspaces',
       icon: BuildingOfficeIcon,
       children: navigationItems.filter(item => item.isGroup).map(item => ({
-        id: item.name,
+        id: item.id,
         label: t(`${item.name}.title`) || item.name,
         icon: item.icon || Squares2X2Icon,
         action: () => {
-          if (onModuleSelect) onModuleSelect(item.name);
+          if (onModuleSelect) onModuleSelect(item.id);
           setIsOpen(false);
         }
       }))
@@ -106,7 +106,9 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
     },
     {
       id: 'toggleWidth',
-      label: t('common:toggleFullWidth') || 'Toggle Full Width',
+      label: isFullWidth
+        ? (t('common:exitFullWidth') || 'Exit Full Width')
+        : (t('common:toggleFullWidth') || 'Toggle Full Width'),
       icon: ArrowsPointingOutIcon,
       action: () => {
         toggleFullWidth();
@@ -177,69 +179,73 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="
-          absolute top-full left-0 mt-2
-          w-64 bg-slate-900/95 backdrop-blur-xl
-          rounded-xl border border-white/10
-          shadow-2xl shadow-black/50
-          overflow-hidden z-50
-        ">
-          {/* Main Menu Items */}
-          <div className="p-2 max-h-96 overflow-y-auto custom-scrollbar">
-            {mainMenuItems.map((item) => (
-              <React.Fragment key={item.id}>
-                {item.divider ? (
-                  <div className="my-2 border-t border-white/10" />
-                ) : (
-                  <div className="relative group">
-                    <button
-                      onClick={() => handleItemClick(item)}
-                      className="
-                        w-full flex items-center justify-between px-3 py-2 rounded-lg
-                        text-white/80 hover:text-white hover:bg-white/10
-                        transition-colors duration-150
-                      "
-                    >
-                      <div className="flex items-center gap-3">
-                        <item.icon className="w-5 h-5" />
-                        <span className="text-sm">{item.label}</span>
-                      </div>
-                      {item.children && (
-                        <ChevronRightIcon className="w-4 h-4 text-white/40" />
-                      )}
-                    </button>
-
-                    {/* Submenu */}
-                    {item.children && activeSubmenu === item.id && (
-                      <div className="
-                        absolute left-full top-0 ml-2
-                        w-56 bg-slate-800/95 backdrop-blur-xl
-                        rounded-xl border border-white/10
-                        shadow-2xl shadow-black/50
-                        p-2 z-50
-                      ">
-                        {item.children.map((child) => (
-                          <button
-                            key={child.id}
-                            onClick={() => handleItemClick(child)}
-                            className="
-                              w-full flex items-center gap-3 px-3 py-2 rounded-lg
-                              text-white/80 hover:text-white hover:bg-white/10
-                              transition-colors duration-150
-                            "
-                          >
-                            {child.icon && <child.icon className="w-5 h-5" />}
-                            <span className="text-sm">{child.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </React.Fragment>
-            ))}
+        <>
+          <div className="
+            absolute top-full left-0 mt-2
+            w-64 bg-slate-900/95 backdrop-blur-xl
+            rounded-xl border border-white/10
+            shadow-2xl shadow-black/50
+            overflow-hidden z-50
+          ">
+            {/* Main Menu Items */}
+            <div className="p-2 max-h-96 overflow-y-auto custom-scrollbar">
+              {mainMenuItems.map((item) => (
+                <React.Fragment key={item.id}>
+                  {item.divider ? (
+                    <div className="my-2 border-t border-white/10" />
+                  ) : (
+                    <div>
+                      <button
+                        onClick={() => handleItemClick(item)}
+                        className="
+                          w-full flex items-center justify-between px-3 py-2 rounded-lg
+                          text-white/80 hover:text-white hover:bg-white/10
+                          transition-colors duration-150
+                        "
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon className="w-5 h-5" />
+                          <span className="text-sm">{item.label}</span>
+                        </div>
+                        {item.children && (
+                          <ChevronRightIcon className="w-4 h-4 text-white/40" />
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
-        </div>
+
+          {/* Submenus — outside overflow container, slide out to right */}
+          {mainMenuItems.map((item) =>
+            item.children && activeSubmenu === item.id && (
+              <div key={`submenu-${item.id}`} className="
+                absolute left-full top-2 ml-2
+                w-56 bg-slate-800/95 backdrop-blur-xl
+                rounded-xl border border-white/10
+                shadow-2xl shadow-black/50
+                p-2 z-50
+              ">
+                {item.children.map((child) => (
+                  <button
+                    key={child.id}
+                    onClick={() => handleItemClick(child)}
+                    className="
+                      w-full flex items-center gap-3 px-3 py-2 rounded-lg
+                      text-white/80 hover:text-white hover:bg-white/10
+                      transition-colors duration-150
+                    "
+                  >
+                    {child.icon && <child.icon className="w-5 h-5" />}
+                    <span className="text-sm">{child.label}</span>
+                  </button>
+                ))}
+              </div>
+            )
+          )}
+        </>
       )}
 
       <style>{`

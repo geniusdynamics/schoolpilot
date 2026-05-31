@@ -2,14 +2,14 @@
 // ABOUTME: Allows users to customize which fields appear in the quick edit slideout
 
 import React, { useState, useEffect } from 'react';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { CogIcon, PlusIcon, XIcon } from '@/components/ui/icons';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import Button from '../../../components/ui/Button';
+import Input from '../../../components/ui/Input';
+import Select from '../../../components/ui/Select';
+import { CogIcon, PlusIcon, XIcon } from '../../../components/ui/icons';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 import {
   QuickEditConfig,
   QuickEditField,
@@ -17,8 +17,8 @@ import {
   saveQuickEditConfig,
   resetQuickEditConfig,
   DEFAULT_QUICK_EDIT_CONFIG
-} from '@/config/quickEditConfig';
-import { StudentStatus } from '@/types';
+} from '../config/quickEditConfig';
+import { StudentStatus } from '../../../types';
 
 interface QuickEditConfigModalProps {
   isOpen: boolean;

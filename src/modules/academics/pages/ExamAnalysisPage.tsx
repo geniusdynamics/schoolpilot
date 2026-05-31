@@ -1,20 +1,23 @@
+// ABOUTME: Exam analysis page with content extraction for hub-and-spoke pattern
+// ABOUTME: Exports ExamAnalysisContent for use in ExamAnalysisHubPage
+
 import React, { useState, useMemo, useCallback } from 'react';
-import { 
-  AcademicsSubjectType as Subject 
-} from '@/types'; 
+import {
+  AcademicsSubjectType as Subject
+} from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import { TabNavigation } from '@/components/ui';
-import { 
-  ExamPerformanceHeader, 
-  SubjectPerformanceTable, 
+import {
+  ExamPerformanceHeader,
+  SubjectPerformanceTable,
   MeritListActions,
-  SubjectPerformance 
+  SubjectPerformance
 } from '../components';
 import { ChartPieIcon, HomeIcon, BookOpenIcon, ChartBarIcon } from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData'; 
+import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -42,10 +45,10 @@ interface SubjectAnalysisData {
   highestScore: number;
   lowestScore: number;
   averageScore: number;
-  totalMarksPossible: number; 
+  totalMarksPossible: number;
 }
 
-const ExamAnalysisPage: React.FC = () => {
+export const ExamAnalysisContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const navigate = useNavigate();
   const {
@@ -378,4 +381,11 @@ const ExamAnalysisPage: React.FC = () => {
   );
 };
 
+const ExamAnalysisPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamAnalysisContent />
+  </div>
+);
+
 export default ExamAnalysisPage;
+

@@ -19,7 +19,7 @@ type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' 
     template_type: AccountTemplateType; // Make template_type required
 };
 
-const ChartOfAccountsPage: React.FC = () => {
+export const ChartOfAccountsContent: React.FC = () => {
   const { 
     chartOfAccounts, 
     loading, 
@@ -292,4 +292,11 @@ const ChartOfAccountsPage: React.FC = () => {
   );
 };
 
+const ChartOfAccountsPage: React.FC = () => (
+  <div className="space-y-6">
+    <ChartOfAccountsContent />
+  </div>
+);
+
 export default ChartOfAccountsPage;
+

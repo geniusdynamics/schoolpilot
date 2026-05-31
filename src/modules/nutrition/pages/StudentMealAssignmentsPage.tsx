@@ -17,7 +17,7 @@ type AssignmentFormData = Omit<Partial<StudentMealPlan>, 'id' | 'created_at' | '
     status: StudentMealPlanStatus;
 };
 
-const StudentMealAssignmentsPage: React.FC = () => {
+export const StudentMealAssignmentsPageContent: React.FC = () => {
   const { 
     studentMealPlans, 
     students,
@@ -267,5 +267,10 @@ const StudentMealAssignmentsPage: React.FC = () => {
     </div>
   );
 };
+const StudentMealAssignmentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentMealAssignmentsPageContent />
+  </div>
+);
 
 export default StudentMealAssignmentsPage;

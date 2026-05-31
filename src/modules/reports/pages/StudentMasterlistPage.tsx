@@ -9,7 +9,7 @@ import Button from '@/components/ui/Button';
 import { Student, Class as SchoolClass, ClassStream, StudentStatus, PersonGender } from '@/types';
 import { useTranslation } from 'react-i18next';
 
-const StudentMasterlistPage: React.FC = () => {
+export const StudentMasterlistPageContent: React.FC = () => {
   const { students, classes, classStreams, loading } = useAppData();
   const { t } = useTranslation('reports');
 
@@ -156,5 +156,10 @@ const StudentMasterlistPage: React.FC = () => {
     </div>
   );
 };
+const StudentMasterlistPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentMasterlistPageContent />
+  </div>
+);
 
 export default StudentMasterlistPage;

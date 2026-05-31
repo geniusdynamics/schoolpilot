@@ -9,7 +9,7 @@ import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
-const SettingsSchoolProfilePage: React.FC = () => {
+export const SettingsSchoolProfileContent: React.FC = () => {
   const { schoolDetails: initialSchoolDetails, updateSchoolDetails, loading } = useAppData();
   const { t } = useTranslation('settings');
   
@@ -91,6 +91,10 @@ const SettingsSchoolProfilePage: React.FC = () => {
       </Card>
     </div>
   );
+};
+
+const SettingsSchoolProfilePage: React.FC = () => {
+  return <SettingsSchoolProfileContent />;
 };
 
 export default SettingsSchoolProfilePage;

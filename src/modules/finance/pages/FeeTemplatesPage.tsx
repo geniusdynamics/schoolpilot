@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 type FeeTemplateFormData = Omit<Partial<FeeTemplate>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'student_category_name' | 'items'>;
 type FeeItemFormData = Omit<Partial<FeeTemplateItem>, 'id' | 'fee_template_id' | 'revenue_account_name' | 'linked_expense_category_name'>;
 
-const FeeTemplatesPage: React.FC = () => {
+export const FeeTemplatesContent: React.FC = () => {
   const { 
     feeTemplates, 
     schoolPeriods,
@@ -403,5 +403,11 @@ const FeeTemplatesPage: React.FC = () => {
     </div>
   );
 };
+
+const FeeTemplatesPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeeTemplatesContent />
+  </div>
+);
 
 export default FeeTemplatesPage;

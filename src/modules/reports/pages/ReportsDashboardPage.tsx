@@ -27,7 +27,7 @@ import ModuleDashboardShell, {
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
 
-const ReportsDashboardPage: React.FC = () => {
+export const ReportsDashboardPageContent: React.FC = () => {
   const {
     loading,
     students,
@@ -347,5 +347,10 @@ const ReportsDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const ReportsDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <ReportsDashboardPageContent />
+  </div>
+);
 
 export default ReportsDashboardPage;

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockSessionAttendance } from '../data/mockData';
 import type { SessionAttendance, DynamicAttendanceStatus } from '../data/types';
 
-const DynamicAttendancePage: React.FC = () => {
+export const DynamicAttendanceContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { students, classes, loading } = useAppData();
 
@@ -299,5 +299,11 @@ const DynamicAttendancePage: React.FC = () => {
     </div>
   );
 };
+
+const DynamicAttendancePage: React.FC = () => (
+  <div className="space-y-6">
+    <DynamicAttendanceContent />
+  </div>
+);
 
 export default DynamicAttendancePage;

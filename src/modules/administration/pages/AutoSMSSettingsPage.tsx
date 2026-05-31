@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockAutoSMSSettings } from '../data/mockData';
 import type { AutoSMSSetting, TriggerType, RecipientType } from '../data/types';
 
-const AutoSMSSettingsPage: React.FC = () => {
+export const AutoSMSSettingsContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { loading } = useAppData();
 
@@ -386,5 +386,11 @@ const AutoSMSSettingsPage: React.FC = () => {
     </div>
   );
 };
+
+const AutoSMSSettingsPage: React.FC = () => (
+  <div className="space-y-6">
+    <AutoSMSSettingsContent />
+  </div>
+);
 
 export default AutoSMSSettingsPage;

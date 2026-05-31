@@ -23,7 +23,7 @@ interface SubjectRow {
   comment: string;
 }
 
-const PortalResultsPage: React.FC = () => {
+export const PortalResultsContent: React.FC = () => {
   const { t } = useTranslation('portal');
   const {
     results,
@@ -254,6 +254,10 @@ const PortalResultsPage: React.FC = () => {
       )}
     </div>
   );
+};
+
+const PortalResultsPage: React.FC = () => {
+  return <PortalResultsContent />;
 };
 
 export default PortalResultsPage;

@@ -11,7 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { StationeryItem } from '../data/types';
 
-const StationeryPage: React.FC = () => {
+export const StationeryPageContent: React.FC = () => {
   const { t } = useTranslation('inventory');
   const { stationeryItems, loading } = useAppData();
 
@@ -443,5 +443,10 @@ const StationeryPage: React.FC = () => {
     </div>
   );
 };
+const StationeryPage: React.FC = () => (
+  <div className="space-y-6">
+    <StationeryPageContent />
+  </div>
+);
 
 export default StationeryPage;

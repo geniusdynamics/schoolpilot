@@ -6,9 +6,10 @@
       "description": "Manage student admissions and applications",
       "dashboard": "Dashboard",
       "newApplication": "New Application",
+      "applicationsHub": "Applications Hub",
       "applications": "Applications",
       "reviewQueue": "Review Queue",
-      "apply": "Apply Now",
+      "apply": "Apply",
       "track": "Track Application"
     }
   },

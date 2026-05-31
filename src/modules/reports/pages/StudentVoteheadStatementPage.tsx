@@ -15,7 +15,7 @@ import {
   StatementRow
 } from '@/utils/studentVoteheadStatement';
 
-const StudentVoteheadStatementPage: React.FC = () => {
+export const StudentVoteheadStatementPageContent: React.FC = () => {
   const { t } = useTranslation();
   const { 
     students, 
@@ -144,5 +144,10 @@ const StudentVoteheadStatementPage: React.FC = () => {
     </div>
   );
 };
+const StudentVoteheadStatementPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentVoteheadStatementPageContent />
+  </div>
+);
 
 export default StudentVoteheadStatementPage;

@@ -20,7 +20,7 @@ type PurchaseOrderFormData = Omit<Partial<PurchaseOrder>, 'id' | 'created_at' | 
 };
 type PurchaseOrderItemFormData = Omit<Partial<PurchaseOrderItem>, 'id' | 'purchase_order_id' | 'item_name' | 'line_total'>;
 
-const PurchaseOrdersPage: React.FC = () => {
+export const PurchaseOrdersPageContent: React.FC = () => {
   const { 
     purchaseOrders, 
     suppliers,
@@ -396,5 +396,10 @@ const PurchaseOrdersPage: React.FC = () => {
     </div>
   );
 };
+const PurchaseOrdersPage: React.FC = () => (
+  <div className="space-y-6">
+    <PurchaseOrdersPageContent />
+  </div>
+);
 
 export default PurchaseOrdersPage;

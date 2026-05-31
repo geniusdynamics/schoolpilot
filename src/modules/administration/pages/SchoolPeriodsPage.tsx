@@ -24,7 +24,7 @@ type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'u
     period_definition_id?: string;
 };
 
-const SchoolPeriodsPage: React.FC = () => {
+export const SchoolPeriodsContent: React.FC = () => {
   const { t } = useTranslation();
   const { schoolPeriods, addSchoolPeriod, updateSchoolPeriod, deleteSchoolPeriod } = useSchoolPeriodData();
   const { data: academicYears } = useAcademicYearData();
@@ -355,5 +355,11 @@ const SchoolPeriodsPage: React.FC = () => {
     </div>
   );
 };
+
+const SchoolPeriodsPage: React.FC = () => (
+  <div className="space-y-6">
+    <SchoolPeriodsContent />
+  </div>
+);
 
 export default SchoolPeriodsPage;

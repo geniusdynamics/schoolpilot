@@ -17,7 +17,7 @@ import Spinner from '@/components/ui/Spinner';
 
 type StudentPaymentFormData = Omit<Partial<StudentPayment>, 'id' | 'created_at' | 'updated_at' | 'student_name'>;
 
-const StudentPaymentsPage: React.FC = () => {
+export const StudentPaymentsPageContent: React.FC = () => {
   const {
     studentPayments,
     students,
@@ -241,5 +241,11 @@ const StudentPaymentsPage: React.FC = () => {
     </div>
   );
 };
+
+const StudentPaymentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentPaymentsPageContent />
+  </div>
+);
 
 export default StudentPaymentsPage;

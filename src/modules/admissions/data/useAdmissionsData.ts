@@ -15,10 +15,6 @@ import type {
   EnrollmentDetails,
   ApplicationNote,
   ApplicationStatus,
-  MonthlyDataPoint,
-  FunnelStage,
-  PipelineCounts,
-  TrendData,
 } from './types';
 import { ApplicationStatus as AppStatus } from './types';
 
@@ -50,13 +46,7 @@ export const useAdmissionsData = () => {
     deferred: 0,
     waitlisted: 0,
     enrolled: 0,
-    pipeline: {
-      contacts: 0,
-      enquired: 0,
-      applied: 0,
-      admitted: 0,
-      enrolled: 0,
-    },
+    pipeline: { contacts: 0, enquired: 0, applied: 0, admitted: 0, enrolled: 0 },
     byClass: [],
     byStatus: [],
     thisMonth: 0,
@@ -64,11 +54,7 @@ export const useAdmissionsData = () => {
     today: 0,
     monthlyData: [],
     funnel: [],
-    postAdmissions: {
-      declined: 0,
-      enrolled: 0,
-      total: 0,
-    },
+    postAdmissions: { declined: 0, enrolled: 0, total: 0 },
     trends: {
       enquiries: { direction: 'neutral', value: '0%' },
       applications: { direction: 'neutral', value: '0%' },
@@ -127,109 +113,6 @@ export const useAdmissionsData = () => {
     }
   }, []);
 
-  // Generate monthly data for charts (last 12 months)
-  const generateMonthlyData = (apps: Application[]): MonthlyDataPoint[] => {
-    const months: MonthlyDataPoint[] = [];
-    const now = new Date();
-    
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
-      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-      
-      const monthApps = apps.filter(a => {
-        const appDate = new Date(a.createdAt);
-        return appDate >= monthStart && appDate <= monthEnd;
-      });
-      
-      months.push({
-        month: monthName,
-        enquiries: Math.floor(monthApps.length * 1.2), // Estimate enquiries as 20% more than apps
-        conversions: monthApps.filter(a => a.status !== AppStatus.DRAFT && a.status !== AppStatus.SUBMITTED).length,
-        applications: monthApps.length,
-        enrolled: monthApps.filter(a => a.status === AppStatus.ENROLLED).length,
-      });
-    }
-    
-    return months;
-  };
-
-  // Generate conversion funnel data
-  const generateFunnelData = (apps: Application[]): FunnelStage[] => {
-    const total = apps.length || 1; // Avoid division by zero
-    
-    const pending = apps.filter(a => a.status === AppStatus.SUBMITTED).length;
-    const applied = apps.filter(a => 
-      a.status === AppStatus.UNDER_REVIEW || 
-      a.status === AppStatus.INTERVIEW_SCHEDULED ||
-      a.status === AppStatus.APPROVED ||
-      a.status === AppStatus.REJECTED ||
-      a.status === AppStatus.DEFERRED ||
-      a.status === AppStatus.WAITLISTED ||
-      a.status === AppStatus.ENROLLED
-    ).length;
-    const admitted = apps.filter(a => a.status === AppStatus.APPROVED).length;
-    const waitlisted = apps.filter(a => a.status === AppStatus.WAITLISTED).length;
-    const declined = apps.filter(a => a.status === AppStatus.REJECTED).length;
-    const enrolled = apps.filter(a => a.status === AppStatus.ENROLLED).length;
-    const graduated = 0; // Would come from student records
-    const withdrawn = apps.filter(a => a.status === AppStatus.DEFERRED).length;
-    
-    const baseCount = Math.max(pending, applied, 1);
-    
-    return [
-      { stage: 'Pending', count: pending, percentage: Math.round((pending / baseCount) * 100), color: '#E8D568' },
-      { stage: 'Applied', count: applied, percentage: Math.round((applied / baseCount) * 100), color: '#4A90E2' },
-      { stage: 'Admitted', count: admitted, percentage: Math.round((admitted / baseCount) * 100), color: '#7ED321' },
-      { stage: 'Wait-listed', count: waitlisted, percentage: Math.round((waitlisted / baseCount) * 100), color: '#BD10E0' },
-      { stage: 'Declined', count: declined, percentage: Math.round((declined / baseCount) * 100), color: '#D0021B' },
-      { stage: 'Enrolled', count: enrolled, percentage: Math.round((enrolled / baseCount) * 100), color: '#50E3C2' },
-      { stage: 'Graduated', count: graduated, percentage: Math.round((graduated / baseCount) * 100), color: '#9013FE' },
-      { stage: 'Withdrawn', count: withdrawn, percentage: Math.round((withdrawn / baseCount) * 100), color: '#F5A623' },
-    ];
-  };
-
-  // Generate trend data
-  const generateTrends = (apps: Application[]): ApplicationStatistics['trends'] => {
-    const now = new Date();
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-    
-    const thisMonthApps = apps.filter(a => new Date(a.createdAt) >= thisMonth).length;
-    const lastMonthApps = apps.filter(a => {
-      const d = new Date(a.createdAt);
-      return d >= lastMonth && d < thisMonth;
-    }).length;
-    const prevMonthApps = apps.filter(a => {
-      const d = new Date(a.createdAt);
-      return d >= prevMonth && d < lastMonth;
-    }).length;
-    
-    const calcTrend = (current: number, previous: number): TrendData => {
-      if (previous === 0) return { direction: current > 0 ? 'up' : 'neutral', value: current > 0 ? '+100%' : '0%' };
-      const change = ((current - previous) / previous) * 100;
-      return {
-        direction: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
-        value: `${change > 0 ? '+' : ''}${Math.round(change)}%`,
-      };
-    };
-    
-    return {
-      enquiries: calcTrend(thisMonthApps * 1.2, lastMonthApps * 1.2),
-      applications: calcTrend(thisMonthApps, lastMonthApps),
-      enrollment: calcTrend(
-        apps.filter(a => a.status === AppStatus.ENROLLED && new Date(a.createdAt) >= thisMonth).length,
-        apps.filter(a => a.status === AppStatus.ENROLLED && new Date(a.createdAt) >= lastMonth && new Date(a.createdAt) < thisMonth).length
-      ),
-      conversionRate: calcTrend(
-        lastMonthApps > 0 ? Math.round((thisMonthApps / lastMonthApps) * 100) : 0,
-        prevMonthApps > 0 ? Math.round((lastMonthApps / prevMonthApps) * 100) : 0
-      ),
-    };
-  };
-
   // Update statistics based on applications
   const updateStatistics = (apps: Application[]) => {
     const now = new Date();
@@ -237,37 +120,19 @@ export const useAdmissionsData = () => {
     const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const enrolled = apps.filter(a => a.status === AppStatus.ENROLLED).length;
-    const declined = apps.filter(a => a.status === AppStatus.REJECTED).length;
-
     const stats: ApplicationStatistics = {
       totalApplications: apps.length,
       pendingReview: apps.filter(a => a.status === AppStatus.UNDER_REVIEW).length,
       approved: apps.filter(a => a.status === AppStatus.APPROVED).length,
-      rejected: declined,
+      rejected: apps.filter(a => a.status === AppStatus.REJECTED).length,
       deferred: apps.filter(a => a.status === AppStatus.DEFERRED).length,
       waitlisted: apps.filter(a => a.status === AppStatus.WAITLISTED).length,
-      enrolled,
-      pipeline: {
-        contacts: Math.floor(apps.length * 0.3),
-        enquired: Math.floor(apps.length * 0.6),
-        applied: apps.filter(a => a.status !== AppStatus.DRAFT).length,
-        admitted: apps.filter(a => a.status === AppStatus.APPROVED).length,
-        enrolled,
-      },
+      enrolled: apps.filter(a => a.status === AppStatus.ENROLLED).length,
       byClass: [],
       byStatus: [],
       thisMonth: apps.filter(a => new Date(a.createdAt) >= startOfMonth).length,
       thisWeek: apps.filter(a => new Date(a.createdAt) >= startOfWeek).length,
       today: apps.filter(a => new Date(a.createdAt) >= startOfDay).length,
-      monthlyData: generateMonthlyData(apps),
-      funnel: generateFunnelData(apps),
-      postAdmissions: {
-        declined,
-        enrolled,
-        total: declined + enrolled,
-      },
-      trends: generateTrends(apps),
     };
 
     // Group by class

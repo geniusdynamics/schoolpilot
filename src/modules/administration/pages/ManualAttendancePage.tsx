@@ -21,7 +21,7 @@ interface ManualAttendanceRecord {
   notes?: string;
 }
 
-const ManualAttendancePage: React.FC = () => {
+export const ManualAttendanceContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { students, classes, loading } = useAppData();
 
@@ -317,5 +317,11 @@ const ManualAttendancePage: React.FC = () => {
     </div>
   );
 };
+
+const ManualAttendancePage: React.FC = () => (
+  <div className="space-y-6">
+    <ManualAttendanceContent />
+  </div>
+);
 
 export default ManualAttendancePage;

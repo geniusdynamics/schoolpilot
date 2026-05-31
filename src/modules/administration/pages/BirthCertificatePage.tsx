@@ -21,7 +21,7 @@ interface Student {
   address: string;
 }
 
-const BirthCertificatePage: React.FC = () => {
+export const BirthCertificateContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { loading } = useAppData();
 
@@ -300,5 +300,11 @@ const BirthCertificatePage: React.FC = () => {
     </div>
   );
 };
+
+const BirthCertificatePage: React.FC = () => (
+  <div className="space-y-6">
+    <BirthCertificateContent />
+  </div>
+);
 
 export default BirthCertificatePage;

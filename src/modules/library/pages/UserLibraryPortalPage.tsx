@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import Spinner from '@/components/ui/Spinner';
 import { LibLoanType, LibrarySettingsType } from '@/modules/library/data/types';
 
-const UserLibraryPortalPage: React.FC = () => {
+export const UserLibraryPortalPageContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { data: loans, extendLoan, returnBook, isLoading, getOverdueLoans } = useLoanData();
   const { data: librarySettings, getSettingsByUserType } = useLibrarySettingsData();
@@ -284,6 +284,10 @@ const UserLibraryPortalPage: React.FC = () => {
     </div>
   );
 };
+const UserLibraryPortalPage: React.FC = () => (
+  <div className="space-y-6">
+    <UserLibraryPortalPageContent />
+  </div>
+);
 
 export default UserLibraryPortalPage;
-

@@ -16,7 +16,7 @@ import type { PayrollPeriod } from '@/modules/hr/data/types';
 
 type PayrollPeriodFormData = Omit<Partial<PayrollPeriod>, 'id' | 'created_at' | 'updated_at'>;
 
-const PayrollPeriodsPage: React.FC = () => {
+export const PayrollPeriodsPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const { payrollPeriods, loading: appDataLoading, refreshCollection } = useAppData();
   
@@ -314,5 +314,11 @@ const PayrollPeriodsPage: React.FC = () => {
     </div>
   );
 };
+
+const PayrollPeriodsPage: React.FC = () => (
+  <div className="space-y-6">
+    <PayrollPeriodsPageContent />
+  </div>
+);
 
 export default PayrollPeriodsPage;

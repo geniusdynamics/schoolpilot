@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -11,10 +12,6 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { CertificateType, CertificateStatus } from '../data/types';
 import type { CertificateRequest } from '../data/types';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
 
 const CertificatesManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -234,7 +231,7 @@ const CertificatesManagementPage: React.FC = () => {
       </Card>
 
       {selectedCertificate && (
-        <DialogForm
+        <Modal
           isOpen={!!selectedCertificate}
           onClose={() => setSelectedCertificate(null)}
           title={`Certificate Details: ${selectedCertificate.certificate_number}`}
@@ -290,72 +287,62 @@ const CertificatesManagementPage: React.FC = () => {
               </div>
             )}
           </div>
-        </DialogForm>
+        </Modal>
       )}
 
-      <DialogForm
+      <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
         title={t('certificates.newRequest')}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button onClick={handleSubmit}>Submit Request</Button>
+          </>
+        }
       >
-        <FormSection title="Student Information">
-          <FormField label="Student Name" required>
-            <Input
-              value={formData.student_name}
-              onChange={(value) => handleInputChange('student_name', value)}
-              required
-            />
-          </FormField>
-          <FormField label="Admission Number">
-            <Input
-              value={formData.admission_number}
-              onChange={(value) => handleInputChange('admission_number', value)}
-            />
-          </FormField>
-          <FormField label="Class">
-            <Input
-              value={formData.class_name}
-              onChange={(value) => handleInputChange('class_name', value)}
-            />
-          </FormField>
-        </FormSection>
-
-        <FormSection title="Certificate Details">
-          <FormField label="Certificate Type" required>
-            <Select
-              value={formData.certificate_type}
-              onChange={(value) => handleInputChange('certificate_type', value)}
-              options={Object.values(CertificateType).map(t => ({ label: t, value: t }))}
-              required
-            />
-          </FormField>
-          <FormField label="Purpose">
-            <Textarea
-              value={formData.purpose}
-              onChange={(value) => handleInputChange('purpose', value)}
-              rows={3}
-            />
-          </FormField>
-          <FormField label="Remarks">
-            <Textarea
-              value={formData.remarks}
-              onChange={(value) => handleInputChange('remarks', value)}
-              rows={2}
-            />
-          </FormField>
-        </FormSection>
-
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button type="submit">Submit Request</Button>
-        </FormActions>
-      </DialogForm>
+        <div className="space-y-4">
+          <Input
+            label="Student Name"
+            value={formData.student_name}
+            onChange={(value) => handleInputChange('student_name', value)}
+            required
+          />
+          <Input
+            label="Admission Number"
+            value={formData.admission_number}
+            onChange={(value) => handleInputChange('admission_number', value)}
+          />
+          <Input
+            label="Class"
+            value={formData.class_name}
+            onChange={(value) => handleInputChange('class_name', value)}
+          />
+          <Select
+            label="Certificate Type"
+            value={formData.certificate_type}
+            onChange={(value) => handleInputChange('certificate_type', value)}
+            options={Object.values(CertificateType).map(t => ({ label: t, value: t }))}
+            required
+          />
+          <Textarea
+            label="Purpose"
+            value={formData.purpose}
+            onChange={(value) => handleInputChange('purpose', value)}
+            rows={3}
+          />
+          <Textarea
+            label="Remarks"
+            value={formData.remarks}
+            onChange={(value) => handleInputChange('remarks', value)}
+            rows={2}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };
 
 export default CertificatesManagementPage;
+
+export const CertificatesManagementContent = CertificatesManagementPage;

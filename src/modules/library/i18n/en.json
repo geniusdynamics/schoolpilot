@@ -5,6 +5,7 @@
       "title": "Library",
       "description": "Manage books, loans, fines, and digital resources",
       "dashboard": "Dashboard",
+      "resources": "Resources",
       "books": "Books",
       "bookCategories": "Book Categories",
       "bookLoans": "Book Loans",

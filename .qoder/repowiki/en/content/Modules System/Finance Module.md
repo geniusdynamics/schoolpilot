@@ -6,70 +6,58 @@
 - [moduleDefinition.tsx](file://src/modules/finance/moduleDefinition.tsx)
 - [rbac.ts](file://src/modules/finance/rbac.ts)
 - [hooks/index.ts](file://src/modules/finance/hooks/index.ts)
-- [hooks/useFinance.ts](file://src/modules/finance/hooks/useFinance.ts)
-- [data/useFinanceData.ts](file://src/modules/finance/data/useFinanceData.ts)
-- [data/appDataAugmentation.ts](file://src/modules/finance/data/appDataAugmentation.ts)
-- [data/types.ts](file://src/modules/finance/data/types.ts)
-- [data/collections.ts](file://src/modules/finance/data/collections.ts)
-- [data/schema.ts](file://src/modules/finance/data/schema.ts)
-- [pages/BalanceSheetPage.tsx](file://src/modules/finance/pages/BalanceSheetPage.tsx)
-- [pages/CashBookPage.tsx](file://src/modules/finance/pages/CashBookPage.tsx)
-- [pages/DayBookPage.tsx](file://src/modules/finance/pages/DayBookPage.tsx)
-- [pages/FeesDueReportPage.tsx](file://src/modules/finance/pages/FeesDueReportPage.tsx)
-- [pages/FeesFinesPage.tsx](file://src/modules/finance/pages/FeesFinesPage.tsx)
-- [pages/FeesInstallmentsPage.tsx](file://src/modules/finance/pages/FeesInstallmentsPage.tsx)
-- [pages/FeesReceiptTemplatePage.tsx](file://src/modules/finance/pages/FeesReceiptTemplatePage.tsx)
-- [pages/IncomeStatementPage.tsx](file://src/modules/finance/pages/IncomeStatementPage.tsx)
-- [pages/JournalRegisterPage.tsx](file://src/modules/finance/pages/JournalRegisterPage.tsx)
-- [pages/PreviousSessionFeesPage.tsx](file://src/modules/finance/pages/PreviousSessionFeesPage.tsx)
-- [pages/StudentsPaidBookPage.tsx](file://src/modules/finance/pages/StudentsPaidBookPage.tsx)
-- [pages/TrialBalancePage.tsx](file://src/modules/finance/pages/TrialBalancePage.tsx)
+- [hooks/useFinanceServices.ts](file://src/modules/finance/hooks/useFinanceServices.ts)
+- [services/index.ts](file://src/modules/finance/services/index.ts)
+- [services/registerServices.ts](file://src/modules/finance/services/registerServices.ts)
+- [pages/FeeConfigurationHubPage.tsx](file://src/modules/finance/pages/FeeConfigurationHubPage.tsx)
+- [pages/AccountingConfigPage.tsx](file://src/modules/finance/pages/AccountingConfigPage.tsx)
+- [pages/AccountingOperationsPage.tsx](file://src/modules/finance/pages/AccountingOperationsPage.tsx)
+- [pages/FinanceReportsHubPage.tsx](file://src/modules/finance/pages/FinanceReportsHubPage.tsx)
+- [pages/FinancialStatementsPage.tsx](file://src/modules/finance/pages/FinancialStatementsPage.tsx)
+- [pages/PaymentsHubPage.tsx](file://src/modules/finance/pages/PaymentsHubPage.tsx)
+- [pages/StudentFeeHistoryPage.tsx](file://src/modules/finance/pages/StudentFeeHistoryPage.tsx)
+- [pages/InvoicingHubPage.tsx](file://src/modules/finance/pages/InvoicingHubPage.tsx)
+- [pages/VoteheadStatementPage.tsx](file://src/modules/finance/pages/VoteheadStatementPage.tsx)
+- [studentVoteheadStatement.ts](file://src/utils/studentVoteheadStatement.ts)
 - [CONTEXT.md](file://CONTEXT.md)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Enhanced module augmentation system with comprehensive TypeScript declaration merging pattern
-- Updated documentation to reflect the new 96-line appDataAugmentation.ts implementation
-- Added detailed coverage of financial collections extension for AppDataType and AppDataContextType
-- Expanded financial data type safety with 36+ entity types and complete schema integration
-- Integrated comprehensive module augmentation system for seamless AppData integration
+- Updated to reflect new comprehensive hub page architecture consolidating complex financial workflows
+- Added documentation for six new hub pages: FeeConfigurationHubPage, AccountingConfigPage, AccountingOperationsPage, FinanceReportsHubPage, FinancialStatementsPage, PaymentsHubPage, StudentFeeHistoryPage
+- Enhanced navigation structure with 10 focused hub pages replacing previous consolidated approach
+- Updated service architecture documentation to reflect new tabbed interface patterns
+- Revised financial reporting capabilities with dedicated hub page structure
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
-5. [Financial Services Layer](#financial-services-layer)
-6. [React Hooks Ecosystem](#react-hooks-ecosystem)
-7. [Service Registration System](#service-registration-system)
-8. [Enhanced Reporting Capabilities](#enhanced-reporting-capabilities)
-9. [Comprehensive Accounting Pages](#comprehensive-accounting-pages)
-10. [Fee Management Enhancements](#fee-management-enhancements)
-11. [Receipt Management System](#receipt-management-system)
-12. [Data Layer Evolution](#data-layer-evolution)
-13. [Navigation and Features](#navigation-and-features)
-14. [Internationalization and Multilingual Support](#internationalization-and-multilingual-support)
-15. [Performance Considerations](#performance-considerations)
-16. [Troubleshooting Guide](#troubleshooting-guide)
-17. [Conclusion](#conclusion)
+5. [Hub Page Architecture](#hub-page-architecture)
+6. [Financial Services Layer](#financial-services-layer)
+7. [React Hooks Ecosystem](#react-hooks-ecosystem)
+8. [Service Registration System](#service-registration-system)
+9. [Enhanced Reporting Capabilities](#enhanced-reporting-capabilities)
+10. [Data Layer Evolution](#data-layer-evolution)
+11. [Navigation and Features](#navigation-and-features)
+12. [Performance Considerations](#performance-considerations)
+13. [Troubleshooting Guide](#troubleshooting-guide)
+14. [Conclusion](#conclusion)
 
 ## Introduction
-This document describes the Finance module functionality within the system, featuring a comprehensive transformation to a service-oriented architecture with TypeScript implementations replacing traditional stored procedures and database-side financial processing. The module now provides advanced financial management capabilities through a modernized approach with specialized financial services, computed view hooks, and comprehensive reporting features. The architecture emphasizes modular design with specialized services for invoice management, payment processing, and financial analytics, supported by a robust hooks ecosystem for real-time data computation and presentation.
-
-**Updated** Enhanced with comprehensive accounting system including detailed financial statements, fee management enhancements, receipt template customization, and extensive data model integration through TypeScript module augmentation. The module now implements a sophisticated declaration merging pattern that extends AppDataType and AppDataContextType with 36+ financial entity collections and comprehensive CRUD operations.
+This document describes the Finance module functionality within the system, featuring a comprehensive transformation to a hub-based architecture with specialized financial management capabilities. The module now provides advanced financial management through a modernized approach with six dedicated hub pages, TypeScript implementations replacing traditional stored procedures, and comprehensive reporting features. The architecture emphasizes modular design with specialized services for fee management, payment processing, accounting operations, financial reporting, and comprehensive tabbed interface patterns supporting real-time data computation and presentation.
 
 ## Project Structure
-The Finance module follows a modernized structure with enhanced service architecture and comprehensive hook-based data management:
+The Finance module follows a modernized structure with enhanced hub page architecture and comprehensive tabbed interface patterns:
 
-- Module definition with 23 navigation routes covering comprehensive financial management
+- Module definition with 10 navigation routes organized into focused hub pages
 - RBAC permissions for granular access control across payment processing and reporting
 - Service-oriented architecture with TypeScript implementations replacing stored procedures
 - React hooks ecosystem for computed views and financial analytics
 - Enhanced data layer with computed view hooks replacing PostgreSQL views
-- Comprehensive financial reporting and analytics capabilities
-- **Updated** Extensive data model with 36+ financial entity types and module augmentation system
-- **Updated** TypeScript module augmentation for compile-time type safety across all financial collections
+- Comprehensive financial reporting and analytics capabilities through dedicated hub pages
 
 ```mermaid
 graph TB
@@ -79,46 +67,27 @@ A --> D["Enhanced Services Layer<br/>Financial Services + Hooks"]
 D --> E["P0 Services<br/>InvoiceStatusService, InvoiceGenerationService, PaymentAllocationService"]
 D --> F["Service Registration<br/>registerServices.ts"]
 D --> G["Hook Wrappers<br/>useInvoiceStatus, useInvoiceGeneration, usePaymentAllocation"]
-B --> H["23 Navigation Routes<br/>Comprehensive Financial Management"]
+B --> H["10 Navigation Routes<br/>Hub Page Architecture"]
 B --> I["Feature Flags<br/>Fee Management, Payment Processing, Accounting, Expense Tracking, Transport Finance"]
-J["Enhanced Accounting Pages<br/>New Comprehensive System"] --> K["Balance Sheet"]
-J --> L["Cash Book"]
-J --> M["Day Book"]
-J --> N["Income Statement"]
-J --> O["Journal Register"]
-P["Fee Management Enhancements<br/>Fines & Installments"] --> Q["Fees Fines"]
-P --> R["Fee Installments"]
-S["Receipt Management<br/>Custom Templates"] --> T["Fees Receipt Template"]
-T --> U["Template Preview & Printing"]
-V["Data Model Enhancement<br/>36+ Entity Types"] --> W["Financial Year Management"]
-V --> X["Chart of Accounts"]
-V --> Y["Expense Categories"]
-V --> Z["Banking Operations"]
-AA["Supplier Management<br/>Supplier Invoicing"] --> BB["Supplier Invoices"]
-AA --> CC["Supplier Contracts"]
-DD["Module Augmentation<br/>Type Safety"] --> EE["AppData Integration"]
-DD --> FF["Declaration Merging<br/>96 Lines of Type Extensions"]
 ```
 
 **Diagram sources**
 - [index.ts:1-31](file://src/modules/finance/index.ts#L1-L31)
-- [moduleDefinition.tsx:24-87](file://src/modules/finance/moduleDefinition.tsx#L24-L87)
+- [moduleDefinition.tsx:33-135](file://src/modules/finance/moduleDefinition.tsx#L33-L135)
 - [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
-- [hooks/index.ts:1-6](file://src/modules/finance/hooks/index.ts#L1-L6)
-- [hooks/useFinance.ts:1-141](file://src/modules/finance/hooks/useFinance.ts#L1-L141)
-- [data/useFinanceData.ts:1-396](file://src/modules/finance/data/useFinanceData.ts#L1-L396)
-- [data/appDataAugmentation.ts:1-97](file://src/modules/finance/data/appDataAugmentation.ts#L1-L97)
-- [data/types.ts:1-602](file://src/modules/finance/data/types.ts#L1-L602)
+- [hooks/index.ts:1-19](file://src/modules/finance/hooks/index.ts#L1-L19)
+- [services/index.ts:1-33](file://src/modules/finance/services/index.ts#L1-L33)
+- [services/registerServices.ts:1-59](file://src/modules/finance/services/registerServices.ts#L1-L59)
 
 **Section sources**
 - [index.ts:1-31](file://src/modules/finance/index.ts#L1-L31)
 - [CONTEXT.md:312-356](file://CONTEXT.md#L312-L356)
 
 ## Core Components
-The Finance module now provides comprehensive financial management through an enhanced service-oriented architecture with specialized financial services and computed view hooks:
+The Finance module now provides comprehensive financial management through an enhanced hub page architecture with specialized financial services and computed view hooks:
 
 ### Module Definition and Registration
-- Declares module identity, version, dependencies, 23 navigation routes, data hooks, and permissions
+- Declares module identity, version, dependencies, 10 navigation routes, data hooks, and permissions
 - Supports both required (administration) and optional dependencies
 - Features include comprehensive fee management, advanced payment processing, integrated accounting, detailed expense tracking, and transport finance
 - Includes extensive feature flags for enabling/disabling specific financial functionalities
@@ -143,14 +112,14 @@ The module now features a sophisticated service-oriented architecture that repla
 - **Lazy Singleton Pattern**: Services registered as factories for runtime dependency initialization
 
 **Section sources**
-- [moduleDefinition.tsx:24-87](file://src/modules/finance/moduleDefinition.tsx#L24-L87)
+- [moduleDefinition.tsx:33-135](file://src/modules/finance/moduleDefinition.tsx#L33-L135)
 - [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
-- [hooks/index.ts:1-6](file://src/modules/finance/hooks/index.ts#L1-L6)
-- [hooks/useFinance.ts:1-141](file://src/modules/finance/hooks/useFinance.ts#L1-L141)
-- [data/useFinanceData.ts:1-396](file://src/modules/finance/data/useFinanceData.ts#L1-L396)
+- [hooks/index.ts:1-19](file://src/modules/finance/hooks/index.ts#L1-L19)
+- [services/index.ts:1-33](file://src/modules/finance/services/index.ts#L1-L33)
+- [services/registerServices.ts:1-59](file://src/modules/finance/services/registerServices.ts#L1-L59)
 
 ## Architecture Overview
-The Finance module integrates comprehensively with the broader system through its enhanced service-oriented architecture and computed view hooks:
+The Finance module integrates comprehensively with the broader system through its enhanced hub page architecture and computed view hooks:
 
 ```mermaid
 graph TB
@@ -163,60 +132,181 @@ CVH["Computed View Hooks"]
 DS["Database Service"]
 DB["Unified Database<br/>RxDB/PouchDB"]
 UDM["UnifiedDatabaseManager"]
-MA["Module Augmentation<br/>TypeScript"]
-ADT["AppDataType<br/>AppDataContextType"]
 end
-subgraph "Finance Module Ecosystem"
+subgraph "Finance Module Hub Architecture"
 F["Finance Module"]
-ISS["InvoiceStatusService"]
-IGS["InvoiceGenerationService"]
-PAS["PaymentAllocationService"]
-UIS["useInvoiceStatus"]
-UIG["useInvoiceGeneration"]
-UPA["usePaymentAllocation"]
-ALS["useAccountLedger"]
-FCS["useFeeCollectionSummary"]
-SFS["useStudentFinancialSummary"]
-VS["useVoteheadStatement"]
-BSP["BalanceSheetPage"]
-CBP["CashBookPage"]
-DBP["DayBookPage"]
-ISP["IncomeStatementPage"]
-JRP["JournalRegisterPage"]
-AAA["AppDataAugmentation<br/>Module Types"]
-FT["FinancialTypes<br/>36+ Entities"]
-end
+FH["FeeConfigurationHubPage"]
+ACH["AccountingConfigPage"]
+AOP["AccountingOperationsPage"]
+FRH["FinanceReportsHubPage"]
+FSP["FinancialStatementsPage"]
+PHP["PaymentsHubPage"]
+SFH["StudentFeeHistoryPage"]
+IH["InvoicingHubPage"]
 F --> M
 F --> R
 F --> SR
 F --> FS
 F --> CVH
-FS --> ISS
-FS --> IGS
-FS --> PAS
-FS --> UIS
-FS --> UIG
-FS --> UPA
-CVH --> ALS
-CVH --> FCS
-CVH --> SFS
-CVH --> VS
-SR --> ISS
-SR --> IGS
-SR --> PAS
-FS --> DS
-CVH --> DS
-DS --> DB
-DB --> UDM
-MA --> ADT
-AAA --> FT
+F --> FH
+F --> ACH
+F --> AOP
+F --> FRH
+F --> FSP
+F --> PHP
+F --> SFH
+F --> IH
+end
 ```
 
 **Diagram sources**
-- [moduleDefinition.tsx:24-87](file://src/modules/finance/moduleDefinition.tsx#L24-L87)
+- [moduleDefinition.tsx:33-135](file://src/modules/finance/moduleDefinition.tsx#L33-L135)
 - [rbac.ts:1-51](file://src/modules/finance/rbac.ts#L1-L51)
-- [hooks/index.ts:1-6](file://src/modules/finance/hooks/index.ts#L1-L6)
-- [data/appDataAugmentation.ts:38-96](file://src/modules/finance/data/appDataAugmentation.ts#L38-L96)
+- [hooks/index.ts:1-19](file://src/modules/finance/hooks/index.ts#L1-L19)
+- [services/registerServices.ts:13-25](file://src/modules/finance/services/registerServices.ts#L13-L25)
+
+## Hub Page Architecture
+The Finance module now provides comprehensive financial management through six dedicated hub pages that consolidate complex workflows:
+
+### Fee Configuration Hub
+The FeeConfigurationHubPage consolidates fee templates, structures, and receipt templates into a tabbed interface:
+
+```mermaid
+graph TB
+FCH["FeeConfigurationHubPage"] --> FT["Fee Templates Tab"]
+FCH --> EFS["Effect Fee Structures Tab"]
+FCH --> FRT["Fees Receipt Template Tab"]
+FT --> FTContent["FeeTemplatesContent"]
+EFS --> EFSContent["EffectFeeStructuresPageContent"]
+FRT --> FRTContent["FeesReceiptTemplatePageContent"]
+```
+
+**Diagram sources**
+- [pages/FeeConfigurationHubPage.tsx:25-89](file://src/modules/finance/pages/FeeConfigurationHubPage.tsx#L25-L89)
+
+### Accounting Configuration Hub
+The AccountingConfigPage manages chart of accounts and bank accounts through dedicated tabs:
+
+```mermaid
+graph TB
+ACP["AccountingConfigPage"] --> COA["Chart of Accounts Tab"]
+ACP --> BK["Banks Tab"]
+COA --> COAContent["ChartOfAccountsContent"]
+BK --> BKContent["BanksPageContent"]
+```
+
+**Diagram sources**
+- [pages/AccountingConfigPage.tsx:19-77](file://src/modules/finance/pages/AccountingConfigPage.tsx#L19-L77)
+
+### Accounting Operations Hub
+The AccountingOperationsPage consolidates ledger, cash book, day book, and journal register operations:
+
+```mermaid
+graph TB
+AOP["AccountingOperationsPage"] --> LED["Account Ledger Tab"]
+AOP --> CB["Cash Book Tab"]
+AOP --> DB["Day Book Tab"]
+AOP --> JR["Journal Register Tab"]
+LED --> LEDContent["AccountLedgerPageContent"]
+CB --> CBContent["CashBookPageContent"]
+DB --> DBContent["DayBookPageContent"]
+JR --> JRContent["JournalRegisterPageContent"]
+```
+
+**Diagram sources**
+- [pages/AccountingOperationsPage.tsx:21-90](file://src/modules/finance/pages/AccountingOperationsPage.tsx#L21-L90)
+
+### Finance Reports Hub
+The FinanceReportsHubPage provides consolidated reporting for fees due, students paid, and votehead statements:
+
+```mermaid
+graph TB
+FRH["FinanceReportsHubPage"] --> FD["Fees Due Tab"]
+FRH --> SP["Students Paid Tab"]
+FRH --> VS["Votehead Statement Tab"]
+FD --> FDContent["FeesDueReportPageContent"]
+SP --> SPContent["StudentsPaidBookPageContent"]
+VS --> VSContent["VoteheadStatementPageContent"]
+```
+
+**Diagram sources**
+- [pages/FinanceReportsHubPage.tsx:24-88](file://src/modules/finance/pages/FinanceReportsHubPage.tsx#L24-L88)
+
+### Financial Statements Hub
+The FinancialStatementsPage consolidates trial balance, balance sheet, and income statement reporting:
+
+```mermaid
+graph TB
+FSP["FinancialStatementsPage"] --> TB["Trial Balance Tab"]
+FSP --> BS["Balance Sheet Tab"]
+FSP --> IS["Income Statement Tab"]
+TB --> TBContent["TrialBalancePageContent"]
+BS --> BSContent["BalanceSheetPageContent"]
+IS --> ISContent["IncomeStatementPageContent"]
+```
+
+**Diagram sources**
+- [pages/FinancialStatementsPage.tsx:21-84](file://src/modules/finance/pages/FinancialStatementsPage.tsx#L21-L84)
+
+### Payments Hub
+The PaymentsHubPage consolidates student payments, opening balances, fee collection summary, financial summary, payment allocation, and general receipts:
+
+```mermaid
+graph TB
+PHP["PaymentsHubPage"] --> SP["Student Payments Tab"]
+PHP --> FCS["Fee Collection Summary Tab"]
+PHP --> SFS["Student Financial Summary Tab"]
+PHP --> PA["Payment Allocation Tab"]
+PHP --> GR["General Receipts Tab"]
+SP --> SPContent["StudentPaymentsPageContent"]
+FCS --> FCSContent["FeeCollectionSummaryPageContent"]
+SFS --> SFSContent["StudentFinancialSummaryPageContent"]
+PA --> PAContent["PaymentAllocationPageContent"]
+GR --> GRContent["GeneralReceiptsPageContent"]
+```
+
+**Diagram sources**
+- [pages/PaymentsHubPage.tsx:27-87](file://src/modules/finance/pages/PaymentsHubPage.tsx#L27-L87)
+
+### Student Fee History Hub
+The StudentFeeHistoryPage manages opening balances and previous session fees:
+
+```mermaid
+graph TB
+SFH["StudentFeeHistoryPage"] --> OB["Opening Balances Tab"]
+SFH --> PS["Previous Session Tab"]
+OB --> OBContent["StudentOpeningBalancesPageContent"]
+PS --> PSContent["PreviousSessionFeesPageContent"]
+```
+
+**Diagram sources**
+- [pages/StudentFeeHistoryPage.tsx:19-76](file://src/modules/finance/pages/StudentFeeHistoryPage.tsx#L19-L76)
+
+### Invoicing Hub
+The InvoicingHubPage consolidates invoice generation, customer invoices, and supplier invoices:
+
+```mermaid
+graph TB
+IH["InvoicingHubPage"] --> IG["Invoice Generation Tab"]
+IH --> CI["Customer Invoices Tab"]
+IH --> SI["Supplier Invoices Tab"]
+IG --> IGContent["InvoiceGenerationPageContent"]
+CI --> CIContent["CustomerInvoicesPageContent"]
+SI --> SIContent["SupplierInvoicesPageContent"]
+```
+
+**Diagram sources**
+- [pages/InvoicingHubPage.tsx:23-86](file://src/modules/finance/pages/InvoicingHubPage.tsx#L23-L86)
+
+**Section sources**
+- [pages/FeeConfigurationHubPage.tsx:1-93](file://src/modules/finance/pages/FeeConfigurationHubPage.tsx#L1-L93)
+- [pages/AccountingConfigPage.tsx:1-80](file://src/modules/finance/pages/AccountingConfigPage.tsx#L1-L80)
+- [pages/AccountingOperationsPage.tsx:1-94](file://src/modules/finance/pages/AccountingOperationsPage.tsx#L1-L94)
+- [pages/FinanceReportsHubPage.tsx:1-92](file://src/modules/finance/pages/FinanceReportsHubPage.tsx#L1-L92)
+- [pages/FinancialStatementsPage.tsx:1-88](file://src/modules/finance/pages/FinancialStatementsPage.tsx#L1-L88)
+- [pages/PaymentsHubPage.tsx:1-91](file://src/modules/finance/pages/PaymentsHubPage.tsx#L1-L91)
+- [pages/StudentFeeHistoryPage.tsx:1-80](file://src/modules/finance/pages/StudentFeeHistoryPage.tsx#L1-L80)
+- [pages/InvoicingHubPage.tsx:1-91](file://src/modules/finance/pages/InvoicingHubPage.tsx#L1-L91)
 
 ## Financial Services Layer
 The Finance module now provides comprehensive financial services through TypeScript implementations that replace traditional stored procedures:
@@ -240,6 +330,9 @@ DB-->>ISS : statusUpdateResult
 ISS->>Client : InvoiceStatusUpdateResult
 ```
 
+**Diagram sources**
+- [hooks/useFinanceServices.ts:89-137](file://src/modules/finance/hooks/useFinanceServices.ts#L89-L137)
+
 ### Invoice Generation Workflow Service
 The InvoiceGenerationService handles automated invoice creation and generation with template-based processing:
 
@@ -252,6 +345,9 @@ Creation --> GLPosting["Post to General Ledger<br/>Automatically"]
 GLPosting --> Notification["Send Notifications<br/>to Stakeholders"]
 Notification --> End(["Invoice Generated Successfully"])
 ```
+
+**Diagram sources**
+- [hooks/useFinanceServices.ts:224-244](file://src/modules/finance/hooks/useFinanceServices.ts#L224-L244)
 
 ### Payment Allocation System Service
 The PaymentAllocationService provides intelligent payment distribution across multiple invoices with priority algorithms:
@@ -280,10 +376,12 @@ PaymentAllocationService --> PaymentAllocationResult : produces
 PaymentAllocationService --> OutstandingInvoiceItem : queries
 ```
 
+**Diagram sources**
+- [hooks/useFinanceServices.ts:360-397](file://src/modules/finance/hooks/useFinanceServices.ts#L360-L397)
+
 **Section sources**
-- [hooks/index.ts:1-6](file://src/modules/finance/hooks/index.ts#L1-L6)
-- [hooks/useFinance.ts:1-141](file://src/modules/finance/hooks/useFinance.ts#L1-L141)
-- [data/useFinanceData.ts:1-396](file://src/modules/finance/data/useFinanceData.ts#L1-L396)
+- [hooks/useFinanceServices.ts:1-397](file://src/modules/finance/hooks/useFinanceServices.ts#L1-L397)
+- [services/index.ts:7-33](file://src/modules/finance/services/index.ts#L7-L33)
 
 ## React Hooks Ecosystem
 The Finance module features a comprehensive hooks ecosystem that wraps P0 services with React-friendly interfaces:
@@ -314,6 +412,9 @@ useFinance --> FinancialServices
 useFinance --> ComputedViewHooks
 ```
 
+**Diagram sources**
+- [hooks/index.ts:4-5](file://src/modules/finance/hooks/index.ts#L4-L5)
+
 ### Service Wrapper Hooks Architecture
 Each service wrapper provides React-friendly interfaces with state management:
 
@@ -338,6 +439,9 @@ UIS->>UIS : setIsUpdating(false)
 UIS-->>Component : result
 ```
 
+**Diagram sources**
+- [hooks/useFinanceServices.ts:39-137](file://src/modules/finance/hooks/useFinanceServices.ts#L39-L137)
+
 #### useInvoiceGeneration Hook
 Automated invoice generation with progress tracking and error handling:
 
@@ -357,6 +461,9 @@ class InvoiceGenerationResult {
 useInvoiceGeneration --> InvoiceGenerationResult : returns
 ```
 
+**Diagram sources**
+- [hooks/useFinanceServices.ts:148-244](file://src/modules/finance/hooks/useFinanceServices.ts#L148-L244)
+
 #### usePaymentAllocation Hook
 Intelligent payment allocation with multiple algorithm support:
 
@@ -372,9 +479,12 @@ Application --> Update["Update Invoice Statuses"]
 Update --> Result["Return Allocation Results"]
 ```
 
+**Diagram sources**
+- [hooks/useFinanceServices.ts:256-397](file://src/modules/finance/hooks/useFinanceServices.ts#L256-L397)
+
 **Section sources**
-- [hooks/index.ts:1-6](file://src/modules/finance/hooks/index.ts#L1-L6)
-- [hooks/useFinance.ts:1-141](file://src/modules/finance/hooks/useFinance.ts#L1-L141)
+- [hooks/index.ts:1-19](file://src/modules/finance/hooks/index.ts#L1-L19)
+- [hooks/useFinanceServices.ts:1-397](file://src/modules/finance/hooks/useFinanceServices.ts#L1-L397)
 
 ## Service Registration System
 The Finance module implements a centralized service registration system that manages P0 services with dependency injection:
@@ -395,6 +505,9 @@ PaymentAllocation --> ServiceRegistry
 ServiceRegistry --> LazyInitialization["Lazy Singleton Initialization<br/>with Runtime Dependencies"]
 ```
 
+**Diagram sources**
+- [services/registerServices.ts:26-58](file://src/modules/finance/services/registerServices.ts#L26-L58)
+
 ### Dependency Injection Pattern
 Services are registered as factories requiring runtime dependency initialization:
 
@@ -404,11 +517,11 @@ Services are registered as factories requiring runtime dependency initialization
 - **Lazy Initialization**: Services instantiated only when first accessed via service registry
 
 **Section sources**
-- [hooks/useFinance.ts:1-141](file://src/modules/finance/hooks/useFinance.ts#L1-L141)
-- [data/useFinanceData.ts:1-396](file://src/modules/finance/data/useFinanceData.ts#L1-L396)
+- [services/registerServices.ts:1-59](file://src/modules/finance/services/registerServices.ts#L1-L59)
+- [services/index.ts:1-33](file://src/modules/finance/services/index.ts#L1-L33)
 
 ## Enhanced Reporting Capabilities
-The Finance module now provides comprehensive reporting capabilities through computed view hooks and specialized reporting pages:
+The Finance module now provides comprehensive reporting capabilities through dedicated hub pages and computed view hooks:
 
 ### Votehead Statement Reporting
 The VoteheadStatementPage demonstrates advanced per-invoice financial reporting:
@@ -422,409 +535,124 @@ DataGrid --> Actions["Action Buttons<br/>Print, Download, Refresh"]
 Actions --> Summary["Summary Cards<br/>Total Amount, Paid, Pending, Overdue"]
 ```
 
+**Diagram sources**
+- [pages/VoteheadStatementPage.tsx:1-24](file://src/modules/finance/pages/VoteheadStatementPage.tsx#L1-L24)
+
 ### Financial Analytics Dashboard
-The enhanced reporting system provides comprehensive financial analytics:
+The enhanced reporting system provides comprehensive financial analytics through dedicated hub pages:
 
-- **Real-time Dashboards**: Live financial metrics and KPIs
-- **Trend Analysis**: Historical financial trends and projections
-- **Drill-down Capabilities**: Detailed financial data exploration
-- **Export Functionality**: PDF, Excel, and CSV export options
-- **Custom Reporting**: Configurable report templates and filters
-
-**Section sources**
-- [pages/BalanceSheetPage.tsx:1-200](file://src/modules/finance/pages/BalanceSheetPage.tsx#L1-L200)
-- [pages/CashBookPage.tsx:1-200](file://src/modules/finance/pages/CashBookPage.tsx#L1-L200)
-- [pages/DayBookPage.tsx:1-198](file://src/modules/finance/pages/DayBookPage.tsx#L1-L198)
-
-## Comprehensive Accounting Pages
-**Updated** The Finance module now includes comprehensive accounting pages for detailed financial reporting and management:
-
-### Balance Sheet Page
-The BalanceSheetPage provides a comprehensive snapshot of the school's financial position:
-
-```mermaid
-graph TB
-BSP["BalanceSheetPage"] --> Data["BalanceSheetItem Data"]
-BSP --> Filters["Date, Category, Search Filters"]
-BSP --> Totals["Asset, Liability, Equity Calculations"]
-BSP --> Summary["Total Assets, Liabilities, Equity Cards"]
-BSP --> Breakdown["Asset & Liability Breakdown Charts"]
-BSP --> DataGrid["Detailed Account Listing"]
-```
-
-### Cash Book Page
-The CashBookPage tracks all cash transactions with detailed categorization:
-
-```mermaid
-flowchart TD
-CBP["CashBookPage"] --> Entries["CashBookEntry Records"]
-CBP --> Filters["Date Range, Search"]
-CBP --> Totals["Debit, Credit, Balance Calculations"]
-CBP --> Summary["Cash Flow Summary Cards"]
-CBP --> Transactions["Transaction Listing"]
-CBP --> Reconciliation["Cash Reconciliation Tools"]
-```
-
-### Day Book Page
-The DayBookPage provides daily transaction logging with debit and credit entries:
-
-```mermaid
-flowchart TD
-DBP["DayBookPage"] --> Entries["DayBookEntry Records"]
-DBP --> Filters["Date Selection, Search"]
-DBP --> Totals["Daily Debit & Credit Totals"]
-DBP --> Summary["Daily Position Cards"]
-DBP --> Transactions["Daily Transaction List"]
-DBP --> Reconciliation["Daily Reconciliation"]
-```
-
-### Income Statement Page
-The IncomeStatementPage generates profit and loss statements:
-
-```mermaid
-flowchart TD
-ISP["IncomeStatementPage"] --> Items["IncomeStatementItem Records"]
-ISP --> Filters["Date Range, Comparison"]
-ISP --> Totals["Revenue, Expense, Net Income"]
-ISP --> Breakdown["Revenue & Expense Charts"]
-ISP --> Summary["Profitability Metrics"]
-ISP --> DataGrid["Detailed Account Listing"]
-```
-
-### Journal Register Page
-The JournalRegisterPage maintains chronological voucher records:
-
-```mermaid
-flowchart TD
-JRP["JournalRegisterPage"] --> Entries["JournalEntry Records"]
-JRP --> Filters["Date Range, Status, Search"]
-JRP --> Totals["Debit & Credit Totals"]
-JRP --> Summary["Journal Statistics"]
-JRP --> Transactions["Voucher Listing"]
-JRP --> AuditTrail["Audit Trail Features"]
-```
+- **Real-time Dashboards**: Live financial metrics and KPIs from hub page integrations
+- **Trend Analysis**: Historical financial trends and projections across all hub pages
+- **Drill-down Capabilities**: Detailed financial data exploration through tabbed interfaces
+- **Export Functionality**: PDF, Excel, and CSV export options from individual hub tabs
+- **Custom Reporting**: Configurable report templates and filters within each hub page
 
 **Section sources**
-- [pages/BalanceSheetPage.tsx:1-200](file://src/modules/finance/pages/BalanceSheetPage.tsx#L1-L200)
-- [pages/CashBookPage.tsx:1-200](file://src/modules/finance/pages/CashBookPage.tsx#L1-L200)
-- [pages/DayBookPage.tsx:1-198](file://src/modules/finance/pages/DayBookPage.tsx#L1-L198)
-- [pages/IncomeStatementPage.tsx](file://src/modules/finance/pages/IncomeStatementPage.tsx)
-- [pages/JournalRegisterPage.tsx](file://src/modules/finance/pages/JournalRegisterPage.tsx)
-
-## Fee Management Enhancements
-**Updated** The Finance module now includes comprehensive fee management enhancements with detailed tracking and customization:
-
-### Fees Fines Page
-The FeesFinesPage manages fine and penalty applications:
-
-```mermaid
-flowchart TD
-FFP["FeesFinesPage"] --> FinesList["Fine & Penalty Records"]
-FFP --> Modal["Add/Edit Fine Modal"]
-FFP --> Filters["Student, Period, Type Filters"]
-FFP --> Totals["Fine Amount Summary"]
-FFP --> Actions["Edit/Delete Operations"]
-FFP --> Applications["Invoice Application Tracking"]
-```
-
-### Fees Installments Page
-The FeesInstallmentsPage manages installment payment plans:
-
-```mermaid
-flowchart TD
-FIP["FeesInstallmentsPage"] --> Installments["Installment Records"]
-FIP --> Modal["Add/Edit Installment Modal"]
-FIP --> Filters["Student, Period, Status Filters"]
-FIP --> Status["Status Badge System"]
-FIP --> Tracking["Due Date & Payment Tracking"]
-FIP --> Balance["Balance Calculation"]
-```
-
-### Fees Due Report Page
-The FeesDueReportPage provides comprehensive fee tracking:
-
-```mermaid
-flowchart TD
-FDRP["FeesDueReportPage"] --> Records["Fee Due Records"]
-FDRP --> Filters["Class, Aging, Search Filters"]
-FDRP --> Aging["Aging Category System"]
-FDRP --> Totals["Due, Paid, Balance Summary"]
-FDRP --> FollowUp["Overdue Follow-up Tools"]
-FDRP --> Export["Export Capabilities"]
-```
-
-**Section sources**
-- [pages/FeesFinesPage.tsx](file://src/modules/finance/pages/FeesFinesPage.tsx)
-- [pages/FeesInstallmentsPage.tsx](file://src/modules/finance/pages/FeesInstallmentsPage.tsx)
-- [pages/FeesDueReportPage.tsx](file://src/modules/finance/pages/FeesDueReportPage.tsx)
-
-## Receipt Management System
-**Updated** The Finance module now includes comprehensive receipt management with customizable templates and preview functionality:
-
-### Fees Receipt Template Page
-The FeesReceiptTemplatePage manages custom receipt templates:
-
-```mermaid
-flowchart TD
-FRTP["FeesReceiptTemplatePage"] --> Templates["ReceiptTemplate Records"]
-FRTP --> Modal["Create/Edit Template Modal"]
-FRTP --> Preview["Template Preview Modal"]
-FRTP --> Branding["School Branding Fields"]
-FRTP --> Customization["Header/Footer Customization"]
-FRTP --> Default["Default Template Management"]
-FRTP --> Print["Print Functionality"]
-```
-
-The receipt template system provides comprehensive customization options including:
-
-- **Branding Elements**: School name, address, phone, email, and logo
-- **Template Customization**: Header and footer text customization
-- **Default Template Management**: Single default template designation
-- **Preview Functionality**: Real-time template preview with sample data
-- **Print Integration**: Direct browser print functionality
-
-**Section sources**
-- [pages/FeesReceiptTemplatePage.tsx](file://src/modules/finance/pages/FeesReceiptTemplatePage.tsx)
+- [pages/VoteheadStatementPage.tsx:1-24](file://src/modules/finance/pages/VoteheadStatementPage.tsx#L1-L24)
 
 ## Data Layer Evolution
-**Updated** The Finance module has undergone significant data layer evolution with comprehensive TypeScript module augmentation and enhanced data model integration:
+The Finance module has evolved from traditional database-centric architecture to a hybrid approach combining database storage with service-oriented processing and hub page patterns:
 
-### Module Augmentation System
-The appDataAugmentation.ts file provides compile-time type safety across all financial collections:
-
-```mermaid
-graph TB
-subgraph "Module Augmentation Architecture"
-AAA["appDataAugmentation.ts"] --> ADT["AppDataType Interface"]
-AAA --> ADCT["AppDataContextType Interface"]
-ADT --> FY["financialYears[]"]
-ADT --> COA["chartOfAccounts[]"]
-ADT --> EC["expenseCategories[]"]
-ADT --> BANKS["banks[]"]
-ADT --> SUPP["suppliers[]"]
-ADT --> FT["feeTemplates[]"]
-ADT --> SIP["studentInvoiceItems[]"]
-ADT --> SP["studentPayments[]"]
-ADT --> FA["feeAdjustments[]"]
-ADT --> IPA["invoicePaymentApplications[]"]
-ADT --> CI["customerInvoices[]"]
-ADT --> SI["supplierInvoices[]"]
-ADT --> SOB["studentOpeningBalances[]"]
-ADT --> TR["transportRoutes[]"]
-ADT --> STA["studentTransportAssignments[]"]
-ADT --> GP["generalPayments[]"]
-ADT --> GLE["generalLedgerEntries[]"]
-ADT --> BS["balanceSheetItems[]"]
-ADT --> CB["cashBookEntries[]"]
-ADT --> DBE["dayBookEntries[]"]
-ADT --> RT["receiptTemplates[]"]
-ADT --> IS["incomeStatementItems[]"]
-ADT --> JE["journalEntries[]"]
-ADT --> PSF["previousSessionFees[]"]
-ADT --> SPR["studentPaymentRecords[]"]
-ADT --> TBI["trialBalanceItems[]"]
-end
-subgraph "Data Access Methods"
-ADCT --> ADD["addBank()"]
-ADCT --> ACOA["addChartOfAccount()"]
-ADCT --> AFT["addFeeTemplate()"]
-ADCT --> RSP["recordStudentPayment()"]
-ADCT --> GISI["generateStudentInvoices()"]
-ADCT --> ASC["addSupplierContract()"]
-end
-```
-
-**Diagram sources**
-- [data/appDataAugmentation.ts:38-96](file://src/modules/finance/data/appDataAugmentation.ts#L38-L96)
-
-### Comprehensive Data Model
-The enhanced data layer now includes 36+ financial entity types with detailed schemas:
-
-#### Financial Entity Types
-- **Financial Year Management**: FinancialYear with status tracking and date ranges
-- **Chart of Accounts**: ChartOfAccount with hierarchical account structures
-- **Expense Categories**: ExpenseCategory for expense tracking and reporting
-- **Banking Operations**: Bank with GL account integration
-- **Supplier Management**: Supplier with contact and tax information
-- **Fee Processing**: FeeTemplate, FeeTemplateItem, FeeAdjustment
-- **Student Financials**: StudentInvoice, StudentPayment, StudentOpeningBalance
-- **Transport Management**: TransportRoute, StudentTransportAssignment
-- **Revenue Recognition**: CustomerInvoice, CustomerInvoiceItem
-- **Supplier Invoicing**: SupplierInvoice with payment tracking
-- **General Payments**: GeneralPayment with multi-item support
-- **Financial Reporting**: BalanceSheetItem, CashBookEntry, DayBookEntry
-- **Accounting Views**: ReceiptTemplate, IncomeStatementItem, JournalEntry
-- **Cross-Period Tracking**: PreviousSessionFee, StudentPaymentRecord
-- **Accounting Verification**: TrialBalanceItem
-
-#### Collection Definitions
-The collections.ts file defines 27+ database collections with comprehensive schemas:
+### Database Collections Architecture
+The module maintains comprehensive database collections while leveraging service-based processing and tabbed interface patterns:
 
 ```mermaid
 graph TB
-subgraph "Operational Collections"
+subgraph "Database Collections"
 FC["financial_years"]
-SC["school_periods"]
-CCO["chart_of_accounts"]
-EC["expense_categories"]
-B["banks"]
-S["suppliers"]
-FT["fee_templates"]
-E["expense_claims"]
-SOB["student_opening_balances"]
-FA["fee_adjustments"]
-TR["transport_routes"]
-STA["student_transport_assignments"]
-SI["student_invoices"]
-SP["student_payments"]
-IPA["invoice_payment_applications"]
-CI["customer_invoices"]
-SI2["supplier_invoices"]
-GP["general_payments"]
-GLE["general_ledger_entries"]
+COA["chart_of_accounts"]
+BANKS["banks"]
+SUPPLIERS["suppliers"]
+FEETEMPLATES["fee_templates"]
+STUDENTINVOICES["student_invoices"]
+STUDENTPAYMENTS["student_payments"]
+INVOICEPAYMENTS["invoice_payment_applications"]
+END["... 15+ Collections"]
 end
-subgraph "Report Collections"
-BS["balance_sheet_items"]
-CB["cash_book_entries"]
-DBE["day_book_entries"]
-RT["receipt_templates"]
-IS["income_statement_items"]
-JE["journal_entries"]
-PSF["previous_session_fees"]
-SPR["student_payment_records"]
-TBI["trial_balance_items"]
+subgraph "Service Layer"
+ISS["InvoiceStatusService"]
+IGS["InvoiceGenerationService"]
+PAS["PaymentAllocationService"]
 end
+subgraph "Hub Page Interface"
+FCH["FeeConfigurationHubPage"]
+ACH["AccountingConfigPage"]
+AOP["AccountingOperationsPage"]
+FRH["FinanceReportsHubPage"]
+FSP["FinancialStatementsPage"]
+PHP["PaymentsHubPage"]
+SFH["StudentFeeHistoryPage"]
+IH["InvoicingHubPage"]
+end
+FC --> FCH
+COA --> ACH
+BANKS --> ACH
+SUPPLIERS --> ACH
+FEETEMPLATES --> FCH
+STUDENTINVOICES --> PHP
+STUDENTPAYMENTS --> PHP
+INVOICEPAYMENTS --> PHP
+STUDENTINVOICES --> IH
+STUDENTPAYMENTS --> IH
+INVOICEPAYMENTS --> IH
+FCH --> ISS
+ACH --> ISS
+AOP --> ISS
+FRH --> ISS
+FSP --> ISS
+PHP --> IGS
+SFH --> IGS
+IH --> PAS
+ISS --> PAS
 ```
 
 **Diagram sources**
-- [data/collections.ts:7-98](file://src/modules/finance/data/collections.ts#L7-L98)
-- [data/types.ts:91-602](file://src/modules/finance/data/types.ts#L91-L602)
+- [hooks/useFinanceServices.ts:50-358](file://src/modules/finance/hooks/useFinanceServices.ts#L50-L358)
 
 ### Service-Oriented Data Access
-The enhanced architecture provides multiple access patterns:
+The enhanced architecture provides multiple access patterns through hub page interfaces:
 
 - **Direct Database Queries**: For transactional operations and bulk data
 - **Service-Based Processing**: For business logic operations and workflows
-- **Hook Wrappers**: For React component integration with state management
+- **Hub Page Interfaces**: For React component integration with tabbed state management
 - **Dependency Injection**: For runtime dependency resolution and testing
-- **Module Augmentation**: For compile-time type safety across AppData
 - **Hybrid Approach**: Combining benefits of all approaches for optimal performance
 
 **Section sources**
-- [hooks/index.ts:1-6](file://src/modules/finance/hooks/index.ts#L1-L6)
-- [hooks/useFinance.ts:1-141](file://src/modules/finance/hooks/useFinance.ts#L1-L141)
-- [data/appDataAugmentation.ts:1-97](file://src/modules/finance/data/appDataAugmentation.ts#L1-L97)
-- [data/types.ts:1-602](file://src/modules/finance/data/types.ts#L1-L602)
-- [data/collections.ts:1-102](file://src/modules/finance/data/collections.ts#L1-L102)
-- [data/schema.ts:1-552](file://src/modules/finance/data/schema.ts#L1-L552)
+- [hooks/index.ts:1-19](file://src/modules/finance/hooks/index.ts#L1-L19)
+- [hooks/useFinanceServices.ts:1-397](file://src/modules/finance/hooks/useFinanceServices.ts#L1-L397)
 
 ## Navigation and Features
-The Finance module provides comprehensive navigation covering all aspects of financial management:
+The Finance module provides comprehensive navigation organized into 10 focused hub pages covering all aspects of financial management:
 
-### Core Financial Management
-- **Chart of Accounts**: Complete accounting hierarchy management
-- **Fee Templates**: Standard fee structures with component-based pricing
-- **Effect Fee Structures**: Applied fee structures for current periods
-- **Fee Adjustments**: Fee modifications and waivers
-- **Fee Fines**: Fine and penalty management
-- **Fee Installments**: Installment payment plan management
-- **Fee Receipt Templates**: Custom receipt template management
-
-### Advanced Financial Services
-- **Invoice Generation**: Automated invoice creation and management
-- **Payment Allocation**: Intelligent payment distribution across invoices
-- **General Receipts**: Bank payment processing
-- **Customer Invoices**: Revenue recognition from external customers
-- **Supplier Invoices**: Procurement invoice management
-
-### Financial Reporting and Analytics
-- **Fee Collection Summary**: Aggregate fee collection analytics
-- **Student Financial Summary**: Comprehensive student financial position
-- **Votehead Statement**: Detailed per-votehead financial statements
-- **Account Ledger**: Real-time account ledger computation
-- **Fees Due Report**: Outstanding fee tracking with aging analysis
-- **Financial Reports**: Comprehensive financial reporting capabilities
-
-### Accounting Pages
-- **Balance Sheet**: Comprehensive financial position snapshot
-- **Cash Book**: Daily cash transaction tracking
-- **Day Book**: Daily journal entry logging
-- **Income Statement**: Profit and loss statement generation
-- **Journal Register**: Chronological voucher listing
-- **Previous Session Fees**: Cross-period fee management
-- **Students Paid Book**: Student payment tracking
-- **Trial Balance**: Account balance verification
+### Core Financial Management Hubs
+- **Fee Configuration Hub**: Consolidates fee templates, structures, and receipt templates
+- **Accounting Configuration Hub**: Manages chart of accounts and bank accounts
+- **Accounting Operations Hub**: Handles ledger, cash book, day book, and journal register
+- **Finance Reports Hub**: Provides consolidated reporting for fees due, students paid, and votehead statements
+- **Financial Statements Hub**: Displays trial balance, balance sheet, and income statement
+- **Payments Hub**: Manages student payments, opening balances, fee collection summary, financial summary, payment allocation, and general receipts
+- **Student Fee History Hub**: Handles opening balances and previous session fees
+- **Invoicing Hub**: Consolidates invoice generation, customer invoices, and supplier invoices
 
 ### Supporting Functions
-- **Banks**: Bank account management
-- **Suppliers**: Supplier directory and management
-- **Transport Routes**: Bus route management
-- **Student Transport Assignments**: Student route assignments
-- **Expenses**: Expense tracking and management
+- **Fee Rules**: Separate page for fee adjustments, fines, and installments
+- **Expenses Hub**: Comprehensive expense tracking and management
+- **Transport Hub**: Bus route management and student transport assignments
+- **Dashboard**: Central financial overview and analytics
+
+### Navigation Patterns
+- **Hub Page Architecture**: 10 dedicated hub pages replacing previous consolidated approach
+- **Tabbed Interfaces**: Consistent tabbed interface pattern across all hub pages
+- **URL State Management**: Search parameter-based tab state persistence
+- **Redirect System**: Deprecation redirects for legacy standalone pages
+- **Feature Flags**: Configurable enablement of specific financial functionalities
 
 **Section sources**
-- [moduleDefinition.tsx:32-75](file://src/modules/finance/moduleDefinition.tsx#L32-L75)
-
-## Internationalization and Multilingual Support
-**Updated** The Finance module now features comprehensive multilingual support with enhanced internationalization capabilities:
-
-### Enhanced Translation Infrastructure
-The internationalization system has been significantly expanded to support multiple African and European markets:
-
-#### Supported Languages
-- **German (de)**: Complete financial terminology and localized formatting
-- **French (fr)**: Comprehensive financial translations with regional variations
-- **Kinyarwanda (rw)**: Rwanda-specific financial terms and local conventions
-- **Swahili (sw)**: East African financial terminology and cultural adaptations
-
-#### Translation Resource Structure
-The enhanced translation system provides comprehensive coverage across all financial domains:
-
-```mermaid
-graph TB
-subgraph "Translation Resources"
-EN["English (Default)"] --> EN_FINANCE["finance.json"]
-EN --> EN_COMMON["common.json"]
-EN --> EN_NAVIGATION["navigation.json"]
-EN --> EN_DASHBOARD["dashboard.json"]
-FR["French (fr)"] --> FR_FINANCE["finance.json"]
-FR --> FR_COMMON["common.json"]
-FR --> FR_NAVIGATION["navigation.json"]
-FR --> FR_DASHBOARD["dashboard.json"]
-DE["German (de)"] --> DE_FINANCE["finance.json"]
-DE --> DE_COMMON["common.json"]
-DE --> DE_NAVIGATION["navigation.json"]
-DE --> DE_DASHBOARD["dashboard.json"]
-RW["Kinyarwanda (rw)"] --> RW_FINANCE["finance.json"]
-RW --> RW_COMMON["common.json"]
-RW --> RW_NAVIGATION["navigation.json"]
-RW --> RW_DASHBOARD["dashboard.json"]
-SW["Swahili (sw)"] --> SW_FINANCE["finance.json"]
-SW --> SW_COMMON["common.json"]
-SW --> SW_NAVIGATION["navigation.json"]
-SW --> SW_DASHBOARD["dashboard.json"]
-end
-```
-
-#### Financial Domain Coverage
-Each language provides comprehensive coverage of financial terminology:
-
-- **Fee Management Terms**: Fee templates, adjustments, waivers, and collections
-- **Payment Processing**: Payment methods, allocations, applications, and reconciliations
-- **Accounting Terminology**: Chart of accounts, ledgers, receipts, and invoices
-- **Reporting Vocabulary**: Financial statements, summaries, and analytics
-- **Administrative Phrases**: Navigation, dashboards, settings, and system messages
-
-#### Language Switching Implementation
-The enhanced system supports seamless language switching with preserved financial context:
-
-- **Dynamic Locale Loading**: Translations loaded on-demand based on user preferences
-- **Financial Context Preservation**: Currency formats, date conventions, and number systems
-- **Regional Adaptations**: Local banking practices, tax regulations, and financial standards
-- **Cultural Sensitivity**: Appropriate financial terminology and communication styles
+- [moduleDefinition.tsx:41-90](file://src/modules/finance/moduleDefinition.tsx#L41-L90)
 
 ## Performance Considerations
-Enhanced performance considerations for the new service-oriented architecture:
+Enhanced performance considerations for the new hub page architecture:
 
 - **Service Caching**: Financial services implement intelligent caching strategies
 - **Computed View Optimization**: Hooks optimized for real-time data computation
@@ -835,14 +663,16 @@ Enhanced performance considerations for the new service-oriented architecture:
 - **Batch Processing**: Optimized batch operations for financial year closing
 - **Service Orchestration**: Coordinated service execution for complex financial operations
 - **Lazy Loading**: Services loaded only when needed to reduce initial bundle size
-- **Enhanced Page Rendering**: Optimized rendering for comprehensive accounting pages
-- **Template Caching**: Receipt templates cached for improved preview performance
-- **Filter Optimization**: Efficient filtering for large financial datasets
-- **Module Augmentation**: Compile-time type checking reduces runtime errors
-- **Collection Optimization**: 27+ optimized database collections for efficient querying
+- **Hub Page Optimization**: Tab switching optimized to minimize re-renders
 
 ## Troubleshooting Guide
-Comprehensive troubleshooting for the enhanced service-oriented architecture:
+Comprehensive troubleshooting for the enhanced hub page architecture:
+
+### Hub Page Issues
+- **Tab State Management**: Verify URL parameter handling and tab state persistence
+- **Navigation Redirects**: Check deprecation redirects for legacy standalone pages
+- **Tab Content Loading**: Monitor tab-specific content loading and error states
+- **Hub Page Registration**: Ensure all hub pages are properly exported and registered
 
 ### Service Layer Issues
 - **InvoiceStatusService Failures**: Verify service initialization and database connectivity
@@ -869,36 +699,10 @@ Comprehensive troubleshooting for the enhanced service-oriented architecture:
 - **Service Integration**: Ensure proper service hook registration and initialization
 - **Data Synchronization**: Monitor real-time data updates and cache consistency
 
-### **Updated** Accounting Page Issues
-- **Balance Sheet Rendering**: Verify asset, liability, and equity calculations
-- **Cash Book Filtering**: Check date range and search functionality
-- **Income Statement Totals**: Validate revenue and expense aggregations
-- **Journal Register Status**: Ensure proper status badge rendering
-- **Fee Management Forms**: Verify fine and installment form validation
-- **Receipt Template Preview**: Check template rendering and print functionality
-
-### **Updated** Data Layer Issues
-- **Module Augmentation Errors**: Verify TypeScript compilation and type checking
-- **Collection Schema Conflicts**: Check database schema definitions and migrations
-- **Financial Entity Validation**: Ensure proper data validation for 36+ entity types
-- **Report Collection Population**: Verify mock data seeding and computed view updates
-- **AppData Integration**: Check module augmentation and runtime type safety
-
-### **Updated** Internationalization Issues
-- **Translation Loading Failures**: Verify resource bundle loading for new languages
-- **Missing Translation Keys**: Check for untranslated financial terms across languages
-- **Formatting Issues**: Ensure currency and number formatting matches locale conventions
-- **Language Switching Problems**: Verify dynamic locale loading and context preservation
-- **Regional Compliance**: Check adherence to local financial regulations and standards
-
 **Section sources**
-- [hooks/index.ts:1-6](file://src/modules/finance/hooks/index.ts#L1-L6)
-- [hooks/useFinance.ts:1-141](file://src/modules/finance/hooks/useFinance.ts#L1-L141)
-- [moduleDefinition.tsx:24-87](file://src/modules/finance/moduleDefinition.tsx#L24-L87)
-- [data/appDataAugmentation.ts:1-97](file://src/modules/finance/data/appDataAugmentation.ts#L1-L97)
-- [data/types.ts:1-602](file://src/modules/finance/data/types.ts#L1-L602)
+- [hooks/index.ts:1-19](file://src/modules/finance/hooks/index.ts#L1-L19)
+- [moduleDefinition.tsx:33-135](file://src/modules/finance/moduleDefinition.tsx#L33-L135)
+- [services/registerServices.ts:1-59](file://src/modules/finance/services/registerServices.ts#L1-L59)
 
 ## Conclusion
-The Finance module now provides a comprehensive, service-oriented financial management system with advanced TypeScript implementations replacing traditional stored procedures and database-side financial processing. The enhanced architecture supports sophisticated financial services including invoice management, payment processing, and intelligent financial analytics through a robust hooks ecosystem and centralized service registration system. The modular design with specialized P0 services, computed view hooks, and comprehensive reporting capabilities enables scalable and maintainable financial operations across the entire educational institution system. The service-oriented approach with dependency injection, lazy initialization, and comprehensive error handling positions the Finance module as a modern, enterprise-grade financial management solution with superior performance and maintainability.
-
-**Updated** The enhanced accounting system with comprehensive pages including balance sheets, cash books, day books, income statements, and journal registers provides detailed financial transparency and management capabilities. The expanded fee management system with fine tracking and installment plans offers flexible payment solutions for diverse student needs. The receipt template system with customization and preview functionality ensures professional financial documentation. The multilingual support with German, French, Kinyarwanda, and Swahili translations expands the module's international reach, providing comprehensive financial management capabilities across diverse linguistic and cultural contexts. The extensive data model with 36+ entity types and module augmentation system ensures type-safe, maintainable financial operations with comprehensive reporting and analytics capabilities. This expansion supports the growing global education sector's need for localized financial solutions while maintaining the technical excellence and scalability of the underlying service-oriented architecture.
+The Finance module now provides a comprehensive, hub-based financial management system with advanced TypeScript implementations replacing traditional stored procedures and database-side financial processing. The enhanced architecture supports sophisticated financial services including invoice management, payment processing, and intelligent financial analytics through six dedicated hub pages, computed view hooks, and comprehensive reporting capabilities. The modular design with specialized P0 services, tabbed interface patterns, and centralized service registration system enables scalable and maintainable financial operations across the entire educational institution system. The hub page architecture with 10 focused pages replacing previous consolidated approaches provides superior user experience and operational efficiency. The service-oriented approach with dependency injection, lazy initialization, and comprehensive error handling positions the Finance module as a modern, enterprise-grade financial management solution with superior performance and maintainability.

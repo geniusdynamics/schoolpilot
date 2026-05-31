@@ -274,3 +274,6 @@ const StaffAttendancePage: React.FC = () => {
 };
 
 export default StaffAttendancePage;
+
+export const StaffAttendanceContent = StaffAttendancePage;
+

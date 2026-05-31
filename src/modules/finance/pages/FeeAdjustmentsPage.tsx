@@ -21,7 +21,7 @@ type FeeAdjustmentFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 
     adjustment_type: FeeAdjustmentType;
 };
 
-const FeeAdjustmentsPage: React.FC = () => {
+export const FeeAdjustmentsPageContent: React.FC = () => {
   const appData = useAppData();
   const feeAdjustments = appData.feeAdjustments || [];
   const students = appData.students || [];
@@ -253,5 +253,11 @@ const FeeAdjustmentsPage: React.FC = () => {
     </div>
   );
 };
+
+const FeeAdjustmentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <FeeAdjustmentsPageContent />
+  </div>
+);
 
 export default FeeAdjustmentsPage;

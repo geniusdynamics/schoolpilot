@@ -35,7 +35,7 @@ const statusColors: Record<ApplicationStatus, string> = {
   [ApplicationStatus.ENROLLED]: 'bg-teal-100 text-teal-800',
 };
 
-const ApplicationDetailPage: React.FC = () => {
+export const ApplicationDetailPageContent: React.FC = () => {
   const { applicationId } = useParams<{ applicationId: string }>();
   const navigate = useNavigate();
   const { getApplication, getApplicationDocuments, getApplicationReviews, getApplicationNotes, deleteApplication } = useAdmissionsData();
@@ -476,5 +476,10 @@ const ApplicationDetailPage: React.FC = () => {
     </div>
   );
 };
+const ApplicationDetailPage: React.FC = () => (
+  <div className="space-y-6">
+    <ApplicationDetailPageContent />
+  </div>
+);
 
 export default ApplicationDetailPage;

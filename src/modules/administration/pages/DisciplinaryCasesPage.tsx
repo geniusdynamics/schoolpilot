@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -11,10 +12,6 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { DisciplinaryCategory, DisciplinarySeverity, DisciplinaryStatus, DisciplinaryAction } from '../data/types';
 import type { DisciplinaryCase } from '../data/types';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
 
 const DisciplinaryCasesPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -282,7 +279,7 @@ const DisciplinaryCasesPage: React.FC = () => {
 
       {/* Case Details Modal */}
       {selectedCase && (
-        <DialogForm
+        <Modal
           isOpen={!!selectedCase}
           onClose={() => setSelectedCase(null)}
           title={`Case Details: ${selectedCase.case_number}`}
@@ -370,98 +367,94 @@ const DisciplinaryCasesPage: React.FC = () => {
               </div>
             )}
           </div>
-        </DialogForm>
+        </Modal>
       )}
 
       {/* New/Edit Case Modal */}
-      <DialogForm
+      <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingCase ? 'Edit Disciplinary Case' : 'New Disciplinary Case'}
         size="lg"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit}>
+              {editingCase ? 'Update Case' : 'Create Case'}
+            </Button>
+          </>
+        }
       >
-        <FormSection title="Student Information" columns={2}>
-          <FormField label="Student Name" required>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <Input
+              label="Student Name"
               value={formData.student_name}
               onChange={(value) => handleInputChange('student_name', value)}
               required
             />
-          </FormField>
-          <FormField label="Admission Number">
             <Input
+              label="Admission Number"
               value={formData.admission_number}
               onChange={(value) => handleInputChange('admission_number', value)}
             />
-          </FormField>
-        </FormSection>
+          </div>
 
-        <FormSection>
-          <FormField label="Category" required>
-            <Select
-              value={formData.category}
-              onChange={(value) => handleInputChange('category', value)}
-              options={Object.values(DisciplinaryCategory).map(c => ({ label: c, value: c }))}
-              required
-            />
-          </FormField>
-        </FormSection>
+          <Select
+            label="Category"
+            value={formData.category}
+            onChange={(value) => handleInputChange('category', value)}
+            options={Object.values(DisciplinaryCategory).map(c => ({ label: c, value: c }))}
+            required
+          />
 
-        <FormSection title="Incident Details" columns={2}>
-          <FormField label="Severity" required>
+          <div className="grid grid-cols-2 gap-4">
             <Select
+              label="Severity"
               value={formData.severity}
               onChange={(value) => handleInputChange('severity', value)}
               options={Object.values(DisciplinarySeverity).map(s => ({ label: s, value: s }))}
               required
             />
-          </FormField>
-          <FormField label="Incident Date" required>
             <Input
+              label="Incident Date"
               type="date"
               value={formData.incident_date}
               onChange={(value) => handleInputChange('incident_date', value)}
               required
             />
-          </FormField>
-          <FormField label="Title" required>
-            <Input
-              value={formData.title}
-              onChange={(value) => handleInputChange('title', value)}
-              required
-            />
-          </FormField>
-          <FormField label="Incident Location">
-            <Input
-              value={formData.incident_location}
-              onChange={(value) => handleInputChange('incident_location', value)}
-            />
-          </FormField>
-        </FormSection>
+          </div>
 
-        <FormSection title="Description">
-          <FormField label="Description" required>
-            <Textarea
-              value={formData.description}
-              onChange={(value) => handleInputChange('description', value)}
-              required
-              rows={4}
-            />
-          </FormField>
-          <FormField label="Witnesses">
-            <Textarea
-              value={formData.witnesses}
-              onChange={(value) => handleInputChange('witnesses', value)}
-              rows={2}
-            />
-          </FormField>
-        </FormSection>
+          <Input
+            label="Title"
+            value={formData.title}
+            onChange={(value) => handleInputChange('title', value)}
+            required
+          />
 
-        <FormSection title="Additional Options">
+          <Textarea
+            label="Description"
+            value={formData.description}
+            onChange={(value) => handleInputChange('description', value)}
+            required
+            rows={4}
+          />
+
+          <Input
+            label="Incident Location"
+            value={formData.incident_location}
+            onChange={(value) => handleInputChange('incident_location', value)}
+          />
+
+          <Textarea
+            label="Witnesses"
+            value={formData.witnesses}
+            onChange={(value) => handleInputChange('witnesses', value)}
+            rows={2}
+          />
+
           <div className="flex items-center space-x-4">
             <label className="flex items-center">
               <input
@@ -482,17 +475,8 @@ const DisciplinaryCasesPage: React.FC = () => {
               <span className="ml-2 text-sm text-gray-700">Follow-up Required</span>
             </label>
           </div>
-        </FormSection>
-
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>
-            Cancel
-          </Button>
-          <Button type="submit">
-            {editingCase ? 'Update Case' : 'Create Case'}
-          </Button>
-        </FormActions>
-      </DialogForm>
+        </div>
+      </Modal>
     </div>
   );
 };

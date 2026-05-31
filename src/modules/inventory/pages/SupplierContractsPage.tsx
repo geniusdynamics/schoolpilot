@@ -45,7 +45,7 @@ import { useTranslation } from 'react-i18next';
 import { useSnackbar } from 'notistack';
 import { format, differenceInDays, parseISO } from 'date-fns';
 
-const SupplierContractsPage: React.FC = () => {
+export const SupplierContractsPageContent: React.FC = () => {
   const { t } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
   const {
@@ -539,5 +539,10 @@ const SupplierContractsPage: React.FC = () => {
     </LocalizationProvider>
   );
 };
+const SupplierContractsPage: React.FC = () => (
+  <div className="space-y-6">
+    <SupplierContractsPageContent />
+  </div>
+);
 
 export default SupplierContractsPage;

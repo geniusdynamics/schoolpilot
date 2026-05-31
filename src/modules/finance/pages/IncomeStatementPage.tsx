@@ -9,7 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { IncomeStatementItem } from '../data/types';
 
-const IncomeStatementPage: React.FC = () => {
+export const IncomeStatementPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { incomeStatementItems, loading } = useAppData();
 
@@ -229,5 +229,10 @@ const IncomeStatementPage: React.FC = () => {
     </div>
   );
 };
+const IncomeStatementPage: React.FC = () => (
+  <div className="space-y-6">
+    <IncomeStatementPageContent />
+  </div>
+);
 
 export default IncomeStatementPage;

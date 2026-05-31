@@ -2,16 +2,13 @@
   "title": "Portal",
   "description": "Student and parent portal for accessing school information",
   "navigation": {
-    "portal": {
-      "title": "Portal",
-      "description": "Student and parent portal",
-      "dashboard": "Portal Dashboard",
-      "attendance": "Attendance",
-      "results": "Results",
-      "fees": "Fees",
-      "announcements": "Announcements",
-      "profile": "Profile"
-    }
+    "title": "Portal",
+    "dashboard": "Dashboard",
+    "attendance": "Attendance",
+    "results": "Results",
+    "fees": "Fees",
+    "announcements": "Announcements",
+    "profile": "Profile"
   },
   "common": {
     "create": "Create",

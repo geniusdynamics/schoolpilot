@@ -1,6 +1,7 @@
 // ABOUTME: Barrel exports for reports pages
 
 export { default as AccountLedgerPage } from './AccountLedgerPage';
+export { default as ClassListsPage } from './ClassListsPage';
 export { default as ExamResultsHorizontalPage } from './ExamResultsHorizontalPage';
 export { default as FeeCollectionSummaryPage } from './FeeCollectionSummaryPage';
 export { default as InventoryStatusReportPage } from './InventoryStatusReportPage';
@@ -9,6 +10,7 @@ export { default as ReportsDashboardPage } from './ReportsDashboardPage';
 export { default as ReportsPage } from './ReportsPage';
 export { default as StudentFinancialSummaryPage } from './StudentFinancialSummaryPage';
 export { default as StudentMasterlistPage } from './StudentMasterlistPage';
+export { default as StudentReportsHubPage } from './StudentReportsHubPage';
 export { default as StudentVoteheadStatementPage } from './StudentVoteheadStatementPage';
 export { default as TeacherAssignmentsPage } from './TeacherAssignmentsPage';
 

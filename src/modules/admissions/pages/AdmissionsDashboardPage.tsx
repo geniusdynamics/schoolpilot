@@ -145,7 +145,7 @@ const RecentApplicantItem: React.FC<{
   </button>
 );
 
-const AdmissionsDashboardPage: React.FC = () => {
+export const AdmissionsDashboardPageContent: React.FC = () => {
   const { statistics, loading } = useAdmissionsData();
   const [selectedPeriod, setSelectedPeriod] = useState<'YTD' | 'YoY' | 'MoM'>('YTD');
   const [selectedProgram, setSelectedProgram] = useState<ProgramType>(ProgramType.ALL);
@@ -173,7 +173,7 @@ const AdmissionsDashboardPage: React.FC = () => {
     );
   }
 
-  const enquiries = statistics.monthlyData.reduce((sum, m) => sum + m.enquiries, 0);
+  const enquiries = (statistics.monthlyData || []).reduce((sum, m) => sum + m.enquiries, 0);
   const applicants = statistics.totalApplications;
   const enrolled = statistics.enrolled;
   const events = 155;
@@ -532,5 +532,10 @@ const AdmissionsDashboardPage: React.FC = () => {
     </div>
   );
 };
+const AdmissionsDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <AdmissionsDashboardPageContent />
+  </div>
+);
 
 export default AdmissionsDashboardPage;

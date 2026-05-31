@@ -20,7 +20,7 @@ interface PageHeaderWithTabsProps {
   action?: React.ReactNode;
   secondaryAction?: React.ReactNode;
   variant?: 'default' | 'compact' | 'minimal';
-  colorScheme?: 'blue' | 'emerald' | 'indigo' | 'violet' | 'amber' | 'rose';
+  colorScheme?: 'blue' | 'emerald' | 'indigo' | 'violet' | 'amber' | 'rose' | 'green' | 'teal' | 'cyan' | 'purple' | 'orange' | 'slate';
 }
 
 const colorSchemes = {
@@ -71,6 +71,54 @@ const colorSchemes = {
     badgeBg: 'bg-rose-100',
     badgeText: 'text-rose-700',
     hover: 'hover:bg-rose-50',
+  },
+  green: {
+    activeBg: 'bg-green-50',
+    activeText: 'text-green-700',
+    activeBorder: 'border-green-500',
+    badgeBg: 'bg-green-100',
+    badgeText: 'text-green-700',
+    hover: 'hover:bg-green-50',
+  },
+  teal: {
+    activeBg: 'bg-teal-50',
+    activeText: 'text-teal-700',
+    activeBorder: 'border-teal-500',
+    badgeBg: 'bg-teal-100',
+    badgeText: 'text-teal-700',
+    hover: 'hover:bg-teal-50',
+  },
+  cyan: {
+    activeBg: 'bg-cyan-50',
+    activeText: 'text-cyan-700',
+    activeBorder: 'border-cyan-500',
+    badgeBg: 'bg-cyan-100',
+    badgeText: 'text-cyan-700',
+    hover: 'hover:bg-cyan-50',
+  },
+  purple: {
+    activeBg: 'bg-purple-50',
+    activeText: 'text-purple-700',
+    activeBorder: 'border-purple-500',
+    badgeBg: 'bg-purple-100',
+    badgeText: 'text-purple-700',
+    hover: 'hover:bg-purple-50',
+  },
+  orange: {
+    activeBg: 'bg-orange-50',
+    activeText: 'text-orange-700',
+    activeBorder: 'border-orange-500',
+    badgeBg: 'bg-orange-100',
+    badgeText: 'text-orange-700',
+    hover: 'hover:bg-orange-50',
+  },
+  slate: {
+    activeBg: 'bg-slate-50',
+    activeText: 'text-slate-700',
+    activeBorder: 'border-slate-500',
+    badgeBg: 'bg-slate-100',
+    badgeText: 'text-slate-700',
+    hover: 'hover:bg-slate-50',
   },
 };
 

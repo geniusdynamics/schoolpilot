@@ -18,7 +18,7 @@ type TimetableEntryFormData = Omit<Partial<TimetableEntry>, 'id' | 'class_stream
 };
 
 
-const TimetableEntriesPage: React.FC = () => {
+export const TimetableEntriesContent: React.FC = () => {
   const { 
     timetableEntries, 
     classStreams,
@@ -304,6 +304,10 @@ const TimetableEntriesPage: React.FC = () => {
       </DialogForm>
     </div>
   );
+};
+
+const TimetableEntriesPage: React.FC = () => {
+  return <TimetableEntriesContent />;
 };
 
 export default TimetableEntriesPage;

@@ -57,7 +57,7 @@ const priorityOrder: Record<string, number> = {
   low: 3,
 };
 
-const PortalAnnouncementsPage: React.FC = () => {
+export const PortalAnnouncementsContent: React.FC = () => {
   const { t } = useTranslation('portal');
   const {
     announcements,
@@ -273,6 +273,10 @@ const PortalAnnouncementsPage: React.FC = () => {
       )}
     </div>
   );
+};
+
+const PortalAnnouncementsPage: React.FC = () => {
+  return <PortalAnnouncementsContent />;
 };
 
 export default PortalAnnouncementsPage;

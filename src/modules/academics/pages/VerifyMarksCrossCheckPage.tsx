@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockCrossCheckRecords } from '../data/mockData';
 import type { CrossCheckRecord } from '../data/types';
 
-const VerifyMarksCrossCheckPage: React.FC = () => {
+export const VerifyMarksCrossCheckPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { examSessions, subjects, classes, teachers, loading } = useAppData();
 
@@ -351,5 +351,11 @@ const VerifyMarksCrossCheckPage: React.FC = () => {
     </div>
   );
 };
+
+const VerifyMarksCrossCheckPage: React.FC = () => (
+  <div className="space-y-6">
+    <VerifyMarksCrossCheckPageContent />
+  </div>
+);
 
 export default VerifyMarksCrossCheckPage;

@@ -29,7 +29,7 @@ import ModuleDashboardShell, {
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
 
-const SettingsDashboardPage: React.FC = () => {
+export const SettingsDashboardContent: React.FC = () => {
   const {
     loading,
     students,
@@ -337,6 +337,10 @@ const SettingsDashboardPage: React.FC = () => {
       </section>
     </ModuleDashboardShell>
   );
+};
+
+const SettingsDashboardPage: React.FC = () => {
+  return <SettingsDashboardContent />;
 };
 
 export default SettingsDashboardPage;

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockExamGazettes } from '../data/mockData';
 import type { ExamGazette } from '../data/types';
 
-const ExamGazettePage: React.FC = () => {
+export const ExamGazettePageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { examSessions, classes, loading } = useAppData();
 
@@ -222,5 +222,10 @@ const ExamGazettePage: React.FC = () => {
     </div>
   );
 };
+const ExamGazettePage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamGazettePageContent />
+  </div>
+);
 
 export default ExamGazettePage;

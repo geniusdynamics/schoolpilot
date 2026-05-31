@@ -20,7 +20,7 @@ type StudentOpeningBalanceFormData = Omit<Partial<StudentOpeningBalance>, 'id' |
     balance_type: OpeningBalanceType;
 };
 
-const StudentOpeningBalancesPage: React.FC = () => {
+export const StudentOpeningBalancesPageContent: React.FC = () => {
   const { 
     studentOpeningBalances, 
     students,
@@ -230,5 +230,11 @@ const StudentOpeningBalancesPage: React.FC = () => {
     </div>
   );
 };
+
+const StudentOpeningBalancesPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentOpeningBalancesPageContent />
+  </div>
+);
 
 export default StudentOpeningBalancesPage;

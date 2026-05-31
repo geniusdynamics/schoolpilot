@@ -3,7 +3,7 @@
 import React from 'react';
 import EducationSystemForm from '@/components/EducationSystemForm';
 
-const EducationSystemConfigPage: React.FC<any> = ({ editingSystem, onSave, onCancel }) => {
+export const EducationSystemConfigPageContent: React.FC<any> = ({ editingSystem, onSave, onCancel }) => {
   return (
     <div>
       <EducationSystemForm 
@@ -14,6 +14,10 @@ const EducationSystemConfigPage: React.FC<any> = ({ editingSystem, onSave, onCan
     </div>
   );
 };
+const EducationSystemConfigPage: React.FC = () => (
+  <div className="space-y-6">
+    <EducationSystemConfigPageContent />
+  </div>
+);
 
 export default EducationSystemConfigPage;
-

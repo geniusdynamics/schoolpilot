@@ -4,8 +4,13 @@
 import React from 'react';
 import OverdueReport from '../library/OverdueReport';
 
-const OverdueReportPage: React.FC = () => {
+export const OverdueReportPageContent: React.FC = () => {
   return <OverdueReport />;
 };
+const OverdueReportPage: React.FC = () => (
+  <div className="space-y-6">
+    <OverdueReportPageContent />
+  </div>
+);
 
 export default OverdueReportPage;

@@ -10,7 +10,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 
-const MealConsumptionLogPage: React.FC = () => {
+export const MealConsumptionLogPageContent: React.FC = () => {
   const { 
     mealConsumptionLogs, 
     menus,
@@ -190,5 +190,10 @@ const MealConsumptionLogPage: React.FC = () => {
     </div>
   );
 };
+const MealConsumptionLogPage: React.FC = () => (
+  <div className="space-y-6">
+    <MealConsumptionLogPageContent />
+  </div>
+);
 
 export default MealConsumptionLogPage;

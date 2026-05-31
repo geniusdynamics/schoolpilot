@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 type SubjectPaperFormData = Omit<Partial<SubjectPaper>, 'id' | 'created_at' | 'updated_at' | 'subject_name'>;
 
-const SubjectPapersManagementPage: React.FC = () => {
+export const SubjectPapersManagementContent: React.FC = () => {
   const { t } = useTranslation();
   const { 
     subjectPapers, 
@@ -156,6 +156,10 @@ const SubjectPapersManagementPage: React.FC = () => {
       </DialogForm>
     </div>
   );
+};
+
+const SubjectPapersManagementPage: React.FC = () => {
+  return <SubjectPapersManagementContent />;
 };
 
 export default SubjectPapersManagementPage;

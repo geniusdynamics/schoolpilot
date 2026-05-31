@@ -9,7 +9,7 @@ import { FeeTemplate, StudentInvoice } from '@/modules/finance';
 import { SchoolPeriod, StudentCategory, ClassStream } from '@/core/types';
 import { useTranslation } from 'react-i18next';
 
-const EffectFeeStructuresPage: React.FC = () => {
+export const EffectFeeStructuresPageContent: React.FC = () => {
   const { 
     feeTemplates, 
     schoolPeriods,
@@ -140,5 +140,11 @@ const EffectFeeStructuresPage: React.FC = () => {
     </div>
   );
 };
+
+const EffectFeeStructuresPage: React.FC = () => (
+  <div className="space-y-6">
+    <EffectFeeStructuresPageContent />
+  </div>
+);
 
 export default EffectFeeStructuresPage;

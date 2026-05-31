@@ -9,7 +9,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { CashBookEntry } from '../data/types';
 
-const CashBookPage: React.FC = () => {
+export const CashBookPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { cashBookEntries, studentPayments, generalPayments, loading } = useAppData();
 
@@ -203,5 +203,10 @@ const CashBookPage: React.FC = () => {
     </div>
   );
 };
+const CashBookPage: React.FC = () => (
+  <div className="space-y-6">
+    <CashBookPageContent />
+  </div>
+);
 
 export default CashBookPage;

@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 type GradingSchemeFormData = Omit<Partial<GradingScheme>, 'id' | 'created_at' | 'updated_at' | 'levels'>;
 type LevelFormData = Omit<Partial<GradingSchemeLevel>, 'id' | 'scheme_id'>;
 
-const GradingSchemesPage: React.FC = () => {
+export const GradingSchemesContent: React.FC = () => {
   const { 
     gradingSchemes, 
     loading, 
@@ -279,6 +279,10 @@ const GradingSchemesPage: React.FC = () => {
       </DialogForm>
     </div>
   );
+};
+
+const GradingSchemesPage: React.FC = () => {
+  return <GradingSchemesContent />;
 };
 
 export default GradingSchemesPage;

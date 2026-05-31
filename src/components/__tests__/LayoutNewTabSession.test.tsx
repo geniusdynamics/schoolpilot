@@ -51,9 +51,22 @@ vi.mock('../SecondarySidebar', () => ({
   )
 }));
 
+vi.mock('../../contexts/FullWidthContext', () => ({
+  useFullWidth: () => ({
+    isFullWidth: false,
+    isSecondaryAsPrimary: false,
+    toggleFullWidth: vi.fn(),
+    enableFullWidth: vi.fn(),
+    disableFullWidth: vi.fn(),
+    setSecondaryAsPrimary: vi.fn()
+  })
+}));
+
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
-    user: { id: 'u1' }
+    user: { id: 'u1' },
+    hasModuleAccess: vi.fn(async () => true),
+    hasPermission: vi.fn(async () => true)
   })
 }));
 
@@ -125,6 +138,7 @@ vi.mock('../../hooks/tabs', () => ({
     unpinTab: unpinTabMock,
     openTab: openTabMock,
     startSession: startSessionMock,
+    switchModuleSession: vi.fn(async () => 'tab-id'),
     markDirty: markDirtyMock
   })
 }));

@@ -7,7 +7,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { TransferCertificateStudent } from '../data/types';
 
-const TransferCertificatePage: React.FC = () => {
+export const TransferCertificateContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { transferCertificateStudents, loading } = useAppData();
 
@@ -226,5 +226,11 @@ const TransferCertificatePage: React.FC = () => {
     </div>
   );
 };
+
+const TransferCertificatePage: React.FC = () => (
+  <div className="space-y-6">
+    <TransferCertificateContent />
+  </div>
+);
 
 export default TransferCertificatePage;

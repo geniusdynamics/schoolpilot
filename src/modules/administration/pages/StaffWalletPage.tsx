@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockWalletTransactions } from '../data/mockData';
 import type { WalletTransaction, WalletTransactionType } from '../data/types';
 
-const StaffWalletPage: React.FC = () => {
+export const StaffWalletContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { staff, loading } = useAppData();
 
@@ -376,5 +376,11 @@ const StaffWalletPage: React.FC = () => {
     </div>
   );
 };
+
+const StaffWalletPage: React.FC = () => (
+  <div className="space-y-6">
+    <StaffWalletContent />
+  </div>
+);
 
 export default StaffWalletPage;

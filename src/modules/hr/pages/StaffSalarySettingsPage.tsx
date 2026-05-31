@@ -23,7 +23,7 @@ interface SalaryComponentFormData {
   effective_to: string;
 }
 
-const StaffSalarySettingsPage: React.FC = () => {
+export const StaffSalarySettingsPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const { staff, loading: appDataLoading, refreshCollection } = useAppData();
   
@@ -374,5 +374,11 @@ const StaffSalarySettingsPage: React.FC = () => {
     </div>
   );
 };
+
+const StaffSalarySettingsPage: React.FC = () => (
+  <div className="space-y-6">
+    <StaffSalarySettingsPageContent />
+  </div>
+);
 
 export default StaffSalarySettingsPage;

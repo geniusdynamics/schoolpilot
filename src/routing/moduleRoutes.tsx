@@ -24,8 +24,14 @@ import {
   AuditLogPage,
   ROUTE_PATHS,
 } from './routeConfig';
+
+// Settings hub pages — explicitly imported to prevent routing order bugs
+import ConfigurationHubPage from '../modules/settings/pages/ConfigurationHubPage';
+import SystemManagementHubPage from '../modules/settings/pages/SystemManagementHubPage';
+import SchoolOperationsHubPage from '../modules/settings/pages/SchoolOperationsHubPage';
 import { pageModules, dashboardModules, getPageComponent } from './pageLoader';
 import { ModuleRouteLoader } from './ModuleRouteLoader';
+import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute } from './redirectMap';
 
 /** Standard loading spinner fallback for full-page Suspense boundaries */
 const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
@@ -41,22 +47,40 @@ const PageSpinner: React.FC<{ label?: string }> = ({ label }) => (
 const generateDeprecatedRouteRedirects = (): React.ReactElement[] => {
   const deprecatedRoutes: React.ReactElement[] = [];
   const enabledModuleIds = moduleRegistry.getEnabledModules();
+  const coveredPaths = new Set<string>();
 
   enabledModuleIds.forEach(moduleId => {
-    if (!moduleId) return; // Skip undefined/null entries
+    if (!moduleId) return;
     const metadata = moduleRegistry.getMetadata(moduleId);
     if (metadata?.navigation) {
       metadata.navigation.forEach((navItem: any) => {
         if (navItem?.deprecated && navItem?.path) {
-          deprecatedRoutes.push(
-            <Route
-              key={navItem.path}
-              path={navItem.path}
-              element={<Navigate to={ROUTE_PATHS.SETTINGS_DATA_MANAGEMENT} replace />}
-            />
-          );
+          const redirectTo = navItem.redirectTo || getRedirectForRoute(navItem.path);
+          if (redirectTo) {
+            coveredPaths.add(navItem.path);
+            deprecatedRoutes.push(
+              <Route
+                key={navItem.path}
+                path={navItem.path}
+                element={<Navigate to={redirectTo} replace />}
+              />
+            );
+          }
         }
       });
+    }
+  });
+
+  // Also register cross-module redirects from redirectMap
+  Object.entries(DEPRECATED_ROUTE_REDIRECTS).forEach(([path, redirectTo]) => {
+    if (!coveredPaths.has(path)) {
+      deprecatedRoutes.push(
+        <Route
+          key={path}
+          path={path}
+          element={<Navigate to={redirectTo} replace />}
+        />
+      );
     }
   });
 
@@ -132,57 +156,44 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         }
       />
 
-      {/* Explicit Settings Routes — order matters to prevent routing bugs */}
+      {/* Explicit Settings Hub Routes — order matters to prevent routing bugs */}
       <Route
-        path={ROUTE_PATHS.SETTINGS}
+        path="/settings/configuration"
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <SettingsPage />
+              <ConfigurationHubPage />
             </Suspense>
           </ProtectedRoute>
         }
       />
       <Route
-        path={ROUTE_PATHS.SETTINGS_UNIFIED}
+        path="/settings/system"
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <UnifiedSettingsPage />
+              <SystemManagementHubPage />
             </Suspense>
           </ProtectedRoute>
         }
       />
       <Route
-        path={ROUTE_PATHS.SETTINGS_FEATURES}
+        path="/settings/school"
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <FeatureSettingsPage />
+              <SchoolOperationsHubPage />
             </Suspense>
           </ProtectedRoute>
         }
       />
-      <Route
-        path={ROUTE_PATHS.SETTINGS_DATA_LAYER}
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<PageSpinner />}>
-              <DataLayerSettingsPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path={ROUTE_PATHS.SETTINGS_AUDIT_LOG}
-        element={
-          <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
-            <Suspense fallback={<PageSpinner />}>
-              <AuditLogPage />
-            </Suspense>
-          </ProtectedRoute>
-        }
-      />
+
+      {/* Legacy Settings Routes — redirect to hub pages */}
+      <Route path={ROUTE_PATHS.SETTINGS} element={<Navigate to="/settings/configuration?tab=settings" replace />} />
+      <Route path={ROUTE_PATHS.SETTINGS_UNIFIED} element={<Navigate to="/settings/configuration?tab=unified" replace />} />
+      <Route path={ROUTE_PATHS.SETTINGS_FEATURES} element={<Navigate to="/settings/configuration?tab=features" replace />} />
+      <Route path={ROUTE_PATHS.SETTINGS_DATA_LAYER} element={<Navigate to="/settings/system?tab=data-layer" replace />} />
+      <Route path={ROUTE_PATHS.SETTINGS_AUDIT_LOG} element={<Navigate to="/settings/school?tab=audit" replace />} />
 
       {/* Dynamic Deprecated Routes -> Redirect to Data Management */}
       {generateDeprecatedRouteRedirects()}
@@ -223,7 +234,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         if (!metadata || moduleId === 'dashboard') return [];
 
         // Get routes from module metadata (provided by module definition)
-        const routes = metadata.provides?.routes || [];
+        const routes = (metadata as any).routes || [];
 
         return routes.map(route => {
           if (!route || !route.path || typeof route.path !== 'string') return null;
@@ -265,7 +276,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
       {navigationItems
         .filter(item => item && (!item.modulePath || accessibleModules.includes(item.modulePath.replace('/', ''))))
         .flatMap(module => {
-          return (module.children || []).filter(nav => nav && nav.path).map(nav => {
+          return (module.children || []).filter(nav => nav && nav.path && !nav.deprecated).map(nav => {
             const PageComponent = getPageComponent(nav);
             if (!PageComponent) return null;
 

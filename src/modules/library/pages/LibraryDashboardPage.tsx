@@ -26,7 +26,7 @@ import ModuleDashboardShell, {
 } from '@/components/ModuleDashboardShell';
 import Card from '@/components/ui/Card';
 
-const LibraryDashboardPage: React.FC = () => {
+export const LibraryDashboardPageContent: React.FC = () => {
   const {
     books,
     loans,
@@ -391,5 +391,10 @@ const LibraryDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const LibraryDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <LibraryDashboardPageContent />
+  </div>
+);
 
 export default LibraryDashboardPage;

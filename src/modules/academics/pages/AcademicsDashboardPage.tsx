@@ -44,7 +44,7 @@ import ModuleDashboardShell, {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
-const AcademicsDashboardPage: React.FC = () => {
+export const AcademicsDashboardPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const {
     loading,
@@ -407,5 +407,10 @@ const AcademicsDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const AcademicsDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <AcademicsDashboardPageContent />
+  </div>
+);
 
 export default AcademicsDashboardPage;

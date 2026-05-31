@@ -19,7 +19,7 @@ type ItemFormData = Omit<Partial<ItemInv>, 'id' | 'created_at' | 'updated_at' | 
     item_type: ItemTypeInv; // Ensure item_type is required in the form
 };
 
-const ItemsPage: React.FC = () => {
+export const ItemsPageContent: React.FC = () => {
   const { itemsInv, itemCategoriesInv, loading, addItemInv, updateItemInv, deleteItemInv } = useAppData(); // Updated
   const { t } = useTranslation('inventory');
   
@@ -274,5 +274,10 @@ const ItemsPage: React.FC = () => {
     </div>
   );
 };
+const ItemsPage: React.FC = () => (
+  <div className="space-y-6">
+    <ItemsPageContent />
+  </div>
+);
 
 export default ItemsPage;

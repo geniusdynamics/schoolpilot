@@ -19,7 +19,7 @@ type StockTransactionFormData = Omit<Partial<StockTransaction>, 'id' | 'item_nam
     transaction_date?: string; // For form input
 };
 
-const StockIssuancePage: React.FC = () => {
+export const StockIssuancePageContent: React.FC = () => {
   const { 
     stockTransactions, 
     itemsInv,
@@ -198,5 +198,10 @@ const StockIssuancePage: React.FC = () => {
     </div>
   );
 };
+const StockIssuancePage: React.FC = () => (
+  <div className="space-y-6">
+    <StockIssuancePageContent />
+  </div>
+);
 
 export default StockIssuancePage;

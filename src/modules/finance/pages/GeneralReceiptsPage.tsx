@@ -22,7 +22,7 @@ type GeneralPaymentFormData = Omit<GeneralPayment, 'id' | 'created_at' | 'update
     items: GeneralPaymentItemFormData[];
 };
 
-const GeneralReceiptsPage: React.FC = () => {
+export const GeneralReceiptsPageContent: React.FC = () => {
   const { 
     generalPayments, 
     students, 
@@ -375,5 +375,11 @@ const GeneralReceiptsPage: React.FC = () => {
     </div>
   );
 };
+
+const GeneralReceiptsPage: React.FC = () => (
+  <div className="space-y-6">
+    <GeneralReceiptsPageContent />
+  </div>
+);
 
 export default GeneralReceiptsPage;

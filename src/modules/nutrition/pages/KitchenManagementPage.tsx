@@ -11,7 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { FoodItem, KitchenMealPlan, DietaryRestriction, InventoryStatus } from '../data/types';
 
-const KitchenManagementPage: React.FC = () => {
+export const KitchenManagementPageContent: React.FC = () => {
   const { t } = useTranslation('nutrition');
   const { foodInventory, kitchenMealPlans, loading } = useAppData();
 
@@ -538,5 +538,10 @@ const KitchenManagementPage: React.FC = () => {
     </div>
   );
 };
+const KitchenManagementPage: React.FC = () => (
+  <div className="space-y-6">
+    <KitchenManagementPageContent />
+  </div>
+);
 
 export default KitchenManagementPage;

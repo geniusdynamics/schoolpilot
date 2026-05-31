@@ -4,6 +4,8 @@
     "reports": {
       "title": "Reports",
       "description": "Generate and view various reports and analytics",
+      "dashboard": "Dashboard",
+      "studentReports": "Student Reports",
       "accountLedger": "Account Ledger",
       "examResultsHorizontal": "Exam Results Horizontal",
       "feeCollectionSummary": "Fee Collection Summary",

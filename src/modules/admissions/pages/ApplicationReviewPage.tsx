@@ -31,7 +31,7 @@ import {
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext';
 
-const ApplicationReviewPage: React.FC = () => {
+export const ApplicationReviewPageContent: React.FC = () => {
   const { applicationId } = useParams<{ applicationId: string }>();
   const navigate = useNavigate();
   const { getApplication, addReview, makeDecision, applications } = useAdmissionsData();
@@ -585,5 +585,10 @@ const ApplicationReviewPage: React.FC = () => {
     </>
   );
 };
+const ApplicationReviewPage: React.FC = () => (
+  <div className="space-y-6">
+    <ApplicationReviewPageContent />
+  </div>
+);
 
 export default ApplicationReviewPage;

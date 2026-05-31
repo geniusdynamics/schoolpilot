@@ -20,7 +20,7 @@ type ExpenseClaimFormData = Omit<Partial<ExpenseClaim>, 'id' | 'created_at' | 'u
     claimant_type: ExpenseClaimantType; // Ensure this is required for form logic
 };
 
-const ExpensesPage: React.FC = () => {
+export const ExpensesPageContent: React.FC = () => {
   const { 
     expenseClaims, 
     expenseCategories,
@@ -310,5 +310,10 @@ const ExpensesPage: React.FC = () => {
     </div>
   );
 };
+const ExpensesPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExpensesPageContent />
+  </div>
+);
 
 export default ExpensesPage;

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import FeatureSettings from '@/components/FeatureSettings';
 import { useRBAC } from '@/hooks/useRBAC';
 
-const FeatureSettingsPage: React.FC = () => {
+export const FeatureSettingsContent: React.FC = () => {
   const { t } = useTranslation('settings');
   const { hasPermission } = useRBAC();
 
@@ -39,6 +39,10 @@ const FeatureSettingsPage: React.FC = () => {
       <FeatureSettings />
     </div>
   );
+};
+
+const FeatureSettingsPage: React.FC = () => {
+  return <FeatureSettingsContent />;
 };
 
 export default FeatureSettingsPage;

@@ -20,7 +20,7 @@ type EnrollmentFormData = Omit<Partial<StudentSubjectEnrollment>, 'id' | 'create
     status: StudentEnrollmentStatus;
 };
 
-const StudentSubjectEnrollmentPage: React.FC = () => {
+export const StudentSubjectEnrollmentPageContent: React.FC = () => {
   const { 
     studentSubjectEnrollments, 
     students,
@@ -349,5 +349,11 @@ const StudentSubjectEnrollmentPage: React.FC = () => {
     </div>
   );
 };
+
+const StudentSubjectEnrollmentPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentSubjectEnrollmentPageContent />
+  </div>
+);
 
 export default StudentSubjectEnrollmentPage;

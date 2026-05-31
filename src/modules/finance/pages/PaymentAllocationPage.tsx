@@ -39,7 +39,7 @@ interface StudentWithPayments {
   payments: StudentPayment[];
 }
 
-const PaymentAllocationPage: React.FC = () => {
+export const PaymentAllocationPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { applyPriority, applyWeighted, isAllocating, error: serviceError } = usePaymentAllocation();
   const { students, studentInvoices, studentPayments, invoicePaymentApplications, studentInvoiceItems, loading: appLoading } = useAppData();
@@ -506,5 +506,11 @@ const PaymentAllocationPage: React.FC = () => {
     </div>
   );
 };
+
+const PaymentAllocationPage: React.FC = () => (
+  <div className="space-y-6">
+    <PaymentAllocationPageContent />
+  </div>
+);
 
 export default PaymentAllocationPage;

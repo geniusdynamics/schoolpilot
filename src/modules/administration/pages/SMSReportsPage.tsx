@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockSMSReports } from '../data/mockData';
 import type { SMSReport, SMSStatus } from '../data/types';
 
-const SMSReportsPage: React.FC = () => {
+export const SMSReportsContent: React.FC = () => {
   const { t } = useTranslation('administration');
   const { loading } = useAppData();
 
@@ -290,5 +290,11 @@ const SMSReportsPage: React.FC = () => {
     </div>
   );
 };
+
+const SMSReportsPage: React.FC = () => (
+  <div className="space-y-6">
+    <SMSReportsContent />
+  </div>
+);
 
 export default SMSReportsPage;

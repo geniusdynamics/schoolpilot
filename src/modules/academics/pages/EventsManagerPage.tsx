@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockSchoolEvents } from '../data/mockData';
 import type { SchoolEvent, EventType, EventStatus } from '../data/types';
 
-const EventsManagerPage: React.FC = () => {
+export const EventsManagerPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { loading } = useAppData();
 
@@ -439,5 +439,10 @@ const EventsManagerPage: React.FC = () => {
     </div>
   );
 };
+const EventsManagerPage: React.FC = () => (
+  <div className="space-y-6">
+    <EventsManagerPageContent />
+  </div>
+);
 
 export default EventsManagerPage;

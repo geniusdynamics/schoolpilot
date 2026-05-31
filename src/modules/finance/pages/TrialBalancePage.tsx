@@ -10,7 +10,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { TrialBalanceItem } from '../data/types';
 
-const TrialBalancePage: React.FC = () => {
+export const TrialBalancePageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { trialBalanceItems, loading } = useAppData();
 
@@ -225,5 +225,10 @@ const TrialBalancePage: React.FC = () => {
     </div>
   );
 };
+const TrialBalancePage: React.FC = () => (
+  <div className="space-y-6">
+    <TrialBalancePageContent />
+  </div>
+);
 
 export default TrialBalancePage;

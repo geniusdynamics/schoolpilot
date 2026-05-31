@@ -18,7 +18,7 @@ import {
   ProviderType,
   QueryBuilder
 } from './DatabaseProviderFactory';
-import { PouchDBProvider } from './PouchDBProvider';
+import { UnifiedDatabaseManager } from './UnifiedDatabaseManager';
 
 // Collection Configuration
 export interface CollectionConfig {
@@ -28,6 +28,8 @@ export interface CollectionConfig {
 }
 
 // Database Manager that orchestrates the dual-database architecture
+// Delegates collection lookups to UnifiedDatabaseManager for split-brain prevention.
+// Keeps local state for backwards-compatible operations (switchProvider, backup, etc.)
 export class DatabaseManager {
   private factory: DatabaseProviderFactory;
   private activeProvider: IDatabaseProvider | null = null;
@@ -39,43 +41,23 @@ export class DatabaseManager {
     this.factory = getDatabaseProviderFactory();
   }
 
-  // Initialize the database with all 88 collections
+  /**
+   * Initialize — delegates to UnifiedDatabaseManager to ensure single source of truth.
+   * Once UDM initializes, this manager's collections are populated from UDM's state.
+   */
   async initialize(config: DatabaseConfig, collectionConfigs: CollectionConfig[]): Promise<void> {
     try {
-      console.log(`Initializing database with ${collectionConfigs.length} collections`);
-      
-      // Determine requirements based on collection count and features
-      const requirements: CollectionRequirements = {
-        collectionsCount: collectionConfigs.length,
-        requiresOffline: true,
-        requiresSync: false,
-        requiresReactivity: true,
-        performanceLevel: 'standard',
-        storageQuota: 100 * 1024 * 1024 // 100MB default
-      };
-
-      // Create provider using factory
-      this.activeProvider = await this.factory.createProvider(config, requirements);
-      
-      // Create all collections
-      for (const collectionConfig of collectionConfigs) {
-        try {
-          const collection = await this.activeProvider.createCollection(
-            collectionConfig.name,
-            collectionConfig.schema
-          );
-          this.collections.set(collectionConfig.name, collection);
-          console.log(`Collection '${collectionConfig.name}' created successfully`);
-        } catch (error) {
-          console.error(`Failed to create collection '${collectionConfig.name}':`, error);
-          // Continue with other collections even if one fails
-        }
+      console.log('[DatabaseManager] Delegating initialization to UnifiedDatabaseManager...');
+      const udm = UnifiedDatabaseManager.getInstance();
+      if (!udm.isReady()) {
+        await udm.initialize();
       }
-
-      this.isInitialized = true;
+      // Mirror UDM's collections locally for backward-compatible methods
+      this.collections = udm.getAllCollections();
+      this.activeProvider = udm.getProvider();
+      this.isInitialized = udm.isReady();
       this.updateStatus();
-      
-      console.log(`Database initialized successfully with ${this.collections.size} collections using ${this.activeProvider.name}`);
+      console.log(`[DatabaseManager] UDM delegated: ${this.collections.size} collections available`);
     } catch (error) {
       throw new DatabaseError(
         `Failed to initialize database: ${error.message}`,
@@ -84,18 +66,27 @@ export class DatabaseManager {
     }
   }
 
-  // Get a specific collection
+  // Get a specific collection — delegates to UDM for live data
   getCollection<T>(name: string): ICollection<T> | null {
-    const collection = this.collections.get(name);
-    if (!collection) {
-      console.warn(`Collection '${name}' not found`);
+    // Try UDM first (primary source of truth)
+    const udmCol = UnifiedDatabaseManager.getInstance().getCollection<T>(name);
+    if (udmCol) return udmCol;
+    // Fallback to local collections (for backward compat with uninitialized state)
+    const localCol = this.collections.get(name);
+    if (!localCol) {
+      console.warn(`Collection '${name}' not found in UDM or local state`);
       return null;
     }
-    return collection as ICollection<T>;
+    return localCol as ICollection<T>;
   }
 
-  // Get all collections
+  // Get all collections — delegates to UDM for live data
   getAllCollections(): Map<string, ICollection<any>> {
+    const udm = UnifiedDatabaseManager.getInstance();
+    if (udm.isReady()) {
+      return udm.getAllCollections();
+    }
+    // Fallback to local state if UDM not ready
     return new Map(this.collections);
   }
 
@@ -106,6 +97,9 @@ export class DatabaseManager {
 
   // Check if database is available
   isAvailable(): boolean {
+    // Check UDM first, fallback to local state
+    const udm = UnifiedDatabaseManager.getInstance();
+    if (udm.isReady()) return true;
     return this.isInitialized && this.activeProvider?.isAvailable() === true;
   }
 

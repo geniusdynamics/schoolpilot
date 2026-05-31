@@ -38,7 +38,7 @@ const workingCapitalTrend = [
   { month: 'December', value: 9000000 },
 ];
 
-const ReportsPage: React.FC = () => {
+export const ReportsPageContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState(reportTabs[0]);
 
   return (
@@ -112,5 +112,10 @@ const ReportsPage: React.FC = () => {
     </div>
   );
 };
+const ReportsPage: React.FC = () => (
+  <div className="space-y-6">
+    <ReportsPageContent />
+  </div>
+);
 
-export default ReportsPage; 
+export default ReportsPage;

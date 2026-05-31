@@ -5,7 +5,7 @@ import { CogIcon, IdentificationIcon, UserGroupIcon, CalendarDaysIcon, ShieldChe
 import { useAppData } from '@/hooks/useAppData';
 import { Link } from 'react-router-dom';
 
-const SettingsGeneralPage: React.FC = () => {
+export const SettingsGeneralContent: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const { schoolDetails, users, isDatabaseModeActive } = useAppData();
 
@@ -207,6 +207,10 @@ const SettingsGeneralPage: React.FC = () => {
       </Card>
     </div>
   );
+};
+
+const SettingsGeneralPage: React.FC = () => {
+  return <SettingsGeneralContent />;
 };
 
 export default SettingsGeneralPage;

@@ -97,7 +97,7 @@ const roleLabels: Record<UserRole, string> = {
   guardian: 'Guardian',
 };
 
-const PortalProfilePage: React.FC = () => {
+export const PortalProfileContent: React.FC = () => {
   const { t } = useTranslation('portal');
   const [profile, setProfile] = useState<UserProfile>(mockProfile);
   const [isEditing, setIsEditing] = useState(false);
@@ -334,6 +334,10 @@ const PortalProfilePage: React.FC = () => {
       </Card>
     </div>
   );
+};
+
+const PortalProfilePage: React.FC = () => {
+  return <PortalProfileContent />;
 };
 
 export default PortalProfilePage;

@@ -18,7 +18,7 @@ import { useAppData } from '@/hooks/useAppData';
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(value);
 
-const StudentFinancialSummaryPage: React.FC = () => {
+export const StudentFinancialSummaryPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { data: summaries, loading, error, refresh } = useStudentFinancialSummary();
   const { classes, classStreams, schoolPeriods, loading: appLoading } = useAppData();
@@ -381,5 +381,10 @@ const StudentFinancialSummaryPage: React.FC = () => {
     </div>
   );
 };
+const StudentFinancialSummaryPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentFinancialSummaryPageContent />
+  </div>
+);
 
 export default StudentFinancialSummaryPage;

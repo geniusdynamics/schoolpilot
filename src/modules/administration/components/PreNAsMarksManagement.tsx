@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DataGrid from '@/components/ui/data/DataGrid';
-import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormActions from '@/components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Card from '@/components/ui/Card';
+import DataGrid from '../../../components/ui/data/DataGrid';
+import Button from '../../../components/ui/Button';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormActions from '../../../components/ui/forms/FormActions';
+import Input from '../../../components/ui/Input';
+import Select from '../../../components/ui/Select';
+import Card from '../../../components/ui/Card';
 import { 
   PlusIcon, 
   EditIcon, 
@@ -19,12 +19,12 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon,
   ArrowUpTrayIcon
-} from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
+} from '../../../components/ui/icons';
+import { useAppData } from '../../../hooks/useAppData';
+import Spinner from '../../../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import { useToast } from '@/hooks/useToast';
-import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
+import { useToast } from '../../../hooks/useToast';
+import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
 import { AdminPreNAsMarksType } from '../data/types';
 
 // Types for PreNAs Marks Management

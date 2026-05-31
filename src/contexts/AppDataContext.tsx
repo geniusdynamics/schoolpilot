@@ -1080,14 +1080,47 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
         student_exam_result_id: existingResult?.id || resultData.id || '',
         subject_name: mark.subject_name || paper?.subject_name || null,
         subject_paper_name: mark.subject_paper_name || paper?.subject_paper_name || null,
-        marks_out_of: mark.marks_out_of ?? paper?.marks_out_of ?? null
+        marks_out_of: mark.marks_out_of ?? paper?.marks_out_of ?? null,
+        weight_percentage: mark.weight_percentage ?? paper?.weight_percentage ?? null
       };
     });
+
+    const totalMarks = (() => {
+      if (marks.length === 0) return 0;
+      let weightedSum = 0;
+      let totalWeight = 0;
+      for (const mark of marks) {
+        if (mark.score == null) continue;
+        const marksOutOf = mark.marks_out_of;
+        if (!marksOutOf || marksOutOf <= 0) {
+          weightedSum += Number(mark.score);
+          totalWeight += 1;
+          continue;
+        }
+        const normalizedScore = (Number(mark.score) / marksOutOf) * 100;
+        const weightPct = mark.weight_percentage;
+        if (weightPct != null && weightPct > 0) {
+          weightedSum += normalizedScore * (weightPct / 100);
+          totalWeight += weightPct / 100;
+        } else {
+          weightedSum += normalizedScore;
+          totalWeight += 1;
+        }
+      }
+      // If all papers have weight_percentage, rescale to a 0-100 weighted average
+      if (totalWeight > 0) {
+        return Number((weightedSum / totalWeight).toFixed(2));
+      }
+      return 0;
+    })();
+
     const nextResult = {
       ...existingResult,
       ...resultData,
       id: existingResult?.id || resultData.id || `exam-result-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       marks,
+      total_marks: totalMarks,
+      mean_grade: resultData.mean_grade ?? (totalMarks > 0 ? totalMarks.toFixed(1) : null),
       student_name: resultData.student_name || (student ? `${student.first_name || ''} ${student.last_name || ''}`.trim() : null),
       admission_no: resultData.admission_no || student?.admission_no || null,
       class_name: resultData.class_name || classStream?.class_name || student?.current_class_name || null,

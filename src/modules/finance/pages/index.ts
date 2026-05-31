@@ -28,3 +28,13 @@ export { default as JournalRegisterPage } from './JournalRegisterPage';
 export { default as PreviousSessionFeesPage } from './PreviousSessionFeesPage';
 export { default as StudentsPaidBookPage } from './StudentsPaidBookPage';
 export { default as TrialBalancePage } from './TrialBalancePage';
+
+// Hub pages
+export { default as FeeConfigurationHubPage } from './FeeConfigurationHubPage';
+export { default as FeeRulesPage } from './FeeRulesPage';
+
+export { default as PaymentsHubPage } from './PaymentsHubPage';
+export { default as FinanceReportsHubPage } from './FinanceReportsHubPage';
+export { default as InvoicingHubPage } from './InvoicingHubPage';
+export { default as ExpensesHubPage } from './ExpensesHubPage';
+export { default as TransportHubPage } from './TransportHubPage';

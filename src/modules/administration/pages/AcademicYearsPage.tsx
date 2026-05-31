@@ -18,7 +18,7 @@ type AcademicYearFormData = Omit<Partial<AcademicYear>, 'id' | 'created_at' | 'u
     structure_id?: number; 
 };
 
-const AcademicYearsPage: React.FC = () => {
+export const AcademicYearsContent: React.FC = () => {
   const appData = useAppData();
   const academicYears = appData.academicYears || [];
   const academicYearStructures = appData.academicYearStructures || [];
@@ -253,5 +253,11 @@ const AcademicYearsPage: React.FC = () => {
     </div>
   );
 };
+
+const AcademicYearsPage: React.FC = () => (
+  <div className="space-y-6">
+    <AcademicYearsContent />
+  </div>
+);
 
 export default AcademicYearsPage;

@@ -57,7 +57,7 @@ interface StockReceptionForm {
   items: StockReceptionItem[];
 }
 
-const StockReceptionPage: React.FC = () => {
+export const StockReceptionPageContent: React.FC = () => {
   const [receptions, setReceptions] = useState<any[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingReception, setEditingReception] = useState<StockReceptionForm | null>(null);
@@ -535,5 +535,10 @@ const StockReceptionPage: React.FC = () => {
     </Box>
   );
 };
+const StockReceptionPage: React.FC = () => (
+  <div className="space-y-6">
+    <StockReceptionPageContent />
+  </div>
+);
 
 export default StockReceptionPage;

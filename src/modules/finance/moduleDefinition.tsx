@@ -44,6 +44,7 @@ export const financeModule: ModuleDefinition = {
 
     // Hub pages (standard mode)
     { name: 'navigation:finance.feeConfiguration', path: '/finance/fee-configuration', icon: DocumentDuplicateIcon, page: 'FeeConfigurationHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.feeRules', path: '/finance/fee-rules', icon: ClipboardDocumentListIcon, page: 'FeeRulesPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.accountingConfig', path: '/finance/accounting-config', icon: DocumentTextIcon, page: 'AccountingConfigPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.accountingOps', path: '/finance/accounting-ops', icon: BookOpenIcon, page: 'AccountingOperationsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.financialStatements', path: '/finance/financial-statements', icon: ScaleIcon, page: 'FinancialStatementsPage', showInModes: ['standard', 'fullwidth'] },
@@ -58,9 +59,9 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.chartOfAccounts', path: '/finance/chart-of-accounts', icon: DocumentTextIcon, page: 'ChartOfAccountsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/accounting-config?tab=chart-of-accounts' },
     { name: 'navigation:finance.feeTemplates', path: '/finance/fee-templates', icon: DocumentDuplicateIcon, page: 'FeeTemplatesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-configuration?tab=templates' },
     { name: 'navigation:finance.effectFeeStructures', path: '/finance/effect-fee-structures', icon: DocumentDuplicateIcon, page: 'EffectFeeStructuresPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-configuration?tab=structures' },
-    { name: 'navigation:finance.feeAdjustments', path: '/finance/fee-adjustments', icon: DocumentDuplicateIcon, page: 'FeeAdjustmentsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-configuration?tab=adjustments' },
-    { name: 'navigation:finance.feesFines', path: '/finance/fees-fines', icon: ExclamationTriangleIcon, page: 'FeesFinesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-configuration?tab=fines' },
-    { name: 'navigation:finance.feesInstallments', path: '/finance/fees-installments', icon: CalendarIcon, page: 'FeesInstallmentsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-configuration?tab=installments' },
+    { name: 'navigation:finance.feeAdjustments', path: '/finance/fee-adjustments', icon: DocumentDuplicateIcon, page: 'FeeAdjustmentsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-rules?tab=adjustments' },
+    { name: 'navigation:finance.feesFines', path: '/finance/fees-fines', icon: ExclamationTriangleIcon, page: 'FeesFinesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-rules?tab=fines' },
+    { name: 'navigation:finance.feesInstallments', path: '/finance/fees-installments', icon: CalendarIcon, page: 'FeesInstallmentsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-rules?tab=installments' },
     { name: 'navigation:finance.feesReceiptTemplate', path: '/finance/fees-receipt-template', icon: DocumentTextIcon, page: 'FeesReceiptTemplatePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-configuration?tab=receipt-template' },
     { name: 'navigation:finance.dayBook', path: '/finance/day-book', icon: BookOpenIcon, page: 'DayBookPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/accounting-ops?tab=day-book' },
     { name: 'navigation:finance.cashBook', path: '/finance/cash-book', icon: CashIcon, page: 'CashBookPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/accounting-ops?tab=cash-book' },
@@ -118,6 +119,7 @@ export const financeModule: ModuleDefinition = {
   routes: [
     { path: '/finance/dashboard', page: 'FinanceDashboardPage' },
     { path: '/finance/fee-configuration', page: 'FeeConfigurationHubPage' },
+    { path: '/finance/fee-rules', page: 'FeeRulesPage' },
     { path: '/finance/accounting-config', page: 'AccountingConfigPage' },
     { path: '/finance/accounting-ops', page: 'AccountingOperationsPage' },
     { path: '/finance/financial-statements', page: 'FinancialStatementsPage' },

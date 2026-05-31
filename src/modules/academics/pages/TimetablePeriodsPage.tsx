@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 type TimetablePeriodFormData = Omit<Partial<TimetablePeriodDef>, 'id'>;
 
-const TimetablePeriodsPage: React.FC = () => {
+export const TimetablePeriodsContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const {
     data: timetablePeriodDefs,
@@ -157,6 +157,10 @@ const TimetablePeriodsPage: React.FC = () => {
       </DialogForm>
     </div>
   );
+};
+
+const TimetablePeriodsPage: React.FC = () => {
+  return <TimetablePeriodsContent />;
 };
 
 export default TimetablePeriodsPage;

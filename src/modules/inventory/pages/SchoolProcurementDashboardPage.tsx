@@ -5,7 +5,7 @@ import { useAppData } from '@/hooks/useAppData';
 import ModuleDashboardShell, { DashboardMetric, DashboardNotification, DashboardPanel, DashboardQuickAction } from '@/components/ModuleDashboardShell';
 import { ArchiveIcon, CheckCircleIcon, ClockIcon, CurrencyDollarIcon } from '@/components/ui/icons';
 
-const SchoolProcurementDashboardPage: React.FC = () => {
+export const SchoolProcurementDashboardPageContent: React.FC = () => {
   const { requisitions, purchaseOrders, suppliers } = useAppData();
 
   const openRequisitions = requisitions.filter((req: any) => String(req.status || '').toLowerCase().includes('pending'));
@@ -106,5 +106,10 @@ const SchoolProcurementDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const SchoolProcurementDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <SchoolProcurementDashboardPageContent />
+  </div>
+);
 
 export default SchoolProcurementDashboardPage;

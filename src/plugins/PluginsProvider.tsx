@@ -4,11 +4,10 @@
  * React context provider for the plugin system.
  */
 
-import React, { createContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { PluginManager, initPlugins } from './PluginManager';
 import type { PluginConfig, LoadedPlugin, PluginManifest } from './types';
 import { loadAllBuiltinPlugins } from './BuiltinLoader';
-import { logger } from '../utils/logging';
 
 interface PluginsContextValue {
   manager: PluginManager;
@@ -54,7 +53,7 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
           try {
             manager.registerBuiltinPlugin(plugin);
           } catch (error) {
-            logger.error(`[PluginsProvider] Failed to register ${plugin.manifest.id}:`, error);
+            console.error(`[PluginsProvider] Failed to register ${plugin.manifest.id}:`, error);
           }
         }
 
@@ -66,7 +65,7 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
         setPlugins(manager.getAllPlugins());
         setIsReady(true);
       } catch (error) {
-        logger.error('[PluginsProvider] Failed to initialize plugins:', error);
+        console.error('[PluginsProvider] Failed to initialize plugins:', error);
         setIsReady(true); // Still render app even if plugins fail
       }
     };
@@ -74,19 +73,12 @@ export const PluginsProvider: React.FC<PluginsProviderProps> = ({
     loadPlugins();
   }, [manager, manifests]);
 
-  // Memoize context value to prevent unnecessary re-renders
-  const contextValue = useMemo(() => ({
-    manager,
-    plugins,
-    setPlugins
-  }), [manager, plugins, setPlugins]);
-
   if (!isReady) {
     return null;
   }
 
   return (
-    <PluginsContext.Provider value={contextValue}>
+    <PluginsContext.Provider value={{ manager, plugins, setPlugins }}>
       {children}
     </PluginsContext.Provider>
   );

@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 type WarehouseFormData = Omit<Partial<Warehouse>, 'id'>;
 
-const WarehousesPage: React.FC = () => {
+export const WarehousesPageContent: React.FC = () => {
   const { warehouses, loading, addWarehouse, updateWarehouse, deleteWarehouse } = useAppData(); // Updated
   const { t } = useTranslation('inventory');
   
@@ -153,5 +153,10 @@ const WarehousesPage: React.FC = () => {
     </div>
   );
 };
+const WarehousesPage: React.FC = () => (
+  <div className="space-y-6">
+    <WarehousesPageContent />
+  </div>
+);
 
 export default WarehousesPage;

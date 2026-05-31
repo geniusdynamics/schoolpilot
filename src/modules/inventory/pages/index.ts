@@ -1,5 +1,8 @@
 // Export all inventory pages
 export { default as InventoryDashboardPage } from './InventoryDashboardPage';
+export { default as InventoryHubPage } from './InventoryHubPage';
+export { default as ProcurementHubPage } from './ProcurementHubPage';
+export { default as StockOpsHubPage } from './StockOpsHubPage';
 export { default as ItemsPage } from './ItemsPage';
 export { default as ItemCategoriesPage } from './ItemCategoriesPage';
 export { default as StockLevelsPage } from './StockLevelsPage';

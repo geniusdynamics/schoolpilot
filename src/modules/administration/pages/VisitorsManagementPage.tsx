@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -11,10 +12,6 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { VisitorType, VisitorStatus } from '../data/types';
 import type { VisitorLog } from '../data/types';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
 
 const VisitorsManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -223,7 +220,7 @@ const VisitorsManagementPage: React.FC = () => {
       </Card>
 
       {selectedVisitor && (
-        <DialogForm
+        <Modal
           isOpen={!!selectedVisitor}
           onClose={() => setSelectedVisitor(null)}
           title="Visitor Details"
@@ -289,95 +286,83 @@ const VisitorsManagementPage: React.FC = () => {
               </div>
             )}
           </div>
-        </DialogForm>
+        </Modal>
       )}
 
-      <DialogForm
+      <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
         title={t('visitors.checkIn')}
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+            <Button onClick={handleSubmit}>Check In Visitor</Button>
+          </>
+        }
       >
-        <FormSection title="Visitor Information">
-          <FormField label="Visitor Name" required>
+        <div className="space-y-4">
+          <Input
+            label="Visitor Name"
+            value={formData.visitor_name}
+            onChange={(value) => handleInputChange('visitor_name', value)}
+            required
+          />
+          <Select
+            label="Visitor Type"
+            value={formData.visitor_type}
+            onChange={(value) => handleInputChange('visitor_type', value)}
+            options={Object.values(VisitorType).map(t => ({ label: t, value: t }))}
+            required
+          />
+          <div className="grid grid-cols-2 gap-4">
             <Input
-              value={formData.visitor_name}
-              onChange={(value) => handleInputChange('visitor_name', value)}
-              required
-            />
-          </FormField>
-          <FormField label="Visitor Type" required>
-            <Select
-              value={formData.visitor_type}
-              onChange={(value) => handleInputChange('visitor_type', value)}
-              options={Object.values(VisitorType).map(t => ({ label: t, value: t }))}
-              required
-            />
-          </FormField>
-        </FormSection>
-
-        <FormSection title="Contact Details" columns={2}>
-          <FormField label="Phone" required>
-            <Input
+              label="Phone"
               value={formData.phone}
               onChange={(value) => handleInputChange('phone', value)}
               required
             />
-          </FormField>
-          <FormField label="Email">
             <Input
+              label="Email"
               value={formData.email}
               onChange={(value) => handleInputChange('email', value)}
             />
-          </FormField>
-          <FormField label="ID Type">
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <Input
+              label="ID Type"
               value={formData.id_type}
               onChange={(value) => handleInputChange('id_type', value)}
             />
-          </FormField>
-          <FormField label="ID Number">
             <Input
+              label="ID Number"
               value={formData.id_number}
               onChange={(value) => handleInputChange('id_number', value)}
             />
-          </FormField>
-        </FormSection>
-
-        <FormSection title="Visit Details">
-          <FormField label="Purpose of Visit" required>
-            <Textarea
-              value={formData.purpose}
-              onChange={(value) => handleInputChange('purpose', value)}
-              required
-              rows={3}
-            />
-          </FormField>
-          <FormField label="Person to Meet">
-            <Input
-              value={formData.person_to_meet}
-              onChange={(value) => handleInputChange('person_to_meet', value)}
-            />
-          </FormField>
-          <FormField label="Remarks">
-            <Textarea
-              value={formData.remarks}
-              onChange={(value) => handleInputChange('remarks', value)}
-              rows={2}
-            />
-          </FormField>
-        </FormSection>
-
-        <FormActions>
-          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
-          <Button type="submit">Check In Visitor</Button>
-        </FormActions>
-      </DialogForm>
+          </div>
+          <Textarea
+            label="Purpose of Visit"
+            value={formData.purpose}
+            onChange={(value) => handleInputChange('purpose', value)}
+            required
+            rows={3}
+          />
+          <Input
+            label="Person to Meet"
+            value={formData.person_to_meet}
+            onChange={(value) => handleInputChange('person_to_meet', value)}
+          />
+          <Textarea
+            label="Remarks"
+            value={formData.remarks}
+            onChange={(value) => handleInputChange('remarks', value)}
+            rows={2}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };
 
 export default VisitorsManagementPage;
+
+export const VisitorsManagementContent = VisitorsManagementPage;

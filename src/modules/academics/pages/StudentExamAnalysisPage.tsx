@@ -28,7 +28,7 @@ import {
   initialMockSubjectBreakdownData
 } from '../data/mockData';
 
-const StudentExamAnalysisPage: React.FC = () => {
+export const StudentExamAnalysisPageContent: React.FC = () => {
   useTranslation('academics');
   const navigate = useNavigate();
   const { studentId } = useParams<{ studentId: string }>();
@@ -256,5 +256,10 @@ const StudentExamAnalysisPage: React.FC = () => {
     </div>
   );
 };
+const StudentExamAnalysisPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentExamAnalysisPageContent />
+  </div>
+);
 
 export default StudentExamAnalysisPage;

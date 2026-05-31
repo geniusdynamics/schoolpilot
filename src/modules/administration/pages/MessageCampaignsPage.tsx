@@ -27,7 +27,7 @@ type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_a
 };
 
 
-const MessageCampaignsPage: React.FC = () => {
+export const MessageCampaignsContent: React.FC = () => {
   const { campaigns, addCampaign, updateCampaign, deleteCampaign } = useCampaignData();
   const { templateComms } = useTemplateCommData();
   const { classStreams = [] } = useAppData(); // For classStreams only
@@ -370,5 +370,11 @@ const MessageCampaignsPage: React.FC = () => {
     </div>
   );
 };
+
+const MessageCampaignsPage: React.FC = () => (
+  <div className="space-y-6">
+    <MessageCampaignsContent />
+  </div>
+);
 
 export default MessageCampaignsPage;

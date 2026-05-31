@@ -1,8 +1,8 @@
 // ABOUTME: Settings module definition for modular system
-// ABOUTME: Exports the module definition for the settings module
+// ABOUTME: Exports the module definition for the settings module with hub-and-spoke navigation
 
 import { ModuleDefinition } from '@/core/types';
-import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon, PuzzlePieceIcon } from '@/components/ui/icons';
+import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon, PuzzlePieceIcon, HomeIcon, AdjustmentsHorizontalIcon, SparklesIcon, WrenchIcon, DocumentTextIcon } from '@/components/ui/icons';
 
 // Simple database icon component
 const DatabaseIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -20,44 +20,156 @@ const settingsModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    // Main Settings Dashboard
-    { name: 'navigation:settings.dashboard', path: '/settings', icon: CogIcon, page: 'SettingsPage' },
+    // Hub pages - shown in standard mode
+    {
+      name: 'navigation:settings.configuration',
+      path: '/settings/configuration',
+      icon: CogIcon,
+      page: 'ConfigurationHubPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+    {
+      name: 'navigation:settings.systemManagement',
+      path: '/settings/system',
+      icon: CircleStackIcon,
+      page: 'SystemManagementHubPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
+    {
+      name: 'navigation:settings.schoolOperations',
+      path: '/settings/school',
+      icon: IdentificationIcon,
+      page: 'SchoolOperationsHubPage',
+      showInModes: ['standard', 'fullwidth'],
+    },
 
-    // Primary Configuration Pages
-    { name: 'navigation:settings.unified', path: '/settings/unified', icon: CogIcon, page: 'UnifiedSettingsPage' },
-    { name: 'navigation:settings.features', path: '/settings/features', icon: CogIcon, page: 'FeatureSettingsPage' },
-
-    // Data & Database Management
-    // { name: 'navigation:settings.dataManagement', path: '/settings/data-management', icon: DatabaseIcon, page: 'DataManagementSettingsPage' },
-    // { name: 'navigation:settings.databaseSettings', path: '/settings/database', icon: DatabaseIcon, page: 'DatabaseSettingsPage' },
-    // { name: 'navigation:settings.backup', path: '/settings/backup', icon: DownloadIcon, page: 'BackupSettingsPage' },
-    { name: 'navigation:settings.dataLayer', path: '/settings/data-layer', icon: DatabaseIcon, page: 'DataLayerSettingsPage' },
-
-    // Interface Configuration
-    // { name: 'navigation:settings.tabs', path: '/settings/tabs', icon: ViewColumnsIcon, page: 'TabSettingsPage' },
-    // { name: 'navigation:settings.tabbedModeSettings', path: '/settings/tabbed-mode', icon: ViewColumnsIcon, page: 'TabbedModeSettingsPage' },
-
-    // Module Management
-    { name: 'navigation:settings.modules', path: '/settings/modules', icon: CircleStackIcon, page: 'ModuleManagementPage' },
-    { name: 'navigation:settings.dependencyReport', path: '/settings/dependency-report', icon: CircleStackIcon, page: 'ModuleDependencyReportPage' },
-
-    // Plugin Management
-    { name: 'navigation:settings.plugins', path: '/settings/plugins', icon: PuzzlePieceIcon, page: 'PluginSettingsPage' },
-
-    // School Profile
-    { name: 'navigation:settings.schoolProfile', path: '/settings/school-profile', icon: IdentificationIcon, page: 'SettingsSchoolProfilePage' },
-
-    // Audit & Logs
-    { name: 'navigation:settings.auditLog', path: '/settings/audit-log', icon: ClockIcon, page: 'AuditLogPage' },
-
-    // Test Pages (Removed missing files)
-    // { name: 'navigation:settings.tabbedWorkspaceTest', path: '/settings/tabbed-workspace-test', icon: ViewColumnsIcon, page: 'TabbedWorkspaceTestPage' },
-    // { name: 'navigation:settings.tabbedModeTest', path: '/settings/tabbed-mode-test', icon: ViewColumnsIcon, page: 'TabbedModeTestPage' },
-
-    // Legacy pages - still accessible but not shown in main nav
-    { name: 'navigation:settings.general', path: '/settings/general', icon: CogIcon, page: 'SettingsGeneralPage' },
-    { name: 'navigation:settings.users', path: '/settings/users', icon: UsersIcon, page: 'SettingsUsersPage' },
-    { name: 'navigation:settings.workflows', path: '/settings/workflows', icon: ArrowsRightLeftIcon, page: 'SettingsWorkflowsPage' },
+    // Legacy pages - shown in fullwidth mode with redirects to hub tabs
+    {
+      name: 'navigation:settings.dashboard',
+      path: '/settings',
+      icon: CogIcon,
+      page: 'SettingsPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/configuration?tab=settings',
+    },
+    {
+      name: 'navigation:settings.unified',
+      path: '/settings/unified',
+      icon: AdjustmentsHorizontalIcon,
+      page: 'UnifiedSettingsPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/configuration?tab=unified',
+    },
+    {
+      name: 'navigation:settings.features',
+      path: '/settings/features',
+      icon: SparklesIcon,
+      page: 'FeatureSettingsPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/configuration?tab=features',
+    },
+    {
+      name: 'navigation:settings.general',
+      path: '/settings/general',
+      icon: WrenchIcon,
+      page: 'SettingsGeneralPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/configuration?tab=general',
+    },
+    {
+      name: 'navigation:settings.dataLayer',
+      path: '/settings/data-layer',
+      icon: DatabaseIcon,
+      page: 'DataLayerSettingsPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system?tab=data-layer',
+    },
+    {
+      name: 'navigation:settings.modules',
+      path: '/settings/modules',
+      icon: ViewColumnsIcon,
+      page: 'ModuleManagementPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system?tab=modules',
+    },
+    {
+      name: 'navigation:settings.dependencyReport',
+      path: '/settings/dependency-report',
+      icon: DocumentTextIcon,
+      page: 'ModuleDependencyReportPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system?tab=dependencies',
+    },
+    {
+      name: 'navigation:settings.plugins',
+      path: '/settings/plugins',
+      icon: PuzzlePieceIcon,
+      page: 'PluginSettingsPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system?tab=plugins',
+    },
+    {
+      name: 'navigation:settings.schoolProfile',
+      path: '/settings/school-profile',
+      icon: IdentificationIcon,
+      page: 'SettingsSchoolProfilePage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/school?tab=school-profile',
+    },
+    {
+      name: 'navigation:settings.users',
+      path: '/settings/users',
+      icon: UsersIcon,
+      page: 'SettingsUsersPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/school?tab=users',
+    },
+    {
+      name: 'navigation:settings.workflows',
+      path: '/settings/workflows',
+      icon: ArrowsRightLeftIcon,
+      page: 'SettingsWorkflowsPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/school?tab=workflows',
+    },
+    {
+      name: 'navigation:settings.auditLog',
+      path: '/settings/audit-log',
+      icon: ClockIcon,
+      page: 'AuditLogPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/school?tab=audit',
+    },
+    {
+      name: 'navigation:settings.tabs',
+      path: '/settings/tabs',
+      icon: ViewColumnsIcon,
+      page: 'TabSettingsPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/school?tab=tabs',
+    },
+    {
+      name: 'navigation:settings.settingsDashboard',
+      path: '/settings/dashboard',
+      icon: HomeIcon,
+      page: 'SettingsDashboardPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/school?tab=dashboard',
+    },
   ],
   features: ['system-configuration', 'user-management', 'audit-trail', 'workflow-management', 'module-management'],
   rbacPermissions: [

@@ -26,7 +26,7 @@ type ExamSessionFormData = Omit<Partial<ExamSession>, 'id' | 'created_at' | 'upd
 type PaperSettingFormData = Omit<Partial<ExamPaperSetting>, 'id' | 'exam_session_id'| 'created_at' | 'updated_at' | 'subject_paper_name' | 'subject_name'>;
 
 
-const ExamSessionsPage: React.FC = () => {
+export const ExamSessionsPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { 
     examSessions, 
@@ -363,5 +363,11 @@ const ExamSessionsPage: React.FC = () => {
     </div>
   );
 };
+
+const ExamSessionsPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamSessionsPageContent />
+  </div>
+);
 
 export default ExamSessionsPage;

@@ -10,7 +10,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { DayBookEntry } from '../data/types';
 
-const DayBookPage: React.FC = () => {
+export const DayBookPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { dayBookEntries, generalLedgerEntries, chartOfAccounts, loading } = useAppData();
 
@@ -193,5 +193,10 @@ const DayBookPage: React.FC = () => {
     </div>
   );
 };
+const DayBookPage: React.FC = () => (
+  <div className="space-y-6">
+    <DayBookPageContent />
+  </div>
+);
 
 export default DayBookPage;

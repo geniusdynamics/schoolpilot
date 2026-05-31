@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockStaffBioData } from '../data/mockData';
 import type { StaffBioData, Qualification, EmploymentHistory, Contract, PerformanceReview } from '../data/types';
 
-const StaffBioDataPage: React.FC = () => {
+export const StaffBioDataPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const { loading } = useAppData();
 
@@ -312,5 +312,10 @@ const StaffBioDataPage: React.FC = () => {
     </div>
   );
 };
+const StaffBioDataPage: React.FC = () => (
+  <div className="space-y-6">
+    <StaffBioDataPageContent />
+  </div>
+);
 
 export default StaffBioDataPage;

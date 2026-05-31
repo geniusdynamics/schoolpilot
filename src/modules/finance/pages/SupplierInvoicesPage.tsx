@@ -18,7 +18,7 @@ type SupplierInvoiceFormData = Omit<Partial<SupplierInvoice>, 'id' | 'created_at
     status: SupplierInvoiceStatus; // Ensure this is required
 };
 
-const SupplierInvoicesPage: React.FC = () => {
+export const SupplierInvoicesPageContent: React.FC = () => {
   const { 
     supplierInvoices, 
     suppliers,
@@ -242,5 +242,10 @@ const SupplierInvoicesPage: React.FC = () => {
     </div>
   );
 };
+const SupplierInvoicesPage: React.FC = () => (
+  <div className="space-y-6">
+    <SupplierInvoicesPageContent />
+  </div>
+);
 
 export default SupplierInvoicesPage;

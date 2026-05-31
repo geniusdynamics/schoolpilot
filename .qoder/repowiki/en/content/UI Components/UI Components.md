@@ -10,8 +10,21 @@
 - [TabbedForm.tsx](file://src/components/ui/forms/TabbedForm.tsx)
 - [Tooltip.tsx](file://src/components/ui/feedback/Tooltip.tsx)
 - [Modal.tsx](file://src/components/ui/Modal.tsx)
+- [dropdown-menu.tsx](file://src/components/ui/dropdown-menu.tsx)
+- [StatCard.tsx](file://src/modules/dashboard/components/StatCard.tsx)
+- [ChartCard.tsx](file://src/modules/dashboard/components/ChartCard.tsx)
+- [AlertBanner.tsx](file://src/modules/dashboard/components/AlertBanner.tsx)
 - [__demos__/index.ts](file://src/components/__demos__/index.ts)
+- [AnimationDemo.tsx](file://src/components/__demos__/AnimationDemo.tsx)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added new Dropdown Menu component built on Radix UI primitives with comprehensive styling and keyboard navigation
+- Enhanced module dashboard components with consistent design patterns including StatCard, ChartCard, and AlertBanner
+- Expanded animation system documentation with performance optimization and accessibility features
+- Updated component catalog to include new dashboard visualization components
+- Added comprehensive styling with proper animations and keyboard navigation support
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -19,17 +32,19 @@
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
-10. [Appendices](#appendices)
+6. [Enhanced Dashboard Components](#enhanced-dashboard-components)
+7. [Animation System](#animation-system)
+8. [Dependency Analysis](#dependency-analysis)
+9. [Performance Considerations](#performance-considerations)
+10. [Troubleshooting Guide](#troubleshooting-guide)
+11. [Conclusion](#conclusion)
+12. [Appendices](#appendices)
 
 ## Introduction
-This document describes the comprehensive UI component library of SchoolPilot3. It focuses on the polymorphic component architecture that adapts behavior via props, the design system built on Tailwind CSS and CSS custom properties, and the component catalog spanning buttons, forms, data grids, tables, modals, cards, tooltips, and specialized components such as DataGrid, KanbanBoard, and SchedulingCalendar. It also covers testing approaches, accessibility compliance, animation systems, and interactive behaviors.
+This document describes the comprehensive UI component library of SchoolPilot3. It focuses on the polymorphic component architecture that adapts behavior via props, the design system built on Tailwind CSS and CSS custom properties, and the component catalog spanning buttons, forms, data grids, tables, modals, cards, dropdown menus, tooltips, and specialized components such as DataGrid, KanbanBoard, and SchedulingCalendar. The library now includes enhanced dashboard visualization components with consistent design patterns and comprehensive animation support with proper accessibility compliance.
 
 ## Project Structure
-The UI component library is organized under a central barrel export that re-exports all components and types for easy consumption. The design system is implemented via a dedicated stylesheet that defines CSS custom properties, animations, and utility classes. Demos are provided for most components to illustrate usage patterns.
+The UI component library is organized under a central barrel export that re-exports all components and types for easy consumption. The design system is implemented via a dedicated stylesheet that defines CSS custom properties, animations, and utility classes. Enhanced dashboard components provide consistent visualization patterns across all module dashboards. Demos are provided for most components to illustrate usage patterns.
 
 ```mermaid
 graph TB
@@ -41,12 +56,19 @@ DG["src/components/ui/data/DataGrid.tsx"]
 TF["src/components/ui/forms/TabbedForm.tsx"]
 TT["src/components/ui/feedback/Tooltip.tsx"]
 MD["src/components/ui/Modal.tsx"]
+DM["src/components/ui/dropdown-menu.tsx"]
+end
+subgraph "Dashboard Components"
+STAT["src/modules/dashboard/components/StatCard.tsx"]
+CHART["src/modules/dashboard/components/ChartCard.tsx"]
+ALERT["src/modules/dashboard/components/AlertBanner.tsx"]
 end
 subgraph "Design System"
 CSS["src/styles/design-system.css"]
 end
 subgraph "Demos"
 DEMOIDX["src/components/__demos__/index.ts"]
+ANIM["src/components/__demos__/AnimationDemo.tsx"]
 end
 UIIDX --> BTN
 UIIDX --> CARD
@@ -54,24 +76,26 @@ UIIDX --> DG
 UIIDX --> TF
 UIIDX --> TT
 UIIDX --> MD
-BTN --> CSS
-CARD --> CSS
-DG --> CSS
-TF --> CSS
-TT --> CSS
-MD --> CSS
+UIIDX --> DM
+DM --> CSS
+STAT --> CSS
+CHART --> CSS
+ALERT --> CSS
 DEMOIDX --> BTN
 DEMOIDX --> CARD
 DEMOIDX --> DG
 DEMOIDX --> TF
 DEMOIDX --> TT
 DEMOIDX --> MD
+DEMOIDX --> DM
+ANIM --> CSS
 ```
 
 **Diagram sources**
 - [index.ts:1-104](file://src/components/ui/index.ts#L1-L104)
 - [design-system.css:1-969](file://src/styles/design-system.css#L1-L969)
 - [__demos__/index.ts:1-19](file://src/components/__demos__/index.ts#L1-L19)
+- [AnimationDemo.tsx:254-368](file://src/components/__demos__/AnimationDemo.tsx#L254-L368)
 
 **Section sources**
 - [index.ts:1-104](file://src/components/ui/index.ts#L1-L104)
@@ -115,6 +139,13 @@ This section summarizes the primary components and their capabilities, focusing 
   - Variants: default/centered; drawer planned; sizes xs to full.
   - Footer/header/body slots with optional loading state.
 
+- Dropdown Menu
+  - **New**: Built on Radix UI primitives for accessible dropdown functionality.
+  - Features: nested menus, checkboxes, radio groups, separators, shortcuts.
+  - Keyboard navigation: full keyboard accessibility with proper ARIA attributes.
+  - Animations: smooth open/close transitions with fade and slide effects.
+  - Styling: consistent design system integration with popover theming.
+
 **Section sources**
 - [Button.tsx:1-230](file://src/components/ui/Button.tsx#L1-L230)
 - [Card.tsx:1-246](file://src/components/ui/Card.tsx#L1-L246)
@@ -122,13 +153,16 @@ This section summarizes the primary components and their capabilities, focusing 
 - [TabbedForm.tsx:1-482](file://src/components/ui/forms/TabbedForm.tsx#L1-L482)
 - [Tooltip.tsx:1-178](file://src/components/ui/feedback/Tooltip.tsx#L1-L178)
 - [Modal.tsx:1-174](file://src/components/ui/Modal.tsx#L1-L174)
+- [dropdown-menu.tsx:1-196](file://src/components/ui/dropdown-menu.tsx#L1-L196)
 
 ## Architecture Overview
-SchoolPilot3’s UI architecture centers on:
+SchoolPilot3's UI architecture centers on:
 - Polymorphic components: forwardRef with an as prop enables semantic markup and custom element usage.
 - Centralized exports: a single barrel file simplifies imports and maintains a stable API surface.
 - Design system: CSS custom properties define theme tokens; animation utilities encapsulate motion primitives.
 - Composition patterns: sub-components (e.g., CardHeader/CardTitle/CardContent) and slot-based layouts (Modal header/body/footer).
+- **Enhanced**: Radix UI primitives for accessible dropdown components with proper keyboard navigation.
+- **Modernized**: Dashboard components with consistent design patterns and improved metrics visualization.
 
 ```mermaid
 classDiagram
@@ -190,6 +224,13 @@ class Modal {
 +footer : ReactNode
 +loading : boolean
 }
+class DropdownMenu {
++open : boolean
++onOpenChange() : void
++align : "start|end"
++sideOffset : number
++children : ReactNode
+}
 ```
 
 **Diagram sources**
@@ -199,6 +240,7 @@ class Modal {
 - [TabbedForm.tsx:19-57](file://src/components/ui/forms/TabbedForm.tsx#L19-L57)
 - [Tooltip.tsx:8-25](file://src/components/ui/feedback/Tooltip.tsx#L8-L25)
 - [Modal.tsx:9-47](file://src/components/ui/Modal.tsx#L9-L47)
+- [dropdown-menu.tsx:9-195](file://src/components/ui/dropdown-menu.tsx#L9-L195)
 
 ## Detailed Component Analysis
 
@@ -229,7 +271,7 @@ Usage example path
 ### DataGrid
 - Columns: strongly typed with optional renderers, sort/filter flags, alignment, widths, and sticky behavior.
 - Sorting and filtering: internal state with optional external handlers.
-- Selection: single/multi-row selection with “select all” and indeterminate state.
+- Selection: single/multi-row selection with "select all" and indeterminate state.
 - Empty/loading states: customizable empty state and skeleton-based loading.
 - Pagination: presentational pagination footer with page range and total count.
 - Robustness: defensive data validation and error boundary wrapping.
@@ -344,12 +386,136 @@ Usage example path
 **Section sources**
 - [Modal.tsx:1-174](file://src/components/ui/Modal.tsx#L1-L174)
 
+### Dropdown Menu
+- **New Component**: Built on Radix UI primitives for accessible dropdown functionality.
+- Primitive integration: Uses DropdownMenuPrimitive.Root, Trigger, Content, Item, Group, Portal, Sub, RadioGroup.
+- Sub-components: DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuRadioGroup.
+- Styling: Comprehensive Tailwind classes with animation utilities (fade-in/out, zoom-in/out, slide-in-from-*).
+- Accessibility: Full keyboard navigation, ARIA attributes, focus management, proper semantic markup.
+- Features: Nested submenus, checkbox/radio selections, separators, keyboard shortcuts, inset styling.
+
+```mermaid
+sequenceDiagram
+participant User as "User"
+participant Trigger as "DropdownMenuTrigger"
+participant Menu as "DropdownMenuContent"
+participant Item as "DropdownMenuItem"
+User->>Trigger : "Click/Enter/Space"
+Trigger->>Menu : "Open dropdown"
+Menu->>User : "Show menu items"
+User->>Item : "Select item"
+Item->>Menu : "Close on select"
+Menu->>User : "Apply selection"
+```
+
+**Diagram sources**
+- [dropdown-menu.tsx:9-195](file://src/components/ui/dropdown-menu.tsx#L9-L195)
+
+Usage example path
+- [Dropdown menu usage in demos](file://src/components/__demos__/DropdownMenuDemo.tsx)
+
+**Section sources**
+- [dropdown-menu.tsx:1-196](file://src/components/ui/dropdown-menu.tsx#L1-L196)
+
+## Enhanced Dashboard Components
+SchoolPilot3 now includes comprehensive dashboard visualization components with consistent design patterns across all module dashboards.
+
+### StatCard
+- Metric visualization: Displays key statistics with trend indicators and color-coded schemes.
+- Variants: default, gradient, outlined, filled with consistent styling across all variants.
+- Color schemes: Blue, emerald, amber, rose, violet, cyan, indigo with gradient and solid variants.
+- Interactive elements: Clickable cards with hover effects, scale animations, and transition effects.
+- Trend indicators: Up/down/neutral trends with appropriate icons and color coding.
+
+### ChartCard
+- Card-based chart containers: Wraps visualization components in consistent card styling.
+- Header actions: Refresh functionality with loading states, action buttons, and header customization.
+- Loading states: Proper loading overlay handling with opacity adjustments and pointer event blocking.
+- Integration: Built on top of the core Card component with enhanced dashboard-specific features.
+
+### AlertBanner
+- Multi-type alerts: Message, task, overdue, approval, emergency, and fees alert types.
+- Gradient backgrounds: Each alert type has unique gradient color scheme and styling.
+- Interactive badges: Count badges with type-specific colors and hover effects.
+- Navigation support: Clickable banners with optional routing integration.
+
+```mermaid
+graph LR
+subgraph "Dashboard Components"
+STAT["StatCard<br/>- Metric display<br/>- Trend indicators<br/>- Color schemes"]
+CHART["ChartCard<br/>- Chart containers<br/>- Header actions<br/>- Loading states"]
+ALERT["AlertBanner<br/>- Multi-type alerts<br/>- Gradient backgrounds<br/>- Interactive badges"]
+end
+subgraph "Design Patterns"
+PATTERN["Consistent Styling<br/>- Shared color schemes<br/>- Animation timing<br/>- Responsive layouts"]
+end
+STAT --> PATTERN
+CHART --> PATTERN
+ALERT --> PATTERN
+```
+
+**Diagram sources**
+- [StatCard.tsx:1-177](file://src/modules/dashboard/components/StatCard.tsx#L1-L177)
+- [ChartCard.tsx:1-85](file://src/modules/dashboard/components/ChartCard.tsx#L1-L85)
+- [AlertBanner.tsx:1-169](file://src/modules/dashboard/components/AlertBanner.tsx#L1-L169)
+
+**Section sources**
+- [StatCard.tsx:1-177](file://src/modules/dashboard/components/StatCard.tsx#L1-L177)
+- [ChartCard.tsx:1-85](file://src/modules/dashboard/components/ChartCard.tsx#L1-L85)
+- [AlertBanner.tsx:1-169](file://src/modules/dashboard/components/AlertBanner.tsx#L1-L169)
+
+## Animation System
+SchoolPilot3 features a comprehensive animation system with performance optimization and accessibility compliance.
+
+### Design System Animations
+- CSS custom properties: Centralized animation timing and easing functions.
+- Keyframe animations: Includes glow pulse effects and other motion primitives.
+- Theme-aware animations: Dark/light theme compatibility with consistent timing.
+
+### Performance Optimization
+- 60fps optimization: GPU-accelerated animations with transform and opacity properties.
+- Progressive enhancement: Animations gracefully degrade on lower-end devices.
+- Performance monitoring: Built-in animation orchestration system with completion tracking.
+
+### Accessibility Features
+- Reduced motion support: Respects prefers-reduced-motion media queries.
+- Focus management: Proper focus handling during animations.
+- Screen reader compatibility: ARIA attributes and semantic markup preserved during transitions.
+
+### Animation Orchestration
+- Registration system: Components can register animations with unique identifiers.
+- Completion tracking: Promise-based animation completion detection.
+- Batch control: Ability to wait for all animations to complete before proceeding.
+
+```mermaid
+sequenceDiagram
+participant Comp as "Component"
+participant Orchestrator as "Animation Orchestrator"
+participant Browser as "Browser"
+Comp->>Orchestrator : "registerAnimation(id)"
+Orchestrator->>Browser : "Start animation"
+Browser-->>Orchestrator : "Animation frame"
+Orchestrator->>Comp : "Animation progress"
+Comp->>Orchestrator : "unregisterAnimation(id)"
+Orchestrator->>Comp : "waitForAnimations()"
+Comp-->>Orchestrator : "All animations completed"
+```
+
+**Diagram sources**
+- [AnimationDemo.tsx:254-368](file://src/components/__demos__/AnimationDemo.tsx#L254-L368)
+
+**Section sources**
+- [AnimationDemo.tsx:254-368](file://src/components/__demos__/AnimationDemo.tsx#L254-L368)
+- [design-system.css:193-200](file://src/styles/design-system.css#L193-L200)
+
 ## Dependency Analysis
 The UI components rely on:
 - Centralized exports: src/components/ui/index.ts re-exports all components and types for ergonomic imports.
 - Design tokens and animations: components import designTokens and useTransition for consistent motion and styling.
 - Utility classes: Tailwind classes are applied directly for responsive and theme-aligned visuals.
 - Demo ecosystem: src/components/__demos__/index.ts aggregates demo components for quick exploration.
+- **Enhanced**: Radix UI primitives for accessible dropdown components.
+- **Modernized**: Dashboard components with shared design patterns and consistent styling.
 
 ```mermaid
 graph LR
@@ -359,24 +525,33 @@ IDX --> DG["data/DataGrid.tsx"]
 IDX --> TF["forms/TabbedForm.tsx"]
 IDX --> TT["feedback/Tooltip.tsx"]
 IDX --> MD["Modal.tsx"]
+IDX --> DM["dropdown-menu.tsx"]
+DM --> RADIX["@radix-ui/react-dropdown-menu"]
 BTN --> CSS["design-system.css"]
 CARD --> CSS
 DG --> CSS
 TF --> CSS
 TT --> CSS
 MD --> CSS
+DM --> CSS
+STAT["modules/dashboard/components/StatCard.tsx"] --> CSS
+CHART["modules/dashboard/components/ChartCard.tsx"] --> CSS
+ALERT["modules/dashboard/components/AlertBanner.tsx"] --> CSS
 DEMO["__demos__/index.ts"] --> BTN
 DEMO --> CARD
 DEMO --> DG
 DEMO --> TF
 DEMO --> TT
 DEMO --> MD
+DEMO --> DM
+ANIM["__demos__/AnimationDemo.tsx"] --> CSS
 ```
 
 **Diagram sources**
 - [index.ts:1-104](file://src/components/ui/index.ts#L1-L104)
 - [design-system.css:1-969](file://src/styles/design-system.css#L1-L969)
 - [__demos__/index.ts:1-19](file://src/components/__demos__/index.ts#L1-L19)
+- [dropdown-menu.tsx:4-7](file://src/components/ui/dropdown-menu.tsx#L4-L7)
 
 **Section sources**
 - [index.ts:1-104](file://src/components/ui/index.ts#L1-L104)
@@ -385,10 +560,12 @@ DEMO --> MD
 
 ## Performance Considerations
 - Memoization: DataGrid leverages useMemo for validated data and processed data to avoid unnecessary re-renders.
-- Conditional rendering: Modals and Tooltips only render when open/visible, minimizing DOM overhead.
+- Conditional rendering: Modals, Tooltips, and Dropdown Menus only render when open/visible, minimizing DOM overhead.
 - CSS custom properties: Theme switching and animation durations are centralized, enabling efficient updates.
-- Reduced motion: Cards and other components respect reduced motion preferences to improve accessibility and perceived performance.
+- Reduced motion: Cards, dropdown menus, and other components respect reduced motion preferences to improve accessibility and perceived performance.
 - Animation utilities: Use of transition utilities and will-change hints helps optimize animations.
+- **Enhanced**: Dashboard components use optimized rendering patterns with lazy loading and virtualization where appropriate.
+- **Modernized**: Animation system includes performance monitoring and automatic optimization for different device capabilities.
 
 ## Troubleshooting Guide
 - DataGrid validation warnings: When data does not match column expectations, warnings are logged; ensure data arrays and required columns conform to column definitions.
@@ -396,6 +573,9 @@ DEMO --> MD
 - Modal focus issues: Confirm that the modal is mounted via portal and that escape listeners are attached; ensure preventClose is not unintentionally blocking interactions.
 - Button loading state: Verify aria-busy is set and loadingText is provided for assistive technologies.
 - Card interactivity: Ensure onClick is provided when interactive mode is desired and that disabled/ loading states are respected.
+- **New**: Dropdown menu accessibility: Verify keyboard navigation works properly and ARIA attributes are correctly applied.
+- **New**: Animation performance: Monitor animation registration and ensure waitForAnimations resolves properly to avoid blocking interactions.
+- **Enhanced**: Dashboard component rendering: Ensure StatCard, ChartCard, and AlertBanner components receive proper props and handle loading states correctly.
 
 **Section sources**
 - [DataGrid.tsx:94-111](file://src/components/ui/data/DataGrid.tsx#L94-L111)
@@ -403,9 +583,11 @@ DEMO --> MD
 - [Modal.tsx:52-89](file://src/components/ui/Modal.tsx#L52-L89)
 - [Button.tsx:210-225](file://src/components/ui/Button.tsx#L210-L225)
 - [Card.tsx:57-74](file://src/components/ui/Card.tsx#L57-L74)
+- [dropdown-menu.tsx:1-196](file://src/components/ui/dropdown-menu.tsx#L1-L196)
+- [AnimationDemo.tsx:254-368](file://src/components/__demos__/AnimationDemo.tsx#L254-L368)
 
 ## Conclusion
-SchoolPilot3’s UI component library emphasizes a polymorphic, props-driven architecture with strong accessibility and responsive design. The design system, powered by CSS custom properties and Tailwind utilities, ensures consistent theming and motion. The component catalog covers essential building blocks and specialized widgets, with robust validation, error handling, and demo-driven usage guidance.
+SchoolPilot3's UI component library emphasizes a polymorphic, props-driven architecture with strong accessibility and responsive design. The design system, powered by CSS custom properties and Tailwind utilities, ensures consistent theming and motion. The component catalog covers essential building blocks and specialized widgets, with robust validation, error handling, and demo-driven usage guidance. Recent enhancements include comprehensive dropdown menu functionality built on Radix UI primitives, modernized dashboard visualization components with consistent design patterns, and an advanced animation system with performance optimization and accessibility compliance.
 
 ## Appendices
 
@@ -416,7 +598,11 @@ SchoolPilot3’s UI component library emphasizes a polymorphic, props-driven arc
 - Forms: [TabbedForm.tsx:1-482](file://src/components/ui/forms/TabbedForm.tsx#L1-L482)
 - Feedback: [Tooltip.tsx:1-178](file://src/components/ui/feedback/Tooltip.tsx#L1-L178)
 - Modals: [Modal.tsx:1-174](file://src/components/ui/Modal.tsx#L1-L174)
+- Dropdown Menus: [dropdown-menu.tsx:1-196](file://src/components/ui/dropdown-menu.tsx#L1-L196)
+- Dashboard Components: [StatCard.tsx:1-177](file://src/modules/dashboard/components/StatCard.tsx#L1-L177), [ChartCard.tsx:1-85](file://src/modules/dashboard/components/ChartCard.tsx#L1-L85), [AlertBanner.tsx:1-169](file://src/modules/dashboard/components/AlertBanner.tsx#L1-L169)
 - Demos: [__demos__/index.ts:1-19](file://src/components/__demos__/index.ts#L1-L19)
+- Animation System: [AnimationDemo.tsx:254-368](file://src/components/__demos__/AnimationDemo.tsx#L254-L368)
 
 ### Design System and Theming
 - Tokens and animations: [design-system.css:1-969](file://src/styles/design-system.css#L1-L969)
+- Animation orchestration: [AnimationDemo.tsx:254-368](file://src/components/__demos__/AnimationDemo.tsx#L254-L368)

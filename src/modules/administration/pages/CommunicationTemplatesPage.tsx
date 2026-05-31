@@ -11,10 +11,10 @@ import { PlusIcon, PencilIcon, TrashIcon, EnvelopeIcon } from '@heroicons/react/
 import { useTemplateCommData } from '../data/useTemplateCommData'; // Use module-specific hook
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import DialogForm from '../../../components/ui/forms/DialogForm';
+import FormSection from '../../../components/ui/forms/FormSection';
+import FormField from '../../../components/ui/forms/FormField';
+import FormActions from '../../../components/ui/forms/FormActions';
 
 type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updated_at' | 'type'> & {
     type: TemplateType; // Make type required
@@ -267,3 +267,5 @@ const CommunicationTemplatesPage: React.FC = () => {
 };
 
 export default CommunicationTemplatesPage;
+
+export const CommunicationTemplatesContent = CommunicationTemplatesPage;

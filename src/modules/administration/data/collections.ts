@@ -1,5 +1,5 @@
 // ABOUTME: Defines the RxDB collection configurations for the Administration module.
-// ABOUTME: Module collection definitions - used by UnifiedDatabaseManager
+// ABOUTME: This structure is imported by the central rxdbService to add module-specific collections.
 
 import * as schemas from './schema';
 
@@ -84,23 +84,6 @@ export const administrationCollections = {
   // === VISITORS MANAGEMENT COLLECTIONS ===
   visitor_logs: {
     schema: schemas.visitorLogSchema,
-  },
-
-  // === REPORT / VIEW COLLECTIONS ===
-  staff_attendance_records: {
-    schema: schemas.staffAttendanceRecordSchema,
-  },
-  staff_id_cards: {
-    schema: schemas.staffIDCardSchema,
-  },
-  student_bio_data: {
-    schema: schemas.studentBioDataSchema,
-  },
-  student_id_cards: {
-    schema: schemas.studentIDCardSchema,
-  },
-  transfer_certificate_students: {
-    schema: schemas.transferCertificateStudentSchema,
   },
 };
 

@@ -10,10 +10,10 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   '/administration/clubs': '/administration/configuration?tab=clubs',
   '/administration/partners': '/administration/configuration?tab=partners',
   '/administration/customers': '/administration/configuration?tab=partners',
-  '/administration/student-bio-data': '/administration/students',
-  '/administration/student-health': '/administration/student-health',
-  '/administration/student-clearance': '/administration/student-clearance',
-  '/administration/student-id-cards': '/administration/students',
+  '/administration/student-bio-data': '/administration/students?tab=bio-data',
+  '/administration/student-health': '/administration/students?tab=health',
+  '/administration/student-clearance': '/administration/students?tab=clearance',
+  '/administration/student-id-cards': '/administration/students?tab=id-cards',
   '/administration/manual-attendance': '/administration/attendance?tab=manual',
   '/administration/dynamic-attendance': '/administration/attendance?tab=dynamic',
   '/administration/student-attendance': '/administration/attendance?tab=student-view',
@@ -60,6 +60,12 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   '/academics/subject-management?tab=class-allocations': '/academics/allocations?tab=class-allocations',
   '/academics/subject-management?tab=teacher-assignments': '/academics/allocations?tab=teacher-assignments',
   '/academics/subject-management?tab=student-enrollment': '/academics/allocations?tab=student-enrollment',
+
+  // Finance fee rule redirects
+  '/finance/fees-fines': '/finance/fee-rules?tab=fines',
+  '/finance/fees-installments': '/finance/fee-rules?tab=installments',
+  '/finance/fee-adjustments': '/finance/fee-rules?tab=adjustments',
+  '/finance/fees-receipt-template': '/finance/fee-configuration?tab=receipt-template',
 
   // Cross-module redirects (handled at route level, NOT in module nav)
   '/hr/staff-bio-data': '/administration/staff?tab=bio-data',

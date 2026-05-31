@@ -490,7 +490,10 @@ export function getDynamicNavigationItems(): Array<{ id: string; name: string; p
               ...item,
               id: item.id || `${moduleId}-${item.path || 'unknown'}`,
               modulePath: metadata.path || `/${moduleId}`,
-              name: item.name || 'Unknown'
+              name: item.name || 'Unknown',
+              deprecated: item.deprecated || false,
+              redirectTo: item.redirectTo,
+              showInModes: item.showInModes,
             }));
         }
 

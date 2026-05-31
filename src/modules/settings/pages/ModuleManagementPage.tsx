@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '../../../components/ui/icons';
 import Button from '@/components/ui/Button';
 import DataGrid from '@/components/ui/data/DataGrid';
 import type { DataGridColumn } from '@/components/ui/data/DataGrid';
@@ -29,7 +29,7 @@ interface ModuleStatus {
   lastModified?: Date;
 }
 
-const ModuleManagementPage: React.FC = () => {
+export const ModuleManagementContent: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const { hasPermission, userRoles, isSuperAdmin } = useRBAC();
   
@@ -73,12 +73,8 @@ const ModuleManagementPage: React.FC = () => {
       setLoading(true);
       
       // Get all available modules from registry with safe access
-      const availableModules = moduleRegistry?.getAllMetadata?.() || [];
+      const availableModules = moduleRegistry?.getEnabledModules?.() || [];
       const enabledModuleIds = moduleConfigService?.getEnabledModules?.() || [];
-
-      console.log('[ModuleManagement DEBUG] Available modules:', availableModules);
-      console.log('[ModuleManagement DEBUG] Enabled module IDs:', enabledModuleIds);
-      console.log('[ModuleManagement DEBUG] Registry size:', moduleRegistry?.size || 0);
       
       // Filter out any undefined or invalid modules with comprehensive checks
       const validModules = availableModules.filter((module: ModuleDefinition) => 
@@ -585,6 +581,10 @@ const ModuleManagementPage: React.FC = () => {
       )}
     </div>
   );
+};
+
+const ModuleManagementPage: React.FC = () => {
+  return <ModuleManagementContent />;
 };
 
 export default ModuleManagementPage;

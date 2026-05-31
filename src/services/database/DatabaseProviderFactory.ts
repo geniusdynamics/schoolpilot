@@ -32,14 +32,24 @@ export interface ProviderCreationOptions {
 
 // Provider Selection Strategy
 export interface ProviderSelectionStrategy {
-  selectProvider(requirements: CollectionRequirements): ProviderType;
+  selectProvider(
+    requirements: CollectionRequirements,
+    availableProviders?: ProviderType[]
+  ): ProviderType;
 }
 
 // Default Provider Selection Strategy with UnifiedConfig Integration
 export class DefaultProviderSelectionStrategy implements ProviderSelectionStrategy {
-  selectProvider(requirements: CollectionRequirements): ProviderType {
+  selectProvider(
+    requirements: CollectionRequirements,
+    availableProviders?: ProviderType[]
+  ): ProviderType {
     // Get current unified configuration
     const config = getCurrentUnifiedConfig();
+    
+    // Helper: check if a provider type is registered/available
+    const isAvailable = (type: ProviderType): boolean =>
+      !availableProviders || availableProviders.length === 0 || availableProviders.includes(type);
     
     // Check if user has explicitly configured a provider in unifiedConfig
     if (config.database?.provider) {
@@ -47,9 +57,19 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
       
       switch (config.database.provider) {
         case 'sqlite': {
-          // Choose SQLite variant based on environment
-          const environment = config.environment || 'production';
-          return environment === 'development' ? 'sqlite-file' : 'sqlite-wasm';
+          // Pick best SQLite variant that's actually registered
+          if (isAvailable('sqlite-wasm' as ProviderType)) {
+            console.log('[ProviderSelectionStrategy] sqlite-wasm available, using it');
+            return 'sqlite-wasm';
+          }
+          if (isAvailable('sqlite-file' as ProviderType)) {
+            console.log('[ProviderSelectionStrategy] sqlite-file available, using it');
+            return 'sqlite-file';
+          }
+          // Neither SQLite variant available, fall through to defaults
+          console.warn('[ProviderSelectionStrategy] No SQLite provider available, using fallback');
+          const env = config.environment || 'production';
+          return env === 'development' ? 'sqlite-wasm' : 'pouchdb';
         }
         case 'pouchdb':
           return 'pouchdb';
@@ -60,6 +80,10 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
           return 'backend-api';
         // case 'livestore': // Temporarily disabled
         //   return 'pouchdb';
+        case 'sqlite-wasm':
+          return 'sqlite-wasm';
+        case 'sqlite-file':
+          return 'sqlite-file';
         default:
           console.warn(`[ProviderSelectionStrategy] Unknown configured provider ${config.database.provider}, using automatic selection`);
       }
@@ -74,21 +98,20 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
     // Development environment preferences
     if (isDevelopment) {
       if (requirements.requiresOffline) {
-        return 'sqlite-wasm'; // SQLite WASM with OPFS for browser development persistence
+        if (isAvailable('sqlite-wasm' as ProviderType)) return 'sqlite-wasm';
+        if (isAvailable('sqlite-file' as ProviderType)) return 'sqlite-file';
+        return 'pouchdb'; // Fallback
       }
       return 'pouchdb'; // PouchDB for development flexibility
     }
     
     // Production environment preferences
     if (environment === 'production') {
-      // Use LiveStore for sync requirements in production
-      if (requirements.requiresSync && requirements.performanceLevel === 'high') {
-        return 'pouchdb'; // Fallback to pouchdb for now
-      }
-      
       // Use SQLite WASM for high-performance offline applications
       if (requirements.requiresOffline && requirements.performanceLevel === 'high') {
-        return 'sqlite-wasm';
+        if (isAvailable('sqlite-wasm' as ProviderType)) return 'sqlite-wasm';
+        if (isAvailable('sqlite-file' as ProviderType)) return 'sqlite-file';
+        return 'pouchdb';
       }
       
       // RXDB removed - Phase 4: Using PouchDB for reactivity
@@ -99,15 +122,17 @@ export class DefaultProviderSelectionStrategy implements ProviderSelectionStrate
     
     // Fallback logic based on requirements
     if (requirements.requiresSync) {
-      // Check if backend API is configured
-      if (config.database?.apiConfig?.apiBaseUrl) {
+      if (isAvailable('backend-api' as ProviderType) && config.database?.apiConfig?.apiBaseUrl) {
         return 'backend-api'; // Use Backend API for external sync
       }
-      return 'pouchdb'; // PouchDB has good sync capabilities
+      if (isAvailable('pouchdb' as ProviderType)) return 'pouchdb'; // PouchDB sync
+      return 'sqlite-wasm'; // Fallback
     }
     
     if (requirements.requiresOffline) {
-      return 'sqlite-wasm'; // SQLite WASM for offline-first
+      if (isAvailable('sqlite-wasm' as ProviderType)) return 'sqlite-wasm';
+      if (isAvailable('sqlite-file' as ProviderType)) return 'sqlite-file';
+      return 'pouchdb';
     }
     
     // Default fallback
@@ -482,9 +507,10 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
     try {
       console.log('[DatabaseProviderFactory] Creating provider with requirements:', requirements);
       
-      // Determine which provider to use
+      // Determine which provider to use (pass available providers for smart selection)
+      const availableTypes = this.getAvailableProviderTypes();
       const primaryProviderType = requirements 
-        ? this.selectionStrategy.selectProvider(requirements)
+        ? this.selectionStrategy.selectProvider(requirements, availableTypes)
         : 'pouchdb'; // Default to PouchDB
       
       console.log(`[DatabaseProviderFactory] Primary provider selected: ${primaryProviderType}`);
@@ -672,7 +698,8 @@ export class DatabaseProviderFactory implements IDatabaseProviderFactory {
   }
 
   selectOptimalProvider(requirements: CollectionRequirements): string {
-    return this.selectionStrategy.selectProvider(requirements);
+    const availableTypes = this.getAvailableProviderTypes();
+    return this.selectionStrategy.selectProvider(requirements, availableTypes);
   }
 
   async destroy(): Promise<void> {

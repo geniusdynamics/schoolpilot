@@ -10,7 +10,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { StudentPaymentRecord } from '../data/types';
 
-const StudentsPaidBookPage: React.FC = () => {
+export const StudentsPaidBookPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { studentPaymentRecords, students, loading } = useAppData();
 
@@ -236,5 +236,10 @@ const StudentsPaidBookPage: React.FC = () => {
     </div>
   );
 };
+const StudentsPaidBookPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentsPaidBookPageContent />
+  </div>
+);
 
 export default StudentsPaidBookPage;

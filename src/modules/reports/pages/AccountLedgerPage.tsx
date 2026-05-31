@@ -14,7 +14,7 @@ interface LedgerEntryRow extends GeneralLedgerEntry {
   running_balance_display?: number;
 }
 
-const AccountLedgerPage: React.FC = () => {
+export const AccountLedgerPageContent: React.FC = () => {
   const { chartOfAccounts, generalLedgerEntries = [], loading } = useAppData();
 
   const { t } = useTranslation('reports');
@@ -144,5 +144,10 @@ const AccountLedgerPage: React.FC = () => {
     </div>
   );
 };
+const AccountLedgerPage: React.FC = () => (
+  <div className="space-y-6">
+    <AccountLedgerPageContent />
+  </div>
+);
 
 export default AccountLedgerPage;

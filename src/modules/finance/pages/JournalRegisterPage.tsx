@@ -10,7 +10,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { JournalEntry } from '../data/types';
 
-const JournalRegisterPage: React.FC = () => {
+export const JournalRegisterPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { journalEntries, loading } = useAppData();
 
@@ -257,5 +257,10 @@ const JournalRegisterPage: React.FC = () => {
     </div>
   );
 };
+const JournalRegisterPage: React.FC = () => (
+  <div className="space-y-6">
+    <JournalRegisterPageContent />
+  </div>
+);
 
 export default JournalRegisterPage;

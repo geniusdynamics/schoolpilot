@@ -13,7 +13,7 @@ import { BalanceSheetItem } from '../data/types';
 // ABOUTME: BalanceSheetPage displays the school's financial position snapshot
 // ABOUTME: with assets, liabilities, and equity breakdowns
 
-const BalanceSheetPage: React.FC = () => {
+export const BalanceSheetPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { balanceSheetItems, loading } = useAppData();
 
@@ -283,5 +283,10 @@ const BalanceSheetPage: React.FC = () => {
     </div>
   );
 };
+const BalanceSheetPage: React.FC = () => (
+  <div className="space-y-6">
+    <BalanceSheetPageContent />
+  </div>
+);
 
 export default BalanceSheetPage;

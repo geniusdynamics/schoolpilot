@@ -20,13 +20,12 @@ import {
   XCircleIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
-import { usePlugins } from '@/plugins/usePlugins';
-import { PluginsContext } from '@/plugins/PluginsProvider';
+import { usePlugins } from '../../../plugins/usePlugins';
 import type {
   LoadedPlugin,
   AdminPluginConfig,
   MarketplacePlugin,
-} from '@/plugins/types';
+} from '../../../plugins/types';
 
 // ============================================================================
 // Types
@@ -395,10 +394,7 @@ const PluginRow: React.FC<{
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-      <div 
-        className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors cursor-pointer"
-        onClick={onSelect}
-      >
+      <div className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
         <div className="flex items-start gap-4">
           {/* Icon */}
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center flex-shrink-0">
@@ -865,208 +861,6 @@ const ToggleSetting: React.FC<{
 );
 
 // ============================================================================
-// Plugin Settings Form
-// ============================================================================
-
-const PluginSettingsForm: React.FC<{
-  plugin: LoadedPlugin;
-}> = ({ plugin }) => {
-  const context = React.useContext(PluginsContext);
-  
-  if (!context) {
-    return <div className="p-8 text-center text-red-500">Plugin context not available</div>;
-  }
-  
-  const { manager: pluginManager } = context;
-  
-  const [settings, setSettings] = useState<Record<string, any>>(() => {
-    return pluginManager.getPluginSettings(plugin.manifest.id);
-  });
-  
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  const handleSettingChange = (key: string, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    setSaveMessage(null);
-    
-    try {
-      // Save each setting
-      for (const [key, value] of Object.entries(settings)) {
-        await pluginManager.setPluginSetting(plugin.manifest.id, key, value);
-      }
-      
-      setSaveMessage({ type: 'success', text: 'Settings saved successfully!' });
-      
-      // Clear message after 3 seconds
-      setTimeout(() => setSaveMessage(null), 3000);
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-      setSaveMessage({ type: 'error', text: 'Failed to save settings. Please try again.' });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleReset = () => {
-    if (!window.confirm('Reset all settings to default values?')) return;
-    
-    const defaultSettings: Record<string, any> = {};
-    plugin.manifest.settings?.forEach(setting => {
-      if (setting.defaultValue !== undefined) {
-        defaultSettings[setting.key] = setting.defaultValue;
-      }
-    });
-    
-    setSettings(defaultSettings);
-  };
-
-  if (!plugin.manifest.settings || plugin.manifest.settings.length === 0) {
-    return (
-      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-        <CogIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <p>No configurable settings for this plugin</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Plugin Settings</h3>
-        <div className="flex gap-2">
-          <button
-            onClick={handleReset}
-            className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-          >
-            Reset to Defaults
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-4 py-1.5 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
-          >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
-
-      {saveMessage && (
-        <div className={`p-3 rounded-lg ${
-          saveMessage.type === 'success' 
-            ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800' 
-            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800'
-        }`}>
-          <p className="text-sm font-medium">{saveMessage.text}</p>
-        </div>
-      )}
-
-      <div className="space-y-4">
-        {plugin.manifest.settings.map(setting => (
-          <div key={setting.key} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {setting.label}
-              {setting.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            
-            {setting.type === 'boolean' ? (
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings[setting.key] ?? setting.defaultValue ?? false}
-                  onChange={(e) => handleSettingChange(setting.key, e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
-              </label>
-            ) : setting.type === 'select' ? (
-              <select
-                value={settings[setting.key] ?? setting.defaultValue ?? ''}
-                onChange={(e) => handleSettingChange(setting.key, e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
-                {setting.options?.map(opt => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            ) : setting.type === 'json' ? (
-              <textarea
-                value={typeof settings[setting.key] === 'object' 
-                  ? JSON.stringify(settings[setting.key], null, 2) 
-                  : settings[setting.key] ?? JSON.stringify(setting.defaultValue ?? {}, null, 2)}
-                onChange={(e) => {
-                  try {
-                    const parsed = JSON.parse(e.target.value);
-                    handleSettingChange(setting.key, parsed);
-                  } catch {
-                    // Invalid JSON, store as string temporarily
-                    handleSettingChange(setting.key, e.target.value);
-                  }
-                }}
-                rows={6}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="{}"
-              />
-            ) : (
-              <input
-                type={setting.type === 'number' ? 'number' : setting.type === 'password' ? 'password' : 'text'}
-                value={settings[setting.key] ?? setting.defaultValue ?? ''}
-                onChange={(e) => handleSettingChange(
-                  setting.key, 
-                  setting.type === 'number' ? Number(e.target.value) : e.target.value
-                )}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder={setting.description}
-                min={setting.validation?.min}
-                max={setting.validation?.max}
-                pattern={setting.validation?.pattern}
-              />
-            )}
-            
-            {setting.description && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{setting.description}</p>
-            )}
-            
-            {setting.validation && (
-              <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                {setting.validation.min !== undefined && setting.validation.max !== undefined && (
-                  <span>Range: {setting.validation.min} - {setting.validation.max}</span>
-                )}
-                {setting.validation.pattern && (
-                  <span>Pattern: {setting.validation.pattern}</span>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-        >
-          Reset
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="px-6 py-2 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
-        >
-          {isSaving ? 'Saving...' : 'Save Settings'}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// ============================================================================
 // Plugin Details Panel
 // ============================================================================
 
@@ -1084,65 +878,74 @@ const PluginDetailsPanel: React.FC<{
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div 
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Compact Header */}
-        <div className="border-b border-gray-200 dark:border-gray-700 p-4 flex-shrink-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
+        {/* Header */}
+        <div className="border-b border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-4">
               {/* Icon */}
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-4xl flex-shrink-0">
                 {plugin.manifest.icon ? (
-                  <img src={plugin.manifest.icon} alt="" className="w-7 h-7" />
+                  <img src={plugin.manifest.icon} alt="" className="w-12 h-12" />
                 ) : (
-                  <PuzzlePieceIcon className="h-6 w-6 text-white" />
+                  <PuzzlePieceIcon className="h-10 w-10 text-white" />
                 )}
               </div>
 
               {/* Info */}
-              <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {plugin.manifest.name}
                 </h2>
-                <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  <span className="truncate">{plugin.manifest.author || 'Unknown'}</span>
+                <div className="flex items-center gap-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  <span>Author: <span className="font-medium text-gray-700 dark:text-gray-300">{plugin.manifest.author || 'Unknown'}</span></span>
                   {plugin.manifest.version && (
                     <>
                       <span>•</span>
                       <span>v{plugin.manifest.version}</span>
                     </>
                   )}
-                  {plugin.manifest.type && (
-                    <>
-                      <span>•</span>
-                      <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 capitalize">
-                        {plugin.manifest.type}
-                      </span>
-                    </>
-                  )}
                 </div>
+                
+                {/* Tags */}
+                {plugin.manifest.type && (
+                  <div className="flex gap-2 mt-3">
+                    <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium capitalize">
+                      {plugin.manifest.type}
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium">
+                      {plugin.source}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Close button */}
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
+          {/* Description */}
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            {plugin.manifest.description || 'No description available'}
+          </p>
+
           {/* Action Buttons */}
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-3 mt-6">
             {plugin.status === 'active' ? (
               <button
                 onClick={onDeactivate}
                 disabled={isLoading}
-                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
+                className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
               >
                 Disable
               </button>
@@ -1150,43 +953,41 @@ const PluginDetailsPanel: React.FC<{
               <button
                 onClick={onActivate}
                 disabled={isLoading || plugin.status === 'error'}
-                className="px-4 py-2 text-sm bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
+                className="flex-1 px-6 py-3 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
               >
-                Enable
+                Install
               </button>
             )}
             
+            <button className="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <span className="flex items-center justify-center gap-2">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Discussion
+              </span>
+            </button>
+
             {plugin.source !== 'builtin' && (
               <button
                 onClick={onUninstall}
                 disabled={isLoading}
-                className="px-4 py-2 text-sm border border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition-colors"
+                className="px-6 py-3 border-2 border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition-colors"
               >
                 Uninstall
               </button>
             )}
-            
-            <div className="flex-1"></div>
-            
-            {/* Status indicator */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
-              <div className={`w-2 h-2 rounded-full ${
-                plugin.status === 'active' ? 'bg-green-500' :
-                plugin.status === 'error' ? 'bg-red-500' : 'bg-gray-400'
-              }`} />
-              <span className="text-xs text-gray-700 dark:text-gray-300 capitalize">{plugin.status}</span>
-            </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 px-4 flex-shrink-0">
+        <div className="border-b border-gray-200 dark:border-gray-700 px-6">
           <div className="flex gap-6">
             {(['overview', 'readme', 'settings'] as const).map(section => (
               <button
                 key={section}
                 onClick={() => setActiveSection(section)}
-                className={`py-3 text-sm font-medium border-b-2 transition-colors capitalize ${
+                className={`py-4 text-sm font-medium border-b-2 transition-colors capitalize ${
                   activeSection === section
                     ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                     : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
@@ -1198,58 +999,26 @@ const PluginDetailsPanel: React.FC<{
           </div>
         </div>
 
-        {/* Content - Now takes up most of the space */}
-        <div className="flex-1 overflow-y-auto p-6 min-h-0">
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-400px)]">
           {activeSection === 'overview' && (
             <div className="space-y-6">
-              {/* Description */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Description</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {plugin.manifest.description || 'No description available'}
-                </p>
-              </div>
-
-              {/* Plugin Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Plugin ID</h3>
-                  <p className="text-sm text-gray-900 dark:text-white font-mono">{plugin.manifest.id}</p>
-                </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Source</h3>
-                  <p className="text-sm text-gray-900 dark:text-white capitalize">{plugin.source}</p>
-                </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Version</h3>
-                  <p className="text-sm text-gray-900 dark:text-white">{plugin.manifest.version || 'N/A'}</p>
-                </div>
-                <div>
-                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">License</h3>
-                  <p className="text-sm text-gray-900 dark:text-white">{plugin.manifest.license || 'N/A'}</p>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Status</h3>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    plugin.status === 'active' ? 'bg-green-500' :
+                    plugin.status === 'error' ? 'bg-red-500' : 'bg-gray-400'
+                  }`} />
+                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{plugin.status}</span>
                 </div>
               </div>
 
-              {/* Provides */}
-              {plugin.manifest.provides && plugin.manifest.provides.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Provides</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {plugin.manifest.provides.map(feature => (
-                      <span key={feature} className="px-2 py-1 rounded bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-medium">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Permissions */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Permissions</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Permissions</h3>
                 <div className="flex flex-wrap gap-2">
                   {(plugin.manifest.privileges?.permissions || []).map(perm => (
-                    <span key={perm} className="px-2 py-1 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs font-medium">
+                    <span key={perm} className="px-3 py-1 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs font-medium">
                       {perm}
                     </span>
                   ))}
@@ -1259,12 +1028,11 @@ const PluginDetailsPanel: React.FC<{
                 </div>
               </div>
 
-              {/* Error */}
               {plugin.error && (
                 <div>
-                  <h3 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-2">Error Details</h3>
-                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <p className="text-sm text-red-700 dark:text-red-400 font-mono break-all">{plugin.error}</p>
+                  <h3 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-3">Error Details</h3>
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-700 dark:text-red-400 font-mono">{plugin.error}</p>
                   </div>
                 </div>
               )}
@@ -1286,15 +1054,43 @@ const PluginDetailsPanel: React.FC<{
           )}
 
           {activeSection === 'settings' && (
-            <PluginSettingsForm plugin={plugin} />
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Plugin Settings</h3>
+              {plugin.manifest.settings && plugin.manifest.settings.length > 0 ? (
+                plugin.manifest.settings.map(setting => (
+                  <div key={setting.key} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {setting.label}
+                    </label>
+                    {setting.type === 'boolean' ? (
+                      <input type="checkbox" className="rounded" defaultChecked={setting.default as boolean} />
+                    ) : (
+                      <input
+                        type={setting.type === 'number' ? 'number' : 'text'}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        defaultValue={String(setting.default)}
+                      />
+                    )}
+                    {setting.description && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{setting.description}</p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                  <CogIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No configurable settings for this plugin</p>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Footer - Compact */}
-        <div className="border-t border-gray-200 dark:border-gray-700 p-3 flex justify-end flex-shrink-0">
+        {/* Footer */}
+        <div className="border-t border-gray-200 dark:border-gray-700 p-4 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="px-6 py-2 border-2 border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             Close
           </button>
@@ -1303,5 +1099,7 @@ const PluginDetailsPanel: React.FC<{
     </div>
   );
 };
+
+export const PluginSettingsContent = PluginSettingsPage;
 
 export default PluginSettingsPage;

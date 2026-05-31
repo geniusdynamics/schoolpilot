@@ -24,7 +24,7 @@ import ModuleDashboardShell, {
   DashboardPanel,
 } from '@/components/ModuleDashboardShell';
 
-const InventoryDashboardPage: React.FC = () => {
+export const InventoryDashboardPageContent: React.FC = () => {
   const { itemsInv, stockLevels, requisitions, purchaseOrders, vendors, loading } = useAppData();
 
   if (loading.itemsInv || loading.stockLevels || loading.requisitions || loading.purchaseOrders || loading.all) {
@@ -329,5 +329,10 @@ const InventoryDashboardPage: React.FC = () => {
     </ModuleDashboardShell>
   );
 };
+const InventoryDashboardPage: React.FC = () => (
+  <div className="space-y-6">
+    <InventoryDashboardPageContent />
+  </div>
+);
 
 export default InventoryDashboardPage;

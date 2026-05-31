@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockMarksEntrySessions } from '../data/mockData';
 import type { MarksEntrySession } from '../data/types';
 
-const MarksEntryByTokenPage: React.FC = () => {
+export const MarksEntryByTokenPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { examSessions, subjects, classes, students, loading } = useAppData();
 
@@ -295,5 +295,11 @@ const MarksEntryByTokenPage: React.FC = () => {
     </div>
   );
 };
+
+const MarksEntryByTokenPage: React.FC = () => (
+  <div className="space-y-6">
+    <MarksEntryByTokenPageContent />
+  </div>
+);
 
 export default MarksEntryByTokenPage;

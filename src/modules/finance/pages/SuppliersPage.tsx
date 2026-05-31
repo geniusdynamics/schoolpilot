@@ -15,7 +15,7 @@ import Spinner from '@/components/ui/Spinner';
 
 type SupplierFormData = Omit<Partial<Supplier>, 'id' | 'created_at' | 'updated_at'>;
 
-const SuppliersPage: React.FC = () => {
+export const SuppliersPageContent: React.FC = () => {
   const { 
     suppliers, 
     loading, 
@@ -237,5 +237,10 @@ const SuppliersPage: React.FC = () => {
     </div>
   );
 };
+const SuppliersPage: React.FC = () => (
+  <div className="space-y-6">
+    <SuppliersPageContent />
+  </div>
+);
 
 export default SuppliersPage;

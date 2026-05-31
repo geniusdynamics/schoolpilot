@@ -24,7 +24,7 @@ interface ReportRow {
   rank?: number; 
 }
 
-const ExamResultsHorizontalPage: React.FC = () => {
+export const ExamResultsHorizontalPageContent: React.FC = () => {
   const { t } = useTranslation(['reports', 'common']); 
   const { students, examSessions, classes, classStreams, studentExamResults, loading } = useAppData();
 
@@ -178,4 +178,10 @@ const ExamResultsHorizontalPage: React.FC = () => {
     </div>
   );
 };
+const ExamResultsHorizontalPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamResultsHorizontalPageContent />
+  </div>
+);
+
 export default ExamResultsHorizontalPage;

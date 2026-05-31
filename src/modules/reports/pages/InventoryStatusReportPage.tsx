@@ -4,8 +4,13 @@
 import React from 'react';
 import InventoryStatusReport from '../library/InventoryStatusReport';
 
-const InventoryStatusReportPage: React.FC = () => {
+export const InventoryStatusReportPageContent: React.FC = () => {
   return <InventoryStatusReport />;
 };
+const InventoryStatusReportPage: React.FC = () => (
+  <div className="space-y-6">
+    <InventoryStatusReportPageContent />
+  </div>
+);
 
 export default InventoryStatusReportPage;

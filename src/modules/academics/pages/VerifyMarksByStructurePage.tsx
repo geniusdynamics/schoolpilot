@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockStructureValidationItems } from '../data/mockData';
 import type { StructureValidationItem } from '../data/types';
 
-const VerifyMarksByStructurePage: React.FC = () => {
+export const VerifyMarksByStructurePageContent: React.FC = () => {
   const { t } = useTranslation('academics');
   const { examSessions, subjects, classes, loading } = useAppData();
 
@@ -253,5 +253,11 @@ const VerifyMarksByStructurePage: React.FC = () => {
     </div>
   );
 };
+
+const VerifyMarksByStructurePage: React.FC = () => (
+  <div className="space-y-6">
+    <VerifyMarksByStructurePageContent />
+  </div>
+);
 
 export default VerifyMarksByStructurePage;

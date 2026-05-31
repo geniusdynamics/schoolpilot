@@ -24,7 +24,7 @@ interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'upda
 }
 
 
-const StaffListPage: React.FC = () => {
+export const StaffListContent: React.FC = () => {
   const navigate = useNavigate();
   const { 
     staff, loading, addStaffMember, updateStaffMember, deleteStaffMember: mockDeleteStaff,
@@ -289,5 +289,11 @@ const StaffListPage: React.FC = () => {
     </div>
   );
 };
+
+const StaffListPage: React.FC = () => (
+  <div className="space-y-6">
+    <StaffListContent />
+  </div>
+);
 
 export default StaffListPage;

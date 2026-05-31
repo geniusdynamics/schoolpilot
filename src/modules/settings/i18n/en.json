@@ -6,6 +6,10 @@
       "title": "Settings",
       "description": "Configure system settings, modules, and user management",
       "dashboard": "Settings Dashboard",
+      "configuration": "Configuration",
+      "systemManagement": "System Management",
+      "schoolOperations": "School Operations",
+      "settingsDashboard": "Settings Dashboard",
       "unified": "Unified Settings",
       "general": "General Settings",
       "features": "Features",
@@ -25,7 +29,6 @@
       "dataLayer": "Data Layer",
       "databaseProvider": "Database Provider",
       "plugins": "Plugins",
-      "dataManagement": "Data Management",
       "backupSettings": "Backup Settings"
     }
   },

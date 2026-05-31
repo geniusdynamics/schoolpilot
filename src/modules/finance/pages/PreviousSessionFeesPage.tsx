@@ -16,7 +16,7 @@ import { PreviousSessionFee } from '../data/types';
 
 type PreviousSessionFeeFormData = Omit<Partial<PreviousSessionFee>, 'id' | 'created_at' | 'updated_at'>;
 
-const PreviousSessionFeesPage: React.FC = () => {
+export const PreviousSessionFeesPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { students, schoolPeriods, previousSessionFees, loading } = useAppData();
 
@@ -440,5 +440,11 @@ const PreviousSessionFeesPage: React.FC = () => {
     </div>
   );
 };
+
+const PreviousSessionFeesPage: React.FC = () => (
+  <div className="space-y-6">
+    <PreviousSessionFeesPageContent />
+  </div>
+);
 
 export default PreviousSessionFeesPage;

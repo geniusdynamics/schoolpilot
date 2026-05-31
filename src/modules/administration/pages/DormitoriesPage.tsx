@@ -17,10 +17,10 @@ import FormActions from '@/components/ui/forms/FormActions';
 
 type DormitoryFormData = Omit<Partial<Dormitory>, 'id' | 'created_at' | 'updated_at' | 'master_name'>;
 
-const DormitoriesPage: React.FC = () => {
+export const DormitoriesContent: React.FC = () => {
   const { dormitories, staff, loading, addDormitory, updateDormitory, deleteDormitory } = useAppData();
   const { t } = useTranslation('administration');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDormitory, setEditingDormitory] = useState<Dormitory | null>(null);
   const initialFormData: DormitoryFormData = { name: '', master_id: undefined, capacity: undefined };
@@ -69,35 +69,35 @@ const DormitoriesPage: React.FC = () => {
   };
 
   const columns: DataGridColumn<Dormitory>[] = [
-    { 
-      key: 'id', 
-      header: 'ID', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'id',
+      header: 'ID',
+      sortable: true,
+      filterable: true,
       width: 80,
       render: (value, item) => value
     },
-    { 
-      key: 'name', 
-      header: 'Dormitory Name', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'name',
+      header: 'Dormitory Name',
+      sortable: true,
+      filterable: true,
       width: 200,
       render: (value, item) => value
     },
-    { 
-      key: 'master_name', 
-      header: 'Master/Mistress', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'master_name',
+      header: 'Master/Mistress',
+      sortable: true,
+      filterable: true,
       width: 180,
       render: (value, item) => value || '-'
     },
-    { 
-      key: 'capacity', 
-      header: 'Capacity', 
-      sortable: true, 
-      filterable: true, 
+    {
+      key: 'capacity',
+      header: 'Capacity',
+      sortable: true,
+      filterable: true,
       width: 120,
       render: (value, item) => value || '-'
     },
@@ -116,7 +116,7 @@ const DormitoriesPage: React.FC = () => {
       ),
     },
   ];
-  
+
   if ((loading.dormitories || loading.staff) && !isModalOpen) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -126,18 +126,18 @@ const DormitoriesPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <>
       <Card title={t('dormitories.management')} actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           {t('dormitories.addDormitory')}
         </Button>
       }>
-        <DataGrid 
-          columns={columns} 
-          data={dormitories} 
+        <DataGrid
+          columns={columns}
+          data={dormitories}
           loading={loading.dormitories && isModalOpen}
-          sortable 
-          filterable 
+          sortable
+          filterable
           emptyState={
             <div className="text-center py-12">
               <BuildingLibraryIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -197,8 +197,14 @@ const DormitoriesPage: React.FC = () => {
           </Button>
         </FormActions>
       </DialogForm>
-    </div>
+    </>
   );
 };
+
+const DormitoriesPage: React.FC = () => (
+  <div className="space-y-6">
+    <DormitoriesContent />
+  </div>
+);
 
 export default DormitoriesPage;

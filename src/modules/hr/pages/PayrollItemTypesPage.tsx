@@ -15,7 +15,7 @@ import type { PayrollItemType } from '@/modules/hr/data/types';
 
 type PayrollItemTypeFormData = Omit<Partial<PayrollItemType>, 'id' | 'created_at' | 'updated_at'>;
 
-const PayrollItemTypesPage: React.FC = () => {
+export const PayrollItemTypesPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const { payrollItemTypes, loading: appDataLoading, refreshCollection } = useAppData();
   
@@ -166,15 +166,15 @@ const PayrollItemTypesPage: React.FC = () => {
   }, [refreshCollection, t]);
 
   const columns = [
-    { header: t('tableHeaders.id'), key: 'id' as keyof PayrollItemType },
-    { header: t('tableHeaders.name'), key: 'name' as keyof PayrollItemType },
-    { header: t('tableHeaders.code'), key: 'code' as keyof PayrollItemType },
-    { header: t('tableHeaders.type'), key: 'type' as keyof PayrollItemType },
-    { header: t('tableHeaders.status'), key: 'is_active' as keyof PayrollItemType },
+    { header: t('tableHeaders.id'), accessor: 'id' as keyof PayrollItemType },
+    { header: t('tableHeaders.name'), accessor: 'name' as keyof PayrollItemType },
+    { header: t('tableHeaders.code'), accessor: 'code' as keyof PayrollItemType },
+    { header: t('tableHeaders.type'), accessor: 'type' as keyof PayrollItemType },
+    { header: t('tableHeaders.status'), accessor: 'is_active' as keyof PayrollItemType },
     {
       header: t('tableHeaders.actions'),
-      key: 'id' as keyof PayrollItemType,
-      render: (_: any, item: PayrollItemType) => (
+      accessor: 'id' as keyof PayrollItemType,
+      render: (item: PayrollItemType) => (
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
             {t('common:edit')}
@@ -288,5 +288,11 @@ const PayrollItemTypesPage: React.FC = () => {
     </div>
   );
 };
+
+const PayrollItemTypesPage: React.FC = () => (
+  <div className="space-y-6">
+    <PayrollItemTypesPageContent />
+  </div>
+);
 
 export default PayrollItemTypesPage;

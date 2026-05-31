@@ -6,10 +6,6 @@
  */
 
 import type { LoadedPlugin, PluginManifest, PluginModule } from '../types';
-import { logger } from '@/utils/logging';
-
-// Use Vite's import.meta.glob for proper dynamic imports
-const pluginModules = import.meta.glob('./builtin/*/index.ts', { eager: false });
 
 interface PluginDirectory {
   name: string;
@@ -21,17 +17,9 @@ interface PluginDirectory {
  * This is the source of truth for builtin plugins
  */
 const BUILTIN_PLUGINS: PluginDirectory[] = [
-  { name: 'whitelabel', path: 'whitelabel' },
-  { name: 'grading-engine', path: 'grading-engine' },
-  { name: 'fee-calculator', path: 'fee-calculator' },
-  { name: 'analytics-mock', path: 'analytics-mock' },
-  { name: 'payment-mock', path: 'payment-mock' },
-  { name: 'sms-gateway', path: 'sms-gateway' },
-  // Backend Integration Plugins
-  { name: 'erpnext-integration', path: 'erpnext-integration' },
-  { name: 'frappe-integration', path: 'frappe-integration' },
-  { name: 'saas-backend', path: 'saas-backend' },
-  { name: 'generic-rest', path: 'generic-rest' },
+  { name: 'whitelabel', path: './whitelabel' },
+  { name: 'grading-engine', path: './grading-engine' },
+  { name: 'fee-calculator', path: './fee-calculator' },
 ];
 
 /**
@@ -39,33 +27,15 @@ const BUILTIN_PLUGINS: PluginDirectory[] = [
  */
 async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin | null> {
   try {
-    // Check if plugin exists in glob map
-    const modulePath = `./builtin/${dirInfo.path}/index.ts`;
-    const loader = pluginModules[modulePath];
+    // Dynamically import the plugin module
+    const pluginModule = await import(`./builtin/${dirInfo.path}`);
     
-    if (!loader) {
-      // Plugin doesn't exist, log at debug level only
-      logger.debug(`[BuiltinLoader] Plugin ${dirInfo.name} not found at ${modulePath}`);
+    if (!pluginModule.default || !pluginModule.default.manifest || !pluginModule.default.module) {
+      console.warn(`[BuiltinLoader] Plugin ${dirInfo.name} has invalid structure`);
       return null;
     }
 
-    // Load the module
-    const pluginModule = await loader();
-    
-    if (!pluginModule || typeof pluginModule !== 'object') {
-      logger.warn(`[BuiltinLoader] Plugin ${dirInfo.name} has invalid structure`);
-      return null;
-    }
-
-    // Handle both default export and direct export patterns
-    const mod = (pluginModule as any).default || pluginModule;
-    
-    if (!mod.manifest || !mod.module) {
-      logger.warn(`[BuiltinLoader] Plugin ${dirInfo.name} missing manifest or module`);
-      return null;
-    }
-
-    const { manifest, module } = mod as {
+    const { manifest, module } = pluginModule.default as {
       manifest: PluginManifest;
       module: PluginModule;
     };
@@ -78,13 +48,7 @@ async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin
       source: 'builtin' as const,
     };
   } catch (error) {
-    // Only log as error if it's not a "module not found" error
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    if (errorMsg.includes('not found') || errorMsg.includes('Unknown variable')) {
-      logger.debug(`[BuiltinLoader] Plugin ${dirInfo.name} not available: ${errorMsg}`);
-    } else {
-      logger.error(`[BuiltinLoader] Failed to load plugin ${dirInfo.name}:`, error);
-    }
+    console.error(`[BuiltinLoader] Failed to load plugin ${dirInfo.name}:`, error);
     return null;
   }
 }
@@ -94,7 +58,7 @@ async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin
  * Returns array of loaded plugins (excludes failed loads)
  */
 export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
-  logger.debug('[BuiltinLoader] Discovering builtin plugins...');
+  console.log('[BuiltinLoader] Discovering builtin plugins...');
   
   const plugins: LoadedPlugin[] = [];
   
@@ -102,11 +66,11 @@ export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
     const plugin = await loadBuiltinPlugin(dirInfo);
     if (plugin) {
       plugins.push(plugin);
-      logger.debug(`[BuiltinLoader] ✓ Loaded ${plugin.manifest.name} (${plugin.manifest.id})`);
+      console.log(`[BuiltinLoader] ✓ Loaded ${plugin.manifest.name} (${plugin.manifest.id})`);
     }
   }
 
-  logger.debug(`[BuiltinLoader] Total builtin plugins loaded: ${plugins.length}`);
+  console.log(`[BuiltinLoader] Total builtin plugins loaded: ${plugins.length}`);
   return plugins;
 }
 

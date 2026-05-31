@@ -19,7 +19,7 @@ type MenuFormData = Omit<Partial<Menu>, 'id' | 'created_at' | 'updated_at' | 'me
     meal_type: MealType;
 };
 
-const MenusPage: React.FC = () => {
+export const MenusPageContent: React.FC = () => {
   const { menus, loading, addMenu, updateMenu, deleteMenu } = useAppData();
   const { t } = useTranslation('nutrition');
   
@@ -206,5 +206,10 @@ const MenusPage: React.FC = () => {
     </div>
   );
 };
+const MenusPage: React.FC = () => (
+  <div className="space-y-6">
+    <MenusPageContent />
+  </div>
+);
 
 export default MenusPage;

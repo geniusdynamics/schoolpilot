@@ -48,6 +48,17 @@ vi.mock('../SecondarySidebar', () => ({
   )
 }));
 
+vi.mock('../../contexts/FullWidthContext', () => ({
+  useFullWidth: () => ({
+    isFullWidth: false,
+    isSecondaryAsPrimary: false,
+    toggleFullWidth: vi.fn(),
+    enableFullWidth: vi.fn(),
+    disableFullWidth: vi.fn(),
+    setSecondaryAsPrimary: vi.fn()
+  })
+}));
+
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: () => ({
     hasModuleAccess: hasModuleAccessMock,

@@ -10,7 +10,7 @@ import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
-const AuditLogPage: React.FC = () => {
+export const AuditLogContent: React.FC = () => {
   const { auditLogs, users, loading } = useAppData();
 
   const [filters, setFilters] = useState<{
@@ -186,6 +186,10 @@ const AuditLogPage: React.FC = () => {
       </Card>
     </div>
   );
+};
+
+const AuditLogPage: React.FC = () => {
+  return <AuditLogContent />;
 };
 
 export default AuditLogPage;

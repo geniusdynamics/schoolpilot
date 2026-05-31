@@ -15,7 +15,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { initialMockGradeBreakdownData, initialMockClassChartData } from '../data/mockData';
 import type { GradeBreakdown, ClassChartData } from '../data/types';
 
-const ClassListsPage: React.FC = () => {
+export const ClassListsPageContent: React.FC = () => {
   useTranslation('reports');
   const [activeTab, setActiveTab] = useState('class-lists');
 
@@ -225,5 +225,10 @@ const ClassListsPage: React.FC = () => {
     </div>
   );
 };
+const ClassListsPage: React.FC = () => (
+  <div className="space-y-6">
+    <ClassListsPageContent />
+  </div>
+);
 
 export default ClassListsPage;

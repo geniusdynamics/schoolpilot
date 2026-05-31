@@ -18,7 +18,7 @@ type FixedAssetFormData = Omit<Partial<FixedAsset>, 'id' | 'created_at' | 'updat
     depreciation_method?: DepreciationMethod;
 };
 
-const FixedAssetsPage: React.FC = () => {
+export const FixedAssetsPageContent: React.FC = () => {
   const { 
     fixedAssets, 
     itemsInv,
@@ -267,5 +267,10 @@ const FixedAssetsPage: React.FC = () => {
     </div>
   );
 };
+const FixedAssetsPage: React.FC = () => (
+  <div className="space-y-6">
+    <FixedAssetsPageContent />
+  </div>
+);
 
 export default FixedAssetsPage;

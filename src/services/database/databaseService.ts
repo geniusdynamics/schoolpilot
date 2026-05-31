@@ -40,15 +40,15 @@ let dbPromise: Promise<any> | null = null;
 let database: any = null;
 
 // Mock database interface to maintain compatibility
+// Uses live delegation to DatabaseManager (which delegates to UDM) so collection
+// lookups always reflect the current state — no stale snapshots.
 class MockDatabase {
   [key: string]: any;
-  private collectionsMap = new Map<string, ICollection<any>>();
   private databaseManager = getDatabaseManager();
 
-  constructor(collections: Map<string, ICollection<any>>) {
-    this.collectionsMap = collections;
-    
-    // Use Proxy to handle dynamic property access for collections
+  constructor(_collections?: Map<string, ICollection<any>>) {
+    // Use Proxy to handle dynamic property access for collections.
+    // Every property access delegates to the live databaseManager.
     return new Proxy(this, {
       get(target, prop, receiver) {
         // If the property exists on the class, use it
@@ -58,7 +58,7 @@ class MockDatabase {
         
         // If it's a string property name, try to get it as a collection
         if (typeof prop === 'string') {
-          const collection = target.collectionsMap.get(prop);
+          const collection = target.databaseManager.getCollection(prop);
           if (collection) {
             return collection;
           }
@@ -70,12 +70,8 @@ class MockDatabase {
     }) as MockDatabase;
   }
 
-  // Note: Individual getters are no longer needed due to Proxy implementation
-  // The Proxy in the constructor handles all dynamic property access
-  // Keeping this comment for clarity on how collection access works
-
   getCollection(name: string): ICollection<any> | null {
-    const collection = this.collectionsMap.get(name);
+    const collection = this.databaseManager.getCollection(name);
     if (!collection) {
       console.warn(`Collection '${name}' not found in database provider`);
       return null;
@@ -85,7 +81,7 @@ class MockDatabase {
 
   get collections() {
     const collectionsObj: Record<string, ICollection<any>> = {};
-    for (const [name, collection] of this.collectionsMap) {
+    for (const [name, collection] of this.databaseManager.getAllCollections()) {
       collectionsObj[name] = collection;
     }
     return collectionsObj;
@@ -94,32 +90,12 @@ class MockDatabase {
 
 // Initialize database using the correct provider based on environment
 const initializeDatabase = async (): Promise<MockDatabase> => {
-  console.log('DatabaseService: Initializing database with environment-specific provider...');
+  console.log('DatabaseService: Initializing database...');
   
   try {
-    // Get current unified configuration
-    const config = unifiedConfigManager.getConfig();
-    console.log('🔍 [DEBUG] Current environment:', config.environment);
-    console.log('🔍 [DEBUG] Current data mode:', config.dataMode);
-    console.log('🔍 [DEBUG] Current database provider:', config.database.provider);
-    
-    // Create data service using DataServiceFactory
-    const provider = await DataServiceFactory.createDataService(config.environment);
-    
-    if (!provider) {
-      throw new Error('Failed to create database provider');
-    }
-
-    const databaseManager = getDatabaseManager();
-    const allCollections = databaseManager.getAllCollections();
-
-    console.log(`DatabaseService: Successfully initialized ${allCollections.size} collections using ${provider.name}`);
-    
-    // Create mock database interface
-    const mockDb = new MockDatabase(allCollections);
-    
-    // Note: Dynamic collection access is handled by the MockDatabase class
-    // through getters and the getCollection method
+    // MockDatabase now uses live delegation to DatabaseManager (→ UDM).
+    // The initial snapshot is unnecessary — every access is live.
+    const mockDb = new MockDatabase();
 
     if (typeof window !== 'undefined') {
       (window as any).APP_DB = mockDb;
@@ -128,7 +104,9 @@ const initializeDatabase = async (): Promise<MockDatabase> => {
     isInitialized = true;
     initializationError = null;
     
-    console.log('DatabaseService: Database initialization completed successfully');
+    const manager = getDatabaseManager();
+    const colCount = manager.getAllCollections().size;
+    console.log(`DatabaseService: Database initialized (${colCount} collections via live delegation)`);
     return mockDb;
   } catch (error) {
     console.error('DatabaseService: Database initialization failed:', error);

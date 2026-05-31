@@ -12,7 +12,7 @@ interface ExamSchedulingPageProps {
   examSessionId?: string;
 }
 
-const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }) => {
+export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ examSessionId }) => {
   const { classStreams = [] } = useAppData();
   const [schedules, setSchedules] = useState<ExamSchedule[]>([]);
   const [filteredSchedules, setFilteredSchedules] = useState<ExamSchedule[]>([]);
@@ -436,5 +436,10 @@ const ExamSchedulingPage: React.FC<ExamSchedulingPageProps> = ({ examSessionId }
   );
 };
 
-export default ExamSchedulingPage;
+const ExamSchedulingPage: React.FC = () => (
+  <div className="space-y-6">
+    <ExamSchedulingPageContent />
+  </div>
+);
 
+export default ExamSchedulingPage;

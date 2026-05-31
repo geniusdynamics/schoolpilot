@@ -14,7 +14,7 @@ import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/data/DataServiceFactory';
 import { MODULE_SEEDER_OPTIONS, type SeederModuleId } from '@/services/database/seederModuleConfig';
 
-export const DataLayerSettingsPage: React.FC = () => {
+export const DataLayerSettingsContent: React.FC = () => {
   const { status: dataModeStatus, switchMode, isLoading, seedData, clearData, isDemoReseedingDisabled, isDemoCleared } = useDataMode();
   const currentMode = dataModeStatus?.currentMode || 'development';
   const [activeTab, setActiveTab] = useState<'mode' | 'sync'>('mode');
@@ -486,6 +486,10 @@ export const DataLayerSettingsPage: React.FC = () => {
       </div>
     </div>
   );
+};
+
+const DataLayerSettingsPage: React.FC = () => {
+  return <DataLayerSettingsContent />;
 };
 
 export default DataLayerSettingsPage;

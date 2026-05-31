@@ -19,7 +19,7 @@ type AssignmentFormData = Omit<Partial<StudentTransportAssignment>, 'id' | 'crea
     status: TransportAssignmentStatus;
 };
 
-const StudentTransportAssignmentsPage: React.FC = () => {
+export const StudentTransportAssignmentsPageContent: React.FC = () => {
   const appData = useAppData();
   const studentTransportAssignments = appData.studentTransportAssignments || [];
   const students = appData.students || [];
@@ -206,5 +206,10 @@ const StudentTransportAssignmentsPage: React.FC = () => {
     </div>
   );
 };
+const StudentTransportAssignmentsPage: React.FC = () => (
+  <div className="space-y-6">
+    <StudentTransportAssignmentsPageContent />
+  </div>
+);
 
 export default StudentTransportAssignmentsPage;

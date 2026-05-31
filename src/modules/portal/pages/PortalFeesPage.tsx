@@ -40,7 +40,7 @@ const statusBadgeClass: Record<string, string> = {
   'Voided': 'inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-500',
 };
 
-const PortalFeesPage: React.FC = () => {
+export const PortalFeesContent: React.FC = () => {
   const { t } = useTranslation('portal');
   const {
     feeSummaries,
@@ -366,6 +366,10 @@ const PortalFeesPage: React.FC = () => {
       )}
     </div>
   );
+};
+
+const PortalFeesPage: React.FC = () => {
+  return <PortalFeesContent />;
 };
 
 export default PortalFeesPage;
