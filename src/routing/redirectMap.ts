@@ -56,6 +56,8 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   // M3: Finance reports hub relocated to /reports/finance
   '/finance/finance-reports': '/reports/finance?tab=fees-due',
   '/finance/reports': '/reports/finance',
+  // M5: SchoolConfigurationPage split into /administration/organization + /administration/student-life
+  '/administration/configuration': '/administration/organization',
 
   // Academics redirects
   '/academics/subject-management': '/academics/subjects',
