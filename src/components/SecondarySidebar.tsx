@@ -187,7 +187,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   onItemClick,
   isSecondaryAsPrimary = false
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['navigation', 'common']);
   const { navigationItems, isLoading } = useDynamicNavigation(true); // Use dynamic navigation
   const { accessibleModules, hasModuleAccess } = useRBAC();
   const { user } = useAuth();

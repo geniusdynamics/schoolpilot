@@ -1,8 +1,5 @@
 {
-  "dashboard": {
-    "title": "Tableau de bord",
-    "description": "Vue d'ensemble du tableau de bord principal"
-  },
+  "dashboard": "Dashboard",
   "administration": {
     "title": "Administration",
     "description": "Gestion des ├®tudiants et du personnel",
@@ -35,7 +32,16 @@
     "schoolPeriods": "P├®riodes Scolaires",
     "studentMasterlist": "Student Masterlist",
     "studentPromotion": "Student Promotion",
-    "auditLogViewer": "Audit Log Viewer"
+    "auditLogViewer": "Audit Log Viewer",
+    "configuration": "Configuration",
+    "organization": "Organization",
+    "studentLife": "Student Life",
+    "academicCalendar": "Academic Calendar",
+    "communication": "Communication",
+    "security": "Security",
+    "attendance": "Attendance",
+    "staffOperations": "Staff Operations",
+    "bulkOperations": "Bulk Operations"
   },
   "academics": {
     "title": "Acad├®mique",
@@ -54,7 +60,25 @@
     "studentExamAnalysis": "Analyse des Examens par ├ël├¿ve",
     "studentExamResultsEntry": "Saisie des R├®sultats",
     "gradingSchemes": "Bar├¿mes de Notation",
-    "educationSystems": "Syst├¿mes ├ëducatifs"
+    "educationSystems": "Syst├¿mes ├ëducatifs",
+    "allocations": "Allocations",
+    "examSetup": "Exam Setup",
+    "marksEntry": "Marks Entry",
+    "verification": "Verification",
+    "analysis": "Analysis",
+    "distribution": "Distribution",
+    "grading": "Grading",
+    "timetable": "Timetable",
+    "assignments": "Assignments",
+    "lessonPlans": "Lesson Plans",
+    "eventsManager": "Events Manager",
+    "examTokens": "Exam Tokens",
+    "marksEntryByToken": "Marks Entry By Token",
+    "verifyMarksCrossCheck": "Verify Marks Cross Check",
+    "verifyMarksByStructure": "Verify Marks By Structure",
+    "examGazette": "Exam Gazette",
+    "distributeResults": "Distribute Results",
+    "boardExamResults": "Board Exam Results"
   },
   "assignments": {
     "title": "Devoirs",
@@ -90,7 +114,28 @@
     "banks": "Banques",
     "suppliers": "Fournisseurs",
     "transportRoutes": "Itin├®raires de Transport",
-    "studentTransportAssignments": "Affectations de Transport des ├ëtudiants"
+    "studentTransportAssignments": "Affectations de Transport des ├ëtudiants",
+    "feeConfiguration": "Fee Configuration",
+    "feeRules": "Fee Rules",
+    "accountingConfig": "Accounting Config",
+    "accountingOps": "Accounting Ops",
+    "financialStatements": "Financial Statements",
+    "payments": "Payments",
+    "studentFeeHistory": "Student Fee History",
+    "invoicing": "Invoicing",
+    "transport": "Transport",
+    "feesFines": "Fees Fines",
+    "feesInstallments": "Fees Installments",
+    "feesReceiptTemplate": "Fees Receipt Template",
+    "dayBook": "Day Book",
+    "cashBook": "Cash Book",
+    "studentsPaidBook": "Students Paid Book",
+    "feesDueReport": "Fees Due Report",
+    "previousSessionFees": "Previous Session Fees",
+    "journalRegister": "Journal Register",
+    "trialBalance": "Trial Balance",
+    "incomeStatement": "Income Statement",
+    "balanceSheet": "Balance Sheet"
   },
   "hr": {
     "title": "Ressources Humaines",
@@ -99,7 +144,9 @@
     "payrollItemTypes": "Types d'├ël├®ments de Paie",
     "payrollPeriods": "P├®riodes de Paie",
     "payslips": "Bulletins de Paie",
-    "staffSalarySettings": "Param├¿tres de Salaire du Personnel"
+    "staffSalarySettings": "Param├¿tres de Salaire du Personnel",
+    "payroll": "Payroll",
+    "staffBioData": "Staff Bio Data"
   },
   "inventory": {
     "title": "Inventaire",
@@ -119,7 +166,11 @@
     "fixedAssets": "Immobilisations",
     "warehouses": "Entrep├┤ts",
     "schoolProcurementDashboard": "Tableau de bord Achats ├ëcole",
-    "vendorPortalDashboard": "Tableau de bord Portail Fournisseur"
+    "vendorPortalDashboard": "Tableau de bord Portail Fournisseur",
+    "inventoryHub": "Inventory Hub",
+    "procurementHub": "Procurement Hub",
+    "stockOpsHub": "Stock Ops Hub",
+    "stationery": "Stationery"
   },
   "library": {
     "title": "Biblioth├¿que",
@@ -133,7 +184,8 @@
     "digitalResources": "Ressources Num├®riques",
     "damagedLostBooks": "Livres Endommag├®s/Perdus",
     "importBooks": "Importer des Livres",
-    "settings": "Param├¿tres de la Biblioth├¿que"
+    "settings": "Param├¿tres de la Biblioth├¿que",
+    "resources": "Resources"
   },
   "nutrition": {
     "title": "Nutrition",
@@ -144,7 +196,10 @@
     "merchants": "Marchands",
     "studentMealAssignments": "Affectations de Repas des ├ëtudiants",
     "mealConsumptionLog": "Journal de Consommation des Repas",
-    "studentWallet": "Portefeuille ├ëtudiant"
+    "studentWallet": "Portefeuille ├ëtudiant",
+    "mealPlanning": "Meal Planning",
+    "nutritionOperations": "Nutrition Operations",
+    "kitchenManagement": "Kitchen Management"
   },
   "reports": {
     "title": "Rapports",
@@ -159,7 +214,10 @@
     "teacherAssignments": "Affectation des Enseignants",
     "classLists": "Listes de Classes",
     "overdueBooks": "Livres en Retard",
-    "inventoryStatus": "├ëtat de l'Inventaire"
+    "inventoryStatus": "├ëtat de l'Inventaire",
+    "studentReports": "Student Reports",
+    "financeReports": "Finance Reports",
+    "analytics": "Analytics"
   },
   "settings": {
     "title": "Param├¿tres",
@@ -183,7 +241,11 @@
     "users": "Gestion des Utilisateurs",
     "workflows": "Flux de Travail",
     "tabbedWorkspaceTest": "Test de l'espace de travail ├á onglets",
-    "tabbedModeTest": "Test du Mode ├á Onglets"
+    "tabbedModeTest": "Test du Mode ├á Onglets",
+    "configuration": "Configuration",
+    "systemManagement": "System Management",
+    "schoolOperations": "School Operations",
+    "settingsDashboard": "Settings Dashboard"
   },
   "vendor": {
     "dashboard": "Tableau de bord Fournisseur",
@@ -200,7 +262,8 @@
     "applications": "Candidatures",
     "reviewQueue": "File d'Examen",
     "apply": "Postuler",
-    "track": "Suivi de Candidature"
+    "track": "Suivi de Candidature",
+    "applicationsHub": "Applications Hub"
   },
   "portal": {
     "title": "Portail",
@@ -227,5 +290,13 @@
     "subjectAnalytics": "Analytique des Mati├¿res",
     "classAnalytics": "Analytique des Classes",
     "exportReports": "Exporter les Rapports"
+  },
+  "attendance": "Attendance",
+  "results": "Results",
+  "fees": "Fees",
+  "announcements": "Announcements",
+  "profile": "Profile",
+  "todos": {
+    "title": "Todos"
   }
 }

@@ -1,8 +1,5 @@
 {
-  "dashboard": {
-    "title": "Dashboard",
-    "description": "Main dashboard overview"
-  },
+  "dashboard": "Dashboard",
   "administration": {
     "title": "Administration",
     "description": "Student and staff management",
@@ -35,7 +32,16 @@
     "academicStructures": "Academic Structures",
     "academicYears": "Academic Years",
     "academicPeriodDefinitions": "Academic Period Definitions",
-    "schoolPeriods": "School Periods"
+    "schoolPeriods": "School Periods",
+    "configuration": "Configuration",
+    "organization": "Organization",
+    "studentLife": "Student Life",
+    "academicCalendar": "Academic Calendar",
+    "communication": "Communication",
+    "security": "Security",
+    "attendance": "Attendance",
+    "staffOperations": "Staff Operations",
+    "bulkOperations": "Bulk Operations"
   },
   "academics": {
     "title": "Academics",
@@ -54,7 +60,25 @@
     "studentExamAnalysis": "Student Exam Analysis",
     "studentExamResultsEntry": "Student Exam Results Entry",
     "gradingSchemes": "Grading Schemes",
-    "educationSystems": "Education Systems"
+    "educationSystems": "Education Systems",
+    "allocations": "Allocations",
+    "examSetup": "Exam Setup",
+    "marksEntry": "Marks Entry",
+    "verification": "Verification",
+    "analysis": "Analysis",
+    "distribution": "Distribution",
+    "grading": "Grading",
+    "timetable": "Timetable",
+    "assignments": "Assignments",
+    "lessonPlans": "Lesson Plans",
+    "eventsManager": "Events Manager",
+    "examTokens": "Exam Tokens",
+    "marksEntryByToken": "Marks Entry By Token",
+    "verifyMarksCrossCheck": "Verify Marks Cross Check",
+    "verifyMarksByStructure": "Verify Marks By Structure",
+    "examGazette": "Exam Gazette",
+    "distributeResults": "Distribute Results",
+    "boardExamResults": "Board Exam Results"
   },
   "assignments": {
     "title": "Assignments",
@@ -90,7 +114,28 @@
     "banks": "Banks",
     "suppliers": "Suppliers",
     "transportRoutes": "Transport Routes",
-    "studentTransportAssignments": "Student Transport Assignments"
+    "studentTransportAssignments": "Student Transport Assignments",
+    "feeConfiguration": "Fee Configuration",
+    "feeRules": "Fee Rules",
+    "accountingConfig": "Accounting Config",
+    "accountingOps": "Accounting Ops",
+    "financialStatements": "Financial Statements",
+    "payments": "Payments",
+    "studentFeeHistory": "Student Fee History",
+    "invoicing": "Invoicing",
+    "transport": "Transport",
+    "feesFines": "Fees Fines",
+    "feesInstallments": "Fees Installments",
+    "feesReceiptTemplate": "Fees Receipt Template",
+    "dayBook": "Day Book",
+    "cashBook": "Cash Book",
+    "studentsPaidBook": "Students Paid Book",
+    "feesDueReport": "Fees Due Report",
+    "previousSessionFees": "Previous Session Fees",
+    "journalRegister": "Journal Register",
+    "trialBalance": "Trial Balance",
+    "incomeStatement": "Income Statement",
+    "balanceSheet": "Balance Sheet"
   },
   "hr": {
     "title": "Human Resources",
@@ -99,7 +144,9 @@
     "payrollItemTypes": "Payroll Item Types",
     "payrollPeriods": "Payroll Periods",
     "payslips": "Payslips",
-    "staffSalarySettings": "Staff Salary Settings"
+    "staffSalarySettings": "Staff Salary Settings",
+    "payroll": "Payroll",
+    "staffBioData": "Staff Bio Data"
   },
   "inventory": {
     "title": "Inventory",
@@ -119,7 +166,11 @@
     "fixedAssets": "Fixed Assets",
     "warehouses": "Warehouses",
     "schoolProcurementDashboard": "School Procurement Dashboard",
-    "vendorPortalDashboard": "Vendor Portal Dashboard"
+    "vendorPortalDashboard": "Vendor Portal Dashboard",
+    "inventoryHub": "Inventory Hub",
+    "procurementHub": "Procurement Hub",
+    "stockOpsHub": "Stock Ops Hub",
+    "stationery": "Stationery"
   },
   "library": {
     "title": "Library",
@@ -133,7 +184,8 @@
     "digitalResources": "Digital Resources",
     "damagedLostBooks": "Damaged/Lost Books",
     "importBooks": "Import Books",
-    "settings": "Library Settings"
+    "settings": "Library Settings",
+    "resources": "Resources"
   },
   "nutrition": {
     "title": "Nutrition",
@@ -144,7 +196,10 @@
     "merchants": "Merchants",
     "studentMealAssignments": "Student Meal Assignments",
     "mealConsumptionLog": "Meal Consumption Log",
-    "studentWallet": "Student Wallet"
+    "studentWallet": "Student Wallet",
+    "mealPlanning": "Meal Planning",
+    "nutritionOperations": "Nutrition Operations",
+    "kitchenManagement": "Kitchen Management"
   },
   "reports": {
     "title": "Reports",
@@ -159,7 +214,10 @@
     "teacherAssignments": "Teacher Assignments",
     "classLists": "Class Lists",
     "overdueBooks": "Overdue Books",
-    "inventoryStatus": "Inventory Status"
+    "inventoryStatus": "Inventory Status",
+    "studentReports": "Student Reports",
+    "financeReports": "Finance Reports",
+    "analytics": "Analytics"
   },
   "settings": {
     "title": "Settings",
@@ -183,7 +241,11 @@
     "users": "User Management",
     "workflows": "Workflows",
     "tabbedWorkspaceTest": "Tabbed Workspace Test",
-    "tabbedModeTest": "Tabbed Mode Test"
+    "tabbedModeTest": "Tabbed Mode Test",
+    "configuration": "Configuration",
+    "systemManagement": "System Management",
+    "schoolOperations": "School Operations",
+    "settingsDashboard": "Settings Dashboard"
   },
   "vendor": {
     "dashboard": "Vendor Dashboard",
@@ -200,7 +262,8 @@
     "applications": "Applications",
     "reviewQueue": "Review Queue",
     "apply": "Apply Now",
-    "track": "Track Application"
+    "track": "Track Application",
+    "applicationsHub": "Applications Hub"
   },
   "portal": {
     "title": "Portal",
@@ -227,5 +290,13 @@
     "subjectAnalytics": "Subject Analytics",
     "classAnalytics": "Class Analytics",
     "exportReports": "Export Reports"
+  },
+  "attendance": "Attendance",
+  "results": "Results",
+  "fees": "Fees",
+  "announcements": "Announcements",
+  "profile": "Profile",
+  "todos": {
+    "title": "Todos"
   }
 }

@@ -83,7 +83,7 @@ const TopOverflowMenu: React.FC<TopOverflowMenuProps> = ({
       icon: BuildingOfficeIcon,
       children: navigationItems.filter(item => item.isGroup).map(item => ({
         id: item.id,
-        label: t(`${item.name}.title`) || item.name,
+        label: t(item.name) || item.name,
         icon: item.icon || Squares2X2Icon,
         action: () => {
           if (onModuleSelect) onModuleSelect(item.id);

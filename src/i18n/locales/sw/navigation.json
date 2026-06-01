@@ -1,8 +1,5 @@
 {
-  "dashboard": {
-    "title": "Dashibodi",
-    "description": "Muhtasari mkuu wa dashibodi"
-  },
+  "dashboard": "Dashboard",
   "administration": {
     "title": "Utawala",
     "description": "Usimamizi wa wanafunzi na wafanyakazi",
@@ -35,7 +32,16 @@
     "academicStructures": "Academic Structures",
     "academicYears": "Academic Years",
     "academicPeriodDefinitions": "Academic Period Definitions",
-    "schoolPeriods": "School Periods"
+    "schoolPeriods": "School Periods",
+    "configuration": "Configuration",
+    "organization": "Organization",
+    "studentLife": "Student Life",
+    "academicCalendar": "Academic Calendar",
+    "communication": "Communication",
+    "security": "Security",
+    "attendance": "Attendance",
+    "staffOperations": "Staff Operations",
+    "bulkOperations": "Bulk Operations"
   },
   "academics": {
     "title": "Masomo",
@@ -54,7 +60,25 @@
     "studentExamAnalysis": "Uchambuzi wa Mitihani ya Mwanafunzi",
     "studentExamResultsEntry": "Kuingiza Matokeo ya Mitihani",
     "gradingSchemes": "Mifumo ya Utoaji Alama",
-    "educationSystems": "Mifumo ya Elimu"
+    "educationSystems": "Mifumo ya Elimu",
+    "allocations": "Allocations",
+    "examSetup": "Exam Setup",
+    "marksEntry": "Marks Entry",
+    "verification": "Verification",
+    "analysis": "Analysis",
+    "distribution": "Distribution",
+    "grading": "Grading",
+    "timetable": "Timetable",
+    "assignments": "Assignments",
+    "lessonPlans": "Lesson Plans",
+    "eventsManager": "Events Manager",
+    "examTokens": "Exam Tokens",
+    "marksEntryByToken": "Marks Entry By Token",
+    "verifyMarksCrossCheck": "Verify Marks Cross Check",
+    "verifyMarksByStructure": "Verify Marks By Structure",
+    "examGazette": "Exam Gazette",
+    "distributeResults": "Distribute Results",
+    "boardExamResults": "Board Exam Results"
   },
   "assignments": {
     "title": "Kazi za Ziada",
@@ -92,7 +116,27 @@
     "transportRoutes": "Njia za Usafiri",
     "studentTransportAssignments": "Ugawaji wa Usafiri kwa Wanafunzi",
     "fees": "Ada",
-    "payments": "Malipo"
+    "payments": "Malipo",
+    "feeConfiguration": "Fee Configuration",
+    "feeRules": "Fee Rules",
+    "accountingConfig": "Accounting Config",
+    "accountingOps": "Accounting Ops",
+    "financialStatements": "Financial Statements",
+    "studentFeeHistory": "Student Fee History",
+    "invoicing": "Invoicing",
+    "transport": "Transport",
+    "feesFines": "Fees Fines",
+    "feesInstallments": "Fees Installments",
+    "feesReceiptTemplate": "Fees Receipt Template",
+    "dayBook": "Day Book",
+    "cashBook": "Cash Book",
+    "studentsPaidBook": "Students Paid Book",
+    "feesDueReport": "Fees Due Report",
+    "previousSessionFees": "Previous Session Fees",
+    "journalRegister": "Journal Register",
+    "trialBalance": "Trial Balance",
+    "incomeStatement": "Income Statement",
+    "balanceSheet": "Balance Sheet"
   },
   "hr": {
     "title": "Rasilimali za Kibinadamu",
@@ -103,7 +147,8 @@
     "payrollItemTypes": "Payroll Item Types",
     "payrollPeriods": "Payroll Periods",
     "payslips": "Payslips",
-    "staffSalarySettings": "Staff Salary Settings"
+    "staffSalarySettings": "Staff Salary Settings",
+    "staffBioData": "Staff Bio Data"
   },
   "library": {
     "title": "Maktaba",
@@ -118,7 +163,8 @@
     "digitalResources": "Digital Resources",
     "damagedLostBooks": "Damaged/Lost Books",
     "importBooks": "Import Books",
-    "settings": "Library Settings"
+    "settings": "Library Settings",
+    "resources": "Resources"
   },
   "nutrition": {
     "title": "Lishe",
@@ -129,7 +175,10 @@
     "merchants": "Merchants",
     "studentMealAssignments": "Student Meal Assignments",
     "mealConsumptionLog": "Meal Consumption Log",
-    "studentWallet": "Student Wallet"
+    "studentWallet": "Student Wallet",
+    "mealPlanning": "Meal Planning",
+    "nutritionOperations": "Nutrition Operations",
+    "kitchenManagement": "Kitchen Management"
   },
   "settings": {
     "title": "Mipangilio",
@@ -153,7 +202,11 @@
     "dataLayer": "Data Layer Settings",
     "workflows": "Workflows",
     "tabbedWorkspaceTest": "Tabbed Workspace Test",
-    "tabbedModeTest": "Tabbed Mode Test"
+    "tabbedModeTest": "Tabbed Mode Test",
+    "configuration": "Configuration",
+    "systemManagement": "System Management",
+    "schoolOperations": "School Operations",
+    "settingsDashboard": "Settings Dashboard"
   },
   "admissions": {
     "title": "Uandikishaji",
@@ -163,7 +216,8 @@
     "applications": "Maombi",
     "reviewQueue": "Foleni ya Ukaguzi",
     "apply": "Omba Sasa",
-    "track": "Fuatilia Ombi"
+    "track": "Fuatilia Ombi",
+    "applicationsHub": "Applications Hub"
   },
   "portal": {
     "title": "Tovuti",
@@ -188,7 +242,10 @@
     "teacherAssignments": "Majukumu ya Walimu",
     "classLists": "Orodha za Madarasa",
     "overdueBooks": "Overdue Books",
-    "inventoryStatus": "Inventory Status"
+    "inventoryStatus": "Inventory Status",
+    "studentReports": "Student Reports",
+    "financeReports": "Finance Reports",
+    "analytics": "Analytics"
   },
   "analytics": {
     "title": "Tathmini",
@@ -224,7 +281,11 @@
     "fixedAssets": "Fixed Assets",
     "warehouses": "Warehouses",
     "schoolProcurementDashboard": "School Procurement Dashboard",
-    "vendorPortalDashboard": "Vendor Portal Dashboard"
+    "vendorPortalDashboard": "Vendor Portal Dashboard",
+    "inventoryHub": "Inventory Hub",
+    "procurementHub": "Procurement Hub",
+    "stockOpsHub": "Stock Ops Hub",
+    "stationery": "Stationery"
   },
   "vendor": {
     "dashboard": "Vendor Dashboard",
@@ -232,5 +293,13 @@
     "pos": "Purchase Orders",
     "invoices": "Invoices",
     "profile": "Profile"
+  },
+  "attendance": "Attendance",
+  "results": "Results",
+  "fees": "Fees",
+  "announcements": "Announcements",
+  "profile": "Profile",
+  "todos": {
+    "title": "Todos"
   }
 }

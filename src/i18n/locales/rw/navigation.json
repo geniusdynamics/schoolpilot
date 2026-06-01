@@ -1,8 +1,5 @@
 {
-  "dashboard": {
-    "title": "Ikibaho",
-    "description": "Ikibaho gikuru cy'igenzura"
-  },
+  "dashboard": "Dashboard",
   "administration": {
     "title": "Ubuyobozi",
     "description": "Gucunga abanyeshuri n'abakozi",
@@ -35,7 +32,16 @@
     "academicStructures": "Academic Structures",
     "academicYears": "Academic Years",
     "academicPeriodDefinitions": "Academic Period Definitions",
-    "schoolPeriods": "School Periods"
+    "schoolPeriods": "School Periods",
+    "configuration": "Configuration",
+    "organization": "Organization",
+    "studentLife": "Student Life",
+    "academicCalendar": "Academic Calendar",
+    "communication": "Communication",
+    "security": "Security",
+    "attendance": "Attendance",
+    "staffOperations": "Staff Operations",
+    "bulkOperations": "Bulk Operations"
   },
   "academics": {
     "title": "Amasomo",
@@ -54,7 +60,25 @@
     "studentExamAnalysis": "Isesengura ry'Ibizamini by'Umwigana",
     "studentExamResultsEntry": "Kwandika Ibisubizo by'Ibizamini",
     "gradingSchemes": "Uburyo bwo Gupima",
-    "educationSystems": "Sisiteme y'Uburezi"
+    "educationSystems": "Sisiteme y'Uburezi",
+    "allocations": "Allocations",
+    "examSetup": "Exam Setup",
+    "marksEntry": "Marks Entry",
+    "verification": "Verification",
+    "analysis": "Analysis",
+    "distribution": "Distribution",
+    "grading": "Grading",
+    "timetable": "Timetable",
+    "assignments": "Assignments",
+    "lessonPlans": "Lesson Plans",
+    "eventsManager": "Events Manager",
+    "examTokens": "Exam Tokens",
+    "marksEntryByToken": "Marks Entry By Token",
+    "verifyMarksCrossCheck": "Verify Marks Cross Check",
+    "verifyMarksByStructure": "Verify Marks By Structure",
+    "examGazette": "Exam Gazette",
+    "distributeResults": "Distribute Results",
+    "boardExamResults": "Board Exam Results"
   },
   "assignments": {
     "title": "Imirimo",
@@ -91,7 +115,28 @@
     "banks": "Amabanki",
     "suppliers": "Abatanga",
     "transportRoutes": "Inzira z'ubwikirezi",
-    "studentTransportAssignments": "Gushyira abanyeshuri ku nzira z'ubwikirezi"
+    "studentTransportAssignments": "Gushyira abanyeshuri ku nzira z'ubwikirezi",
+    "feeConfiguration": "Fee Configuration",
+    "feeRules": "Fee Rules",
+    "accountingConfig": "Accounting Config",
+    "accountingOps": "Accounting Ops",
+    "financialStatements": "Financial Statements",
+    "payments": "Payments",
+    "studentFeeHistory": "Student Fee History",
+    "invoicing": "Invoicing",
+    "transport": "Transport",
+    "feesFines": "Fees Fines",
+    "feesInstallments": "Fees Installments",
+    "feesReceiptTemplate": "Fees Receipt Template",
+    "dayBook": "Day Book",
+    "cashBook": "Cash Book",
+    "studentsPaidBook": "Students Paid Book",
+    "feesDueReport": "Fees Due Report",
+    "previousSessionFees": "Previous Session Fees",
+    "journalRegister": "Journal Register",
+    "trialBalance": "Trial Balance",
+    "incomeStatement": "Income Statement",
+    "balanceSheet": "Balance Sheet"
   },
   "hr": {
     "title": "Umutungo w'Abantu",
@@ -102,7 +147,8 @@
     "payrollItemTypes": "Payroll Item Types",
     "payrollPeriods": "Payroll Periods",
     "payslips": "Payslips",
-    "staffSalarySettings": "Staff Salary Settings"
+    "staffSalarySettings": "Staff Salary Settings",
+    "staffBioData": "Staff Bio Data"
   },
   "library": {
     "title": "Isomero",
@@ -117,7 +163,8 @@
     "digitalResources": "Digital Resources",
     "damagedLostBooks": "Damaged/Lost Books",
     "importBooks": "Import Books",
-    "settings": "Library Settings"
+    "settings": "Library Settings",
+    "resources": "Resources"
   },
   "nutrition": {
     "title": "Intungamubiri",
@@ -128,7 +175,10 @@
     "merchants": "Merchants",
     "studentMealAssignments": "Student Meal Assignments",
     "mealConsumptionLog": "Meal Consumption Log",
-    "studentWallet": "Student Wallet"
+    "studentWallet": "Student Wallet",
+    "mealPlanning": "Meal Planning",
+    "nutritionOperations": "Nutrition Operations",
+    "kitchenManagement": "Kitchen Management"
   },
   "settings": {
     "title": "Amategeko",
@@ -152,7 +202,11 @@
     "dataLayer": "Data Layer Settings",
     "workflows": "Workflows",
     "tabbedWorkspaceTest": "Tabbed Workspace Test",
-    "tabbedModeTest": "Tabbed Mode Test"
+    "tabbedModeTest": "Tabbed Mode Test",
+    "configuration": "Configuration",
+    "systemManagement": "System Management",
+    "schoolOperations": "School Operations",
+    "settingsDashboard": "Settings Dashboard"
   },
   "admissions": {
     "title": "Kwandikisha",
@@ -162,7 +216,8 @@
     "applications": "Ubusabe",
     "reviewQueue": "Urutonde rw'Ibisuzumwa",
     "apply": "Gusaba",
-    "track": "Gukurikirana Ubusabe"
+    "track": "Gukurikirana Ubusabe",
+    "applicationsHub": "Applications Hub"
   },
   "portal": {
     "title": "Urubuga",
@@ -187,7 +242,10 @@
     "teacherAssignments": "Gushyira Abarimu",
     "classLists": "Urutonde rw'Ishuri",
     "overdueBooks": "Overdue Books",
-    "inventoryStatus": "Inventory Status"
+    "inventoryStatus": "Inventory Status",
+    "studentReports": "Student Reports",
+    "financeReports": "Finance Reports",
+    "analytics": "Analytics"
   },
   "analytics": {
     "title": "Isesengura",
@@ -223,7 +281,11 @@
     "fixedAssets": "Fixed Assets",
     "warehouses": "Warehouses",
     "schoolProcurementDashboard": "School Procurement Dashboard",
-    "vendorPortalDashboard": "Vendor Portal Dashboard"
+    "vendorPortalDashboard": "Vendor Portal Dashboard",
+    "inventoryHub": "Inventory Hub",
+    "procurementHub": "Procurement Hub",
+    "stockOpsHub": "Stock Ops Hub",
+    "stationery": "Stationery"
   },
   "vendor": {
     "dashboard": "Vendor Dashboard",
@@ -231,5 +293,13 @@
     "pos": "Purchase Orders",
     "invoices": "Invoices",
     "profile": "Profile"
+  },
+  "attendance": "Attendance",
+  "results": "Results",
+  "fees": "Fees",
+  "announcements": "Announcements",
+  "profile": "Profile",
+  "todos": {
+    "title": "Todos"
   }
 }
