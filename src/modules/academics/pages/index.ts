@@ -1,6 +1,19 @@
 // ABOUTME: Export file for all Academic module pages
 // ABOUTME: This centralizes all page exports for easy importing
 
+// Hub pages (consolidated navigation entries)
+export { default as SubjectsHubPage } from './SubjectsHubPage';
+export { default as CurriculumAllocationsPage } from './CurriculumAllocationsPage';
+export { default as ExamSetupHubPage } from './ExamSetupHubPage';
+export { default as MarksEntryHubPage } from './MarksEntryHubPage';
+export { default as VerificationHubPage } from './VerificationHubPage';
+export { default as AnalysisHubPage } from './AnalysisHubPage';
+export { default as DistributionHubPage } from './DistributionHubPage';
+export { default as GradingHubPage } from './GradingHubPage';
+export { default as TimetableHubPage } from './TimetableHubPage';
+export { default as AssignmentsHubPage } from './AssignmentsHubPage';
+export { default as LessonPlansHubPage } from './LessonPlansHubPage';
+
 export { default as AcademicsDashboardPage } from './AcademicsDashboardPage';
 export { default as SubjectsPage } from './SubjectsPage';
 export { default as SubjectPapersManagementPage } from './SubjectPapersManagementPage';
