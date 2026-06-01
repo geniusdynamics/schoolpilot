@@ -334,7 +334,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
               Error ID: <code className="bg-gray-100 px-1 rounded">{errorId}</code>
             </p>
             
-            {showTechnicalDetails && (
+            {_showTechnicalDetails && (
               <details className="mt-2">
                 <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800">
                   Technical Details

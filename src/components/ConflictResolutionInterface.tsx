@@ -46,7 +46,10 @@ const ConflictResolutionInterface: React.FC<ConflictResolutionInterfaceProps> = 
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [viewMode, setViewMode] = useState<'side-by-side' | 'unified' | 'raw'>('side-by-side');
 
-  const { resolveConflict: _resolveConflict, resolveAllConflicts: _resolveAllConflicts } = useAppData();
+  const { resolveConflict: _resolveConflict, resolveAllConflicts: _resolveAllConflicts } = useAppData() as unknown as {
+    resolveConflict: (id: string) => void;
+    resolveAllConflicts: () => void;
+  };
   void _resolveConflict;
   void _resolveAllConflicts;
 
