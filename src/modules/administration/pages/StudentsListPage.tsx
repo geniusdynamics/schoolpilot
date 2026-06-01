@@ -944,3 +944,5 @@ const StudentsListPage: React.FC = () => {
 };
 
 export default StudentsListPage;
+
+export const StudentsListContent = StudentsListPage;

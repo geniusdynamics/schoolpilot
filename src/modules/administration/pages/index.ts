@@ -9,6 +9,8 @@ export { default as SecurityHubPage } from './SecurityHubPage';
 export { default as CertificatesPage } from './CertificatesPage';
 export { default as StudentBulkOperationsPage } from './StudentBulkOperationsPage';
 export { default as StaffOperationsPage } from './StaffOperationsPage';
+export { default as StudentDirectoryPage } from './StudentDirectoryPage';
+export { default as StaffDirectoryPage } from './StaffDirectoryPage';
 
 export { default as AdministrationDashboardPage } from './AdministrationDashboardPage';
 export { default as ApplicationsPage } from './ApplicationsPage';

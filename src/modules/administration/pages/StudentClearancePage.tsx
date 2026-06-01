@@ -247,3 +247,5 @@ const StudentClearancePage: React.FC = () => {
 };
 
 export default StudentClearancePage;
+
+export const StudentClearanceContent = StudentClearancePage;

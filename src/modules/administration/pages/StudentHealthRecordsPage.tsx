@@ -213,3 +213,5 @@ const StudentHealthRecordsPage: React.FC = () => {
 };
 
 export default StudentHealthRecordsPage;
+
+export const StudentHealthRecordsContent = StudentHealthRecordsPage;

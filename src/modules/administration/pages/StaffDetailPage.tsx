@@ -229,3 +229,5 @@ const StaffDetailPage: React.FC = () => {
 };
 
 export default StaffDetailPage;
+
+export const StaffDetailContent = StaffDetailPage;
