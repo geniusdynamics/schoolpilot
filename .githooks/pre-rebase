@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# ABOUTME: Pre-rebase hook to warn about translation loss risk
+# ABOUTME: Reminds to verify i18n files after rebase
+
+echo "[pre-rebase] WARNING: Rebase operations can lose translations."
+echo "[pre-rebase] After completing the rebase, run:"
+echo ""
+echo "    npm run check-translations"
+echo ""
+echo "[pre-rebase] This is a reminder only - continuing with rebase."
+exit 0

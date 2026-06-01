@@ -1,0 +1,19 @@
+{
+  "desktop": "Imashini",
+  "workspaces": "Ibikoresho bya kazi",
+  "website": "Urubuga",
+  "reload": "Oza subiramo",
+  "toggleFullWidth": "Hindura ubugari bwose",
+  "exitFullWidth": "Sohoka mu bwari bwose",
+  "toggleTheme": "Hindura insanganyamatsiko",
+  "help": "Ubufasha",
+  "about": "Ibyerekeye",
+  "keyboardShortcuts": "Ubutumwa bw urufunguzo",
+  "notifications": {
+    "backendUnavailable": "Seriveri ntiboneka kugeza ubu. Gukora mu buryo budasanzwe.",
+    "offline": "Uri kure y urubuga ubu. Impinduka zizarangizwa uzakomeza.",
+    "syncError": "Ikosa ryo guhuza: {{error}}",
+    "unknownError": "Ikosa kitazwi cyabaye",
+    "pendingSync": "Impinduka {{count}} zitegereje guhuzwa"
+  }
+}

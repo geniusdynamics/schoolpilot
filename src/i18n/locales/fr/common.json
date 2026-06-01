@@ -1,18 +1,19 @@
 {
-  "desktop": "Bureau",
-  "workspaces": "Espaces de travail",
-  "website": "Site Web",
-  "reload": "Recharger",
-  "toggleFullWidth": "Basculer la pleine largeur",
-  "toggleTheme": "Basculer le thème",
-  "help": "Aide",
-  "about": "À propos",
-  "keyboardShortcuts": "Raccourcis clavier",
+  "desktop": "Desktop",
+  "workspaces": "Workspaces",
+  "website": "Website",
+  "reload": "Reload",
+  "toggleFullWidth": "Toggle Full Width",
+  "toggleTheme": "Toggle Theme",
+  "help": "Help",
+  "about": "About",
+  "keyboardShortcuts": "Keyboard Shortcuts",
   "notifications": {
-    "backendUnavailable": "Le serveur est actuellement indisponible. Fonctionnement en mode hors ligne.",
-    "offline": "Vous êtes actuellement hors ligne. Les modifications seront synchronisées lors de la connexion.",
-    "syncError": "Erreur de synchronisation : {{error}}",
-    "unknownError": "Une erreur inconnue s'est produite",
-    "pendingSync": "{{count}} modifications en attente de synchronisation"
-  }
+    "backendUnavailable": "Backend is currently unavailable. Working in offline mode.",
+    "offline": "You are currently offline. Changes will sync when connected.",
+    "syncError": "Sync error: {{error}}",
+    "unknownError": "Unknown error occurred",
+    "pendingSync": "{{count}} changes pending sync"
+  },
+  "exitFullWidth": "Quitter la pleine largeur"
 }

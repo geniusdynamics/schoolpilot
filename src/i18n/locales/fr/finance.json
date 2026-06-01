@@ -12,5 +12,53 @@
   "reports": "Rapports financiers",
   "audit": "Audit",
   "reconciliation": "Réconciliation",
-  "payroll": "Paie"
+  "payroll": "Paie",
+  "feesFines": {
+    "title": "Fees Fines",
+    "description": "Manage and track late payment fines and penalties"
+  },
+  "feesInstallments": {
+    "title": "Fees Installments",
+    "description": "Manage student fee payment installments"
+  },
+  "feesReceiptTemplate": {
+    "title": "Fees Receipt Template",
+    "description": "Customize fee receipt templates"
+  },
+  "dayBook": {
+    "title": "Day Book",
+    "description": "Daily financial transactions record"
+  },
+  "cashBook": {
+    "title": "Cash Book",
+    "description": "Cash inflow and outflow tracking"
+  },
+  "studentsPaidBook": {
+    "title": "Students Paid Book",
+    "description": "Record of students who have paid fees"
+  },
+  "feesDueReport": {
+    "title": "Fees Due Report",
+    "description": "Report of pending and overdue fee payments"
+  },
+  "previousSessionFees": {
+    "title": "Previous Session Fees",
+    "description": "Manage fees from previous academic sessions"
+  },
+  "journalRegister": {
+    "title": "Journal Register",
+    "description": "General journal entries and postings"
+  },
+  "trialBalance": {
+    "title": "Trial Balance",
+    "description": "Summary of all ledger balances"
+  },
+  "incomeStatement": {
+    "title": "Income Statement",
+    "description": "Profit and loss statement"
+  },
+  "balanceSheet": {
+    "title": "Balance Sheet",
+    "description": "Statement of assets, liabilities, and equity"
+  }
 }

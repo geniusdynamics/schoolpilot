@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+# ABOUTME: Pre-merge-commit hook to verify translation completeness
+# ABOUTME: Blocks merge commits if translations are missing
+
+echo "[pre-merge-commit] Running translation completeness check..."
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+cd "$GIT_ROOT" || exit 1
+
+STAGED_I18N=$(git diff --cached --name-only -- 'src/i18n/**' 'src/modules/*/i18n/**' 2>/dev/null)
+
+if [ -z "$STAGED_I18N" ]; then
+  echo "[pre-merge-commit] No i18n files staged - skipping"
+  exit 0
+fi
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "[pre-merge-commit] WARNING: node not found - skipping"
+  exit 0
+fi
+
+if [ -f "scripts/translation-completeness-check.cjs" ]; then
+  if node scripts/translation-completeness-check.cjs; then
+    echo "[pre-merge-commit] Translations OK"
+    exit 0
+  else
+    echo "[pre-merge-commit] BLOCKED: Translations incomplete. Use --no-verify to override."
+    exit 1
+  fi
+fi
+exit 0

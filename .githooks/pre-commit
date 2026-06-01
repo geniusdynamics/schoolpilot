@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+# ABOUTME: Pre-commit hook to verify translation completeness
+# ABOUTME: Blocks commits if any locale file is missing translations
+
+echo "[pre-commit] Running translation completeness check..."
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+cd "$GIT_ROOT" || exit 1
+
+STAGED_I18N=$(git diff --cached --name-only -- 'src/i18n/**' 'src/modules/*/i18n/**' 2>/dev/null)
+
+if [ -z "$STAGED_I18N" ]; then
+  echo "[pre-commit] No i18n files staged - skipping translation check"
+  exit 0
+fi
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "[pre-commit] WARNING: node not found - skipping translation check"
+  exit 0
+fi
+
+if [ ! -f "scripts/translation-completeness-check.cjs" ]; then
+  echo "[pre-commit] WARNING: scripts/translation-completeness-check.cjs not found - skipping"
+  exit 0
+fi
+
+if node scripts/translation-completeness-check.cjs; then
+  echo "[pre-commit] Translations OK"
+  exit 0
+else
+  echo ""
+  echo "[pre-commit] BLOCKED: Translations are incomplete."
+  echo "[pre-commit] To bypass this check (NOT recommended), use: git commit --no-verify"
+  echo "[pre-commit] To fix, add missing translations to: src/i18n/locales/{fr,rw,sw}/"
+  exit 1
+fi

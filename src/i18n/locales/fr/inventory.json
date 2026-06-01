@@ -12,5 +12,23 @@
   "reports": "Rapports d'inventaire",
   "audit": "Audit des stocks",
   "alerts": "Alertes de stock faible",
-  "valuation": "Évaluation de l'inventaire"
+  "valuation": "Évaluation de l'inventaire",
+  "stationery": {
+    "title": "Stationery Supply Management",
+    "description": "Department-wise allocation and consumable tracking for stationery items",
+    "items": "Stationery Items",
+    "departments": "Departments",
+    "allocation": "Department Allocation",
+    "consumables": "Consumable Tracking",
+    "lowStock": "Low Stock Alerts",
+    "reorderLevel": "Reorder Level",
+    "unit": "Unit",
+    "quantity": "Quantity",
+    "allocated": "Allocated",
+    "consumed": "Consumed",
+    "remaining": "Remaining",
+    "addItem": "Add Item",
+    "allocate": "Allocate to Department",
+    "recordConsumption": "Record Consumption"
+  }
 }

@@ -1,6 +1,11 @@
 {
   "title": "Administration",
-  "staff": "Gestion du personnel",
+  "staff": {
+    "attendance": "Staff Attendance",
+    "idCards": "Staff ID Cards",
+    "wallet": "Staff Wallet",
+    "bulkUpdate": "Bulk Staff Update"
+  },
   "departments": "Départements",
   "designations": "Désignations",
   "partners": "Partenaires",
@@ -11,5 +16,95 @@
   "procedures": "Procédures",
   "compliance": "Conformité",
   "governance": "Gouvernance",
-  "organization": "Structure organisationnelle"
+  "organization": "Structure organisationnelle",
+  "common": {
+    "search": "Search",
+    "class": "Class",
+    "status": "Status",
+    "actions": "Actions",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "filter": "Filter",
+    "loading": "Loading..."
+  },
+  "gatePass": {
+    "title": "Student Gate Pass Issuance",
+    "description": "Manage gate passes for early departures, medical emergencies, and personal reasons",
+    "management": "Gate Pass Management",
+    "loading": "Loading gate passes...",
+    "newPass": "New Gate Pass",
+    "totalPasses": "Total Passes",
+    "pending": "Pending",
+    "approved": "Approved",
+    "issued": "Issued",
+    "allStatuses": "All Statuses",
+    "allTypes": "All Types",
+    "searchPlaceholder": "Student name, ID...",
+    "student": "Student",
+    "type": "Type",
+    "passType": "Pass Type",
+    "studentName": "Student Name",
+    "reason": "Reason",
+    "departureTime": "Departure Time",
+    "expectedReturn": "Expected Return",
+    "approvedBy": "Approved By",
+    "status": "Status",
+    "actions": "Actions",
+    "print": "Print",
+    "issue": "Issue",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "studentBioData": {
+    "title": "Student Bio Data Management",
+    "description": "Comprehensive student profiles with emergency contacts, medical history, and documents",
+    "loading": "Loading student bio data...",
+    "profiles": "Comprehensive Student Profiles",
+    "backToStudents": "Back to Students",
+    "basicInfo": "Basic Info",
+    "medical": "Medical",
+    "documentsTab": "Documents",
+    "personalInfo": "Personal Information",
+    "medicalInfo": "Medical Information",
+    "emergencyContacts": "Emergency Contacts",
+    "documents": "Documents",
+    "allergies": "Allergies",
+    "bloodGroup": "Blood Group",
+    "conditions": "Medical Conditions",
+    "addCondition": "Add Condition",
+    "addContact": "Add Contact",
+    "addDocument": "Add Document",
+    "primary": "Primary",
+    "relationship": "Relationship"
+  },
+  "certificates": {
+    "transfer": {
+      "title": "Transfer Certificate",
+      "description": "Generate transfer certificates for students leaving the school"
+    },
+    "character": {
+      "title": "Character Certificate",
+      "description": "Issue character certificates for students"
+    },
+    "birth": {
+      "title": "Birth Certificate",
+      "description": "Manage and issue birth certificates"
+    }
+  },
+  "attendance": {
+    "reports": "Attendance Reports",
+    "manual": "Manual Attendance",
+    "dynamic": "Dynamic Attendance",
+    "bulkUpdate": "Bulk Student Update"
+  },
+  "scholarship": {
+    "tracking": "Scholarship Tracking"
+  },
+  "sms": {
+    "reports": "SMS Reports",
+    "autoSettings": "Auto-Send Settings"
+  }
 }

@@ -1,0 +1,19 @@
+{
+  "desktop": "Kompyuta ya Mezani",
+  "workspaces": "Vifaa vya Kazini",
+  "website": "Tovuti",
+  "reload": "Pakia upya",
+  "toggleFullWidth": "Badilisha upana kamili",
+  "exitFullWidth": "Toka kwa upana kamili",
+  "toggleTheme": "Badilisha mandhari",
+  "help": "Msaada",
+  "about": "Kuhusu",
+  "keyboardShortcuts": "Njia za mkato za kibodi",
+  "notifications": {
+    "backendUnavailable": "Huduma ya nyuma haipatikani kwa sasa. Inafanya kazi katika hali ya nje ya mtandao.",
+    "offline": "Uko nje ya mtandao kwa sasa. Mabadiliko yatalinganishwa utakapounganishwa.",
+    "syncError": "Hitilafu ya kusawazisha: {{error}}",
+    "unknownError": "Hitilafu isiyojulikana imetokea",
+    "pendingSync": "Mabadiliko {{count}} yanasubiri kusawazishwa"
+  }
+}
