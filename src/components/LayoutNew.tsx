@@ -14,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFullWidth } from '../contexts/FullWidthContext';
 import { useTabs } from '../hooks/tabs';
 import type { Tab } from '../services/tabs/types';
+import { normalizeModuleId } from '../utils/moduleStyles';
 import Header from './Header';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
@@ -27,14 +28,6 @@ import { TabWorkspaceErrorBoundary } from './tabbedWorkspace/TabWorkspaceErrorBo
 interface LayoutProps {
   children?: React.ReactNode;
 }
-
-const normalizeModuleId = (value?: string): string => {
-  if (!value) return '';
-  if (value.startsWith('/')) {
-    return value.replace(/^\/+/, '').split('/')[0] || '';
-  }
-  return value.replace('navigation:', '').replace('.title', '').split('.')[0] || '';
-};
 
 const routeModuleId = (path?: string): string => {
   if (!path) return '';
