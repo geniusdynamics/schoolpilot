@@ -53,6 +53,9 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   '/finance/income-statement': '/finance/financial-statements?tab=income-statement',
   '/finance/student-opening-balances': '/finance/student-fee-history?tab=opening-balances',
   '/finance/previous-session-fees': '/finance/student-fee-history?tab=previous-session',
+  // M3: Finance reports hub relocated to /reports/finance
+  '/finance/finance-reports': '/reports/finance?tab=fees-due',
+  '/finance/reports': '/reports/finance',
 
   // Academics redirects
   '/academics/subject-management': '/academics/subjects',

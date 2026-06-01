@@ -40,8 +40,8 @@ export const administrationModule: ModuleDefinition = {
   navigation: [
     // Hub pages (visible in BOTH standard and fullwidth modes)
     { name: 'navigation:administration.dashboard', path: '/administration/dashboard', icon: AcademicCapIcon, page: 'AdministrationDashboardPage', showInModes: ['standard', 'fullwidth'] },
-    { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentsListPage', showInModes: ['standard', 'fullwidth'] },
-    { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffListPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentDirectoryPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffDirectoryPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.configuration', path: '/administration/configuration', icon: CogIcon, page: 'SchoolConfigurationPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.academicCalendar', path: '/administration/academic-calendar', icon: CalendarDaysIcon, page: 'AcademicCalendarPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.certificates', path: '/administration/certificates', icon: DocumentTextIcon, page: 'CertificatesPage', showInModes: ['standard', 'fullwidth'] },
@@ -104,7 +104,8 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/applications', page: 'ApplicationsPage' },
     { path: '/administration/prenas-marks', page: 'PreNAsMarksPage' },
     { path: '/administration/classes', page: 'ClassesPage' },
-    { path: '/administration/students', page: 'StudentsListPage' },
+    { path: '/administration/students', page: 'StudentDirectoryPage' },
+    { path: '/administration/staff', page: 'StaffDirectoryPage' },
     { path: '/administration/students/add', page: 'AddStudentPage' },
     { path: '/administration/students/:studentId', page: 'StudentDetailPage' },
     { path: '/administration/students/:studentId/financial', page: 'StudentFinancialDetailPage' },

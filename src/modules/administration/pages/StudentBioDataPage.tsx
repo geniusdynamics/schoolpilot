@@ -309,3 +309,5 @@ const StudentBioDataPage: React.FC = () => {
 };
 
 export default StudentBioDataPage;
+
+export const StudentBioDataContent = StudentBioDataPage;

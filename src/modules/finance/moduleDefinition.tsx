@@ -50,7 +50,8 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.financialStatements', path: '/finance/financial-statements', icon: ScaleIcon, page: 'FinancialStatementsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.payments', path: '/finance/payments', icon: CreditCardIcon, page: 'PaymentsHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.studentFeeHistory', path: '/finance/student-fee-history', icon: BanknotesIcon, page: 'StudentFeeHistoryPage', showInModes: ['standard', 'fullwidth'] },
-    { name: 'navigation:finance.reports', path: '/finance/reports', icon: DocumentReportIcon, page: 'FinanceReportsHubPage', showInModes: ['standard', 'fullwidth'] },
+    // M3: Finance reports hub relocated to /reports/finance (see reports/moduleDefinition.tsx).
+    // Old /finance/reports path is now handled by redirectMap.
     { name: 'navigation:finance.invoicing', path: '/finance/invoicing', icon: DocumentDuplicateIcon, page: 'InvoicingHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.expenses', path: '/finance/expenses', icon: BanknotesIcon, page: 'ExpensesHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.transport', path: '/finance/transport', icon: TruckIcon, page: 'TransportHubPage', showInModes: ['standard', 'fullwidth'] },
@@ -65,8 +66,8 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.feesReceiptTemplate', path: '/finance/fees-receipt-template', icon: DocumentTextIcon, page: 'FeesReceiptTemplatePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/fee-configuration?tab=receipt-template' },
     { name: 'navigation:finance.dayBook', path: '/finance/day-book', icon: BookOpenIcon, page: 'DayBookPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/accounting-ops?tab=day-book' },
     { name: 'navigation:finance.cashBook', path: '/finance/cash-book', icon: CashIcon, page: 'CashBookPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/accounting-ops?tab=cash-book' },
-    { name: 'navigation:finance.studentsPaidBook', path: '/finance/students-paid-book', icon: UsersIcon, page: 'StudentsPaidBookPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/reports?tab=students-paid' },
-    { name: 'navigation:finance.feesDueReport', path: '/finance/fees-due-report', icon: DocumentReportIcon, page: 'FeesDueReportPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/reports?tab=fees-due' },
+    { name: 'navigation:finance.studentsPaidBook', path: '/finance/students-paid-book', icon: UsersIcon, page: 'StudentsPaidBookPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/reports/finance?tab=students-paid' },
+    { name: 'navigation:finance.feesDueReport', path: '/finance/fees-due-report', icon: DocumentReportIcon, page: 'FeesDueReportPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/reports/finance?tab=fees-due' },
     { name: 'navigation:finance.previousSessionFees', path: '/finance/previous-session-fees', icon: ArrowPathIcon, page: 'PreviousSessionFeesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/student-fee-history?tab=previous-session' },
     { name: 'navigation:finance.journalRegister', path: '/finance/journal-register', icon: BookOpenIcon, page: 'JournalRegisterPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/accounting-ops?tab=journal' },
     { name: 'navigation:finance.trialBalance', path: '/finance/trial-balance', icon: ScaleIcon, page: 'TrialBalancePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/financial-statements?tab=trial-balance' },
@@ -76,7 +77,7 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.studentOpeningBalances', path: '/finance/student-opening-balances', icon: BanknotesIcon, page: 'StudentOpeningBalancesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/student-fee-history?tab=opening-balances' },
     { name: 'navigation:finance.feeCollectionSummary', path: '/finance/fee-collection-summary', icon: ChartBarIcon, page: 'FeeCollectionSummaryPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/payments?tab=collection-summary' },
     { name: 'navigation:finance.studentFinancialSummary', path: '/finance/student-financial-summary', icon: WalletIcon, page: 'StudentFinancialSummaryPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/payments?tab=financial-summary' },
-    { name: 'navigation:finance.voteheadStatement', path: '/finance/votehead-statement', icon: TableCellsIcon, page: 'VoteheadStatementPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/reports?tab=votehead-statement' },
+    { name: 'navigation:finance.voteheadStatement', path: '/finance/votehead-statement', icon: TableCellsIcon, page: 'VoteheadStatementPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/reports/finance?tab=votehead-statement' },
     { name: 'navigation:finance.accountLedger', path: '/finance/account-ledger', icon: DownloadIcon, page: 'AccountLedgerPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/accounting-ops?tab=ledger' },
     { name: 'navigation:finance.invoiceGeneration', path: '/finance/invoice-generation', icon: DocumentDuplicateIcon, page: 'InvoiceGenerationPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/invoicing?tab=invoice-generation' },
     { name: 'navigation:finance.paymentAllocation', path: '/finance/payment-allocation', icon: CreditCardIcon, page: 'PaymentAllocationPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/payments?tab=payment-allocation' },
@@ -125,7 +126,7 @@ export const financeModule: ModuleDefinition = {
     { path: '/finance/financial-statements', page: 'FinancialStatementsPage' },
     { path: '/finance/payments', page: 'PaymentsHubPage' },
     { path: '/finance/student-fee-history', page: 'StudentFeeHistoryPage' },
-    { path: '/finance/reports', page: 'FinanceReportsHubPage' },
+    // M3: /finance/reports removed; redirected to /reports/finance via redirectMap.
     { path: '/finance/invoicing', page: 'InvoicingHubPage' },
     { path: '/finance/expenses', page: 'ExpensesHubPage' },
     { path: '/finance/transport', page: 'TransportHubPage' },
