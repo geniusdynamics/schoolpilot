@@ -2,6 +2,8 @@
 
 // Hub pages (consolidated navigation entries)
 export { default as SchoolConfigurationPage } from './SchoolConfigurationPage';
+export { default as SchoolOrganizationHubPage } from './SchoolOrganizationHubPage';
+export { default as StudentLifeHubPage } from './StudentLifeHubPage';
 export { default as AcademicCalendarPage } from './AcademicCalendarPage';
 export { default as StudentAttendanceHubPage } from './StudentAttendanceHubPage';
 export { default as CommunicationHubPage } from './CommunicationHubPage';
