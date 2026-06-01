@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import FormField from '@/components/ui/forms/FormField';
+import Input from '@/components/ui/Input';
 import Select, { SelectOption } from '@/components/ui/Select';
 
 interface Application {
@@ -52,40 +53,45 @@ export const ApplicationManagement: React.FC<ApplicationManagementProps> = ({
       isOpen={isOpen}
       onClose={handleCancel}
       title="Application Management"
-      size="medium"
+      size="md"
     >
       <div className="space-y-4">
-        <FormField
-          label="Application Name"
-          type="text"
-          value={application.name || ''}
-          onChange={(e) => setApplication({ ...application, name: e.target.value })}
-          placeholder="Enter application name"
-        />
+        <FormField label="Application Name">
+          <Input
+            label=""
+            value={application.name || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApplication({ ...application, name: e.target.value })}
+            placeholder="Enter application name"
+          />
+        </FormField>
 
-        <FormField
-          label="Type"
-          type="text"
-          value={application.type || ''}
-          onChange={(e) => setApplication({ ...application, type: e.target.value })}
-          placeholder="Enter application type"
-        />
+        <FormField label="Type">
+          <Input
+            label=""
+            value={application.type || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApplication({ ...application, type: e.target.value })}
+            placeholder="Enter application type"
+          />
+        </FormField>
 
-        <FormField
-          label="Status"
-          type="select"
-          value={application.status || 'active'}
-          onChange={(e) => setApplication({ ...application, status: e.target.value })}
-          options={statusOptions}
-        />
+        <FormField label="Status">
+          <Select
+            value={application.status || 'active'}
+            onChange={(value) => setApplication({ ...application, status: String(value) })}
+            options={statusOptions}
+            placeholder="Select status"
+          />
+        </FormField>
 
-        <FormField
-          label="Description"
-          type="textarea"
-          value={application.description || ''}
-          onChange={(e) => setApplication({ ...application, description: e.target.value })}
-          placeholder="Enter application description"
-        />
+        <FormField label="Description" helperText="Brief description of the application">
+          <textarea
+            value={application.description || ''}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setApplication({ ...application, description: e.target.value })}
+            placeholder="Enter application description"
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+        </FormField>
       </div>
 
       <div className="flex justify-end space-x-3 mt-6">

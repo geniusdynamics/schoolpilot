@@ -288,7 +288,6 @@ export const BreadcrumbNavigation = React.memo(BreadcrumbNavigationComponent, (p
     prevProps.separator === nextProps.separator &&
     prevProps.enableHierarchicalMode === nextProps.enableHierarchicalMode &&
     prevProps.onNavigate === nextProps.onNavigate &&
-    prevProps.onItemClick === nextProps.onItemClick &&
     prevProps.onNavigationError === nextProps.onNavigationError &&
     JSON.stringify(prevProps.customItems) === JSON.stringify(nextProps.customItems)
   );

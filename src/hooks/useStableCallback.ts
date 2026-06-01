@@ -46,9 +46,7 @@ import { useRef, useEffect, useCallback } from 'react';
  *   return (
  *     <>
  *       <button onClick={() => setCount(c => c + 1)}>Increment</button>
- *       {/* Child re-renders every time */}
  *       <ExpensiveChild onClick={handleClick} />
- *       {/* Child only re-renders when props actually change */}
  *       <ExpensiveChild onClick={stableHandleClick} />
  *     </>
  *   );

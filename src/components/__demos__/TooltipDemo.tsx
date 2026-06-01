@@ -121,10 +121,12 @@ export default function TooltipDemo() {
             {/* Info Tooltip */}
             <div className="flex items-center gap-2">
               <span>User Information</span>
-              <InfoTooltip 
+              <InfoTooltip
                 title="User Profile"
                 description="This section contains user profile information including name, email, and preferences."
-              />
+              >
+                <span className="ml-1 text-gray-400">i</span>
+              </InfoTooltip>
             </div>
 
             {/* Help Tooltip */}
@@ -151,6 +153,7 @@ export default function TooltipDemo() {
                   trigger="focus"
                 >
                   <Input
+                    label=""
                     type="password"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}

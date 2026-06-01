@@ -174,8 +174,10 @@ async function main() {
         // Group by source module
         const byModule: Record<string, Violation[]> = {};
         for (const v of violations) {
-          byModule[v.fromModule] = byModule[v.fromModule] || [];
-          byModule[v.fromModule].push(v);
+          if (!v.fromModule) continue;
+          const existing = byModule[v.fromModule] ?? [];
+          existing.push(v);
+          byModule[v.fromModule] = existing;
         }
         
         for (const [moduleName, moduleViolations] of Object.entries(byModule)) {
