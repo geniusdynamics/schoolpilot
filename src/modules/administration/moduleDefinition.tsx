@@ -111,7 +111,7 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/student-import', page: 'StudentDataImportPage' },
     { path: '/administration/student-clearance', page: 'StudentClearancePage' },
     { path: '/administration/disciplinary-cases', page: 'DisciplinaryCasesPage' },
-    { path: '/administration/certificates', page: 'CertificatesManagementPage' },
+    { path: '/administration/certificates', page: 'CertificatesPage' },
     { path: '/administration/visitors', page: 'VisitorsManagementPage' },
     { path: '/administration/student-health', page: 'StudentHealthRecordsPage' }
   ],

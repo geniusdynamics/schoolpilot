@@ -1,5 +1,15 @@
 // ABOUTME: Barrel exports for administration pages
 
+// Hub pages (consolidated navigation entries)
+export { default as SchoolConfigurationPage } from './SchoolConfigurationPage';
+export { default as AcademicCalendarPage } from './AcademicCalendarPage';
+export { default as StudentAttendanceHubPage } from './StudentAttendanceHubPage';
+export { default as CommunicationHubPage } from './CommunicationHubPage';
+export { default as SecurityHubPage } from './SecurityHubPage';
+export { default as CertificatesPage } from './CertificatesPage';
+export { default as StudentBulkOperationsPage } from './StudentBulkOperationsPage';
+export { default as StaffOperationsPage } from './StaffOperationsPage';
+
 export { default as AdministrationDashboardPage } from './AdministrationDashboardPage';
 export { default as ApplicationsPage } from './ApplicationsPage';
 export { default as PreNAsMarksPage } from './PreNAsMarksPage';
