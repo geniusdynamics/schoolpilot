@@ -51,7 +51,6 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.eventsManager', path: '/academics/events-manager', icon: CalendarIcon, page: 'EventsManagerPage', showInModes: ['standard', 'fullwidth'] },
 
     // Deprecated standalone pages (fullwidth mode only)
-    { name: 'navigation:academics.subjects', path: '/academics/subjects', icon: BookOpenIcon, page: 'SubjectsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/subjects?tab=subjects' },
     { name: 'navigation:academics.classSubjectAllocations', path: '/academics/class-subject-allocations', icon: PuzzlePieceIcon, page: 'ClassSubjectAllocationsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/allocations?tab=class-allocations' },
     { name: 'navigation:academics.teacherSubjectAssignments', path: '/academics/teacher-subject-assignments', icon: UsersIcon, page: 'TeacherSubjectAssignmentPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/allocations?tab=teacher-assignments' },
     { name: 'navigation:academics.studentSubjectEnrollment', path: '/academics/student-subject-enrollment', icon: UserGroupIcon, page: 'StudentSubjectEnrollmentPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/allocations?tab=student-enrollment' },
@@ -74,7 +73,6 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.timetableEntries', path: '/academics/timetable-entries', icon: CalendarDaysIcon, page: 'TimetableEntriesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/timetable?tab=entries' },
 
     // Assignments sub-feature (deprecated - use hub)
-    { name: 'navigation:assignments.title', path: '/academics/assignments', icon: ClipboardDocumentListIcon, page: 'assignments/AssignmentsListPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/assignments?tab=list' },
     { name: 'navigation:assignments.create', path: '/academics/assignments/create', icon: PlusIcon, page: 'assignments/AssignmentsListPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/assignments?tab=list' },
     { name: 'navigation:assignments.grade', path: '/academics/assignments/grade', icon: ClipboardDocumentCheckIcon, page: 'assignments/AssignmentGradingPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/assignments?tab=grading' },
     // Lesson Plans sub-feature (deprecated - use hub)
