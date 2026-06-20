@@ -1,5 +1,5 @@
 // ABOUTME: Hub page for student reports
-// ABOUTME: Consolidates student masterlist, class lists, and teacher assignments into tabbed interface
+// ABOUTME: Consolidates student masterlist, class lists, teacher assignments, financial summary, votehead statement, and exam results into tabbed interface
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -9,10 +9,16 @@ import {
   UsersIcon,
   UserGroupIcon,
   AcademicCapIcon,
+  CurrencyDollarIcon,
+  DocumentTextIcon,
+  ChartBarIcon,
 } from '@/components/ui/icons';
 import { StudentMasterlistPageContent } from './StudentMasterlistPage';
 import { ClassListsPageContent } from './ClassListsPage';
 import { TeacherAssignmentsPageContent } from './TeacherAssignmentsPage';
+import { StudentFinancialSummaryPageContent } from './StudentFinancialSummaryPage';
+import { StudentVoteheadStatementPageContent } from './StudentVoteheadStatementPage';
+import { ExamResultsHorizontalPageContent } from './ExamResultsHorizontalPage';
 
 interface HubTab {
   id: string;
@@ -45,6 +51,24 @@ const StudentReportsHubPage: React.FC = () => {
       icon: <AcademicCapIcon className="w-4 h-4" />,
       component: <TeacherAssignmentsPageContent />,
     },
+    {
+      id: 'financial-summary',
+      label: t('studentFinancialSummary.title', 'Financial Summary'),
+      icon: <CurrencyDollarIcon className="w-4 h-4" />,
+      component: <StudentFinancialSummaryPageContent />,
+    },
+    {
+      id: 'votehead-statement',
+      label: t('studentVoteheadStatement.title', 'Votehead Statement'),
+      icon: <DocumentTextIcon className="w-4 h-4" />,
+      component: <StudentVoteheadStatementPageContent />,
+    },
+    {
+      id: 'exam-results',
+      label: t('examResultsHorizontal.title', 'Exam Results'),
+      icon: <ChartBarIcon className="w-4 h-4" />,
+      component: <ExamResultsHorizontalPageContent />,
+    },
   ];
 
   const activeTabFromUrl = searchParams.get('tab') || 'masterlist';
@@ -70,7 +94,7 @@ const StudentReportsHubPage: React.FC = () => {
         title={t('studentReports.title', 'Student Reports')}
         subtitle={t(
           'studentReports.subtitle',
-          'View student masterlist, class lists, and teacher assignments'
+          'View student masterlist, class lists, teacher assignments, financial summaries, votehead statements, and exam results'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -88,4 +112,3 @@ const StudentReportsHubPage: React.FC = () => {
 };
 
 export default StudentReportsHubPage;
-

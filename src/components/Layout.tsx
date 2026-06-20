@@ -6,6 +6,10 @@ import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useFullWidth } from '../contexts/FullWidthContext';
+import {
+  useSecondarySidebar,
+  SECONDARY_SIDEBAR_WIDTHS,
+} from '../contexts/SecondarySidebarContext';
 import { ChevronUpIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -41,6 +45,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   
   // Full-width mode
   const { isFullWidth } = useFullWidth();
+
+  // Secondary sidebar minimize state — shared with SecondarySidebar so the
+  // main content area can expand to fill the freed space when the sidebar
+  // is collapsed. Without this, the page keeps the same horizontal
+  // occupancy whether the sidebar is expanded or minimized, which negates
+  // the purpose of minimization.
+  const { isSecondaryMinimized } = useSecondarySidebar();
 
   // Tab store for managing tabbed workspace
   const { tabs, activeTabId, createTab, initialize, isStoreInitialized } = useTabStore();
@@ -197,6 +208,29 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
 
+  // The main content's left margin must match the *actual* rendered width
+  // of the visible sidebars. Previously this was hardcoded to 13rem for the
+  // secondary sidebar regardless of its minimized state, which left a large
+  // blank gap when the sidebar was collapsed (see audit: main content did
+  // not reclaim the freed space, defeating the purpose of minimization).
+  //
+  //  - Primary sidebar:   5rem  (80px, matches `w-20` on sm+)
+  //  - Secondary expanded: 13rem (208px, matches `w-52`)
+  //  - Secondary minimized (normal):    3.5rem (56px, matches `w-14`)
+  //  - Secondary minimized (asPrimary): 5rem   (80px, matches `w-20`)
+  const primarySidebarWidth = isFullWidth ? '0rem' : '5rem';
+  const secondarySidebarWidth = !isSubmenuOpen
+    ? '0rem'
+    : isSecondaryMinimized
+      ? isFullWidth
+        ? SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_PRIMARY
+        : SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_DESKTOP
+      : SECONDARY_SIDEBAR_WIDTHS.EXPANDED;
+  const mainContentMarginLeft =
+    primarySidebarWidth === '0rem' && secondarySidebarWidth === '0rem'
+      ? '0rem'
+      : `calc(${primarySidebarWidth} + ${secondarySidebarWidth})`;
+
   return (
     <TabbedWorkspaceManager>
       <div className="flex flex-col min-h-screen w-screen bg-slate-100">
@@ -212,13 +246,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {/* Fixed sidebars - positioned with CSS position:fixed, no flex space */}
           <PrimarySidebar selectedModuleKey={selectedModuleKey} onModuleSelect={handleModuleSelect} collapsed={isFullWidth} />
           <SecondarySidebar selectedModuleKey={selectedModuleKey} isOpen={isSubmenuOpen} onClose={() => setIsSubmenuOpen(false)} isSecondaryAsPrimary={isFullWidth} />
-          <main 
-            className="flex-1 overflow-hidden"
-            style={{
-              marginLeft: isFullWidth
-                ? (isSubmenuOpen ? '13rem' : '0rem')
-                : (isSubmenuOpen ? 'calc(5rem + 13rem)' : '5rem')
-            }}
+          <main
+            className="flex-1 overflow-hidden transition-[margin] duration-300 ease-in-out"
+            style={{ marginLeft: mainContentMarginLeft }}
           >
             {isTabbedMode ? (
               /* Tabbed Workspace Mode - Full page tabs with integrated breadcrumbs */

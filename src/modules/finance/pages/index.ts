@@ -30,12 +30,12 @@ export { default as StudentsPaidBookPage } from './StudentsPaidBookPage';
 export { default as TrialBalancePage } from './TrialBalancePage';
 
 // Hub pages
-export { default as FeeConfigurationHubPage } from './FeeConfigurationHubPage';
+export { default as FeeConfigurationPage } from './FeeConfigurationPage';
 export { default as FeeRulesPage } from './FeeRulesPage';
 
-export { default as PaymentsHubPage } from './PaymentsHubPage';
+export { default as PaymentsPage } from './PaymentsPage';
 // FinanceReportsHubPage has been relocated to the reports module (M3 hub consolidation)
 // and is now available as `FinancialReportsHubPage` from `@/modules/reports/pages`.
-export { default as InvoicingHubPage } from './InvoicingHubPage';
-export { default as ExpensesHubPage } from './ExpensesHubPage';
-export { default as TransportHubPage } from './TransportHubPage';
+export { default as InvoicingPage } from './InvoicingPage';
+export { default as ExpensesPage } from './ExpensesPage';
+export { default as TransportFinancePage } from './TransportFinancePage';

@@ -26,6 +26,7 @@ interface LegacyTabProps {
   onCloseTabsToRight?: (tabId: string) => void;
   onCloseTabsToLeft?: (tabId: string) => void;
   onCloseAllTabs?: () => void;
+  onCloseTab?: () => void;
   onCloseAllExceptPinned?: () => void;
 }
 
@@ -46,6 +47,7 @@ interface HierarchicalTabProps {
   onCloseTabsToRight?: (tabId: string) => void;
   onCloseTabsToLeft?: (tabId: string) => void;
   onCloseAllTabs?: () => void;
+  onCloseTab?: () => void;
   onCloseAllExceptPinned?: () => void;
   // Hierarchical features
   enableHierarchicalMode?: boolean;
@@ -76,6 +78,7 @@ interface ContextMenuProps {
   onCloseTabsToRight?: (tabId: string) => void;
   onCloseTabsToLeft?: (tabId: string) => void;
   onCloseAllTabs?: () => void;
+  onCloseTab?: () => void;
   onCloseAllExceptPinned?: () => void;
 }
 
@@ -93,12 +96,16 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onCloseTabsToRight,
   onCloseTabsToLeft,
   onCloseAllTabs,
+  onCloseTab,
   onCloseAllExceptPinned
 }) => {
   const tabStore = useTabStore();
   
   const handleAction = (action: string) => {
     switch (action) {
+      case 'close':
+        if (onCloseTab) onCloseTab();
+        break;
       case 'close-others':
         if (onCloseOtherTabs) onCloseOtherTabs(tab.id);
         else tabStore.closeOtherTabs(tab.id);
@@ -178,6 +185,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       onClick: onOpenInNewWindow,
       shortcut: 'Ctrl+Shift+N'
     }] : []),
+    { id: 'closeTab', label: 'Close Tab', icon: X, onClick: () => handleAction('close'), shortcut: 'Del' },
     { id: 'separator1', type: 'separator' as const },
     {
       id: 'closeOthers',
@@ -304,6 +312,11 @@ export const Tab: React.FC<TabProps> = (props) => {
   const tabRef = useRef<HTMLDivElement>(null);
 
   // Handle close context menu
+  const handleCloseTabFromContext = useCallback(() => {
+    // Create a minimal mouse event-like object to satisfy onClose signature
+    (onClose as any)({ preventDefault: () => {}, stopPropagation: () => {} });
+  }, [onClose]);
+
   const handleCloseContextMenu = useCallback(() => {
     setContextMenu(prev => ({ ...prev, isVisible: false }));
   }, []);
@@ -599,13 +612,16 @@ export const Tab: React.FC<TabProps> = (props) => {
           module: tab.module || 'dashboard'
         })}
         onCloseOtherTabs={onCloseOtherTabs}
-        onCloseTabsToRight={onCloseTabsToRight}
-        onCloseTabsToLeft={onCloseTabsToLeft}
-        onCloseAllTabs={onCloseAllTabs}
-        onCloseAllExceptPinned={onCloseAllExceptPinned}
+          onCloseTabsToRight={onCloseTabsToRight}
+          onCloseTabsToLeft={onCloseTabsToLeft}
+          onCloseAllTabs={onCloseAllTabs}
+          onCloseTab={handleCloseTabFromContext}
+          onCloseAllExceptPinned={onCloseAllExceptPinned}
       />
     </>
   );
 };
 
 export type { TabProps };
+
+

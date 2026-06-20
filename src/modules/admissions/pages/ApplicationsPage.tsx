@@ -23,7 +23,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const ApplicationsHubPage: React.FC = () => {
+const ApplicationsPage: React.FC = () => {
   const { t } = useTranslation('admissions');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,5 +95,5 @@ const ApplicationsHubPage: React.FC = () => {
   );
 };
 
-export default ApplicationsHubPage;
+export default ApplicationsPage;
 

@@ -22,6 +22,7 @@
       "clubs": "Clubs & Societies",
       "customers": "Customers",
       "classes": "Classes",
+      "bulkStreamCreation": "Bulk Stream Creation",
       "studentHealth": "Student Health",
       "studentAttendance": "Student Attendance",
       "commTemplates": "Communication Templates",
@@ -36,7 +37,9 @@
       "security": "Security & Gate Pass",
       "attendance": "Attendance",
       "staffOperations": "Staff Operations",
-      "bulkOperations": "Bulk Operations"
+      "bulkOperations": "Bulk Operations",
+      "alumni": "Alumni",
+      "transferredStudents": "Transferred Students"
     }
   },
   "dashboard": {

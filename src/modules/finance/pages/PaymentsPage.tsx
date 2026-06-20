@@ -102,5 +102,5 @@ const PaymentsHubPage: React.FC = () => {
   );
 };
 
-export default PaymentsHubPage;
+export default PaymentsPage;
 

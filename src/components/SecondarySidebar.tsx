@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
@@ -84,12 +85,57 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const { showInfo, showError, showWarning } = useToastHelpers();
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
+  // Minimize state — kept local. The SecondarySidebarContext (newly introduced
+  // by the consolidation branch) lifts this into a Provider so the Layout can
+  // react to it, but we don't import that context here so unit tests that render
+  // this component in isolation (without a Provider) continue to work.
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const toggleGroup = useCallback((key: string) => {
     setOpenGroups(g => ({ ...g, [key]: !g[key] }));
   }, []); // No dependencies needed for state setter function
+
+  // Active-state tracking: which nav item matches the currently-open URL?
+  // Uses the longest matching path so the most specific item is highlighted
+  // (e.g. on /portal/attendance, "Portal Attendance" wins over "Portal Dashboard").
+  const location = useLocation();
+  const currentPath = location.pathname;
+  const activeItemPath = useMemo(() => {
+    if (!currentPath) return null;
+    // Will be computed once subMenus is available; placeholder null is fine,
+    // the helper falls back to the per-item check below.
+    return null;
+  }, [currentPath]);
+
+  /**
+   * Determine if a nav item should be highlighted as the currently-active item.
+   * - Exact match: e.g. /portal === /portal → active
+   * - Sub-path match: e.g. /portal/attendance is a sub-path of /portal → active
+   *   ONLY when no other item is a more specific match. We approximate this by
+   *   always highlighting exact matches first; sub-path matches are highlighted
+   *   only when no exact match exists in the visible list.
+   */
+  const isItemActive = useCallback((item: any, siblings?: any[]): boolean => {
+    if (!item?.path || !currentPath) return false;
+    if (item.path === currentPath) return true;
+    // Sub-path match: currentPath is /a/b/c and item.path is /a/b
+    if (currentPath.startsWith(item.path + '/')) {
+      // Only count as active if no sibling has a more specific match
+      if (!siblings) return true;
+      const hasMoreSpecificMatch = siblings.some((s: any) => {
+        if (!s?.path || s === item) return false;
+        if (s.path === currentPath) return true;
+        if (currentPath.startsWith(s.path + '/')) {
+          // s.path is longer / more specific than item.path
+          return s.path.length > item.path.length;
+        }
+        return false;
+      });
+      return !hasMoreSpecificMatch;
+    }
+    return false;
+  }, [currentPath]);
 
   // Pre-translate error messages to avoid hook violations
   const errorMessages = useMemo(() => ({
@@ -262,10 +308,10 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const handleResize = useCallback(() => {
     const width = window.innerWidth;
       const height = window.innerHeight;
-      
+
       // More granular mobile detection for better UX
       setIsMobile(width < 1024); // lg breakpoint
-      
+
       // Auto-minimize on medium screens (768-1200px) for better space utilization
       // Also consider device orientation and screen height for mobile devices
       if (width >= 768 && width < 1200) {
@@ -273,12 +319,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       } else if (width >= 1200) {
         setIsMinimized(false);
       }
-      
+
       // For very small screens or landscape mobile, force minimize
       if (width < 640 || (width < 900 && height < 600)) {
         setIsMinimized(true);
       }
-  }, []);
+  }, [setIsMinimized]);
 
   useEffect(() => {
     handleResize(); // Check initial size
@@ -455,7 +501,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 hover:scale-105
                 focus:outline-none focus:ring-2 focus:ring-slate-400/50
               `}
-              onClick={() => setIsMinimized(!isMinimized)}
+              onClick={() => setIsMinimized(prev => !prev)}
               title={isMinimized ? "Expand menu" : "Minimize menu"}
             >
               {isMinimized ? <ChevronRightIcon className="w-3 h-3" /> : <ChevronLeftIcon className="w-3 h-3" />}
@@ -589,7 +635,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                                         <button
                                           onClick={(e) => handleNavigationClick(child, e)}
                                           onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
-                                          className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left`}
+                                          className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
+                                            isItemActive(child, item.children)
+                                              ? 'bg-white/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
+                                              : 'border-transparent bg-white/5 hover:bg-white/20'
+                                          }`}
                                           tabIndex={0}
                                         >
                                         <IconWrapper 
@@ -616,7 +666,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                               <button
                                 onClick={(e) => handleNavigationClick(child, e)}
                                 onFocus={() => setFocusedIndex(filterItems(subMenus).findIndex(parentItem => parentItem.children?.includes(child)))}
-                                className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left`}
+                                className={`flex items-center gap-3 ${isMobile ? 'px-4 py-4 min-h-[3.5rem]' : 'px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
+                                  isItemActive(child, item.children)
+                                    ? 'bg-white/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
+                                    : 'border-transparent bg-white/5 hover:bg-white/20'
+                                }`}
                                 tabIndex={0}
                               >
                                 <IconWrapper 
@@ -638,7 +692,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     <button
                       onClick={(e) => handleNavigationClick(item, e)}
                       onFocus={() => setFocusedIndex(filterItems(subMenus).indexOf(item))}
-                      className={`flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border border-transparent transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md bg-white/5 hover:bg-white/20 touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 ${focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''} w-full text-left`}
+                      className={`flex items-center ${isMinimized ? 'justify-center px-1 py-2 min-h-[2.5rem]' : isMobile ? 'gap-3 px-4 py-4 min-h-[3.5rem]' : 'gap-2 px-3 py-2'} border transition-all duration-200 rounded-lg text-slate-700 ${moduleStyle.hoverLink} hover:shadow-md touch-manipulation focus:ring-2 focus:ring-current focus:ring-opacity-50 focus:bg-white/25 focus:scale-105 w-full text-left ${
+                        isItemActive(item, filterItems(subMenus))
+                          ? 'bg-white/60 border-current border-2 shadow-md ring-2 ring-current/40 font-semibold'
+                          : `border-transparent bg-white/5 hover:bg-white/20 ${focusedIndex === filterItems(subMenus).indexOf(item) ? 'bg-white/25 ring-2 ring-current ring-opacity-50' : ''}`
+                      }`}
                       title={isMinimized ? t(item.name) : undefined}
                       tabIndex={0}
                     >

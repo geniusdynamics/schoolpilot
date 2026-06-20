@@ -26,7 +26,7 @@ export const hrModule: ModuleDefinition = {
     { name: 'navigation:hr.dashboard', path: '/hr/dashboard', icon: UserGroupIcon, page: 'HRDashboardPage' },
 
     // Hub pages (standard mode)
-    { name: 'navigation:hr.payroll', path: '/hr/payroll', icon: CurrencyDollarIcon, page: 'PayrollHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:hr.payroll', path: '/hr/payroll', icon: CurrencyDollarIcon, page: 'PayrollPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:hr.staffBioData', path: '/hr/staff-bio-data', icon: UserIcon, page: 'StaffBioDataPage', showInModes: ['standard', 'fullwidth'] },
 
     // Deprecated standalone pages (fullwidth mode only)
@@ -60,7 +60,7 @@ export const hrModule: ModuleDefinition = {
   },
   routes: [
     { path: '/hr/dashboard', page: 'HRDashboardPage' },
-    { path: '/hr/payroll', page: 'PayrollHubPage' },
+    { path: '/hr/payroll', page: 'PayrollPage' },
     { path: '/hr/staff-bio-data', page: 'StaffBioDataPage' },
     { path: '/hr/payroll-item-types', page: 'PayrollItemTypesPage' },
     { path: '/hr/payroll-periods', page: 'PayrollPeriodsPage' },

@@ -40,7 +40,11 @@
     "academic_years",
     "school_periods",
     "academic_year_structures",
-    "academic_period_definitions"
+    "academic_period_definitions",
+    "alumni_records",
+    "alumni_engagements",
+    "alumni_donations",
+    "alumni_events"
   ],
   "migrations": "./migrations",
   "provides": {
@@ -80,6 +84,9 @@
     "enablePartnerManagement": true,
     "enableHealthRecords": true,
     "enableDisciplinaryTracking": true,
+    "enableAlumniManagement": true,
+    "enableAlumniDonations": true,
+    "enableAlumniEvents": true,
     "defaultAcademicYear": null,
     "studentIdFormat": "STU-{YEAR}-{SEQUENCE}",
     "staffIdFormat": "STF-{YEAR}-{SEQUENCE}"

@@ -1,7 +1,6 @@
 // ABOUTME: Portal module definition
-// ABOUTME: Self-contained module definition for student/parent portal with hub-and-spoke navigation
+// ABOUTME: Self-contained module definition for student/parent portal with independent per-page navigation
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
 import {
   HomeIcon,
@@ -22,68 +21,51 @@ export const portalModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    // Hub page - shown in standard mode
+    // Independent pages — each is a standalone route, not a tab of a hub.
+    // The dashboard is decoupled from the other pages so navigating to
+    // /portal/<page> renders the actual page instead of redirecting to a
+    // tabbed hub that defaults to the dashboard.
     {
-      name: 'navigation:dashboard',
-      path: '/portal',
-      icon: HomeIcon,
-      page: 'PortalHubPage',
-      showInModes: ['standard', 'fullwidth'],
-    },
-    // Legacy pages - shown in fullwidth mode with redirects to hub tabs
-    {
-      name: 'navigation:dashboard',
+      name: 'navigation:portal.dashboard',
       path: '/portal/dashboard',
       icon: HomeIcon,
       page: 'PortalDashboardPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/portal?tab=dashboard',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
-      name: 'navigation:attendance',
+      name: 'navigation:portal.attendance',
       path: '/portal/attendance',
       icon: CalendarDaysIcon,
       page: 'PortalAttendancePage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/portal?tab=attendance',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
-      name: 'navigation:results',
+      name: 'navigation:portal.results',
       path: '/portal/results',
       icon: ChartBarIcon,
       page: 'PortalResultsPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/portal?tab=results',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
-      name: 'navigation:fees',
+      name: 'navigation:portal.fees',
       path: '/portal/fees',
       icon: CurrencyDollarIcon,
       page: 'PortalFeesPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/portal?tab=fees',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
-      name: 'navigation:announcements',
+      name: 'navigation:portal.announcements',
       path: '/portal/announcements',
       icon: MegaphoneIcon,
       page: 'PortalAnnouncementsPage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/portal?tab=announcements',
+      showInModes: ['standard', 'fullwidth'],
     },
     {
-      name: 'navigation:profile',
+      name: 'navigation:portal.profile',
       path: '/portal/profile',
       icon: UserCircleIcon,
       page: 'PortalProfilePage',
-      showInModes: ['fullwidth'],
-      deprecated: true,
-      redirectTo: '/portal?tab=profile',
+      showInModes: ['standard', 'fullwidth'],
     },
   ],
   features: [

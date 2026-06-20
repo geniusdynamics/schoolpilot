@@ -1,9 +1,9 @@
 // ABOUTME: Settings pages barrel export
 // ABOUTME: Centralizes all settings page exports for the module definition
 
-export { default as ConfigurationHubPage } from './ConfigurationHubPage';
-export { default as SystemManagementHubPage } from './SystemManagementHubPage';
-export { default as SchoolOperationsHubPage } from './SchoolOperationsHubPage';
+export { default as ConfigurationPage } from './ConfigurationPage';
+export { default as SystemManagementPage } from './SystemManagementPage';
+export { default as SchoolOperationsPage } from './SchoolOperationsPage';
 
 export { SettingsContent } from './SettingsPage';
 export { UnifiedSettingsContent } from './UnifiedSettingsPage';
@@ -19,3 +19,4 @@ export { SettingsWorkflowsContent } from './SettingsWorkflowsPage';
 export { AuditLogContent } from './AuditLogPage';
 export { TabSettingsContent } from './TabSettingsPage';
 export { SettingsDashboardContent } from './SettingsDashboardPage';
+export { DatabaseBackupContent } from './DatabaseBackupPage';

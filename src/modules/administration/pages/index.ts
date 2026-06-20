@@ -2,12 +2,12 @@
 
 // Hub pages (consolidated navigation entries)
 export { default as SchoolConfigurationPage } from './SchoolConfigurationPage';
-export { default as SchoolOrganizationHubPage } from './SchoolOrganizationHubPage';
-export { default as StudentLifeHubPage } from './StudentLifeHubPage';
+export { default as SchoolOrganizationPage } from './SchoolOrganizationPage';
+export { default as StudentLifePage } from './StudentLifePage';
 export { default as AcademicCalendarPage } from './AcademicCalendarPage';
-export { default as StudentAttendanceHubPage } from './StudentAttendanceHubPage';
-export { default as CommunicationHubPage } from './CommunicationHubPage';
-export { default as SecurityHubPage } from './SecurityHubPage';
+export { default as StudentAttendancePage } from './StudentAttendancePage';
+export { default as CommunicationPage } from './CommunicationPage';
+export { default as SecurityPage } from './SecurityPage';
 export { default as CertificatesPage } from './CertificatesPage';
 export { default as StudentBulkOperationsPage } from './StudentBulkOperationsPage';
 export { default as StaffOperationsPage } from './StaffOperationsPage';
@@ -40,6 +40,7 @@ export { default as StudentHealthRecordsPage } from './StudentHealthRecordsPage'
 export { default as StudentAttendancePage } from './StudentAttendancePage';
 export { default as CommunicationTemplatesPage } from './CommunicationTemplatesPage';
 export { default as MessageCampaignsPage } from './MessageCampaignsPage';
+export { default as SMSCategoriesPage } from './SMSCategoriesPage';
 export { default as AcademicStructurePage } from './AcademicStructurePage';
 export { default as AcademicYearsPage } from './AcademicYearsPage';
 export { default as AcademicPeriodDefinitionsPage } from './AcademicPeriodDefinitionsPage';
@@ -62,6 +63,10 @@ export { default as StaffWalletPage } from './StaffWalletPage';
 export { default as StudentBioDataPage } from './StudentBioDataPage';
 export { default as StudentIDCardsPage } from './StudentIDCardsPage';
 export { default as TransferCertificatePage } from './TransferCertificatePage';
+export { default as BulkStreamCreationPage } from './BulkStreamCreationPage';
+export { default as TransferredStudentsPage } from './TransferredStudentsPage';
+export { default as AlumniManagementPage } from './AlumniManagementPage';
+export { default as AlumniDirectoryPage } from './AlumniDirectoryPage';
 
 // Houses sub-feature pages (merged from houses module)
 export { default as HousesPage } from './houses/HousesPage';

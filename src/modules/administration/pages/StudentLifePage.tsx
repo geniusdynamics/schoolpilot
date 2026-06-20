@@ -1,18 +1,18 @@
-// ABOUTME: Hub page for school organizational structure
-// ABOUTME: Consolidates departments, designations, and clubs into a tabbed interface (3 tabs)
+// ABOUTME: Hub page for student life configuration
+// ABOUTME: Consolidates dormitories, student categories, and partners into a tabbed interface (3 tabs)
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
-  BuildingOffice2Icon,
-  IdentificationIcon,
+  BuildingLibraryIcon,
+  UserGroupIcon,
   UsersIcon,
 } from '@/components/ui/icons';
-import { DepartmentsContent } from './DepartmentsPage';
-import { DesignationsContent } from './DesignationsPage';
-import { ClubsContent } from './ClubsPage';
+import { DormitoriesContent } from './DormitoriesPage';
+import { StudentCategoriesContent } from './StudentCategoriesPage';
+import { PartnersContent } from './PartnersPage';
 
 interface HubTab {
   id: string;
@@ -21,40 +21,40 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const SchoolOrganizationHubPage: React.FC = () => {
+const StudentLifeHubPage: React.FC = () => {
   const { t } = useTranslation('administration');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: HubTab[] = [
     {
-      id: 'departments',
-      label: t('departments.management', 'Departments'),
-      icon: <BuildingOffice2Icon className="w-4 h-4" />,
-      component: <DepartmentsContent />,
+      id: 'dormitories',
+      label: t('dormitories.management', 'Dormitories'),
+      icon: <BuildingLibraryIcon className="w-4 h-4" />,
+      component: <DormitoriesContent />,
     },
     {
-      id: 'designations',
-      label: t('designations.management', 'Designations'),
-      icon: <IdentificationIcon className="w-4 h-4" />,
-      component: <DesignationsContent />,
+      id: 'categories',
+      label: t('studentCategories.title', 'Student Categories'),
+      icon: <UserGroupIcon className="w-4 h-4" />,
+      component: <StudentCategoriesContent />,
     },
     {
-      id: 'clubs',
-      label: t('clubs.title', 'Clubs & Societies'),
+      id: 'partners',
+      label: t('partners.title', 'Partners & Customers'),
       icon: <UsersIcon className="w-4 h-4" />,
-      component: <ClubsContent />,
+      component: <PartnersContent />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'departments';
+  const activeTabFromUrl = searchParams.get('tab') || 'dormitories';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'departments') {
-        navigate('/administration/organization', { replace: true });
+      if (tabId === 'dormitories') {
+        navigate('/administration/student-life', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }
@@ -67,10 +67,10 @@ const SchoolOrganizationHubPage: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeaderWithTabs
-        title={t('schoolOrganization.title', 'School Organization')}
+        title={t('studentLife.title', 'Student Life')}
         subtitle={t(
-          'schoolOrganization.subtitle',
-          'Manage departments, designations, and clubs & societies'
+          'studentLife.subtitle',
+          'Manage dormitories, student categories, and partners'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -80,11 +80,11 @@ const SchoolOrganizationHubPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="compact"
-        colorScheme="indigo"
+        colorScheme="teal"
       />
       <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default SchoolOrganizationHubPage;
+export default StudentLifePage;

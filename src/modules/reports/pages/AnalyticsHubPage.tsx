@@ -1,7 +1,7 @@
 // ABOUTME: Hub page for analytics and data insights
 // ABOUTME: Consolidates teacher dashboard, subject analysis, class analysis, exports, and trends into tabbed interface
 
-import React, { useState, useCallback } from 'react';
+import React, { Suspense, lazy, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -12,11 +12,18 @@ import {
   ArrowDownTrayIcon,
   ChartPieIcon,
 } from '@/components/ui/icons';
-import { ReportsDashboardPageContent } from './ReportsDashboardPage';
-import { TeacherAssignmentsPageContent } from './TeacherAssignmentsPage';
-import { ExamResultsHorizontalPageContent } from './ExamResultsHorizontalPage';
-import { ClassListsPageContent } from './ClassListsPage';
-import { StudentMasterlistPageContent } from './StudentMasterlistPage';
+
+const AnalyticsTeacherDashboard = lazy(() => import('./analytics/AnalyticsTeacherDashboardPage'));
+const AnalyticsSubject = lazy(() => import('./analytics/AnalyticsSubjectPage'));
+const AnalyticsClass = lazy(() => import('./analytics/AnalyticsClassPage'));
+const AnalyticsExport = lazy(() => import('./analytics/AnalyticsExportPage'));
+const AnalyticsTrends = lazy(() => import('./analytics/AnalyticsTrendsPage'));
+
+const TabFallback: React.FC = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+  </div>
+);
 
 interface HubTab {
   id: string;
@@ -35,31 +42,51 @@ const AnalyticsHubPage: React.FC = () => {
       id: 'teacher-dashboard',
       label: t('analytics.teacherDashboard', 'Teacher Dashboard'),
       icon: <AcademicCapIcon className="w-4 h-4" />,
-      component: <TeacherAssignmentsPageContent />,
+      component: (
+        <Suspense fallback={<TabFallback />}>
+          <AnalyticsTeacherDashboard />
+        </Suspense>
+      ),
     },
     {
       id: 'subject-analysis',
       label: t('analytics.subjectAnalysis', 'Subject Analysis'),
       icon: <ChartBarIcon className="w-4 h-4" />,
-      component: <ExamResultsHorizontalPageContent />,
+      component: (
+        <Suspense fallback={<TabFallback />}>
+          <AnalyticsSubject />
+        </Suspense>
+      ),
     },
     {
       id: 'class-analysis',
       label: t('analytics.classAnalysis', 'Class Analysis'),
       icon: <UserGroupIcon className="w-4 h-4" />,
-      component: <ClassListsPageContent />,
+      component: (
+        <Suspense fallback={<TabFallback />}>
+          <AnalyticsClass />
+        </Suspense>
+      ),
     },
     {
       id: 'exports',
       label: t('analytics.exports', 'Exports'),
       icon: <ArrowDownTrayIcon className="w-4 h-4" />,
-      component: <StudentMasterlistPageContent />,
+      component: (
+        <Suspense fallback={<TabFallback />}>
+          <AnalyticsExport />
+        </Suspense>
+      ),
     },
     {
       id: 'trends',
       label: t('analytics.trends', 'Trends'),
       icon: <ChartPieIcon className="w-4 h-4" />,
-      component: <ReportsDashboardPageContent />,
+      component: (
+        <Suspense fallback={<TabFallback />}>
+          <AnalyticsTrends />
+        </Suspense>
+      ),
     },
   ];
 

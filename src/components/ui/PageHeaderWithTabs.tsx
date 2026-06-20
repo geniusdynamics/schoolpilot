@@ -1,7 +1,7 @@
 // ABOUTME: Compact page header with integrated tabs, title and actions
 // ABOUTME: Minimizes vertical space between navigation and content
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TabNavigation } from './TabNavigation';
 
 export interface Tab {
@@ -138,14 +138,32 @@ export const PageHeaderWithTabs: React.FC<PageHeaderWithTabsProps> = ({
   const renderCustomTabs = () => {
     if (!tabs || tabs.length === 0) return null;
 
+    const handleTabKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+      let newIndex: number | null = null;
+      if (e.key === 'ArrowRight') {
+        newIndex = (currentIndex + 1) % tabs.length;
+      } else if (e.key === 'ArrowLeft') {
+        newIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      }
+      if (newIndex !== null) {
+        e.preventDefault();
+        onTabChange?.(tabs[newIndex].id);
+      }
+    };
+
     return (
-      <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-lg">
-        {tabs.map((tab) => {
+      <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-lg" role="tablist" aria-label="Tab navigation">
+        {tabs.map((tab, index) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`tabpanel-${tab.id}`}
+              tabIndex={isActive ? 0 : -1}
               onClick={() => onTabChange?.(tab.id)}
+              onKeyDown={(e) => handleTabKeyDown(e, index)}
               className={`
                 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md
                 transition-all duration-200

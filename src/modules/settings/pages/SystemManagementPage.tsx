@@ -10,11 +10,13 @@ import {
   PuzzlePieceIcon,
   ViewColumnsIcon,
   DocumentTextIcon,
+  ClockIcon,
 } from '@/components/ui/icons';
 import { DataLayerSettingsContent } from './DataLayerSettingsPage';
 import { ModuleManagementContent } from './ModuleManagementPage';
 import { ModuleDependencyReportContent } from './ModuleDependencyReportPage';
 import { PluginSettingsContent } from './PluginSettingsPage';
+import { DatabaseBackupContent } from './DatabaseBackupPage';
 
 interface HubTab {
   id: string;
@@ -23,7 +25,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const SystemManagementHubPage: React.FC = () => {
+const SystemManagementPage: React.FC = () => {
   const { t } = useTranslation('settings');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -52,6 +54,12 @@ const SystemManagementHubPage: React.FC = () => {
       label: t('navigation.settings.plugins', 'Plugins'),
       icon: <PuzzlePieceIcon className="w-4 h-4" />,
       component: <PluginSettingsContent />,
+    },
+    {
+      id: 'backup',
+      label: t('navigation.settings.backup', 'Backup & Restore'),
+      icon: <ClockIcon className="w-4 h-4" />,
+      component: <DatabaseBackupContent />,
     },
   ];
 
@@ -92,4 +100,4 @@ const SystemManagementHubPage: React.FC = () => {
   );
 };
 
-export default SystemManagementHubPage;
+export default SystemManagementPage;

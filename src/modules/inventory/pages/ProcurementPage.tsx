@@ -23,7 +23,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const ProcurementHubPage: React.FC = () => {
+const ProcurementPage: React.FC = () => {
   const { t } = useTranslation('inventory');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,5 +95,5 @@ const ProcurementHubPage: React.FC = () => {
   );
 };
 
-export default ProcurementHubPage;
+export default ProcurementPage;
 

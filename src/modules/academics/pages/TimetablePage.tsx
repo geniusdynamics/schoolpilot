@@ -1,16 +1,16 @@
-// ABOUTME: Hub page for security management
-// ABOUTME: Consolidates visitors management and gate pass into tabbed interface
+// ABOUTME: Hub page for timetable management
+// ABOUTME: Consolidates timetable periods and timetable entries into tabbed interface
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
-  UserPlusIcon,
-  TicketIcon,
+  ClockIcon,
+  CalendarDaysIcon,
 } from '@/components/ui/icons';
-import { VisitorsManagementContent } from './VisitorsManagementPage';
-import { GatePassContent } from './GatePassPage';
+import { TimetablePeriodsContent } from './TimetablePeriodsPage';
+import { TimetableEntriesContent } from './TimetableEntriesPage';
 
 interface HubTab {
   id: string;
@@ -19,34 +19,34 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const SecurityHubPage: React.FC = () => {
-  const { t } = useTranslation('administration');
+const TimetablePage: React.FC = () => {
+  const { t } = useTranslation('academics');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: HubTab[] = [
     {
-      id: 'visitors',
-      label: t('security.visitors', 'Visitors'),
-      icon: <UserPlusIcon className="w-4 h-4" />,
-      component: <VisitorsManagementContent />,
+      id: 'periods',
+      label: t('timetablePeriods.title', 'Periods'),
+      icon: <ClockIcon className="w-4 h-4" />,
+      component: <TimetablePeriodsContent />,
     },
     {
-      id: 'gate-pass',
-      label: t('security.gatePass', 'Gate Pass'),
-      icon: <TicketIcon className="w-4 h-4" />,
-      component: <GatePassContent />,
+      id: 'entries',
+      label: t('timetableEntries.title', 'Entries'),
+      icon: <CalendarDaysIcon className="w-4 h-4" />,
+      component: <TimetableEntriesContent />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'visitors';
+  const activeTabFromUrl = searchParams.get('tab') || 'periods';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'visitors') {
-        navigate('/administration/security', { replace: true });
+      if (tabId === 'periods') {
+        navigate('/academics/timetable', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }
@@ -59,10 +59,10 @@ const SecurityHubPage: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeaderWithTabs
-        title={t('securityHub.title', 'Security')}
+        title={t('timetable.title', 'Timetable Management')}
         subtitle={t(
-          'securityHub.subtitle',
-          'Manage visitor logs and gate pass requests'
+          'timetable.subtitle',
+          'Define timetable periods and manage class schedule entries'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -72,11 +72,11 @@ const SecurityHubPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="compact"
-        colorScheme="rose"
+        colorScheme="blue"
       />
       <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default SecurityHubPage;
+export default TimetablePage;

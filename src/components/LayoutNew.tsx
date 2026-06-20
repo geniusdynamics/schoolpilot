@@ -256,15 +256,12 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   
   // Handle navigation item click from secondary sidebar
   const handleNavItemClick = useCallback(async (item: { path: string; name?: string }) => {
-    if (item.path) {
-      const nextModuleId = routeModuleId(item.path);
-      if (nextModuleId && nextModuleId !== selectedModuleKey) {
-        await transitionToModule(nextModuleId);
-        return;
-      }
-      openTab(item.path, { pinned: false });
-    }
-  }, [openTab, selectedModuleKey, transitionToModule]);
+    if (!item.path) return;
+    // Always open a new tab from sidebar nav - do NOT call transitionToModule
+    // (which closes other tabs) for sidebar nav clicks. Module switching is
+    // handled by handleModuleSelect on the primary sidebar.
+    openTab(item.path, { pinned: false });
+  }, [openTab]);
   
   // Get navigation items for current module
   const currentModuleNav = useMemo(() => {
@@ -400,3 +397,4 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
 };
 
 export default LayoutNew;
+

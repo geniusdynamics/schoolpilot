@@ -83,7 +83,7 @@ export const subjectSchema: DatabaseSchema = createDatabaseSchema({
         department_name: SchemaHelpers.string({ description: 'Department name (computed)', maxLength: 100 }),
         papers: SchemaHelpers.array(
             SchemaHelpers.object(subjectPaperProperties),
-            { description: 'Subject papers', default: [] }
+            { description: 'Subject papers' }
         ),
     },
     required: ['id', 'subject_code', 'name', 'grouping'],
@@ -134,7 +134,7 @@ export const examSessionSchema: DatabaseSchema = createDatabaseSchema({
         education_system_id: SchemaHelpers.ref('education_system_configurations', { description: 'Reference to education system', maxLength: 100 }),
         paper_settings: SchemaHelpers.array(
             SchemaHelpers.object(examPaperSettingProperties),
-            { description: 'Exam paper settings', default: [] }
+            { description: 'Exam paper settings' }
         ),
     },
     required: ['id', 'name', 'school_period_id', 'status', 'created_at', 'updated_at'],
@@ -194,7 +194,7 @@ export const studentExamResultSchema: DatabaseSchema = createDatabaseSchema({
         updated_at: SchemaHelpers.timestamp({ description: 'Last update timestamp' }),
         marks: SchemaHelpers.array(
             SchemaHelpers.object(studentPaperMarkProperties),
-            { description: 'Individual paper marks', default: [] }
+            { description: 'Individual paper marks' }
         ),
         student_name: SchemaHelpers.string({ description: 'Student name (computed)', maxLength: 200 }),
         admission_no: SchemaHelpers.string({ description: 'Student admission number (computed)', maxLength: 50 }),

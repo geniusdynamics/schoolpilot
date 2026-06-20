@@ -3,13 +3,14 @@
 
 export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   // Administration
-  '/administration/departments': '/administration/configuration?tab=departments',
-  '/administration/designations': '/administration/configuration?tab=designations',
-  '/administration/dormitories': '/administration/configuration?tab=dormitories',
-  '/administration/student-categories': '/administration/configuration?tab=categories',
-  '/administration/clubs': '/administration/configuration?tab=clubs',
-  '/administration/partners': '/administration/configuration?tab=partners',
-  '/administration/customers': '/administration/configuration?tab=partners',
+  '/administration/configuration': '/administration/organization',
+  '/administration/departments': '/administration/organization?tab=departments',
+  '/administration/designations': '/administration/organization?tab=designations',
+  '/administration/clubs': '/administration/organization?tab=clubs',
+  '/administration/dormitories': '/administration/student-life?tab=dormitories',
+  '/administration/student-categories': '/administration/student-life?tab=categories',
+  '/administration/partners': '/administration/student-life?tab=partners',
+  '/administration/customers': '/administration/student-life?tab=partners',
   '/administration/student-bio-data': '/administration/students?tab=bio-data',
   '/administration/student-health': '/administration/students?tab=health',
   '/administration/student-clearance': '/administration/students?tab=clearance',
@@ -65,6 +66,11 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   '/academics/subject-management?tab=class-allocations': '/academics/allocations?tab=class-allocations',
   '/academics/subject-management?tab=teacher-assignments': '/academics/allocations?tab=teacher-assignments',
   '/academics/subject-management?tab=student-enrollment': '/academics/allocations?tab=student-enrollment',
+  // Route path corrections
+  '/academics/verification': '/academics/marks-verification',
+  '/academics/analysis': '/academics/exam-analysis',
+  '/academics/distribution': '/academics/results-distribution',
+  '/academics/grading': '/academics/grading-systems',
 
   // Finance fee rule redirects
   '/finance/fees-fines': '/finance/fee-rules?tab=fines',

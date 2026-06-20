@@ -21,7 +21,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const DistributionHubPage: React.FC = () => {
+const ResultsDistributionPage: React.FC = () => {
   const { t } = useTranslation('academics');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -87,4 +87,4 @@ const DistributionHubPage: React.FC = () => {
   );
 };
 
-export default DistributionHubPage;
+export default ResultsDistributionPage;

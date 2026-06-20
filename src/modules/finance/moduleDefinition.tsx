@@ -43,18 +43,18 @@ export const financeModule: ModuleDefinition = {
     { name: 'navigation:finance.dashboard', path: '/finance/dashboard', icon: CurrencyDollarIcon, page: 'FinanceDashboardPage' },
 
     // Hub pages (standard mode)
-    { name: 'navigation:finance.feeConfiguration', path: '/finance/fee-configuration', icon: DocumentDuplicateIcon, page: 'FeeConfigurationHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.feeConfiguration', path: '/finance/fee-configuration', icon: DocumentDuplicateIcon, page: 'FeeConfigurationPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.feeRules', path: '/finance/fee-rules', icon: ClipboardDocumentListIcon, page: 'FeeRulesPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.accountingConfig', path: '/finance/accounting-config', icon: DocumentTextIcon, page: 'AccountingConfigPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.accountingOps', path: '/finance/accounting-ops', icon: BookOpenIcon, page: 'AccountingOperationsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.financialStatements', path: '/finance/financial-statements', icon: ScaleIcon, page: 'FinancialStatementsPage', showInModes: ['standard', 'fullwidth'] },
-    { name: 'navigation:finance.payments', path: '/finance/payments', icon: CreditCardIcon, page: 'PaymentsHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.payments', path: '/finance/payments', icon: CreditCardIcon, page: 'PaymentsPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:finance.studentFeeHistory', path: '/finance/student-fee-history', icon: BanknotesIcon, page: 'StudentFeeHistoryPage', showInModes: ['standard', 'fullwidth'] },
     // M3: Finance reports hub relocated to /reports/finance (see reports/moduleDefinition.tsx).
     // Old /finance/reports path is now handled by redirectMap.
-    { name: 'navigation:finance.invoicing', path: '/finance/invoicing', icon: DocumentDuplicateIcon, page: 'InvoicingHubPage', showInModes: ['standard', 'fullwidth'] },
-    { name: 'navigation:finance.expenses', path: '/finance/expenses', icon: BanknotesIcon, page: 'ExpensesHubPage', showInModes: ['standard', 'fullwidth'] },
-    { name: 'navigation:finance.transport', path: '/finance/transport', icon: TruckIcon, page: 'TransportHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.invoicing', path: '/finance/invoicing', icon: DocumentDuplicateIcon, page: 'InvoicingPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.expenses', path: '/finance/expenses', icon: BanknotesIcon, page: 'ExpensesPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:finance.transport', path: '/finance/transport', icon: TruckIcon, page: 'TransportFinancePage', showInModes: ['standard', 'fullwidth'] },
 
     // Deprecated standalone pages (fullwidth mode only)
     { name: 'navigation:finance.chartOfAccounts', path: '/finance/chart-of-accounts', icon: DocumentTextIcon, page: 'ChartOfAccountsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/finance/accounting-config?tab=chart-of-accounts' },
@@ -119,17 +119,17 @@ export const financeModule: ModuleDefinition = {
   },
   routes: [
     { path: '/finance/dashboard', page: 'FinanceDashboardPage' },
-    { path: '/finance/fee-configuration', page: 'FeeConfigurationHubPage' },
+    { path: '/finance/fee-configuration', page: 'FeeConfigurationPage' },
     { path: '/finance/fee-rules', page: 'FeeRulesPage' },
     { path: '/finance/accounting-config', page: 'AccountingConfigPage' },
     { path: '/finance/accounting-ops', page: 'AccountingOperationsPage' },
     { path: '/finance/financial-statements', page: 'FinancialStatementsPage' },
-    { path: '/finance/payments', page: 'PaymentsHubPage' },
+    { path: '/finance/payments', page: 'PaymentsPage' },
     { path: '/finance/student-fee-history', page: 'StudentFeeHistoryPage' },
     // M3: /finance/reports removed; redirected to /reports/finance via redirectMap.
-    { path: '/finance/invoicing', page: 'InvoicingHubPage' },
-    { path: '/finance/expenses', page: 'ExpensesHubPage' },
-    { path: '/finance/transport', page: 'TransportHubPage' },
+    { path: '/finance/invoicing', page: 'InvoicingPage' },
+    { path: '/finance/expenses', page: 'ExpensesPage' },
+    { path: '/finance/transport', page: 'TransportFinancePage' },
   ],
   rbacPermissions: financePermissions,
   defaultRoles: financeDefaultRoles,

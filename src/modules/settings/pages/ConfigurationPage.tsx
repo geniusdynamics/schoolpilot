@@ -23,7 +23,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const ConfigurationHubPage: React.FC = () => {
+const ConfigurationPage: React.FC = () => {
   const { t } = useTranslation('settings');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -92,4 +92,4 @@ const ConfigurationHubPage: React.FC = () => {
   );
 };
 
-export default ConfigurationHubPage;
+export default ConfigurationPage;

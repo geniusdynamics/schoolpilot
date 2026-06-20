@@ -1,7 +1,7 @@
 // Export all inventory pages
 export { default as InventoryDashboardPage } from './InventoryDashboardPage';
 export { default as InventoryHubPage } from './InventoryHubPage';
-export { default as ProcurementHubPage } from './ProcurementHubPage';
+export { default as ProcurementPage } from './ProcurementPage';
 export { default as StockOpsHubPage } from './StockOpsHubPage';
 export { default as ItemsPage } from './ItemsPage';
 export { default as ItemCategoriesPage } from './ItemCategoriesPage';
@@ -19,3 +19,4 @@ export { default as WarehousesPage } from './WarehousesPage';
 export { default as SchoolProcurementDashboardPage } from './SchoolProcurementDashboardPage';
 export { default as VendorPortalDashboardPage } from './VendorPortalDashboardPage';
 export { default as StationeryPage } from './StationeryPage';
+export { default as InventorySettingsPage } from './InventorySettingsPage';

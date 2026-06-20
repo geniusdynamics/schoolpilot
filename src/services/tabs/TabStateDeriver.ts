@@ -10,7 +10,7 @@ import type { Tab, URLParseResult } from './types';
 
 // Module display names mapping
 const MODULE_NAMES: Record<string, string> = {
-  dashboard: 'navigation:dashboard.title',
+  dashboard: 'navigation:dashboard',
   academics: 'navigation:academics.title',
   administration: 'navigation:administration.title',
   admissions: 'navigation:admissions.title',

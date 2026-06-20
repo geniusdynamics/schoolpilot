@@ -16,6 +16,7 @@ import {
   ArchiveIcon,
   ChartPieIcon,
   BellIcon,
+  CogIcon,
 } from '@/components/ui/icons';
 import { inventoryPermissions, inventoryDefaultRoles } from './rbac';
 
@@ -35,7 +36,7 @@ export const inventoryModule: ModuleDefinition = {
     { name: 'navigation:inventory.stockLevels', path: '/inventory/stock-levels', icon: ChartBarIcon, page: 'StockLevelsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/inventory-management?tab=stock-levels' },
     { name: 'navigation:inventory.reorderAlerts', path: '/inventory/reorder-alerts', icon: BellIcon, page: 'ReorderAlertsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/inventory-management?tab=reorder-alerts' },
     { name: 'navigation:inventory.warehouses', path: '/inventory/warehouses', icon: BuildingOffice2Icon, page: 'WarehousesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/inventory-management?tab=warehouses' },
-    { name: 'navigation:inventory.procurementHub', path: '/inventory/procurement', icon: ClipboardDocumentListIcon, page: 'ProcurementHubPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:inventory.procurementHub', path: '/inventory/procurement', icon: ClipboardDocumentListIcon, page: 'ProcurementPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:inventory.requisitions', path: '/inventory/requisitions', icon: ClipboardDocumentListIcon, page: 'RequisitionsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/procurement?tab=requisitions' },
     { name: 'navigation:inventory.purchaseOrders', path: '/inventory/purchase-orders', icon: DocumentDuplicateIcon, page: 'PurchaseOrdersPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/procurement?tab=purchase-orders' },
     { name: 'navigation:inventory.suppliers', path: '/inventory/suppliers', icon: UserGroupIcon, page: 'SuppliersPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/procurement?tab=suppliers' },
@@ -48,8 +49,9 @@ export const inventoryModule: ModuleDefinition = {
     { name: 'navigation:inventory.fixedAssets', path: '/inventory/fixed-assets', icon: BuildingOffice2Icon, page: 'FixedAssetsPage' },
     { name: 'navigation:inventory.schoolProcurementDashboard', path: '/inventory/school-procurement-dashboard', icon: ChartBarIcon, page: 'SchoolProcurementDashboardPage' },
     { name: 'navigation:inventory.vendorPortalDashboard', path: '/inventory/vendor-portal-dashboard', icon: UserGroupIcon, page: 'VendorPortalDashboardPage' },
+    { name: 'navigation:inventory.settings', path: '/inventory/settings', icon: CogIcon, page: 'InventorySettingsPage', showInModes: ['standard', 'fullwidth'] },
   ],
-  features: ['inventory-management', 'procurement', 'asset-tracking', 'stock-control'],
+  features: ['inventory-management', 'procurement', 'asset-tracking', 'stock-control', 'inventory-settings'],
   dependencies: [
     {
       moduleId: 'administration',

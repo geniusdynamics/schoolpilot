@@ -11,9 +11,11 @@ import {
   ChatBubbleLeftRightIcon,
   BellIcon,
   NewspaperIcon,
+  UsersIcon,
 } from '@/components/ui/icons';
 import { CommunicationTemplatesContent } from './CommunicationTemplatesPage';
 import { MessageCampaignsContent } from './MessageCampaignsPage';
+import { SMSCategoriesContent } from './SMSCategoriesPage';
 import { SMSReportsContent } from './SMSReportsPage';
 import { AutoSMSSettingsContent } from './AutoSMSSettingsPage';
 import { NewslettersContent } from './NewslettersPage';
@@ -25,7 +27,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const CommunicationHubPage: React.FC = () => {
+const CommunicationPage: React.FC = () => {
   const { t } = useTranslation('administration');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -42,6 +44,12 @@ const CommunicationHubPage: React.FC = () => {
       label: t('communication.campaigns', 'Campaigns'),
       icon: <MegaphoneIcon className="w-4 h-4" />,
       component: <MessageCampaignsContent />,
+    },
+    {
+      id: 'sms-categories',
+      label: t('communication.smsCategories', 'SMS Categories'),
+      icon: <UsersIcon className="w-4 h-4" />,
+      component: <SMSCategoriesContent />,
     },
     {
       id: 'reports',

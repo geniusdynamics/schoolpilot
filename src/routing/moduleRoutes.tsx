@@ -195,6 +195,10 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
       <Route path={ROUTE_PATHS.SETTINGS_DATA_LAYER} element={<Navigate to="/settings/system?tab=data-layer" replace />} />
       <Route path={ROUTE_PATHS.SETTINGS_AUDIT_LOG} element={<Navigate to="/settings/school?tab=audit" replace />} />
 
+      {/* Portal: /portal → /portal/dashboard — the portal's "hub" page has been
+          removed; the dashboard is now an independent page at /portal/dashboard. */}
+      <Route path="/portal" element={<Navigate to="/portal/dashboard" replace />} />
+
       {/* Dynamic Deprecated Routes -> Redirect to Data Management */}
       {generateDeprecatedRouteRedirects()}
 

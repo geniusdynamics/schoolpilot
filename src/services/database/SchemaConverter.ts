@@ -235,6 +235,9 @@ export class SchemaConverter {
         defaultValue = `'${defaultValue}'`;
       } else if (typeof defaultValue === 'boolean') {
         defaultValue = defaultValue ? 1 : 0;
+      } else if (typeof defaultValue === 'object') {
+        // Arrays/objects cannot be SQL defaults; handle at application layer
+        defaultValue = undefined;
       }
     }
 

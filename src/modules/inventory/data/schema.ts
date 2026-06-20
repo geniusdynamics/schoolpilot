@@ -163,7 +163,7 @@ export const requisitionSchema: DatabaseSchema = createDatabaseSchema({
         notes: SchemaHelpers.string('Requisition notes', { maxLength: 500, nullable: true }),
         created_at: SchemaHelpers.timestamp('Record creation timestamp'),
         updated_at: SchemaHelpers.timestamp('Record last update timestamp'),
-        items: SchemaHelpers.array('Requisition items', { nullable: true, default: [], items: SchemaHelpers.object('Requisition item', { properties: requisitionItemProperties }) }),
+        items: SchemaHelpers.array('Requisition items', { nullable: true, items: SchemaHelpers.object('Requisition item', { properties: requisitionItemProperties }) }),
         requesting_staff_name: SchemaHelpers.string('Requesting staff name (computed)', { maxLength: 200, nullable: true }),
         department_name: SchemaHelpers.string('Department name (computed)', { maxLength: 100, nullable: true }),
         total_requested_value: SchemaHelpers.number('Total requested value (computed)', { nullable: true, minimum: 0, maximum: 999999.99 })
@@ -195,7 +195,7 @@ export const purchaseOrderSchema: DatabaseSchema = createDatabaseSchema({
         requisition_id: SchemaHelpers.string('Reference to requisition', { maxLength: 100, nullable: true }),
         created_at: SchemaHelpers.timestamp('Record creation timestamp'),
         updated_at: SchemaHelpers.timestamp('Record last update timestamp'),
-        items: SchemaHelpers.array('Purchase order items', { nullable: true, default: [], items: SchemaHelpers.object('Purchase order item', { properties: purchaseOrderItemProperties }) }),
+        items: SchemaHelpers.array('Purchase order items', { nullable: true, items: SchemaHelpers.object('Purchase order item', { properties: purchaseOrderItemProperties }) }),
         supplier_name: SchemaHelpers.string('Supplier name (computed)', { maxLength: 200, nullable: true }),
         total_value: SchemaHelpers.number('Total value (computed)', { nullable: true, minimum: 0, maximum: 999999.99 })
     },

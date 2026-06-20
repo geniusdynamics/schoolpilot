@@ -1,213 +1,98 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Student, ClassStream, TimetablePeriodDef } from '@/types';
-import { AdminStudentAttendanceType as StudentAttendance, AttendanceStatus } from '@/modules/administration/data/types';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, ClockIcon, MinusCircleIcon } from '@/components/ui/icons';
-import { useStudentAttendanceData } from '@/modules/administration/data/useStudentAttendanceData';
-import { useAppData } from '@/hooks/useAppData'; // For other data sources
-import Spinner from '@/components/ui/Spinner';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { useTranslation } from 'react-i18next';
+// ABOUTME: Hub page for student attendance management
+// ABOUTME: Consolidates manual entry, dynamic tracker, attendance view, and reports into tabbed interface
 
-interface AttendanceData {
-  [studentId: string]: AttendanceStatus;
+import React, { useState, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
+import {
+  CalendarDaysIcon,
+  ClockIcon,
+  UserGroupIcon,
+  DocumentTextIcon,
+} from '@/components/ui/icons';
+import { ManualAttendanceContent } from './ManualAttendancePage';
+import { DynamicAttendanceContent } from './DynamicAttendancePage';
+import { StudentAttendanceContent } from './StudentAttendancePage';
+import { AttendanceReportsContent } from './AttendanceReportsPage';
+
+interface HubTab {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  component: React.ReactNode;
 }
 
 const StudentAttendancePage: React.FC = () => {
-  const { t } = useTranslation();
-  const { studentAttendance, addStudentAttendance } = useStudentAttendanceData();
-  const {
-    students = [],
-    classStreams = [],
-    timetablePeriodDefs = [], // This is the raw list of all period definitions
-  } = useAppData(); // For other data sources
+  const { t } = useTranslation('administration');
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [selectedClassStreamId, setSelectedClassStreamId] = useState<number | undefined>(undefined);
-  const [selectedPeriodId, setSelectedPeriodId] = useState<number | undefined>(undefined);
-  
-  const [attendanceData, setAttendanceData] = useState<AttendanceData>({});
-  const [pageLoading, setPageLoading] = useState(false); // For fetching students/attendance
-  const [saving, setSaving] = useState(false);
-
-  const availablePeriods = useMemo(() => timetablePeriodDefs || [], [timetablePeriodDefs]);
-
-  const studentsInSelectedStream = useMemo(() => {
-    if (!selectedClassStreamId) return [];
-    return students.filter(s => s.current_class_stream_id === selectedClassStreamId);
-  }, [students, selectedClassStreamId]);
-
-  // Helper function to filter attendance records
-  const getStudentAttendanceByFilters = (date: string, classStreamId: number, periodId: number) => {
-    return studentAttendance.filter(record =>
-      record.date === date &&
-      record.period_id === periodId &&
-      studentsInSelectedStream.some(student => student.id === record.student_id)
-    );
-  };
-
-  useEffect(() => {
-    if (selectedDate && selectedClassStreamId && selectedPeriodId) {
-      setPageLoading(true);
-      // Get existing attendance records
-      const existingRecords = getStudentAttendanceByFilters(selectedDate, selectedClassStreamId, selectedPeriodId);
-      const newAttendanceData: AttendanceData = {};
-      studentsInSelectedStream.forEach(student => {
-        const record = existingRecords.find((ar: StudentAttendance) => ar.student_id === student.id);
-        newAttendanceData[student.id] = record ? record.status : AttendanceStatus.PRESENT; // Default to present
-      });
-      setAttendanceData(newAttendanceData);
-      setPageLoading(false);
-    } else {
-      setAttendanceData({}); // Clear data if filters are not set
-    }
-  }, [selectedDate, selectedClassStreamId, selectedPeriodId, studentsInSelectedStream, studentAttendance]);
-
-
-  const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
-    setAttendanceData(prev => ({ ...prev, [studentId]: status }));
-  };
-
-  const handleSaveAttendance = async () => {
-    if (!selectedDate || !selectedClassStreamId || !selectedPeriodId || studentsInSelectedStream.length === 0) {
-      alert(t('validation.pleaseSelectDateClassStreamPeriodAndEnsureStudentsAreLoaded'));
-      return;
-    }
-    setSaving(true);
-    
-    // Save each attendance record
-    studentsInSelectedStream.forEach(student => {
-      const attendanceRecord: Omit<StudentAttendance, 'id'> = {
-        student_id: student.id,
-        date: selectedDate,
-        period_id: selectedPeriodId!,
-        status: attendanceData[student.id] || AttendanceStatus.PRESENT,
-        student_name: `${student.first_name} ${student.last_name}`,
-        period_name: availablePeriods.find(p => p.id === selectedPeriodId)?.period_name,
-      };
-      addStudentAttendance(attendanceRecord);
-    });
-    
-    setSaving(false);
-    alert(t('messages.attendanceSavedSuccessfully'));
-  };
-  
-  const attendanceColumns: DataGridColumn<Student>[] = [
-    { 
-      key: 'admission_no',
-      header: 'Adm No.', 
-      sortable: true,
-      filterable: true,
-      width: 120,
-      render: (value, item) => item.admission_no
-    },
-    { 
-      key: 'student_name',
-      header: 'Student Name', 
-      sortable: true,
-      filterable: true,
-      width: 200,
-      render: (value, item) => `${item.first_name} ${item.last_name}`
+  const tabs: HubTab[] = [
+    {
+      id: 'manual',
+      label: t('attendance.manualEntry', 'Manual Entry'),
+      icon: <CalendarDaysIcon className="w-4 h-4" />,
+      component: <ManualAttendanceContent />,
     },
     {
-      key: 'status',
-      header: 'Status',
-      sortable: false,
-      filterable: false,
-      width: 400,
-      render: (value, student) => (
-        <div className="flex space-x-2 items-center">
-          {Object.values(AttendanceStatus).map(status => (
-            <label key={status} className="flex items-center space-x-1 cursor-pointer text-sm">
-              <input
-                type="radio"
-                name={`attendance-${student.id}`}
-                value={status}
-                checked={attendanceData[student.id] === status}
-                onChange={() => handleStatusChange(student.id, status)}
-                className="form-radio h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-              />
-              <span>{status}</span>
-            </label>
-          ))}
-        </div>
-      ),
+      id: 'dynamic',
+      label: t('attendance.dynamicTracker', 'Dynamic Tracker'),
+      icon: <ClockIcon className="w-4 h-4" />,
+      component: <DynamicAttendanceContent />,
+    },
+    {
+      id: 'student-view',
+      label: t('attendance.studentView', 'Attendance View'),
+      icon: <UserGroupIcon className="w-4 h-4" />,
+      component: <StudentAttendanceContent />,
+    },
+    {
+      id: 'reports',
+      label: t('attendance.reports', 'Reports'),
+      icon: <DocumentTextIcon className="w-4 h-4" />,
+      component: <AttendanceReportsContent />,
     },
   ];
 
+  const activeTabFromUrl = searchParams.get('tab') || 'manual';
+  const [activeTab, setActiveTab] = useState(activeTabFromUrl);
+
+  const handleTabChange = useCallback(
+    (tabId: string) => {
+      setActiveTab(tabId);
+      if (tabId === 'manual') {
+        navigate('/administration/attendance', { replace: true });
+      } else {
+        setSearchParams({ tab: tabId }, { replace: true });
+      }
+    },
+    [navigate, setSearchParams]
+  );
+
+  const activeTabData = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   return (
-    <div className="space-y-6">
-      <Card title="Student Attendance" icon={<CalendarDaysIcon className="w-6 h-6 text-orange-500" />}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-md bg-gray-50">
-          <Input
-            label="Attendance Date"
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-          <Select
-            label="Class Stream"
-            value={selectedClassStreamId || ''}
-            onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
-          >
-            <option value="">Select Class Stream</option>
-            {classStreams.map(cs => (
-              <option key={cs.id} value={cs.id}>{cs.class_name} - {cs.name}</option>
-            ))}
-          </Select>
-          <Select
-            label="Lesson Period"
-            value={selectedPeriodId || ''}
-            onChange={(e) => setSelectedPeriodId(e.target.value ? parseInt(e.target.value) : undefined)}
-          >
-            <option value="">Select Period</option>
-            {availablePeriods.map(tp => (
-              <option key={tp.id} value={tp.id}>{tp.period_name} ({tp.start_time} - {tp.end_time})</option>
-            ))}
-          </Select>
-        </div>
-
-        {pageLoading ? (
-          <div className="flex justify-center items-center py-10">
-            <Spinner /> <span className="ml-2">Loading students & attendance...</span>
-          </div>
-        ) : selectedDate && selectedClassStreamId && selectedPeriodId ? (
-          studentsInSelectedStream.length > 0 ? (
-            <>
-              <DataGrid 
-                columns={attendanceColumns} 
-                data={studentsInSelectedStream}
-                sortable
-                filterable
-                emptyState={
-                  <div className="text-center py-12">
-                    <CalendarDaysIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No students found</h3>
-                    <p className="mt-1 text-sm text-gray-500">No students are enrolled in the selected class stream.</p>
-                  </div>
-                }
-              />
-              <div className="mt-6 text-right">
-                <Button onClick={handleSaveAttendance} disabled={saving} leftIcon={saving ? <Spinner size="sm"/> : undefined}>
-                  {saving ? 'Saving...' : 'Save Attendance'}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <p className="text-center text-gray-500 py-4">No students found for the selected class stream, or selection criteria not fully met.</p>
-          )
-        ) : (
-          <p className="text-center text-gray-500 py-4">Please select date, class stream, and lesson period to mark attendance.</p>
+    <div className="space-y-4">
+      <PageHeaderWithTabs
+        title={t('attendanceHub.title', 'Student Attendance')}
+        subtitle={t(
+          'attendanceHub.subtitle',
+          'Manage student attendance through manual entry, dynamic tracking, and comprehensive reports'
         )}
-      </Card>
+        tabs={tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          icon: tab.icon,
+        }))}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        variant="compact"
+        colorScheme="emerald"
+      />
+      <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default StudentAttendancePage;
-
-export const StudentAttendanceContent = StudentAttendancePage;
+export default StudentAttendanceHubPage;

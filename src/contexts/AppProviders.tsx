@@ -21,6 +21,7 @@ import { PaginationProvider } from './appData/PaginationContext';
 import { ValidationProvider } from './appData/ValidationContext';
 import { PluginsProvider } from '../plugins/PluginsProvider';
 import { FullWidthProvider } from './FullWidthContext';
+import { SecondarySidebarProvider } from './SecondarySidebarContext';
 
 const AppDataProvider = lazy(() =>
   import('./AppDataContext').then(module => ({ default: module.AppDataProvider }))
@@ -114,14 +115,16 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children, modulesIni
                   <PluginsProvider config={{ autoActivate: true }}>
                     <StableActionProvider>
                       <FullWidthProvider>
-                        {modulesInitialized ? children : (
-                          <div className="flex items-center justify-center h-screen">
-                            <div className="text-center">
-                              <Spinner size="lg" />
-                              <p className="mt-4 text-gray-600">Initializing application...</p>
+                        <SecondarySidebarProvider>
+                          {modulesInitialized ? children : (
+                            <div className="flex items-center justify-center h-screen">
+                              <div className="text-center">
+                                <Spinner size="lg" />
+                                <p className="mt-4 text-gray-600">Initializing application...</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </SecondarySidebarProvider>
                       </FullWidthProvider>
                     </StableActionProvider>
                   </PluginsProvider>

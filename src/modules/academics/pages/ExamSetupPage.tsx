@@ -1,16 +1,19 @@
-// ABOUTME: Hub page for marks entry
-// ABOUTME: Consolidates student exam results entry and marks entry by token into tabbed interface
+// ABOUTME: Hub page for exam setup
+// ABOUTME: Consolidates exam scheduling, subject papers, exam sessions, and tokens into tabbed interface
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
+  CalendarDaysIcon,
+  DocumentTextIcon,
   ClipboardDocumentListIcon,
   DocumentDuplicateIcon,
 } from '@/components/ui/icons';
-import { StudentExamResultsEntryPageContent } from './StudentExamResultsEntryPage';
-import { MarksEntryByTokenPageContent } from './MarksEntryByTokenPage';
+import { ExamSchedulingPageContent } from './ExamSchedulingPage';
+import { SubjectPapersManagementContent } from './SubjectPapersManagementPage';
+import { ExamSessionsPageContent } from './ExamSessionsPage';
 
 interface HubTab {
   id: string;
@@ -19,34 +22,40 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const MarksEntryHubPage: React.FC = () => {
+const ExamSetupPage: React.FC = () => {
   const { t } = useTranslation('academics');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: HubTab[] = [
     {
-      id: 'student-results',
-      label: t('studentExamResultsEntry.title', 'Student Results'),
-      icon: <ClipboardDocumentListIcon className="w-4 h-4" />,
-      component: <StudentExamResultsEntryPageContent />,
+      id: 'scheduling',
+      label: t('examScheduling.title', 'Scheduling'),
+      icon: <CalendarDaysIcon className="w-4 h-4" />,
+      component: <ExamSchedulingPageContent />,
     },
     {
-      id: 'entry-by-token',
-      label: t('marksEntryByToken.title', 'Entry by Token'),
-      icon: <DocumentDuplicateIcon className="w-4 h-4" />,
-      component: <MarksEntryByTokenPageContent />,
+      id: 'subject-papers',
+      label: t('subjectPapers.title', 'Subject Papers'),
+      icon: <DocumentTextIcon className="w-4 h-4" />,
+      component: <SubjectPapersManagementContent />,
+    },
+    {
+      id: 'exam-sessions',
+      label: t('examSessions.title', 'Exam Sessions'),
+      icon: <ClipboardDocumentListIcon className="w-4 h-4" />,
+      component: <ExamSessionsPageContent />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'student-results';
+  const activeTabFromUrl = searchParams.get('tab') || 'scheduling';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'student-results') {
-        navigate('/academics/marks-entry', { replace: true });
+      if (tabId === 'scheduling') {
+        navigate('/academics/exam-setup', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }
@@ -59,10 +68,10 @@ const MarksEntryHubPage: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeaderWithTabs
-        title={t('marksEntry.title', 'Marks Entry')}
+        title={t('examSetup.title', 'Exam Setup')}
         subtitle={t(
-          'marksEntry.subtitle',
-          'Enter and manage student exam marks and token-based entries'
+          'examSetup.subtitle',
+          'Configure exam schedules, subject papers, sessions, and access tokens'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -72,11 +81,11 @@ const MarksEntryHubPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="compact"
-        colorScheme="green"
+        colorScheme="indigo"
       />
       <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default MarksEntryHubPage;
+export default ExamSetupHubPage;

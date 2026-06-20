@@ -1,5 +1,6 @@
-// ABOUTME: Hub page for invoicing
-// ABOUTME: Consolidates invoice generation, customer invoices, and supplier invoices into tabbed interface
+// ABOUTME: Hub page for fee configuration
+// ABOUTME: Consolidates fee templates, structures, and receipt templates into tabbed interface
+// ABOUTME: Fines, installments, and adjustments moved to FeeRulesPage per spec
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -8,10 +9,11 @@ import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
   DocumentDuplicateIcon,
   DocumentTextIcon,
+  TableCellsIcon,
 } from '@/components/ui/icons';
-import { InvoiceGenerationPageContent } from './InvoiceGenerationPage';
-import { CustomerInvoicesPageContent } from './CustomerInvoicesPage';
-import { SupplierInvoicesPageContent } from './SupplierInvoicesPage';
+import { FeeTemplatesContent } from './FeeTemplatesPage';
+import { EffectFeeStructuresPageContent } from './EffectFeeStructuresPage';
+import { FeesReceiptTemplatePageContent } from './FeesReceiptTemplatePage';
 
 interface HubTab {
   id: string;
@@ -20,40 +22,40 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const InvoicingHubPage: React.FC = () => {
+const FeeConfigurationPage: React.FC = () => {
   const { t } = useTranslation('finance');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: HubTab[] = [
     {
-      id: 'invoice-generation',
-      label: t('invoiceGeneration.title', 'Invoice Generation'),
+      id: 'templates',
+      label: t('feeTemplates.title', 'Templates'),
       icon: <DocumentDuplicateIcon className="w-4 h-4" />,
-      component: <InvoiceGenerationPageContent />,
+      component: <FeeTemplatesContent />,
     },
     {
-      id: 'customer-invoices',
-      label: t('customerInvoices.title', 'Customer Invoices'),
-      icon: <DocumentTextIcon className="w-4 h-4" />,
-      component: <CustomerInvoicesPageContent />,
+      id: 'structures',
+      label: t('effectFeeStructures.title', 'Structures'),
+      icon: <TableCellsIcon className="w-4 h-4" />,
+      component: <EffectFeeStructuresPageContent />,
     },
     {
-      id: 'supplier-invoices',
-      label: t('supplierInvoices.title', 'Supplier Invoices'),
+      id: 'receipt-template',
+      label: t('feesReceiptTemplate.title', 'Receipt Template'),
       icon: <DocumentTextIcon className="w-4 h-4" />,
-      component: <SupplierInvoicesPageContent />,
+      component: <FeesReceiptTemplatePageContent />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'invoice-generation';
+  const activeTabFromUrl = searchParams.get('tab') || 'templates';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'invoice-generation') {
-        navigate('/finance/invoicing', { replace: true });
+      if (tabId === 'templates') {
+        navigate('/finance/fee-configuration', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }
@@ -66,10 +68,10 @@ const InvoicingHubPage: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeaderWithTabs
-        title={t('invoicing.title', 'Invoicing')}
+        title={t('feeConfiguration.title', 'Fee Configuration')}
         subtitle={t(
-          'invoicing.subtitle',
-          'Generate and manage customer and supplier invoices'
+          'feeConfiguration.subtitle',
+          'Manage fee templates, structures, adjustments, fines, installments, and receipt templates'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -79,12 +81,12 @@ const InvoicingHubPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="compact"
-        colorScheme="teal"
+        colorScheme="blue"
       />
       <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default InvoicingHubPage;
+export default FeeConfigurationHubPage;
 

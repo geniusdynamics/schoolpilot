@@ -102,11 +102,11 @@ export const PayrollHubPageContent: React.FC = () => {
     </div>
   );
 };
-const PayrollHubPage: React.FC = () => (
+const PayrollPage: React.FC = () => (
   <div className="space-y-6">
     <PayrollHubPageContent />
   </div>
 );
 
-export default PayrollHubPage;
+export default PayrollPage;
 

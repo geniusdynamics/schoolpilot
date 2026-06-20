@@ -1,16 +1,16 @@
-// ABOUTME: Hub page for marks verification
-// ABOUTME: Consolidates cross-check verification and structure-based verification into tabbed interface
+// ABOUTME: Hub page for security management
+// ABOUTME: Consolidates visitors management and gate pass into tabbed interface
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
-  ClipboardDocumentCheckIcon,
-  DocumentMagnifyingGlassIcon,
+  UserPlusIcon,
+  TicketIcon,
 } from '@/components/ui/icons';
-import { VerifyMarksCrossCheckPageContent } from './VerifyMarksCrossCheckPage';
-import { VerifyMarksByStructurePageContent } from './VerifyMarksByStructurePage';
+import { VisitorsManagementContent } from './VisitorsManagementPage';
+import { GatePassContent } from './GatePassPage';
 
 interface HubTab {
   id: string;
@@ -19,34 +19,34 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const VerificationHubPage: React.FC = () => {
-  const { t } = useTranslation('academics');
+const SecurityPage: React.FC = () => {
+  const { t } = useTranslation('administration');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: HubTab[] = [
     {
-      id: 'cross-check',
-      label: t('verifyMarksCrossCheck.title', 'Cross Check'),
-      icon: <ClipboardDocumentCheckIcon className="w-4 h-4" />,
-      component: <VerifyMarksCrossCheckPageContent />,
+      id: 'visitors',
+      label: t('security.visitors', 'Visitors'),
+      icon: <UserPlusIcon className="w-4 h-4" />,
+      component: <VisitorsManagementContent />,
     },
     {
-      id: 'by-structure',
-      label: t('verifyMarksByStructure.title', 'By Structure'),
-      icon: <DocumentMagnifyingGlassIcon className="w-4 h-4" />,
-      component: <VerifyMarksByStructurePageContent />,
+      id: 'gate-pass',
+      label: t('security.gatePass', 'Gate Pass'),
+      icon: <TicketIcon className="w-4 h-4" />,
+      component: <GatePassContent />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'cross-check';
+  const activeTabFromUrl = searchParams.get('tab') || 'visitors';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'cross-check') {
-        navigate('/academics/verification', { replace: true });
+      if (tabId === 'visitors') {
+        navigate('/administration/security', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }
@@ -59,10 +59,10 @@ const VerificationHubPage: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeaderWithTabs
-        title={t('verification.title', 'Marks Verification')}
+        title={t('securityHub.title', 'Security')}
         subtitle={t(
-          'verification.subtitle',
-          'Verify and validate entered marks through cross-checks and structure analysis'
+          'securityHub.subtitle',
+          'Manage visitor logs and gate pass requests'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -72,11 +72,11 @@ const VerificationHubPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="compact"
-        colorScheme="amber"
+        colorScheme="rose"
       />
       <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default VerificationHubPage;
+export default SecurityPage;

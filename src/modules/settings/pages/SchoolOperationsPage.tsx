@@ -27,7 +27,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const SchoolOperationsHubPage: React.FC = () => {
+const SchoolOperationsPage: React.FC = () => {
   const { t } = useTranslation('settings');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -108,4 +108,4 @@ const SchoolOperationsHubPage: React.FC = () => {
   );
 };
 
-export default SchoolOperationsHubPage;
+export default SchoolOperationsPage;

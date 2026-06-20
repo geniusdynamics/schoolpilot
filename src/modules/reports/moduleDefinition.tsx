@@ -33,7 +33,7 @@ const reportsModule: ModuleDefinition = {
   ],
   navigation: [
     { name: 'navigation:reports.dashboard', path: '/reports/dashboard', icon: DocumentReportIcon, page: 'ReportsDashboardPage' },
-    { name: 'navigation:reports.title', path: '/reports', icon: DocumentReportIcon, page: 'ReportsPage' },
+    { name: 'navigation:reports.overview', path: '/reports', icon: DocumentReportIcon, page: 'ReportsPage' },
     { name: 'navigation:reports.studentReports', path: '/reports/student-reports', icon: UsersIcon, page: 'StudentReportsHubPage', showInModes: ['standard', 'fullwidth'] },
     // M3: Financial reports hub (relocated from finance module)
     { name: 'navigation:reports.financeReports', path: '/reports/finance', icon: CurrencyDollarIcon, page: 'FinancialReportsHubPage', showInModes: ['standard', 'fullwidth'] },
@@ -54,6 +54,7 @@ const reportsModule: ModuleDefinition = {
     { name: 'navigation:analytics.exportReports', path: '/reports/analytics/export', icon: DocumentReportIcon, page: 'analytics/AnalyticsExportPage', feature: 'analytics-export', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/reports/analytics?tab=exports' },
   ],
   routes: [
+    { path: '/reports/student-reports', page: 'StudentReportsHubPage' },
     { path: '/reports/finance', page: 'FinancialReportsHubPage' },
     { path: '/reports/analytics', page: 'AnalyticsHubPage' },
   ],

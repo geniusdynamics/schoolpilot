@@ -1,16 +1,18 @@
-// ABOUTME: Hub page for exam analysis
-// ABOUTME: Consolidates exam analysis and student exam analysis into tabbed interface
+// ABOUTME: Hub page for grading management
+// ABOUTME: Consolidates grading schemes, education systems, and system configuration into tabbed interface
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
+  ListBulletIcon,
   ChartBarIcon,
-  UsersIcon,
+  CogIcon,
 } from '@/components/ui/icons';
-import { ExamAnalysisContent } from './ExamAnalysisPage';
-import { StudentExamAnalysisPageContent } from './StudentExamAnalysisPage';
+import { GradingSchemesContent } from './GradingSchemesPage';
+import { EducationSystemsPageContent } from './EducationSystemsPage';
+import { EducationSystemConfigPageContent } from './EducationSystemConfigPage';
 
 interface HubTab {
   id: string;
@@ -19,34 +21,40 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const AnalysisHubPage: React.FC = () => {
+const GradingSystemsPage: React.FC = () => {
   const { t } = useTranslation('academics');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: HubTab[] = [
     {
-      id: 'exam-analysis',
-      label: t('examAnalysis.title', 'Exam Analysis'),
-      icon: <ChartBarIcon className="w-4 h-4" />,
-      component: <ExamAnalysisContent />,
+      id: 'grading-schemes',
+      label: t('gradingSchemes.title', 'Grading Schemes'),
+      icon: <ListBulletIcon className="w-4 h-4" />,
+      component: <GradingSchemesContent />,
     },
     {
-      id: 'student-analysis',
-      label: t('studentExamAnalysis.title', 'Student Analysis'),
-      icon: <UsersIcon className="w-4 h-4" />,
-      component: <StudentExamAnalysisContent />,
+      id: 'education-systems',
+      label: t('educationSystems.title', 'Education Systems'),
+      icon: <ChartBarIcon className="w-4 h-4" />,
+      component: <EducationSystemsPageContent />,
+    },
+    {
+      id: 'system-config',
+      label: t('educationSystemConfig.title', 'System Config'),
+      icon: <CogIcon className="w-4 h-4" />,
+      component: <EducationSystemConfigPageContent />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'exam-analysis';
+  const activeTabFromUrl = searchParams.get('tab') || 'grading-schemes';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'exam-analysis') {
-        navigate('/academics/analysis', { replace: true });
+      if (tabId === 'grading-schemes') {
+        navigate('/academics/grading', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }
@@ -59,10 +67,10 @@ const AnalysisHubPage: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeaderWithTabs
-        title={t('analysis.title', 'Exam Analysis')}
+        title={t('grading.title', 'Grading & Systems')}
         subtitle={t(
-          'analysis.subtitle',
-          'Analyze exam performance at class and individual student levels'
+          'grading.subtitle',
+          'Manage grading schemes, education systems, and system configurations'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -72,11 +80,11 @@ const AnalysisHubPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="compact"
-        colorScheme="purple"
+        colorScheme="orange"
       />
       <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default AnalysisHubPage;
+export default GradingSystemsPage;

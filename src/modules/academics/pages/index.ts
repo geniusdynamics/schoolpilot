@@ -4,13 +4,13 @@
 // Hub pages (consolidated navigation entries)
 export { default as SubjectsHubPage } from './SubjectsHubPage';
 export { default as CurriculumAllocationsPage } from './CurriculumAllocationsPage';
-export { default as ExamSetupHubPage } from './ExamSetupHubPage';
-export { default as MarksEntryHubPage } from './MarksEntryHubPage';
-export { default as VerificationHubPage } from './VerificationHubPage';
-export { default as AnalysisHubPage } from './AnalysisHubPage';
-export { default as DistributionHubPage } from './DistributionHubPage';
-export { default as GradingHubPage } from './GradingHubPage';
-export { default as TimetableHubPage } from './TimetableHubPage';
+export { default as ExamSetupPage } from './ExamSetupPage';
+export { default as MarksEntryPage } from './MarksEntryPage';
+export { default as MarksVerificationPage } from './MarksVerificationPage';
+export { default as ExamAnalysisPage } from './ExamAnalysisPage';
+export { default as ResultsDistributionPage } from './ResultsDistributionPage';
+export { default as GradingSystemsPage } from './GradingSystemsPage';
+export { default as TimetablePage } from './TimetablePage';
 export { default as AssignmentsHubPage } from './AssignmentsHubPage';
 export { default as LessonPlansHubPage } from './LessonPlansHubPage';
 

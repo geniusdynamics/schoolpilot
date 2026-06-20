@@ -43,7 +43,7 @@ export const admissionsModule: ModuleDefinition = {
       name: 'navigation:admissions.applicationsHub',
       path: '/admissions/applications-hub',
       icon: ClipboardDocumentListIcon,
-      page: 'ApplicationsHubPage',
+      page: 'ApplicationsPage',
       showInModes: ['standard', 'fullwidth'],
     },
     {
@@ -104,7 +104,7 @@ export const admissionsModule: ModuleDefinition = {
   routes: [
     { path: '/admissions/dashboard', page: 'AdmissionsDashboardPage' },
     { path: '/admissions/new-application', page: 'ApplicationFormPage' },
-    { path: '/admissions/applications-hub', page: 'ApplicationsHubPage' },
+    { path: '/admissions/applications-hub', page: 'ApplicationsPage' },
     { path: '/admissions/applications', page: 'ApplicationsListPage' },
     { path: '/admissions/applications/:applicationId', page: 'ApplicationDetailPage' },
     { path: '/admissions/review-queue', page: 'ApplicationReviewPage' },

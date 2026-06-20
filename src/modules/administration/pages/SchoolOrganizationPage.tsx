@@ -1,18 +1,18 @@
-// ABOUTME: Hub page for student life configuration
-// ABOUTME: Consolidates dormitories, student categories, and partners into a tabbed interface (3 tabs)
+// ABOUTME: Hub page for school organizational structure
+// ABOUTME: Consolidates departments, designations, and clubs into a tabbed interface (3 tabs)
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
-  BuildingLibraryIcon,
-  UserGroupIcon,
+  BuildingOffice2Icon,
+  IdentificationIcon,
   UsersIcon,
 } from '@/components/ui/icons';
-import { DormitoriesContent } from './DormitoriesPage';
-import { StudentCategoriesContent } from './StudentCategoriesPage';
-import { PartnersContent } from './PartnersPage';
+import { DepartmentsContent } from './DepartmentsPage';
+import { DesignationsContent } from './DesignationsPage';
+import { ClubsContent } from './ClubsPage';
 
 interface HubTab {
   id: string;
@@ -21,40 +21,40 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const StudentLifeHubPage: React.FC = () => {
+const SchoolOrganizationHubPage: React.FC = () => {
   const { t } = useTranslation('administration');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: HubTab[] = [
     {
-      id: 'dormitories',
-      label: t('dormitories.management', 'Dormitories'),
-      icon: <BuildingLibraryIcon className="w-4 h-4" />,
-      component: <DormitoriesContent />,
+      id: 'departments',
+      label: t('departments.management', 'Departments'),
+      icon: <BuildingOffice2Icon className="w-4 h-4" />,
+      component: <DepartmentsContent />,
     },
     {
-      id: 'categories',
-      label: t('studentCategories.title', 'Student Categories'),
-      icon: <UserGroupIcon className="w-4 h-4" />,
-      component: <StudentCategoriesContent />,
+      id: 'designations',
+      label: t('designations.management', 'Designations'),
+      icon: <IdentificationIcon className="w-4 h-4" />,
+      component: <DesignationsContent />,
     },
     {
-      id: 'partners',
-      label: t('partners.title', 'Partners & Customers'),
+      id: 'clubs',
+      label: t('clubs.title', 'Clubs & Societies'),
       icon: <UsersIcon className="w-4 h-4" />,
-      component: <PartnersContent />,
+      component: <ClubsContent />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'dormitories';
+  const activeTabFromUrl = searchParams.get('tab') || 'departments';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'dormitories') {
-        navigate('/administration/student-life', { replace: true });
+      if (tabId === 'departments') {
+        navigate('/administration/organization', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }
@@ -67,10 +67,10 @@ const StudentLifeHubPage: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeaderWithTabs
-        title={t('studentLife.title', 'Student Life')}
+        title={t('schoolOrganization.title', 'School Organization')}
         subtitle={t(
-          'studentLife.subtitle',
-          'Manage dormitories, student categories, and partners'
+          'schoolOrganization.subtitle',
+          'Manage departments, designations, and clubs & societies'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -80,11 +80,11 @@ const StudentLifeHubPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="compact"
-        colorScheme="teal"
+        colorScheme="indigo"
       />
       <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default StudentLifeHubPage;
+export default SchoolOrganizationPage;

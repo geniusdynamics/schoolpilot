@@ -126,6 +126,17 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
       return modes.includes(currentMode);
     });
 
+    // Deduplicate items by path — defensive layer that prevents duplicate
+    // nav entries even if a future module forgets the showInModes flag or
+    // declares two items with the same path. Keep the first occurrence.
+    const seen = new Set<string>();
+    items = items.filter((item: any) => {
+      if (!item || !item.path) return true; // Keep items without a path
+      if (seen.has(item.path)) return false;
+      seen.add(item.path);
+      return true;
+    });
+
     return items;
   }, [selectedModule, propItems, selectedModuleId, favorites, isFullWidth]);
 

@@ -78,5 +78,5 @@ const TransportHubPage: React.FC = () => {
   );
 };
 
-export default TransportHubPage;
+export default TransportFinancePage;
 

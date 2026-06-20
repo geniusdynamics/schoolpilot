@@ -387,7 +387,7 @@ const classSchema: DatabaseSchema = createDatabaseSchema({
   properties: {
     id: { type: 'string', maxLength: 100 },
     name: { type: 'string', maxLength: 200 },
-    streams: { type: 'array', default: [], items: { type: 'object', properties: classStreamItemProperties } }
+    streams: { type: 'array', items: { type: 'object', properties: classStreamItemProperties } }
   },
   primaryKey: 'id',
   required: ['id', 'name']

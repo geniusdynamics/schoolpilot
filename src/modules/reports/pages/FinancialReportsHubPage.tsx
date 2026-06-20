@@ -90,5 +90,5 @@ const FinanceReportsHubPage: React.FC = () => {
   );
 };
 
-export default FinanceReportsHubPage;
+export default FinancialReportsHubPage;
 

@@ -1,18 +1,16 @@
-// ABOUTME: Hub page for expenses and banking
-// ABOUTME: Consolidates expenses, banks, and suppliers into tabbed interface
+// ABOUTME: Hub page for marks verification
+// ABOUTME: Consolidates cross-check verification and structure-based verification into tabbed interface
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
 import {
-  BanknotesIcon,
-  BuildingOffice2Icon,
-  UserGroupIcon,
+  ClipboardDocumentCheckIcon,
+  DocumentMagnifyingGlassIcon,
 } from '@/components/ui/icons';
-import { ExpensesPageContent } from './ExpensesPage';
-import { BanksPageContent } from './BanksPage';
-import { SuppliersPageContent } from './SuppliersPage';
+import { VerifyMarksCrossCheckPageContent } from './VerifyMarksCrossCheckPage';
+import { VerifyMarksByStructurePageContent } from './VerifyMarksByStructurePage';
 
 interface HubTab {
   id: string;
@@ -21,40 +19,34 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const ExpensesHubPage: React.FC = () => {
-  const { t } = useTranslation('finance');
+const MarksVerificationPage: React.FC = () => {
+  const { t } = useTranslation('academics');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs: HubTab[] = [
     {
-      id: 'expenses',
-      label: t('expenses.title', 'Expenses'),
-      icon: <BanknotesIcon className="w-4 h-4" />,
-      component: <ExpensesPageContent />,
+      id: 'cross-check',
+      label: t('verifyMarksCrossCheck.title', 'Cross Check'),
+      icon: <ClipboardDocumentCheckIcon className="w-4 h-4" />,
+      component: <VerifyMarksCrossCheckPageContent />,
     },
     {
-      id: 'banks',
-      label: t('banks.title', 'Banks'),
-      icon: <BuildingOffice2Icon className="w-4 h-4" />,
-      component: <BanksPageContent />,
-    },
-    {
-      id: 'suppliers',
-      label: t('suppliers.title', 'Suppliers'),
-      icon: <UserGroupIcon className="w-4 h-4" />,
-      component: <SuppliersPageContent />,
+      id: 'by-structure',
+      label: t('verifyMarksByStructure.title', 'By Structure'),
+      icon: <DocumentMagnifyingGlassIcon className="w-4 h-4" />,
+      component: <VerifyMarksByStructurePageContent />,
     },
   ];
 
-  const activeTabFromUrl = searchParams.get('tab') || 'expenses';
+  const activeTabFromUrl = searchParams.get('tab') || 'cross-check';
   const [activeTab, setActiveTab] = useState(activeTabFromUrl);
 
   const handleTabChange = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
-      if (tabId === 'expenses') {
-        navigate('/finance/expenses', { replace: true });
+      if (tabId === 'cross-check') {
+        navigate('/academics/verification', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }
@@ -67,10 +59,10 @@ const ExpensesHubPage: React.FC = () => {
   return (
     <div className="space-y-4">
       <PageHeaderWithTabs
-        title={t('expensesHub.title', 'Expenses & Banking')}
+        title={t('verification.title', 'Marks Verification')}
         subtitle={t(
-          'expensesHub.subtitle',
-          'Manage expenses, bank accounts, and suppliers'
+          'verification.subtitle',
+          'Verify and validate entered marks through cross-checks and structure analysis'
         )}
         tabs={tabs.map((tab) => ({
           id: tab.id,
@@ -80,12 +72,11 @@ const ExpensesHubPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         variant="compact"
-        colorScheme="orange"
+        colorScheme="amber"
       />
       <div className="mt-4">{activeTabData.component}</div>
     </div>
   );
 };
 
-export default ExpensesHubPage;
-
+export default MarksVerificationPage;
