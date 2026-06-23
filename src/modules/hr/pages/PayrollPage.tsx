@@ -24,7 +24,7 @@ interface HubTab {
   path: string;
 }
 
-export const PayrollHubPageContent: React.FC = () => {
+export const PayrollPageContent: React.FC = () => {
   const { t } = useTranslation('hr');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -104,7 +104,7 @@ export const PayrollHubPageContent: React.FC = () => {
 };
 const PayrollPage: React.FC = () => (
   <div className="space-y-6">
-    <PayrollHubPageContent />
+    <PayrollPageContent />
   </div>
 );
 

@@ -1,8 +1,11 @@
-// ABOUTME: This page component allows users to manage school classes and their streams.
-// ABOUTME: It features tables for both classes and streams, with modals for CRUD operations.
+// ABOUTME: Hub page for class and stream management
+// ABOUTME: Consolidates class listing/stream management and bulk stream creation into a tabbed interface
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
+import { UserGroupIcon, DocumentAddIcon } from '@/components/ui/icons';
 import { useAdministration } from '../hooks/useAdministration';
 import { usePageActions } from '@/hooks/usePageActions';
 import Card from '@/components/ui/Card';
@@ -18,10 +21,18 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { BulkStreamCreationContent } from './BulkStreamCreationPage';
 
 interface ClassFormData extends Partial<Omit<SchoolClass, 'id' | 'streams'>> {}
 interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | 'class_teacher_name' | 'class_name'>> {
   class_teacher_id?: string; 
+}
+
+interface HubTab {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  component: React.ReactNode;
 }
 
 export const ClassesContent: React.FC = () => {
@@ -358,10 +369,64 @@ export const ClassesContent: React.FC = () => {
   );
 };
 
-const ClassesPage: React.FC = () => (
-  <div className="space-y-6">
-    <ClassesContent />
-  </div>
-);
+const ClassesPage: React.FC = () => {
+  const { t } = useTranslation('administration');
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tabs: HubTab[] = [
+    {
+      id: 'classes',
+      label: t('classes.title', 'Classes'),
+      icon: <UserGroupIcon className="w-4 h-4" />,
+      component: <ClassesContent />,
+    },
+    {
+      id: 'bulk-streams',
+      label: t('bulkStreamCreation.title', 'Bulk Streams'),
+      icon: <DocumentAddIcon className="w-4 h-4" />,
+      component: <BulkStreamCreationContent />,
+    },
+  ];
+
+  const activeTabFromUrl = searchParams.get('tab') || 'classes';
+  const [activeTab, setActiveTab] = useState(activeTabFromUrl);
+
+  const handleTabChange = useCallback(
+    (tabId: string) => {
+      setActiveTab(tabId);
+      if (tabId === 'classes') {
+        navigate('/administration/classes', { replace: true });
+      } else {
+        setSearchParams({ tab: tabId }, { replace: true });
+      }
+    },
+    [navigate, setSearchParams]
+  );
+
+  const activeTabData = tabs.find((tab) => tab.id === activeTab) || tabs[0];
+
+  return (
+    <div className="space-y-4">
+      <PageHeaderWithTabs
+        title={t('classManagement.title', 'Class Management')}
+        subtitle={t(
+          'classManagement.subtitle',
+          'Manage classes, streams, and create bulk streams'
+        )}
+        tabs={tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          icon: tab.icon,
+        }))}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        variant="compact"
+        colorScheme="indigo"
+      />
+      <div className="mt-4">{activeTabData.component}</div>
+    </div>
+  );
+};
 
 export default ClassesPage;

@@ -54,7 +54,7 @@ const ResultsDistributionPage: React.FC = () => {
     (tabId: string) => {
       setActiveTab(tabId);
       if (tabId === 'gazette') {
-        navigate('/academics/distribution', { replace: true });
+        navigate('/academics/results-distribution', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }

@@ -28,6 +28,7 @@ import {
   ArrowLeftOnRectangleIcon
 } from '../../../components/ui/icons';
 import FeatureSettingsPage from './FeatureSettingsPage';
+import { PageContainer } from '../../../components/layout/PageContainer';
 import { User, Role, Workflow, WorkflowState } from '../../../types';
 export const UnifiedSettingsContent: React.FC = () => {
   const navigate = useNavigate();
@@ -409,7 +410,7 @@ export const UnifiedSettingsContent: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <PageContainer>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
         <p className="text-gray-600 mt-2">{t('description')}</p>
@@ -953,7 +954,7 @@ export const UnifiedSettingsContent: React.FC = () => {
           </Button>
         </FormActions>
       </DialogForm>
-    </div>
+    </PageContainer>
   );
 };
 

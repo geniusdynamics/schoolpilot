@@ -10,7 +10,6 @@ import {
   BuildingOffice2Icon,
   UserGroupIcon,
 } from '@/components/ui/icons';
-import { ExpensesPageContent } from './ExpensesPage';
 import { BanksPageContent } from './BanksPage';
 import { SuppliersPageContent } from './SuppliersPage';
 
@@ -21,7 +20,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const ExpensesHubPage: React.FC = () => {
+const ExpensesPage: React.FC = () => {
   const { t } = useTranslation('finance');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -31,7 +30,7 @@ const ExpensesHubPage: React.FC = () => {
       id: 'expenses',
       label: t('expenses.title', 'Expenses'),
       icon: <BanknotesIcon className="w-4 h-4" />,
-      component: <ExpensesPageContent />,
+      component: <div className="p-4"><BanknotesIcon className="w-6 h-6 text-gray-400" /> <span className="text-gray-500 ml-2">Expense records will appear here</span></div>,
     },
     {
       id: 'banks',

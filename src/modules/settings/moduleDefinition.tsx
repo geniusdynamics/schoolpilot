@@ -117,6 +117,15 @@ const settingsModule: ModuleDefinition = {
       redirectTo: '/settings/system?tab=plugins',
     },
     {
+      name: 'navigation:settings.databaseBackup',
+      path: '/settings/database-backup',
+      icon: ClockIcon,
+      page: 'DatabaseBackupPage',
+      showInModes: ['fullwidth'],
+      deprecated: true,
+      redirectTo: '/settings/system?tab=backup',
+    },
+    {
       name: 'navigation:settings.schoolProfile',
       path: '/settings/school-profile',
       icon: IdentificationIcon,

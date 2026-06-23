@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
+import { PageContainer } from '@/components/layout/PageContainer';
 import {
   AlertBanner,
   StatCard,
@@ -404,7 +405,7 @@ const DashboardPage: React.FC = () => {
       </section>
 
       {/* Quick Navigation */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <PageContainer>
         <section className="mt-4">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Quick Navigation
@@ -1184,7 +1185,7 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
         </section>
-      </div>
+      </PageContainer>
     </div>
   );
 };

@@ -26,9 +26,9 @@ import {
 } from './routeConfig';
 
 // Settings hub pages — explicitly imported to prevent routing order bugs
-import ConfigurationHubPage from '../modules/settings/pages/ConfigurationHubPage';
-import SystemManagementHubPage from '../modules/settings/pages/SystemManagementHubPage';
-import SchoolOperationsHubPage from '../modules/settings/pages/SchoolOperationsHubPage';
+import ConfigurationPage from '../modules/settings/pages/ConfigurationPage';
+import SystemManagementPage from '../modules/settings/pages/SystemManagementPage';
+import SchoolOperationsPage from '../modules/settings/pages/SchoolOperationsPage';
 import { pageModules, dashboardModules, getPageComponent } from './pageLoader';
 import { ModuleRouteLoader } from './ModuleRouteLoader';
 import { DEPRECATED_ROUTE_REDIRECTS, getRedirectForRoute } from './redirectMap';
@@ -162,7 +162,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <ConfigurationHubPage />
+              <ConfigurationPage />
             </Suspense>
           </ProtectedRoute>
         }
@@ -172,7 +172,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <SystemManagementHubPage />
+              <SystemManagementPage />
             </Suspense>
           </ProtectedRoute>
         }
@@ -182,7 +182,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         element={
           <ProtectedRoute requiredModule="settings" requiredPermission="settings.view">
             <Suspense fallback={<PageSpinner />}>
-              <SchoolOperationsHubPage />
+              <SchoolOperationsPage />
             </Suspense>
           </ProtectedRoute>
         }

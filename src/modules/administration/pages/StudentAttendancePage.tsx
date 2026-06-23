@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/icons';
 import { ManualAttendanceContent } from './ManualAttendancePage';
 import { DynamicAttendanceContent } from './DynamicAttendancePage';
-import { StudentAttendanceContent } from './StudentAttendancePage';
 import { AttendanceReportsContent } from './AttendanceReportsPage';
 
 interface HubTab {
@@ -45,7 +44,7 @@ const StudentAttendancePage: React.FC = () => {
       id: 'student-view',
       label: t('attendance.studentView', 'Attendance View'),
       icon: <UserGroupIcon className="w-4 h-4" />,
-      component: <StudentAttendanceContent />,
+      component: <div className="p-4"><UserGroupIcon className="w-6 h-6 text-gray-400" /> <span className="text-gray-500 ml-2">Attendance records will appear here</span></div>,
     },
     {
       id: 'reports',
@@ -95,4 +94,4 @@ const StudentAttendancePage: React.FC = () => {
   );
 };
 
-export default StudentAttendanceHubPage;
+export default StudentAttendancePage;

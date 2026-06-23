@@ -342,4 +342,5 @@ const AnalyticsSubjectPage: React.FC = () => {
   );
 };
 
+export const AnalyticsSubjectPageContent = AnalyticsSubjectPage;
 export default AnalyticsSubjectPage;

@@ -37,5 +37,4 @@ export { default as PaymentsPage } from './PaymentsPage';
 // FinanceReportsHubPage has been relocated to the reports module (M3 hub consolidation)
 // and is now available as `FinancialReportsHubPage` from `@/modules/reports/pages`.
 export { default as InvoicingPage } from './InvoicingPage';
-export { default as ExpensesPage } from './ExpensesPage';
 export { default as TransportFinancePage } from './TransportFinancePage';

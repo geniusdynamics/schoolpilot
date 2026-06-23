@@ -21,6 +21,7 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { usePlugins } from '../../../plugins/usePlugins';
+import { PageContainer } from '../../../components/layout/PageContainer';
 import type {
   LoadedPlugin,
   AdminPluginConfig,
@@ -127,7 +128,7 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <PageContainer>
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3">
@@ -226,7 +227,7 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
             )}
           </div>
         </div>
-      </div>
+      </PageContainer>
 
       {/* Plugin Details Modal */}
       {selectedPlugin && (

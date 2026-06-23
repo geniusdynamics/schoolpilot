@@ -24,7 +24,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const PaymentsHubPage: React.FC = () => {
+const PaymentsPage: React.FC = () => {
   const { t } = useTranslation('finance');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();

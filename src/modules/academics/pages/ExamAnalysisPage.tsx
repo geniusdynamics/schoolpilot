@@ -46,7 +46,7 @@ const ExamAnalysisPage: React.FC = () => {
     (tabId: string) => {
       setActiveTab(tabId);
       if (tabId === 'exam-analysis') {
-        navigate('/academics/analysis', { replace: true });
+        navigate('/academics/exam-analysis', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }

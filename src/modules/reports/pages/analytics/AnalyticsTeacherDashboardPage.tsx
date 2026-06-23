@@ -324,4 +324,5 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
   );
 };
 
+export const AnalyticsTeacherDashboardPageContent = AnalyticsTeacherDashboardPage;
 export default AnalyticsTeacherDashboardPage;

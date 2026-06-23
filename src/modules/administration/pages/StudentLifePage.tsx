@@ -21,7 +21,7 @@ interface HubTab {
   component: React.ReactNode;
 }
 
-const StudentLifeHubPage: React.FC = () => {
+const StudentLifePage: React.FC = () => {
   const { t } = useTranslation('administration');
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();

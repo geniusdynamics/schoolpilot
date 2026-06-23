@@ -7,7 +7,7 @@ export interface HubTab<T extends string = string> {
   id: T;
   label: string;
   icon: React.ReactNode;
-  component: React.ReactNode;
+  component: React.ComponentType<{}>;
 }
 
 export type ColorScheme = 'blue' | 'emerald' | 'indigo' | 'violet' | 'amber' | 'rose' | 'green' | 'teal' | 'cyan' | 'purple' | 'orange' | 'slate';
@@ -22,4 +22,5 @@ export interface HubConfig<T extends string = string> {
   defaultTab: T;
   tabs: HubTab<T>[];
   colorScheme?: ColorScheme;
+  persistKey?: string;
 }

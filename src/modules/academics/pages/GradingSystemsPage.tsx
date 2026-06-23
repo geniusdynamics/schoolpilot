@@ -54,7 +54,7 @@ const GradingSystemsPage: React.FC = () => {
     (tabId: string) => {
       setActiveTab(tabId);
       if (tabId === 'grading-schemes') {
-        navigate('/academics/grading', { replace: true });
+        navigate('/academics/grading-systems', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }

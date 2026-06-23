@@ -474,4 +474,5 @@ const AnalyticsClassPage: React.FC = () => {
   );
 };
 
+export const AnalyticsClassPageContent = AnalyticsClassPage;
 export default AnalyticsClassPage;

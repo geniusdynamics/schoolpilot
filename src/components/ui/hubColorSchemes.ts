@@ -1,7 +1,7 @@
-// ABOUTME: Centralized module-to-color-scheme mapping for hub pages
-// ABOUTME: Ensures consistent tab coloring per module identity
+// ABOUTME: Centralized module-to-color-scheme mapping
+// ABOUTME: Ensures consistent color schemes across all hub pages per module
 
-import type { ColorScheme } from '@/core/types/hub';
+import { ColorScheme } from '@/core/types/hub';
 
 export const MODULE_COLOR_SCHEMES: Record<string, ColorScheme> = {
   administration: 'blue',
@@ -14,8 +14,9 @@ export const MODULE_COLOR_SCHEMES: Record<string, ColorScheme> = {
   nutrition: 'green',
   admissions: 'violet',
   settings: 'slate',
+  dashboard: 'blue',
 };
 
 export function getModuleColorScheme(moduleId: string): ColorScheme {
-  return MODULE_COLOR_SCHEMES[moduleId] ?? 'slate';
+  return MODULE_COLOR_SCHEMES[moduleId] || 'blue';
 }

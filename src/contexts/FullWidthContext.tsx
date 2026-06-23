@@ -12,6 +12,8 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 interface FullWidthContextType {
   /** Whether full-width mode is active (primary sidebar hidden) */
   isFullWidth: boolean;
+  /** Derived content width mode: 'full' when isFullWidth is true, 'constrained' when false */
+  contentWidth: 'full' | 'constrained';
   /** Toggle full-width mode */
   toggleFullWidth: () => void;
   /** Enable full-width mode */
@@ -77,15 +79,19 @@ export const FullWidthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setSecondaryAsPrimary(false);
   }, []);
 
+  // Derive contentWidth from isFullWidth
+  const contentWidth = useMemo<'full' | 'constrained'>(() => isFullWidth ? 'full' : 'constrained', [isFullWidth]);
+
   // Memoize context value to prevent unnecessary re-renders
   const value = useMemo(() => ({
     isFullWidth,
+    contentWidth,
     toggleFullWidth,
     enableFullWidth,
     disableFullWidth,
     isSecondaryAsPrimary,
     setSecondaryAsPrimary,
-  }), [isFullWidth, toggleFullWidth, enableFullWidth, disableFullWidth, isSecondaryAsPrimary]);
+  }), [isFullWidth, contentWidth, toggleFullWidth, enableFullWidth, disableFullWidth, isSecondaryAsPrimary]);
 
   return (
     <FullWidthContext.Provider value={value}>

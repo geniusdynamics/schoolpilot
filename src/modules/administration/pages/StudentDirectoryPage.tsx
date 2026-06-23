@@ -10,11 +10,13 @@ import {
   IdentificationIcon,
   HeartIcon,
   CheckBadgeIcon,
+  ArrowUpTrayIcon,
 } from '@/components/ui/icons';
 import { StudentsListContent } from './StudentsListPage';
 import { StudentBioDataContent } from './StudentBioDataPage';
 import { StudentHealthRecordsContent } from './StudentHealthRecordsPage';
 import { StudentClearanceContent } from './StudentClearancePage';
+import { TransferredStudentsContent } from './TransferredStudentsPage';
 
 interface HubTab {
   id: string;
@@ -52,6 +54,12 @@ const StudentDirectoryPage: React.FC = () => {
       label: t('students.clearance.title', 'Clearance'),
       icon: <CheckBadgeIcon className="w-4 h-4" />,
       component: <StudentClearanceContent />,
+    },
+    {
+      id: 'transferred',
+      label: t('students.transferred.title', 'Transferred'),
+      icon: <ArrowUpTrayIcon className="w-4 h-4" />,
+      component: <TransferredStudentsContent />,
     },
   ];
 

@@ -111,4 +111,4 @@ const CommunicationPage: React.FC = () => {
   );
 };
 
-export default CommunicationHubPage;
+export default CommunicationPage;

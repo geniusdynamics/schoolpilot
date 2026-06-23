@@ -46,7 +46,7 @@ const MarksVerificationPage: React.FC = () => {
     (tabId: string) => {
       setActiveTab(tabId);
       if (tabId === 'cross-check') {
-        navigate('/academics/verification', { replace: true });
+        navigate('/academics/marks-verification', { replace: true });
       } else {
         setSearchParams({ tab: tabId }, { replace: true });
       }

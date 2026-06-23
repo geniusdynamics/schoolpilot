@@ -469,4 +469,5 @@ const AnalyticsTrendsPage: React.FC = () => {
   );
 };
 
+export const AnalyticsTrendsPageContent = AnalyticsTrendsPage;
 export default AnalyticsTrendsPage;

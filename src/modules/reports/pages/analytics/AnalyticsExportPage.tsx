@@ -485,4 +485,5 @@ const AnalyticsExportPage: React.FC = () => {
   );
 };
 
+export const AnalyticsExportPageContent = AnalyticsExportPage;
 export default AnalyticsExportPage;
