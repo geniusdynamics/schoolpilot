@@ -109,9 +109,11 @@ export const StaffListContent: React.FC = () => {
   };
 
   const filteredStaff = useMemo(() => {
-    return staff
+    return (staff || [])
       .filter(s =>
-        `${s.first_name} ${s.last_name} ${s.staff_no} ${s.email || ''} ${s.department_name || ''} ${s.designation_title || ''}`
+        [s.first_name, s.last_name, s.staff_no, s.email, s.department_name, s.designation_title, s.display_name]
+          .filter(Boolean)
+          .join(' ')
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
       )
@@ -127,7 +129,7 @@ export const StaffListContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => item.staff_no
+      render: (value, item) => item.staff_no || '—'
     },
     { 
       key: 'name',
@@ -135,7 +137,7 @@ export const StaffListContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => `${item.first_name} ${item.last_name}`
+      render: (value, item) => item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.staff_no || '—'
     },
     { 
       key: 'department_name',
@@ -143,7 +145,7 @@ export const StaffListContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 150,
-      render: (value, item) => item.department_name
+      render: (value, item) => item.department_name || '—'
     },
     { 
       key: 'designation_title',
@@ -151,7 +153,7 @@ export const StaffListContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 150,
-      render: (value, item) => item.designation_title
+      render: (value, item) => item.designation_title || '—'
     },
     { 
       key: 'hod_of_department_name',
@@ -159,7 +161,7 @@ export const StaffListContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 150,
-      render: (value, item) => item.hod_of_department_name
+      render: (value, item) => item.hod_of_department_name || '—'
     },
     { 
       key: 'phone',
@@ -167,7 +169,7 @@ export const StaffListContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 120,
-      render: (value, item) => item.phone
+      render: (value, item) => item.phone || '—'
     },
     { 
       key: 'email',
@@ -175,7 +177,7 @@ export const StaffListContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => item.email
+      render: (value, item) => item.email || '—'
     },
     { 
       key: 'is_active',

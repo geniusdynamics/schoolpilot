@@ -190,7 +190,7 @@ export const SchoolPeriodsContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => item.name
+      render: (value, item) => item.name || '—'
     },
     { 
       key: 'academic_year_name',
@@ -198,7 +198,7 @@ export const SchoolPeriodsContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 150,
-      render: (value, item) => item.academic_year_name
+      render: (value, item) => item.academic_year_name || '—'
     },
     { 
       key: 'period_definition_name',
@@ -206,7 +206,7 @@ export const SchoolPeriodsContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 150,
-      render: (value, item) => item.period_definition_name
+      render: (value, item) => item.period_definition_name || '—'
     },
     { 
       key: 'financial_year_name',
@@ -214,7 +214,7 @@ export const SchoolPeriodsContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 150,
-      render: (value, item) => item.financial_year_name
+      render: (value, item) => item.financial_year_name || '—'
     },
     { 
       key: 'start_date',

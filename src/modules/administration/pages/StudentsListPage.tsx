@@ -547,11 +547,14 @@ const StudentsListPage: React.FC = () => {
       header: 'Name',
       sortable: true,
       filterable: true,
-      render: (value: any, item: Student) => (
-        <Link to={`/administration/students/${item.id}`} className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium">
-          {item.first_name} {item.last_name}
-        </Link>
-      )
+      render: (value: any, item: Student) => {
+        const displayName = item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.admission_no || '—';
+        return (
+          <Link to={`/administration/students/${item.id}`} className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium">
+            {displayName}
+          </Link>
+        );
+      }
     },
     { 
       key: 'current_class_name' as keyof Student, 

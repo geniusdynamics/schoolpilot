@@ -35,12 +35,19 @@ export function useHubNavigation<T extends string>(config: HubConfig<T>) {
       localStorage.setItem(config.persistKey, tabId);
     }
 
+    // Preserve existing search params (e.g., tab system URL state) to avoid
+    // clobbering them when updating only the hub page's ?tab= param
+    const currentParams = new URLSearchParams(searchParams.toString());
+    
     if (tabId === config.defaultTab) {
-      navigate(config.basePath, { replace: true });
+      currentParams.delete('tab');
+      const query = currentParams.toString();
+      navigate(query ? `${config.basePath}?${query}` : config.basePath, { replace: true });
     } else {
-      setSearchParams({ tab: tabId }, { replace: true });
+      currentParams.set('tab', tabId);
+      setSearchParams(currentParams, { replace: true });
     }
-  }, [navigate, setSearchParams, config.basePath, config.defaultTab, config.persistKey]);
+  }, [navigate, setSearchParams, config.basePath, config.defaultTab, config.persistKey, searchParams]);
 
   const activeTabData = config.tabs.find(t => t.id === activeTab) || config.tabs[0];
   const ActiveComponent = activeTabData.component;

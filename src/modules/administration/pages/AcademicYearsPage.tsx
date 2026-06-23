@@ -110,7 +110,7 @@ export const AcademicYearsContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, item) => <span className="text-blue-600">{value}</span>
+      render: (value, item) => <span className="text-blue-600">{value || '—'}</span>
     },
     { 
       key: 'start_date', 
