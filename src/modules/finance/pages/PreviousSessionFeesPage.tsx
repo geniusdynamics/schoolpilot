@@ -203,7 +203,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
 
   const statusOptions = ['Pending', 'Partial', 'Paid', 'Waived'];
 
-  if (loading && mockPreviousSessionFees.length === 0) {
+  if (loading?.all && mockPreviousSessionFees.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

@@ -94,7 +94,7 @@ export const ExamGazettePageContent: React.FC = () => {
     return classes.map(id => mockGazettes.find(g => g.class_id === id)?.class_name || id);
   }, [mockGazettes]);
 
-  if (loading && mockGazettes.length === 0) {
+  if (loading?.all && mockGazettes.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

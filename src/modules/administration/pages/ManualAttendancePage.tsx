@@ -196,7 +196,7 @@ export const ManualAttendanceContent: React.FC = () => {
     };
   }, [mockAttendance, attendanceData]);
 
-  if (loading && mockAttendance.length === 0) {
+  if (loading?.all && mockAttendance.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

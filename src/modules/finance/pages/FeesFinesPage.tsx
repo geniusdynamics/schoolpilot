@@ -196,7 +196,7 @@ export const FeesFinesPageContent: React.FC = () => {
     }
   ];
 
-  if (loading && finesList.length === 0) {
+  if (loading?.all && finesList.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

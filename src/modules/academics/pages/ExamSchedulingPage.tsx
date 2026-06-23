@@ -56,13 +56,13 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
     let filtered = [...schedules];
 
     if (filterClassStream) {
-      filtered = filtered.filter(s => 
+      filtered = filtered.filter(s => s && 
         s.class_stream_id?.toString() === filterClassStream
       );
     }
 
     if (filterRoom) {
-      filtered = filtered.filter(s => 
+      filtered = filtered.filter(s => s && 
         s.room_number?.toLowerCase().includes(filterRoom.toLowerCase())
       );
     }
@@ -201,7 +201,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
           >
             <option value="">All Classes</option>
             {classStreams.map(stream => (
-              <option key={stream.id} value={stream.id.toString()}>
+              <option key={stream?.id ?? ''} value={stream?.id?.toString() ?? ''}>
                 {stream.class_name} {stream.stream_name}
               </option>
             ))}

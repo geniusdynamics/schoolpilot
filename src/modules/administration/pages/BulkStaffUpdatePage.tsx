@@ -228,7 +228,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
     };
   }, [mockStaff, selectedStaff]);
 
-  if (loading && mockStaff.length === 0) {
+  if (loading?.all && mockStaff.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

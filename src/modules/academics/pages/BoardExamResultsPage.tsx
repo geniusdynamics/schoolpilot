@@ -180,7 +180,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
     };
   }, [mockBoardResults]);
 
-  if (loading && mockBoardResults.length === 0) {
+  if (loading?.all && mockBoardResults.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

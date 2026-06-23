@@ -112,7 +112,7 @@ export const PortalResultsContent: React.FC = () => {
     },
   ];
 
-  if (loading && results.length === 0) {
+  if (loading?.all && results.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />

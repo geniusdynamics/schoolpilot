@@ -87,7 +87,7 @@ export const IncomeStatementPageContent: React.FC = () => {
     }
   ];
 
-  if (loading && incomeStatement.length === 0) {
+  if (loading?.all && incomeStatement.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

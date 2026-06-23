@@ -200,7 +200,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
     }
   ];
 
-  if (loading && mockInstallments.length === 0) {
+  if (loading?.students && mockInstallments.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

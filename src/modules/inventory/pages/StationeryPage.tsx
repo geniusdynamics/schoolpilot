@@ -144,7 +144,7 @@ export const StationeryPageContent: React.FC = () => {
     };
   }, [mockStationery]);
 
-  if (loading && mockStationery.length === 0) {
+  if (loading?.all && mockStationery.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

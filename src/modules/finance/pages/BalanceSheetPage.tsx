@@ -125,7 +125,7 @@ export const BalanceSheetPageContent: React.FC = () => {
 
   const categories = ['Asset', 'Liability', 'Equity'];
 
-  if (loading && mockBalanceSheet.length === 0) {
+  if (loading?.all && mockBalanceSheet.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

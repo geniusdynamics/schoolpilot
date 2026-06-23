@@ -116,7 +116,7 @@ export const PortalAnnouncementsContent: React.FC = () => {
     return false;
   };
 
-  if (loading && announcements.length === 0) {
+  if (loading?.all && announcements.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />

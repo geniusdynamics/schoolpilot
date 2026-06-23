@@ -146,7 +146,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
     }
   ];
 
-  if (loading && mockTemplates.length === 0) {
+  if (loading?.all && mockTemplates.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

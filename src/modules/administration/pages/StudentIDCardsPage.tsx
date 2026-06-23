@@ -114,7 +114,7 @@ const StudentIDCardsPage: React.FC = () => {
     return classIds.map(id => mockStudents.find(s => s.class_id === id)?.class_name || id);
   }, [mockStudents]);
 
-  if (loading && mockStudents.length === 0) {
+  if (loading?.all && mockStudents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

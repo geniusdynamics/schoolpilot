@@ -36,7 +36,7 @@ const StudentBioDataPage: React.FC = () => {
 
   const classes = ['Grade 10', 'Grade 9', 'Grade 8', 'Grade 7'];
 
-  if (loading && mockStudentBioData.length === 0) {
+  if (loading?.all && mockStudentBioData.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

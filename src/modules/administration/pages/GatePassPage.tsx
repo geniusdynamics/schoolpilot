@@ -139,7 +139,7 @@ export const GatePassContent: React.FC = () => {
     };
   }, [mockGatePasses]);
 
-  if (loading && mockGatePasses.length === 0) {
+  if (loading?.all && mockGatePasses.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

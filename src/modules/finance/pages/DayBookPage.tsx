@@ -87,7 +87,7 @@ export const DayBookPageContent: React.FC = () => {
     }
   ];
 
-  if (loading && mockDayBookEntries.length === 0) {
+  if (loading?.all && mockDayBookEntries.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

@@ -118,7 +118,7 @@ export const StudentsPaidBookPageContent: React.FC = () => {
     return classes.sort();
   }, [filteredPaymentRecords]);
 
-  if (loading && mockPaymentRecords.length === 0) {
+  if (loading?.all && mockPaymentRecords.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

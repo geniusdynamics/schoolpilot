@@ -153,7 +153,7 @@ export const FeesDueReportPageContent: React.FC = () => {
 
   const agingCategories = ['Current', '1-30 Days', '31-60 Days', '61-90 Days', '90+ Days'];
 
-  if (loading && mockDueRecords.length === 0) {
+  if (loading?.all && mockDueRecords.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

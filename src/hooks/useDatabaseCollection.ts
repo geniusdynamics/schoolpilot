@@ -33,6 +33,25 @@ export function useDatabaseCollection<T>(
   const [collection, setCollection] = useState<ICollection<T> | null>(null);
   const subscriptionRef = useRef<{ unsubscribe: () => void } | null>(null);
   const isMountedRef = useRef(true);
+  const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Safety timeout: prevent infinite loading (e.g., when DB never responds)
+  useEffect(() => {
+    if (loading) {
+      loadingTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current && loading) {
+          console.warn(`[useDatabaseCollection] Loading timeout for '${collectionName}' — falling back to empty data`);
+          setLoading(false);
+        }
+      }, 15000); // 15 second timeout
+    }
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
+  }, [loading, collectionName]);
 
   const refresh = useCallback(async () => {
     if (!isMountedRef.current) return;

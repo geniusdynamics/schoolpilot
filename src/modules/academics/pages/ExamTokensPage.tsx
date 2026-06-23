@@ -155,7 +155,7 @@ export const ExamTokensPageContent: React.FC = () => {
 
   const statusOptions = ['Active', 'Used', 'Expired', 'Revoked'];
 
-  if (loading && mockExamTokens.length === 0) {
+  if (loading?.all && mockExamTokens.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

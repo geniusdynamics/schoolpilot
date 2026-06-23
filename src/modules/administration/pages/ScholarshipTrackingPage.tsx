@@ -182,7 +182,7 @@ const ScholarshipTrackingPage: React.FC = () => {
     };
   }, [mockScholarships]);
 
-  if (loading && mockScholarships.length === 0) {
+  if (loading?.all && mockScholarships.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

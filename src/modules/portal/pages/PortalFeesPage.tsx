@@ -209,7 +209,7 @@ export const PortalFeesContent: React.FC = () => {
     },
   ];
 
-  if (loading && feeSummaries.length === 0) {
+  if (loading?.all && feeSummaries.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />

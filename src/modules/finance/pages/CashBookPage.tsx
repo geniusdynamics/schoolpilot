@@ -88,7 +88,7 @@ export const CashBookPageContent: React.FC = () => {
     }
   ];
 
-  if (loading && mockCashBookEntries.length === 0) {
+  if (loading?.all && mockCashBookEntries.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

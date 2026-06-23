@@ -142,7 +142,7 @@ export const EventsManagerPageContent: React.FC = () => {
     };
   }, [mockEvents]);
 
-  if (loading && mockEvents.length === 0) {
+  if (loading?.all && mockEvents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

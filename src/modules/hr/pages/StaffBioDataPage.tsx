@@ -41,7 +41,7 @@ export const StaffBioDataPageContent: React.FC = () => {
 
   const departments = ['Academics', 'Sports', 'Administration', 'Finance', 'HR', 'Library'];
 
-  if (loading && mockStaffBioData.length === 0) {
+  if (loading?.all && mockStaffBioData.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

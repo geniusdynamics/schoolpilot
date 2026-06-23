@@ -189,7 +189,7 @@ export const DistributeResultsPageContent: React.FC = () => {
     };
   }, [mockDistributions]);
 
-  if (loading && mockDistributions.length === 0) {
+  if (loading?.all && mockDistributions.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

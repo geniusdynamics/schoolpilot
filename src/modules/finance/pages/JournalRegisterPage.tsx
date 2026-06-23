@@ -130,7 +130,7 @@ export const JournalRegisterPageContent: React.FC = () => {
 
   const statusOptions = ['Posted', 'Draft', 'Cancelled'];
 
-  if (loading && mockJournalEntries.length === 0) {
+  if (loading?.all && mockJournalEntries.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

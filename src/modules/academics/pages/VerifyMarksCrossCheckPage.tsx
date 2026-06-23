@@ -160,7 +160,7 @@ export const VerifyMarksCrossCheckPageContent: React.FC = () => {
     };
   }, [mockRecords]);
 
-  if (loading && mockRecords.length === 0) {
+  if (loading?.all && mockRecords.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

@@ -105,7 +105,7 @@ const StaffIDCardsPage: React.FC = () => {
     return depts;
   }, [mockStaff]);
 
-  if (loading && mockStaff.length === 0) {
+  if (loading?.all && mockStaff.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

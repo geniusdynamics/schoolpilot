@@ -184,7 +184,7 @@ export const StaffWalletContent: React.FC = () => {
     };
   }, [mockTransactions]);
 
-  if (loading && mockTransactions.length === 0) {
+  if (loading?.all && mockTransactions.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

@@ -102,7 +102,7 @@ export const BirthCertificateContent: React.FC = () => {
     window.print();
   };
 
-  if (loading && mockStudents.length === 0) {
+  if (loading?.all && mockStudents.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

@@ -102,7 +102,7 @@ export const TrialBalancePageContent: React.FC = () => {
 
   const accountTypes = ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'];
 
-  if (loading && mockTrialBalance.length === 0) {
+  if (loading?.all && mockTrialBalance.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />

@@ -142,7 +142,7 @@ export const PortalAttendanceContent: React.FC = () => {
     setStatusFilter('');
   };
 
-  if (loading && attendanceRecords.length === 0) {
+  if (loading?.all && attendanceRecords.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner size="lg" />

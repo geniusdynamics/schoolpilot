@@ -131,7 +131,7 @@ export const VerifyMarksByStructurePageContent: React.FC = () => {
     return sessions.map(id => mockValidationItems.find(r => r.exam_session_id === id)?.exam_session_name || id);
   }, [mockValidationItems]);
 
-  if (loading && mockValidationItems.length === 0) {
+  if (loading?.all && mockValidationItems.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
