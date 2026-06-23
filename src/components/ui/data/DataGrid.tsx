@@ -336,7 +336,7 @@ return (
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder={`Filter ${column.header.toLowerCase()}...`}
+                      placeholder={`Filter ${column.header?.toLowerCase() ?? ''}...`}
                       value={filterState[column.key as string] || ''}
                       onChange={(e) => handleFilterChange(column.key as string, e.target.value)}
                       className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

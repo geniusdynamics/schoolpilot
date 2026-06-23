@@ -71,7 +71,7 @@ const PickupCodesPage: React.FC = () => {
       if (filters.searchQuery) {
         const search = filters.searchQuery.toLowerCase();
         return (
-          code.code.toLowerCase().includes(search) ||
+          (code.code?.toLowerCase() ?? '').includes(search) ||
           (code.studentName || '').toLowerCase().includes(search)
         );
       }

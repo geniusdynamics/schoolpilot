@@ -81,11 +81,11 @@ const TransferredStudentsPage: React.FC = () => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       results = results.filter(s =>
-        s.first_name.toLowerCase().includes(q) ||
-        s.last_name.toLowerCase().includes(q) ||
-        s.admission_number.toLowerCase().includes(q) ||
-        s.destination_school.toLowerCase().includes(q) ||
-        s.transfer_reason.toLowerCase().includes(q)
+        (s.first_name?.toLowerCase() ?? '').includes(q) ||
+        (s.last_name?.toLowerCase() ?? '').includes(q) ||
+        (s.admission_number?.toLowerCase() ?? '').includes(q) ||
+        (s.destination_school?.toLowerCase() ?? '').includes(q) ||
+        (s.transfer_reason?.toLowerCase() ?? '').includes(q)
       );
     }
     if (selectedYear) {

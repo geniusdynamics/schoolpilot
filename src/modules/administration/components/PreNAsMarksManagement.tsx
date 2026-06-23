@@ -160,7 +160,7 @@ const PreNAsMarksManagement: React.FC = () => {
   const filteredMarks = useMemo(() => {
     return preNAsMarks.filter(mark => {
       const matchesSearch = searchTerm === '' || 
-        mark.index_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (mark.index_number?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         mark.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         mark.applicant_name?.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -191,7 +191,7 @@ const PreNAsMarksManagement: React.FC = () => {
     {
       key: 'year',
       header: t('preNAsMarks.year'),
-      render: (mark: PreNAsMarks) => mark.year.toString()
+      render: (mark: PreNAsMarks) => mark.year?.toString() ?? ''
     },
     {
       key: 'assessment_type',
@@ -416,7 +416,7 @@ const PreNAsMarksManagement: React.FC = () => {
             <Input
               label={t('preNAsMarks.subjects.kiswahili')}
               type="number"
-              value={formData.kiswahili.toString()}
+              value={formData.kiswahili?.toString() ?? ''}
               onChange={(value) => handleInputChange('kiswahili', parseInt(value) || 0)}
               min="0"
               max="100"
@@ -434,7 +434,7 @@ const PreNAsMarksManagement: React.FC = () => {
             <Input
               label={t('preNAsMarks.subjects.science')}
               type="number"
-              value={formData.science.toString()}
+              value={formData.science?.toString() ?? ''}
               onChange={(value) => handleInputChange('science', parseInt(value) || 0)}
               min="0"
               max="100"
@@ -443,7 +443,7 @@ const PreNAsMarksManagement: React.FC = () => {
             <Input
               label={t('preNAsMarks.subjects.socialStudies')}
               type="number"
-              value={formData.social_studies.toString()}
+              value={formData.social_studies?.toString() ?? ''}
               onChange={(value) => handleInputChange('social_studies', parseInt(value) || 0)}
               min="0"
               max="100"

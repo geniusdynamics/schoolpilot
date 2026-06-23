@@ -72,9 +72,9 @@ const AlumniEngagementContent: React.FC = () => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       results = results.filter(e =>
-        e.alumni_name.toLowerCase().includes(q) ||
-        e.description.toLowerCase().includes(q) ||
-        e.activity_type.toLowerCase().includes(q)
+        (e.alumni_name?.toLowerCase() ?? '').includes(q) ||
+        (e.description?.toLowerCase() ?? '').includes(q) ||
+        (e.activity_type?.toLowerCase() ?? '').includes(q)
       );
     }
     if (activityTypeFilter) {
@@ -189,9 +189,9 @@ const AlumniEventsContent: React.FC = () => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       results = results.filter(e =>
-        e.event_name.toLowerCase().includes(q) ||
-        e.location.toLowerCase().includes(q) ||
-        e.description.toLowerCase().includes(q)
+        (e.event_name?.toLowerCase() ?? '').includes(q) ||
+        (e.location?.toLowerCase() ?? '').includes(q) ||
+        (e.description?.toLowerCase() ?? '').includes(q)
       );
     }
     if (statusFilter) {

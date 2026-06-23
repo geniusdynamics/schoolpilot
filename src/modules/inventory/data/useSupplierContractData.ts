@@ -103,8 +103,8 @@ export const useSupplierContractData = () => {
 
     return contracts
       .filter((contract) =>
-        contract.contract_number.toLowerCase().includes(normalizedTerm) ||
-        contract.title.toLowerCase().includes(normalizedTerm) ||
+        (contract.contract_number?.toLowerCase() ?? '').includes(normalizedTerm) ||
+        (contract.title?.toLowerCase() ?? '').includes(normalizedTerm) ||
         (contract.supplier_name || '').toLowerCase().includes(normalizedTerm) ||
         (contract.description || '').toLowerCase().includes(normalizedTerm)
       )

@@ -48,9 +48,9 @@ const ScholarshipTrackingPage: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(s => 
-        s.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.admission_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.scholarship_type.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.scholarship_type?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

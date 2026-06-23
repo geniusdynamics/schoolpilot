@@ -106,7 +106,7 @@ export const DatabaseMonitoringDashboard: React.FC<DatabaseMonitoringDashboardPr
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">System Health</h3>
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${getHealthColor(systemHealth.status)}`}>
-            {systemHealth.status.toUpperCase()} ({systemHealth.healthScore}%)
+            {systemHealth.status?.toUpperCase() ?? ''} ({systemHealth.healthScore}%)
           </div>
         </div>
         

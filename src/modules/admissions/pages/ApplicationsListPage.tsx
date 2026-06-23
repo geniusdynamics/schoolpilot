@@ -58,7 +58,7 @@ export const ApplicationsListPageContent: React.FC = () => {
         const fullName = `${app.firstName} ${app.middleName || ''} ${app.lastName}`.toLowerCase();
         return (
           fullName.includes(search) ||
-          app.applicationNumber.toLowerCase().includes(search)
+          (app.applicationNumber?.toLowerCase() ?? '').includes(search)
         );
       }
       return true;

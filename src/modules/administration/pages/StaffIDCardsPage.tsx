@@ -25,8 +25,8 @@ const StaffIDCardsPage: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(s =>
-        s.staff_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.employee_id.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.staff_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.employee_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

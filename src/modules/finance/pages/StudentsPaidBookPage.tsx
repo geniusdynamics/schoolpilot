@@ -32,10 +32,10 @@ export const StudentsPaidBookPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(record =>
-        record.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.admission_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.receipt_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.reference_no.toLowerCase().includes(searchTerm.toLowerCase())
+        (record.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.receipt_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.reference_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

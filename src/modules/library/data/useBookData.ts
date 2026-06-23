@@ -96,15 +96,15 @@ export const useBookData = () => {
     }
     const lowerCaseQuery = query.toLowerCase();
     return data.filter(book =>
-      book.title.toLowerCase().includes(lowerCaseQuery) ||
+      (book.title?.toLowerCase() ?? '').includes(lowerCaseQuery) ||
       book.author?.toLowerCase().includes(lowerCaseQuery) ||
       book.isbn?.toLowerCase().includes(lowerCaseQuery) ||
-      book.accession_no.toLowerCase().includes(lowerCaseQuery) ||
-      book.status.toLowerCase().includes(lowerCaseQuery) ||
+      (book.accession_no?.toLowerCase() ?? '').includes(lowerCaseQuery) ||
+      (book.status?.toLowerCase() ?? '').includes(lowerCaseQuery) ||
       book.category_name?.toLowerCase().includes(lowerCaseQuery) ||
       book.branch_id?.toLowerCase().includes(lowerCaseQuery) ||
-      book.damaged_status.toString().toLowerCase().includes(lowerCaseQuery) ||
-      book.lost_status.toString().toLowerCase().includes(lowerCaseQuery)
+      (book.damaged_status?.toString()?.toLowerCase() ?? '').includes(lowerCaseQuery) ||
+      (book.lost_status?.toString()?.toLowerCase() ?? '').includes(lowerCaseQuery)
     );
   };
 

@@ -79,17 +79,17 @@ vi.mock('@/components/ui/Spinner', () => ({
 }));
 
 // Mock settings hub pages that DynamicRoutes imports directly
-vi.mock('../../modules/settings/pages/ConfigurationHubPage', () => ({
+vi.mock('../../modules/settings/pages/ConfigurationPage', () => ({
   __esModule: true,
   default: () => <div data-testid="configuration-hub-page">Configuration Hub</div>,
 }));
 
-vi.mock('../../modules/settings/pages/SystemManagementHubPage', () => ({
+vi.mock('../../modules/settings/pages/SystemManagementPage', () => ({
   __esModule: true,
   default: () => <div data-testid="system-management-hub-page">System Management Hub</div>,
 }));
 
-vi.mock('../../modules/settings/pages/SchoolOperationsHubPage', () => ({
+vi.mock('../../modules/settings/pages/SchoolOperationsPage', () => ({
   __esModule: true,
   default: () => <div data-testid="school-operations-hub-page">School Operations Hub</div>,
 }));

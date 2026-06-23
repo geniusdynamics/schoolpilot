@@ -50,8 +50,8 @@ export const StationeryPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(i =>
-        i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        i.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (i.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (i.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         (i.department && i.department.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }

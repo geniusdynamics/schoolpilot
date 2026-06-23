@@ -196,7 +196,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium">Current Mode:</span>
             <span className={`px-2 py-1 text-xs font-medium rounded border ${getModeColor(status.currentMode)}`}>
-              {status.currentMode.toUpperCase()}
+              {status.currentMode?.toUpperCase() ?? ''}
             </span>
             {status.isTransitioning && (
               <div className="flex items-center space-x-1 text-orange-600">

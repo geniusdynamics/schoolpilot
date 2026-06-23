@@ -51,8 +51,8 @@ export const KitchenManagementPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(i =>
-        i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        i.category.toLowerCase().includes(searchTerm.toLowerCase())
+        (i.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (i.category?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

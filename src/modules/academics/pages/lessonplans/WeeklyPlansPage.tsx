@@ -80,7 +80,7 @@ const WeeklyPlansPage: React.FC = () => {
           (plan.teacherName || '').toLowerCase().includes(search) ||
           (plan.subjectName || '').toLowerCase().includes(search) ||
           (plan.classStreamName || '').toLowerCase().includes(search) ||
-          plan.id.toLowerCase().includes(search)
+          (plan.id?.toLowerCase() ?? '').includes(search)
         );
       }
       return true;

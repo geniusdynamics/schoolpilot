@@ -92,6 +92,10 @@ export const ApplicationFormPageContent: React.FC = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate('/admissions/applications');
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -459,7 +463,7 @@ export const ApplicationFormPageContent: React.FC = () => {
             description="Complete all steps to submit your application"
           />
           <WizardForm
-            steps={wizardSteps}
+            steps={steps}
             onComplete={handleSubmit}
             onCancel={handleCancel}
             showProgress={true}

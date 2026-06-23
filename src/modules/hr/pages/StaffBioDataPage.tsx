@@ -31,8 +31,8 @@ export const StaffBioDataPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(s => 
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.staff_id.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.staff_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

@@ -102,7 +102,7 @@ export const KanbanBoard = <T extends KanbanCard = KanbanCard>({
     ...column,
     cards: column.cards.filter(card => 
       !filterText || 
-      card.title.toLowerCase().includes(filterText.toLowerCase()) ||
+      (card.title?.toLowerCase() ?? '').includes(filterText.toLowerCase()) ||
       card.description?.toLowerCase().includes(filterText.toLowerCase()) ||
       card.tags?.some(tag => tag.toLowerCase().includes(filterText.toLowerCase()))
     ),

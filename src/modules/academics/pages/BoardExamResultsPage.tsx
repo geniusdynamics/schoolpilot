@@ -42,9 +42,9 @@ export const BoardExamResultsPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(result => 
-        result.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        result.admission_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        result.subject_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (result.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (result.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (result.subject_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

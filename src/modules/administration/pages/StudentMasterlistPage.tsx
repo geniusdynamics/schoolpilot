@@ -69,8 +69,8 @@ const StudentMasterlistPage: React.FC = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(row => 
-        row.admissionNo.toLowerCase().includes(term) ||
-        row.studentName.toLowerCase().includes(term) ||
+        (row.admissionNo?.toLowerCase() ?? '').includes(term) ||
+        (row.studentName?.toLowerCase() ?? '').includes(term) ||
         (row.upiNo?.toLowerCase().includes(term) ?? false)
       );
     }

@@ -110,9 +110,9 @@ const TODOPage: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(t => 
-        t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.category.toLowerCase().includes(searchTerm.toLowerCase())
+        (t.title?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (t.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (t.category?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

@@ -57,13 +57,13 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
 
     if (filterClassStream) {
       filtered = filtered.filter(s => 
-        s.class_stream_id.toString() === filterClassStream
+        s.class_stream_id?.toString() === filterClassStream
       );
     }
 
     if (filterRoom) {
       filtered = filtered.filter(s => 
-        s.room_number.toLowerCase().includes(filterRoom.toLowerCase())
+        s.room_number?.toLowerCase().includes(filterRoom.toLowerCase())
       );
     }
 

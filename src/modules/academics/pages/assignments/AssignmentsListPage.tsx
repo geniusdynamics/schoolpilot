@@ -92,8 +92,8 @@ const AssignmentsListPage: React.FC = () => {
       if (searchQuery) {
         const search = searchQuery.toLowerCase();
         return (
-          assignment.title.toLowerCase().includes(search) ||
-          assignment.description.toLowerCase().includes(search) ||
+          (assignment.title?.toLowerCase() ?? '').includes(search) ||
+          (assignment.description?.toLowerCase() ?? '').includes(search) ||
           (assignment.teacherName || '').toLowerCase().includes(search)
         );
       }

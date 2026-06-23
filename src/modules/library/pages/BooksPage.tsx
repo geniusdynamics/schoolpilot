@@ -322,7 +322,7 @@ export const BooksPageContent: React.FC = () => {
       {
         key: 'status',
         header: 'Status',
-        render: (book) => <span className={`status-${book.status.toLowerCase()}`}>{book.status}</span>,
+        render: (book) => <span className={`status-${book.status?.toLowerCase() ?? ''}`}>{book.status}</span>,
       },
     {
       key: 'actions',

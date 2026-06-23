@@ -47,8 +47,8 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(record =>
-        record.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        record.admission_no.toLowerCase().includes(searchTerm.toLowerCase())
+        (record.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (record.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

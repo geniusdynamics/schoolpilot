@@ -32,9 +32,9 @@ export const JournalRegisterPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(entry =>
-        entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.voucher_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.reference.toLowerCase().includes(searchTerm.toLowerCase())
+        (entry.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (entry.voucher_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (entry.reference?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

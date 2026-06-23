@@ -213,8 +213,8 @@ export const ModuleManagementContent: React.FC = () => {
   // Filter and search modules
   const filteredModules = modules.filter(module => {
     const matchesCategory = filterCategory === 'all' || module.category === filterCategory;
-    const matchesSearch = module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         module.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (module.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+                         (module.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 

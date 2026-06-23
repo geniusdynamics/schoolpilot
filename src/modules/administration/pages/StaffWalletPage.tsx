@@ -39,8 +39,8 @@ export const StaffWalletContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(t => 
-        t.staff_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.employee_id.toLowerCase().includes(searchTerm.toLowerCase())
+        (t.staff_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (t.employee_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

@@ -27,8 +27,8 @@ export const AttendanceReportsContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(r => 
-        r.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.admission_no.toLowerCase().includes(searchTerm.toLowerCase())
+        (r.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (r.admission_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

@@ -189,9 +189,9 @@ const AlumniDirectoryPage: React.FC = () => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       results = results.filter(r =>
-        r.first_name.toLowerCase().includes(q) ||
-        r.last_name.toLowerCase().includes(q) ||
-        r.admission_number.toLowerCase().includes(q) ||
+        (r.first_name?.toLowerCase() ?? '').includes(q) ||
+        (r.last_name?.toLowerCase() ?? '').includes(q) ||
+        (r.admission_number?.toLowerCase() ?? '').includes(q) ||
         (r.current_occupation && r.current_occupation.toLowerCase().includes(q)) ||
         (r.employer && r.employer.toLowerCase().includes(q))
       );

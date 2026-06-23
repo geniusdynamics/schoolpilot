@@ -85,9 +85,9 @@ const AnalyticsTeacherDashboardPage: React.FC = () => {
   // Apply filters
   const filteredRows = useMemo(() => {
     return teacherRows.filter((row) => {
-      if (subjectFilter && !row.subjects.toLowerCase().includes(subjectFilter.toLowerCase())) return false;
-      if (classFilter && !row.classes.toLowerCase().includes(classFilter.toLowerCase())) return false;
-      if (searchTerm && !row.teacherName.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      if (subjectFilter && !(row.subjects?.toLowerCase() ?? '').includes(subjectFilter.toLowerCase())) return false;
+      if (classFilter && !(row.classes?.toLowerCase() ?? '').includes(classFilter.toLowerCase())) return false;
+      if (searchTerm && !(row.teacherName?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())) return false;
       return true;
     });
   }, [teacherRows, subjectFilter, classFilter, searchTerm]);

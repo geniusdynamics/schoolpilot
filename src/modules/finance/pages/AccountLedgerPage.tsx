@@ -54,8 +54,8 @@ export const AccountLedgerPageContent: React.FC = () => {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (r) =>
-          r.description.toLowerCase().includes(term) ||
-          r.particulars.toLowerCase().includes(term)
+          (r.description?.toLowerCase() ?? '').includes(term) ||
+          (r.particulars?.toLowerCase() ?? '').includes(term)
       );
     }
 

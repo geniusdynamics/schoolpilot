@@ -432,7 +432,7 @@ const AnalyticsExportPage: React.FC = () => {
             Showing {previewData.length} record{previewData.length !== 1 ? 's' : ''} that will be exported
           </p>
           <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
-            Format: {config.format.toUpperCase()}
+            Format: {config.format?.toUpperCase() ?? ''}
           </span>
         </div>
         <DataGrid
@@ -450,7 +450,7 @@ const AnalyticsExportPage: React.FC = () => {
           <div>
             <h3 className="text-sm font-semibold text-gray-900">Ready to Export</h3>
             <p className="text-xs text-gray-500 mt-1">
-              {previewData.length} records will be exported as {config.format.toUpperCase()}
+              {previewData.length} records will be exported as {config.format?.toUpperCase() ?? ''}
             </p>
           </div>
           <div className="flex items-center gap-3">

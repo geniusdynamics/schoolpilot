@@ -165,7 +165,7 @@ const ApplicationManagement: React.FC = () => {
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(app.status)}`}
         >
-          {t(`admissions.application.${app.status.toLowerCase().replace(' ', '')}`)}
+          {t(`admissions.application.${app.status?.toLowerCase().replace(' ', '') ?? ''}`)}
         </span>
       )
     }

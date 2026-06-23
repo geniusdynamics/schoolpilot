@@ -133,7 +133,7 @@ const OverdueReport: React.FC = () => {
       item.borrowerType,
       new Date(item.loanDate).toLocaleDateString(),
       new Date(item.dueDate).toLocaleDateString(),
-      item.daysOverdue.toString(),
+      item.daysOverdue?.toString() ?? '',
       `$${item.fineAmount?.toFixed(2) || '0.00'}`
     ]);
 

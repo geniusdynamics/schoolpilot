@@ -38,8 +38,8 @@ export const VoteheadStatementPageContent: React.FC = () => {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (r) =>
-          r.admissionNo.toLowerCase().includes(term) ||
-          r.invoiceNumber.toLowerCase().includes(term)
+          (r.admissionNo?.toLowerCase() ?? '').includes(term) ||
+          (r.invoiceNumber?.toLowerCase() ?? '').includes(term)
       );
     }
 

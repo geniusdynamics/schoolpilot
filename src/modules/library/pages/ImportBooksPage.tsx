@@ -208,7 +208,7 @@ export const ImportBooksPageContent: React.FC = () => {
           status: row.status as LibBookStatusEnum,
           location_shelf: row.location_shelf || undefined,
           category_id: category?.id,
-          is_digital: row.is_digital.toLowerCase() === 'true',
+          is_digital: row.is_digital?.toLowerCase() === 'true',
           digital_access_url: row.digital_access_url || undefined,
           digital_format: row.digital_format || undefined,
           availability_status: LibBookAvailabilityStatusEnum.AVAILABLE,

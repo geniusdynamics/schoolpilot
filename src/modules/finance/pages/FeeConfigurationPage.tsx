@@ -88,5 +88,5 @@ const FeeConfigurationPage: React.FC = () => {
   );
 };
 
-export default FeeConfigurationHubPage;
+export default FeeConfigurationPage;
 

@@ -300,7 +300,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
   const filteredActions = useMemo(() => {
     if (!searchQuery) return allActions;
     return allActions.filter(action => 
-      action.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (action.label?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
       action.tooltip?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [allActions, searchQuery]);

@@ -182,7 +182,7 @@ const Select: React.FC<SelectProps> = ({
   const filteredOptions = useMemo(() => {
     if (!searchQuery) return effectiveOptions;
     return effectiveOptions.filter(option =>
-      option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (option.label?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
       option.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [effectiveOptions, searchQuery]);

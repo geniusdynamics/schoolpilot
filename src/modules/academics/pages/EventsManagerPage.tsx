@@ -49,9 +49,9 @@ export const EventsManagerPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(e => 
-        e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        e.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        e.location.toLowerCase().includes(searchTerm.toLowerCase())
+        (e.title?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (e.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (e.location?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

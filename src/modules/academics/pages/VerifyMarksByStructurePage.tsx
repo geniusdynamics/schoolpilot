@@ -23,9 +23,9 @@ export const VerifyMarksByStructurePageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(item => 
-        item.subject_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.class_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.structure_component.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.subject_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (item.class_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (item.structure_component?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

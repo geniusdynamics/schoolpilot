@@ -55,7 +55,7 @@ export const useSupplierData = () => {
 
     return suppliers
       .filter((supplier) =>
-        supplier.name.toLowerCase().includes(normalizedTerm) ||
+        (supplier.name?.toLowerCase() ?? '').includes(normalizedTerm) ||
         (supplier.contact_person || '').toLowerCase().includes(normalizedTerm) ||
         (supplier.email || '').toLowerCase().includes(normalizedTerm)
       )

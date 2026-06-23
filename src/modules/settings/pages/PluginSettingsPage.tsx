@@ -64,7 +64,7 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
 
   // Filter plugins
   const filteredPlugins = plugins.filter(plugin => {
-    const matchesSearch = plugin.manifest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = (plugin.manifest.name?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
       plugin.manifest.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || plugin.manifest.type === filterType;
     return matchesSearch && matchesType;
@@ -564,9 +564,9 @@ const MarketplaceTab: React.FC<{
   ];
 
   const filteredPlugins = marketplacePlugins.filter(plugin => {
-    const matchesSearch = plugin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      plugin.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      plugin.author.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (plugin.name?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
+      (plugin.description?.toLowerCase() ?? '').includes(searchQuery.toLowerCase()) ||
+      (plugin.author?.toLowerCase() ?? '').includes(searchQuery.toLowerCase());
     const matchesFilter = activeFilter === 'all' || plugin.category === activeFilter;
     return matchesSearch && matchesFilter;
   });

@@ -90,8 +90,8 @@ export const SupplierContractsPageContent: React.FC = () => {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(contract =>
-        contract.contract_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        contract.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (contract.contract_number?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (contract.title?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         contract.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -103,7 +103,7 @@ export const SupplierContractsPageContent: React.FC = () => {
 
     // Apply supplier filter
     if (supplierFilter !== 'ALL') {
-      filtered = filtered.filter(contract => contract.supplier_id.toString() === supplierFilter);
+      filtered = filtered.filter(contract => contract.supplier_id?.toString() === supplierFilter);
     }
 
     setFilteredContracts(filtered);

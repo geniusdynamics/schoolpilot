@@ -28,9 +28,9 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(session => 
-        session.token_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        session.subject_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        session.class_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (session.token_code?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (session.subject_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (session.class_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

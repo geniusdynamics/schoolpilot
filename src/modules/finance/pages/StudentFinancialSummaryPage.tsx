@@ -38,8 +38,8 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         (r) =>
-          r.admissionNo.toLowerCase().includes(term) ||
-          r.name.toLowerCase().includes(term)
+          (r.admissionNo?.toLowerCase() ?? '').includes(term) ||
+          (r.name?.toLowerCase() ?? '').includes(term)
       );
     }
 

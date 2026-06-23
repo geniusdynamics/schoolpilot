@@ -48,8 +48,8 @@ export const GatePassContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(p => 
-        p.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.student_id.toLowerCase().includes(searchTerm.toLowerCase())
+        (p.student_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (p.student_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

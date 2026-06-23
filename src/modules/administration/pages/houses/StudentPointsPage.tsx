@@ -78,7 +78,7 @@ const StudentPointsPage: React.FC = () => {
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
-          student.studentName.toLowerCase().includes(query) ||
+          (student.studentName?.toLowerCase() ?? '').includes(query) ||
           (student.houseName || '').toLowerCase().includes(query) ||
           (student.className || '').toLowerCase().includes(query)
         );

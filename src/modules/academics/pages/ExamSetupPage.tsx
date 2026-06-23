@@ -88,4 +88,4 @@ const ExamSetupPage: React.FC = () => {
   );
 };
 
-export default ExamSetupHubPage;
+export default ExamSetupPage;

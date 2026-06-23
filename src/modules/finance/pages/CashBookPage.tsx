@@ -22,8 +22,8 @@ export const CashBookPageContent: React.FC = () => {
 
     if (searchTerm) {
       return filtered.filter(entry =>
-        entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.reference_no.toLowerCase().includes(searchTerm.toLowerCase())
+        (entry.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (entry.reference_no?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
     return filtered;

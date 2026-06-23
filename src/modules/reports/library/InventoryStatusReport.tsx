@@ -151,7 +151,7 @@ const InventoryStatusReport: React.FC = () => {
       item.itemName,
       item.categoryName,
       item.warehouseName,
-      item.currentStock.toString(),
+      item.currentStock?.toString() ?? '',
       item.unitOfMeasure,
       item.unitCost?.toFixed(2) || '0.00',
       item.totalValue.toFixed(2),

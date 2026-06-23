@@ -26,8 +26,8 @@ export const BalanceSheetPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(item => 
-        item.account_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.subcategory.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.account_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (item.subcategory?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

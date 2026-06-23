@@ -81,7 +81,7 @@ export const SuppliersPageContent: React.FC = () => {
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(supplier =>
-        supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (supplier.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         supplier.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         supplier.email?.toLowerCase().includes(searchTerm.toLowerCase())
       );

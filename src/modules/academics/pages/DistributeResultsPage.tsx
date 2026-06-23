@@ -38,8 +38,8 @@ export const DistributeResultsPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(dist => 
-        dist.exam_session_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dist.class_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (dist.exam_session_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (dist.class_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

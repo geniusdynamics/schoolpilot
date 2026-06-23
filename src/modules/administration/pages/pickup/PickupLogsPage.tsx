@@ -84,7 +84,7 @@ const PickupLogsPage: React.FC = () => {
         const search = filters.searchQuery.toLowerCase();
         return (
           (log.studentName || '').toLowerCase().includes(search) ||
-          log.authorizedPersonName.toLowerCase().includes(search) ||
+          (log.authorizedPersonName?.toLowerCase() ?? '').includes(search) ||
           (log.verifiedByName || '').toLowerCase().includes(search) ||
           (log.notes || '').toLowerCase().includes(search)
         );

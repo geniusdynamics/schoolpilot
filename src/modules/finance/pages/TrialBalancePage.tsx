@@ -27,8 +27,8 @@ export const TrialBalancePageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(item =>
-        item.account_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.account_code.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.account_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (item.account_code?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

@@ -93,7 +93,7 @@ const useFineData = () => {
       fine.book_title?.toLowerCase().includes(lowerCaseQuery) ||
       fine.user_name?.toLowerCase().includes(lowerCaseQuery) ||
       fine.reason?.toLowerCase().includes(lowerCaseQuery) ||
-      fine.status.toLowerCase().includes(lowerCaseQuery)
+      (fine.status?.toLowerCase() ?? '').includes(lowerCaseQuery)
     );
   };
 

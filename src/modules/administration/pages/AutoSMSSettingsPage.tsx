@@ -43,8 +43,8 @@ export const AutoSMSSettingsContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(s => 
-        s.trigger_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.template_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.trigger_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.template_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

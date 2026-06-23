@@ -26,8 +26,8 @@ const StaffAttendancePage: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(r =>
-        r.staff_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.employee_id.toLowerCase().includes(searchTerm.toLowerCase())
+        (r.staff_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (r.employee_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

@@ -84,8 +84,8 @@ export const BirthCertificateContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(s => 
-        s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.student_id.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (s.student_id?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 

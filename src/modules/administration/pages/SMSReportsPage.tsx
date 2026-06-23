@@ -33,8 +33,8 @@ export const SMSReportsContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(r => 
-        r.recipient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.recipient.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (r.recipient_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (r.recipient?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
         r.phone.includes(searchTerm)
       );
     }

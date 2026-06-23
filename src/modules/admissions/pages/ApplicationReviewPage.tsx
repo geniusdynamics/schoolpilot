@@ -138,7 +138,7 @@ export const ApplicationReviewPageContent: React.FC = () => {
       await makeDecision(application.id, decisionData, user.id);
       showToast({
         type: 'success',
-        message: `Application ${decisionData.decision.toLowerCase()} successfully.`,
+        message: `Application ${decisionData.decision?.toLowerCase() ?? ''} successfully.`,
       });
       setShowDecisionModal(false);
       navigate('/admissions/applications');

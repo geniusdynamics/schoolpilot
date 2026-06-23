@@ -40,9 +40,9 @@ export const ExamTokensPageContent: React.FC = () => {
 
     if (searchTerm) {
       filtered = filtered.filter(token => 
-        token.token_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        token.teacher_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        token.subject_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (token.token_code?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (token.teacher_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+        (token.subject_name?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
       );
     }
 
