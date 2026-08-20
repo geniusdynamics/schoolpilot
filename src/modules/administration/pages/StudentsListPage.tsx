@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Import Link and useNavigate
-import { Student, PersonGender, StudentStatus, ParentGuardian, Department, Designation, StudentCategory, Dormitory, ClassStream, Class as SchoolClass, AcademicsExamResultSummaryType as ExamResultSummary } from '@/types';
+
 import DataGrid from '@/components/ui/data/DataGrid';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -10,14 +10,16 @@ import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon, UsersIcon, AcademicCapI
 // import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
 import { useAppData } from '@/hooks/useAppData'; // Import useAppData
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+
 import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
-import SlideoutForm from '@/components/ui/forms/SlideoutForm';
 import { usePageActions } from '@/hooks/usePageActions';
 import { useToast } from '@/hooks/useToast';
 import DialogForm from '@/components/ui/forms/DialogForm';
-import { getQuickEditConfig, QuickEditField, QuickEditConfig } from '@/config/quickEditConfig';
+
 import QuickEditConfigModal from '@/components/QuickEditConfigModal';
+import { logger } from '@/utils/logging';
+import { PersonGender, StudentStatus } from '@/core/types';
+import type { ExamResultSummary, Student } from '@/core/types';
 
 interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {
   admission_no: string; // Required
@@ -46,7 +48,6 @@ interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | '
   exam_result_summary_ssre?: string;
   exam_result_summary_total_marks?: string; // Input as string, convert to number
 }
-
 
 
 const StudentsListPage: React.FC = () => {
@@ -98,7 +99,6 @@ const StudentsListPage: React.FC = () => {
   const handleInputChange = (name: string, value: any) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-
 
 
   // handleAddStudent moved above to fix temporal dead zone error
@@ -250,7 +250,7 @@ const StudentsListPage: React.FC = () => {
       }
       closeModal();
     } catch (error) {
-      console.error('Error saving student:', error);
+      logger.error('Error saving student:', error);
       showToast({
         variant: 'error',
         title: 'Save Failed',
@@ -533,24 +533,24 @@ const StudentsListPage: React.FC = () => {
   const studentsData = students || [];
 
 
-
   const columns = useMemo(() => [
     { 
       key: 'admission_no' as keyof Student, 
       header: 'Adm No',
       sortable: true,
       filterable: true,
-      width: '120px'
+      width: 110
     },
     { 
       key: 'name',
       header: 'Name',
       sortable: true,
       filterable: true,
+      width: 180,
       render: (value: any, item: Student) => {
         const displayName = item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.admission_no || '—';
         return (
-          <Link to={`/administration/students/${item.id}`} className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium">
+          <Link to={`/administration/students/${item.id}`} className="text-indigo-600 hover:text-indigo-800 hover:underline font-medium truncate block max-w-[160px]" title={displayName}>
             {displayName}
           </Link>
         );
@@ -561,28 +561,28 @@ const StudentsListPage: React.FC = () => {
       header: 'Class',
       sortable: true,
       filterable: true,
-      width: '100px'
+      width: 110
     },
     { 
       key: 'current_class_stream_name' as keyof Student, 
       header: 'Stream',
       sortable: true,
       filterable: true,
-      width: '100px'
+      width: 110
     },
     { 
       key: 'gender' as keyof Student, 
       header: 'Gender',
       sortable: true,
       filterable: true,
-      width: '80px'
+      width: 90
     },
     { 
       key: 'status' as keyof Student,
       header: 'Status',
       sortable: true,
       filterable: true,
-      width: '120px',
+      width: 110,
       render: (value: any, item: Student) => {
         let colorClass = '';
         switch(item.status) {
@@ -601,13 +601,17 @@ const StudentsListPage: React.FC = () => {
       header: 'Guardian',
       sortable: true,
       filterable: true,
-      render: (value: any, item: Student) => item.primary_guardian?.name || '-'
+      width: 150,
+      render: (value: any, item: Student) => (
+        <span className="truncate block max-w-[130px]" title={item.primary_guardian?.name || ''}>{item.primary_guardian?.name || '—'}</span>
+      )
     },
     {
       key: 'actions',
       header: 'Actions',
-      width: '200px',
+      width: 200,
       align: 'center' as const,
+      sticky: 'right' as const,
       render: (value: any, item: Student) => (
         <div className="flex space-x-1 justify-center">
           <Button 
@@ -654,10 +658,9 @@ const StudentsListPage: React.FC = () => {
   // Using a more specific loading state key if available, else fallback to `all` or `students`
   const pageIsLoading = loading.students || loading.all;
 
-
   return (
     <div className="space-y-6">
-      <Card title="Student Management" actions={
+      <Card title="Student Management" bodyClassName="p-0" actions={
         <div className="flex space-x-2">
           <Button 
             variant="ghost" 
@@ -670,29 +673,29 @@ const StudentsListPage: React.FC = () => {
           </Button>
         </div>
       }>
-        <DataGrid
-          columns={columns}
-          data={studentsData}
-          loading={pageIsLoading && !isModalOpen}
-          sortable={true}
-          filterable={true}
-          selectable={true}
-          onRowClick={(student) => handleStudentDetailsClick(student.id)}
-          onSelectionChange={(selected) => {
-            // Handle bulk operations here if needed
-            console.log('Selected students:', selected);
-          }}
-          emptyState={
-            <div className="text-center py-12">
-              <UserCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No students found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Get started by adding a new student using the Add Student action above.
-              </p>
-            </div>
-          }
-          className="mt-4"
-        />
+        <div className="border-t border-gray-200">
+          <DataGrid
+            columns={columns}
+            data={studentsData}
+            loading={pageIsLoading && !isModalOpen}
+            sortable={true}
+            filterable={true}
+            selectable={true}
+            onRowClick={(student) => handleStudentDetailsClick(student.id)}
+            onSelectionChange={(selected) => {
+              logger.info('Selected students:', selected);
+            }}
+            emptyState={
+              <div className="text-center py-12">
+                <UserCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No students found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Get started by adding a new student using the Add Student action above.
+                </p>
+              </div>
+            }
+          />
+        </div>
       </Card>
 
       <DialogForm
@@ -746,7 +749,7 @@ const StudentsListPage: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-white">
-                        {quickEditStudent.first_name} {quickEditStudent.last_name}
+                        {quickEditStudent.display_name || [quickEditStudent.first_name, quickEditStudent.last_name].filter(Boolean).join(' ') || '—'}
                       </h3>
                       <p className="text-sm text-slate-300">
                         {quickEditStudent.admission_no} • {quickEditStudent.current_class_stream_name || 'No Class Assigned'}

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Staff, Department, Designation } from '@/types';
+
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 
@@ -11,18 +11,15 @@ import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon, EyeIcon } from '@/compon
 // import { useMockData } from '@/hooks/useMockData'; // Switch to useAppData
 import { useAppData } from '@/hooks/useAppData'; // Import useAppData
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+
 import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
+import type { Staff } from '@/core/types';
 
 interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'department_name' | 'designation_title' | 'email' | 'hod_of_department_name' | 'display_name' | 'user_username' | 'deleted_at'> { 
   department_id?: number; 
   designation_id?: number;
   hod_of_department_id?: number; 
 }
-
 
 export const StaffListContent: React.FC = () => {
   const navigate = useNavigate();
@@ -136,7 +133,7 @@ export const StaffListContent: React.FC = () => {
       header: 'Name', 
       sortable: true,
       filterable: true,
-      width: 200,
+      width: 180,
       render: (value, item) => item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.staff_no || '—'
     },
     { 
@@ -160,7 +157,7 @@ export const StaffListContent: React.FC = () => {
       header: 'HOD Of', 
       sortable: true,
       filterable: true,
-      width: 150,
+      width: 140,
       render: (value, item) => item.hod_of_department_name || '—'
     },
     { 
@@ -168,7 +165,7 @@ export const StaffListContent: React.FC = () => {
       header: 'Phone', 
       sortable: true,
       filterable: true,
-      width: 120,
+      width: 130,
       render: (value, item) => item.phone || '—'
     },
     { 
@@ -177,7 +174,9 @@ export const StaffListContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => item.email || '—'
+      render: (value, item) => (
+        <span className="truncate block max-w-[180px]" title={item.email || ''}>{item.email || '—'}</span>
+      )
     },
     { 
       key: 'is_active',
@@ -192,10 +191,10 @@ export const StaffListContent: React.FC = () => {
       header: 'Actions',
       sortable: false,
       filterable: false,
-      width: 200,
+      width: 220,
       sticky: 'right',
       render: (value, item) => (
-        <div className="space-x-2">
+        <div className="flex items-center gap-1">
           <Button size="sm" variant="ghost" onClick={() => handleView(item.id)} leftIcon={<EyeIcon className="w-4 h-4" />}>View</Button>
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -208,12 +207,12 @@ export const StaffListContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title="Staff Management" actions={
+      <Card title="Staff Management" bodyClassName="p-0" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>
           Add Staff
         </Button>
       }>
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 sm:p-6 pb-0 grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             type="text"
             placeholder="Search staff..."
@@ -235,20 +234,22 @@ export const StaffListContent: React.FC = () => {
         {pageIsLoading && !isModalOpen ? (
           <div className="flex justify-center items-center py-10"> <Spinner /> <span className="ml-2">Loading staff...</span> </div>
         ) : (
-          <DataGrid 
-            columns={columns} 
-            data={filteredStaff} 
-            loading={loading.staff && isModalOpen}
-            sortable
-            filterable
-            emptyState={
-              <div className="text-center py-12">
-                <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No staff members found</h3>
-                <p className="mt-1 text-sm text-gray-500">Get started by adding your first staff member.</p>
-              </div>
-            }
-          />
+          <div className="border-t border-gray-200">
+            <DataGrid 
+              columns={columns} 
+              data={filteredStaff} 
+              loading={loading.staff && isModalOpen}
+              sortable
+              filterable
+              emptyState={
+                <div className="text-center py-12">
+                  <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No staff members found</h3>
+                  <p className="mt-1 text-sm text-gray-500">Get started by adding your first staff member.</p>
+                </div>
+              }
+            />
+          </div>
         )}
       </Card>
 
