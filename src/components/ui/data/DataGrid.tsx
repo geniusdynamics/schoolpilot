@@ -1,16 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Modern DataGrid component with sorting, filtering, selection, and responsive design
 // ABOUTME: Replaces the basic Table component with advanced features and contemporary styling
 
 import React, { useState, useMemo, useCallback, ReactNode } from 'react';
-import { 
-  ChevronUpIcon, 
-  ChevronDownIcon, 
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  CheckIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
-import Spinner from '../Spinner';
+import { ChevronUpIcon, ChevronDownIcon, MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import SkeletonLoader from './SkeletonLoader';
 import TableErrorBoundary from './TableErrorBoundary';
 import { DataValidationUtils } from '../../../utils/dataValidationUtils';
@@ -104,7 +98,7 @@ const DataGrid = <T extends Record<string, any>>({
     const validation = DataValidationUtils.validateTableData(safeData, requiredColumns);
     
     if (!validation.isValid && validation.errors.length > 0) {
-      console.warn('DataGrid validation warnings:', validation.errors);
+      logger.warn('DataGrid validation warnings:', validation.errors);
     }
     
     return validation.validData;
@@ -260,7 +254,7 @@ const DataGrid = <T extends Record<string, any>>({
     if (!emptyState) {
       return (
         <div className="text-gray-500">
-          <div className="text-lg mb-2">📊</div>
+          <div className="text-lg mb-2">ðŸ“Š</div>
           <div className="text-sm">No data available</div>
         </div>
       );
@@ -307,7 +301,7 @@ return (
       tableName="DataGrid"
       fallback={<div>An error occurred while rendering the table. Please try again later.</div>}
     >
-      <div className={`bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden ${className}`}>
+      <div className={`bg-white shadow-sm border border-gray-200 rounded-lg ${className}`} style={{ overflow: 'visible' }}>
         {/* Filter Bar */}
       {filterable && (
         <div className="border-b border-gray-200 bg-gray-50">
@@ -350,9 +344,9 @@ return (
         </div>
       )}
 
-      {/* Table Container */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      {/* Table Container — ensure horizontal scroll is not clipped by parent overflow-hidden */}
+      <div className="overflow-x-auto w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <table className="min-w-full divide-y divide-gray-200" style={{ tableLayout: columns.some(c => c.width) ? 'fixed' : 'auto' }}>
           <thead className="bg-gray-50">
             <tr>
               {selectable && (

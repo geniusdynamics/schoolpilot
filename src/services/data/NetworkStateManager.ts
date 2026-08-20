@@ -206,8 +206,12 @@ export class NetworkStateManager {
     const previousState = { ...this.state };
     this.state = { ...this.state, ...updates };
     
-    // Notify listeners if state changed
-    if (JSON.stringify(previousState) !== JSON.stringify(this.state)) {
+    // Only notify if semantic fields changed — ignore lastCheck/latency churn that fires every 30s
+    const semanticChanged =
+      previousState.isOnline !== this.state.isOnline ||
+      previousState.backendAvailable !== this.state.backendAvailable ||
+      previousState.connectionQuality !== this.state.connectionQuality;
+    if (semanticChanged) {
       this.listeners.forEach(listener => listener(this.state));
     }
   }

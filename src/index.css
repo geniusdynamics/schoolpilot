@@ -7,7 +7,7 @@
 /* Custom base styles */
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
   }
   
   body {
@@ -168,8 +168,8 @@
   transform: scale(1.02);
 }
 
-/* Smooth transitions for all interactive elements */
-* {
+/* Smooth transitions — exclude table layout to prevent grid misalignment during resize */
+*:not(table):not(thead):not(tbody):not(tr):not(th):not(td) {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;

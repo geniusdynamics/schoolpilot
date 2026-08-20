@@ -2,9 +2,10 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, Globe } from 'lucide-react';
 import { HookErrorBoundary } from '../ErrorBoundary/HookErrorBoundary';
+import { logger } from '@/utils/logging';
 
 const LanguageSwitcherContent: React.FC = () => {
-  const { i18n, t, ready } = useTranslation();
+  const { i18n, ready } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   
   // Define available languages with stable reference
@@ -22,7 +23,7 @@ const LanguageSwitcherContent: React.FC = () => {
         { code: 'rw', name: 'Kinyarwanda', flag: '🇷🇼' }
       ];
     } catch (error) {
-      console.error('[LanguageSwitcher] Error creating languages array:', error);
+      logger.error('[LanguageSwitcher] Error creating languages array:', error);
       return [];
     }
   }, []);
@@ -30,21 +31,21 @@ const LanguageSwitcherContent: React.FC = () => {
   const handleLanguageChange = useCallback((languageCode: string) => {
     try {
       if (!languageCode || typeof languageCode !== 'string') {
-        console.warn('[LanguageSwitcher] Invalid language code:', languageCode);
+        logger.warn('[LanguageSwitcher] Invalid language code:', languageCode);
         return;
       }
       
       if (!i18n || typeof i18n.changeLanguage !== 'function') {
-        console.error('[LanguageSwitcher] i18n not properly initialized');
+        logger.error('[LanguageSwitcher] i18n not properly initialized');
         return;
       }
       
       i18n.changeLanguage(languageCode).catch(error => {
-        console.error('[LanguageSwitcher] Failed to change language:', error);
+        logger.error('[LanguageSwitcher] Failed to change language:', error);
       });
       setIsOpen(false);
     } catch (error) {
-      console.error('[LanguageSwitcher] Error in handleLanguageChange:', error);
+      logger.error('[LanguageSwitcher] Error in handleLanguageChange:', error);
     }
   }, [i18n]);
 
@@ -52,7 +53,7 @@ const LanguageSwitcherContent: React.FC = () => {
     try {
       setIsOpen(prev => !prev);
     } catch (error) {
-      console.error('[LanguageSwitcher] Error in toggleDropdown:', error);
+      logger.error('[LanguageSwitcher] Error in toggleDropdown:', error);
     }
   }, []);
 
@@ -62,7 +63,7 @@ const LanguageSwitcherContent: React.FC = () => {
       const foundLanguage = languages.find(lang => lang && lang.code === currentLang);
       return foundLanguage || languages[0] || { code: 'en', name: 'English', flag: '🇺🇸' };
     } catch (error) {
-      console.error('[LanguageSwitcher] Error finding current language:', error);
+      logger.error('[LanguageSwitcher] Error finding current language:', error);
       return { code: 'en', name: 'English', flag: '🇺🇸' };
     }
   }, [ready, i18n?.language, languages]);
@@ -83,7 +84,7 @@ const LanguageSwitcherContent: React.FC = () => {
       onClick={toggleDropdown}
       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-slate-300 transition-colors"
     >
-      <span className="text-sm">{currentLanguage.flag}</span>
+      <span className="text-sm" style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}>{currentLanguage.flag}</span>
       <span className="text-sm font-medium">{currentLanguage.name}</span>
       <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
     </button>
@@ -98,7 +99,7 @@ const LanguageSwitcherContent: React.FC = () => {
               lang.code === currentLanguage.code ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
             }`}
           >
-            <span>{lang.flag}</span>
+            <span style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}>{lang.flag}</span>
             <span>{lang.name}</span>
           </button>
         ))}
