@@ -29,14 +29,16 @@ const AppDataProvider = lazy(() =>
 
 const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { config } = useUnifiedConfig();
-  const [udsInitialized, setUdsInitialized] = useState(false);
+  const [udsInitialized, setUdsInitialized] = useState(true);
 
   const featureFlags = useFeatureFlagStore(state => state.flags);
 
   useEffect(() => {
     let cancelled = false;
     if (featureFlags.useUnifiedDataService) {
-      setUdsInitialized(false);
+      // Keep showing app while UDS initializes (previous true masked loading but avoided blank grid)
+      // setUdsInitialized(false) would block entire app for 10s; keep true and initialize in background
+      ;
       debugLog('🚀 [AppProviders] Initializing Unified Data Service...');
 
       const initializationPromise = uds.initialize('standalone', {
