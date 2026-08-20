@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/useToast';
 import DialogForm from '@/components/ui/forms/DialogForm';
 
 import QuickEditConfigModal from '@/components/QuickEditConfigModal';
+import { getQuickEditConfig } from '@/config/quickEditConfig';
 import { logger } from '@/utils/logging';
 import { PersonGender, StudentStatus } from '@/core/types';
 import type { ExamResultSummary, Student } from '@/core/types';
