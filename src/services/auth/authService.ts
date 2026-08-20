@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Authentication service for user login, logout, and session management
 // ABOUTME: Works seamlessly in both demo mode (mock data) and production mode (SQLite/PouchDB)
 
@@ -7,7 +9,7 @@ import { userPermissionsService } from './userPermissionsService';
 import { rbacService } from '../../core/rbacService';
 import { unifiedConfigManager } from '../../config/unifiedConfig';
 import { reportError } from '../../config/errorTracking';
-import { hashPassword, verifyPassword, generateSecureToken, checkPasswordComplexity } from '../../utils/passwordHash';
+import { hashPassword, verifyPassword, generateSecureToken } from '../../utils/passwordHash';
 import { CapabilityDetector } from '@/services/database/detection/CapabilityDetector';
 
 // Authentication Types
@@ -68,15 +70,15 @@ class AuthService {
   }
 
   private async initialize() {
-    console.log('🔐 [AuthService] initialize() called');
+    logger.info('ðŸ” [AuthService] initialize() called');
     try {
       // Check if IndexedDB is available using centralized CapabilityDetector
       const detector = CapabilityDetector.getInstance();
       const hasIndexedDB = await detector.hasCapability('hasIndexedDB');
-      console.log('🔐 [AuthService] IndexedDB available?', hasIndexedDB);
+      logger.info('ðŸ” [AuthService] IndexedDB available?', hasIndexedDB);
       
       if (!hasIndexedDB) {
-        console.warn('🔐 [AuthService] IndexedDB not available, forcing demo mode');
+        logger.warn('ðŸ” [AuthService] IndexedDB not available, forcing demo mode');
         this.isDemoMode = true;
         this.databaseAvailable = false;
         this.initializationComplete = true;
@@ -101,9 +103,9 @@ class AuthService {
         this.databaseAvailable = databaseService.isServiceInitialized();
         this.detectedProvider = databaseService.getDetectedProviderType() || 'unknown';
 
-        console.log(`Database service initialized: Provider = ${this.detectedProvider}, Available = ${this.databaseAvailable}`);
+        logger.info(`Database service initialized: Provider = ${this.detectedProvider}, Available = ${this.databaseAvailable}`);
       } catch (error) {
-        console.warn('Database service initialization failed or timed out, forcing demo mode:', error);
+        logger.warn('Database service initialization failed or timed out, forcing demo mode:', error);
         this.databaseAvailable = false;
         this.detectedProvider = 'unknown';
       }
@@ -113,21 +115,23 @@ class AuthService {
       
       // Force demo mode if database is not available
       if (!this.databaseAvailable) {
-        console.warn('Database not available, forcing demo mode');
+        logger.warn('Database not available, forcing demo mode');
         this.isDemoMode = true;
         await unifiedConfigManager.switchToDemo();
       } else {
-        this.isDemoMode = config.mode === 'demo';
+        // UnifiedAppConfig uses `dataMode` and `demo.active`, not `mode`
+        const cfg: any = config as any;
+        this.isDemoMode = cfg.dataMode === 'demo' || cfg.mode === 'demo' || cfg.demo?.active === true;
       }
       
       this.initializationComplete = true;
-      console.log(`AuthService initialized: Demo mode = ${this.isDemoMode}, DB available = ${this.databaseAvailable}, Provider = ${this.detectedProvider}`);
+      logger.info(`AuthService initialized: Demo mode = ${this.isDemoMode}, DB available = ${this.databaseAvailable}, Provider = ${this.detectedProvider}`);
       
       // Restore session from localStorage
       this.restoreSession();
       
     } catch (error) {
-      console.error('AuthService initialization failed:', error);
+      logger.error('AuthService initialization failed:', error);
       // Force demo mode on any initialization error
       this.isDemoMode = true;
       this.databaseAvailable = false;
@@ -173,7 +177,7 @@ class AuthService {
       
       return this.currentSession;
     } catch (error) {
-      console.error('Error restoring session:', error);
+      logger.error('Error restoring session:', error);
       this.clearSession();
       return null;
     }
@@ -186,7 +190,7 @@ class AuthService {
 
   public getCurrentSession(): AuthSession | null {
     if (!this.initializationComplete) {
-      console.warn('AuthService not fully initialized');
+      logger.warn('AuthService not fully initialized');
       return null;
     }
     
@@ -225,7 +229,7 @@ class AuthService {
         return this.loginProduction(credentials);
       }
     } catch (error) {
-      console.error('AuthService login error:', error);
+      logger.error('AuthService login error:', error);
       
       // Report login error to Bugsink
       reportError(error instanceof Error ? error : new Error('Unknown login error'), {
@@ -292,7 +296,7 @@ class AuthService {
 
   private async loginDemo(credentials: LoginCredentials): Promise<AuthResult> {
     // SECURITY WARNING: Demo mode accepts any password and should only be used for testing
-    console.warn('🔐 [AuthService] DEMO MODE LOGIN - This is insecure and should only be used for testing');
+    logger.warn('ðŸ” [AuthService] DEMO MODE LOGIN - This is insecure and should only be used for testing');
     
     // Demo users for testing different roles
     const demoUsers: { [key: string]: AuthUser } = {
@@ -423,7 +427,7 @@ class AuthService {
   private async loginProduction(credentials: LoginCredentials): Promise<AuthResult> {
     // Ensure database is initialized before proceeding
     if (!this.databaseAvailable) {
-      console.warn('🔐 [AuthService] Database not available, falling back to demo mode');
+      logger.warn('ðŸ” [AuthService] Database not available, falling back to demo mode');
       this.isDemoMode = true;
       await unifiedConfigManager.switchToDemo();
       return this.loginDemo(credentials);
@@ -436,7 +440,7 @@ class AuthService {
       // Get database provider from the dynamic service
       const provider = databaseService.getProvider();
       if (!provider) {
-        console.warn('🔐 [AuthService] Database provider not available, falling back to demo mode');
+        logger.warn('ðŸ” [AuthService] Database provider not available, falling back to demo mode');
         this.isDemoMode = true;
         await unifiedConfigManager.switchToDemo();
         return this.loginDemo(credentials);
@@ -445,7 +449,7 @@ class AuthService {
       // Get users collection
       const usersCollection = databaseService.getCollection('users');
       if (!usersCollection) {
-        console.warn('🔐 [AuthService] Users collection not available, falling back to demo mode');
+        logger.warn('ðŸ” [AuthService] Users collection not available, falling back to demo mode');
         this.isDemoMode = true;
         await unifiedConfigManager.switchToDemo();
         return this.loginDemo(credentials);
@@ -454,14 +458,14 @@ class AuthService {
       // Check if any users exist in the database
       const allUsers = await usersCollection.find({ selector: {} });
       if (!allUsers || allUsers.length === 0) {
-        console.log('🔐 [AuthService] No users found in production database, switching to demo mode');
+        logger.info('ðŸ” [AuthService] No users found in production database, switching to demo mode');
         
         // Switch to demo mode automatically
         await unifiedConfigManager.switchToDemo();
         this.isDemoMode = true;
         
         // Log the fallback to demo mode
-        console.warn('🔐 [AuthService] Automatically switched to demo mode due to empty user database');
+        logger.warn('ðŸ” [AuthService] Automatically switched to demo mode due to empty user database');
         reportError(new Error('Production database empty - switched to demo mode'), {
           username: credentials.username,
           loginType: 'production_fallback_to_demo',
@@ -492,7 +496,7 @@ class AuthService {
       }
       
       // Check if user is active
-      if (!user.is_active) {
+      if (!user.isActive) {
         // Report production login failure to Bugsink
         const loginError = new Error('Production login failed: Account deactivated');
         reportError(loginError, {
@@ -510,8 +514,9 @@ class AuthService {
       }
 
       // CRITICAL FIX: Implement proper password verification (CRIT-003, SEC-002)
-      // Check if user has a password hash stored
-      if (!user.password_hash) {
+      // Passwords are stored in the canonical `hashed_password` field using the
+      // serialized format `hash:salt:iterations` written by SettingsUsersPage.
+      if (!user.hashed_password) {
         // No password set - this shouldn't happen in production
         reportError(new Error('Production login failed: No password hash'), {
           username: credentials.username,
@@ -527,11 +532,54 @@ class AuthService {
         };
       }
       
+      // Parse the stored `hash:salt:iterations` triple
+      let [storedHash, storedSalt, storedIterations] = String(user.hashed_password).split(':');
+
+      // Self-heal legacy demo-seeded accounts that still carry the old
+      // 'mockhashedpassword' placeholder. Those records predate real PBKDF2
+      // seeding and use the documented default seed password ('admin123',
+      // same as the hashes in administration mockData). On success the
+      // record is upgraded to a real hash so future logins verify normally.
+      if (user.hashed_password === 'mockhashedpassword') {
+        if (credentials.password !== 'admin123') {
+          return {
+            success: false,
+            message: 'Invalid username or password'
+          };
+        }
+        const upgraded = await hashPassword(credentials.password);
+        try {
+          await usersCollection.update(user.id, {
+            hashed_password: `${upgraded.hash}:${upgraded.salt}:${upgraded.iterations}`
+          });
+        } catch (upgradeError) {
+          logger.warn('Failed to upgrade legacy seed password hash:', upgradeError);
+        }
+        storedHash = upgraded.hash;
+        storedSalt = upgraded.salt;
+        storedIterations = String(upgraded.iterations);
+      }
+
+      if (!storedHash || !storedSalt) {
+        reportError(new Error('Production login failed: Malformed password hash'), {
+          username: credentials.username,
+          userId: user.id,
+          loginType: 'production',
+          errorContext: 'malformed_password_hash',
+          timestamp: new Date().toISOString()
+        });
+        
+        return {
+          success: false,
+          message: 'Account not properly configured. Please contact administrator.'
+        };
+      }
+      
       // Verify password using PBKDF2 hashing
       const passwordValid = await verifyPassword(credentials.password, {
-        hash: user.password_hash,
-        salt: user.password_salt,
-        iterations: user.password_iterations || 100000
+        hash: storedHash,
+        salt: storedSalt,
+        iterations: parseInt(storedIterations, 10) || 100000
       });
       
       if (!passwordValid) {
@@ -579,9 +627,9 @@ class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
-        fullName: user.full_name,
+        fullName: user.display_name,
         role: userRoles[0]?.roleId || 'user',
-        isActive: user.is_active,
+        isActive: user.isActive,
         lastLoginAt: new Date(),
         createdAt: new Date(user.created_at),
         updatedAt: new Date(user.updated_at),
@@ -604,7 +652,7 @@ class AuthService {
         try {
           await usersCollection.update(user.id, { last_login_at: new Date().toISOString() });
         } catch (updateError) {
-          console.warn('Failed to update last login time:', updateError);
+          logger.warn('Failed to update last login time:', updateError);
           // Don't fail the login process if we can't update last login
         }
       }
