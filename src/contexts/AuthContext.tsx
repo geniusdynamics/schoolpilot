@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Authentication context for managing user state and authentication
 // ABOUTME: Provides login, logout, and user state management across the app
 
@@ -47,7 +49,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         // If still not initialized after timeout, log warning but continue
         if (!authService.isInitialized()) {
-          console.warn('AuthService initialization timed out, proceeding with unauthenticated state');
+          logger.warn('AuthService initialization timed out, proceeding with unauthenticated state');
         }
         
         // Check if user is already authenticated
@@ -58,13 +60,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(currentUser);
         }
         
-        // Determine if we're in demo mode
-        // CRITICAL FIX: Changed from `|| true` to `?? false` to prevent forced demo mode (CRIT-002)
+        // Determine if we're in demo mode — prefer session flag, fallback to config
         const session = authService.getCurrentSession();
-        const demoMode = session?.isDemo ?? false;
-        setIsDemoMode(demoMode);
+        let demoMode = session?.isDemo;
+        if (demoMode === undefined) {
+          try {
+            const { unifiedConfigManager } = await import('@/config/unifiedConfig');
+            const cfg: any = unifiedConfigManager.getConfig();
+            demoMode = cfg?.dataMode === 'demo' || cfg?.demo?.active === true;
+            // default to true if config not yet loaded (login should show demo hints)
+            if (demoMode === undefined) demoMode = true;
+          } catch {
+            demoMode = true;
+          }
+        }
+        setIsDemoMode(!!demoMode);
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        logger.error('Error initializing auth:', error);
       } finally {
         setIsLoading(false);
       }
@@ -86,7 +98,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       return result;
     } catch (error) {
-      console.error('AuthContext login error:', error);
+      logger.error('AuthContext login error:', error);
       return {
         success: false,
         message: 'Login failed',
@@ -110,10 +122,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         sessionStorage.removeItem('currentRoute');
         sessionStorage.removeItem('lastVisitTimestamp');
       } catch (error) {
-        console.warn('Failed to clear route storage on logout:', error);
+        logger.warn('Failed to clear route storage on logout:', error);
       }
     } catch (error) {
-      console.error('Error during logout:', error);
+      logger.error('Error during logout:', error);
     } finally {
       setIsLoading(false);
     }
@@ -125,7 +137,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const currentUser = await authService.getCurrentUser();
       setUser(currentUser);
     } catch (error) {
-      console.error('Error refreshing user:', error);
+      logger.error('Error refreshing user:', error);
     }
   };
 

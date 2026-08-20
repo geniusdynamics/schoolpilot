@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * OnboardingGate - Application entry point that shows onboarding for first-time users
  *
@@ -17,13 +19,25 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Check onboarding status on mount
     const check = async () => {
       try {
+        // If user already has a valid auth session, don't block with onboarding
+        const hasSession = (() => {
+          try { return !!localStorage.getItem('schoolpilot_auth_session'); } catch { return false; }
+        })();
+        if (hasSession) {
+          setShowOnboarding(false);
+          return;
+        }
+        // Allow URL bypass: ?skipOnboarding=1 or #skipOnboarding
+        const bypass = window.location.search.includes('skipOnboarding') || window.location.hash.includes('skipOnboarding');
+        if (bypass) {
+          setShowOnboarding(false);
+          return;
+        }
         const needsOnboarding = shouldShowOnboarding();
         setShowOnboarding(needsOnboarding);
       } catch {
-        // If check fails, don't show onboarding to avoid blocking the app
         setShowOnboarding(false);
       } finally {
         setIsChecking(false);
@@ -34,12 +48,12 @@ export const OnboardingGate: React.FC<OnboardingGateProps> = ({ children }) => {
   }, []);
 
   const handleOnboardingComplete = (path: 'demo' | 'production') => {
-    console.log(`[OnboardingGate] User completed onboarding via ${path} pathway`);
+    logger.info(`[OnboardingGate] User completed onboarding via ${path} pathway`);
     setShowOnboarding(false);
   };
 
   const handleOnboardingSkip = () => {
-    console.log('[OnboardingGate] User skipped onboarding');
+    logger.info('[OnboardingGate] User skipped onboarding');
     setShowOnboarding(false);
   };
 
