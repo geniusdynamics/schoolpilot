@@ -40,14 +40,17 @@ export const FullWidthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return false;
   });
 
-  // Sync isSecondaryAsPrimary with isFullWidth on mount
-  const [isSecondaryAsPrimary, setSecondaryAsPrimary] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored === 'true';
+  // isSecondaryAsPrimary is derived from isFullWidth to avoid dual-state drift.
+  // Keeping separate state previously allowed them to diverge (e.g. primary hidden
+  // but secondary not aligned). Now it is always in sync.
+  const isSecondaryAsPrimary = isFullWidth;
+
+  // Back-compat setter — toggles fullwidth so secondary-as-primary stays derived
+  const setSecondaryAsPrimary = useCallback((value: boolean) => {
+    if (value !== isFullWidth) {
+      setIsFullWidth(value);
     }
-    return false;
-  });
+  }, [isFullWidth]);
 
   // Persist to localStorage when changed
   useEffect(() => {
@@ -57,26 +60,15 @@ export const FullWidthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [isFullWidth]);
 
   const toggleFullWidth = useCallback(() => {
-    setIsFullWidth(prev => {
-      const next = !prev;
-      // When enabling full-width, also set secondary as primary if we have a module selected
-      if (next) {
-        setSecondaryAsPrimary(true);
-      } else {
-        setSecondaryAsPrimary(false);
-      }
-      return next;
-    });
+    setIsFullWidth(prev => !prev);
   }, []);
 
   const enableFullWidth = useCallback(() => {
     setIsFullWidth(true);
-    setSecondaryAsPrimary(true);
   }, []);
 
   const disableFullWidth = useCallback(() => {
     setIsFullWidth(false);
-    setSecondaryAsPrimary(false);
   }, []);
 
   // Derive contentWidth from isFullWidth

@@ -10,7 +10,7 @@ import ModuleHealthIndicator from './ModuleHealthIndicator';
 import { useUnifiedConfig } from '../hooks/useUnifiedConfig';
 const notifications = 3; // Example notification count
 
-const Header: React.FC<{ onSettings: () => void }> = ({ onSettings }) => {
+const Header: React.FC<{ onSettings: () => void; currentModule?: string; onModuleSelect?: (moduleKey: string) => void }> = ({ onSettings }) => {
   const { config } = useUnifiedConfig();
   const [showHeader, setShowHeader] = useState(true);
   const [showMobileSearch, setShowMobileSearch] = useState(false);

@@ -1,27 +1,8 @@
 // ABOUTME: Academics module definition
 // ABOUTME: Self-contained module definition for academic management with hub-and-spoke navigation
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
-import {
-  AcademicCapIcon,
-  BookOpenIcon,
-  UserGroupIcon,
-  ClockIcon,
-  DocumentTextIcon,
-  ChartBarIcon,
-  ClipboardDocumentListIcon,
-  CalendarDaysIcon,
-  CalendarIcon,
-  UsersIcon,
-  DocumentDuplicateIcon,
-  PuzzlePieceIcon,
-  ListBulletIcon,
-  ClipboardDocumentCheckIcon,
-  InboxIcon,
-  PlusIcon,
-  MegaphoneIcon,
-} from '@/components/ui/icons';
+import { AcademicCapIcon, BookOpenIcon, UserGroupIcon, ClockIcon, DocumentTextIcon, ChartBarIcon, ClipboardDocumentListIcon, CalendarDaysIcon, CalendarIcon, UsersIcon, DocumentDuplicateIcon, PuzzlePieceIcon, ListBulletIcon, ClipboardDocumentCheckIcon, PlusIcon, MegaphoneIcon } from '@/components/ui/icons';
 import { academicsPermissions, academicsDefaultRoles } from './rbac';
 
 export const academicsModule: ModuleDefinition = {
@@ -34,7 +15,7 @@ export const academicsModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     // Dashboard (always visible)
-    { name: 'navigation:academics.dashboard', path: '/academics/dashboard', icon: AcademicCapIcon, page: 'AcademicsDashboardPage' },
+    { name: 'navigation:academics.dashboard', path: '/academics/dashboard', icon: AcademicCapIcon, page: 'AcademicsDashboardPage', showInModes: ['standard', 'fullwidth'] },
 
     // Hub pages (standard mode)
     { name: 'navigation:academics.subjects', path: '/academics/subjects', icon: BookOpenIcon, page: 'SubjectsHubPage', showInModes: ['standard', 'fullwidth'] },
@@ -62,7 +43,6 @@ export const academicsModule: ModuleDefinition = {
     { name: 'navigation:academics.marksEntryByToken', path: '/academics/marks-entry-by-token', icon: DocumentDuplicateIcon, page: 'MarksEntryByTokenPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/marks-entry?tab=entry-by-token' },
     { name: 'navigation:academics.verifyMarksCrossCheck', path: '/academics/verify-marks-cross-check', icon: DocumentDuplicateIcon, page: 'VerifyMarksCrossCheckPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/marks-verification?tab=cross-check' },
     { name: 'navigation:academics.verifyMarksByStructure', path: '/academics/verify-marks-by-structure', icon: DocumentDuplicateIcon, page: 'VerifyMarksByStructurePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/marks-verification?tab=by-structure' },
-    { name: 'navigation:academics.examAnalysis', path: '/academics/exam-analysis', icon: ChartBarIcon, page: 'ExamAnalysisPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/exam-analysis?tab=exam-analysis' },
     { name: 'navigation:academics.studentExamAnalysis', path: '/academics/student-exam-analysis', icon: UsersIcon, page: 'StudentExamAnalysisPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/exam-analysis?tab=student-analysis' },
     { name: 'navigation:academics.examGazette', path: '/academics/exam-gazette', icon: DocumentTextIcon, page: 'ExamGazettePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/results-distribution?tab=gazette' },
     { name: 'navigation:academics.distributeResults', path: '/academics/distribute-results', icon: MegaphoneIcon, page: 'DistributeResultsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/academics/results-distribution?tab=distribute' },

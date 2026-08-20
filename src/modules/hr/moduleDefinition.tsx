@@ -1,7 +1,6 @@
 // ABOUTME: HR module definition
 // ABOUTME: Self-contained module definition for human resources management with hub-and-spoke navigation
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
 import {
   UserGroupIcon,
@@ -23,7 +22,7 @@ export const hrModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     // Dashboard (always visible)
-    { name: 'navigation:hr.dashboard', path: '/hr/dashboard', icon: UserGroupIcon, page: 'HRDashboardPage' },
+    { name: 'navigation:hr.dashboard', path: '/hr/dashboard', icon: UserGroupIcon, page: 'HRDashboardPage', showInModes: ['standard', 'fullwidth'] },
 
     // Hub pages (standard mode)
     { name: 'navigation:hr.payroll', path: '/hr/payroll', icon: CurrencyDollarIcon, page: 'PayrollPage', showInModes: ['standard', 'fullwidth'] },

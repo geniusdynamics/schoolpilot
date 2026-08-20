@@ -1,33 +1,8 @@
 // ABOUTME: Finance module definition
 // ABOUTME: Self-contained module definition for financial management
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
-import {
-  CurrencyDollarIcon,
-  BanknotesIcon,
-  BuildingOffice2Icon,
-  TruckIcon,
-  DocumentTextIcon,
-  ClipboardDocumentListIcon,
-  ChartBarIcon,
-  UserGroupIcon,
-  CalendarDaysIcon,
-  DocumentDuplicateIcon,
-  CreditCardIcon,
-  TableCellsIcon,
-  DownloadIcon,
-  WalletIcon,
-  ExclamationTriangleIcon,
-  CalendarIcon,
-  BookOpenIcon,
-  BanknotesIcon as CashIcon,
-  UsersIcon,
-  DocumentReportIcon,
-  ArrowPathIcon,
-  ScaleIcon,
-  BuildingLibraryIcon,
-} from '@/components/ui/icons';
+import { CurrencyDollarIcon, BanknotesIcon, BuildingOffice2Icon, TruckIcon, DocumentTextIcon, ClipboardDocumentListIcon, ChartBarIcon, UserGroupIcon, DocumentDuplicateIcon, CreditCardIcon, TableCellsIcon, DownloadIcon, WalletIcon, ExclamationTriangleIcon, CalendarIcon, BookOpenIcon, BanknotesIcon as CashIcon, UsersIcon, DocumentReportIcon, ArrowPathIcon, ScaleIcon, BuildingLibraryIcon } from '@/components/ui/icons';
 import { financePermissions, financeDefaultRoles } from './rbac';
 
 export const financeModule: ModuleDefinition = {
@@ -40,7 +15,7 @@ export const financeModule: ModuleDefinition = {
   version: '1.0.0',
   navigation: [
     // Dashboard (always visible)
-    { name: 'navigation:finance.dashboard', path: '/finance/dashboard', icon: CurrencyDollarIcon, page: 'FinanceDashboardPage' },
+    { name: 'navigation:finance.dashboard', path: '/finance/dashboard', icon: CurrencyDollarIcon, page: 'FinanceDashboardPage', showInModes: ['standard', 'fullwidth'] },
 
     // Hub pages (standard mode)
     { name: 'navigation:finance.feeConfiguration', path: '/finance/fee-configuration', icon: DocumentDuplicateIcon, page: 'FeeConfigurationPage', showInModes: ['standard', 'fullwidth'] },

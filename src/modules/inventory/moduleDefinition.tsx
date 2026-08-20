@@ -1,23 +1,8 @@
 // ABOUTME: Inventory module definition
 // ABOUTME: Self-contained module definition for inventory management
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
-import {
-  CubeIcon,
-  BuildingOffice2Icon,
-  DocumentTextIcon,
-  ClipboardDocumentListIcon,
-  ChartBarIcon,
-  UserGroupIcon,
-  CalendarDaysIcon,
-  DocumentDuplicateIcon,
-  TruckIcon,
-  ArchiveIcon,
-  ChartPieIcon,
-  BellIcon,
-  CogIcon,
-} from '@/components/ui/icons';
+import { CubeIcon, BuildingOffice2Icon, DocumentTextIcon, ClipboardDocumentListIcon, ChartBarIcon, UserGroupIcon, DocumentDuplicateIcon, TruckIcon, ArchiveIcon, BellIcon, CogIcon } from '@/components/ui/icons';
 import { inventoryPermissions, inventoryDefaultRoles } from './rbac';
 
 export const inventoryModule: ModuleDefinition = {
@@ -29,7 +14,7 @@ export const inventoryModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:inventory.dashboard', path: '/inventory/dashboard', icon: CubeIcon, page: 'InventoryDashboardPage' },
+    { name: 'navigation:inventory.dashboard', path: '/inventory/dashboard', icon: CubeIcon, page: 'InventoryDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:inventory.inventoryHub', path: '/inventory/inventory-management', icon: CubeIcon, page: 'InventoryHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:inventory.items', path: '/inventory/items', icon: CubeIcon, page: 'ItemsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/inventory-management?tab=items' },
     { name: 'navigation:inventory.itemCategories', path: '/inventory/item-categories', icon: DocumentTextIcon, page: 'ItemCategoriesPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/inventory-management?tab=categories' },
@@ -46,9 +31,9 @@ export const inventoryModule: ModuleDefinition = {
     { name: 'navigation:inventory.stockIssuance', path: '/inventory/stock-issuance', icon: TruckIcon, page: 'StockIssuancePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/stock-operations?tab=issuance' },
     { name: 'navigation:inventory.stockReturns', path: '/inventory/stock-returns', icon: TruckIcon, page: 'StockReturnsPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/stock-operations?tab=returns' },
     { name: 'navigation:inventory.stationery', path: '/inventory/stationery', icon: CubeIcon, page: 'StationeryPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/inventory/stock-operations?tab=stationery' },
-    { name: 'navigation:inventory.fixedAssets', path: '/inventory/fixed-assets', icon: BuildingOffice2Icon, page: 'FixedAssetsPage' },
-    { name: 'navigation:inventory.schoolProcurementDashboard', path: '/inventory/school-procurement-dashboard', icon: ChartBarIcon, page: 'SchoolProcurementDashboardPage' },
-    { name: 'navigation:inventory.vendorPortalDashboard', path: '/inventory/vendor-portal-dashboard', icon: UserGroupIcon, page: 'VendorPortalDashboardPage' },
+    { name: 'navigation:inventory.fixedAssets', path: '/inventory/fixed-assets', icon: BuildingOffice2Icon, page: 'FixedAssetsPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:inventory.schoolProcurementDashboard', path: '/inventory/school-procurement-dashboard', icon: ChartBarIcon, page: 'SchoolProcurementDashboardPage', showInModes: ['standard', 'fullwidth'] },
+    { name: 'navigation:inventory.vendorPortalDashboard', path: '/inventory/vendor-portal-dashboard', icon: UserGroupIcon, page: 'VendorPortalDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:inventory.settings', path: '/inventory/settings', icon: CogIcon, page: 'InventorySettingsPage', showInModes: ['standard', 'fullwidth'] },
   ],
   features: ['inventory-management', 'procurement', 'asset-tracking', 'stock-control', 'inventory-settings'],

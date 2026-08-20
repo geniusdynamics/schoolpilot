@@ -7,11 +7,11 @@
 
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import type { NavItem } from '../core/types';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useFullWidth } from '../contexts/FullWidthContext';
+import { useSecondarySidebar, SECONDARY_SIDEBAR_WIDTHS } from '../contexts/SecondarySidebarContext';
 import { useTabs } from '../hooks/tabs';
 import type { Tab } from '../services/tabs/types';
 import { normalizeModuleId } from '../utils/moduleStyles';
@@ -47,13 +47,14 @@ const normalizeRoutePath = (path?: string): string => {
 };
 
 const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
-  const { t } = useTranslation();
+
   const location = useLocation();
   const { hasModuleAccess, hasPermission } = useAuth();
   const { getMainModules, isLoading: navLoading, navigationItems } = useDynamicNavigation(true);
   
-  // Full-width mode
-  const { isFullWidth, isSecondaryAsPrimary } = useFullWidth();
+  // Full-width mode + secondary minimize context for margin calc
+  const { isFullWidth } = useFullWidth();
+  const { isSecondaryMinimized } = useSecondarySidebar();
   
   // New tab system
   const {
@@ -250,7 +251,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
   
   // Handle new tab button click
   const handleNewTab = useCallback(() => {
-    // Open dashboard as default new tab — pinned so it survives close-others
+    // Open dashboard as default new tab â€” pinned so it survives close-others
     openTab('/dashboard', { pinned: true });
   }, [openTab]);
   
@@ -280,7 +281,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
       return (
         <div className="flex-1 flex items-center justify-center bg-gray-50">
           <div className="text-center p-8">
-            <div className="text-6xl mb-4">📚</div>
+            <div className="text-6xl mb-4">ðŸ“š</div>
             <h2 className="text-2xl font-bold text-gray-700 mb-2">Welcome to SchoolPilot</h2>
             <p className="text-gray-500 mb-6">Select a module from the sidebar to get started</p>
             <button
@@ -326,7 +327,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
       />
       
       <div className="flex flex-1 pt-16">
-        {/* Floating TopOverflowMenu — utmost top-left, same level as top navbar; z-[60] keeps it above PrimarySidebar (z-50) */}
+        {/* Floating TopOverflowMenu â€” utmost top-left, same level as top navbar; z-[60] keeps it above PrimarySidebar (z-50) */}
         <div className="fixed top-0 left-0 z-[60] w-16 sm:w-20">
           <TopOverflowMenu
             currentModule={selectedModuleKey}
@@ -334,14 +335,14 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
           />
         </div>
 
-        {/* Primary Sidebar — hidden via width animation in fullwidth mode */}
+        {/* Primary Sidebar â€” hidden via width animation in fullwidth mode */}
         <PrimarySidebar 
           selectedModuleKey={selectedModuleKey} 
           onModuleSelect={handleModuleSelect}
           collapsed={isFullWidth}
         />
         
-        {/* Secondary Sidebar — slides to far-left in fullwidth mode */}
+        {/* Secondary Sidebar â€” slides to far-left in fullwidth mode */}
         <SecondarySidebar 
           selectedModuleKey={selectedModuleKey} 
           isOpen={isSubmenuOpen} 
@@ -351,13 +352,19 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
           items={currentModuleNav}
         />
         
-        {/* Main Content Area */}
+        {/* Main Content Area — margin mirrors SecondarySidebar actual width */}
         <main 
-          className="flex-1 flex flex-col overflow-hidden min-w-0"
+          className="flex-1 flex flex-col overflow-hidden min-w-0 transition-[margin] duration-300 ease-in-out"
           style={{
-            marginLeft: isFullWidth
-              ? (isSubmenuOpen ? '14rem' : '0rem')
-              : (isSubmenuOpen ? 'calc(5rem + 14rem)' : '5rem')
+            marginLeft: (() => {
+              const primaryWidth = isFullWidth ? '0rem' : '5rem';
+              const secondaryWidth = !isSubmenuOpen
+                ? '0rem'
+                : isSecondaryMinimized
+                  ? isFullWidth ? SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_PRIMARY : SECONDARY_SIDEBAR_WIDTHS.MINIMIZED_DESKTOP
+                  : SECONDARY_SIDEBAR_WIDTHS.EXPANDED;
+              return primaryWidth === '0rem' && secondaryWidth === '0rem' ? '0rem' : `calc(${primaryWidth} + ${secondaryWidth})`;
+            })()
           }}
         >
           {/* Tab Bar */}

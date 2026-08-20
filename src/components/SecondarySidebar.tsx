@@ -13,6 +13,8 @@ import { SidebarSkeleton } from './ModuleLoadingFallback';
 import { useFavorites } from '../hooks/useFavorites';
 import { getModuleStyle, normalizeModuleId } from '../utils/moduleStyles';
 import { logger } from '@/utils/logging';
+import { useFullWidth } from '../contexts/FullWidthContext';
+import SecondarySidebarContext, { SECONDARY_SIDEBAR_WIDTHS } from '../contexts/SecondarySidebarContext';
 import { BookOpenIcon, ChevronLeftIcon, ChevronRightIcon, DocumentReportIcon, FolderIcon, StarIcon, XIcon } from '@/components/ui/icons';
 
 function getFallbackIcon(moduleKey: string) {
@@ -87,11 +89,22 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const { showInfo, showError, showWarning } = useToastHelpers();
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
-  // Minimize state â€” kept local. The SecondarySidebarContext (newly introduced
-  // by the consolidation branch) lifts this into a Provider so the Layout can
-  // react to it, but we don't import that context here so unit tests that render
-  // this component in isolation (without a Provider) continue to work.
-  const [isMinimized, setIsMinimized] = useState(false);
+  // Shared minimize state — lives in SecondarySidebarContext so Layout can
+  // compute marginLeft from the actual rendered width. Fallback to local state
+  // keeps isolated unit tests working when no Provider is present.
+  const { isFullWidth } = useFullWidth();
+  const sidebarCtx = React.useContext(SecondarySidebarContext);
+  const [localMinimized, setLocalMinimized] = useState(false);
+  const isMinimized = sidebarCtx ? sidebarCtx.isSecondaryMinimized : localMinimized;
+  const setIsMinimized: (v: boolean | ((prev: boolean) => boolean)) => void = React.useCallback((v: any) => {
+    const next = typeof v === 'function' ? v(isMinimized) : v;
+    if (sidebarCtx) sidebarCtx.setSecondaryMinimized(next);
+    else setLocalMinimized(next);
+  }, [sidebarCtx, isMinimized]) as any;
+  const toggleMinimized = React.useCallback(() => {
+    if (sidebarCtx) sidebarCtx.toggleSecondaryMinimized();
+    else setLocalMinimized(prev => !prev);
+  }, [sidebarCtx]);
   const [isMobile, setIsMobile] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const toggleGroup = useCallback((key: string) => {
@@ -270,33 +283,60 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const { favorites, reorderFavorites } = useFavorites();
 
   // Use propItems if provided (new tab system), otherwise use derived subMenus
+  // Applies hub-and-spoke mode filtering (showInModes + deprecated) so the
+  // same filtering contract used by useSecondarySidebar hook is enforced in
+  // the actual rendered component. Previously the component bypassed filtering.
   const subMenus = useMemo(() => {
-    let items = [];
+    let items: any[] = [];
     if (propItems && propItems.length > 0) {
-      items = propItems;
+      items = propItems.filter((item: any) => item != null);
     } else {
-      items = selectedModule && selectedModule.children ? selectedModule.children : [];
+      items = selectedModule && selectedModule.children ? selectedModule.children.filter((item: any) => item != null) : [];
     }
 
-    // Add Favorites group if we are in dashboard
-    if (selectedModuleId === 'dashboard' && favorites.length > 0) {
-      const favoritesGroup = {
-        name: 'Favorites',
-        isGroup: true,
-        icon: StarIcon,
-        children: favorites.map(fav => ({
-          name: fav.title,
-          path: fav.url,
-          icon: fav.icon ? () => <StarIcon className="w-4 h-4 text-yellow-400" /> : StarIcon,
-          id: fav.id // Add ID for drag and drop
-        }))
-      };
-      // Prepend favorites to the submenus
-      return [favoritesGroup, ...items];
+    // Dashboard: no secondary nav except Favorites
+    if (selectedModuleId === 'dashboard') {
+      if (favorites.length > 0) {
+        const favoritesGroup = {
+          name: 'Favorites',
+          isGroup: true,
+          icon: StarIcon,
+          children: favorites.map(fav => ({
+            name: fav.title,
+            path: fav.url,
+            icon: fav.icon ? () => <StarIcon className="w-4 h-4 text-yellow-400" /> : StarIcon,
+            id: fav.id
+          }))
+        };
+        return [favoritesGroup];
+      }
+      return [];
+    }
+
+    // Mode-aware filtering: hide deprecated, respect showInModes
+    const currentMode = isFullWidth ? 'fullwidth' : 'standard';
+    items = items.filter((item: any) => {
+      if (item.deprecated === true) return false;
+      const modes = item.showInModes || ['standard'];
+      return modes.includes(currentMode);
+    });
+
+    // Deduplicate by path — keep first occurrence
+    const seen = new Set<string>();
+    items = items.filter((item: any) => {
+      if (!item || !item.path) return true;
+      if (seen.has(item.path)) return false;
+      seen.add(item.path);
+      return true;
+    });
+
+    // Favorites injection after filtering
+    if (favorites.length > 0 && selectedModuleId === 'dashboard') {
+      // already handled above
     }
 
     return items;
-  }, [selectedModule, propItems, selectedModuleId, favorites]);
+  }, [selectedModule, propItems, selectedModuleId, favorites, isFullWidth]);
   
   const moduleKey = useMemo(() => {
     return selectedModuleId || 'settings';
@@ -311,22 +351,18 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     const width = window.innerWidth;
       const height = window.innerHeight;
 
-      // More granular mobile detection for better UX
-      setIsMobile(width < 1024); // lg breakpoint
+      setIsMobile(width < 1024);
 
-      // Auto-minimize on medium screens (768-1200px) for better space utilization
-      // Also consider device orientation and screen height for mobile devices
       if (width >= 768 && width < 1200) {
         setIsMinimized(true);
       } else if (width >= 1200) {
         setIsMinimized(false);
       }
 
-      // For very small screens or landscape mobile, force minimize
       if (width < 640 || (width < 900 && height < 600)) {
         setIsMinimized(true);
       }
-  }, [setIsMinimized]);
+  }, [setIsMinimized, sidebarCtx]);
 
   useEffect(() => {
     handleResize(); // Check initial size
@@ -503,7 +539,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 hover:scale-105
                 focus:outline-none focus:ring-2 focus:ring-slate-400/50
               `}
-              onClick={() => setIsMinimized(prev => !prev)}
+              onClick={() => toggleMinimized()}
               title={isMinimized ? "Expand menu" : "Minimize menu"}
             >
               {isMinimized ? <ChevronRightIcon className="w-3 h-3" /> : <ChevronLeftIcon className="w-3 h-3" />}

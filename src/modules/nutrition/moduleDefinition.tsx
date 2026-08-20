@@ -1,17 +1,8 @@
 // ABOUTME: Nutrition module definition
 // ABOUTME: Self-contained module definition for nutrition management
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
-import {
-  CakeIcon,
-  DocumentTextIcon,
-  ClipboardDocumentListIcon,
-  UserGroupIcon,
-  CurrencyDollarIcon,
-  CalendarDaysIcon,
-  CubeIcon,
-} from '@/components/ui/icons';
+import { CakeIcon, DocumentTextIcon, ClipboardDocumentListIcon, UserGroupIcon, CurrencyDollarIcon, CubeIcon } from '@/components/ui/icons';
 import { nutritionPermissions, nutritionDefaultRoles } from './rbac';
 
 export const nutritionModule: ModuleDefinition = {
@@ -23,7 +14,7 @@ export const nutritionModule: ModuleDefinition = {
   isActive: true,
   version: '1.0.0',
   navigation: [
-    { name: 'navigation:nutrition.dashboard', path: '/nutrition/dashboard', icon: CakeIcon, page: 'NutritionDashboardPage' },
+    { name: 'navigation:nutrition.dashboard', path: '/nutrition/dashboard', icon: CakeIcon, page: 'NutritionDashboardPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:nutrition.mealPlanning', path: '/nutrition/meal-planning', icon: DocumentTextIcon, page: 'MealPlanningHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:nutrition.nutritionOperations', path: '/nutrition/operations', icon: CubeIcon, page: 'NutritionOperationsHubPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:nutrition.mealPlans', path: '/nutrition/meal-plans', icon: DocumentTextIcon, page: 'MealPlansPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/nutrition/meal-planning?tab=meal-plans' },
