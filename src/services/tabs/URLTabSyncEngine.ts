@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * URL Tab Sync Engine
  * 
@@ -43,10 +45,9 @@ export class URLTabSyncEngine {
   });
 
   constructor() {
-    // Listen for browser back/forward
-    window.addEventListener('popstate', () => {
-      this.handleURLChange();
-    });
+    // Listen for browser back/forward — HashRouter uses hashchange, not popstate
+    window.addEventListener('popstate', () => this.handleURLChange());
+    window.addEventListener('hashchange', () => this.handleURLChange());
 
     // Listen for storage changes (cross-tab sync)
     window.addEventListener('storage', (e) => {
@@ -87,7 +88,7 @@ export class URLTabSyncEngine {
             return { tabs: validTabs, activeTabId };
           }
         } catch (e) {
-          console.warn('Failed to parse tabs from URL:', e);
+          logger.warn('Failed to parse tabs from URL:', e);
         }
       }
 
@@ -100,7 +101,7 @@ export class URLTabSyncEngine {
       // Default to dashboard
       return this.getDefaultState();
     } catch (error) {
-      console.error('Error parsing URL:', error);
+      logger.error('Error parsing URL:', error);
       return this.getDefaultState();
     }
   }
@@ -108,8 +109,14 @@ export class URLTabSyncEngine {
   /**
    * Update URL to reflect tab state
    */
+  // Queue pending update if another is in flight instead of dropping
+  private pendingState: { state: ParsedTabState; options?: { push?: boolean } } | null = null;
+
   updateURL(state: ParsedTabState, options?: { push?: boolean }): void {
-    if (this.isProcessing) return;
+    if (this.isProcessing) {
+      this.pendingState = { state, options };
+      return;
+    }
     this.isProcessing = true;
 
     try {
@@ -131,7 +138,7 @@ export class URLTabSyncEngine {
         performanceEventManager.markDiagnostic('tab_url_update_failed', {
           error: historyErr instanceof Error ? historyErr.message : String(historyErr)
         });
-        console.warn('[URLTabSyncEngine] Failed to update browser history:', historyErr);
+        logger.warn('[URLTabSyncEngine] Failed to update browser history:', historyErr);
       }
 
       // Store in session storage for redundancy
@@ -141,9 +148,14 @@ export class URLTabSyncEngine {
       this.lastState = state;
       this.notifySubscribers(state);
     } catch (err) {
-      console.error('Error in updateURL:', err);
+      logger.error('Error in updateURL:', err);
     } finally {
       this.isProcessing = false;
+      if (this.pendingState) {
+        const pending = this.pendingState;
+        this.pendingState = null;
+        this.updateURL(pending.state, pending.options);
+      }
     }
   }
 
@@ -259,7 +271,7 @@ export class URLTabSyncEngine {
       try {
         callback(state);
       } catch (error) {
-        console.error('Error in tab subscriber:', error);
+        logger.error('Error in tab subscriber:', error);
       }
     });
   }
@@ -309,9 +321,9 @@ export class URLTabSyncEngine {
     try {
       const data = JSON.stringify(state);
       sessionStorage.setItem(STORAGE_KEY, data);
-      console.log('[URLTabSyncEngine] Saved state to storage. Tabs count:', state.tabs.length, 'Data length:', data.length);
+      logger.info('[URLTabSyncEngine] Saved state to storage. Tabs count:', state.tabs.length, 'Data length:', data.length);
     } catch (error) {
-      console.error('[URLTabSyncEngine] Failed to save tab state to storage:', error);
+      logger.error('[URLTabSyncEngine] Failed to save tab state to storage:', error);
     }
   }
 
@@ -325,12 +337,12 @@ export class URLTabSyncEngine {
             tabs: this.validateTabs(parsed.tabs),
             activeTabId: parsed.activeTabId
           };
-          console.log('[URLTabSyncEngine] Loaded state from storage. Tabs count:', validated.tabs.length);
+          logger.info('[URLTabSyncEngine] Loaded state from storage. Tabs count:', validated.tabs.length);
           return validated;
         }
       }
     } catch (error) {
-      console.warn('[URLTabSyncEngine] Failed to load tab state from storage:', error);
+      logger.warn('[URLTabSyncEngine] Failed to load tab state from storage:', error);
     }
     return null;
   }
@@ -414,6 +426,10 @@ export class URLTabSyncEngine {
   createURL(state: ParsedTabState, hashRoute?: string): string {
     const url = new URL(window.location.href);
     const activeTabIndex = Math.max(0, state.tabs.findIndex(tab => tab.id === state.activeTabId));
+
+    // Routes live in the hash (HashRouter), so any real pathname (e.g. a direct
+    // hit on /login) is stale noise — pin it to the app base for clean URLs.
+    url.pathname = import.meta.env.BASE_URL || '/';
 
     this.clearTabSearchParams(url.searchParams);
     this.applyStateToSearchParams(url.searchParams, state, activeTabIndex);

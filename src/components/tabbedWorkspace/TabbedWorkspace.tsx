@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo, memo } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { Settings, AlertCircle, RefreshCw } from 'lucide-react';
 import { TabWorkspaceErrorBoundary } from './TabWorkspaceErrorBoundary';
@@ -12,6 +12,7 @@ import type { HierarchicalTab, BreadcrumbItem } from '../../types/hierarchical';
 import { resolveTabContent } from './resolveTabContent';
 import DynamicPageComponent from '../DynamicPageComponent';
 import { isEqual } from 'lodash';
+import { logger } from '@/utils/logging';
 
 export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   className = '',
@@ -41,7 +42,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
   // Remove excessive console logging to prevent performance issues
   // Only log in development mode with a flag
   if (process.env.NODE_ENV === 'development' && process.env.DEBUG_TABS) {
-    console.log('TabbedWorkspace: Rendering');
+    logger.info('TabbedWorkspace: Rendering');
   }
   const {
     tabs,
@@ -111,7 +112,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     const initializeWorkspace = async () => {
       if (!isMounted) return;
       if (isInitializedRef.current) {
-        console.log('⏭️ [TabbedWorkspace] Already initialized, skipping');
+        logger.info('â­ï¸ [TabbedWorkspace] Already initialized, skipping');
         return;
       }
       
@@ -169,7 +170,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to initialize workspace';
-        console.error('TabbedWorkspace: Initialization failed:', err);
+        logger.error('TabbedWorkspace: Initialization failed:', err);
         if (isMounted) {
           setError(errorMessage);
           onError?.(errorMessage);
@@ -346,7 +347,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       return (
         <div className="flex-1 flex items-center justify-center bg-gray-50 text-gray-500">
           <div className="text-center px-4">
-            <div className="text-4xl mb-4">📋</div>
+            <div className="text-4xl mb-4">ðŸ“‹</div>
             <p className="text-lg font-medium mb-2">No tabs open</p>
             <p className="text-sm">Create a new tab to get started</p>
           </div>
@@ -507,12 +508,11 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
   // Remove excessive console logging
   if (process.env.NODE_ENV === 'development' && process.env.DEBUG_TABS) {
-    console.log('TabbedWorkspace: Rendering JSX with tabs:', tabs.length);
+    logger.info('TabbedWorkspace: Rendering JSX with tabs:', tabs.length);
   }
   
   return (
     <TabWorkspaceErrorBoundary onError={(error, errorInfo) => onError?.(error.message)}>
-      <DragDropContext onDragEnd={handleDragEnd}>
       <div className={moduleStyles}>
         {/* Breadcrumb Navigation */}
         {enableHierarchicalMode && showBreadcrumbs && breadcrumbs.length > 0 && (
@@ -540,7 +540,6 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
           {renderTabContent()}
         </div>
       </div>
-    </DragDropContext>
     </TabWorkspaceErrorBoundary>
    );
 };

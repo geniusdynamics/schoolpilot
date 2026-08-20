@@ -29,12 +29,14 @@ const AppDataProvider = lazy(() =>
 
 const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { config } = useUnifiedConfig();
-  const [udsInitialized, setUdsInitialized] = useState(true);
+  const [udsInitialized, setUdsInitialized] = useState(false);
 
   const featureFlags = useFeatureFlagStore(state => state.flags);
 
   useEffect(() => {
+    let cancelled = false;
     if (featureFlags.useUnifiedDataService) {
+      setUdsInitialized(false);
       debugLog('🚀 [AppProviders] Initializing Unified Data Service...');
 
       const initializationPromise = uds.initialize('standalone', {
@@ -49,19 +51,23 @@ const DataProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
       Promise.race([initializationPromise, timeoutPromise])
         .then(() => {
-          setUdsInitialized(true);
+          if (!cancelled) setUdsInitialized(true);
           debugLog('✅ [AppProviders] Unified Data Service initialized');
         })
         .catch(error => {
           warnLog('⚠️ [AppProviders] UDS initialization failed or timed out, falling back to mock:', error);
-          setUdsInitialized(true);
+          if (!cancelled) setUdsInitialized(true);
         });
 
       return () => {
+        cancelled = true;
         uds.destroy();
       };
+    } else {
+      setUdsInitialized(true);
     }
-  }, []);
+    return () => { cancelled = true; };
+  }, [featureFlags.useUnifiedDataService]);
 
   if (!udsInitialized) {
     return (

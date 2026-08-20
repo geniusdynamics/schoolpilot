@@ -1,10 +1,12 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Comprehensive TabStore implementation with Zustand, RBAC integration, and state persistence
  * Based on the Comprehensive Tabbed Workspace System documentation
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { Tab, TabState, TabStore, TabContent } from '@/types/tabbedWorkspace';
 
@@ -67,7 +69,7 @@ const validateTabData = (tab: any): tab is Tab => {
   // Additional corruption check: module names should not contain colons
   // This is a critical check that TabValidationService handles, but we keep it for safety
   if (tab.module && typeof tab.module === 'string' && tab.module.includes(':')) {
-    console.warn('Corrupted tab detected with invalid module name:', tab.module);
+    logger.warn('Corrupted tab detected with invalid module name:', tab.module);
     return false;
   }
   
@@ -78,7 +80,7 @@ const validateTabData = (tab: any): tab is Tab => {
 // Clean corrupted tabs from persisted data
 const cleanPersistedData = (persistedState: any) => {
   if (!persistedState || typeof persistedState !== 'object') {
-    console.warn('Invalid persisted state detected, resetting...');
+    logger.warn('Invalid persisted state detected, resetting...');
     return null;
   }
   
@@ -90,7 +92,7 @@ const cleanPersistedData = (persistedState: any) => {
     persistedState.tabs = persistedState.tabs.filter(validateTabData);
     if (persistedState.tabs.length !== originalLength) {
       hasCorruption = true;
-      console.warn(`Removed ${originalLength - persistedState.tabs.length} corrupted tabs`);
+      logger.warn(`Removed ${originalLength - persistedState.tabs.length} corrupted tabs`);
     }
   } else {
     persistedState.tabs = [];
@@ -129,7 +131,7 @@ const cleanPersistedData = (persistedState: any) => {
   }
   
   if (hasCorruption) {
-    console.warn('Corrupted data detected and cleaned from localStorage');
+    logger.warn('Corrupted data detected and cleaned from localStorage');
   }
   
   return persistedState;
@@ -193,12 +195,12 @@ export const useTabStore = create<TabStoreState>()
           }
 
           // Check for and clean any corrupted data
-          console.log('Checking for corrupted tab data...');
+          logger.info('Checking for corrupted tab data...');
           const currentTabs = state.tabs || [];
           const validTabs = currentTabs.filter(validateTabData);
           
           if (validTabs.length !== currentTabs.length) {
-            console.warn(`Found ${currentTabs.length - validTabs.length} corrupted tabs, cleaning...`);
+            logger.warn(`Found ${currentTabs.length - validTabs.length} corrupted tabs, cleaning...`);
             set((draft) => {
               draft.tabs = validTabs;
               // Clean pinned tabs that reference non-existent tabs
@@ -217,7 +219,7 @@ export const useTabStore = create<TabStoreState>()
             userRole = await rbacService.getCurrentUserRole();
             userPermissions = await rbacService.getUserPermissions();
           } catch (rbacError) {
-            console.warn('RBAC service unavailable, using fallback values:', rbacError);
+            logger.warn('RBAC service unavailable, using fallback values:', rbacError);
             userRole = 'super_admin'; // Fallback for demo/test mode
             userPermissions = ['*']; // Grant all permissions for demo
           }
@@ -228,13 +230,13 @@ export const useTabStore = create<TabStoreState>()
           draft.isStoreInitialized = true;
           });
           
-          console.log(`TabStore initialized with role: ${userRole || 'guest'}, permissions: ${userPermissions?.length || 0}`);
-          console.log(`Valid tabs after cleanup: ${get().tabs.length}`);
+          logger.info(`TabStore initialized with role: ${userRole || 'guest'}, permissions: ${userPermissions?.length || 0}`);
+          logger.info(`Valid tabs after cleanup: ${get().tabs.length}`);
         } catch (error) {
-          console.error('Failed to initialize tab store:', error);
+          logger.error('Failed to initialize tab store:', error);
           
           // Final fallback - no retries to prevent loops
-          console.warn('RBAC initialization failed, falling back to guest mode');
+          logger.warn('RBAC initialization failed, falling back to guest mode');
           set((draft) => {
           draft.currentUserRole = 'guest';
           draft.userPermissions = [];
@@ -260,7 +262,7 @@ export const useTabStore = create<TabStoreState>()
         
         // Ensure store is initialized before proceeding
         if (!state.isStoreInitialized) {
-          console.warn('TabStore not initialized, attempting to initialize...');
+          logger.warn('TabStore not initialized, attempting to initialize...');
           await get().initialize();
         }
         
@@ -277,15 +279,15 @@ export const useTabStore = create<TabStoreState>()
           if (!skipPermissionCheck && tabData.module) {
             const hasModuleAccess = await rbacService.checkModuleAccess(updatedState.currentUserRole, tabData.module);
             if (!hasModuleAccess) {
-              console.warn(`Access denied: No permission to access module ${tabData.module}, but allowing in fallback mode`);
+              logger.warn(`Access denied: No permission to access module ${tabData.module}, but allowing in fallback mode`);
               // Don't throw error, just log warning and continue
             }
           }
         } catch (error) {
-          console.warn(`Error checking module access for ${tabData.module}:`, error);
+          logger.warn(`Error checking module access for ${tabData.module}:`, error);
           // If RBAC check fails and user is super_admin (demo mode), allow access
           if (updatedState.currentUserRole === 'super_admin') {
-            console.warn(`RBAC check failed but user is super_admin, allowing access to ${tabData.module}`);
+            logger.warn(`RBAC check failed but user is super_admin, allowing access to ${tabData.module}`);
           }
         }
         
@@ -302,7 +304,7 @@ export const useTabStore = create<TabStoreState>()
         
         // Log warnings if any
         if (validation.warnings.length > 0) {
-          console.warn('[TabStore] Tab creation warnings:', validation.warnings);
+          logger.warn('[TabStore] Tab creation warnings:', validation.warnings);
         }
         
         const newTab: Tab = {
@@ -315,10 +317,10 @@ export const useTabStore = create<TabStoreState>()
         // Validate tab permissions (but don't block if validation fails)
         try {
           if (!validateTabPermissions(newTab, updatedState.currentUserRole, updatedState.userPermissions)) {
-            console.warn('Insufficient permissions to create this tab, but allowing in fallback mode');
+            logger.warn('Insufficient permissions to create this tab, but allowing in fallback mode');
           }
         } catch (error) {
-          console.warn('Error validating tab permissions:', error);
+          logger.warn('Error validating tab permissions:', error);
         }
         
         set((draft) => {
@@ -377,10 +379,10 @@ export const useTabStore = create<TabStoreState>()
         // Validate access (but don't block if validation fails)
         try {
           if (!validateTabPermissions(tab, state.currentUserRole, state.userPermissions)) {
-            console.warn('Insufficient permissions to access this tab, but allowing in fallback mode');
+            logger.warn('Insufficient permissions to access this tab, but allowing in fallback mode');
           }
         } catch (error) {
-          console.warn('Error validating tab permissions:', error);
+          logger.warn('Error validating tab permissions:', error);
         }
         
         set((draft) => {
@@ -797,14 +799,14 @@ export const useTabStore = create<TabStoreState>()
             
             if (cleanedData) {
               localStorage.setItem(storageKey, JSON.stringify({ ...parsedData, state: cleanedData }));
-              console.log('Corrupted data cleaned from localStorage');
+              logger.info('Corrupted data cleaned from localStorage');
             } else {
               localStorage.removeItem(storageKey);
-              console.log('Invalid data removed from localStorage');
+              logger.info('Invalid data removed from localStorage');
             }
           }
           
-          // Force reload the store state
+          // Force reload the store state — tabGroups is Record<string,string[]>
           const currentState = get();
           set({
             ...currentState,
@@ -813,11 +815,11 @@ export const useTabStore = create<TabStoreState>()
             recentlyClosedTabs: [],
             activeTabId: null,
             maxTabs: 15,
-            tabGroups: []
+            tabGroups: {} as Record<string, string[]>
           });
           
         } catch (error) {
-          console.error('Error clearing corrupted data:', error);
+          logger.error('Error clearing corrupted data:', error);
           get().resetStore();
         }
       },
@@ -825,19 +827,20 @@ export const useTabStore = create<TabStoreState>()
       resetStore: () => {
         try {
           localStorage.removeItem('tabbed-workspace-storage');
-          console.log('Tab store reset - localStorage cleared');
+          logger.info('Tab store reset - localStorage cleared');
           
-          // Reset to initial state
+          // Reset to initial state — keep key names in sync with store interface
           set({
             tabs: [],
             activeTabId: null,
             pinnedTabs: [],
             recentlyClosedTabs: [],
             maxTabs: 15,
-            tabGroups: [],
+            tabGroups: {} as Record<string, string[]>,
             currentUserRole: 'guest',
             userPermissions: [],
-            _initialized: false,
+            isStoreInitialized: false as any,
+            _initialized: false as any,
             _lastTabId: 0,
             hierarchicalTabs: [],
             breadcrumbs: [],
@@ -846,7 +849,7 @@ export const useTabStore = create<TabStoreState>()
           });
           
         } catch (error) {
-          console.error('Error resetting store:', error);
+          logger.error('Error resetting store:', error);
         }
       },
     })),
@@ -862,7 +865,7 @@ export const useTabStore = create<TabStoreState>()
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {
-          console.error('Error rehydrating tab store:', error);
+          logger.error('Error rehydrating tab store:', error);
           return;
         }
         
@@ -879,7 +882,7 @@ export const useTabStore = create<TabStoreState>()
           if (cleanedData) {
             // Update state with cleaned data
             Object.assign(state, cleanedData);
-            console.log('Tab store rehydrated with cleaned data');
+            logger.info('Tab store rehydrated with cleaned data');
           } else {
             // Reset to defaults if data is completely corrupted
             Object.assign(state, {
@@ -889,7 +892,7 @@ export const useTabStore = create<TabStoreState>()
               maxTabs: 15,
               tabGroups: []
             });
-            console.warn('Tab store reset due to corrupted data');
+            logger.warn('Tab store reset due to corrupted data');
           }
         }
       },

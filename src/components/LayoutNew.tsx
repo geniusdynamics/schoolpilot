@@ -161,7 +161,7 @@ const LayoutNew: React.FC<LayoutProps> = ({ children }) => {
     }
     await switchModuleSession(nextRoute, {
       preservePinned: true,
-      refresh: true,
+      refresh: false,
       pinned: moduleId === 'dashboard',
       canPreserveTab: canRestorePinnedTab
     });

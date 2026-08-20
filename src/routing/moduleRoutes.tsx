@@ -1,4 +1,4 @@
-// ABOUTME: Dynamic module route generation — reads moduleRegistry and creates React Router <Route> elements
+// ABOUTME: Dynamic module route generation â€” reads moduleRegistry and creates React Router <Route> elements
 // ABOUTME: Handles module dashboard routes, module custom routes, and nav-driven dynamic routes
 
 import React, { Suspense, useEffect } from 'react';
@@ -6,26 +6,15 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { lazy } from 'react';
 import { useTranslation } from 'react-i18next';
 import { moduleRegistry } from '../core/moduleRegistry';
-import { moduleLoader } from '../core/moduleLoader';
+
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
 import { useRBAC } from '../hooks/useRBAC';
-import { getStoredRouteFromSession } from '../hooks/useRoutePersistence';
 import { logger } from '../utils/logging';
 import Spinner from '../components/ui/Spinner';
 import ProtectedRoute from '../components/ProtectedRoute';
-import {
-  LoginPage,
-  DashboardPage,
-  ErrorTrackingTest,
-  SettingsPage,
-  UnifiedSettingsPage,
-  FeatureSettingsPage,
-  DataLayerSettingsPage,
-  AuditLogPage,
-  ROUTE_PATHS,
-} from './routeConfig';
+import { LoginPage, DashboardPage, ErrorTrackingTest, ROUTE_PATHS } from './routeConfig';
 
-// Settings hub pages — explicitly imported to prevent routing order bugs
+// Settings hub pages â€” explicitly imported to prevent routing order bugs
 import ConfigurationPage from '../modules/settings/pages/ConfigurationPage';
 import SystemManagementPage from '../modules/settings/pages/SystemManagementPage';
 import SchoolOperationsPage from '../modules/settings/pages/SchoolOperationsPage';
@@ -95,7 +84,7 @@ interface DynamicRoutesProps {
 }
 
 /**
- * DynamicRoutes — full route tree for the application.
+ * DynamicRoutes â€” full route tree for the application.
  * Combines static routes, module dashboard routes, module custom routes,
  * and navigation-driven dynamic routes.
  */
@@ -104,7 +93,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
   userId,
   userRole,
 }) => {
-  logger.debug('🔍 [DynamicRoutes] Component is rendering! modulesInitialized:', modulesInitialized);
+  logger.debug('ðŸ” [DynamicRoutes] Component is rendering! modulesInitialized:', modulesInitialized);
 
   const { navigationItems } = useDynamicNavigation(true);
   const { accessibleModules } = useRBAC(userId, userRole);
@@ -112,12 +101,11 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
 
   useEffect(() => {
     if (modulesInitialized && navigationItems.length > 0) {
-      logger.debug('✅ [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
+      logger.debug('âœ… [DynamicRoutes] Navigation loaded:', navigationItems.length, 'items');
     }
   }, [modulesInitialized, navigationItems.length]);
 
-  const initialRoute = getStoredRouteFromSession();
-  // Always start on dashboard — tab sync engine handles restoring other tabs
+  // Always start on dashboard â€” tab sync engine handles restoring other tabs
   const startupRoute = ROUTE_PATHS.DASHBOARD;
 
   return (
@@ -156,7 +144,7 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         }
       />
 
-      {/* Explicit Settings Hub Routes — order matters to prevent routing bugs */}
+      {/* Explicit Settings Hub Routes â€” order matters to prevent routing bugs */}
       <Route
         path="/settings/configuration"
         element={
@@ -188,14 +176,14 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
         }
       />
 
-      {/* Legacy Settings Routes — redirect to hub pages */}
+      {/* Legacy Settings Routes â€” redirect to hub pages */}
       <Route path={ROUTE_PATHS.SETTINGS} element={<Navigate to="/settings/configuration?tab=settings" replace />} />
       <Route path={ROUTE_PATHS.SETTINGS_UNIFIED} element={<Navigate to="/settings/configuration?tab=unified" replace />} />
       <Route path={ROUTE_PATHS.SETTINGS_FEATURES} element={<Navigate to="/settings/configuration?tab=features" replace />} />
       <Route path={ROUTE_PATHS.SETTINGS_DATA_LAYER} element={<Navigate to="/settings/system?tab=data-layer" replace />} />
       <Route path={ROUTE_PATHS.SETTINGS_AUDIT_LOG} element={<Navigate to="/settings/school?tab=audit" replace />} />
 
-      {/* Portal: /portal → /portal/dashboard — the portal's "hub" page has been
+      {/* Portal: /portal â†’ /portal/dashboard â€” the portal's "hub" page has been
           removed; the dashboard is now an independent page at /portal/dashboard. */}
       <Route path="/portal" element={<Navigate to="/portal/dashboard" replace />} />
 
@@ -304,8 +292,28 @@ export const DynamicRoutes: React.FC<DynamicRoutesProps> = ({
           });
         })}
 
-      {/* Catch-all route - redirect to dashboard for unknown paths */}
-      <Route path="*" element={<Navigate to={ROUTE_PATHS.DASHBOARD} replace />} />
+      {/* Loading gate — don't mask missing routes before modules ready */}
+      {!modulesInitialized && (
+        <Route path="*" element={<PageSpinner label="Loading application..." />} />
+      )}
+      {/* Catch-all — only active after modules loaded; show 404 instead of silent redirect */}
+      {modulesInitialized && (
+        <Route
+          path="*"
+          element={
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center p-8">
+              <h1 className="text-3xl font-bold text-gray-700">Page not found</h1>
+              <p className="text-gray-500 mt-2">The page you requested does not exist.</p>
+              <button
+                onClick={() => (window.location.hash = '#/dashboard')}
+                className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          }
+        />
+      )}
     </Routes>
   );
 };

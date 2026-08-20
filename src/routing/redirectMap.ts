@@ -3,6 +3,7 @@
 
 export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   // Administration
+  // M5: SchoolConfigurationPage split into /administration/organization + /administration/student-life
   '/administration/configuration': '/administration/organization',
   '/administration/departments': '/administration/organization?tab=departments',
   '/administration/designations': '/administration/organization?tab=designations',
@@ -57,8 +58,6 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   // M3: Finance reports hub relocated to /reports/finance
   '/finance/finance-reports': '/reports/finance?tab=fees-due',
   '/finance/reports': '/reports/finance',
-  // M5: SchoolConfigurationPage split into /administration/organization + /administration/student-life
-  '/administration/configuration': '/administration/organization',
 
   // Academics redirects
   '/academics/subject-management': '/academics/subjects',
@@ -82,5 +81,10 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   '/hr/staff-bio-data': '/administration/staff?tab=bio-data',
 };
 
-export const getRedirectForRoute = (path: string): string | undefined =>
-  DEPRECATED_ROUTE_REDIRECTS[path];
+export const getRedirectForRoute = (path: string): string | undefined => {
+  if (DEPRECATED_ROUTE_REDIRECTS[path]) return DEPRECATED_ROUTE_REDIRECTS[path];
+  // Strip query/hash for lookup so `/academics/x?tab=y` still matches bare key if needed
+  const stripped = path.split('?')[0].split('#')[0];
+  if (stripped !== path && DEPRECATED_ROUTE_REDIRECTS[stripped]) return DEPRECATED_ROUTE_REDIRECTS[stripped];
+  return undefined;
+};
