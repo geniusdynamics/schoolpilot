@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Custom hook for SecondarySidebar business logic
 // ABOUTME: Extracts navigation logic, module filtering, and state management
 
@@ -110,7 +112,7 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
       items = selectedModule.children.filter((item: any) => item != null);
     }
 
-    // Dashboard is not a module — no secondary sidebar content for it
+    // Dashboard is not a module â€” no secondary sidebar content for it
     if (selectedModuleId === 'dashboard') {
       return [];
     }
@@ -126,7 +128,7 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
       return modes.includes(currentMode);
     });
 
-    // Deduplicate items by path — defensive layer that prevents duplicate
+    // Deduplicate items by path â€” defensive layer that prevents duplicate
     // nav entries even if a future module forgets the showInModes flag or
     // declares two items with the same path. Keep the first occurrence.
     const seen = new Set<string>();
@@ -277,7 +279,7 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
         forceCreate: false
       });
 
-      console.info('Tab navigation successful:', {
+      logger.info('Tab navigation successful:', {
         path: targetPath,
         originalPath: item.path,
         module: pathModule,
@@ -295,7 +297,7 @@ export function useSecondarySidebar(options: UseSecondarySidebarOptions): UseSec
       }
       
     } catch (error) {
-      console.error('Navigation failed:', error);
+      logger.error('Navigation failed:', error);
       const err = error as Error;
 
       if (err.message.includes('Maximum tab limit')) {

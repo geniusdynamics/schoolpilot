@@ -6,12 +6,14 @@ import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useTabNavigation } from '../hooks/useTabNavigation';
 import { useToastHelpers } from '../hooks/useToast';
-import { FolderIcon, ChevronLeftIcon, ChevronRightIcon, BookOpenIcon, DocumentReportIcon, XIcon, InformationCircleIcon, StarIcon } from './ui/icons';
+
 import { useTranslation } from 'react-i18next';
 import HookErrorBoundary from './HookErrorBoundary';
 import { SidebarSkeleton } from './ModuleLoadingFallback';
 import { useFavorites } from '../hooks/useFavorites';
 import { getModuleStyle, normalizeModuleId } from '../utils/moduleStyles';
+import { logger } from '@/utils/logging';
+import { BookOpenIcon, ChevronLeftIcon, ChevronRightIcon, DocumentReportIcon, FolderIcon, StarIcon, XIcon } from '@/components/ui/icons';
 
 function getFallbackIcon(moduleKey: string) {
   switch (moduleKey) {
@@ -33,7 +35,7 @@ const IconWrapper: React.FC<{
   isMobile?: boolean;
   isSecondaryAsPrimary?: boolean;
 }> = ({ icon, moduleKey, className = "", isMinimized = false, isMobile = false, isSecondaryAsPrimary = false }) => {
-  // Enhanced icon sizing — larger when secondary acts as primary in fullwidth mode
+  // Enhanced icon sizing â€” larger when secondary acts as primary in fullwidth mode
   const isPrimaryMode = isMinimized && isSecondaryAsPrimary;
   const iconSize = isPrimaryMode ? "w-6 h-6" : isMobile ? "w-5 h-5" : "w-4 h-4";
   const wrapperSize = isPrimaryMode ? "w-9 h-9" : isMinimized ? "w-5 h-5" : isMobile ? "w-6 h-6" : "w-5 h-5";
@@ -85,7 +87,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const { showInfo, showError, showWarning } = useToastHelpers();
   const [search, setSearch] = useState('');
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
-  // Minimize state — kept local. The SecondarySidebarContext (newly introduced
+  // Minimize state â€” kept local. The SecondarySidebarContext (newly introduced
   // by the consolidation branch) lifts this into a Provider so the Layout can
   // react to it, but we don't import that context here so unit tests that render
   // this component in isolation (without a Provider) continue to work.
@@ -110,8 +112,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
   /**
    * Determine if a nav item should be highlighted as the currently-active item.
-   * - Exact match: e.g. /portal === /portal → active
-   * - Sub-path match: e.g. /portal/attendance is a sub-path of /portal → active
+   * - Exact match: e.g. /portal === /portal â†’ active
+   * - Sub-path match: e.g. /portal/attendance is a sub-path of /portal â†’ active
    *   ONLY when no other item is a more specific match. We approximate this by
    *   always highlighting exact matches first; sub-path matches are highlighted
    *   only when no exact match exists in the visible list.
@@ -199,7 +201,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       });
 
       // Log successful navigation
-      console.info('Tab navigation successful:', {
+      logger.info('Tab navigation successful:', {
         path: item.path,
         module: pathModule,
         submodule,
@@ -219,7 +221,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       
     } catch (error) {
       // Handle specific error types
-      console.error('Navigation failed:', error);
+      logger.error('Navigation failed:', error);
       const err = error as Error;
 
       if (err.message.includes('Maximum tab limit')) {
@@ -233,7 +235,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       }
       
       // Log detailed error for debugging
-      console.error('Detailed navigation error:', {
+      logger.error('Detailed navigation error:', {
         error,
         context: {
           path: item.path,
@@ -387,7 +389,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     if (!isOpen) return;
     
     if (!selectedModule) {
-      console.warn('⚠️ [SecondarySidebar] No selected module found for:', selectedModuleKey);
+      logger.warn('âš ï¸ [SecondarySidebar] No selected module found for:', selectedModuleKey);
     }
   }, [isOpen, selectedModule, selectedModuleKey]);
 
@@ -604,7 +606,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                         />
                         {!isMinimized && <span className="truncate text-xs">{t(item.name)}</span>}
                       </span>
-                      {!isMinimized && <span className="flex-shrink-0 text-xs">{openGroups[item.name] ? '▼' : '▶'}</span>}
+                      {!isMinimized && <span className="flex-shrink-0 text-xs">{openGroups[item.name] ? 'â–¼' : 'â–¶'}</span>}
                     </button>
                     {/* Enhanced tooltip for group items - hidden on mobile to avoid touch conflicts */}
                     {isMinimized && !isMobile && (

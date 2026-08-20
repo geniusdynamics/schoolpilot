@@ -1,9 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Main layout component for the application
 // ABOUTME: Handles navigation, tab management, and overall app structure
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDynamicNavigation } from '../hooks/useDynamicNavigation';
-import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useFullWidth } from '../contexts/FullWidthContext';
 import {
@@ -12,7 +13,6 @@ import {
 } from '../contexts/SecondarySidebarContext';
 import { ChevronUpIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import Header from './Header';
-import Sidebar from './Sidebar';
 import PrimarySidebar from './PrimarySidebar';
 import SecondarySidebar from './SecondarySidebar';
 import TopOverflowMenu from './TopOverflowMenu';
@@ -46,7 +46,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Full-width mode
   const { isFullWidth } = useFullWidth();
 
-  // Secondary sidebar minimize state — shared with SecondarySidebar so the
+  // Secondary sidebar minimize state â€” shared with SecondarySidebar so the
   // main content area can expand to fill the freed space when the sidebar
   // is collapsed. Without this, the page keeps the same horizontal
   // occupancy whether the sidebar is expanded or minimized, which negates
@@ -70,7 +70,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
       <NavigationErrorBoundary
         onError={(error, errorInfo, currentRoute) => {
-          console.error(`Tab navigation error on ${currentRoute}:`, error);
+          logger.error(`Tab navigation error on ${currentRoute}:`, error);
         }}
         maxRetries={2}
         enableFallbackRoutes={true}
@@ -99,7 +99,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           setIsTabSystemReady(true);
         }
       } catch (error) {
-        console.error('Failed to initialize tab system:', error);
+        logger.error('Failed to initialize tab system:', error);
         if (isMounted) {
           setIsTabSystemReady(false);
         }
@@ -236,7 +236,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <div className="flex flex-col min-h-screen w-screen bg-slate-100">
         <Header onSettings={() => setShowSettings(true)} />
         <div className="flex flex-1 pt-16 md:pt-16">
-          {/* Floating TopOverflowMenu — utmost top-left, same level as top navbar; z-[60] keeps it above PrimarySidebar (z-50) */}
+          {/* Floating TopOverflowMenu â€” utmost top-left, same level as top navbar; z-[60] keeps it above PrimarySidebar (z-50) */}
           <div className="fixed top-0 left-0 z-[60] w-16 sm:w-20">
             <TopOverflowMenu
               currentModule={selectedModuleKey}
@@ -279,7 +279,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <BreadcrumbNavigation 
                       className="mb-1"
                       onNavigationError={(path, error) => {
-                        console.error(`Navigation error for ${path}:`, error);
+                        logger.error(`Navigation error for ${path}:`, error);
                       }}
                     />
                   </div>
@@ -287,7 +287,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   {/* Main content wrapped with navigation error boundary */}
                   <NavigationErrorBoundary
                     onError={(error, errorInfo, currentRoute) => {
-                      console.error(`Navigation boundary caught error on ${currentRoute}:`, error);
+                      logger.error(`Navigation boundary caught error on ${currentRoute}:`, error);
                     }}
                     maxRetries={2}
                     enableFallbackRoutes={true}
