@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * FirstRunOnboarding - Guides first-time users through initial setup
  *
@@ -165,11 +167,12 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           demo: { ...config.demo, active: true },
         });
 
-        // Seed demo data
+        // Seed demo data – volume 'medium' now yields full 150+ students matching UI copy
+        // VOLUME_FACTORS medium=1 (large=1) ensures "150+ sample students" claim is honoured
         try {
-          await dbManager.seedDatabase({ volume: 'small', dataMode: 'demo' });
+          await dbManager.seedDatabase({ volume: 'medium', dataMode: 'demo' });
         } catch (seedError) {
-          console.warn('[FirstRunOnboarding] Demo seeding failed, continuing anyway:', seedError);
+          logger.warn('[FirstRunOnboarding] Demo seeding failed, continuing anyway:', seedError);
           // Don't block onboarding on seeding failure
         }
 

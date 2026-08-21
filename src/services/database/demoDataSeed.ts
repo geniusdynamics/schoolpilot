@@ -3,6 +3,8 @@ import type { GenerationStats } from '../dataGeneration/UniversalDataGenerator';
 import { collectionsDefinition } from './collections';
 import { SchemaConverter } from './SchemaConverter';
 import type { CollectionSchema, ICollection, IDatabaseProvider } from './interfaces';
+import { logger } from '@/utils/logging';
+import { RelationshipManager } from '../dataGeneration/RelationshipManager';
 
 type SeedVolume = 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
 
@@ -137,8 +139,9 @@ export const REQUIRED_SCHOOL_COLLECTIONS = ['students', 'staff', 'classes', 'cla
 
 const VOLUME_FACTORS: Record<SeedVolume, number> = {
   tiny: 0.2,
-  small: 0.4,
-  medium: 0.7,
+  // Small keeps demo quick; medium must honour UI copy "150+ sample students" – so medium ≈ full dataset
+  small: 0.5,
+  medium: 1,
   large: 1,
   enterprise: 1
 };
@@ -446,6 +449,40 @@ export const seedProviderWithDemoData = async (
     insertedCounts[collectionName] = (insertedCounts[collectionName] || 0) + normalizedRecords.length;
   }
 
+  // Phase 2 integrity: validate relationships in-memory before returning; log warnings, fail CI if strict
+  try {
+    const rm = new RelationshipManager();
+    const dataByTable: Record<string, any[]> = {};
+    for (const [collName, sample] of volumeSampleMap.entries()) {
+      dataByTable[collName] = sample.map(normalizeRecord);
+    }
+    const results = await rm.validateAllRelationships(dataByTable);
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    for (const [tbl, res] of Object.entries(results)) {
+      if (!res.isValid) errors.push(...res.errors.map((e) => `[${tbl}] ${e}`));
+      warnings.push(...res.warnings.map((w) => `[${tbl}] ${w}`));
+    }
+    if (warnings.length > 0) {
+      logger.warn('[demoDataSeed] Relationship warnings:', warnings.slice(0, 20));
+    }
+    if (errors.length > 0) {
+      logger.warn('[demoDataSeed] Relationship validation errors:', errors.slice(0, 50));
+      // In CI (process.env.CI) fail fast; otherwise keep seeding but surface errors
+      if (typeof process !== 'undefined' && (process as any).env?.CI === 'true') {
+        throw new Error(`Relationship validation failed: ${errors.slice(0, 5).join('; ')}`);
+      }
+    } else {
+      logger.info('[demoDataSeed] Relationship validation passed');
+    }
+  } catch (validationError) {
+    // Re-throw CI failures, otherwise log
+    if (typeof process !== 'undefined' && (process as any).env?.CI === 'true') {
+      throw validationError;
+    }
+    logger.warn('[demoDataSeed] Validation step error (non-fatal):', validationError);
+  }
+
   return {
     totalRecords: Object.values(insertedCounts).reduce((sum, count) => sum + count, 0),
     tablesGenerated: Object.keys(insertedCounts),
@@ -454,4 +491,19 @@ export const seedProviderWithDemoData = async (
     insertedCounts,
     skippedCollections
   };
+};
+
+export const validateRelationships = async (
+  provider?: IDatabaseProvider,
+  volume: SeedVolume = 'medium'
+): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> => {
+  const entries = getSeedEntries();
+  const sampleMap = buildVolumeSampleMap(entries, volume);
+  const dataByTable: Record<string, any[]> = {};
+  for (const [k, v] of sampleMap.entries()) dataByTable[k] = v.map(normalizeRecord);
+  const rm = provider ? new RelationshipManager(provider as any) : new RelationshipManager();
+  const results = await rm.validateAllRelationships(dataByTable);
+  const errors = Object.values(results).flatMap((r) => r.errors);
+  const warnings = Object.values(results).flatMap((r) => r.warnings);
+  return { isValid: errors.length === 0, errors, warnings };
 };

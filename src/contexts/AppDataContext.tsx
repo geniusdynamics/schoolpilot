@@ -403,7 +403,7 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
   }, [isInitialized, isOnline, networkState?.backendAvailable, syncStatus.state, dbManager]);
 
-  // Load data from all collections
+  // Load data from all collections + Phase 2 orphan repair (students with missing class_stream_id → reassign)
   const loadAllCollections = useCallback(async () => {
     try {
       const collections = dbManager.getAllCollections();
@@ -419,6 +419,75 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
           logger.warn(`Failed to load collection ${name}:`, err);
           loadedData[name] = [];
         }
+      }
+
+      // Phase 2: ID normalization – coerce numeric ids to strings in-memory (handles legacy data)
+      for (const docs of Object.values(loadedData)) {
+        for (const doc of docs as any[]) {
+          if (doc.id != null) doc.id = String(doc.id);
+          for (const k of Object.keys(doc)) {
+            if (k.endsWith('_id') && typeof doc[k] === 'number') doc[k] = String(doc[k]);
+            if (k === 'class_stream_id' && typeof doc[k] === 'number') doc[k] = String(doc[k]);
+            if (k === 'current_class_stream_id' && typeof doc[k] === 'number') doc[k] = String(doc[k]);
+          }
+        }
+      }
+
+      // Orphan repair: students referencing missing class_stream
+      const streams = loadedData['class_streams'] || [];
+      const streamIds = new Set(streams.map((s: any) => String(s.id)));
+      const fallbackStreamId = streams[0] ? String(streams[0].id) : null;
+      const students = loadedData['students'];
+      if (Array.isArray(students) && streamIds.size > 0) {
+        let repaired = 0;
+        let droppedOptional = 0;
+        for (const s of students as any[]) {
+          const raw = s.current_class_stream_id ?? s.class_stream_id;
+          if (raw == null || raw === '') {
+            if (fallbackStreamId) {
+              logger.warn(`[AppDataContext] Student ${s.id} missing class_stream_id → reassigning to ${fallbackStreamId}`);
+              s.current_class_stream_id = fallbackStreamId;
+              repaired++;
+            }
+          } else if (!streamIds.has(String(raw))) {
+            logger.warn(`[AppDataContext] Student ${s.id} orphan class_stream_id=${raw} → reassigning to ${fallbackStreamId}`);
+            if (fallbackStreamId) {
+              s.current_class_stream_id = fallbackStreamId;
+              repaired++;
+            }
+          }
+        }
+        // Drop orphans in dependent tables that reference missing students (soft repair: log warnings)
+        const studentIds = new Set((students as any[]).map((s: any) => String(s.id)));
+        const orphanChecks: Array<[string, string]> = [
+          ['certificate_requests', 'student_id'],
+          ['gate_passes', 'student_id'],
+          ['visitor_logs', 'student_id'],
+          ['disciplinary_cases', 'student_id'],
+          ['disciplinary_records', 'student_id'],
+          ['student_health_records', 'student_id'],
+          ['student_attendance', 'student_id'],
+        ];
+        for (const [coll, fk] of orphanChecks) {
+          const docs = loadedData[coll];
+          if (!Array.isArray(docs)) continue;
+          const before = docs.length;
+          const filtered = (docs as any[]).filter((d: any) => {
+            const fkVal = d[fk];
+            if (fkVal == null) return true; // optional FK
+            return studentIds.has(String(fkVal));
+          });
+          if (filtered.length < before) {
+            logger.warn(`[AppDataContext] Dropping ${before - filtered.length} orphan(s) in ${coll} (missing ${fk})`);
+            loadedData[coll] = filtered;
+            droppedOptional++;
+          }
+        }
+        if (repaired > 0 || droppedOptional > 0) {
+          logger.info(`[AppDataContext] Orphan repair: ${repaired} students reassigned, ${droppedOptional} collections pruned`);
+        }
+      } else if (Array.isArray(students) && fallbackStreamId == null) {
+        logger.warn('[AppDataContext] No class_streams available – cannot repair student orphans');
       }
 
       setData(loadedData);
