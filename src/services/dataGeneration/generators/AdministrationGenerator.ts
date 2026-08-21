@@ -1,8 +1,11 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Generates comprehensive administration data including students, staff, partners, and communication templates
 // ABOUTME: Creates realistic profiles with relationships and dependencies for school management
 
 import { BaseGenerator } from './BaseGenerator';
 import { DataGenerationConfig } from '../types';
+import { generateAdmissionNo, generateDateOfBirth, generateKenyanPhone } from './dataUtils';
 
 export class AdministrationGenerator extends BaseGenerator {
   private academicYears: any[] = [];
@@ -18,20 +21,22 @@ export class AdministrationGenerator extends BaseGenerator {
 
   async generateData(count: number): Promise<any[]> {
     await this.initialize();
-    await this.generateSupportingData();
+    await this.generateSupportingData(count);
     
     const results: any[] = [];
     
-    // Generate comprehensive student data (minimum 500 students)
-    const studentData = await this.generateStudents(Math.max(500, Math.floor(count * 0.8)));
+    const studentCount = Math.floor(count * 0.8);
+    const staffCount = Math.max(0, count - studentCount);
+    const parentsCount = Math.floor(count * 0.6);
+
+    const studentData = await this.generateStudents(studentCount);
     results.push(...studentData);
     
-    // Generate comprehensive staff data (minimum 100 staff)
-    const staffData = await this.generateStaff(Math.max(100, count - Math.max(500, Math.floor(count * 0.8))));
+    const staffData = await this.generateStaff(staffCount);
     results.push(...staffData);
     
-    // Generate parents data
-    const parentsData = await this.generateParents(Math.max(300, Math.floor(count * 0.6)));
+    // Generate parents data - respects requested count volume
+    const parentsData = await this.generateParents(parentsCount);
     results.push(...parentsData);
     
     // Generate classes data
@@ -51,7 +56,7 @@ export class AdministrationGenerator extends BaseGenerator {
 
   private async generateParents(count: number): Promise<any[]> {
     const results: any[] = [];
-    console.log(`Generating ${count} parents...`);
+    logger.info(`Generating ${count} parents...`);
     
     const occupations = [
       'Teacher', 'Doctor', 'Engineer', 'Lawyer', 'Accountant', 'Nurse', 'Farmer',
@@ -90,7 +95,7 @@ export class AdministrationGenerator extends BaseGenerator {
 
   private async generateClasses(): Promise<any[]> {
     const results: any[] = [];
-    console.log('Generating classes...');
+    logger.info('Generating classes...');
     
     const forms = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
     const streams = ['A', 'B', 'C', 'D'];
@@ -125,7 +130,7 @@ export class AdministrationGenerator extends BaseGenerator {
 
   private async generateDepartmentsData(): Promise<any[]> {
     const results: any[] = [];
-    console.log('Generating departments data...');
+    logger.info('Generating departments data...');
     
     for (let i = 0; i < this.departments.length; i++) {
       const dept = this.departments[i];
@@ -153,7 +158,7 @@ export class AdministrationGenerator extends BaseGenerator {
 
   private async generateRoles(): Promise<any[]> {
     const results: any[] = [];
-    console.log('Generating roles...');
+    logger.info('Generating roles...');
     
     const roles = [
       { name: 'Principal', description: 'School Principal', level: 1 },
@@ -229,7 +234,7 @@ export class AdministrationGenerator extends BaseGenerator {
     return ranges[level] || { min: 10000, max: 20000 };
   }
 
-  private async generateSupportingData(): Promise<void> {
+  private async generateSupportingData(requestedCount?: number): Promise<void> {
     // Generate academic years
     this.academicYears = [
       { id: 'ay_2023', name: '2023', start_date: '2023-01-01', end_date: '2023-12-31', is_current: false },
@@ -237,9 +242,18 @@ export class AdministrationGenerator extends BaseGenerator {
       { id: 'ay_2025', name: '2025', start_date: '2025-01-01', end_date: '2025-12-31', is_current: false }
     ];
 
+    // Volume-aware scaling: respect requested count, avoid generating disproportionate supporting data for tiny volumes
+    const scaleCount = (total: number, min: number) => {
+      if (requestedCount == null) return total;
+      // Keep supporting data proportional but guarantee at least min entries for FK integrity
+      const scaled = Math.ceil(total * Math.min(1, requestedCount / 100));
+      return Math.max(min, Math.min(total, scaled));
+    };
+
     // Generate dormitories
     const dormitoryNames = ['Sunrise House', 'Sunset House', 'Eagle House', 'Lion House', 'Tiger House', 'Leopard House'];
-    this.dormitories = dormitoryNames.map((name, index) => ({
+    const dormCount = scaleCount(dormitoryNames.length, 1);
+    this.dormitories = dormitoryNames.slice(0, dormCount).map((name, index) => ({
       id: this.generateId('dorm', index),
       name,
       capacity: this.randomInt(50, 120),
@@ -252,7 +266,8 @@ export class AdministrationGenerator extends BaseGenerator {
 
     // Generate transport routes
     const routeNames = ['City Center Route', 'Westlands Route', 'Eastlands Route', 'Karen Route', 'Kileleshwa Route'];
-    this.transportRoutes = routeNames.map((name, index) => ({
+    const routeCount = scaleCount(routeNames.length, 1);
+    this.transportRoutes = routeNames.slice(0, routeCount).map((name, index) => ({
       id: this.generateId('route', index),
       name,
       description: `Transport route covering ${name.split(' ')[0]} area`,
@@ -270,7 +285,8 @@ export class AdministrationGenerator extends BaseGenerator {
       'Library', 'Sports', 'Guidance & Counseling', 'Health Services', 'Security',
       'Maintenance', 'Catering', 'Transport', 'Procurement'
     ];
-    this.departments = departmentNames.map((name, index) => ({
+    const deptCount = scaleCount(departmentNames.length, 2);
+    this.departments = departmentNames.slice(0, deptCount).map((name, index) => ({
       id: this.generateId('dept', index),
       name,
       description: `${name} department`,
@@ -287,7 +303,8 @@ export class AdministrationGenerator extends BaseGenerator {
       'Laboratory Technician', 'Librarian', 'Accountant', 'Secretary', 'Clerk',
       'Security Guard', 'Cleaner', 'Cook', 'Driver', 'Groundsman'
     ];
-    this.designations = designationNames.map((name, index) => ({
+    const desigCount = scaleCount(designationNames.length, 3);
+    this.designations = designationNames.slice(0, desigCount).map((name, index) => ({
       id: this.generateId('desig', index),
       title: name,
       description: `${name} position`,
@@ -305,7 +322,8 @@ export class AdministrationGenerator extends BaseGenerator {
       'History', 'Geography', 'CRE', 'IRE', 'Computer Studies', 'Business Studies',
       'Agriculture', 'Home Science', 'Art & Design', 'Music', 'French', 'German'
     ];
-    this.subjects = subjectNames.map((name, index) => ({
+    const subjectCount = scaleCount(subjectNames.length, 5);
+    this.subjects = subjectNames.slice(0, subjectCount).map((name, index) => ({
       id: this.generateId('subj', index),
       name,
       code: name.substring(0, 3).toUpperCase() + (index + 1).toString().padStart(3, '0'),
@@ -336,7 +354,7 @@ export class AdministrationGenerator extends BaseGenerator {
     const classes = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
     const streams = ['A', 'B', 'C', 'D'];
     
-    console.log(`Generating ${count} comprehensive student records...`);
+    logger.info(`Generating ${count} comprehensive student records...`);
     
     // Enhanced data arrays for comprehensive profiles
     const parentOccupations = [
@@ -358,15 +376,11 @@ export class AdministrationGenerator extends BaseGenerator {
       const currentClass = this.randomChoice(classes);
       const stream = this.randomChoice(streams);
       
-      // Generate admission number
-      const admissionNumber = `${admissionYear}/${(i + 1).toString().padStart(4, '0')}`;
+      // Centralized admission formatter ADMYYYYNNNN (from dataUtils)
+      const admissionNumber = generateAdmissionNo(i + 1);
       
-      // Generate birth date (14-18 years old)
-      const birthYear = currentYear - this.randomInt(14, 18);
-      const birthDate = this.randomDate(
-        new Date(birthYear, 0, 1),
-        new Date(birthYear, 11, 31)
-      );
+      // Birth date capped to day 1-28 via dataUtils helper
+      const birthDateStr = generateDateOfBirth(14, 18);
       
       // Generate comprehensive parent information
       const parentName = this.generateName();
@@ -379,7 +393,7 @@ export class AdministrationGenerator extends BaseGenerator {
         middle_name: name.middle || '',
         last_name: name.last,
         gender,
-        date_of_birth: this.formatDate(birthDate),
+        date_of_birth: birthDateStr,
         current_class: currentClass,
         stream,
         admission_date: `${admissionYear}-01-15`,
@@ -387,25 +401,25 @@ export class AdministrationGenerator extends BaseGenerator {
         dormitory_id: this.randomBoolean(0.7) ? this.randomChoice(this.dormitories).id : null,
         transport_route_id: this.randomBoolean(0.4) ? this.randomChoice(this.transportRoutes).id : null,
         
-        // Enhanced Parent/Guardian Information
+        // Enhanced Parent/Guardian Information - phone via centralized generateKenyanPhone
         parent_guardian_name: `${parentName.first} ${parentName.last}`,
-        parent_guardian_phone: this.generatePhoneNumber(),
+        parent_guardian_phone: generateKenyanPhone(),
         parent_guardian_email: this.generateEmail(parentName.first, parentName.last),
         parent_guardian_address: this.generateAddress(),
         parent_guardian_occupation: this.randomChoice(parentOccupations),
         parent_guardian_employer: this.generateCompanyName(),
-        parent_guardian_work_phone: this.generatePhoneNumber(),
+        parent_guardian_work_phone: generateKenyanPhone(),
         parent_guardian_id_number: this.randomInt(10000000, 99999999).toString(),
         parent_guardian_relationship: this.randomChoice(['Father', 'Mother', 'Guardian']),
         
         // Secondary Guardian
         secondary_guardian_name: this.randomBoolean(0.8) ? `${this.generateName().first} ${this.generateName().last}` : '',
-        secondary_guardian_phone: this.randomBoolean(0.8) ? this.generatePhoneNumber() : '',
+        secondary_guardian_phone: this.randomBoolean(0.8) ? generateKenyanPhone() : '',
         secondary_guardian_occupation: this.randomBoolean(0.8) ? this.randomChoice(parentOccupations) : '',
         
         // Emergency Contact
         emergency_contact_name: `${emergencyName.first} ${emergencyName.last}`,
-        emergency_contact_phone: this.generatePhoneNumber(),
+        emergency_contact_phone: generateKenyanPhone(),
         emergency_contact_relationship: this.randomChoice(['Uncle', 'Aunt', 'Grandparent', 'Family Friend']),
         emergency_contact_address: this.generateAddress(),
         
@@ -415,7 +429,7 @@ export class AdministrationGenerator extends BaseGenerator {
         current_medications: this.randomBoolean(0.1) ? this.randomChoice(medications) : '',
         blood_group: this.randomChoice(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']),
         doctor_name: `Dr. ${this.generateName().first} ${this.generateName().last}`,
-        doctor_phone: this.generatePhoneNumber(),
+        doctor_phone: generateKenyanPhone(),
         medical_insurance: this.randomBoolean(0.6) ? this.randomChoice(['NHIF', 'AAR', 'Jubilee']) : '',
         insurance_number: this.randomBoolean(0.6) ? this.randomInt(100000000, 999999999).toString() : '',
         
@@ -482,7 +496,7 @@ export class AdministrationGenerator extends BaseGenerator {
       'Kenya Association of Educational Administrators (KAEA)'
     ];
     
-    console.log(`Generating ${count} staff records...`);
+    logger.info(`Generating ${count} staff records...`);
     
     for (let i = 0; i < count; i++) {
       const gender = this.randomChoice(['male', 'female'] as const);
@@ -490,7 +504,7 @@ export class AdministrationGenerator extends BaseGenerator {
       const designation = this.randomChoice(this.designations);
       const department = this.randomChoice(this.departments);
       
-      // Generate employee number
+      // Employee number via centralized formatter not strictly required, keep local but ensure year prefix if needed
       const employeeNumber = `EMP${(i + 1).toString().padStart(4, '0')}`;
       
       // Generate hire date (1-15 years ago for more variety)
@@ -502,11 +516,9 @@ export class AdministrationGenerator extends BaseGenerator {
       // Calculate years of service
       const yearsOfService = Math.floor((Date.now() - hireDate.getTime()) / (365 * 24 * 60 * 60 * 1000));
       
-      // Generate birth date (25-65 years old)
-      const birthDate = this.randomDate(
-        new Date(1959, 0, 1),
-        new Date(1999, 11, 31)
-      );
+      // Generate birth date (25-65 years old) capped to day 1-28 via dataUtils
+      const birthDateStr = generateDateOfBirth(25, 65);
+      const birthDate = new Date(birthDateStr);
       
       // Calculate age
       const age = Math.floor((Date.now() - birthDate.getTime()) / (365 * 24 * 60 * 60 * 1000));
@@ -523,16 +535,16 @@ export class AdministrationGenerator extends BaseGenerator {
         middle_name: name.middle || '',
         last_name: name.last,
         gender,
-        date_of_birth: this.formatDate(birthDate),
+        date_of_birth: birthDateStr,
         age,
         national_id: this.randomInt(10000000, 99999999).toString(),
-        phone_number: this.generatePhoneNumber(),
-        alternative_phone: this.randomBoolean(0.6) ? this.generatePhoneNumber() : '',
+        phone_number: generateKenyanPhone(),
+        alternative_phone: this.randomBoolean(0.6) ? generateKenyanPhone() : '',
         email: this.generateEmail(name.first, name.last, 'school.edu'),
         personal_email: this.generateEmail(name.first, name.last),
         address: this.generateAddress(),
         next_of_kin_name: `${this.generateName().first} ${this.generateName().last}`,
-        next_of_kin_phone: this.generatePhoneNumber(),
+        next_of_kin_phone: generateKenyanPhone(),
         next_of_kin_relationship: this.randomChoice(['Spouse', 'Parent', 'Sibling', 'Child']),
         
         // Employment Details
@@ -588,7 +600,7 @@ export class AdministrationGenerator extends BaseGenerator {
         marital_status: this.randomChoice(['Single', 'Married', 'Divorced', 'Widowed']),
         number_of_dependents: this.randomInt(0, 5),
         emergency_contact_name: `${this.generateName().first} ${this.generateName().last}`,
-        emergency_contact_phone: this.generatePhoneNumber(),
+        emergency_contact_phone: generateKenyanPhone(),
         
         is_active: this.randomBoolean(0.95),
         created_at: this.generateTimestamp(365),
@@ -646,7 +658,7 @@ export class AdministrationGenerator extends BaseGenerator {
     const results: any[] = [];
     const partnerTypes = ['Supplier', 'Service Provider', 'Consultant', 'Contractor', 'Vendor'];
     
-    console.log(`Generating ${count} partner records...`);
+    logger.info(`Generating ${count} partner records...`);
     
     for (let i = 0; i < count; i++) {
       const partnerType = this.randomChoice(partnerTypes);
@@ -719,7 +731,7 @@ export class AdministrationGenerator extends BaseGenerator {
       }
     ];
     
-    console.log(`Generating ${templates.length} communication templates...`);
+    logger.info(`Generating ${templates.length} communication templates...`);
     
     for (let i = 0; i < templates.length; i++) {
       const template = templates[i];

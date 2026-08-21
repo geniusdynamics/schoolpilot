@@ -254,6 +254,15 @@ const getSeedEntries = (modules?: string[]): SeedEntry[] => {
   });
 };
 
+const shuffleArray = <T>(array: T[]): T[] => {
+  const copy = [...array];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+};
+
 const applyVolume = (records: any[], volume: SeedVolume): any[] => {
   const factor = VOLUME_FACTORS[volume];
   if (factor >= 1) {
@@ -261,7 +270,37 @@ const applyVolume = (records: any[], volume: SeedVolume): any[] => {
   }
 
   const count = Math.max(1, Math.ceil(records.length * factor));
-  return records.slice(0, count);
+  return shuffleArray(records).slice(0, count);
+};
+
+const buildVolumeSampleMap = (entries: SeedEntry[], volume: SeedVolume): Map<string, any[]> => {
+  const map = new Map<string, any[]>();
+  for (const entry of entries) {
+    const collectionName = entry.collectionName!;
+    map.set(collectionName, applyVolume(entry.records, volume));
+  }
+
+  // FK closure: ensure class_streams referenced by sampled students are retained
+  const sampledStudents = map.get('students');
+  const sampledStreams = map.get('class_streams');
+  if (sampledStudents && sampledStreams) {
+    const neededIds = new Set(
+      sampledStudents
+        .map((r: any) => r.current_class_stream_id ?? r.current_class_streamId ?? r.class_stream_id ?? r.classStreamId)
+        .filter((v: any) => v != null)
+        .map((v: any) => String(v))
+    );
+    if (neededIds.size > 0) {
+      const existingIds = new Set(sampledStreams.map((r: any) => String(r.id)));
+      const allStreamsEntry = entries.find((e) => e.collectionName === 'class_streams');
+      const missing = (allStreamsEntry?.records ?? []).filter((r: any) => neededIds.has(String(r.id)) && !existingIds.has(String(r.id)));
+      if (missing.length > 0) {
+        map.set('class_streams', [...sampledStreams, ...missing]);
+      }
+    }
+  }
+
+  return map;
 };
 
 const ensureCollection = async (provider: IDatabaseProvider, collectionName: string): Promise<ICollection<any> | null> => {
@@ -371,6 +410,8 @@ export const seedProviderWithDemoData = async (
     }
   }
 
+  const volumeSampleMap = buildVolumeSampleMap(seedEntries, volume);
+
   for (const entry of seedEntries) {
     const collectionName = entry.collectionName;
     if (!collectionName) {
@@ -388,7 +429,8 @@ export const seedProviderWithDemoData = async (
       continue;
     }
 
-    const normalizedRecords = applyVolume(entry.records, volume).map(normalizeRecord);
+    const sampledForCollection = volumeSampleMap.get(collectionName) ?? applyVolume(entry.records, volume);
+    const normalizedRecords = sampledForCollection.map(normalizeRecord);
     if (normalizedRecords.length === 0) {
       continue;
     }
