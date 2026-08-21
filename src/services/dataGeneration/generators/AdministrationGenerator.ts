@@ -50,6 +50,22 @@ export class AdministrationGenerator extends BaseGenerator {
     // Generate roles data
     const rolesData = await this.generateRoles();
     results.push(...rolesData);
+
+    // Ensure administration supplemental tables are actually emitted (partners, academic years, school periods, certificates, gate passes)
+    const partnersData = await this.generatePartners(Math.max(20, Math.floor(count * 0.2)));
+    results.push(...partnersData);
+
+    const academicYearsData = await this.generateAcademicYears(0);
+    results.push(...academicYearsData);
+
+    const schoolPeriodsData = await this.generateSchoolPeriods();
+    results.push(...schoolPeriodsData);
+
+    const certificatesData = await this.generateCertificates(Math.max(10, Math.floor(count * 0.1)));
+    results.push(...certificatesData);
+
+    const gatePassesData = await this.generateGatePasses(50);
+    results.push(...gatePassesData);
     
     return results;
   }
@@ -95,36 +111,62 @@ export class AdministrationGenerator extends BaseGenerator {
 
   private async generateClasses(): Promise<any[]> {
     const results: any[] = [];
-    logger.info('Generating classes...');
-    
-    const forms = ['Form 1', 'Form 2', 'Form 3', 'Form 4'];
-    const streams = ['A', 'B', 'C', 'D'];
-    
-    let classId = 0;
-    for (const form of forms) {
-      for (const stream of streams) {
-        const classData = {
-          id: this.generateId('class', classId++),
-          name: `${form}${stream}`,
-          form: form,
-          stream: stream,
-          capacity: this.randomInt(35, 45),
-          current_enrollment: this.randomInt(25, 40),
-          class_teacher_id: this.generateId('staff', this.randomInt(0, 99)),
-          room_number: `R${this.randomInt(100, 299)}`,
-          academic_year: new Date().getFullYear(),
+    logger.info('Generating aligned classes & class_streams (6 streams matching mockData)...');
+
+    // Canonical 4 classes matching mockData
+    const classDefs = [
+      { id: 1, name: 'Form 1' },
+      { id: 2, name: 'Form 2' },
+      { id: 3, name: 'Form 3' },
+      { id: 4, name: 'Form 4' },
+    ];
+    for (const cls of classDefs) {
+      results.push({
+        table: 'classes',
+        data: {
+          id: cls.id,
+          // keep string prefixed alias for alignment verification (both use class_ prefix conceptually)
+          class_id: `class_${cls.id}`,
+          name: cls.name,
           is_active: true,
           created_at: this.generateTimestamp(365),
           updated_at: this.generateTimestamp(30)
-        };
-        
-        results.push({
-          table: 'classes',
-          data: classData
-        });
-      }
+        }
+      });
     }
-    
+
+    // Deterministic 6 streams matching mockData: Form1A,1B,2A,2B,North,East
+    // class_teacher_id references actual staff IDs (STF013 etc.) validated against mockData staff
+    const streamDefs: Array<{ id: number; class_id: number; name: string; class_teacher_id: string; class_name: string; class_teacher_name: string }> = [
+      { id: 1, class_id: 1, name: 'A', class_teacher_id: 'STF013', class_name: 'Form 1', class_teacher_name: 'Betty Ngugi' },
+      { id: 2, class_id: 1, name: 'B', class_teacher_id: 'STF020', class_name: 'Form 1', class_teacher_name: 'Paul Kiarie' },
+      { id: 3, class_id: 2, name: 'A', class_teacher_id: 'STF016', class_name: 'Form 2', class_teacher_name: 'Lucy Wambui' },
+      { id: 4, class_id: 2, name: 'B', class_teacher_id: 'STF015', class_name: 'Form 2', class_teacher_name: 'Peter Omondi' },
+      { id: 5, class_id: 3, name: 'North', class_teacher_id: 'STF011', class_name: 'Form 3', class_teacher_name: 'Grace Mwema' },
+      { id: 6, class_id: 4, name: 'East', class_teacher_id: 'STF017', class_name: 'Form 4', class_teacher_name: 'James Mwangi' },
+    ];
+    for (const s of streamDefs) {
+      results.push({
+        table: 'class_streams',
+        data: {
+          id: s.id,
+          class_id: s.class_id,
+          name: s.name,
+          class_teacher_id: s.class_teacher_id,
+          class_name: s.class_name,
+          class_teacher_name: s.class_teacher_name,
+          // id prefix class_ alias for verification
+          stream_code: `class_${s.id}`,
+          capacity: this.randomInt(35, 45),
+          current_enrollment: this.randomInt(25, 40),
+          room_number: `R${this.randomInt(100, 299)}`,
+          is_active: true,
+          created_at: this.generateTimestamp(365),
+          updated_at: this.generateTimestamp(30)
+        }
+      });
+    }
+
     return results;
   }
 
@@ -343,8 +385,91 @@ export class AdministrationGenerator extends BaseGenerator {
         table: 'academic_year_structures',
         data: academicYear
       });
+      // also emit academic_years aligned with mockData for UniversalDataGenerator output
+      results.push({
+        table: 'academic_years',
+        data: {
+          id: academicYear.id,
+          name: academicYear.name,
+          start_date: academicYear.start_date,
+          end_date: academicYear.end_date,
+          is_current: academicYear.is_current,
+          created_at: this.generateTimestamp(365),
+          updated_at: this.generateTimestamp(30)
+        }
+      });
     }
     
+    return results;
+  }
+
+  private async generateSchoolPeriods(): Promise<any[]> {
+    const results: any[] = [];
+    // deterministic 3 periods matching current academic year
+    const periods = [
+      { id: 7, academic_year_id: 3, period_definition_id: 1, financial_year_id: 2, name: 'Term 1 - AY 2024/2025' },
+      { id: 8, academic_year_id: 3, period_definition_id: 2, financial_year_id: 3, name: 'Term 2 - AY 2024/2025' },
+      { id: 9, academic_year_id: 3, period_definition_id: 3, financial_year_id: 3, name: 'Term 3 - AY 2024/2025' },
+    ];
+    for (const p of periods) {
+      results.push({
+        table: 'school_periods',
+        data: {
+          ...p,
+          start_date: '2024-09-01',
+          end_date: '2025-06-30',
+          is_active: p.id === 7,
+          created_at: this.generateTimestamp(365),
+          updated_at: this.generateTimestamp(30)
+        }
+      });
+    }
+    return results;
+  }
+
+  private async generateCertificates(count: number): Promise<any[]> {
+    const results: any[] = [];
+    const types = ['Birth Certificate', 'KCPE Certificate', 'Transfer Certificate', 'Character Certificate'];
+    for (let i = 0; i < count; i++) {
+      results.push({
+        table: 'certificates',
+        data: {
+          id: this.generateId('cert', i),
+          certificate_type: this.randomChoice(types),
+          student_id: this.generateId('student', this.randomInt(0, 99)),
+          issue_date: this.generateTimestamp(this.randomInt(0, 365)),
+          certificate_number: `CERT${(i+1).toString().padStart(6,'0')}`,
+          is_verified: this.randomBoolean(0.8),
+          created_at: this.generateTimestamp(365),
+          updated_at: this.generateTimestamp(30)
+        }
+      });
+    }
+    return results;
+  }
+
+  private async generateGatePasses(count: number): Promise<any[]> {
+    const results: any[] = [];
+    const passTypes = ['Early Departure', 'Medical Emergency', 'Personal', 'Official'];
+    const statuses = ['Approved', 'Issued', 'Pending', 'Rejected'];
+    for (let i = 0; i < count; i++) {
+      results.push({
+        table: 'gate_passes',
+        data: {
+          id: this.generateId('gatepass', i),
+          student_id: this.generateId('student', this.randomInt(0, 99)),
+          student_name: `${this.generateName().first} ${this.generateName().last}`,
+          pass_type: this.randomChoice(passTypes),
+          reason: this.generateText(5, 10),
+          departure_time: this.generateTimestamp(this.randomInt(0, 30)),
+          status: this.randomChoice(statuses),
+          authorized_by: `${this.generateName().first} ${this.generateName().last}`,
+          created_at: this.generateTimestamp(30),
+          updated_at: this.generateTimestamp(10)
+        }
+      });
+    }
+    logger.info(`Generated ${count} gate passes`);
     return results;
   }
 
