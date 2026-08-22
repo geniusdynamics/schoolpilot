@@ -1,7 +1,6 @@
 // ABOUTME: Basic test suite for the Enhanced Kanban Board component
 // ABOUTME: Tests core functionality without complex drag-and-drop scenarios
 
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';

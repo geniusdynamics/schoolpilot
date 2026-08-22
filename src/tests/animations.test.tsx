@@ -5,27 +5,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import {
-  usePageTransition,
-  usePerformantAnimation,
-  useAnimationPerformance,
-  useProgressiveAnimation,
-  useStaggeredAnimation,
-  useAnimationOrchestrator,
-  useTransitionState,
-  createAnimation,
-  createStaggeredAnimation,
-  useAnimation,
-  getAnimationStyles,
-  createTransition,
-  useTransition,
-  optimizeAnimation,
-  useAnimationEvents,
-  useIntersectionAnimation,
-  animationPresets,
-  keyframes,
-  transitions,
-} from '@/utils/animations';
+import { usePageTransition, usePerformantAnimation, useAnimationPerformance, useProgressiveAnimation, useStaggeredAnimation, useAnimationOrchestrator, useTransitionState, createAnimation, createStaggeredAnimation, useAnimation, getAnimationStyles, createTransition, useTransition, optimizeAnimation, useAnimationEvents, useIntersectionAnimation, animationPresets, keyframes } from '@/utils/animations';
 
 // Mock reduced motion hook and IntersectionObserver
 import { vi } from 'vitest';
@@ -447,7 +427,7 @@ describe('Animation System', () => {
       const { result } = renderHook(() => useAnimationPerformance());
       
       // Simulate 60fps frame times (16.67ms per frame)
-      const frameTime = 16.67;
+
       
       act(() => {
         // Simulate multiple frames at 60fps

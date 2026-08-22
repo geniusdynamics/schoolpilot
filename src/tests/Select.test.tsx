@@ -1,11 +1,11 @@
 // ABOUTME: Comprehensive tests for the enhanced Select component
 // ABOUTME: Tests functionality, accessibility, keyboard navigation, and edge cases
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import Select, { SelectOption } from '@/components/ui/Select';
+import { screen } from '@testing-library/react';
 
 // Mock scrollIntoView for JSDOM
 Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
@@ -25,12 +25,12 @@ const mockIconOptions: SelectOption[] = [
   { 
     value: 'icon1', 
     label: 'Icon Option 1', 
-    icon: <span data-testid="icon-1">🔥</span> 
+    icon: <span data-testid="icon-1">ðŸ”¥</span> 
   },
   { 
     value: 'icon2', 
     label: 'Icon Option 2', 
-    icon: <span data-testid="icon-2">⭐</span> 
+    icon: <span data-testid="icon-2">â­</span> 
   },
 ];
 

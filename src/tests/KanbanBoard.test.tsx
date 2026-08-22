@@ -1,12 +1,12 @@
 // ABOUTME: Test suite for the Enhanced Kanban Board component
 // ABOUTME: Tests drag-and-drop functionality, filtering, bulk operations, and accessibility
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import KanbanBoard, { KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
+import { screen } from '@testing-library/react';
 
 // Mock the accessibility hook
 vi.mock('../utils/accessibility', () => ({
@@ -112,7 +112,7 @@ describe('KanbanBoard', () => {
       
       // Should show skeleton loaders instead of actual content
       expect(screen.queryByText('Test Card 1')).not.toBeInTheDocument();
-      expect(screen.getAllByRole('generic')).toHaveLength(9); // 3 columns × 3 skeleton cards
+      expect(screen.getAllByRole('generic')).toHaveLength(9); // 3 columns Ã— 3 skeleton cards
     });
 
     it('displays column colors when provided', () => {

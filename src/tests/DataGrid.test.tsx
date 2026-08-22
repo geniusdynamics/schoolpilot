@@ -1,11 +1,11 @@
 // ABOUTME: Comprehensive tests for DataGrid component functionality
 // ABOUTME: Tests sorting, filtering, selection, responsive design, and accessibility
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import DataGrid, { DataGridColumn } from '@/components/ui/data/DataGrid';
+import { screen } from '@testing-library/react';
 
 interface TestData {
   id: number;

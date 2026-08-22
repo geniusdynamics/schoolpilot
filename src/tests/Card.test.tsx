@@ -2,12 +2,13 @@
 // ABOUTME: Tests variants, interactions, accessibility, and responsive behavior
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import Card from '@/components/ui/Card';
 
 import { vi } from 'vitest';
+import { screen } from '@testing-library/react';
 
 // Mock the animation utilities
 vi.mock('../utils/animations', () => ({
@@ -44,7 +45,7 @@ describe('Card Component', () => {
 
     it('renders with icon and actions', () => {
       const mockAction = <button>Action</button>;
-      const mockIcon = <span data-testid="card-icon">🎯</span>;
+      const mockIcon = <span data-testid="card-icon">ðŸŽ¯</span>;
 
       render(
         <Card title="Test Card" icon={mockIcon} actions={mockAction}>

@@ -1,17 +1,15 @@
 // ABOUTME: Module-specific DataGrid tests for different data types and use cases
 // ABOUTME: Tests DataGrid implementations across Inventory, Finance, HR, and Academic modules
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import DataGrid, { DataGridColumn } from '@/components/ui/data/DataGrid';
+import { screen } from '@testing-library/react';
 
 // Import types from different modules
-import { StockTransaction, StockLevel, Warehouse, PurchaseOrder, Requisition } from '@/modules/inventory/data/types';
-import { FinGeneralPaymentType, FinStudentInvoiceType, FinFeeTemplateType } from '@/modules/finance/data/types';
-import { HRPayslipType, HRStaffSalarySetting } from '@/modules/hr/data/types';
-import { AcademicStudentType, AcademicSubjectType, AcademicClassType } from '@/modules/academics/data/types';
+
+
 
 // Mock data for different modules
 const mockStockTransactions: StockTransaction[] = [

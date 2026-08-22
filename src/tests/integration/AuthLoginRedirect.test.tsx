@@ -3,9 +3,10 @@
 
 import { vi, describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import React from 'react';
-import { render, act, screen, waitFor } from '@testing-library/react';
+
 import App from '../../App';
 import { initializeI18n } from '../../i18n/i18n';
+import { screen } from '@testing-library/react';
 
 const mockNavigate = vi.fn();
 
@@ -104,7 +105,7 @@ vi.mock('/src/contexts/AppDataContext', async () => {
 });
 
 vi.mock('/src/modules/core/pages/LoginPage', async () => {
-  const ReactModule = await import('react');
+
   const { useEffect } = await import('react');
   const { useNavigate } = await import('react-router-dom');
   return {

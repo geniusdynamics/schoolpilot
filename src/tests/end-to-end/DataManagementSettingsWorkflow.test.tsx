@@ -1,7 +1,6 @@
 // ABOUTME: Workflow-level end-to-end test for consolidated data management settings
 // ABOUTME: Exercises mode, database, backend, sync, and reset interactions across one page flow
 
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';

@@ -1,12 +1,12 @@
 // ABOUTME: Comprehensive tests for Button, IconButton, and ButtonGroup components
 // ABOUTME: Tests functionality, accessibility, and WCAG compliance
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import { describe, it, expect, vi } from 'vitest';
 import Button from '@/components/ui/Button';
 import IconButton from '@/components/ui/IconButton';
 import ButtonGroup from '@/components/ui/ButtonGroup';
+import { screen } from '@testing-library/react';
 
 // Mock icon for testing
 const MockIcon = () => <svg data-testid="mock-icon" />;

@@ -1,7 +1,6 @@
 // ABOUTME: Integration test for complete configuration switching functionality
 // ABOUTME: Tests end-to-end mode switching between development, demo, and production with real providers
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { getDataModeManager, resetDataModeManager } from '@/services/dataModeManager';
 import { getDatabaseProviderFactory } from '@/services/DatabaseProviderFactory';
 import { getDataLayerConfig } from '@/config/dataLayerConfig';

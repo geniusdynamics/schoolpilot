@@ -1,7 +1,6 @@
 // ABOUTME: Tests for useDataMode React hook
 // ABOUTME: Tests hook state management, event handling, and integration with DataModeManager
 
-import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import { useDataMode } from '@/hooks/useDataMode';

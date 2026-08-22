@@ -2,11 +2,12 @@
 // ABOUTME: Tests animations, form integration, auto-save, accessibility, and user interactions
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import { SlideoutForm } from '@/components/ui/forms/SlideoutForm';
 
 import { vi } from 'vitest';
+import { screen } from '@testing-library/react';
 
 // Mock the portal functionality
 vi.mock('react-dom', () => ({

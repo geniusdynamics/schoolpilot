@@ -1,7 +1,6 @@
 // ABOUTME: Integration tests for consolidated Data Layer Settings workflow
 // ABOUTME: Verifies unified mode, database, backend, and sync controls live in one page
 
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';

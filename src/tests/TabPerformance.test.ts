@@ -274,7 +274,7 @@ describe('TabPerformanceManager', () => {
       // Wait longer than timeout to ensure cleanup doesn't happen
       return new Promise(resolve => {
         setTimeout(() => {
-          const metrics = performanceManager.getPerformanceMetrics();
+
           // Tab should still be tracked (not cleaned up)
           resolve(undefined);
         }, 150);

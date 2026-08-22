@@ -4,7 +4,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { vi } from 'vitest';
 
 const SimpleComponent = () => {
   return <div>Hello World</div>;

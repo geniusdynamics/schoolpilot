@@ -2,7 +2,7 @@
 // ABOUTME: Covers data formatting, interactive states, and accessibility features
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
@@ -44,6 +44,7 @@ import { it } from 'node:test';
 import { it } from 'node:test';
 import { describe } from 'node:test';
 import { describe } from 'node:test';
+import { screen } from '@testing-library/react';
 
 // Mock the Card component
 vi.mock('../components/ui/Card', () => ({
@@ -112,7 +113,7 @@ describe('DataCard Component', () => {
       const metric = {
         label: 'Total Revenue',
         value: 125000,
-        icon: <span data-testid="metric-icon">💰</span>,
+        icon: <span data-testid="metric-icon">ðŸ’°</span>,
         color: 'green' as const
       };
 
@@ -143,7 +144,7 @@ describe('DataCard Component', () => {
       expect(screen.getByText('1,000')).toBeInTheDocument();
       expect(screen.getByText('12.5%')).toBeInTheDocument();
       expect(screen.getByText('vs last month')).toBeInTheDocument();
-      expect(screen.getByText('↗')).toBeInTheDocument();
+      expect(screen.getByText('â†—')).toBeInTheDocument();
     });
 
     it('renders metric with change indicator (decrease)', () => {
@@ -159,7 +160,7 @@ describe('DataCard Component', () => {
       render(<DataCard metric={metric} />);
 
       expect(screen.getByText('25%')).toBeInTheDocument();
-      expect(screen.getByText('↘')).toBeInTheDocument();
+      expect(screen.getByText('â†˜')).toBeInTheDocument();
     });
 
     it('renders metric with change indicator (neutral)', () => {
@@ -175,7 +176,7 @@ describe('DataCard Component', () => {
       render(<DataCard metric={metric} />);
 
       expect(screen.getByText('0%')).toBeInTheDocument();
-      expect(screen.getByText('→')).toBeInTheDocument();
+      expect(screen.getByText('â†’')).toBeInTheDocument();
     });
 
     it('formats string values correctly', () => {

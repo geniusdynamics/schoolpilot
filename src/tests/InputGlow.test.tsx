@@ -1,7 +1,6 @@
 // ABOUTME: Test suite for Input component glow effects
 // ABOUTME: Tests that glow CSS classes are applied correctly
 
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';

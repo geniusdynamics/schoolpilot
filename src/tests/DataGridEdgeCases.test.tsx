@@ -2,10 +2,11 @@
 // ABOUTME: Tests boundary conditions, error handling, and unusual data scenarios
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import DataGrid, { DataGridColumn } from '@/components/ui/data/DataGrid';
+import { screen } from '@testing-library/react';
 
 interface TestItem {
   id: string | number;
@@ -69,7 +70,7 @@ describe('DataGrid Edge Cases', () => {
     it('handles special characters and HTML entities', () => {
       const dataWithSpecialChars: TestItem[] = [
         { id: 1, name: 'Test & Co.', value: '<script>alert("xss")</script>' },
-        { id: 2, name: 'Café & Résumé', value: '100% & 50€' },
+        { id: 2, name: 'CafÃ© & RÃ©sumÃ©', value: '100% & 50â‚¬' },
         { id: 3, name: 'Line\nBreak', value: 'Tab\tCharacter' }
       ];
       
@@ -82,8 +83,8 @@ describe('DataGrid Edge Cases', () => {
       render(<DataGrid columns={columns} data={dataWithSpecialChars} />);
       
       expect(screen.getByText('Test & Co.')).toBeInTheDocument();
-      expect(screen.getByText('Café & Résumé')).toBeInTheDocument();
-      expect(screen.getByText('100% & 50€')).toBeInTheDocument();
+      expect(screen.getByText('CafÃ© & RÃ©sumÃ©')).toBeInTheDocument();
+      expect(screen.getByText('100% & 50â‚¬')).toBeInTheDocument();
       
       // Ensure XSS content is rendered as text, not executed
       expect(screen.getByText('<script>alert("xss")</script>')).toBeInTheDocument();
@@ -322,7 +323,7 @@ describe('DataGrid Edge Cases', () => {
     });
 
     it('handles keyboard navigation with disabled elements', async () => {
-      const user = userEvent.setup();
+
       
       const columnsWithDisabled: DataGridColumn<TestItem>[] = [
         { key: 'id', header: 'ID', sortable: false },

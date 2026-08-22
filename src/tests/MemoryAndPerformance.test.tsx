@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, act } from '@testing-library/react';
 import { TabContext } from '@/contexts/TabContext';
-import { TabPanel } from '@/components/TabPanel';
+
 import { useRenderCount, useTrackMemoryUsage, trackEventListeners } from '@/utils/testUtils';
 
 describe('Memory and Performance Tests', () => {
@@ -130,7 +130,6 @@ describe('Memory and Performance Tests', () => {
     const TestComponent = () => {
       const [data, setData] = React.useState<any[]>([]);
       const memoryUsage = useTrackMemoryUsage();
-      let initialMemory = 0;
 
       React.useEffect(() => {
         initialMemory = memoryUsage.current;

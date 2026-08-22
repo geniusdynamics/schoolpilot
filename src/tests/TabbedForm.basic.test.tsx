@@ -1,9 +1,8 @@
 // ABOUTME: Basic test to verify TabbedForm component renders without errors
 // ABOUTME: Tests the useMemo import fix and basic functionality
 
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { vi, describe, it, expect } from 'vitest';
+
 import TabbedForm from '@/components/ui/forms/TabbedForm';
 
 describe('TabbedForm - Basic Functionality', () => {

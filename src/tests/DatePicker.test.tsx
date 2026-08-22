@@ -1,11 +1,11 @@
 // ABOUTME: Comprehensive tests for DatePicker component functionality and accessibility
 // ABOUTME: Tests single date, date range, keyboard navigation, validation, and screen reader support
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import DatePicker from '@/components/ui/forms/DatePicker';
+import { screen } from '@testing-library/react';
 
 // Mock the utility functions
 vi.mock('../utils/animations', () => ({
@@ -479,7 +479,7 @@ describe('DatePicker Component', () => {
       
       // Should display French month name
       const monthHeader = screen.getByRole('heading', { level: 2 });
-      expect(monthHeader.textContent).toMatch(/janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre/i);
+      expect(monthHeader.textContent).toMatch(/janvier|fÃ©vrier|mars|avril|mai|juin|juillet|aoÃ»t|septembre|octobre|novembre|dÃ©cembre/i);
     });
   });
 });

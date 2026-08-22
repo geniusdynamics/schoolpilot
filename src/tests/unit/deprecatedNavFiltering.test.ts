@@ -3,8 +3,9 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { moduleRegistry } from '../../core/moduleRegistry';
-import { ModuleDefinition, NavItem } from '../../core/types';
+
 import { moduleConfigService } from '../../services/module/moduleConfigService';
+import type { ModuleDefinition } from '@/core/types';
 
 // Mock the moduleConfigService
 vi.mock('../../services/module/moduleConfigService', () => ({

@@ -2,7 +2,7 @@
 // ABOUTME: Tests component imports, rendering, and basic interactions without real dependencies
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+
 import { BrowserRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/i18n/i18n';
@@ -176,16 +176,16 @@ vi.mock('@/components/ui/Select', () => ({
 }));
 
 vi.mock('@/components/ui/icons', () => ({
-  CogIcon: () => <span data-testid="cog-icon">⚙️</span>,
-  ArchiveIcon: () => <span data-testid="archive-icon">📦</span>,
-  DeleteIcon: () => <span data-testid="delete-icon">🗑️</span>,
-  AlertTriangleIcon: () => <span data-testid="alert-icon">⚠️</span>,
-  CheckCircleIcon: () => <span data-testid="check-icon">✅</span>,
-  InformationCircleIcon: () => <span data-testid="info-icon">ℹ️</span>,
-  CircleStackIcon: () => <span data-testid="stack-icon">📚</span>,
-  DatabaseIcon: () => <span data-testid="database-icon">🗄️</span>,
-  DownloadIcon: () => <span data-testid="download-icon">⬇️</span>,
-  ExclamationTriangleIcon: () => <span data-testid="warning-icon">⚠️</span>,
+  CogIcon: () => <span data-testid="cog-icon">âš™ï¸</span>,
+  ArchiveIcon: () => <span data-testid="archive-icon">ðŸ“¦</span>,
+  DeleteIcon: () => <span data-testid="delete-icon">ðŸ—‘ï¸</span>,
+  AlertTriangleIcon: () => <span data-testid="alert-icon">âš ï¸</span>,
+  CheckCircleIcon: () => <span data-testid="check-icon">âœ…</span>,
+  InformationCircleIcon: () => <span data-testid="info-icon">â„¹ï¸</span>,
+  CircleStackIcon: () => <span data-testid="stack-icon">ðŸ“š</span>,
+  DatabaseIcon: () => <span data-testid="database-icon">ðŸ—„ï¸</span>,
+  DownloadIcon: () => <span data-testid="download-icon">â¬‡ï¸</span>,
+  ExclamationTriangleIcon: () => <span data-testid="warning-icon">âš ï¸</span>,
 }));
 
 // Test wrapper component

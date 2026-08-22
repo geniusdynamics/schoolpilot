@@ -2,7 +2,7 @@
 // ABOUTME: Tests mode switching, provider management, backend integration, and complex state management
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { DataLayerSettingsPage } from '@/modules/settings/pages/DataLayerSettingsPage';
@@ -10,6 +10,7 @@ import { useAppData } from '@/hooks/useAppData';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/DataServiceFactory';
 import { DATA_LAYER_CONFIG } from '@/config/dataLayerConfig';
+import { screen } from '@testing-library/react';
 
 // Mock all dependencies
 vi.mock('../../hooks/useAppData');
@@ -263,7 +264,7 @@ describe('DataLayerSettingsPage Integration Tests', () => {
     });
 
     it('should show informational messages for different modes', async () => {
-      const user = userEvent.setup();
+
       
       await act(async () => {
         render(

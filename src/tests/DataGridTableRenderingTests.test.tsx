@@ -1,7 +1,6 @@
 // ABOUTME: Test file for DataGrid table rendering with various data states
 // ABOUTME: Tests empty modules array, missing/undefined properties, loading states, and console error prevention
 
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import DataGrid, { DataGridColumn } from '@/components/ui/data/DataGrid';
@@ -129,7 +128,7 @@ describe('DataGrid Table Rendering - Various Data States', () => {
     it('displays custom empty state message when no modules are provided', () => {
       const customEmptyState = (
         <div className="text-center py-12">
-          <div className="text-4xl mb-4">📦</div>
+          <div className="text-4xl mb-4">ðŸ“¦</div>
           <div className="text-lg font-medium text-gray-900 mb-2">No modules available</div>
           <div className="text-gray-500">Add your first module to get started</div>
         </div>
@@ -145,7 +144,7 @@ describe('DataGrid Table Rendering - Various Data States', () => {
 
       expect(screen.getByText('No modules available')).toBeInTheDocument();
       expect(screen.getByText('Add your first module to get started')).toBeInTheDocument();
-      expect(screen.getByText('📦')).toBeInTheDocument();
+      expect(screen.getByText('ðŸ“¦')).toBeInTheDocument();
     });
 
     it('displays default empty state when no custom empty state is provided', () => {
@@ -157,7 +156,7 @@ describe('DataGrid Table Rendering - Various Data States', () => {
       );
 
       expect(screen.getByText('No data available')).toBeInTheDocument();
-      expect(screen.getByText('📊')).toBeInTheDocument();
+      expect(screen.getByText('ðŸ“Š')).toBeInTheDocument();
     });
 
     it('renders table headers even when data is empty', () => {

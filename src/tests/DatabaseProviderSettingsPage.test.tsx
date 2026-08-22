@@ -1,7 +1,6 @@
 // ABOUTME: Test suite for DatabaseProviderSettingsPage component functionality
 // ABOUTME: Tests provider selection, configuration saving, and environment handling
 
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 

@@ -1,7 +1,6 @@
 // ABOUTME: Basic tests for the enhanced Select component
 // ABOUTME: Tests core functionality and accessibility features
 
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';

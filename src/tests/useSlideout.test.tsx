@@ -1,4 +1,4 @@
-// ABOUTME: Tests for useSlideout hook functionality
+﻿// ABOUTME: Tests for useSlideout hook functionality
 // ABOUTME: Tests state management, auto-save, data updates, and hook integration
 
 import { renderHook, act } from '@testing-library/react';

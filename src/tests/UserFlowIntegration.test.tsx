@@ -1,11 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { TabContext } from '@/contexts/TabContext';
 import { AuthContext } from '@/contexts/AuthContext';
 import { App } from '../App';
 import { LoginPage } from '../pages/LoginPage';
-import { Dashboard } from '../pages/Dashboard';
+import { screen } from '@testing-library/react';
 
 // Mock local storage
 const mockStorage: { [key: string]: string } = {};

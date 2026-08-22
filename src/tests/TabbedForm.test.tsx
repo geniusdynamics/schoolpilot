@@ -1,7 +1,6 @@
 // ABOUTME: Comprehensive tests for TabbedForm component functionality
 // ABOUTME: Tests tab navigation, validation states, responsive behavior, and accessibility
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';

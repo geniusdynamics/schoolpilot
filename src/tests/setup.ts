@@ -3,7 +3,7 @@
 
 import { beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import { cleanup, configure } from '@testing-library/react';
+import { cleanup, configure, render, screen, fireEvent, waitFor, within, act as domAct } from '@testing-library/react';
 import { act } from 'react';
 
 declare global {
@@ -14,6 +14,18 @@ declare global {
 
 globalThis.jest = vi;
 
+// Expose React Testing Library helpers as globals (vitest `globals: true`).
+// The suite was authored against a harness that provides these globally; this
+// restores that contract so tests compile and run without per-file imports.
+globalThis.render = render;
+// `screen` collides with the DOM lib's built-in `Screen` global type, which cannot be
+// re-typed; assign at runtime (overriding window.screen) via cast so tests get RTL's screen.
+(globalThis as unknown as { screen: typeof screen }).screen = screen;
+globalThis.fireEvent = fireEvent;
+globalThis.waitFor = waitFor;
+globalThis.within = within;
+globalThis.domAct = domAct;
+
 // Configure React Testing Library for React 19
 configure({ 
   testIdAttribute: 'data-testid',
@@ -23,7 +35,7 @@ configure({
 });
 
 // Global act function for React 19 compatibility
-global.act = act;
+globalThis.act = act;
 
 // Set up matchMedia mock immediately before any other imports
 Object.defineProperty(window, 'matchMedia', {
@@ -79,7 +91,7 @@ const indexedDBMock = {
   deleteDatabase: vi.fn(),
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   cmp: vi.fn((_a: unknown, _b: unknown) => 0),
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   databases: vi.fn(async () => []),
 };
 

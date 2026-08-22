@@ -2,7 +2,7 @@
 // ABOUTME: Tests provider configuration, environment handling, and error states
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { DatabaseProviderSettingsPage } from '@/modules/settings/pages/DatabaseProviderSettingsPage';
@@ -10,6 +10,7 @@ import { useAppData } from '@/hooks/useAppData';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/DataServiceFactory';
 import { DATA_LAYER_CONFIG } from '@/config/dataLayerConfig';
+import { screen } from '@testing-library/react';
 
 // Mock all dependencies
 vi.mock('../../hooks/useAppData');
