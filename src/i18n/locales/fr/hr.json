@@ -40,5 +40,146 @@
     "rating": "Rating",
     "reviewer": "Reviewer",
     "comments": "Comments"
+  },
+  "payrollItemTypes": {
+    "validation": {
+      "nameRequired": "Name Required",
+      "codeRequired": "Code Required",
+      "typeRequired": "Type Required"
+    },
+    "cannotDeleteSystem": "Cannot Delete System",
+    "confirmDelete": "Confirm Delete",
+    "title": "Payroll Item Types",
+    "addButton": "Add Item Type",
+    "description": "Description",
+    "noItems": "No Items",
+    "modalEditTitle": "Edit Item Type",
+    "modalAddTitle": "Add Item Type",
+    "formSection": {
+      "title": "Item Type Details"
+    }
+  },
+  "tableHeaders": {
+    "id": "Id",
+    "name": "Name",
+    "code": "Code",
+    "type": "Type",
+    "status": "Status",
+    "actions": "Actions",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "staff": "Staff",
+    "period": "Period",
+    "netSalary": "Net Salary",
+    "paymentDate": "Payment Date",
+    "componentName": "Component Name",
+    "amount": "Amount",
+    "effectiveFrom": "Effective From"
+  },
+  "fields": {
+    "name": "Name",
+    "namePlaceholder": "Name Placeholder",
+    "code": "Code",
+    "codePlaceholder": "Code Placeholder",
+    "type": "Type",
+    "typeEarning": "Type Earning",
+    "typeDeduction": "Type Deduction",
+    "description": "Description",
+    "descriptionPlaceholder": "Description Placeholder",
+    "isActive": "Is Active",
+    "periodType": "Period Type",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "status": "Status",
+    "staff": "Staff",
+    "selectStaff": "Select Staff",
+    "payrollPeriod": "Payroll Period",
+    "selectPeriod": "Select Period",
+    "paymentDate": "Payment Date",
+    "notes": "Notes",
+    "notesPlaceholder": "Notes Placeholder",
+    "basicSalary": "Basic Salary",
+    "totalEarnings": "Total Earnings",
+    "totalDeductions": "Total Deductions",
+    "netSalary": "Net Salary",
+    "componentName": "Component Name",
+    "componentNamePlaceholder": "Component Name Placeholder",
+    "componentType": "Component Type",
+    "amount": "Amount",
+    "effectiveFrom": "Effective From",
+    "effectiveTo": "Effective To"
+  },
+  "payrollPeriods": {
+    "validation": {
+      "nameRequired": "Name Required",
+      "typeRequired": "Type Required",
+      "startDateRequired": "Start Date Required",
+      "endDateRequired": "End Date Required",
+      "endDateAfterStart": "End Date After Start",
+      "statusRequired": "Status Required"
+    },
+    "cannotDeleteClosed": "Cannot Delete Closed",
+    "confirmDelete": "Confirm Delete",
+    "title": "Payroll Periods",
+    "addButton": "Add Period",
+    "description": "Description",
+    "noPeriods": "No Periods",
+    "modalEditTitle": "Edit Period",
+    "modalAddTitle": "Add Period",
+    "formSection": {
+      "title": "Period Details"
+    },
+    "periodType": {
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    },
+    "status": {
+      "draft": "Draft",
+      "open": "Open",
+      "closed": "Closed",
+      "Open": "Open",
+      "Closed": "Closed",
+      "Processed": "Processed"
+    }
+  },
+  "payslips": {
+    "validation": {
+      "staffRequired": "Staff Required",
+      "periodRequired": "Period Required",
+      "paymentDateRequired": "Payment Date Required"
+    },
+    "title": "Payslips",
+    "generateButton": "Generate Payslip",
+    "description": "Description",
+    "noPayslips": "No Payslips",
+    "generateTitle": "Generate Payslip",
+    "formSection": {
+      "title": "Payslip Details"
+    },
+    "generate": "Generate",
+    "viewTitle": "View Payslip",
+    "viewSection": {
+      "details": "Details"
+    }
+  },
+  "salarySettings": {
+    "validation": {
+      "staffRequired": "Staff Required",
+      "nameRequired": "Name Required",
+      "amountRequired": "Amount Required",
+      "effectiveFromRequired": "Effective From Required"
+    },
+    "confirmDelete": "Confirm Delete",
+    "title": "Salary Settings",
+    "addButton": "Add Salary Setting",
+    "description": "Description",
+    "noComponents": "No Components",
+    "modalEditTitle": "Edit Salary Setting",
+    "modalAddTitle": "Add Salary Setting",
+    "formSection": {
+      "title": "Salary Setting Details"
+    }
   }
 }

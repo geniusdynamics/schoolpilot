@@ -9,5 +9,8 @@
   "backup": "Kubitsa",
   "auditLog": "Inyandiko y'igenzura",
   "features": "Ibintu by'umwihariko",
-  "modules": "Modire"
+  "modules": "Modire",
+  "plugins": {
+    "confirmUninstall": "Confirm Uninstall"
+  }
 }

@@ -12,5 +12,8 @@
   "timetable": "Timetable",
   "enrollment": "Enrollment",
   "transcripts": "Transcripts",
-  "certificates": "Certificates"
+  "certificates": "Certificates",
+  "validation": {
+    "allFieldsAreRequired": "All Fields Are Required"
+  }
 }

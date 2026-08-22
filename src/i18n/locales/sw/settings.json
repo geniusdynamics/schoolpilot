@@ -9,5 +9,8 @@
   "backup": "Hifadhi rudufu",
   "auditLog": "Kumbukumbu ya ukaguzi",
   "features": "Vipengele",
-  "modules": "Moduli"
+  "modules": "Moduli",
+  "plugins": {
+    "confirmUninstall": "Confirm Uninstall"
+  }
 }

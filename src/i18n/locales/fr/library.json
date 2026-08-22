@@ -12,5 +12,58 @@
   "reports": "Rapports de bibliothèque",
   "maintenance": "Maintenance des livres",
   "acquisition": "Acquisition de livres",
-  "circulation": "Circulation"
+  "circulation": "Circulation",
+  "bookCategories": {
+    "managementTitle": "Book Categories",
+    "addCategory": "Add Category",
+    "defineCategories": "Define Categories",
+    "editBookCategory": "Edit Book Category",
+    "addNewBookCategory": "Add New Book Category",
+    "categoryName": "Category Name",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes"
+  },
+  "bookLoans": {
+    "alertRequiredFields": "Alert Required Fields",
+    "alertUserNotFound": "Alert User Not Found",
+    "confirmMarkReturned": "Confirm Mark Returned",
+    "loanId": "Loan Id",
+    "bookTitle": "Book Title",
+    "userName": "User Name",
+    "loanDate": "Loan Date",
+    "dueDate": "Due Date",
+    "returnDate": "Return Date",
+    "notReturned": "Not Returned",
+    "markReturned": "Mark Returned",
+    "returned": "Returned",
+    "loading": "Loading",
+    "title": "Book Loans",
+    "issueNewLoan": "Issue New Loan",
+    "description": "Description",
+    "noLoansFound": "No Loans Found",
+    "viewLoanDetails": "View Loan Details",
+    "issueNewBookLoan": "Issue New Book Loan",
+    "bookToLoan": "Book To Loan",
+    "selectBook": "Select Book",
+    "borrower": "Borrower",
+    "selectUser": "Select User",
+    "issueBook": "Issue Book"
+  },
+  "userPortal": {
+    "renewSuccess": "Renew Success",
+    "renewError": "Renew Error",
+    "returnSuccess": "Return Success",
+    "returnError": "Return Error",
+    "overdueAlert": "Overdue Alert",
+    "renewButton": "Renew",
+    "returnButton": "Return",
+    "title": "User Portal",
+    "description": "Description",
+    "noLoansMessage": "No Loans Message"
+  },
+  "tableHeaders": {
+    "bookTitle": "Book Title",
+    "loanDate": "Loan Date",
+    "dueDate": "Due Date"
+  }
 }

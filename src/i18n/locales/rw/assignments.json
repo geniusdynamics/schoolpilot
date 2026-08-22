@@ -1,0 +1,74 @@
+{
+  "assignment": {
+    "fields": {
+      "title": "Title",
+      "class": "Class",
+      "dueDate": "Due Date",
+      "description": "Description",
+      "instructions": "Instructions",
+      "teacher": "Teacher",
+      "status": "Status",
+      "assignedDate": "Assigned Date",
+      "maxScore": "Max Score",
+      "weightPercentage": "Weight Percentage",
+      "allowLateSubmission": "Allow Late Submission",
+      "subject": "Subject",
+      "latePenaltyPercentage": "Late Penalty Percentage"
+    },
+    "plural": "Assignments",
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "create": "Create"
+    },
+    "status": {
+      "Draft": "Draft",
+      "Published": "Published",
+      "Archived": "Archived"
+    }
+  },
+  "analytics": {
+    "averageScore": "Average Score",
+    "title": "Analytics",
+    "submissionRate": "Submission Rate",
+    "scoreDistribution": "Score Distribution"
+  },
+  "common": {
+    "noData": "No data available",
+    "loading": "Loading...",
+    "back": "Back",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create"
+  },
+  "submission": {
+    "fields": {
+      "student": "Student",
+      "status": "Status",
+      "submissionDate": "Submission Date",
+      "score": "Score",
+      "grade": "Grade",
+      "feedback": "Feedback",
+      "isLate": "Is Late"
+    },
+    "plural": "Submissions",
+    "status": {
+      "Submitted": "Submitted",
+      "Late": "Late",
+      "Graded": "Graded",
+      "Pending Review": "Pending Review",
+      "Returned": "Returned"
+    }
+  },
+  "rubric": {
+    "criterion": "Criterion",
+    "title": "Rubric",
+    "maxPoints": "Max Points",
+    "weight": "Weight",
+    "levels": "Levels",
+    "criteria": "Criteria"
+  },
+  "description": "Description"
+}

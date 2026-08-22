@@ -141,6 +141,75 @@
   },
   "portal": {
     "parent": "Parent Portal",
-    "student": "Student Portal"
+    "student": "Student Portal",
+    "bulletin": {
+      "print": "Print",
+      "export": "Export",
+      "create": "Create",
+      "manage": "Manage",
+      "title": "Bulletin",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "delete": "Delete",
+      "postedAt": "Posted At"
+    },
+    "announcements": {
+      "noAnnouncements": "No Announcements"
+    },
+    "quickActions": {
+      "dataProtection": "Data Protection",
+      "disciplineManagement": "Discipline Management",
+      "estatesManagement": "Estates Management",
+      "exclusionsManagement": "Exclusions Management",
+      "externalExams": "External Exams",
+      "offGamesManagement": "Off Games Management",
+      "onlineLearning": "Online Learning"
+    },
+    "blog": {
+      "title": "Blog",
+      "noNews": "No News",
+      "newer": "Newer",
+      "pageOf": "Page Of",
+      "older": "Older"
+    },
+    "calendar": {
+      "print": "Print",
+      "export": "Export",
+      "create": "Create",
+      "manage": "Manage",
+      "title": "Calendar",
+      "event": "Event",
+      "category": "Category",
+      "start": "Start",
+      "end": "End"
+    },
+    "statistics": {
+      "title": "Statistics",
+      "yearGroup": "Year Group",
+      "male": "Male",
+      "female": "Female",
+      "total": "Total",
+      "totalLabel": "Total Label"
+    },
+    "timetable": {
+      "print": "Print",
+      "export": "Export",
+      "view": "View",
+      "create": "Create",
+      "manage": "Manage",
+      "title": "Timetable"
+    },
+    "whosOnline": {
+      "title": "Whos Online",
+      "loginHistory": "Login History",
+      "accountOptions": "Account Options",
+      "lastSeen": "Last Seen",
+      "myStatus": "My Status",
+      "online": "Online",
+      "offline": "Offline",
+      "launchMessenger": "Launch Messenger",
+      "loginHistoryPlaceholder": "Login History Placeholder",
+      "accountOptionsPlaceholder": "Account Options Placeholder"
+    }
   }
 }
