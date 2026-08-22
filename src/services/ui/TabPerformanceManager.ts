@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * TabPerformanceManager - Performance optimization for SchoolPilot3 tabs
  * Handles content caching, lazy loading, memory management, and performance monitoring
@@ -168,7 +170,7 @@ export class TabPerformanceManager {
       return content;
       
     } catch (error) {
-      console.error(`❌ [TabPerformanceManager] Error loading content for tab ${id}:`, error);
+      logger.error(`âŒ [TabPerformanceManager] Error loading content for tab ${id}:`, error);
       return this.createErrorContent(tabInfo, error);
     }
   }
@@ -178,7 +180,7 @@ export class TabPerformanceManager {
    */
   async switchTab(fromTabId: string | null, toTabId: string, tabInfo: TabContentInfo): Promise<void> {
     if (this.switchingInProgress) {
-      console.warn('⚠️ [TabPerformanceManager] Tab switch already in progress, ignoring');
+      logger.warn('âš ï¸ [TabPerformanceManager] Tab switch already in progress, ignoring');
       return;
     }
     
@@ -213,7 +215,7 @@ export class TabPerformanceManager {
       // Alert if operation is slow
       if (this.config.monitoring.alertSlowOperations && 
           switchTime > this.config.monitoring.slowOperationThreshold) {
-        console.warn(`🐌 [TabPerformanceManager] Slow tab switch detected: ${switchTime}ms for tab ${toTabId}`);
+        logger.warn(`ðŸŒ [TabPerformanceManager] Slow tab switch detected: ${switchTime}ms for tab ${toTabId}`);
       }
       
       this.logPerformance('Tab switch completed', toTabId, switchTime);
@@ -234,7 +236,7 @@ export class TabPerformanceManager {
       const totalMemoryUsage = this.getTotalMemoryUsage();
       
       if (totalMemoryUsage > this.config.tabMemory.memoryThreshold) {
-        console.log(`🧹 [TabPerformanceManager] Memory threshold exceeded (${totalMemoryUsage} bytes), performing cleanup`);
+        logger.info(`ðŸ§¹ [TabPerformanceManager] Memory threshold exceeded (${totalMemoryUsage} bytes), performing cleanup`);
         
         // Find inactive tabs to cleanup
         const inactiveTabs = Array.from(this.contentCache.entries())
@@ -254,13 +256,13 @@ export class TabPerformanceManager {
           (window as any).gc();
         }
         
-        console.log(`✅ [TabPerformanceManager] Cleaned up ${tabsToClean} inactive tabs`);
+        logger.info(`âœ… [TabPerformanceManager] Cleaned up ${tabsToClean} inactive tabs`);
       }
       
       this.logPerformance('Memory cleanup completed', 'system', performance.now() - startTime);
       
     } catch (error) {
-      console.error('❌ [TabPerformanceManager] Error during memory cleanup:', error);
+      logger.error('âŒ [TabPerformanceManager] Error during memory cleanup:', error);
     }
   }
   
@@ -278,7 +280,7 @@ export class TabPerformanceManager {
     const timer = setTimeout(() => {
       this.unloadTabContent(tabId);
       this.inactiveTabTimers.delete(tabId);
-      console.log(`🗑️ [TabPerformanceManager] Cleaned up inactive tab: ${tabId}`);
+      logger.info(`ðŸ—‘ï¸ [TabPerformanceManager] Cleaned up inactive tab: ${tabId}`);
     }, this.config.tabMemory.inactiveTabTimeout);
     
     this.inactiveTabTimers.set(tabId, timer);
@@ -289,7 +291,7 @@ export class TabPerformanceManager {
    */
   private preloadAdjacentTabs(currentTabId: string): void {
     // This would be implemented based on the tab order in the actual tab store
-    console.log(`🔄 [TabPerformanceManager] Preloading adjacent tabs for: ${currentTabId}`);
+    logger.info(`ðŸ”„ [TabPerformanceManager] Preloading adjacent tabs for: ${currentTabId}`);
   }
   
   /**
@@ -395,7 +397,7 @@ export class TabPerformanceManager {
           React.createElement('div', {
             key: 'icon',
             className: 'text-red-500 text-4xl mb-4',
-            children: '⚠️'
+            children: 'âš ï¸'
           }),
           React.createElement('h3', {
             key: 'title',
@@ -502,7 +504,7 @@ export class TabPerformanceManager {
         
         // Alert if memory usage is high
         if (usage > this.config.tabMemory.memoryThreshold * 0.8) {
-          console.warn(`⚠️ [TabPerformanceManager] High memory usage detected: ${(usage / 1024 / 1024).toFixed(2)}MB`);
+          logger.warn(`âš ï¸ [TabPerformanceManager] High memory usage detected: ${(usage / 1024 / 1024).toFixed(2)}MB`);
         }
       }, 10000); // Check every 10 seconds
     }
@@ -517,7 +519,7 @@ export class TabPerformanceManager {
     if (mediaQuery.matches) {
       this.config.animations.tabSwitchDuration = 0;
       this.config.animations.useGPUAcceleration = false;
-      console.log('🎯 [TabPerformanceManager] Reduced motion preference detected');
+      logger.info('ðŸŽ¯ [TabPerformanceManager] Reduced motion preference detected');
     }
   }
   
@@ -526,7 +528,7 @@ export class TabPerformanceManager {
    */
   private logPerformance(operation: string, tabId: string, duration: number): void {
     if (this.config.monitoring.enablePerformanceLogging) {
-      console.log(`⚡ [TabPerformanceManager] ${operation} for ${tabId}: ${duration.toFixed(2)}ms`);
+      logger.info(`âš¡ [TabPerformanceManager] ${operation} for ${tabId}: ${duration.toFixed(2)}ms`);
     }
   }
   
@@ -550,7 +552,7 @@ export class TabPerformanceManager {
    */
   updateConfig(updates: Partial<TabPerformanceConfig>): void {
     this.config = { ...this.config, ...updates };
-    console.log('🔧 [TabPerformanceManager] Configuration updated:', updates);
+    logger.info('ðŸ”§ [TabPerformanceManager] Configuration updated:', updates);
   }
   
   /**
@@ -565,7 +567,7 @@ export class TabPerformanceManager {
     this.inactiveTabTimers.clear();
     
     this.updateMetrics();
-    console.log('🧹 [TabPerformanceManager] All cached content cleared');
+    logger.info('ðŸ§¹ [TabPerformanceManager] All cached content cleared');
   }
   
   /**
@@ -579,7 +581,7 @@ export class TabPerformanceManager {
       this.animationFrameId = null;
     }
     
-    console.log('🧹 [TabPerformanceManager] Cleanup completed');
+    logger.info('ðŸ§¹ [TabPerformanceManager] Cleanup completed');
   }
 }
 

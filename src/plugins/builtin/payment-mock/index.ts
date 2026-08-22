@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Payment Gateway Mock Plugin
  * 
@@ -56,7 +58,7 @@ export const paymentMockPlugin: PaymentPlugin = {
    * Initiate a mock payment. Simulates processing with 90% success rate.
    */
   async initiatePayment(params: PaymentParams): Promise<PaymentResult> {
-    console.log('[Payment Mock] initiatePayment called:', {
+    logger.info('[Payment Mock] initiatePayment called:', {
       amount: params.amount,
       currency: params.currency,
       description: params.description,
@@ -76,7 +78,7 @@ export const paymentMockPlugin: PaymentPlugin = {
     if (success) {
       status = 'completed';
       message = `Mock payment of ${params.currency} ${params.amount} completed successfully.`;
-      console.log(`[Payment Mock] Transaction ${transactionId} COMPLETED`);
+      logger.info(`[Payment Mock] Transaction ${transactionId} COMPLETED`);
     } else {
       // Randomly choose failure reason
       const failureReasons = [
@@ -93,7 +95,7 @@ export const paymentMockPlugin: PaymentPlugin = {
       } else {
         status = 'failed';
       }
-      console.log(`[Payment Mock] Transaction ${transactionId} FAILED: ${reason}`);
+      logger.info(`[Payment Mock] Transaction ${transactionId} FAILED: ${reason}`);
     }
 
     // Simulate redirect-based payment for card payments
@@ -121,17 +123,17 @@ export const paymentMockPlugin: PaymentPlugin = {
    * Verify a mock payment by checking the in-memory transaction store.
    */
   async verifyPayment(transactionId: string): Promise<boolean> {
-    console.log(`[Payment Mock] verifyPayment called: ${transactionId}`);
+    logger.info(`[Payment Mock] verifyPayment called: ${transactionId}`);
     await simulateDelay(100, 300);
 
     const transaction = transactionStore.get(transactionId);
     if (!transaction) {
-      console.log(`[Payment Mock] Transaction ${transactionId} NOT FOUND`);
+      logger.info(`[Payment Mock] Transaction ${transactionId} NOT FOUND`);
       return false;
     }
 
     const verified = transaction.status === 'completed';
-    console.log(`[Payment Mock] Transaction ${transactionId} verification: ${verified ? 'VERIFIED' : 'NOT VERIFIED'} (status: ${transaction.status})`);
+    logger.info(`[Payment Mock] Transaction ${transactionId} verification: ${verified ? 'VERIFIED' : 'NOT VERIFIED'} (status: ${transaction.status})`);
     return verified;
   },
 
@@ -139,13 +141,13 @@ export const paymentMockPlugin: PaymentPlugin = {
    * Handle a mock payment callback. Logs the callback data.
    */
   handleCallback(data: any): void {
-    console.log('[Payment Mock] handleCallback received:', JSON.stringify(data, null, 2));
+    logger.info('[Payment Mock] handleCallback received:', JSON.stringify(data, null, 2));
 
     if (data?.transactionId && transactionStore.has(data.transactionId)) {
       const existing = transactionStore.get(data.transactionId)!;
       if (data.status) {
         existing.status = data.status as PaymentResult['status'];
-        console.log(`[Payment Mock] Updated transaction ${data.transactionId} status to: ${data.status}`);
+        logger.info(`[Payment Mock] Updated transaction ${data.transactionId} status to: ${data.status}`);
       }
     }
   },
@@ -222,13 +224,13 @@ export const paymentMockManifest: PluginManifest = {
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[Payment Mock Plugin] Activating...');
-    console.log('[Payment Mock Plugin] Supported methods:', paymentMockPlugin.getSupportedMethods().join(', '));
-    console.log('[Payment Mock Plugin] This is a MOCK provider — no real payments will be processed.');
+    logger.info('[Payment Mock Plugin] Activating...');
+    logger.info('[Payment Mock Plugin] Supported methods:', paymentMockPlugin.getSupportedMethods().join(', '));
+    logger.info('[Payment Mock Plugin] This is a MOCK provider â€” no real payments will be processed.');
   },
 
   async deactivate() {
-    console.log('[Payment Mock Plugin] Deactivated.');
+    logger.info('[Payment Mock Plugin] Deactivated.');
     transactionStore.clear();
   },
 };

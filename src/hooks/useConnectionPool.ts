@@ -1,12 +1,7 @@
 // ABOUTME: React hook for database connection pool monitoring
 // ABOUTME: Provides real-time pool metrics, status, and management controls
 import { useState, useEffect, useCallback } from 'react';
-import {
-  DatabaseConnectionPool,
-  ConnectionPoolMetrics,
-  ConnectionPoolConfig,
-  databaseConnectionPool,
-} from '@/services/database/ConnectionPool';
+import { ConnectionPoolMetrics, ConnectionPoolConfig, databaseConnectionPool } from '@/services/database/ConnectionPool';
 
 export interface ConnectionPoolState {
   metrics: ConnectionPoolMetrics;

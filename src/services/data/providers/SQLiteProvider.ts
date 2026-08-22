@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * SQLite Provider
  * 
@@ -12,7 +14,7 @@
  * - Change tracking for sync preparation
  */
 
-import type { Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { BehaviorSubject } from 'rxjs';
 import type {
   DataProvider,
@@ -105,9 +107,9 @@ export class SQLiteProvider implements DataProvider {
         await this.initializeChangeTracking();
       }
 
-      console.log('✅ SQLiteProvider initialized successfully');
+      logger.info('âœ… SQLiteProvider initialized successfully');
     } catch (error) {
-      console.error('❌ Failed to initialize SQLiteProvider:', error);
+      logger.error('âŒ Failed to initialize SQLiteProvider:', error);
       throw error;
     }
   }
@@ -547,11 +549,11 @@ export class SQLiteProvider implements DataProvider {
 
       // Create database from file
       this.db = new this.SQLite.Database(data);
-      console.log('📂 Loaded existing database from OPFS');
+      logger.info('ðŸ“‚ Loaded existing database from OPFS');
     } catch (error) {
       // Create new database
       this.db = new this.SQLite.Database();
-      console.log('🆕 Created new database');
+      logger.info('ðŸ†• Created new database');
     }
   }
 
@@ -567,7 +569,7 @@ export class SQLiteProvider implements DataProvider {
       await writable.write(data);
       await writable.close();
     } catch (error) {
-      console.error('Failed to save database to OPFS:', error);
+      logger.error('Failed to save database to OPFS:', error);
     }
   }
 

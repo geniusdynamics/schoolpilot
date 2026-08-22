@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Backend service adapter that provides unified interface for data operations across different backend types
 // ABOUTME: Handles routing between PouchDB, CouchDB, Frappe Education API, and custom backend APIs
 
@@ -53,7 +55,7 @@ export class BackendServiceAdapter {
         return await this.executeLocalOperation<T>(operation);
       }
     } catch (error) {
-      console.error(`Operation ${functionName} failed:`, error);
+      logger.error(`Operation ${functionName} failed:`, error);
       
       // Try fallback if configured
       if (config.fallbackStrategy.autoFallback) {
@@ -180,7 +182,7 @@ export class BackendServiceAdapter {
         fallbackUsed: true
       };
     } catch (fallbackError) {
-      console.error(`Fallback operation failed:`, fallbackError);
+      logger.error(`Fallback operation failed:`, fallbackError);
       throw fallbackError;
     }
   }
@@ -218,7 +220,7 @@ export class BackendServiceAdapter {
       await this.unifiedCRUDService.testConnection();
       results.local = true;
     } catch (error) {
-      console.warn('Local database connection failed:', error);
+      logger.warn('Local database connection failed:', error);
     }
 
     // Test API if configured
@@ -226,7 +228,7 @@ export class BackendServiceAdapter {
       try {
         results.api = await backendArchitecture.isBackendAvailable();
       } catch (error) {
-        console.warn('API connection failed:', error);
+        logger.warn('API connection failed:', error);
       }
     }
 
@@ -236,7 +238,7 @@ export class BackendServiceAdapter {
         const response = await fetch(`${config.endpoints.couchdb}/_up`);
         results.couchdb = response.ok;
       } catch (error) {
-        console.warn('CouchDB connection failed:', error);
+        logger.warn('CouchDB connection failed:', error);
       }
     }
 

@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+﻿import React, { createContext, useContext, useCallback, ReactNode } from 'react';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { useToastHelpers } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
+
 
 export interface DataGenerationContextType {
   generateData: (options?: {
@@ -33,7 +35,7 @@ export const DataGenerationProvider: React.FC<{
     clearExisting?: boolean;
   }) => {
     try {
-      console.log('🎲 [DataGenerationContext] Starting data generation...');
+      logger.info('ðŸŽ² [DataGenerationContext] Starting data generation...');
       toast.showInfo('Generating data...');
 
       const dbManager = UnifiedDatabaseManager.getInstance();
@@ -52,15 +54,15 @@ export const DataGenerationProvider: React.FC<{
           : 'Data generated successfully';
 
         toast.showSuccess(message);
-        console.log('✅ [DataGenerationContext] Data generation completed:', result.stats);
+        logger.info('âœ… [DataGenerationContext] Data generation completed:', result.stats);
       } else {
         toast.showError(`Data generation failed: ${result.error}`);
-        console.error('❌ [DataGenerationContext] Data generation failed:', result.error);
+        logger.error('âŒ [DataGenerationContext] Data generation failed:', result.error);
       }
         return result;
       } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Data generation failed';
-      console.error('❌ [DataGenerationContext] Data generation error:', err);
+      logger.error('âŒ [DataGenerationContext] Data generation error:', err);
       toast.showError(errorMessage);
       return {
         success: false,
@@ -75,7 +77,7 @@ export const DataGenerationProvider: React.FC<{
     volume?: 'tiny' | 'small' | 'medium' | 'large' | 'enterprise';
   }) => {
     try {
-      console.log('🌱 [DataGenerationContext] Seeding database...');
+      logger.info('ðŸŒ± [DataGenerationContext] Seeding database...');
       toast.showInfo('Seeding database...');
 
       const dbManager = UnifiedDatabaseManager.getInstance();
@@ -89,16 +91,16 @@ export const DataGenerationProvider: React.FC<{
         }
 
         toast.showSuccess(result.message);
-        console.log('✅ [DataGenerationContext] Database seeded:', result.stats);
+        logger.info('âœ… [DataGenerationContext] Database seeded:', result.stats);
       } else {
         toast.showError(result.message);
-        console.error('❌ [DataGenerationContext] Database seeding failed:', result.message);
+        logger.error('âŒ [DataGenerationContext] Database seeding failed:', result.message);
       }
 
       return result;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Database seeding failed';
-      console.error('Database seeding error:', err);
+      logger.error('Database seeding error:', err);
       toast.showError(errorMessage);
       return {
         success: false,

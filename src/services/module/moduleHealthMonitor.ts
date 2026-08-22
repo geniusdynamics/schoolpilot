@@ -1,8 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // Module Health Monitoring System
 // Provides real-time monitoring, status tracking, and recovery capabilities for modules
 
 import { ModuleHealth, ModuleHealthStatus } from './enhancedModuleLoader';
-import { dynamicModuleLoader } from './dynamicModuleLoader';
 import { ModuleDefinition } from '../../core/types';
 import { moduleRegistry } from '../../core/moduleRegistry';
 
@@ -191,7 +192,7 @@ export class ModuleHealthMonitor {
       this.stopMonitoring();
     }
     
-    console.log(`🔍 [ModuleHealthMonitor] Starting module health monitoring (interval: ${interval}ms)`);
+    logger.info(`ðŸ” [ModuleHealthMonitor] Starting module health monitoring (interval: ${interval}ms)`);
     
     this.monitoringInterval = setInterval(() => {
       this.checkAllModules();
@@ -206,7 +207,7 @@ export class ModuleHealthMonitor {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      console.log('🛑 [ModuleHealthMonitor] Module health monitoring stopped');
+      logger.info('ðŸ›‘ [ModuleHealthMonitor] Module health monitoring stopped');
     }
   }
   
@@ -225,9 +226,9 @@ export class ModuleHealthMonitor {
         await this.checkModuleHealth(module.id);
       }
       
-      console.log(`✅ [ModuleHealthMonitor] Completed health check for ${modules.length} modules`);
+      logger.info(`âœ… [ModuleHealthMonitor] Completed health check for ${modules.length} modules`);
     } catch (error) {
-      console.error('❌ [ModuleHealthMonitor] Error during health check:', error);
+      logger.error('âŒ [ModuleHealthMonitor] Error during health check:', error);
     } finally {
       this.checkInProgress = false;
     }
@@ -235,12 +236,12 @@ export class ModuleHealthMonitor {
   
   // Check health of a specific module
   async checkModuleHealth(moduleId: string): Promise<ModuleHealth | null> {
-    console.log(`🔍 [ModuleHealthMonitor] Checking health of module: ${moduleId}`);
+    logger.info(`ðŸ” [ModuleHealthMonitor] Checking health of module: ${moduleId}`);
     
     const module = moduleRegistry.getMetadata(moduleId);
     
     if (!module) {
-      console.warn(`⚠️ [ModuleHealthMonitor] Module not found: ${moduleId}`);
+      logger.warn(`âš ï¸ [ModuleHealthMonitor] Module not found: ${moduleId}`);
       return null;
     }
     
@@ -277,7 +278,7 @@ export class ModuleHealthMonitor {
           }
         }
       } catch (error) {
-        console.error(`❌ [ModuleHealthMonitor] Error running health check ${check.name} for module ${moduleId}:`, error);
+        logger.error(`âŒ [ModuleHealthMonitor] Error running health check ${check.name} for module ${moduleId}:`, error);
         checkResults[check.name] = {
           passed: false,
           message: `Error running check: ${error instanceof Error ? error.message : String(error)}`
@@ -348,7 +349,7 @@ export class ModuleHealthMonitor {
         try {
           listener(health);
         } catch (error) {
-          console.error(`❌ [ModuleHealthMonitor] Error notifying listener for module ${moduleId}:`, error);
+          logger.error(`âŒ [ModuleHealthMonitor] Error notifying listener for module ${moduleId}:`, error);
         }
       }
     }
@@ -371,12 +372,12 @@ export class ModuleHealthMonitor {
   
   // Attempt to reload a failed module
   async reloadModule(moduleId: string): Promise<boolean> {
-    console.log(`🔄 [ModuleHealthMonitor] Attempting to reload module: ${moduleId}`);
+    logger.info(`ðŸ”„ [ModuleHealthMonitor] Attempting to reload module: ${moduleId}`);
     
     try {
       // For now, we'll just reset the health status and re-check
       // In a full implementation, this would actually reload the module
-      console.log(`⚠️ [ModuleHealthMonitor] Module reload not implemented in simplified loader, resetting health status`);
+      logger.info(`âš ï¸ [ModuleHealthMonitor] Module reload not implemented in simplified loader, resetting health status`);
       
       // Reset health status to trigger a fresh check
       const currentHealth = this.getModuleHealth(moduleId);
@@ -393,10 +394,10 @@ export class ModuleHealthMonitor {
       // Check health after reset
       await this.checkModuleHealth(moduleId);
       
-      console.log(`✅ [ModuleHealthMonitor] Reset health status for module: ${moduleId}`);
+      logger.info(`âœ… [ModuleHealthMonitor] Reset health status for module: ${moduleId}`);
       return true;
     } catch (error) {
-      console.error(`❌ [ModuleHealthMonitor] Error resetting module health ${moduleId}:`, error);
+      logger.error(`âŒ [ModuleHealthMonitor] Error resetting module health ${moduleId}:`, error);
       return false;
     }
   }

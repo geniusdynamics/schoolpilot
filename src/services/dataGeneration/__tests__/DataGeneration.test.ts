@@ -2,14 +2,7 @@
 // ABOUTME: Tests all generators, storage adapters, and data validation across different storage types
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { 
-  UniversalDataGenerator, 
-  RelationshipManager, 
-  AdapterFactory,
-  MockAdapter,
-  generateMockData,
-  createDataGenerator
-} from '../index';
+import { UniversalDataGenerator, RelationshipManager, MockAdapter, generateMockData, createDataGenerator } from '../index';
 import type { DataGenerationConfig } from '../index';
 
 describe('Data Generation System', () => {

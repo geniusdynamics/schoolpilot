@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Reusable hook for loading, subscribing to, and mutating a database collection
 // ABOUTME: Provides the foundation for all module data hooks to work with real database state
 
@@ -40,7 +42,7 @@ export function useDatabaseCollection<T>(
     if (loading) {
       loadingTimeoutRef.current = setTimeout(() => {
         if (isMountedRef.current && loading) {
-          console.warn(`[useDatabaseCollection] Loading timeout for '${collectionName}' — falling back to empty data`);
+          logger.warn(`[useDatabaseCollection] Loading timeout for '${collectionName}' â€” falling back to empty data`);
           setLoading(false);
         }
       }, 15000); // 15 second timeout
@@ -64,7 +66,7 @@ export function useDatabaseCollection<T>(
       const coll = db.getCollection(collectionName) as ICollection<T> | null;
 
       if (!coll) {
-        console.warn(`[useDatabaseCollection] Collection '${collectionName}' not found`);
+        logger.warn(`[useDatabaseCollection] Collection '${collectionName}' not found`);
         if (isMountedRef.current) {
           setCollection(null);
           setData([]);
@@ -83,13 +85,13 @@ export function useDatabaseCollection<T>(
           setData(docs || []);
         }
       } else {
-        console.warn(`[useDatabaseCollection] Collection '${collectionName}' does not support find()`);
+        logger.warn(`[useDatabaseCollection] Collection '${collectionName}' does not support find()`);
         if (isMountedRef.current) {
           setData([]);
         }
       }
     } catch (err) {
-      console.error(`[useDatabaseCollection] Error loading collection '${collectionName}':`, err);
+      logger.error(`[useDatabaseCollection] Error loading collection '${collectionName}':`, err);
       if (isMountedRef.current) {
         setError(err instanceof Error ? err : new Error(String(err)));
         setData([]);
@@ -136,7 +138,7 @@ export function useDatabaseCollection<T>(
           }
         }
       } catch (err) {
-        console.warn(`[useDatabaseCollection] Subscription not available for '${collectionName}':`, err);
+        logger.warn(`[useDatabaseCollection] Subscription not available for '${collectionName}':`, err);
       }
     };
 
@@ -182,7 +184,7 @@ export function useDatabaseCollection<T>(
         await refresh();
         return result || docWithId;
       } catch (err) {
-        console.error(`[useDatabaseCollection] Error inserting into '${collectionName}':`, err);
+        logger.error(`[useDatabaseCollection] Error inserting into '${collectionName}':`, err);
         throw err;
       }
     },
@@ -207,7 +209,7 @@ export function useDatabaseCollection<T>(
         await refresh();
         return result || null;
       } catch (err) {
-        console.error(`[useDatabaseCollection] Error updating '${collectionName}' document ${id}:`, err);
+        logger.error(`[useDatabaseCollection] Error updating '${collectionName}' document ${id}:`, err);
         throw err;
       }
     },
@@ -232,7 +234,7 @@ export function useDatabaseCollection<T>(
         await refresh();
         return true;
       } catch (err) {
-        console.error(`[useDatabaseCollection] Error removing '${collectionName}' document ${id}:`, err);
+        logger.error(`[useDatabaseCollection] Error removing '${collectionName}' document ${id}:`, err);
         throw err;
       }
     },

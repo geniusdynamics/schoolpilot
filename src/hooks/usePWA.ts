@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * PWA Hook
  * 
@@ -138,7 +140,7 @@ export function usePWA(): [PWAState, PWAActions] {
           });
         }
       } catch (error) {
-        console.error('Service Worker registration failed:', error);
+        logger.error('Service Worker registration failed:', error);
       }
     };
 
@@ -223,7 +225,7 @@ export function usePWA(): [PWAState, PWAActions] {
       await (registration.current as any).sync.register(tag);
       return true;
     } catch (error) {
-      console.error('Background sync registration failed:', error);
+      logger.error('Background sync registration failed:', error);
       return false;
     }
   }, []);
@@ -261,7 +263,7 @@ export function usePWA(): [PWAState, PWAActions] {
 
       return true;
     } catch (error) {
-      console.error('Push subscription failed:', error);
+      logger.error('Push subscription failed:', error);
       return false;
     }
   }, []);

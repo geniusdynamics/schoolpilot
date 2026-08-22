@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Performance monitoring service for tracking application performance
 // ABOUTME: Collects metrics for startup, module loading, data operations, and user interactions
 
@@ -105,7 +107,7 @@ class PerformanceMonitorService {
         });
         resourceObserver.observe({ entryTypes: ['resource'] });
       } catch (error) {
-        console.warn('Performance observer not supported:', error);
+        logger.warn('Performance observer not supported:', error);
       }
     }
   }
@@ -217,7 +219,7 @@ class PerformanceMonitorService {
     const removedCount = initialCount - this.moduleMetrics.length;
     
     if (removedCount > 0) {
-      console.log(`[PerformanceMonitor] Cleaned up ${removedCount} invalid 'core' module metrics`);
+      logger.info(`[PerformanceMonitor] Cleaned up ${removedCount} invalid 'core' module metrics`);
     }
   }
 

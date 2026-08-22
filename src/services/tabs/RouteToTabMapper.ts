@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * RouteToTabMapper Service
  * 
@@ -80,7 +82,7 @@ export class RouteToTabMapper {
    */
   resolveNavigationItem(path: string, navigationConfig: NavigationItem[]): NavigationItem | null {
     if (!path || !navigationConfig || !Array.isArray(navigationConfig)) {
-      console.warn('[RouteToTabMapper] Invalid path or navigationConfig provided');
+      logger.warn('[RouteToTabMapper] Invalid path or navigationConfig provided');
       return null;
     }
 
@@ -181,7 +183,7 @@ export class RouteToTabMapper {
    */
   buildTabFromRoute(path: string, navigationItem: NavigationItem, options?: BuildTabOptions): Partial<Tab> {
     if (!path) {
-      console.warn('[RouteToTabMapper] Cannot build tab from empty path');
+      logger.warn('[RouteToTabMapper] Cannot build tab from empty path');
       return {};
     }
 

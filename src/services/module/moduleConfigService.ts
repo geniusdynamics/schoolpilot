@@ -1,4 +1,6 @@
-import { moduleRegistry } from '../../core/moduleRegistry';
+﻿import { moduleRegistry } from '../../core/moduleRegistry';
+import { logger } from '@/utils/logging';
+
 
 interface ModuleConfig {
   id: string;
@@ -25,25 +27,25 @@ class ModuleConfigService {
   private isLoading = false;
 
   constructor() {
-    console.log('[ModuleConfigService] Initializing...');
+    logger.info('[ModuleConfigService] Initializing...');
     this.loadConfigurations();
-    console.log('[ModuleConfigService] Initialization complete');
-    console.log('[ModuleConfigService] DEBUG: Enabled modules after init:', this.getEnabledModules());
+    logger.info('[ModuleConfigService] Initialization complete');
+    logger.info('[ModuleConfigService] DEBUG: Enabled modules after init:', this.getEnabledModules());
   }
 
   private loadConfigurations(): void {
     if (this.isLoading) {
-      console.warn('[ModuleConfigService] Already loading configurations, skipping...');
+      logger.warn('[ModuleConfigService] Already loading configurations, skipping...');
       return;
     }
     
     this.isLoading = true;
-    console.log('[ModuleConfigService] Loading configurations from localStorage...');
+    logger.info('[ModuleConfigService] Loading configurations from localStorage...');
     
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        console.log('[ModuleConfigService] Found stored configurations:', stored.length, 'characters');
+        logger.info('[ModuleConfigService] Found stored configurations:', stored.length, 'characters');
         const configs = JSON.parse(stored);
         this.configs = new Map(Object.entries(configs).map(([id, config]: [string, any]) => [
           id,
@@ -52,12 +54,12 @@ class ModuleConfigService {
             lastModified: new Date(config.lastModified)
           }
         ]));
-        console.log('[ModuleConfigService] Loaded', this.configs.size, 'module configurations');
+        logger.info('[ModuleConfigService] Loaded', this.configs.size, 'module configurations');
       } else {
-        console.log('[ModuleConfigService] No stored configurations found');
+        logger.info('[ModuleConfigService] No stored configurations found');
       }
     } catch (error) {
-      console.error('[ModuleConfigService] Failed to load module configurations:', error);
+      logger.error('[ModuleConfigService] Failed to load module configurations:', error);
       this.configs = new Map();
     } finally {
       this.isLoading = false;
@@ -77,7 +79,7 @@ class ModuleConfigService {
       );
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(configsObj));
     } catch (error) {
-      console.error('Failed to save module configurations:', error);
+      logger.error('Failed to save module configurations:', error);
     }
   }
 
@@ -95,7 +97,7 @@ class ModuleConfigService {
       this.saveConfigurations();
       return true;
     } catch (error) {
-      console.error('Failed to enable module:', error);
+      logger.error('Failed to enable module:', error);
       return false;
     }
   }
@@ -114,7 +116,7 @@ class ModuleConfigService {
       this.saveConfigurations();
       return true;
     } catch (error) {
-      console.error('Failed to disable module:', error);
+      logger.error('Failed to disable module:', error);
       return false;
     }
   }
@@ -123,14 +125,14 @@ class ModuleConfigService {
     // Core modules are always enabled
     const coreModules = ['dashboard', 'settings', 'reports'];
     if (coreModules.includes(moduleId)) {
-      console.log(`[ModuleConfigService] DEBUG: isModuleEnabled(${moduleId}) = true (core module)`);
+      logger.info(`[ModuleConfigService] DEBUG: isModuleEnabled(${moduleId}) = true (core module)`);
       return true;
     }
     
     const config = this.configs.get(moduleId);
     // Default to enabled if no configuration exists (auto-enable discovered modules)
     const enabled = config?.enabled ?? true;
-    console.log(`[ModuleConfigService] DEBUG: isModuleEnabled(${moduleId}) = ${enabled}, config:`, config);
+    logger.info(`[ModuleConfigService] DEBUG: isModuleEnabled(${moduleId}) = ${enabled}, config:`, config);
     return enabled;
   }
 
@@ -157,10 +159,10 @@ class ModuleConfigService {
     // Combine all enabled modules and remove duplicates
     const allEnabled = [...new Set([...coreModules, ...configuredEnabled, ...autoEnabled])];
     
-    console.log('[ModuleConfigService] DEBUG: getEnabledModules() returning:', allEnabled);
-    console.log('[ModuleConfigService] DEBUG: Core modules:', coreModules);
-    console.log('[ModuleConfigService] DEBUG: Configured enabled:', configuredEnabled);
-    console.log('[ModuleConfigService] DEBUG: Auto-enabled:', autoEnabled);
+    logger.info('[ModuleConfigService] DEBUG: getEnabledModules() returning:', allEnabled);
+    logger.info('[ModuleConfigService] DEBUG: Core modules:', coreModules);
+    logger.info('[ModuleConfigService] DEBUG: Configured enabled:', configuredEnabled);
+    logger.info('[ModuleConfigService] DEBUG: Auto-enabled:', autoEnabled);
     
     return allEnabled;
   }
@@ -209,14 +211,14 @@ class ModuleConfigService {
       ]));
       this.saveConfigurations();
     } catch (error) {
-      console.error('Failed to import module configurations:', error);
+      logger.error('Failed to import module configurations:', error);
       throw new Error('Invalid configuration format');
     }
   }
 
   // Add missing methods that are called by moduleManagementService
   getAllModuleInfo(): ModuleInfo[] {
-    console.log('[ModuleConfigService] Getting all module info...');
+    logger.info('[ModuleConfigService] Getting all module info...');
     const allModules = moduleRegistry.getAllMetadata();
     const coreModules = ['dashboard', 'settings', 'reports'];
     
@@ -239,7 +241,7 @@ class ModuleConfigService {
   }
 
   validateConfig(): { valid: boolean; errors: string[] } {
-    console.log('[ModuleConfigService] Validating configuration...');
+    logger.info('[ModuleConfigService] Validating configuration...');
     const errors: string[] = [];
     
     try {
@@ -258,7 +260,7 @@ class ModuleConfigService {
       
       return { valid: errors.length === 0, errors };
     } catch (error) {
-      console.error('[ModuleConfigService] Error validating config:', error);
+      logger.error('[ModuleConfigService] Error validating config:', error);
       return { valid: false, errors: ['Configuration validation failed'] };
     }
   }
@@ -290,7 +292,7 @@ class ModuleConfigService {
   }
 
   checkDependencies(moduleId: string): { satisfied: boolean; missing: string[] } {
-    console.log('[ModuleConfigService] Checking dependencies for:', moduleId);
+    logger.info('[ModuleConfigService] Checking dependencies for:', moduleId);
     const module = moduleRegistry.getMetadata(moduleId);
     if (!module || !module.dependencies) {
       return { satisfied: true, missing: [] };
@@ -304,13 +306,13 @@ class ModuleConfigService {
   }
 
   getModuleDependencies(moduleId: string): string[] {
-    console.log('[ModuleConfigService] Getting dependencies for:', moduleId);
+    logger.info('[ModuleConfigService] Getting dependencies for:', moduleId);
     const module = moduleRegistry.getMetadata(moduleId);
     return module?.dependencies || [];
   }
 
   getConfig(): { moduleDependencies: Record<string, string[]> } {
-    console.log('[ModuleConfigService] Getting full config...');
+    logger.info('[ModuleConfigService] Getting full config...');
     const allModules = moduleRegistry.getAllMetadata();
     const moduleDependencies: Record<string, string[]> = {};
     

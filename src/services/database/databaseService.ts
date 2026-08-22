@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: New database service that uses the correct database provider based on environment configuration
 // ABOUTME: Unified database service using provider-agnostic DataServiceFactory
 
@@ -7,25 +9,19 @@ import {
 } from './ProviderSelector';
 import { ICollection } from './interfaces';
 import * as allTypes from '../../types';
-import {
-  unifiedConfigManager,
-  DATABASE_NAME,
-  SETTINGS_COLLECTION_NAME,
-  DUMMY_DATA_FLAG_ID
-} from '../../config/unifiedConfig';
-import { DataServiceFactory } from '../data/DataServiceFactory';
+import { SETTINGS_COLLECTION_NAME, DUMMY_DATA_FLAG_ID } from '../../config/unifiedConfig';
 
 // Import collections definition from provider-agnostic collections
 import { collectionsDefinition } from './collections';
 
 // Validate collectionsDefinition at module load time
 if (!collectionsDefinition) {
-  console.error('❌ [CRITICAL] collectionsDefinition is undefined at import time!');
-  console.error('Please ensure collectionsDefinition is properly exported from collections.ts');
+  logger.error('âŒ [CRITICAL] collectionsDefinition is undefined at import time!');
+  logger.error('Please ensure collectionsDefinition is properly exported from collections.ts');
 } else if (typeof collectionsDefinition !== 'object') {
-  console.error('❌ [CRITICAL] collectionsDefinition is not an object:', typeof collectionsDefinition);
+  logger.error('âŒ [CRITICAL] collectionsDefinition is not an object:', typeof collectionsDefinition);
 } else {
-  console.log('✅ [DEBUG] collectionsDefinition imported successfully with', Object.keys(collectionsDefinition).length, 'collections');
+  logger.info('âœ… [DEBUG] collectionsDefinition imported successfully with', Object.keys(collectionsDefinition).length, 'collections');
 }
 
 // ID Generation (same as rxdbService)
@@ -41,7 +37,7 @@ let database: any = null;
 
 // Mock database interface to maintain compatibility
 // Uses live delegation to DatabaseManager (which delegates to UDM) so collection
-// lookups always reflect the current state — no stale snapshots.
+// lookups always reflect the current state â€” no stale snapshots.
 class MockDatabase {
   [key: string]: any;
   private databaseManager = getDatabaseManager();
@@ -54,6 +50,13 @@ class MockDatabase {
         // If the property exists on the class, use it
         if (prop in target) {
           return Reflect.get(target, prop, receiver);
+        }
+
+        // Ignore Promise thenability probes — when an async function resolves
+        // with this proxy, the runtime reads '.then' which would otherwise be
+        // looked up as a collection name and log a spurious warning.
+        if (prop === 'then' || prop === 'catch' || prop === 'finally') {
+          return undefined;
         }
         
         // If it's a string property name, try to get it as a collection
@@ -73,7 +76,7 @@ class MockDatabase {
   getCollection(name: string): ICollection<any> | null {
     const collection = this.databaseManager.getCollection(name);
     if (!collection) {
-      console.warn(`Collection '${name}' not found in database provider`);
+      logger.warn(`Collection '${name}' not found in database provider`);
       return null;
     }
     return collection;
@@ -90,11 +93,11 @@ class MockDatabase {
 
 // Initialize database using the correct provider based on environment
 const initializeDatabase = async (): Promise<MockDatabase> => {
-  console.log('DatabaseService: Initializing database...');
+  logger.info('DatabaseService: Initializing database...');
   
   try {
-    // MockDatabase now uses live delegation to DatabaseManager (→ UDM).
-    // The initial snapshot is unnecessary — every access is live.
+    // MockDatabase now uses live delegation to DatabaseManager (â†’ UDM).
+    // The initial snapshot is unnecessary â€” every access is live.
     const mockDb = new MockDatabase();
 
     if (typeof window !== 'undefined') {
@@ -106,10 +109,10 @@ const initializeDatabase = async (): Promise<MockDatabase> => {
     
     const manager = getDatabaseManager();
     const colCount = manager.getAllCollections().size;
-    console.log(`DatabaseService: Database initialized (${colCount} collections via live delegation)`);
+    logger.info(`DatabaseService: Database initialized (${colCount} collections via live delegation)`);
     return mockDb;
   } catch (error) {
-    console.error('DatabaseService: Database initialization failed:', error);
+    logger.error('DatabaseService: Database initialization failed:', error);
     initializationError = error as Error;
     isInitialized = false;
     throw error;
@@ -133,7 +136,7 @@ export const getDatabaseError = (): Error | null => {
 };
 
 export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTypes.RawInitialData): Promise<void> => {
-  console.log('DatabaseService: Demo mode - Seeding database with mock data...');
+  logger.info('DatabaseService: Demo mode - Seeding database with mock data...');
   
   for (const collectionName in collectionsDefinition) {
     if (Object.prototype.hasOwnProperty.call(collectionsDefinition, collectionName)) {
@@ -143,7 +146,7 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
 
       if (collection) {
         try {
-          console.log(`DatabaseService: Clearing collection ${collectionName}...`);
+          logger.info(`DatabaseService: Clearing collection ${collectionName}...`);
           // Clear existing data
           const existingDocs = await collection.find();
           for (const doc of existingDocs) {
@@ -153,15 +156,15 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
           }
 
           if (mockDataArray && Array.isArray(mockDataArray) && mockDataArray.length > 0) {
-            console.log(`DatabaseService: Seeding ${collectionName} with ${mockDataArray.length} items...`);
+            logger.info(`DatabaseService: Seeding ${collectionName} with ${mockDataArray.length} items...`);
             for (const item of mockDataArray) {
               await collection.insert(item);
             }
           } else if (mockDataArray && !Array.isArray(mockDataArray) && mockDataArray !== null && collectionName !== SETTINGS_COLLECTION_NAME) {
-            console.log(`DatabaseService: Seeding ${collectionName} with 1 item...`);
+            logger.info(`DatabaseService: Seeding ${collectionName} with 1 item...`);
             await collection.insert(mockDataArray);
           } else if (collectionName === SETTINGS_COLLECTION_NAME && mockDataArray) {
-            console.log(`DatabaseService: Upserting ${collectionName} data...`);
+            logger.info(`DatabaseService: Upserting ${collectionName} data...`);
             // Use upsert for settings collection
             const settingsCol = collection as any;
             if (settingsCol.upsert) {
@@ -177,10 +180,10 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
             }
           }
         } catch (error) {
-          console.error(`DatabaseService: Error seeding collection ${collectionName}:`, error);
+          logger.error(`DatabaseService: Error seeding collection ${collectionName}:`, error);
         }
       } else {
-        console.warn(`DatabaseService: Collection ${collectionName} not found in DB instance during seeding.`);
+        logger.warn(`DatabaseService: Collection ${collectionName} not found in DB instance during seeding.`);
       }
     }
   }
@@ -203,14 +206,14 @@ export const seedDatabaseWithMockData = async (db: MockDatabase, mockData: allTy
         await settingsCollection.insert({ using_dummy_data: true });
       }
     }
-    console.log('DatabaseService: Dummy data flag set to true.');
+    logger.info('DatabaseService: Dummy data flag set to true.');
   }
   
-  console.log('DatabaseService: Database seeding complete.');
+  logger.info('DatabaseService: Database seeding complete.');
 };
 
 export const clearDatabase = async (db: MockDatabase): Promise<void> => {
-  console.log('DatabaseService: Clearing all collections...');
+  logger.info('DatabaseService: Clearing all collections...');
   
   for (const [collectionName, collection] of Object.entries(db.collections)) {
     try {
@@ -220,9 +223,9 @@ export const clearDatabase = async (db: MockDatabase): Promise<void> => {
           await collection.remove(doc.id);
         }
       }
-      console.log(`DatabaseService: Cleared collection ${collectionName}`);
+      logger.info(`DatabaseService: Cleared collection ${collectionName}`);
     } catch (error) {
-      console.error(`DatabaseService: Error clearing collection ${collectionName}:`, error);
+      logger.error(`DatabaseService: Error clearing collection ${collectionName}:`, error);
     }
   }
 
@@ -244,10 +247,10 @@ export const clearDatabase = async (db: MockDatabase): Promise<void> => {
         await settingsCollection.insert({ using_dummy_data: false });
       }
     }
-    console.log('DatabaseService: Dummy data flag set to false.');
+    logger.info('DatabaseService: Dummy data flag set to false.');
   }
   
-  console.log('DatabaseService: All collections cleared.');
+  logger.info('DatabaseService: All collections cleared.');
 };
 
 export const getUsingDummyDataFlag = async (db: MockDatabase): Promise<boolean> => {
@@ -257,7 +260,7 @@ export const getUsingDummyDataFlag = async (db: MockDatabase): Promise<boolean> 
       const doc = await settingsCollection.findById(DUMMY_DATA_FLAG_ID);
       return !!doc?.using_dummy_data;
     } catch (error) {
-      console.warn('DatabaseService: Could not retrieve dummy data flag:', error);
+      logger.warn('DatabaseService: Could not retrieve dummy data flag:', error);
       return false;
     }
   }
@@ -335,10 +338,10 @@ export const rxdbService = {
       if (mockData) {
         return seedDatabaseWithMockData(database, mockData);
       } else {
-        console.warn('No mock data available for seeding');
+        logger.warn('No mock data available for seeding');
       }
     } catch (error) {
-      console.error('Failed to seed database with mock data:', error);
+      logger.error('Failed to seed database with mock data:', error);
       throw error;
     }
   },
@@ -353,4 +356,4 @@ export const databaseService = rxdbService;
 // Removed auto-initialization at module load to prevent race conditions
 // Database will be initialized explicitly when needed by useDatabaseData hook
 
-console.log('DatabaseService: Database service loaded successfully');
+logger.info('DatabaseService: Database service loaded successfully');

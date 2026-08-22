@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: ActionProvider context for managing contextual actions across the application
 // ABOUTME: Stable implementation using React state instead of Zustand to prevent infinite loops
 
@@ -199,7 +201,7 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
   const executeAction = useCallback(async (actionId: string, customContext?: Partial<ActionContext>) => {
     const action = actions[actionId];
     if (!action) {
-      console.error(`Action not found: ${actionId}`);
+      logger.error(`Action not found: ${actionId}`);
       return;
     }
 
@@ -210,7 +212,7 @@ export const ActionProvider: React.FC<ActionProviderProps> = ({
         await action.onClick(context);
       }
     } catch (error) {
-      console.error(`Error executing action ${actionId}:`, error);
+      logger.error(`Error executing action ${actionId}:`, error);
     }
   }, [actions, currentContext]);
 

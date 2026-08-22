@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Feature flag service for controlling tabbed mode per module
 // ABOUTME: Allows gradual rollout of tabbed mode functionality
 
@@ -25,9 +27,9 @@ class TabbedModeFeatureFlag {
   // Load configuration from unified config
   private loadConfig(): TabbedModeConfig {
     try {
-      console.log('TabbedModeFeatureFlag: Loading configuration...');
+      logger.info('TabbedModeFeatureFlag: Loading configuration...');
       const unifiedConfig = getCurrentUnifiedConfig();
-      console.log('TabbedModeFeatureFlag: Unified config:', unifiedConfig);
+      logger.info('TabbedModeFeatureFlag: Unified config:', unifiedConfig);
       
       const config = {
         globalEnabled: unifiedConfig.features?.enableTabbedMode ?? false,
@@ -36,10 +38,10 @@ class TabbedModeFeatureFlag {
         enablePerModuleControl: unifiedConfig.features?.enablePerModuleControl ?? false
       };
       
-      console.log('TabbedModeFeatureFlag: Loaded config:', config);
+      logger.info('TabbedModeFeatureFlag: Loaded config:', config);
       return config;
     } catch (error) {
-      console.warn('Failed to load tabbed mode config, using defaults:', error);
+      logger.warn('Failed to load tabbed mode config, using defaults:', error);
       
       return {
         globalEnabled: false,

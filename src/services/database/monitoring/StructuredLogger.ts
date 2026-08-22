@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * StructuredLogger - JSON-structured logging for database operations
  *
@@ -181,7 +183,7 @@ export class StructuredLogger {
       this.logToConsole(level, entry);
     } else {
       // Structured JSON output for production log aggregation
-      console.log(JSON.stringify(entry));
+      logger.info(JSON.stringify(entry));
     }
   }
 
@@ -224,13 +226,13 @@ export class StructuredLogger {
         console.debug(`${prefix} ${entry.message}${suffix}`, entry.metadata ?? '');
         break;
       case 'info':
-        console.info(`${prefix} ${entry.message}${suffix}`, entry.metadata ?? '');
+        logger.info(`${prefix} ${entry.message}${suffix}`, entry.metadata ?? '');
         break;
       case 'warn':
-        console.warn(`${prefix} ${entry.message}${suffix}`, entry.metadata ?? '');
+        logger.warn(`${prefix} ${entry.message}${suffix}`, entry.metadata ?? '');
         break;
       case 'error':
-        console.error(`${prefix} ${entry.message}${suffix}`, entry.error ?? entry.metadata ?? '');
+        logger.error(`${prefix} ${entry.message}${suffix}`, entry.error ?? entry.metadata ?? '');
         break;
     }
   }

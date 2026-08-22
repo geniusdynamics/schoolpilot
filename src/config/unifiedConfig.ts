@@ -1,5 +1,7 @@
+import { logger } from '@/utils/logging';
+
 /**
- * Unified Configuration System — Thin Orchestrator
+ * Unified Configuration System â€” Thin Orchestrator
  *
  * This file is the backward-compatibility shim that re-exports everything
  * from the focused config modules so that existing imports of the form:
@@ -7,10 +9,10 @@
  * continue to work without any changes.
  *
  * Implementation lives in:
- *  - core.ts            — base types, constants, environment-detection re-exports
- *  - features.ts        — feature flags, defaults, presets
- *  - dataMode.ts        — data mode switching/validation/state (re-exports dataModePolicies)
- *  - configManager.ts   — UnifiedAppConfig interface, UnifiedConfigManager class,
+ *  - core.ts            â€” base types, constants, environment-detection re-exports
+ *  - features.ts        â€” feature flags, defaults, presets
+ *  - dataMode.ts        â€” data mode switching/validation/state (re-exports dataModePolicies)
+ *  - configManager.ts   â€” UnifiedAppConfig interface, UnifiedConfigManager class,
  *                         createDefaultConfig, CONFIG_PRESETS, singleton, utility fns
  */
 
@@ -202,7 +204,7 @@ export const migrateConfigurationToV2 = (): void => {
   }
   const detectedEnvironment = detectEnvironment();
   _mgr.updateEnvironment(detectedEnvironment, 'env');
-  console.log('Configuration migrated to v2.0');
+  logger.info('Configuration migrated to v2.0');
 };
 
 // Backward compatibility functions (migrated from appConfig.ts)

@@ -1,7 +1,8 @@
 import type { ModuleMetadata, LoadedModule } from '@/core/types/module';
 import { moduleRegistry } from './moduleRegistry';
-import { moduleLifecycle } from './ModuleLifecycle';
+
 import { EventEmitter } from 'events';
+import { logger } from '@/utils/logging';
 
 export interface LoadModuleOptions {
   timeout?: number;
@@ -133,7 +134,7 @@ export class ModuleLoader extends EventEmitter {
         // Store loaded module
         this.loadedModules.set(moduleId, loadedModule);
         
-        // Register with module registry — handle already-registered modules gracefully
+        // Register with module registry â€” handle already-registered modules gracefully
         if (!moduleRegistry.isRegistered(moduleId)) {
           await moduleRegistry.register(loadedModule);
         }
@@ -465,7 +466,7 @@ export function getDynamicNavigationItems(): Array<{ id: string; name: string; p
     const navigationItems: any[] = [];
 
     // Get navigation from each enabled module's metadata
-    // Dashboard is excluded — it's a static page, not a module
+    // Dashboard is excluded â€” it's a static page, not a module
     for (const moduleId of enabledModules) {
       if (!moduleId || moduleId === 'dashboard') continue;
 
@@ -512,7 +513,7 @@ export function getDynamicNavigationItems(): Array<{ id: string; name: string; p
 
     return navigationItems;
   } catch (error) {
-    console.error('[getDynamicNavigationItems] Error:', error);
+    logger.error('[getDynamicNavigationItems] Error:', error);
     return []; // Return empty array on error
   }
 }

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Database Memory Manager - monitors and optimizes memory usage for database operations
 // ABOUTME: Prevents memory leaks, manages garbage collection, and provides memory usage alerts
 
@@ -129,7 +131,7 @@ export class DatabaseMemoryManager {
       try {
         listener(metrics);
       } catch (error) {
-        console.error('Memory listener error:', error);
+        logger.error('Memory listener error:', error);
       }
     });
   }
@@ -162,14 +164,14 @@ export class DatabaseMemoryManager {
   }
 
   public forceCleanup(): void {
-    console.log('🧹 [MemoryManager] Forcing cleanup...');
+    logger.info('ðŸ§¹ [MemoryManager] Forcing cleanup...');
     
     // Run GC callbacks
     this.gcCallbacks.forEach(callback => {
       try {
         callback();
       } catch (error) {
-        console.error('GC callback error:', error);
+        logger.error('GC callback error:', error);
       }
     });
 
@@ -186,7 +188,7 @@ export class DatabaseMemoryManager {
       try {
         (global as any).gc();
       } catch (error) {
-        console.warn('GC not available');
+        logger.warn('GC not available');
       }
     }
   }

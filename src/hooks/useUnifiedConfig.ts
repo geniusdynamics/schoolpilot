@@ -3,25 +3,57 @@
 
 import { useContext } from 'react';
 import { UnifiedConfigContext } from '@/contexts/UnifiedConfigContext';
+import type { UnifiedAppConfig } from '@/contexts/UnifiedConfigContext';
 import type {
-  UnifiedConfigContextType,
-  UnifiedAppConfig,
   BackendStatus,
   DataModeState,
   DataMode,
   DataModeSwitchResult,
-  DataModeManagerOptions,
   Environment,
   EnvironmentConfig,
   DatabaseProvider,
   ProductionDemoState,
-} from '@/contexts/UnifiedConfigContext';
-import { dataModeManager } from '@/services/data/dataModeManager';
+} from '@/config/unifiedConfig';
+import { getDataModeManager, type DataModeManagerOptions } from '@/services/data/dataModeManager';
+const dataModeManager = getDataModeManager();
 
 /**
  * Hook to use the unified configuration context
  */
-export const useUnifiedConfig = (): UnifiedConfigContextType => {
+// Local type for the context value
+interface UnifiedConfigContextValue {
+  config: UnifiedAppConfig;
+  isLoading: boolean;
+  error: string | null;
+  backendStatus: BackendStatus | null;
+  isBackendChecking: boolean;
+  updateConfig: (updates: Partial<UnifiedAppConfig>) => void;
+  resetConfig: () => void;
+  applyPreset: (preset: 'development' | 'staging' | 'production') => void;
+  checkBackendStatus: (force?: boolean) => Promise<BackendStatus>;
+  refreshBackendStatus: () => Promise<void>;
+  switchDataMode: (targetMode: DataMode, options?: { requiresReload?: boolean }) => Promise<DataModeSwitchResult>;
+  getDataModeState: () => DataModeState;
+  canSwitchToMode: (targetMode: DataMode) => boolean;
+  getAllowedDataModes: () => DataMode[];
+  getCurrentEnvironment: () => Environment;
+  getEnvironmentConfig: () => EnvironmentConfig;
+  updateEnvironment: (environment: Environment) => Promise<void>;
+  getCurrentDatabaseProvider: () => DatabaseProvider;
+  getAllowedDatabaseProviders: () => DatabaseProvider[];
+  updateDatabaseProvider: (provider: DatabaseProvider) => Promise<void>;
+  getProductionDemoState: () => ProductionDemoState;
+  transitionToLiveMode: () => Promise<DataModeSwitchResult>;
+  isProductionDemoAvailable: () => boolean;
+  switchToDemo: (options?: DataModeManagerOptions) => Promise<{ success: boolean; message: string }>;
+  switchToProduction: (options?: DataModeManagerOptions) => Promise<{ success: boolean; message: string }>;
+  clearDemoData: () => Promise<{ success: boolean; message: string }>;
+  isDemoDataActive: () => boolean;
+  getDataModeStatus: () => string;
+  validateServices: () => string[];
+}
+
+export const useUnifiedConfig = (): UnifiedConfigContextValue => {
   const context = useContext(UnifiedConfigContext);
   if (context === undefined) {
     throw new Error('useUnifiedConfig must be used within a UnifiedConfigProvider');

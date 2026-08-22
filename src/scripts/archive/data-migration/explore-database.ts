@@ -3,7 +3,6 @@
 // ABOUTME: Simple script to connect to SQLite database and explore its contents
 
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm';
-import * as fs from 'fs';
 
 async function exploreDatabase() {
   console.log('Exploring SQLite database contents...');
@@ -21,11 +20,11 @@ async function exploreDatabase() {
     let db;
     try {
       db = new sqlite3.oo1.DB('schoolpilot_dev.db', 'c');
-      console.log('✅ Database opened successfully');
+      console.log('âœ… Database opened successfully');
     } catch (openError) {
       console.log('Could not open database file directly, trying in-memory...');
       db = new sqlite3.oo1.DB(':memory:', 'c');
-      console.log('✅ In-memory database opened');
+      console.log('âœ… In-memory database opened');
     }
     
     // List all tables
@@ -50,7 +49,7 @@ async function exploreDatabase() {
         // Check if table exists
         const tableExistsStmt = db.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name=?;");
         tableExistsStmt.bind([tableName]);
-        const existsResult = tableExistsStmt.step();
+
         const existsRow = tableExistsStmt.get({});
         tableExistsStmt.finalize();
         
@@ -84,10 +83,10 @@ async function exploreDatabase() {
     
     // Close database
     db.close();
-    console.log('\n✅ Database exploration complete');
+    console.log('\nâœ… Database exploration complete');
     
   } catch (error) {
-    console.error('❌ Database exploration failed:', error);
+    console.error('âŒ Database exploration failed:', error);
   }
 }
 

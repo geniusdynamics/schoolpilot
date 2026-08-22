@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * TabPersistenceService - Dedicated service for tab persistence operations
  * Handles saving, loading, and migrating tab data with schema versioning
@@ -130,14 +132,14 @@ export class TabPersistenceService {
       if (await this.isIndexedDBAvailable()) {
         await this.initializeIndexedDB();
         this.preferredBackend = 'indexedDB';
-        console.log('[TabPersistence] Using IndexedDB for tab persistence');
+        logger.info('[TabPersistence] Using IndexedDB for tab persistence');
       } else {
         this.preferredBackend = 'localStorage';
-        console.log('[TabPersistence] Using localStorage for tab persistence');
+        logger.info('[TabPersistence] Using localStorage for tab persistence');
       }
       this.initialized = true;
     } catch (error) {
-      console.warn('[TabPersistence] Failed to initialize IndexedDB, falling back to localStorage:', error);
+      logger.warn('[TabPersistence] Failed to initialize IndexedDB, falling back to localStorage:', error);
       this.preferredBackend = 'localStorage';
       this.initialized = true;
     }
@@ -180,7 +182,7 @@ export class TabPersistenceService {
       const request = window.indexedDB.open(INDEXED_DB_CONFIG.name, INDEXED_DB_CONFIG.version);
 
       request.onerror = () => {
-        console.error('[TabPersistence] Failed to open IndexedDB:', request.error);
+        logger.error('[TabPersistence] Failed to open IndexedDB:', request.error);
         reject(request.error);
       };
 
@@ -227,13 +229,13 @@ export class TabPersistenceService {
         await this.saveToLocalStorage(tabs, metadata);
       }
       
-      console.log(`[TabPersistence] Saved ${tabs.length} tabs using ${this.preferredBackend}`);
+      logger.info(`[TabPersistence] Saved ${tabs.length} tabs using ${this.preferredBackend}`);
     } catch (error) {
-      console.error('[TabPersistence] Failed to save tabs:', error);
+      logger.error('[TabPersistence] Failed to save tabs:', error);
       
       // Try fallback to localStorage if IndexedDB failed
       if (this.preferredBackend === 'indexedDB') {
-        console.warn('[TabPersistence] Falling back to localStorage');
+        logger.warn('[TabPersistence] Falling back to localStorage');
         this.preferredBackend = 'localStorage';
         await this.saveToLocalStorage(tabs, metadata);
       } else {
@@ -259,21 +261,21 @@ export class TabPersistenceService {
       }
 
       if (!result.success || !result.data) {
-        console.warn('[TabPersistence] No tabs found in storage, returning empty array');
+        logger.warn('[TabPersistence] No tabs found in storage, returning empty array');
         return [];
       }
 
       // Check for schema migration
       const migratedTabs = this.migrateLegacyFormat(result.data);
       
-      console.log(`[TabPersistence] Loaded ${migratedTabs.length} tabs using ${result.backend}`);
+      logger.info(`[TabPersistence] Loaded ${migratedTabs.length} tabs using ${result.backend}`);
       return migratedTabs;
     } catch (error) {
-      console.error('[TabPersistence] Failed to load tabs:', error);
+      logger.error('[TabPersistence] Failed to load tabs:', error);
       
       // Try fallback
       if (this.preferredBackend === 'indexedDB') {
-        console.warn('[TabPersistence] Trying localStorage as fallback');
+        logger.warn('[TabPersistence] Trying localStorage as fallback');
         try {
           const localResult = await this.loadFromLocalStorage();
           if (localResult.success && localResult.data) {
@@ -302,9 +304,9 @@ export class TabPersistenceService {
         await this.clearLocalStorage();
       }
       
-      console.log('[TabPersistence] Cleared all tabs');
+      logger.info('[TabPersistence] Cleared all tabs');
     } catch (error) {
-      console.error('[TabPersistence] Failed to clear tabs:', error);
+      logger.error('[TabPersistence] Failed to clear tabs:', error);
       
       // Try fallback
       if (this.preferredBackend === 'indexedDB') {
@@ -323,7 +325,7 @@ export class TabPersistenceService {
    */
   public migrateLegacyFormat(data: any): Tab[] {
     if (!Array.isArray(data)) {
-      console.warn('[TabPersistence] Invalid data format for migration');
+      logger.warn('[TabPersistence] Invalid data format for migration');
       return [];
     }
 
@@ -333,14 +335,14 @@ export class TabPersistenceService {
       const schemaVersion = metadata?.schemaVersion || 0;
 
       if (schemaVersion < TAB_PERSISTENCE_SCHEMA_VERSION) {
-        console.log(`[TabPersistence] Migrating tabs from schema v${schemaVersion} to v${TAB_PERSISTENCE_SCHEMA_VERSION}`);
+        logger.info(`[TabPersistence] Migrating tabs from schema v${schemaVersion} to v${TAB_PERSISTENCE_SCHEMA_VERSION}`);
         return this.performMigration(data, schemaVersion);
       }
 
       // Validate and clean tabs
       return this.validateAndCleanTabs(data);
     } catch (error) {
-      console.error('[TabPersistence] Migration failed:', error);
+      logger.error('[TabPersistence] Migration failed:', error);
       return this.validateAndCleanTabs(data);
     }
   }
@@ -559,7 +561,7 @@ export class TabPersistenceService {
     // Future migrations can be added here
     // if (fromVersion < 2) { ... }
 
-    console.log(`[TabPersistence] Migration complete: ${migratedTabs.length} tabs migrated`);
+    logger.info(`[TabPersistence] Migration complete: ${migratedTabs.length} tabs migrated`);
     return migratedTabs;
   }
 

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Generates comprehensive finance data including chart of accounts, voteheads, suppliers, and financial transactions
 // ABOUTME: Creates realistic financial structures with proper accounting relationships and procurement lifecycle
 
@@ -140,7 +142,7 @@ export class FinanceGenerator extends BaseGenerator {
       { name: 'Vehicle Maintenance', code: '5502', type: 'Expense', parent_code: '5500' }
     ];
     
-    console.log(`Generating ${accounts.length} chart of accounts entries...`);
+    logger.info(`Generating ${accounts.length} chart of accounts entries...`);
     
     // First create account types
     for (const accountType of accountTypes) {
@@ -231,7 +233,7 @@ export class FinanceGenerator extends BaseGenerator {
       { name: 'Catering Services', code: 'CS', description: 'Food and catering services', category: 'Recurrent' }
     ];
     
-    console.log(`Generating ${voteheadData.length} votehead records...`);
+    logger.info(`Generating ${voteheadData.length} votehead records...`);
     
     for (let i = 0; i < voteheadData.length; i++) {
       const votehead = voteheadData[i];
@@ -279,7 +281,7 @@ export class FinanceGenerator extends BaseGenerator {
       'Books & Stationery', 'Maintenance Services'
     ];
     
-    console.log(`Generating ${count} supplier records...`);
+    logger.info(`Generating ${count} supplier records...`);
     
     for (let i = 0; i < count; i++) {
       const companyName = this.generateCompanyName();
@@ -356,7 +358,7 @@ export class FinanceGenerator extends BaseGenerator {
       { name: 'ICT Fees', description: 'Computer lab and ICT services', category: 'ICT', form: 'All' }
     ];
     
-    console.log(`Generating ${feeTemplateData.length} fee template records...`);
+    logger.info(`Generating ${feeTemplateData.length} fee template records...`);
     
     for (let i = 0; i < feeTemplateData.length; i++) {
       const template = feeTemplateData[i];
@@ -412,7 +414,7 @@ export class FinanceGenerator extends BaseGenerator {
       { name: 'Insurance Fee', description: 'Student insurance cover', amount_range: [500, 1500] }
     ];
     
-    console.log(`Generating ${count} fee template item records...`);
+    logger.info(`Generating ${count} fee template item records...`);
     
     for (let i = 0; i < count; i++) {
       const template = this.randomChoice(this.feeTemplates);
@@ -475,7 +477,7 @@ export class FinanceGenerator extends BaseGenerator {
     const transactionTypes = ['Payment', 'Refund', 'Adjustment', 'Transfer', 'Fee Charge'];
     const paymentMethods = ['Cash', 'Bank Transfer', 'Mobile Money', 'Cheque', 'Card'];
     
-    console.log(`Generating ${count} student wallet transaction records...`);
+    logger.info(`Generating ${count} student wallet transaction records...`);
     
     for (let i = 0; i < count; i++) {
       const student = this.randomChoice(this.students);
@@ -545,7 +547,7 @@ export class FinanceGenerator extends BaseGenerator {
     const procurementMethods = ['Open Tender', 'Restricted Tender', 'Direct Procurement', 'Request for Quotation'];
     const statuses = ['Planning', 'Tendering', 'Evaluation', 'Award', 'Contract', 'Delivery', 'Completed', 'Cancelled'];
     
-    console.log(`Generating ${count} procurement records...`);
+    logger.info(`Generating ${count} procurement records...`);
     
     for (let i = 0; i < count; i++) {
       const supplier = this.randomChoice(this.suppliers);
@@ -651,7 +653,7 @@ export class FinanceGenerator extends BaseGenerator {
     const paymentMethods = ['Cheque', 'Bank Transfer', 'Cash', 'Mobile Money'];
     const statuses = ['Draft', 'Pending Approval', 'Approved', 'Paid', 'Cancelled'];
     
-    console.log(`Generating ${count} payment voucher records...`);
+    logger.info(`Generating ${count} payment voucher records...`);
     
     for (let i = 0; i < count; i++) {
       const supplier = this.randomChoice(this.suppliers);

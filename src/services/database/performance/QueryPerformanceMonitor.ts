@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Query Performance Monitor - tracks and analyzes database query performance in real-time
 // ABOUTME: Provides detailed metrics, slow query detection, and performance recommendations
 
@@ -65,7 +67,7 @@ export class QueryPerformanceMonitor {
       this.performPerformanceCheck();
     }, 60 * 1000);
 
-    console.log('📊 [QueryPerformanceMonitor] Performance monitoring started');
+    logger.info('ðŸ“Š [QueryPerformanceMonitor] Performance monitoring started');
   }
 
   /**
@@ -81,7 +83,7 @@ export class QueryPerformanceMonitor {
       this.monitoringInterval = null;
     }
 
-    console.log('📊 [QueryPerformanceMonitor] Performance monitoring stopped');
+    logger.info('ðŸ“Š [QueryPerformanceMonitor] Performance monitoring stopped');
   }
 
   /**
@@ -402,9 +404,9 @@ export class QueryPerformanceMonitor {
     
     // Log critical alerts
     if (alert.severity === 'critical') {
-      console.error(`🚨 [QueryPerformanceMonitor] Critical performance alert:`, alert);
+      logger.error(`ðŸš¨ [QueryPerformanceMonitor] Critical performance alert:`, alert);
     } else if (alert.severity === 'high') {
-      console.warn(`⚠️ [QueryPerformanceMonitor] High severity performance alert:`, alert);
+      logger.warn(`âš ï¸ [QueryPerformanceMonitor] High severity performance alert:`, alert);
     }
   }
 
@@ -466,7 +468,7 @@ export class QueryPerformanceMonitor {
       this.updatePerformanceTrends();
       
     } catch (error) {
-      console.error('❌ [QueryPerformanceMonitor] Performance check failed:', error);
+      logger.error('âŒ [QueryPerformanceMonitor] Performance check failed:', error);
     }
   }
 

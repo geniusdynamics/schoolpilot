@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react';
 import { moduleHealthMonitor } from '../services/module/moduleHealthMonitor';
 import { ModuleHealth, ModuleHealthStatus } from '../services/module/enhancedModuleLoader';
-import { dynamicModuleLoader } from '../services/module/dynamicModuleLoader';
 
 interface UseModuleHealthOptions {
   moduleId?: string;

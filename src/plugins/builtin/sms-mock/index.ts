@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * SMS Provider Mock Plugin
  * 
@@ -79,7 +81,7 @@ export const smsMockPlugin: SMSPlugin = {
    * Send a mock SMS to a single recipient.
    */
   async send(phone: string, message: string): Promise<SMSResult> {
-    console.log('[SMS Mock] send called:', { phone, messageLength: message.length });
+    logger.info('[SMS Mock] send called:', { phone, messageLength: message.length });
 
     await simulateDelay();
 
@@ -97,7 +99,7 @@ export const smsMockPlugin: SMSPlugin = {
       message,
     });
 
-    console.log(`[SMS Mock] Message ${messageId} -> ${phone}: ${status}`);
+    logger.info(`[SMS Mock] Message ${messageId} -> ${phone}: ${status}`);
 
     return {
       success,
@@ -112,7 +114,7 @@ export const smsMockPlugin: SMSPlugin = {
    * Send mock SMS to multiple recipients. Each send is simulated individually.
    */
   async bulkSend(recipients: string[], message: string): Promise<BulkSMSResult> {
-    console.log(`[SMS Mock] bulkSend called: ${recipients.length} recipients, message length: ${message.length}`);
+    logger.info(`[SMS Mock] bulkSend called: ${recipients.length} recipients, message length: ${message.length}`);
 
     const results: SMSResult[] = [];
 
@@ -124,7 +126,7 @@ export const smsMockPlugin: SMSPlugin = {
     const successful = results.filter((r) => r.success).length;
     const failed = results.length - successful;
 
-    console.log(`[SMS Mock] bulkSend complete: ${successful}/${results.length} successful, ${failed} failed`);
+    logger.info(`[SMS Mock] bulkSend complete: ${successful}/${results.length} successful, ${failed} failed`);
 
     return {
       total: recipients.length,
@@ -142,11 +144,11 @@ export const smsMockPlugin: SMSPlugin = {
     templateId: string,
     params: Record<string, any>
   ): Promise<SMSResult> {
-    console.log('[SMS Mock] sendTemplate called:', { phone, templateId, params });
+    logger.info('[SMS Mock] sendTemplate called:', { phone, templateId, params });
 
     const template = MOCK_TEMPLATES[templateId];
     if (!template) {
-      console.warn(`[SMS Mock] Template "${templateId}" not found. Available: ${Object.keys(MOCK_TEMPLATES).join(', ')}`);
+      logger.warn(`[SMS Mock] Template "${templateId}" not found. Available: ${Object.keys(MOCK_TEMPLATES).join(', ')}`);
       return {
         success: false,
         messageId: generateMessageId(),
@@ -157,7 +159,7 @@ export const smsMockPlugin: SMSPlugin = {
     }
 
     const renderedMessage = applyTemplate(template, params);
-    console.log(`[SMS Mock] Template rendered (${templateId}): "${renderedMessage.substring(0, 60)}..."`);
+    logger.info(`[SMS Mock] Template rendered (${templateId}): "${renderedMessage.substring(0, 60)}..."`);
 
     return this.send(phone, renderedMessage);
   },
@@ -166,13 +168,13 @@ export const smsMockPlugin: SMSPlugin = {
    * Get the delivery status of a previously sent mock SMS.
    */
   async getDeliveryStatus(messageId: string): Promise<string> {
-    console.log(`[SMS Mock] getDeliveryStatus called: ${messageId}`);
+    logger.info(`[SMS Mock] getDeliveryStatus called: ${messageId}`);
 
     await simulateDelay(50, 200);
 
     const entry = messageStore.get(messageId);
     if (!entry) {
-      console.log(`[SMS Mock] Message ${messageId} NOT FOUND`);
+      logger.info(`[SMS Mock] Message ${messageId} NOT FOUND`);
       return 'not_found';
     }
 
@@ -181,19 +183,19 @@ export const smsMockPlugin: SMSPlugin = {
       // 80% chance of being delivered if originally sent
       if (simulateSuccess(0.8)) {
         entry.status = 'delivered';
-        console.log(`[SMS Mock] Message ${messageId}: delivered`);
+        logger.info(`[SMS Mock] Message ${messageId}: delivered`);
         return 'delivered';
       }
-      console.log(`[SMS Mock] Message ${messageId}: still pending`);
+      logger.info(`[SMS Mock] Message ${messageId}: still pending`);
       return 'pending';
     }
 
     if (entry.status === 'failed') {
-      console.log(`[SMS Mock] Message ${messageId}: failed`);
+      logger.info(`[SMS Mock] Message ${messageId}: failed`);
       return 'failed';
     }
 
-    console.log(`[SMS Mock] Message ${messageId}: ${entry.status}`);
+    logger.info(`[SMS Mock] Message ${messageId}: ${entry.status}`);
     return entry.status;
   },
 };
@@ -249,13 +251,13 @@ export const smsMockManifest: PluginManifest = {
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[SMS Mock Plugin] Activating...');
-    console.log('[SMS Mock Plugin] Available templates:', Object.keys(MOCK_TEMPLATES).join(', '));
-    console.log('[SMS Mock Plugin] This is a MOCK provider — no real SMS messages will be sent.');
+    logger.info('[SMS Mock Plugin] Activating...');
+    logger.info('[SMS Mock Plugin] Available templates:', Object.keys(MOCK_TEMPLATES).join(', '));
+    logger.info('[SMS Mock Plugin] This is a MOCK provider â€” no real SMS messages will be sent.');
   },
 
   async deactivate() {
-    console.log('[SMS Mock Plugin] Deactivated.');
+    logger.info('[SMS Mock Plugin] Deactivated.');
     messageStore.clear();
   },
 };

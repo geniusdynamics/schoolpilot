@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Database Performance Optimizer - provides query optimization, indexing, and performance monitoring
 // ABOUTME: Implements caching, query analysis, and automatic performance improvements for database operations
 
@@ -270,7 +272,7 @@ export class DatabasePerformanceOptimizer {
 
     // Log slow queries
     if (executionTime > this.config.slowQueryThreshold) {
-      console.warn(`🐌 [DatabasePerformanceOptimizer] Slow query detected:`, {
+      logger.warn(`ðŸŒ [DatabasePerformanceOptimizer] Slow query detected:`, {
         collection,
         executionTime: `${executionTime}ms`,
         query: JSON.stringify(query),
@@ -405,10 +407,10 @@ export class DatabasePerformanceOptimizer {
       for (const indexDef of suggestedIndexes) {
         try {
           await collection.createIndex(indexDef);
-          console.log(`📈 [DatabasePerformanceOptimizer] Created index for ${collectionName}:`, indexDef);
+          logger.info(`ðŸ“ˆ [DatabasePerformanceOptimizer] Created index for ${collectionName}:`, indexDef);
           stats.lastOptimized = new Date();
         } catch (error) {
-          console.warn(`⚠️ [DatabasePerformanceOptimizer] Failed to create index for ${collectionName}:`, error);
+          logger.warn(`âš ï¸ [DatabasePerformanceOptimizer] Failed to create index for ${collectionName}:`, error);
         }
       }
     }

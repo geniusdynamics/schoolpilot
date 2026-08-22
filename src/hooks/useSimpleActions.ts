@@ -191,13 +191,6 @@ export const useActionStore = create<ActionStore>()(subscribeWithSelector(
 ));
 
 // Add helper method to update contextual actions
-const updateContextActions = () => {
-  const state = useActionStore.getState();
-  if (state.currentContext) {
-    const contextActions = state.getActionsForContext(state.currentContext);
-    useActionStore.setState({ contextActions });
-  }
-};
 
 // ===== HOOKS =====
 

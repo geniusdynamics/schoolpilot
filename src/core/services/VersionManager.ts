@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Version manager service
 // ABOUTME: Handles version validation and compatibility checking
 
@@ -11,7 +13,7 @@ class VersionManager {
     try {
       return semver.satisfies(moduleVersion, constraint);
     } catch (error) {
-      console.error(`❌ [VersionManager] Invalid version constraint: ${constraint}`, error);
+      logger.error(`âŒ [VersionManager] Invalid version constraint: ${constraint}`, error);
       return false;
     }
   }
@@ -98,7 +100,7 @@ class VersionManager {
       
       return {};
     } catch (error) {
-      console.error(`❌ [VersionManager] Error parsing constraint: ${constraint}`, error);
+      logger.error(`âŒ [VersionManager] Error parsing constraint: ${constraint}`, error);
       return {};
     }
   }

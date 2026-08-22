@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Utility functions for React hooks to prevent common errors
 // ABOUTME: Provides safe dependency array handling and error boundaries
 
@@ -41,13 +43,13 @@ export const stableDeps = (deps: DependencyList): DependencyList => {
  */
 export const validateDeps = (deps: DependencyList | undefined, hookName: string): boolean => {
   if (!deps || !Array.isArray(deps)) {
-    console.error(`[${hookName}] Invalid dependency array:`, deps);
+    logger.error(`[${hookName}] Invalid dependency array:`, deps);
     return false;
   }
   
   const invalidDeps = deps.filter((dep) => dep === undefined || dep === null);
   if (invalidDeps.length > 0) {
-    console.error(`[${hookName}] Found ${invalidDeps.length} undefined/null dependencies`);
+    logger.error(`[${hookName}] Found ${invalidDeps.length} undefined/null dependencies`);
     return false;
   }
   
@@ -59,7 +61,7 @@ export const validateDeps = (deps: DependencyList | undefined, hookName: string)
  */
 export class HookErrorHandler {
   static handleError(error: Error, hookName: string, context?: any): void {
-    console.error(`[${hookName}] Hook error:`, {
+    logger.error(`[${hookName}] Hook error:`, {
       error: error.message,
       stack: error.stack,
       context

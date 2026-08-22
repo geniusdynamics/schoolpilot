@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * CapabilityDetector - Centralized runtime environment and storage capability detection
  *
@@ -128,7 +130,7 @@ export class CapabilityDetector {
       try {
         listener(report);
       } catch (error) {
-        console.warn('[CapabilityDetector] Error in capability change listener:', error);
+        logger.warn('[CapabilityDetector] Error in capability change listener:', error);
       }
     }
   }
@@ -149,7 +151,7 @@ export class CapabilityDetector {
           this.notifyListeners(newReport);
         }
       } catch (error) {
-        console.warn('[CapabilityDetector] Error during periodic re-detection:', error);
+        logger.warn('[CapabilityDetector] Error during periodic re-detection:', error);
       }
     }, this.REDETECT_INTERVAL);
 

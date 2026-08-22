@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 import {
   BookOpen,
   Users,
@@ -58,7 +60,7 @@ export const academicsActions: ActionDefinition[] = [
     submodule: 'courses',
     requiredPermissions: ['academics.courses.create'],
     onClick: async () => {
-      console.log('Creating new course');
+      logger.info('Creating new course');
     }
   },
   {
@@ -70,7 +72,7 @@ export const academicsActions: ActionDefinition[] = [
     submodule: 'courses',
     requiredPermissions: ['academics.courses.read'],
     onClick: async () => {
-      console.log('Viewing courses');
+      logger.info('Viewing courses');
     }
   },
   {
@@ -82,7 +84,7 @@ export const academicsActions: ActionDefinition[] = [
     submodule: 'grades',
     requiredPermissions: ['academics.grades.manage'],
     onClick: async () => {
-      console.log('Managing grades');
+      logger.info('Managing grades');
     }
   },
   {
@@ -94,7 +96,7 @@ export const academicsActions: ActionDefinition[] = [
     submodule: 'schedule',
     requiredPermissions: ['academics.schedule.create'],
     onClick: async () => {
-      console.log('Scheduling class');
+      logger.info('Scheduling class');
     }
   },
   {
@@ -106,7 +108,7 @@ export const academicsActions: ActionDefinition[] = [
     submodule: 'transcripts',
     requiredPermissions: ['academics.transcripts.export'],
     onClick: async () => {
-      console.log('Exporting transcript');
+      logger.info('Exporting transcript');
     }
   }
 ];
@@ -122,7 +124,7 @@ export const administrationActions: ActionDefinition[] = [
     submodule: 'users',
     requiredPermissions: ['administration.users.create'],
     onClick: async () => {
-      console.log('Creating new user');
+      logger.info('Creating new user');
     }
   },
   {
@@ -134,7 +136,7 @@ export const administrationActions: ActionDefinition[] = [
     submodule: 'roles',
     requiredPermissions: ['administration.roles.manage'],
     onClick: async () => {
-      console.log('Managing user roles');
+      logger.info('Managing user roles');
     }
   },
   {
@@ -146,7 +148,7 @@ export const administrationActions: ActionDefinition[] = [
     submodule: 'audit',
     requiredPermissions: ['administration.audit.read'],
     onClick: async () => {
-      console.log('Viewing audit log');
+      logger.info('Viewing audit log');
     }
   },
   {
@@ -158,7 +160,7 @@ export const administrationActions: ActionDefinition[] = [
     submodule: 'settings',
     requiredPermissions: ['administration.settings.manage'],
     onClick: async () => {
-      console.log('Managing system settings');
+      logger.info('Managing system settings');
     }
   },
   {
@@ -170,7 +172,7 @@ export const administrationActions: ActionDefinition[] = [
     submodule: 'backup',
     requiredPermissions: ['administration.backup.create'],
     onClick: async () => {
-      console.log('Creating data backup');
+      logger.info('Creating data backup');
     }
   }
 ];
@@ -186,7 +188,7 @@ export const financeActions: ActionDefinition[] = [
     submodule: 'invoices',
     requiredPermissions: ['finance.invoices.create'],
     onClick: async () => {
-      console.log('Creating new invoice');
+      logger.info('Creating new invoice');
     }
   },
   {
@@ -198,7 +200,7 @@ export const financeActions: ActionDefinition[] = [
     submodule: 'payments',
     requiredPermissions: ['finance.payments.read'],
     onClick: async () => {
-      console.log('Viewing payments');
+      logger.info('Viewing payments');
     }
   },
   {
@@ -210,7 +212,7 @@ export const financeActions: ActionDefinition[] = [
     submodule: 'reports',
     requiredPermissions: ['finance.reports.generate'],
     onClick: async () => {
-      console.log('Generating financial report');
+      logger.info('Generating financial report');
     }
   },
   {
@@ -222,7 +224,7 @@ export const financeActions: ActionDefinition[] = [
     submodule: 'budget',
     requiredPermissions: ['finance.budget.manage'],
     onClick: async () => {
-      console.log('Managing budget');
+      logger.info('Managing budget');
     }
   },
   {
@@ -234,7 +236,7 @@ export const financeActions: ActionDefinition[] = [
     submodule: 'export',
     requiredPermissions: ['finance.data.export'],
     onClick: async () => {
-      console.log('Exporting financial data');
+      logger.info('Exporting financial data');
     }
   }
 ];
@@ -250,7 +252,7 @@ export const hrActions: ActionDefinition[] = [
     submodule: 'employees',
     requiredPermissions: ['hr.employees.create'],
     onClick: async () => {
-      console.log('Creating new employee');
+      logger.info('Creating new employee');
     }
   },
   {
@@ -262,7 +264,7 @@ export const hrActions: ActionDefinition[] = [
     submodule: 'payroll',
     requiredPermissions: ['hr.payroll.manage'],
     onClick: async () => {
-      console.log('Managing payroll');
+      logger.info('Managing payroll');
     }
   },
   {
@@ -274,7 +276,7 @@ export const hrActions: ActionDefinition[] = [
     submodule: 'attendance',
     requiredPermissions: ['hr.attendance.read'],
     onClick: async () => {
-      console.log('Viewing attendance');
+      logger.info('Viewing attendance');
     }
   },
   {
@@ -286,7 +288,7 @@ export const hrActions: ActionDefinition[] = [
     submodule: 'leave',
     requiredPermissions: ['hr.leave.manage'],
     onClick: async () => {
-      console.log('Managing leave requests');
+      logger.info('Managing leave requests');
     }
   },
   {
@@ -298,7 +300,7 @@ export const hrActions: ActionDefinition[] = [
     submodule: 'performance',
     requiredPermissions: ['hr.performance.manage'],
     onClick: async () => {
-      console.log('Managing performance reviews');
+      logger.info('Managing performance reviews');
     }
   }
 ];
@@ -314,7 +316,7 @@ export const inventoryActions: ActionDefinition[] = [
     submodule: 'items',
     requiredPermissions: ['inventory.items.create'],
     onClick: async () => {
-      console.log('Adding new inventory item');
+      logger.info('Adding new inventory item');
     }
   },
   {
@@ -326,7 +328,7 @@ export const inventoryActions: ActionDefinition[] = [
     submodule: 'stock',
     requiredPermissions: ['inventory.stock.read'],
     onClick: async () => {
-      console.log('Viewing stock levels');
+      logger.info('Viewing stock levels');
     }
   },
   {
@@ -338,7 +340,7 @@ export const inventoryActions: ActionDefinition[] = [
     submodule: 'stock',
     requiredPermissions: ['inventory.stock.update'],
     onClick: async () => {
-      console.log('Updating stock levels');
+      logger.info('Updating stock levels');
     }
   },
   {
@@ -350,7 +352,7 @@ export const inventoryActions: ActionDefinition[] = [
     submodule: 'reports',
     requiredPermissions: ['inventory.reports.generate'],
     onClick: async () => {
-      console.log('Generating inventory report');
+      logger.info('Generating inventory report');
     }
   },
   {
@@ -362,7 +364,7 @@ export const inventoryActions: ActionDefinition[] = [
     submodule: 'alerts',
     requiredPermissions: ['inventory.alerts.view'],
     onClick: async () => {
-      console.log('Viewing low stock alerts');
+      logger.info('Viewing low stock alerts');
     }
   }
 ];
@@ -378,7 +380,7 @@ export const libraryActions: ActionDefinition[] = [
     submodule: 'books',
     requiredPermissions: ['library.books.create'],
     onClick: async () => {
-      console.log('Adding new book');
+      logger.info('Adding new book');
     }
   },
   {
@@ -390,7 +392,7 @@ export const libraryActions: ActionDefinition[] = [
     submodule: 'catalog',
     requiredPermissions: ['library.catalog.read'],
     onClick: async () => {
-      console.log('Searching library catalog');
+      logger.info('Searching library catalog');
     }
   },
   {
@@ -402,7 +404,7 @@ export const libraryActions: ActionDefinition[] = [
     submodule: 'loans',
     requiredPermissions: ['library.loans.manage'],
     onClick: async () => {
-      console.log('Managing book loans');
+      logger.info('Managing book loans');
     }
   },
   {
@@ -414,7 +416,7 @@ export const libraryActions: ActionDefinition[] = [
     submodule: 'notices',
     requiredPermissions: ['library.notices.send'],
     onClick: async () => {
-      console.log('Sending overdue notices');
+      logger.info('Sending overdue notices');
     }
   },
   {
@@ -426,7 +428,7 @@ export const libraryActions: ActionDefinition[] = [
     submodule: 'digital',
     requiredPermissions: ['library.digital.access'],
     onClick: async () => {
-      console.log('Accessing digital resources');
+      logger.info('Accessing digital resources');
     }
   }
 ];
@@ -442,7 +444,7 @@ export const nutritionActions: ActionDefinition[] = [
     submodule: 'menus',
     requiredPermissions: ['nutrition.menus.create'],
     onClick: async () => {
-      console.log('Creating new menu');
+      logger.info('Creating new menu');
     }
   },
   {
@@ -454,7 +456,7 @@ export const nutritionActions: ActionDefinition[] = [
     submodule: 'meals',
     requiredPermissions: ['nutrition.meals.read'],
     onClick: async () => {
-      console.log('Viewing meal plans');
+      logger.info('Viewing meal plans');
     }
   },
   {
@@ -466,7 +468,7 @@ export const nutritionActions: ActionDefinition[] = [
     submodule: 'allergies',
     requiredPermissions: ['nutrition.allergies.manage'],
     onClick: async () => {
-      console.log('Tracking student allergies');
+      logger.info('Tracking student allergies');
     }
   },
   {
@@ -478,7 +480,7 @@ export const nutritionActions: ActionDefinition[] = [
     submodule: 'reports',
     requiredPermissions: ['nutrition.reports.generate'],
     onClick: async () => {
-      console.log('Generating nutrition report');
+      logger.info('Generating nutrition report');
     }
   },
   {
@@ -490,7 +492,7 @@ export const nutritionActions: ActionDefinition[] = [
     submodule: 'count',
     requiredPermissions: ['nutrition.count.manage'],
     onClick: async () => {
-      console.log('Managing meal counts');
+      logger.info('Managing meal counts');
     }
   }
 ];
@@ -506,7 +508,7 @@ export const reportsActions: ActionDefinition[] = [
     submodule: 'create',
     requiredPermissions: ['reports.create'],
     onClick: async () => {
-      console.log('Creating new report');
+      logger.info('Creating new report');
     }
   },
   {
@@ -518,7 +520,7 @@ export const reportsActions: ActionDefinition[] = [
     submodule: 'dashboard',
     requiredPermissions: ['reports.dashboard.read'],
     onClick: async () => {
-      console.log('Viewing reports dashboard');
+      logger.info('Viewing reports dashboard');
     }
   },
   {
@@ -530,7 +532,7 @@ export const reportsActions: ActionDefinition[] = [
     submodule: 'export',
     requiredPermissions: ['reports.export'],
     onClick: async () => {
-      console.log('Exporting report data');
+      logger.info('Exporting report data');
     }
   },
   {
@@ -542,7 +544,7 @@ export const reportsActions: ActionDefinition[] = [
     submodule: 'schedule',
     requiredPermissions: ['reports.schedule'],
     onClick: async () => {
-      console.log('Scheduling automated report');
+      logger.info('Scheduling automated report');
     }
   },
   {
@@ -554,7 +556,7 @@ export const reportsActions: ActionDefinition[] = [
     submodule: 'share',
     requiredPermissions: ['reports.share'],
     onClick: async () => {
-      console.log('Sharing report');
+      logger.info('Sharing report');
     }
   }
 ];
@@ -570,7 +572,7 @@ export const settingsActions: ActionDefinition[] = [
     submodule: 'general',
     requiredPermissions: ['settings.general.manage'],
     onClick: async () => {
-      console.log('Managing general settings');
+      logger.info('Managing general settings');
     }
   },
   {
@@ -582,7 +584,7 @@ export const settingsActions: ActionDefinition[] = [
     submodule: 'security',
     requiredPermissions: ['settings.security.manage'],
     onClick: async () => {
-      console.log('Managing security settings');
+      logger.info('Managing security settings');
     }
   },
   {
@@ -594,7 +596,7 @@ export const settingsActions: ActionDefinition[] = [
     submodule: 'notifications',
     requiredPermissions: ['settings.notifications.manage'],
     onClick: async () => {
-      console.log('Managing notification settings');
+      logger.info('Managing notification settings');
     }
   },
   {
@@ -606,7 +608,7 @@ export const settingsActions: ActionDefinition[] = [
     submodule: 'integrations',
     requiredPermissions: ['settings.integrations.manage'],
     onClick: async () => {
-      console.log('Managing integrations');
+      logger.info('Managing integrations');
     }
   },
   {
@@ -618,7 +620,7 @@ export const settingsActions: ActionDefinition[] = [
     submodule: 'backup',
     requiredPermissions: ['settings.backup.manage'],
     onClick: async () => {
-      console.log('Managing backup and restore');
+      logger.info('Managing backup and restore');
     }
   }
 ];

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Backend Detection Service
  * Handles backend environment detection, status checking, and availability monitoring
@@ -65,7 +67,7 @@ export class BackendDetectionService {
       
       return status;
     } catch (error) {
-      console.error('Backend detection failed:', error);
+      logger.error('Backend detection failed:', error);
       
       const fallbackStatus: BackendStatus = {
         environment: 'unknown',
@@ -268,7 +270,7 @@ export class BackendDetectionService {
         },
       }));
     } catch (error) {
-      console.warn('Failed to cache backend status in localStorage:', error);
+      logger.warn('Failed to cache backend status in localStorage:', error);
     }
   }
 
@@ -280,7 +282,7 @@ export class BackendDetectionService {
     try {
       localStorage.removeItem(BACKEND_STATUS_CACHE_KEY);
     } catch (error) {
-      console.warn('Failed to clear backend status cache:', error);
+      logger.warn('Failed to clear backend status cache:', error);
     }
   }
 
@@ -300,7 +302,7 @@ export class BackendDetectionService {
       try {
         listener(status);
       } catch (error) {
-        console.error('Error in backend status listener:', error);
+        logger.error('Error in backend status listener:', error);
       }
     });
   }
@@ -327,7 +329,7 @@ export class BackendDetectionService {
         });
       }
     } catch (error) {
-      console.warn('Failed to load persisted backend cache:', error);
+      logger.warn('Failed to load persisted backend cache:', error);
     }
   }
 }

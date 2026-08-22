@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // Provider Selector Logic
 // Integrates dual-database architecture with existing rxdbService.ts
 
@@ -42,12 +44,12 @@ export class DatabaseManager {
   }
 
   /**
-   * Initialize — delegates to UnifiedDatabaseManager to ensure single source of truth.
+   * Initialize â€” delegates to UnifiedDatabaseManager to ensure single source of truth.
    * Once UDM initializes, this manager's collections are populated from UDM's state.
    */
   async initialize(config: DatabaseConfig, collectionConfigs: CollectionConfig[]): Promise<void> {
     try {
-      console.log('[DatabaseManager] Delegating initialization to UnifiedDatabaseManager...');
+      logger.info('[DatabaseManager] Delegating initialization to UnifiedDatabaseManager...');
       const udm = UnifiedDatabaseManager.getInstance();
       if (!udm.isReady()) {
         await udm.initialize();
@@ -57,7 +59,7 @@ export class DatabaseManager {
       this.activeProvider = udm.getProvider();
       this.isInitialized = udm.isReady();
       this.updateStatus();
-      console.log(`[DatabaseManager] UDM delegated: ${this.collections.size} collections available`);
+      logger.info(`[DatabaseManager] UDM delegated: ${this.collections.size} collections available`);
     } catch (error) {
       throw new DatabaseError(
         `Failed to initialize database: ${error.message}`,
@@ -66,7 +68,7 @@ export class DatabaseManager {
     }
   }
 
-  // Get a specific collection — delegates to UDM for live data
+  // Get a specific collection â€” delegates to UDM for live data
   getCollection<T>(name: string): ICollection<T> | null {
     // Try UDM first (primary source of truth)
     const udmCol = UnifiedDatabaseManager.getInstance().getCollection<T>(name);
@@ -74,13 +76,13 @@ export class DatabaseManager {
     // Fallback to local collections (for backward compat with uninitialized state)
     const localCol = this.collections.get(name);
     if (!localCol) {
-      console.warn(`Collection '${name}' not found in UDM or local state`);
+      logger.warn(`Collection '${name}' not found in UDM or local state`);
       return null;
     }
     return localCol as ICollection<T>;
   }
 
-  // Get all collections — delegates to UDM for live data
+  // Get all collections â€” delegates to UDM for live data
   getAllCollections(): Map<string, ICollection<any>> {
     const udm = UnifiedDatabaseManager.getInstance();
     if (udm.isReady()) {
@@ -148,7 +150,7 @@ export class DatabaseManager {
       }
 
       this.updateStatus();
-      console.log(`Switched to provider: ${providerType}`);
+      logger.info(`Switched to provider: ${providerType}`);
     } catch (error) {
       throw new DatabaseError(
         `Failed to switch provider: ${error.message}`,
@@ -183,7 +185,7 @@ export class DatabaseManager {
         const collectionStats = await collection.getStats();
         stats.push({ name, stats: collectionStats });
       } catch (error) {
-        console.error(`Failed to get stats for collection '${name}':`, error);
+        logger.error(`Failed to get stats for collection '${name}':`, error);
       }
     }
     
@@ -192,18 +194,18 @@ export class DatabaseManager {
 
   // Compact all collections (for performance)
   async compact(): Promise<void> {
-    console.log('Starting database compaction...');
+    logger.info('Starting database compaction...');
     
     for (const [name, collection] of this.collections) {
       try {
         await collection.compact();
-        console.log(`Collection '${name}' compacted successfully`);
+        logger.info(`Collection '${name}' compacted successfully`);
       } catch (error) {
-        console.error(`Failed to compact collection '${name}':`, error);
+        logger.error(`Failed to compact collection '${name}':`, error);
       }
     }
     
-    console.log('Database compaction completed');
+    logger.info('Database compaction completed');
   }
 
   // Destroy the database
@@ -225,7 +227,7 @@ export class DatabaseManager {
       this.statusSubject.next(null);
       this.statusSubject.complete();
       
-      console.log('Database destroyed successfully');
+      logger.info('Database destroyed successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to destroy database: ${error.message}`,
@@ -261,7 +263,7 @@ export function convertRxDBSchema(rxdbSchemaOrWrapper: any): CollectionSchema {
   
   // Validate that we have a valid schema object
   if (!rxdbSchema || typeof rxdbSchema !== 'object') {
-    console.error('Invalid schema provided to convertRxDBSchema:', rxdbSchema);
+    logger.error('Invalid schema provided to convertRxDBSchema:', rxdbSchema);
     throw new Error(`Invalid schema: expected object, got ${typeof rxdbSchema}`);
   }
   
@@ -339,15 +341,15 @@ export class DatabaseIntegrationHelper {
     databaseName: string = 'schoolpilot'
   ): Promise<void> {
     try {
-      console.log('🔍 [DatabaseIntegrationHelper] Starting initialization...');
-      console.log('🔍 [DatabaseIntegrationHelper] collectionsDefinition type:', typeof collectionsDefinition);
-      console.log('🔍 [DatabaseIntegrationHelper] collectionsDefinition is null?', collectionsDefinition === null);
-      console.log('🔍 [DatabaseIntegrationHelper] collectionsDefinition is undefined?', collectionsDefinition === undefined);
+      logger.info('ðŸ” [DatabaseIntegrationHelper] Starting initialization...');
+      logger.info('ðŸ” [DatabaseIntegrationHelper] collectionsDefinition type:', typeof collectionsDefinition);
+      logger.info('ðŸ” [DatabaseIntegrationHelper] collectionsDefinition is null?', collectionsDefinition === null);
+      logger.info('ðŸ” [DatabaseIntegrationHelper] collectionsDefinition is undefined?', collectionsDefinition === undefined);
       
       // Add guard for undefined or null collectionsDefinition
       if (!collectionsDefinition || typeof collectionsDefinition !== 'object') {
         const errorMsg = `collectionsDefinition is invalid: ${typeof collectionsDefinition}`;
-        console.error('❌ [DatabaseIntegrationHelper]', errorMsg);
+        logger.error('âŒ [DatabaseIntegrationHelper]', errorMsg);
         throw new Error(errorMsg);
       }
       
@@ -355,10 +357,10 @@ export class DatabaseIntegrationHelper {
       let entries;
       try {
         entries = Object.entries(collectionsDefinition);
-        console.log('🔍 [DatabaseIntegrationHelper] Successfully got entries, count:', entries.length);
+        logger.info('ðŸ” [DatabaseIntegrationHelper] Successfully got entries, count:', entries.length);
       } catch (entriesError) {
-        console.error('❌ [DatabaseIntegrationHelper] Failed to get Object.entries:', entriesError);
-        console.error('❌ [DatabaseIntegrationHelper] collectionsDefinition value:', collectionsDefinition);
+        logger.error('âŒ [DatabaseIntegrationHelper] Failed to get Object.entries:', entriesError);
+        logger.error('âŒ [DatabaseIntegrationHelper] collectionsDefinition value:', collectionsDefinition);
         throw new Error(`Cannot get entries from collectionsDefinition: ${entriesError.message}`);
       }
       
@@ -372,7 +374,7 @@ export class DatabaseIntegrationHelper {
       
       // Convert RxDB collection definitions to our format
       for (const [name, def] of entries) {
-        console.log(`🔍 [DatabaseIntegrationHelper] Processing collection: ${name}`);
+        logger.info(`ðŸ” [DatabaseIntegrationHelper] Processing collection: ${name}`);
         
         // Derive the actual schema source - handle both { schema: ... } and raw schema forms
         const schemaSource = def && typeof def === 'object' && 'schema' in def ? def.schema : def;
@@ -380,14 +382,14 @@ export class DatabaseIntegrationHelper {
         // Validate schemaSource is an object
         if (!schemaSource || typeof schemaSource !== 'object') {
           const errorMsg = `Invalid schema for collection '${name}': expected object, got ${typeof schemaSource}`;
-          console.error('❌ [DatabaseIntegrationHelper]', errorMsg);
-          console.error('❌ [DatabaseIntegrationHelper] Schema source value:', schemaSource);
+          logger.error('âŒ [DatabaseIntegrationHelper]', errorMsg);
+          logger.error('âŒ [DatabaseIntegrationHelper] Schema source value:', schemaSource);
           throw new Error(errorMsg);
         }
         
         try {
           const convertedSchema = convertRxDBSchema(schemaSource);
-          console.log(`✅ [DatabaseIntegrationHelper] Successfully converted schema for collection '${name}'`);
+          logger.info(`âœ… [DatabaseIntegrationHelper] Successfully converted schema for collection '${name}'`);
           
           collectionConfigs.push({
             name,
@@ -402,13 +404,13 @@ export class DatabaseIntegrationHelper {
             }
           });
         } catch (conversionError) {
-          console.error(`❌ [DatabaseIntegrationHelper] Failed to convert schema for collection '${name}':`, conversionError);
+          logger.error(`âŒ [DatabaseIntegrationHelper] Failed to convert schema for collection '${name}':`, conversionError);
           throw new Error(`Failed to convert schema for collection '${name}': ${conversionError.message}`);
         }
       }
 
       await this.databaseManager.initialize(config, collectionConfigs);
-      console.log(`Initialized dual-database architecture with ${collectionConfigs.length} collections`);
+      logger.info(`Initialized dual-database architecture with ${collectionConfigs.length} collections`);
     } catch (error) {
       throw new DatabaseError(
         `Failed to initialize with RxDB collections: ${error.message}`,

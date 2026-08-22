@@ -1,6 +1,6 @@
 // ABOUTME: Comprehensive performance testing suite for database operations
 // ABOUTME: Includes benchmarks, load testing, stress testing, and regression detection
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
 import { UnifiedDatabaseManager } from '../UnifiedDatabaseManager';
 import { UniversalDataGenerator } from '../../dataGeneration/UniversalDataGenerator';
 import { DatabasePerformanceOptimizer } from '../performance/DatabasePerformanceOptimizer';
@@ -57,7 +57,7 @@ interface StressTestResult {
 describe('Database Performance Test Suite', () => {
   let databaseManager: UnifiedDatabaseManager;
   let dataGenerator: UniversalDataGenerator;
-  let performanceOptimizer: DatabasePerformanceOptimizer;
+
   let performanceMetrics: PerformanceMetrics[] = [];
 
   beforeEach(async () => {

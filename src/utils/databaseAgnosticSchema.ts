@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Database-agnostic schema utility that abstracts RxDB types and provides common interfaces for both RxDB and PouchDB
 // ABOUTME: Includes schema conversion, validation, and helper functions for creating database schemas
 
@@ -833,7 +835,7 @@ export function createEntitySchema(
   required?: string[],
   indexes?: string[]
 ): DatabaseSchema {
-  console.warn('createEntitySchema is deprecated. Use createDatabaseSchema instead.');
+  logger.warn('createEntitySchema is deprecated. Use createDatabaseSchema instead.');
   return createDatabaseSchema({
     title,
     primaryKey,

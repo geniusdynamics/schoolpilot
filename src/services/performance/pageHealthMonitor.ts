@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Page health monitoring service for tracking page performance and reliability
 // ABOUTME: Provides comprehensive monitoring and alerting for page component issues
 
@@ -268,9 +270,9 @@ class PageHealthMonitor {
 
     // Log critical alerts
     if (severity === 'critical') {
-      console.error(`🚨 [PageHealthMonitor] Critical alert: ${message}`);
+      logger.error(`ðŸš¨ [PageHealthMonitor] Critical alert: ${message}`);
     } else if (severity === 'high') {
-      console.warn(`⚠️ [PageHealthMonitor] High severity alert: ${message}`);
+      logger.warn(`âš ï¸ [PageHealthMonitor] High severity alert: ${message}`);
     }
   }
 }

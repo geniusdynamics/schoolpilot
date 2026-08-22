@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * TabValidationService - Centralized validation service for tab operations
  * Handles permissions, access control, state integrity, and data sanitization
@@ -101,7 +103,7 @@ export class TabValidationService {
    * Private constructor to enforce singleton pattern
    */
   private constructor() {
-    console.log('[TabValidation] Service initialized');
+    logger.info('[TabValidation] Service initialized');
   }
 
   // --------------------------------------------------------------------------
@@ -119,7 +121,7 @@ export class TabValidationService {
    */
   public validateTabAccess(tab: Partial<Tab>, userRole: string, userPermissions: string[]): boolean {
     if (!tab || !tab.id || typeof tab.id !== 'string') {
-      console.warn('[TabValidation] Invalid tab provided:', tab);
+      logger.warn('[TabValidation] Invalid tab provided:', tab);
       return false;
     }
 
@@ -131,7 +133,7 @@ export class TabValidationService {
     // Get role configuration
     const roleConfig = mutableRoleConfigs[userRole];
     if (!roleConfig) {
-      console.warn('[TabValidation] Unknown role:', userRole);
+      logger.warn('[TabValidation] Unknown role:', userRole);
       return false;
     }
 
@@ -152,7 +154,7 @@ export class TabValidationService {
       );
       
       if (!hasModuleAccess) {
-        console.warn(`[TabValidation] User role '${userRole}' does not have access to module '${tab.module}'`);
+        logger.warn(`[TabValidation] User role '${userRole}' does not have access to module '${tab.module}'`);
         return false;
       }
 
@@ -340,14 +342,14 @@ export class TabValidationService {
   ): Tab[] {
     // If no role provided, return empty
     if (!userRole) {
-      console.warn('[TabValidation] No user role provided, returning empty array');
+      logger.warn('[TabValidation] No user role provided, returning empty array');
       return [];
     }
 
     // Get role configuration
     const roleConfig = mutableRoleConfigs[userRole];
     if (!roleConfig) {
-      console.warn('[TabValidation] Unknown role:', userRole);
+      logger.warn('[TabValidation] Unknown role:', userRole);
       return [];
     }
 
@@ -531,7 +533,7 @@ export class TabValidationService {
    */
   public setRoleConfig(config: RoleAccessConfig): void {
     mutableRoleConfigs[config.role] = config;
-    console.log(`[TabValidation] Updated role config for: ${config.role}`);
+    logger.info(`[TabValidation] Updated role config for: ${config.role}`);
   }
 
   /**

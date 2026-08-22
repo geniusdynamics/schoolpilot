@@ -8,6 +8,9 @@
  * @module core/types/module
  */
 
+// Lifecycle types live in ../ModuleLifecycle; re-export here for @/core/types/module consumers (type-only, cycle erased).
+export type { LifecycleHooks, ModuleState } from '../ModuleLifecycle';
+
 /**
  * Module dependency definition
  * Declares a dependency on another module with version constraints

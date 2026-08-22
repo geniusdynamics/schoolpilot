@@ -128,7 +128,7 @@ export {
   SubjectGrouping,
   StudentEnrollmentStatus,
   FinancialYearStatus,
-} from '@/core/types/enums';
+} from '@/core/types';
 
 // App-specific types for database
 export interface AppSetting {

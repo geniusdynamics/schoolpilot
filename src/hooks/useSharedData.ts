@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * useSharedData - Cross-Module Data Access Hook
  * 
@@ -7,13 +9,13 @@
  * 
  * ## Problem Solved
  * 
- * Before (❌ cross-module import):
+ * Before (âŒ cross-module import):
  * ```typescript
  * import { initialMockUsers } from '../../administration/data/mockData';
  * const [users] = useState(initialMockUsers);
  * ```
  * 
- * After (✅ via hook):
+ * After (âœ… via hook):
  * ```typescript
  * import { useSharedData } from '@/hooks/useSharedData';
  * const { users } = useSharedData(['users']);
@@ -150,7 +152,7 @@ export function useSharedData<T extends SharedEntity>(
       e => !SHARED_ENTITIES.includes(e as SharedEntity)
     );
     if (invalidEntities.length > 0) {
-      console.warn(
+      logger.warn(
         `[useSharedData] Requested non-shared entities: ${invalidEntities.join(', ')}. ` +
         `Available shared entities: ${SHARED_ENTITIES.join(', ')}. ` +
         `Consider adding to SHARED_ENTITIES if this should be shared.`
@@ -200,7 +202,7 @@ export function useSharedData<T extends SharedEntity>(
         try {
           await refreshFn();
         } catch (err) {
-          console.error(`[useSharedData] Failed to refresh ${entity}:`, err);
+          logger.error(`[useSharedData] Failed to refresh ${entity}:`, err);
         }
       }
     }

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Builtin Plugin Loader
  * 
@@ -27,11 +29,11 @@ const BUILTIN_PLUGINS: PluginDirectory[] = [
  */
 async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin | null> {
   try {
-    // Dynamically import the plugin module
-    const pluginModule = await import(`./builtin/${dirInfo.path}`);
+    // Dynamically import the plugin module (extension included so Vite can analyze the import)
+    const pluginModule = await import(`./builtin/${dirInfo.name}/index.ts`);
     
     if (!pluginModule.default || !pluginModule.default.manifest || !pluginModule.default.module) {
-      console.warn(`[BuiltinLoader] Plugin ${dirInfo.name} has invalid structure`);
+      logger.warn(`[BuiltinLoader] Plugin ${dirInfo.name} has invalid structure`);
       return null;
     }
 
@@ -48,7 +50,7 @@ async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin
       source: 'builtin' as const,
     };
   } catch (error) {
-    console.error(`[BuiltinLoader] Failed to load plugin ${dirInfo.name}:`, error);
+    logger.error(`[BuiltinLoader] Failed to load plugin ${dirInfo.name}:`, error);
     return null;
   }
 }
@@ -58,7 +60,7 @@ async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin
  * Returns array of loaded plugins (excludes failed loads)
  */
 export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
-  console.log('[BuiltinLoader] Discovering builtin plugins...');
+  logger.info('[BuiltinLoader] Discovering builtin plugins...');
   
   const plugins: LoadedPlugin[] = [];
   
@@ -66,11 +68,11 @@ export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
     const plugin = await loadBuiltinPlugin(dirInfo);
     if (plugin) {
       plugins.push(plugin);
-      console.log(`[BuiltinLoader] ✓ Loaded ${plugin.manifest.name} (${plugin.manifest.id})`);
+      logger.info(`[BuiltinLoader] âœ“ Loaded ${plugin.manifest.name} (${plugin.manifest.id})`);
     }
   }
 
-  console.log(`[BuiltinLoader] Total builtin plugins loaded: ${plugins.length}`);
+  logger.info(`[BuiltinLoader] Total builtin plugins loaded: ${plugins.length}`);
   return plugins;
 }
 

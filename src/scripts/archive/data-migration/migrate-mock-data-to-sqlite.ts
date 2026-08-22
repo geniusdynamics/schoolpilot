@@ -24,7 +24,7 @@ async function migrateMockDataToSQLite() {
     // Create SQLite service directly
     const sqliteService = new SQLiteOPFSService();
     await sqliteService.initialize('schoolpilot_dev.db');
-    console.log(`✅ SQLite service initialized`);
+    console.log(`âœ… SQLite service initialized`);
 
     // Create collections based on the existing schema definitions
     console.log('Creating collections...');
@@ -39,25 +39,25 @@ async function migrateMockDataToSQLite() {
       // Validate schemaSource is an object
       if (!schemaSource || typeof schemaSource !== 'object') {
         const errorMsg = `Invalid schema for collection '${name}': expected object, got ${typeof schemaSource}`;
-        console.error('❌ [Migration]', errorMsg);
-        console.error('❌ [Migration] Schema source value:', schemaSource);
+        console.error('âŒ [Migration]', errorMsg);
+        console.error('âŒ [Migration] Schema source value:', schemaSource);
         throw new Error(errorMsg);
       }
       
       try {
         const convertedSchema = convertRxDBSchema(schemaSource);
-        console.log(`✅ [Migration] Successfully converted schema for collection '${name}'`);
+        console.log(`âœ… [Migration] Successfully converted schema for collection '${name}'`);
         
         // Create the collection
         await sqliteService.createCollection(name, convertedSchema);
-        console.log(`✅ Collection '${name}' created successfully`);
+        console.log(`âœ… Collection '${name}' created successfully`);
       } catch (conversionError) {
-        console.error(`❌ [Migration] Failed to convert schema for collection '${name}':`, conversionError);
+        console.error(`âŒ [Migration] Failed to convert schema for collection '${name}':`, conversionError);
         throw new Error(`Failed to convert schema for collection '${name}': ${conversionError.message}`);
       }
     }
 
-    console.log('✅ All collections created successfully');
+    console.log('âœ… All collections created successfully');
     
     // Now let's import the mock data
     console.log('Importing mock data...');
@@ -132,39 +132,39 @@ async function migrateMockDataToSQLite() {
           const mockDataArray = mockData[mockDataKey];
           
           if (mockDataArray && Array.isArray(mockDataArray) && mockDataArray.length > 0) {
-            console.log(`✅ Seeding ${collectionName} with ${mockDataArray.length} items (key: ${mockDataKey})`);
+            console.log(`âœ… Seeding ${collectionName} with ${mockDataArray.length} items (key: ${mockDataKey})`);
             seededCollections++;
             
             // Insert data in batches to avoid memory issues
             const batchSize = 100;
             for (let i = 0; i < mockDataArray.length; i += batchSize) {
               const batch = mockDataArray.slice(i, i + batchSize);
-              const insertResults = await collection.insertMany(batch);
+
               console.log(`  Inserted batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(mockDataArray.length/batchSize)} for ${collectionName}`);
             }
           } else if (mockDataArray && !Array.isArray(mockDataArray) && mockDataArray !== null) {
-            console.log(`✅ Seeding ${collectionName} with 1 item (key: ${mockDataKey})`);
+            console.log(`âœ… Seeding ${collectionName} with 1 item (key: ${mockDataKey})`);
             seededCollections++;
             await collection.insert(mockDataArray);
           } else {
             // Only show this for a few collections to avoid spam
             if (['app_settings', 'school_details', 'subjects', 'students', 'staff'].includes(collectionName)) {
-              console.log(`ℹ️  No data found for ${collectionName} (mock data key: ${mockDataKey})`);
+              console.log(`â„¹ï¸  No data found for ${collectionName} (mock data key: ${mockDataKey})`);
             }
           }
         } catch (error) {
-          console.error(`❌ Error seeding collection ${collectionName}:`, error);
+          console.error(`âŒ Error seeding collection ${collectionName}:`, error);
         }
       } else {
-        console.warn(`⚠️  Collection ${collectionName} not found in provider`);
+        console.warn(`âš ï¸  Collection ${collectionName} not found in provider`);
       }
     }
     
-    console.log(`✅ Database seeding complete. Seeded data for ${seededCollections} collections.`);
-    console.log('✅ Data migration completed successfully');
+    console.log(`âœ… Database seeding complete. Seeded data for ${seededCollections} collections.`);
+    console.log('âœ… Data migration completed successfully');
     
   } catch (error) {
-    console.error('❌ Data migration failed:', error);
+    console.error('âŒ Data migration failed:', error);
     throw error;
   }
 }

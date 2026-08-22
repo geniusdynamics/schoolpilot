@@ -68,7 +68,7 @@ export async function detectOptimalConfiguration(): Promise<RuntimeOptimalConfig
 export function detectOptimalConfigurationRuntime(): RuntimeOptimalConfiguration {
   // Try to get cached report from CapabilityDetector
   try {
-    const detector = CapabilityDetector.getInstance();
+
     // detectCapabilities is async, so we provide minimal defaults synchronously
     // and let callers use the async version for full detection
     const hasIndexedDB = typeof window !== 'undefined' && 'indexedDB' in window;

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Dynamically aggregates all global data providers/types from each module's data/index.ts for true modularity.
 // ABOUTME: Allows the system to discover and use global providers/types without hardcoded imports or core changes.
 // ABOUTME: Enhanced with metadata for better integration with AppDataContext and data hook factory.
@@ -97,14 +99,14 @@ async function initializeProviders(): Promise<void> {
           }
         }
       } catch (error) {
-        console.warn(`Failed to load module data from ${path}:`, error);
+        logger.warn(`Failed to load module data from ${path}:`, error);
       }
     }
     
     isInitialized = true;
-    console.log('✅ [GlobalProvidersRegistry] Initialized with', Object.keys(globalProviders).length, 'providers');
+    logger.info('âœ… [GlobalProvidersRegistry] Initialized with', Object.keys(globalProviders).length, 'providers');
   } catch (error) {
-    console.error('❌ [GlobalProvidersRegistry] Failed to initialize:', error);
+    logger.error('âŒ [GlobalProvidersRegistry] Failed to initialize:', error);
   }
 }
 
@@ -150,5 +152,5 @@ export function registerProvider(
 
 // Initialize providers immediately (but don't block)
 initializeProviders().catch(error => {
-  console.error('Failed to initialize global providers:', error);
+  logger.error('Failed to initialize global providers:', error);
 });

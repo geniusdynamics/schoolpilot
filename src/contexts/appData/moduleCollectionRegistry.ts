@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Module Collection Registry - Auto-discovery system
 // ABOUTME: No more manual editing! Modules register themselves automatically
 // ABOUTME: Each module exports MODULE_COLLECTIONS_CONFIG, core aggregates them
@@ -94,7 +96,7 @@ export const COLLECTION_KEY_ALIASES = MODULE_COLLECTIONS_REGISTRY.aliases;
  */
 export function getModuleRegistryInfo(): string {
   const lines = [
-    '📦 Module Collections Registry',
+    'ðŸ“¦ Module Collections Registry',
     `Total modules: ${MODULE_COLLECTIONS_REGISTRY.modules.length}`,
     `Total collections: ${MODULE_COLLECTIONS_REGISTRY.appDataKeys.length}`,
     '',
@@ -102,7 +104,7 @@ export function getModuleRegistryInfo(): string {
   ];
   
   for (const mod of MODULE_COLLECTIONS_REGISTRY.modules) {
-    lines.push(`  • ${mod.name}: ${mod.collectionCount} collections`);
+    lines.push(`  â€¢ ${mod.name}: ${mod.collectionCount} collections`);
   }
   
   return lines.join('\n');
@@ -114,6 +116,6 @@ export function getModuleRegistryInfo(): string {
 export function registerModuleCollections(config: ModuleCollectionsConfig): void {
   // This would be used for runtime plugin registration
   // For now, modules are statically imported
-  console.log(`[ModuleRegistry] Would register module: ${config.moduleName}`);
-  console.log(`[ModuleRegistry] Collections: ${Object.keys(config.aliases).join(', ')}`);
+  logger.info(`[ModuleRegistry] Would register module: ${config.moduleName}`);
+  logger.info(`[ModuleRegistry] Collections: ${Object.keys(config.aliases).join(', ')}`);
 }

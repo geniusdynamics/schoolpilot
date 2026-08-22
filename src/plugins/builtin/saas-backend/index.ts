@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * SaaS Backend Integration Plugin
  * 
@@ -12,14 +14,14 @@ import manifest from './plugin.json';
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[SaaS Backend Plugin] Activating...');
+    logger.info('[SaaS Backend Plugin] Activating...');
     
     try {
       const settings = context.settings || {};
       
       // Check if configured
       if (!settings.apiUrl || !settings.clientId || !settings.clientSecret || !settings.tenantId) {
-        console.log('[SaaS Backend Plugin] No configuration found - plugin enabled but not configured');
+        logger.info('[SaaS Backend Plugin] No configuration found - plugin enabled but not configured');
         
         context.api.showNotification(
           'SaaS Backend plugin enabled. Please configure your API settings.',
@@ -75,14 +77,14 @@ const module: PluginModule = {
         configSchema: manifest.settings,
       });
       
-      console.log('[SaaS Backend Plugin] Activated successfully');
+      logger.info('[SaaS Backend Plugin] Activated successfully');
       
       context.api.showNotification(
         'SaaS Backend integration activated',
         'success'
       );
     } catch (error) {
-      console.error('[SaaS Backend Plugin] Activation failed:', error);
+      logger.error('[SaaS Backend Plugin] Activation failed:', error);
       context.api.showNotification(
         `SaaS Backend activation failed: ${error instanceof Error ? error.message : String(error)}`,
         'error'
@@ -92,7 +94,7 @@ const module: PluginModule = {
   },
   
   async deactivate(context: PluginContext) {
-    console.log('[SaaS Backend Plugin] Deactivating...');
+    logger.info('[SaaS Backend Plugin] Deactivating...');
     
     try {
       const registry = BackendProviderRegistry.getInstance();
@@ -103,7 +105,7 @@ const module: PluginModule = {
         'info'
       );
     } catch (error) {
-      console.error('[SaaS Backend Plugin] Deactivation failed:', error);
+      logger.error('[SaaS Backend Plugin] Deactivation failed:', error);
     }
   },
 };

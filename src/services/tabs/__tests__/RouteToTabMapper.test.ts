@@ -10,9 +10,9 @@ import {
   NavigationItem,
   BuildTabOptions 
 } from '../RouteToTabMapper';
-import { Tab } from '../../../types/tabbedWorkspace';
 
 // Test data helpers
+
 const createMockNavigationItem = (overrides: Partial<NavigationItem> = {}): NavigationItem => ({
   name: 'Test Item',
   path: '/test/path',

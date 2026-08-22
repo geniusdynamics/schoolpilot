@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Enhanced SQLite provider for development mode using file storage instead of OPFS
 // ABOUTME: Implements IDatabaseProvider interface with file-based SQLite for easy database inspection and development tools
 
@@ -28,12 +30,12 @@ export class SQLiteFileProvider implements IDatabaseProvider {
     
     this.sqliteService = new SQLiteFileService();
     
-    console.log(`[SQLiteFileProvider] Initialized with database path: ${this.dbPath}`);
+    logger.info(`[SQLiteFileProvider] Initialized with database path: ${this.dbPath}`);
   }
 
   async initialize(config?: DatabaseConfig): Promise<void> {
     try {
-      console.log('[SQLiteFileProvider] Initializing SQLite File Provider for development...');
+      logger.info('[SQLiteFileProvider] Initializing SQLite File Provider for development...');
       
       // Update config if provided
       if (config) {
@@ -50,7 +52,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       await this.setupDevelopmentFeatures();
       
       this.isInitialized = true;
-      console.log(`[SQLiteFileProvider] Successfully initialized with database: ${this.dbPath}`);
+      logger.info(`[SQLiteFileProvider] Successfully initialized with database: ${this.dbPath}`);
       
       // Log database info for development
       if (this.config.debug) {
@@ -58,7 +60,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       }
       
     } catch (error) {
-      console.error('[SQLiteFileProvider] Failed to initialize:', error);
+      logger.error('[SQLiteFileProvider] Failed to initialize:', error);
       throw error;
     }
   }
@@ -68,10 +70,10 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       const dataDir = path.dirname(this.dbPath);
       if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
-        console.log(`[SQLiteFileProvider] Created data directory: ${dataDir}`);
+        logger.info(`[SQLiteFileProvider] Created data directory: ${dataDir}`);
       }
     } catch (error) {
-      console.error('[SQLiteFileProvider] Failed to create data directory:', error);
+      logger.error('[SQLiteFileProvider] Failed to create data directory:', error);
       throw error;
     }
   }
@@ -94,10 +96,10 @@ export class SQLiteFileProvider implements IDatabaseProvider {
         // Set reasonable cache size (10MB)
         db.exec('PRAGMA cache_size = -10000;');
         
-        console.log('[SQLiteFileProvider] Development features enabled');
+        logger.info('[SQLiteFileProvider] Development features enabled');
       }
     } catch (error) {
-      console.warn('[SQLiteFileProvider] Failed to setup development features:', error);
+      logger.warn('[SQLiteFileProvider] Failed to setup development features:', error);
     }
   }
 
@@ -112,10 +114,10 @@ export class SQLiteFileProvider implements IDatabaseProvider {
           pragmas: this.getDatabasePragmas()
         };
         
-        console.log('[SQLiteFileProvider] Database Info:', info);
+        logger.info('[SQLiteFileProvider] Database Info:', info);
       }
     } catch (error) {
-      console.warn('[SQLiteFileProvider] Failed to log database info:', error);
+      logger.warn('[SQLiteFileProvider] Failed to log database info:', error);
     }
   }
 
@@ -125,14 +127,14 @@ export class SQLiteFileProvider implements IDatabaseProvider {
     }
 
     try {
-      console.log(`[SQLiteFileProvider] Creating collection: ${name}`);
+      logger.info(`[SQLiteFileProvider] Creating collection: ${name}`);
       
       const collection = await this.sqliteService.createCollection<T>(name, schema);
       this.collections.set(name, collection);
       
       // Log collection creation for development
       if (this.config.debug) {
-        console.log(`[SQLiteFileProvider] Collection '${name}' created with schema:`, {
+        logger.info(`[SQLiteFileProvider] Collection '${name}' created with schema:`, {
           properties: Object.keys(schema.properties || {}),
           indexes: schema.indexes?.length || 0,
           primaryKey: schema.primaryKey
@@ -141,7 +143,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       
       return collection as unknown as ICollection<T>;
     } catch (error) {
-      console.error(`[SQLiteFileProvider] Failed to create collection ${name}:`, error);
+      logger.error(`[SQLiteFileProvider] Failed to create collection ${name}:`, error);
       throw error;
     }
   }
@@ -166,7 +168,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
 
   async destroy(): Promise<void> {
     try {
-      console.log('[SQLiteFileProvider] Destroying provider...');
+      logger.info('[SQLiteFileProvider] Destroying provider...');
       
       // Clear collections cache
       this.collections.clear();
@@ -175,9 +177,9 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       await this.sqliteService.destroy();
       this.isInitialized = false;
       
-      console.log('[SQLiteFileProvider] Provider destroyed successfully');
+      logger.info('[SQLiteFileProvider] Provider destroyed successfully');
     } catch (error) {
-      console.error('[SQLiteFileProvider] Failed to destroy provider:', error);
+      logger.error('[SQLiteFileProvider] Failed to destroy provider:', error);
       throw error;
     }
   }
@@ -190,7 +192,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
              !!process.versions.node &&
              typeof require !== 'undefined';
     } catch (error) {
-      console.error('[SQLiteFileProvider] Error checking availability:', error);
+      logger.error('[SQLiteFileProvider] Error checking availability:', error);
       return false;
     }
   }
@@ -210,7 +212,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
         }
       };
     } catch (error) {
-      console.error('[SQLiteFileProvider] Error getting status:', error);
+      logger.error('[SQLiteFileProvider] Error getting status:', error);
       return {
         name: this.name,
         version: this.version,
@@ -228,7 +230,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
 
   async backup(): Promise<string> {
     try {
-      console.log('[SQLiteFileProvider] Creating backup...');
+      logger.info('[SQLiteFileProvider] Creating backup...');
       
       if (!this.isInitialized) {
         throw new Error('Provider not initialized');
@@ -250,26 +252,26 @@ export class SQLiteFileProvider implements IDatabaseProvider {
         try {
           const documents = await collection.find({});
           backup.data[name] = documents;
-          console.log(`[SQLiteFileProvider] Backed up ${documents.length} documents from ${name}`);
+          logger.info(`[SQLiteFileProvider] Backed up ${documents.length} documents from ${name}`);
         } catch (error) {
-          console.error(`[SQLiteFileProvider] Failed to backup collection ${name}:`, error);
+          logger.error(`[SQLiteFileProvider] Failed to backup collection ${name}:`, error);
           backup.data[name] = [];
         }
       }
 
       const backupString = JSON.stringify(backup, null, 2);
-      console.log(`[SQLiteFileProvider] Backup created (${backupString.length} bytes)`);
+      logger.info(`[SQLiteFileProvider] Backup created (${backupString.length} bytes)`);
       
       return backupString;
     } catch (error) {
-      console.error('[SQLiteFileProvider] Backup failed:', error);
+      logger.error('[SQLiteFileProvider] Backup failed:', error);
       throw error;
     }
   }
 
   async restore(backupData: string): Promise<void> {
     try {
-      console.log('[SQLiteFileProvider] Restoring from backup...');
+      logger.info('[SQLiteFileProvider] Restoring from backup...');
       
       if (!this.isInitialized) {
         throw new Error('Provider not initialized');
@@ -281,13 +283,13 @@ export class SQLiteFileProvider implements IDatabaseProvider {
         throw new Error('Invalid backup format');
       }
 
-      console.log(`[SQLiteFileProvider] Restoring backup from ${backup.metadata.timestamp}`);
+      logger.info(`[SQLiteFileProvider] Restoring backup from ${backup.metadata.timestamp}`);
 
       // Restore each collection
       for (const [collectionName, documents] of Object.entries(backup.data)) {
         const collection = this.collections.get(collectionName);
         if (!collection) {
-          console.warn(`[SQLiteFileProvider] Collection ${collectionName} not found, skipping`);
+          logger.warn(`[SQLiteFileProvider] Collection ${collectionName} not found, skipping`);
           continue;
         }
 
@@ -306,7 +308,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
               }
             }
           } catch (clearError) {
-            console.warn(`[SQLiteFileProvider] Failed to clear collection ${collectionName}:`, clearError);
+            logger.warn(`[SQLiteFileProvider] Failed to clear collection ${collectionName}:`, clearError);
           }
           
           // Insert backup data
@@ -319,16 +321,16 @@ export class SQLiteFileProvider implements IDatabaseProvider {
                 await collection.insert(doc);
               }
             }
-            console.log(`[SQLiteFileProvider] Restored ${documents.length} documents to ${collectionName}`);
+            logger.info(`[SQLiteFileProvider] Restored ${documents.length} documents to ${collectionName}`);
           }
         } catch (error) {
-          console.error(`[SQLiteFileProvider] Failed to restore collection ${collectionName}:`, error);
+          logger.error(`[SQLiteFileProvider] Failed to restore collection ${collectionName}:`, error);
         }
       }
 
-      console.log('[SQLiteFileProvider] Restore completed');
+      logger.info('[SQLiteFileProvider] Restore completed');
     } catch (error) {
-      console.error('[SQLiteFileProvider] Restore failed:', error);
+      logger.error('[SQLiteFileProvider] Restore failed:', error);
       throw error;
     }
   }
@@ -353,7 +355,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       }
       return 0;
     } catch (error) {
-      console.error('[SQLiteFileProvider] Error getting database size:', error);
+      logger.error('[SQLiteFileProvider] Error getting database size:', error);
       return 0;
     }
   }
@@ -374,7 +376,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
 
       return result.map((row: any) => row.name);
     } catch (error) {
-      console.error('[SQLiteFileProvider] Error getting table list:', error);
+      logger.error('[SQLiteFileProvider] Error getting table list:', error);
       return [];
     }
   }
@@ -409,7 +411,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
 
       return result;
     } catch (error) {
-      console.error('[SQLiteFileProvider] Error getting pragmas:', error);
+      logger.error('[SQLiteFileProvider] Error getting pragmas:', error);
       return {};
     }
   }
@@ -436,7 +438,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       const db = this.sqliteService.getDatabase();
       if (!db) throw new Error('Database not available');
 
-      console.warn('[SQLiteFileProvider] Executing raw SQL:', sql);
+      logger.warn('[SQLiteFileProvider] Executing raw SQL:', sql);
       
       if (params) {
         return db.prepare(sql).all(params);
@@ -444,7 +446,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
         return db.exec(sql);
       }
     } catch (error) {
-      console.error('[SQLiteFileProvider] Raw SQL execution failed:', error);
+      logger.error('[SQLiteFileProvider] Raw SQL execution failed:', error);
       throw error;
     }
   }
@@ -454,7 +456,7 @@ export class SQLiteFileProvider implements IDatabaseProvider {
    */
   async vacuum(): Promise<void> {
     try {
-      console.log('[SQLiteFileProvider] Running VACUUM to optimize database...');
+      logger.info('[SQLiteFileProvider] Running VACUUM to optimize database...');
       
       const db = this.sqliteService.getDatabase();
       if (!db) throw new Error('Database not available');
@@ -464,9 +466,9 @@ export class SQLiteFileProvider implements IDatabaseProvider {
       const sizeAfter = this.getDatabaseSize();
       
       const savedBytes = sizeBefore - sizeAfter;
-      console.log(`[SQLiteFileProvider] VACUUM completed. Saved ${savedBytes} bytes (${Math.round(savedBytes / 1024)}KB)`);
+      logger.info(`[SQLiteFileProvider] VACUUM completed. Saved ${savedBytes} bytes (${Math.round(savedBytes / 1024)}KB)`);
     } catch (error) {
-      console.error('[SQLiteFileProvider] VACUUM failed:', error);
+      logger.error('[SQLiteFileProvider] VACUUM failed:', error);
       throw error;
     }
   }

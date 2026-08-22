@@ -1,3 +1,5 @@
+﻿﻿﻿﻿import { logger } from '@/utils/logging';
+
 /**
  * Render Monitor - Development Debug Utility
  * 
@@ -36,11 +38,32 @@ export function useRenderCount(
   threshold: number = 10,
   logEveryRender: boolean = false
 ): void {
-  // Only run in development
-  if (process.env.NODE_ENV !== 'development') return;
-  
+  // Hooks MUST be called unconditionally at the top of the hook
   const renderCount = useRef(0);
   const mountTime = useRef(Date.now());
+  
+  // Log on unmount - always register the effect unconditionally
+  useEffect(() => {
+    // Guard inside the effect for production builds
+    if (process.env.NODE_ENV !== 'development') return;
+    
+    return () => {
+      const finalCount = renderCount.current;
+      const totalTime = Date.now() - mountTime.current;
+      
+      if (finalCount > threshold) {
+        logger.warn(
+          `[RenderMonitor] ${componentName} unmounted after ${finalCount} renders in ${totalTime}ms`
+        );
+      }
+      
+      // Clean up stats
+      renderStats.delete(componentName);
+    };
+  }, [componentName, threshold]);
+  
+  // Only run dev-only logic after all hooks are called
+  if (process.env.NODE_ENV !== 'development') return;
   
   renderCount.current++;
   
@@ -65,7 +88,7 @@ export function useRenderCount(
   
   // Log every render if requested
   if (logEveryRender) {
-    console.log(`[RenderMonitor] ${componentName} rendered (${renderCount.current} times)`);
+    logger.info(`[RenderMonitor] ${componentName} rendered (${renderCount.current} times)`);
   }
   
   // Warn if threshold exceeded
@@ -73,30 +96,13 @@ export function useRenderCount(
     const timeSinceMount = now - mountTime.current;
     const avgRenderInterval = stats.renderTimes.reduce((a, b) => a + b, 0) / stats.renderTimes.length;
     
-    console.warn(
-      `[RenderMonitor] ⚠️ ${componentName} has rendered ${renderCount.current} times!\n` +
+    logger.warn(
+      `[RenderMonitor] \u26a0 ${componentName} has rendered ${renderCount.current} times!\n` +
       `Time since mount: ${timeSinceMount}ms\n` +
       `Average render interval: ${avgRenderInterval.toFixed(2)}ms\n` +
       `This may indicate an infinite loop or performance issue.`
     );
   }
-  
-  // Log on unmount
-  useEffect(() => {
-    return () => {
-      const finalCount = renderCount.current;
-      const totalTime = Date.now() - mountTime.current;
-      
-      if (finalCount > threshold) {
-        console.warn(
-          `[RenderMonitor] ${componentName} unmounted after ${finalCount} renders in ${totalTime}ms`
-        );
-      }
-      
-      // Clean up stats
-      renderStats.delete(componentName);
-    };
-  }, [componentName, threshold]);
 }
 
 /**
@@ -110,12 +116,13 @@ export function useWhyDidYouUpdate(
   componentName: string,
   props: Record<string, any>
 ): void {
-  // Only run in development
-  if (process.env.NODE_ENV !== 'development') return;
-  
+  // Hooks MUST be called unconditionally at the top of the hook
   const previousProps = useRef<Record<string, any>>();
   
   useEffect(() => {
+    // Guard inside the effect for production builds
+    if (process.env.NODE_ENV !== 'development') return;
+    
     if (previousProps.current) {
       const allKeys = Object.keys({ ...previousProps.current, ...props });
       const changedProps: Record<string, { from: any; to: any }> = {};
@@ -130,7 +137,7 @@ export function useWhyDidYouUpdate(
       });
       
       if (Object.keys(changedProps).length > 0) {
-        console.log(`[WhyDidYouUpdate] ${componentName} re-rendered because:`, changedProps);
+        logger.info(`[WhyDidYouUpdate] ${componentName} re-rendered because:`, changedProps);
       }
     }
     
@@ -157,7 +164,7 @@ export function clearRenderStats(): void {
  */
 export function logRenderStats(): void {
   if (renderStats.size === 0) {
-    console.log('[RenderMonitor] No components being monitored');
+    logger.info('[RenderMonitor] No components being monitored');
     return;
   }
   
@@ -171,7 +178,7 @@ export function logRenderStats(): void {
       ? stats.renderTimes.reduce((a, b) => a + b, 0) / stats.renderTimes.length
       : 0;
     
-    console.log(
+    logger.info(
       `${name}: ${stats.count} renders, avg interval: ${avgInterval.toFixed(2)}ms`
     );
   });

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Schema Converter for SQLite WASM Integration
  * 
@@ -69,7 +71,7 @@ export class SchemaConverter {
     const schema = rxdbSchema.schema || rxdbSchema;
     
     if (!schema.properties) {
-      console.error(`[SchemaConverter] Schema for ${collectionName} missing properties:`, schema);
+      logger.error(`[SchemaConverter] Schema for ${collectionName} missing properties:`, schema);
       throw new Error(`Schema for collection ${collectionName} missing properties`);
     }
 
@@ -362,7 +364,7 @@ export class SchemaConverter {
    */
   static convertAllCollections(collectionsDefinition: Record<string, any>): Record<string, ConversionResult> {
     // Single log for batch conversion
-    console.log(`[SchemaConverter] Converting ${Object.keys(collectionsDefinition).length} collections...`);
+    logger.info(`[SchemaConverter] Converting ${Object.keys(collectionsDefinition).length} collections...`);
     
     const convertedCollections: Record<string, ConversionResult> = {};
     const errors: string[] = [];
@@ -374,15 +376,15 @@ export class SchemaConverter {
         // Removed per-collection success log to reduce spam
       } catch (error) {
         const errorMsg = `Failed to convert collection ${collectionName}: ${error instanceof Error ? error.message : 'Unknown error'}`;
-        console.error(`[SchemaConverter] ❌ ${errorMsg}`);
+        logger.error(`[SchemaConverter] âŒ ${errorMsg}`);
         errors.push(errorMsg);
       }
     });
 
     if (errors.length > 0) {
-      console.warn(`[SchemaConverter] Conversion completed with ${errors.length} errors:`, errors);
+      logger.warn(`[SchemaConverter] Conversion completed with ${errors.length} errors:`, errors);
     } else {
-      console.log(`[SchemaConverter] ✅ Successfully converted ${Object.keys(convertedCollections).length} collections`);
+      logger.info(`[SchemaConverter] âœ… Successfully converted ${Object.keys(convertedCollections).length} collections`);
     }
 
     return convertedCollections;

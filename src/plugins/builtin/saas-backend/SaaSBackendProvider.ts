@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * SaaS Backend Provider
  * 
@@ -91,7 +93,7 @@ export class SaaSBackendProvider implements IBackendProvider {
     // Authenticate
     this.authToken = await this.authenticate(config.auth);
     
-    console.log('[SaaSBackendProvider] Initialized successfully');
+    logger.info('[SaaSBackendProvider] Initialized successfully');
   }
   
   async disconnect(): Promise<void> {
@@ -285,7 +287,7 @@ export class SaaSBackendProvider implements IBackendProvider {
         
         return data;
       } catch (error) {
-        console.error(`GraphQL query failed, falling back to REST:`, error);
+        logger.error(`GraphQL query failed, falling back to REST:`, error);
       }
     }
     
@@ -352,7 +354,7 @@ export class SaaSBackendProvider implements IBackendProvider {
         const result = await this.graphqlClient.query(gqlQuery.query, gqlQuery.variables);
         return result.data[entity + 's'] || [];
       } catch (error) {
-        console.error(`GraphQL query failed, falling back to REST:`, error);
+        logger.error(`GraphQL query failed, falling back to REST:`, error);
       }
     }
     
@@ -720,7 +722,7 @@ export class SaaSBackendProvider implements IBackendProvider {
    */
   subscribeToEntity(entity: string, callback: (data: any) => void): () => void {
     if (!this.wsClient) {
-      console.warn('[SaaSBackendProvider] WebSocket not enabled');
+      logger.warn('[SaaSBackendProvider] WebSocket not enabled');
       return () => {};
     }
     
@@ -732,7 +734,7 @@ export class SaaSBackendProvider implements IBackendProvider {
    */
   subscribeToRecord(entity: string, id: string, callback: (data: any) => void): () => void {
     if (!this.wsClient) {
-      console.warn('[SaaSBackendProvider] WebSocket not enabled');
+      logger.warn('[SaaSBackendProvider] WebSocket not enabled');
       return () => {};
     }
     

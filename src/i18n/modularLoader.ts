@@ -1,7 +1,8 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This file is responsible for loading modular translation resources.
 // ABOUTME: It dynamically loads translations from each module's i18n directory.
 
-import i18next from 'i18next';
 
 // Use Vite's import.meta.glob to dynamically import translation files
 const modules = import.meta.glob('../modules/*/i18n/*.json');
@@ -17,7 +18,7 @@ const staticTranslations = import.meta.glob('./locales/**/*.json');
  * Semantics:
  *  - If both `target[k]` and `source[k]` are plain objects, recurse.
  *  - Otherwise, `source[k]` (the later value) wins.
- *  - Arrays and primitives are replaced wholesale â€” we never try to
+ *  - Arrays and primitives are replaced wholesale Ã¢â‚¬â€ we never try to
  *    "merge" an array, because doing so silently drops items.
  *  - The function is type-safe and side-effect free: it mutates and
  *    returns `target`.
@@ -114,7 +115,12 @@ export const loadModularTranslations = async () => {
         if (!resources[lang][moduleName]) {
           resources[lang][moduleName] = {};
         }
-        resources[lang][moduleName] = moduleData;
+        // Deep-merge module translations over the static locale file for the
+        // same namespace. Replacing wholesale would wipe out every key that
+        // exists only in src/i18n/locales/<lang>/<module>.json (the static
+        // files are far richer than the module files), leaving raw keys
+        // rendered across the UI.
+        deepMerge(resources[lang][moduleName], moduleData);
 
         // Extract navigation translations and merge into unified navigation namespace.
         // Deep-merge is critical here: a module's `navigation.<section>` is
@@ -129,7 +135,9 @@ export const loadModularTranslations = async () => {
     }
 
     for (const path in coreModules) {
-      const coreModuleName = path.split('/')[4].replace('.json', '');
+      // Path format: ../modules/core/i18n/{lang}/{namespace}.json — the
+      // namespace is the file name (last segment), not a fixed index.
+      const coreModuleName = path.split('/').pop()!.replace('.json', '');
       if (path.includes(`/${lang}/`)) {
         const module = await (coreModules[path] as () => Promise<{ default: any }>)();
         const moduleData = module.default || module;
@@ -138,7 +146,7 @@ export const loadModularTranslations = async () => {
         if (!resources[lang][coreModuleName]) {
           resources[lang][coreModuleName] = {};
         }
-        resources[lang][coreModuleName] = moduleData;
+        deepMerge(resources[lang][coreModuleName], moduleData);
 
         // Extract navigation translations and merge into unified navigation namespace
         if (moduleData.navigation) {
@@ -148,6 +156,6 @@ export const loadModularTranslations = async () => {
     }
   }
 
-  console.log("i18n: Modular resources constructed:", resources);
+  logger.info("i18n: Modular resources constructed:", resources);
   return resources;
 };

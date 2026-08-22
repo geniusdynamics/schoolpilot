@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Database performance optimization service for query optimization and monitoring
 // ABOUTME: Provides indexing, caching, performance monitoring, and automatic maintenance
 
@@ -116,7 +118,7 @@ export class DatabasePerformanceOptimizer {
 
       // Check if query is slow and needs optimization
       if (executionTime > 1000) { // Queries over 1 second
-        console.warn(`🐌 [DatabasePerformanceOptimizer] Slow query detected: ${collection}.${operation} took ${executionTime}ms`);
+        logger.warn(`ðŸŒ [DatabasePerformanceOptimizer] Slow query detected: ${collection}.${operation} took ${executionTime}ms`);
         this.analyzeSlowQuery(collection, operation, executionTime);
       }
 
@@ -148,7 +150,7 @@ export class DatabasePerformanceOptimizer {
     performanceImprovement: number;
     recommendations: IndexRecommendation[];
   }> {
-    console.log(`🚀 [DatabasePerformanceOptimizer] Optimizing collection: ${collection.name}`);
+    logger.info(`ðŸš€ [DatabasePerformanceOptimizer] Optimizing collection: ${collection.name}`);
 
     const recommendations = this.generateIndexRecommendations(collection.name);
     let indexesCreated = 0;
@@ -173,14 +175,14 @@ export class DatabasePerformanceOptimizer {
           }
           this.indexCache.get(collection.name)!.add(recommendation.fields.join(','));
 
-          console.log(`✅ [DatabasePerformanceOptimizer] Created index on ${collection.name}.${recommendation.fields.join(',')}`);
+          logger.info(`âœ… [DatabasePerformanceOptimizer] Created index on ${collection.name}.${recommendation.fields.join(',')}`);
         } catch (error) {
-          console.warn(`⚠️ [DatabasePerformanceOptimizer] Failed to create index on ${collection.name}.${recommendation.fields.join(',')}:`, error);
+          logger.warn(`âš ï¸ [DatabasePerformanceOptimizer] Failed to create index on ${collection.name}.${recommendation.fields.join(',')}:`, error);
         }
       }
     }
 
-    console.log(`🎯 [DatabasePerformanceOptimizer] Optimization complete: ${indexesCreated} indexes created, estimated ${estimatedImprovement}% improvement`);
+    logger.info(`ðŸŽ¯ [DatabasePerformanceOptimizer] Optimization complete: ${indexesCreated} indexes created, estimated ${estimatedImprovement}% improvement`);
 
     return {
       indexesCreated,
@@ -355,7 +357,7 @@ export class DatabasePerformanceOptimizer {
    * Analyze slow query and suggest optimizations
    */
   private analyzeSlowQuery(collection: string, operation: string, executionTime: number): void {
-    console.log(`🔍 [DatabasePerformanceOptimizer] Analyzing slow query: ${collection}.${operation} (${executionTime}ms)`);
+    logger.info(`ðŸ” [DatabasePerformanceOptimizer] Analyzing slow query: ${collection}.${operation} (${executionTime}ms)`);
 
     // Generate optimization suggestions
     const suggestions = [];
@@ -374,7 +376,7 @@ export class DatabasePerformanceOptimizer {
     }
 
     suggestions.forEach(suggestion => {
-      console.log(`💡 [DatabasePerformanceOptimizer] Suggestion: ${suggestion}`);
+      logger.info(`ðŸ’¡ [DatabasePerformanceOptimizer] Suggestion: ${suggestion}`);
     });
   }
 
@@ -391,7 +393,7 @@ export class DatabasePerformanceOptimizer {
 
     // Log slow queries
     if (metrics.executionTime > 1000) {
-      console.warn(`🐌 [DatabasePerformanceOptimizer] Slow query: ${metrics.collection}.${metrics.operation} took ${metrics.executionTime}ms`);
+      logger.warn(`ðŸŒ [DatabasePerformanceOptimizer] Slow query: ${metrics.collection}.${metrics.operation} took ${metrics.executionTime}ms`);
     }
   }
 
@@ -436,7 +438,7 @@ export class DatabasePerformanceOptimizer {
    */
   public clearCache(): void {
     this.queryCache.clear();
-    console.log('🧹 [DatabasePerformanceOptimizer] Query cache cleared');
+    logger.info('ðŸ§¹ [DatabasePerformanceOptimizer] Query cache cleared');
   }
 
   /**
@@ -466,7 +468,7 @@ export class DatabasePerformanceOptimizer {
     optimizedCollections: number;
     estimatedImprovement: number;
   }> {
-    console.log('🚀 [DatabasePerformanceOptimizer] Starting automatic optimization for all collections...');
+    logger.info('ðŸš€ [DatabasePerformanceOptimizer] Starting automatic optimization for all collections...');
 
     let totalIndexesCreated = 0;
     let optimizedCollections = 0;
@@ -482,13 +484,13 @@ export class DatabasePerformanceOptimizer {
           totalImprovement += result.performanceImprovement;
         }
       } catch (error) {
-        console.error(`❌ [DatabasePerformanceOptimizer] Failed to optimize collection ${name}:`, error);
+        logger.error(`âŒ [DatabasePerformanceOptimizer] Failed to optimize collection ${name}:`, error);
       }
     }
 
     const averageImprovement = optimizedCollections > 0 ? totalImprovement / optimizedCollections : 0;
 
-    console.log(`✅ [DatabasePerformanceOptimizer] Optimization complete: ${totalIndexesCreated} indexes created across ${optimizedCollections} collections`);
+    logger.info(`âœ… [DatabasePerformanceOptimizer] Optimization complete: ${totalIndexesCreated} indexes created across ${optimizedCollections} collections`);
 
     return {
       totalIndexesCreated,
@@ -507,7 +509,7 @@ export class DatabasePerformanceOptimizer {
     maintenanceTime: number;
   }> {
     const startTime = Date.now();
-    console.log('🔧 [DatabasePerformanceOptimizer] Starting database maintenance...');
+    logger.info('ðŸ”§ [DatabasePerformanceOptimizer] Starting database maintenance...');
 
     let compactionPerformed = false;
     let cacheCleared = false;
@@ -540,7 +542,7 @@ export class DatabasePerformanceOptimizer {
       }
 
       const maintenanceTime = Date.now() - startTime;
-      console.log(`✅ [DatabasePerformanceOptimizer] Maintenance complete in ${maintenanceTime}ms`);
+      logger.info(`âœ… [DatabasePerformanceOptimizer] Maintenance complete in ${maintenanceTime}ms`);
 
       return {
         compactionPerformed,
@@ -549,7 +551,7 @@ export class DatabasePerformanceOptimizer {
         maintenanceTime,
       };
     } catch (error) {
-      console.error('❌ [DatabasePerformanceOptimizer] Maintenance failed:', error);
+      logger.error('âŒ [DatabasePerformanceOptimizer] Maintenance failed:', error);
       throw error;
     }
   }
@@ -563,7 +565,7 @@ export class DatabasePerformanceOptimizer {
       this.performAutomaticMaintenance();
     }, 6 * 60 * 60 * 1000);
 
-    console.log('⏰ [DatabasePerformanceOptimizer] Automatic maintenance scheduler started');
+    logger.info('â° [DatabasePerformanceOptimizer] Automatic maintenance scheduler started');
   }
 
   /**
@@ -571,7 +573,7 @@ export class DatabasePerformanceOptimizer {
    */
   private async performAutomaticMaintenance(): Promise<void> {
     try {
-      console.log('🔄 [DatabasePerformanceOptimizer] Running automatic maintenance...');
+      logger.info('ðŸ”„ [DatabasePerformanceOptimizer] Running automatic maintenance...');
 
       // Clear old metrics
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -585,9 +587,9 @@ export class DatabasePerformanceOptimizer {
         }
       }
 
-      console.log('✅ [DatabasePerformanceOptimizer] Automatic maintenance completed');
+      logger.info('âœ… [DatabasePerformanceOptimizer] Automatic maintenance completed');
     } catch (error) {
-      console.error('❌ [DatabasePerformanceOptimizer] Automatic maintenance failed:', error);
+      logger.error('âŒ [DatabasePerformanceOptimizer] Automatic maintenance failed:', error);
     }
   }
 
@@ -676,7 +678,7 @@ export class DatabasePerformanceOptimizer {
     this.queryCache.clear();
     this.indexCache.clear();
 
-    console.log('🧹 [DatabasePerformanceOptimizer] Cleanup completed');
+    logger.info('ðŸ§¹ [DatabasePerformanceOptimizer] Cleanup completed');
   }
 }
 

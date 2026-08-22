@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Theme management hook for the SchoolPilot3 design system
 // ABOUTME: Handles light/dark theme switching and CSS custom property application
 
@@ -41,7 +43,7 @@ const getStoredTheme = (): Theme => {
       return stored as Theme;
     }
   } catch (error) {
-    console.warn('Failed to read theme from localStorage:', error);
+    logger.warn('Failed to read theme from localStorage:', error);
   }
   
   return 'system';
@@ -54,7 +56,7 @@ const storeTheme = (theme: Theme): void => {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch (error) {
-    console.warn('Failed to store theme in localStorage:', error);
+    logger.warn('Failed to store theme in localStorage:', error);
   }
 };
 

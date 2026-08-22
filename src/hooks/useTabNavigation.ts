@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Custom hook for programmatic tab navigation and management
 // ABOUTME: Provides convenient methods for creating, switching, closing, and organizing tabs
 
@@ -257,7 +259,7 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
     } catch (error) {
       // Handle tab limit exceeded error
       if (error instanceof Error && error.message.includes('Maximum tab limit')) {
-        console.warn('Tab limit reached, attempting to close oldest non-pinned tab');
+        logger.warn('Tab limit reached, attempting to close oldest non-pinned tab');
         
         // Find the oldest non-pinned, closable tab
         const oldestTab = tabs
@@ -266,7 +268,7 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
           ?.[0];
         
         if (oldestTab) {
-          console.log(`Closing oldest tab: ${oldestTab.title} to make room for new tab`);
+          logger.info(`Closing oldest tab: ${oldestTab.title} to make room for new tab`);
           storeCloseTab(oldestTab.id);
           
           // Try creating the tab again
@@ -312,7 +314,7 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
               title: 'Tab Limit Reached',
               duration: 4000
             });
-            console.info(`✅ New tab created. Auto-closed "${oldestTab.title}" to make room.`);
+            logger.info(`âœ… New tab created. Auto-closed "${oldestTab.title}" to make room.`);
             
             return {
               tabId,
@@ -321,7 +323,7 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
               wasActivated: activateImmediately
             };
           } catch (retryError) {
-            console.error('Failed to create tab even after closing oldest tab:', retryError);
+            logger.error('Failed to create tab even after closing oldest tab:', retryError);
             throw new Error('Unable to create new tab. Please close some tabs manually and try again.');
           }
         } else {
@@ -340,7 +342,7 @@ export const useTabNavigation = (): UseTabNavigationReturn => {
     // Extract module information from target path
     const targetModuleInfo = extractModuleFromPath(path);
     
-    console.log('🚀 Navigation Decision:', {
+    logger.info('ðŸš€ Navigation Decision:', {
       targetPath: path,
       targetModule: targetModuleInfo.module,
       willUseTabSystem: true // Always use tab system for internal navigation

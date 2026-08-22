@@ -72,23 +72,23 @@ const testCases = [
 ];
 
 // Run tests
-console.log('🧪 Testing RxDB Schema Conversion...\n');
+console.log('ðŸ§ª Testing RxDB Schema Conversion...\n');
 
 for (const testCase of testCases) {
-  console.log(`\n📝 Test: ${testCase.name}`);
+  console.log(`\nðŸ“ Test: ${testCase.name}`);
   console.log('Input:', JSON.stringify(testCase.input, null, 2));
   
   try {
     const result = convertRxDBSchema(testCase.input);
-    console.log('✅ Conversion successful!');
+    console.log('âœ… Conversion successful!');
     console.log('Output:', JSON.stringify(result, null, 2));
   } catch (error) {
-    console.error('❌ Conversion failed:', error.message);
+    console.error('âŒ Conversion failed:', error.message);
   }
 }
 
 // Test error cases
-console.log('\n\n🧪 Testing Error Cases...\n');
+console.log('\n\nðŸ§ª Testing Error Cases...\n');
 
 const errorCases = [
   {
@@ -114,15 +114,15 @@ const errorCases = [
 ];
 
 for (const errorCase of errorCases) {
-  console.log(`\n📝 Error Test: ${errorCase.name}`);
+  console.log(`\nðŸ“ Error Test: ${errorCase.name}`);
   console.log('Input:', errorCase.input);
   
   try {
-    const result = convertRxDBSchema(errorCase.input);
-    console.error('❌ Should have thrown an error but succeeded');
+
+    console.error('âŒ Should have thrown an error but succeeded');
   } catch (error) {
-    console.log('✅ Correctly threw error:', error.message);
+    console.log('âœ… Correctly threw error:', error.message);
   }
 }
 
-console.log('\n\n✨ Schema conversion tests complete!');
+console.log('\n\nâœ¨ Schema conversion tests complete!');

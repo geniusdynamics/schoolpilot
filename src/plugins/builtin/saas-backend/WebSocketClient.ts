@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * WebSocket Client for SaaS Backend
  * 
@@ -35,7 +37,7 @@ export class WebSocketClient {
       this.ws = new WebSocket(url);
       
       this.ws.onopen = () => {
-        console.log('[WebSocketClient] Connected');
+        logger.info('[WebSocketClient] Connected');
         this.reconnectAttempts = 0;
         
         if (this.authToken) {
@@ -53,20 +55,20 @@ export class WebSocketClient {
           const message = JSON.parse(event.data);
           this.handleMessage(message);
         } catch (error) {
-          console.error('[WebSocketClient] Failed to parse message:', error);
+          logger.error('[WebSocketClient] Failed to parse message:', error);
         }
       };
       
       this.ws.onerror = (error) => {
-        console.error('[WebSocketClient] Error:', error);
+        logger.error('[WebSocketClient] Error:', error);
       };
       
       this.ws.onclose = () => {
-        console.log('[WebSocketClient] Disconnected');
+        logger.info('[WebSocketClient] Disconnected');
         this.attemptReconnect();
       };
     } catch (error) {
-      console.error('[WebSocketClient] Failed to connect:', error);
+      logger.error('[WebSocketClient] Failed to connect:', error);
       this.attemptReconnect();
     }
   }
@@ -82,14 +84,14 @@ export class WebSocketClient {
   
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('[WebSocketClient] Max reconnect attempts reached');
+      logger.error('[WebSocketClient] Max reconnect attempts reached');
       return;
     }
     
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
     
-    console.log(`[WebSocketClient] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+    logger.info(`[WebSocketClient] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
     
     setTimeout(() => {
       this.connect();
@@ -104,7 +106,7 @@ export class WebSocketClient {
           try {
             callback(message.data);
           } catch (error) {
-            console.error('[WebSocketClient] Callback error:', error);
+            logger.error('[WebSocketClient] Callback error:', error);
           }
         });
       }

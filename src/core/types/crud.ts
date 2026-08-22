@@ -1,7 +1,6 @@
 // ABOUTME: Standardized CRUD types for all modules
 // ABOUTME: Provides consistent type definitions for create, read, update, delete operations
 
-import type { DatabaseService } from '@/services/database/databaseService';
 
 // Base entity interface - all entities should extend this
 export interface BaseEntity {

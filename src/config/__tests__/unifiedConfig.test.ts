@@ -1,21 +1,7 @@
 // ABOUTME: Tests for unified configuration system with database configuration integration
 // ABOUTME: Tests environment-based configuration, validation integration, and configuration management
 
-import {
-  UnifiedConfigManager,
-  unifiedConfigManager,
-  getDatabaseConfig,
-  updateDatabaseConfig,
-  validateDatabaseConfig,
-  autoFixDatabaseConfig,
-  migrateDatabaseConfig,
-  resetDatabaseConfigToDefaults,
-  repairDatabaseConfig,
-  reloadConfigFromEnvironment,
-  exportDatabaseConfigAsEnvVars,
-  exportDatabaseConfigAsJSON,
-  DB_ENV_VARS
-} from '../unifiedConfig';
+import { UnifiedConfigManager, getDatabaseConfig, updateDatabaseConfig, validateDatabaseConfig, autoFixDatabaseConfig, migrateDatabaseConfig, resetDatabaseConfigToDefaults, repairDatabaseConfig, exportDatabaseConfigAsEnvVars, exportDatabaseConfigAsJSON, DB_ENV_VARS } from '../unifiedConfig';
 
 // Mock environment variables
 const mockEnv = {

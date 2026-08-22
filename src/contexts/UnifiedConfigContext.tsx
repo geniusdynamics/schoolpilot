@@ -1,28 +1,13 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Unified Configuration Context
  * React context for the unified configuration system
  * Provides configuration state and management functions to React components
  */
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode, ReactElement } from 'react';
-import {
-  UnifiedAppConfig,
-  unifiedConfigManager,
-  BackendStatus,
-  DataMode,
-  Environment,
-  DatabaseProvider,
-  EnvironmentConfig,
-  DataModeState,
-  DataModeSwitchResult,
-  ProductionDemoState,
-  getUnifiedEnvironmentConfig,
-  getUnifiedDataModeState,
-  getUnifiedProductionDemoState,
-  canSwitchModes,
-  getAllowedModes,
-  getAllowedDatabaseProviders,
-} from '../config/unifiedConfig';
+import { createContext, useEffect, useState, useCallback, useMemo, ReactNode } from 'react';
+import { UnifiedAppConfig, unifiedConfigManager, BackendStatus, DataMode, Environment, DatabaseProvider, EnvironmentConfig, DataModeState, DataModeSwitchResult, ProductionDemoState, getUnifiedEnvironmentConfig, getUnifiedProductionDemoState, canSwitchModes, getAllowedModes, getAllowedDatabaseProviders } from '../config/unifiedConfig';
 
 // Re-export UnifiedAppConfig for convenience
 export type { UnifiedAppConfig };
@@ -247,7 +232,7 @@ export function UnifiedConfigProvider({
     try {
       return await dataModeManager.isDemoDataActive();
     } catch (err) {
-      console.error('Failed to check demo data status:', err);
+      logger.error('Failed to check demo data status:', err);
       return false;
     }
   }, []);
@@ -390,7 +375,7 @@ export function UnifiedConfigProvider({
     const handleModeChanged = (data: any) => {
       // Configuration will be updated automatically by the manager
       // This is just for additional side effects if needed
-      console.log(`Data mode changed to: ${data.mode || data}`);
+      logger.info(`Data mode changed to: ${data.mode || data}`);
     };
     
     dataModeManager.on('modeChanged', handleModeChanged);

@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+﻿import React, { createContext, useContext, useCallback, ReactNode } from 'react';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { useToastHelpers } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
+
 
 export interface ValidationIssue {
   severity: 'error' | 'warning' | 'info';
@@ -18,7 +20,7 @@ export const ValidationProvider: React.FC<{ children: ReactNode }> = ({ children
   const toast = useToastHelpers();
   const validateData = useCallback(async () => {
     try {
-      console.log('🔍 [ValidationContext] Validating data integrity...');
+      logger.info('ðŸ” [ValidationContext] Validating data integrity...');
       const dbManager = UnifiedDatabaseManager.getInstance();
       const issues: ValidationIssue[] = [];
 
@@ -85,10 +87,10 @@ export const ValidationProvider: React.FC<{ children: ReactNode }> = ({ children
         toast.showWarning(`Data validation found ${issues.filter(i => i.severity === 'error').length} errors`);
       }
 
-      console.log(`✅ [ValidationContext] Data validation completed. Found ${issues.length} issues.`);
+      logger.info(`âœ… [ValidationContext] Data validation completed. Found ${issues.length} issues.`);
       return { isValid, issues };
     } catch (err) {
-      console.error('❌ [ValidationContext] Global validation error:', err);
+      logger.error('âŒ [ValidationContext] Global validation error:', err);
       throw err;
     }
   }, [toast]);

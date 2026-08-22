@@ -1,4 +1,6 @@
-// ABOUTME: System domain hook — SchoolDetails, Roles, Users, AppSettings, RBAC, Audit, Workflows
+﻿import { logger } from '@/utils/logging';
+
+// ABOUTME: System domain hook â€” SchoolDetails, Roles, Users, AppSettings, RBAC, Audit, Workflows
 // ABOUTME: Uses real database-backed hooks for persistent data
 
 import { useEffect, useCallback } from 'react';
@@ -52,11 +54,11 @@ export function useSystemData() {
 
   useEffect(() => {
     databaseService.initializeDatabase().catch((err) => {
-      console.error('[useSystemData] Failed to initialize database:', err);
+      logger.error('[useSystemData] Failed to initialize database:', err);
     });
   }, []);
 
-  // ── Seed / Clear ────────────────────────────────────────────────────────────
+  // â”€â”€ Seed / Clear â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const triggerSeedRxDB = useCallback(async () => {
     try {
       await databaseService.seedDatabaseWithMockData();
@@ -70,9 +72,9 @@ export function useSystemData() {
         workflowsCollection.refresh(),
         workflowStatesCollection.refresh(),
       ]);
-      console.log('Database seeded with mock data successfully');
+      logger.info('Database seeded with mock data successfully');
     } catch (error) {
-      console.error('Failed to seed database:', error);
+      logger.error('Failed to seed database:', error);
     }
   }, [schoolDetailsDoc, usersCollection, rolesCollection, campaignsCollection, templatesCommCollection, auditLogsCollection, workflowsCollection, workflowStatesCollection]);
 
@@ -89,18 +91,18 @@ export function useSystemData() {
         workflowsCollection.refresh(),
         workflowStatesCollection.refresh(),
       ]);
-      console.log('Database cleared successfully');
+      logger.info('Database cleared successfully');
     } catch (error) {
-      console.error('Failed to clear database:', error);
+      logger.error('Failed to clear database:', error);
     }
   }, [schoolDetailsDoc, usersCollection, rolesCollection, campaignsCollection, templatesCommCollection, auditLogsCollection, workflowsCollection, workflowStatesCollection]);
 
-  // ── School Details ───────────────────────────────────────────────────────────
+  // â”€â”€ School Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const updateSchoolDetails = useCallback(async (schoolDetails: any) => {
     return schoolDetailsDoc.save(schoolDetails);
   }, [schoolDetailsDoc]);
 
-  // ── Users ────────────────────────────────────────────────────────────────────
+  // â”€â”€ Users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addUser = useCallback(async (userData: Omit<allTypes.User, 'id'>) => {
     return usersCollection.insert(userData);
   }, [usersCollection]);
@@ -113,7 +115,7 @@ export function useSystemData() {
     return usersCollection.remove(userId);
   }, [usersCollection]);
 
-  // ── Roles ────────────────────────────────────────────────────────────────────
+  // â”€â”€ Roles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addRole = useCallback(async (roleData: Omit<allTypes.Role, 'id'>) => {
     return rolesCollection.insert(roleData);
   }, [rolesCollection]);
@@ -126,12 +128,12 @@ export function useSystemData() {
     return rolesCollection.remove(roleId);
   }, [rolesCollection]);
 
-  // ── Audit Log ────────────────────────────────────────────────────────────────
+  // â”€â”€ Audit Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addAuditLog = useCallback(async (logData: Omit<allTypes.AuditLog, 'id'>) => {
     return auditLogsCollection.insert(logData);
   }, [auditLogsCollection]);
 
-  // ── Templates / Campaigns ────────────────────────────────────────────────────
+  // â”€â”€ Templates / Campaigns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addTemplateComm = useCallback(async (data: any) => {
     return templatesCommCollection.insert(data);
   }, [templatesCommCollection]);
@@ -156,7 +158,7 @@ export function useSystemData() {
     return campaignsCollection.remove(id);
   }, [campaignsCollection]);
 
-  // ── Workflows ────────────────────────────────────────────────────────────────
+  // â”€â”€ Workflows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addWorkflow = useCallback(async (data: any) => {
     return workflowsCollection.insert(data);
   }, [workflowsCollection]);

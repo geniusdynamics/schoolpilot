@@ -3,13 +3,13 @@
 
 import { moduleLoader } from './moduleLoader';
 import { moduleRegistry } from './moduleRegistry';
-import { modularSystem } from './ModularSystem';
+
 import type { LoadedModule, ModuleMetadata } from './types/module';
 import type { ModuleDefinition } from './types';
 import { logger } from '@/utils/logging';
 
 // Dynamic module import map - import directly from moduleDefinition files
-// Note: dashboard is NOT a module — it's a static page accessible via the logo and the overflow menu
+// Note: dashboard is NOT a module â€” it's a static page accessible via the logo and the overflow menu
 const moduleImports: Record<string, () => Promise<{ default: any }>> = {
   administration: () => import('@/modules/administration/moduleDefinition'),
   academics: () => import('@/modules/academics/moduleDefinition'),
@@ -48,11 +48,7 @@ async function loadModuleDefinition(moduleId: string): Promise<ModuleDefinition>
 }
 
 // Lifecycle hooks map (will be populated dynamically)
-const lifecycleHooks: Record<string, {
-  onRegister?: () => Promise<void>;
-  onEnable?: () => Promise<void>;
-  onDisable?: () => Promise<void>;
-}> = {};
+
 
 /**
  * Convert ModuleDefinition to LoadedModule format

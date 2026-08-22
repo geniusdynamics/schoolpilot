@@ -1,7 +1,7 @@
 // ABOUTME: Custom hook for managing Kanban board state and operations
 // ABOUTME: Provides drag-and-drop functionality, filtering, and bulk operations
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { KanbanCard, KanbanColumn } from '@/components/ui/data/KanbanBoard';
 
 export interface UseKanbanOptions<T extends KanbanCard = KanbanCard> {

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * ERPNext Backend Provider
  * 
@@ -165,7 +167,7 @@ export class ERPNextProvider implements IBackendProvider {
       const result = await response.json();
       return this.mapFromBackend(entity, result.data);
     } catch (error) {
-      console.error(`Error reading ${entity} ${id}:`, error);
+      logger.error(`Error reading ${entity} ${id}:`, error);
       return null;
     }
   }

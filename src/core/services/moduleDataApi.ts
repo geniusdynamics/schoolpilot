@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Module Data API Service
 // ABOUTME: Provides safe cross-module data access with read-only enforcement
 
@@ -49,7 +51,7 @@ class ModuleDataApiService implements ModuleDataAPI {
     this.collectionMetadata.set(metadata.name, metadata);
     
     if (this.config.enableLogging) {
-      console.log(`[ModuleDataAPI] Registered collection: ${metadata.name} (${metadata.moduleId})`);
+      logger.info(`[ModuleDataAPI] Registered collection: ${metadata.name} (${metadata.moduleId})`);
     }
   }
 
@@ -78,7 +80,7 @@ class ModuleDataApiService implements ModuleDataAPI {
 
     // In a real implementation, this would fetch from the database
     // For now, return empty array (modules should use their own data providers)
-    console.warn(`[ModuleDataAPI] getCollection called for ${collectionName} - implement database integration`);
+    logger.warn(`[ModuleDataAPI] getCollection called for ${collectionName} - implement database integration`);
     return [];
   }
 
@@ -219,7 +221,7 @@ class ModuleDataApiService implements ModuleDataAPI {
       this.accessLog = this.accessLog.slice(-500);
     }
 
-    console.log(`[ModuleDataAPI] ${operation}: ${collectionName}`, query ? `query: ${JSON.stringify(query)}` : '');
+    logger.info(`[ModuleDataAPI] ${operation}: ${collectionName}`, query ? `query: ${JSON.stringify(query)}` : '');
   }
 
   private detectSourceModule(): string {
@@ -268,7 +270,7 @@ class ModuleDataApiService implements ModuleDataAPI {
       try {
         callback(data);
       } catch (error) {
-        console.error(`[ModuleDataAPI] Error notifying subscriber for ${collectionName}:`, error);
+        logger.error(`[ModuleDataAPI] Error notifying subscriber for ${collectionName}:`, error);
       }
     });
   }

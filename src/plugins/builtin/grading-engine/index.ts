@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Grading Engine POC Plugin
  * 
@@ -155,10 +157,10 @@ class GradingEngine implements GradingEngineAPI {
       // Check if WASM functions are available
       if (typeof spGradingCalculate === 'function') {
         this.wasmReady = true;
-        console.log('[GradingEngine] WASM engine loaded');
+        logger.info('[GradingEngine] WASM engine loaded');
       }
     } catch (_error) {
-      console.warn('[GradingEngine] WASM not available, using JavaScript fallback');
+      logger.warn('[GradingEngine] WASM not available, using JavaScript fallback');
       this.wasmReady = false;
     }
   }
@@ -197,7 +199,7 @@ class GradingEngine implements GradingEngineAPI {
       );
       return JSON.parse(result);
     } catch (error) {
-      console.error('[GradingEngine] WASM calculation failed, falling back:', error);
+      logger.error('[GradingEngine] WASM calculation failed, falling back:', error);
       return this.calculateWithJS(students, config);
     }
   }
@@ -355,7 +357,7 @@ let gradingEngine: GradingEngine | null = null;
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[GradingEngine Plugin] Activating...');
+    logger.info('[GradingEngine Plugin] Activating...');
     
     const useWasm = context.api.getSetting('useWasm') ?? true;
     gradingEngine = new GradingEngine(useWasm);
@@ -365,22 +367,22 @@ const module: PluginModule = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context.api.addHook('grading.beforeCalculate', (students: StudentGrade[], _config: GradingConfig) => {
       // Pre-process students if needed
-      console.log(`[GradingEngine] Processing ${students.length} students`);
+      logger.info(`[GradingEngine] Processing ${students.length} students`);
       return students;
     }, 10);
     
     context.api.addHook('grading.afterCalculate', (results: GradingResult[]) => {
       // Post-process results if needed
-      console.log(`[GradingEngine] Calculated ${results.length} results`);
+      logger.info(`[GradingEngine] Calculated ${results.length} results`);
       return results;
     }, 10);
     
-    console.log('[GradingEngine Plugin] Activated successfully');
+    logger.info('[GradingEngine Plugin] Activated successfully');
   },
   
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deactivate(_context: PluginContext) {
-    console.log('[GradingEngine Plugin] Deactivated');
+    logger.info('[GradingEngine Plugin] Deactivated');
     gradingEngine = null;
   },
   

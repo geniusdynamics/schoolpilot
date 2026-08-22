@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Zustand storage adapter for TabPersistenceService
 // ABOUTME: Bridges Zustand persist middleware with TabPersistenceService for enhanced persistence
 
@@ -55,7 +57,7 @@ export const tabPersistenceAdapter: StateStorage = {
    */
   getItem: async (name: string): Promise<string | null> => {
     try {
-      console.log('[TabPersistenceAdapter] Loading tabs from persistence service...');
+      logger.info('[TabPersistenceAdapter] Loading tabs from persistence service...');
       
       // Load tabs from TabPersistenceService (uses IndexedDB with localStorage fallback)
       const tabs = await tabPersistenceService.loadTabs();
@@ -69,7 +71,7 @@ export const tabPersistenceAdapter: StateStorage = {
         try {
           additionalState = JSON.parse(additionalStateStr);
         } catch (e) {
-          console.warn('[TabPersistenceAdapter] Failed to parse additional state, using defaults');
+          logger.warn('[TabPersistenceAdapter] Failed to parse additional state, using defaults');
         }
       }
 
@@ -82,12 +84,12 @@ export const tabPersistenceAdapter: StateStorage = {
         tabGroups: additionalState.tabGroups || {}
       };
 
-      console.log(`[TabPersistenceAdapter] Loaded ${zustandState.tabs.length} tabs`);
+      logger.info(`[TabPersistenceAdapter] Loaded ${zustandState.tabs.length} tabs`);
       
       // Zustand expects the state wrapped in a 'state' property
       return JSON.stringify({ state: zustandState });
     } catch (error) {
-      console.error('[TabPersistenceAdapter] Error loading tabs:', error);
+      logger.error('[TabPersistenceAdapter] Error loading tabs:', error);
       return null;
     }
   },
@@ -103,7 +105,7 @@ export const tabPersistenceAdapter: StateStorage = {
       const parsed = JSON.parse(value);
       const state = parsed.state as PersistedTabState;
 
-      console.log(`[TabPersistenceAdapter] Saving ${state.tabs?.length || 0} tabs...`);
+      logger.info(`[TabPersistenceAdapter] Saving ${state.tabs?.length || 0} tabs...`);
 
       // Save tabs using TabPersistenceService (uses IndexedDB with localStorage fallback)
       await tabPersistenceService.saveTabs(state.tabs || []);
@@ -119,9 +121,9 @@ export const tabPersistenceAdapter: StateStorage = {
       const additionalStateKey = `${name}_additional`;
       localStorage.setItem(additionalStateKey, JSON.stringify(additionalState));
 
-      console.log('[TabPersistenceAdapter] Tabs saved successfully');
+      logger.info('[TabPersistenceAdapter] Tabs saved successfully');
     } catch (error) {
-      console.error('[TabPersistenceAdapter] Error saving tabs:', error);
+      logger.error('[TabPersistenceAdapter] Error saving tabs:', error);
       // Don't throw - let the app continue even if persistence fails
       // The service will handle fallback to localStorage
     }
@@ -134,7 +136,7 @@ export const tabPersistenceAdapter: StateStorage = {
    */
   removeItem: async (name: string): Promise<void> => {
     try {
-      console.log('[TabPersistenceAdapter] Clearing all persisted tabs...');
+      logger.info('[TabPersistenceAdapter] Clearing all persisted tabs...');
       
       // Clear tabs from TabPersistenceService
       await tabPersistenceService.clearTabs();
@@ -143,9 +145,9 @@ export const tabPersistenceAdapter: StateStorage = {
       const additionalStateKey = `${name}_additional`;
       localStorage.removeItem(additionalStateKey);
       
-      console.log('[TabPersistenceAdapter] Tabs cleared successfully');
+      logger.info('[TabPersistenceAdapter] Tabs cleared successfully');
     } catch (error) {
-      console.error('[TabPersistenceAdapter] Error clearing tabs:', error);
+      logger.error('[TabPersistenceAdapter] Error clearing tabs:', error);
       // Don't throw - let the app continue
     }
   }

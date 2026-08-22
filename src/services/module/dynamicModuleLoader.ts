@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Simplified dynamic module loader with force completion capability
 // ABOUTME: Provides fallback mechanisms to prevent infinite loading states
 
@@ -34,7 +36,7 @@ class DynamicModuleLoader {
   }
 
   async initializeDynamicModules(): Promise<void> {
-    console.log('🚀 [DynamicModuleLoader] Initializing dynamic modules...');
+    logger.info('ðŸš€ [DynamicModuleLoader] Initializing dynamic modules...');
 
     // Mark as loading started
     this.isLoading = true;
@@ -52,7 +54,7 @@ class DynamicModuleLoader {
         timeoutPromise
       ]);
     } catch (error) {
-      console.warn('⚠️ [DynamicModuleLoader] Module loading failed, using fallback:', error);
+      logger.warn('âš ï¸ [DynamicModuleLoader] Module loading failed, using fallback:', error);
       // Use fallback modules if discovery fails
       this.useFallbackModules();
     }
@@ -63,7 +65,7 @@ class DynamicModuleLoader {
   }
 
   async discoverAndLoadModules(): Promise<any[]> {
-    console.log('🚀 [DynamicModuleLoader] Discovering and loading modules...');
+    logger.info('ðŸš€ [DynamicModuleLoader] Discovering and loading modules...');
 
     // Import moduleRegistry to register modules
     const { moduleRegistry } = await import('../../core/moduleRegistry');
@@ -73,7 +75,7 @@ class DynamicModuleLoader {
       const modulesToRegister: any[] = [];
 
       // First, load core modules explicitly
-      console.log('📦 [DynamicModuleLoader] Loading core modules...');
+      logger.info('ðŸ“¦ [DynamicModuleLoader] Loading core modules...');
       try {
         const coreModulesImport = await import('../../modules/core/moduleDefinition');
         const coreModules = coreModulesImport.coreModules || coreModulesImport.default;
@@ -86,13 +88,13 @@ class DynamicModuleLoader {
           }
         }
       } catch (error) {
-        console.error('❌ [DynamicModuleLoader] Error loading core modules:', error);
+        logger.error('âŒ [DynamicModuleLoader] Error loading core modules:', error);
       }
 
       // Then, use import.meta.glob to discover and load other module definitions
       const moduleFiles = import.meta.glob('../../modules/*/moduleDefinition.tsx', { eager: true });
 
-      console.log('📁 [DynamicModuleLoader] Found module files:', Object.keys(moduleFiles));
+      logger.info('ðŸ“ [DynamicModuleLoader] Found module files:', Object.keys(moduleFiles));
 
       // Collect all modules first
       for (const [path, moduleExport] of Object.entries(moduleFiles)) {
@@ -115,48 +117,48 @@ class DynamicModuleLoader {
             modulesToRegister.push(moduleDefinition);
           }
         } catch (error) {
-          console.error(`❌ [DynamicModuleLoader] Error loading module from ${path}:`, error);
+          logger.error(`âŒ [DynamicModuleLoader] Error loading module from ${path}:`, error);
         }
       }
 
       // Sort modules by dependency order (topological sort)
       const sortedModules = this.sortModulesByDependencies(modulesToRegister);
-      console.log('📋 [DynamicModuleLoader] Registration order:', sortedModules.map(m => m.id));
+      logger.info('ðŸ“‹ [DynamicModuleLoader] Registration order:', sortedModules.map(m => m.id));
 
       // Register modules in dependency order
       for (const module of sortedModules) {
         try {
-          console.log(`📦 [DynamicModuleLoader] Registering module: ${module.id}`);
+          logger.info(`ðŸ“¦ [DynamicModuleLoader] Registering module: ${module.id}`);
           moduleRegistry.registerModule(module);
         } catch (error) {
-          console.error(`❌ [DynamicModuleLoader] Error registering module ${module.id}:`, error);
+          logger.error(`âŒ [DynamicModuleLoader] Error registering module ${module.id}:`, error);
         }
       }
 
       // Validate module dependencies
       const registeredModules = moduleRegistry.getAllMetadata();
-      console.log(`📦 [DynamicModuleLoader] Validating dependencies for ${registeredModules.length} modules`);
+      logger.info(`ðŸ“¦ [DynamicModuleLoader] Validating dependencies for ${registeredModules.length} modules`);
 
       for (const module of registeredModules) {
         try {
-          console.log(`🔍 [DynamicModuleLoader] Validating dependencies for module: ${module.id}`);
+          logger.info(`ðŸ” [DynamicModuleLoader] Validating dependencies for module: ${module.id}`);
           const isValid = await moduleRegistry.validateModuleDependencies(module.id);
           if (!isValid) {
-            console.warn(`⚠️ [DynamicModuleLoader] Module ${module.id} has dependency issues`);
+            logger.warn(`âš ï¸ [DynamicModuleLoader] Module ${module.id} has dependency issues`);
           } else {
-            console.log(`✅ [DynamicModuleLoader] Module ${module.id} dependencies validated successfully`);
+            logger.info(`âœ… [DynamicModuleLoader] Module ${module.id} dependencies validated successfully`);
           }
         } catch (error) {
-          console.error(`❌ [DynamicModuleLoader] Error validating dependencies for module ${module.id}:`, error);
+          logger.error(`âŒ [DynamicModuleLoader] Error validating dependencies for module ${module.id}:`, error);
         }
       }
 
-      console.log(`✅ [DynamicModuleLoader] Successfully registered ${registeredModules.length} modules`);
+      logger.info(`âœ… [DynamicModuleLoader] Successfully registered ${registeredModules.length} modules`);
 
       return registeredModules;
 
     } catch (error) {
-      console.error('❌ [DynamicModuleLoader] Error during module loading:', error);
+      logger.error('âŒ [DynamicModuleLoader] Error during module loading:', error);
       return [];
     }
   }
@@ -164,7 +166,7 @@ class DynamicModuleLoader {
   // Dynamically discover available modules using Vite's import.meta.glob
   private async discoverAvailableModules(): Promise<string[]> {
     try {
-      console.log('🔍 [DynamicModuleLoader] Starting module discovery...');
+      logger.info('ðŸ” [DynamicModuleLoader] Starting module discovery...');
 
       // Use import.meta.glob to discover module directories with moduleDefinition.tsx files
       const moduleDirectories = import.meta.glob('../../modules/*/moduleDefinition.tsx', { eager: true });
@@ -179,8 +181,8 @@ class DynamicModuleLoader {
         return match ? match[1] : null;
       }).filter(Boolean) as string[];
 
-      console.log(`[DynamicModuleLoader] Discovered module files:`, Object.keys(allModuleDirectories));
-      console.log(`[DynamicModuleLoader] Extracted module IDs:`, moduleIds);
+      logger.info(`[DynamicModuleLoader] Discovered module files:`, Object.keys(allModuleDirectories));
+      logger.info(`[DynamicModuleLoader] Extracted module IDs:`, moduleIds);
 
       // Always include core modules
       const allModules = [...new Set([...this.CORE_MODULES, ...moduleIds])];
@@ -188,12 +190,12 @@ class DynamicModuleLoader {
       // Cache discovered modules
       this.discoveredModules = allModules;
 
-      console.log(`✅ [DynamicModuleLoader] Successfully discovered ${allModules.length} modules:`, allModules);
+      logger.info(`âœ… [DynamicModuleLoader] Successfully discovered ${allModules.length} modules:`, allModules);
       return allModules;
 
     } catch (error) {
-      console.error('❌ [DynamicModuleLoader] Error during module discovery:', error);
-      console.log('🔄 [DynamicModuleLoader] Falling back to predefined module list');
+      logger.error('âŒ [DynamicModuleLoader] Error during module discovery:', error);
+      logger.info('ðŸ”„ [DynamicModuleLoader] Falling back to predefined module list');
 
       // Fallback to predefined list if discovery fails
       return this.CORE_MODULES;
@@ -220,13 +222,13 @@ class DynamicModuleLoader {
   }
 
   forceCompleteLoading(): void {
-    console.warn('🚨 [DynamicModuleLoader] Force completing module loading');
+    logger.warn('ðŸš¨ [DynamicModuleLoader] Force completing module loading');
     this.isCompleted = true;
     this.isLoading = false;
   }
 
   private async useFallbackModules(): Promise<void> {
-    console.log('🔄 [DynamicModuleLoader] Using fallback modules...');
+    logger.info('ðŸ”„ [DynamicModuleLoader] Using fallback modules...');
 
     // Import moduleRegistry to register modules
     const { moduleRegistry } = await import('../../core/moduleRegistry');
@@ -270,9 +272,9 @@ class DynamicModuleLoader {
         };
 
         moduleRegistry.registerModule(fallbackModule);
-        console.log(`✅ [DynamicModuleLoader] Registered fallback module: ${moduleId}`);
+        logger.info(`âœ… [DynamicModuleLoader] Registered fallback module: ${moduleId}`);
       } catch (error) {
-        console.error(`❌ [DynamicModuleLoader] Failed to register fallback module ${moduleId}:`, error);
+        logger.error(`âŒ [DynamicModuleLoader] Failed to register fallback module ${moduleId}:`, error);
       }
     }
   }
@@ -306,7 +308,7 @@ class DynamicModuleLoader {
     const visit = (moduleId: string, path: string[] = []) => {
       if (tempMarked.has(moduleId)) {
         // Circular dependency detected - break the cycle
-        console.warn(`⚠️ [DynamicModuleLoader] Circular dependency detected: ${[...path, moduleId].join(' -> ')}`);
+        logger.warn(`âš ï¸ [DynamicModuleLoader] Circular dependency detected: ${[...path, moduleId].join(' -> ')}`);
         return;
       }
 

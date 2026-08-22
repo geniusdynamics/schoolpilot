@@ -1,3 +1,4 @@
+
 /**
  * useDataFetch - Proper data fetching hook with stable dependencies
  * 
@@ -54,7 +55,7 @@ export interface UseDataFetchResult<T> {
  *   {
  *     method: 'POST',
  *     body: JSON.stringify({ classId: '123' }),
- *     onSuccess: (students) => console.log('Loaded', students.length),
+ *     onSuccess: (students) => logger.info('Loaded', students.length),
  *     transform: (raw) => raw.map(s => ({ ...s, fullName: `${s.firstName} ${s.lastName}` }))
  *   }
  * );
@@ -224,7 +225,7 @@ export function useDataFetchWithParams<T>(
  * 
  * const handleSubmit = async (formData: CreateStudentDto) => {
  *   const newStudent = await mutate(formData);
- *   console.log('Created:', newStudent);
+ *   logger.info('Created:', newStudent);
  * };
  * ```
  */

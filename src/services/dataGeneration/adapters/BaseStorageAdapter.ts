@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Base storage adapter with common functionality
 // ABOUTME: Provides foundation for all storage type implementations
 
-import { IStorageAdapter, ValidationResult, RelationshipDefinition } from '../types';
+import { IStorageAdapter, RelationshipDefinition } from '../types';
 
 export abstract class BaseStorageAdapter implements IStorageAdapter {
   protected relationships: RelationshipDefinition[] = [];
@@ -25,7 +27,7 @@ export abstract class BaseStorageAdapter implements IStorageAdapter {
         const foreignKeyValue = record[relationship.sourceField];
         
         if (relationship.required && !foreignKeyValue) {
-          console.warn(`Missing required foreign key ${relationship.sourceField} in ${tableName}`);
+          logger.warn(`Missing required foreign key ${relationship.sourceField} in ${tableName}`);
           return false;
         }
 
@@ -37,7 +39,7 @@ export abstract class BaseStorageAdapter implements IStorageAdapter {
           );
           
           if (!exists) {
-            console.warn(
+            logger.warn(
               `Foreign key violation: ${foreignKeyValue} not found in ${relationship.targetTable}.${relationship.targetField}`
             );
             return false;
@@ -61,7 +63,7 @@ export abstract class BaseStorageAdapter implements IStorageAdapter {
       );
       return result.length > 0;
     } catch (error) {
-      console.error(`Error checking foreign key existence:`, error);
+      logger.error(`Error checking foreign key existence:`, error);
       return false;
     }
   }

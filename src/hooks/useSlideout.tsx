@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Custom hook for managing slideout panel state and interactions
 // ABOUTME: Provides state management, auto-save functionality, and form integration
 
@@ -122,7 +124,7 @@ export function useSlideout<T = any>(options: UseSlideoutOptions = {}) {
         announceToScreenReader('Changes saved automatically', 'polite');
       } catch (error) {
         setState(prev => ({ ...prev, isSaving: false }));
-        console.error('Auto-save failed:', error);
+        logger.error('Auto-save failed:', error);
         announceToScreenReader('Auto-save failed', 'assertive');
       }
     }, autoSaveDelay);
@@ -144,7 +146,7 @@ export function useSlideout<T = any>(options: UseSlideoutOptions = {}) {
       return true;
     } catch (error) {
       setState(prev => ({ ...prev, isSaving: false }));
-      console.error('Save failed:', error);
+      logger.error('Save failed:', error);
       announceToScreenReader('Save failed', 'assertive');
       return false;
     }

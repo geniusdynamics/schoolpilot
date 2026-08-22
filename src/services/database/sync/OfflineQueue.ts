@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * OfflineQueue - Persistent queue for offline operations
  *
@@ -408,7 +410,7 @@ export class OfflineQueue {
 
       this.sortQueue();
     } catch (error) {
-      console.warn('[OfflineQueue] Failed to restore operations from IndexedDB:', error);
+      logger.warn('[OfflineQueue] Failed to restore operations from IndexedDB:', error);
     }
   }
 

@@ -218,7 +218,7 @@ describe('Database Test Coverage Analysis', () => {
           
           // Count tests
           const testMatches = content.match(/(?:it|test)\s*\(/g) || [];
-          const describeMatches = content.match(/describe\s*\(/g) || [];
+
           
           qualityMetrics.totalTests += testMatches.length;
 

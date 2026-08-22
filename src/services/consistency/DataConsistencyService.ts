@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Service for maintaining data consistency across demo and production modes
 // ABOUTME: Provides validation, integrity checks, and data migration capabilities
 
@@ -107,7 +109,7 @@ export class DataConsistencyService {
 
       // Log errors if enabled
       if (this.config.logErrors && validation.errors.length > 0) {
-        console.warn(`Validation errors for ${entityName}:`, validation.errors);
+        logger.warn(`Validation errors for ${entityName}:`, validation.errors);
       }
 
       // In lenient mode, convert non-critical errors to warnings
@@ -338,10 +340,10 @@ export class DataConsistencyService {
 
       // Log summary
       if (this.config.logErrors) {
-        console.log(`Data consistency check completed in ${Date.now() - startTime}ms`);
-        console.log(`Total errors: ${allErrors.length} (${criticalErrors} critical, ${warnings} warnings)`);
+        logger.info(`Data consistency check completed in ${Date.now() - startTime}ms`);
+        logger.info(`Total errors: ${allErrors.length} (${criticalErrors} critical, ${warnings} warnings)`);
         if (allErrors.length > 0) {
-          console.log('Entities with errors:', entitiesWithErrors);
+          logger.info('Entities with errors:', entitiesWithErrors);
         }
       }
 

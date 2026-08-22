@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Generates comprehensive payroll and salary management data including salary structures, allowances, deductions, and payment history
 // ABOUTME: Creates realistic payroll data with tax calculations, benefits management, and employment records
 
@@ -83,7 +85,7 @@ export class PayrollGenerator extends BaseGenerator {
       { code: 'SUP-B4', title: 'Gardener', minSalary: 18000, maxSalary: 28000 }
     ];
     
-    console.log(`Generating salary grades...`);
+    logger.info(`Generating salary grades...`);
     
     for (let i = 0; i < gradeData.length; i++) {
       const grade = gradeData[i];
@@ -123,7 +125,7 @@ export class PayrollGenerator extends BaseGenerator {
       });
     }
     
-    console.log(`Generated ${gradeData.length} salary grades`);
+    logger.info(`Generated ${gradeData.length} salary grades`);
     
     return results;
   }
@@ -240,7 +242,7 @@ export class PayrollGenerator extends BaseGenerator {
       { name: 'Risk Allowance', description: 'High-risk work allowance', taxable: true, percentage: false, amount: 5000 }
     ];
     
-    console.log(`Generating allowance types...`);
+    logger.info(`Generating allowance types...`);
     
     for (let i = 0; i < allowanceData.length; i++) {
       const allowance = allowanceData[i];
@@ -278,7 +280,7 @@ export class PayrollGenerator extends BaseGenerator {
       });
     }
     
-    console.log(`Generated ${allowanceData.length} allowance types`);
+    logger.info(`Generated ${allowanceData.length} allowance types`);
     
     return results;
   }
@@ -359,7 +361,7 @@ export class PayrollGenerator extends BaseGenerator {
       { name: 'Professional Fees', description: 'Professional body membership fees', mandatory: false, percentage: false, amount: 2500 }
     ];
     
-    console.log(`Generating deduction types...`);
+    logger.info(`Generating deduction types...`);
     
     for (let i = 0; i < deductionData.length; i++) {
       const deduction = deductionData[i];
@@ -398,7 +400,7 @@ export class PayrollGenerator extends BaseGenerator {
       });
     }
     
-    console.log(`Generated ${deductionData.length} deduction types`);
+    logger.info(`Generated ${deductionData.length} deduction types`);
     
     return results;
   }
@@ -452,7 +454,7 @@ export class PayrollGenerator extends BaseGenerator {
   private async generateStaffSalaryStructures(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} staff salary structures...`);
+    logger.info(`Generating ${count} staff salary structures...`);
     
     for (let i = 0; i < count; i++) {
       const staffId = `staff_${i + 1}`;
@@ -555,7 +557,7 @@ export class PayrollGenerator extends BaseGenerator {
   private async generatePayrollPeriods(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} payroll periods...`);
+    logger.info(`Generating ${count} payroll periods...`);
     
     for (let i = 0; i < count; i++) {
       const startDate = new Date();
@@ -648,7 +650,7 @@ export class PayrollGenerator extends BaseGenerator {
   private async generatePayrollRecords(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} payroll records...`);
+    logger.info(`Generating ${count} payroll records...`);
     
     for (let i = 0; i < count; i++) {
       const staffMember = this.randomChoice(this.staffMembers);
@@ -776,7 +778,7 @@ export class PayrollGenerator extends BaseGenerator {
   private async generateStaffAllowances(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} staff allowances...`);
+    logger.info(`Generating ${count} staff allowances...`);
     
     for (let i = 0; i < count; i++) {
       const staffMember = this.randomChoice(this.staffMembers);
@@ -871,7 +873,7 @@ export class PayrollGenerator extends BaseGenerator {
   private async generateStaffDeductions(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} staff deductions...`);
+    logger.info(`Generating ${count} staff deductions...`);
     
     for (let i = 0; i < count; i++) {
       const staffMember = this.randomChoice(this.staffMembers);
@@ -969,7 +971,7 @@ export class PayrollGenerator extends BaseGenerator {
   private async generateStaffLoans(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} staff loans...`);
+    logger.info(`Generating ${count} staff loans...`);
     
     for (let i = 0; i < count; i++) {
       const staffMember = this.randomChoice(this.staffMembers);
@@ -1085,7 +1087,7 @@ export class PayrollGenerator extends BaseGenerator {
   private async generateOvertimeRecords(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} overtime records...`);
+    logger.info(`Generating ${count} overtime records...`);
     
     for (let i = 0; i < count; i++) {
       const staffMember = this.randomChoice(this.staffMembers);
@@ -1189,12 +1191,12 @@ export class PayrollGenerator extends BaseGenerator {
 
   private async initialize(): Promise<void> {
     // Initialize any required data
-    console.log('Initializing PayrollGenerator...');
+    logger.info('Initializing PayrollGenerator...');
   }
 
   private logProgress(current: number, total: number, type: string): void {
     if (current % 50 === 0 || current === total) {
-      console.log(`Generated ${current}/${total} ${type}s`);
+      logger.info(`Generated ${current}/${total} ${type}s`);
     }
   }
 }

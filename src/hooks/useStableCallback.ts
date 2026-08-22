@@ -1,3 +1,4 @@
+
 /**
  * useStableCallback - Creates a stable callback reference
  * 
@@ -38,10 +39,10 @@ import { useRef, useEffect, useCallback } from 'react';
  *   const [count, setCount] = useState(0);
  *   
  *   // This callback changes every render (new reference)
- *   const handleClick = () => console.log(count);
+ *   const handleClick = () => logger.info(count);
  *   
  *   // This callback has stable reference
- *   const stableHandleClick = useStableCallback(() => console.log(count));
+ *   const stableHandleClick = useStableCallback(() => logger.info(count));
  *   
  *   return (
  *     <>

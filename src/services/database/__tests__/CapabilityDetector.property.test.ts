@@ -8,6 +8,7 @@ import { CapabilityDetector } from '../detection/CapabilityDetector';
 import type { CapabilityReport, StorageCapabilities } from '../detection/CapabilityDetector';
 
 // Mock navigator and window for testing
+
 const mockNavigator = (overrides: Partial<Navigator> = {}) => {
   const original = globalThis.navigator;
   Object.defineProperty(globalThis, 'navigator', {

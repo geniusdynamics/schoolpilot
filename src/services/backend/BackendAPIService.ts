@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // Enhanced Backend API service with intelligent request handling and offline queue
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -336,7 +338,7 @@ export class BackendAPIService {
   }
 
   private logError(message: string, error: Error): void {
-    console.error(`[BackendAPIService] ${message}:`, error);
+    logger.error(`[BackendAPIService] ${message}:`, error);
   }
 
   // CRUD Operations for BackendServiceAdapter compatibility

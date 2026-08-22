@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * TabAccessibilityManager - Comprehensive accessibility support for SchoolPilot3 tabs
  * Implements WCAG 2.1 AA compliance for tab navigation and interaction
@@ -426,13 +428,13 @@ export class TabAccessibilityManager {
     
     if (mediaQuery.matches) {
       this.config.reducedMotion.disableAnimations = true;
-      console.log('🎯 [TabAccessibilityManager] Reduced motion preference detected');
+      logger.info('ðŸŽ¯ [TabAccessibilityManager] Reduced motion preference detected');
     }
     
     // Listen for changes
     mediaQuery.addEventListener('change', (e) => {
       this.config.reducedMotion.disableAnimations = e.matches;
-      console.log('🎯 [TabAccessibilityManager] Reduced motion preference changed:', e.matches);
+      logger.info('ðŸŽ¯ [TabAccessibilityManager] Reduced motion preference changed:', e.matches);
     });
   }
   
@@ -444,13 +446,13 @@ export class TabAccessibilityManager {
     
     if (mediaQuery.matches) {
       this.config.tabVisuals.highContrastMode = true;
-      console.log('🎯 [TabAccessibilityManager] High contrast mode detected');
+      logger.info('ðŸŽ¯ [TabAccessibilityManager] High contrast mode detected');
     }
     
     // Listen for changes
     mediaQuery.addEventListener('change', (e) => {
       this.config.tabVisuals.highContrastMode = e.matches;
-      console.log('🎯 [TabAccessibilityManager] High contrast mode changed:', e.matches);
+      logger.info('ðŸŽ¯ [TabAccessibilityManager] High contrast mode changed:', e.matches);
     });
   }
   
@@ -501,7 +503,7 @@ export class TabAccessibilityManager {
    */
   updateConfig(updates: Partial<TabAccessibilityConfig>): void {
     this.config = { ...this.config, ...updates };
-    console.log('🎯 [TabAccessibilityManager] Configuration updated:', updates);
+    logger.info('ðŸŽ¯ [TabAccessibilityManager] Configuration updated:', updates);
   }
   
   /**

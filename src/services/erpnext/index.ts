@@ -1,3 +1,4 @@
+
 /**
  * ERPNext Integration Module
  * 
@@ -34,7 +35,7 @@
  * 
  * // Monitor sync status
  * provider.onSyncStatusChange = (statuses) => {
- *   console.log('Sync status:', statuses);
+ *   logger.info('Sync status:', statuses);
  * };
  * ```
  */

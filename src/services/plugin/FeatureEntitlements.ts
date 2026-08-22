@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Feature Entitlement System
  * 
@@ -110,17 +112,17 @@ class FeatureEntitlementManager {
 
   loadLicense(license: FeatureLicense): boolean {
     if (!this.validateLicense(license)) {
-      console.error('[FeatureEntitlements] Invalid license');
+      logger.error('[FeatureEntitlements] Invalid license');
       return false;
     }
 
     if (new Date(license.expiresAt) < new Date()) {
-      console.error('[FeatureEntitlements] License expired');
+      logger.error('[FeatureEntitlements] License expired');
       return false;
     }
 
     if (license.instanceId !== this.getInstanceId()) {
-      console.error('[FeatureEntitlements] Instance ID mismatch');
+      logger.error('[FeatureEntitlements] Instance ID mismatch');
       return false;
     }
 

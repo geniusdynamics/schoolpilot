@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: SQLite File Service for development mode with file storage
 // ABOUTME: Provides SQLite database with regular file storage for easy inspection and exploration
 
@@ -40,13 +42,13 @@ export class SQLiteFileCollection<T extends { id?: string }> implements ICollect
           this.db.exec(indexSql);
         } catch (error) {
           // Index might already exist, ignore error
-          console.warn(`[SQLiteFile] Index creation warning for ${this.name}:`, error.message);
+          logger.warn(`[SQLiteFile] Index creation warning for ${this.name}:`, error.message);
         }
       });
       
-      console.log(`[SQLiteFile] Table '${this.name}' created successfully`);
+      logger.info(`[SQLiteFile] Table '${this.name}' created successfully`);
     } catch (error) {
-      console.error(`[SQLiteFile] Failed to create table '${this.name}':`, error);
+      logger.error(`[SQLiteFile] Failed to create table '${this.name}':`, error);
       throw new CollectionError(
         `Failed to create table for collection '${this.name}': ${error.message}`,
         this.name
@@ -339,7 +341,7 @@ export class SQLiteFileCollection<T extends { id?: string }> implements ICollect
           try {
             parsed[key] = JSON.parse(parsed[key]);
           } catch (error) {
-            console.warn(`[SQLiteFile] Failed to parse JSON field '${key}' in ${this.name}:`, error);
+            logger.warn(`[SQLiteFile] Failed to parse JSON field '${key}' in ${this.name}:`, error);
           }
         }
       }
@@ -382,19 +384,19 @@ export class SQLiteFileService {
         printErr: console.error,
       });
       
-      console.log('[SQLiteFile] SQLite version:', sqlite3.version.libVersion);
+      logger.info('[SQLiteFile] SQLite version:', sqlite3.version.libVersion);
       
       // Use regular file storage (not OPFS)
       this.dbPath = dbName;
-      console.log('[SQLiteFile] Using file storage for database:', this.dbPath);
+      logger.info('[SQLiteFile] Using file storage for database:', this.dbPath);
       
       // Open database with file storage
       this.db = new sqlite3.oo1.DB(this.dbPath, 'c');
       
       this.initialized = true;
-      console.log('[SQLiteFile] Service initialized successfully');
+      logger.info('[SQLiteFile] Service initialized successfully');
     } catch (error) {
-      console.error('[SQLiteFile] Failed to initialize:', error);
+      logger.error('[SQLiteFile] Failed to initialize:', error);
       throw new DatabaseError(
         `Failed to initialize SQLite File service: ${error.message}`,
         'INITIALIZATION_ERROR'
@@ -422,7 +424,7 @@ export class SQLiteFileService {
       const collection = new SQLiteFileCollection<T>(this, 'schoolpilot_dev', name, schema);
       this.collections.set(name, collection);
       
-      console.log(`[SQLiteFile] Collection '${name}' created successfully`);
+      logger.info(`[SQLiteFile] Collection '${name}' created successfully`);
       return collection;
     } catch (error) {
       throw new DatabaseError(
@@ -463,7 +465,7 @@ export class SQLiteFileService {
         try {
           await collection.destroy();
         } catch (error) {
-          console.error(`Failed to destroy collection '${name}':`, error);
+          logger.error(`Failed to destroy collection '${name}':`, error);
         }
       }
       
@@ -475,7 +477,7 @@ export class SQLiteFileService {
         this.db = null;
       }
       
-      console.log('[SQLiteFile] Service destroyed successfully');
+      logger.info('[SQLiteFile] Service destroyed successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to destroy SQLite File service: ${error.message}`,
@@ -535,7 +537,7 @@ export class SQLiteFileService {
         }
       }
       
-      console.log('[SQLiteFile] Backup restored successfully');
+      logger.info('[SQLiteFile] Backup restored successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to restore backup: ${error.message}`,
@@ -557,8 +559,8 @@ export class SQLiteFileService {
       
       // In a real implementation, you would write to the file system
       // For now, we'll log the backup data
-      console.log('[SQLiteFile] Database export:', backup);
-      console.log(`[SQLiteFile] Database would be exported to: ${filePath}`);
+      logger.info('[SQLiteFile] Database export:', backup);
+      logger.info(`[SQLiteFile] Database would be exported to: ${filePath}`);
     } catch (error) {
       throw new DatabaseError(
         `Failed to export database: ${error.message}`,
@@ -574,7 +576,7 @@ export class SQLiteFileService {
         const collection = this.getCollection(collectionName);
         if (collection && Array.isArray(docs) && docs.length > 0) {
           await collection.insertMany(docs);
-          console.log(`[SQLiteFile] Loaded ${docs.length} seed documents into '${collectionName}'`);
+          logger.info(`[SQLiteFile] Loaded ${docs.length} seed documents into '${collectionName}'`);
         }
       }
     } catch (error) {

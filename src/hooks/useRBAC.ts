@@ -1,10 +1,12 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: RBAC Hook for React Components
 // ABOUTME: Provides role-based access control integration with the modular architecture
 
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { rbacService, SYSTEM_ROLES } from '@/core/rbacService';
 import { getEnabledModules } from '@/core/moduleLoader';
-import { unifiedConfigManager, isDemo } from '@/config/unifiedConfig';
+import { isDemo } from '@/config/unifiedConfig';
 // Removed problematic hook utilities import
 
 export interface RBACHookReturn {
@@ -78,7 +80,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
     }
     
     if (!permissionId || typeof permissionId !== 'string') {
-      console.warn('[useRBAC] Invalid permissionId provided:', permissionId);
+      logger.warn('[useRBAC] Invalid permissionId provided:', permissionId);
       return false;
     }
     
@@ -93,7 +95,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
     }
     
     if (!moduleId || typeof moduleId !== 'string') {
-      console.warn('[useRBAC] Invalid moduleId provided:', moduleId);
+      logger.warn('[useRBAC] Invalid moduleId provided:', moduleId);
       return false;
     }
     
@@ -108,12 +110,12 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
     }
     
     if (!moduleId || typeof moduleId !== 'string') {
-      console.warn('[useRBAC] Invalid moduleId provided:', moduleId);
+      logger.warn('[useRBAC] Invalid moduleId provided:', moduleId);
       return false;
     }
     
     if (!feature || typeof feature !== 'string') {
-      console.warn('[useRBAC] Invalid feature provided:', feature);
+      logger.warn('[useRBAC] Invalid feature provided:', feature);
       return false;
     }
     
@@ -149,7 +151,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
       // In demo mode, return all available modules regardless of userId
       // getEnabledModules() returns string[] of module IDs directly
       const modules = getEnabledModules();
-      console.log('🔍 [useRBAC] Demo mode - accessible modules:', modules);
+      logger.info('ðŸ” [useRBAC] Demo mode - accessible modules:', modules);
       return Array.isArray(modules) ? modules : [];
     }
     
@@ -159,7 +161,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   const getUserModulePermissions = useCallback((moduleId: string): string[] => {
     if (!moduleId || typeof moduleId !== 'string') {
-      console.warn('[useRBAC] Invalid moduleId provided to getUserModulePermissions:', moduleId);
+      logger.warn('[useRBAC] Invalid moduleId provided to getUserModulePermissions:', moduleId);
       return [];
     }
     
@@ -169,7 +171,7 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
 
   const getUserModuleFeatures = useCallback((moduleId: string): string[] => {
     if (!moduleId || typeof moduleId !== 'string') {
-      console.warn('[useRBAC] Invalid moduleId provided to getUserModuleFeatures:', moduleId);
+      logger.warn('[useRBAC] Invalid moduleId provided to getUserModuleFeatures:', moduleId);
       return [];
     }
     
@@ -180,12 +182,12 @@ export const useRBAC = (userId?: string, userType?: string): RBACHookReturn => {
   // Navigation filtering
   const filterNavigationItems = useCallback((moduleId: string, navigationItems: any[]): any[] => {
     if (!moduleId || typeof moduleId !== 'string') {
-      console.warn('[useRBAC] Invalid moduleId provided to filterNavigationItems:', moduleId);
+      logger.warn('[useRBAC] Invalid moduleId provided to filterNavigationItems:', moduleId);
       return [];
     }
     
     if (!Array.isArray(navigationItems)) {
-      console.warn('[useRBAC] Invalid navigationItems array provided to filterNavigationItems:', navigationItems);
+      logger.warn('[useRBAC] Invalid navigationItems array provided to filterNavigationItems:', navigationItems);
       return [];
     }
     

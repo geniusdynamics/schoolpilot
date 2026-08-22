@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * White-Label Plugin
  * 
@@ -172,14 +174,14 @@ export const manifest: PluginManifest = {
 
 const module: PluginModule = {
   async activate(context: PluginContext) {
-    console.log('[WhiteLabel Plugin] Activating...');
+    logger.info('[WhiteLabel Plugin] Activating...');
 
     // Check entitlements
     const entitlements = getEntitlements();
     const whiteLabelCheck = entitlements.canUseWhiteLabel();
 
     if (!whiteLabelCheck.available) {
-      console.warn('[WhiteLabel Plugin] Feature not entitled:', whiteLabelCheck.reason);
+      logger.warn('[WhiteLabel Plugin] Feature not entitled:', whiteLabelCheck.reason);
       
       // Register a hook that shows upgrade prompt when settings are accessed
       context.api.addHook('ui.branding.header', (defaultBranding: any) => {
@@ -201,7 +203,7 @@ const module: PluginModule = {
       return; // Don't register other hooks
     }
 
-    console.log('[WhiteLabel Plugin] Entitlement verified, tier:', whiteLabelCheck.tier);
+    logger.info('[WhiteLabel Plugin] Entitlement verified, tier:', whiteLabelCheck.tier);
 
     // Check if full features are available (enterprise/reseller)
     const hasFullFeatures = entitlements.hasFeature('whitelabel-full');
@@ -271,12 +273,12 @@ const module: PluginModule = {
       };
     }, 10);
 
-    console.log('[WhiteLabel Plugin] Activated successfully');
+    logger.info('[WhiteLabel Plugin] Activated successfully');
   },
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async deactivate(_context: PluginContext) {
-    console.log('[WhiteLabel Plugin] Deactivated');
+    logger.info('[WhiteLabel Plugin] Deactivated');
   },
 };
 

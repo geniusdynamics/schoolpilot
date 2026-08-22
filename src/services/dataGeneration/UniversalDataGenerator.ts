@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Main orchestrator for universal data generation across storage types
 // ABOUTME: Coordinates adapters, relationships, and data generation workflows
 
-import { StorageType, DataGenerationConfig, IStorageAdapter, DataGenerationResult, GeneratedEntity } from './types';
+import { StorageType, DataGenerationConfig } from './types';
 import { AdapterFactory } from './adapters/AdapterFactory';
 import { RelationshipManager } from './RelationshipManager';
 import {
@@ -87,10 +89,10 @@ export class UniversalDataGenerator {
       this.relationshipManager = new RelationshipManager();
       
       if (this.config.logProgress) {
-        console.log(`Universal Data Generator initialized with ${this.config.storageType} storage`);
+        logger.info(`Universal Data Generator initialized with ${this.config.storageType} storage`);
       }
     } catch (error) {
-      console.error('Failed to initialize Universal Data Generator:', error);
+      logger.error('Failed to initialize Universal Data Generator:', error);
       throw error;
     }
   }
@@ -106,7 +108,7 @@ export class UniversalDataGenerator {
 
     try {
       if (this.config.logProgress) {
-        console.log('Starting data generation process...');
+        logger.info('Starting data generation process...');
       }
       
       // Generate data for each requested module
@@ -116,7 +118,7 @@ export class UniversalDataGenerator {
           totalRecords += records.recordCount;
           tablesGenerated.push(...records.tables);
         } catch (error) {
-          console.error(`Failed to generate data for module ${module}:`, error);
+          logger.error(`Failed to generate data for module ${module}:`, error);
           throw error;
         }
       }
@@ -124,8 +126,8 @@ export class UniversalDataGenerator {
       const generationTime = Date.now() - startTime;
       
       if (this.config.logProgress) {
-        console.log(`Data generation completed in ${generationTime}ms`);
-        console.log(`Generated ${totalRecords} total records across ${tablesGenerated.length} tables`);
+        logger.info(`Data generation completed in ${generationTime}ms`);
+        logger.info(`Generated ${totalRecords} total records across ${tablesGenerated.length} tables`);
       }
       
       return {
@@ -135,7 +137,7 @@ export class UniversalDataGenerator {
         storageType: this.config.storageType
       };
     } catch (error) {
-      console.error('Data generation failed:', error);
+      logger.error('Data generation failed:', error);
       throw error;
     }
   }
@@ -164,7 +166,6 @@ export class UniversalDataGenerator {
       tables
     };
   }
-
 
 
   async validateData(): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> {
@@ -222,7 +223,7 @@ export class UniversalDataGenerator {
     this.config = null;
     this.generators = null;
     
-    console.log('Universal Data Generator cleaned up');
+    logger.info('Universal Data Generator cleaned up');
   }
 
   getGenerationStats(): {
@@ -295,6 +296,5 @@ export class UniversalDataGenerator {
       // Add more schemas as needed
     };
   }
-
 
 }

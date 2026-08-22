@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * i18n Manager
  * 
@@ -54,7 +56,7 @@ export class I18nManager {
    */
   async setLocale(locale: Locale): Promise<void> {
     if (!this.config.supportedLocales.includes(locale)) {
-      console.warn(`Locale ${locale} is not in supported locales list`);
+      logger.warn(`Locale ${locale} is not in supported locales list`);
     }
 
     // Load locale if not loaded
@@ -121,7 +123,7 @@ export class I18nManager {
 
     // Return key if not found
     if (value === undefined) {
-      console.warn(`Translation key not found: ${key}`);
+      logger.warn(`Translation key not found: ${key}`);
       return key;
     }
 
@@ -293,7 +295,7 @@ export class I18nManager {
       const data: LocaleData = await response.json();
       this.registerLocale(data);
     } catch (error) {
-      console.error(`Failed to load locale ${locale}:`, error);
+      logger.error(`Failed to load locale ${locale}:`, error);
       
       // Try to load built-in locale
       const builtIn = this.getBuiltInLocale(locale);

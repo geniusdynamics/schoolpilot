@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Plugin Manager
  * 
@@ -72,7 +74,7 @@ export class PluginManager {
         }
       }
     } catch (error) {
-      console.warn('[PluginManager] Failed to load persisted state:', error);
+      logger.warn('[PluginManager] Failed to load persisted state:', error);
     }
   }
 
@@ -87,7 +89,7 @@ export class PluginManager {
       };
       localStorage.setItem('plugin_manager_state', JSON.stringify(state));
     } catch (error) {
-      console.warn('[PluginManager] Failed to persist state:', error);
+      logger.warn('[PluginManager] Failed to persist state:', error);
     }
   }
 
@@ -120,7 +122,7 @@ export class PluginManager {
         try {
           callback(data);
         } catch (error) {
-          console.error(`Error in event listener for ${event}:`, error);
+          logger.error(`Error in event listener for ${event}:`, error);
         }
       });
     }
@@ -233,7 +235,7 @@ export class PluginManager {
    */
   registerBuiltinPlugin(plugin: LoadedPlugin): void {
     if (this.plugins.has(plugin.manifest.id)) {
-      console.warn(`[PluginManager] Builtin plugin ${plugin.manifest.id} already registered`);
+      logger.warn(`[PluginManager] Builtin plugin ${plugin.manifest.id} already registered`);
       return;
     }
     
@@ -300,7 +302,7 @@ export class PluginManager {
         const plugin = await this.loadPlugin(manifest);
         results.push(plugin);
       } catch (error) {
-        console.error(`Failed to load plugin ${manifest.id}:`, error);
+        logger.error(`Failed to load plugin ${manifest.id}:`, error);
       }
     }
 
@@ -367,7 +369,7 @@ export class PluginManager {
         const context = this.createPluginContext(plugin.manifest);
         await plugin.module.deactivate.call(context);
       } catch (error) {
-        console.error(`Error deactivating plugin ${pluginId}:`, error);
+        logger.error(`Error deactivating plugin ${pluginId}:`, error);
       }
     }
 
@@ -438,7 +440,7 @@ export class PluginManager {
       if (stats && stats.failures >= this.MAX_HOOK_FAILURES) {
         const timeSinceFailure = Date.now() - stats.lastFailure;
         if (timeSinceFailure < this.HOOK_BAN_DURATION_MS) {
-          console.warn(`[PluginManager] Plugin ${pluginId} is temporarily banned from hooks`);
+          logger.warn(`[PluginManager] Plugin ${pluginId} is temporarily banned from hooks`);
           continue; // Skip this handler
         } else {
           // Reset ban after cooldown
@@ -455,7 +457,7 @@ export class PluginManager {
         );
         results.push(result);
       } catch (error) {
-        console.error(`Hook ${name} handler failed for plugin ${pluginId}:`, error);
+        logger.error(`Hook ${name} handler failed for plugin ${pluginId}:`, error);
         this.recordHookFailure(pluginId);
       }
     }
@@ -492,7 +494,7 @@ export class PluginManager {
           return result;
         }
       } catch (error) {
-        console.error(`Hook ${name} handler failed for plugin ${pluginId}:`, error);
+        logger.error(`Hook ${name} handler failed for plugin ${pluginId}:`, error);
         this.recordHookFailure(pluginId);
       }
     }
@@ -511,7 +513,7 @@ export class PluginManager {
     const duration = performance.now() - start;
     
     if (duration > timeoutMs) {
-      console.warn(`[PluginManager] ${context} took ${duration.toFixed(2)}ms (timeout: ${timeoutMs}ms)`);
+      logger.warn(`[PluginManager] ${context} took ${duration.toFixed(2)}ms (timeout: ${timeoutMs}ms)`);
     }
     
     return result;
@@ -527,7 +529,7 @@ export class PluginManager {
     this.hookStats.set(pluginId, current);
 
     if (current.failures >= this.MAX_HOOK_FAILURES) {
-      console.error(`[PluginManager] Plugin ${pluginId} has been temporarily banned due to ${current.failures} hook failures`);
+      logger.error(`[PluginManager] Plugin ${pluginId} has been temporarily banned due to ${current.failures} hook failures`);
       this.emit('plugin:hook:banned', { pluginId, failures: current.failures });
     }
   }

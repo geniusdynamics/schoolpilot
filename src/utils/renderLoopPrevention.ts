@@ -1,3 +1,5 @@
+﻿﻿﻿﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Render loop prevention utilities for React applications
 // ABOUTME: Provides hooks and utilities to prevent common causes of render loops
 
@@ -61,7 +63,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
  */
 const devWarn = (message: string, context?: unknown): void => {
   if (isDevelopment) {
-    console.warn(`[RenderLoopPrevention] ${message}`, context ?? '');
+    logger.warn(`[RenderLoopPrevention] ${message}`, context ?? '');
   }
 };
 
@@ -80,7 +82,7 @@ const devWarn = (message: string, context?: unknown): void => {
  * @example
  * ```tsx
  * const handleClick = useStableCallback((id: string) => {
- *   console.log('Clicked:', id);
+ *   logger.info('Clicked:', id);
  * }, [id]);
  * ```
  */
@@ -137,7 +139,7 @@ export function useStableValue<T>(value: T, deps?: DependencyList): T {
  * const { count, reset } = useRenderCounter('MyComponent');
  * useEffect(() => {
  *   if (count > 10) {
- *     console.warn('MyComponent has rendered many times:', count);
+ *     logger.warn('MyComponent has rendered many times:', count);
  *   }
  * }, [count]);
  * ```
@@ -176,7 +178,7 @@ export function useRenderCounter(label?: string): { count: number; reset: () => 
  * @example
  * ```tsx
  * useEffectAfterMount(() => {
- *   console.log('Component mounted!');
+ *   logger.info('Component mounted!');
  *   // Setup logic here
  * }, []);
  * ```
@@ -188,12 +190,15 @@ export function useEffectAfterMount(effect: EffectCallback, deps?: DependencyLis
     devWarn('useEffectAfterMount: deps must be an array or undefined');
   }
   
-  if (isFirstRenderRef.current) {
-    isFirstRenderRef.current = false;
-    return;
-  }
-  
-  return useEffect(effect, deps);
+  // Move the first-render guard inside useEffect to avoid conditional hook call
+   
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+    return effect();
+  }, deps);
 }
 
 // ============================================================================
@@ -212,7 +217,7 @@ export function useEffectAfterMount(effect: EffectCallback, deps?: DependencyLis
  * const guard = createRenderGuard({
  *   maxRenders: 10,
  *   timeWindow: 1000,
- *   onExceeded: (count, window) => console.warn('Render limit exceeded!')
+ *   onExceeded: (count, window) => logger.warn('Render limit exceeded!')
  * });
  * 
  * function MyComponent() {
@@ -316,7 +321,7 @@ export function createRenderGuard(options?: RenderGuardOptions): RenderGuard {
  *   
  *   useEffect(() => {
  *     // This runs with debounced value
- *     console.log('Search:', debouncedValue.current);
+ *     logger.info('Search:', debouncedValue.current);
  *   }, [debouncedValue.current]);
  *   
  *   return <input onChange={handleChange} value={value} />;
@@ -441,7 +446,8 @@ export function shallowCompare(prev: unknown, next: unknown): boolean {
 export function useRenderGuard(options?: RenderGuardOptions): RenderGuard {
   const guard = useMemo(() => createRenderGuard(options), [
     options?.maxRenders,
-    options?.timeWindow
+    options?.timeWindow,
+    options?.onExceeded
   ]);
   
   // Use useSyncExternalStore for React 19 compatibility

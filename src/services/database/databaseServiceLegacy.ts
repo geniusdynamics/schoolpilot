@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Dynamic database service that automatically detects and uses the best available provider
 // ABOUTME: Tries RxDB first, falls back to PouchDB if RxDB is unavailable
 
@@ -39,11 +41,11 @@ export class DatabaseService {
   async initialize(config: DatabaseConfig): Promise<void> {
     try {
       if (this.isInitialized && this.provider) {
-        console.log(`Database service already initialized with ${this.detectedProviderType}`);
+        logger.info(`Database service already initialized with ${this.detectedProviderType}`);
         return;
       }
 
-      console.log('Initializing database service with dynamic provider detection...');
+      logger.info('Initializing database service with dynamic provider detection...');
       
       // Try to detect and initialize the best available provider
       this.provider = await this.detectAndInitializeProvider(config);
@@ -61,11 +63,11 @@ export class DatabaseService {
       this.isInitialized = true;
       this.initializationError = null;
       
-      console.log(`Database service initialized successfully with ${this.detectedProviderType} provider`);
+      logger.info(`Database service initialized successfully with ${this.detectedProviderType} provider`);
     } catch (error) {
       this.initializationError = error as Error;
       this.isInitialized = false;
-      console.error('Failed to initialize database service:', error);
+      logger.error('Failed to initialize database service:', error);
       throw error;
     }
   }
@@ -79,12 +81,12 @@ export class DatabaseService {
     
     for (const providerType of providerPriority) {
       try {
-        console.log(`Attempting to initialize ${providerType} provider...`);
+        logger.info(`Attempting to initialize ${providerType} provider...`);
         
         // Check if provider is available
         const isAvailable = await this.checkProviderAvailability(providerType);
         if (!isAvailable) {
-          console.log(`${providerType} provider not available, trying next...`);
+          logger.info(`${providerType} provider not available, trying next...`);
           continue;
         }
 
@@ -93,10 +95,10 @@ export class DatabaseService {
         await provider.initialize(config);
         
         this.detectedProviderType = providerType;
-        console.log(`Successfully initialized ${providerType} provider`);
+        logger.info(`Successfully initialized ${providerType} provider`);
         return provider;
       } catch (error) {
-        console.warn(`Failed to initialize ${providerType} provider:`, error.message);
+        logger.warn(`Failed to initialize ${providerType} provider:`, error.message);
         continue;
       }
     }
@@ -125,7 +127,7 @@ export class DatabaseService {
           return false;
       }
     } catch (error) {
-      console.warn(`Error checking availability for ${providerType}:`, error);
+      logger.warn(`Error checking availability for ${providerType}:`, error);
       return false;
     }
   }
@@ -139,7 +141,7 @@ export class DatabaseService {
     }
 
     try {
-      console.log('Creating collections from RxDB definitions...');
+      logger.info('Creating collections from RxDB definitions...');
       
       for (const [collectionName, collectionDef] of Object.entries(collectionsDefinition)) {
         const schema: CollectionSchema = {
@@ -154,10 +156,10 @@ export class DatabaseService {
         };
 
         await this.provider.createCollection(collectionName, schema);
-        console.log(`Created collection: ${collectionName}`);
+        logger.info(`Created collection: ${collectionName}`);
       }
       
-      console.log('All collections created successfully');
+      logger.info('All collections created successfully');
     } catch (error) {
       throw new DatabaseError(
         `Failed to create collections: ${error.message}`,
@@ -178,7 +180,7 @@ export class DatabaseService {
    */
   getCollection<T>(name: string): ICollection<T> | null {
     if (!this.provider) {
-      console.warn('Database provider not initialized');
+      logger.warn('Database provider not initialized');
       return null;
     }
     return this.provider.getCollection<T>(name);
@@ -240,7 +242,7 @@ export class DatabaseService {
    */
   async switchProvider(providerType: ProviderType, config: DatabaseConfig): Promise<void> {
     try {
-      console.log(`Switching to ${providerType} provider...`);
+      logger.info(`Switching to ${providerType} provider...`);
       
       // Destroy current provider if exists
       if (this.provider) {
@@ -258,7 +260,7 @@ export class DatabaseService {
       this.isInitialized = true;
       this.initializationError = null;
       
-      console.log(`Successfully switched to ${providerType} provider`);
+      logger.info(`Successfully switched to ${providerType} provider`);
     } catch (error) {
       this.initializationError = error as Error;
       throw new DatabaseError(
@@ -282,7 +284,7 @@ export class DatabaseService {
       this.detectedProviderType = null;
       this.initializationError = null;
       
-      console.log('Database service destroyed');
+      logger.info('Database service destroyed');
     } catch (error) {
       throw new DatabaseError(
         `Failed to destroy database service: ${error.message}`,

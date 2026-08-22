@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Module seeder configuration for granular data seeding control
 // ABOUTME: Defines available modules for selective database seeding
 
@@ -300,7 +302,7 @@ const sortByDependencies = (moduleIds: SeederModuleId[]): SeederModuleId[] => {
   const visit = (id: SeederModuleId) => {
     if (visited.has(id)) return;
     if (visiting.has(id)) {
-      console.warn(`Circular dependency detected in module: ${id}`);
+      logger.warn(`Circular dependency detected in module: ${id}`);
       return;
     }
 

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Mock adapter for in-memory data storage during development
 // ABOUTME: Provides fast prototyping and testing capabilities
 
@@ -11,7 +13,7 @@ export class MockAdapter extends BaseStorageAdapter {
     this.tables.clear();
     this.schemas.clear();
     this.initialized = true;
-    console.log('Mock adapter initialized successfully');
+    logger.info('Mock adapter initialized successfully');
   }
 
   async createSchema(tableName: string, schema: string): Promise<void> {
@@ -23,7 +25,7 @@ export class MockAdapter extends BaseStorageAdapter {
     // Initialize empty table
     this.tables.set(tableName, []);
     
-    console.log(`Created mock table: ${tableName}`);
+    logger.info(`Created mock table: ${tableName}`);
   }
 
   async insertBatch(tableName: string, data: any[]): Promise<void> {
@@ -47,7 +49,7 @@ export class MockAdapter extends BaseStorageAdapter {
 
     table.push(...processedData);
     
-    console.log(`Inserted ${data.length} records into mock table ${tableName}`);
+    logger.info(`Inserted ${data.length} records into mock table ${tableName}`);
   }
 
   async query(sql: string, params: any[] = []): Promise<any[]> {
@@ -103,7 +105,7 @@ export class MockAdapter extends BaseStorageAdapter {
 
       return results;
     } catch (error) {
-      console.error('Mock query execution failed:', error);
+      logger.error('Mock query execution failed:', error);
       throw error;
     }
   }
@@ -112,7 +114,7 @@ export class MockAdapter extends BaseStorageAdapter {
     this.tables.clear();
     this.schemas.clear();
     this.initialized = false;
-    console.log('Mock adapter cleaned up');
+    logger.info('Mock adapter cleaned up');
   }
 
   // Mock-specific methods
@@ -130,7 +132,7 @@ export class MockAdapter extends BaseStorageAdapter {
 
   clearTable(tableName: string): void {
     this.tables.set(tableName, []);
-    console.log(`Cleared mock table: ${tableName}`);
+    logger.info(`Cleared mock table: ${tableName}`);
   }
 
   getTableStats(): Record<string, { count: number; schema: boolean }> {
@@ -158,7 +160,7 @@ export class MockAdapter extends BaseStorageAdapter {
     for (const [tableName, tableData] of Object.entries(data)) {
       this.tables.set(tableName, [...tableData]);
     }
-    console.log(`Imported data for ${Object.keys(data).length} tables`);
+    logger.info(`Imported data for ${Object.keys(data).length} tables`);
   }
 
   private parseSql(sql: string, params: any[]): {

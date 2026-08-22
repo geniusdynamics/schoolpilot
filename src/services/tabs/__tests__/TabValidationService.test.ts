@@ -3,14 +3,7 @@
  * Tests tab validation, access control, permissions, and data sanitization
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { 
-  TabValidationService, 
-  tabValidationService,
-  ValidationResult,
-  RoleAccessConfig,
-  TabCreationOptions 
-} from '../TabValidationService';
+import { TabValidationService, tabValidationService, RoleAccessConfig } from '../TabValidationService';
 import { Tab, TabState } from '../../../types/tabbedWorkspace';
 
 // Test data helpers

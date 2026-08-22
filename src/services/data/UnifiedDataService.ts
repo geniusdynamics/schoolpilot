@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Unified Data Service
  * 
@@ -19,7 +21,6 @@ import type {
   DataEventType,
   SyncResult
 } from './types';
-import type { SyncEngine } from './SyncEngine';
 
 // Provider imports will be added when implementing specific providers
 // import { SQLiteProvider } from './providers/SQLiteProvider';
@@ -77,12 +78,12 @@ export class UnifiedDataService {
    */
   async initialize(mode: DeploymentMode, options: Record<string, any> = {}): Promise<void> {
     if (this.state.value.initializing) {
-      console.warn('Data service already initializing');
+      logger.warn('Data service already initializing');
       return;
     }
 
     if (this.state.value.initialized) {
-      console.warn('Data service already initialized');
+      logger.warn('Data service already initialized');
       return;
     }
 
@@ -111,7 +112,7 @@ export class UnifiedDataService {
         error: null
       });
 
-      console.log(`✅ UnifiedDataService initialized in ${mode} mode with ${this.provider.name}`);
+      logger.info(`âœ… UnifiedDataService initialized in ${mode} mode with ${this.provider.name}`);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       
@@ -122,7 +123,7 @@ export class UnifiedDataService {
         error: err
       });
 
-      console.error('❌ Failed to initialize UnifiedDataService:', err);
+      logger.error('âŒ Failed to initialize UnifiedDataService:', err);
       throw err;
     }
   }

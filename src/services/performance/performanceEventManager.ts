@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Performance event manager for coordinating performance data updates across components
 // ABOUTME: Provides event-driven performance monitoring without aggressive auto-refresh
 
@@ -115,7 +117,7 @@ class PerformanceEventManager {
       try {
         listener(event);
       } catch (error) {
-        console.warn('Error in performance event listener:', error);
+        logger.warn('Error in performance event listener:', error);
       }
     });
   }

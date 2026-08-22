@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Factory hook for generating standardized CRUD operations
 // ABOUTME: Works with UnifiedDatabaseManager for real database persistence
 // ABOUTME: Supports optimistic updates, validation, and error handling
@@ -12,9 +14,8 @@ import type {
   CrudActionType,
   OptimisticUpdate,
   QueryFilter,
-  generateId,
-  getTimestamp,
 } from '@/core/types/crud';
+import { generateId, getTimestamp } from '@/core/types/crud';
 
 export function useCrudFactory<T extends BaseEntity>(
   options: UseCrudOptions<T>
@@ -65,7 +66,7 @@ export function useCrudFactory<T extends BaseEntity>(
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : `Failed to load ${entityName}s`;
       setError(errorMessage);
-      console.error(`Error refreshing ${entityName}s:`, err);
+      logger.error(`Error refreshing ${entityName}s:`, err);
     } finally {
       setLoading(false);
     }

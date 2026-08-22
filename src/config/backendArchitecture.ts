@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Backend architecture configuration for flexible integration with multiple backend systems
 // ABOUTME: Supports frontend-only (PouchDB/CouchDB), Frappe Education API, and custom backend APIs
 
@@ -402,7 +404,7 @@ export class BackendArchitectureManager {
       });
       return response.ok;
     } catch (error) {
-      console.warn('Backend API not available:', error);
+      logger.warn('Backend API not available:', error);
       return false;
     }
   }

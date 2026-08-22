@@ -1,11 +1,10 @@
 // src/core/types/enums.ts
 // ABOUTME: All enum definitions used across the SchoolPilot system.
 
-export enum FinancialYearStatus {
-  OPEN = 'Open',
-  CLOSED = 'Closed',
-  ARCHIVED = 'Archived',
-}
+// Finance enums (FinancialYearStatus, AccountType, AccountTemplateType, OpeningBalanceType,
+// InvoiceStatus, FeeAdjustmentType, ExpenseClaimantType, TransportAssignmentStatus,
+// CustomerInvoiceStatus, SupplierInvoiceStatus, GeneralPayerType) are the single source of truth
+// in @/modules/finance/data/types and re-exported from @/core/types/index.ts.
 
 export enum PersonGender {
   MALE = 'Male',
@@ -90,61 +89,7 @@ export enum HRPayrollPeriodStatusEnum {
     PROCESSED = 'Processed'
 }
 
-export enum AccountType {
-  ASSET = 'Asset',
-  LIABILITY = 'Liability',
-  EQUITY = 'Equity',
-  REVENUE = 'Revenue',
-  EXPENSE = 'Expense',
-}
-
-export enum AccountTemplateType {
-    CORE = 'Core',
-    GOVERNMENT = 'Government',
-    PRIVATE = 'Private',
-    CUSTOM = 'Custom',
-}
-
-export enum OpeningBalanceType {
-    DEBIT = 'Debit',
-    CREDIT = 'Credit',
-}
-
-export enum InvoiceStatus {
-  DUE = 'Due',
-  PARTIALLY_PAID = 'Partially Paid',
-  PAID = 'Paid',
-  OVERDUE = 'Overdue',
-  VOIDED = 'Voided',
-}
-
-export enum FeeAdjustmentType {
-    PENALTY = 'Penalty',
-    EXEMPTION = 'Exemption',
-    SCHOLARSHIP = 'Scholarship',
-}
-
-export enum ExpenseClaimantType {
-    STAFF = 'Staff',
-    STUDENT = 'Student',
-}
-
-export enum TransportAssignmentStatus {
-    ACTIVE = 'Active',
-    INACTIVE = 'Inactive',
-}
-
-export enum CustomerInvoiceStatus {
-    DUE = 'Due',
-    PAID = 'Paid',
-    VOIDED = 'Voided',
-}
-
-export enum SupplierInvoiceStatus {
-    UNPAID = 'Unpaid',
-    PARTIALLY_PAID = 'Partially Paid',
-    PAID = 'Paid',
-}
+// (Finance enums consolidated into @/modules/finance/data/types — see note at top of file.)
 
 export enum PayrollPeriodStatus {
     OPEN = 'Open',
@@ -169,53 +114,10 @@ export enum PayslipStatus {
     PAID = 'Paid',
 }
 
-export enum BookStatus {
-  AVAILABLE = 'Available',
-  ON_LOAN = 'On Loan',
-  LOST = 'Lost',
-  DAMAGED = 'Damaged',
-}
+// Library & Inventory status enums (BookStatus, FineStatus, StudentMealPlanStatus, MealType,
+// WalletTransactionType, ItemTypeInv, DepreciationMethod, StockTransactionType) are the single
+// source of truth in their modules' data/types and re-exported from @/core/types/index.ts.
 
-export enum FineStatus {
-    PENDING = 'Pending',
-    BILLED = 'Billed',
-}
-
-export enum ItemTypeInv {
-    CONSUMABLE = 'Consumable',
-    FIXED_ASSET = 'Fixed Asset',
-}
-
-export enum DepreciationMethod {
-    STRAIGHT_LINE = 'Straight Line',
-    REDUCING_BALANCE = 'Reducing Balance',
-}
-
-export enum StockTransactionType {
-    RECEIVE = 'Receive',
-    ISSUE = 'Issue',
-    ADJUSTMENT = 'Adjustment',
-}
-
-export enum StudentMealPlanStatus {
-    ACTIVE = 'Active',
-    INACTIVE = 'Inactive',
-}
-
-export enum MealType {
-    BREAKFAST = 'Breakfast',
-    BREAK_SNACK = 'Break Snack',
-    LUNCH = 'Lunch',
-    DINNER = 'Dinner',
-}
-
-export enum WalletTransactionType {
-    DEPOSIT = 'Deposit',
-    WITHDRAWAL = 'Withdrawal',
-    TRANSFER_OUT = 'TransferOut',
-    TRANSFER_IN = 'TransferIn',
-    PURCHASE = 'Purchase',
-}
 
 export enum AuditAction {
     INSERT = 'INSERT',
@@ -232,31 +134,8 @@ export enum RFQStatus {
     CANCELLED = 'Cancelled',
 }
 
-export enum RequisitionStatus {
-    DRAFT = 'Draft',
-    PENDING_APPROVAL = 'Pending Approval',
-    APPROVED = 'Approved',
-    REJECTED = 'Rejected',
-    FULFILLED = 'Fulfilled',
-    PARTIALLY_FULFILLED = 'Partially Fulfilled',
-}
+// (RequisitionStatus & PurchaseOrderStatus consolidated into @/modules/inventory/data/types.)
 
-export enum PurchaseOrderStatus {
-    DRAFT = 'Draft',
-    SENT = 'Sent',
-    CONFIRMED = 'Confirmed',
-    PARTIALLY_RECEIVED = 'Partially Received',
-    FULLY_RECEIVED = 'Fully Received',
-    INVOICED = 'Invoiced',
-    CANCELLED = 'Cancelled',
-}
-
-export enum GeneralPayerType {
-    STUDENT = 'Student',
-    STAFF = 'Staff',
-    PARENT = 'Parent',
-    EXTERNAL = 'External',
-}
 
 // --- Academic Enums ---
 

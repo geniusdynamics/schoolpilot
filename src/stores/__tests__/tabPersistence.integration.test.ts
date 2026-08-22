@@ -102,7 +102,7 @@ describe('Tab Persistence Integration', () => {
     await store.initialize();
 
     // Mock persistence service to fail
-    const originalSaveTabs = tabPersistenceService.saveTabs;
+
     vi.spyOn(tabPersistenceService, 'saveTabs').mockRejectedValue(new Error('Storage full'));
 
     // Create a tab - should not throw even if persistence fails

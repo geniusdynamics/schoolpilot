@@ -10,7 +10,7 @@
 declare const self: ServiceWorkerGlobalScope;
 
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
+
 import { 
   NetworkFirst, 
   CacheFirst, 
@@ -239,7 +239,7 @@ self.addEventListener('notificationclick', (event) => {
 
 // Message event (from client)
 self.addEventListener('message', (event) => {
-  const { type, data } = event.data;
+  const { type } = event.data;
 
   switch (type) {
     case 'skip-waiting':

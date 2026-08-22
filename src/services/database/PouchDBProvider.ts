@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Enhanced PouchDB provider for network deployments with sync capabilities
 // ABOUTME: Provides offline-first storage with remote synchronization, conflict resolution, and network optimization
 
@@ -120,7 +122,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       // Update data subject for reactive queries
       this.refreshDataSubject();
     }).on('error', (err) => {
-      console.error(`[PouchDBCollection] Change listener error in ${this.name}:`, err);
+      logger.error(`[PouchDBCollection] Change listener error in ${this.name}:`, err);
       this.syncStatus.errors.push(`Change listener error: ${err.message}`);
     });
   }
@@ -129,7 +131,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
     // Monitor online/offline status
     if (typeof window !== 'undefined') {
       window.addEventListener('online', () => {
-        console.log(`[PouchDBCollection] Network online for ${this.name}`);
+        logger.info(`[PouchDBCollection] Network online for ${this.name}`);
         this.isOnline = true;
         this.processOfflineQueue();
         if (this.networkConfig.remoteUrl) {
@@ -138,7 +140,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       });
 
       window.addEventListener('offline', () => {
-        console.log(`[PouchDBCollection] Network offline for ${this.name}`);
+        logger.info(`[PouchDBCollection] Network offline for ${this.name}`);
         this.isOnline = false;
         this.pauseSync();
       });
@@ -153,7 +155,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
     }
 
     try {
-      console.log(`[PouchDBCollection] Initializing sync for ${this.name} with ${this.networkConfig.remoteUrl}`);
+      logger.info(`[PouchDBCollection] Initializing sync for ${this.name} with ${this.networkConfig.remoteUrl}`);
       
       const syncOptions = {
         live: true,
@@ -167,42 +169,42 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
 
       this.syncHandler = this.db.sync(this.networkConfig.remoteUrl, syncOptions)
         .on('change', (info: any) => {
-          console.log(`[PouchDBCollection] Sync change in ${this.name}:`, info);
+          logger.info(`[PouchDBCollection] Sync change in ${this.name}:`, info);
           this.syncStatus.lastSync = new Date();
           this.syncStatus.pendingChanges = (info as any).pending || 0;
         })
         .on('paused', (err: any) => {
           if (err) {
-            console.error(`[PouchDBCollection] Sync paused with error in ${this.name}:`, err);
+            logger.error(`[PouchDBCollection] Sync paused with error in ${this.name}:`, err);
             this.syncStatus.errors.push(`Sync paused: ${err.message || String(err)}`);
           } else {
-            console.log(`[PouchDBCollection] Sync paused in ${this.name}`);
+            logger.info(`[PouchDBCollection] Sync paused in ${this.name}`);
           }
           this.syncStatus.isActive = false;
         })
         .on('active', () => {
-          console.log(`[PouchDBCollection] Sync active in ${this.name}`);
+          logger.info(`[PouchDBCollection] Sync active in ${this.name}`);
           this.syncStatus.isActive = true;
           this.retryAttempts = 0;
         })
         .on('denied', (err: any) => {
-          console.error(`[PouchDBCollection] Sync denied in ${this.name}:`, err);
+          logger.error(`[PouchDBCollection] Sync denied in ${this.name}:`, err);
           this.syncStatus.errors.push(`Sync denied: ${err.message || String(err)}`);
         })
         .on('complete', (info) => {
-          console.log(`[PouchDBCollection] Sync complete in ${this.name}:`, info);
+          logger.info(`[PouchDBCollection] Sync complete in ${this.name}:`, info);
           this.syncStatus.isActive = false;
         })
         .on('error', (err: any) => {
-          console.error(`[PouchDBCollection] Sync error in ${this.name}:`, err);
+          logger.error(`[PouchDBCollection] Sync error in ${this.name}:`, err);
           this.syncStatus.errors.push(`Sync error: ${err.message || String(err)}`);
           this.handleSyncError(err);
         });
 
       this.syncStatus.direction = 'bidirectional';
-      console.log(`[PouchDBCollection] Sync initialized for ${this.name}`);
+      logger.info(`[PouchDBCollection] Sync initialized for ${this.name}`);
     } catch (error: any) {
-      console.error(`[PouchDBCollection] Failed to initialize sync for ${this.name}:`, error);
+      logger.error(`[PouchDBCollection] Failed to initialize sync for ${this.name}:`, error);
       this.syncStatus.errors.push(`Sync initialization failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -212,7 +214,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
     
     if (this.retryAttempts < this.maxRetryAttempts) {
       const retryDelay = Math.pow(2, this.retryAttempts) * 1000; // Exponential backoff
-      console.log(`[PouchDBCollection] Retrying sync for ${this.name} in ${retryDelay}ms (attempt ${this.retryAttempts})`);
+      logger.info(`[PouchDBCollection] Retrying sync for ${this.name} in ${retryDelay}ms (attempt ${this.retryAttempts})`);
       
       setTimeout(() => {
         if (this.networkConfig.remoteUrl && this.isOnline) {
@@ -220,7 +222,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
         }
       }, retryDelay);
     } else {
-      console.error(`[PouchDBCollection] Max retry attempts reached for ${this.name}`);
+      logger.error(`[PouchDBCollection] Max retry attempts reached for ${this.name}`);
       this.syncStatus.errors.push('Max retry attempts reached');
     }
   }
@@ -229,14 +231,14 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
     if (this.syncHandler) {
       this.syncHandler.cancel();
       this.syncStatus.isActive = false;
-      console.log(`[PouchDBCollection] Sync paused for ${this.name}`);
+      logger.info(`[PouchDBCollection] Sync paused for ${this.name}`);
     }
   }
 
   private resumeSync(): void {
     if (this.networkConfig.remoteUrl && this.isOnline) {
       this.initializeSync();
-      console.log(`[PouchDBCollection] Sync resumed for ${this.name}`);
+      logger.info(`[PouchDBCollection] Sync resumed for ${this.name}`);
     }
   }
 
@@ -245,7 +247,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       return;
     }
 
-    console.log(`[PouchDBCollection] Processing ${this.offlineQueue.length} offline operations for ${this.name}`);
+    logger.info(`[PouchDBCollection] Processing ${this.offlineQueue.length} offline operations for ${this.name}`);
     
     const queue = [...this.offlineQueue];
     this.offlineQueue = [];
@@ -263,9 +265,9 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
             await this.db.remove(operation.data);
             break;
         }
-        console.log(`[PouchDBCollection] Processed offline ${operation.operation} for ${this.name}`);
+        logger.info(`[PouchDBCollection] Processed offline ${operation.operation} for ${this.name}`);
       } catch (error: any) {
-        console.error(`[PouchDBCollection] Failed to process offline ${operation.operation} for ${this.name}:`, error);
+        logger.error(`[PouchDBCollection] Failed to process offline ${operation.operation} for ${this.name}:`, error);
         // Re-queue failed operations
         this.offlineQueue.push(operation);
       }
@@ -280,7 +282,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
         .map(row => this.transformDoc(row.doc as any));
       this.dataSubject.next(docs);
     } catch (error: any) {
-      console.error(`Failed to load initial data for ${this.name}:`, error);
+      logger.error(`Failed to load initial data for ${this.name}:`, error);
     }
   }
 
@@ -289,7 +291,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       const docs = await this.find();
       this.dataSubject.next(docs);
     } catch (error: any) {
-      console.error(`Failed to refresh data subject for ${this.name}:`, error);
+      logger.error(`Failed to refresh data subject for ${this.name}:`, error);
     }
   }
 
@@ -328,7 +330,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
           timestamp: new Date()
         });
         
-        console.log(`[PouchDBCollection] Queued insert operation for ${this.name} (offline)`);
+        logger.info(`[PouchDBCollection] Queued insert operation for ${this.name} (offline)`);
         
         // Return optimistic result
         const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -399,7 +401,6 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       );
     }
   }
-
 
   async findById(id: string): Promise<T | null> {
     try {
@@ -709,7 +710,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
 
   async destroy(): Promise<void> {
     try {
-      console.log(`[PouchDBCollection] Destroying collection ${this.name}...`);
+      logger.info(`[PouchDBCollection] Destroying collection ${this.name}...`);
       
       this.isDestroyed = true;
       
@@ -720,7 +721,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       
       // Process any remaining offline queue
       if (this.offlineQueue.length > 0) {
-        console.log(`[PouchDBCollection] Processing ${this.offlineQueue.length} remaining offline operations`);
+        logger.info(`[PouchDBCollection] Processing ${this.offlineQueue.length} remaining offline operations`);
         await this.processOfflineQueue();
       }
       
@@ -729,9 +730,9 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       this.dataSubject.complete();
       
       await this.db.destroy();
-      console.log(`[PouchDBCollection] Collection ${this.name} destroyed successfully`);
+      logger.info(`[PouchDBCollection] Collection ${this.name} destroyed successfully`);
     } catch (error: any) {
-      console.error(`[PouchDBCollection] Failed to destroy ${this.name}:`, error);
+      logger.error(`[PouchDBCollection] Failed to destroy ${this.name}:`, error);
       throw new CollectionError(
         `Failed to destroy: ${error instanceof Error ? error.message : String(error)}`,
         this.name
@@ -755,7 +756,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
           const existing = await this.db.get(docAny._id || docAny.id);
           docAny._rev = (existing as any)._rev;
           const result = await this.db.put(docAny);
-          console.log(`[PouchDBCollection] Conflict resolved (local wins) for ${this.name}`);
+          logger.info(`[PouchDBCollection] Conflict resolved (local wins) for ${this.name}`);
           return { id: result.id, rev: result.rev, doc: { ...docAny, id: result.id } as any, ok: result.ok };
         } catch (getError) {
           throw error; // Original conflict error
@@ -766,7 +767,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
         try {
           const docAny = doc as any;
           const latest = await this.db.get(docAny._id || docAny.id);
-          console.log(`[PouchDBCollection] Conflict resolved (remote wins) for ${this.name}`);
+          logger.info(`[PouchDBCollection] Conflict resolved (remote wins) for ${this.name}`);
           return { id: (latest as any)._id, rev: (latest as any)._rev, doc: this.transformDoc(latest as any) as any, ok: true };
         } catch (getError) {
           throw error; // Original conflict error
@@ -775,7 +776,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       case 'manual':
       default:
         // Manual resolution required
-        console.warn(`[PouchDBCollection] Manual conflict resolution required for ${this.name}`);
+        logger.warn(`[PouchDBCollection] Manual conflict resolution required for ${this.name}`);
         throw new CollectionError(`Conflict requires manual resolution: ${error.message}`, this.name);
     }
   }
@@ -800,7 +801,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
     }
 
     try {
-      console.log(`[PouchDBCollection] Force syncing ${this.name}`);
+      logger.info(`[PouchDBCollection] Force syncing ${this.name}`);
       
       const result = await this.db.sync(this.networkConfig.remoteUrl, {
         ...this.networkConfig.syncOptions,
@@ -809,9 +810,9 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
       });
       
       this.syncStatus.lastSync = new Date();
-      console.log(`[PouchDBCollection] Force sync completed for ${this.name}:`, result);
+      logger.info(`[PouchDBCollection] Force sync completed for ${this.name}:`, result);
     } catch (error: any) {
-      console.error(`[PouchDBCollection] Force sync failed for ${this.name}:`, error);
+      logger.error(`[PouchDBCollection] Force sync failed for ${this.name}:`, error);
       throw new CollectionError(`Force sync failed: ${error instanceof Error ? error.message : String(error)}`, this.name);
     }
   }
@@ -835,7 +836,7 @@ export class PouchDBCollection<T extends { id?: string }> implements ICollection
   clearOfflineQueue(): void {
     const count = this.offlineQueue.length;
     this.offlineQueue = [];
-    console.log(`[PouchDBCollection] Cleared ${count} offline operations for ${this.name}`);
+    logger.info(`[PouchDBCollection] Cleared ${count} offline operations for ${this.name}`);
   }
 
   /**
@@ -906,7 +907,7 @@ export class PouchDBProvider implements IDatabaseProvider {
       });
       
       this.isInitialized = true;
-      console.log('[PouchDBProvider] Provider initialized successfully with network config:', this.networkConfig);
+      logger.info('[PouchDBProvider] Provider initialized successfully with network config:', this.networkConfig);
     } catch (error) {
       throw new DatabaseError(
         `Failed to initialize PouchDB provider: ${error instanceof Error ? error.message : String(error)}`,
@@ -950,7 +951,7 @@ export class PouchDBProvider implements IDatabaseProvider {
         errors: []
       };
       
-      console.log(`[PouchDBProvider] Collection '${name}' created successfully with network config`);
+      logger.info(`[PouchDBProvider] Collection '${name}' created successfully with network config`);
       return collection;
     } catch (error) {
       throw new DatabaseError(
@@ -977,13 +978,13 @@ export class PouchDBProvider implements IDatabaseProvider {
         try {
           await collection.destroy();
         } catch (error: any) {
-          console.error(`Failed to destroy collection '${name}':`, error);
+          logger.error(`Failed to destroy collection '${name}':`, error);
         }
       }
       
       this.collections.clear();
       this.isInitialized = false;
-      console.log('PouchDB Provider destroyed successfully');
+      logger.info('PouchDB Provider destroyed successfully');
     } catch (error: any) {
       throw new DatabaseError(
         `Failed to destroy PouchDB provider: ${error?.message || String(error)}`,
@@ -998,16 +999,16 @@ export class PouchDBProvider implements IDatabaseProvider {
       throw new DatabaseError('Provider not initialized', 'NOT_INITIALIZED', this.name);
     }
 
-    console.warn('[PouchDBProvider] Native ACID transactions are not fully supported by PouchDB. Executing in best-effort simulated mode.');
+    logger.warn('[PouchDBProvider] Native ACID transactions are not fully supported by PouchDB. Executing in best-effort simulated mode.');
     
     const txId = `tx-pouch-${Date.now()}`;
     const tx: ITransaction = {
       id: txId,
       commit: async () => {
-        console.log(`[PouchDBProvider] Simulated transaction ${txId} committed.`);
+        logger.info(`[PouchDBProvider] Simulated transaction ${txId} committed.`);
       },
       rollback: async () => {
-        console.warn(`[PouchDBProvider] Simulated transaction ${txId} rollback requested, but PouchDB does not support automatic rollback.`);
+        logger.warn(`[PouchDBProvider] Simulated transaction ${txId} rollback requested, but PouchDB does not support automatic rollback.`);
       }
     };
 
@@ -1044,7 +1045,7 @@ export class PouchDBProvider implements IDatabaseProvider {
    */
   configureNetwork(networkConfig: NetworkConfig): void {
     this.networkConfig = { ...this.networkConfig, ...networkConfig };
-    console.log('[PouchDBProvider] Network configuration updated:', this.networkConfig);
+    logger.info('[PouchDBProvider] Network configuration updated:', this.networkConfig);
   }
 
   /**
@@ -1066,19 +1067,19 @@ export class PouchDBProvider implements IDatabaseProvider {
   async syncAllCollections(): Promise<{ [collectionName: string]: { success: boolean; error?: string } }> {
     const results: { [collectionName: string]: { success: boolean; error?: string } } = {};
     
-    console.log('[PouchDBProvider] Syncing all collections...');
+    logger.info('[PouchDBProvider] Syncing all collections...');
     
     for (const [name, collection] of this.collections) {
       try {
         await (collection as any).forceSync();
         results[name] = { success: true };
-        console.log(`[PouchDBProvider] Successfully synced collection: ${name}`);
+        logger.info(`[PouchDBProvider] Successfully synced collection: ${name}`);
       } catch (error: any) {
         results[name] = {
           success: false,
           error: error instanceof Error ? error.message : String(error)
         };
-        console.error(`[PouchDBProvider] Failed to sync collection ${name}:`, error);
+        logger.error(`[PouchDBProvider] Failed to sync collection ${name}:`, error);
       }
     }
     
@@ -1126,7 +1127,7 @@ export class PouchDBProvider implements IDatabaseProvider {
    * Handle network reconnection
    */
   async handleNetworkReconnection(): Promise<void> {
-    console.log('[PouchDBProvider] Handling network reconnection...');
+    logger.info('[PouchDBProvider] Handling network reconnection...');
     
     for (const [name, collection] of this.collections) {
       try {
@@ -1138,9 +1139,9 @@ export class PouchDBProvider implements IDatabaseProvider {
           await (collection as any).resumeSync();
         }
         
-        console.log(`[PouchDBProvider] Reconnection handled for collection: ${name}`);
+        logger.info(`[PouchDBProvider] Reconnection handled for collection: ${name}`);
       } catch (error: any) {
-        console.error(`[PouchDBProvider] Failed to handle reconnection for ${name}:`, error);
+        logger.error(`[PouchDBProvider] Failed to handle reconnection for ${name}:`, error);
       }
     }
   }
@@ -1149,7 +1150,7 @@ export class PouchDBProvider implements IDatabaseProvider {
    * Optimize network performance
    */
   async optimizeNetworkPerformance(): Promise<void> {
-    console.log('[PouchDBProvider] Optimizing network performance...');
+    logger.info('[PouchDBProvider] Optimizing network performance...');
     
     for (const [name, collection] of this.collections) {
       try {
@@ -1159,12 +1160,12 @@ export class PouchDBProvider implements IDatabaseProvider {
         // Clear old offline operations
         const queueStatus = (collection as any).getOfflineQueueStatus();
         if (queueStatus.count > (this.networkConfig.networkOptimization?.offlineQueueSize || 1000)) {
-          console.warn(`[PouchDBProvider] Large offline queue detected for ${name}: ${queueStatus.count} operations`);
+          logger.warn(`[PouchDBProvider] Large offline queue detected for ${name}: ${queueStatus.count} operations`);
         }
         
-        console.log(`[PouchDBProvider] Performance optimized for collection: ${name}`);
+        logger.info(`[PouchDBProvider] Performance optimized for collection: ${name}`);
       } catch (error: any) {
-        console.error(`[PouchDBProvider] Failed to optimize performance for ${name}:`, error);
+        logger.error(`[PouchDBProvider] Failed to optimize performance for ${name}:`, error);
       }
     }
   }
@@ -1221,7 +1222,7 @@ export class PouchDBProvider implements IDatabaseProvider {
         }
       }
       
-      console.log('PouchDB backup restored successfully');
+      logger.info('PouchDB backup restored successfully');
     } catch (error: any) {
       throw new DatabaseError(
         `Failed to restore backup: ${error?.message || String(error)}`,

@@ -1,7 +1,9 @@
-import i18next from 'i18next';
+﻿﻿﻿import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { loadModularTranslations } from './modularLoader';
+import { logger } from '@/utils/logging';
+
 
 // Track initialization state
 export let i18nReady = false;
@@ -14,20 +16,20 @@ const i18n = i18next.createInstance();
 const initializeI18n = async (): Promise<void> => {
   // Prevent multiple initializations
   if (i18nReady) {
-    console.log('i18n: Already initialized, skipping...');
+    logger.info('i18n: Already initialized, skipping...');
     return;
   }
   
   // Return existing promise if initialization is in progress
   if (initializationPromise) {
-    console.log('i18n: Initialization in progress, waiting...');
+    logger.info('i18n: Initialization in progress, waiting...');
     return initializationPromise;
   }
   
   // Create and store the initialization promise
   initializationPromise = (async () => {
     try {
-      console.log('i18n: Starting initialization...');
+      logger.info('i18n: Starting initialization...');
       const resources = await loadModularTranslations();
       
       await i18n
@@ -49,9 +51,16 @@ const initializeI18n = async (): Promise<void> => {
             'hr',
             'inventory',
             'library',
+            'nutrition',
+            'portal',
+            'reports',
             'settings',
-            'student',
-            'teacher'
+            'todos',
+            'assignments',
+            'houses',
+            'pickup',
+            'analytics',
+            'lessonplans',
           ],
           interpolation: {
             escapeValue: false,
@@ -68,10 +77,10 @@ const initializeI18n = async (): Promise<void> => {
           },
         });
       
-      console.log('i18n: Successfully initialized');
+      logger.info('i18n: Successfully initialized');
       i18nReady = true;
     } catch (error) {
-      console.error('i18n: Failed to initialize:', error);
+      logger.error('i18n: Failed to initialize:', error);
       // Fallback to basic initialization
       try {
         await i18n
@@ -81,26 +90,24 @@ const initializeI18n = async (): Promise<void> => {
             fallbackLng: 'en',
             debug: process.env.NODE_ENV === 'development',
             defaultNS: 'common',
-            ns: ['common', 'navigation', 'settings'],
+            ns: ['common', 'navigation'],
             resources: {
               en: {
                 common: { title: 'SchoolPilot' },
-                navigation: { home: 'Home' },
-                settings: { title: 'Settings' }
+                navigation: { home: 'Home' }
               },
               fr: {
                 common: { title: 'SchoolPilot' },
-                navigation: { home: 'Accueil' },
-                settings: { title: 'Paramètres' }
+                navigation: { home: 'Accueil' }
               }
             },
             interpolation: { escapeValue: false },
             react: { useSuspense: true },
           });
-        console.log('i18n: Fallback initialization successful');
+        logger.info('i18n: Fallback initialization successful');
         i18nReady = true;
       } catch (fallbackError) {
-        console.error('i18n: Fallback initialization also failed:', fallbackError);
+        logger.error('i18n: Fallback initialization also failed:', fallbackError);
         i18nReady = true; // Set to true to prevent infinite loops
         throw fallbackError;
       }

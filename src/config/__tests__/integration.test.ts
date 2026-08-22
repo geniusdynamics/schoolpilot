@@ -1,17 +1,7 @@
 // ABOUTME: Integration tests for database configuration system
 // ABOUTME: Tests end-to-end configuration workflows and system integration
 
-import {
-  unifiedConfigManager,
-  getDatabaseConfig,
-  updateDatabaseConfig,
-  validateDatabaseConfig,
-  autoFixDatabaseConfig,
-  migrateDatabaseConfig,
-  repairDatabaseConfig,
-  exportDatabaseConfigAsEnvVars,
-  exportDatabaseConfigAsJSON,
-} from '../unifiedConfig';
+import { unifiedConfigManager, getDatabaseConfig, updateDatabaseConfig, validateDatabaseConfig, autoFixDatabaseConfig, exportDatabaseConfigAsEnvVars, exportDatabaseConfigAsJSON } from '../unifiedConfig';
 import { databaseConfigValidator } from '../databaseConfigSchema';
 
 describe('Database Configuration Integration', () => {

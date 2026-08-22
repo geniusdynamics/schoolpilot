@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Asset loading optimization service for improved performance
 // ABOUTME: Handles preloading, lazy loading, and caching strategies for various asset types
 
@@ -116,7 +118,7 @@ class AssetOptimizer {
       this.recordAssetLoad(url, 0, loadTime, false, strategy);
       
     } catch (error) {
-      console.warn(`Failed to load asset: ${url}`, error);
+      logger.warn(`Failed to load asset: ${url}`, error);
     }
   }
 

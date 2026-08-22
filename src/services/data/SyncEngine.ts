@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Sync Engine
  * 
@@ -12,7 +14,7 @@
  * - Sync status monitoring
  */
 
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import type {
   DataProvider,
   SyncResult,
@@ -108,7 +110,7 @@ export class SyncEngine {
       this.sync();
     }, this.config.syncInterval);
 
-    console.log('🔄 Auto-sync started');
+    logger.info('ðŸ”„ Auto-sync started');
   }
 
   /**
@@ -120,7 +122,7 @@ export class SyncEngine {
       this.syncIntervalId = null;
     }
 
-    console.log('⏹️ Auto-sync stopped');
+    logger.info('â¹ï¸ Auto-sync stopped');
   }
 
   /**
@@ -128,7 +130,7 @@ export class SyncEngine {
    */
   async sync(): Promise<SyncResult> {
     if (this.isSyncing) {
-      console.log('Sync already in progress');
+      logger.info('Sync already in progress');
       return {
         success: true,
         pulled: 0,
@@ -138,7 +140,7 @@ export class SyncEngine {
     }
 
     if (!navigator.onLine) {
-      console.log('Offline, skipping sync');
+      logger.info('Offline, skipping sync');
       this.updateStatus({ state: 'offline' });
       return {
         success: false,
@@ -226,7 +228,7 @@ export class SyncEngine {
     this.saveQueue();
     this.updateStatus({ pendingCount: this.operationQueue.length });
 
-    console.log(`📤 Queued ${type} operation for ${collection}`);
+    logger.info(`ðŸ“¤ Queued ${type} operation for ${collection}`);
 
     // Try to sync immediately if online
     if (navigator.onLine && this.config.autoSync) {
@@ -265,9 +267,9 @@ export class SyncEngine {
         ]);
       }
 
-      console.log(`✅ Resolved conflict for ${conflict.collection}:${conflict.id}`);
+      logger.info(`âœ… Resolved conflict for ${conflict.collection}:${conflict.id}`);
     } catch (error) {
-      console.error('Failed to resolve conflict:', error);
+      logger.error('Failed to resolve conflict:', error);
       throw error;
     }
   }
@@ -336,7 +338,7 @@ export class SyncEngine {
           this.operationQueue = this.operationQueue.filter(op => op.id !== operation.id);
           this.saveQueue();
         } catch (error) {
-          console.error(`Failed to process operation ${operation.id}:`, error);
+          logger.error(`Failed to process operation ${operation.id}:`, error);
           
           operation.attempts++;
           
@@ -345,7 +347,7 @@ export class SyncEngine {
             this.operationQueue = this.operationQueue.filter(op => op.id !== operation.id);
             this.saveQueue();
             
-            console.error(`Operation ${operation.id} failed after ${this.config.retryAttempts} attempts`);
+            logger.error(`Operation ${operation.id} failed after ${this.config.retryAttempts} attempts`);
           } else {
             // Schedule retry with exponential backoff
             this.scheduleRetry(operation);
@@ -499,7 +501,7 @@ export class SyncEngine {
         await this.resolveConflict(conflict, resolution);
         resolved.push({ ...conflict, resolution });
       } catch (error) {
-        console.error('Failed to resolve conflict:', error);
+        logger.error('Failed to resolve conflict:', error);
         resolved.push(conflict);
       }
     }
@@ -517,7 +519,7 @@ export class SyncEngine {
   }
 
   private handleOnline(): void {
-    console.log('🌐 Online - resuming sync');
+    logger.info('ðŸŒ Online - resuming sync');
     this.updateStatus({ state: 'idle' });
     
     if (this.config.autoSync) {
@@ -526,7 +528,7 @@ export class SyncEngine {
   }
 
   private handleOffline(): void {
-    console.log('📴 Offline - pausing sync');
+    logger.info('ðŸ“´ Offline - pausing sync');
     this.updateStatus({ state: 'offline' });
   }
 
@@ -548,7 +550,7 @@ export class SyncEngine {
         try {
           this.operationQueue = JSON.parse(stored);
         } catch (error) {
-          console.error('Failed to load sync queue:', error);
+          logger.error('Failed to load sync queue:', error);
         }
       }
     }

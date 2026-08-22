@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * CircuitBreaker - Protects against cascading failures in database providers
  *
@@ -212,7 +214,7 @@ export class CircuitBreaker {
       this.successCount = 0;
     }
 
-    console.log(
+    logger.info(
       `[CircuitBreaker:${this.name}] State changed: ${previousState} -> ${newState}`,
     );
 
@@ -519,7 +521,7 @@ export class CircuitBreaker {
       this.successCount = 0;
     }
 
-    console.log(
+    logger.info(
       `[CircuitBreaker:${this.name}] State changed: ${previousState} -> ${newState}`,
     );
 

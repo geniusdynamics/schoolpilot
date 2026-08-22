@@ -1,3 +1,4 @@
+
 /**
  * Previous Hook
  * 
@@ -15,7 +16,7 @@ import { useRef, useEffect } from 'react';
  * const prevCount = usePrevious(count);
  * 
  * useEffect(() => {
- *   console.log(`Count changed from ${prevCount} to ${count}`);
+ *   logger.info(`Count changed from ${prevCount} to ${count}`);
  * }, [count]);
  * ```
  */

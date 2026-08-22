@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: React hook for accessing backend architecture configuration and capabilities
 // ABOUTME: Provides components with backend status, routing decisions, and capability checks
 
@@ -81,7 +83,7 @@ export function useBackendArchitecture(): UseBackendArchitectureReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load backend status';
       setError(errorMessage);
-      console.error('Failed to load backend status:', err);
+      logger.error('Failed to load backend status:', err);
     } finally {
       setIsLoading(false);
     }
@@ -101,7 +103,7 @@ export function useBackendArchitecture(): UseBackendArchitectureReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to switch backend';
       setError(errorMessage);
-      console.error('Failed to switch backend:', err);
+      logger.error('Failed to switch backend:', err);
     }
   }, [loadBackendStatus]);
 
@@ -119,7 +121,7 @@ export function useBackendArchitecture(): UseBackendArchitectureReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to test connectivity';
       setError(errorMessage);
-      console.error('Failed to test connectivity:', err);
+      logger.error('Failed to test connectivity:', err);
       throw err;
     }
   }, []);
@@ -149,7 +151,7 @@ export function useBackendArchitecture(): UseBackendArchitectureReturn {
       
       return false;
     } catch (err) {
-      console.warn('Failed to check operation capability:', err);
+      logger.warn('Failed to check operation capability:', err);
       return false;
     }
   }, [connectivity]);

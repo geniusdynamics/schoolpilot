@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Sync state management context for handling data synchronization
 // ABOUTME: Provides sync status, controls, and queue management functionality
 
@@ -86,10 +88,10 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Sync controls
   const forceSync = useCallback(async () => {
     if (!isOnline) {
-      console.warn('Cannot sync while offline');
+      logger.warn('Cannot sync while offline');
       return;
     }
-    console.log('Force sync triggered');
+    logger.info('Force sync triggered');
     setSyncStatus(prev => ({ ...prev, state: 'syncing', progress: 0 }));
     // Simulate sync process
     setTimeout(() => {
@@ -103,21 +105,21 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [isOnline]);
 
   const pauseSync = useCallback(() => {
-    console.log('Sync paused');
+    logger.info('Sync paused');
     setSyncStatus(prev => ({ ...prev, state: 'paused' }));
   }, []);
 
   const resumeSync = useCallback(() => {
-    console.log('Sync resumed');
+    logger.info('Sync resumed');
     setSyncStatus(prev => ({ ...prev, state: 'idle' }));
   }, []);
 
   const clearQueue = useCallback(() => {
-    console.log('Queue cleared');
+    logger.info('Queue cleared');
   }, []);
 
   const clearSyncQueue = useCallback(() => {
-    console.log('Sync queue cleared');
+    logger.info('Sync queue cleared');
   }, []);
 
   const getQueueStatus = useCallback((): QueueStatus => ({
@@ -129,7 +131,7 @@ export const SyncProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateSyncSettings = useCallback((settings: Partial<SyncSettings>) => {
     setSyncSettings(prev => ({ ...prev, ...settings }));
-    console.log('Sync settings updated:', settings);
+    logger.info('Sync settings updated:', settings);
   }, []);
 
   // Offline capabilities

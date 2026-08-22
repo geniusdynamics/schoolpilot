@@ -145,7 +145,7 @@ describe('ModuleBundler', () => {
       ]);
 
       // This will timeout due to circular dependency waiting
-      const result = await bundler.loadChunk('main');
+
       
       // The result will be pending because neither can complete
       // In real implementation, we'd detect circular deps

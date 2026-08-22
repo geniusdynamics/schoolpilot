@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Hook for enhanced database error reporting and logging
 // ABOUTME: Provides structured error reporting with database-specific context and recovery suggestions
 
@@ -218,7 +220,7 @@ export const useDatabaseErrorReporting = () => {
     
     // Check if we should throttle this error
     if (shouldThrottle(errorKey) && severity !== 'critical') {
-      console.warn(`🔄 [DatabaseErrorReporting] Throttling error: ${errorKey}`);
+      logger.warn(`ðŸ”„ [DatabaseErrorReporting] Throttling error: ${errorKey}`);
       return {
         errorId,
         timestamp: new Date().toISOString(),
@@ -239,7 +241,7 @@ export const useDatabaseErrorReporting = () => {
     };
 
     // Log error locally
-    console.error('🗄️ [DatabaseErrorReporting] Database error:', {
+    logger.error('ðŸ—„ï¸ [DatabaseErrorReporting] Database error:', {
       errorId,
       error: error.message,
       stack: error.stack,
@@ -268,7 +270,7 @@ export const useDatabaseErrorReporting = () => {
         isThrottled: false
       });
     } catch (reportingError) {
-      console.error('Failed to report database error to external service:', reportingError);
+      logger.error('Failed to report database error to external service:', reportingError);
     }
 
     return report;
@@ -283,7 +285,7 @@ export const useDatabaseErrorReporting = () => {
     const message = `Database operation: ${operation} ${success ? 'succeeded' : 'failed'}`;
     const level = success ? 'info' : 'warning';
     
-    console.log(`🗄️ [DatabaseErrorReporting] ${message}`, {
+    logger.info(`ðŸ—„ï¸ [DatabaseErrorReporting] ${message}`, {
       operation,
       success,
       duration,
@@ -295,7 +297,7 @@ export const useDatabaseErrorReporting = () => {
       try {
         reportMessage(message, level);
       } catch (e) {
-        console.error('Failed to report database operation:', e);
+        logger.error('Failed to report database operation:', e);
       }
     }
   }, []);

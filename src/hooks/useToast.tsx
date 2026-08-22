@@ -10,6 +10,8 @@ export interface ToastOptions {
   title?: string;
   message: string;
   variant?: ToastVariant;
+  /** Alias for `variant`, accepted for call-site ergonomics (normalized in showToast). */
+  type?: ToastVariant;
   duration?: number;
   progress?: number;
   showProgress?: boolean;
@@ -30,6 +32,11 @@ export interface ToastContextValue {
   dismissToast: (id: string) => void;
   clearAllToasts: () => void;
   updateToast: (id: string, updates: Partial<ToastOptions>) => void;
+  // Convenience variants (exposed directly on the context for ergonomic call sites)
+  showSuccess: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) => string;
+  showError: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) => string;
+  showWarning: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) => string;
+  showInfo: (message: string, options?: Omit<ToastOptions, 'message' | 'variant'>) => string;
 }
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
@@ -69,6 +76,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
 
   const showToast = useCallback((options: ToastOptions): string => {
     const id = generateId();
+    const { type, ...rest } = options;
     const newToast: ToastProps = {
       id,
       pauseOnHover: defaultPauseOnHover,
@@ -76,7 +84,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
       soundEnabled: defaultSoundEnabled,
       theme,
       position,
-      ...options,
+      ...rest,
+      variant: rest.variant ?? type,
       onDismiss: (toastId: string) => dismissToast(toastId),
     };
 
@@ -124,12 +133,28 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
     }
   };
 
+  const showSuccess = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>): string =>
+    showToast({ ...options, message, variant: 'success' }), [showToast]);
+
+  const showError = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>): string =>
+    showToast({ ...options, message, variant: 'error' }), [showToast]);
+
+  const showWarning = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>): string =>
+    showToast({ ...options, message, variant: 'warning' }), [showToast]);
+
+  const showInfo = useCallback((message: string, options?: Omit<ToastOptions, 'message' | 'variant'>): string =>
+    showToast({ ...options, message, variant: 'info' }), [showToast]);
+
   const contextValue: ToastContextValue = {
     toasts,
     showToast,
     dismissToast,
     clearAllToasts,
     updateToast,
+    showSuccess,
+    showError,
+    showWarning,
+    showInfo,
   };
 
   return (

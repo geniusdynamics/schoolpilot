@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Hook for persisting current route across page refreshes
 // ABOUTME: Prevents unwanted redirects to dashboard when refreshing on other pages
 
@@ -39,7 +41,7 @@ export const getStoredRouteFromSession = (): string | null => {
     performanceEventManager.markDiagnostic('route_storage_read_failed', {
       error: error instanceof Error ? error.message : String(error)
     });
-    console.warn('Failed to retrieve stored route:', error);
+    logger.warn('Failed to retrieve stored route:', error);
     return null;
   }
 };
@@ -61,7 +63,7 @@ export const useRoutePersistence = (enabled = true) => {
           currentPath
         });
       } catch (error) {
-        console.warn('Failed to store route in sessionStorage:', error);
+        logger.warn('Failed to store route in sessionStorage:', error);
       }
     }
   }, [location.pathname, enabled]);
@@ -75,7 +77,7 @@ export const useRoutePersistence = (enabled = true) => {
       sessionStorage.removeItem(ROUTE_STORAGE_KEY);
       sessionStorage.removeItem(LAST_VISIT_KEY);
     } catch (error) {
-      console.warn('Failed to clear stored route:', error);
+      logger.warn('Failed to clear stored route:', error);
     }
   }, []);
 
@@ -100,7 +102,7 @@ export const useRoutePersistence = (enabled = true) => {
         performanceEventManager.markDiagnostic('route_storage_restored', {
           storedRoute
         });
-        console.log('🔄 Restoring route after refresh:', storedRoute);
+        logger.info('ðŸ”„ Restoring route after refresh:', storedRoute);
         navigate(storedRoute, { replace: true });
         return true;
       }

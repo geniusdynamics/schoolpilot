@@ -23,7 +23,7 @@ async function migrateAndVerifySQLiteData() {
     // Create SQLite service
     const sqliteService = new SQLiteOPFSService();
     await sqliteService.initialize('schoolpilot_production.db');
-    console.log('✅ SQLite service initialized');
+    console.log('âœ… SQLite service initialized');
 
     // Create all collections
     console.log('\n--- Creating Collections ---');
@@ -36,20 +36,20 @@ async function migrateAndVerifySQLiteData() {
         
         // Validate schemaSource is an object
         if (!schemaSource || typeof schemaSource !== 'object') {
-          console.error(`❌ Invalid schema for collection '${name}': expected object, got ${typeof schemaSource}`);
+          console.error(`âŒ Invalid schema for collection '${name}': expected object, got ${typeof schemaSource}`);
           continue;
         }
         
         const convertedSchema = convertRxDBSchema(schemaSource);
         await sqliteService.createCollection(name, convertedSchema);
         collectionsCreated++;
-        console.log(`✅ Collection '${name}' created successfully`);
+        console.log(`âœ… Collection '${name}' created successfully`);
       } catch (error) {
-        console.error(`❌ Failed to create collection '${name}':`, error.message);
+        console.error(`âŒ Failed to create collection '${name}':`, error.message);
       }
     }
     
-    console.log(`✅ Successfully created ${collectionsCreated} collections`);
+    console.log(`âœ… Successfully created ${collectionsCreated} collections`);
 
     // Aggregate mock data from all modules
     console.log('\n--- Aggregating Mock Data ---');
@@ -84,7 +84,7 @@ async function migrateAndVerifySQLiteData() {
       mockData[key] = value;
     });
     
-    console.log(`✅ Mock data aggregated with ${Object.keys(mockData).length} keys`);
+    console.log(`âœ… Mock data aggregated with ${Object.keys(mockData).length} keys`);
 
     // Seed the database with mock data
     console.log('\n--- Seeding Database ---');
@@ -113,35 +113,35 @@ async function migrateAndVerifySQLiteData() {
           const mockDataArray = mockData[mockDataKey];
           
           if (mockDataArray && Array.isArray(mockDataArray) && mockDataArray.length > 0) {
-            console.log(`✅ Seeding ${collectionName} with ${mockDataArray.length} items (key: ${mockDataKey})`);
+            console.log(`âœ… Seeding ${collectionName} with ${mockDataArray.length} items (key: ${mockDataKey})`);
             seededCollections++;
             
             // Insert data in batches to avoid memory issues
             const batchSize = 100;
             for (let i = 0; i < mockDataArray.length; i += batchSize) {
               const batch = mockDataArray.slice(i, i + batchSize);
-              const insertResults = await collection.insertMany(batch);
+
               console.log(`  Inserted batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(mockDataArray.length/batchSize)} for ${collectionName}`);
             }
           } else if (mockDataArray && !Array.isArray(mockDataArray) && mockDataArray !== null) {
-            console.log(`✅ Seeding ${collectionName} with 1 item (key: ${mockDataKey})`);
+            console.log(`âœ… Seeding ${collectionName} with 1 item (key: ${mockDataKey})`);
             seededCollections++;
             await collection.insert(mockDataArray);
           } else {
             // Only show this for a few key collections to avoid spam
             if (['app_settings', 'school_details', 'subjects', 'students', 'staff'].includes(collectionName)) {
-              console.log(`ℹ️  No data found for ${collectionName} (mock data key: ${mockDataKey})`);
+              console.log(`â„¹ï¸  No data found for ${collectionName} (mock data key: ${mockDataKey})`);
             }
           }
         } catch (error) {
-          console.error(`❌ Error seeding collection ${collectionName}:`, error.message);
+          console.error(`âŒ Error seeding collection ${collectionName}:`, error.message);
         }
       } else {
-        console.warn(`⚠️  Collection ${collectionName} not found in provider`);
+        console.warn(`âš ï¸  Collection ${collectionName} not found in provider`);
       }
     }
     
-    console.log(`✅ Database seeding complete. Seeded data for ${seededCollections} collections.`);
+    console.log(`âœ… Database seeding complete. Seeded data for ${seededCollections} collections.`);
 
     // Verify database contents
     console.log('\n--- Verifying Database Contents ---');
@@ -154,7 +154,7 @@ async function migrateAndVerifySQLiteData() {
       if (collection) {
         try {
           const count = await collection.count();
-          console.log(`✅ ${collectionName}: ${count} records`);
+          console.log(`âœ… ${collectionName}: ${count} records`);
           
           if (count > 0) {
             // Get first few records as samples
@@ -165,10 +165,10 @@ async function migrateAndVerifySQLiteData() {
             });
           }
         } catch (error) {
-          console.error(`❌ Error querying ${collectionName}:`, error.message);
+          console.error(`âŒ Error querying ${collectionName}:`, error.message);
         }
       } else {
-        console.log(`❌ ${collectionName}: Collection not found`);
+        console.log(`âŒ ${collectionName}: Collection not found`);
       }
     }
 
@@ -176,28 +176,28 @@ async function migrateAndVerifySQLiteData() {
     console.log('\n--- Creating Backup ---');
     try {
       const backupData = await sqliteService.backup();
-      console.log('✅ Backup created');
+      console.log('âœ… Backup created');
       
       // Write backup to file
       const fs = await import('fs');
       const path = await import('path');
       const backupFilePath = path.join(process.cwd(), 'schoolpilot_sqlite_backup.json');
       fs.writeFileSync(backupFilePath, backupData, 'utf8');
-      console.log(`✅ Backup written to: ${backupFilePath}`);
+      console.log(`âœ… Backup written to: ${backupFilePath}`);
       
       // Parse backup to show contents
       const backup = JSON.parse(backupData);
-      console.log(`✅ Backup contains ${Object.keys(backup.collections).length} collections`);
+      console.log(`âœ… Backup contains ${Object.keys(backup.collections).length} collections`);
     } catch (backupError) {
-      console.error('❌ Failed to create backup:', backupError.message);
+      console.error('âŒ Failed to create backup:', backupError.message);
     }
 
-    console.log('\n✅ SQLITE DATABASE MIGRATION AND VERIFICATION COMPLETE ===');
-    console.log(`📁 Database file location: D:\\DevCenter\\abuilds\\EduGen\\old_system\\schoolpilot3\\schoolpilot_production.db`);
+    console.log('\nâœ… SQLITE DATABASE MIGRATION AND VERIFICATION COMPLETE ===');
+    console.log(`ðŸ“ Database file location: D:\\DevCenter\\abuilds\\EduGen\\old_system\\schoolpilot3\\schoolpilot_production.db`);
     console.log('You can now explore this file with any SQLite browser!');
     
   } catch (error) {
-    console.error('❌ Database migration and verification failed:', error);
+    console.error('âŒ Database migration and verification failed:', error);
     throw error;
   }
 }

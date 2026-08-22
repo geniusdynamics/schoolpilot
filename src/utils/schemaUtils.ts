@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Schema utility functions for database-agnostic schema creation
 // ABOUTME: Provides backward compatibility while supporting dual-database architecture
 
@@ -21,7 +23,7 @@ export const createEntitySchema = (
   required?: string[],
   indexes?: string[]
 ): DatabaseSchema => {
-  console.warn('createEntitySchema from schemaUtils is deprecated. Use createDatabaseSchema from databaseAgnosticSchema instead.');
+  logger.warn('createEntitySchema from schemaUtils is deprecated. Use createDatabaseSchema from databaseAgnosticSchema instead.');
   // Create database-agnostic schema
   const agnosticSchema = createDatabaseSchema({
     title,

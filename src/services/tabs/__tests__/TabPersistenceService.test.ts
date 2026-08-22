@@ -3,7 +3,6 @@
  * Tests tab persistence operations including save, load, clear, and migration
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi, beforeAll, afterAll } from 'vitest';
 import { 
   TabPersistenceService, 
   TAB_PERSISTENCE_SCHEMA_VERSION,

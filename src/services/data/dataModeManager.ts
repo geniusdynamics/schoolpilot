@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Service for managing data layer modes, switching between development, demo, and production configurations
 // ABOUTME: Handles data seeding, clearing, and provider switching based on mode
 
@@ -116,7 +118,7 @@ export class DataModeManager extends EventEmitter {
       
       this.emit('modeInitialized', this.currentMode);
     } catch (error) {
-      console.error('Failed to initialize data mode:', error);
+      logger.error('Failed to initialize data mode:', error);
       this.emit('error', error);
     }
   }
@@ -126,7 +128,7 @@ export class DataModeManager extends EventEmitter {
       this.switchQueue.push({
         task: async () => {
           if (this.currentMode === newMode) {
-            console.log(`Already in ${newMode} mode`);
+            logger.info(`Already in ${newMode} mode`);
             return;
           }
 
@@ -185,7 +187,7 @@ export class DataModeManager extends EventEmitter {
 
             this.emit('transitionCompleted', this.currentMode);
           } catch (error) {
-            console.error('Failed to switch mode, rolling back:', error);
+            logger.error('Failed to switch mode, rolling back:', error);
             
             // Rollback
             try {
@@ -195,7 +197,7 @@ export class DataModeManager extends EventEmitter {
                  this.currentMode = previousMode;
               }
             } catch (rollbackError) {
-              console.error('CRITICAL: Rollback failed after switchMode error', rollbackError);
+              logger.error('CRITICAL: Rollback failed after switchMode error', rollbackError);
             }
             
             this.emit('error', error);
@@ -243,11 +245,11 @@ export class DataModeManager extends EventEmitter {
                 }
               }
             } catch (error) {
-              console.warn(`Failed to clear collection ${collectionName}:`, error);
+              logger.warn(`Failed to clear collection ${collectionName}:`, error);
             }
           }
         } catch (error) {
-          console.warn(`Failed to clear collection ${collectionName}:`, error);
+          logger.warn(`Failed to clear collection ${collectionName}:`, error);
         }
       }
 
@@ -284,7 +286,7 @@ export class DataModeManager extends EventEmitter {
           });
         }
       } catch (auditError) {
-        console.warn('Failed to write audit log for data clearance:', auditError);
+        logger.warn('Failed to write audit log for data clearance:', auditError);
       }
 
       // PERMANENT ENFORCEMENT: If clearing data in demo mode, mark demo as permanently cleared
@@ -296,7 +298,7 @@ export class DataModeManager extends EventEmitter {
 
       this.emit('dataCleared');
     } catch (error) {
-      console.error('Failed to clear data:', error);
+      logger.error('Failed to clear data:', error);
       throw error;
     }
   }
@@ -330,7 +332,7 @@ export class DataModeManager extends EventEmitter {
 
       this.emit('dataSeeded', { volume, stats });
     } catch (error) {
-      console.error('[DataModeManager] Failed to seed demo data:', error);
+      logger.error('[DataModeManager] Failed to seed demo data:', error);
       throw error;
     }
   }
@@ -341,7 +343,7 @@ export class DataModeManager extends EventEmitter {
     try {
       const provider = this.dbFactory.getActiveProvider();
       if (!provider || typeof provider.backup !== 'function') {
-        console.warn('Current provider does not support backup');
+        logger.warn('Current provider does not support backup');
         return;
       }
 
@@ -350,7 +352,7 @@ export class DataModeManager extends EventEmitter {
       
       this.emit('dataBackedUp', { mode: this.currentMode, backupName });
     } catch (error) {
-      console.error('Failed to backup data:', error);
+      logger.error('Failed to backup data:', error);
       // Don't throw here, as backup failure shouldn't prevent mode switching
     }
   }
@@ -370,12 +372,12 @@ export class DataModeManager extends EventEmitter {
               dataCount += await collection.count();
             }
           } catch (error) {
-            console.warn(`Failed to count collection ${collectionName}:`, error);
+            logger.warn(`Failed to count collection ${collectionName}:`, error);
           }
         }
       }
     } catch (error) {
-      console.warn('Failed to get data count:', error);
+      logger.warn('Failed to get data count:', error);
     }
 
     return {

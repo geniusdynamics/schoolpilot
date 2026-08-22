@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Utility for registering module data hooks with the global context
 // ABOUTME: Ensures consistent data hook registration and discovery
 // ABOUTME: Provides automatic integration with AppDataContext
@@ -20,7 +22,7 @@ export function useDataHookRegistration<T extends EntityData>(
   }, [config.entityModule, config.entityName]);
 
   useEffect(() => {
-    console.log(`🔧 [useDataHookRegistration] Registering data hook for ${config.entityName} in ${config.entityModule}`);
+    logger.info(`ðŸ”§ [useDataHookRegistration] Registering data hook for ${config.entityName} in ${config.entityModule}`);
     
     // Register the data hook with the global registry
     moduleDataRegistry.register({

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * ERPNext Client
  * 
@@ -53,7 +55,7 @@ export class ERPNextClient extends BackendClient {
 
       return false;
     } catch (error) {
-      console.error('ERPNext authentication failed:', error);
+      logger.error('ERPNext authentication failed:', error);
       return false;
     }
   }

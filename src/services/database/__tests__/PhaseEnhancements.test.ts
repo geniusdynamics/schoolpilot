@@ -157,7 +157,6 @@ jest.mock('../StartupOptimizer', () => ({
 
 // ==================== Phase 8: StructuredLogger Tests ====================
 
-import { StructuredLogger, createLogger, LogLevel, LogEntry } from '../monitoring/StructuredLogger';
 
 describe('Phase 8: StructuredLogger', () => {
   let logger: StructuredLogger;
@@ -455,7 +454,6 @@ describe('Phase 8: CircuitBreakerRegistry', () => {
 
 // ==================== Phase 8: FieldLevelEncryption Tests ====================
 
-import { FieldLevelEncryption, createFieldLevelEncryption } from '../monitoring/FieldLevelEncryption';
 
 describe('Phase 8: FieldLevelEncryption', () => {
   let fle: FieldLevelEncryption;

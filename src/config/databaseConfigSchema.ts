@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Database configuration schema validation and repair utilities
 // ABOUTME: Provides comprehensive validation, error reporting, and configuration repair tools
 
@@ -372,7 +374,7 @@ export class DatabaseConfigValidator {
       if (value !== undefined && !rule.validator(value) && rule.autoFix) {
         const newValue = rule.autoFix(value);
         this.setNestedValue(fixed, rule.field, newValue);
-        changes.push(`${rule.field}: ${value} → ${newValue}`);
+        changes.push(`${rule.field}: ${value} â†’ ${newValue}`);
       }
     }
 
@@ -394,14 +396,14 @@ export class DatabaseConfigValidator {
     for (const migration of applicableMigrations) {
       try {
         migrated = migration.migrate(migrated);
-        appliedMigrations.push(`${migration.fromVersion} → ${migration.toVersion}: ${migration.description}`);
+        appliedMigrations.push(`${migration.fromVersion} â†’ ${migration.toVersion}: ${migration.description}`);
         
         // Validate migration result if validator provided
         if (migration.validate && !migration.validate(migrated)) {
-          throw new Error(`Migration validation failed for ${migration.fromVersion} → ${migration.toVersion}`);
+          throw new Error(`Migration validation failed for ${migration.fromVersion} â†’ ${migration.toVersion}`);
         }
       } catch (error) {
-        console.error(`Migration failed: ${migration.fromVersion} → ${migration.toVersion}`, error);
+        logger.error(`Migration failed: ${migration.fromVersion} â†’ ${migration.toVersion}`, error);
         break; // Stop applying further migrations
       }
     }

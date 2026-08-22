@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Generic REST Provider
  * 
@@ -76,7 +78,7 @@ export class GenericRESTProvider implements IBackendProvider {
       this.authToken = await this.authenticate(config.auth);
     }
     
-    console.log('[GenericRESTProvider] Initialized successfully');
+    logger.info('[GenericRESTProvider] Initialized successfully');
   }
   
   async disconnect(): Promise<void> {
@@ -199,7 +201,7 @@ export class GenericRESTProvider implements IBackendProvider {
       
       return mappedData;
     } catch (error) {
-      console.error(`Error reading ${entity} ${id}:`, error);
+      logger.error(`Error reading ${entity} ${id}:`, error);
       return null;
     }
   }

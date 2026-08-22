@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Plugin Marketplace Service
  * 
@@ -272,7 +274,7 @@ export class PluginMarketplace {
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
-      console.error('[PluginMarketplace] Search failed:', error);
+      logger.error('[PluginMarketplace] Search failed:', error);
       // Return empty result on error
       return {
         plugins: [],
@@ -305,7 +307,7 @@ export class PluginMarketplace {
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
-      console.error('[PluginMarketplace] Get plugin details failed:', error);
+      logger.error('[PluginMarketplace] Get plugin details failed:', error);
       return null;
     }
   }
@@ -331,7 +333,7 @@ export class PluginMarketplace {
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
-      console.error('[PluginMarketplace] Get featured failed:', error);
+      logger.error('[PluginMarketplace] Get featured failed:', error);
       return { featured: [], trending: [], newReleases: [] };
     }
   }
@@ -357,7 +359,7 @@ export class PluginMarketplace {
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
-      console.error('[PluginMarketplace] Get categories failed:', error);
+      logger.error('[PluginMarketplace] Get categories failed:', error);
       return this.getDefaultCategories();
     }
   }
@@ -386,7 +388,7 @@ export class PluginMarketplace {
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
-      console.error('[PluginMarketplace] Get reviews failed:', error);
+      logger.error('[PluginMarketplace] Get reviews failed:', error);
       return { reviews: [], total: 0, averageRating: 0 };
     }
   }
@@ -464,7 +466,7 @@ export class PluginMarketplace {
         },
       };
     } catch (error) {
-      console.error('[PluginMarketplace] Install failed:', error);
+      logger.error('[PluginMarketplace] Install failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Installation failed',
@@ -498,7 +500,7 @@ export class PluginMarketplace {
   private async verifySignature(plugin: MarketplacePlugin): Promise<boolean> {
     if (!plugin.signature) {
       // Allow unsigned plugins for development
-      console.warn('[PluginMarketplace] Plugin has no signature');
+      logger.warn('[PluginMarketplace] Plugin has no signature');
       return true;
     }
 
@@ -507,13 +509,13 @@ export class PluginMarketplace {
       // For now, just check that signature exists and hasn't expired
       const expires = new Date(plugin.signature.expiresAt);
       if (expires < new Date()) {
-        console.error('[PluginMarketplace] Plugin signature has expired');
+        logger.error('[PluginMarketplace] Plugin signature has expired');
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('[PluginMarketplace] Signature verification failed:', error);
+      logger.error('[PluginMarketplace] Signature verification failed:', error);
       return false;
     }
   }
@@ -537,7 +539,7 @@ export class PluginMarketplace {
         await this.sendTrackingEvents();
       }
     } catch (error) {
-      console.error('[PluginMarketplace] Failed to track event:', error);
+      logger.error('[PluginMarketplace] Failed to track event:', error);
     }
   }
 
@@ -562,7 +564,7 @@ export class PluginMarketplace {
         localStorage.removeItem('marketplace_tracking_events');
       }
     } catch (error) {
-      console.error('[PluginMarketplace] Failed to send tracking events:', error);
+      logger.error('[PluginMarketplace] Failed to send tracking events:', error);
     }
   }
 
@@ -586,7 +588,7 @@ export class PluginMarketplace {
 
       return response.json();
     } catch (error) {
-      console.error('[PluginMarketplace] Get stats failed:', error);
+      logger.error('[PluginMarketplace] Get stats failed:', error);
       return {
         totalInstalls: 0,
         activePlugins: 0,

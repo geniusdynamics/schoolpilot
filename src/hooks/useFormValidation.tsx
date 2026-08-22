@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Centralized form validation hook with real-time validation, debouncing, and accessibility
 // ABOUTME: Provides validation rule system, error management, and screen reader compatibility
 
@@ -226,7 +228,7 @@ export function useFormValidation<T extends Record<string, any>>(
             }
             return null;
           } catch (error) {
-            console.error(`Validation error for field ${fieldName}:`, error);
+            logger.error(`Validation error for field ${fieldName}:`, error);
             return {
               message: 'Validation error occurred',
               rule,
@@ -243,7 +245,7 @@ export function useFormValidation<T extends Record<string, any>>(
 
         return errors;
       } catch (error) {
-        console.error(`Field validation error for ${fieldName}:`, error);
+        logger.error(`Field validation error for ${fieldName}:`, error);
         return [{
           message: 'Validation error occurred',
           priority: 999,
@@ -407,7 +409,7 @@ export function useFormValidation<T extends Record<string, any>>(
         }
       }
     } catch (error) {
-      console.error('Form submission error:', error);
+      logger.error('Form submission error:', error);
       if (announceErrors) {
         announceToScreenReader('An error occurred while submitting the form.', 'assertive');
       }

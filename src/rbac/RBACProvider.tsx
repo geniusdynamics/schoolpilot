@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * RBAC Provider
  * 
@@ -49,7 +51,7 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({
           const user = await getCurrentUser();
           setCurrentUser(user);
         } catch (error) {
-          console.error('Failed to load user:', error);
+          logger.error('Failed to load user:', error);
         }
       }
       setIsLoading(false);

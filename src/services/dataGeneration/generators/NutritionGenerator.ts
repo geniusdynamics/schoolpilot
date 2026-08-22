@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Generates comprehensive nutrition and meal management data including meal plans, menus, and student assignments
 // ABOUTME: Creates realistic meal planning data with dietary considerations and nutritional tracking
 
@@ -66,7 +68,7 @@ export class NutritionGenerator extends BaseGenerator {
       { name: 'Supper', time: '20:30', duration: 30, description: 'Light evening meal for boarders' }
     ];
     
-    console.log(`Generating meal types...`);
+    logger.info(`Generating meal types...`);
     
     for (let i = 0; i < mealTypeData.length; i++) {
       const mealTypeInfo = mealTypeData[i];
@@ -97,7 +99,7 @@ export class NutritionGenerator extends BaseGenerator {
       });
     }
     
-    console.log(`Generated ${mealTypeData.length} meal types`);
+    logger.info(`Generated ${mealTypeData.length} meal types`);
     
     return results;
   }
@@ -157,7 +159,7 @@ export class NutritionGenerator extends BaseGenerator {
       'Local Farmers Cooperative', 'Nutrition Plus Suppliers', 'Farm to Table Ltd'
     ];
     
-    console.log(`Generating ${count} food suppliers...`);
+    logger.info(`Generating ${count} food suppliers...`);
     
     for (let i = 0; i < count; i++) {
       let supplierName;
@@ -262,7 +264,7 @@ export class NutritionGenerator extends BaseGenerator {
       { name: 'Yogurt', category: 'Snack', calories: 100, protein: 6, carbs: 12, fat: 4 }
     ];
     
-    console.log(`Generating ${count} menu items...`);
+    logger.info(`Generating ${count} menu items...`);
     
     for (let i = 0; i < count; i++) {
       let itemData;
@@ -451,7 +453,7 @@ export class NutritionGenerator extends BaseGenerator {
   private async generateMealPlans(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} meal plans...`);
+    logger.info(`Generating ${count} meal plans...`);
     
     for (let i = 0; i < count; i++) {
       const startDate = this.randomDate(new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), new Date());
@@ -557,7 +559,7 @@ export class NutritionGenerator extends BaseGenerator {
   private async generateDailyMenus(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} daily menus...`);
+    logger.info(`Generating ${count} daily menus...`);
     
     for (let i = 0; i < count; i++) {
       const mealPlan = this.randomChoice(this.mealPlans);
@@ -630,7 +632,7 @@ export class NutritionGenerator extends BaseGenerator {
   private async generateStudentMealAssignments(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} student meal assignments...`);
+    logger.info(`Generating ${count} student meal assignments...`);
     
     for (let i = 0; i < count; i++) {
       const studentId = `student_${this.randomInt(1, 500)}`;
@@ -725,7 +727,7 @@ export class NutritionGenerator extends BaseGenerator {
   private async generateMealAttendance(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} meal attendance records...`);
+    logger.info(`Generating ${count} meal attendance records...`);
     
     for (let i = 0; i < count; i++) {
       const studentId = `student_${this.randomInt(1, 500)}`;
@@ -806,7 +808,7 @@ export class NutritionGenerator extends BaseGenerator {
   private async generateNutritionReports(count: number): Promise<any[]> {
     const results: any[] = [];
     
-    console.log(`Generating ${count} nutrition reports...`);
+    logger.info(`Generating ${count} nutrition reports...`);
     
     for (let i = 0; i < count; i++) {
       const reportDate = this.randomDate(new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), new Date());

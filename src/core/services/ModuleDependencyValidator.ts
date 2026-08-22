@@ -1,8 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Module dependency validator service
 // ABOUTME: Validates module dependencies and detects circular dependencies
 
 import semver from 'semver';
-import { ModuleDefinition, ModuleDependency } from '../types';
+import { ModuleDefinition } from '../types';
 
 class ModuleDependencyValidator {
   /**
@@ -12,39 +14,39 @@ class ModuleDependencyValidator {
    * Validate that all required dependencies are available
    */
   static validateDependencies(module: ModuleDefinition, moduleRegistry?: any): boolean {
-    console.log(`🔧 [ModuleDependencyValidator] Validating dependencies for: ${module.id}`);
+    logger.info(`ðŸ”§ [ModuleDependencyValidator] Validating dependencies for: ${module.id}`);
     
     try {
       // Perform synchronous validation to avoid race conditions
       return this._validateDependenciesSync(module, moduleRegistry);
     } catch (error) {
-      console.error(`❌ [ModuleDependencyValidator] Error validating dependencies for ${module.id}:`, error);
+      logger.error(`âŒ [ModuleDependencyValidator] Error validating dependencies for ${module.id}:`, error);
       return false;
     }
   }
 
   private static _validateDependenciesSync(module: ModuleDefinition, moduleRegistry?: any): boolean {
     if (!moduleRegistry) {
-      console.error('❌ [ModuleDependencyValidator] moduleRegistry not provided');
+      logger.error('âŒ [ModuleDependencyValidator] moduleRegistry not provided');
       return false;
     }
     
     const enabledModules = moduleRegistry.getEnabledModules();
-    console.log(`🔧 [ModuleDependencyValidator] Enabled modules:`, enabledModules.map(m => m.id));
+    logger.info(`ðŸ”§ [ModuleDependencyValidator] Enabled modules:`, enabledModules.map(m => m.id));
     
     const errors: string[] = [];
     
     // Check required dependencies
     const dependencies = module.dependencies || [];
-    console.log(`🔧 [ModuleDependencyValidator] Module ${module.id} dependencies:`, dependencies);
+    logger.info(`ðŸ”§ [ModuleDependencyValidator] Module ${module.id} dependencies:`, dependencies);
     
     for (const dep of dependencies.filter(d => typeof d !== 'string' && d.required)) {
       // Handle both new ModuleDependency objects and old string format
       const depId = typeof dep === 'string' ? dep : dep.moduleId;
-      console.log(`🔧 [ModuleDependencyValidator] Checking dependency: ${depId}`);
+      logger.info(`ðŸ”§ [ModuleDependencyValidator] Checking dependency: ${depId}`);
       
       const depModule = enabledModules.find(m => m.id === depId);
-      console.log(`🔧 [ModuleDependencyValidator] Found dependency module:`, depModule?.id);
+      logger.info(`ðŸ”§ [ModuleDependencyValidator] Found dependency module:`, depModule?.id);
       
       if (!depModule) {
         errors.push(`Required dependency '${depId}' not found`);
@@ -53,7 +55,7 @@ class ModuleDependencyValidator {
       
       // Validate version compatibility if using new format
       if (typeof dep !== 'string' && dep.version) {
-        console.log(`🔧 [ModuleDependencyValidator] Checking version compatibility for ${depId}: required ${dep.version}, found ${depModule.version}`);
+        logger.info(`ðŸ”§ [ModuleDependencyValidator] Checking version compatibility for ${depId}: required ${dep.version}, found ${depModule.version}`);
         if (!semver.satisfies(depModule.version, dep.version)) {
           errors.push(
             `Version mismatch for '${depId}': ` +
@@ -64,11 +66,11 @@ class ModuleDependencyValidator {
     }
     
     if (errors.length > 0) {
-      console.error(`❌ [ModuleDependencyValidator] Dependency validation failed for ${module.id}:`, errors);
+      logger.error(`âŒ [ModuleDependencyValidator] Dependency validation failed for ${module.id}:`, errors);
       return false;
     }
     
-    console.log(`✅ [ModuleDependencyValidator] All dependencies satisfied for: ${module.id}`);
+    logger.info(`âœ… [ModuleDependencyValidator] All dependencies satisfied for: ${module.id}`);
     return true;
   }
 
@@ -76,21 +78,21 @@ class ModuleDependencyValidator {
     const { moduleRegistry } = await import('../moduleRegistry');
     
     const enabledModules = moduleRegistry.getEnabledModules();
-    console.log(`🔧 [ModuleDependencyValidator] Enabled modules:`, enabledModules.map(m => m.id));
+    logger.info(`ðŸ”§ [ModuleDependencyValidator] Enabled modules:`, enabledModules.map(m => m.id));
     
     const errors: string[] = [];
     
     // Check required dependencies
     const dependencies = module.dependencies || [];
-    console.log(`🔧 [ModuleDependencyValidator] Module ${module.id} dependencies:`, dependencies);
+    logger.info(`ðŸ”§ [ModuleDependencyValidator] Module ${module.id} dependencies:`, dependencies);
     
     for (const dep of dependencies.filter(d => typeof d !== 'string' && d.required)) {
       // Handle both new ModuleDependency objects and old string format
       const depId = typeof dep === 'string' ? dep : dep.moduleId;
-      console.log(`🔧 [ModuleDependencyValidator] Checking dependency: ${depId}`);
+      logger.info(`ðŸ”§ [ModuleDependencyValidator] Checking dependency: ${depId}`);
       
       const depModule = enabledModules.find(m => m.id === depId);
-      console.log(`🔧 [ModuleDependencyValidator] Found dependency module:`, depModule?.id);
+      logger.info(`ðŸ”§ [ModuleDependencyValidator] Found dependency module:`, depModule?.id);
       
       if (!depModule) {
         errors.push(`Required dependency '${depId}' not found`);
@@ -99,7 +101,7 @@ class ModuleDependencyValidator {
       
       // Validate version compatibility if using new format
       if (typeof dep !== 'string' && dep.version) {
-        console.log(`🔧 [ModuleDependencyValidator] Checking version compatibility for ${depId}: required ${dep.version}, found ${depModule.version}`);
+        logger.info(`ðŸ”§ [ModuleDependencyValidator] Checking version compatibility for ${depId}: required ${dep.version}, found ${depModule.version}`);
         if (!semver.satisfies(depModule.version, dep.version)) {
           errors.push(
             `Version mismatch for '${depId}': ` +
@@ -110,11 +112,11 @@ class ModuleDependencyValidator {
     }
     
     if (errors.length > 0) {
-      console.error(`❌ [ModuleDependencyValidator] Dependency validation failed for ${module.id}:`, errors);
+      logger.error(`âŒ [ModuleDependencyValidator] Dependency validation failed for ${module.id}:`, errors);
       return false;
     }
     
-    console.log(`✅ [ModuleDependencyValidator] All dependencies satisfied for: ${module.id}`);
+    logger.info(`âœ… [ModuleDependencyValidator] All dependencies satisfied for: ${module.id}`);
     return true;
   }
 
@@ -123,14 +125,14 @@ class ModuleDependencyValidator {
    */
   static detectCircularDependencies(moduleRegistry?: any): string[][] {
     if (!moduleRegistry) {
-      console.error('❌ [ModuleDependencyValidator] moduleRegistry not provided for circular dependency detection');
+      logger.error('âŒ [ModuleDependencyValidator] moduleRegistry not provided for circular dependency detection');
       return [];
     }
     
     try {
       return this._detectCircularDependenciesSync(moduleRegistry);
     } catch (error) {
-      console.error(`❌ [ModuleDependencyValidator] Error detecting circular dependencies:`, error);
+      logger.error(`âŒ [ModuleDependencyValidator] Error detecting circular dependencies:`, error);
       return [];
     }
   }
@@ -211,7 +213,7 @@ class ModuleDependencyValidator {
     }>;
   } {
     if (!moduleRegistry) {
-       console.error('❌ [ModuleDependencyValidator] moduleRegistry not provided for compatibility report');
+       logger.error('âŒ [ModuleDependencyValidator] moduleRegistry not provided for compatibility report');
        return {
          totalModules: 0,
          modulesWithIssues: 0,
@@ -222,7 +224,7 @@ class ModuleDependencyValidator {
      try {
        return this._generateCompatibilityReportSync(moduleRegistry);
      } catch (error) {
-       console.error(`❌ [ModuleDependencyValidator] Error generating compatibility report:`, error);
+       logger.error(`âŒ [ModuleDependencyValidator] Error generating compatibility report:`, error);
        return {
          totalModules: 0,
          modulesWithIssues: 0,
