@@ -42,6 +42,18 @@ docs/AkademicoNotes/
 # Specify AI Assistant
 .specify/
 
+# Qoder / ZCode assistant dirs
+.qoder/
+.zcode/
+
+# One-off root fix/temp scripts (kept out of the repo root)
+/fix*.cjs
+/_*.py
+/temp_*
+
+# Dev QA captures
+/screenshots/
+
 # Windows NUL device (appears as file on Windows)
 nul
 
