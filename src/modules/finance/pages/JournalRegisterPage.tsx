@@ -2,16 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { BookOpenIcon, CalendarIcon, DocumentTextIcon, CurrencyDollarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { JournalEntry } from '../data/types';
 
 export const JournalRegisterPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
+
   const { journalEntries, loading } = useAppData();
 
   const [startDate, setStartDate] = useState(() => {
@@ -48,8 +46,8 @@ export const JournalRegisterPageContent: React.FC = () => {
   // Calculate totals
   const totals = useMemo(() => {
     return filteredJournalEntries.reduce((acc, entry) => ({
-      debit: acc.debit + entry.debit_amount,
-      credit: acc.credit + entry.credit_amount
+      debit: acc.debit + (entry.debit_amount ?? 0),
+      credit: acc.credit + (entry.credit_amount ?? 0)
     }), { debit: 0, credit: 0 });
   }, [filteredJournalEntries]);
 
@@ -108,7 +106,7 @@ export const JournalRegisterPageContent: React.FC = () => {
       header: 'Debit',
       sortable: true,
       render: (value) => (
-        <span className="text-red-600 font-semibold">KES {value.toLocaleString()}</span>
+        <span className="text-red-600 font-semibold">KES {value?.toLocaleString?.() ?? '-'}</span>
       )
     },
     {
@@ -116,7 +114,7 @@ export const JournalRegisterPageContent: React.FC = () => {
       header: 'Credit',
       sortable: true,
       render: (value) => (
-        <span className="text-green-600 font-semibold">KES {value.toLocaleString()}</span>
+        <span className="text-green-600 font-semibold">KES {value?.toLocaleString?.() ?? '-'}</span>
       )
     },
     {
@@ -130,7 +128,7 @@ export const JournalRegisterPageContent: React.FC = () => {
 
   const statusOptions = ['Posted', 'Draft', 'Cancelled'];
 
-  if (loading?.all && mockJournalEntries.length === 0) {
+  if (loading?.all && filteredJournalEntries.length === 0 && !journalEntries) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -223,7 +221,7 @@ export const JournalRegisterPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Debits</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.debit.toLocaleString()}
+              KES {totals.debit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -232,7 +230,7 @@ export const JournalRegisterPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Credits</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.credit.toLocaleString()}
+              KES {totals.credit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">

@@ -1,14 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { FeeAdjustment, FeeAdjustmentType } from '@/modules/finance';
-import { Student } from '@/modules/administration';
-import { SchoolPeriod, StudentStatus } from '@/core/types';
+import { Student, SchoolPeriod, StudentStatus } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
@@ -142,7 +138,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, row) => <span className="font-mono text-green-600">{`KES ${row.amount?.toFixed(2) || '0.00'}`}</span>
+      render: (value, row) => <span className="font-mono text-green-600">{`KES ${row.amount?.toFixed?.(2) ?? '0.00'}`}</span>
     },
     { 
       key: 'reason', 
@@ -178,7 +174,7 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
   
   const isLoadingData = loading.feeAdjustments || loading.students || loading.schoolPeriods;
 
-  if (isLoadingData && !isModalOpen) {
+  if (isLoadingData && !isModalOpen && !feeAdjustments && !students) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" /> <span className="ml-2">Loading Fee Adjustments...</span>
@@ -226,18 +222,18 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select name="student_id" label="Student" value={formData.student_id || ''} onChange={handleInputChange} required>
+          <Select name="student_id" label="Student" value={formData.student_id != null ? String(formData.student_id) : ''} onChange={handleInputChange} required>
             <option value="">Select Student</option>
             {activeStudents.map((student: Student) => (
-              <option key={student.id} value={student.id}>
+              <option key={student.id} value={String(student.id)}>
                 {student.first_name} {student.last_name} ({student.admission_no})
               </option>
             ))}
           </Select>
-          <Select name="school_period_id" label="School Period" value={formData.school_period_id || ''} onChange={handleInputChange} required>
+          <Select name="school_period_id" label="School Period" value={formData.school_period_id != null ? String(formData.school_period_id) : ''} onChange={handleInputChange} required>
             <option value="">Select School Period</option>
             {schoolPeriods.map((period: SchoolPeriod) => (
-              <option key={period.id} value={period.id}>{period.name}</option>
+              <option key={String(period.id)} value={String(period.id)}>{period.name}</option>
             ))}
           </Select>
           <Select name="adjustment_type" label="Adjustment Type" value={formData.adjustment_type} onChange={handleInputChange} required>

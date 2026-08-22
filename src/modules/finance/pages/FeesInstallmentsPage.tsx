@@ -11,9 +11,11 @@ import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, CalendarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
+import { CalendarIcon, PlusIcon } from '@/components/ui/icons';
 
 type InstallmentFormData = Omit<Partial<FeeInstallment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
@@ -57,7 +59,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
       notes: '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      student_name: `${student.first_name} ${student.last_name}`,
+      student_name: [student.first_name, student.last_name].filter(Boolean).join(' ') || 'Unknown',
       school_period_name: 'Term 1 2024'
     }));
   }, [students]);
@@ -104,7 +106,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
     }
 
     // In production, this would call addFeeInstallment or updateFeeInstallment
-    console.log('Saving installment:', formData);
+    logger.info('Saving installment:', formData);
     closeModal();
   };
 
@@ -154,23 +156,23 @@ export const FeesInstallmentsPageContent: React.FC = () => {
       key: 'amount_due',
       header: 'Amount Due',
       sortable: true,
-      render: (value) => value ? `KES ${value.toLocaleString()}` : '-'
+      render: (value) => value != null ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
     },
     {
       key: 'amount_paid',
       header: 'Amount Paid',
       sortable: true,
-      render: (value) => value ? `KES ${value.toLocaleString()}` : '-'
+      render: (value) => value != null ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
     },
     {
       key: 'balance',
       header: 'Balance',
       sortable: true,
       render: (_, item) => {
-        const balance = item.amount_due - item.amount_paid;
+        const balance = (item.amount_due ?? 0) - (item.amount_paid ?? 0);
         return (
           <span className={`font-semibold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            KES {balance.toLocaleString()}
+            KES {balance?.toLocaleString?.() ?? balance}
           </span>
         );
       }
@@ -200,7 +202,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
     }
   ];
 
-  if (loading?.students && mockInstallments.length === 0) {
+  if (loading?.students && !students && mockInstallments.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -258,7 +260,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
               name="student_id"
               value={formData.student_id}
               onChange={handleInputChange}
-              options={students?.map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name} (${s.admission_no})` })) || []}
+              options={students?.map(s => ({ value: s.id, label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_no ? ` (${s.admission_no})` : '') })) || []}
               placeholder="Select student"
             />
           </FormField>
@@ -266,9 +268,9 @@ export const FeesInstallmentsPageContent: React.FC = () => {
           <FormField label="School Period" required>
             <Select
               name="school_period_id"
-              value={formData.school_period_id?.toString() || ''}
+              value={formData.school_period_id != null ? String(formData.school_period_id) : ''}
               onChange={handleInputChange}
-              options={schoolPeriods?.map(sp => ({ value: sp.id.toString(), label: sp.name })) || []}
+              options={schoolPeriods?.map(sp => ({ value: sp.id != null ? String(sp.id) : '', label: sp.name })) || []}
               placeholder="Select school period"
             />
           </FormField>

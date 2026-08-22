@@ -191,7 +191,7 @@ export const AccountLedgerPageContent: React.FC = () => {
     );
   }, [filteredData]);
 
-  if (loading || appLoading) {
+  if ((loading || (appLoading as any)?.all) && ledgerRows.length === 0 && !error) {
     return (
       <div className="flex justify-center items-center py-20">
         <Spinner size="lg" />

@@ -2,15 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { ChartBarIcon, CalendarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { IncomeStatementItem } from '../data/types';
+import { ChartBarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
 
 export const IncomeStatementPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
+
   const { incomeStatementItems, loading } = useAppData();
 
   const [startDate, setStartDate] = useState(() => {
@@ -29,11 +28,11 @@ export const IncomeStatementPageContent: React.FC = () => {
   const totals = useMemo(() => {
     const revenue = incomeStatement
       .filter(item => item.category === 'Revenue')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     const expenses = incomeStatement
       .filter(item => item.category === 'Expense')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     return {
       revenue,
@@ -75,7 +74,7 @@ export const IncomeStatementPageContent: React.FC = () => {
       sortable: true,
       render: (value, item) => (
         <span className={`font-semibold ${item.category === 'Revenue' ? 'text-green-600' : 'text-red-600'}`}>
-          KES {value.toLocaleString()}
+          KES {value?.toLocaleString?.() ?? '-'}
         </span>
       )
     },
@@ -83,11 +82,11 @@ export const IncomeStatementPageContent: React.FC = () => {
       key: 'percentage',
       header: '% of Total',
       sortable: true,
-      render: (value) => value !== undefined ? `${value.toFixed(1)}%` : '-'
+      render: (value) => value != null ? `${value?.toFixed?.(1) ?? value}%` : '-'
     }
   ];
 
-  if (loading?.all && incomeStatement.length === 0) {
+  if (loading?.all && incomeStatement.length === 0 && !incomeStatementItems) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -160,7 +159,7 @@ export const IncomeStatementPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Revenue</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.revenue.toLocaleString()}
+              KES {totals.revenue?.toLocaleString?.() ?? '-'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -169,7 +168,7 @@ export const IncomeStatementPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Expenses</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.expenses.toLocaleString()}
+              KES {totals.expenses?.toLocaleString?.() ?? '-'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -178,7 +177,7 @@ export const IncomeStatementPageContent: React.FC = () => {
               <span className="text-sm font-medium">Net Income</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              KES {totals.netIncome.toLocaleString()}
+              KES {totals.netIncome?.toLocaleString?.() ?? '-'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -187,7 +186,7 @@ export const IncomeStatementPageContent: React.FC = () => {
               <span className="text-sm font-medium">Profit Margin</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {totals.profitMargin.toFixed(1)}%
+              {totals.profitMargin?.toFixed?.(1) ?? '-'}%
             </p>
           </div>
         </div>
@@ -196,22 +195,22 @@ export const IncomeStatementPageContent: React.FC = () => {
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <h4 className="font-semibold text-green-800 mb-3">Revenue Breakdown</h4>
-            {mockIncomeStatement.filter(i => i.category === 'Revenue').map(item => (
+            {incomeStatement.filter(i => i.category === 'Revenue').map(item => (
               <div key={item.id} className="flex justify-between py-2 border-b border-green-100 last:border-0">
                 <span className="text-sm text-green-700">{item.account_name}</span>
                 <span className="text-sm font-semibold text-green-800">
-                  KES {item.amount.toLocaleString()}
+                  KES {item.amount?.toLocaleString?.() ?? '-'}
                 </span>
               </div>
             ))}
           </div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h4 className="font-semibold text-red-800 mb-3">Expense Breakdown</h4>
-            {mockIncomeStatement.filter(i => i.category === 'Expense').map(item => (
+            {incomeStatement.filter(i => i.category === 'Expense').map(item => (
               <div key={item.id} className="flex justify-between py-2 border-b border-red-100 last:border-0">
                 <span className="text-sm text-red-700">{item.account_name}</span>
                 <span className="text-sm font-semibold text-red-800">
-                  KES {item.amount.toLocaleString()}
+                  KES {item.amount?.toLocaleString?.() ?? '-'}
                 </span>
               </div>
             ))}

@@ -1,20 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { StudentOpeningBalance, OpeningBalanceType } from '@/modules/finance';
-import { Student } from '@/modules/administration';
-import { StudentStatus } from '@/core/types';
+import { Student, StudentStatus } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
 type StudentOpeningBalanceFormData = Omit<Partial<StudentOpeningBalance>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'balance_type'> & {
     balance_type: OpeningBalanceType;
@@ -128,7 +123,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="font-mono text-green-600">{row.amount.toFixed(2)}</span>
+      render: (value, row) => <span className="font-mono text-green-600">{row.amount?.toFixed?.(2) ?? '0.00'}</span>
     },
     { 
       key: 'as_of_date', 
@@ -136,7 +131,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-blue-600">{new Date(row.as_of_date).toLocaleDateString()}</span>
+      render: (value, row) => <span className="text-blue-600">{row.as_of_date ? new Date(row.as_of_date).toLocaleDateString() : '-'}</span>
     },
     { 
       key: 'is_billed', 
@@ -166,7 +161,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
   
   const isLoadingData = loading.studentOpeningBalances || loading.students;
 
-  if (isLoadingData && !isModalOpen) {
+  if (isLoadingData && !isModalOpen && !studentOpeningBalances && !students) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" /> <span className="ml-2">Loading Student Opening Balances...</span>
@@ -186,7 +181,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
         )}
         <DataGrid 
           columns={columns} 
-          data={studentOpeningBalances} 
+          data={studentOpeningBalances || []} 
           isLoading={loading.studentOpeningBalances && isModalOpen}
           sortable
           filterable

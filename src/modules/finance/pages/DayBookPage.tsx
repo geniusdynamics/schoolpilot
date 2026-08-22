@@ -2,23 +2,20 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import { BookOpenIcon, CalendarIcon, ArrowDownIcon, ArrowUpIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { DayBookEntry } from '../data/types';
 
 export const DayBookPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const { dayBookEntries, generalLedgerEntries, chartOfAccounts, loading } = useAppData();
+
+  const { dayBookEntries, chartOfAccounts, loading } = useAppData() as any;
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('');
 
   const mockDayBookEntries: DayBookEntry[] = useMemo(() => {
-    let filtered = (dayBookEntries || []).map((e: DayBookEntry) => ({ ...e, transaction_date: selectedDate }));
+    const filtered = ((dayBookEntries as DayBookEntry[] | undefined) || []).map((e: DayBookEntry) => ({ ...e, transaction_date: (e as any).transaction_date || selectedDate }));
 
     if (searchTerm) {
       return filtered.filter(entry =>
@@ -28,13 +25,13 @@ export const DayBookPageContent: React.FC = () => {
       );
     }
     return filtered;
-  }, [selectedDate, searchTerm]);
+  }, [dayBookEntries, selectedDate, searchTerm]);
 
   // Calculate totals
   const totals = useMemo(() => {
     return mockDayBookEntries.reduce((acc, entry) => ({
-      debit: acc.debit + entry.debit,
-      credit: acc.credit + entry.credit
+      debit: acc.debit + (entry.debit ?? 0),
+      credit: acc.credit + (entry.credit ?? 0)
     }), { debit: 0, credit: 0 });
   }, [mockDayBookEntries]);
 
@@ -67,16 +64,16 @@ export const DayBookPageContent: React.FC = () => {
       key: 'debit',
       header: 'Debit',
       sortable: true,
-      render: (value) => value > 0 ? (
-        <span className="text-red-600 font-semibold">KES {value.toLocaleString()}</span>
+      render: (value) => value != null && value > 0 ? (
+        <span className="text-red-600 font-semibold">KES {value?.toLocaleString?.() ?? value}</span>
       ) : '-'
     },
     {
       key: 'credit',
       header: 'Credit',
       sortable: true,
-      render: (value) => value > 0 ? (
-        <span className="text-green-600 font-semibold">KES {value.toLocaleString()}</span>
+      render: (value) => value != null && value > 0 ? (
+        <span className="text-green-600 font-semibold">KES {value?.toLocaleString?.() ?? value}</span>
       ) : '-'
     },
     {
@@ -87,7 +84,7 @@ export const DayBookPageContent: React.FC = () => {
     }
   ];
 
-  if (loading?.all && mockDayBookEntries.length === 0) {
+  if (loading?.all && mockDayBookEntries.length === 0 && !dayBookEntries) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -150,7 +147,7 @@ export const DayBookPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Debits</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.debit.toLocaleString()}
+              KES {totals.debit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -159,7 +156,7 @@ export const DayBookPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Credits</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.credit.toLocaleString()}
+              KES {totals.credit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -177,7 +174,7 @@ export const DayBookPageContent: React.FC = () => {
               <span className="text-sm font-medium">Net Position</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.credit > totals.debit ? 'text-green-600' : 'text-red-600'}`}>
-              KES {(totals.credit - totals.debit).toLocaleString()}
+              KES {((totals.credit ?? 0) - (totals.debit ?? 0))?.toLocaleString?.() ?? '0'}
             </p>
           </div>
         </div>

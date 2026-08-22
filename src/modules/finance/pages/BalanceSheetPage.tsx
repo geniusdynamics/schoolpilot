@@ -2,19 +2,16 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import { BuildingLibraryIcon, CalendarIcon, CurrencyDollarIcon, ScaleIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { BalanceSheetItem } from '../data/types';
+import { BuildingLibraryIcon, CurrencyDollarIcon, ScaleIcon } from '@/components/ui/icons';
 
 // ABOUTME: BalanceSheetPage displays the school's financial position snapshot
 // ABOUTME: with assets, liabilities, and equity breakdowns
 
 export const BalanceSheetPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
+
   const { balanceSheetItems, loading } = useAppData();
 
   const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split('T')[0]);
@@ -42,23 +39,23 @@ export const BalanceSheetPageContent: React.FC = () => {
   const totals = useMemo(() => {
     const assets = mockBalanceSheet
       .filter(item => item.category === 'Asset')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
     
     const liabilities = mockBalanceSheet
       .filter(item => item.category === 'Liability')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
     
     const equity = mockBalanceSheet
       .filter(item => item.category === 'Equity')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     const currentAssets = mockBalanceSheet
       .filter(item => item.category === 'Asset' && item.subcategory === 'Current Assets')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
 
     const currentLiabilities = mockBalanceSheet
       .filter(item => item.category === 'Liability' && item.subcategory === 'Current Liabilities')
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + (item.amount ?? 0), 0);
     
     return {
       assets,
@@ -111,7 +108,7 @@ export const BalanceSheetPageContent: React.FC = () => {
       sortable: true,
       render: (value, item) => (
         <span className={`font-semibold ${item.category === 'Asset' || item.category === 'Equity' ? 'text-blue-600' : 'text-red-600'}`}>
-          KES {value.toLocaleString()}
+          KES {value?.toLocaleString?.() ?? '-'}
         </span>
       )
     },
@@ -119,13 +116,13 @@ export const BalanceSheetPageContent: React.FC = () => {
       key: 'percentage',
       header: '% of Category',
       sortable: true,
-      render: (value) => value !== undefined ? `${value.toFixed(1)}%` : '-'
+      render: (value) => value != null ? `${value?.toFixed?.(1) ?? value}%` : '-'
     }
   ];
 
   const categories = ['Asset', 'Liability', 'Equity'];
 
-  if (loading?.all && mockBalanceSheet.length === 0) {
+  if (loading?.all && mockBalanceSheet.length === 0 && !balanceSheetItems) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -221,7 +218,7 @@ export const BalanceSheetPageContent: React.FC = () => {
               <span className="text-sm font-medium">Working Capital</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.workingCapital >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              KES {totals.workingCapital.toLocaleString()}
+              KES {totals.workingCapital?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">

@@ -2,23 +2,21 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { CurrencyDollarIcon, ArrowDownIcon, ArrowUpIcon, CalendarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { CashBookEntry } from '../data/types';
 
 export const CashBookPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const { cashBookEntries, studentPayments, generalPayments, loading } = useAppData();
+
+  const { cashBookEntries, generalPayments, loading } = useAppData() as any;
 
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('');
 
   const mockCashBookEntries: CashBookEntry[] = useMemo(() => {
-    let filtered = (cashBookEntries || []).map((e: CashBookEntry) => ({ ...e, transaction_date: startDate }));
+    const filtered = ((cashBookEntries as CashBookEntry[] | undefined) || []).map((e: CashBookEntry) => ({ ...e, transaction_date: e.transaction_date || startDate }));
 
     if (searchTerm) {
       return filtered.filter(entry =>
@@ -27,13 +25,13 @@ export const CashBookPageContent: React.FC = () => {
       );
     }
     return filtered;
-  }, [startDate, endDate, searchTerm]);
+  }, [cashBookEntries, startDate, searchTerm]);
 
   // Calculate totals
   const totals = useMemo(() => {
     return mockCashBookEntries.reduce((acc, entry) => ({
-      debit: acc.debit + entry.debit,
-      credit: acc.credit + entry.credit
+      debit: acc.debit + (entry.debit ?? 0),
+      credit: acc.credit + (entry.credit ?? 0)
     }), { debit: 0, credit: 0 });
   }, [mockCashBookEntries]);
 
@@ -66,16 +64,16 @@ export const CashBookPageContent: React.FC = () => {
       key: 'debit',
       header: 'Debit (Out)',
       sortable: true,
-      render: (value) => value > 0 ? (
-        <span className="text-red-600 font-semibold">KES {value.toLocaleString()}</span>
+      render: (value) => value != null && value > 0 ? (
+        <span className="text-red-600 font-semibold">KES {value?.toLocaleString?.() ?? value}</span>
       ) : '-'
     },
     {
       key: 'credit',
       header: 'Credit (In)',
       sortable: true,
-      render: (value) => value > 0 ? (
-        <span className="text-green-600 font-semibold">KES {value.toLocaleString()}</span>
+      render: (value) => value != null && value > 0 ? (
+        <span className="text-green-600 font-semibold">KES {value?.toLocaleString?.() ?? value}</span>
       ) : '-'
     },
     {
@@ -83,12 +81,12 @@ export const CashBookPageContent: React.FC = () => {
       header: 'Balance',
       sortable: true,
       render: (value) => (
-        <span className="font-bold text-gray-800">KES {value.toLocaleString()}</span>
+        <span className="font-bold text-gray-800">KES {value?.toLocaleString?.() ?? '-'}</span>
       )
     }
   ];
 
-  if (loading?.all && mockCashBookEntries.length === 0) {
+  if (loading?.all && mockCashBookEntries.length === 0 && !cashBookEntries) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -160,7 +158,7 @@ export const CashBookPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Cash Out</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.debit.toLocaleString()}
+              KES {totals.debit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -169,7 +167,7 @@ export const CashBookPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Cash In</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.credit.toLocaleString()}
+              KES {totals.credit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -187,7 +185,7 @@ export const CashBookPageContent: React.FC = () => {
               <span className="text-sm font-medium">Cash Balance</span>
             </div>
             <p className={`text-2xl font-bold mt-2 ${totals.credit > totals.debit ? 'text-green-600' : 'text-red-600'}`}>
-              KES {(totals.credit - totals.debit).toLocaleString()}
+              KES {((totals.credit ?? 0) - (totals.debit ?? 0))?.toLocaleString?.() ?? '0'}
             </p>
           </div>
         </div>

@@ -2,16 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { ScaleIcon, CalendarIcon, CurrencyDollarIcon, DocumentTextIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { TrialBalanceItem } from '../data/types';
+import { CurrencyDollarIcon, DocumentTextIcon, ScaleIcon } from '@/components/ui/icons';
 
 export const TrialBalancePageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
+
   const { trialBalanceItems, loading } = useAppData();
 
   const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split('T')[0]);
@@ -42,8 +41,8 @@ export const TrialBalancePageContent: React.FC = () => {
   // Calculate totals
   const totals = useMemo(() => {
     return filteredTrialBalance.reduce((acc, item) => ({
-      debit: acc.debit + item.debit_balance,
-      credit: acc.credit + item.credit_balance
+      debit: acc.debit + (item.debit_balance ?? 0),
+      credit: acc.credit + (item.credit_balance ?? 0)
     }), { debit: 0, credit: 0 });
   }, [filteredTrialBalance]);
 
@@ -86,23 +85,23 @@ export const TrialBalancePageContent: React.FC = () => {
       key: 'debit_balance',
       header: 'Debit Balance',
       sortable: true,
-      render: (value) => value > 0 ? (
-        <span className="text-red-600 font-semibold">KES {value.toLocaleString()}</span>
+      render: (value) => value != null && value > 0 ? (
+        <span className="text-red-600 font-semibold">KES {value?.toLocaleString?.() ?? value}</span>
       ) : '-'
     },
     {
       key: 'credit_balance',
       header: 'Credit Balance',
       sortable: true,
-      render: (value) => value > 0 ? (
-        <span className="text-green-600 font-semibold">KES {value.toLocaleString()}</span>
+      render: (value) => value != null && value > 0 ? (
+        <span className="text-green-600 font-semibold">KES {value?.toLocaleString?.() ?? value}</span>
       ) : '-'
     }
   ];
 
   const accountTypes = ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'];
 
-  if (loading?.all && mockTrialBalance.length === 0) {
+  if (loading?.all && filteredTrialBalance.length === 0 && !trialBalanceItems) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -186,7 +185,7 @@ export const TrialBalancePageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Debits</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.debit.toLocaleString()}
+              KES {totals.debit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -195,7 +194,7 @@ export const TrialBalancePageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Credits</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.credit.toLocaleString()}
+              KES {totals.credit?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -208,7 +207,7 @@ export const TrialBalancePageContent: React.FC = () => {
             </p>
             {totals.debit !== totals.credit && (
               <p className="text-sm text-red-600 mt-1">
-                Diff: KES {Math.abs(totals.debit - totals.credit).toLocaleString()}
+                Diff: KES {Math.abs((totals.debit ?? 0) - (totals.credit ?? 0))?.toLocaleString?.() ?? '0'}
               </p>
             )}
           </div>

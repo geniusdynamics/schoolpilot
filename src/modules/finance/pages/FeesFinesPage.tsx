@@ -11,9 +11,11 @@ import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, ExclamationTriangleIcon, CurrencyDollarIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
+import { ExclamationTriangleIcon, PlusIcon } from '@/components/ui/icons';
 
 type FineFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
@@ -105,7 +107,7 @@ export const FeesFinesPageContent: React.FC = () => {
       }
       closeModal();
     } catch (error) {
-      console.error('Error saving fine:', error);
+      logger.error('Error saving fine:', error);
       alert('Error saving fine. Please try again.');
     }
   };
@@ -115,7 +117,7 @@ export const FeesFinesPageContent: React.FC = () => {
       try {
         await deleteFeeAdjustment(id);
       } catch (error) {
-        console.error('Error deleting fine:', error);
+        logger.error('Error deleting fine:', error);
         alert('Error deleting fine. Please try again.');
       }
     }
@@ -155,7 +157,7 @@ export const FeesFinesPageContent: React.FC = () => {
       sortable: true,
       render: (value) => (
         <span className="font-semibold text-red-600">
-          {value ? `KES ${value.toLocaleString()}` : '-'}
+          {value != null ? `KES ${value?.toLocaleString?.() ?? value}` : '-'}
         </span>
       )
     },
@@ -196,7 +198,7 @@ export const FeesFinesPageContent: React.FC = () => {
     }
   ];
 
-  if (loading?.all && finesList.length === 0) {
+  if (loading?.feeAdjustments && finesList.length === 0 && !feeAdjustments) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -254,7 +256,7 @@ export const FeesFinesPageContent: React.FC = () => {
               name="student_id"
               value={formData.student_id}
               onChange={handleInputChange}
-              options={students?.map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name} (${s.admission_no})` })) || []}
+              options={students?.map(s => ({ value: s.id, label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_no ? ` (${s.admission_no})` : '') })) || []}
               placeholder="Select student"
             />
           </FormField>
@@ -262,9 +264,9 @@ export const FeesFinesPageContent: React.FC = () => {
           <FormField label="School Period" required>
             <Select
               name="school_period_id"
-              value={formData.school_period_id?.toString() || ''}
+              value={formData.school_period_id != null ? String(formData.school_period_id) : ''}
               onChange={handleInputChange}
-              options={schoolPeriods?.map(sp => ({ value: sp.id.toString(), label: sp.name })) || []}
+              options={schoolPeriods?.map(sp => ({ value: sp.id != null ? String(sp.id) : '', label: sp.name })) || []}
               placeholder="Select school period"
             />
           </FormField>
