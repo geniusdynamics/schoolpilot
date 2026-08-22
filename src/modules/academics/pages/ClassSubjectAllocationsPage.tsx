@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { ClassStream, AcademicYear } from '@/types';
-import { ClassSubjectAllocation, Subject } from '@/modules/academics/data/types'; // Corrected imports
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -9,11 +9,14 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { Subject as CoreSubject } from '@/core/types';
+import { logger } from '@/utils/logging';
+import type { ClassSubjectAllocation } from '@/core/types';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
 type AllocationFormData = Omit<Partial<ClassSubjectAllocation>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name'>;
 
@@ -89,7 +92,7 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
     };
 
     if (editingAllocation) {
-      await updateClassSubjectAllocation({ ...editingAllocation, ...payload });
+      await updateClassSubjectAllocation(String(editingAllocation.id), payload);
     } else {
       await addClassSubjectAllocation(payload);
     }
@@ -101,22 +104,26 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
       try {
         await deleteClassSubjectAllocation(id);
       } catch (error) {
-        console.error('Error deleting allocation:', error);
+        logger.error('Error deleting allocation:', error);
         alert('Error deleting allocation');
       }
     }
   };
 
   const columns: DataGridColumn<ClassSubjectAllocation>[] = [
-    { header: 'ID', key: 'id' },
-    { header: 'Class Stream', key: 'class_stream_name' },
-    { header: 'Subject', key: 'subject_name' },
-    { header: 'Academic Year', key: 'academic_year_name' },
+    { header: 'ID', key: 'id', width: 80, sortable: true },
+    { header: 'Class Stream', key: 'class_stream_name', width: 200, sortable: true, filterable: true, render: (_v: any, item: ClassSubjectAllocation) => <span className="truncate block max-w-[180px]" title={item.class_stream_name || ''}>{item.class_stream_name || '—'}</span> },
+    { header: 'Subject', key: 'subject_name', width: 220, sortable: true, filterable: true, render: (_v: any, item: ClassSubjectAllocation) => <span className="truncate block max-w-[200px]" title={item.subject_name || ''}>{item.subject_name || '—'}</span> },
+    { header: 'Academic Year', key: 'academic_year_name', width: 160, sortable: true },
     {
       header: 'Actions',
-      key: 'id',
-      render: (value: any, item: ClassSubjectAllocation) => (
-        <div className="space-x-2">
+      key: 'actions',
+      width: 180,
+      sticky: 'right',
+      sortable: false,
+      filterable: false,
+      render: (_value: any, item: ClassSubjectAllocation) => (
+        <div className="flex items-center gap-1">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
         </div>
@@ -136,13 +143,13 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title={t('classSubjectAllocations.title')} actions={
+      <Card title={t('classSubjectAllocations.title')} bodyClassName="p-0" actions={
         <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>{t('classSubjectAllocations.addButton')}</Button>
       }>
-        <p className="text-sm text-gray-600 mb-4">
+        <div className="p-4 sm:p-6 pb-3 text-sm text-gray-600 border-b border-gray-200">
           Assign subjects to specific class streams for a given academic year.
-        </p>
-        <DataGrid columns={columns} data={classSubjectAllocations} loading={loading.classSubjectAllocations} />
+        </div>
+        <DataGrid columns={columns} data={classSubjectAllocations || []} loading={loading.classSubjectAllocations} sortable filterable />
       </Card>
 
       <DialogForm open={isModalOpen} onClose={closeModal} title={editingAllocation ? t('classSubjectAllocations.modalEditTitle') : t('classSubjectAllocations.modalAddTitle')} size="lg"
@@ -159,7 +166,7 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
           <FormField label={t('classSubjectAllocations.classStreamLabel')}>
             <Select 
               name="class_stream_id" 
-              value={formData.class_stream_id || ''} 
+              value={formData.class_stream_id != null ? String(formData.class_stream_id) : ''} 
               onChange={handleInputChange}
               required
             >
@@ -172,7 +179,7 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
           <FormField label={t('classSubjectAllocations.subjectLabel')}>
             <Select 
               name="subject_id" 
-              value={formData.subject_id || ''} 
+              value={formData.subject_id != null ? String(formData.subject_id) : ''} 
               onChange={handleInputChange}
               required
             >
@@ -185,7 +192,7 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
           <FormField label={t('classSubjectAllocations.academicYearLabel')}>
             <Select 
               name="academic_year_id" 
-              value={formData.academic_year_id || ''} 
+              value={formData.academic_year_id != null ? String(formData.academic_year_id) : ''} 
               onChange={handleInputChange}
               required
             >

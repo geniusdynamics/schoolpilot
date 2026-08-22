@@ -34,7 +34,6 @@ export const SubjectsContent: React.FC = () => {
   const initialFormData: SubjectFormData = { subject_code: '', abbreviation: '', name: '', grouping: SubjectGrouping.OTHER, is_compulsory: false };
   const [formData, setFormData] = useState<SubjectFormData>({});
 
-
   const openModal = (subject?: Subject) => {
     setEditingSubject(subject || null);
     setFormData(subject ? 
@@ -76,15 +75,6 @@ export const SubjectsContent: React.FC = () => {
         return;
     }
     
-    const payload: Omit<Subject, 'id' | 'department_name' | 'papers'> = {
-        subject_code: formData.subject_code!,
-        abbreviation: formData.abbreviation!,
-        name: formData.name!,
-        department_id: formData.department_id,
-        is_compulsory: formData.is_compulsory || false,
-        grouping: formData.grouping!,
-    };
-
     if (editingSubject) {
         // Placeholder for updateSubject
     } else {
@@ -93,25 +83,28 @@ export const SubjectsContent: React.FC = () => {
     closeModal();
   };
 
-  const handleDelete = async (subjectId: number) => {
+  const handleDelete = async (_subjectId: number) => {
     if (window.confirm('Are you sure you want to delete this subject?')) {
         // Placeholder for deleteSubject
     }
   };
 
-
   const columns: DataGridColumn<Subject>[] = [
-    { key: 'subject_code', header: t('subjects.code') },
-    { key: 'abbreviation', header: t('subjects.abbreviation') },
-    { key: 'name', header: t('subjects.name') },
-    { key: 'department_name', header: t('subjects.department') },
-    { key: 'grouping', header: t('subjects.grouping') },
-    { key: 'is_compulsory', header: t('subjects.isCompulsory'), render: (value: any, item: Subject) => item.is_compulsory ? t('common:yes') : t('common:no') },
+    { key: 'subject_code', header: t('subjects.code'), width: 120, sortable: true, filterable: true },
+    { key: 'abbreviation', header: t('subjects.abbreviation'), width: 110, sortable: true },
+    { key: 'name', header: t('subjects.name'), width: 220, sortable: true, filterable: true, render: (_v: any, item: Subject) => <span className="truncate block max-w-[200px]" title={item.name}>{item.name}</span> },
+    { key: 'department_name', header: t('subjects.department'), width: 160, sortable: true, filterable: true, render: (_v: any, item: Subject) => <span className="truncate block max-w-[140px]" title={item.department_name || ''}>{item.department_name || '—'}</span> },
+    { key: 'grouping', header: t('subjects.grouping'), width: 140, sortable: true },
+    { key: 'is_compulsory', header: t('subjects.isCompulsory'), width: 110, align: 'center', render: (_value: any, item: Subject) => item.is_compulsory ? t('common:yes') : t('common:no') },
     {
       key: 'actions',
       header: t('common:actions'),
-      render: (value: any, item: Subject) => (
-        <div className="space-x-2">
+      width: 180,
+      sticky: 'right',
+      sortable: false,
+      filterable: false,
+      render: (_value: any, item: Subject) => (
+        <div className="flex items-center gap-1">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>{t('common:edit')}</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>{t('common:delete')}</Button>
         </div>
@@ -125,10 +118,12 @@ export const SubjectsContent: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card title={t('subjects.management')} actions={
+      <Card title={t('subjects.management')} bodyClassName="p-0" actions={
           <Button onClick={() => openModal()} leftIcon={<PlusIcon className="w-5 h-5" />}>Add Subject</Button>
       }>
-        <DataGrid columns={columns} data={subjectsState || []} loading={loading.subjects && isModalOpen} />
+        <div className="border-t border-gray-200">
+          <DataGrid columns={columns} data={subjectsState || []} loading={loading.subjects && isModalOpen} sortable filterable />
+        </div>
       </Card>
 
       <DialogForm
