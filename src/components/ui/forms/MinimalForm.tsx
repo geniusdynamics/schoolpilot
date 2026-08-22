@@ -1,7 +1,7 @@
 // ABOUTME: MinimalForm component for clean, simple forms
 // ABOUTME: Provides minimal chrome form layout for login, search, and quick forms
 
-import React, { ReactNode, forwardRef, useImperativeHandle, useRef } from 'react';
+import { ReactNode, forwardRef, useImperativeHandle, useRef } from 'react';
 import FormContainer, { FormContainerProps } from './FormContainer';
 import { useTransition } from '../../../utils/animations';
 

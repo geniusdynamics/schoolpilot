@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: ContextualActionBar component for tab-specific actions and contextual operations
 // ABOUTME: Provides dynamic actions based on active tab context with RBAC integration
 
@@ -211,7 +213,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'primary',
         handler: async () => {
           // Handle save logic
-          console.log('Saving tab:', currentTab.id);
+          logger.info('Saving tab:', currentTab.id);
         }
       });
     }
@@ -225,7 +227,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'secondary',
         handler: async () => {
           // Handle share logic
-          console.log('Sharing tab:', currentTab?.id);
+          logger.info('Sharing tab:', currentTab?.id);
         }
       });
     }
@@ -239,7 +241,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'secondary',
         handler: async () => {
           // Handle download logic
-          console.log('Downloading from tab:', currentTab?.id);
+          logger.info('Downloading from tab:', currentTab?.id);
         }
       });
     }
@@ -253,7 +255,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'secondary',
         handler: async () => {
           // Handle upload logic
-          console.log('Uploading to tab:', currentTab?.id);
+          logger.info('Uploading to tab:', currentTab?.id);
         }
       });
     }
@@ -267,7 +269,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         variant: 'secondary',
         handler: async () => {
           // Handle edit logic
-          console.log('Editing tab:', currentTab?.id);
+          logger.info('Editing tab:', currentTab?.id);
         }
       });
     }
@@ -282,7 +284,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         handler: async () => {
           // Handle delete logic
           if (confirm('Are you sure you want to delete this content?')) {
-            console.log('Deleting from tab:', currentTab?.id);
+            logger.info('Deleting from tab:', currentTab?.id);
           }
         }
       });
@@ -320,7 +322,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
         await executeAction(action.id, actionContext);
       }
     } catch (error) {
-      console.error('Failed to execute action:', error);
+      logger.error('Failed to execute action:', error);
     }
   }, [actionContext, executeAction]);
   

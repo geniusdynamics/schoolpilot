@@ -2,7 +2,7 @@
 // ABOUTME: Displays real-time memory metrics, alerts, and management controls
 
 import React, { useState } from 'react';
-import { useMemoryManagement, useMemoryAlerts } from '@/hooks/useMemoryManagement';
+
 import Card from './ui/Card';
 import Button from './ui/Button';
 import {
@@ -135,10 +135,10 @@ export const MemoryDashboard: React.FC<MemoryDashboardProps> = ({ className = ''
               </div>
             </div>
             <div className="text-2xl font-bold text-gray-900">
-              {metrics ? formatBytes(metrics.usedMemory) : '—'}
+              {metrics ? formatBytes(metrics.usedMemory) : 'â€”'}
             </div>
             <div className="text-sm text-gray-500">
-              of {metrics ? formatBytes(metrics.totalMemory) : '—'}
+              of {metrics ? formatBytes(metrics.totalMemory) : 'â€”'}
             </div>
           </Card>
 

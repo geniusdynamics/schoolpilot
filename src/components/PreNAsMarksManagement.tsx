@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import FormField from '@/components/ui/forms/FormField';
-import Select, { SelectOption } from '@/components/ui/Select';
+import { SelectOption } from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+
+import { logger } from '@/utils/logging';
 
 interface PreNAMark {
   id: string;
@@ -179,7 +180,7 @@ export const PreNAsMarksManagement: React.FC<PreNAsMarksManagementProps> = ({
           ]}
           onEdit={(item) => {
             // Implement edit functionality
-            console.log('Edit:', item);
+            logger.info('Edit:', item);
           }}
         />
       </Card>

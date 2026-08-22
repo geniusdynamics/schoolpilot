@@ -1,16 +1,9 @@
-// UI components for offline capability management and network status
+﻿// UI components for offline capability management and network status
 import React from 'react';
-import { 
-  WifiIcon, 
-  ServerIcon, 
-  ClockIcon, 
-  CheckCircleIcon, 
-  XCircleIcon,
-  SignalIcon,
-  SignalSlashIcon
-} from '@heroicons/react/24/outline';
+import { ServerIcon, ClockIcon, CheckCircleIcon, XCircleIcon, SignalIcon, SignalSlashIcon } from '@heroicons/react/24/outline';
 import { AlertTriangleIcon } from './ui/icons';
 import { useAppData } from '@/hooks/useAppData';
+import { ExclamationTriangleIcon } from '@/components/ui/icons';
 
 // Component to wrap features that may not be available offline
 interface OfflineCapableComponentProps {
@@ -494,7 +487,6 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
   const [mergeData, setMergeData] = React.useState<any>({});
 
   const conflict = conflicts.find(c => c.id === selectedConflict);
-
   const handleMergeChange = (field: string, value: any, source: 'local' | 'server') => {
     setMergeData(prev => ({
       ...prev,
@@ -581,7 +573,7 @@ export const ConflictResolutionComponent: React.FC<ConflictResolutionProps> = ({
                       {conflict.entityName} #{conflict.entityId}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {conflict.conflictType} conflict • {conflict.timestamp.toLocaleString()}
+                      {conflict.conflictType} conflict Ã¢â‚¬Â¢ {conflict.timestamp.toLocaleString()}
                     </div>
                   </div>
                   <div className="flex space-x-2">

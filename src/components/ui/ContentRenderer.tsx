@@ -1,6 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import DataTable, { TaskItem } from './data/DataTable';
 import { Tab } from '@/types/tabbedWorkspace';
+import { logger } from '@/utils/logging';
+
 
 export interface ContentRendererProps {
   tab: Tab;
@@ -158,27 +160,27 @@ const mockTasksData: TaskItem[] = [
 const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }) => {
   // Handle task actions
   const handleTaskView = (task: TaskItem) => {
-    console.log('View task:', task);
+    logger.info('View task:', task);
     // TODO: Implement task view modal or navigation
   };
 
   const handleTaskEdit = (task: TaskItem) => {
-    console.log('Edit task:', task);
+    logger.info('Edit task:', task);
     // TODO: Implement task edit modal or navigation
   };
 
   const handleTaskDelete = (task: TaskItem) => {
-    console.log('Delete task:', task);
+    logger.info('Delete task:', task);
     // TODO: Implement task deletion with confirmation
   };
 
   const handleTaskStatusChange = (task: TaskItem, newStatus: string) => {
-    console.log('Change task status:', task, newStatus);
+    logger.info('Change task status:', task, newStatus);
     // TODO: Implement status change logic
   };
 
   const handleSelectionChange = (selected: TaskItem[]) => {
-    console.log('Selection changed:', selected);
+    logger.info('Selection changed:', selected);
     // TODO: Implement bulk actions for selected tasks
   };
 
@@ -205,7 +207,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">📋</div>
+              <div className="text-6xl mb-4">ðŸ“‹</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Kanban Board</h3>
               <p className="text-gray-500">Kanban view will be implemented here.</p>
             </div>
@@ -216,7 +218,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">📅</div>
+              <div className="text-6xl mb-4">ðŸ“…</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Calendar View</h3>
               <p className="text-gray-500">Calendar view will be implemented here.</p>
             </div>
@@ -227,7 +229,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">📊</div>
+              <div className="text-6xl mb-4">ðŸ“Š</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Dashboard</h3>
               <p className="text-gray-500">Dashboard widgets will be implemented here.</p>
             </div>
@@ -238,7 +240,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">📝</div>
+              <div className="text-6xl mb-4">ðŸ“</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Form View</h3>
               <p className="text-gray-500">Dynamic form will be rendered here.</p>
             </div>
@@ -249,7 +251,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">📋</div>
+              <div className="text-6xl mb-4">ðŸ“‹</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">List View</h3>
               <p className="text-gray-500">List content will be displayed here.</p>
             </div>
@@ -260,7 +262,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">📈</div>
+              <div className="text-6xl mb-4">ðŸ“ˆ</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Chart View</h3>
               <p className="text-gray-500">Charts and analytics will be displayed here.</p>
             </div>
@@ -288,7 +290,7 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">📄</div>
+              <div className="text-6xl mb-4">ðŸ“„</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">{tab.title}</h3>
               <p className="text-gray-500">Content for this tab will be displayed here.</p>
             </div>

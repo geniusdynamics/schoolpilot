@@ -6,9 +6,17 @@ import Modal, { ModalProps } from '../Modal';
 import FormContainer, { FormContainerProps } from './FormContainer';
 import FormHeader, { FormHeaderProps } from './FormHeader';
 
-export interface DialogFormProps extends Omit<ModalProps, 'children'> {
+export interface DialogFormProps extends Omit<ModalProps, 'children' | 'isOpen' | 'footer'> {
   /** Form content (FormSection, FormGrid, FormField, etc.) */
   children: ReactNode;
+  /** Controls visibility (canonical). */
+  isOpen?: boolean;
+  /** Alias for `isOpen`, accepted for call-site ergonomics. */
+  open?: boolean;
+  /** Footer content (buttons/links) rendered in the modal footer. */
+  actions?: ReactNode;
+  /** Footer content; alias-compatible with `Modal.footer`. Takes precedence over `actions`. */
+  footer?: ReactNode;
   /** Form description (displayed below title) */
   description?: string;
   /** Progress percentage for multi-step forms */
@@ -105,6 +113,10 @@ const DialogForm = forwardRef<DialogFormRef, DialogFormProps>(({
   size = 'md',
   loading,
   preventClose,
+  isOpen,
+  open,
+  actions,
+  footer,
   ...modalProps
 }, ref) => {
   const formRef = useRef<HTMLFormElement>(null);
@@ -147,6 +159,8 @@ const DialogForm = forwardRef<DialogFormRef, DialogFormProps>(({
   return (
     <Modal
       {...modalProps}
+      isOpen={isOpen ?? open ?? false}
+      footer={footer ?? actions}
       title={title}
       size={size}
       loading={loading}

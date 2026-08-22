@@ -8,18 +8,18 @@
 // ============================================================================
 
 // --- Layout Components ---
-export { Layout } from './Layout';
-export { LayoutNew } from './LayoutNew';
-export { Header } from './Header';
-export { PrimarySidebar } from './PrimarySidebar';
-export { SecondarySidebar } from './SecondarySidebar';
-export { Sidebar } from './Sidebar';
-export { PageHeader, PageContainer } from './layout';
+export { default as Layout } from './Layout';
+export { default as LayoutNew } from './LayoutNew';
+export { default as Header } from './Header';
+export { default as PrimarySidebar } from './PrimarySidebar';
+export { default as SecondarySidebar } from './SecondarySidebar';
+export { default as Sidebar } from './Sidebar';
+export { PageHeader, PageContainer } from './layout/index';
 
 // --- Navigation Components ---
-export { EnhancedNavigation } from './EnhancedNavigation';
+export { default as EnhancedNavigation } from './EnhancedNavigation';
 export { BreadcrumbNavigation } from './BreadcrumbNavigation';
-export { TopOverflowMenu } from './TopOverflowMenu';
+export { default as TopOverflowMenu } from './TopOverflowMenu';
 
 // --- Error Boundaries ---
 export {
@@ -35,7 +35,7 @@ export {
   useErrorHandler,
   PageErrorBoundary,
   NavigationErrorBoundary,
-} from './ErrorBoundary';
+} from './ErrorBoundary/index';
 
 // --- Tabbed Workspace ---
 export {

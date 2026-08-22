@@ -1,10 +1,12 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Unified mode switching component that consolidates duplicate functionality
 // ABOUTME: Provides consistent mode switching UI and logic across all settings pages
 
 import React, { useState, useEffect } from 'react';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { getDataModeManager, DataMode, DataModeStatus } from '@/services/data/dataModeManager';
-import { CheckCircle, AlertTriangle, RefreshCw, Settings } from 'lucide-react';
+import { CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface UnifiedModeSwitchProps {
   className?: string;
@@ -68,7 +70,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
       const currentStatus = await dataModeManager.getStatus();
       setStatus(currentStatus);
     } catch (error) {
-      console.error('Failed to load status:', error);
+      logger.error('Failed to load status:', error);
       setError('Failed to load current status');
     }
   };
@@ -100,7 +102,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
         onModeChange(newMode);
       }
     } catch (error) {
-      console.error('Failed to switch mode:', error);
+      logger.error('Failed to switch mode:', error);
       setError(error instanceof Error ? error.message : 'Failed to switch mode');
     } finally {
       setIsLoading(false);

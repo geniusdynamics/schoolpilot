@@ -119,22 +119,22 @@ const FormField: React.FC<FormFieldProps> = ({
           <label
             htmlFor={fieldIds.field}
             className={`
-              block ${currentSize.label} ${getLabelColor()} 
+              inline ${currentSize.label} ${getLabelColor()} 
               ${labelClassName}
             `}
           >
             {label}
-            {required && (
-              <span className="text-red-500 ml-1" aria-label="required">
-                *
-              </span>
-            )}
-            {optional && (
-              <span className="text-gray-500 ml-1 font-normal">
-                (optional)
-              </span>
-            )}
           </label>
+          {required && (
+            <span className="text-red-500 ml-1" aria-label="required">
+              *
+            </span>
+          )}
+          {optional && (
+            <span className="text-gray-500 ml-1 font-normal">
+              (optional)
+            </span>
+          )}
         </div>
       )}
       

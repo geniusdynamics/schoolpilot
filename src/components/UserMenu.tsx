@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: User menu component for displaying user info and logout functionality
 // ABOUTME: Shows user role, demo mode indicator, and logout option
 
@@ -6,7 +8,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useTabNavigation } from '@/hooks/useTabNavigation';
-import Button from './ui/Button';
 import { UserCircleIcon, LogoutIcon, CogIcon, ChevronDownIcon } from './ui/icons';
 import { SyncStatusComponent } from './OfflineCapability';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
@@ -29,18 +30,17 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
 
   
 
-
   const handleLogout = useCallback(async () => {
     try {
       if (!logout || typeof logout !== 'function') {
-        console.error('[UserMenu] Logout function not available');
+        logger.error('[UserMenu] Logout function not available');
         return;
       }
       
       await logout();
       setIsOpen(false);
     } catch (error) {
-      console.error('[UserMenu] Logout failed:', error);
+      logger.error('[UserMenu] Logout failed:', error);
     }
   }, [logout]); // Changed: safeDeps([logout]) -> [logout]
 
@@ -48,7 +48,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
     try {
       setIsOpen(prev => !prev);
     } catch (error) {
-      console.error('[UserMenu] Error in toggleDropdown:', error);
+      logger.error('[UserMenu] Error in toggleDropdown:', error);
     }
   }, []); // Changed: safeDeps([]) -> []
 
@@ -72,7 +72,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
       }
       setIsOpen(false);
     } catch (error) {
-      console.error('[UserMenu] Error in handleSettingsClick:', error);
+      logger.error('[UserMenu] Error in handleSettingsClick:', error);
       // Fallback to regular navigation if tab navigation fails
       navigate('/settings');
       setIsOpen(false);
@@ -85,7 +85,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
         setIsOpen(false);
       }
     } catch (error) {
-      console.error('[UserMenu] Error in handleBackdropClick:', error);
+      logger.error('[UserMenu] Error in handleBackdropClick:', error);
     }
   }, []); // Changed: safeDeps([]) -> []
 
@@ -94,7 +94,7 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
     try {
       return config?.dataMode === 'demo' ? 'demo' : 'production';
     } catch (error) {
-      console.error('[UserMenu] Error getting current mode:', error);
+      logger.error('[UserMenu] Error getting current mode:', error);
       return 'demo';
     }
   }, [config?.dataMode]); // Changed: safeDeps([config?.dataMode]) -> [config?.dataMode]

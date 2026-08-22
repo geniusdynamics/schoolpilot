@@ -5,8 +5,8 @@ import { useDatabasePerformance } from '@/hooks/useDatabasePerformance';
 import { useMemoryManagement } from '@/hooks/useMemoryManagement';
 import { useConnectionPool } from '@/hooks/useConnectionPool';
 import { useStartupPerformance } from '@/hooks/useStartupPerformance';
-import { Card } from './ui/Card';
-import { Button } from './ui/Button';
+import Card from './ui/Card';
+import Button from './ui/Button';
 import {
   ChartBarIcon,
   CpuChipIcon,

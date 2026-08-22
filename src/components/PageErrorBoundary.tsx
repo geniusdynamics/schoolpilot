@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Page-level error boundary for individual page failures
 // ABOUTME: Provides navigation alternatives when specific pages fail to load
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -33,7 +35,7 @@ class PageErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const { pageName, onError } = this.props;
     
-    console.error(`📄 [PageErrorBoundary] Page "${pageName}" error:`, {
+    logger.error(`ðŸ“„ [PageErrorBoundary] Page "${pageName}" error:`, {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack

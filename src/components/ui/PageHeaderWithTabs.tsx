@@ -1,8 +1,7 @@
 // ABOUTME: Compact page header with integrated tabs, title and actions
 // ABOUTME: Minimizes vertical space between navigation and content
 
-import React, { useCallback } from 'react';
-import { TabNavigation } from './TabNavigation';
+import React from 'react';
 
 export interface Tab {
   id: string;

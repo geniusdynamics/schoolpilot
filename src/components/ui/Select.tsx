@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logging';
 
 // ABOUTME: Enhanced Select component with modern styling, search, keyboard navigation, and accessibility
 // ABOUTME: Supports single/multi-select, loading states, and WCAG 2.1 AA compliance
@@ -15,16 +16,8 @@ import React, {
 } from 'react';
 import { ChevronDownIcon, ChevronUpIcon, XMarkIcon, MagnifyingGlassIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { designTokens } from '@/utils/designTokens';
-import { useTransition, transitions } from '@/utils/animations';
-import { 
-  useFocusManagement, 
-  useKeyboardNavigation, 
-  generateId, 
-  createAriaDescribedBy,
-  getFormFieldIds,
-  getAriaInvalid,
-  announceToScreenReader 
-} from '@/utils/accessibility';
+import { useTransition } from '@/utils/animations';
+import { useFocusManagement, createAriaDescribedBy, getFormFieldIds, getAriaInvalid, announceToScreenReader } from '@/utils/accessibility';
 
 export interface SelectOption {
   value: string;
@@ -49,7 +42,10 @@ export interface SelectProps {
   children?: ReactNode; // Legacy support for <option> children
   value?: string | string[];
   defaultValue?: string | string[];
-  onChange?: (value: string | string[] | React.ChangeEvent<HTMLSelectElement>) => void;
+  // Legacy mode (<option> children) fires a native select change event.
+  onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  // Enhanced mode (options prop) reports the selected value(s) directly.
+  onValueChange?: (value: string | string[]) => void;
   
   // Multi-select
   multiple?: boolean;
@@ -115,6 +111,7 @@ const Select: React.FC<SelectProps> = ({
   value,
   defaultValue,
   onChange,
+  onValueChange,
   multiple = false,
   maxSelections,
   searchable = false,
@@ -204,8 +201,8 @@ const Select: React.FC<SelectProps> = ({
       setInternalValue(newValue);
     }
     
-    if (onChange) {
-      if (isLegacyMode) {
+    if (isLegacyMode) {
+      if (onChange) {
         // For legacy mode, create a synthetic event that matches HTMLSelectElement onChange
         const syntheticEvent = {
           target: {
@@ -218,14 +215,14 @@ const Select: React.FC<SelectProps> = ({
             value: Array.isArray(newValue) ? newValue[newValue.length - 1] || '' : newValue,
           },
         } as React.ChangeEvent<HTMLSelectElement>;
-        
-        (onChange as (e: React.ChangeEvent<HTMLSelectElement>) => void)(syntheticEvent);
-      } else {
-        // For enhanced mode, pass the value directly
-        (onChange as (value: string | string[]) => void)(newValue);
+
+        onChange(syntheticEvent);
       }
+    } else {
+      // For enhanced mode, report the selected value(s) directly
+      onValueChange?.(newValue);
     }
-  }, [isControlled, onChange, isLegacyMode, name]);
+  }, [isControlled, onChange, onValueChange, isLegacyMode, name]);
 
   // Handle option selection
   const handleOptionSelect = useCallback((option: SelectOption) => {
@@ -579,7 +576,7 @@ const Select: React.FC<SelectProps> = ({
 
   // If legacy mode and enhanced features are requested, fall back to standard select
   if (isLegacyMode && (searchable || multiple)) {
-    console.warn('Select: Enhanced features (searchable, multiple) are not supported with children API. Please use options prop instead.');
+    logger.warn('Select: Enhanced features (searchable, multiple) are not supported with children API. Please use options prop instead.');
   }
 
   // Render legacy HTML select for backward compatibility

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Standalone Performance Monitor Widget for feature flag controlled display
 // ABOUTME: This is a simplified version of the PerformanceMonitor for widget use
 
@@ -41,7 +43,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
       const newReport = performanceMonitor.getPerformanceReport();
       setReport(newReport);
     } catch (error) {
-      console.warn('Error updating performance report:', error);
+      logger.warn('Error updating performance report:', error);
     }
   }, []);
 
@@ -123,11 +125,11 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
           title="Click to expand performance details"
         >
           <div className="flex items-center space-x-2 text-sm font-medium">
-            <span>📊</span>
+            <span>ðŸ“Š</span>
             {report && (
               <div className="flex items-center space-x-1">
                 <span>{formatTime(report.startupTime)}</span>
-                <span>•</span>
+                <span>â€¢</span>
                 <span>{formatMemory(report.memoryUsage)}</span>
               </div>
             )}
@@ -140,7 +142,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                <span className="mr-2">📊</span>
+                <span className="mr-2">ðŸ“Š</span>
                 Performance
               </h3>
               <div className="flex items-center space-x-2">
@@ -149,21 +151,21 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
                   className="text-blue-500 hover:text-blue-700 text-sm p-1"
                   title="Refresh data"
                 >
-                  🔄
+                  ðŸ”„
                 </button>
                 <button
                   onClick={handleToggleExpanded}
                   className="text-gray-500 hover:text-gray-700 text-sm p-1"
                   title="Collapse widget"
                 >
-                  ➖
+                  âž–
                 </button>
                 <button
                   onClick={handleHideWidget}
                   className="text-gray-500 hover:text-gray-700 text-lg p-1"
                   title="Hide widget"
                 >
-                  ×
+                  Ã—
                 </button>
               </div>
             </div>

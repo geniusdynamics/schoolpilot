@@ -2,6 +2,7 @@
 // ABOUTME: Allows enabling/disabling modules with dependency validation and visual feedback
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   CheckIcon, 
   XMarkIcon, 
@@ -16,6 +17,7 @@ interface ModuleManagementPanelProps {
 }
 
 const ModuleManagementPanel: React.FC<ModuleManagementPanelProps> = ({ className = '' }) => {
+  const { t } = useTranslation(['navigation', 'common']);
   const [modules, setModules] = useState<ModuleInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
@@ -156,9 +158,9 @@ const ModuleManagementPanel: React.FC<ModuleManagementPanelProps> = ({ className
                   {getStatusIcon(module)}
                   <div>
                     <h4 className="font-medium text-gray-900 capitalize">
-                      {module.id.replace(/([A-Z])/g, ' $1').trim()}
+                      {t(`navigation:${module.id}.title`, { defaultValue: module.id.replace(/([A-Z])/g, ' $1').trim() })}
                     </h4>
-                    <p className="text-sm text-gray-600">{module.description}</p>
+                    <p className="text-sm text-gray-600">{module.description ? t(module.description) : null}</p>
                     {getDependencyStatus(module)}
                   </div>
                 </div>

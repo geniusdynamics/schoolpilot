@@ -1,5 +1,7 @@
-import React, { ReactNode } from 'react';
+﻿import React, { ReactNode } from 'react';
 import Spinner from './Spinner';
+import { logger } from '@/utils/logging';
+
 
 interface TableColumn<T> {
   header: string;
@@ -37,7 +39,7 @@ const Table = <T extends object,>({ columns, data, isLoading = false, emptyState
         return String(value !== undefined && value !== null ? value : '-');
     }
     
-    console.warn(`Table column configuration error for header "${column.header}". Accessor "${String(column.accessor)}" is not a valid key or function, and no render method was provided.`);
+    logger.warn(`Table column configuration error for header "${column.header}". Accessor "${String(column.accessor)}" is not a valid key or function, and no render method was provided.`);
     return '-'; 
   };
 

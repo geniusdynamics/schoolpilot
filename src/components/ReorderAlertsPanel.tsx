@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import FormField from '@/components/ui/forms/FormField';
 import Select, { SelectOption } from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import {
@@ -59,14 +58,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
     onIgnore(alertId);
     setSelectedAlert(null);
   };
-
-  const statusOptions: SelectOption[] = [
-    { label: 'Critical', value: 'critical' },
-    { label: 'Warning', value: 'warning' },
-    { label: 'Normal', value: 'normal' },
-    { label: 'Out of Stock', value: 'out_of_stock' },
-  ];
-
+  
   const columns: DataGridColumn<ReorderAlert>[] = [
     {
       key: 'itemName',
@@ -120,22 +112,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       ),
     },
   ];
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'critical':
-        return <AlertTriangleIcon className="w-5 h-5 text-red-600" />;
-      case 'warning':
-        return <ExclamationCircleIcon className="w-5 h-5 text-yellow-600" />;
-      case 'normal':
-        return <CheckCircleIcon className="w-5 h-5 text-green-600" />;
-      case 'out_of_stock':
-        return <XCircleIcon className="w-5 h-5 text-gray-800" />;
-      default:
-        return <MinusCircleIcon className="w-5 h-5 text-gray-400" />;
-    }
-  };
-
+  
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'critical':

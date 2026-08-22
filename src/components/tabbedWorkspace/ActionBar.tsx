@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { ChevronDown, ChevronRight, Search, Filter, MoreHorizontal } from 'lucide-react';
+
 import { useActionRegistry, ActionDefinition, ActionGroup, ActionContext } from '../../services/ui/actionRegistry';
 import { useTabStore } from '../../stores/tabStore';
 import { cn } from '../../utils/cn';
 import { getIcon } from '../../utils/iconMap';
+import { logger } from '@/utils/logging';
 
 interface ActionBarProps {
   className?: string;
@@ -341,7 +342,7 @@ const ActionBarComponent: React.FC<ActionBarProps & AdditionalProps> = ({
     try {
       await executeAction(actionId, actionContext);
     } catch (error) {
-      console.error('Failed to execute action:', error);
+      logger.error('Failed to execute action:', error);
       // Here you could show a toast notification or error message
     }
   }, [actionContext, executeAction]);

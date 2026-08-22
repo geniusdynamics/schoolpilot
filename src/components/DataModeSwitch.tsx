@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: UI component for switching between data layer modes (development, demo, production)
 // ABOUTME: DEPRECATED - This component is deprecated in favor of UnifiedModeSwitch. Use UnifiedModeSwitch instead.
 
@@ -16,7 +18,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
 }) => {
   // Deprecation warning
   React.useEffect(() => {
-    console.warn('DataModeSwitch is deprecated. Please use UnifiedModeSwitch instead.');
+    logger.warn('DataModeSwitch is deprecated. Please use UnifiedModeSwitch instead.');
   }, []);
   const [status, setStatus] = useState<DataModeStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,7 +78,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
       const currentStatus = await dataModeManager.getStatus();
       setStatus(currentStatus);
     } catch (error) {
-      console.error('Failed to load status:', error);
+      logger.error('Failed to load status:', error);
       setError('Failed to load current status');
     }
   };
@@ -96,7 +98,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
 
       await dataModeManager.switchMode(newMode, options);
     } catch (error) {
-      console.error('Failed to switch mode:', error);
+      logger.error('Failed to switch mode:', error);
       setError(error instanceof Error ? error.message : 'Failed to switch mode');
     } finally {
       setIsLoading(false);
@@ -112,7 +114,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
       await dataModeManager.clearAllData();
       await loadStatus();
     } catch (error) {
-      console.error('Failed to clear data:', error);
+      logger.error('Failed to clear data:', error);
       setError(error instanceof Error ? error.message : 'Failed to clear data');
     } finally {
       setIsLoading(false);
@@ -128,7 +130,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
       await dataModeManager.seedDemoData();
       await loadStatus();
     } catch (error) {
-      console.error('Failed to seed data:', error);
+      logger.error('Failed to seed data:', error);
       setError(error instanceof Error ? error.message : 'Failed to seed data');
     } finally {
       setIsLoading(false);

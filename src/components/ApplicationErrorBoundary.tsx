@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Application-level error boundary for critical error handling
 // ABOUTME: Provides recovery mechanisms and prevents complete application crashes
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { reportError } from '@/config/errorTracking';
 
 interface Props {
@@ -49,7 +51,7 @@ class ApplicationErrorBoundary extends Component<Props, State> {
     const isDatabaseError = this.isDatabaseRelatedError(error);
     const errorCategory = this.categorizeError(error);
     
-    console.error('🚨 [ApplicationErrorBoundary] Critical application error:', {
+    logger.error('ðŸš¨ [ApplicationErrorBoundary] Critical application error:', {
       errorId,
       error: error.message,
       stack: error.stack,
@@ -74,7 +76,7 @@ class ApplicationErrorBoundary extends Component<Props, State> {
         storageInfo: this.getStorageInfo()
       });
     } catch (reportingError) {
-      console.error('Failed to report error to Bugsink:', reportingError);
+      logger.error('Failed to report error to Bugsink:', reportingError);
     }
 
     if (onError) {
@@ -157,7 +159,7 @@ class ApplicationErrorBoundary extends Component<Props, State> {
     const { retryCount } = this.state;
 
     if (retryCount < maxRetries) {
-      console.log(`🔄 [ApplicationErrorBoundary] Retrying... (${retryCount + 1}/${maxRetries})`);
+      logger.info(`ðŸ”„ [ApplicationErrorBoundary] Retrying... (${retryCount + 1}/${maxRetries})`);
       this.setState({
         hasError: false,
         error: null,

@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Error boundary specifically designed to catch React hook errors
 // ABOUTME: Provides fallback UI and error reporting for hook-related issues
 
@@ -33,7 +35,7 @@ export class HookErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log the error
-    console.error(`[HookErrorBoundary] Error in ${this.props.componentName || 'component'}:`, {
+    logger.error(`[HookErrorBoundary] Error in ${this.props.componentName || 'component'}:`, {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack
@@ -126,7 +128,7 @@ export const withHookErrorBoundary = <P extends object>(
 // Hook for handling errors in functional components
 export const useErrorHandler = () => {
   const handleError = React.useCallback((error: Error, context?: string) => {
-    console.error(`[useErrorHandler] ${context || 'Component'} error:`, {
+    logger.error(`[useErrorHandler] ${context || 'Component'} error:`, {
       error: error.message,
       stack: error.stack
     });

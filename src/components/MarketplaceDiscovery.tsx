@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 /**
  * Marketplace Discovery Component
  * 
@@ -23,15 +25,17 @@ import {
   ShoppingCartIcon,
   TagIcon,
 } from '@heroicons/react/24/outline';
-import { getMarketplace } from '../../services/plugin/PluginMarketplace';
+import { getMarketplace } from '@/services/plugin/PluginMarketplace';
 import type {
   MarketplacePlugin,
   MarketplaceKeyConfig,
+} from '@/plugins/types';
+import type {
   MarketplaceCategory,
   MarketplaceFeatured,
   KeyValidationResult,
-} from '../../services/plugin/PluginMarketplace';
-import type { LoadedPlugin, AdminPluginConfig } from '../../plugins/types';
+} from '@/services/plugin/PluginMarketplace';
+import type { LoadedPlugin, AdminPluginConfig } from '@/plugins/types';
 
 // ============================================================================
 // Types
@@ -104,7 +108,7 @@ export const MarketplaceDiscovery: React.FC<MarketplaceDiscoveryProps> = ({
         }
       }
     } catch (err) {
-      console.error('Failed to load marketplace data:', err);
+      logger.error('Failed to load marketplace data:', err);
       setError('Failed to connect to marketplace');
     } finally {
       setIsLoading(false);
@@ -179,7 +183,7 @@ export const MarketplaceDiscovery: React.FC<MarketplaceDiscoveryProps> = ({
       const results = await marketplace.searchPlugins(query);
       setPlugins(results.plugins);
     } catch (err) {
-      console.error('Search failed:', err);
+      logger.error('Search failed:', err);
     } finally {
       setIsLoading(false);
     }
@@ -192,7 +196,7 @@ export const MarketplaceDiscovery: React.FC<MarketplaceDiscoveryProps> = ({
     try {
       await onInstall(pluginId);
     } catch (err) {
-      console.error('Install failed:', err);
+      logger.error('Install failed:', err);
       setError('Failed to install plugin');
     } finally {
       setInstallingPlugin(null);
@@ -243,7 +247,7 @@ export const MarketplaceDiscovery: React.FC<MarketplaceDiscoveryProps> = ({
                 <span className="flex items-center gap-1">
                   <CheckCircleIcon className="h-4 w-4 text-green-500" />
                   {keyConfig.plan.charAt(0).toUpperCase() + keyConfig.plan.slice(1)} Plan
-                  {' • '}
+                  {' â€¢ '}
                   {keyConfig.permissions.maxPlugins} plugins max
                 </span>
               ) : (

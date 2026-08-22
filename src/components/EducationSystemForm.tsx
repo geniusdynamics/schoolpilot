@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import FormField from '@/components/ui/forms/FormField';
+import Input from '@/components/ui/Input';
 import Select, { SelectOption } from '@/components/ui/Select';
 
 interface EducationSystemConfig {
@@ -41,6 +40,11 @@ export const EducationSystemForm: React.FC<EducationSystemFormProps> = ({
     onCancel();
   };
 
+  const parseOptionalInt = (raw: string): number | undefined => {
+    const parsed = parseInt(raw, 10);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  };
+
   const systemTypeOptions: SelectOption[] = [
     { label: 'Primary', value: 'primary' },
     { label: 'Secondary', value: 'secondary' },
@@ -73,98 +77,92 @@ export const EducationSystemForm: React.FC<EducationSystemFormProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField
+        <Input
           label="System Name"
           type="text"
           value={config.name || ''}
-          onChange={(e) => setConfig({ ...config, name: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig({ ...config, name: e.target.value })}
           placeholder="Enter system name"
           required
         />
 
-        <FormField
+        <Input
           label="Country Code"
           type="text"
           value={config.country_code || ''}
-          onChange={(e) => setConfig({ ...config, country_code: e.target.value })}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig({ ...config, country_code: e.target.value })}
           placeholder="e.g., KE for Kenya"
           required
         />
 
-        <FormField
+        <Select
           label="System Type"
-          type="select"
           value={config.system_type || 'secondary'}
-          onChange={(e) => setConfig({ ...config, system_type: e.target.value })}
+          onValueChange={(value) => setConfig({ ...config, system_type: value as string })}
           options={systemTypeOptions}
-          required
         />
 
-        <FormField
+        <Select
           label="Grading System Type"
-          type="select"
           value={config.grading_system_type || 'letter_grades'}
-          onChange={(e) => setConfig({ ...config, grading_system_type: e.target.value })}
+          onValueChange={(value) => setConfig({ ...config, grading_system_type: value as string })}
           options={gradingSystemOptions}
-          required
         />
 
-        <FormField
+        <Input
           label="Min Grade Level"
           type="number"
-          value={config.min_grade_level || ''}
-          onChange={(e) => setConfig({ ...config, min_grade_level: parseInt(e.target.value) || undefined })}
+          value={config.min_grade_level ?? ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig({ ...config, min_grade_level: parseOptionalInt(e.target.value) })}
           placeholder="Minimum grade level"
         />
 
-        <FormField
+        <Input
           label="Max Grade Level"
           type="number"
-          value={config.max_grade_level || ''}
-          onChange={(e) => setConfig({ ...config, max_grade_level: parseInt(e.target.value) || undefined })}
+          value={config.max_grade_level ?? ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig({ ...config, max_grade_level: parseOptionalInt(e.target.value) })}
           placeholder="Maximum grade level"
         />
 
-        <FormField
+        <Select
           label="Academic Period Type"
-          type="select"
           value={config.academic_period_type || 'term'}
-          onChange={(e) => setConfig({ ...config, academic_period_type: e.target.value })}
+          onValueChange={(value) => setConfig({ ...config, academic_period_type: value as string })}
           options={academicPeriodOptions}
-          required
         />
 
-        <FormField
+        <Input
           label="Periods Per Year"
           type="number"
-          value={config.periods_per_year || 3}
-          onChange={(e) => setConfig({ ...config, periods_per_year: parseInt(e.target.value) || 3 })}
+          value={config.periods_per_year ?? 3}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig({ ...config, periods_per_year: parseOptionalInt(e.target.value) ?? 3 })}
           min="1"
           max="12"
           required
         />
 
-        <FormField
+        <Input
           label="Passing Grade"
           type="number"
-          value={config.passing_grade || ''}
-          onChange={(e) => setConfig({ ...config, passing_grade: parseInt(e.target.value) || undefined })}
+          value={config.passing_grade ?? ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig({ ...config, passing_grade: parseOptionalInt(e.target.value) })}
           placeholder="Minimum passing grade"
         />
 
-        <FormField
+        <Input
           label="Max Grade Value"
           type="number"
-          value={config.max_grade_value || ''}
-          onChange={(e) => setConfig({ ...config, max_grade_value: parseInt(e.target.value) || undefined })}
+          value={config.max_grade_value ?? ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig({ ...config, max_grade_value: parseOptionalInt(e.target.value) })}
           placeholder="Maximum grade value"
         />
 
-        <FormField
+        <Input
           label="Grade Precision"
           type="number"
-          value={config.grade_precision || ''}
-          onChange={(e) => setConfig({ ...config, grade_precision: parseInt(e.target.value) || undefined })}
+          value={config.grade_precision ?? ''}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfig({ ...config, grade_precision: parseOptionalInt(e.target.value) })}
           placeholder="Number of decimal places"
         />
       </div>

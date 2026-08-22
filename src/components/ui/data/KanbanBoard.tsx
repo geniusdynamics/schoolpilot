@@ -1,9 +1,9 @@
 // ABOUTME: Enhanced Kanban Board component with drag-and-drop functionality
 // ABOUTME: Modern, interactive kanban cards and columns with mobile-responsive touch support
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { designTokens } from '../../../utils/designTokens';
-import { useAnimation, transitions } from '../../../utils/animations';
+
 import { useReducedMotion } from '../../../utils/accessibility';
 
 // Types and interfaces

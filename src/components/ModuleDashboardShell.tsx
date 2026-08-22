@@ -1,4 +1,4 @@
-// ABOUTME: Reusable shell for module dashboards with consistent metrics, actions, charts, and notifications layout.
+﻿// ABOUTME: Reusable shell for module dashboards with consistent metrics, actions, charts, and notifications layout.
 // ABOUTME: Provides an accessible, responsive, and route-safe structure while allowing module-specific content blocks.
 // ABOUTME: Enhanced with alert banners, quick nav cards, and trend-enabled metric cards.
 
@@ -221,7 +221,6 @@ const EnhancedMetricCard: React.FC<DashboardMetric> = ({ label, value, descripti
 
   const handleClick = () => {
     if (to) navigate(to);
-    else if (onClick) onClick();
   };
 
   const content = (

@@ -1,7 +1,7 @@
 // ABOUTME: Demo component showcasing comprehensive tooltip system functionality
 // ABOUTME: Demonstrates various tooltip types, triggers, and positioning options
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Tooltip,
   InfoTooltip,
@@ -45,8 +45,8 @@ export default function TooltipDemo() {
                   <strong>Rich Content Tooltip</strong>
                   <p className="mt-1">This tooltip contains multiple elements and formatting.</p>
                   <ul className="mt-2 text-xs">
-                    <li>• Bullet point one</li>
-                    <li>• Bullet point two</li>
+                    <li>â€¢ Bullet point one</li>
+                    <li>â€¢ Bullet point two</li>
                   </ul>
                 </div>
               }

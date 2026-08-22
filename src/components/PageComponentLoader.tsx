@@ -1,7 +1,7 @@
 // ABOUTME: Enhanced page component loader with caching and health monitoring
 // ABOUTME: Provides robust loading with fallback strategies and performance tracking
 
-import React, { Suspense, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { Suspense, useState, useCallback, useMemo } from 'react';
 import PageLoadingIndicator from './PageLoadingIndicator';
 import PageErrorBoundary from './PageErrorBoundary';
 

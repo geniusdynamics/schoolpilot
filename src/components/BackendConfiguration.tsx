@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Backend configuration component for managing backend architecture settings
 // ABOUTME: Provides UI for switching between different backend types and viewing capabilities
 
@@ -55,7 +57,7 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
       const available = await backendArchitecture.isBackendAvailable();
       setIsApiAvailable(available);
     } catch (error) {
-      console.warn('Error checking API availability:', error);
+      logger.warn('Error checking API availability:', error);
       setIsApiAvailable(false);
     } finally {
       setIsCheckingApi(false);
@@ -217,7 +219,7 @@ export const BackendConfiguration: React.FC<BackendConfigurationProps> = ({
       {currentBackend !== 'frontend-only' && !isApiAvailable && !isCheckingApi && (
         <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded">
           <div className="flex items-center">
-            <span className="text-orange-600 text-sm font-medium">⚠️ API Unavailable</span>
+            <span className="text-orange-600 text-sm font-medium">âš ï¸ API Unavailable</span>
           </div>
           <p className="text-xs text-orange-700 mt-1">
             The selected backend requires API access, but the API is currently unavailable.

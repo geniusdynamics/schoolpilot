@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Performance dashboard component for detailed performance analysis
 // ABOUTME: Provides comprehensive performance metrics and analysis tools
 
@@ -23,7 +25,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
   // Use event-driven performance updates
   const [lastRefresh, setLastRefresh] = useState(Date.now());
   const { shouldRefresh, emitEvent } = usePerformanceEvents(
-    (event) => {
+    (_event) => {
       // Only refresh if enough time has passed and it's a relevant event
       if (shouldRefresh(lastRefresh, 2000)) { // Minimum 2 seconds between refreshes
         updateReport();
@@ -129,12 +131,12 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
       {/* Navigation */}
       <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
         {[
-          { key: 'overview', label: 'Overview', icon: '📊' },
-          { key: 'modules', label: 'Modules', icon: '📦' },
-          { key: 'data', label: 'Data Ops', icon: '💾' },
-          { key: 'interactions', label: 'User Actions', icon: '👆' },
-          { key: 'charts', label: 'Charts', icon: '📈' },
-          { key: 'benchmarks', label: 'Benchmarks', icon: '🎯' }
+          { key: 'overview', label: 'Overview', icon: 'ðŸ“Š' },
+          { key: 'modules', label: 'Modules', icon: 'ðŸ“¦' },
+          { key: 'data', label: 'Data Ops', icon: 'ðŸ’¾' },
+          { key: 'interactions', label: 'User Actions', icon: 'ðŸ‘†' },
+          { key: 'charts', label: 'Charts', icon: 'ðŸ“ˆ' },
+          { key: 'benchmarks', label: 'Benchmarks', icon: 'ðŸŽ¯' }
         ].map(tab => (
           <button
             key={tab.key}
@@ -318,7 +320,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Trends</h3>
               <div className="text-center text-gray-500 py-8">
-                <p>📈 Performance charts would be implemented here</p>
+                <p>ðŸ“ˆ Performance charts would be implemented here</p>
                 <p className="text-sm mt-2">Consider integrating with Chart.js or Recharts for visualization</p>
               </div>
             </div>
@@ -366,7 +368,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({ className =
               onClick={() => {
                 trackUserInteraction('export_performance_report');
                 const data = performanceMonitor.exportMetrics();
-                console.log('Performance Report Export:', data);
+                logger.info('Performance Report Export:', data);
                 // Could also trigger download
               }}
               className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"

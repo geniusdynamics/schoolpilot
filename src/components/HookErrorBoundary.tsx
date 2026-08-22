@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Error boundary component specifically for handling React Hook errors
 // ABOUTME: Provides fallback UI and error recovery for hook order violations and module loading issues
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangleIcon, RefreshCwIcon } from "./ui/icons";
 
 interface Props {
@@ -61,7 +63,7 @@ class HookErrorBoundary extends Component<Props, State> {
     }
 
     // Log the error for debugging
-    console.error('Hook Error Boundary caught an error:', error, errorInfo);
+    logger.error('Hook Error Boundary caught an error:', error, errorInfo);
 
     // Auto-retry for hook errors (they might be transient due to module loading)
     if (this.state.retryCount < this.maxRetries) {

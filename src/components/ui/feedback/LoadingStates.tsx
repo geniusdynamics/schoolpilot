@@ -3,8 +3,7 @@
 
 import React from 'react';
 import { useReducedMotion } from '../../../utils/accessibility';
-import { designTokens } from '../../../utils/designTokens';
-import { createAnimation } from '../../../utils/animations';
+
 
 // Base skeleton component with shimmer animation
 interface SkeletonProps {

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Enhanced FeatureSettings using the new AdaptiveTabs system
  * Demonstrates migration from custom tab implementation to unified system
@@ -18,7 +20,7 @@ import {
 
 // Import the new unified components
 import AdaptiveTabs, { TabConfig, ActionConfig } from '@/components/ui/AdaptiveTabs';
-import { useSimpleActions, usePageActions } from '@/hooks/useSimpleActions';
+import { usePageActions } from '@/hooks/useSimpleActions';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { useAppData } from '@/contexts/AppDataContext';
 
@@ -82,7 +84,7 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
           // Simulate refresh delay
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
-          console.error('Refresh failed:', error);
+          logger.error('Refresh failed:', error);
         } finally {
           setRefreshing(false);
         }
@@ -135,7 +137,6 @@ export const FeatureSettings: React.FC<FeatureSettingsProps> = ({
     };
     updateConfig(newConfig);
   };
-
 
 
   const getStatusBadge = (status: boolean, label: string) => (

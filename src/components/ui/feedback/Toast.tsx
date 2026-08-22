@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Enhanced toast notification component with spring animations and gesture support
 // ABOUTME: Supports success, error, warning, info variants with auto-dismiss, progress indicators, pause-on-hover, and swipe-to-dismiss
 
@@ -106,7 +108,7 @@ const Toast: React.FC<ToastProps> = ({
           oscillator.start(audioContext.currentTime);
           oscillator.stop(audioContext.currentTime + 0.3);
         } catch (error) {
-          console.warn('Sound notification failed:', error);
+          logger.warn('Sound notification failed:', error);
         }
       };
       

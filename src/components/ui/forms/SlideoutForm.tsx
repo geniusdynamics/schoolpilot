@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Enhanced slideout form component with spring animations, gestures, and modern interactions
 // ABOUTME: Supports different positions, auto-save, resize handles, backdrop blur, and accessibility features
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { X, Loader2, GripVertical } from 'lucide-react';
@@ -436,7 +438,7 @@ export const SlideoutForm: React.FC<SlideoutFormProps> = ({
         setHasUnsavedChanges(false);
         announceToScreenReader('Changes saved automatically', 'polite');
       } catch (error) {
-        console.error('Auto-save failed:', error);
+        logger.error('Auto-save failed:', error);
         announceToScreenReader('Auto-save failed', 'assertive');
       } finally {
         setIsSaving(false);
@@ -461,7 +463,7 @@ export const SlideoutForm: React.FC<SlideoutFormProps> = ({
       setHasUnsavedChanges(false);
       announceToScreenReader('Changes saved successfully', 'polite');
     } catch (error) {
-      console.error('Save failed:', error);
+      logger.error('Save failed:', error);
       announceToScreenReader('Save failed', 'assertive');
     } finally {
       setIsSaving(false);

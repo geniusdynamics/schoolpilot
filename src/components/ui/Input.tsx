@@ -8,7 +8,8 @@ import { useTransition } from '@/utils/animations';
 import { designTokens } from '@/utils/designTokens';
 
 export interface ModernInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
-  label: string;
+  /** Visible/floating label. Optional because inputs are frequently wrapped by FormField, which supplies the label. */
+  label?: string;
   error?: string;
   success?: boolean;
   loading?: boolean;

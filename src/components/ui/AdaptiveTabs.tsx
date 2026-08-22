@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * AdaptiveTabs - Unified Tab Component for SchoolPilot3
  * Provides platform-aware tabbed interface for web, desktop, and mobile
@@ -5,7 +7,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback, createContext, useContext } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { X, Plus, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Plus, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { usePlatformInfo, getPlatformConfig } from '@/utils/platformDetection';
 import { getIcon } from '@/utils/iconMap';
@@ -252,7 +254,7 @@ const ActionBar: React.FC<ActionBarProps> = ({
     try {
       await action.onClick();
     } catch (error) {
-      console.error('Action execution failed:', error);
+      logger.error('Action execution failed:', error);
     }
   }, []);
   

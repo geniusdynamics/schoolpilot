@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: WizardForm component for multi-step forms with progress indicators
 // ABOUTME: Provides step navigation, validation, and progress tracking
 
-import React, { ReactNode, useState, useCallback, useMemo, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { ReactNode, useState, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useTransition } from '../../../utils/animations';
 import Button from '../Button';
 import { ChevronLeftIcon, ChevronRightIcon, CheckIcon } from '../icons';
@@ -163,7 +165,7 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
           return;
         }
       } catch (error) {
-        console.error('Step validation error:', error);
+        logger.error('Step validation error:', error);
         return;
       } finally {
         setIsValidating(false);
@@ -190,7 +192,7 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
           return;
         }
       } catch (error) {
-        console.error('Step validation error:', error);
+        logger.error('Step validation error:', error);
         return;
       } finally {
         setIsValidating(false);
@@ -201,7 +203,7 @@ const WizardForm = forwardRef<WizardFormRef, WizardFormProps>(({
     try {
       await onComplete();
     } catch (error) {
-      console.error('Form completion error:', error);
+      logger.error('Form completion error:', error);
     } finally {
       setIsSubmitting(false);
     }

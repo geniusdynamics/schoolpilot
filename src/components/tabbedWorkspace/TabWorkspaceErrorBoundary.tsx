@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Error boundary component for the tabbed workspace system.
 // ABOUTME: Provides fallback UI and error handling for tab content failures.
 
@@ -31,7 +33,7 @@ export class TabWorkspaceErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error to error reporting service
-    console.error('Tab Workspace Error:', error, errorInfo);
+    logger.error('Tab Workspace Error:', error, errorInfo);
   }
 
   handleRetry = () => {

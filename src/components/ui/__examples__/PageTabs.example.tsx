@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { PageTabs, PageTab, Card, FilterBar } from '@/components/ui';
+
 import { 
   HomeIcon, 
   BookOpenIcon, 
@@ -165,96 +165,12 @@ const ExamAnalysisPageWithPageTabs: React.FC = () => {
 // EXAMPLE 2: Reports ClassLists with PageTabs (Simpler)
 // ============================================================================
 
-const ClassListsWithPageTabs: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('class-lists');
-
-  const tabs: PageTab[] = [
-    { id: 'class-lists', label: 'Class Lists', icon: <HomeIcon className="h-4 w-4" /> },
-    { id: 'analysis-report', label: 'Analysis Report', icon: <ChartBarIcon className="h-4 w-4" /> },
-    { id: 'report-forms', label: 'Report Forms', icon: <BookOpenIcon className="h-4 w-4" /> },
-    { id: 'merit-lists', label: 'Merit Lists', icon: <ChartPieIcon className="h-4 w-4" /> },
-  ];
-
-  const filters = [
-    {
-      id: 'form',
-      label: 'Form',
-      placeholder: 'Select Form',
-      options: [
-        { value: '', label: 'Select Form' },
-        { value: 'form-1', label: 'Form 1' },
-        { value: 'form-2', label: 'Form 2' },
-        { value: 'form-3', label: 'Form 3' },
-        { value: 'form-4', label: 'Form 4' },
-      ],
-    },
-    {
-      id: 'stream',
-      label: 'Stream',
-      placeholder: 'Select Stream (Optional)',
-      options: [
-        { value: '', label: 'Select Stream (Optional)' },
-        { value: 'alpha', label: 'Alpha' },
-        { value: 'moxie', label: 'Moxie' },
-        { value: 'north', label: 'North' },
-      ],
-      optional: true,
-    },
-  ];
-
-  return (
-    <PageTabs
-      tabs={tabs}
-      activeTabId={activeTab}
-      onTabChange={setActiveTab}
-      variant="sidebar"
-      globalFilters={filters}
-      searchLabel="Generate Report"
-      renderContent={(tabId) => {
-        // Return content based on tab
-        return (
-          <Card>
-            <div className="p-8 text-center">
-              <h3 className="text-lg font-medium text-gray-900 capitalize">
-                {tabs.find(t => t.id === tabId)?.label}
-              </h3>
-              <p className="text-gray-500 mt-2">
-                Select filters above and click "Generate Report" to view results.
-              </p>
-            </div>
-          </Card>
-        );
-      }}
-    />
-  );
-};
 
 // ============================================================================
 // EXAMPLE 3: Simple Page Tabs (no filters)
 // ============================================================================
 
-import { SimplePageTabs } from '@/components/ui';
 
-const SimpleExample: React.FC = () => {
-  return (
-    <SimplePageTabs
-      tabs={[
-        { id: 'overview', label: 'Overview' },
-        { id: 'details', label: 'Details' },
-        { id: 'settings', label: 'Settings' },
-      ]}
-      defaultTabId="overview"
-      variant="sidebar"
-      renderContent={(tabId) => (
-        <Card>
-          <div className="p-6">
-            <h3 className="text-lg font-medium capitalize">{tabId} Content</h3>
-          </div>
-        </Card>
-      )}
-    />
-  );
-};
 
 // ============================================================================
 // MIGRATION: From ClassListsPage pattern to PageTabs

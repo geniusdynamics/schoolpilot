@@ -4,10 +4,11 @@
 import React, { useState } from 'react';
 import { useModuleHealth } from '../hooks/useModuleHealth';
 import { ModuleHealthStatus } from '../services/module/enhancedModuleLoader';
-import { CheckCircleIcon, AlertTriangleIcon, AlertCircleIcon, XCircleIcon } from './ui/icons';
+
 import ModuleHealthDashboard from './ModuleHealthDashboard';
 import Modal from './ui/Modal';
 import Button from './ui/Button';
+import { AlertCircleIcon, AlertTriangleIcon, CheckCircleIcon } from '@/components/ui/icons';
 
 interface ModuleHealthIndicatorProps {
   showCount?: boolean;

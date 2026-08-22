@@ -10,7 +10,8 @@ export type CardVariant = 'default' | 'elevated' | 'outlined' | 'filled' | 'inte
 export type CardSize = 'sm' | 'md' | 'lg' | 'xl';
 
 interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
-  title?: string;
+  title?: React.ReactNode;
+  subtitle?: string; // Optional secondary line rendered under the title
   children: ReactNode;
   className?: string;
   actions?: ReactNode; // For buttons or links in the header
@@ -30,6 +31,7 @@ interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
 
 const Card = forwardRef<HTMLDivElement, CardProps>(({
   title,
+  subtitle,
   children,
   className = '',
   actions,
@@ -177,7 +179,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
       {loading && <LoadingOverlay />}
       
       {/* Header Section */}
-      {(title || actions || icon) && (
+      {(title || subtitle || actions || icon) && (
         <div className={`
           border-b border-gray-200 flex justify-between items-center
           ${sizeStyles.header}
@@ -189,10 +191,19 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
                 {icon}
               </span>
             )}
-            {title && (
-              <h3 className="text-base leading-5 font-semibold text-gray-900 truncate group-hover:text-gray-800 transition-colors duration-200">
-                {title}
-              </h3>
+            {(title || subtitle) && (
+              <div className="min-w-0">
+                {title && (
+                  <h3 className="text-base leading-5 font-semibold text-gray-900 truncate group-hover:text-gray-800 transition-colors duration-200">
+                    {title}
+                  </h3>
+                )}
+                {subtitle && (
+                  <p className="mt-0.5 text-sm text-gray-500 truncate">
+                    {subtitle}
+                  </p>
+                )}
+              </div>
             )}
           </div>
           {actions && (

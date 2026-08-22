@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Fallback UI component for database initialization failures
 // ABOUTME: Provides user-friendly interface with recovery options when database fails to initialize
 
@@ -63,7 +65,7 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
         onLine: navigator.onLine
       });
     } catch (e) {
-      console.error('Failed to collect system info:', e instanceof Error ? e.message : String(e));
+      logger.error('Failed to collect system info:', e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -73,7 +75,7 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
       try {
         await onRetry();
       } catch (e) {
-        console.error('Retry failed:', e);
+        logger.error('Retry failed:', e);
       } finally {
         setIsRetrying(false);
       }
@@ -150,19 +152,19 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
               <div className="flex justify-between">
                 <span>IndexedDB:</span>
                 <span className={storageInfo?.indexedDBSupported ? 'text-green-600' : 'text-red-600'}>
-                  {storageInfo?.indexedDBSupported ? '✓ Supported' : '✗ Not Supported'}
+                  {storageInfo?.indexedDBSupported ? 'âœ“ Supported' : 'âœ— Not Supported'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>OPFS:</span>
                 <span className={storageInfo?.opfsSupported ? 'text-green-600' : 'text-red-600'}>
-                  {storageInfo?.opfsSupported ? '✓ Supported' : '✗ Not Supported'}
+                  {storageInfo?.opfsSupported ? 'âœ“ Supported' : 'âœ— Not Supported'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>WebAssembly:</span>
                 <span className={storageInfo?.webAssemblySupported ? 'text-green-600' : 'text-red-600'}>
-                  {storageInfo?.webAssemblySupported ? '✓ Supported' : '✗ Not Supported'}
+                  {storageInfo?.webAssemblySupported ? 'âœ“ Supported' : 'âœ— Not Supported'}
                 </span>
               </div>
             </div>
@@ -180,7 +182,7 @@ const DatabaseInitializationFallback: React.FC<DatabaseInitializationFallbackPro
               <div className="flex justify-between">
                 <span>Online:</span>
                 <span className={browserInfo?.onLine ? 'text-green-600' : 'text-red-600'}>
-                  {browserInfo?.onLine ? '✓ Connected' : '✗ Offline'}
+                  {browserInfo?.onLine ? 'âœ“ Connected' : 'âœ— Offline'}
                 </span>
               </div>
             </div>

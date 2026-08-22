@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Global error boundary for catching and displaying errors in the UI.
 // ABOUTME: Prevents blank/white screens by showing a fallback error message.
 
@@ -29,7 +31,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundar
     // Check if this is a database-related error
     const isDatabaseError = this.isDatabaseRelatedError(error);
     
-    console.error('🚨🚨🚨 [ErrorBoundary] Caught error:', {
+    logger.error('ðŸš¨ðŸš¨ðŸš¨ [ErrorBoundary] Caught error:', {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
@@ -38,7 +40,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorBoundar
     
     // Enhanced error reporting for database errors
     if (isDatabaseError) {
-      console.error('🗄️ [ErrorBoundary] Database-related error detected');
+      logger.error('ðŸ—„ï¸ [ErrorBoundary] Database-related error detected');
       // Additional database context could be collected here
     }
     

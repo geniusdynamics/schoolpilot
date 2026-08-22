@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: TabbedForm component for multi-step forms with tab navigation and progress indicators
 // ABOUTME: Supports validation state indicators, responsive mobile navigation, and form state preservation
 
@@ -131,7 +133,7 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
         const isValid = tab.validation();
         return isValid ? 'success' : 'error';
       } catch (error) {
-        console.error(`Validation error for tab ${tab.id}:`, error);
+        logger.error(`Validation error for tab ${tab.id}:`, error);
         return 'error';
       }
     }
@@ -277,7 +279,7 @@ const TabbedForm: React.FC<TabbedFormProps> = ({
       await onSubmit(tabStates);
       announceToScreenReader('Form submitted successfully', 'polite');
     } catch (error) {
-      console.error('Form submission error:', error);
+      logger.error('Form submission error:', error);
       announceToScreenReader('An error occurred while submitting the form', 'assertive');
     } finally {
       setIsSubmitting(false);

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Navigation-specific error boundary with recovery options
 // ABOUTME: Provides graceful handling of navigation failures and route resolution errors
 
@@ -62,7 +64,7 @@ class NavigationErrorBoundary extends React.Component<
     });
 
     // Log navigation-specific error
-    console.error(`🧭 [NavigationErrorBoundary] Navigation error on route "${currentRoute}":`, {
+    logger.error(`ðŸ§­ [NavigationErrorBoundary] Navigation error on route "${currentRoute}":`, {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
@@ -95,11 +97,11 @@ class NavigationErrorBoundary extends React.Component<
     const maxRetries = this.props.maxRetries || 2;
     
     if (this.state.retryCount >= maxRetries) {
-      console.warn('Maximum navigation retry attempts reached');
+      logger.warn('Maximum navigation retry attempts reached');
       return;
     }
 
-    console.log(`🔄 [NavigationErrorBoundary] Retrying navigation... (${this.state.retryCount + 1}/${maxRetries})`);
+    logger.info(`ðŸ”„ [NavigationErrorBoundary] Retrying navigation... (${this.state.retryCount + 1}/${maxRetries})`);
     
     this.setState(prevState => ({
       hasError: false,
@@ -118,7 +120,7 @@ class NavigationErrorBoundary extends React.Component<
         errorInfo: null
       });
     } catch (error) {
-      console.error('Failed to navigate to dashboard:', error);
+      logger.error('Failed to navigate to dashboard:', error);
       // Force page reload as last resort
       window.location.reload();
     }
@@ -139,7 +141,7 @@ class NavigationErrorBoundary extends React.Component<
         this.handleGoHome();
       }
     } catch (error) {
-      console.error('Failed to go back:', error);
+      logger.error('Failed to go back:', error);
       this.handleGoHome();
     }
   };
@@ -153,7 +155,7 @@ class NavigationErrorBoundary extends React.Component<
         errorInfo: null
       });
     } catch (error) {
-      console.error(`Failed to navigate to fallback route ${route}:`, error);
+      logger.error(`Failed to navigate to fallback route ${route}:`, error);
     }
   };
 

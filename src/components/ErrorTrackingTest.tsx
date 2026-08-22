@@ -1,8 +1,10 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Test component for verifying Bugsink error tracking integration
 // ABOUTME: Provides buttons to trigger different types of errors for testing
 
 import React, { useState } from 'react';
-import { reportError, reportMessage, Sentry } from '@/config/errorTracking';
+import { reportError } from '@/config/errorTracking';
 import testErrorTracking from '@/utils/testErrorTracking';
 
 const ErrorTrackingTest: React.FC = () => {
@@ -38,7 +40,7 @@ const ErrorTrackingTest: React.FC = () => {
         component: 'ErrorTrackingTest'
       });
       updateTestResult('asyncError', true);
-      console.log('✅ Async error sent to Bugsink');
+      logger.info('âœ… Async error sent to Bugsink');
     }
   };
 
@@ -67,9 +69,9 @@ const ErrorTrackingTest: React.FC = () => {
     try {
       const results = await testErrorTracking.runAllTests();
       setTestResults(results);
-      console.log('🎉 All tests completed! Check your Bugsink dashboard.');
+      logger.info('ðŸŽ‰ All tests completed! Check your Bugsink dashboard.');
     } catch (error) {
-      console.error('❌ Error running tests:', error);
+      logger.error('âŒ Error running tests:', error);
     } finally {
       setIsRunningTests(false);
     }
@@ -86,19 +88,19 @@ const ErrorTrackingTest: React.FC = () => {
   };
 
   const getTestResultIcon = (testName: string) => {
-    if (!(testName in testResults)) return '⚪';
-    return testResults[testName] ? '✅' : '❌';
+    if (!(testName in testResults)) return 'âšª';
+    return testResults[testName] ? 'âœ…' : 'âŒ';
   };
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">
-        🐛 Bugsink Error Tracking Test Panel
+        ðŸ› Bugsink Error Tracking Test Panel
       </h2>
       <p className="text-gray-600 mb-6">
         Use these buttons to test Bugsink error tracking integration. Check your Bugsink dashboard to see the captured errors.
         <br />
-        <span className="text-sm text-blue-600">✅ = Success, ❌ = Failed, ⚪ = Not tested</span>
+        <span className="text-sm text-blue-600">âœ… = Success, âŒ = Failed, âšª = Not tested</span>
       </p>
       
       {/* Quick Test Button */}
@@ -112,7 +114,7 @@ const ErrorTrackingTest: React.FC = () => {
               : 'bg-indigo-600 hover:bg-indigo-700'
           }`}
         >
-          {isRunningTests ? '🔄 Running All Tests...' : '🚀 Run All Tests'}
+          {isRunningTests ? 'ðŸ”„ Running All Tests...' : 'ðŸš€ Run All Tests'}
         </button>
       </div>
       
@@ -122,7 +124,7 @@ const ErrorTrackingTest: React.FC = () => {
           onClick={triggerJavaScriptError}
           className="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
-          <span>🚨 Trigger JS Error</span>
+          <span>ðŸš¨ Trigger JS Error</span>
           <span>{getTestResultIcon('basicError')}</span>
         </button>
         
@@ -130,7 +132,7 @@ const ErrorTrackingTest: React.FC = () => {
           onClick={triggerAsyncError}
           className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
-          <span>⏰ Async Error</span>
+          <span>â° Async Error</span>
           <span>{getTestResultIcon('asyncError')}</span>
         </button>
         
@@ -138,7 +140,7 @@ const ErrorTrackingTest: React.FC = () => {
           onClick={triggerCustomMessage}
           className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
-          <span>💬 Info Message</span>
+          <span>ðŸ’¬ Info Message</span>
           <span>{getTestResultIcon('infoMessage')}</span>
         </button>
         
@@ -146,7 +148,7 @@ const ErrorTrackingTest: React.FC = () => {
           onClick={triggerWarning}
           className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
-          <span>⚠️ Warning</span>
+          <span>âš ï¸ Warning</span>
           <span>{getTestResultIcon('warningMessage')}</span>
         </button>
         
@@ -154,7 +156,7 @@ const ErrorTrackingTest: React.FC = () => {
           onClick={triggerCaptureException}
           className="bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
-          <span>🎯 Direct Exception</span>
+          <span>ðŸŽ¯ Direct Exception</span>
           <span>{getTestResultIcon('directCapture')}</span>
         </button>
         
@@ -162,7 +164,7 @@ const ErrorTrackingTest: React.FC = () => {
           onClick={addBreadcrumb}
           className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
-          <span>🍞 Breadcrumb</span>
+          <span>ðŸž Breadcrumb</span>
           <span>{getTestResultIcon('breadcrumb')}</span>
         </button>
         
@@ -170,7 +172,7 @@ const ErrorTrackingTest: React.FC = () => {
           onClick={testUserContext}
           className="bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
-          <span>👤 User Context</span>
+          <span>ðŸ‘¤ User Context</span>
           <span>{getTestResultIcon('userContext')}</span>
         </button>
         
@@ -178,7 +180,7 @@ const ErrorTrackingTest: React.FC = () => {
           onClick={testTagsAndExtra}
           className="bg-pink-500 hover:bg-pink-600 text-white font-medium py-2 px-4 rounded transition-colors flex items-center justify-between"
         >
-          <span>🏷️ Tags & Extra</span>
+          <span>ðŸ·ï¸ Tags & Extra</span>
           <span>{getTestResultIcon('tagsAndExtra')}</span>
         </button>
       </div>
@@ -190,7 +192,7 @@ const ErrorTrackingTest: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
             {Object.entries(testResults).map(([testName, success]) => (
               <div key={testName} className={`p-2 rounded ${success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                <span className="mr-1">{success ? '✅' : '❌'}</span>
+                <span className="mr-1">{success ? 'âœ…' : 'âŒ'}</span>
                 {testName}
               </div>
             ))}
@@ -202,19 +204,19 @@ const ErrorTrackingTest: React.FC = () => {
       <div className="p-4 bg-gray-100 rounded">
         <h3 className="font-medium text-gray-800 mb-2">Instructions:</h3>
         <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Click "Run All Tests" to test all functionality at once</li>
-          <li>• Or click individual buttons to test specific features</li>
-          <li>• Check browser console for detailed logs</li>
-          <li>• Verify errors appear in your Bugsink dashboard</li>
-          <li>• Red button will trigger actual errors (caught by error boundary)</li>
-          <li>• Network errors are expected if Bugsink server is not accessible</li>
+          <li>â€¢ Click "Run All Tests" to test all functionality at once</li>
+          <li>â€¢ Or click individual buttons to test specific features</li>
+          <li>â€¢ Check browser console for detailed logs</li>
+          <li>â€¢ Verify errors appear in your Bugsink dashboard</li>
+          <li>â€¢ Red button will trigger actual errors (caught by error boundary)</li>
+          <li>â€¢ Network errors are expected if Bugsink server is not accessible</li>
         </ul>
       </div>
       
       {/* Connection Status */}
       <div className="mt-4 p-3 bg-blue-50 rounded">
         <p className="text-sm text-blue-800">
-          <strong>Bugsink DSN:</strong> {import.meta.env.VITE_BUGSINK_DSN ? '✅ Configured' : '❌ Not configured'}
+          <strong>Bugsink DSN:</strong> {import.meta.env.VITE_BUGSINK_DSN ? 'âœ… Configured' : 'âŒ Not configured'}
           <br />
           <strong>Environment:</strong> {import.meta.env.DEV ? 'Development' : 'Production'}
         </p>

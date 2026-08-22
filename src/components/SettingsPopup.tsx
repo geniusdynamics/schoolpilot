@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+﻿import React, { useMemo, useCallback } from 'react';
 import { XIcon } from './ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
@@ -6,6 +6,8 @@ import { useTabs } from '@/hooks/tabs';
 // Removed unused HookErrorHandler import
 import { HookErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 import { SettingsSkeleton } from './ModuleLoadingFallback';
+import { logger } from '@/utils/logging';
+
 
 interface SettingsPopupProps {
   open: boolean;
@@ -40,7 +42,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
       const menu = settingsModule?.children || [];
       return menu;
     } catch (error) {
-      console.error('[SettingsPopup] Error getting settings menu:', error);
+      logger.error('[SettingsPopup] Error getting settings menu:', error);
       return [];
     }
   }, [settingsModule]);
@@ -52,13 +54,13 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
         onClose();
       }
     } catch (error) {
-      console.error('[SettingsPopup] Error in handleClose:', error);
+      logger.error('[SettingsPopup] Error in handleClose:', error);
     }
   }, [onClose]);
   
   const handleLinkClick = useCallback(async (path: string, title: string) => {
     try {
-      console.log('🚀 [SettingsPopup] Navigating to:', { path, title });
+      logger.info('ðŸš€ [SettingsPopup] Navigating to:', { path, title });
       openTab(path, { pinned: false });
       
       // Close the popup after navigation
@@ -66,7 +68,7 @@ const SettingsPopupContent: React.FC<SettingsPopupProps> = ({ open, onClose }) =
         onClose();
       }
     } catch (error) {
-      console.error('[SettingsPopup] Error in handleLinkClick:', error);
+      logger.error('[SettingsPopup] Error in handleLinkClick:', error);
       // Close popup even if navigation fails
       if (onClose && typeof onClose === 'function') {
         onClose();

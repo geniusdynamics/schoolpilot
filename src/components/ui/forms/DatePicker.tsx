@@ -2,7 +2,7 @@
 // ABOUTME: Supports single date, date range selection, keyboard navigation, and mobile-responsive design
 
 import React, { useState, useRef, useEffect, useCallback, useTransition } from 'react';
-import { getAnimationStyles } from '../../../utils/animations';
+
 import { 
   generateId, 
   createAriaDescribedBy,

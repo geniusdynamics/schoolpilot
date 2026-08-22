@@ -2,16 +2,7 @@
 // ABOUTME: Allows defining user types, individual permissions, and role-based access control
 
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckIcon, 
-  XIcon, 
-  PlusIcon,
-  DeleteIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  UsersIcon,
-  ShieldCheckIcon
-} from '../ui/icons';
+import { PlusIcon, EyeIcon, UsersIcon, ShieldCheckIcon } from '../ui/icons';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -164,24 +155,6 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
       resource: permission.resource
     });
     setShowPermissionModal(true);
-  };
-
-  const handleDeleteUser = (userId: string) => {
-    setUsers(users.filter(u => u.id !== userId));
-    setMessage({ type: 'success', text: 'User deleted successfully' });
-  };
-
-  const handleDeletePermission = (permissionId: string) => {
-    if (permissionId === '*') {
-      setMessage({ type: 'error', text: 'Cannot delete admin permission' });
-      return;
-    }
-    setPermissions(perms => perms.filter(p => p.id !== permissionId));
-    setMessage({ type: 'success', text: 'Permission deleted successfully' });
-  };
-
-  const getPermissionNames = (permissionIds: string[]) => {
-    return permissionIds.map(id => permissions.find(p => p.id === id)?.name || id).join(', ');
   };
 
   const userColumns = [

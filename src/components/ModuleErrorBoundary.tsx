@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Module-level error boundary for isolating module failures
 // ABOUTME: Allows other modules to continue working when one module fails
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -38,7 +40,7 @@ class ModuleErrorBoundary extends Component<Props, State> {
     
     this.setState({ errorInfo });
     
-    console.error(`🔥 [ModuleErrorBoundary] Module "${moduleName}" error:`, {
+    logger.error(`ðŸ”¥ [ModuleErrorBoundary] Module "${moduleName}" error:`, {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack

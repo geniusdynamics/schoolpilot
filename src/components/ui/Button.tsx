@@ -3,9 +3,9 @@
 // ABOUTME: Supports loading states, improved hover effects, and WCAG 2.1 AA compliance
 
 import React, { ReactNode, ElementType, forwardRef } from 'react';
-import { designTokens } from '@/utils/designTokens';
+
 import { useTransition } from '@/utils/animations';
-import { generateId, meetsWCAGAA } from '@/utils/accessibility';
+import { generateId } from '@/utils/accessibility';
 
 // Spinner component for loading states
 const Spinner = ({ size = 'sm' }: { size?: 'xs' | 'sm' | 'md' }) => {

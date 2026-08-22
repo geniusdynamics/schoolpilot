@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Performance monitoring display component for development and debugging
 // ABOUTME: Shows real-time performance metrics and allows performance analysis
 
@@ -55,7 +57,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
         return prevReport;
       });
     } catch (error) {
-      console.warn('Error updating performance report:', error);
+      logger.warn('Error updating performance report:', error);
     }
   }, [isVisible]);
 
@@ -121,7 +123,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
           className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-medium transition-colors"
           title="Show Performance Monitor"
         >
-          📊 Perf
+          ðŸ“Š Perf
         </button>
       </div>
     );
@@ -139,14 +141,14 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               className="text-blue-500 hover:text-blue-700 text-sm"
               title="Refresh data"
             >
-              🔄
+              ðŸ”„
             </button>
             <button
               onClick={handleToggleVisibility}
               className="text-gray-500 hover:text-gray-700 text-xl"
               title="Hide Performance Monitor"
             >
-              ×
+              Ã—
             </button>
           </div>
         </div>
@@ -227,7 +229,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
                         metric.success ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {formatTime(metric.loadTime)}
-                        {!metric.success && ' ❌'}
+                        {!metric.success && ' âŒ'}
                       </span>
                     </div>
                   ))}
@@ -294,7 +296,7 @@ const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               onClick={() => {
                 trackUserInteraction('export_performance_data');
                 const data = performanceMonitor.exportMetrics();
-                console.log('Performance Data Export:', data);
+                logger.info('Performance Data Export:', data);
                 // Could also download as JSON file
               }}
               className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"

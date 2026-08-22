@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Protected route component for authentication-based access control
 // ABOUTME: Redirects unauthenticated users to login and handles permission checks
 
@@ -29,10 +31,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     let cancelled = false;
 
     const checkAccess = async () => {
-      console.log('🔍 [ProtectedRoute] Starting access check for:', { requiredModule, requiredPermission });
+      logger.info('ðŸ” [ProtectedRoute] Starting access check for:', { requiredModule, requiredPermission });
       
       if (!isAuthenticated) {
-        console.log('🔍 [ProtectedRoute] User not authenticated');
+        logger.info('ðŸ” [ProtectedRoute] User not authenticated');
         if (!cancelled) {
           setHasAccess(null);
           setCheckingAccess(false);
@@ -49,23 +51,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         // Check module access if required
         if (requiredModule) {
           const moduleAccess = await hasModuleAccess(requiredModule);
-          console.log('🔍 [ProtectedRoute] Module access check for', requiredModule, ':', moduleAccess);
+          logger.info('ðŸ” [ProtectedRoute] Module access check for', requiredModule, ':', moduleAccess);
           hasAccess = hasAccess && moduleAccess;
         }
 
         // Check permission if required
         if (requiredPermission) {
           const permissionAccess = await hasPermission(requiredPermission);
-          console.log('🔍 [ProtectedRoute] Permission check for', requiredPermission, ':', permissionAccess);
+          logger.info('ðŸ” [ProtectedRoute] Permission check for', requiredPermission, ':', permissionAccess);
           hasAccess = hasAccess && permissionAccess;
         }
 
-        console.log('🔍 [ProtectedRoute] Final access result:', hasAccess);
+        logger.info('ðŸ” [ProtectedRoute] Final access result:', hasAccess);
         if (!cancelled) {
           setHasAccess(hasAccess);
         }
       } catch (error) {
-        console.error('Error checking access:', error);
+        logger.error('Error checking access:', error);
         if (!cancelled) {
           setHasAccess(false);
         }

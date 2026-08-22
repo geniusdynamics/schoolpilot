@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Pin, Copy, ExternalLink, MoreVertical, AlertCircle, Star } from 'lucide-react';
+
 import { createPortal } from 'react-dom';
+import { X, Pin, Star, Copy, ExternalLink, AlertCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Tab as TabType } from '@/types/tabbedWorkspace';
-import { HierarchicalTab, SubTab } from '@/types/hierarchical';
+import { HierarchicalTab } from '@/types/hierarchical';
+
 import { getIcon } from '@/utils/iconMap';
 import { useTabStore } from '@/stores/tabStore';
 import { SubTabNavigation } from '../SubTabNavigation';
 import { useFavorites } from '@/hooks/useFavorites';
+import { logger } from '@/utils/logging';
 
 // Legacy TabProps for backward compatibility
 interface LegacyTabProps {
@@ -123,7 +126,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         else tabStore.closeAllTabs();
         break;
       default:
-        console.log(`Context menu action: ${action}`);
+        logger.info(`Context menu action: ${action}`);
     }
     onClose();
   };
@@ -623,5 +626,4 @@ export const Tab: React.FC<TabProps> = (props) => {
 };
 
 export type { TabProps };
-
 

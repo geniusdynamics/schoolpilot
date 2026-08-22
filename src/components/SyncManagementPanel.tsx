@@ -1,24 +1,13 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Enhanced sync management panel with queue controls, priority management, and detailed progress tracking
 // ABOUTME: Provides comprehensive user interface for managing data synchronization operations
 
-import React, { useState, useEffect } from 'react';
-import {
-  ArrowPathIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  PauseIcon,
-  PlayIcon,
-  TrashIcon,
-  Cog6ToothIcon,
-  ChartBarIcon,
-  InformationCircleIcon
-} from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
+import { ClockIcon, ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon, PauseIcon, PlayIcon, TrashIcon, Cog6ToothIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { useAppData } from '@/hooks/useAppData';
 import Card from './ui/Card';
 import Button from './ui/Button';
-import Modal from './ui/Modal';
 
 interface SyncQueueItem {
   id: string;
@@ -108,19 +97,19 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
     switch (action) {
       case 'pause':
         // Implementation would pause selected items
-        console.log('Pausing items:', selectedItems);
+        logger.info('Pausing items:', selectedItems);
         break;
       case 'resume':
         // Implementation would resume selected items
-        console.log('Resuming items:', selectedItems);
+        logger.info('Resuming items:', selectedItems);
         break;
       case 'delete':
         // Implementation would remove selected items from queue
-        console.log('Deleting items:', selectedItems);
+        logger.info('Deleting items:', selectedItems);
         break;
       case 'retry':
         // Implementation would retry selected failed items
-        console.log('Retrying items:', selectedItems);
+        logger.info('Retrying items:', selectedItems);
         break;
     }
     setSelectedItems([]);
@@ -128,7 +117,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
 
   const handlePriorityChange = (itemId: string, newPriority: string) => {
     // Implementation would update item priority
-    console.log('Changing priority for item:', itemId, 'to:', newPriority);
+    logger.info('Changing priority for item:', itemId, 'to:', newPriority);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -248,7 +237,7 @@ const SyncManagementPanel: React.FC<{ className?: string }> = ({ className = '' 
                       </div>
                       <div className="text-sm text-gray-500">
                         {item.timestamp.toLocaleString()}
-                        {item.retryCount > 0 && ` • Retry ${item.retryCount}/${item.maxRetries}`}
+                        {item.retryCount > 0 && ` â€¢ Retry ${item.retryCount}/${item.maxRetries}`}
                       </div>
                     </div>
                   </div>

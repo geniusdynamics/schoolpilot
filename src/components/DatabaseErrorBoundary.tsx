@@ -1,7 +1,9 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Database-specific error boundary for handling database initialization and operation failures
 // ABOUTME: Provides specialized recovery mechanisms and fallback UI for database-related errors
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { reportError } from '@/config/errorTracking';
 
 interface Props {
@@ -99,7 +101,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
     
     this.setState({ errorInfo });
     
-    console.error('🗄️ [DatabaseErrorBoundary] Database error caught:', {
+    logger.error('ðŸ—„ï¸ [DatabaseErrorBoundary] Database error caught:', {
       errorId,
       error: error.message,
       stack: error.stack,
@@ -124,7 +126,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
         databaseContext: this.getDatabaseContext()
       });
     } catch (reportingError) {
-      console.error('Failed to report database error:', reportingError);
+      logger.error('Failed to report database error:', reportingError);
     }
 
     if (onDatabaseError) {
@@ -164,7 +166,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
     const { retryCount } = this.state;
     
     if (retryCount < this.maxRetries) {
-      console.log(`🔄 [DatabaseErrorBoundary] Retrying database operation... (${retryCount + 1}/${this.maxRetries})`);
+      logger.info(`ðŸ”„ [DatabaseErrorBoundary] Retrying database operation... (${retryCount + 1}/${this.maxRetries})`);
       
       this.setState({
         hasError: false,
@@ -196,7 +198,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
         localStorage.removeItem(key);
       } catch (e) {
         void e;
-        console.warn(`Failed to remove localStorage key: ${key}`);
+        logger.warn(`Failed to remove localStorage key: ${key}`);
       }
     });
     
@@ -295,7 +297,7 @@ class DatabaseErrorBoundary extends Component<Props, State> {
             <ul className="text-sm text-gray-700 space-y-1">
               {errorConfig.suggestions.map((suggestion, index) => (
                 <li key={index} className="flex items-start">
-                  <span className="text-gray-400 mr-2">•</span>
+                  <span className="text-gray-400 mr-2">â€¢</span>
                   {suggestion}
                 </li>
               ))}

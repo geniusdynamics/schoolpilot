@@ -19,6 +19,8 @@ import {
   IconProps
 } from './ui/icons';
 import SettingsPopup from './SettingsPopup';
+import { CogIcon } from '@/components/ui/icons';
+import { useCallback } from 'react';
 
 interface SidebarProps {
   isOpen: boolean;

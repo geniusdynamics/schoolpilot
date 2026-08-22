@@ -1,7 +1,7 @@
 // ABOUTME: Comprehensive tooltip component with smart positioning and accessibility
 // ABOUTME: Supports multiple trigger methods, rich content, and collision detection
 
-import React, { ReactNode, cloneElement, isValidElement } from 'react';
+import { ReactNode, cloneElement, isValidElement } from 'react';
 import { createPortal } from 'react-dom';
 import { useTooltip, UseTooltipOptions } from '../../../hooks/useTooltip';
 
@@ -150,7 +150,7 @@ export function ValidationTooltip({ rules, examples, ...props }: ValidationToolt
         <ul className="space-y-1">
           {rules.map((rule, index) => (
             <li key={index} className="flex items-start text-xs">
-              <span className="text-blue-400 mr-1">•</span>
+              <span className="text-blue-400 mr-1">â€¢</span>
               {rule}
             </li>
           ))}

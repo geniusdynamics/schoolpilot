@@ -1,7 +1,7 @@
 // ABOUTME: PrintForm component for print-optimized forms
 // ABOUTME: Provides print-specific styling, page breaks, and print controls
 
-import React, { ReactNode, forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
+import { ReactNode, forwardRef, useImperativeHandle, useRef, useCallback } from 'react';
 import FormContainer, { FormContainerProps } from './FormContainer';
 import { useTransition } from '../../../utils/animations';
 

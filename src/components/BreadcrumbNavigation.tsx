@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Enhanced breadcrumb navigation component with hierarchical support
 // ABOUTME: Provides navigation context, recovery options, and hierarchical path management
 
@@ -92,11 +94,11 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
           if (typeof translated === 'string') {
             label = translated;
           } else {
-            console.warn('Translation returned non-string for key:', navItem.name, translated);
+            logger.warn('Translation returned non-string for key:', navItem.name, translated);
             label = formatSegmentLabel(segment);
           }
         } catch (error) {
-          console.warn('Translation error for key:', navItem.name, error);
+          logger.warn('Translation error for key:', navItem.name, error);
           label = formatSegmentLabel(segment);
         }
       }
@@ -169,7 +171,7 @@ const BreadcrumbNavigationComponent: React.FC<EnhancedBreadcrumbNavigationProps>
       }
     } catch (error) {
       const navError = error as Error;
-      console.error(`🧭 [BreadcrumbNavigation] Navigation failed for path: ${path}`, navError);
+      logger.error(`ðŸ§­ [BreadcrumbNavigation] Navigation failed for path: ${path}`, navError);
       
       // Mark path as having an error
       setNavigationErrors(prev => new Set(prev).add(path));

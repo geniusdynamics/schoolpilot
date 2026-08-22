@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // Module Health Dashboard Component
 // Displays real-time health status of all modules with recovery options
 
@@ -70,7 +72,7 @@ const ModuleHealthDashboard: React.FC<ModuleHealthDashboardProps> = ({
       // Refresh the dashboard
       setRefreshKey(prev => prev + 1);
     } catch (error) {
-      console.error(`Failed to reload module ${moduleId}:`, error);
+      logger.error(`Failed to reload module ${moduleId}:`, error);
     } finally {
       setReloadingModules(prev => {
         const updated = new Set(prev);

@@ -4,6 +4,7 @@ import { useRBAC } from '../hooks/useRBAC';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { i18nReady } from '../i18n/i18n';
+import { logger } from '@/utils/logging';
 
 // Error boundary for PrimarySidebar
 class PrimarySidebarErrorBoundary extends React.Component<
@@ -20,7 +21,7 @@ class PrimarySidebarErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('🔥 [PrimarySidebar] Error caught by boundary:', error, errorInfo);
+    logger.error('ðŸ”¥ [PrimarySidebar] Error caught by boundary:', error, errorInfo);
   }
 
   render() {
@@ -143,10 +144,9 @@ const handleModuleClick = (moduleId: string, onModuleSelect: (key: string) => vo
   try {
     onModuleSelect(moduleId);
   } catch (error) {
-    console.error('🔥 [PrimarySidebar] Error selecting module:', error);
+    logger.error('ðŸ”¥ [PrimarySidebar] Error selecting module:', error);
   }
 };
-
 
 // Main component with fixed hook order
 const PrimarySidebarContent: React.FC<{ 
@@ -251,7 +251,7 @@ const PrimarySidebarContent: React.FC<{
         const translated = t(`${moduleId}.title`, { defaultValue: fallbackName });
         displayName = translated || fallbackName;
       } catch (error) {
-        console.warn('Translation error for:', moduleId, error);
+        logger.warn('Translation error for:', moduleId, error);
         displayName = fallbackName;
       }
     }

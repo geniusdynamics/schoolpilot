@@ -1,7 +1,6 @@
 // ABOUTME: Tests for FeatureSettings component feature toggles and actions
 // ABOUTME: Ensures unified config updates without direct localStorage usage
 
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import FeatureSettings from '@/components/FeatureSettings';

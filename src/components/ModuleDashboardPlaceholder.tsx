@@ -30,7 +30,7 @@ const ModuleDashboardPlaceholder: React.FC<ModuleDashboardPlaceholderProps> = ({
             <div className="w-8 h-8 bg-blue-500 rounded"></div>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {displayName} {t('dashboard', 'Dashboard')}
+            {displayName} {t('dashboard.title', 'Dashboard')}
           </h1>
           <p className="text-gray-600">
             {t('moduleDashboardWelcome', 'Welcome to the {{moduleName}} module dashboard', { moduleName: displayName })}
