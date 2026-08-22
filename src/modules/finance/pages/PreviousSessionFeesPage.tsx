@@ -9,10 +9,12 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import { ArrowPathIcon, CurrencyDollarIcon, CalendarIcon, UserGroupIcon, CheckCircleIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { PreviousSessionFee } from '../data/types';
+import { logger } from '@/utils/logging';
+import { ArrowPathIcon, CheckCircleIcon, CurrencyDollarIcon, PlusIcon, UserGroupIcon } from '@/components/ui/icons';
 
 type PreviousSessionFeeFormData = Omit<Partial<PreviousSessionFee>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -66,9 +68,9 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
   // Calculate totals
   const totals = useMemo(() => {
     return filteredPreviousSessionFees.reduce((acc, record) => ({
-      carryOver: acc.carryOver + record.carry_over_amount,
-      paid: acc.paid + record.amount_paid,
-      remaining: acc.remaining + record.balance_remaining
+      carryOver: acc.carryOver + (record.carry_over_amount ?? 0),
+      paid: acc.paid + (record.amount_paid ?? 0),
+      remaining: acc.remaining + (record.balance_remaining ?? 0)
     }), { carryOver: 0, paid: 0, remaining: 0 });
   }, [filteredPreviousSessionFees]);
 
@@ -110,7 +112,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
       return;
     }
     // In production, this would call addPreviousSessionFee or updatePreviousSessionFee
-    console.log('Saving previous session fee:', formData);
+    logger.info('Saving previous session fee:', formData);
     closeModal();
   };
 
@@ -163,13 +165,13 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
       key: 'carry_over_amount',
       header: 'Carry Over',
       sortable: true,
-      render: (value) => `KES ${value.toLocaleString()}`
+      render: (value) => `KES ${value?.toLocaleString?.() ?? '-'}`
     },
     {
       key: 'amount_paid',
       header: 'Paid',
       sortable: true,
-      render: (value) => value > 0 ? `KES ${value.toLocaleString()}` : '-'
+      render: (value) => value != null && value > 0 ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
     },
     {
       key: 'balance_remaining',
@@ -177,7 +179,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
       sortable: true,
       render: (value) => (
         <span className={`font-semibold ${value > 0 ? 'text-red-600' : 'text-green-600'}`}>
-          KES {value.toLocaleString()}
+          KES {value?.toLocaleString?.() ?? '-'}
         </span>
       )
     },
@@ -203,7 +205,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
 
   const statusOptions = ['Pending', 'Partial', 'Paid', 'Waived'];
 
-  if (loading?.all && mockPreviousSessionFees.length === 0) {
+  if (loading?.all && filteredPreviousSessionFees.length === 0 && !previousSessionFees) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -287,7 +289,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Carry-over</span>
             </div>
             <p className="text-2xl font-bold text-purple-600 mt-2">
-              KES {totals.carryOver.toLocaleString()}
+              KES {totals.carryOver?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -296,7 +298,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
               <span className="text-sm font-medium">Paid</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.paid.toLocaleString()}
+              KES {totals.paid?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -305,7 +307,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
               <span className="text-sm font-medium">Outstanding</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.remaining.toLocaleString()}
+              KES {totals.remaining?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -340,7 +342,7 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
               name="student_id"
               value={formData.student_id}
               onChange={handleInputChange}
-              options={students?.map(s => ({ value: s.id, label: `${s.first_name} ${s.last_name} (${s.admission_no})` })) || []}
+              options={students?.map(s => ({ value: s.id, label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_no ? ` (${s.admission_no})` : '') })) || []}
               placeholder="Select student"
             />
           </FormField>

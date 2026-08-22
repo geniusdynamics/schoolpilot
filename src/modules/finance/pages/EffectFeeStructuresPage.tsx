@@ -7,7 +7,8 @@ import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { FeeTemplate, StudentInvoice } from '@/modules/finance';
 import { SchoolPeriod, StudentCategory, ClassStream } from '@/core/types';
-import { useTranslation } from 'react-i18next';
+
+import { logger } from '@/utils/logging';
 
 export const EffectFeeStructuresPageContent: React.FC = () => {
   const { 
@@ -53,12 +54,11 @@ export const EffectFeeStructuresPageContent: React.FC = () => {
       setGenerationResult({ count: generatedInvoices.length, totalBilled });
     } catch (err) {
       setError("Failed to generate invoices. Please check console for details.");
-      console.error(err);
+      logger.error(err);
     } finally {
       setIsGenerating(false);
     }
   };
-
 
   if (loading.all || loading.feeTemplates || loading.schoolPeriods || loading.studentCategories || loading.classStreams) {
     return (

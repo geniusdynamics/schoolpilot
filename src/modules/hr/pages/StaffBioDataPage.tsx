@@ -3,17 +3,13 @@ import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, PlusIcon, AcademicCapIcon, BriefcaseIcon, DocumentTextIcon, ChartBarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockStaffBioData } from '../data/mockData';
 import type { StaffBioData, Qualification, EmploymentHistory, Contract, PerformanceReview } from '../data/types';
 
 export const StaffBioDataPageContent: React.FC = () => {
-  const { t } = useTranslation('hr');
+
   const { loading } = useAppData();
 
   const [selectedStaff, setSelectedStaff] = useState<StaffBioData | null>(null);
@@ -123,7 +119,7 @@ export const StaffBioDataPageContent: React.FC = () => {
         <Card>
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStaff(null)} variant="secondary">
-              ← Back to Staff List
+              â† Back to Staff List
             </Button>
             <h2 className="text-xl font-bold text-gray-800">{selectedStaff.name}</h2>
           </div>

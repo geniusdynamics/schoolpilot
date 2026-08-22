@@ -2,17 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { BookOpenIcon, CalendarIcon, CurrencyDollarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { StudentPaymentRecord } from '../data/types';
 
 export const StudentsPaidBookPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const { studentPaymentRecords, students, loading } = useAppData();
+
+  const { studentPaymentRecords, loading } = useAppData() as any;
 
   const [startDate, setStartDate] = useState(() => {
     const date = new Date();
@@ -48,11 +46,11 @@ export const StudentsPaidBookPageContent: React.FC = () => {
 
   // Calculate totals
   const totals = useMemo(() => {
-    return mockPaymentRecords.reduce((acc, record) => ({
-      total: acc.total + record.amount_paid,
+    return filteredPaymentRecords.reduce((acc, record) => ({
+      total: acc.total + (record.amount_paid ?? 0),
       count: acc.count + 1
     }), { total: 0, count: 0 });
-  }, [mockPaymentRecords]);
+  }, [filteredPaymentRecords]);
 
   const columns: DataGridColumn<StudentPaymentRecord>[] = [
     {
@@ -96,7 +94,7 @@ export const StudentsPaidBookPageContent: React.FC = () => {
       header: 'Amount Paid',
       sortable: true,
       render: (value) => (
-        <span className="font-semibold text-green-600">KES {value.toLocaleString()}</span>
+        <span className="font-semibold text-green-600">KES {value?.toLocaleString?.() ?? '-'}</span>
       )
     },
     {
@@ -118,7 +116,7 @@ export const StudentsPaidBookPageContent: React.FC = () => {
     return classes.sort();
   }, [filteredPaymentRecords]);
 
-  if (loading?.all && mockPaymentRecords.length === 0) {
+  if (loading?.all && filteredPaymentRecords.length === 0 && !studentPaymentRecords) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -202,7 +200,7 @@ export const StudentsPaidBookPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Collected</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.total.toLocaleString()}
+              KES {totals.total?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -220,7 +218,7 @@ export const StudentsPaidBookPageContent: React.FC = () => {
               <span className="text-sm font-medium">Average Payment</span>
             </div>
             <p className="text-2xl font-bold text-blue-600 mt-2">
-              KES {totals.count > 0 ? Math.round(totals.total / totals.count).toLocaleString() : 0}
+              KES {totals.count > 0 ? Math.round(totals.total / totals.count)?.toLocaleString?.() ?? '0' : 0}
             </p>
           </div>
         </div>

@@ -2,18 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { ExclamationTriangleIcon, CalendarIcon, UserGroupIcon, CurrencyDollarIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockFeeDueRecords } from '../data/mockData';
 import type { FeeDueRecord } from '../data/types';
+import { CurrencyDollarIcon, ExclamationTriangleIcon, UserGroupIcon } from '@/components/ui/icons';
 
 export const FeesDueReportPageContent: React.FC = () => {
-  const { t } = useTranslation('finance');
-  const { students, schoolPeriods, loading } = useAppData();
+
+  const { students, loading } = useAppData() as any;
 
   const [classFilter, setClassFilter] = useState('');
   const [agingFilter, setAgingFilter] = useState('');
@@ -46,10 +45,10 @@ export const FeesDueReportPageContent: React.FC = () => {
   // Calculate totals
   const totals = useMemo(() => {
     return mockDueRecords.reduce((acc, record) => ({
-      totalDue: acc.totalDue + record.total_amount_due,
-      totalPaid: acc.totalPaid + record.amount_paid,
-      totalBalance: acc.totalBalance + record.balance_due,
-      overdueCount: acc.overdueCount + (record.days_overdue > 0 ? 1 : 0)
+      totalDue: acc.totalDue + (record.total_amount_due ?? 0),
+      totalPaid: acc.totalPaid + (record.amount_paid ?? 0),
+      totalBalance: acc.totalBalance + (record.balance_due ?? 0),
+      overdueCount: acc.overdueCount + ((record.days_overdue ?? 0) > 0 ? 1 : 0)
     }), { totalDue: 0, totalPaid: 0, totalBalance: 0, overdueCount: 0 });
   }, [mockDueRecords]);
 
@@ -103,13 +102,13 @@ export const FeesDueReportPageContent: React.FC = () => {
       key: 'total_amount_due',
       header: 'Total Due',
       sortable: true,
-      render: (value) => `KES ${value.toLocaleString()}`
+      render: (value) => `KES ${value?.toLocaleString?.() ?? '-'}`
     },
     {
       key: 'amount_paid',
       header: 'Paid',
       sortable: true,
-      render: (value) => value > 0 ? `KES ${value.toLocaleString()}` : '-'
+      render: (value) => value != null && value > 0 ? `KES ${value?.toLocaleString?.() ?? value}` : '-'
     },
     {
       key: 'balance_due',
@@ -117,7 +116,7 @@ export const FeesDueReportPageContent: React.FC = () => {
       sortable: true,
       render: (value) => (
         <span className={`font-semibold ${value > 0 ? 'text-red-600' : 'text-green-600'}`}>
-          KES {value.toLocaleString()}
+          KES {value?.toLocaleString?.() ?? '-'}
         </span>
       )
     },
@@ -153,7 +152,7 @@ export const FeesDueReportPageContent: React.FC = () => {
 
   const agingCategories = ['Current', '1-30 Days', '31-60 Days', '61-90 Days', '90+ Days'];
 
-  if (loading?.all && mockDueRecords.length === 0) {
+  if (loading?.all && mockDueRecords.length === 0 && !initialMockFeeDueRecords) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -231,7 +230,7 @@ export const FeesDueReportPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Due</span>
             </div>
             <p className="text-2xl font-bold text-gray-800 mt-2">
-              KES {totals.totalDue.toLocaleString()}
+              KES {totals.totalDue?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -240,7 +239,7 @@ export const FeesDueReportPageContent: React.FC = () => {
               <span className="text-sm font-medium">Total Paid</span>
             </div>
             <p className="text-2xl font-bold text-green-600 mt-2">
-              KES {totals.totalPaid.toLocaleString()}
+              KES {totals.totalPaid?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -249,7 +248,7 @@ export const FeesDueReportPageContent: React.FC = () => {
               <span className="text-sm font-medium">Outstanding Balance</span>
             </div>
             <p className="text-2xl font-bold text-red-600 mt-2">
-              KES {totals.totalBalance.toLocaleString()}
+              KES {totals.totalBalance?.toLocaleString?.() ?? '0'}
             </p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4">

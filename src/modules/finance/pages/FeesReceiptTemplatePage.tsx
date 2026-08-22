@@ -5,7 +5,6 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
-import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
@@ -14,6 +13,7 @@ import { PrinterIcon, DocumentTextIcon, EyeIcon, PlusIcon, TrashIcon } from '@/c
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { ReceiptTemplate } from '../data/types';
+import { logger } from '@/utils/logging';
 
 export const FeesReceiptTemplatePageContent: React.FC = () => {
   const { t } = useTranslation('finance');
@@ -74,7 +74,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
       return;
     }
     // In production, this would call addReceiptTemplate or updateReceiptTemplate
-    console.log('Saving template:', formData);
+    logger.info('Saving template:', formData);
     closeModal();
   };
 
@@ -146,7 +146,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
     }
   ];
 
-  if (loading?.all && mockTemplates.length === 0) {
+  if (loading?.all && templates.length === 0 && !receiptTemplates) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
