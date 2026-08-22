@@ -30,9 +30,9 @@
 
 ## Unused Imports and Variables
 
-- [ ] ESLint `no-unused-vars` warnings reduced to zero (or explicitly documented acceptable minimum)
-- [ ] `npx tsc --noEmit` with `noUnusedLocals` enabled produces zero errors
-- [ ] Bundle size analysis shows measurable reduction after cleanup
+- [ ] ESLint `no-unused-vars` warnings reduced to acceptable minimum
+- [ ] Side-effect imports preserved (no false removals)
+- [ ] `npx tsc --noEmit` passes after cleanup
 
 ## Translation Coverage
 
@@ -42,19 +42,12 @@
 - [ ] Fallback behavior is verified: missing key --> English translation --> key name
 - [ ] No runtime "missing translation" warnings appear in development mode
 
-## Config Consolidation
+## Config Consolidation (Additive Only)
 
-- [ ] `src/core/config/` is deprecated or removed (re-exports or fully migrated)
-- [ ] All config consumers consistently import from `src/config/`
-- [ ] No duplicate configuration values exist across multiple config directories
+- [ ] `src/core/config/` has re-export shims to `src/config/` where needed
+- [ ] All config consumers can import from `src/config/`
+- [ ] No configuration value was removed from the system
 - [ ] `npx tsc --noEmit` passes with no broken config-related imports
-
-## Data Layer Cleanup
-
-- [ ] Unused database providers (PouchDB, LiveStore, ERPNext) are removed or clearly marked deprecated with JSDoc
-- [ ] Database service files are consolidated (no `databaseService.ts` vs `databaseServiceLegacy.ts` duplicates)
-- [ ] Provider selection logic references only active providers
-- [ ] No consumers import from removed or deprecated providers
 
 ## Test Runner
 
@@ -89,8 +82,6 @@
 - [ ] `coverage/` directory is listed in `.gitignore`
 - [ ] Coverage files are removed from git tracking (`git rm -r --cached coverage/`)
 - [ ] `git status` shows no untracked coverage files
-- [ ] Barrel exports (index.ts files) are audited -- unused exports removed or deprecated
-- [ ] No consumer imports break after barrel export cleanup
 
 ## Build Verification
 
