@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
 import { initialMockHouses, initialMockPointCategories, initialMockPointTransactions } from './mockData';
+import { logger } from '@/utils/logging';
+
 import type {
   House,
   PointCategory,
@@ -35,7 +37,7 @@ export const useHousesData = () => {
       const docs = await collection.find().exec();
       setHouses(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for houses:', err.message);
+      logger.warn('Using mock data for houses:', err.message);
       setHouses(initialMockHouses);
     } finally {
       setLoading(false);
@@ -62,7 +64,7 @@ export const useHousesData = () => {
       setHouses(prev => [...prev, newHouse]);
       return newHouse;
     } catch (err: any) {
-      console.warn('Failed to create house in DB, using local state:', err.message);
+      logger.warn('Failed to create house in DB, using local state:', err.message);
       const now = new Date().toISOString();
       const newHouse = {
         id: `HOUS${Date.now()}`,
@@ -89,7 +91,7 @@ export const useHousesData = () => {
         await doc.update({ $set: { ...updates, updatedAt: new Date().toISOString() } });
       }
     } catch (err: any) {
-      console.warn('Failed to update house in DB, using local state:', err.message);
+      logger.warn('Failed to update house in DB, using local state:', err.message);
     }
     setHouses(prev => prev.map(h => h.id === id ? { ...h, ...updates, updatedAt: new Date().toISOString() } : h));
   }, []);
@@ -102,7 +104,7 @@ export const useHousesData = () => {
       const doc = await collection.findOne(id).exec();
       if (doc) await doc.remove();
     } catch (err: any) {
-      console.warn('Failed to delete house in DB, using local state:', err.message);
+      logger.warn('Failed to delete house in DB, using local state:', err.message);
     }
     setHouses(prev => prev.filter(h => h.id !== id));
   }, []);
@@ -115,7 +117,7 @@ export const useHousesData = () => {
       const docs = await collection.find().exec();
       setCategories(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for categories:', err.message);
+      logger.warn('Using mock data for categories:', err.message);
       setCategories(initialMockPointCategories);
     }
   }, []);
@@ -145,7 +147,7 @@ export const useHousesData = () => {
       const docs = await collection.find().sort({ awardedAt: 'desc' }).exec();
       setTransactions(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for transactions:', err.message);
+      logger.warn('Using mock data for transactions:', err.message);
       setTransactions(initialMockPointTransactions);
     }
   }, []);

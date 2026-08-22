@@ -1,11 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, Supplier, ItemInv } from '@/types';
+import React, { useState } from 'react';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -13,7 +11,8 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, ShoppingCartIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { PurchaseOrderStatus } from '@/core/types';
+import type { PurchaseOrder, PurchaseOrderItem } from '@/core/types';
 
 type PurchaseOrderFormData = Omit<Partial<PurchaseOrder>, 'id' | 'created_at' | 'updated_at' | 'items' | 'supplier_name' | 'total_value' | 'status'> & {
     status: PurchaseOrderStatus;

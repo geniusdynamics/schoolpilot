@@ -1,13 +1,14 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
-import { UserGroupIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Staff, AcademicYear, TeacherSubjectAssignment } from '@/types';
+
 import { useTranslation } from 'react-i18next';
+import type { TeacherSubjectAssignment } from '@/core/types';
 
 export const TeacherAssignmentsPageContent: React.FC = () => {
   const { staff, academicYears, teacherSubjectAssignments, loading } = useAppData();

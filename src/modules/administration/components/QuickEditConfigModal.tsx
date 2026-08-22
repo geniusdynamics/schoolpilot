@@ -6,10 +6,9 @@ import DialogForm from '../../../components/ui/forms/DialogForm';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
-import { CogIcon, PlusIcon, XIcon } from '../../../components/ui/icons';
-import FormSection from '../../../components/ui/forms/FormSection';
-import FormField from '../../../components/ui/forms/FormField';
+
 import FormActions from '../../../components/ui/forms/FormActions';
+import { PlusIcon, XIcon } from '@/components/ui/icons';
 import {
   QuickEditConfig,
   QuickEditField,
@@ -18,7 +17,6 @@ import {
   resetQuickEditConfig,
   DEFAULT_QUICK_EDIT_CONFIG
 } from '../config/quickEditConfig';
-import { StudentStatus } from '../../../types';
 
 interface QuickEditConfigModalProps {
   isOpen: boolean;

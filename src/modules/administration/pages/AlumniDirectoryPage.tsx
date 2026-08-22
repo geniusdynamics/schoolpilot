@@ -7,9 +7,9 @@ import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { PlusIcon, EyeIcon, PencilIcon, EnvelopeIcon, PhoneIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
-import { useTranslation } from 'react-i18next';
+import { EnvelopeIcon, EyeIcon, PhoneIcon, PlusIcon } from '@/components/ui/icons';
 import {
   AlumniRecord,
   AlumniEngagementStatus,
@@ -17,7 +17,7 @@ import {
 } from '../data/alumniTypes';
 
 const AlumniDirectoryPage: React.FC = () => {
-  const { t } = useTranslation('administration');
+
   const { students = [], loading } = useAppData();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -209,12 +209,6 @@ const AlumniDirectoryPage: React.FC = () => {
   }, [alumniRecords, searchQuery, selectedStatus, selectedGraduationYear]);
 
   const getEngagementBadge = (status: AlumniEngagementStatus) => {
-    const colors: Record<string, string> = {
-      [AlumniEngagementStatus.ACTIVE]: 'bg-green-100 text-green-800',
-      [AlumniEngagementStatus.INACTIVE]: 'bg-yellow-100 text-yellow-800',
-      [AlumniEngagementStatus.LOST_CONTACT]: 'bg-red-100 text-red-800',
-      [AlumniEngagementStatus.DECEASED]: 'bg-gray-100 text-gray-800',
-    };
     return (
       <Badge variant={
         status === AlumniEngagementStatus.ACTIVE ? 'success' :
@@ -226,13 +220,6 @@ const AlumniDirectoryPage: React.FC = () => {
   };
 
   const getCategoryBadge = (category: AlumniCategory) => {
-    const colors: Record<string, string> = {
-      [AlumniCategory.DISTINGUISHED]: 'bg-purple-100 text-purple-800',
-      [AlumniCategory.DONOR]: 'bg-green-100 text-green-800',
-      [AlumniCategory.MENTOR]: 'bg-blue-100 text-blue-800',
-      [AlumniCategory.VOLUNTEER]: 'bg-teal-100 text-teal-800',
-      [AlumniCategory.GENERAL]: 'bg-gray-100 text-gray-800',
-    };
     return <Badge variant={
       category === AlumniCategory.DISTINGUISHED ? 'info' :
       category === AlumniCategory.DONOR ? 'success' : 'warning'
@@ -247,7 +234,7 @@ const AlumniDirectoryPage: React.FC = () => {
       width: 200,
       sortable: true,
       filterable: true,
-      render: (value, item) => `${item.first_name} ${item.last_name}`,
+      render: (value, item) => [item.first_name, item.last_name].filter(Boolean).join(' ') || '—',
     },
     { key: 'graduation_year', header: 'Graduated', width: 100, sortable: true, filterable: true },
     { key: 'graduation_class_name', header: 'Class', width: 100, sortable: true },
@@ -371,7 +358,7 @@ const AlumniDirectoryPage: React.FC = () => {
         <Modal
           isOpen={!!selectedAlumni}
           onClose={() => setSelectedAlumni(null)}
-          title={`${selectedAlumni.first_name} ${selectedAlumni.last_name}`}
+          title={[selectedAlumni.first_name, selectedAlumni.last_name].filter(Boolean).join(' ') || 'Alumni Details'}
           size="lg"
         >
           <div className="space-y-6">

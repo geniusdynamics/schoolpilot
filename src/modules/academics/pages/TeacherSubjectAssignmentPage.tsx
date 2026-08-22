@@ -1,5 +1,6 @@
+import { logger } from '@/utils/logging';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Staff } from '@/types';
 import { TeacherSubjectAssignment, ClassSubjectAllocation } from '@/modules/academics/data/types'; // Corrected imports
@@ -11,7 +12,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, UserGroupIcon } from '@/components/ui/icons';
+import { PlusIcon, DeleteIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 
@@ -90,7 +91,7 @@ export const TeacherSubjectAssignmentPageContent: React.FC = () => {
         // For simplicity, we'll treat edit as re-add if different, or no-op if same.
         // A real update might involve deleting old and adding new if allocation_id or teacher_id changes.
         // For now, if it's an edit, we just log and close, or re-add if significantly different.
-        console.log("Editing existing assignment - for demo, this doesn't update existing. Delete and re-add for changes.");
+        logger.info("Editing existing assignment - for demo, this doesn't update existing. Delete and re-add for changes.");
     }
     closeModal();
   };
@@ -110,7 +111,7 @@ export const TeacherSubjectAssignmentPageContent: React.FC = () => {
     {
       header: 'Actions',
       key: 'id',
-      render: (value: any, item: TeacherSubjectAssignment) => (
+      render: (_value: any, item: TeacherSubjectAssignment) => (
         <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
       ),
     },

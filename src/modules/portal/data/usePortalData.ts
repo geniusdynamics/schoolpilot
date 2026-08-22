@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
+import { logger } from '@/utils/logging';
+
 import {
   initialMockAnnouncements,
   initialMockAttendanceRecords,
@@ -39,7 +41,7 @@ export const usePortalData = () => {
       const docs = await collection.find().exec();
       setAnnouncements(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for announcements:', err.message);
+      logger.warn('Using mock data for announcements:', err.message);
       setAnnouncements(initialMockAnnouncements);
     } finally {
       setLoading(false);
@@ -56,7 +58,7 @@ export const usePortalData = () => {
       const docs = await collection.find().where('student_id').eq(studentId).exec();
       setAttendanceRecords(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for attendance:', err.message);
+      logger.warn('Using mock data for attendance:', err.message);
       setAttendanceRecords(initialMockAttendanceRecords);
     } finally {
       setLoading(false);
@@ -73,7 +75,7 @@ export const usePortalData = () => {
       const docs = await collection.find().where('student_id').eq(studentId).exec();
       setResults(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for results:', err.message);
+      logger.warn('Using mock data for results:', err.message);
       setResults(initialMockResults);
     } finally {
       setLoading(false);
@@ -90,7 +92,7 @@ export const usePortalData = () => {
       const docs = await collection.find().where('student_id').eq(studentId).exec();
       setFeeSummaries(initialMockFeeSummaries);
     } catch (err: any) {
-      console.warn('Using mock data for fees:', err.message);
+      logger.warn('Using mock data for fees:', err.message);
       setFeeSummaries(initialMockFeeSummaries);
     } finally {
       setLoading(false);

@@ -39,13 +39,14 @@ export const StudentExamAnalysisPageContent: React.FC = () => {
 
   // Find student from data
   const student = useMemo(() => {
-    return (students || []).find(s => String(s.id) === studentId) || {
-      id: studentId || '1266',
-      first_name: 'Evelia',
-      last_name: 'Akinyi',
-      admission_number: '1266',
-      current_class_stream_name: '2 Alpha',
-      kcpe_score: 331,
+    const found = (students || []).find(s => String(s.id) === studentId);
+    return {
+      id: found?.id ?? studentId ?? '1266',
+      first_name: found?.first_name ?? 'Evelia',
+      last_name: found?.last_name ?? 'Akinyi',
+      admission_number: found?.admission_no ?? '1266',
+      current_class_stream_name: found?.current_class_stream_name ?? '2 Alpha',
+      kcpe_score: found?.marks_attained_primary ? Number(found.marks_attained_primary) || 331 : 331,
     };
   }, [students, studentId]);
 
@@ -104,7 +105,7 @@ export const StudentExamAnalysisPageContent: React.FC = () => {
 
       {/* Student Profile & Performance */}
       <StudentExamProfile
-        studentName={`${student.first_name} ${student.last_name}`}
+        studentName={[student.first_name, student.last_name].filter(Boolean).join(' ') || '—'}
         admissionNumber={student.admission_number || '1266'}
         stream={student.current_class_stream_name || '2 Alpha'}
         examName="Opener exam 102"

@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
-import { UsersIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { Student, Class as SchoolClass, ClassStream, StudentStatus, PersonGender } from '@/types';
+
 import { useTranslation } from 'react-i18next';
+import { PersonGender, StudentStatus } from '@/core/types';
+import type { Student } from '@/core/types';
 
 export const StudentMasterlistPageContent: React.FC = () => {
   const { students, classes, classStreams, loading } = useAppData();
@@ -41,7 +43,6 @@ export const StudentMasterlistPageContent: React.FC = () => {
         tempStudents = tempStudents.filter(s => s.current_class_stream_id === selectedStreamId);
     }
 
-
     if (selectedStatus) {
       tempStudents = tempStudents.filter(s => s.status === selectedStatus);
     }
@@ -56,7 +57,6 @@ export const StudentMasterlistPageContent: React.FC = () => {
   useEffect(() => {
     handleGenerateReport();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps 
-
 
   const columns = [
     { header: 'Adm No', accessor: 'admission_no' as keyof Student },
@@ -107,7 +107,6 @@ export const StudentMasterlistPageContent: React.FC = () => {
       document.body.removeChild(link);
     }
   };
-
 
   return (
     <div className="space-y-6">

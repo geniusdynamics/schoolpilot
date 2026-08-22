@@ -8,10 +8,10 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
-import { PlusIcon, EditIcon, DeleteIcon, ClockIcon } from '@/components/ui/icons';
+
 import { useTimetablePeriodDefData } from '../data/useTimetablePeriodDefData'; // Use module-specific hook
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
 type TimetablePeriodFormData = Omit<Partial<TimetablePeriodDef>, 'id'>;
 
@@ -88,7 +88,7 @@ export const TimetablePeriodsContent: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (value: any, item: TimetablePeriodDef) => (
+      render: (_value: any, item: TimetablePeriodDef) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>

@@ -1,7 +1,6 @@
 // ABOUTME: This test file covers ExamSessionsPage session and nested paper-setting CRUD interactions.
 // ABOUTME: It verifies the page uses AppDataContext mutations instead of the removed placeholder TODO handlers.
 
-import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi, describe, it, beforeEach, expect } from 'vitest';

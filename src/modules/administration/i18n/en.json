@@ -514,6 +514,7 @@
     "steps": {
       "upload": "Upload",
       "preview": "Preview",
+      "import": "Import",
       "importing": "Import",
       "results": "Results"
     },

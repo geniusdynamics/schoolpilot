@@ -196,7 +196,7 @@
   },
   "rolesPermissions": {
     "title": "Roles & Permissions",
-    "description": "Manage user roles and access permissions. Configure user management through {{userManagementLink}} and approval workflows through {{workflowsLink}}."
+    "description": "Manage user roles and access permissions, including user management and approval workflows."
   },
   "auditLog": {
     "title": "Audit Log",

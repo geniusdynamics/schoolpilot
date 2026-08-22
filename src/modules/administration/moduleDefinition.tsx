@@ -2,7 +2,6 @@
 // ABOUTME: Self-contained module definition for student and staff management
 // ABOUTME: Hub-and-spoke navigation: hub pages shown in both modes, standalone pages deprecated and fullwidth-only
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
 import {
   AcademicCapIcon,
@@ -44,7 +43,7 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.students', path: '/administration/students', icon: UsersIcon, page: 'StudentDirectoryPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.staff', path: '/administration/staff', icon: UserGroupIcon, page: 'StaffDirectoryPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.configuration', path: '/administration/configuration', icon: CogIcon, page: 'SchoolConfigurationPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/organization' },
-    // M5: Split SchoolConfigurationPage (6 tabs) into two hubs (≤5 tabs each)
+    // M5: Split SchoolConfigurationPage (6 tabs) into two hubs (â‰¤5 tabs each)
     { name: 'navigation:administration.organization', path: '/administration/organization', icon: BuildingOffice2Icon, page: 'SchoolOrganizationPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.studentLife', path: '/administration/student-life', icon: UserGroupIcon, page: 'StudentLifePage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.academicCalendar', path: '/administration/academic-calendar', icon: CalendarDaysIcon, page: 'AcademicCalendarPage', showInModes: ['standard', 'fullwidth'] },

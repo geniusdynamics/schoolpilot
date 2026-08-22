@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 /**
  * Plugin Management Page
  * 
@@ -7,19 +9,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  PuzzlePieceIcon,
-  CloudArrowDownIcon,
-  CogIcon,
-  ShieldCheckIcon,
-  PlayIcon,
-  StopIcon,
-  TrashIcon,
-  InformationCircleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+import { PuzzlePieceIcon, CloudArrowDownIcon, CogIcon, ShieldCheckIcon, StopIcon, TrashIcon, InformationCircleIcon, CheckCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { usePlugins } from '../../../plugins/usePlugins';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import type {
@@ -76,7 +66,7 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
     try {
       await activatePlugin(pluginId);
     } catch (error) {
-      console.error('Failed to activate plugin:', error);
+      logger.error('Failed to activate plugin:', error);
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +77,7 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
     try {
       await deactivatePlugin(pluginId);
     } catch (error) {
-      console.error('Failed to deactivate plugin:', error);
+      logger.error('Failed to deactivate plugin:', error);
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +90,7 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
     try {
       await unloadPlugin(pluginId);
     } catch (error) {
-      console.error('Failed to uninstall plugin:', error);
+      logger.error('Failed to uninstall plugin:', error);
     } finally {
       setIsLoading(false);
     }
@@ -547,11 +537,11 @@ const MarketplaceTab: React.FC<{
 
   // Mock marketplace plugins
   const marketplacePlugins = [
-    { id: 'docker-terminal', name: 'Docker Terminal', author: '3clyp50', stars: 18, category: 'tools', description: 'Embedded multi-session terminal panel with tabbed PTY sessions', icon: '🐳' },
-    { id: 'bmad-method', name: 'BMAD Method', author: 'vanja-emichi', stars: 16, category: 'agents', description: 'Full software development lifecycle framework with 20 specialist agents', icon: '📊' },
-    { id: 'chat-rename', name: 'Chat Rename', author: '3clyp50', stars: 13, category: 'ui', description: 'Rename chats from the sidebar and keep manual titles locked', icon: '✏️' },
-    { id: 'telegram-integration', name: 'Telegram Integration', author: 'spinnakergit', stars: 8, category: 'integration', description: 'Send, receive, and manage messages via Telegram Bot API', icon: '📨' },
-    { id: 'memory-manager', name: 'Memory Manager', author: 'community', stars: 25, category: 'memory', description: 'Advanced memory management with vector storage and retrieval', icon: '🧠' },
+    { id: 'docker-terminal', name: 'Docker Terminal', author: '3clyp50', stars: 18, category: 'tools', description: 'Embedded multi-session terminal panel with tabbed PTY sessions', icon: 'ðŸ³' },
+    { id: 'bmad-method', name: 'BMAD Method', author: 'vanja-emichi', stars: 16, category: 'agents', description: 'Full software development lifecycle framework with 20 specialist agents', icon: 'ðŸ“Š' },
+    { id: 'chat-rename', name: 'Chat Rename', author: '3clyp50', stars: 13, category: 'ui', description: 'Rename chats from the sidebar and keep manual titles locked', icon: 'âœï¸' },
+    { id: 'telegram-integration', name: 'Telegram Integration', author: 'spinnakergit', stars: 8, category: 'integration', description: 'Send, receive, and manage messages via Telegram Bot API', icon: 'ðŸ“¨' },
+    { id: 'memory-manager', name: 'Memory Manager', author: 'community', stars: 25, category: 'memory', description: 'Advanced memory management with vector storage and retrieval', icon: 'ðŸ§ ' },
   ];
 
   const filters = [
@@ -904,7 +894,7 @@ const PluginDetailsPanel: React.FC<{
                   <span>Author: <span className="font-medium text-gray-700 dark:text-gray-300">{plugin.manifest.author || 'Unknown'}</span></span>
                   {plugin.manifest.version && (
                     <>
-                      <span>•</span>
+                      <span>â€¢</span>
                       <span>v{plugin.manifest.version}</span>
                     </>
                   )}

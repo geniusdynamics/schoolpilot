@@ -11,12 +11,7 @@ import {
   type InvoiceFinancialSummary,
   type InvoiceStatusServiceDependencies,
 } from '../services/InvoiceStatusService';
-import {
-  InvoiceGenerationService,
-  type InvoiceGenerationResult,
-  type InvoiceGenerationServiceDependencies,
-  type ActiveStudentRecord,
-} from '../services/InvoiceGenerationService';
+import { InvoiceGenerationService, type InvoiceGenerationResult, type InvoiceGenerationServiceDependencies } from '../services/InvoiceGenerationService';
 import {
   PaymentAllocationService,
   PaymentAllocationType,
@@ -34,7 +29,7 @@ import type {
   StudentPayment,
 } from '../data/types';
 
-// ── useInvoiceStatus ────────────────────────────────────────────────────────
+// â”€â”€ useInvoiceStatus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Hook that provides InvoiceStatusService methods connected to the database.
@@ -136,7 +131,7 @@ export function useInvoiceStatus() {
   };
 }
 
-// ── useInvoiceGeneration ────────────────────────────────────────────────────
+// â”€â”€ useInvoiceGeneration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Hook that provides InvoiceGenerationService methods connected to the database.
@@ -160,7 +155,7 @@ export function useInvoiceGeneration() {
     const deps: InvoiceGenerationServiceDependencies = {
       findActiveStudents: async () => {
         // Import dynamically to avoid circular deps; this will be called at runtime
-        const { useAdministrationData } = await import('@/modules/administration/data/useAdministrationData');
+
         // Note: In practice, this should be called from a component context
         // For now, we'll use the database service directly
         const db = await databaseService.getDatabase();
@@ -243,7 +238,7 @@ export function useInvoiceGeneration() {
   };
 }
 
-// ── usePaymentAllocation ────────────────────────────────────────────────────
+// â”€â”€ usePaymentAllocation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Hook that provides PaymentAllocationService methods connected to the database.

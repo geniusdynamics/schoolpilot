@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
@@ -12,6 +12,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import type { PayrollItemType } from '@/modules/hr/data/types';
+import { logger } from '@/utils/logging';
 
 type PayrollItemTypeFormData = Omit<Partial<PayrollItemType>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -138,7 +139,7 @@ export const PayrollItemTypesPageContent: React.FC = () => {
       await refreshCollection('payrollItemTypes');
       closeModal();
     } catch (error) {
-      console.error('Error saving payroll item type:', error);
+      logger.error('Error saving payroll item type:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -161,7 +162,7 @@ export const PayrollItemTypesPageContent: React.FC = () => {
       await collection?.remove(item.id.toString());
       await refreshCollection('payrollItemTypes');
     } catch (error) {
-      console.error('Error deleting payroll item type:', error);
+      logger.error('Error deleting payroll item type:', error);
     }
   }, [refreshCollection, t]);
 

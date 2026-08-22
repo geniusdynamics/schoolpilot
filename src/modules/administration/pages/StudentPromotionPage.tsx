@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Student Promotion Page - UI for promoting students to new classes
 // ABOUTME: Supports both single student and bulk promotion modes
 
@@ -13,15 +15,7 @@ import { useToast } from '@/hooks/useToast';
 import { useAppData } from '@/hooks/useAppData';
 import { useStudentPromotion } from '../hooks/useStudentPromotion';
 import type { StudentClassHistoryEntry } from '../data/types';
-import { 
-  AcademicCapIcon, 
-  UserGroupIcon, 
-  ArrowUpIcon, 
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  CalendarIcon,
-  DocumentTextIcon
-} from '@/components/ui/icons';
+import { AcademicCapIcon, UserGroupIcon, ArrowUpIcon, CheckCircleIcon, ExclamationTriangleIcon, DocumentTextIcon } from '@/components/ui/icons';
 
 type PromotionMode = 'single' | 'bulk';
 
@@ -78,7 +72,7 @@ const StudentPromotionPage: React.FC = () => {
           setStudentHistory(history);
         })
         .catch(err => {
-          console.error('Error loading student history:', err);
+          logger.error('Error loading student history:', err);
           setStudentHistory([]);
         })
         .finally(() => {
@@ -102,7 +96,7 @@ const StudentPromotionPage: React.FC = () => {
     if (!selectedStudentId || !targetClassStreamId || !promotionDate) {
       showToast({
         variant: 'warning',
-        title: t('validation'),
+        title: t('validationTitle'),
         message: t('fillAllRequiredFields')
       });
       return;
@@ -167,7 +161,7 @@ const StudentPromotionPage: React.FC = () => {
     if (!selectedStudentIds.length || !targetClassStreamIdBulk) {
       showToast({
         variant: 'warning',
-        title: t('validation'),
+        title: t('validationTitle'),
         message: t('selectStudentsToPromote')
       });
       return;
@@ -593,7 +587,7 @@ const StudentPromotionPage: React.FC = () => {
                 )}
                 
                 <div className="mt-2 text-sm text-gray-500">
-                  {t('selected')}: {selectedStudentIds.length} {t('students')}
+                  {t('selected')}: {selectedStudentIds.length} {t('studentsCountLabel')}
                 </div>
               </div>
             )}

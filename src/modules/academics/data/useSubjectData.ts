@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for subject data management
 // ABOUTME: Provides CRUD operations for subject without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockSubjects } from './mockData';
 import { Subject } from '@/core/types';
+import { useState } from 'react';
 
 export const useSubjectData = () => {
   const [data, setData] = useState<Subject[]>(initialMockSubjects);

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -10,6 +10,7 @@ import { PencilIcon, PlusIcon, TrashIcon, CubeIcon } from '@/components/ui/icons
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { StationeryItem } from '../data/types';
+import { logger } from '@/utils/logging';
 
 export const StationeryPageContent: React.FC = () => {
   const { t } = useTranslation('inventory');
@@ -90,13 +91,13 @@ export const StationeryPageContent: React.FC = () => {
       alert('Name and category are required.');
       return;
     }
-    console.log('Saving stationery item:', formData);
+    logger.info('Saving stationery item:', formData);
     closeModal();
   };
 
   const deleteItem = (item: StationeryItem) => {
     if (confirm('Are you sure you want to delete this item?')) {
-      console.log('Deleting item:', item.id);
+      logger.info('Deleting item:', item.id);
     }
   };
 

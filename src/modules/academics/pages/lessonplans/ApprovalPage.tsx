@@ -19,8 +19,7 @@ import {
   EyeIcon,
   ExclamationTriangleIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
-import { WeeklyPlan } from '../../data/types';
+import { useLessonPlansData, PlanStatus, WeeklyPlan } from '../../data/lessonplans/useLessonPlansData';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -143,7 +142,7 @@ const ApprovalPage: React.FC = () => {
     navigate(`/lessonplans/weekly/${plan.id}`);
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr?: string) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -152,7 +151,7 @@ const ApprovalPage: React.FC = () => {
     });
   };
 
-  const formatDateTime = (dateStr: string) => {
+  const formatDateTime = (dateStr?: string) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',

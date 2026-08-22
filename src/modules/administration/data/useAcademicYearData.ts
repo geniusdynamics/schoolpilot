@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for academicyear data management
 // ABOUTME: Provides CRUD operations for academicyear without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockAcademicYears } from './mockData';
 import { AcademicYear } from '@/core/types';
+import { useState } from 'react';
 
 export const useAcademicYearData = () => {
   const [data, setData] = useState<AcademicYear[]>(initialMockAcademicYears);

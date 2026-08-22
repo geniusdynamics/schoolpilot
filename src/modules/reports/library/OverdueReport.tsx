@@ -1,7 +1,7 @@
 // ABOUTME: Overdue Books Report for library module
 // ABOUTME: Shows all books that are currently overdue with borrower details
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import { ClockIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
@@ -10,7 +10,6 @@ import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { Loan, Student, Staff, Book } from '@/types';
-import { useTranslation } from 'react-i18next';
 
 interface OverdueItem {
   loanId: string;
@@ -27,7 +26,6 @@ interface OverdueItem {
 
 const OverdueReport: React.FC = () => {
   const { loans, books, students, staff, loading } = useAppData();
-  const { t } = useTranslation('reports');
 
   const [selectedBorrowerType, setSelectedBorrowerType] = useState<'all' | 'user'>('all');
   const [minDaysOverdue, setMinDaysOverdue] = useState<number>(1);

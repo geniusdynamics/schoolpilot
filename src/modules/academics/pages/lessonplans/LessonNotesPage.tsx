@@ -18,8 +18,7 @@ import {
   FilterIcon,
   DocumentTextIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData } from '../../data/lessonplans/useLessonPlansData';
-import { LessonNote } from '../../data/types';
+import { useLessonPlansData, LessonNote } from '../../data/lessonplans/useLessonPlansData';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
@@ -180,12 +179,12 @@ const LessonNotesPage: React.FC = () => {
       await createLessonNote({
         teacherId: formData.teacherId,
         teacherName: formData.teacherName,
-        subjectId: Number(formData.subjectId),
+        subjectId: formData.subjectId,
         subjectName: formData.subjectName,
-        classStreamId: Number(formData.classStreamId),
+        classStreamId: formData.classStreamId,
         classStreamName: formData.classStreamName,
         date: formData.date,
-        periodId: Number(formData.periodId),
+        periodId: formData.periodId,
         periodName: formData.periodName,
         topic: formData.topic,
         subTopic: formData.subTopic,
@@ -197,8 +196,8 @@ const LessonNotesPage: React.FC = () => {
         conclusion: formData.conclusion,
         reflection: formData.reflection,
         challenges: formData.challenges,
-        studentsPresent: formData.studentsPresent ? Number(formData.studentsPresent) : null,
-        studentsAbsent: formData.studentsAbsent ? Number(formData.studentsAbsent) : null,
+        studentsPresent: formData.studentsPresent,
+        studentsAbsent: formData.studentsAbsent,
       });
       showToast({
         type: 'success',
@@ -221,12 +220,12 @@ const LessonNotesPage: React.FC = () => {
       await updateLessonNote(editingNote.id, {
         teacherId: formData.teacherId,
         teacherName: formData.teacherName,
-        subjectId: Number(formData.subjectId),
+        subjectId: formData.subjectId,
         subjectName: formData.subjectName,
-        classStreamId: Number(formData.classStreamId),
+        classStreamId: formData.classStreamId,
         classStreamName: formData.classStreamName,
         date: formData.date,
-        periodId: Number(formData.periodId),
+        periodId: formData.periodId,
         periodName: formData.periodName,
         topic: formData.topic,
         subTopic: formData.subTopic,
@@ -238,8 +237,8 @@ const LessonNotesPage: React.FC = () => {
         conclusion: formData.conclusion,
         reflection: formData.reflection,
         challenges: formData.challenges,
-        studentsPresent: formData.studentsPresent ? Number(formData.studentsPresent) : null,
-        studentsAbsent: formData.studentsAbsent ? Number(formData.studentsAbsent) : null,
+        studentsPresent: formData.studentsPresent,
+        studentsAbsent: formData.studentsAbsent,
       });
       showToast({
         type: 'success',

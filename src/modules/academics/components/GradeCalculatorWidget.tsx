@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // src/modules/academics/components/GradeCalculatorWidget.tsx
 
 import React, { useState, useEffect } from 'react';
@@ -59,7 +61,7 @@ const GradeCalculatorWidget: React.FC<GradeCalculatorWidgetProps> = ({
         onGradeCalculated(calculatedResult);
       }
     } catch (error) {
-      console.error('Error calculating grade:', error);
+      logger.error('Error calculating grade:', error);
       setCalculatedGrade('Error');
       setGradeDescription('Unable to calculate grade');
     }

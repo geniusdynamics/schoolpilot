@@ -8,6 +8,8 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { initialMockSessionAttendance } from '../data/mockData';
 import type { SessionAttendance, DynamicAttendanceStatus } from '../data/types';
+import { logger } from '@/utils/logging';
+import { AttendanceStatus } from '@/core/types';
 
 export const DynamicAttendanceContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -44,22 +46,22 @@ export const DynamicAttendanceContent: React.FC = () => {
   const handleStartSession = () => {
     setIsSessionActive(true);
     setSessionStartTime(new Date().toISOString());
-    console.log('Starting session...');
+    logger.info('Starting session...');
   };
 
   const handleStopSession = () => {
     setIsSessionActive(false);
     setSessionStartTime(null);
-    console.log('Stopping session...');
+    logger.info('Stopping session...');
   };
 
   const handleCheckIn = (record: SessionAttendance) => {
-    console.log('Check in student:', record.student_id);
+    logger.info('Check in student:', record.student_id);
     // In production, this would record the check-in time
   };
 
   const handleCheckOut = (record: SessionAttendance) => {
-    console.log('Check out student:', record.student_id);
+    logger.info('Check out student:', record.student_id);
     // In production, this would record the check-out time
   };
 

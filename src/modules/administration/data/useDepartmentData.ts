@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for department data management
 // ABOUTME: Provides CRUD operations for department without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockDepartments } from './mockData';
 import { Department } from '@/core/types';
+import { useState } from 'react';
 
 export const useDepartmentData = () => {
   const [data, setData] = useState<Department[]>(initialMockDepartments || []);

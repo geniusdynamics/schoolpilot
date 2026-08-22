@@ -8,7 +8,6 @@ import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { EyeIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
-import { useTranslation } from 'react-i18next';
 import { StudentStatus } from '@/core/types/enums';
 
 interface TransferredStudent {
@@ -30,7 +29,7 @@ interface TransferredStudent {
 }
 
 const TransferredStudentsPage: React.FC = () => {
-  const { t } = useTranslation('administration');
+
   const { students = [], loading } = useAppData();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,7 +95,7 @@ const TransferredStudentsPage: React.FC = () => {
 
   const columns: DataGridColumn<TransferredStudent>[] = [
     { key: 'admission_number', header: 'Admission No', width: 120, sortable: true, filterable: true },
-    { key: 'first_name', header: 'Student Name', width: 180, sortable: true, filterable: true, render: (value, item) => `${item.first_name} ${item.last_name}` },
+    { key: 'first_name', header: 'Student Name', width: 180, sortable: true, filterable: true, render: (value, item) => [item.first_name, item.last_name].filter(Boolean).join(' ') || '—' },
     { key: 'class_name', header: 'Class', width: 80, sortable: true },
     { key: 'stream_name', header: 'Stream', width: 80, sortable: true },
     { key: 'transfer_date', header: 'Transfer Date', width: 120, sortable: true, render: (value) => new Date(value).toLocaleDateString() },
@@ -166,7 +165,7 @@ const TransferredStudentsPage: React.FC = () => {
       </Card>
 
       {selectedStudent && (
-        <Modal isOpen={!!selectedStudent} onClose={() => setSelectedStudent(null)} title={`${selectedStudent.first_name} ${selectedStudent.last_name}`} size="lg">
+        <Modal isOpen={!!selectedStudent} onClose={() => setSelectedStudent(null)} title={[selectedStudent.first_name, selectedStudent.last_name].filter(Boolean).join(' ') || 'Student Details'} size="lg">
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div><label className="text-xs font-medium text-gray-500">Admission Number</label><p className="mt-1 text-sm">{selectedStudent.admission_number}</p></div>

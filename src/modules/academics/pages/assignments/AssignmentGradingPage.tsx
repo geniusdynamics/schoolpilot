@@ -16,9 +16,11 @@ import type { AssignmentSubmission } from '../../data/types';
 import { SubmissionStatus } from '../../data/types';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
+
 
 const submissionStatusColors: Record<SubmissionStatus, string> = {
-  [SubmissionStatus.NOT_SUBMITTED]: 'bg-gray-100 text-gray-800',
+  [SubmissionStatus.PENDING_REVIEW]: 'bg-gray-100 text-gray-800',
   [SubmissionStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
   [SubmissionStatus.LATE]: 'bg-orange-100 text-orange-800',
   [SubmissionStatus.GRADED]: 'bg-green-100 text-green-800',
@@ -199,7 +201,7 @@ const AssignmentGradingPage: React.FC = () => {
         });
         successCount++;
       } catch (error) {
-        console.error('Failed to grade submission:', subId);
+        logger.error('Failed to grade submission:', subId);
       }
     }
 

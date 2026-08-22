@@ -3,10 +3,11 @@ import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import { UserIcon, PlusIcon, HeartIcon, PhoneIcon, DocumentTextIcon, AcademicCapIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { StudentBioData } from '../data/types';
+import { DocumentTextIcon, HeartIcon, PhoneIcon, PlusIcon, UserIcon } from '@/components/ui/icons';
 
 const StudentBioDataPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -36,7 +37,7 @@ const StudentBioDataPage: React.FC = () => {
 
   const classes = ['Grade 10', 'Grade 9', 'Grade 8', 'Grade 7'];
 
-  if (loading?.all && mockStudentBioData.length === 0) {
+  if (loading?.all && mockStudentBioData.length === 0 && !studentBioData) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -117,7 +118,7 @@ const StudentBioDataPage: React.FC = () => {
         <Card>
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStudent(null)} variant="secondary">
-              ← {t('studentBioData.backToStudents', 'Back to Students')}
+              â† {t('studentBioData.backToStudents', 'Back to Students')}
             </Button>
             <h2 className="text-xl font-bold text-gray-800">{selectedStudent.name}</h2>
           </div>
@@ -208,7 +209,7 @@ const StudentBioDataPage: React.FC = () => {
                 </Button>
               </div>
               <div className="space-y-3 mb-6">
-                {selectedStudent.medical_conditions.length > 0 ? (
+                {(selectedStudent.medical_conditions?.length ?? 0) > 0 ? (
                   selectedStudent.medical_conditions.map(condition => (
                     <div key={condition.id} className="p-4 border border-gray-200 rounded-lg">
                       <div className="flex justify-between items-start">
@@ -230,7 +231,7 @@ const StudentBioDataPage: React.FC = () => {
 
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <h3 className="font-semibold text-red-800 mb-2">Allergies</h3>
-                {selectedStudent.allergies.length > 0 ? (
+                {(selectedStudent.allergies?.length ?? 0) > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {selectedStudent.allergies.map((allergy, index) => (
                       <span key={index} className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
@@ -255,7 +256,7 @@ const StudentBioDataPage: React.FC = () => {
                 </Button>
               </div>
               <div className="space-y-3">
-                {selectedStudent.emergency_contacts.map(contact => (
+                {(selectedStudent.emergency_contacts || []).map(contact => (
                   <div key={contact.id} className={`p-4 border rounded-lg ${contact.is_primary ? 'border-blue-300 bg-blue-50' : 'border-gray-200'}`}>
                     <div className="flex justify-between items-start">
                       <div>
@@ -285,7 +286,7 @@ const StudentBioDataPage: React.FC = () => {
                 </Button>
               </div>
               <div className="space-y-3">
-                {selectedStudent.documents.map(doc => (
+                {(selectedStudent.documents || []).map(doc => (
                   <div key={doc.id} className="p-4 border border-gray-200 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>

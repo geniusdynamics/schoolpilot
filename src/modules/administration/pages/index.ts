@@ -37,7 +37,6 @@ export { default as ClubsPage } from './ClubsPage';
 export { default as CustomersPage } from './CustomersPage';
 export { default as ClassesPage } from './ClassesPage';
 export { default as StudentHealthRecordsPage } from './StudentHealthRecordsPage';
-export { default as StudentAttendancePage } from './StudentAttendancePage';
 export { default as CommunicationTemplatesPage } from './CommunicationTemplatesPage';
 export { default as MessageCampaignsPage } from './MessageCampaignsPage';
 export { default as SMSCategoriesPage } from './SMSCategoriesPage';

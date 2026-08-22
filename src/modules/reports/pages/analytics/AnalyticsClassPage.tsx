@@ -29,7 +29,7 @@ import type { ClassPerformance } from '../data/types';
 
 const AnalyticsClassPage: React.FC = () => {
   const { t } = useTranslation('analytics');
-  const { classPerformances, loading, selectedPeriod, setSelectedPeriod } = useAnalyticsData();
+  const { classPerformances, loading, selectedPeriod } = useAnalyticsData();
 
   const [periodFilter, setPeriodFilter] = useState<string>(selectedPeriod?.type || 'term');
   const [selectedClass, setSelectedClass] = useState<ClassPerformance | null>(null);

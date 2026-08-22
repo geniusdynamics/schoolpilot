@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Hook for student import data management
 // ABOUTME: Provides CRUD operations for student import sessions and records using direct database access
 
@@ -118,7 +120,7 @@ export const useStudentImportData = () => {
       const records = await getRecordsBySession(sessionId);
       setSessionRecords(records);
     } catch (error) {
-      console.error('Error loading session records:', error);
+      logger.error('Error loading session records:', error);
     } finally {
       setLoading(false);
     }

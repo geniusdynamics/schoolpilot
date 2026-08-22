@@ -10,16 +10,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Spinner from '@/components/ui/Spinner';
-import {
-  ArrowLeftIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-  UsersIcon,
-  AcademicCapIcon,
-  DocumentTextIcon,
-  ExclamationTriangleIcon,
-} from '@/components/ui/icons';
+import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon, ClockIcon, UsersIcon, DocumentTextIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import {
   Application,

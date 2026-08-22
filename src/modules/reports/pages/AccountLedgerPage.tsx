@@ -1,14 +1,16 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import Card from '@/components/ui/Card';
-import { BookOpenIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { ChartOfAccount, GeneralLedgerEntry } from '@/types';
+
 import { useTranslation } from 'react-i18next';
+import type { GeneralLedgerEntry } from '@/core/types';
+import { DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 
 interface LedgerEntryRow extends GeneralLedgerEntry {
   running_balance_display?: number;
@@ -103,7 +105,6 @@ export const AccountLedgerPageContent: React.FC = () => {
       document.body.removeChild(link);
     }
   };
-
 
   return (
     <div className="space-y-6">

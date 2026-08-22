@@ -1,20 +1,8 @@
 // ABOUTME: Admissions module definition
 // ABOUTME: Self-contained module definition for student admission management
 
-import React from 'react';
 import { ModuleDefinition } from '@/core/types';
-import {
-  DocumentAddIcon,
-  DocumentTextIcon,
-  UsersIcon,
-  CheckCircleIcon,
-  ClipboardDocumentListIcon,
-  EyeIcon,
-  ChartBarIcon,
-  AcademicCapIcon,
-  InboxIcon,
-  ExclamationTriangleIcon,
-} from '@/components/ui/icons';
+import { DocumentAddIcon, DocumentTextIcon, ClipboardDocumentListIcon, EyeIcon, ChartBarIcon, AcademicCapIcon } from '@/components/ui/icons';
 
 export const admissionsModule: ModuleDefinition = {
   id: 'admissions',

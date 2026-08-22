@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Example component demonstrating cross-module service access
 // This component uses the InvoiceService from the finance module without importing it directly
 
@@ -19,10 +21,10 @@ export function StudentInvoiceComponent({ studentId }: StudentInvoiceComponentPr
 
     try {
       const invoice = await invoiceService.generateInvoice(studentId);
-      console.log('Invoice generated:', invoice);
+      logger.info('Invoice generated:', invoice);
       alert(`Invoice ${invoice.id} generated for ${invoice.amount}`);
     } catch (err) {
-      console.error('Failed to generate invoice:', err);
+      logger.error('Failed to generate invoice:', err);
       alert('Failed to generate invoice');
     }
   };
@@ -34,7 +36,7 @@ export function StudentInvoiceComponent({ studentId }: StudentInvoiceComponentPr
       await invoiceService.processPayment('INV-123', 1000);
       alert('Payment processed successfully');
     } catch (err) {
-      console.error('Failed to process payment:', err);
+      logger.error('Failed to process payment:', err);
       alert('Failed to process payment');
     }
   };

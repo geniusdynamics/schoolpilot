@@ -2,7 +2,6 @@
 // ABOUTME: Provides data grids, filtering, and search for alumni engagement activities and events
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { PageHeaderWithTabs, Tab } from '@/components/ui/PageHeaderWithTabs';
 import { UserGroupIcon, GiftIcon, CalendarDaysIcon } from '@/components/ui/icons';
@@ -58,7 +57,6 @@ const eventsMockData: AlumniEvent[] = [
 ];
 
 const AlumniEngagementContent: React.FC = () => {
-  const { t } = useTranslation('administration');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('');
@@ -174,7 +172,6 @@ const AlumniEngagementContent: React.FC = () => {
 };
 
 const AlumniEventsContent: React.FC = () => {
-  const { t } = useTranslation('administration');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -306,7 +303,7 @@ const tabConfig = [
 ];
 
 const AlumniManagementPage: React.FC = () => {
-  const { t } = useTranslation('administration');
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'directory');
 

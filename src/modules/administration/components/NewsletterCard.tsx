@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { cn } from '@/utils/cn';
-import { DocumentTextIcon, EyeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon } from '@/components/ui/icons';
 
 export interface Newsletter {
   id: string;

@@ -4,7 +4,6 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { DocumentTextIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
 interface Student {
   id: string;
@@ -22,7 +21,7 @@ interface Student {
 }
 
 export const BirthCertificateContent: React.FC = () => {
-  const { t } = useTranslation('administration');
+
   const { loading } = useAppData();
 
   const [selectedClass, setSelectedClass] = useState('');
@@ -184,7 +183,7 @@ export const BirthCertificateContent: React.FC = () => {
         <Card>
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStudent(null)} variant="secondary">
-              ← Back to Students
+              â† Back to Students
             </Button>
             <div className="flex gap-2">
               <Button onClick={printCertificate} variant="secondary">

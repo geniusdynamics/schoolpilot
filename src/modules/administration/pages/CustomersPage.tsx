@@ -7,7 +7,6 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { PlusIcon, EditIcon, DeleteIcon, UsersIcon as CustomersIcon } from '@/components/ui/icons';
 import { useCustomerData } from '@/modules/administration/data/useCustomerData';
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormSection from '../../../components/ui/forms/FormSection';

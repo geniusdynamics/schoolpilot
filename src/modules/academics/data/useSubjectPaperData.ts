@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for subjectpaper data management
 // ABOUTME: Provides CRUD operations for subjectpaper without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockSubjectPapers } from './mockData';
 import { SubjectPaper } from '@/core/types';
+import { useState } from 'react';
 
 export const useSubjectPaperData = () => {
   const [data, setData] = useState<SubjectPaper[]>(initialMockSubjectPapers);

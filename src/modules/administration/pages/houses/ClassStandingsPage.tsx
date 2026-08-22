@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import { UsersIcon } from '@/components/ui/icons';

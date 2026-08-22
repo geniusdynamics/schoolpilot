@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Application tracking page for prospective students
 // ABOUTME: Allows applicants to check their application status using a reference number
 
@@ -24,7 +26,7 @@ import {
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import { Application, ApplicationStatus } from '../data/types';
 
-// ─── Status Timeline Configuration ────────────────────────────────
+// â”€â”€â”€ Status Timeline Configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface TimelineStep {
   key: string;
   label: string;
@@ -93,7 +95,7 @@ const getStatusLabel = (status: ApplicationStatus, t: (key: string) => string): 
   return map[status] || status;
 };
 
-// ─── Component ─────────────────────────────────────────────────────
+// â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const ApplicationTrackingPageContent: React.FC = () => {
   const { t } = useTranslation('admissions');
   const { getApplicationByReference } = useAdmissionsData();
@@ -105,7 +107,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
   const [notFound, setNotFound] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // ── Search Handler ────────────────────────────────────────────
+  // â”€â”€ Search Handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSearch = async () => {
     const trimmed = referenceNumber.trim();
     if (!trimmed) {
@@ -130,7 +132,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
         setNotFound(true);
       }
     } catch (error) {
-      console.error('Search error:', error);
+      logger.error('Search error:', error);
       setHasSearched(true);
       setNotFound(true);
     } finally {
@@ -142,7 +144,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
     if (e.key === 'Enter') handleSearch();
   };
 
-  // ── Timeline Renderer ─────────────────────────────────────────
+  // â”€â”€ Timeline Renderer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const renderTimeline = (app: Application) => {
     const currentKey = statusToTimelineKey[app.status] || 'submitted';
     const isRejected = app.status === ApplicationStatus.REJECTED;
@@ -224,7 +226,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
     );
   };
 
-  // ── Main Render ───────────────────────────────────────────────
+  // â”€â”€ Main Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 py-8 px-4">
       {/* Header */}
@@ -341,7 +343,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                     {t('application.fields.intendedClass', 'Applied Class')}
                   </p>
                   <p className="font-medium text-gray-900">
-                    {application.intendedClassName || application.intendedClassId || '—'}
+                    {application.intendedClassName || application.intendedClassId || 'â€”'}
                   </p>
                 </div>
               </div>
@@ -359,7 +361,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                           month: 'long',
                           day: 'numeric',
                         })
-                      : '—'}
+                      : 'â€”'}
                   </p>
                 </div>
               </div>
@@ -423,7 +425,7 @@ export const ApplicationTrackingPageContent: React.FC = () => {
                       ),
                     });
                     // In a real app: navigate('/admissions/enroll')
-                    window.location.href = '/admissions/enroll';
+                    window.location.hash = '#/admissions/enroll';
                   }}
                 >
                   {t('public.tracking.proceedToEnrollment', 'Proceed to Enrollment')}

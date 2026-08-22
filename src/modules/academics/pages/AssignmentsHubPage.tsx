@@ -2,11 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
-import {
-  ClipboardDocumentListIcon,
-  ClipboardDocumentCheckIcon,
-  ChartBarIcon,
-} from '@/components/ui/icons';
+import { ClipboardDocumentListIcon, ClipboardDocumentCheckIcon } from '@/components/ui/icons';
 import AssignmentsListPage from './assignments/AssignmentsListPage';
 import AssignmentGradingPage from './assignments/AssignmentGradingPage';
 

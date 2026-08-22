@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Add Student Page with TabbedForm implementation
 // ABOUTME: Standalone page for adding new students using the modernized tabbed form interface
 
@@ -169,7 +171,7 @@ const AddStudentPage: React.FC = () => {
       // Navigate back to students list on success
       navigate('/administration/students');
     } catch (error) {
-      console.error('Error adding student:', error);
+      logger.error('Error adding student:', error);
     } finally {
       setIsSubmitting(false);
     }

@@ -1,19 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { StudentTransportAssignment, TransportRoute, TransportAssignmentStatus } from '@/modules/finance';
-import { Student } from '@/modules/administration';
-import { SchoolPeriod, StudentStatus } from '@/core/types';
+
+import { Student } from '@/core/types';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TruckIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { StudentStatus, TransportAssignmentStatus } from '@/core/types';
+import type { StudentTransportAssignment } from '@/core/types';
 
 type AssignmentFormData = Omit<Partial<StudentTransportAssignment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'route_name' | 'school_period_name' | 'status' | 'invoice_id'> & {
     status: TransportAssignmentStatus;
@@ -23,7 +21,7 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
   const appData = useAppData();
   const studentTransportAssignments = appData.studentTransportAssignments || [];
   const students = appData.students || [];
-  const transportRoutes = appData.transportRoutes || [];
+
   const schoolPeriods = appData.schoolPeriods || [];
   const loading = appData.loading || {};
   const addStudentTransportAssignment = appData.addStudentTransportAssignment;
@@ -42,7 +40,6 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
   const [formData, setFormData] = useState<AssignmentFormData>(initialFormData);
 
   const activeStudents = useMemo(() => students.filter(s => s.status === StudentStatus.ACTIVE), [students]);
-  const activeSchoolPeriods = useMemo(() => schoolPeriods.filter(sp => sp.is_active), [schoolPeriods]);
 
 
   const openModal = (assignment?: StudentTransportAssignment) => {

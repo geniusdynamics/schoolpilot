@@ -50,9 +50,10 @@ export enum InvoiceStatus {
   VOIDED = 'Voided' 
 }
 
-export enum CustomerInvoiceStatus { 
+export enum CustomerInvoiceStatus {
   DRAFT = 'Draft', 
   SENT = 'Sent', 
+  DUE = 'Due', 
   PAID = 'Paid', 
   PARTIALLY_PAID = 'Partially Paid', 
   OVERDUE = 'Overdue', 

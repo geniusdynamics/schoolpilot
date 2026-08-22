@@ -8,10 +8,10 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, UsersIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { EditIcon, UsersIcon } from '@/components/ui/icons';
 
 type AssignmentFormData = Omit<Partial<StudentMealPlan>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name' | 'meal_plan_name' | 'status'> & {
     status: StudentMealPlanStatus;
@@ -54,7 +54,6 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
     if (!selectedSchoolPeriodId) return [];
     return (studentMealPlans || []).filter(smp => smp.school_period_id === selectedSchoolPeriodId);
   }, [studentMealPlans, selectedSchoolPeriodId]);
-
 
   const openModal = (assignment?: StudentMealPlan, student?: Student) => {
     setEditingAssignment(assignment || null);
@@ -119,7 +118,7 @@ export const StudentMealAssignmentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 200,
-      render: (value, row) => `${row.first_name} ${row.last_name} (${row.admission_no})`
+      render: (value, row) => [row.first_name, row.last_name].filter(Boolean).join(' ') + (row.admission_no ? ` (${row.admission_no})` : '')
     },
     { 
       key: 'current_class_stream_name', 

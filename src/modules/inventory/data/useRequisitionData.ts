@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for requisition data management
 // ABOUTME: Provides CRUD operations for requisition without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockRequisitions } from './mockData';
 import { Requisition } from '@/core/types';
+import { useState } from 'react';
 
 export const useRequisitionData = () => {
   const [data, setData] = useState<Requisition[]>(initialMockRequisitions);

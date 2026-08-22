@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { initialMockScholarshipRecords } from '../data/mockData';
 import type { ScholarshipRecord } from '../data/types';
 
+import { logger } from '@/utils/logging';
+
 const ScholarshipTrackingPage: React.FC = () => {
   const { t } = useTranslation('administration');
   const { students, classes, loading } = useAppData();
@@ -92,7 +94,7 @@ const ScholarshipTrackingPage: React.FC = () => {
       alert('Student and scholarship type are required.');
       return;
     }
-    console.log('Saving scholarship:', formData);
+    logger.info('Saving scholarship:', formData);
     closeModal();
   };
 

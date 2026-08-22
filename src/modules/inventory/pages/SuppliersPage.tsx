@@ -2,38 +2,8 @@
 // ABOUTME: Provides comprehensive supplier management with CRUD operations, search, and filtering.
 
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Grid,
-  Chip,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Rating,
-  Tooltip,
-  Alert
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Search as SearchIcon,
-  Business as BusinessIcon,
-  Phone as PhoneIcon,
-  Email as EmailIcon,
-  LocationOn as LocationIcon
-} from '@mui/icons-material';
+import { Box, Button, Card, CardContent, Typography, TextField, Grid, Chip, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, Rating, Alert } from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Business as BusinessIcon, Phone as PhoneIcon, Email as EmailIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { useSupplierData } from '../data/useSupplierData';
 import { InvSupplierType, InvSupplierStatusEnum } from '../data/types';

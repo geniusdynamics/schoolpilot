@@ -2,7 +2,7 @@
 // ABOUTME: Exports the module definition for the settings module with hub-and-spoke navigation
 
 import { ModuleDefinition } from '@/core/types';
-import { CogIcon, ClockIcon, IdentificationIcon, UsersIcon, ArrowsRightLeftIcon, CircleStackIcon, ViewColumnsIcon, DownloadIcon, PuzzlePieceIcon, HomeIcon, AdjustmentsHorizontalIcon, SparklesIcon, WrenchIcon, DocumentTextIcon } from '@/components/ui/icons';
+import { AdjustmentsHorizontalIcon, ArrowsRightLeftIcon, CircleStackIcon, ClockIcon, CogIcon, DocumentTextIcon, HomeIcon, IdentificationIcon, PuzzlePieceIcon, SparklesIcon, UsersIcon, ViewColumnsIcon, WrenchIcon } from '@/components/ui/icons';
 
 // Simple database icon component
 const DatabaseIcon: React.FC<{ className?: string }> = ({ className }) => (

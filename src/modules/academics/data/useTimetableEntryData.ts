@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for timetableentry data management
 // ABOUTME: Provides CRUD operations for timetableentry without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockTimetableEntries } from './mockData';
 import { TimetableEntry } from '@/core/types';
+import { useState } from 'react';
 
 export const useTimetableEntryData = () => {
   const [data, setData] = useState<TimetableEntry[]>(initialMockTimetableEntries);
@@ -11,7 +11,7 @@ export const useTimetableEntryData = () => {
   const create = async (newItem: Partial<TimetableEntry>) => {
     const newDataItem: TimetableEntry = {
       ...newItem,
-      id: Date.now(),
+      id: String(Date.now()),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as TimetableEntry;
@@ -19,7 +19,7 @@ export const useTimetableEntryData = () => {
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<TimetableEntry>) => {
+  const update = async (id: string, updatedData: Partial<TimetableEntry>) => {
     setData((prev: TimetableEntry[]) => prev.map((item: TimetableEntry) => 
       item.id === id 
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
@@ -27,7 +27,7 @@ export const useTimetableEntryData = () => {
     ));
   };
 
-  const remove = async (id: number) => {
+  const remove = async (id: string) => {
     setData((prev: TimetableEntry[]) => prev.filter((item: TimetableEntry) => item.id !== id));
   };
 

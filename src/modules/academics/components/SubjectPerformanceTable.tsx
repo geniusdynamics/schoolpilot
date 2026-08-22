@@ -95,7 +95,7 @@ export const SubjectPerformanceTable: React.FC<SubjectPerformanceTableProps> = (
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {displaySubjects.map((subject, index) => (
+            {displaySubjects.map((subject) => (
               <tr key={subject.name} className="hover:bg-gray-50/50 transition-colors">
                 <td className="px-4 py-3 text-sm font-medium text-gray-900">
                   {subject.rank}

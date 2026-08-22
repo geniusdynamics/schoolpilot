@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for partner data management
 // ABOUTME: Provides CRUD operations for partner without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockPartners } from '../../administration/data/mockData';
 import { AdminPartnerType } from './types';
+import { useState } from 'react';
 
 export const usePartnerData = () => {
   const [data, setData] = useState<AdminPartnerType[]>(initialMockPartners || []);

@@ -3,13 +3,14 @@
 
 import React, { useState, useCallback } from 'react';
 import Card from '@/components/ui/Card';
-import { CurrencyDollarIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { useTranslation } from 'react-i18next';
+import { DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 import {
   buildStudentVoteheadStatement,
   StatementRow
@@ -78,7 +79,6 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
     students,
     t
   ]);
-
 
   const columns = [
     { header: 'Date', accessor: 'date' as keyof StatementRow, render: (item: StatementRow) => new Date(item.date).toLocaleDateString() },

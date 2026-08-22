@@ -1,9 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { StudentWallet, WalletTransaction, Student, WalletTransactionType, StudentStatus } from '@/types';
+import React, { useState, useMemo } from 'react';
+
 import { Card, DataGrid, Button, Modal, Input, Select, Textarea, Toast, Spinner } from '@/components/ui';
-import { PlusIcon, EyeIcon, CreditCardIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
-import { useTranslation } from 'react-i18next';
+import { StudentStatus, WalletTransactionType } from '@/core/types';
+import type { StudentWallet } from '@/core/types';
+import { EyeIcon, PlusIcon } from '@/components/ui/icons';
 
 type WalletTransactionFormData = {
     student_id: string;
@@ -40,7 +42,7 @@ export const StudentWalletPageContent: React.FC = () => {
   const filteredStudentWallets = useMemo(() => {
     return (studentWallets || []).filter(sw => {
         const student = (students || []).find(s => s.id === sw.student_id);
-        return student && `${student.first_name} ${student.last_name} ${student.admission_no}`.toLowerCase().includes(searchTerm.toLowerCase());
+        return student && [student.first_name, student.last_name, student.admission_no].filter(Boolean).join(' ').toLowerCase().includes(searchTerm.toLowerCase());
     });
   }, [studentWallets, students, searchTerm]);
 
@@ -50,7 +52,6 @@ export const StudentWalletPageContent: React.FC = () => {
         .filter(tx => tx.student_id === selectedStudentForHistory.student_id)
         .sort((a,b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime());
   }, [selectedStudentForHistory, walletTransactions]);
-
 
   const openTxModal = () => {
     setTxFormData(initialTxFormData);
@@ -90,7 +91,6 @@ export const StudentWalletPageContent: React.FC = () => {
     } else { // DEPOSIT or ADJUSTMENT_CREDIT
         finalAmount = Math.abs(txFormData.amount); 
     }
-
 
     const payload: Omit<WalletTransaction, 'id' | 'transaction_date' | 'running_balance' | 'student_name' | 'reference_id' | 'reference_type'> = {
       student_id: txFormData.student_id!,

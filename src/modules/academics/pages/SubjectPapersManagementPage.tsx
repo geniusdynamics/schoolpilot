@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { SubjectPaper, Subject } from '@/modules/academics/data/types'; // Corrected import
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -9,10 +9,11 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
 type SubjectPaperFormData = Omit<Partial<SubjectPaper>, 'id' | 'created_at' | 'updated_at' | 'subject_name'>;
 
@@ -63,7 +64,7 @@ export const SubjectPapersManagementContent: React.FC = () => {
     };
 
     if (editingPaper) {
-      await updateSubjectPaper({ ...editingPaper, ...payload });
+      await updateSubjectPaper(String(editingPaper.id), payload);
     } else {
       await addSubjectPaper(payload);
     }
@@ -72,7 +73,7 @@ export const SubjectPapersManagementContent: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this subject paper? This might affect exam paper settings.')) {
-      await deleteSubjectPaper(id);
+      await deleteSubjectPaper(String(id));
     }
   };
   
@@ -80,11 +81,11 @@ export const SubjectPapersManagementContent: React.FC = () => {
     { key: 'id', header: 'ID' },
     { key: 'name', header: 'Paper Name' },
     { key: 'subject_name', header: 'Subject' }, // Resolved name
-    { key: 'created_at', header: 'Created At', render: (value: any, item: SubjectPaper) => new Date(item.created_at).toLocaleDateString() },
+    { key: 'created_at', header: 'Created At', render: (_value: any, item: SubjectPaper) => new Date(item.created_at).toLocaleDateString() },
     {
       key: 'actions',
       header: 'Actions',
-      render: (value: any, item: SubjectPaper) => (
+      render: (_value: any, item: SubjectPaper) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -125,7 +126,7 @@ export const SubjectPapersManagementContent: React.FC = () => {
           <FormField label="Subject" required>
             <Select
               name="subject_id"
-              value={formData.subject_id || ''}
+              value={formData.subject_id ? String(formData.subject_id) : ''}
               onChange={handleInputChange}
               required
             >

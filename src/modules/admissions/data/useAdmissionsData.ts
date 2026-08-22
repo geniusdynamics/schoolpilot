@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Self-contained hook for admissions data management
 // ABOUTME: Provides CRUD operations for applications, documents, reviews, and enrollment
 
@@ -107,7 +109,7 @@ export const useAdmissionsData = () => {
       updateStatistics(apps);
     } catch (err) {
       setError('Failed to load applications');
-      console.error('Error loading applications:', err);
+      logger.error('Error loading applications:', err);
     } finally {
       setLoading(false);
     }

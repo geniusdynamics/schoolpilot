@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { logger } from '@/utils/logging';
+
 
 interface ClassPerformance {
   classId: string;
@@ -185,7 +187,7 @@ export function useAnalyticsData(): UseAnalyticsDataReturn {
         await new Promise(resolve => setTimeout(resolve, 300));
         setLoading(false);
       } catch (err) {
-        console.error('Failed to load analytics data:', err);
+        logger.error('Failed to load analytics data:', err);
         setLoading(false);
       }
     };

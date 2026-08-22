@@ -10,7 +10,7 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, PencilIcon, TrashIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 import { useTemplateCommData } from '../data/useTemplateCommData'; // Use module-specific hook
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+
 import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormSection from '../../../components/ui/forms/FormSection';
 import FormField from '../../../components/ui/forms/FormField';

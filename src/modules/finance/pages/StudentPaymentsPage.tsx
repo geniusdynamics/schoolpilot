@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
 import { StudentPayment } from '@/modules/finance';
-import { Student } from '@/modules/administration';
+import { Student } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CreditCardIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import { useToast } from '@/hooks/useToast';
 import Spinner from '@/components/ui/Spinner';
+import { logger } from '@/utils/logging';
 
 type StudentPaymentFormData = Omit<Partial<StudentPayment>, 'id' | 'created_at' | 'updated_at' | 'student_name'>;
 
@@ -40,7 +38,6 @@ export const StudentPaymentsPageContent: React.FC = () => {
     reference_no: ''
   };
   const [paymentFormData, setPaymentFormData] = useState<StudentPaymentFormData>(initialPaymentFormData);
-
 
   const openModal = (payment?: StudentPayment) => {
     setEditingPayment(payment || null);
@@ -91,7 +88,7 @@ export const StudentPaymentsPageContent: React.FC = () => {
       setPaymentFormData(initialPaymentFormData);
     } catch (error) {
       showToast('Failed to save student payment. Please try again.', 'error');
-      console.error('Error saving student payment:', error);
+      logger.error('Error saving student payment:', error);
     }
   };
 
@@ -105,7 +102,7 @@ export const StudentPaymentsPageContent: React.FC = () => {
       showToast('Student payment deleted successfully!', 'success');
     } catch (error) {
       showToast('Failed to delete student payment. Please try again.', 'error');
-      console.error('Error deleting student payment:', error);
+      logger.error('Error deleting student payment:', error);
     }
   };
 

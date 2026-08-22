@@ -8,6 +8,8 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { StaffAttendanceRecord, StaffAttendanceStatus } from '../data/types';
 
+import { logger } from '@/utils/logging';
+
 const StaffAttendancePage: React.FC = () => {
   const { t } = useTranslation('administration');
   const { staffAttendanceRecords, staff, loading } = useAppData();
@@ -39,7 +41,7 @@ const StaffAttendancePage: React.FC = () => {
   };
 
   const handleSaveAttendance = () => {
-    console.log('Saving staff attendance:', attendanceData);
+    logger.info('Saving staff attendance:', attendanceData);
   };
 
   const getStatusBadge = (status: StaffAttendanceStatus) => {

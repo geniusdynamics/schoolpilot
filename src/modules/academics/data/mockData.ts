@@ -1,16 +1,14 @@
 // src/modules/academics/data/mockData.ts
-import {
-  Subject, SubjectPaper, ExamSession, ExamPaperSetting, GradingScheme, GradingSchemeLevel,
-  StudentExamResult, StudentPaperMark, ClassSubjectAllocation, TeacherSubjectAssignment,
-  StudentSubjectEnrollment, TimetablePeriodDef, TimetableEntry, StudentExamResultWithDetails,
-  DayOfWeek, ExamSchedule
-} from '@/core/types';
+import { Subject, SubjectPaper, ExamSession, ExamPaperSetting, GradingScheme, StudentExamResult, StudentPaperMark, ClassSubjectAllocation, TeacherSubjectAssignment, StudentSubjectEnrollment, TimetablePeriodDef, TimetableEntry, StudentExamResultWithDetails, DayOfWeek, ExamSchedule } from '@/core/types';
 import {
   SubjectGrouping, ExamSessionStatus, StudentEnrollmentStatus, EducationSystemType, 
-  GradingSystemType, AcademicPeriodType, AssessmentType, EducationSystemConfiguration
+  GradingSystemType, AcademicPeriodType, AssessmentType, EducationSystemConfiguration,
+  BoardExamResult, ResultDistribution, SchoolEvent, ExamGazette, ExamToken,
+  MarksEntrySession, StructureValidationItem, CrossCheckRecord,
+  SubjectPerformanceDataPoint, PerformanceOverTimeDataPoint, SubjectBreakdownDataPoint,
+  ExamPerformanceOverTimeDataPoint, StreamPerformanceDataPoint
 } from './types';
 
-const generateId = (prefix: string = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
 export const initialMockSubjects: Subject[] = [
     { id: 1, subject_code: '101', abbreviation: 'ENG', name: 'English', department_id: 'DEPT005', is_compulsory: true, grouping: SubjectGrouping.GROUP_1_COMPULSORY, department_name: 'Languages & Literature', papers: [] },
@@ -590,8 +588,8 @@ export const initialMockExamSchedules: ExamSchedule[] = [
   {
     id: '1',
     exam_session_id: '1',
-    class_stream_id: '1',
-    period_id: '1',
+    class_stream_id: 1,
+    period_id: 1,
     room: 'Room 101',
     invigilator: 'Mr. Smith',
     date: '2024-01-15',
@@ -601,8 +599,8 @@ export const initialMockExamSchedules: ExamSchedule[] = [
   {
     id: '2',
     exam_session_id: '1',
-    class_stream_id: '2',
-    period_id: '2',
+    class_stream_id: 2,
+    period_id: 2,
     room: 'Room 102',
     invigilator: 'Ms. Johnson',
     date: '2024-01-15',
@@ -612,8 +610,8 @@ export const initialMockExamSchedules: ExamSchedule[] = [
   {
     id: '3',
     exam_session_id: '2',
-    class_stream_id: '1',
-    period_id: '1',
+    class_stream_id: 1,
+    period_id: 1,
     room: 'Room 201',
     invigilator: 'Mr. Williams',
     date: '2024-01-16',

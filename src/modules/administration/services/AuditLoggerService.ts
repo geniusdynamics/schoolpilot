@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: AuditLoggerService - Cross-module audit logging service
 // ABOUTME: Replaces trg_log_adm_students_after_update trigger from Akademico DB
 // ABOUTME: Provides generic audit trail for all entity mutations
@@ -247,7 +249,7 @@ export class AuditLoggerService {
       }
       return entry;
     } catch (error) {
-      console.error('[AuditLoggerService] Failed to write audit log:', error);
+      logger.error('[AuditLoggerService] Failed to write audit log:', error);
       // Don't throw - audit logging should not block the main operation
       return null;
     }

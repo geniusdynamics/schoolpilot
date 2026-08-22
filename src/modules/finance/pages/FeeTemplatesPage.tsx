@@ -1,19 +1,17 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { FeeTemplate, FeeTemplateItem, ChartOfAccount, ExpenseCategory, AccountType } from '@/modules/finance';
+import React, { useState, useMemo } from 'react';
+
 import { SchoolPeriod, StudentCategory } from '@/core/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TicketIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { AccountType } from '@/core/types';
+import type { FeeTemplate, FeeTemplateItem } from '@/core/types';
 
 type FeeTemplateFormData = Omit<Partial<FeeTemplate>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'student_category_name' | 'items'>;
 type FeeItemFormData = Omit<Partial<FeeTemplateItem>, 'id' | 'fee_template_id' | 'revenue_account_name' | 'linked_expense_category_name'>;

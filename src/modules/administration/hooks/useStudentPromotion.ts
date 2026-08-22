@@ -71,7 +71,7 @@ export function useStudentPromotion(): UseStudentPromotionReturn {
       classStreamsCollection.collection as ICollectionAdapter | null
     ),
     // Rebuild when collection references change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [studentsCollection.collection, historyCollection.collection, classStreamsCollection.collection]
   );
 

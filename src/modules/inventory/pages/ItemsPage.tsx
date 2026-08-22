@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ItemInv, ItemCategoryInv, ItemTypeInv } from '@/types';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,8 @@ import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons'
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { ItemTypeInv } from '@/core/types';
+import type { ItemInv } from '@/core/types';
 
 type ItemFormData = Omit<Partial<ItemInv>, 'id' | 'created_at' | 'updated_at' | 'category_name' | 'item_type'> & {
     item_type: ItemTypeInv; // Ensure item_type is required in the form

@@ -5,22 +5,10 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ModuleDashboardShell, { DashboardMetric, DashboardQuickAction, DashboardPanel } from '@/components/ModuleDashboardShell';
-import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import { usePortalData } from '../data/usePortalData';
-import {
-  HomeIcon,
-  CalendarDaysIcon,
-  ChartBarIcon,
-  CurrencyDollarIcon,
-  MegaphoneIcon,
-  BellIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ExclamationTriangleIcon,
-  UserCircleIcon,
-} from '@/components/ui/icons';
+import { HomeIcon, CalendarDaysIcon, ChartBarIcon, CurrencyDollarIcon, MegaphoneIcon, BellIcon, UserCircleIcon } from '@/components/ui/icons';
 
 export const PortalDashboardContent: React.FC = () => {
   const { t } = useTranslation('portal');

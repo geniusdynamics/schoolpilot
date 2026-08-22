@@ -6,11 +6,15 @@ import { EDUCATION_SYSTEM_TEMPLATES } from './templates/education-system-templat
 
 export interface UseEducationSystemData {
   educationSystemConfigurations: EducationSystemConfiguration[];
+  data: EducationSystemConfiguration[];
   loading: boolean;
   error: string | null;
   addEducationSystemConfiguration: (config: Partial<EducationSystemConfiguration>) => Promise<void>;
+  create: (config: Partial<EducationSystemConfiguration>) => Promise<void>;
   updateEducationSystemConfiguration: (config: EducationSystemConfiguration) => Promise<void>;
+  update: (config: EducationSystemConfiguration) => Promise<void>;
   deleteEducationSystemConfiguration: (id: string) => Promise<void>;
+  remove: (id: string) => Promise<void>;
   getEducationSystemConfiguration: (id: string) => EducationSystemConfiguration | undefined;
 }
 

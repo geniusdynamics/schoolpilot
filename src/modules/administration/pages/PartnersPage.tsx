@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { AdminPartnerType as Partner, PartnerType } from '../data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -9,7 +9,6 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, UserCircleIcon as PartnersIcon } from '@/components/ui/icons';
 import { usePartnerData } from '../data/usePartnerData'; // Use module-specific hook
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
@@ -66,7 +65,6 @@ export const PartnersContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const { t } = useTranslation();
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.partner_type) {

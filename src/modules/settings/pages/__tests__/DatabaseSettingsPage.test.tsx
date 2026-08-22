@@ -1,7 +1,6 @@
 // ABOUTME: Tests for DatabaseSettingsPage with configuration validation and repair functionality
 // ABOUTME: Tests UI components, validation display, and repair tool interactions
 
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import DatabaseSettingsPage from '../DatabaseSettingsPage';
@@ -299,7 +298,7 @@ describe('DatabaseSettingsPage', () => {
       const mockAutoFix = require('../../../../config/unifiedConfig').autoFixDatabaseConfig;
       mockAutoFix.mockReturnValue({
         success: true,
-        changes: ['performance.cacheSize: 5 → 10'],
+        changes: ['performance.cacheSize: 5 â†’ 10'],
         remainingIssues: mockValidationResult,
       });
 
@@ -316,7 +315,7 @@ describe('DatabaseSettingsPage', () => {
       const mockMigrate = require('../../../../config/unifiedConfig').migrateDatabaseConfig;
       mockMigrate.mockReturnValue({
         success: true,
-        appliedMigrations: ['1.0.0 → 2.0.0: Enhanced structure'],
+        appliedMigrations: ['1.0.0 â†’ 2.0.0: Enhanced structure'],
         validation: mockValidationResult,
       });
 
@@ -333,8 +332,8 @@ describe('DatabaseSettingsPage', () => {
       const mockRepair = require('../../../../config/unifiedConfig').repairDatabaseConfig;
       mockRepair.mockReturnValue({
         success: true,
-        changes: ['performance.cacheSize: 5 → 10'],
-        migrations: ['1.0.0 → 2.0.0'],
+        changes: ['performance.cacheSize: 5 â†’ 10'],
+        migrations: ['1.0.0 â†’ 2.0.0'],
         validation: mockValidationResult,
       });
 
@@ -521,7 +520,7 @@ describe('DatabaseSettingsPage', () => {
       const mockAutoFix = require('../../../../config/unifiedConfig').autoFixDatabaseConfig;
       mockAutoFix.mockReturnValue({
         success: true,
-        changes: ['performance.cacheSize: 5 → 10', 'storage.retentionDays: 0 → 1'],
+        changes: ['performance.cacheSize: 5 â†’ 10', 'storage.retentionDays: 0 â†’ 1'],
         remainingIssues: mockValidationResult,
       });
 

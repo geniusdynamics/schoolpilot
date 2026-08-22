@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for designation data management
 // ABOUTME: Provides CRUD operations for designation without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockDesignations } from './mockData';
 import { Designation } from '@/core/types';
+import { useState } from 'react';
 
 export const useDesignationData = () => {
   const [data, setData] = useState<Designation[]>(initialMockDesignations || []);

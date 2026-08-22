@@ -5,12 +5,7 @@ import React, { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
-import {
-  CalendarDaysIcon,
-  DocumentTextIcon,
-  ClipboardDocumentListIcon,
-  DocumentDuplicateIcon,
-} from '@/components/ui/icons';
+import { CalendarDaysIcon, DocumentTextIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
 import { ExamSchedulingPageContent } from './ExamSchedulingPage';
 import { SubjectPapersManagementContent } from './SubjectPapersManagementPage';
 import { ExamSessionsPageContent } from './ExamSessionsPage';

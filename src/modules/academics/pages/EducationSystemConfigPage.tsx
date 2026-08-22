@@ -7,8 +7,8 @@ export const EducationSystemConfigPageContent: React.FC<any> = ({ editingSystem,
   return (
     <div>
       <EducationSystemForm 
-        initialData={editingSystem} 
-        onSave={onSave} 
+        initialValues={editingSystem} 
+        onSubmit={onSave} 
         onCancel={onCancel} 
       />
     </div>

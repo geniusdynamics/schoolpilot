@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import { IdentificationIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; 
@@ -8,6 +8,8 @@ import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
+
 
 export const SettingsSchoolProfileContent: React.FC = () => {
   const { schoolDetails: initialSchoolDetails, updateSchoolDetails, loading } = useAppData();
@@ -33,7 +35,7 @@ export const SettingsSchoolProfileContent: React.FC = () => {
       await updateSchoolDetails(schoolDetails);
       alert(t('schoolProfile.saveSuccess'));
     } catch (error) {
-      console.error("Failed to save school details:", error);
+      logger.error("Failed to save school details:", error);
       alert(t('schoolProfile.saveError'));
     } finally {
       setIsSaving(false);

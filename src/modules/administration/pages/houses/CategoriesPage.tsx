@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -15,6 +15,8 @@ import { useHousesData } from '../../data/houses/useHousesData';
 import { useTranslation } from 'react-i18next';
 import type { PointCategory } from '../../data/houses/types';
 import { TransactionType } from '../../data/houses/types';
+import { logger } from '@/utils/logging';
+
 
 interface CategoryFormData {
   name: string;
@@ -116,7 +118,7 @@ const CategoriesPage: React.FC = () => {
       }
       closeModal();
     } catch (error) {
-      console.error('Failed to save category:', error);
+      logger.error('Failed to save category:', error);
     } finally {
       setSubmitting(false);
     }
@@ -132,7 +134,7 @@ const CategoriesPage: React.FC = () => {
       try {
         await deleteCategory(categoryToDelete.id);
       } catch (error) {
-        console.error('Failed to delete category:', error);
+        logger.error('Failed to delete category:', error);
       }
     }
     setIsDeleteModalOpen(false);

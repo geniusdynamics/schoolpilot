@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -13,6 +12,7 @@ import {
   AcademicCapIcon
 } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
+import { useMemo } from 'react';
 
 interface ModuleSection {
   id: string;
@@ -28,7 +28,7 @@ interface ModuleSection {
 }
 
 const AcademicModuleStatus: React.FC = () => {
-  const { t } = useTranslation('academics');
+
   const { 
     subjects, 
     examSessions, 
@@ -135,7 +135,7 @@ const AcademicModuleStatus: React.FC = () => {
   if (loading.all) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Spinner message="Loading academic module status..." />
+        <Spinner />
       </div>
     );
   }
@@ -207,7 +207,7 @@ const AcademicModuleStatus: React.FC = () => {
                   <Button 
                     size="sm" 
                     variant={page.implemented ? "primary" : "secondary"}
-                    onClick={() => window.location.href = page.path}
+                    onClick={() => window.location.hash = `#${page.path}`}
                   >
                     {page.implemented ? "Open" : "Pending"}
                   </Button>

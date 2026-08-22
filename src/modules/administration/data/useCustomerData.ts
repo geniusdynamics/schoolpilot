@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for customer data management
 // ABOUTME: Provides CRUD operations for customer without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockCustomers } from '../../administration/data/mockData';
 import { Customer } from '@/core/types';
+import { useState } from 'react';
 
 export const useCustomerData = () => {
   const [data, setData] = useState<Customer[]>(initialMockCustomers || []);

@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for schoolperiod data management
 // ABOUTME: Provides CRUD operations for schoolperiod without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockSchoolPeriods } from './mockData';
 import { SchoolPeriod } from '@/core/types';
+import { useState } from 'react';
 
 export const useSchoolPeriodData = () => {
   const [data, setData] = useState<SchoolPeriod[]>(initialMockSchoolPeriods);

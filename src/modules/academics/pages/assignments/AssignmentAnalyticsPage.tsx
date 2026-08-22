@@ -1,16 +1,9 @@
 import React, { useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import {
-  ChartBarIcon,
-  UsersIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  DocumentTextIcon,
-} from '@/components/ui/icons';
+import { ChartBarIcon, CheckCircleIcon, ClockIcon, DocumentTextIcon } from '@/components/ui/icons';
 import { useAssignmentsData } from '../../data/useAssignmentsData';
 import { AssignmentStatus, SubmissionStatus } from '../../data/types';
-import type { Assignment } from '../../data/types';
 import { useTranslation } from 'react-i18next';
 
 interface AssignmentPerformance {
@@ -36,7 +29,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
     const totalAssignments = assignments.length;
     const totalSubmissions = submissions.length;
     const submittedCount = submissions.filter(
-      s => s.status !== SubmissionStatus.NOT_SUBMITTED
+      s => s.status !== SubmissionStatus.PENDING_REVIEW
     ).length;
     const gradedCount = submissions.filter(
       s => s.status === SubmissionStatus.GRADED || s.status === SubmissionStatus.RETURNED
@@ -116,7 +109,7 @@ const AssignmentAnalyticsPage: React.FC = () => {
       const assignmentSubs = submissions.filter(s => s.assignmentId === assignment.id);
       const total = assignmentSubs.length;
       const submitted = assignmentSubs.filter(
-        s => s.status !== SubmissionStatus.NOT_SUBMITTED
+        s => s.status !== SubmissionStatus.PENDING_REVIEW
       ).length;
       const graded = assignmentSubs.filter(
         s => s.status === SubmissionStatus.GRADED || s.status === SubmissionStatus.RETURNED
@@ -213,12 +206,11 @@ const AssignmentAnalyticsPage: React.FC = () => {
   const statusColors: Record<AssignmentStatus, string> = {
     [AssignmentStatus.DRAFT]: 'bg-gray-100 text-gray-800',
     [AssignmentStatus.PUBLISHED]: 'bg-blue-100 text-blue-800',
-    [AssignmentStatus.CLOSED]: 'bg-orange-100 text-orange-800',
-    [AssignmentStatus.GRADED]: 'bg-green-100 text-green-800',
+    [AssignmentStatus.ARCHIVED]: 'bg-orange-100 text-orange-800',
   };
 
   const submissionStatusColors: Record<SubmissionStatus, string> = {
-    [SubmissionStatus.NOT_SUBMITTED]: 'bg-gray-100 text-gray-800',
+    [SubmissionStatus.PENDING_REVIEW]: 'bg-gray-100 text-gray-800',
     [SubmissionStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
     [SubmissionStatus.LATE]: 'bg-orange-100 text-orange-800',
     [SubmissionStatus.GRADED]: 'bg-green-100 text-green-800',

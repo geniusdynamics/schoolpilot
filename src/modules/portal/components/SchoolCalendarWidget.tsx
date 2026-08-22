@@ -4,18 +4,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import PortalWidgetCard from './PortalWidgetCard';
-import {
-  PrinterIcon,
-  ArrowDownTrayIcon,
-  PlusIcon,
-  CogIcon,
-  HomeIcon,
-  AcademicCapIcon,
-  UsersIcon,
-  TrophyIcon,
-  CalendarIcon,
-  FlagIcon,
-} from '@/components/ui/icons';
+import { PrinterIcon, ArrowDownTrayIcon, PlusIcon, CogIcon, HomeIcon, AcademicCapIcon, UsersIcon, CalendarIcon } from '@/components/ui/icons';
 
 export interface CalendarEvent {
   id: string;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,8 @@ import { useHousesData } from '../../data/houses/useHousesData';
 import { useTranslation } from 'react-i18next';
 import { TransactionType, TransactionStatus } from '../../data/houses/types';
 import type { PointTransaction } from '../../data/houses/types';
+import { logger } from '@/utils/logging';
+
 
 interface AwardFormData {
   studentId: string;
@@ -132,7 +134,7 @@ const AwardPointsPage: React.FC = () => {
       setFormData(initialFormData);
       setShowAwardForm(false);
     } catch (error) {
-      console.error('Failed to award points:', error);
+      logger.error('Failed to award points:', error);
     } finally {
       setSubmitting(false);
     }
@@ -142,7 +144,7 @@ const AwardPointsPage: React.FC = () => {
     try {
       await approveTransaction(transaction.id, 'CURRENT_USER');
     } catch (error) {
-      console.error('Failed to approve transaction:', error);
+      logger.error('Failed to approve transaction:', error);
     }
   };
 
@@ -150,7 +152,7 @@ const AwardPointsPage: React.FC = () => {
     try {
       await rejectTransaction(transaction.id);
     } catch (error) {
-      console.error('Failed to reject transaction:', error);
+      logger.error('Failed to reject transaction:', error);
     }
   };
 

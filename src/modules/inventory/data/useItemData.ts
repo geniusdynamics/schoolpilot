@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for item data management
 // ABOUTME: Provides CRUD operations for item without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockItemsInv } from './mockData';
 import { ItemInv } from '@/core/types';
+import { useState } from 'react';
 
 export const useItemData = () => {
   const [data, setData] = useState<ItemInv[]>(initialMockItemsInv);

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Login page for user authentication
 // ABOUTME: Supports both demo mode (predefined users) and production mode
 
@@ -90,7 +92,7 @@ const LoginPage: React.FC = () => {
         setError(result.message);
       }
     } catch (error) {
-      console.error('Demo login error:', error);
+      logger.error('Demo login error:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);
@@ -247,7 +249,7 @@ const LoginPage: React.FC = () => {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-sm text-gray-500">
-            © 2024 SchoolPilot. All rights reserved.
+            Â© 2024 SchoolPilot. All rights reserved.
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Student } from '@/types';
 import { AdminStudentHealthRecordType } from '@/modules/administration/data/types';
 import Card from '@/components/ui/Card';
@@ -11,7 +11,7 @@ import { useStudentHealthRecordData } from '@/modules/administration/data/useStu
 import { useAppData } from '@/hooks/useAppData'; // For students data only
 import Spinner from '@/components/ui/Spinner';
 import Textarea from '@/components/ui/Textarea';
-import { useTranslation } from 'react-i18next';
+
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
@@ -97,7 +97,7 @@ const StudentHealthRecordsPage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => `${item.first_name} ${item.last_name}`
+      render: (value, item) => [item.first_name, item.last_name].filter(Boolean).join(' ') || '—'
     },
     { 
       key: 'current_class_name',

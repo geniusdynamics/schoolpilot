@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for gradingschemelevel data management
 // ABOUTME: Provides CRUD operations for gradingschemelevel without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockGradingSchemes } from './mockData';
 import { GradingSchemeLevel } from '@/core/types';
+import { useState } from 'react';
 
 // Flatten all levels from all grading schemes
 const initialMockGradingSchemeLevels: GradingSchemeLevel[] = initialMockGradingSchemes.flatMap(s => s.levels ?? []).filter((l): l is GradingSchemeLevel => !!l);

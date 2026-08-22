@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for financialyear data management
 // ABOUTME: Provides CRUD operations for financialyear without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockFinancialYears } from './mockData';
 import { FinancialYear } from '@/core/types';
+import { useState } from 'react';
 
 export const useFinancialYearData = () => {
   const [data, setData] = useState<FinancialYear[]>(initialMockFinancialYears);

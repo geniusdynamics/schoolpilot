@@ -12,14 +12,12 @@ import FormField from '../../../components/ui/forms/FormField';
 import FormSection from '../../../components/ui/forms/FormSection';
 import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { EditIcon, PlusIcon } from '@/components/ui/icons';
 
 export const LibrarySettingsPageContent: React.FC = () => {
-  const { t } = useTranslation('library');
+
   const {
     data: settings,
     create: addSetting,

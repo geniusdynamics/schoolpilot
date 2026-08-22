@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for academicperioddefinition data management
 // ABOUTME: Provides CRUD operations for academicperioddefinition without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockAcademicPeriodDefinitions } from './mockData';
 import { AcademicPeriodDefinition } from '@/core/types';
+import { useState } from 'react';
 
 export const useAcademicPeriodDefinitionData = () => {
   const [data, setData] = useState<AcademicPeriodDefinition[]>(initialMockAcademicPeriodDefinitions);

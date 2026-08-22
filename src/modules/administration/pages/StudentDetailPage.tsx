@@ -11,7 +11,7 @@ import { UserCircleIcon, AcademicCapIcon, EnvelopeIcon, PhoneIcon, DownloadIcon,
 
 const StudentDetailPage: React.FC = () => {
   const { studentId } = useParams<{ studentId: string }>();
-  const { getStudentDetailsById, loading } = useAppData();
+  const { getStudentDetailsById } = useAppData();
   const [studentProfile, setStudentProfile] = useState<StudentDetailProfile | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(true);
 

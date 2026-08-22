@@ -124,7 +124,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 180,
-      render: (value, item) => value || '—'
+      render: (value, item) => value || 'â€”'
     },
     { 
       key: 'sequence_order', 

@@ -2,7 +2,7 @@
 // ABOUTME: Provides CRUD operations and state management for assignments and submissions
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Assignment, AssignmentSubmission } from './types';
+import type { Assignment, AssignmentSubmission, GradeSubmissionInput } from './types';
 import { AssignmentStatus, SubmissionStatus } from './types';
 
 // Mock data for development
@@ -54,7 +54,7 @@ interface UseAssignmentsDataReturn {
   createAssignment: (data: Partial<Assignment>) => Promise<Assignment>;
   updateAssignment: (id: string, data: Partial<Assignment>) => Promise<Assignment>;
   deleteAssignment: (id: string) => Promise<void>;
-  gradeSubmission: (submissionId: string, score: number, feedback?: string) => Promise<void>;
+  gradeSubmission: (submissionId: string, data: GradeSubmissionInput) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -131,14 +131,18 @@ export function useAssignmentsData(): UseAssignmentsDataReturn {
     setSubmissions(prev => prev.filter(s => s.assignmentId !== id));
   }, []);
 
-  const gradeSubmission = useCallback(async (submissionId: string, score: number, feedback?: string): Promise<void> => {
+  const gradeSubmission = useCallback(async (submissionId: string, data: GradeSubmissionInput): Promise<void> => {
     setSubmissions(prev => prev.map(s => {
       if (s.id === submissionId) {
         return {
           ...s,
-          score,
-          grade: score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : score >= 60 ? 'D' : 'F',
-          feedback: feedback || null,
+          score: data.score,
+          maxScore: data.maxScore,
+          grade: data.grade || (data.score >= 90 ? 'A' : data.score >= 80 ? 'B' : data.score >= 70 ? 'C' : data.score >= 60 ? 'D' : 'F'),
+          feedback: data.feedback ?? null,
+          gradedBy: data.gradedBy,
+          gradedByName: data.gradedByName,
+          gradedAt: new Date().toISOString(),
           status: SubmissionStatus.GRADED,
         };
       }

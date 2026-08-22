@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { DocumentTextIcon, PrinterIcon, DownloadIcon, ArrowPathIcon, ChevronDownIcon, ChevronUpIcon } from '@/components/ui/icons';
+
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -13,6 +13,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useVoteheadStatement } from '../hooks/useVoteheadStatement';
 import type { VoteheadStatementRow } from '../hooks/useVoteheadStatement';
 import { useAppData } from '@/hooks/useAppData';
+import { ArrowPathIcon, DocumentTextIcon, DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 
 // Currency formatter for KES
 const formatCurrency = (value: number) =>
@@ -21,7 +22,7 @@ const formatCurrency = (value: number) =>
 export const VoteheadStatementPageContent: React.FC = () => {
   const { t } = useTranslation('finance');
   const { data: statementRows, loading, error, refresh } = useVoteheadStatement();
-  const { students, schoolPeriods, loading: appLoading } = useAppData();
+  const { schoolPeriods, loading: appLoading } = useAppData();
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState('');

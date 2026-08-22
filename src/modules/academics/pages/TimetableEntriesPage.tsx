@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { ClassStream, Staff } from '@/types';
+import React, { useState, useMemo } from 'react';
+
 import { DayOfWeek, TimetableEntry, TimetablePeriodDef, Subject } from '@/core/types';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -8,17 +8,19 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, TableCellsIcon, PrinterIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData'; // Updated
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import Spinner from '@/components/ui/Spinner';
+import type { Staff } from '@/core/types';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
 type TimetableEntryFormData = Omit<Partial<TimetableEntry>, 'id' | 'class_stream_id' | 'class_stream_name' | 'period_name' | 'subject_name' | 'teacher_name' | 'day_of_week'> & {
     day_of_week?: DayOfWeek;
 };
 
-
 export const TimetableEntriesContent: React.FC = () => {
+  const { t } = useTranslation('academics');
   const { 
     timetableEntries, 
     classStreams,
@@ -103,7 +105,6 @@ export const TimetableEntriesContent: React.FC = () => {
     return (staff || []).filter(s => s.is_active && uniqueTeacherIds.includes(s.id));
   }, [formData.subject_id, selectedClassStreamId, staff, classSubjectAllocations, teacherSubjectAssignments]);
 
-
   const handleSubmit = async () => {
     if (!selectedClassStreamId || !formData.day_of_week || !formData.period_id || !formData.subject_id || !formData.teacher_id) {
       alert(t('validation.classStreamDayPeriodSubjectAndTeacherAreRequired'));
@@ -151,7 +152,6 @@ export const TimetableEntriesContent: React.FC = () => {
     return colors[subjectId % colors.length];
   };
 
-
   if (loading.timetableEntries || loading.classStreams || loading.timetablePeriodDefs || loading.subjects || loading.staff || loading.teacherSubjectAssignments || loading.classSubjectAllocations) {
       return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
   }
@@ -166,7 +166,7 @@ export const TimetableEntriesContent: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border rounded-md bg-gray-50">
           <Select
             label="Select Class Stream"
-            value={selectedClassStreamId || ''}
+            value={selectedClassStreamId != null ? String(selectedClassStreamId) : ''}
             onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
           >
             <option value="">-- Select Class Stream --</option>
@@ -261,7 +261,7 @@ export const TimetableEntriesContent: React.FC = () => {
             <Select
               name="period_id"
               label="Period"
-              value={formData.period_id || ''}
+              value={formData.period_id != null ? String(formData.period_id) : ''}
               onChange={(e) => handleInputChange('period_id', e.target.value)}
               required
               disabled={!!editingEntry}
@@ -276,7 +276,7 @@ export const TimetableEntriesContent: React.FC = () => {
             <Select
               name="subject_id"
               label="Subject"
-              value={formData.subject_id || ''}
+              value={formData.subject_id != null ? String(formData.subject_id) : ''}
               onChange={(e) => handleInputChange('subject_id', e.target.value)}
               required
             >

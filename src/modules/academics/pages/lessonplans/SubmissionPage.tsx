@@ -13,8 +13,8 @@ import {
   ClockIcon,
   UserCircleIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData } from '../../data/lessonplans/useLessonPlansData';
-import { WeeklyPlan, PlanStatus } from '../../data/types';
+import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
+
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
@@ -109,7 +109,7 @@ const SubmissionPage: React.FC = () => {
     setShowSubmittedList(true);
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr?: string) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -187,8 +187,9 @@ const SubmissionPage: React.FC = () => {
               <Checkbox
                 checked={selectedPlans.size === draftPlans.length && draftPlans.length > 0}
                 onChange={handleSelectAll}
-                label="Select All"
-              />
+              >
+                Select All
+              </Checkbox>
             </div>
           ) : null
         }

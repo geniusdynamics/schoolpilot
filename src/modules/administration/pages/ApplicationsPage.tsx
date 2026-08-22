@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { PlusIcon } from '@/components/ui/icons';
@@ -15,7 +14,7 @@ interface Application {
 }
 
 const ApplicationsPage: React.FC = () => {
-  const { t } = useTranslation('administration');
+
   const [applications] = useState<Application[]>([
     { id: '1', name: 'Student Portal', type: 'Web', status: 'active', description: 'Main student portal application', createdAt: '2024-01-15' },
     { id: '2', name: 'Teacher Dashboard', type: 'Web', status: 'active', description: 'Teacher management dashboard', createdAt: '2024-01-20' },

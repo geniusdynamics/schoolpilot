@@ -2,21 +2,7 @@
 // ABOUTME: It displays key statistics and quick links to various report categories.
 
 import React from 'react';
-import {
-  DocumentReportIcon,
-  ChartBarIcon,
-  DocumentTextIcon,
-  CurrencyDollarIcon,
-  UsersIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  AcademicCapIcon,
-  BriefcaseIcon,
-  BuildingLibraryIcon,
-  ReceiptRefundIcon,
-  ChartPieIcon,
-  TableCellsIcon,
-} from '@/components/ui/icons';
+import { DocumentReportIcon, ChartBarIcon, DocumentTextIcon, CurrencyDollarIcon, UsersIcon, ArrowRightIcon, ClockIcon, AcademicCapIcon, BriefcaseIcon, BuildingLibraryIcon, ReceiptRefundIcon, TableCellsIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Card from '@/components/ui/Card';
@@ -336,7 +322,7 @@ export const ReportsDashboardPageContent: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/reports/student-masterlist'}
+              onClick={() => window.location.hash = '#/reports/student-masterlist'}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
             >
               View Student Masterlist <ArrowRightIcon className="h-4 w-4" />

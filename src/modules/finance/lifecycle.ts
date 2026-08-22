@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Finance module lifecycle implementation for service registration
 
 import { registerFinanceServices } from './services/registerServices';
@@ -7,7 +9,7 @@ import { registerFinanceServices } from './services/registerServices';
  * Called when the finance module is registered with the module registry
  */
 export async function onFinanceModuleRegister() {
-  console.log('[Finance] Module registered');
+  logger.info('[Finance] Module registered');
 }
 
 /**
@@ -16,7 +18,7 @@ export async function onFinanceModuleRegister() {
  * Registers finance services with the service registry
  */
 export async function onFinanceModuleEnable() {
-  console.log('[Finance] Module enabled - registering services');
+  logger.info('[Finance] Module enabled - registering services');
   registerFinanceServices();
 }
 
@@ -26,7 +28,7 @@ export async function onFinanceModuleEnable() {
  * Unregisters finance services from the service registry
  */
 export async function onFinanceModuleDisable() {
-  console.log('[Finance] Module disabled - unregistering services');
+  logger.info('[Finance] Module disabled - unregistering services');
   // Note: ServiceRegistry doesn't have unregister method yet
   // This is a placeholder for future implementation
 }

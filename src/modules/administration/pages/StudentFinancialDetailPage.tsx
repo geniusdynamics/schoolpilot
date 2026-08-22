@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAppData } from '@/hooks/useAppData';
-import { StudentDetailProfile, StudentFinancialSummary, StudentInvoiceChargeItem, StudentPaymentLogItem, InvoiceStatus } from '@/types';
+
 import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Tabs from '@/components/ui/Tabs';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { UserCircleIcon, CurrencyDollarIcon, DownloadIcon, PrinterIcon, EyeIcon } from '@/components/ui/icons';
+import { InvoiceStatus } from '@/core/types';
 
 const StudentFinancialDetailPage: React.FC = () => {
   const { studentId } = useParams<{ studentId: string }>();
-  const { getStudentFinancialDetailsById, loading } = useAppData();
+  const { getStudentFinancialDetailsById } = useAppData();
   const [studentData, setStudentData] = useState<StudentDetailProfile | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(true);
 

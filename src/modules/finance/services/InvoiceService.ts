@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: InvoiceService - Business logic for invoice generation and payment processing
 
 import type { FinStudentInvoiceType, FinStudentPaymentType } from '../data/types';
@@ -40,7 +42,7 @@ export class InvoiceService {
     // 3. Update invoice status to paid
     // 4. Trigger any post-payment workflows
 
-    console.log(`Processing payment of ${amount} for invoice ${invoiceId}`);
+    logger.info(`Processing payment of ${amount} for invoice ${invoiceId}`);
   }
 
   /**

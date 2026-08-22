@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -12,6 +12,7 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { DisciplinaryCategory, DisciplinarySeverity, DisciplinaryStatus, DisciplinaryAction } from '../data/types';
 import type { DisciplinaryCase } from '../data/types';
+import { logger } from '@/utils/logging';
 
 const DisciplinaryCasesPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -136,7 +137,7 @@ const DisciplinaryCasesPage: React.FC = () => {
       closeModal();
       loadData();
     } catch (error) {
-      console.error('Error saving disciplinary case:', error);
+      logger.error('Error saving disciplinary case:', error);
       alert('Failed to save case');
     }
   };
@@ -156,7 +157,7 @@ const DisciplinaryCasesPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error resolving case:', error);
+      logger.error('Error resolving case:', error);
     }
   };
 
@@ -169,7 +170,7 @@ const DisciplinaryCasesPage: React.FC = () => {
       });
       setCases((result?.docs || []) as DisciplinaryCase[]);
     } catch (error) {
-      console.error('Error loading cases:', error);
+      logger.error('Error loading cases:', error);
     } finally {
       setLoading(false);
     }

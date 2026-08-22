@@ -3,8 +3,9 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/utils/cn';
-import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@heroicons/react/24/outline';
+
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, addMonths } from 'date-fns';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/ui/icons';
 
 export interface CalendarEvent {
   date: Date;

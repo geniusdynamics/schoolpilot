@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { StockTransaction, StockTransactionType, ItemInv, Warehouse } from '@/types';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
@@ -13,7 +13,7 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, ArrowsRightLeftIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { StockTransactionType } from '@/core/types';
 
 type StockTransactionFormData = Omit<Partial<StockTransaction>, 'id' | 'item_name' | 'warehouse_name' | 'transaction_type' | 'transaction_date'> & {
     transaction_date?: string; // For form input

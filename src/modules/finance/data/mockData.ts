@@ -1,12 +1,5 @@
 // src/modules/finance/data/mockData.ts
-import {
-  FinancialYear, ExpenseCategory, ChartOfAccount, Bank, Supplier, FeeTemplate, FeeTemplateItem,
-  ExpenseClaim, StudentOpeningBalance, FeeAdjustment, TransportRoute, StudentTransportAssignment,
-  StudentInvoice, StudentInvoiceItem, StudentPayment, InvoicePaymentApplication, CustomerInvoice,
-  SupplierInvoice, GeneralPayment, GeneralLedgerEntry,
-  FinancialYearStatus, AccountType, AccountTemplateType, ExpenseClaimantType, OpeningBalanceType,
-  FeeAdjustmentType, TransportAssignmentStatus, InvoiceStatus, CustomerInvoiceStatus, SupplierInvoiceStatus, GeneralPayerType
-} from '@/core/types';
+import { FinancialYear, ExpenseCategory, ChartOfAccount, Bank, FeeTemplate, FeeTemplateItem, ExpenseClaim, StudentOpeningBalance, FeeAdjustment, TransportRoute, StudentTransportAssignment, StudentInvoice, StudentInvoiceItem, StudentPayment, InvoicePaymentApplication, CustomerInvoice, GeneralPayment, GeneralLedgerEntry, FinancialYearStatus, AccountType, AccountTemplateType, ExpenseClaimantType, OpeningBalanceType, FeeAdjustmentType, TransportAssignmentStatus, InvoiceStatus, CustomerInvoiceStatus, GeneralPayerType } from '@/core/types';
 import {
   FeeDueRecord, BalanceSheetItem, CashBookEntry, DayBookEntry, ReceiptTemplate,
   IncomeStatementItem, JournalEntry, PreviousSessionFee, StudentPaymentRecord, TrialBalanceItem

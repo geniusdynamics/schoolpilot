@@ -2,12 +2,7 @@
 // ABOUTME: These schemas are used by both RxDB and PouchDB services to create collections.
 
 import * as types from './types';
-import { 
-  createDatabaseSchema, 
-  SchemaHelpers,
-  type DatabaseSchema, 
-  type DatabaseProperty, 
-} from '../../../utils/databaseAgnosticSchema';
+import { createDatabaseSchema, SchemaHelpers, type DatabaseSchema } from '../../../utils/databaseAgnosticSchema';
 
 export const partnerSchema: DatabaseSchema = createDatabaseSchema({
     title: 'partner',

@@ -1,7 +1,7 @@
 // ABOUTME: Hub page for class and stream management
 // ABOUTME: Consolidates class listing/stream management and bulk stream creation into a tabbed interface
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageHeaderWithTabs } from '@/components/ui/PageHeaderWithTabs';
@@ -15,13 +15,34 @@ import Select from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Spinner from '@/components/ui/Spinner';
 import { PlusIcon, EditIcon, DeleteIcon } from 'lucide-react';
-import { Class as SchoolClass, ClassStream, Staff } from '../data/types';
+
 import { ActionDefinition } from '@/services/ui/types';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { BulkStreamCreationContent } from './BulkStreamCreationPage';
+
+// Local type definitions for SchoolClass and ClassStream
+interface SchoolClass {
+  id: string;
+  name: string;
+  section?: string;
+  class_teacher_id?: string;
+  class_teacher_name?: string;
+  capacity?: number;
+  room_number?: string;
+  streams?: ClassStream[];
+}
+
+interface ClassStream {
+  id: string;
+  class_id: string;
+  class_name?: string;
+  name: string;
+  class_teacher_id?: string;
+  class_teacher_name?: string;
+}
 
 interface ClassFormData extends Partial<Omit<SchoolClass, 'id' | 'streams'>> {}
 interface StreamFormData extends Partial<Omit<ClassStream, 'id' | 'class_id' | 'class_teacher_name' | 'class_name'>> {
@@ -98,12 +119,11 @@ export const ClassesContent: React.FC = () => {
         const schoolClass = classes?.find(c => c.id === cs.class_id);
         return {
             ...cs,
-            class_teacher_name: teacher ? `${teacher.first_name} ${teacher.last_name}` : 'N/A',
+            class_teacher_name: teacher ? [teacher.first_name, teacher.last_name].filter(Boolean).join(' ') || 'N/A' : 'N/A',
             class_name: schoolClass?.name || 'N/A'
         };
     });
   }, [classStreams, staff, classes]);
-
 
   const openClassModal = (cls?: SchoolClass) => {
     setEditingClass(cls || null);
@@ -174,7 +194,6 @@ export const ClassesContent: React.FC = () => {
         await deleteClassStream(streamId);
     }
   };
-
 
   const classColumns: DataGridColumn<SchoolClass>[] = [
     { 

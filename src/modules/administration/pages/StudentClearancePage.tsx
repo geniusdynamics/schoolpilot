@@ -1,16 +1,16 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import { PlusIcon, EyeIcon, CheckCircleIcon, XCircleIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 import type { StudentClearanceRequest, StudentClearance, ClearanceRequestStatus, ClearanceStatus, ClearanceType } from '../data/types';
+import { CheckCircleIcon, EyeIcon, PlusIcon } from '@/components/ui/icons';
 
 const StudentClearancePage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -54,16 +54,6 @@ const StudentClearancePage: React.FC = () => {
   };
 
   const getStatusBadge = (status: ClearanceRequestStatus | ClearanceStatus) => {
-    const colors: Record<string, string> = {
-      'Draft': 'bg-gray-100 text-gray-800',
-      'In Progress': 'bg-blue-100 text-blue-800',
-      'Completed': 'bg-green-100 text-green-800',
-      'Cancelled': 'bg-red-100 text-red-800',
-      'Pending': 'bg-yellow-100 text-yellow-800',
-      'Cleared': 'bg-green-100 text-green-800',
-      'Not Cleared': 'bg-red-100 text-red-800',
-      'Waived': 'bg-purple-100 text-purple-800'
-    };
     return <Badge variant={status === 'Completed' || status === 'Cleared' ? 'success' : status === 'In Progress' || status === 'Pending' ? 'info' : status === 'Not Cleared' ? 'danger' : 'warning'}>{status}</Badge>;
   };
 
@@ -224,7 +214,7 @@ const StudentClearancePage: React.FC = () => {
             label="Student"
             value={formData.student_id}
             onChange={(value) => handleInputChange('student_id', value)}
-            options={students.map((s: any) => ({ label: `${s.first_name} ${s.last_name} (${s.admission_number})`, value: s.id }))}
+            options={students.map((s: any) => ({ label: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_number ? ` (${s.admission_number})` : ''), value: s.id }))}
             required
           />
           <Select

@@ -1,11 +1,10 @@
-// ABOUTME: Unified settings page that consolidates all application settings into a single tabbed interface
+﻿// ABOUTME: Unified settings page that consolidates all application settings into a single tabbed interface
 // ABOUTME: Provides system overview, user management, feature toggles, sync controls, and workflow configuration
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useRBAC } from '../../../hooks/useRBAC';
 import { useAppData } from '../../../hooks/useAppData';
 import { useUnifiedConfig } from '../../../hooks/useUnifiedConfig';
 import Card from '../../../components/ui/Card';
@@ -15,7 +14,6 @@ import DialogForm from '../../../components/ui/forms/DialogForm';
 import { FormSection, FormField, FormActions } from '../../../components/ui/forms';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
-import Spinner from '../../../components/ui/Spinner';
 import { 
   CogIcon, 
   DatabaseIcon, 
@@ -38,7 +36,6 @@ export const UnifiedSettingsContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation('settings');
   const { user } = useAuth();
-  const { hasPermission } = useRBAC(user?.id, user?.role);
 
   // Modal state management
   const { 
@@ -145,9 +142,9 @@ export const UnifiedSettingsContent: React.FC = () => {
   };
   
   // Form input handlers
+
   const handleUserInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
                 (name === 'role_id' ? (value ? parseInt(value) : undefined) : value);
     setUserFormData(prev => ({ ...prev, [name]: val }));
   };
@@ -383,7 +380,7 @@ export const UnifiedSettingsContent: React.FC = () => {
 
   // Enhanced loading state with specific loading indicators
   const isInitialLoading = loading?.all || false;
-  const isDataLoading = loading?.schoolDetails || loading?.users || loading?.roles || false;
+
   
   if (isInitialLoading) {
     return (

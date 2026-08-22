@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { GradingScheme, GradingSchemeLevel } from '@/modules/academics/data/types'; // Corrected import
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -8,10 +8,11 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
-import { PlusIcon, EditIcon, DeleteIcon, ShieldCheckIcon, ListBulletIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { DeleteIcon, EditIcon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
 
 type GradingSchemeFormData = Omit<Partial<GradingScheme>, 'id' | 'created_at' | 'updated_at' | 'levels'>;
 type LevelFormData = Omit<Partial<GradingSchemeLevel>, 'id' | 'scheme_id'>;
@@ -91,7 +92,7 @@ export const GradingSchemesContent: React.FC = () => {
     };
 
     if (editingScheme) {
-      await updateGradingScheme({ ...editingScheme, ...payload });
+      await updateGradingScheme(String(editingScheme.id), payload);
     } else {
       await addGradingScheme(payload);
     }
@@ -123,7 +124,7 @@ export const GradingSchemesContent: React.FC = () => {
       updatedLevels = [...(currentSchemeForLevels.levels || []), newLevel];
     }
     
-    await updateGradingScheme({ ...currentSchemeForLevels, levels: updatedLevels, updated_at: now });
+    await updateGradingScheme(String(currentSchemeForLevels.id), { levels: updatedLevels, updated_at: now });
     // Optimistically update the current scheme for levels display if modal stays open for multiple adds
     setCurrentSchemeForLevels(prev => prev ? {...prev, levels: updatedLevels, updated_at: now} : null);
     setEditingLevel(null); // Reset for next add
@@ -133,7 +134,7 @@ export const GradingSchemesContent: React.FC = () => {
   
   const handleDeleteScheme = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this grading scheme? All its levels will also be deleted.')) {
-      await deleteGradingScheme(id);
+      await deleteGradingScheme(String(id));
     }
   };
 
@@ -141,7 +142,7 @@ export const GradingSchemesContent: React.FC = () => {
     if (!currentSchemeForLevels) return;
     if (window.confirm('Are you sure you want to delete this grading level?')) {
       const updatedLevels = (currentSchemeForLevels.levels || []).filter(l => l.id !== levelId);
-      await updateGradingScheme({ ...currentSchemeForLevels, levels: updatedLevels, updated_at: new Date().toISOString() });
+      await updateGradingScheme(String(currentSchemeForLevels.id), { levels: updatedLevels, updated_at: new Date().toISOString() });
       setCurrentSchemeForLevels(prev => prev ? {...prev, levels: updatedLevels, updated_at: new Date().toISOString()} : null);
     }
   };
@@ -150,11 +151,11 @@ export const GradingSchemesContent: React.FC = () => {
     { key: 'id', header: 'ID' },
     { key: 'name', header: 'Scheme Name' },
     { key: 'is_default', header: 'Is Default' },
-    { key: 'levels', header: 'Levels', render: (value: any, item: GradingScheme) => (item.levels?.length || 0) },
+    { key: 'levels', header: 'Levels', render: (_value: any, item: GradingScheme) => (item.levels?.length || 0) },
     {
       key: 'actions',
       header: 'Actions',
-      render: (value: any, item: GradingScheme) => (
+      render: (_value: any, item: GradingScheme) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openSchemeModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit Scheme</Button>
           <Button size="sm" variant="secondary" onClick={() => openLevelModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Manage Levels</Button>
@@ -172,7 +173,7 @@ export const GradingSchemesContent: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (value: any, item: GradingSchemeLevel) => (
+      render: (_value: any, item: GradingSchemeLevel) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openLevelModal(currentSchemeForLevels!, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeleteLevel(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>

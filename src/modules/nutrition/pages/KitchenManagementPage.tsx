@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -10,6 +10,7 @@ import { PlusIcon, TrashIcon, CubeIcon, CurrencyDollarIcon, ExclamationTriangleI
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { FoodItem, KitchenMealPlan, DietaryRestriction, InventoryStatus } from '../data/types';
+import { logger } from '@/utils/logging';
 
 export const KitchenManagementPageContent: React.FC = () => {
   const { t } = useTranslation('nutrition');
@@ -108,13 +109,13 @@ export const KitchenManagementPageContent: React.FC = () => {
       alert('Name and category are required.');
       return;
     }
-    console.log('Saving food item:', formData);
+    logger.info('Saving food item:', formData);
     closeModal();
   };
 
   const deleteItem = (item: FoodItem) => {
     if (confirm('Are you sure you want to delete this item?')) {
-      console.log('Deleting item:', item.id);
+      logger.info('Deleting item:', item.id);
     }
   };
 
@@ -390,7 +391,7 @@ export const KitchenManagementPageContent: React.FC = () => {
                         ))}
                       </div>
                       <p className="text-sm text-gray-600 mt-2">
-                        {meal.total_students} students × KES {meal.estimated_cost_per_student} = KES {meal.total_cost.toLocaleString()}
+                        {meal.total_students} students Ã— KES {meal.estimated_cost_per_student} = KES {meal.total_cost.toLocaleString()}
                       </p>
                     </div>
                     <Button size="sm" variant="secondary">Edit</Button>

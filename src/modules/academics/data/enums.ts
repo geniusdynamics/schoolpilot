@@ -37,7 +37,10 @@ export enum EducationSystemType {
   UNIVERSITY = 'University',
   COLLEGE = 'College',
   TECHNICAL = 'Technical',
-  VOCATIONAL = 'Vocational'
+  VOCATIONAL = 'Vocational',
+  // Curriculum-model classifiers used by education-system configurations
+  CBC = 'CBC',
+  TRADITIONAL = 'Traditional'
 }
 
 export enum GradingSystemType {
@@ -60,7 +63,11 @@ export enum AssessmentType {
   SUMMATIVE = 'Summative',
   COMPETENCY = 'Competency',
   PROJECT_BASED = 'Project Based',
-  PRACTICAL = 'Practical'
+  PRACTICAL = 'Practical',
+  // Term-structured assessment categories used by education-system configurations
+  CONTINUOUS_ASSESSMENT = 'Continuous Assessment',
+  MID_TERM_EXAM = 'Mid Term Exam',
+  END_TERM_EXAM = 'End Term Exam'
 }
 
 export enum BreakType {
@@ -77,6 +84,7 @@ export enum AssignmentStatus {
 
 export enum SubmissionStatus {
     SUBMITTED = 'Submitted',
+    LATE = 'Late',
     GRADED = 'Graded',
     PENDING_REVIEW = 'Pending Review',
     RETURNED = 'Returned'

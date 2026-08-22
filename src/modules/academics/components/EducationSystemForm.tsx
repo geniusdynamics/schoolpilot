@@ -47,6 +47,7 @@ const EducationSystemForm: React.FC<EducationSystemFormProps> = ({
     ...initialData
   });
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<string>('basic');
 
   const handleInputChange = (field: keyof EducationSystemConfiguration, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -82,7 +83,7 @@ const EducationSystemForm: React.FC<EducationSystemFormProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <Tabs defaultValue="basic" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="structure">Academic Structure</TabsTrigger>

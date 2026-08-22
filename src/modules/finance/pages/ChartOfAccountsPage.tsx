@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { FinChartOfAccountType as ChartOfAccount, AccountType, AccountTemplateType, FinExpenseCategoryType } from '@/types';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, CircleStackIcon, BanknotesIcon } from '@/components/ui/icons';
+
 import { useFinance } from '@/modules/finance/hooks/useFinance';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { AccountTemplateType, AccountType } from '@/core/types';
+import type { ChartOfAccount, ExpenseCategory } from '@/core/types';
+import { BanknotesIcon, DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
 type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' | 'updated_at' | 'expense_category_name' | 'type' | 'template_type'> & {
     type: AccountType; // Make type required for the form

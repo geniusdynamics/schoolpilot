@@ -20,8 +20,7 @@ import {
   PaperAirplaneIcon,
   CalendarDaysIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData } from '../../data/lessonplans/useLessonPlansData';
-import { WeeklyPlan, PlanStatus } from '../../data/types';
+import { useLessonPlansData, WeeklyPlan, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
@@ -129,11 +128,11 @@ const WeeklyPlansPage: React.FC = () => {
       subjectName: plan.subjectName || '',
       classStreamId: String(plan.classStreamId),
       classStreamName: plan.classStreamName || '',
-      weekStartDate: plan.weekStartDate,
-      weekEndDate: plan.weekEndDate,
-      overallObjectives: plan.overallObjectives,
-      teachingAids: plan.teachingAids,
-      references: plan.references,
+      weekStartDate: plan.weekStartDate || '',
+      weekEndDate: plan.weekEndDate || '',
+      overallObjectives: plan.overallObjectives || '',
+      teachingAids: plan.teachingAids || '',
+      references: (plan.references || []).join('\n'),
     });
     setEditModalOpen(true);
   };
@@ -144,15 +143,15 @@ const WeeklyPlansPage: React.FC = () => {
       await createWeeklyPlan({
         teacherId: formData.teacherId,
         teacherName: formData.teacherName,
-        subjectId: Number(formData.subjectId),
+        subjectId: formData.subjectId,
         subjectName: formData.subjectName,
-        classStreamId: Number(formData.classStreamId),
+        classStreamId: formData.classStreamId,
         classStreamName: formData.classStreamName,
         weekStartDate: formData.weekStartDate,
         weekEndDate: formData.weekEndDate,
         overallObjectives: formData.overallObjectives,
         teachingAids: formData.teachingAids,
-        references: formData.references,
+        references: formData.references.split('\n').map(r => r.trim()).filter(Boolean),
       });
       showToast({
         type: 'success',
@@ -175,15 +174,15 @@ const WeeklyPlansPage: React.FC = () => {
       await updateWeeklyPlan(editingPlan.id, {
         teacherId: formData.teacherId,
         teacherName: formData.teacherName,
-        subjectId: Number(formData.subjectId),
+        subjectId: formData.subjectId,
         subjectName: formData.subjectName,
-        classStreamId: Number(formData.classStreamId),
+        classStreamId: formData.classStreamId,
         classStreamName: formData.classStreamName,
         weekStartDate: formData.weekStartDate,
         weekEndDate: formData.weekEndDate,
         overallObjectives: formData.overallObjectives,
         teachingAids: formData.teachingAids,
-        references: formData.references,
+        references: formData.references.split('\n').map(r => r.trim()).filter(Boolean),
       });
       showToast({
         type: 'success',
@@ -229,7 +228,7 @@ const WeeklyPlansPage: React.FC = () => {
 
   const handleSubmitForApproval = async (plan: WeeklyPlan) => {
     try {
-      await submitPlan(plan.id, plan.teacherName || 'Teacher');
+      await submitPlan(plan.id);
       showToast({
         type: 'success',
         message: 'Plan submitted for approval.',
@@ -256,8 +255,8 @@ const WeeklyPlansPage: React.FC = () => {
       sortable: true,
       width: 200,
       render: (_, item) => {
-        const start = new Date(item.weekStartDate).toLocaleDateString();
-        const end = new Date(item.weekEndDate).toLocaleDateString();
+        const start = item.weekStartDate ? new Date(item.weekStartDate).toLocaleDateString() : 'N/A';
+        const end = item.weekEndDate ? new Date(item.weekEndDate).toLocaleDateString() : 'N/A';
         return <span className="text-sm">{start} - {end}</span>;
       },
     },

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { MealConsumptionLog, Menu, Student, MealType, StudentStatus } from '@/types';
+import React, { useState, useMemo } from 'react';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
@@ -8,7 +8,8 @@ import Input from '@/components/ui/Input';
 import { ClipboardDocumentListIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { MealType, StudentStatus } from '@/core/types';
+import type { MealConsumptionLog } from '@/core/types';
 
 export const MealConsumptionLogPageContent: React.FC = () => {
   const { 
@@ -63,7 +64,6 @@ export const MealConsumptionLogPageContent: React.FC = () => {
       .sort((a, b) => new Date(b.consumption_time).getTime() - new Date(a.consumption_time).getTime())
       .slice(0, 20), // Show latest 20 logs
   [mealConsumptionLogs]);
-
 
   const logColumns: DataGridColumn<MealConsumptionLog>[] = [
     { 

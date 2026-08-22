@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for examsession data management
 // ABOUTME: Provides CRUD operations for examsession without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockExamSessions } from './mockData';
 import { ExamSession } from '@/core/types';
+import { useState } from 'react';
 
 export const useExamSessionData = () => {
   const [data, setData] = useState<ExamSession[]>(initialMockExamSessions);
@@ -11,7 +11,7 @@ export const useExamSessionData = () => {
   const create = async (newItem: Partial<ExamSession>) => {
     const newDataItem: ExamSession = {
       ...newItem,
-      id: Date.now(),
+      id: String(Date.now()),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     } as ExamSession;
@@ -19,7 +19,7 @@ export const useExamSessionData = () => {
     return newDataItem;
   };
 
-  const update = async (id: number, updatedData: Partial<ExamSession>) => {
+  const update = async (id: string, updatedData: Partial<ExamSession>) => {
     setData((prev: ExamSession[]) => prev.map((item: ExamSession) => 
       item.id === id 
         ? { ...item, ...updatedData, updated_at: new Date().toISOString() }
@@ -27,7 +27,7 @@ export const useExamSessionData = () => {
     ));
   };
 
-  const remove = async (id: number) => {
+  const remove = async (id: string) => {
     setData((prev: ExamSession[]) => prev.filter((item: ExamSession) => item.id !== id));
   };
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FixedAsset, ItemInv, Staff, ItemTypeInv, DepreciationMethod } from '@/types';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Button from '@/components/ui/Button';
@@ -8,11 +8,13 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CubeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { DepreciationMethod, ItemTypeInv } from '@/core/types';
+import type { FixedAsset } from '@/core/types';
 
 type FixedAssetFormData = Omit<Partial<FixedAsset>, 'id' | 'created_at' | 'updated_at' | 'item_name' | 'assigned_to_staff_name' | 'depreciation_method'> & {
     depreciation_method?: DepreciationMethod;

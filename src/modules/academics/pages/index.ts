@@ -21,7 +21,6 @@ export { default as ClassSubjectAllocationsPage } from './ClassSubjectAllocation
 export { default as TeacherSubjectAssignmentPage } from './TeacherSubjectAssignmentPage';
 export { default as StudentSubjectEnrollmentPage } from './StudentSubjectEnrollmentPage';
 export { default as ExamSessionsPage } from './ExamSessionsPage';
-export { default as ExamAnalysisPage } from './ExamAnalysisPage';
 export { default as StudentExamResultsEntryPage } from './StudentExamResultsEntryPage';
 export { default as GradingSchemesPage } from './GradingSchemesPage';
 export { default as TimetablePeriodsPage } from './TimetablePeriodsPage';

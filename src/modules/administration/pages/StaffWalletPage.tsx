@@ -11,6 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { initialMockWalletTransactions } from '../data/mockData';
 import type { WalletTransaction, WalletTransactionType } from '../data/types';
+import { logger } from '@/utils/logging';
 
 export const StaffWalletContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -64,7 +65,7 @@ export const StaffWalletContent: React.FC = () => {
       alert('Staff and amount are required.');
       return;
     }
-    console.log('Creating transaction:', {
+    logger.info('Creating transaction:', {
       staff_id: selectedStaff,
       transaction_type: transactionType,
       amount: Number(amount),

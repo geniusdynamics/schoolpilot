@@ -1,24 +1,14 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/Input';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Badge from '@/components/ui/Badge';
 import { Alert } from '@/components/ui/Alert';
-import {
-  UploadIcon,
-  DownloadIcon,
-  EyeIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  XCircleIcon,
-  TrashIcon,
-  ArrowRightIcon
-} from '@/components/ui/icons';
+import { UploadIcon, DownloadIcon, EyeIcon, CheckCircleIcon, ExclamationCircleIcon, TrashIcon, ArrowRightIcon } from '@/components/ui/icons';
 import { useStudentImportData } from '../data/useStudentImportData';
 import { useTranslation } from 'react-i18next';
 import type { StudentImportSession, StudentImportRecord, ImportValidationStatus, ImportStatus } from '../data/types';
+import { logger } from '@/utils/logging';
 
 type ImportStep = 'upload' | 'preview' | 'importing' | 'results';
 
@@ -307,7 +297,7 @@ const StudentDataImportPage: React.FC = () => {
 
           successCount++;
         } catch (err: any) {
-          console.error(`Failed to import row ${record.row_number}:`, err);
+          logger.error(`Failed to import row ${record.row_number}:`, err);
           
           // Update record as failed
           await updateImportRecord({

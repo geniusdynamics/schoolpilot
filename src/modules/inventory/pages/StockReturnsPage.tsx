@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -35,7 +35,6 @@ import {
   Undo as UndoIcon
 } from '@mui/icons-material';
 import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData } from '../data';
-import { InvStockTransactionType, InvItemType, InvWarehouseType } from '../data/types';
 
 interface StockReturnItem {
   id: string;
@@ -303,7 +302,6 @@ export const StockReturnsPageContent: React.FC = () => {
 
   const getConditionChip = (condition: string) => {
     const colorMap = {
-      GOOD: 'success',
       DAMAGED: 'warning',
       EXPIRED: 'error',
       DEFECTIVE: 'error'

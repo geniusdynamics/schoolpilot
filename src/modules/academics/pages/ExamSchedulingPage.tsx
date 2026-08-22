@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This file provides the main Exam Scheduling Page component
 // ABOUTME: with calendar view, schedule listing, and management functionality
 
@@ -39,14 +41,14 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
       let allSchedules;
       
       if (examSessionId) {
-        allSchedules = await scheduleManager.getByExamSession(parseInt(examSessionId));
+        allSchedules = await scheduleManager.getSchedulesByExam(examSessionId);
       } else {
         allSchedules = await scheduleManager.getAllExamSchedules();
       }
       
       setSchedules(allSchedules);
     } catch (error) {
-      console.error('Error loading schedules:', error);
+      logger.error('Error loading schedules:', error);
     } finally {
       setLoading(false);
     }
@@ -72,13 +74,19 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
 
   const handleCreateSchedule = async (schedule: ExamSchedule) => {
     try {
-      const newSchedule = await scheduleManager.createExamSchedule(schedule);
+      const newSchedule = await scheduleManager.createExamSchedule({
+        exam_id: schedule.exam_id ?? schedule.exam_session_id ?? '',
+        period_id: schedule.period_id,
+        class_stream_id: schedule.class_stream_id,
+        invigilator_id: schedule.invigilator_id ?? schedule.invigilator ?? '',
+        room_number: schedule.room_number ?? schedule.room ?? '',
+      });
       if (newSchedule) {
         setSchedules(prev => [...prev, newSchedule]);
         setShowCreateModal(false);
       }
     } catch (error) {
-      console.error('Error creating schedule:', error);
+      logger.error('Error creating schedule:', error);
     }
   };
 
@@ -92,7 +100,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
         setEditingSchedule(null);
       }
     } catch (error) {
-      console.error('Error updating schedule:', error);
+      logger.error('Error updating schedule:', error);
     }
   };
 
@@ -107,7 +115,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
         setSchedules(prev => prev.filter(s => s.id !== scheduleId));
       }
     } catch (error) {
-      console.error('Error deleting schedule:', error);
+      logger.error('Error deleting schedule:', error);
     }
   };
 
@@ -124,8 +132,21 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
   const renderCalendarView = () => (
     <div className="calendar-view">
       <SchedulingCalendar
-        schedules={filteredSchedules}
-        onScheduleClick={setEditingSchedule}
+        schedules={filteredSchedules.map(s => ({
+          id: s.id,
+          examId: s.exam_id ?? s.exam_session_id ?? '',
+          examName: s.subject_name ?? '',
+          date: s.date ?? '',
+          startTime: s.start_time ?? '',
+          endTime: s.end_time ?? '',
+          roomNumber: s.room_number ?? s.room ?? '',
+          invigilator: s.invigilator_id ?? s.invigilator ?? '',
+          classStream: String(s.class_stream_id ?? ''),
+          status: 'scheduled' as const,
+        }))}
+        onSelectSchedule={(sc) => setEditingSchedule(filteredSchedules.find(f => f.id === sc.id) ?? null)}
+        onAddSchedule={() => setShowCreateModal(true)}
+        onDeleteSchedule={handleDeleteSchedule}
       />
     </div>
   );
@@ -150,7 +171,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
                 <p><strong>Status:</strong> 
                   <span 
                     className="status-badge" 
-                    style={{ backgroundColor: getStatusColor(schedule.status) }}
+                    style={{ backgroundColor: getStatusColor(schedule.status || '') }}
                   >
                     {schedule.status}
                   </span>
@@ -202,7 +223,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
             <option value="">All Classes</option>
             {classStreams.map(stream => (
               <option key={stream?.id ?? ''} value={stream?.id?.toString() ?? ''}>
-                {stream.class_name} {stream.stream_name}
+                {stream.class_name} {stream.name}
               </option>
             ))}
           </select>
@@ -233,7 +254,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
               className="close-button" 
               onClick={() => setShowCreateModal(false)}
             >
-              ×
+              Ã—
             </button>
             <ExamSchedulingUI
               onScheduleComplete={handleCreateSchedule}
@@ -250,7 +271,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
               className="close-button" 
               onClick={() => setEditingSchedule(null)}
             >
-              ×
+              Ã—
             </button>
             <ExamSchedulingUI
               examId={editingSchedule.id}
@@ -261,7 +282,7 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .exam-scheduling-page {
           padding: 20px;
           max-width: 1200px;

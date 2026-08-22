@@ -9,7 +9,7 @@ import {
   ChartBarIcon,
   UsersIcon,
 } from '@/components/ui/icons';
-import { ExamAnalysisContent } from './ExamAnalysisPage';
+import { ExamAnalysisContent } from './ExamAnalysisContent';
 import { StudentExamAnalysisPageContent } from './StudentExamAnalysisPage';
 
 interface HubTab {

@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { TabNavigation } from '@/components/ui';
 import { NewsletterCard } from '../components';
 import Button from '@/components/ui/Button';
+import { logger } from '@/utils/logging';
+
 import { 
   CalendarIcon, 
   NewspaperIcon,
@@ -80,23 +82,23 @@ export const NewslettersContent: React.FC = () => {
   ];
 
   const handleViewNewsletter = (id: string) => {
-    console.log('View newsletter:', id);
+    logger.info('View newsletter:', id);
     // navigate(`/administration/newsletters/${id}`);
   };
 
   const handleEditNewsletter = (id: string) => {
-    console.log('Edit newsletter:', id);
+    logger.info('Edit newsletter:', id);
     // navigate(`/administration/newsletters/${id}/edit`);
   };
 
   const handleDeleteNewsletter = (id: string) => {
     if (window.confirm('Are you sure you want to delete this newsletter?')) {
-      console.log('Delete newsletter:', id);
+      logger.info('Delete newsletter:', id);
     }
   };
 
   const handleAddNewsletter = () => {
-    console.log('Add new newsletter');
+    logger.info('Add new newsletter');
     // navigate('/administration/newsletters/new');
   };
 
@@ -156,7 +158,7 @@ export const NewslettersContent: React.FC = () => {
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Manage Events</h2>
             <Button
-              onClick={() => console.log('Add event')}
+              onClick={() => logger.info('Add event')}
               leftIcon={<PlusIcon className="h-4 w-4" />}
               className="bg-emerald-500 hover:bg-emerald-600 text-white"
             >
@@ -190,7 +192,7 @@ export const NewslettersContent: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => console.log('Edit event:', event.id)}
+                    onClick={() => logger.info('Edit event:', event.id)}
                   >
                     Edit
                   </Button>

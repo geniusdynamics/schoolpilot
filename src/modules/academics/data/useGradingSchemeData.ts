@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for gradingscheme data management
 // ABOUTME: Provides CRUD operations for gradingscheme without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockGradingSchemes } from './mockData';
 import { GradingScheme } from '@/core/types';
+import { useState } from 'react';
 
 export const useGradingSchemeData = () => {
   const [data, setData] = useState<GradingScheme[]>(initialMockGradingSchemes);

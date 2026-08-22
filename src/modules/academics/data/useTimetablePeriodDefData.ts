@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for timetableperioddef data management
 // ABOUTME: Provides CRUD operations for timetableperioddef without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockTimetablePeriodDefs } from './mockData';
 import { TimetablePeriodDef } from '@/core/types';
+import { useState } from 'react';
 
 export const useTimetablePeriodDefData = () => {
   const [data, setData] = useState<TimetablePeriodDef[]>(initialMockTimetablePeriodDefs);

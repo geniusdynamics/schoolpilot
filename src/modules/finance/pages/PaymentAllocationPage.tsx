@@ -1,7 +1,7 @@
 // ABOUTME: Payment Allocation Page - UI for applying payments to invoices
 // ABOUTME: Uses usePaymentAllocation hook to allocate payments to outstanding invoices
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { CreditCardIcon, ArrowPathIcon, CheckCircleIcon, ExclamationCircleIcon, BanknotesIcon } from '@/components/ui/icons';
@@ -10,7 +10,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
-import { usePaymentAllocation, PaymentAllocationType } from '../hooks/useFinanceServices';
+
 import { useAppData } from '@/hooks/useAppData';
 import type { StudentPayment, StudentInvoice, StudentInvoiceItem, InvoicePaymentApplication } from '../data/types';
 import type { PaymentAllocationResult } from '../services/PaymentAllocationService';
@@ -79,8 +79,8 @@ export const PaymentAllocationPageContent: React.FC = () => {
     });
 
     return Array.from(studentMap.values()).sort((a, b) =>
-      `${a.student.first_name} ${a.student.last_name}`.localeCompare(
-        `${b.student.first_name} ${b.student.last_name}`
+      ([a.student.first_name, a.student.last_name].filter(Boolean).join(' ')).localeCompare(
+        [b.student.first_name, b.student.last_name].filter(Boolean).join(' ')
       )
     );
   }, [students, studentPayments]);

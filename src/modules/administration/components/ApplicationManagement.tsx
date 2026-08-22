@@ -1,32 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DataGrid from '@/components/ui/data/DataGrid';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Card from '@/components/ui/Card';
-import {
-  PlusIcon,
-  EditIcon,
-  DeleteIcon,
-  UserCircleIcon,
-  DocumentAddIcon,
-  DocumentSearchIcon,
-  CheckBadgeIcon,
-  EyeIcon,
-  ClipboardDocumentListIcon,
-  CalendarIcon,
-  PhoneIcon,
-  UserPlusIcon,
-  DocumentArrowUpIcon,
-  AcademicCapIcon,
-  UserGroupIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XCircleIcon
-} from '@/components/ui/icons';
-import { useAppData } from '@/hooks/useAppData';
+import { PlusIcon, EditIcon, DeleteIcon, DocumentSearchIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/useToast';
@@ -35,6 +15,8 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { logger } from '@/utils/logging';
+
 import { 
   AdminApplicationType, 
   AdminKCPEMarksType,
@@ -251,20 +233,20 @@ const ApplicationManagement: React.FC = () => {
 
   const handleReview = (application: Application) => {
     // Navigate to review page or open review modal
-    console.log('Reviewing application:', application.id);
+    logger.info('Reviewing application:', application.id);
     // TODO: Implement review functionality
   };
 
   const handleApprove = (application: Application) => {
     // Navigate to approval page or open approval modal
-    console.log('Approving application:', application.id);
+    logger.info('Approving application:', application.id);
     // TODO: Implement approval functionality
   };
 
   const getApplicationActions = (application: Application) => [
     {
       label: t('admissions.actions.viewDetails'),
-      onClick: () => console.log('View details:', application.id),
+      onClick: () => logger.info('View details:', application.id),
       icon: DocumentSearchIcon
     },
     {

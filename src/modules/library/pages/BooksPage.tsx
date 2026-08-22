@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LibBookType, LibBookStatusEnum, LibBookCategoryType, LibBookAvailabilityStatusEnum } from '../data/types';
+
 import { useBookData } from '../data/useBookData';
 import { useBookCategoryData } from '../data/useBookCategoryData';
 import Card from '@/components/ui/Card';
@@ -11,10 +11,8 @@ import FormSection from '../../../components/ui/forms/FormSection';
 import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon, MagnifyingGlassIcon as SearchIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
 // Simple Checkbox component
 const Checkbox: React.FC<{
@@ -139,7 +137,7 @@ export const BooksPageContent: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
+    const { name, valuechecked } = e.target as HTMLInputElement;
     let processedValue: string | number | boolean | undefined = value;
 
     if (name === 'category_id') {

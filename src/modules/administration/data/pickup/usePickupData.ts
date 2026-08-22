@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { databaseService } from '@/services/database/databaseService';
+import { logger } from '@/utils/logging';
+
 import {
   initialMockPickupCodes,
   initialMockAuthorizedPersons,
@@ -40,7 +42,7 @@ export const usePickupData = () => {
       const docs = await collection.find().exec();
       setPickupCodes(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for pickup codes:', err.message);
+      logger.warn('Using mock data for pickup codes:', err.message);
       setPickupCodes(initialMockPickupCodes);
     } finally {
       setLoading(false);
@@ -69,7 +71,7 @@ export const usePickupData = () => {
       const collection = db.collections['pickup_codes'];
       await collection.insert(newCode as any);
     } catch (err: any) {
-      console.warn('Failed to save pickup code in DB, using local state:', err.message);
+      logger.warn('Failed to save pickup code in DB, using local state:', err.message);
     }
 
     setPickupCodes(prev => [...prev, newCode]);
@@ -87,7 +89,7 @@ export const usePickupData = () => {
         await doc.update({ $set: { status: 'REVOKED', updatedAt: now } });
       }
     } catch (err: any) {
-      console.warn('Failed to revoke pickup code in DB, using local state:', err.message);
+      logger.warn('Failed to revoke pickup code in DB, using local state:', err.message);
     }
     setPickupCodes(prev => prev.map(c => c.id === id ? { ...c, status: 'REVOKED' as PickupCodeStatus, updatedAt: now } : c));
   }, []);
@@ -100,7 +102,7 @@ export const usePickupData = () => {
       const docs = await collection.find().exec();
       setAuthorizedPersons(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for authorized persons:', err.message);
+      logger.warn('Using mock data for authorized persons:', err.message);
       setAuthorizedPersons(initialMockAuthorizedPersons);
     }
   }, []);
@@ -139,7 +141,7 @@ export const usePickupData = () => {
       const docs = await collection.find().exec();
       setStudentAuthorizations(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for authorizations:', err.message);
+      logger.warn('Using mock data for authorizations:', err.message);
       setStudentAuthorizations(initialMockStudentAuthorizations);
     }
   }, []);
@@ -174,7 +176,7 @@ export const usePickupData = () => {
       const docs = await collection.find().sort({ pickup_time: 'desc' }).exec();
       setPickupLogs(docs.map(doc => doc.toJSON()));
     } catch (err: any) {
-      console.warn('Using mock data for pickup logs:', err.message);
+      logger.warn('Using mock data for pickup logs:', err.message);
       setPickupLogs(initialMockPickupLogs);
     }
   }, []);

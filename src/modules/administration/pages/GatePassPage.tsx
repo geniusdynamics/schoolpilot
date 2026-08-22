@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -11,6 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { initialMockGatePasses } from '../data/mockData';
 import type { GatePass, PassType, PassStatus } from '../data/types';
+import { logger } from '@/utils/logging';
 
 export const GatePassContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -76,26 +77,26 @@ export const GatePassContent: React.FC = () => {
       alert('Student name, pass type, and reason are required.');
       return;
     }
-    console.log('Creating gate pass:', formData);
+    logger.info('Creating gate pass:', formData);
     closeModal();
   };
 
   const approvePass = (pass: GatePass) => {
-    console.log('Approving pass:', pass.id);
+    logger.info('Approving pass:', pass.id);
   };
 
   const rejectPass = (pass: GatePass) => {
     if (confirm('Are you sure you want to reject this gate pass?')) {
-      console.log('Rejecting pass:', pass.id);
+      logger.info('Rejecting pass:', pass.id);
     }
   };
 
   const issuePass = (pass: GatePass) => {
-    console.log('Issuing pass:', pass.id);
+    logger.info('Issuing pass:', pass.id);
   };
 
   const printPass = (pass: GatePass) => {
-    console.log('Printing pass:', pass.id);
+    logger.info('Printing pass:', pass.id);
   };
 
   const getStatusBadge = (status: PassStatus) => {

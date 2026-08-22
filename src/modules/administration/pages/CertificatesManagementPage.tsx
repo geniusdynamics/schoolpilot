@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -12,6 +12,7 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { CertificateType, CertificateStatus } from '../data/types';
 import type { CertificateRequest } from '../data/types';
+import { logger } from '@/utils/logging';
 
 const CertificatesManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -72,7 +73,7 @@ const CertificatesManagementPage: React.FC = () => {
       closeModal();
       loadData();
     } catch (error) {
-      console.error('Error creating certificate request:', error);
+      logger.error('Error creating certificate request:', error);
       alert('Failed to create certificate request');
     }
   };
@@ -89,7 +90,7 @@ const CertificatesManagementPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error approving certificate:', error);
+      logger.error('Error approving certificate:', error);
     }
   };
 
@@ -105,7 +106,7 @@ const CertificatesManagementPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error issuing certificate:', error);
+      logger.error('Error issuing certificate:', error);
     }
   };
 
@@ -120,7 +121,7 @@ const CertificatesManagementPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error rejecting certificate:', error);
+      logger.error('Error rejecting certificate:', error);
     }
   };
 
@@ -133,7 +134,7 @@ const CertificatesManagementPage: React.FC = () => {
       });
       setCertificates((result?.docs || []) as CertificateRequest[]);
     } catch (error) {
-      console.error('Error loading certificates:', error);
+      logger.error('Error loading certificates:', error);
     } finally {
       setLoading(false);
     }

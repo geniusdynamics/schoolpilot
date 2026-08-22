@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import { CalendarIcon, UserIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
 
 type AttendanceStatus = 'Present' | 'Absent' | 'Late';
 
@@ -111,7 +112,7 @@ export const ManualAttendanceContent: React.FC = () => {
   };
 
   const handleSaveAttendance = () => {
-    console.log('Saving attendance:', attendanceData);
+    logger.info('Saving attendance:', attendanceData);
     // In production, this would save the attendance data
   };
 

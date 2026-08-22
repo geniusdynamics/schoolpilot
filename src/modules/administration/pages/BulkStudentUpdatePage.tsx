@@ -9,6 +9,7 @@ import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, PencilIcon, CheckIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
 
 interface StudentRecord {
   id: string;
@@ -158,7 +159,7 @@ export const BulkStudentUpdateContent: React.FC = () => {
       alert('Please select a field and enter a value.');
       return;
     }
-    console.log('Bulk updating students:', {
+    logger.info('Bulk updating students:', {
       studentIds: Array.from(selectedStudents),
       field: updateField,
       value: updateValue

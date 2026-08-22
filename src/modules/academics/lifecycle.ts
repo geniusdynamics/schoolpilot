@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Academics module lifecycle implementation for service registration
 
 import { registerAcademicsServices } from './services/registerServices';
@@ -7,7 +9,7 @@ import { registerAcademicsServices } from './services/registerServices';
  * Called when the academics module is registered with the module registry
  */
 export async function onAcademicsModuleRegister() {
-  console.log('[Academics] Module registered');
+  logger.info('[Academics] Module registered');
 }
 
 /**
@@ -16,7 +18,7 @@ export async function onAcademicsModuleRegister() {
  * Registers academics services with the service registry
  */
 export async function onAcademicsModuleEnable() {
-  console.log('[Academics] Module enabled - registering services');
+  logger.info('[Academics] Module enabled - registering services');
   // Get education system config from module config or app settings
   const educationSystemConfig = {}; // TODO: Load from appropriate source
   registerAcademicsServices(educationSystemConfig);
@@ -28,7 +30,7 @@ export async function onAcademicsModuleEnable() {
  * Unregisters academics services from the service registry
  */
 export async function onAcademicsModuleDisable() {
-  console.log('[Academics] Module disabled - unregistering services');
+  logger.info('[Academics] Module disabled - unregistering services');
   // Note: ServiceRegistry doesn't have unregister method yet
   // This is a placeholder for future implementation
 }

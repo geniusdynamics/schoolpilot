@@ -8,6 +8,8 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { StaffIDCard } from '../data/types';
 
+import { logger } from '@/utils/logging';
+
 const StaffIDCardsPage: React.FC = () => {
   const { t } = useTranslation('administration');
   const { staffIDCards, staff, loading } = useAppData();
@@ -35,15 +37,15 @@ const StaffIDCardsPage: React.FC = () => {
 
   const handlePrintCard = (staff: StaffIDCard) => {
     setSelectedStaff(staff);
-    console.log('Printing ID card for:', staff.staff_name);
+    logger.info('Printing ID card for:', staff.staff_name);
   };
 
   const handleDownloadCard = (staff: StaffIDCard) => {
-    console.log('Downloading ID card for:', staff.staff_name);
+    logger.info('Downloading ID card for:', staff.staff_name);
   };
 
   const handlePrintAll = () => {
-    console.log('Printing all ID cards for department:', selectedDepartment || 'all departments');
+    logger.info('Printing all ID cards for department:', selectedDepartment || 'all departments');
   };
 
   const columns: DataGridColumn<StaffIDCard>[] = [

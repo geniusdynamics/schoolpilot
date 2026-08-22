@@ -37,19 +37,19 @@ const CertificatesPage: React.FC = () => {
     },
     {
       id: 'birth',
-      label: t('certificates.birth', 'Birth'),
+      label: t('certificates.birth.title', 'Birth'),
       icon: <UserIcon className="w-4 h-4" />,
       component: <BirthCertificateContent />,
     },
     {
       id: 'character',
-      label: t('certificates.character', 'Character'),
+      label: t('certificates.character.title', 'Character'),
       icon: <CheckBadgeIcon className="w-4 h-4" />,
       component: <CharacterCertificateContent />,
     },
     {
       id: 'transfer',
-      label: t('certificates.transfer', 'Transfer'),
+      label: t('certificates.transfer.title', 'Transfer'),
       icon: <ArrowPathIcon className="w-4 h-4" />,
       component: <TransferCertificateContent />,
     },

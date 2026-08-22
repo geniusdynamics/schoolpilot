@@ -1,18 +1,5 @@
 import React from 'react';
-import {
-  LibraryIcon,
-  BookOpenIcon,
-  ArrowsRightLeftIcon,
-  SparklesIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  PlusIcon,
-  MagnifyingGlassIcon,
-  ArrowLeftIcon,
-  CurrencyDollarIcon,
-  ExclamationCircleIcon,
-  CheckCircleIcon,
-} from '@/components/ui/icons';
+import { LibraryIcon, BookOpenIcon, ArrowsRightLeftIcon, ArrowRightIcon, ClockIcon, PlusIcon, MagnifyingGlassIcon, ArrowLeftIcon, CurrencyDollarIcon, ExclamationCircleIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { ChartData, BookStatus, FineStatus } from '@/types';
@@ -361,7 +348,7 @@ export const LibraryDashboardPageContent: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/library/loans'}
+              onClick={() => window.location.hash = '#/library/loans'}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
             >
               View All Loans <ArrowRightIcon className="h-4 w-4" />

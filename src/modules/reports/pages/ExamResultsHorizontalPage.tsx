@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This page component displays exam results in a horizontal (marksheet) format.
 // ABOUTME: It allows filtering by exam session and class stream to generate the report.
 
@@ -53,7 +55,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
     try {
       const currentSession = (examSessions || []).find(es => es.id === selectedExamSessionId);
       if (!currentSession || !currentSession.paper_settings) {
-          console.warn("Selected exam session not found or has no paper settings.");
+          logger.warn("Selected exam session not found or has no paper settings.");
           setReportData([]);
           setDynamicColumns([]);
           setIsGenerating(false); 
@@ -85,7 +87,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
         const result = (resultsForSessionAndStream || []).find(res => res.student_id === student.id);
         const row: ReportRow = {
           studentId: student.id,
-          studentName: `${student.first_name} ${student.last_name}`,
+          studentName: [student.first_name, student.last_name].filter(Boolean).join(' ') || '—',
           admissionNo: student.admission_no,
           totalMarks: result?.total_marks || 0,
           meanGrade: result?.mean_grade || '-',
@@ -105,7 +107,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
 
       setReportData(newReportData);
     } catch (error) {
-        console.error("Error generating report:", error);
+        logger.error("Error generating report:", error);
         setReportData([]);
         setDynamicColumns([]);
     } finally {

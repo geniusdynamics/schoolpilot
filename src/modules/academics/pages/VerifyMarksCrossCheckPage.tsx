@@ -2,19 +2,20 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormActions from '@/components/ui/forms/FormActions';
-import { CheckCircleIcon, XCircleIcon, UserIcon, CalendarIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import Button from '@/components/ui/Button';
+import FormField from '@/components/ui/forms/FormField';
 import { initialMockCrossCheckRecords } from '../data/mockData';
 import type { CrossCheckRecord } from '../data/types';
+import { logger } from '@/utils/logging';
+import { CalendarIcon, CheckCircleIcon, ExclamationTriangleIcon, UserIcon } from '@/components/ui/icons';
 
 export const VerifyMarksCrossCheckPageContent: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, subjects, classes, teachers, loading } = useAppData();
+  const { loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<CrossCheckRecord | null>(null);
@@ -59,7 +60,7 @@ export const VerifyMarksCrossCheckPageContent: React.FC = () => {
   const handleVerify = () => {
     if (!selectedRecord) return;
     // In production, this would save the verification
-    console.log('Verifying marks:', {
+    logger.info('Verifying marks:', {
       recordId: selectedRecord.id,
       verifiedMarks,
       notes
@@ -262,8 +263,6 @@ export const VerifyMarksCrossCheckPageContent: React.FC = () => {
         <DataGrid
           data={mockRecords}
           columns={columns}
-          searchable={false}
-          exportable={true}
           onRowClick={(record) => openVerifyModal(record as CrossCheckRecord)}
         />
       </Card>
@@ -340,11 +339,10 @@ export const VerifyMarksCrossCheckPageContent: React.FC = () => {
               )}
             </FormSection>
 
-            <FormActions
-              onCancel={closeModal}
-              onSubmit={handleVerify}
-              submitLabel="Verify Marks"
-            />
+            <FormActions>
+              <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+              <Button onClick={handleVerify}>Verify Marks</Button>
+            </FormActions>
           </>
         )}
       </DialogForm>

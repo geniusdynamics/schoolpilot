@@ -75,7 +75,7 @@ export const PortalAnnouncementsContent: React.FC = () => {
   }, [loadAnnouncements]);
 
   const publishedAnnouncements = useMemo(() => {
-    let filtered = getAnnouncementsForUser(userRole);
+    const filtered = getAnnouncementsForUser(userRole);
 
     switch (sortOrder) {
       case 'newest':

@@ -4,15 +4,14 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import { DocumentPlusIcon, ArrowPathIcon, CheckCircleIcon, ExclamationCircleIcon, UserGroupIcon } from '@/components/ui/icons';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import { useInvoiceGeneration } from '../hooks/useFinanceServices';
 import { useAppData } from '@/hooks/useAppData';
 import type { InvoiceGenerationResult, ActiveStudentRecord } from '../services/InvoiceGenerationService';
+import { ArrowPathIcon, CheckCircleIcon, DocumentAddIcon, ExclamationCircleIcon, UserGroupIcon } from '@/components/ui/icons';
 
 // Currency formatter for KES
 const formatCurrency = (value: number) =>
@@ -94,6 +93,7 @@ export const InvoiceGenerationPageContent: React.FC = () => {
   }, []);
 
   // DataGrid columns for preview
+
   const previewColumns: DataGridColumn<PreviewStudent>[] = useMemo(
     () => [
       {

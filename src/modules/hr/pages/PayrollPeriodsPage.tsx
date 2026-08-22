@@ -7,12 +7,12 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import type { PayrollPeriod } from '@/modules/hr/data/types';
+import { logger } from '@/utils/logging';
 
 type PayrollPeriodFormData = Omit<Partial<PayrollPeriod>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -142,7 +142,7 @@ export const PayrollPeriodsPageContent: React.FC = () => {
       await refreshCollection('payrollPeriods');
       closeModal();
     } catch (error) {
-      console.error('Error saving payroll period:', error);
+      logger.error('Error saving payroll period:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -165,7 +165,7 @@ export const PayrollPeriodsPageContent: React.FC = () => {
       await collection?.remove(period.id.toString());
       await refreshCollection('payrollPeriods');
     } catch (error) {
-      console.error('Error deleting payroll period:', error);
+      logger.error('Error deleting payroll period:', error);
     }
   }, [refreshCollection, t]);
 

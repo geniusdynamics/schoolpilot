@@ -4,14 +4,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Tabs from '@/components/ui/Tabs';
 import Spinner from '@/components/ui/Spinner';
-import {
-  ArrowLeftIcon,
-  PrinterIcon,
-  EditIcon,
-  TrashIcon,
-  CheckCircleIcon,
-  DownloadIcon,
-} from '@/components/ui/icons';
+import { ArrowLeftIcon, PrinterIcon, TrashIcon, CheckCircleIcon, DownloadIcon, DocumentTextIcon } from '@/components/ui/icons';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import {
   Application,

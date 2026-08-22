@@ -1,7 +1,6 @@
 // ABOUTME: This test file covers StudentExamResultsEntryPage loading and save behavior.
 // ABOUTME: It verifies the page reads live session paper settings and persists marks through AppDataContext.
 
-import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

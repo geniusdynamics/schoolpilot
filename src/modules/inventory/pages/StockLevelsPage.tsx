@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { StockLevel, Warehouse, ItemCategoryInv } from '@/types'; // Assuming ItemInv has category_id
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Select from '@/components/ui/Select';
 import { TableCellsIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import type { StockLevel } from '@/core/types';
 
 export const StockLevelsPageContent: React.FC = () => {
   const { 

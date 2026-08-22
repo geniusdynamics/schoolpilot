@@ -14,6 +14,7 @@ import { useRBAC } from '@/hooks/useRBAC';
 import { useAuth } from '@/contexts/AuthContext';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { useToastHelpers } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
 
 type WorkflowFormData = Omit<Partial<Workflow>, 'id' | 'created_at' | 'updated_at' | 'states'>;
 type WorkflowStateFormData = Omit<Partial<WorkflowState>, 'id' | 'workflow_id'>;
@@ -227,7 +228,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
       await refreshCollection('workflows');
       closeWorkflowModal();
     } catch (error) {
-      console.error('Error saving workflow:', error);
+      logger.error('Error saving workflow:', error);
       toast.showError(t('workflows.saveError') || 'Failed to save workflow. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -277,7 +278,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
       await refreshCollection('workflows');
       closeStateModal();
     } catch (error) {
-      console.error('Error saving workflow state:', error);
+      logger.error('Error saving workflow state:', error);
       toast.showError(t('workflows.stateSaveError') || 'Failed to save workflow state. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -326,7 +327,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
           
           toast.showSuccess(t('workflows.deleteSuccess') || 'Workflow deleted successfully');
         } catch (error) {
-          console.error('Error deleting workflow:', error);
+          logger.error('Error deleting workflow:', error);
           toast.showError(t('workflows.deleteError') || 'Failed to delete workflow. Please try again.');
         } finally {
           setIsDeletingWorkflow(null);
@@ -362,7 +363,7 @@ export const SettingsWorkflowsContent: React.FC = () => {
           
           toast.showSuccess(t('workflows.stateDeleteSuccess') || 'Workflow state deleted successfully');
         } catch (error) {
-          console.error('Error deleting workflow state:', error);
+          logger.error('Error deleting workflow state:', error);
           toast.showError(t('workflows.stateDeleteError') || 'Failed to delete workflow state. Please try again.');
         } finally {
           setIsDeletingState(null);

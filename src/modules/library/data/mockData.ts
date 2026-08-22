@@ -1,15 +1,7 @@
 // ABOUTME: Provides initial mock data for entities specific to the Library module.
 // ABOUTME: This data is used in "demo" mode and for seeding RxDB in "production" mode.
 
-import {
-    BookCategory,
-    Book,
-    Loan,
-    Fine,
-    BookStatus,
-    FineStatus,
-    UserType
-} from '@/core/types';
+import { BookCategory, Book, Loan, Fine, BookStatus, FineStatus } from '@/core/types';
 
 export const initialMockBookCategories: BookCategory[] = [
   { id: 1, name: 'Fiction' },

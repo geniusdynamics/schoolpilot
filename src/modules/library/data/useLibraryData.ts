@@ -1,8 +1,8 @@
-// ABOUTME: Library domain hook — Books, BookCategories, Loans, Fines
+// ABOUTME: Library domain hook â€” Books, BookCategories, Loans, Fines
 // ABOUTME: Uses real database-backed hooks for persistent data
 
 import { useCallback } from 'react';
-import { databaseService } from '@/services/database/databaseService';
+
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/types';
 
@@ -13,7 +13,7 @@ export function useLibraryData() {
   const libraryMembersCollection = useDatabaseCollection<any>('library_members');
   const finesCollection = useDatabaseCollection<allTypes.Fine>('fines');
 
-  // ── Book Categories ───────────────────────────────────────────────────────────
+  // â”€â”€ Book Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addBookCategory = useCallback(async (data: any) => {
     return bookCategoriesCollection.insert(data);
   }, [bookCategoriesCollection]);
@@ -26,7 +26,7 @@ export function useLibraryData() {
     return bookCategoriesCollection.remove(id);
   }, [bookCategoriesCollection]);
 
-  // ── Books ─────────────────────────────────────────────────────────────────────
+  // â”€â”€ Books â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addBook = useCallback(async (data: any) => {
     return booksCollection.insert(data);
   }, [booksCollection]);
@@ -39,7 +39,7 @@ export function useLibraryData() {
     return booksCollection.remove(id);
   }, [booksCollection]);
 
-  // ── Book Loans ───────────────────────────────────────────────────────────────
+  // â”€â”€ Book Loans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addBookLoan = useCallback(async (loanData: Omit<allTypes.Loan, 'id'>) => {
     return bookLoansCollection.insert(loanData);
   }, [bookLoansCollection]);
@@ -60,7 +60,7 @@ export function useLibraryData() {
     } as Partial<allTypes.Loan>);
   }, [bookLoansCollection]);
 
-  // ── Fines ─────────────────────────────────────────────────────────────────────
+  // â”€â”€ Fines â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addFine = useCallback(async (fineData: Omit<allTypes.Fine, 'id'>) => {
     return finesCollection.insert(fineData);
   }, [finesCollection]);

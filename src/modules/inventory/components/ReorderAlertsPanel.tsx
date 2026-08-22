@@ -1,38 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Badge,
-  Button,
-  Alert,
-  AlertDescription,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Alert, AlertDescription, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '@/components/ui';
 import {
   AlertTriangle,
   CheckCircle,
@@ -45,9 +12,9 @@ import {
   TrendingDown,
   Package
 } from 'lucide-react';
-import { useReorderMonitoring, usePeriodicReorderMonitoring } from '@/hooks/useReorderMonitoring';
-import { reorderMonitoringService, ReorderAlert } from '../services/reorderMonitoringService';
+
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
 
 interface ReorderAlertsPanelProps {
   className?: string;
@@ -113,7 +80,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       await dismissAlert(itemId);
       setSelectedAlert(null);
     } catch (error) {
-      console.error('Failed to dismiss alert:', error);
+      logger.error('Failed to dismiss alert:', error);
     }
   };
 

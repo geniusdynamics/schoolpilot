@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for fixedasset data management
 // ABOUTME: Provides CRUD operations for fixedasset without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockFixedAssets } from './mockData';
 import { FixedAsset } from '@/core/types';
+import { useState } from 'react';
 
 export const useFixedAssetData = () => {
   const [data, setData] = useState<FixedAsset[]>(initialMockFixedAssets);

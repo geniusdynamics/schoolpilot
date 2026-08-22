@@ -109,7 +109,6 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   // Validation schemas
   const classSchema: ValidationSchema<types.Class> = [
     { field: 'name', required: true, minLength: 2, maxLength: 100 },
-    { field: 'grade_level', required: true },
   ];
 
   const classStreamSchema: ValidationSchema<types.ClassStream> = [
@@ -120,7 +119,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   const studentSchema: ValidationSchema<types.Student> = [
     { field: 'first_name', required: true, minLength: 2 },
     { field: 'last_name', required: true, minLength: 2 },
-    { field: 'admission_number', required: true, unique: true },
+    { field: 'admission_no', required: true, unique: true },
     { field: 'email', email: true },
   ];
 

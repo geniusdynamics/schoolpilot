@@ -7,10 +7,11 @@ import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormField from '../../../components/ui/forms/FormField';
 import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
-import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 
 type BookCategoryFormData = Omit<Partial<BookCategory>, 'id'>;
 

@@ -11,6 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { initialMockStudentRollNumbers } from '../data/mockData';
 import type { StudentRollNumber } from '../data/types';
+import { logger } from '@/utils/logging';
 
 export const BulkAssignRollNumbersContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -78,7 +79,7 @@ export const BulkAssignRollNumbersContent: React.FC = () => {
       ? Array.from(selectedStudents) 
       : mockStudents.filter(s => s.class_id === selectedClass).map(s => s.id);
     
-    console.log('Assigning roll numbers:', {
+    logger.info('Assigning roll numbers:', {
       mode: assignmentMode,
       startRollNumber,
       studentIds: studentsToAssign

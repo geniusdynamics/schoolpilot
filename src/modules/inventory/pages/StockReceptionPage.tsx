@@ -1,32 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  Grid,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  Chip,
-  Alert,
-  Autocomplete
-} from '@mui/material';
+import { Box, Button, Card, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, Alert, Autocomplete } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -35,7 +8,6 @@ import {
   Receipt as ReceiptIcon
 } from '@mui/icons-material';
 import { useItemData, useWarehouseData, useStockTransactionData, useStockLevelData } from '../data';
-import { InvStockTransactionType, InvItemType, InvWarehouseType } from '../data/types';
 
 interface StockReceptionItem {
   id: string;
@@ -66,8 +38,8 @@ export const StockReceptionPageContent: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   // Data hooks
-  const { items, loading: itemsLoading } = useItemData();
-  const { warehouses, loading: warehousesLoading } = useWarehouseData();
+  const { items } = useItemData();
+  const { warehouses } = useWarehouseData();
   const { createStockTransaction, getStockTransactionsByType } = useStockTransactionData();
   const { updateStockLevel } = useStockLevelData();
 

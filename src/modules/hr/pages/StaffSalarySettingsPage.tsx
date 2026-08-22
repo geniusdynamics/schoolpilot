@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
@@ -12,6 +12,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import type { StaffSalaryComponent } from '@/types';
+import { logger } from '@/utils/logging';
 
 interface SalaryComponentFormData {
   staff_id: number | null;
@@ -52,7 +53,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
       const data = await collection?.find({}) || [];
       setSalaryComponents(data);
     } catch (error) {
-      console.error('Error loading salary components:', error);
+      logger.error('Error loading salary components:', error);
       setSalaryComponents([]);
     } finally {
       setLoading(false);
@@ -180,7 +181,7 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
       await loadSalaryComponents();
       closeModal();
     } catch (error) {
-      console.error('Error saving salary component:', error);
+      logger.error('Error saving salary component:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -198,14 +199,14 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
       await collection?.remove(component.id.toString());
       await loadSalaryComponents();
     } catch (error) {
-      console.error('Error deleting salary component:', error);
+      logger.error('Error deleting salary component:', error);
     }
   }, [loadSalaryComponents, t]);
 
   const getStaffName = (staffId: number) => {
     const staffMember = (staff as any[])?.find(s => s.id === staffId);
     return staffMember?.first_name && staffMember?.last_name 
-      ? `${staffMember.first_name} ${staffMember.last_name}` 
+      ? [staffMember.first_name, staffMember.last_name].filter(Boolean).join(' ')
       : staffMember?.username || `Staff #${staffId}`;
   };
 

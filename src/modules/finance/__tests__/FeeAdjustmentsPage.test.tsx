@@ -1,8 +1,7 @@
 // ABOUTME: Test file for modernized FeeAdjustmentsPage component
 // ABOUTME: Tests DataGrid integration, tabbed forms, and toast notifications
 
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import '@testing-library/jest-dom';
 import FeeAdjustmentsPage from '../pages/FeeAdjustmentsPage';
 import { AppDataContext } from '@/contexts/AppDataContext';

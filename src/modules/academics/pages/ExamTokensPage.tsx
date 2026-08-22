@@ -7,17 +7,28 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import { KeyIcon, CalendarIcon, UserIcon, CheckCircleIcon, XCircleIcon, PlusIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockExamTokens } from '../data/mockData';
 import type { ExamToken } from '../data/types';
+import { logger } from '@/utils/logging';
+import { KeyIcon, PlusIcon } from '@/components/ui/icons';
 
 type ExamTokenFormData = Omit<Partial<ExamToken>, 'id' | 'generated_at' | 'used_at'>;
 
 export const ExamTokensPageContent: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, teachers, subjects, classes, loading } = useAppData();
+  const { examSessions, teacherSubjectAssignments, subjects, classes, loading } = useAppData();
+
+  const teachers = useMemo(() => {
+    const map = new Map<string, { id: string; first_name: string; last_name: string }>();
+    teacherSubjectAssignments.forEach(a => {
+      if (a.teacher_id && !map.has(a.teacher_id)) {
+        const parts = (a.teacher_name || '').split(' ');
+        map.set(a.teacher_id, { id: a.teacher_id, first_name: parts[0] || (a.teacher_name || ''), last_name: parts.slice(1).join(' ') });
+      }
+    });
+    return Array.from(map.values());
+  }, [teacherSubjectAssignments]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingToken, setEditingToken] = useState<ExamToken | null>(null);
@@ -83,7 +94,7 @@ export const ExamTokensPageContent: React.FC = () => {
       return;
     }
     // In production, this would call generateExamToken or updateExamToken
-    console.log('Saving exam token:', formData);
+    logger.info('Saving exam token:', formData);
     closeModal();
   };
 
@@ -173,7 +184,7 @@ export const ExamTokensPageContent: React.FC = () => {
             <span>Exam Tokens</span>
           </div>
         }
-        extra={
+        actions={
           <Button onClick={() => openModal()} variant="primary">
             <PlusIcon className="w-4 h-4 mr-2" />
             Generate Token
@@ -223,8 +234,6 @@ export const ExamTokensPageContent: React.FC = () => {
         <DataGrid
           data={mockExamTokens}
           columns={columns}
-          searchable={false}
-          exportable={true}
         />
       </Card>
 
@@ -315,11 +324,10 @@ export const ExamTokensPageContent: React.FC = () => {
           </FormField>
         </FormSection>
 
-        <FormActions
-          onCancel={closeModal}
-          onSubmit={handleSubmit}
-          submitLabel={editingToken ? 'Update' : 'Generate'}
-        />
+        <FormActions>
+          <Button variant="ghost" onClick={closeModal}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit}>{editingToken ? 'Update' : 'Generate'}</Button>
+        </FormActions>
       </DialogForm>
     </div>
   );

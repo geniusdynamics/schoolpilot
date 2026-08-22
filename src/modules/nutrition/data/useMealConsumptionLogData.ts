@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for mealconsumptionlog data management
 // ABOUTME: Provides CRUD operations for mealconsumptionlog without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockMealConsumptionLogs } from './mockData';
 import { MealConsumptionLog } from '@/core/types';
+import { useState } from 'react';
 
 export const useMealConsumptionLogData = () => {
   const [data, setData] = useState<MealConsumptionLog[]>(initialMockMealConsumptionLogs);

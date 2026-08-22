@@ -1,5 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useCallback } from 'react';
 import DataGrid from '../../../components/ui/data/DataGrid';
 import Button from '../../../components/ui/Button';
 import DialogForm from '../../../components/ui/forms/DialogForm';
@@ -7,25 +6,12 @@ import FormActions from '../../../components/ui/forms/FormActions';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Card from '../../../components/ui/Card';
-import { 
-  PlusIcon, 
-  EditIcon, 
-  DeleteIcon, 
-  UploadIcon as DocumentArrowUpIcon,
-  ArrowDownTrayIcon as DocumentDownloadIcon,
-  AcademicCapIcon,
-  CheckBadgeIcon,
-  XCircleIcon,
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  ArrowUpTrayIcon
-} from '../../../components/ui/icons';
-import { useAppData } from '../../../hooks/useAppData';
+import { PlusIcon, EditIcon, DeleteIcon, UploadIcon as DocumentArrowUpIcon, AcademicCapIcon, CheckBadgeIcon, XCircleIcon, MagnifyingGlassIcon, ArrowUpTrayIcon } from '../../../components/ui/icons';
+
 import Spinner from '../../../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../hooks/useToast';
 import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
-import { AdminPreNAsMarksType } from '../data/types';
 
 // Types for PreNAs Marks Management
 export interface PreNAsMarks {
@@ -77,7 +63,7 @@ interface BulkImportData {
 }
 
 const PreNAsMarksManagement: React.FC = () => {
-  const navigate = useNavigate();
+
   const { t } = useTranslation('administration');
   const { showToast } = useToast();
   
@@ -541,7 +527,7 @@ const PreNAsMarksManagement: React.FC = () => {
           <Select
             label={t('preNAsMarks.filterAssessmentType')}
             value={filterAssessmentType}
-            onChange={setFilterAssessmentType}
+            onValueChange={(value) => setFilterAssessmentType(Array.isArray(value) ? value[0] ?? '' : value)}
             options={[
               { value: 'all', label: t('preNAsMarks.allAssessmentTypes') },
               { value: 'KCPE', label: 'KCPE' },
@@ -552,7 +538,7 @@ const PreNAsMarksManagement: React.FC = () => {
           <Select
             label={t('preNAsMarks.filterYear')}
             value={filterYear}
-            onChange={setFilterYear}
+            onValueChange={(value) => setFilterYear(Array.isArray(value) ? value[0] ?? '' : value)}
             options={[
               { value: 'all', label: t('preNAsMarks.allYears') },
               ...Array.from({ length: 10 }, (_, i) => {
@@ -564,7 +550,7 @@ const PreNAsMarksManagement: React.FC = () => {
           <Select
             label={t('preNAsMarks.filterVerified')}
             value={filterVerified}
-            onChange={setFilterVerified}
+            onValueChange={(value) => setFilterVerified(Array.isArray(value) ? value[0] ?? '' : value)}
             options={[
               { value: 'all', label: t('preNAsMarks.allVerificationStatus') },
               { value: 'verified', label: t('common.verified') },

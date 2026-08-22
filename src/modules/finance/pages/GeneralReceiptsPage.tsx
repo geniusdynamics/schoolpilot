@@ -1,21 +1,17 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { GeneralPayment, GeneralPaymentItem, GeneralPayerType, ChartOfAccount, AccountType } from '@/modules/finance';
-import { Student, Staff } from '@/modules/administration';
-import { AdminCustomerType as Customer, AdminPartnerType as Partner } from '@/modules/administration/data/types';
+import React, { useState, useMemo } from 'react';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from "@/components/ui/forms/DialogForm";
-import FormSection from "@/components/ui/forms/FormSection";
-import FormField from "@/components/ui/forms/FormField";
-import FormActions from "@/components/ui/forms/FormActions";
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, ReceiptRefundIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { AccountType, GeneralPayerType } from '@/core/types';
+import type { GeneralPayment } from '@/core/types';
 
 type GeneralPaymentItemFormData = Omit<GeneralPaymentItem, 'id' | 'general_payment_id' | 'revenue_account_name'>;
 type GeneralPaymentFormData = Omit<GeneralPayment, 'id' | 'created_at' | 'updated_at' | 'items' | 'total_amount_paid' | 'payer_name_resolved'> & {
@@ -51,8 +47,8 @@ export const GeneralReceiptsPageContent: React.FC = () => {
   const revenueAccounts = useMemo(() => chartOfAccounts.filter(coa => coa.type === AccountType.REVENUE && coa.is_active), [chartOfAccounts]);
   const payerList = useMemo(() => {
     switch(formData.payer_type) {
-      case GeneralPayerType.STUDENT: return students.map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name} (Adm: ${s.admission_no})` }));
-      case GeneralPayerType.STAFF: return staff.map(st => ({ id: st.id, name: `${st.first_name} ${st.last_name} (Staff No: ${st.staff_no})` }));
+      case GeneralPayerType.STUDENT: return students.map(s => ({ id: s.id, name: [s.first_name, s.last_name].filter(Boolean).join(' ') + (s.admission_no ? ` (Adm: ${s.admission_no})` : '') }));
+      case GeneralPayerType.STAFF: return staff.map(st => ({ id: st.id, name: [st.first_name, st.last_name].filter(Boolean).join(' ') + (st.staff_no ? ` (Staff No: ${st.staff_no})` : '') }));
       case GeneralPayerType.CUSTOMER: return customers.map(c => ({ id: String(c.id), name: c.name }));
       case GeneralPayerType.PARTNER: return partners.map(p => ({ id: p.id, name: p.name }));
       default: return [];
@@ -62,7 +58,6 @@ export const GeneralReceiptsPageContent: React.FC = () => {
   const totalAmount = useMemo(() => {
     return formData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
   }, [formData.items]);
-
 
   const openModal = (payment?: GeneralPayment) => {
     setEditingPayment(payment || null);

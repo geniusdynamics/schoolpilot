@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
 import { UserGroupIcon, PlusIcon, EditIcon, DeleteIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { databaseService } from '@/services/database/databaseService';
 import { hashPassword, checkPasswordComplexity } from '@/utils/passwordHash';
 import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
 
 type UserFormData = Omit<Partial<User>, 'id' | 'created_at' | 'updated_at' | 'last_login_at' | 'hashed_password' | 'display_name' | 'role' | 'userType' | 'isActive'> & {
     password?: string;
@@ -61,7 +62,6 @@ export const SettingsUsersContent: React.FC = () => {
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
   const [isDeletingRole, setIsDeletingRole] = useState(false);
 
-
   // User Modal
   const openUserModal = (user?: User) => {
     setEditingUser(user || null);
@@ -88,7 +88,6 @@ export const SettingsUsersContent: React.FC = () => {
     setEditingRole(null);
     setRoleFormData(initialRoleFormData);
   };
-
 
   const handleUserInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -199,7 +198,7 @@ export const SettingsUsersContent: React.FC = () => {
       await refreshCollection('users');
       closeUserModal();
     } catch (error) {
-      console.error('Error saving user:', error);
+      logger.error('Error saving user:', error);
       showError(error instanceof Error ? error.message : t('Failed to save user'));
     } finally {
       setIsSubmittingUser(false);
@@ -255,13 +254,12 @@ export const SettingsUsersContent: React.FC = () => {
 
       closeRoleModal();
     } catch (error) {
-      console.error('Error saving role:', error);
+      logger.error('Error saving role:', error);
       showError(error instanceof Error ? error.message : t('Failed to save role'));
     } finally {
       setIsSubmittingRole(false);
     }
   };
-
 
   // Open delete confirmation modal for user
   const openDeleteUserModal = (user: User) => {
@@ -294,7 +292,7 @@ export const SettingsUsersContent: React.FC = () => {
       await refreshCollection('users');
       closeDeleteUserModal();
     } catch (error) {
-      console.error('Error deleting user:', error);
+      logger.error('Error deleting user:', error);
       showError(error instanceof Error ? error.message : t('Failed to delete user'));
     } finally {
       setIsDeletingUser(false);
@@ -323,7 +321,7 @@ export const SettingsUsersContent: React.FC = () => {
       showSuccess(t('Role deleted successfully'));
       closeDeleteRoleModal();
     } catch (error) {
-      console.error('Error deleting role:', error);
+      logger.error('Error deleting role:', error);
       showError(error instanceof Error ? error.message : t('Failed to delete role'));
     } finally {
       setIsDeletingRole(false);

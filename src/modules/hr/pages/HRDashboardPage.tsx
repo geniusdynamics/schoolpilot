@@ -1,19 +1,5 @@
 import React from 'react';
-import {
-  BriefcaseIcon,
-  UsersIcon,
-  ListBulletIcon,
-  CalendarDaysIcon,
-  CogIcon,
-  WalletIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  DocumentTextIcon,
-  BanknotesIcon,
-  ChartBarIcon,
-} from '@/components/ui/icons';
+import { BriefcaseIcon, UsersIcon, ListBulletIcon, CalendarDaysIcon, CogIcon, WalletIcon, ArrowRightIcon, ClockIcon, DocumentTextIcon, BanknotesIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { ChartData } from '@/types';
@@ -349,7 +335,7 @@ export const HRDashboardPageContent: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/hr/payslips'}
+              onClick={() => window.location.hash = '#/hr/payslips'}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
             >
               View Payslips <ArrowRightIcon className="h-4 w-4" />

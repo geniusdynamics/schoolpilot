@@ -24,14 +24,7 @@ import Card from '@/components/ui/Card';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import { PageContainer } from '@/components/layout/PageContainer';
-import {
-  AlertBanner,
-  StatCard,
-  ChartCard,
-  ProgressRing,
-  WelcomeCard,
-  CalendarWidget
-} from '../components';
+import { AlertBanner, StatCard, ChartCard, ProgressRing, CalendarWidget } from '../components';
 import {
   AcademicCapIcon,
   BookOpenIcon,
@@ -1102,7 +1095,7 @@ const DashboardPage: React.FC = () => {
               </AreaChart>
             </ResponsiveContainer>
             <div className="mt-4 flex items-center justify-between rounded-lg bg-gray-50 p-3">
-              <span className="text-sm text-gray-600">{t('outstandingBalance', 'Outstanding Balance')}</span>
+              <span className="text-sm text-gray-600">{t('outstandingBalanceFull', 'Outstanding Balance')}</span>
               <span className="text-lg font-bold text-rose-600">{formatCurrency(outstandingBalance)}</span>
             </div>
           </ChartCard>

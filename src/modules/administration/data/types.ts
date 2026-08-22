@@ -1,49 +1,13 @@
 // ABOUTME: This file defines TypeScript interfaces, enums, and type aliases for the Administration module.
 // ABOUTME: It ensures all administration-related data structures are managed in one place.
 
-export enum PartnerType {
-    SPONSOR = 'Sponsor',
-    BOARD_MEMBER = 'Board Member',
-    SERVICE_PROVIDER = 'Service Provider',
-    GOVERNMENT_AGENCY = 'Government Agency',
-    NGO = 'NGO',
-    OTHER = 'Other'
-}
+// Re-export shared domain entities consumed by administration data provider/pages.
+// These live in core/types (used by 3+ modules); re-exported here so `import * as types from './types'` resolves them.
+export type { Class, ClassStream, Student, Staff, AcademicYear, SchoolPeriod, StudentGuardianRelationship, ExamResultSummary, AcademicYearStructure, AcademicPeriodDefinition, StudentAttendance, TimetablePeriodDef } from '@/core/types';
 
-export enum ClubType {
-    CLUB = 'Club',
-    SOCIETY = 'Society',
-    SPORTS_TEAM = 'Sports Team'
-}
-
-export enum AttendanceStatus {
-    PRESENT = 'Present',
-    ABSENT = 'Absent',
-    LATE = 'Late',
-    EXCUSED = 'Excused'
-}
-
-export enum TemplateType {
-    SMS = 'SMS',
-    EMAIL = 'Email',
-    PUSH_NOTIFICATION = 'Push Notification'
-}
-
-export enum CampaignAudienceType {
-    ALL_STUDENTS = 'All Students',
-    ALL_PARENTS = 'All Parents',
-    ALL_STAFF = 'All Staff',
-    STUDENTS_OF_CLASS = 'Students of Class',
-    PARENTS_OF_CLASS = 'Parents of Class'
-}
-
-export enum CampaignStatus {
-    DRAFT = 'Draft',
-    SCHEDULED = 'Scheduled',
-    APPROVED = 'Approved',
-    SENT = 'Sent',
-    CANCELLED = 'Cancelled'
-}
+// Shared administration enums (single definition in @/core/types/enums; re-exported for module consumers)
+import { PartnerType, ClubType, AttendanceStatus, TemplateType, CampaignAudienceType, CampaignStatus } from '@/core/types/enums';
+export { PartnerType, ClubType, AttendanceStatus, TemplateType, CampaignAudienceType, CampaignStatus };
 
 export interface AdminPartnerType {
   id: string;

@@ -7,15 +7,15 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import { MegaphoneIcon, CalendarIcon, UserIcon, CheckCircleIcon, XCircleIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockResultDistributions } from '../data/mockData';
 import type { ResultDistribution } from '../data/types';
+import { logger } from '@/utils/logging';
+import { CalendarIcon, CheckCircleIcon, MegaphoneIcon, XCircleIcon } from '@/components/ui/icons';
 
 export const DistributeResultsPageContent: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, classes, students, loading } = useAppData();
+  const { examSessions, classes, loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDistribution, setSelectedDistribution] = useState<ResultDistribution | null>(null);
@@ -26,7 +26,7 @@ export const DistributeResultsPageContent: React.FC = () => {
   const initialFormData = {
     exam_session_id: '',
     class_id: '',
-    distribution_method: 'Portal' as const,
+    distribution_method: 'Portal' as ResultDistribution['distribution_method'],
     scheduled_date: new Date().toISOString().split('T')[0],
     notes: ''
   };
@@ -72,7 +72,7 @@ export const DistributeResultsPageContent: React.FC = () => {
     setFormData(initialFormData);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -82,12 +82,12 @@ export const DistributeResultsPageContent: React.FC = () => {
       alert('Exam session and class are required.');
       return;
     }
-    console.log('Scheduling distribution:', formData);
+    logger.info('Scheduling distribution:', formData);
     closeModal();
   };
 
   const handleDistributeNow = (distribution: ResultDistribution) => {
-    console.log('Distributing now:', distribution.id);
+    logger.info('Distributing now:', distribution.id);
     // In production, this would trigger immediate distribution
   };
 
@@ -174,6 +174,13 @@ export const DistributeResultsPageContent: React.FC = () => {
       sortable: true,
       filterable: true,
       render: (value) => getStatusBadge(value)
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (_value, record) => record.status === 'Pending' ? (
+        <Button variant="ghost" onClick={() => handleDistributeNow(record)}>Distribute Now</Button>
+      ) : null
     }
   ];
 
@@ -207,7 +214,7 @@ export const DistributeResultsPageContent: React.FC = () => {
             <span>Distribute Results</span>
           </div>
         }
-        extra={
+        actions={
           <Button onClick={() => openModal()} variant="primary">
             Schedule Distribution
           </Button>
@@ -309,8 +316,6 @@ export const DistributeResultsPageContent: React.FC = () => {
         <DataGrid
           data={mockDistributions}
           columns={columns}
-          searchable={false}
-          exportable={true}
         />
       </Card>
 
@@ -384,11 +389,10 @@ export const DistributeResultsPageContent: React.FC = () => {
           </FormField>
         </FormSection>
 
-        <FormActions
-          onCancel={closeModal}
-          onSubmit={handleSubmit}
-          submitLabel={selectedDistribution ? 'Update' : 'Schedule'}
-        />
+        <FormActions>
+          <Button variant="secondary" onClick={closeModal}>Cancel</Button>
+          <Button onClick={handleSubmit}>{selectedDistribution ? 'Update' : 'Schedule'}</Button>
+        </FormActions>
       </DialogForm>
     </div>
   );

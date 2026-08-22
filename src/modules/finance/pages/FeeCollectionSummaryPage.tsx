@@ -1,7 +1,7 @@
 // ABOUTME: This page component displays a summary of fee collections by votehead.
 // ABOUTME: It allows filtering by school period and class to generate the report.
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { CurrencyDollarIcon, PrinterIcon, DownloadIcon } from '@/components/ui/icons'; 
@@ -11,7 +11,7 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { SchoolPeriod, Class as SchoolClass } from '@/core/types'; 
-import { StudentInvoice, InvoiceStatus, InvoicePaymentApplication } from '@/modules/finance'; 
+import { InvoiceStatus } from '@/core/types';
 
 interface FeeCollectionSummaryRow {
   votehead: string;

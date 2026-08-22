@@ -5,17 +5,16 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import { DocumentDuplicateIcon, CheckCircleIcon, XCircleIcon, CalendarIcon, UserIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockMarksEntrySessions } from '../data/mockData';
 import type { MarksEntrySession } from '../data/types';
+import { logger } from '@/utils/logging';
+import { DocumentDuplicateIcon } from '@/components/ui/icons';
 
 export const MarksEntryByTokenPageContent: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, subjects, classes, students, loading } = useAppData();
+  const { loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
@@ -73,7 +72,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
   const handleSaveMarks = () => {
     if (!activeSession) return;
     // In production, this would save the marks
-    console.log('Saving marks:', activeSession);
+    logger.info('Saving marks:', activeSession);
     setIsModalOpen(false);
     setActiveSession(null);
     setTokenInput('');
@@ -198,8 +197,6 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
         <DataGrid
           data={mockSessions}
           columns={sessionColumns}
-          searchable={false}
-          exportable={true}
         />
       </Card>
 
@@ -212,7 +209,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
           setTokenInput('');
         }}
         title={`Enter Marks - ${activeSession?.subject_name} (${activeSession?.class_name})`}
-        size="large"
+        size="lg"
       >
         {activeSession && (
           <>
@@ -280,15 +277,19 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
               </table>
             </FormSection>
 
-            <FormActions
-              onCancel={() => {
-                setIsModalOpen(false);
-                setActiveSession(null);
-                setTokenInput('');
-              }}
-              onSubmit={handleSaveMarks}
-              submitLabel="Save Marks"
-            />
+            <FormActions>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setActiveSession(null);
+                  setTokenInput('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSaveMarks}>Save Marks</Button>
+            </FormActions>
           </>
         )}
       </DialogForm>

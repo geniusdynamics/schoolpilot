@@ -1,15 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  DocumentReportIcon,
-  ArrowDownTrayIcon,
-  AcademicCapIcon,
-  BookOpenIcon,
-  UserGroupIcon,
-  ChartBarIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-} from '@/components/ui/icons';
+import { DocumentReportIcon, ArrowDownTrayIcon, AcademicCapIcon, BookOpenIcon, UserGroupIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -17,6 +8,8 @@ import Select, { SelectOption } from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import ModuleDashboardShell, { DashboardMetric } from '@/components/ModuleDashboardShell';
 import { useAnalyticsData } from '../../data/useAnalyticsData';
+
+import { logger } from '@/utils/logging';
 
 type ExportDataType = 'teachers' | 'subjects' | 'classes' | 'trends';
 type ExportFormat = 'csv' | 'json' | 'pdf';
@@ -229,7 +222,7 @@ const AnalyticsExportPage: React.FC = () => {
       // Reset success state after 3 seconds
       setTimeout(() => setExportSuccess(false), 3000);
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
     } finally {
       setIsExporting(false);
     }

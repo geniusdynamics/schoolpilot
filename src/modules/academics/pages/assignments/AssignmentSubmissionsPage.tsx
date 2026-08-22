@@ -5,19 +5,14 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
-import {
-  ArrowLeftIcon,
-  EyeIcon,
-  FunnelIcon,
-  DocumentTextIcon,
-} from '@/components/ui/icons';
+import { ArrowLeftIcon, EyeIcon, DocumentTextIcon } from '@/components/ui/icons';
 import { useAssignmentsData } from '../../data/useAssignmentsData';
 import type { AssignmentSubmission } from '../../data/types';
 import { SubmissionStatus } from '../../data/types';
 import { useTranslation } from 'react-i18next';
 
 const submissionStatusColors: Record<SubmissionStatus, string> = {
-  [SubmissionStatus.NOT_SUBMITTED]: 'bg-gray-100 text-gray-800',
+  [SubmissionStatus.PENDING_REVIEW]: 'bg-gray-100 text-gray-800',
   [SubmissionStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
   [SubmissionStatus.LATE]: 'bg-orange-100 text-orange-800',
   [SubmissionStatus.GRADED]: 'bg-green-100 text-green-800',
@@ -28,7 +23,7 @@ const AssignmentSubmissionsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation('assignments');
-  const { assignments, submissions, loading, gradeSubmission } = useAssignmentsData();
+  const { assignments, submissions, loading } = useAssignmentsData();
 
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedSubmission, setSelectedSubmission] = useState<AssignmentSubmission | null>(null);
@@ -50,7 +45,7 @@ const AssignmentSubmissionsPage: React.FC = () => {
     const allSubs = submissions.filter(s => s.assignmentId === id);
     return {
       total: allSubs.length,
-      notSubmitted: allSubs.filter(s => s.status === SubmissionStatus.NOT_SUBMITTED).length,
+      notSubmitted: allSubs.filter(s => s.status === SubmissionStatus.PENDING_REVIEW).length,
       submitted: allSubs.filter(s => s.status === SubmissionStatus.SUBMITTED).length,
       late: allSubs.filter(s => s.status === SubmissionStatus.LATE).length,
       graded: allSubs.filter(s => s.status === SubmissionStatus.GRADED || s.status === SubmissionStatus.RETURNED).length,

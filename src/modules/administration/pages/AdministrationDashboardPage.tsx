@@ -1,23 +1,5 @@
 import React from 'react';
-import {
-  CogIcon,
-  AcademicCapIcon,
-  CalendarDaysIcon,
-  UserGroupIcon,
-  UsersIcon,
-  PuzzlePieceIcon,
-  BriefcaseIcon,
-  BuildingOffice2Icon,
-  ListBulletIcon,
-  PlusIcon,
-  BellIcon,
-  ClipboardDocumentListIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  ChartPieIcon,
-  ArrowRightIcon,
-  ClockIcon,
-} from '@/components/ui/icons';
+import { CogIcon, AcademicCapIcon, CalendarDaysIcon, UserGroupIcon, UsersIcon, BriefcaseIcon, BuildingOffice2Icon, ListBulletIcon, PlusIcon, ClipboardDocumentListIcon, CheckCircleIcon, ArrowRightIcon, ClockIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import DonutChart from '@/components/ui/DonutChart';
@@ -326,7 +308,7 @@ const AdministrationDashboardPage: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/administration/students'}
+              onClick={() => window.location.hash = '#/administration/students'}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
             >
               View Full Report <ArrowRightIcon className="h-4 w-4" />

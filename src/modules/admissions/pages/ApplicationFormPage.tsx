@@ -1,19 +1,9 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { useNavigate } from 'react-router-dom';
-import {
-  ChevronRightIcon,
-  ChevronLeftIcon,
-  CheckCircleIcon,
-  UserIcon,
-  AcademicCapIcon,
-  UsersIcon,
-  DocumentTextIcon,
-  EyeIcon,
-} from '@/components/ui/icons';
+import { CheckCircleIcon, UserIcon, AcademicCapIcon, UsersIcon, EyeIcon } from '@/components/ui/icons';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import {
   ApplicationFormData,

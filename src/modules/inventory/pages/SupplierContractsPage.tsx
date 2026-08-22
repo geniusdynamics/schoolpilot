@@ -2,38 +2,8 @@
 // ABOUTME: Provides comprehensive contract management with CRUD operations, search, and filtering.
 
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Grid,
-  Chip,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-  Tooltip,
-  LinearProgress
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Search as SearchIcon,
-  Description as ContractIcon,
-  CalendarToday as CalendarIcon,
-  AttachMoney as MoneyIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
+import { Box, Button, Card, CardContent, Typography, TextField, Grid, Chip, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, Alert, Tooltip } from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Description as ContractIcon, AttachMoney as MoneyIcon, Warning as WarningIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';

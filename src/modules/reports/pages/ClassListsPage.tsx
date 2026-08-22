@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TabNavigation, FilterBar } from '@/components/ui';
 import { GradeBreakdownTable } from '../components';
@@ -14,6 +14,8 @@ import {
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { initialMockGradeBreakdownData, initialMockClassChartData } from '../data/mockData';
 import type { GradeBreakdown, ClassChartData } from '../data/types';
+import { logger } from '@/utils/logging';
+
 
 export const ClassListsPageContent: React.FC = () => {
   useTranslation('reports');
@@ -82,7 +84,7 @@ export const ClassListsPageContent: React.FC = () => {
   };
 
   const handleSearch = () => {
-    console.log('Searching with filters:', { selectedForm, selectedStream, selectedSubject });
+    logger.info('Searching with filters:', { selectedForm, selectedStream, selectedSubject });
   };
 
   return (

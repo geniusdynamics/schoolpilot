@@ -2,22 +2,7 @@
 // ABOUTME: It displays system overview, quick settings access, and module status.
 
 import React from 'react';
-import {
-  CogIcon,
-  UsersIcon,
-  CircleStackIcon,
-  ClockIcon,
-  IdentificationIcon,
-  ShieldCheckIcon,
-  KeyIcon,
-  GlobeAltIcon,
-  PaintBrushIcon,
-  BellIcon,
-  ArrowRightIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  WrenchIcon,
-} from '@/components/ui/icons';
+import { CogIcon, UsersIcon, CircleStackIcon, ClockIcon, IdentificationIcon, ShieldCheckIcon, ArrowRightIcon, WrenchIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
@@ -327,7 +312,7 @@ export const SettingsDashboardContent: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/settings/unified'}
+              onClick={() => window.location.hash = '#/settings/unified'}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
             >
               Open Settings <ArrowRightIcon className="h-4 w-4" />

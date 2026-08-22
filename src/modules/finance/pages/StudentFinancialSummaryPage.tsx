@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Student Financial Summary Page - displays all students with their financial position
 // ABOUTME: Uses useStudentFinancialSummary hook to aggregate billing, payments, and adjustments
 
@@ -226,7 +228,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
 
   // Handle row click to view details
   const handleRowClick = useCallback((row: StudentFinancialSummary) => {
-    console.log('View student financial detail:', row);
+    logger.info('View student financial detail:', row);
     // TODO: Navigate to detailed view or open modal
   }, []);
 

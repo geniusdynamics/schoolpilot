@@ -1,16 +1,5 @@
 import React from 'react';
-import {
-  ArchiveIcon,
-  ShoppingCartIcon,
-  ClipboardDocumentListIcon,
-  CubeIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
-  BuildingStorefrontIcon,
-  CheckCircleIcon,
-  TruckIcon,
-} from '@/components/ui/icons';
+import { ArchiveIcon, ShoppingCartIcon, ClipboardDocumentListIcon, CubeIcon, ArrowRightIcon, ClockIcon, ExclamationTriangleIcon, BuildingStorefrontIcon, TruckIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import DonutChart from '@/components/ui/DonutChart';
@@ -318,7 +307,7 @@ export const InventoryDashboardPageContent: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/inventory/purchase-orders'}
+              onClick={() => window.location.hash = '#/inventory/purchase-orders'}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
             >
               View Purchase Orders <ArrowRightIcon className="h-4 w-4" />

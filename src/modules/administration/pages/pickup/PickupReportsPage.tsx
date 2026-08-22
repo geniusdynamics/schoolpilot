@@ -3,8 +3,6 @@ import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
-import Spinner from '@/components/ui/Spinner';
 import {
   ChartBarIcon,
   UsersIcon,
@@ -17,7 +15,6 @@ import {
 import { usePickupData } from '../../data/pickup/usePickupData';
 import { PickupCodeStatus } from '../../data/pickup/types';
 import { useToast } from '@/hooks/useToast';
-import { useTranslation } from 'react-i18next';
 
 interface ReportData {
   dateFrom: string;
@@ -56,8 +53,8 @@ interface CodeUsage {
 }
 
 const PickupReportsPage: React.FC = () => {
-  const { t } = useTranslation('pickup');
-  const { pickupCodes, pickupLogs, loading, getTodaysPickupLogs } = usePickupData();
+
+  const { pickupCodes, pickupLogsgetTodaysPickupLogs } = usePickupData();
   const { showToast } = useToast();
 
   const today = new Date().toISOString().split('T')[0];

@@ -1,19 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
-import { DataGrid, DataGridColumn } from '@/components/ui/data';
+
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { CalendarIcon, PlusIcon, EditIcon, TrashIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { DataGrid } from '@/components/ui/data';
 import { initialMockSchoolEvents } from '../data/mockData';
 import type { SchoolEvent, EventType, EventStatus } from '../data/types';
+import { logger } from '@/utils/logging';
 
 export const EventsManagerPageContent: React.FC = () => {
-  const { t } = useTranslation('academics');
   const { loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,13 +90,13 @@ export const EventsManagerPageContent: React.FC = () => {
       alert('Title and start date are required.');
       return;
     }
-    console.log('Saving event:', formData);
+    logger.info('Saving event:', formData);
     closeModal();
   };
 
   const deleteEvent = (event: SchoolEvent) => {
     if (confirm('Are you sure you want to delete this event?')) {
-      console.log('Deleting event:', event.id);
+      logger.info('Deleting event:', event.id);
     }
   };
 
@@ -267,43 +267,43 @@ export const EventsManagerPageContent: React.FC = () => {
               key: 'event_type',
               header: 'Type',
               sortable: true,
-              render: (value) => getTypeBadge(value)
+              render: (value: any) => getTypeBadge(value)
             },
             {
               key: 'start_date',
               header: 'Start Date',
               sortable: true,
-              render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+              render: (value: any) => value ? new Date(value).toLocaleDateString() : '-'
             },
             {
               key: 'end_date',
               header: 'End Date',
               sortable: true,
-              render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+              render: (value: any) => value ? new Date(value).toLocaleDateString() : '-'
             },
             {
               key: 'location',
               header: 'Location',
               sortable: true,
-              render: (value) => value
+              render: (value: any) => value
             },
             {
               key: 'status',
               header: 'Status',
               sortable: true,
-              render: (value) => getStatusBadge(value)
+              render: (value: any) => getStatusBadge(value)
             },
             {
               key: 'organizer',
               header: 'Organizer',
               sortable: true,
-              render: (value) => value
+              render: (value: any) => value
             },
             {
               key: 'actions',
               header: 'Actions',
               sortable: false,
-              render: (_, record) => (
+              render: (_: any, record: SchoolEvent) => (
                 <div className="flex gap-2">
                   <Button size="sm" variant="secondary" onClick={() => openModal(record)}>
                     <EditIcon className="w-4 h-4" />

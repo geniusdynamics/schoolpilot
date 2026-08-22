@@ -1,9 +1,9 @@
 // ABOUTME: Self-contained hook for studentattendance data management
 // ABOUTME: Provides CRUD operations for studentattendance without depending on AppDataContext
 
-import { useState, useEffect } from 'react';
 import { initialMockStudentAttendance } from '../../administration/data/mockData';
 import { StudentAttendance } from '@/core/types';
+import { useState } from 'react';
 
 export const useStudentAttendanceData = () => {
   const [data, setData] = useState<StudentAttendance[]>(initialMockStudentAttendance);

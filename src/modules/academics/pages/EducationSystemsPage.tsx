@@ -7,15 +7,13 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { PlusIcon, EditIcon, CopyIcon, EyeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
-import EducationSystemConfigPage from './EducationSystemConfigPage';
+import { EducationSystemConfigPageContent } from './EducationSystemConfigPage';
 
 export const EducationSystemsPageContent: React.FC = () => {
   const { 
     educationSystemConfigurations = [], 
-    loading = false, 
     addEducationSystemConfiguration,
     updateEducationSystemConfiguration,
-    deleteEducationSystemConfiguration 
   } = useAppData();
 
   const [showConfigPage, setShowConfigPage] = useState(false);
@@ -43,7 +41,7 @@ export const EducationSystemsPageContent: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (value, item) => (
+      render: (_value, item) => (
         <div className="flex space-x-1">
           <Button 
             size="sm" 
@@ -91,15 +89,15 @@ export const EducationSystemsPageContent: React.FC = () => {
     await addEducationSystemConfiguration(clonedSystem);
   };
 
-  const handlePreview = (system: EducationSystemConfiguration) => {
+  const handlePreview = (_system: EducationSystemConfiguration) => {
     // Navigate to preview page
   };
 
   if (showConfigPage) {
     return (
-      <EducationSystemConfigPage
+      <EducationSystemConfigPageContent
         editingSystem={editingSystem}
-        onSave={async (system) => {
+        onSave={async (system: EducationSystemConfiguration) => {
           if (editingSystem) {
             await updateEducationSystemConfiguration({ ...editingSystem, ...system });
           } else {

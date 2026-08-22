@@ -4,19 +4,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  BeakerIcon,
-  BookOpenIcon,
-  ShieldCheckIcon,
-  AcademicCapIcon,
-  CalendarDaysIcon,
-  TableCellsIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  DocumentTextIcon,
-} from '@/components/ui/icons';
+import { BeakerIcon, BookOpenIcon, ShieldCheckIcon, AcademicCapIcon, TableCellsIcon, ArrowRightIcon, ClockIcon, DocumentTextIcon } from '@/components/ui/icons';
 import {
   ResponsiveContainer,
   BarChart as RechartsBarChart,
@@ -53,7 +41,7 @@ export const AcademicsDashboardPageContent: React.FC = () => {
     examSessions = [],
     gradingSchemes = [],
     departments = [],
-    examResults = [],
+    studentExamResults: examResults = [],
     timetableEntries = [],
     classes = [],
   } = useAppData();
@@ -396,7 +384,7 @@ export const AcademicsDashboardPageContent: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/academics/exam-analysis'}
+              onClick={() => window.location.hash = '#/academics/exam-analysis'}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
             >
               View Exam Analysis <ArrowRightIcon className="h-4 w-4" />

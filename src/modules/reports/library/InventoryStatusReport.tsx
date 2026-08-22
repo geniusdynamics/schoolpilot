@@ -1,7 +1,7 @@
 // ABOUTME: Inventory Status Report for inventory management
 // ABOUTME: Shows comprehensive inventory status including stock levels and basic tracking
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import { CubeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
@@ -10,7 +10,6 @@ import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { ItemInv, Warehouse, ItemCategoryInv, StockLevel } from '@/types';
-import { useTranslation } from 'react-i18next';
 
 interface InventoryStatusItem {
   itemId: string;
@@ -28,7 +27,6 @@ type StatusFilter = 'all' | 'adequate' | 'out_of_stock';
 
 const InventoryStatusReport: React.FC = () => {
   const { itemsInv, warehouses, itemCategoriesInv, stockLevels, loading } = useAppData();
-  const { t } = useTranslation('reports');
 
   const [selectedWarehouse, setSelectedWarehouse] = useState<number | 'all'>('all');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');

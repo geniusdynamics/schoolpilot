@@ -1,9 +1,11 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This page component allows users to manage exam sessions and their paper settings.
 // ABOUTME: It uses modals for creating/editing sessions and configuring subject papers for each exam.
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SchoolPeriod } from '@/types';
-import { ExamSession, SubjectPaper, ExamPaperSetting } from '@/core/types';
+import { ExamSession, ExamPaperSetting } from '@/core/types';
 import { ExamSessionStatus } from '../data/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -14,7 +16,7 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { PlusIcon, EditIcon, DeleteIcon, ChartPieIcon, ListBulletIcon } from '@/components/ui/icons';
+import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +26,6 @@ type ExamSessionFormData = Omit<Partial<ExamSession>, 'id' | 'created_at' | 'upd
 };
 
 type PaperSettingFormData = Omit<Partial<ExamPaperSetting>, 'id' | 'exam_session_id'| 'created_at' | 'updated_at' | 'subject_paper_name' | 'subject_name'>;
-
 
 export const ExamSessionsPageContent: React.FC = () => {
   const { t } = useTranslation('academics');
@@ -98,7 +99,6 @@ export const ExamSessionsPageContent: React.FC = () => {
     setPaperSettingFormData(initialPaperSettingFormData);
   };
 
-
   const handleSessionInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setSessionFormData(prev => ({ 
@@ -116,7 +116,6 @@ export const ExamSessionsPageContent: React.FC = () => {
           : value 
     }));
   };
-
 
   const handleSessionSubmit = async () => {
     if (!sessionFormData.name || !sessionFormData.school_period_id) {
@@ -137,7 +136,7 @@ export const ExamSessionsPageContent: React.FC = () => {
       }
       closeSessionModal();
     } catch (error) {
-      console.error('Failed to save exam session:', error);
+      logger.error('Failed to save exam session:', error);
       alert('Unable to save the exam session. Please try again.');
     }
   };
@@ -181,18 +180,17 @@ export const ExamSessionsPageContent: React.FC = () => {
       setEditingPaperSetting(null); 
       setPaperSettingFormData(initialPaperSettingFormData); 
     } catch (error) {
-      console.error('Failed to save exam paper setting:', error);
+      logger.error('Failed to save exam paper setting:', error);
       alert('Unable to save the paper setting. Please try again.');
     }
   };
-
 
   const handleDeleteSession = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this exam session? This will also delete all its paper settings and might affect related results.')) {
       try {
         await deleteExamSession(id);
       } catch (error) {
-        console.error('Failed to delete exam session:', error);
+        logger.error('Failed to delete exam session:', error);
         alert('Unable to delete the exam session. Please try again.');
       }
     }
@@ -204,7 +202,7 @@ export const ExamSessionsPageContent: React.FC = () => {
           try {
             await deleteExamPaperSetting(paperSettingId);
           } catch (error) {
-            console.error('Failed to delete exam paper setting:', error);
+            logger.error('Failed to delete exam paper setting:', error);
             alert('Unable to delete the paper setting. Please try again.');
           }
       }
@@ -215,7 +213,7 @@ export const ExamSessionsPageContent: React.FC = () => {
     { key: 'name', header: 'Exam Session Name' },
     { key: 'school_period_name', header: 'School Period' },
     { key: 'status', header: 'Status', 
-        render: (value: any, item: ExamSession) => {
+        render: (_value: any, item: ExamSession) => {
             let colorClass = 'bg-gray-200 text-gray-800';
             if (item.status === ExamSessionStatus.PLANNING) colorClass = 'bg-blue-100 text-blue-800';
             else if (item.status === ExamSessionStatus.MARKS_ENTRY_OPEN) colorClass = 'bg-yellow-100 text-yellow-800';
@@ -223,11 +221,11 @@ export const ExamSessionsPageContent: React.FC = () => {
             return <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>{item.status}</span>;
         }
     },
-    { key: 'id', header: 'Papers Configured', render: (value: any, item: ExamSession) => item.paper_settings?.length || 0 },
+    { key: 'id', header: 'Papers Configured', render: (_value: any, item: ExamSession) => item.paper_settings?.length || 0 },
     {
       key: 'actions',
       header: 'Actions',
-      render: (value: any, item: ExamSession) => (
+      render: (_value: any, item: ExamSession) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => openSessionModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="secondary" onClick={() => openPaperSettingModal(item)} leftIcon={<ListBulletIcon className="w-4 h-4" />}>Papers</Button>
@@ -245,7 +243,7 @@ export const ExamSessionsPageContent: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      render: (value: any, item: ExamPaperSetting) => (
+      render: (_value: any, item: ExamPaperSetting) => (
         <div className="space-x-1">
           <Button size="sm" variant="ghost" onClick={() => activeSessionForPapers && openPaperSettingModal(activeSessionForPapers, item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDeletePaperSetting(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Del</Button>
@@ -253,7 +251,6 @@ export const ExamSessionsPageContent: React.FC = () => {
       ),
     },
   ];
-
 
   if ((loading.examSessions || loading.schoolPeriods || loading.subjectPapers) && !isSessionModalOpen && !isPaperSettingModalOpen) {
     return (
@@ -287,7 +284,7 @@ export const ExamSessionsPageContent: React.FC = () => {
           <FormField label="School Period" required>
             <Select 
               name="school_period_id" 
-              value={sessionFormData.school_period_id || ''} 
+              value={sessionFormData.school_period_id ? String(sessionFormData.school_period_id) : ''} 
               onChange={handleSessionInputChange}
               required
             >
@@ -330,7 +327,7 @@ export const ExamSessionsPageContent: React.FC = () => {
             <Card title="Add/Edit Paper Setting">
               <FormSection title="Paper Configuration">
                 <FormField label="Subject Paper" required>
-                  <Select name="subject_paper_id" value={paperSettingFormData.subject_paper_id || ''} onChange={handlePaperSettingInputChange} required>
+                  <Select name="subject_paper_id" value={paperSettingFormData.subject_paper_id ? String(paperSettingFormData.subject_paper_id) : ''} onChange={handlePaperSettingInputChange} required>
                       <option value="">Select Subject Paper</option>
                       {subjectPapers.map(sp => <option key={sp.id} value={sp.id}>{sp.subject_name} - {sp.name}</option>)}
                   </Select>

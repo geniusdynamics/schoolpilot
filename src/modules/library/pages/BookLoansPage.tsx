@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Loan, Book, User, BookStatus } from '@/types';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -16,6 +16,8 @@ import { useTranslation } from 'react-i18next';
 import { useLoanData } from '@/modules/library/data/useLoanData';
 import { useLibrarySettingsData } from '@/modules/library/data/useLibrarySettingsData';
 import { LibrarySettingsType } from '@/modules/library/data/types';
+import { BookStatus } from '@/core/types';
+import type { Loan } from '@/core/types';
 
 type LoanFormData = Omit<Partial<Loan>, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name' | 'loan_date'> & {
     userType?: string;
@@ -261,7 +263,7 @@ export const BookLoansPageContent: React.FC = () => {
                   <p>Max Loan Days: {rule?.max_loan_days || 'N/A'} days</p>
                   <p>Fine per Day: KES {rule?.fine_per_day || 'N/A'}</p>
                   {activeLoans >= (rule?.max_books_per_user || 0) && (
-                    <p className="text-red-600 font-medium mt-1">⚠️ Borrowing limit reached!</p>
+                    <p className="text-red-600 font-medium mt-1">âš ï¸ Borrowing limit reached!</p>
                   )}
                 </div>
               );

@@ -1,9 +1,11 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This file provides the ExamScheduleManager service for managing exam schedules
 // ABOUTME: with CRUD operations and conflict detection for the Akademiko exams system
 
 import { ExamSchedule } from '../data/types';
 import { ConflictDetectionEngine } from './ConflictDetectionEngine';
-import { databaseService, generateId } from '@/services/database/databaseService';
+import { databaseService } from '@/services/database/databaseService';
 
 export interface CreateExamScheduleDto {
   exam_id: string;
@@ -64,7 +66,7 @@ export class ExamScheduleManager {
       }
 
       // Generate unique ID
-      const id = generateId();
+      const id = this.generateId();
       
       const newSchedule: ExamSchedule = {
         id,
@@ -79,7 +81,7 @@ export class ExamScheduleManager {
 
       return newSchedule;
     } catch (error) {
-      console.error('Error creating exam schedule:', error);
+      logger.error('Error creating exam schedule:', error);
       throw error;
     }
   }
@@ -90,7 +92,7 @@ export class ExamScheduleManager {
       const schedule = await db.exam_schedules?.findById(id);
       return schedule || null;
     } catch (error) {
-      console.error('Error fetching exam schedule:', error);
+      logger.error('Error fetching exam schedule:', error);
       throw error;
     }
   }
@@ -118,7 +120,7 @@ export class ExamScheduleManager {
       const schedules = await db.exam_schedules?.find({ selector }) || [];
       return schedules;
     } catch (error) {
-      console.error('Error fetching exam schedules:', error);
+      logger.error('Error fetching exam schedules:', error);
       throw error;
     }
   }
@@ -149,7 +151,7 @@ export class ExamScheduleManager {
 
       return updatedSchedule;
     } catch (error) {
-      console.error('Error updating exam schedule:', error);
+      logger.error('Error updating exam schedule:', error);
       throw error;
     }
   }
@@ -160,7 +162,7 @@ export class ExamScheduleManager {
       const result = await db.exam_schedules?.remove(id);
       return !!result;
     } catch (error) {
-      console.error('Error deleting exam schedule:', error);
+      logger.error('Error deleting exam schedule:', error);
       throw error;
     }
   }
@@ -179,7 +181,7 @@ export class ExamScheduleManager {
         conflicts
       };
     } catch (error) {
-      console.error('Error checking conflicts:', error);
+      logger.error('Error checking conflicts:', error);
       throw error;
     }
   }
@@ -200,12 +202,12 @@ export class ExamScheduleManager {
       }
 
       if (errors.length > 0) {
-        console.warn('Bulk create completed with errors:', errors);
+        logger.warn('Bulk create completed with errors:', errors);
       }
 
       return results;
     } catch (error) {
-      console.error('Error in bulk create:', error);
+      logger.error('Error in bulk create:', error);
       throw error;
     }
   }
@@ -240,9 +242,9 @@ export class ExamScheduleManager {
       const byInvigilator: Record<string, number> = {};
 
       allSchedules.forEach(schedule => {
-        byExam[schedule.exam_id] = (byExam[schedule.exam_id] || 0) + 1;
+        byExam[schedule.exam_id ?? ''] = (byExam[schedule.exam_id ?? ''] || 0) + 1;
         byClassStream[schedule.class_stream_id.toString()] = (byClassStream[schedule.class_stream_id.toString()] || 0) + 1;
-        byInvigilator[schedule.invigilator_id] = (byInvigilator[schedule.invigilator_id] || 0) + 1;
+        byInvigilator[schedule.invigilator_id ?? ''] = (byInvigilator[schedule.invigilator_id ?? ''] || 0) + 1;
       });
 
       return {
@@ -252,7 +254,7 @@ export class ExamScheduleManager {
         byInvigilator
       };
     } catch (error) {
-      console.error('Error getting schedule counts:', error);
+      logger.error('Error getting schedule counts:', error);
       throw error;
     }
   }

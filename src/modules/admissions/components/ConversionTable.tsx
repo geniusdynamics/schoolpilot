@@ -25,7 +25,6 @@ const ConversionTable: React.FC<ConversionTableProps> = ({
     stage => ['Admitted', 'Wait-listed', 'Declined', 'Enrolled', 'Graduated', 'Withdrawn'].includes(stage.stage)
   );
 
-  const baseCount = preDecisionStages.find(s => s.stage === 'Pending')?.count || 1;
 
   return (
     <div className="overflow-x-auto">

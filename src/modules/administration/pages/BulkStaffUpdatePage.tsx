@@ -9,6 +9,7 @@ import FormField from '@/components/ui/forms/FormField';
 import { UserIcon, ArrowPathIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { logger } from '@/utils/logging';
 
 interface StaffRecord {
   id: string;
@@ -146,7 +147,7 @@ export const BulkStaffUpdateContent: React.FC = () => {
       ? Array.from(selectedStaff) 
       : mockStaff.filter(s => s.department === selectedDepartment).map(s => s.id);
     
-    console.log('Bulk updating staff:', {
+    logger.info('Bulk updating staff:', {
       field: updateField,
       value: updateValue,
       staffIds: staffToUpdate

@@ -5,7 +5,6 @@ import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import { ArrowDownTrayIcon, ArrowPathIcon, ClockIcon, TrashIcon } from '@/components/ui/icons';
-import { useTranslation } from 'react-i18next';
 
 interface BackupRecord {
   id: string;
@@ -28,7 +27,7 @@ const sampleBackups: BackupRecord[] = [
 ];
 
 const DatabaseBackupPage: React.FC = () => {
-  const { t } = useTranslation('settings');
+
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupRecord | null>(null);

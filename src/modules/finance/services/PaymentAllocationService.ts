@@ -2,11 +2,7 @@
 // ABOUTME: Replaces sp_fin_applyPayment_Priority and sp_fin_applyPayment_Weighted stored procedures
 // ABOUTME: Provides two strategies: priority (FIFO) and weighted (proportional)
 
-import {
-  type StudentPayment,
-  type InvoicePaymentApplication,
-  InvoiceStatus,
-} from '../data/types';
+import { type StudentPayment, type InvoicePaymentApplication } from '../data/types';
 import {
   InvoiceStatusService,
   type InvoiceStatusServiceDependencies,
@@ -86,8 +82,8 @@ export type { InvoiceStatusUpdateResult } from './InvoiceStatusService';
  * PaymentAllocationService
  *
  * Replaces two MySQL/PgSQL stored procedures:
- * - `sp_fin_applyPayment_Priority` — FIFO allocation (oldest first)
- * - `sp_fin_applyPayment_Weighted` — Proportional allocation across all debts
+ * - `sp_fin_applyPayment_Priority` â€” FIFO allocation (oldest first)
+ * - `sp_fin_applyPayment_Weighted` â€” Proportional allocation across all debts
  *
  * After creating payment applications, it automatically calls
  * InvoiceStatusService to recalculate the status of all affected invoices.
@@ -147,7 +143,7 @@ export class PaymentAllocationService {
     const outstandingItems = await this.deps.findOutstandingInvoiceItems(payment.student_id);
 
     if (outstandingItems.length === 0) {
-      // No outstanding items — payment stays unallocated
+      // No outstanding items â€” payment stays unallocated
       result.remainingAmount = remainingPayment;
       return result;
     }
@@ -174,7 +170,7 @@ export class PaymentAllocationService {
         if (app) {
           result.applicationIds.push(app.id);
         } else {
-          // Insert succeeded but returned null — use generated ID
+          // Insert succeeded but returned null â€” use generated ID
           result.applicationIds.push(this.deps.generateId());
         }
 

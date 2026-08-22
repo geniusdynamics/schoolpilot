@@ -11,12 +11,10 @@ import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormField from '../../../components/ui/forms/FormField';
 import FormSection from '../../../components/ui/forms/FormSection';
 import FormActions from '../../../components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
 import { ExclamationTriangleIcon, EditIcon, CheckIcon, XMarkIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 
 interface StatusUpdateData {
   damaged_status: boolean;
@@ -26,7 +24,7 @@ interface StatusUpdateData {
 }
 
 export const DamagedLostBooksPageContent: React.FC = () => {
-  const { t } = useTranslation();
+
   const { 
     data: books, 
     isLoading: booksLoading, 
@@ -392,10 +390,10 @@ export const DamagedLostBooksPageContent: React.FC = () => {
                 <strong>Note:</strong> The book status will be automatically updated based on the flags you select:
               </p>
               <ul className="text-xs text-blue-700 mt-1 ml-4 list-disc">
-                <li>Lost flag → Status: Lost</li>
-                <li>Damaged flag only → Status: Damaged</li>
-                <li>Both flags → Status: Lost (takes precedence)</li>
-                <li>Neither flag → Status: Available</li>
+                <li>Lost flag â†’ Status: Lost</li>
+                <li>Damaged flag only â†’ Status: Damaged</li>
+                <li>Both flags â†’ Status: Lost (takes precedence)</li>
+                <li>Neither flag â†’ Status: Available</li>
               </ul>
             </div>
           </>

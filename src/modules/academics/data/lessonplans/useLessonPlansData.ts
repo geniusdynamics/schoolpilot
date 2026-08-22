@@ -2,6 +2,9 @@
 // ABOUTME: Provides CRUD operations and state management for lesson plans
 
 import { useState, useEffect, useCallback } from 'react';
+import type { DayPlan } from '../types';
+
+export type { DayPlan, PeriodPlan } from '../types';
 
 // Types for lesson plans
 export interface LessonPlan {
@@ -75,8 +78,19 @@ export interface WeeklyPlan {
   duration: number;
   status: PlanStatus;
   submittedAt?: string;
+  submittedBy?: string;
+  submittedByName?: string;
   reviewedAt?: string;
+  reviewedBy?: string;
+  reviewedByName?: string;
   reviewComments?: string;
+  // Optional week-level scheduling and breakdown fields consumed by the lesson-plan pages.
+  weekStartDate?: string;
+  weekEndDate?: string;
+  dayPlans?: DayPlan[];
+  overallObjectives?: string;
+  teachingAids?: string;
+  references?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -180,8 +194,12 @@ interface UseLessonPlansDataReturn {
   createLessonNote: (data: Partial<LessonNote>) => Promise<LessonNote>;
   updateLessonNote: (id: string, data: Partial<LessonNote>) => Promise<LessonNote>;
   deleteLessonNote: (id: string) => Promise<void>;
-  reviewPlan: (id: string, status: PlanStatus, comments?: string) => Promise<WeeklyPlan>;
+  reviewPlan: (id: string, approved: boolean, reviewedBy: string, reviewedByName: string, comments?: string) => Promise<WeeklyPlan>;
   getPlansByStatus: (status: PlanStatus) => WeeklyPlan[];
+  createWeeklyPlan: (data: Partial<WeeklyPlan>) => Promise<WeeklyPlan>;
+  updateWeeklyPlan: (id: string, data: Partial<WeeklyPlan>) => Promise<WeeklyPlan>;
+  deleteWeeklyPlan: (id: string) => Promise<void>;
+  submitPlan: (id: string, submittedByName?: string) => Promise<WeeklyPlan>;
   refresh: () => Promise<void>;
 }
 
@@ -298,14 +316,16 @@ export function useLessonPlansData(): UseLessonPlansDataReturn {
     setLessonNotes(prev => prev.filter(n => n.id !== id));
   }, []);
 
-  const reviewPlan = useCallback(async (id: string, status: PlanStatus, comments?: string): Promise<WeeklyPlan> => {
+  const reviewPlan = useCallback(async (id: string, approved: boolean, reviewedBy: string, reviewedByName: string, comments?: string): Promise<WeeklyPlan> => {
     let updated: WeeklyPlan | null = null;
     setWeeklyPlans(prev => prev.map(p => {
       if (p.id === id) {
         updated = { 
           ...p, 
-          status, 
+          status: approved ? PlanStatus.APPROVED : PlanStatus.REJECTED, 
           reviewComments: comments,
+          reviewedBy,
+          reviewedByName,
           reviewedAt: new Date().toISOString(),
           updatedAt: new Date().toISOString() 
         };
@@ -320,6 +340,72 @@ export function useLessonPlansData(): UseLessonPlansDataReturn {
   const getPlansByStatus = useCallback((status: PlanStatus): WeeklyPlan[] => {
     return weeklyPlans.filter(p => p.status === status);
   }, [weeklyPlans]);
+
+  const createWeeklyPlan = useCallback(async (data: Partial<WeeklyPlan>): Promise<WeeklyPlan> => {
+    const now = new Date().toISOString();
+    const newPlan: WeeklyPlan = {
+      id: Date.now().toString(),
+      title: data.title || 'New Weekly Plan',
+      subjectId: data.subjectId || '',
+      subjectName: data.subjectName || '',
+      teacherId: data.teacherId || '',
+      teacherName: data.teacherName || '',
+      gradeLevel: data.gradeLevel || '',
+      classStreamId: data.classStreamId || '',
+      classStreamName: data.classStreamName || '',
+      topic: data.topic || '',
+      objectives: data.objectives || [],
+      materials: data.materials || [],
+      duration: data.duration || 0,
+      status: data.status || PlanStatus.DRAFT,
+      weekStartDate: data.weekStartDate,
+      weekEndDate: data.weekEndDate,
+      dayPlans: data.dayPlans,
+      overallObjectives: data.overallObjectives,
+      teachingAids: data.teachingAids,
+      references: data.references,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setWeeklyPlans(prev => [...prev, newPlan]);
+    return newPlan;
+  }, []);
+
+  const updateWeeklyPlan = useCallback(async (id: string, data: Partial<WeeklyPlan>): Promise<WeeklyPlan> => {
+    let updated: WeeklyPlan | null = null;
+    setWeeklyPlans(prev => prev.map(p => {
+      if (p.id === id) {
+        updated = { ...p, ...data, updatedAt: new Date().toISOString() };
+        return updated;
+      }
+      return p;
+    }));
+    if (!updated) throw new Error('Weekly plan not found');
+    return updated;
+  }, []);
+
+  const deleteWeeklyPlan = useCallback(async (id: string): Promise<void> => {
+    setWeeklyPlans(prev => prev.filter(p => p.id !== id));
+  }, []);
+
+  const submitPlan = useCallback(async (id: string, submittedByName?: string): Promise<WeeklyPlan> => {
+    let updated: WeeklyPlan | null = null;
+    setWeeklyPlans(prev => prev.map(p => {
+      if (p.id === id) {
+        updated = {
+          ...p,
+          status: PlanStatus.SUBMITTED,
+          submittedAt: new Date().toISOString(),
+          submittedByName: submittedByName ?? p.submittedByName,
+          updatedAt: new Date().toISOString(),
+        };
+        return updated;
+      }
+      return p;
+    }));
+    if (!updated) throw new Error('Weekly plan not found');
+    return updated;
+  }, []);
 
   const refresh = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -350,6 +436,10 @@ export function useLessonPlansData(): UseLessonPlansDataReturn {
     deleteLessonNote,
     reviewPlan,
     getPlansByStatus,
+    createWeeklyPlan,
+    updateWeeklyPlan,
+    deleteWeeklyPlan,
+    submitPlan,
     refresh,
   };
 }

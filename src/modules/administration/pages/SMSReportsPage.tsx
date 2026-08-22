@@ -5,12 +5,11 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { ChatBubbleLeftRightIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockSMSReports } from '../data/mockData';
 import type { SMSReport, SMSStatus } from '../data/types';
 
 export const SMSReportsContent: React.FC = () => {
-  const { t } = useTranslation('administration');
+
   const { loading } = useAppData();
 
   const [selectedStatus, setSelectedStatus] = useState('');

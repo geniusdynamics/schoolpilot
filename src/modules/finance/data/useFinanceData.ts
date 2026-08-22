@@ -1,11 +1,12 @@
-// ABOUTME: Finance domain hook — ChartOfAccounts, Banks/BankAccounts, Suppliers, FeeTemplates,
+import { logger } from '@/utils/logging';
+
+// ABOUTME: Finance domain hook â€” ChartOfAccounts, Banks/BankAccounts, Suppliers, FeeTemplates,
 // ABOUTME: ExpenseClaims, ExpenseCategories, CustomerInvoices, SupplierInvoices, StudentOpeningBalances,
 // ABOUTME: FeeAdjustments, TransportRoutes, StudentTransportAssignments, StudentInvoices,
 // ABOUTME: StudentPayments, GeneralPayments, FinancialYears, GeneralLedgerEntries
 // ABOUTME: Uses real database-backed hooks for persistent data
 
 import { useCallback } from 'react';
-import { databaseService } from '@/services/database/databaseService';
 import { useToastHelpers } from '@/hooks/useToast';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from '@/modules/finance/data/types';
@@ -34,14 +35,14 @@ export function useFinanceData() {
 
   const toast = useToastHelpers();
 
-  // ── Chart of Accounts ─────────────────────────────────────────────────────────
+  // â”€â”€ Chart of Accounts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addChartOfAccount = useCallback(async (accountData: Omit<allTypes.ChartOfAccount, 'id'>) => {
     try {
       const result = await chartOfAccountsCollection.insert(accountData);
       toast.showSuccess('Chart of account created successfully');
       return result;
     } catch (error) {
-      console.error('Error adding chart of account:', error);
+      logger.error('Error adding chart of account:', error);
       toast.showError(`Failed to create chart of account: ${error}`);
       throw error;
     }
@@ -53,7 +54,7 @@ export function useFinanceData() {
       toast.showSuccess('Chart of account updated successfully');
       return result;
     } catch (error) {
-      console.error('Error updating chart of account:', error);
+      logger.error('Error updating chart of account:', error);
       toast.showError(`Failed to update chart of account: ${error}`);
       throw error;
     }
@@ -65,20 +66,20 @@ export function useFinanceData() {
       toast.showSuccess('Chart of account deleted successfully');
       return true;
     } catch (error) {
-      console.error('Error deleting chart of account:', error);
+      logger.error('Error deleting chart of account:', error);
       toast.showError(`Failed to delete chart of account: ${error}`);
       throw error;
     }
   }, [chartOfAccountsCollection, toast]);
 
-  // ── Banks ─────────────────────────────────────────────────────────────────────
+  // â”€â”€ Banks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addBank = useCallback(async (bankData: Omit<allTypes.Bank, 'id'>) => {
     try {
       const result = await banksCollection.insert(bankData);
       toast.showSuccess('Bank created successfully');
       return result;
     } catch (error) {
-      console.error('Error adding bank:', error);
+      logger.error('Error adding bank:', error);
       toast.showError(`Failed to create bank: ${error}`);
       throw error;
     }
@@ -90,7 +91,7 @@ export function useFinanceData() {
       toast.showSuccess('Bank updated successfully');
       return result;
     } catch (error) {
-      console.error('Error updating bank:', error);
+      logger.error('Error updating bank:', error);
       toast.showError(`Failed to update bank: ${error}`);
       throw error;
     }
@@ -102,20 +103,20 @@ export function useFinanceData() {
       toast.showSuccess('Bank deleted successfully');
       return true;
     } catch (error) {
-      console.error('Error deleting bank:', error);
+      logger.error('Error deleting bank:', error);
       toast.showError(`Failed to delete bank: ${error}`);
       throw error;
     }
   }, [banksCollection, toast]);
 
-  // ── Suppliers ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Suppliers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addSupplier = useCallback(async (supplierData: Omit<allTypes.Supplier, 'id'>) => {
     try {
       const result = await suppliersCollection.insert(supplierData);
       toast.showSuccess('Supplier created successfully');
       return result;
     } catch (error) {
-      console.error('Error adding supplier:', error);
+      logger.error('Error adding supplier:', error);
       toast.showError(`Failed to create supplier: ${error}`);
       throw error;
     }
@@ -127,7 +128,7 @@ export function useFinanceData() {
       toast.showSuccess('Supplier updated successfully');
       return result;
     } catch (error) {
-      console.error('Error updating supplier:', error);
+      logger.error('Error updating supplier:', error);
       toast.showError(`Failed to update supplier: ${error}`);
       throw error;
     }
@@ -139,20 +140,20 @@ export function useFinanceData() {
       toast.showSuccess('Supplier deleted successfully');
       return true;
     } catch (error) {
-      console.error('Error deleting supplier:', error);
+      logger.error('Error deleting supplier:', error);
       toast.showError(`Failed to delete supplier: ${error}`);
       throw error;
     }
   }, [suppliersCollection, toast]);
 
-  // ── Fee Templates ─────────────────────────────────────────────────────────────
+  // â”€â”€ Fee Templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addFeeTemplate = useCallback(async (templateData: Omit<allTypes.FeeTemplate, 'id'>) => {
     try {
       const result = await feeTemplatesCollection.insert(templateData);
       toast.showSuccess('Fee template created successfully');
       return result;
     } catch (error) {
-      console.error('Error adding fee template:', error);
+      logger.error('Error adding fee template:', error);
       toast.showError(`Failed to create fee template: ${error}`);
       throw error;
     }
@@ -164,7 +165,7 @@ export function useFinanceData() {
       toast.showSuccess('Fee template updated successfully');
       return result;
     } catch (error) {
-      console.error('Error updating fee template:', error);
+      logger.error('Error updating fee template:', error);
       toast.showError(`Failed to update fee template: ${error}`);
       throw error;
     }
@@ -176,13 +177,13 @@ export function useFinanceData() {
       toast.showSuccess('Fee template deleted successfully');
       return true;
     } catch (error) {
-      console.error('Error deleting fee template:', error);
+      logger.error('Error deleting fee template:', error);
       toast.showError(`Failed to delete fee template: ${error}`);
       throw error;
     }
   }, [feeTemplatesCollection, toast]);
 
-  // ── Expense Claims ────────────────────────────────────────────────────────────
+  // â”€â”€ Expense Claims â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addExpenseClaim = useCallback(async (claimData: Omit<allTypes.ExpenseClaim, 'id'>) => {
     return expenseClaimsCollection.insert(claimData);
   }, [expenseClaimsCollection]);
@@ -195,7 +196,7 @@ export function useFinanceData() {
     return expenseClaimsCollection.remove(claimId);
   }, [expenseClaimsCollection]);
 
-  // ── Expense Categories ────────────────────────────────────────────────────────
+  // â”€â”€ Expense Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addExpenseCategory = useCallback(async (categoryData: Omit<allTypes.ExpenseCategory, 'id'>) => {
     return expenseCategoriesCollection.insert(categoryData);
   }, [expenseCategoriesCollection]);
@@ -208,7 +209,7 @@ export function useFinanceData() {
     return expenseCategoriesCollection.remove(categoryId);
   }, [expenseCategoriesCollection]);
 
-  // ── Customer Invoices ─────────────────────────────────────────────────────────
+  // â”€â”€ Customer Invoices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addCustomerInvoice = useCallback(async (invoiceData: Omit<allTypes.CustomerInvoice, 'id'>) => {
     return customerInvoicesCollection.insert(invoiceData);
   }, [customerInvoicesCollection]);
@@ -221,7 +222,7 @@ export function useFinanceData() {
     return customerInvoicesCollection.remove(invoiceId);
   }, [customerInvoicesCollection]);
 
-  // ── Supplier Invoices ─────────────────────────────────────────────────────────
+  // â”€â”€ Supplier Invoices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addSupplierInvoice = useCallback(async (invoiceData: Omit<allTypes.SupplierInvoice, 'id'>) => {
     return supplierInvoicesCollection.insert(invoiceData);
   }, [supplierInvoicesCollection]);
@@ -234,7 +235,7 @@ export function useFinanceData() {
     return supplierInvoicesCollection.remove(invoiceId);
   }, [supplierInvoicesCollection]);
 
-  // ── Student Opening Balances ──────────────────────────────────────────────────
+  // â”€â”€ Student Opening Balances â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addStudentOpeningBalance = useCallback(async (balanceData: Omit<allTypes.StudentOpeningBalance, 'id'>) => {
     return studentOpeningBalancesCollection.insert(balanceData);
   }, [studentOpeningBalancesCollection]);
@@ -247,7 +248,7 @@ export function useFinanceData() {
     return studentOpeningBalancesCollection.remove(balanceId);
   }, [studentOpeningBalancesCollection]);
 
-  // ── Fee Adjustments ───────────────────────────────────────────────────────────
+  // â”€â”€ Fee Adjustments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addFeeAdjustment = useCallback(async (adjustmentData: Omit<allTypes.FeeAdjustment, 'id'>) => {
     return feeAdjustmentsCollection.insert(adjustmentData);
   }, [feeAdjustmentsCollection]);
@@ -260,7 +261,7 @@ export function useFinanceData() {
     return feeAdjustmentsCollection.remove(adjustmentId);
   }, [feeAdjustmentsCollection]);
 
-  // ── Transport Routes ──────────────────────────────────────────────────────────
+  // â”€â”€ Transport Routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addTransportRoute = useCallback(async (routeData: Omit<allTypes.TransportRoute, 'id'>) => {
     return transportRoutesCollection.insert(routeData);
   }, [transportRoutesCollection]);
@@ -273,7 +274,7 @@ export function useFinanceData() {
     return transportRoutesCollection.remove(routeId);
   }, [transportRoutesCollection]);
 
-  // ── Student Transport Assignments ─────────────────────────────────────────────
+  // â”€â”€ Student Transport Assignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addStudentTransportAssignment = useCallback(async (assignmentData: Omit<allTypes.StudentTransportAssignment, 'id'>) => {
     return studentTransportAssignmentsCollection.insert(assignmentData);
   }, [studentTransportAssignmentsCollection]);
@@ -286,7 +287,7 @@ export function useFinanceData() {
     return studentTransportAssignmentsCollection.remove(assignmentId);
   }, [studentTransportAssignmentsCollection]);
 
-  // ── Student Invoices / Payments ───────────────────────────────────────────────
+  // â”€â”€ Student Invoices / Payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const generateStudentInvoices = useCallback(async (invoiceData: any) => {
     return customerInvoicesCollection.insert(invoiceData);
   }, [customerInvoicesCollection]);
@@ -307,7 +308,7 @@ export function useFinanceData() {
     return studentPaymentsCollection.update(paymentId, { applied_to_invoices: invoiceIds });
   }, [studentPaymentsCollection]);
 
-  // ── General Payments ──────────────────────────────────────────────────────────
+  // â”€â”€ General Payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addGeneralPayment = useCallback(async (data: any) => {
     return generalPaymentsCollection.insert(data);
   }, [generalPaymentsCollection]);
@@ -320,7 +321,7 @@ export function useFinanceData() {
     return generalPaymentsCollection.remove(id);
   }, [generalPaymentsCollection]);
 
-  // ── Financial Years ───────────────────────────────────────────────────────────
+  // â”€â”€ Financial Years â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addFinancialYear = useCallback(async (data: any) => {
     return financialYearsCollection.insert(data);
   }, [financialYearsCollection]);

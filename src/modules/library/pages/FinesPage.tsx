@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Fine, Loan, FineStatus } from '@/types';
+import React, { useState } from 'react';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -13,7 +13,8 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, SparklesIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { FineStatus } from '@/core/types';
+import type { Fine } from '@/core/types';
 
 type FineFormData = Omit<Partial<Fine>, 'id' | 'created_at' | 'updated_at' | 'book_title' | 'user_name' | 'loan_due_date' | 'status'> & {
     status: FineStatus; // Ensure status is required for the form
@@ -90,7 +91,6 @@ export const FinesPageContent: React.FC = () => {
     }
     closeModal();
   };
-
 
   const columns: DataGridColumn<Fine>[] = [
     {

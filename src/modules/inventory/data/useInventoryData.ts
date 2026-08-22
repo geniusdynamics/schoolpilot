@@ -1,4 +1,6 @@
-// ABOUTME: Inventory domain hook — Warehouses, ItemCategories, StockItems, FixedAssets,
+﻿import { logger } from '@/utils/logging';
+
+// ABOUTME: Inventory domain hook â€” Warehouses, ItemCategories, StockItems, FixedAssets,
 // ABOUTME: AssetDepreciationLogs, Requisitions, PurchaseOrders, StockTransactions, RFQs
 // ABOUTME: Uses real database-backed hooks for persistent data
 
@@ -18,7 +20,7 @@ export function useInventoryData() {
   const stockTransactionsCollection = useDatabaseCollection<any>('stock_transactions');
   const rfqsCollection = useDatabaseCollection<any>('rfqs');
 
-  // ── Warehouses ────────────────────────────────────────────────────────────────
+  // â”€â”€ Warehouses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addWarehouse = useCallback(async (data: any) => {
     return warehousesCollection.insert(data);
   }, [warehousesCollection]);
@@ -31,7 +33,7 @@ export function useInventoryData() {
     return warehousesCollection.remove(id);
   }, [warehousesCollection]);
 
-  // ── Item Categories ───────────────────────────────────────────────────────────
+  // â”€â”€ Item Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addItemCategoryInv = useCallback(async (data: any) => {
     return itemCategoriesInvCollection.insert(data);
   }, [itemCategoriesInvCollection]);
@@ -44,7 +46,7 @@ export function useInventoryData() {
     return itemCategoriesInvCollection.remove(id);
   }, [itemCategoriesInvCollection]);
 
-  // ── Inventory Items ───────────────────────────────────────────────────────────
+  // â”€â”€ Inventory Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addItemInv = useCallback(async (data: any) => {
     return itemsInvCollection.insert(data);
   }, [itemsInvCollection]);
@@ -57,7 +59,7 @@ export function useInventoryData() {
     return itemsInvCollection.remove(id);
   }, [itemsInvCollection]);
 
-  // ── Fixed Assets ──────────────────────────────────────────────────────────────
+  // â”€â”€ Fixed Assets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addFixedAsset = useCallback(async (data: any) => {
     return fixedAssetsCollection.insert(data);
   }, [fixedAssetsCollection]);
@@ -76,10 +78,10 @@ export function useInventoryData() {
       const logWithId = { ...logData, id: databaseService.generateId() };
       const result = await db.asset_depreciation_logs?.insert(logWithId);
       return result?.doc || null;
-    } catch (error) { console.error('Error adding asset depreciation log:', error); throw error; }
+    } catch (error) { logger.error('Error adding asset depreciation log:', error); throw error; }
   }, []);
 
-  // ── Requisitions ──────────────────────────────────────────────────────────────
+  // â”€â”€ Requisitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addRequisition = useCallback(async (data: any) => {
     return requisitionsCollection.insert(data);
   }, [requisitionsCollection]);
@@ -96,7 +98,7 @@ export function useInventoryData() {
     return requisitionsCollection.update(requisitionId, { status });
   }, [requisitionsCollection]);
 
-  // ── Purchase Orders ───────────────────────────────────────────────────────────
+  // â”€â”€ Purchase Orders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addPurchaseOrder = useCallback(async (data: any) => {
     return purchaseOrdersCollection.insert(data);
   }, [purchaseOrdersCollection]);
@@ -109,12 +111,12 @@ export function useInventoryData() {
     return purchaseOrdersCollection.remove(id);
   }, [purchaseOrdersCollection]);
 
-  // ── Stock Transactions ────────────────────────────────────────────────────────
+  // â”€â”€ Stock Transactions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addStockTransaction = useCallback(async (transactionData: Omit<allTypes.StockTransaction, 'id'>) => {
     return stockTransactionsCollection.insert(transactionData);
   }, [stockTransactionsCollection]);
 
-  // ── RFQs ──────────────────────────────────────────────────────────────────────
+  // â”€â”€ RFQs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addRfq = useCallback(async (data: any) => {
     return rfqsCollection.insert(data);
   }, [rfqsCollection]);

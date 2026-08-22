@@ -1,0 +1,16 @@
+{
+  "title": "Settings",
+  "general": "General",
+  "system": "System",
+  "school": "School",
+  "configuration": "Configuration",
+  "dataManagement": "Data Management",
+  "database": "Database",
+  "backup": "Backup",
+  "auditLog": "Audit Log",
+  "features": "Features",
+  "modules": "Modules",
+  "plugins": {
+    "confirmUninstall": "Confirm Uninstall"
+  }
+}

@@ -26,7 +26,6 @@ export function useStockLevelService() {
   const [error, setError] = useState<Error | null>(null);
 
   const stockLevelsCollection = useDatabaseCollection<StockLevel>('stock_levels');
-  const stockTransactionsCollection = useDatabaseCollection<StockTransaction>('stock_transactions');
 
   const createService = useCallback((): StockLevelService => {
     const deps: StockLevelServiceDependencies = {

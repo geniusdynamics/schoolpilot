@@ -48,7 +48,6 @@ export const StudentExamProfile: React.FC<StudentExamProfileProps> = ({
   admissionNumber,
   stream,
   avatarUrl,
-  examName,
   meanMarks,
   totalPoints,
   maxPoints,

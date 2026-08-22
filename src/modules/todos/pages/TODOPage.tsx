@@ -5,8 +5,9 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import { CheckCircleIcon, PlusIcon, TrashIcon, PencilIcon, CalendarIcon } from '@/components/ui/icons';
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+
+import { logger } from '@/utils/logging';
 
 type Priority = 'Low' | 'Medium' | 'High';
 type Status = 'Pending' | 'In Progress' | 'Completed';
@@ -148,18 +149,18 @@ const TODOPage: React.FC = () => {
       alert('Title is required.');
       return;
     }
-    console.log('Saving TODO:', formData);
+    logger.info('Saving TODO:', formData);
     closeModal();
   };
 
   const toggleComplete = (todo: TODO) => {
     const newStatus = todo.status === 'Completed' ? 'Pending' : 'Completed';
-    console.log('Toggling TODO:', todo.id, newStatus);
+    logger.info('Toggling TODO:', todo.id, newStatus);
   };
 
   const deleteTODO = (todo: TODO) => {
     if (confirm('Are you sure you want to delete this task?')) {
-      console.log('Deleting TODO:', todo.id);
+      logger.info('Deleting TODO:', todo.id);
     }
   };
 

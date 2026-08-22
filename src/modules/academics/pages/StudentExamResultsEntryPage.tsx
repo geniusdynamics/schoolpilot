@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: This page component captures per-student marks for a selected exam session and class stream.
 // ABOUTME: It reads configured session papers from AppDataContext and persists nested student result records.
 import React, { useState, useEffect, useMemo } from 'react';
@@ -11,7 +13,6 @@ import Input from '@/components/ui/Input';
 import { ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { getStudentsForExamEntry } from '@/utils/api';
 
 interface MarkInput {
@@ -72,7 +73,7 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
         setMarks(initialMarks);
         setPageLoading(false);
       } catch (error: any) {
-        console.error('Error loading students:', error);
+        logger.error('Error loading students:', error);
         setStudentsForEntry([]);
         setPaperSettingsForSession([]);
         setMarks({});
@@ -106,6 +107,7 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
       for (const student of studentsForEntry) {
         const studentMarksForPapers: Array<Omit<StudentPaperMark, 'id' | 'student_exam_result_id'>> = [];
         let hasMarks = false;
+        let totalMarks = 0;
 
         for (const paperSetting of paperSettingsForSession) {
           const scoreStr = marks[student.id]?.[paperSetting.id];
@@ -127,6 +129,7 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
             paper_setting_id: paperSetting.id,
             score,
           });
+          totalMarks += score;
           hasMarks = true;
         }
 
@@ -137,28 +140,28 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
         await saveStudentExamResult({
           student_id: student.id,
           exam_session_id: selectedExamSessionId,
+          total_marks: totalMarks,
           marks: studentMarksForPapers,
         });
       }
       alert("Marks saved successfully! Weighted totals and grades are saved, and ranks still require further processing via 'Exam Analysis'.");
     } catch (error) {
-      console.error('Failed to save student exam results:', error);
+      logger.error('Failed to save student exam results:', error);
       alert('Unable to save the marks. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
-
   const tableColumns: DataGridColumn<Student>[] = useMemo(() => {
     const staticColumns: DataGridColumn<Student>[] = [
       { key: 'admission_no', header: 'Adm No' },
-      { key: 'first_name', header: 'Student Name', render: (value: any, item: Student) => `${item.first_name} ${item.last_name}` },
+      { key: 'first_name', header: 'Student Name', render: (_value: any, item: Student) => [item.first_name, item.last_name].filter(Boolean).join(' ') || '—' },
     ];
     const dynamicPaperColumns: DataGridColumn<Student>[] = (paperSettingsForSession || []).map(paperSetting => ({
       key: `paper_${paperSetting.id}`,
       header: `${paperSetting.subject_name || 'Subject'} - ${paperSetting.subject_paper_name || 'Paper'} (/${paperSetting.marks_out_of})`,
-      render: (value: any, student: Student) => (
+      render: (_value: any, student: Student) => (
         <Input
           type="number"
           className="w-20 text-sm p-1"
@@ -171,7 +174,6 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
     }));
     return [...staticColumns, ...dynamicPaperColumns];
   }, [paperSettingsForSession, marks]);
-
 
   if (loading.students || loading.examSessions || loading.classStreams) {
       return <div className="flex justify-center items-center h-screen"><Spinner size="lg" /></div>;
@@ -193,7 +195,7 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
           </Select>
           <Select
             label="Select Class Stream"
-            value={selectedClassStreamId || ''}
+            value={selectedClassStreamId != null ? String(selectedClassStreamId) : ''}
             onChange={(e) => setSelectedClassStreamId(e.target.value ? parseInt(e.target.value) : undefined)}
             disabled={!selectedExamSessionId}
           >

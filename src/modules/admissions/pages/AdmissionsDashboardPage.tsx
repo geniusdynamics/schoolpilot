@@ -1,29 +1,11 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Admissions Dashboard matching Faria International School design
 // ABOUTME: Features metric cards, charts, calendar, pipeline cards, and tabs
 
 import React, { useState, useMemo } from 'react';
-import {
-  ChartBarIcon,
-  PlusIcon,
-  CalendarIcon,
-  ChevronDownIcon,
-  FilterIcon,
-  ArrowRightIcon,
-  MessageIcon,
-  DocumentTextIcon,
-  CheckCircleIcon,
-  AcademicCapIcon,
-  UsersIcon,
-  BellIcon,
-  ClockIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  MinusIcon,
-  DocumentDuplicateIcon,
-} from '@/components/ui/icons';
+import { PlusIcon, CalendarIcon, ChevronDownIcon, FilterIcon, ArrowRightIcon, ClockIcon, DocumentDuplicateIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
 import { useAdmissionsData } from '../data/useAdmissionsData';
 import { ProgramType } from '../data/types';
 
@@ -92,7 +74,7 @@ const MetricCard: React.FC<{
     <p className={`text-3xl font-bold ${color}`}>{value}</p>
     {trend && (
       <p className={`text-xs mt-1 ${trend.direction === 'up' ? 'text-emerald-600' : trend.direction === 'down' ? 'text-rose-600' : 'text-gray-500'}`}>
-        {trend.direction === 'up' ? '▲' : trend.direction === 'down' ? '▼' : '−'} {trend.value}
+        {trend.direction === 'up' ? 'â–²' : trend.direction === 'down' ? 'â–¼' : 'âˆ’'} {trend.value}
       </p>
     )}
   </div>
@@ -117,7 +99,7 @@ const PipelineCard: React.FC<{
   >
     <div className="flex items-center justify-between w-full mb-2">
       <span className={`text-sm font-medium ${isActive ? 'text-violet-700' : textClass}`}>
-        {label} {isActive && <span className="ml-1">▼</span>}
+        {label} {isActive && <span className="ml-1">â–¼</span>}
       </span>
       <ArrowRightIcon className={`w-4 h-4 ${isActive ? 'text-violet-600 opacity-100' : 'text-gray-400 opacity-0 group-hover:opacity-100'} transition-opacity`} />
     </div>
@@ -230,20 +212,20 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
               <p className="text-sm text-gray-500 mb-1">Applicants</p>
               <p className="text-3xl font-bold text-blue-600">{applicants}</p>
               <p className={`text-xs mt-1 ${statistics.trends.applications.direction === 'up' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                ▲ {statistics.trends.applications.value}
+                â–² {statistics.trends.applications.value}
               </p>
             </div>
             <div className="p-4 text-center">
               <p className="text-sm text-gray-500 mb-1">Enrollment</p>
               <p className="text-3xl font-bold text-blue-600">{enrolled}</p>
               <p className={`text-xs mt-1 ${statistics.trends.enrollment.direction === 'up' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                ▲ {statistics.trends.enrollment.value}
+                â–² {statistics.trends.enrollment.value}
               </p>
             </div>
             <div className="p-4 text-center">
               <p className="text-sm text-gray-500 mb-1">Events</p>
               <p className="text-3xl font-bold text-blue-600">{events}</p>
-              <p className="text-xs mt-1 text-emerald-600">▲ 0%</p>
+              <p className="text-xs mt-1 text-emerald-600">â–² 0%</p>
             </div>
           </div>
 
@@ -254,7 +236,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-blue-600">Enquiry & Conversion</h3>
                 <button className="text-gray-400 hover:text-gray-600">
-                  <span className="text-lg">☰</span>
+                  <span className="text-lg">â˜°</span>
                 </button>
               </div>
               <EnquiryConversionChart data={statistics.monthlyData} />
@@ -265,7 +247,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-amber-600">Applications</h3>
                 <button className="text-gray-400 hover:text-gray-600">
-                  <span className="text-lg">☰</span>
+                  <span className="text-lg">â˜°</span>
                 </button>
               </div>
               <ApplicationsChart data={statistics.monthlyData} />
@@ -276,7 +258,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-emerald-600">Total Enrolled Students</h3>
                 <button className="text-gray-400 hover:text-gray-600">
-                  <span className="text-lg">☰</span>
+                  <span className="text-lg">â˜°</span>
                 </button>
               </div>
               <EnrollmentChart data={statistics.monthlyData} />
@@ -418,7 +400,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                         Copy link
                       </button>
                       <button className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg text-violet-900 text-sm font-medium hover:bg-gray-100">
-                        <span className="text-violet-500">✨</span>
+                        <span className="text-violet-500">âœ¨</span>
                         AI Analyst Beta
                       </button>
                     </div>
@@ -430,7 +412,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                       <button className="text-gray-400 hover:text-gray-600">&lt;</button>
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-medium text-gray-800">All Academic Years</h3>
-                        <span className="text-gray-400 cursor-pointer">ⓘ</span>
+                        <span className="text-gray-400 cursor-pointer">â“˜</span>
                       </div>
                       <button className="text-gray-400 hover:text-gray-600">&gt;</button>
                     </div>
@@ -521,7 +503,7 @@ export const AdmissionsDashboardPageContent: React.FC = () => {
                     grade={applicant.grade}
                     status={applicant.status}
                     statusColor={applicant.statusColor}
-                    onClick={() => console.log('View:', applicant.id)}
+                    onClick={() => logger.info('View:', applicant.id)}
                   />
                 ))}
               </div>

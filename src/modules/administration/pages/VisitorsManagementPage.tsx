@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
@@ -12,6 +12,7 @@ import { databaseService } from '@/services/database/databaseService';
 import { useTranslation } from 'react-i18next';
 import { VisitorType, VisitorStatus } from '../data/types';
 import type { VisitorLog } from '../data/types';
+import { logger } from '@/utils/logging';
 
 const VisitorsManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -74,7 +75,7 @@ const VisitorsManagementPage: React.FC = () => {
       closeModal();
       loadData();
     } catch (error) {
-      console.error('Error checking in visitor:', error);
+      logger.error('Error checking in visitor:', error);
       alert('Failed to check in visitor');
     }
   };
@@ -90,7 +91,7 @@ const VisitorsManagementPage: React.FC = () => {
       });
       loadData();
     } catch (error) {
-      console.error('Error checking out visitor:', error);
+      logger.error('Error checking out visitor:', error);
     }
   };
 
@@ -103,7 +104,7 @@ const VisitorsManagementPage: React.FC = () => {
       });
       setVisitors((result?.docs || []) as VisitorLog[]);
     } catch (error) {
-      console.error('Error loading visitors:', error);
+      logger.error('Error loading visitors:', error);
     } finally {
       setLoading(false);
     }

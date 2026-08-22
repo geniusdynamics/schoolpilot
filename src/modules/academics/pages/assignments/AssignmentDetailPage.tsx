@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Card, { CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
+import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
 import {
   ArrowLeftIcon,
   EditIcon,
@@ -21,7 +20,7 @@ import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
 const submissionStatusColors: Record<SubmissionStatus, string> = {
-  [SubmissionStatus.NOT_SUBMITTED]: 'bg-gray-100 text-gray-800',
+  [SubmissionStatus.PENDING_REVIEW]: 'bg-gray-100 text-gray-800',
   [SubmissionStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
   [SubmissionStatus.LATE]: 'bg-orange-100 text-orange-800',
   [SubmissionStatus.GRADED]: 'bg-green-100 text-green-800',
@@ -53,7 +52,7 @@ const AssignmentDetailPage: React.FC = () => {
       s => s.status === SubmissionStatus.GRADED || s.status === SubmissionStatus.RETURNED
     ).length;
     const notSubmitted = assignmentSubmissions.filter(
-      s => s.status === SubmissionStatus.NOT_SUBMITTED
+      s => s.status === SubmissionStatus.PENDING_REVIEW
     ).length;
     const late = assignmentSubmissions.filter(
       s => s.status === SubmissionStatus.LATE
@@ -231,7 +230,7 @@ const AssignmentDetailPage: React.FC = () => {
             <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
               assignment.status === AssignmentStatus.DRAFT ? 'bg-gray-100 text-gray-800' :
               assignment.status === AssignmentStatus.PUBLISHED ? 'bg-blue-100 text-blue-800' :
-              assignment.status === AssignmentStatus.CLOSED ? 'bg-orange-100 text-orange-800' :
+              assignment.status === AssignmentStatus.ARCHIVED ? 'bg-orange-100 text-orange-800' :
               'bg-green-100 text-green-800'
             }`}>
               {t(`assignment.status.${assignment.status}`)}

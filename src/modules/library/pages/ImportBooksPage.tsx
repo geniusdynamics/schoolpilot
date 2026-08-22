@@ -9,10 +9,8 @@ import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '../../../components/ui/forms/DialogForm';
-import FormField from '../../../components/ui/forms/FormField';
 import FormSection from '../../../components/ui/forms/FormSection';
 import FormActions from '../../../components/ui/forms/FormActions';
-import Input from '@/components/ui/Input';
 import { UploadIcon, DocumentTextIcon, CheckIcon, XMarkIcon, ArrowDownTrayIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
@@ -413,7 +411,7 @@ export const ImportBooksPageContent: React.FC = () => {
                   .filter(row => row.validation_errors.length > 0)
                   .flatMap(row => row.validation_errors)
                   .map((error, index) => (
-                    <div key={index}>• {error}</div>
+                    <div key={index}>â€¢ {error}</div>
                   ))
                 }
               </div>

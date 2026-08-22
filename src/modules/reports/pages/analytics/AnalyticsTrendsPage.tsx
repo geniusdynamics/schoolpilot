@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   ChartBarIcon,
   ArrowUpIcon,
@@ -15,7 +14,6 @@ import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
 import ModuleDashboardShell, { DashboardMetric } from '@/components/ModuleDashboardShell';
 import { useAnalyticsData } from '../../data/useAnalyticsData';
-import type { AnalyticsPeriod } from '../data/types';
 
 type TrendMetric = 'passRate' | 'attendance' | 'performance';
 type PeriodOption = 'week' | 'month' | 'term' | 'year';
@@ -27,7 +25,7 @@ interface TrendDataPoint {
 }
 
 const AnalyticsTrendsPage: React.FC = () => {
-  const { t } = useTranslation('analytics');
+
   const {
     subjectPassRates,
     classPerformances,

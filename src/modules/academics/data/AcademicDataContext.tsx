@@ -9,11 +9,10 @@ export type AcademicDataContextValue = ReturnType<typeof useAcademicData>;
 
 const AcademicDataContext = createContext<AcademicDataContextValue | undefined>(undefined);
 
-export const AcademicDataProvider: React.FC<{ children: ReactNode; mockData?: any }> = ({
+export const AcademicDataProvider: React.FC<{ children: ReactNode }> = ({
   children,
-  mockData,
 }) => {
-  const data = useAcademicData(mockData);
+  const data = useAcademicData();
 
   const value = useMemo(() => data, [data]);
 

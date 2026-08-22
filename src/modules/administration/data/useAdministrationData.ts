@@ -1,4 +1,6 @@
-// ABOUTME: Administration domain hook — Students, Staff, Classes, Departments, Dormitories,
+import { logger } from '@/utils/logging';
+
+// ABOUTME: Administration domain hook â€” Students, Staff, Classes, Departments, Dormitories,
 // ABOUTME: Clubs, Partners, Attendance, Guardians, Health Records, Disciplinary records
 // ABOUTME: Uses real database-backed hooks for persistent data
 
@@ -7,7 +9,7 @@ import { databaseService } from '@/services/database/databaseService';
 import { useToastHelpers } from '@/hooks/useToast';
 import { useDatabaseCollection } from '@/hooks/useDatabaseCollection';
 import * as allTypes from './types';
-import type { StudentDetailProfile } from '@/modules/academics/data/types';
+import type { StudentDetailProfile } from '@/core/types';
 
 export function useAdministrationData() {
   const studentsCollection = useDatabaseCollection<allTypes.Student>('students');
@@ -31,7 +33,7 @@ export function useAdministrationData() {
 
   const toast = useToastHelpers();
 
-  // ── Students ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Students â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const getStudentDetailsById = useCallback(async (studentId: string): Promise<StudentDetailProfile | null> => {
     try {
       const db = await databaseService.getDatabase();
@@ -44,7 +46,7 @@ export function useAdministrationData() {
         : [];
       return { ...student, guardians } as StudentDetailProfile;
     } catch (error) {
-      console.error('Error fetching student details:', error);
+      logger.error('Error fetching student details:', error);
       return null;
     }
   }, []);
@@ -55,7 +57,7 @@ export function useAdministrationData() {
       toast.showSuccess('Student created successfully');
       return result;
     } catch (error) {
-      console.error('Error adding student:', error);
+      logger.error('Error adding student:', error);
       toast.showError(`Failed to create student: ${error}`);
       throw error;
     }
@@ -67,7 +69,7 @@ export function useAdministrationData() {
       toast.showSuccess('Student updated successfully');
       return result;
     } catch (error) {
-      console.error('Error updating student:', error);
+      logger.error('Error updating student:', error);
       toast.showError(`Failed to update student: ${error}`);
       throw error;
     }
@@ -79,13 +81,13 @@ export function useAdministrationData() {
       toast.showSuccess('Student deleted successfully');
       return true;
     } catch (error) {
-      console.error('Error deleting student:', error);
+      logger.error('Error deleting student:', error);
       toast.showError(`Failed to delete student: ${error}`);
       throw error;
     }
   }, [studentsCollection, toast]);
 
-  // ── Staff ─────────────────────────────────────────────────────────────────────
+  // â”€â”€ Staff â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addStaffMember = useCallback(async (staffData: Omit<any, 'id'>) => {
     return staffCollection.insert(staffData);
   }, [staffCollection]);
@@ -98,7 +100,7 @@ export function useAdministrationData() {
     return staffCollection.remove(staffId);
   }, [staffCollection]);
 
-  // ── Parents / Guardians ───────────────────────────────────────────────────────
+  // â”€â”€ Parents / Guardians â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addParentGuardian = useCallback(async (guardianData: Omit<any, 'id'>) => {
     return parentsGuardiansCollection.insert(guardianData);
   }, [parentsGuardiansCollection]);
@@ -123,7 +125,7 @@ export function useAdministrationData() {
     return studentGuardianRelationshipsCollection.remove(id);
   }, [studentGuardianRelationshipsCollection]);
 
-  // ── Departments / Designations ────────────────────────────────────────────────
+  // â”€â”€ Departments / Designations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addDepartment = useCallback(async (data: Omit<allTypes.Department, 'id'>) => {
     return departmentsCollection.insert(data);
   }, [departmentsCollection]);
@@ -148,7 +150,7 @@ export function useAdministrationData() {
     return designationsCollection.remove(id);
   }, [designationsCollection]);
 
-  // ── Student Categories ────────────────────────────────────────────────────────
+  // â”€â”€ Student Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addStudentCategory = useCallback(async (data: Omit<allTypes.StudentCategory, 'id'>) => {
     return studentCategoriesCollection.insert(data);
   }, [studentCategoriesCollection]);
@@ -161,7 +163,7 @@ export function useAdministrationData() {
     return studentCategoriesCollection.remove(id);
   }, [studentCategoriesCollection]);
 
-  // ── Dormitories ───────────────────────────────────────────────────────────────
+  // â”€â”€ Dormitories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addDormitory = useCallback(async (data: Omit<allTypes.Dormitory, 'id'>) => {
     return dormitoriesCollection.insert(data);
   }, [dormitoriesCollection]);
@@ -174,7 +176,7 @@ export function useAdministrationData() {
     return dormitoriesCollection.remove(id);
   }, [dormitoriesCollection]);
 
-  // ── Classes / Streams ─────────────────────────────────────────────────────────
+  // â”€â”€ Classes / Streams â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addClass = useCallback(async (data: Omit<allTypes.Class, 'id'>) => {
     return classesCollection.insert(data);
   }, [classesCollection]);
@@ -199,7 +201,7 @@ export function useAdministrationData() {
     return classStreamsCollection.remove(id);
   }, [classStreamsCollection]);
 
-  // ── Partners / Clubs / Customers ──────────────────────────────────────────────
+  // â”€â”€ Partners / Clubs / Customers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addPartner = useCallback(async (data: any) => {
     return partnersCollection.insert(data);
   }, [partnersCollection]);
@@ -236,7 +238,7 @@ export function useAdministrationData() {
     return customersCollection.remove(id);
   }, [customersCollection]);
 
-  // ── Student Health ────────────────────────────────────────────────────────────
+  // â”€â”€ Student Health â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const addStudentHealthRecord = useCallback(async (data: Omit<allTypes.StudentHealthRecord, 'id'>) => {
     return studentHealthRecordsCollection.insert(data);
   }, [studentHealthRecordsCollection]);
@@ -245,7 +247,7 @@ export function useAdministrationData() {
     return studentHealthRecordsCollection.update(id, data);
   }, [studentHealthRecordsCollection]);
 
-  // ── Attendance ────────────────────────────────────────────────────────────────
+  // â”€â”€ Attendance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const saveStudentAttendance = useCallback(async (attendanceData: any) => {
     return studentAttendanceCollection.insert(attendanceData);
   }, [studentAttendanceCollection]);
@@ -279,7 +281,7 @@ export function useAdministrationData() {
           })
         );
       } catch (error) {
-        console.error('Error getting student attendance by filters:', error);
+        logger.error('Error getting student attendance by filters:', error);
         return [];
       }
     },

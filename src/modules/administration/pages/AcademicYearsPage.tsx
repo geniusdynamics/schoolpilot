@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AcademicYear, AcademicYearStructure } from '@/types';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -8,7 +9,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, CalendarDaysIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
@@ -19,6 +20,7 @@ type AcademicYearFormData = Omit<Partial<AcademicYear>, 'id' | 'created_at' | 'u
 };
 
 export const AcademicYearsContent: React.FC = () => {
+  const { t } = useTranslation();
   const appData = useAppData();
   const academicYears = appData.academicYears || [];
   const academicYearStructures = appData.academicYearStructures || [];
@@ -110,7 +112,7 @@ export const AcademicYearsContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 150,
-      render: (value, item) => <span className="text-blue-600">{value || '—'}</span>
+      render: (value, item) => <span className="text-blue-600">{value || 'â€”'}</span>
     },
     { 
       key: 'start_date', 

@@ -8,6 +8,8 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { StudentIDCard } from '../data/types';
 
+import { logger } from '@/utils/logging';
+
 const StudentIDCardsPage: React.FC = () => {
   const { t } = useTranslation('administration');
   const { studentIDCards, students, classes, loading } = useAppData();
@@ -35,17 +37,17 @@ const StudentIDCardsPage: React.FC = () => {
 
   const handlePrintCard = (student: StudentIDCard) => {
     setSelectedStudent(student);
-    console.log('Printing ID card for:', student.student_name);
+    logger.info('Printing ID card for:', student.student_name);
     // In production, this would trigger print dialog for the ID card
   };
 
   const handleDownloadCard = (student: StudentIDCard) => {
-    console.log('Downloading ID card for:', student.student_name);
+    logger.info('Downloading ID card for:', student.student_name);
     // In production, this would download the ID card as PDF/image
   };
 
   const handlePrintAll = () => {
-    console.log('Printing all ID cards for class:', selectedClass || 'all classes');
+    logger.info('Printing all ID cards for class:', selectedClass || 'all classes');
     // In production, this would print all filtered ID cards
   };
 

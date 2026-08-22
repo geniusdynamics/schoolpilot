@@ -4,17 +4,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import PortalWidgetCard from './PortalWidgetCard';
-import {
-  PrinterIcon,
-  ArrowDownTrayIcon,
-  PlusIcon,
-  CogIcon,
-  UserCircleIcon,
-  ExclamationTriangleIcon,
-  XCircleIcon,
-  UsersIcon,
-  ClipboardDocumentListIcon,
-} from '@/components/ui/icons';
+import { PrinterIcon, ArrowDownTrayIcon, PlusIcon, CogIcon, UserCircleIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
 
 export interface BulletinPost {
   id: string;

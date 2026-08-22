@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: InvoiceStatusService - Business logic for invoice status calculation
 // ABOUTME: Replaces trg_fin_updateInvoiceStatus trigger from the Akademico database
 // ABOUTME: Automatically recalculates invoice status based on payment applications
@@ -140,7 +142,7 @@ export class InvoiceStatusService {
     } else if (totalPaid > 0) {
       newStatus = InvoiceStatus.PARTIALLY_PAID;
     } else {
-      // Nothing paid — check if overdue
+      // Nothing paid â€” check if overdue
       newStatus = this.determineUnpaidStatus(invoice.due_date);
     }
 
@@ -171,7 +173,7 @@ export class InvoiceStatusService {
         results.push(result);
       } catch (error) {
         // Log error but continue processing other invoices
-        console.error(`[InvoiceStatusService] Error updating invoice ${invoiceId}:`, error);
+        logger.error(`[InvoiceStatusService] Error updating invoice ${invoiceId}:`, error);
       }
     }
     return results;

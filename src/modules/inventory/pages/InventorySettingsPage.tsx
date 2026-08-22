@@ -4,10 +4,9 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { CogIcon } from '@/components/ui/icons';
-import { useTranslation } from 'react-i18next';
 
 const InventorySettingsPage: React.FC = () => {
-  const { t } = useTranslation('inventory');
+
   const [settings, setSettings] = useState({
     lowStockThreshold: '10',
     defaultWarehouse: 'main',

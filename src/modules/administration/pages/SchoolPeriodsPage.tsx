@@ -13,7 +13,6 @@ import { useSchoolPeriodData } from '../data/useSchoolPeriodData';
 import { useAcademicYearData } from '../data/useAcademicYearData';
 import { useAcademicPeriodDefinitionData } from '../data/useAcademicPeriodDefinitionData';
 import { useAppData } from '@/hooks/useAppData';
-import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
@@ -159,6 +158,11 @@ export const SchoolPeriodsContent: React.FC = () => {
         mid_break_start: formData.mid_break_start || undefined,
         mid_break_end: formData.mid_break_end || undefined,
         is_active: formData.is_active || false,
+        // Compute denormalized name fields for display
+        academic_year_name: (academicYears || []).find(ay => ay.id === Number(formData.academic_year_id))?.name || '',
+        period_definition_name: (academicPeriodDefinitions || []).find(pd => String(pd.id) === String(formData.period_definition_id))?.name || '',
+        financial_year_name: (financialYears || []).find(fy => fy.id === Number(formData.financial_year_id))?.name || '',
+        name: `${(academicPeriodDefinitions || []).find(pd => String(pd.id) === String(formData.period_definition_id))?.name || ''} - ${(academicYears || []).find(ay => ay.id === Number(formData.academic_year_id))?.name || ''}`.trim(),
     };
 
     if (editingPeriod) {

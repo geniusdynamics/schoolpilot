@@ -2,18 +2,8 @@
 // ABOUTME: Contains only essential system modules that are always available
 
 import { ModuleDefinition } from '@/core/types';
-import { corePermissions } from './rbac';
-import {
-  HomeIcon,
-  CogIcon,
-  DocumentReportIcon,
-  CircleStackIcon,
-  ClockIcon,
-  IdentificationIcon,
-  UsersIcon,
-  ArrowsRightLeftIcon,
-  CubeIcon,
-} from '@/components/ui/icons';
+
+import { HomeIcon } from '@/components/ui/icons';
 
 // Dashboard Module (Core System)
 export const dashboardModule: ModuleDefinition = {

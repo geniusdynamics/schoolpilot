@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,8 @@ import { PlusIcon, EditIcon, DeleteIcon, StarIcon } from '@/components/ui/icons'
 import { useHousesData } from '../../data/houses/useHousesData';
 import { useTranslation } from 'react-i18next';
 import type { House } from '../../data/houses/types';
+import { logger } from '@/utils/logging';
+
 
 interface HouseFormData {
   name: string;
@@ -126,7 +128,7 @@ const HousesPage: React.FC = () => {
       }
       closeModal();
     } catch (error) {
-      console.error('Failed to save house:', error);
+      logger.error('Failed to save house:', error);
     } finally {
       setSubmitting(false);
     }
@@ -142,7 +144,7 @@ const HousesPage: React.FC = () => {
       try {
         await deleteHouse(houseToDelete.id);
       } catch (error) {
-        console.error('Failed to delete house:', error);
+        logger.error('Failed to delete house:', error);
       }
     }
     setIsDeleteModalOpen(false);

@@ -1,14 +1,13 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Card from '@/components/ui/Card';
-import { CurrencyDollarIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Table from '@/components/ui/Table';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
-import { FinStudentInvoiceType, FinStudentPaymentType, FinFeeAdjustmentType } from '@/modules/finance/data/types';
+import type { StudentInvoice as FinStudentInvoiceType, StudentPayment as FinStudentPaymentType, FeeAdjustment as FinFeeAdjustmentType } from '@/core/types';
 import { Student, Class as SchoolClass, ClassStream, SchoolPeriod, InvoiceStatus } from '@/types';
-import { useTranslation } from 'react-i18next';
 
 interface FinancialSummaryRow {
   studentId: string;
@@ -86,7 +85,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
       return {
         studentId: student.id,
         admissionNo: student.admission_no,
-        studentName: `${student.first_name} ${student.last_name}`,
+        studentName: [student.first_name, student.last_name].filter(Boolean).join(' ') || 'Unknown',
         className: student.current_class_name || undefined,
         totalBilled,
         totalPaid,
@@ -103,7 +102,6 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
   useEffect(() => {
     if (selectedSchoolPeriodId) handleGenerateReport();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
 
   const columns = [
     { header: 'Adm No', accessor: 'admissionNo' as keyof FinancialSummaryRow },

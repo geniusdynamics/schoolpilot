@@ -20,8 +20,9 @@ import {
   ClockIcon,
   UserCircleIcon,
 } from '@/components/ui/icons';
-import { useLessonPlansData } from '../../data/lessonplans/useLessonPlansData';
-import { WeeklyPlan, PlanStatus, DayPlan } from '../../data/types';
+import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
+import type { DayPlan } from '../../data/types';
+
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 
@@ -43,7 +44,7 @@ const PlanDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation('lessonplans');
-  const { weeklyPlans, loading, updateWeeklyPlan, submitPlan, reviewPlan } = useLessonPlansData();
+  const { weeklyPlans, loading, submitPlan, reviewPlan } = useLessonPlansData();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -255,7 +256,7 @@ const PlanDetailPage: React.FC = () => {
                   <div>
                     <span className="text-sm text-gray-600">Week:</span>
                     <p className="font-medium">
-                      {new Date(plan.weekStartDate).toLocaleDateString()} - {new Date(plan.weekEndDate).toLocaleDateString()}
+                      {plan.weekStartDate ? new Date(plan.weekStartDate).toLocaleDateString() : 'N/A'} - {plan.weekEndDate ? new Date(plan.weekEndDate).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                 </div>

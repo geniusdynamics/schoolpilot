@@ -2,16 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
-import { CheckCircleIcon, XCircleIcon, DocumentTextIcon, CalendarIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockStructureValidationItems } from '../data/mockData';
 import type { StructureValidationItem } from '../data/types';
+import { CheckCircleIcon, DocumentTextIcon, ExclamationTriangleIcon, XCircleIcon } from '@/components/ui/icons';
 
 export const VerifyMarksByStructurePageContent: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, subjects, classes, loading } = useAppData();
+
+  const { loading } = useAppData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -246,8 +245,6 @@ export const VerifyMarksByStructurePageContent: React.FC = () => {
         <DataGrid
           data={mockValidationItems}
           columns={columns}
-          searchable={false}
-          exportable={true}
         />
       </Card>
     </div>

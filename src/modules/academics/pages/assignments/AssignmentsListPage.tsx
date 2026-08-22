@@ -26,8 +26,7 @@ import { useTranslation } from 'react-i18next';
 const statusColors: Record<AssignmentStatus, string> = {
   [AssignmentStatus.DRAFT]: 'bg-gray-100 text-gray-800',
   [AssignmentStatus.PUBLISHED]: 'bg-blue-100 text-blue-800',
-  [AssignmentStatus.CLOSED]: 'bg-orange-100 text-orange-800',
-  [AssignmentStatus.GRADED]: 'bg-green-100 text-green-800',
+  [AssignmentStatus.ARCHIVED]: 'bg-orange-100 text-orange-800',
 };
 
 const AssignmentsListPage: React.FC = () => {
@@ -68,7 +67,7 @@ const AssignmentsListPage: React.FC = () => {
 
   // Get unique subjects and classes for filters
   const uniqueSubjects = useMemo(() => {
-    const subjects = new Map<string, number>();
+    const subjects = new Map<string, string>();
     assignments.forEach(a => {
       if (a.subjectName) subjects.set(a.subjectName, a.subjectId);
     });
@@ -76,7 +75,7 @@ const AssignmentsListPage: React.FC = () => {
   }, [assignments]);
 
   const uniqueClasses = useMemo(() => {
-    const classes = new Map<string, number>();
+    const classes = new Map<string, string>();
     assignments.forEach(a => {
       if (a.classStreamName) classes.set(a.classStreamName, a.classStreamId);
     });
@@ -87,8 +86,8 @@ const AssignmentsListPage: React.FC = () => {
   const filteredAssignments = useMemo(() => {
     return assignments.filter(assignment => {
       if (filterStatus && assignment.status !== filterStatus) return false;
-      if (filterSubject && assignment.subjectId !== Number(filterSubject)) return false;
-      if (filterClass && assignment.classStreamId !== Number(filterClass)) return false;
+      if (filterSubject && assignment.subjectId !== filterSubject) return false;
+      if (filterClass && assignment.classStreamId !== filterClass) return false;
       if (searchQuery) {
         const search = searchQuery.toLowerCase();
         return (
@@ -139,7 +138,7 @@ const AssignmentsListPage: React.FC = () => {
     setFormData({
       title: assignment.title,
       description: assignment.description,
-      instructions: assignment.instructions,
+      instructions: assignment.instructions || '',
       subjectId: String(assignment.subjectId),
       classStreamId: String(assignment.classStreamId),
       teacherId: assignment.teacherId,
@@ -173,8 +172,8 @@ const AssignmentsListPage: React.FC = () => {
           title: formData.title,
           description: formData.description,
           instructions: formData.instructions,
-          subjectId: Number(formData.subjectId),
-          classStreamId: Number(formData.classStreamId),
+          subjectId: formData.subjectId,
+          classStreamId: formData.classStreamId,
           teacherId: formData.teacherId,
           teacherName: formData.teacherName,
           dueDate: formData.dueDate,
@@ -193,8 +192,8 @@ const AssignmentsListPage: React.FC = () => {
           title: formData.title,
           description: formData.description,
           instructions: formData.instructions,
-          subjectId: Number(formData.subjectId),
-          classStreamId: Number(formData.classStreamId),
+          subjectId: formData.subjectId,
+          classStreamId: formData.classStreamId,
           teacherId: formData.teacherId,
           teacherName: formData.teacherName,
           assignedDate: formData.assignedDate,

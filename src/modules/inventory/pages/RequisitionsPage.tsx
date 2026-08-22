@@ -1,19 +1,19 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Requisition, RequisitionItem, RequisitionStatus, Staff, ItemInv } from '@/types';
+import React, { useState } from 'react';
+
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
-import FormSection from '@/components/ui/forms/FormSection';
-import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Textarea from '@/components/ui/Textarea';
-import { PlusIcon, EditIcon, DeleteIcon, QueueListIcon, ListBulletIcon, ClipboardDocumentListIcon } from '@/components/ui/icons';
+
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
+import { RequisitionStatus } from '@/core/types';
+import type { Requisition, RequisitionItem } from '@/core/types';
+import { ClipboardDocumentListIcon, DeleteIcon, EditIcon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
 
 type RequisitionFormData = Omit<Partial<Requisition>, 'id' | 'created_at' | 'updated_at' | 'items' | 'requesting_staff_name' | 'department_name' | 'total_requested_value' | 'status'> & {
     status: RequisitionStatus;

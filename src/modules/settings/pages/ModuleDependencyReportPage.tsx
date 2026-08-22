@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Module dependency report page
 // ABOUTME: Visualizes module dependencies and reports issues
 
@@ -7,7 +9,6 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { RefreshCwIcon } from '@/components/ui/icons';
-import { moduleRegistry } from '@/core/moduleRegistry';
 import { ModuleDependencyValidator } from '@/core/services/ModuleDependencyValidator';
 import { DependencyVisualizer } from '@/core/services/DependencyVisualizer';
 
@@ -27,7 +28,7 @@ export const ModuleDependencyReportContent: React.FC = () => {
       setReport(compatibilityReport);
       setGraphData(graphData);
     } catch (error) {
-      console.error('Error generating dependency report:', error);
+      logger.error('Error generating dependency report:', error);
     } finally {
       setLoading(false);
     }
@@ -117,7 +118,7 @@ export const ModuleDependencyReportContent: React.FC = () => {
                           .filter((edge: any) => edge.from === node.id)
                           .map((edge: any, idx: number) => (
                             <div key={idx} className="flex items-center text-sm text-gray-600 ml-4">
-                              <span className="mr-2">→</span>
+                              <span className="mr-2">â†’</span>
                               <span>{tNav(`${edge.to}.title`)}</span>
                               <Badge variant="secondary" className="ml-2 text-xs">
                                 {edge.type}

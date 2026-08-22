@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import Table from '@/components/ui/Table';
@@ -7,13 +7,13 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import Select from '@/components/ui/Select';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
-import type { Staff } from '@/modules/administration/data/types';
+import type { Staff } from '@/core/types';
 import type { Payslip, PayrollPeriod } from '@/modules/hr/data/types';
+import { logger } from '@/utils/logging';
 
 interface GeneratePayslipFormData {
   staff_id: number | null;
@@ -134,7 +134,7 @@ export const PayslipsPageContent: React.FC = () => {
       await refreshCollection('payslips');
       closeModal();
     } catch (error) {
-      console.error('Error generating payslip:', error);
+      logger.error('Error generating payslip:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -143,7 +143,7 @@ export const PayslipsPageContent: React.FC = () => {
   const getStaffName = (staffId: number) => {
     const staffMember = (staff as Staff[] | undefined)?.find(s => s.id === staffId);
     return staffMember?.first_name && staffMember?.last_name 
-      ? `${staffMember.first_name} ${staffMember.last_name}` 
+      ? [staffMember.first_name, staffMember.last_name].filter(Boolean).join(' ')
       : staffMember?.username || `Staff #${staffId}`;
   };
 

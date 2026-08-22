@@ -1,3 +1,5 @@
+﻿import { logger } from '@/utils/logging';
+
 // ABOUTME: Settings page for data layer configuration and mode management
 // ABOUTME: Provides comprehensive interface for database provider settings and mode switching
 
@@ -151,7 +153,7 @@ export const DataLayerSettingsContent: React.FC = () => {
       setSaveMessage({ type: 'success', text: 'Configuration applied successfully! Reloading application to apply changes...' });
       setTimeout(() => window.location.reload(), 1500);
     } catch (error: any) {
-      console.error('Error applying consolidated data-management configuration:', error);
+      logger.error('Error applying consolidated data-management configuration:', error);
       setSaveMessage({ type: 'error', text: `Failed to apply configuration: ${error.message}` });
     } finally {
       setIsSaving(false);
@@ -202,7 +204,7 @@ export const DataLayerSettingsContent: React.FC = () => {
       syncSelectionState('demo');
       setSaveMessage({ type: 'info', text: 'The consolidated configuration has been reset to the default demo profile. Apply the selection to save it.' });
     } catch (error: any) {
-      console.error('Error resetting configuration:', error);
+      logger.error('Error resetting configuration:', error);
       setSaveMessage({ type: 'error', text: `Failed to reset: ${error.message}` });
     }
   };
@@ -395,7 +397,7 @@ export const DataLayerSettingsContent: React.FC = () => {
                 <div className="flex items-start space-x-2 mb-3">
                   <Info className={`w-4 h-4 mt-0.5 ${isDemoReseedingDisabled ? 'text-amber-600' : 'text-green-600'}`} />
                   <div className={`text-sm ${isDemoReseedingDisabled ? 'text-amber-800' : 'text-green-800'}`}>
-                    <p className="font-medium">{isDemoReseedingDisabled ? 'Demo Data Cleared — Production Ready' : 'Demo Data Management'}</p>
+                    <p className="font-medium">{isDemoReseedingDisabled ? 'Demo Data Cleared â€” Production Ready' : 'Demo Data Management'}</p>
                     <p className="mt-1">{isDemoReseedingDisabled ? 'Demo data has been cleared to transition to production.' : 'Populate the database with realistic school data across 12 modules.'}</p>
                   </div>
                 </div>

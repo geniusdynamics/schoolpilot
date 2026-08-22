@@ -1,19 +1,5 @@
 import React from 'react';
-import {
-  CurrencyDollarIcon,
-  TicketIcon,
-  PlusIcon,
-  ReceiptRefundIcon,
-  BanknotesIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  CreditCardIcon,
-  BuildingOfficeIcon,
-  ChartBarIcon,
-  ArrowRightIcon,
-  ClockIcon,
-  ExclamationCircleIcon,
-} from '@/components/ui/icons';
+import { CurrencyDollarIcon, TicketIcon, ReceiptRefundIcon, BanknotesIcon, ArrowUpIcon, ArrowDownIcon, CreditCardIcon, BuildingOfficeIcon, ArrowRightIcon, ClockIcon, ExclamationCircleIcon } from '@/components/ui/icons';
 import BarChart from '@/components/ui/BarChart';
 import DonutChart from '@/components/ui/DonutChart';
 import Card from '@/components/ui/Card';
@@ -382,7 +368,7 @@ export const FinanceDashboardPageContent: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={() => window.location.href = '/finance/fee-collection-summary'}
+              onClick={() => window.location.hash = '#/finance/fee-collection-summary'}
               className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors flex items-center justify-center gap-2"
             >
               View Collection Report <ArrowRightIcon className="h-4 w-4" />

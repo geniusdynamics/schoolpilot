@@ -248,7 +248,7 @@ const StudentMasterlistPage: React.FC = () => {
             
             <Select
               value={classFilter}
-              onChange={setClassFilter}
+              onChange={(e) => setClassFilter(e.target.value)}
               className="w-36"
             >
               <option value="all">{t('allClasses')}</option>
@@ -259,7 +259,7 @@ const StudentMasterlistPage: React.FC = () => {
             
             <Select
               value={streamFilter}
-              onChange={setStreamFilter}
+              onChange={(e) => setStreamFilter(e.target.value)}
               className="w-36"
             >
               <option value="all">{t('allStreams')}</option>
@@ -270,7 +270,7 @@ const StudentMasterlistPage: React.FC = () => {
             
             <Select
               value={statusFilter}
-              onChange={setStatusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
               className="w-36"
             >
               <option value="all">{t('allStatuses')}</option>
@@ -281,7 +281,7 @@ const StudentMasterlistPage: React.FC = () => {
             
             <Select
               value={genderFilter}
-              onChange={setGenderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
               className="w-32"
             >
               <option value="all">{t('allGenders')}</option>
@@ -328,7 +328,7 @@ const StudentMasterlistPage: React.FC = () => {
         )}
         
         <div className="mt-4 text-sm text-gray-500 text-right">
-          {t('showing')} {filteredData.length} {t('of')} {data.length} {t('students')}
+          {t('showing')} {filteredData.length} {t('of')} {data.length} {t('studentsCountLabel')}
         </div>
       </Card>
     </div>

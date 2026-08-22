@@ -3,19 +3,18 @@ import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
-import { DocumentTextIcon, CalendarIcon, UserIcon, DownloadIcon, PrinterIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockExamGazettes } from '../data/mockData';
 import type { ExamGazette } from '../data/types';
+import { logger } from '@/utils/logging';
+import { DocumentTextIcon, DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 
 export const ExamGazettePageContent: React.FC = () => {
-  const { t } = useTranslation('academics');
-  const { examSessions, classes, loading } = useAppData();
+  const { loading } = useAppData();
 
   const [selectedSession, setSelectedSession] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
 
   // Use centralized mock data (in production, this would come from useAppData)
   const mockGazettes: ExamGazette[] = useMemo(() => {
@@ -33,12 +32,12 @@ export const ExamGazettePageContent: React.FC = () => {
   }, [selectedSession, selectedClass]);
 
   const handlePrint = (gazette: ExamGazette) => {
-    console.log('Printing gazette:', gazette.id);
+    logger.info('Printing gazette:', gazette.id);
     // In production, this would trigger print dialog
   };
 
   const handleDownload = (gazette: ExamGazette) => {
-    console.log('Downloading gazette:', gazette.id);
+    logger.info('Downloading gazette:', gazette.id);
     // In production, this would download PDF
   };
 
@@ -159,8 +158,6 @@ export const ExamGazettePageContent: React.FC = () => {
         <DataGrid
           data={mockGazettes}
           columns={columns}
-          searchable={false}
-          exportable={true}
         />
 
         {/* Detailed Gazette View */}

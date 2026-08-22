@@ -2,16 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useAppData } from '@/hooks/useAppData';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
-import Button from '@/components/ui/Button';
 import { DocumentTextIcon, CalendarIcon, UserIcon, ChartBarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockAttendanceReports } from '../data/mockData';
 import type { AttendanceReport } from '../data/types';
 
 export const AttendanceReportsContent: React.FC = () => {
-  const { t } = useTranslation('administration');
-  const { students, classes, loading } = useAppData();
+
+  const { loading } = useAppData();
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [selectedClass, setSelectedClass] = useState('');

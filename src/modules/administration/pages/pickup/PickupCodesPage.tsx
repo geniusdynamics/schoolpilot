@@ -9,14 +9,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormActions from '@/components/ui/forms/FormActions';
 import FormField from '@/components/ui/forms/FormField';
 import Spinner from '@/components/ui/Spinner';
-import {
-  PlusIcon,
-  EyeIcon,
-  CopyIcon,
-  XCircleIcon,
-  MagnifyingGlassIcon,
-  TicketIcon,
-} from '@/components/ui/icons';
+import { PlusIcon, CopyIcon, XCircleIcon, MagnifyingGlassIcon, TicketIcon } from '@/components/ui/icons';
 import { usePickupData } from '../../data/pickup/usePickupData';
 import { PickupCode, PickupCodeStatus } from '../../data/pickup/types';
 import { useToast } from '@/hooks/useToast';

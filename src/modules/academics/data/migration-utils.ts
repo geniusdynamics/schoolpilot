@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logging';
+
 // ABOUTME: Migration utility class for transforming legacy database data to new SP3 schema
 // ABOUTME: Implements transformation rules defined in Phase 4 data schema mapping
 
@@ -85,7 +87,7 @@ export class AcademicsMigrationUtils {
 
   /**
    * Transform legacy examination to new exam session
-   * Rule TR-01: Term + Year → school_period_id
+   * Rule TR-01: Term + Year â†’ school_period_id
    */
   static transformExaminationToExamSession(
     legacyExam: LegacyExamination,
@@ -95,7 +97,7 @@ export class AcademicsMigrationUtils {
       id: this.generateMigrationUUID('examinations', legacyExam.id.toString()),
       name: legacyExam.ExamName,
       school_period_id: schoolPeriodId,
-      status: types.ExamSessionStatus.COMPLETED, // Default status for legacy data
+      status: types.ExamSessionStatus.PUBLISHED, // Default status for legacy (completed) data
       result_publication_date: legacyExam.last_date_of_entry || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -116,7 +118,7 @@ export class AcademicsMigrationUtils {
       subject_code: legacySubject.subject_code,
       abbreviation: this.extractAbbreviation(legacySubject.subject_code),
       name: legacySubject.subject_name,
-      department_id: departmentId || null,
+      department_id: departmentId != null ? departmentId.toString() : null,
       is_compulsory: this.determineIfCompulsory(legacySubject.subject_name),
       grouping: this.determineSubjectGrouping(legacySubject.subject_name),
       department_name: null, // Will be populated via join
@@ -173,7 +175,7 @@ export class AcademicsMigrationUtils {
 
   /**
    * Transform subject column marks to student paper marks
-   * Rule TR-02: Split Subject Marks → StudentPaperMark Rows
+   * Rule TR-02: Split Subject Marks â†’ StudentPaperMark Rows
    */
   static transformSubjectMarksToStudentPaperMarks(
     legacyResult: LegacyExamResult,
@@ -292,11 +294,11 @@ export class AcademicsMigrationUtils {
     const humanitiesSubjects = ['History', 'Geography', 'English', 'Kiswahili'];
     
     if (scienceSubjects.some(subject => subjectName.toLowerCase().includes(subject.toLowerCase()))) {
-      return types.SubjectGrouping.SCIENCES;
+      return types.SubjectGrouping.GROUP_2_SCIENCES;
     } else if (humanitiesSubjects.some(subject => subjectName.toLowerCase().includes(subject.toLowerCase()))) {
-      return types.SubjectGrouping.HUMANITIES;
+      return types.SubjectGrouping.GROUP_3_HUMANITIES;
     } else {
-      return types.SubjectGrouping.APPLIED;
+      return types.SubjectGrouping.GROUP_4_TECHNICALS;
     }
   }
 
@@ -309,7 +311,7 @@ export class AcademicsMigrationUtils {
     entityType: string
   ): boolean {
     if (originalCount !== transformedCount) {
-      console.error(`Data integrity check failed for ${entityType}: Original: ${originalCount}, Transformed: ${transformedCount}`);
+      logger.error(`Data integrity check failed for ${entityType}: Original: ${originalCount}, Transformed: ${transformedCount}`);
       return false;
     }
     return true;
@@ -348,7 +350,7 @@ export class AcademicsMigrationUtils {
       results.push(...batchResults);
       
       // Log progress
-      console.log(`Processed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(items.length / batchSize)}`);
+      logger.info(`Processed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(items.length / batchSize)}`);
     }
     
     return results;

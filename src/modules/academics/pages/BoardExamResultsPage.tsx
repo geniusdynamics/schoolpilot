@@ -6,15 +6,14 @@ import Button from '@/components/ui/Button';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
-import FormActions from '@/components/ui/forms/FormActions';
-import { DocumentTextIcon, CalendarIcon, UserIcon, PlusIcon } from '@/components/ui/icons';
+
 import Spinner from '@/components/ui/Spinner';
-import { useTranslation } from 'react-i18next';
 import { initialMockBoardExamResults } from '../data/mockData';
 import type { BoardExamResult } from '../data/types';
+import { logger } from '@/utils/logging';
+import { DocumentTextIcon, PlusIcon } from '@/components/ui/icons';
 
 export const BoardExamResultsPageContent: React.FC = () => {
-  const { t } = useTranslation('academics');
   const { students, loading } = useAppData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,7 +90,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
       alert('Student and subject are required.');
       return;
     }
-    console.log('Saving board exam result:', formData);
+    logger.info('Saving board exam result:', formData);
     closeModal();
   };
 

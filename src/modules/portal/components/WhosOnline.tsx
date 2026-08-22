@@ -56,7 +56,6 @@ export const WhosOnline: React.FC<WhosOnlineProps> = ({
     }
   }, [t, activeTab]);
 
-  const onlineCount = users.filter(u => u.isOnline).length;
 
   return (
     <PortalWidgetCard

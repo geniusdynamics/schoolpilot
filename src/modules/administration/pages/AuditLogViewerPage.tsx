@@ -1,7 +1,7 @@
 // ABOUTME: Audit Log Viewer Page - displays audit log entries
 // ABOUTME: Provides filtering, search, and detailed view of audit entries
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
@@ -319,7 +319,7 @@ const AuditLogViewerPage: React.FC = () => {
             
             <Select
               value={actionFilter}
-              onChange={setActionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
               className="w-36"
             >
               <option value="all">{t('allActions')}</option>
@@ -330,7 +330,7 @@ const AuditLogViewerPage: React.FC = () => {
             
             <Select
               value={tableFilter}
-              onChange={setTableFilter}
+              onChange={(e) => setTableFilter(e.target.value)}
               className="w-36"
             >
               <option value="all">{t('allTables')}</option>
@@ -341,7 +341,7 @@ const AuditLogViewerPage: React.FC = () => {
             
             <Select
               value={userFilter}
-              onChange={setUserFilter}
+              onChange={(e) => setUserFilter(e.target.value)}
               className="w-36"
             >
               <option value="all">{t('allUsers')}</option>

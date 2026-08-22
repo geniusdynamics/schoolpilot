@@ -11,6 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { initialMockAutoSMSSettings } from '../data/mockData';
 import type { AutoSMSSetting, TriggerType, RecipientType } from '../data/types';
+import { logger } from '@/utils/logging';
 
 export const AutoSMSSettingsContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -85,12 +86,12 @@ export const AutoSMSSettingsContent: React.FC = () => {
       alert('Trigger name and template are required.');
       return;
     }
-    console.log('Saving auto-SMS setting:', formData);
+    logger.info('Saving auto-SMS setting:', formData);
     closeModal();
   };
 
   const toggleEnabled = (setting: AutoSMSSetting) => {
-    console.log('Toggling setting:', setting.id, !setting.is_enabled);
+    logger.info('Toggling setting:', setting.id, !setting.is_enabled);
   };
 
   const getTriggerBadge = (type: TriggerType) => {

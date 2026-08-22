@@ -5,7 +5,6 @@ import { CogIcon, CheckIcon, XMarkIcon, ShieldCheckIcon, ExclamationTriangleIcon
 import Button from '@/components/ui/Button';
 import DataGrid from '@/components/ui/data/DataGrid';
 import type { DataGridColumn } from '@/components/ui/data/DataGrid';
-import DialogForm from '@/components/ui/forms/DialogForm';
 import { FormSection, FormField, FormActions } from '@/components/ui/forms';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -14,6 +13,7 @@ import { useRBAC } from '@/hooks/useRBAC';
 import { moduleConfigService } from '@/services/module/moduleConfigService';
 import { moduleRegistry } from '@/core/moduleRegistry';
 import { ModuleDefinition } from '@/core/types';
+import { logger } from '@/utils/logging';
 
 interface ModuleStatus {
   id: string;
@@ -51,7 +51,7 @@ export const ModuleManagementContent: React.FC = () => {
   const canViewPermissions = hasPermission('permissions.view') || isSuperAdmin;
 
   // Debug logging
-  console.log('[ModuleManagement DEBUG] Permission checks:', {
+  logger.info('[ModuleManagement DEBUG] Permission checks:', {
     canViewModules,
     canManageModules,
     canConfigureModules,
@@ -124,7 +124,7 @@ export const ModuleManagementContent: React.FC = () => {
 
       setModules(moduleStatuses);
     } catch (error) {
-      console.error('Failed to load modules:', error);
+      logger.error('Failed to load modules:', error);
       setModules([]); // Set empty array on error
     } finally {
       setLoading(false);
@@ -178,7 +178,7 @@ export const ModuleManagementContent: React.FC = () => {
       await loadModules();
       
     } catch (error) {
-      console.error('Failed to toggle module:', error);
+      logger.error('Failed to toggle module:', error);
       alert(t('moduleManagement.toggleError'));
     } finally {
       setProcessingModule(null);

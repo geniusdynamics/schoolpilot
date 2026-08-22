@@ -1,16 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  AcademicCapIcon,
-  ChartBarIcon,
-  UsersIcon,
-  BookOpenIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  MagnifyingGlassIcon,
-} from '@/components/ui/icons';
+import { AcademicCapIcon, ChartBarIcon, UsersIcon, BookOpenIcon, CheckCircleIcon, ArrowUpIcon, MagnifyingGlassIcon } from '@/components/ui/icons';
 import Card from '@/components/ui/Card';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';

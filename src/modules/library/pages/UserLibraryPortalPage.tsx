@@ -10,13 +10,11 @@ import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useTranslation } from 'react-i18next';
-import Spinner from '@/components/ui/Spinner';
-import { LibLoanType, LibrarySettingsType } from '@/modules/library/data/types';
 
 export const UserLibraryPortalPageContent: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
-  const { data: loans, extendLoan, returnBook, isLoading, getOverdueLoans } = useLoanData();
-  const { data: librarySettings, getSettingsByUserType } = useLibrarySettingsData();
+  const { data: loans, extendLoan, returnBook, isLoading } = useLoanData();
+  const { data: librarySettings } = useLibrarySettingsData();
   const { showSuccess, showError, showWarning, showInfo } = useToastHelpers();
   const { t } = useTranslation(['library', 'common']);
 
@@ -148,7 +146,7 @@ export const UserLibraryPortalPageContent: React.FC = () => {
         return (
           <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
             {new Date(item.due_date).toLocaleDateString()}
-            {isOverdue && <span className="ml-1">⚠️</span>}
+            {isOverdue && <span className="ml-1">âš ï¸</span>}
           </span>
         );
       },
