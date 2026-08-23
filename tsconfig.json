@@ -40,6 +40,8 @@
   "exclude": [
     "node_modules",
     "dist",
-    "scripts"
+    "scripts",
+    "src/scripts/archive",
+    "src/components/__demos__"
   ]
 }
