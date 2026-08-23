@@ -5,7 +5,8 @@
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import DataGrid, { DataGridColumn } from '@/components/ui/data/DataGrid';
-import { screen } from '@testing-library/react';
+import { screen, within, waitFor } from '@testing-library/react';
+import { logger } from '@/utils/logging';
 
 interface TestData {
   id: number;
@@ -433,5 +434,209 @@ describe('DataGrid', () => {
       expect(container.querySelector('table')).toBeInTheDocument();
       expect(screen.getAllByRole('row')).toHaveLength(101); // 1 header + 100 data rows
     }, 10000); // Increase timeout to 10 seconds
+  });
+
+  describe('v2 — Internal pagination', () => {
+    const pageData = Array.from({ length: 25 }, (_, i) => ({
+      id: i + 1,
+      name: `Row ${i + 1}`,
+      email: `row${i + 1}@example.com`,
+      status: true,
+      score: i
+    }));
+
+    it('slices data per page and navigates when Next/Previous are clicked', async () => {
+      const user = userEvent.setup();
+
+      render(<DataGrid columns={basicColumns} data={pageData} pagination={{ pageSize: 10 }} />);
+
+      expect(screen.getByText('Row 1')).toBeInTheDocument();
+      expect(screen.queryByText('Row 11')).not.toBeInTheDocument();
+
+      // Desktop controls are the second of each pair
+      await user.click(screen.getAllByText('Next')[1]);
+
+      await waitFor(() => {
+        expect(screen.getByText('Row 11')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Row 1')).not.toBeInTheDocument();
+      expect(screen.getByText('2 / 3')).toBeInTheDocument();
+
+      await user.click(screen.getAllByText('Previous')[1]);
+      await waitFor(() => {
+        expect(screen.getByText('Row 1')).toBeInTheDocument();
+      });
+    });
+
+    it('changes page size via the size changer', async () => {
+      const user = userEvent.setup();
+
+      render(<DataGrid columns={basicColumns} data={pageData} pagination={{ pageSize: 10 }} />);
+
+      await user.selectOptions(screen.getByLabelText('Rows per page'), '25');
+
+      await waitFor(() => {
+        expect(screen.getByText('Row 25')).toBeInTheDocument();
+      });
+      expect(screen.getByText('1 / 1')).toBeInTheDocument();
+    });
+
+    it('resets to page 1 when a filter is applied', async () => {
+      const user = userEvent.setup();
+
+      render(<DataGrid columns={basicColumns} data={pageData} pagination={{ pageSize: 10 }} />);
+
+      await user.click(screen.getAllByText('Next')[1]);
+      await waitFor(() => expect(screen.getByText('Row 11')).toBeInTheDocument());
+
+      await user.click(screen.getByText('Filters'));
+      await user.type(screen.getByPlaceholderText('Filter name...'), 'Row 2');
+
+      await waitFor(() => {
+        expect(screen.getByText('1 / 1')).toBeInTheDocument();
+      });
+    });
+
+    it('delegates to onPageChange in controlled mode', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+
+      render(
+        <DataGrid
+          columns={basicColumns}
+          data={pageData}
+          pagination={{ page: 1, pageSize: 10, total: 25, onPageChange }}
+        />
+      );
+
+      await user.click(screen.getAllByText('Next')[1]);
+      expect(onPageChange).toHaveBeenCalledWith(2);
+    });
+  });
+
+  describe('v2 — Key-based selection', () => {
+    it('keeps selection on the same rows after sorting', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <DataGrid columns={basicColumns} data={mockData} selectable={true} />
+      );
+
+      const johnRow = screen.getByText('John Doe').closest('tr')!;
+      await user.click(within(johnRow).getByRole('checkbox'));
+
+      // Sort by name asc: Bob, Jane, John — John moves to the last row
+      await user.click(screen.getByText('Name').closest('th')!);
+
+      const sortedJohnRow = screen.getByText('John Doe').closest('tr')!;
+      expect(within(sortedJohnRow).getByRole('checkbox')).toBeChecked();
+
+      // First data row (Bob) is not selected
+      const firstDataRow = screen.getAllByRole('row')[1];
+      expect(within(firstDataRow).getByRole('checkbox')).not.toBeChecked();
+    });
+
+    it('select-all respects active filters', async () => {
+      const user = userEvent.setup();
+      const onSelectionChange = vi.fn();
+
+      render(
+        <DataGrid
+          columns={basicColumns}
+          data={mockData}
+          selectable={true}
+          onSelectionChange={onSelectionChange}
+        />
+      );
+
+      await user.click(screen.getByText('Filters'));
+      await user.type(screen.getByPlaceholderText('Filter name...'), 'Jane');
+
+      await waitFor(() => {
+        expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
+      });
+
+      await user.click(screen.getAllByRole('checkbox')[0]);
+
+      expect(onSelectionChange).toHaveBeenCalledWith([mockData[1]]);
+    });
+
+    it('drops selections for rows removed from the data', async () => {
+      const user = userEvent.setup();
+
+      const { rerender } = render(
+        <DataGrid columns={basicColumns} data={mockData} selectable={true} />
+      );
+
+      // Select Bob (mockData[2], id 3)
+      const bobRow = screen.getByText('Bob Johnson').closest('tr')!;
+      await user.click(within(bobRow).getByRole('checkbox'));
+      expect(within(bobRow).getByRole('checkbox')).toBeChecked();
+
+      // Keep John + Jane, drop Bob
+      rerender(
+        <DataGrid
+          columns={basicColumns}
+          data={[mockData[0], mockData[1]]}
+          selectable={true}
+        />
+      );
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      expect(checkboxes).toHaveLength(3); // header + 2 rows
+      expect(checkboxes[1]).not.toBeChecked();
+      expect(checkboxes[2]).not.toBeChecked();
+      expect(checkboxes[0]).not.toBeChecked();
+    });
+
+    it('warns once in dev when rows lack the key field', async () => {
+      const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+      const noKeyData = [
+        { name: 'No Id Row', email: 'noid@example.com', status: true, score: 1 },
+        { name: 'Another Row', email: 'another@example.com', status: false, score: 2 }
+      ];
+
+      render(
+        <DataGrid
+          columns={basicColumns.filter(c => c.key !== 'id')}
+          data={noKeyData}
+          selectable={true}
+        />
+      );
+
+      await userEvent.setup().click(screen.getAllByRole('checkbox')[1]);
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("missing the key field 'id'")
+      );
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('v2 — Column contract', () => {
+    it('applies minWidth alongside width', () => {
+      const columns: DataGridColumn<TestData>[] = [
+        { key: 'name', header: 'Name', width: 200, minWidth: 160 }
+      ];
+
+      render(<DataGrid columns={columns} data={mockData} />);
+
+      const header = screen.getByRole('columnheader');
+      expect(header).toHaveStyle({ width: '200px', 'min-width': '160px' });
+    });
+
+    it('uses auto table layout when no column sets a width', () => {
+      render(<DataGrid columns={basicColumns} data={mockData} />);
+      expect(screen.getByRole('table')).toHaveStyle({ 'table-layout': 'auto' });
+    });
+
+    it('uses fixed table layout when any column sets a width', () => {
+      const columns: DataGridColumn<TestData>[] = [
+        { key: 'id', header: 'ID', width: 80 },
+        { key: 'name', header: 'Name' }
+      ];
+      render(<DataGrid columns={columns} data={mockData} />);
+      expect(screen.getByRole('table')).toHaveStyle({ 'table-layout': 'fixed' });
+    });
   });
 });
