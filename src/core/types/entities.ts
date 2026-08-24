@@ -153,7 +153,8 @@ export interface Class {
 
 export interface ClassStream {
     id: number;
-    class_id: number;
+    /** Owning class. String ids are the post-normalization runtime reality. */
+    class_id: number | string;
     name: string;
     class_teacher_id?: string | null;
     // Denormalized

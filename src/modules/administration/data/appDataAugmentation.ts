@@ -69,13 +69,13 @@ declare module '@/core/types' {
     updateStaff: (id: string, data: Partial<Staff>) => Promise<Staff>;
     deleteStaff: (id: string) => Promise<void>;
     // Class CRUD
-    addClass: (data: Omit<Class, 'id'>) => Promise<Class>;
-    updateClass: (data: Class) => Promise<Class>;
-    deleteClass: (id: number) => Promise<void>;
+    addClass: (data: Omit<Class, 'id' | 'created_at' | 'updated_at'>) => Promise<Class>;
+    updateClass: (id: string, data: Partial<Class>) => Promise<Class>;
+    deleteClass: (id: string) => Promise<void>;
     // Class Stream CRUD
-    addClassStream: (classId: number, data: Omit<ClassStream, 'id' | 'class_id'>) => Promise<ClassStream>;
-    updateClassStream: (data: ClassStream) => Promise<ClassStream>;
-    deleteClassStream: (id: number) => Promise<void>;
+    addClassStream: (data: Omit<ClassStream, 'id' | 'created_at' | 'updated_at'>) => Promise<ClassStream>;
+    updateClassStream: (id: string, data: Partial<ClassStream>) => Promise<ClassStream>;
+    deleteClassStream: (id: string) => Promise<void>;
     // Department CRUD
     addDepartment: (data: Omit<Department, 'id'>) => Promise<Department>;
     updateDepartment: (id: string, data: Partial<Department>) => Promise<Department>;

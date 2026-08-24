@@ -84,8 +84,7 @@ export const ClassesContent: React.FC = () => {
   const [editingStream, setEditingStream] = useState<ClassStream | null>(null);
   const [selectedClassForStream, setSelectedClassForStream] = useState<SchoolClass | null>(null);
 
-  // Page actions - use usePageActions with proper dependency management
-  const { registerActions, unregisterAction } = usePageActions();
+  // Page actions hook (actions are registered by child hub components)
 
   // Memoize action definitions to prevent infinite loops
   const baseActions = useMemo((): ActionDefinition[] => {
@@ -105,7 +104,7 @@ export const ClassesContent: React.FC = () => {
         id: 'add-stream',
         label: t('classes.addStreamButton'),
         icon: 'plus',
-        onClick: () => openStreamModal(null, selectedClassForStream),
+        onClick: () => openStreamModal(undefined, selectedClassForStream),
         variant: 'secondary'
       });
     }
@@ -165,7 +164,7 @@ export const ClassesContent: React.FC = () => {
         return;
     }
     if (editingClass) {
-        await updateClass({ ...editingClass, name: classFormData.name });
+        await updateClass(editingClass.id, { name: classFormData.name });
     } else {
         await addClass({ name: classFormData.name });
     }
@@ -183,9 +182,9 @@ export const ClassesContent: React.FC = () => {
         class_teacher_id: streamFormData.class_teacher_id || undefined,
     };
     if (editingStream) {
-        await updateClassStream({ ...editingStream, ...payload });
+        await updateClassStream(editingStream.id, payload);
     } else {
-        await addClassStream(selectedClassForStream.id, payload);
+        await addClassStream({ ...payload, class_id: selectedClassForStream.id });
     }
     closeStreamModal();
   };
@@ -210,7 +209,7 @@ export const ClassesContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 80,
-      render: (value, item) => item.id
+      render: (_value, item) => item.id
     },
     { 
       key: 'name',
@@ -218,14 +217,14 @@ export const ClassesContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => item.name
+      render: (_value, item) => item.name
     },
     { 
       key: 'streamCount',
       header: t('tableHeaders.streamCount'), 
       sortable: true,
       width: 120,
-      render: (value, item) => item.streams?.length || resolvedClassStreams.filter(cs => cs.class_id === item.id).length
+      render: (_value, item) => item.streams?.length || resolvedClassStreams.filter(cs => cs.class_id === item.id).length
     },
     {
       key: 'actions',
@@ -253,7 +252,7 @@ export const ClassesContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 80,
-      render: (value, item) => item.id
+      render: (_value, item) => item.id
     },
     { 
       key: 'name',
@@ -261,7 +260,7 @@ export const ClassesContent: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 200,
-      render: (value, item) => item.name
+      render: (_value, item) => item.name
     },
     { 
       key: 'class_teacher_name',
