@@ -78,7 +78,7 @@ export const SchoolPeriodsContent: React.FC = () => {
     };
 
     if (editingPeriod) {
-      await updateSchoolPeriod(String(editingPeriod.id), payload);
+      await updateSchoolPeriod(editingPeriod.id, payload);
     } else {
       await addSchoolPeriod(payload);
     }
