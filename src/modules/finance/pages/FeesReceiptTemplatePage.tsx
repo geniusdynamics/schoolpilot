@@ -10,11 +10,12 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { PrinterIcon, DocumentTextIcon, EyeIcon, PlusIcon, TrashIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
+import { fileToImageDataUrl, ImageUploadError } from '@/services/storage/imageUpload';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { ReceiptTemplate } from '../data/types';
 import { logger } from '@/utils/logging';
-import { useToast } from '@/hooks/useToast';
 
 export const FeesReceiptTemplatePageContent: React.FC = () => {
   const { t } = useTranslation('finance');
@@ -67,6 +68,24 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
     const checkbox = e.target as HTMLInputElement;
     const val = checkbox.type === 'checkbox' ? checkbox.checked : value;
     setFormData(prev => ({ ...prev, [name]: val }));
+  };
+
+  // Logo upload — size/type-guarded data URL stored in logo_url (2.6)
+  const handleLogoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const dataUrl = await fileToImageDataUrl(file);
+      setFormData(prev => ({ ...prev, logo_url: dataUrl }));
+      toast.showSuccess('Logo uploaded. Save the template to keep it.');
+    } catch (error) {
+      if (error instanceof ImageUploadError) {
+        toast.showWarning(error.message);
+      } else {
+        toast.showError('Failed to read the logo image.');
+      }
+    }
   };
 
   const toast = useToast();
@@ -268,13 +287,22 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
             />
           </FormField>
 
-          <FormField label="Logo URL">
-            <Input
-              name="logo_url"
-              value={formData.logo_url || ''}
-              onChange={handleInputChange}
-              placeholder="URL to school logo image"
-            />
+          <FormField label="School Logo">
+            <div className="space-y-2">
+              {formData.logo_url && (
+                <img src={formData.logo_url} alt="School logo preview" className="h-12 w-auto rounded border border-gray-200 bg-white p-1" />
+              )}
+              <Input
+                name="logo_url"
+                value={formData.logo_url || ''}
+                onChange={handleInputChange}
+                placeholder="Paste an image URL or upload below"
+              />
+              <label className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 cursor-pointer">
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={handleLogoSelected} />
+                Upload logo (max 2 MB)
+              </label>
+            </div>
           </FormField>
 
           <FormField label="Set as Default">

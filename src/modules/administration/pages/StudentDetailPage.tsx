@@ -8,12 +8,39 @@ import Tabs from '@/components/ui/Tabs';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import { UserCircleIcon, AcademicCapIcon, EnvelopeIcon, PhoneIcon, DownloadIcon, MessageIcon, EditIcon, CurrencyDollarIcon, PrinterIcon } from '@/components/ui/icons';
+import { CameraIcon } from '@heroicons/react/24/outline';
+import { useToast } from '@/hooks/useToast';
+import { fileToImageDataUrl, ImageUploadError } from '@/services/storage/imageUpload';
 
 const StudentDetailPage: React.FC = () => {
   const { studentId } = useParams<{ studentId: string }>();
-  const { getStudentDetailsById } = useAppData();
+  const { getStudentDetailsById, updateStudent } = useAppData() as any;
+  const toast = useToast();
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [studentProfile, setStudentProfile] = useState<StudentDetailProfile | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(true);
+
+  // Photo upload — size/type-guarded data URL persisted on the student record (2.6)
+  const handlePhotoSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = ''; // allow re-selecting the same file
+    if (!file || !studentProfile) return;
+    try {
+      setIsUploadingPhoto(true);
+      const dataUrl = await fileToImageDataUrl(file);
+      await updateStudent(String(studentProfile.id ?? studentId), { photo_path: dataUrl });
+      setStudentProfile(prev => prev ? { ...prev, photo_path: dataUrl } : prev);
+      toast.showSuccess('Profile photo updated.');
+    } catch (error) {
+      if (error instanceof ImageUploadError) {
+        toast.showWarning(error.message);
+      } else {
+        toast.showError('Failed to update profile photo.');
+      }
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -217,6 +244,11 @@ const StudentDetailPage: React.FC = () => {
                 ) : (
                   <UserCircleIcon className="w-32 h-32 text-gray-300 mx-auto mb-4" />
                 )}
+                <label className={`inline-flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 cursor-pointer ${isUploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <CameraIcon className="w-4 h-4" />
+                  {isUploadingPhoto ? 'Uploading…' : 'Change photo'}
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={handlePhotoSelected} disabled={isUploadingPhoto} />
+                </label>
                 <h2 className="text-xl font-semibold text-gray-800">{fullName}</h2>
                 <p className="text-sm text-gray-500">ID: {admission_no}</p>
                 <p className="text-sm text-indigo-600 font-medium flex items-center justify-center mt-1">
