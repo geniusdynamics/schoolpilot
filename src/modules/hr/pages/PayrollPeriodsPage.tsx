@@ -14,6 +14,7 @@ import FormActions from '@/components/ui/forms/FormActions';
 import type { PayrollPeriod } from '@/modules/hr/data/types';
 import { logger } from '@/utils/logging';
 
+import { formatKES, formatDate } from '@/utils/format';
 type PayrollPeriodFormData = Omit<Partial<PayrollPeriod>, 'id' | 'created_at' | 'updated_at'>;
 
 export const PayrollPeriodsPageContent: React.FC = () => {
@@ -189,12 +190,12 @@ export const PayrollPeriodsPageContent: React.FC = () => {
     { 
       header: t('tableHeaders.startDate'), 
       key: 'start_date' as keyof PayrollPeriod,
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value: string) => value ? formatDate(value) : '-'
     },
     { 
       header: t('tableHeaders.endDate'), 
       key: 'end_date' as keyof PayrollPeriod,
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value: string) => value ? formatDate(value) : '-'
     },
     { header: t('tableHeaders.status'), key: 'status' as keyof PayrollPeriod, render: (value: string) => getStatusBadge(value) },
     {

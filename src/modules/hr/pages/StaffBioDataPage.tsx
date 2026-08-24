@@ -7,7 +7,8 @@ import { UserIcon, PlusIcon, AcademicCapIcon, BriefcaseIcon, DocumentTextIcon, C
 import Spinner from '@/components/ui/Spinner';
 import { initialMockStaffBioData } from '../data/mockData';
 import type { StaffBioData, Qualification, EmploymentHistory, Contract, PerformanceReview } from '../data/types';
-
+
+import { formatKES, formatDate } from '@/utils/format';
 export const StaffBioDataPageContent: React.FC = () => {
 
   const { loading } = useAppData();
@@ -119,7 +120,7 @@ export const StaffBioDataPageContent: React.FC = () => {
         <Card>
           <div className="flex justify-between items-center mb-4">
             <Button onClick={() => setSelectedStaff(null)} variant="secondary">
-              â† Back to Staff List
+              Ã¢â€ Â Back to Staff List
             </Button>
             <h2 className="text-xl font-bold text-gray-800">{selectedStaff.name}</h2>
           </div>
@@ -165,7 +166,7 @@ export const StaffBioDataPageContent: React.FC = () => {
               <div><span className="font-medium">Staff ID:</span> {selectedStaff.staff_id}</div>
               <div><span className="font-medium">Designation:</span> {selectedStaff.designation}</div>
               <div><span className="font-medium">Department:</span> {selectedStaff.department}</div>
-              <div><span className="font-medium">Date of Birth:</span> {new Date(selectedStaff.date_of_birth).toLocaleDateString()}</div>
+              <div><span className="font-medium">Date of Birth:</span> {formatDate(selectedStaff.date_of_birth)}</div>
               <div><span className="font-medium">Gender:</span> {selectedStaff.gender}</div>
               <div><span className="font-medium">Marital Status:</span> {selectedStaff.marital_status}</div>
               <div><span className="font-medium">Blood Group:</span> {selectedStaff.blood_group}</div>
@@ -223,7 +224,7 @@ export const StaffBioDataPageContent: React.FC = () => {
                         <h4 className="font-semibold text-gray-800">{emp.position}</h4>
                         <p className="text-sm text-gray-600">{emp.organization}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(emp.start_date).toLocaleDateString()} - {emp.end_date ? new Date(emp.end_date).toLocaleDateString() : 'Present'}
+                          {formatDate(emp.start_date)} - {emp.end_date ? formatDate(emp.end_date) : 'Present'}
                         </p>
                         {emp.reason_for_leaving && (
                           <p className="text-xs text-gray-500 mt-1">Reason: {emp.reason_for_leaving}</p>
@@ -255,9 +256,9 @@ export const StaffBioDataPageContent: React.FC = () => {
                       <div>
                         <h4 className="font-semibold text-gray-800">{contract.contract_type}</h4>
                         <p className="text-sm text-gray-600">
-                          {new Date(contract.start_date).toLocaleDateString()} - {new Date(contract.end_date).toLocaleDateString()}
+                          {formatDate(contract.start_date)} - {formatDate(contract.end_date)}
                         </p>
-                        <p className="text-sm text-gray-700 font-semibold">KES {contract.salary.toLocaleString()}</p>
+                        <p className="text-sm text-gray-700 font-semibold">KES {contract.formatKES(salary)}</p>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           contract.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                         }`}>
@@ -291,7 +292,7 @@ export const StaffBioDataPageContent: React.FC = () => {
                         <h4 className="font-semibold text-gray-800">{review.review_period}</h4>
                         <p className="text-sm text-gray-600">Rating: {review.rating}/5.0</p>
                         <p className="text-sm text-gray-600">Reviewer: {review.reviewer}</p>
-                        <p className="text-sm text-gray-600">Date: {new Date(review.date).toLocaleDateString()}</p>
+                        <p className="text-sm text-gray-600">Date: {formatDate(review.date)}</p>
                         <p className="text-sm text-gray-700 mt-2 italic">"{review.comments}"</p>
                       </div>
                       <Button size="sm" variant="secondary">

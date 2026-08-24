@@ -14,6 +14,7 @@ import FormActions from '@/components/ui/forms/FormActions';
 import type { StaffSalaryComponent } from '@/types';
 import { logger } from '@/utils/logging';
 
+import { formatKES, formatDate } from '@/utils/format';
 interface SalaryComponentFormData {
   staff_id: number | null;
   component_name: string;
@@ -222,12 +223,12 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
     { 
       header: t('tableHeaders.amount'), 
       key: 'amount' as keyof StaffSalaryComponent,
-      render: (value: number) => value?.toLocaleString() || '0'
+      render: (value: number) => formatKES(value)
     },
     { 
       header: t('tableHeaders.effectiveFrom'), 
       key: 'effective_from' as keyof StaffSalaryComponent,
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value: string) => value ? formatDate(value) : '-'
     },
     { header: t('tableHeaders.status'), key: 'is_active' as keyof StaffSalaryComponent, render: (value: boolean) => (
       <span className={`px-2 py-1 text-xs rounded-full ${value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>

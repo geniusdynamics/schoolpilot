@@ -15,6 +15,7 @@ import type { Staff } from '@/core/types';
 import type { Payslip, PayrollPeriod } from '@/modules/hr/data/types';
 import { logger } from '@/utils/logging';
 
+import { formatKES, formatDate } from '@/utils/format';
 interface GeneratePayslipFormData {
   staff_id: number | null;
   period_id: number | null;
@@ -167,12 +168,12 @@ export const PayslipsPageContent: React.FC = () => {
     { 
       header: t('tableHeaders.netSalary'), 
       key: 'net_salary' as keyof Payslip,
-      render: (value: number) => value?.toLocaleString() || '0'
+      render: (value: number) => formatKES(value)
     },
     { 
       header: t('tableHeaders.paymentDate'), 
       key: 'payment_date' as keyof Payslip,
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value: string) => value ? formatDate(value) : '-'
     },
     { header: t('tableHeaders.status'), key: 'status' as keyof Payslip },
     {
@@ -299,7 +300,7 @@ export const PayslipsPageContent: React.FC = () => {
               <div>
                 <span className="text-sm text-gray-500">{t('fields.paymentDate')}:</span>
                 <p className="font-medium">
-                  {selectedPayslip.payment_date ? new Date(selectedPayslip.payment_date).toLocaleDateString() : '-'}
+                  {selectedPayslip.payment_date ? formatDate(selectedPayslip.payment_date) : '-'}
                 </p>
               </div>
               <div>
@@ -308,19 +309,19 @@ export const PayslipsPageContent: React.FC = () => {
               </div>
               <div>
                 <span className="text-sm text-gray-500">{t('fields.basicSalary')}:</span>
-                <p className="font-medium">{selectedPayslip.basic_salary?.toLocaleString() || '0'}</p>
+                <p className="font-medium">{formatKES(selectedPayslip.basic_salary)}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-500">{t('fields.totalEarnings')}:</span>
-                <p className="font-medium text-green-600">{selectedPayslip.total_earnings?.toLocaleString() || '0'}</p>
+                <p className="font-medium text-green-600">{formatKES(selectedPayslip.total_earnings)}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-500">{t('fields.totalDeductions')}:</span>
-                <p className="font-medium text-red-600">{selectedPayslip.total_deductions?.toLocaleString() || '0'}</p>
+                <p className="font-medium text-red-600">{formatKES(selectedPayslip.total_deductions)}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-500">{t('fields.netSalary')}:</span>
-                <p className="font-medium text-primary-600">{selectedPayslip.net_salary?.toLocaleString() || '0'}</p>
+                <p className="font-medium text-primary-600">{formatKES(selectedPayslip.net_salary)}</p>
               </div>
             </div>
             {selectedPayslip.notes && (
