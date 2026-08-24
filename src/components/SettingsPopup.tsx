@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useDynamicNavigation } from '@/hooks/useDynamicNavigation';
 import { useTabs } from '@/hooks/tabs';
 // Removed unused HookErrorHandler import
-import { HookErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
+import HookErrorBoundary from './HookErrorBoundary';
 import { SettingsSkeleton } from './ModuleLoadingFallback';
 import { logger } from '@/utils/logging';
 

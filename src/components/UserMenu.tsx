@@ -13,7 +13,6 @@ import { SyncStatusComponent } from './OfflineCapability';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import HookErrorBoundary from './HookErrorBoundary';
 // Removed: import { safeDeps, HookErrorHandler } from '@/utils/hookUtils';
-import { HookErrorBoundary as ErrorBoundary } from './ErrorBoundary/HookErrorBoundary';
 
 interface UserMenuProps {
   onSettingsClick?: () => void;
@@ -192,9 +191,9 @@ const UserMenuContent: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
 
 const UserMenu: React.FC<UserMenuProps> = ({ onSettingsClick }) => {
   return (
-    <ErrorBoundary componentName="UserMenu">
+    <HookErrorBoundary componentName="UserMenu">
       <UserMenuContent onSettingsClick={onSettingsClick} />
-    </ErrorBoundary>
+    </HookErrorBoundary>
   );
 };
 

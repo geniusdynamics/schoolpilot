@@ -1,15 +1,15 @@
 // src/modules/academics/pages/EducationSystemConfigPage.tsx
 
 import React from 'react';
-import EducationSystemForm from '@/components/EducationSystemForm';
+import EducationSystemForm from '../components/EducationSystemForm';
 
 export const EducationSystemConfigPageContent: React.FC<any> = ({ editingSystem, onSave, onCancel }) => {
   return (
     <div>
-      <EducationSystemForm 
-        initialValues={editingSystem} 
-        onSubmit={onSave} 
-        onCancel={onCancel} 
+      <EducationSystemForm
+        initialData={editingSystem}
+        onSave={onSave}
+        onCancel={onCancel}
       />
     </div>
   );

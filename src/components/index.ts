@@ -23,9 +23,6 @@ export { default as TopOverflowMenu } from './TopOverflowMenu';
 // --- Error Boundaries ---
 export {
   ErrorBoundary,
-  ApplicationErrorBoundary,
-  ModuleErrorBoundary,
-  DatabaseErrorBoundary,
   DatabaseInitializationFallback,
   DatabaseToastProvider,
   useDatabaseToast,
@@ -33,7 +30,6 @@ export {
   withHookErrorBoundary,
   useErrorHandler,
   PageErrorBoundary,
-  NavigationErrorBoundary,
 } from './ErrorBoundary/index';
 
 // --- Tabbed Workspace ---

@@ -4,11 +4,14 @@ import { logger } from '@/utils/logging';
 // ABOUTME: Provides fallback UI and error recovery for hook order violations and module loading issues
 
 import { Component, ErrorInfo, ReactNode } from 'react';
+import * as React from 'react';
 import { AlertTriangleIcon, RefreshCwIcon } from "./ui/icons";
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  /** Human-readable component name used in logs and the fallback message. */
+  componentName?: string;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
@@ -63,7 +66,7 @@ class HookErrorBoundary extends Component<Props, State> {
     }
 
     // Log the error for debugging
-    logger.error('Hook Error Boundary caught an error:', error, errorInfo);
+    logger.error(`[HookErrorBoundary] Error in ${this.props.componentName || 'component'}:`, error, errorInfo);
 
     // Auto-retry for hook errors (they might be transient due to module loading)
     if (this.state.retryCount < this.maxRetries) {
@@ -113,7 +116,9 @@ class HookErrorBoundary extends Component<Props, State> {
             </div>
             
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Component Loading Error
+              {this.props.componentName
+                ? `An error occurred in the ${this.props.componentName} component.`
+                : 'Component Loading Error'}
             </h2>
             
             <p className="text-gray-600 mb-4">
@@ -154,5 +159,45 @@ class HookErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+// Named export for `import { HookErrorBoundary } from ...` call sites
+export { HookErrorBoundary };
+
+// Higher-order component for wrapping components with an error boundary
+export const withHookErrorBoundary = <P extends object>(
+  WrappedComponent: React.ComponentType<P>,
+  componentName?: string,
+  fallback?: ReactNode
+) => {
+  const WithErrorBoundary = (props: P) => (
+    <HookErrorBoundary
+      componentName={componentName || WrappedComponent.displayName || WrappedComponent.name}
+      fallback={fallback}
+    >
+      <WrappedComponent {...props} />
+    </HookErrorBoundary>
+  );
+
+  WithErrorBoundary.displayName = `withHookErrorBoundary(${componentName || WrappedComponent.displayName || WrappedComponent.name})`;
+
+  return WithErrorBoundary;
+};
+
+// Hook for handling errors in functional components
+export const useErrorHandler = () => {
+  const handleError = React.useCallback((error: Error, context?: string) => {
+    logger.error(`[useErrorHandler] ${context || 'Component'} error:`, {
+      error: error.message,
+      stack: error.stack
+    });
+
+    // In development, throw so error boundaries can pick it up
+    if (process.env.NODE_ENV === 'development') {
+      throw error;
+    }
+  }, []);
+
+  return { handleError };
+};
 
 export default HookErrorBoundary;
