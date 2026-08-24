@@ -6,7 +6,8 @@ import SettingsPopup from '../SettingsPopup';
 
 const openTabMock = vi.fn();
 
-vi.mock('../ErrorBoundary/HookErrorBoundary', () => ({
+vi.mock('../HookErrorBoundary', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   HookErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 

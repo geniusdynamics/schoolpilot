@@ -4,7 +4,7 @@ import {
   ChevronDownIcon,
   GlobeAltIcon,
 } from '@heroicons/react/24/outline';
-import { HookErrorBoundary } from '../ErrorBoundary/HookErrorBoundary';
+import HookErrorBoundary from '../HookErrorBoundary';
 import { logger } from '@/utils/logging';
 
 const LanguageSwitcherContent: React.FC = () => {
@@ -15,15 +15,15 @@ const LanguageSwitcherContent: React.FC = () => {
   const languages = useMemo(() => {
     try {
       return [
-        { code: 'en', name: 'English', flag: '🇺🇸' },
-        { code: 'fr', name: 'Français', flag: '🇫🇷' },
-        { code: 'es', name: 'Español', flag: '🇪🇸' },
-        { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-        { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-        { code: 'pt', name: 'Português', flag: '🇵🇹' },
-        { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-        { code: 'sw', name: 'Kiswahili', flag: '🇹🇿' },
-        { code: 'rw', name: 'Kinyarwanda', flag: '🇷🇼' }
+        { code: 'en', name: 'English', flag: 'ðŸ‡ºðŸ‡¸' },
+        { code: 'fr', name: 'FranÃ§ais', flag: 'ðŸ‡«ðŸ‡·' },
+        { code: 'es', name: 'EspaÃ±ol', flag: 'ðŸ‡ªðŸ‡¸' },
+        { code: 'de', name: 'Deutsch', flag: 'ðŸ‡©ðŸ‡ª' },
+        { code: 'it', name: 'Italiano', flag: 'ðŸ‡®ðŸ‡¹' },
+        { code: 'pt', name: 'PortuguÃªs', flag: 'ðŸ‡µðŸ‡¹' },
+        { code: 'nl', name: 'Nederlands', flag: 'ðŸ‡³ðŸ‡±' },
+        { code: 'sw', name: 'Kiswahili', flag: 'ðŸ‡¹ðŸ‡¿' },
+        { code: 'rw', name: 'Kinyarwanda', flag: 'ðŸ‡·ðŸ‡¼' }
       ];
     } catch (error) {
       logger.error('[LanguageSwitcher] Error creating languages array:', error);
@@ -64,10 +64,10 @@ const LanguageSwitcherContent: React.FC = () => {
     try {
       const currentLang = (ready && i18n?.language) || 'en';
       const foundLanguage = languages.find(lang => lang && lang.code === currentLang);
-      return foundLanguage || languages[0] || { code: 'en', name: 'English', flag: '🇺🇸' };
+      return foundLanguage || languages[0] || { code: 'en', name: 'English', flag: 'ðŸ‡ºðŸ‡¸' };
     } catch (error) {
       logger.error('[LanguageSwitcher] Error finding current language:', error);
-      return { code: 'en', name: 'English', flag: '🇺🇸' };
+      return { code: 'en', name: 'English', flag: 'ðŸ‡ºðŸ‡¸' };
     }
   }, [ready, i18n?.language, languages]);
 
