@@ -9,7 +9,7 @@ Ratchet reference: [phase0-baseline.md](./phase0-baseline.md).
 | --- | --- |
 | Phase 0 baseline | 4,206 |
 | After Phase 0 (tsconfig excludes, i18n) | 4,135 |
-| End of Phase 1a–1d + Phase 2 + 3.1/3.3 | **~4,025** |
+| End of Phase 3 (+2 batches of Phase 1a) | **~3,971** |
 
 ## Build gate
 
@@ -75,15 +75,21 @@ LanguageSwitcher/HookErrorBoundary repoint fix (`0c50642`).
   ResultApprovalDashboard deleted (was unreferenced).
 - 2.8 Kenyan subject seeds (CBC primary + KCSE secondary) + KCSE template.
 
-### Phase 3 — Data-entry overhaul 🚧 (2 of 7 batches)
-- 3.3 ClassesPage done (id typing, provider-signature alignment, augmentation
-  types corrected to provider reality, ClassStream.class_id widened for string ids).
-- 3.1 AddStudentPage done: both `as any` casts removed; provider `addStudent`
-  now persists the primary guardian + relationship (was silently dropped).
-  Alert-validation already converted to toasts in 1b.5.
-- Remaining: StudentsListPage quick-edit modal (3.2), academic-year pages
-  (3.4), fee pages consistency pass (3.5), staff typed params (3.6),
-  exam/marks pages (3.7).
+### Phase 3 — Data-entry overhaul ✅ (all 7 batches)
+- 3.1 AddStudentPage: both `as any` casts removed; provider `addStudent`
+  persists the primary guardian + relationship (was silently dropped).
+- 3.2 StudentsListPage: quick-edit rebuilt on EntityForm; fixed broken
+  `updateStudent(student)` arity (saves were no-ops); removed dead generic
+  quick-edit config wiring and the off-theme hand-rolled slideout.
+- 3.3 ClassesPage: id typing, provider-signature alignment, augmentation types
+  corrected to provider reality, `ClassStream.class_id` widened for string ids.
+- 3.4 AcademicYears / SchoolPeriods / AcademicPeriodDefinitions /
+  AcademicStructure pages: EntityForm conversions with cross-field date
+  validation; period-definition & structure CRUD wired to real context
+  functions (previously referenced non-existent members); formatDate adopted.
+- 3.5 Fee/report pages: formatKES/formatDate across 17 pages (23 call sites).
+- 3.6 HR payroll/payslip/biodata pages: same adoption (18 sites).
+- 3.7 Exam results/gazette/tokens pages: formatDate.
 
 ## Phase 4 — Not started
 
