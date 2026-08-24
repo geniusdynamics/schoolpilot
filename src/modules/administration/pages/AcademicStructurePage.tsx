@@ -57,7 +57,7 @@ const AcademicStructurePage: React.FC = () => {
     const payload = { name: formData.name! };
 
     if (editingStructure) {
-      await updateAcademicYearStructure({ ...editingStructure, ...payload });
+      await updateAcademicYearStructure(String(editingStructure.id), payload);
     } else {
       await addAcademicYearStructure(payload);
     }
@@ -65,9 +65,9 @@ const AcademicStructurePage: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => { 
+  const handleDelete = async (id: number | string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this academic structure? This might affect related period definitions and academic years.' }))) {
-      await deleteAcademicYearStructure(id);
+      await deleteAcademicYearStructure(String(id));
     }
   };
 
@@ -78,7 +78,7 @@ const AcademicStructurePage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 80,
-      render: (value, item) => item.id
+      render: (_value, item) => item.id
     },
     { 
       key: 'name',
@@ -86,7 +86,7 @@ const AcademicStructurePage: React.FC = () => {
       sortable: true,
       filterable: true,
       width: 300,
-      render: (value, item) => item.name
+      render: (_value, item) => item.name
     },
     {
       key: 'actions',
@@ -95,7 +95,7 @@ const AcademicStructurePage: React.FC = () => {
       filterable: false,
       width: 200,
       sticky: 'right',
-      render: (value, item) => (
+      render: (_value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>

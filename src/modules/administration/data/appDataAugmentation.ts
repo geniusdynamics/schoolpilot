@@ -41,6 +41,9 @@ declare module '@/core/types' {
     academicYears: AcademicYear[];
     schoolPeriods: SchoolPeriod[];
     academicYearStructures: AcademicYearStructure[];
+    addAcademicYearStructure: (data: any) => Promise<any>;
+    updateAcademicYearStructure: (id: string, data: any) => Promise<any>;
+    deleteAcademicYearStructure: (id: string) => Promise<void>;
     academicPeriodDefinitions: AcademicPeriodDefinition[];
     timetablePeriodDefs: TimetablePeriodDef[];
     // Administration-specific entities
