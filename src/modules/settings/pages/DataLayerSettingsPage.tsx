@@ -1,6 +1,6 @@
 ﻿import { logger } from '@/utils/logging';
 
-// ABOUTME: Settings page for data layer configuration and mode management
+// ABOUTME: Cog6ToothIcon page for data layer configuration and mode management
 // ABOUTME: Provides comprehensive interface for database provider settings and mode switching
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -9,7 +9,12 @@ import { BackendConfiguration } from '@/components/BackendConfiguration';
 import { backendArchitecture, type BackendType } from '@/config/backendArchitecture';
 import { useDataMode } from '@/hooks/useDataMode';
 import { getDatabaseOptionsForMode, getBackendOptionsForModeAndProvider, normalizeProvider, resolveConsolidatedConfigurationOption, type ApplicationSettingsMode, type BackendIntegrationType } from '@/config/dataLayerConfig';
-import { Settings, Info, RefreshCw, AlertTriangle } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  Cog6ToothIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useAppData } from '@/hooks/useAppData';
@@ -256,8 +261,8 @@ export const DataLayerSettingsContent: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex items-center space-x-3">
-        <Settings className="w-6 h-6" />
-        <h1 className="text-2xl font-bold">Data Layer Settings</h1>
+        <Cog6ToothIcon className="w-6 h-6" />
+        <h1 className="text-2xl font-bold">Data Layer Cog6ToothIcon</h1>
       </div>
 
       {isLoading && (
@@ -271,7 +276,7 @@ export const DataLayerSettingsContent: React.FC = () => {
 
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex w-full">
-          {[{ id: 'mode', label: 'Configuration', icon: Settings }, { id: 'sync', label: 'Sync Management', icon: RefreshCw }].map(({ id, label, icon: Icon }) => (
+          {[{ id: 'mode', label: 'Configuration', icon: Cog6ToothIcon }, { id: 'sync', label: 'Sync Management', icon: ArrowPathIcon }].map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setActiveTab(id as any)}
               className={`flex-1 py-2 px-1 border-b-2 font-medium text-sm ${activeTab === id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
               <div className="flex items-center justify-center space-x-2">
@@ -344,7 +349,7 @@ export const DataLayerSettingsContent: React.FC = () => {
                   {isSwitchToDemoBlocked && (
                     <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
                       <div className="flex items-start space-x-2">
-                        <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <ExclamationTriangleIcon className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                         <div className="text-amber-800">
                           <p className="font-medium">Production Mode Locked</p>
                           <p className="mt-1">Demo data has been cleared to transition to production. Switching back to demo mode is permanently disabled to prevent accidental data loss.</p>
@@ -381,7 +386,7 @@ export const DataLayerSettingsContent: React.FC = () => {
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start space-x-2">
-                  <Info className="w-4 h-4 text-blue-600 mt-0.5" />
+                  <InformationCircleIcon className="w-4 h-4 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-800">
                     <p className="font-medium">Consolidation Notes</p>
                     <p className="mt-1">Demo mode groups browser demo and local development database options under one application mode.</p>
@@ -402,7 +407,7 @@ export const DataLayerSettingsContent: React.FC = () => {
 
               <div className={`border rounded-lg p-4 ${isDemoReseedingDisabled ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
                 <div className="flex items-start space-x-2 mb-3">
-                  <Info className={`w-4 h-4 mt-0.5 ${isDemoReseedingDisabled ? 'text-amber-600' : 'text-green-600'}`} />
+                  <InformationCircleIcon className={`w-4 h-4 mt-0.5 ${isDemoReseedingDisabled ? 'text-amber-600' : 'text-green-600'}`} />
                   <div className={`text-sm ${isDemoReseedingDisabled ? 'text-amber-800' : 'text-green-800'}`}>
                     <p className="font-medium">{isDemoReseedingDisabled ? 'Demo Data Cleared â€” Production Ready' : 'Demo Data Management'}</p>
                     <p className="mt-1">{isDemoReseedingDisabled ? 'Demo data has been cleared to transition to production.' : 'Populate the database with realistic school data across 12 modules.'}</p>

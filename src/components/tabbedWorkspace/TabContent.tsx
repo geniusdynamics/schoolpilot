@@ -2,7 +2,10 @@
 // ABOUTME: Supports multiple content types, RBAC validation, and responsive design
 
 import React, { useCallback, useMemo } from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  ExclamationCircleIcon,
+} from '@heroicons/react/24/outline';
 import { Tab } from '@/types/tabbedWorkspace';
 import { useTabStore } from '@/stores/tabStore';
 import { cn } from '@/utils/cn';
@@ -44,7 +47,7 @@ export const TabContent: React.FC<TabContentProps> = ({
   const renderAccessDenied = useCallback(() => (
     <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-700 min-h-[400px]">
       <div className="text-center px-4">
-        <AlertCircle className="w-12 h-12 mx-auto mb-4" />
+        <ExclamationCircleIcon className="w-12 h-12 mx-auto mb-4" />
         <p className="text-lg font-medium mb-2">Access Denied</p>
         <p className="text-sm">You don't have permission to view this tab</p>
         <p className="text-xs mt-2 text-yellow-600">
@@ -58,7 +61,7 @@ export const TabContent: React.FC<TabContentProps> = ({
   const renderLoading = useCallback(() => (
     <div className="flex-1 flex items-center justify-center bg-gray-50 min-h-[400px]">
       <div className="text-center">
-        <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+        <ArrowPathIcon className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
         <p className="text-gray-600">Loading content...</p>
         <p className="text-sm text-gray-500 mt-1">{tab.title}</p>
       </div>
@@ -95,7 +98,7 @@ export const TabContent: React.FC<TabContentProps> = ({
         }
         return (
           <div className="text-center text-gray-500 py-8">
-            <AlertCircle className="w-8 h-8 mx-auto mb-4" />
+            <ExclamationCircleIcon className="w-8 h-8 mx-auto mb-4" />
             <p className="text-sm">Component not found</p>
           </div>
         );
@@ -215,7 +218,7 @@ export const TabContent: React.FC<TabContentProps> = ({
                 <span className="text-blue-500 text-xs" title="Pinned tab">📌</span>
               )}
               {tab.isLoading && (
-                <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
+                <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-500" />
               )}
             </div>
           </div>

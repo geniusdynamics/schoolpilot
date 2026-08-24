@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, Globe } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  GlobeAltIcon,
+} from '@heroicons/react/24/outline';
 import { HookErrorBoundary } from '../ErrorBoundary/HookErrorBoundary';
 import { logger } from '@/utils/logging';
 
@@ -72,7 +75,7 @@ const LanguageSwitcherContent: React.FC = () => {
   if (!ready || !i18n) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700">
-        <Globe className="w-4 h-4" />
+        <GlobeAltIcon className="w-4 h-4" />
         <span className="text-sm font-medium">Loading...</span>
       </div>
     );
@@ -86,7 +89,7 @@ const LanguageSwitcherContent: React.FC = () => {
     >
       <span className="text-sm" style={{ fontFamily: '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif' }}>{currentLanguage.flag}</span>
       <span className="text-sm font-medium">{currentLanguage.name}</span>
-      <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      <ChevronDownIcon className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
     </button>
     
     {isOpen && (

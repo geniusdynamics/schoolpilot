@@ -3,7 +3,12 @@
 
 import React, { ReactNode } from 'react';
 import { Box, Alert as MuiAlert, AlertTitle, AlertProps as MuiAlertProps } from '@mui/material';
-import { AlertTriangle, CheckCircle, Info, XCircle } from 'lucide-react';
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline';
 
 interface AlertProps {
   variant?: 'default' | 'destructive' | 'success' | 'warning';
@@ -33,13 +38,13 @@ const getAlertSeverity = (variant: AlertProps['variant']): MuiAlertProps['severi
 const getAlertIcon = (variant: AlertProps['variant']) => {
   switch (variant) {
     case 'destructive':
-      return <XCircle className="h-4 w-4" />;
+      return <XCircleIcon className="h-4 w-4" />;
     case 'success':
-      return <CheckCircle className="h-4 w-4" />;
+      return <CheckCircleIcon className="h-4 w-4" />;
     case 'warning':
-      return <AlertTriangle className="h-4 w-4" />;
+      return <ExclamationTriangleIcon className="h-4 w-4" />;
     default:
-      return <Info className="h-4 w-4" />;
+      return <InformationCircleIcon className="h-4 w-4" />;
   }
 };
 

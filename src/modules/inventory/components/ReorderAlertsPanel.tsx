@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Alert, AlertDescription, Tabs, TabsContent, TabsList, TabsTrigger, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '@/components/ui';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import {
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  RefreshCw,
-  Settings,
-  ShoppingCart,
-  X,
-  Bell,
-  TrendingDown,
-  Package
-} from 'lucide-react';
+  ArchiveBoxIcon,
+  ArrowPathIcon,
+  ArrowTrendingDownIcon,
+  BellIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  ExclamationTriangleIcon,
+  ShoppingCartIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
@@ -66,13 +66,13 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'HIGH':
-        return <AlertTriangle className="h-4 w-4" />;
+        return <ExclamationTriangleIcon className="h-4 w-4" />;
       case 'MEDIUM':
-        return <Clock className="h-4 w-4" />;
+        return <ClockIcon className="h-4 w-4" />;
       case 'LOW':
-        return <TrendingDown className="h-4 w-4" />;
+        return <ArrowTrendingDownIcon className="h-4 w-4" />;
       default:
-        return <Package className="h-4 w-4" />;
+        return <ArchiveBoxIcon className="h-4 w-4" />;
     }
   };
 
@@ -156,7 +156,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
             handleDismissAlert(alert.item_id);
           }}
         >
-          <X className="h-4 w-4" />
+          <XMarkIcon className="h-4 w-4" />
         </Button>
       )
     }
@@ -167,7 +167,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
+          <BellIcon className="h-5 w-5" />
           <h2 className="text-lg font-semibold">{t('reorderAlerts.title')}</h2>
           {totalAlertsCount > 0 && (
             <Badge variant="destructive">{totalAlertsCount}</Badge>
@@ -180,7 +180,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
             onClick={refreshAlerts}
             disabled={isLoading}
           >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <ArrowPathIcon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             {t('common.refresh')}
           </Button>
           <Button
@@ -189,14 +189,14 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
             onClick={checkReorderRequirements}
             disabled={isLoading}
           >
-            <Package className="h-4 w-4" />
+            <ArchiveBoxIcon className="h-4 w-4" />
             {t('reorderAlerts.checkAll')}
           </Button>
           {showSettings && (
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4" />
+                  <Cog6ToothIcon className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -237,7 +237,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
       {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
+          <ExclamationTriangleIcon className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -248,7 +248,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-red-500" />
+                <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />
                 <div>
                   <div className="text-2xl font-bold">{monitoringResult.items_below_reorder_point}</div>
                   <div className="text-sm text-muted-foreground">{t('reorderAlerts.summary.itemsBelowReorder')}</div>
@@ -259,7 +259,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-blue-500" />
+                <ArchiveBoxIcon className="h-4 w-4 text-blue-500" />
                 <div>
                   <div className="text-2xl font-bold">{monitoringResult.total_items_monitored}</div>
                   <div className="text-sm text-muted-foreground">{t('reorderAlerts.summary.totalMonitored')}</div>
@@ -270,7 +270,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-orange-500" />
+                <BellIcon className="h-4 w-4 text-orange-500" />
                 <div>
                   <div className="text-2xl font-bold">{totalAlertsCount}</div>
                   <div className="text-sm text-muted-foreground">{t('reorderAlerts.summary.activeAlerts')}</div>
@@ -281,7 +281,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-green-500" />
+                <ClockIcon className="h-4 w-4 text-green-500" />
                 <div>
                   <div className="text-sm font-medium">{t('reorderAlerts.summary.lastCheck')}</div>
                   <div className="text-sm text-muted-foreground">
@@ -302,7 +302,7 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
         <CardContent>
           {totalAlertsCount === 0 ? (
             <div className="text-center py-8">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+              <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-lg font-medium">{t('reorderAlerts.noAlerts.title')}</h3>
               <p className="text-muted-foreground">{t('reorderAlerts.noAlerts.description')}</p>
             </div>
@@ -408,11 +408,11 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
                 variant="destructive"
                 onClick={() => handleDismissAlert(selectedAlert.item_id)}
               >
-                <X className="h-4 w-4 mr-2" />
+                <XMarkIcon className="h-4 w-4 mr-2" />
                 {t('reorderAlerts.dismissAlert')}
               </Button>
               <Button>
-                <ShoppingCart className="h-4 w-4 mr-2" />
+                <ShoppingCartIcon className="h-4 w-4 mr-2" />
                 {t('reorderAlerts.createOrder')}
               </Button>
             </DialogFooter>

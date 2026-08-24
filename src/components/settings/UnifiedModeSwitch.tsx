@@ -6,7 +6,11 @@ import { logger } from '@/utils/logging';
 import React, { useState, useEffect } from 'react';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { getDataModeManager, DataMode, DataModeStatus } from '@/services/data/dataModeManager';
-import { CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 
 interface UnifiedModeSwitchProps {
   className?: string;
@@ -173,13 +177,13 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
         )}
         {isLoading && (
           <div className="flex items-center space-x-2 text-blue-600">
-            <RefreshCw className="w-4 h-4 animate-spin" />
+            <ArrowPathIcon className="w-4 h-4 animate-spin" />
             <span className="text-sm">Switching modes...</span>
           </div>
         )}
         {error && (
           <div className="flex items-center space-x-2 text-red-600">
-            <AlertTriangle className="w-4 h-4" />
+            <ExclamationTriangleIcon className="w-4 h-4" />
             <span className="text-sm">{error}</span>
           </div>
         )}
@@ -208,7 +212,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
           ))}
         </div>
         {isLoading && (
-          <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+          <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
         )}
       </div>
     );
@@ -221,7 +225,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
       {isLoading && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center space-x-2">
-            <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+            <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
             <span className="text-blue-800">Switching data mode...</span>
           </div>
         </div>
@@ -230,7 +234,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <ExclamationTriangleIcon className="w-4 h-4 text-red-600" />
             <span className="text-red-800">{error}</span>
           </div>
         </div>
@@ -250,7 +254,7 @@ export const UnifiedModeSwitch: React.FC<UnifiedModeSwitchProps> = ({
           >
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium capitalize">{mode}</h4>
-              {currentMode === mode && <CheckCircle className="w-5 h-5 text-blue-500" />}
+              {currentMode === mode && <CheckCircleIcon className="w-5 h-5 text-blue-500" />}
             </div>
             {showDescription && (
               <p className="text-sm text-gray-600">{getModeDescription(mode)}</p>

@@ -1,52 +1,50 @@
 ﻿import { logger } from '@/utils/logging';
 
 import {
-  BookOpen,
-  Users,
-  DollarSign,
-  UserCheck,
-  Package,
-  Library,
-  UtensilsCrossed,
-  BarChart3,
-  Settings,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  Download,
-  Upload,
-  Search,
-  Filter,
-  RefreshCw,
-  Save,
-  Copy,
-  Share,
-  Print,
-  Calendar,
-  Clock,
-  Mail,
-  Phone,
-  MapPin,
-  FileText,
-  Image,
-  Video,
-  Archive,
-  Star,
-  Heart,
-  Flag,
-  Tag,
-  Link,
-  Lock,
-  Unlock,
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Info,
-  HelpCircle,
-  UserPlus
-} from 'lucide-react';
+  ArchiveBoxIcon,
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  ArrowUpTrayIcon,
+  BookOpenIcon,
+  BuildingLibraryIcon,
+  CakeIcon,
+  CalendarDaysIcon,
+  ChartBarIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  CurrencyDollarIcon,
+  DocumentTextIcon,
+  EnvelopeIcon,
+  ExclamationTriangleIcon,
+  EyeIcon,
+  FlagIcon,
+  FunnelIcon,
+  HeartIcon,
+  InformationCircleIcon,
+  LinkIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+  MagnifyingGlassIcon,
+  MapPinIcon,
+  PencilSquareIcon,
+  PhoneIcon,
+  PhotoIcon,
+  PlusIcon,
+  PrinterIcon,
+  QuestionMarkCircleIcon,
+  ShareIcon,
+  ShieldCheckIcon,
+  Square2StackIcon,
+  StarIcon,
+  TagIcon,
+  TrashIcon,
+  UserCircleIcon,
+  UserPlusIcon,
+  UsersIcon,
+  VideoCameraIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline';
 import type { ActionDefinition } from '../ui/actionRegistry';
 
 // Academics Module Actions
@@ -54,7 +52,7 @@ export const academicsActions: ActionDefinition[] = [
   {
     id: 'academics.create_course',
     label: 'Create Course',
-    icon: 'Plus',
+    icon: 'PlusIcon',
     variant: 'primary',
     module: 'academics',
     submodule: 'courses',
@@ -66,7 +64,7 @@ export const academicsActions: ActionDefinition[] = [
   {
     id: 'academics.view_courses',
     label: 'View Courses',
-    icon: 'BookOpen',
+    icon: 'BookOpenIcon',
     variant: 'secondary',
     module: 'academics',
     submodule: 'courses',
@@ -78,7 +76,7 @@ export const academicsActions: ActionDefinition[] = [
   {
     id: 'academics.manage_grades',
     label: 'Manage Grades',
-    icon: 'BarChart3',
+    icon: 'ChartBarIcon',
     variant: 'secondary',
     module: 'academics',
     submodule: 'grades',
@@ -90,7 +88,7 @@ export const academicsActions: ActionDefinition[] = [
   {
     id: 'academics.schedule_class',
     label: 'Schedule Class',
-    icon: 'Calendar',
+    icon: 'CalendarDaysIcon',
     variant: 'secondary',
     module: 'academics',
     submodule: 'schedule',
@@ -102,7 +100,7 @@ export const academicsActions: ActionDefinition[] = [
   {
     id: 'academics.export_transcript',
     label: 'Export Transcript',
-    icon: 'Download',
+    icon: 'ArrowDownTrayIcon',
     variant: 'secondary',
     module: 'academics',
     submodule: 'transcripts',
@@ -118,7 +116,7 @@ export const administrationActions: ActionDefinition[] = [
   {
     id: 'administration.create_user',
     label: 'Create User',
-    icon: 'UserPlus',
+    icon: 'UserPlusIcon',
     variant: 'primary',
     module: 'administration',
     submodule: 'users',
@@ -130,7 +128,7 @@ export const administrationActions: ActionDefinition[] = [
   {
     id: 'administration.manage_roles',
     label: 'Manage Roles',
-    icon: 'Shield',
+    icon: 'ShieldCheckIcon',
     variant: 'secondary',
     module: 'administration',
     submodule: 'roles',
@@ -142,7 +140,7 @@ export const administrationActions: ActionDefinition[] = [
   {
     id: 'administration.view_audit_log',
     label: 'View Audit Log',
-    icon: 'FileText',
+    icon: 'DocumentTextIcon',
     variant: 'secondary',
     module: 'administration',
     submodule: 'audit',
@@ -153,8 +151,8 @@ export const administrationActions: ActionDefinition[] = [
   },
   {
     id: 'administration.system_settings',
-    label: 'System Settings',
-    icon: 'Settings',
+    label: 'System Cog6ToothIcon',
+    icon: 'Cog6ToothIcon',
     variant: 'secondary',
     module: 'administration',
     submodule: 'settings',
@@ -166,7 +164,7 @@ export const administrationActions: ActionDefinition[] = [
   {
     id: 'administration.backup_data',
     label: 'Backup Data',
-    icon: 'Archive',
+    icon: 'ArchiveBoxIcon',
     variant: 'secondary',
     module: 'administration',
     submodule: 'backup',
@@ -182,7 +180,7 @@ export const financeActions: ActionDefinition[] = [
   {
     id: 'finance.create_invoice',
     label: 'Create Invoice',
-    icon: 'Plus',
+    icon: 'PlusIcon',
     variant: 'primary',
     module: 'finance',
     submodule: 'invoices',
@@ -194,7 +192,7 @@ export const financeActions: ActionDefinition[] = [
   {
     id: 'finance.view_payments',
     label: 'View Payments',
-    icon: 'DollarSign',
+    icon: 'CurrencyDollarIcon',
     variant: 'secondary',
     module: 'finance',
     submodule: 'payments',
@@ -206,7 +204,7 @@ export const financeActions: ActionDefinition[] = [
   {
     id: 'finance.generate_report',
     label: 'Generate Report',
-    icon: 'BarChart3',
+    icon: 'ChartBarIcon',
     variant: 'secondary',
     module: 'finance',
     submodule: 'reports',
@@ -218,7 +216,7 @@ export const financeActions: ActionDefinition[] = [
   {
     id: 'finance.manage_budget',
     label: 'Manage Budget',
-    icon: 'Edit',
+    icon: 'PencilSquareIcon',
     variant: 'secondary',
     module: 'finance',
     submodule: 'budget',
@@ -230,7 +228,7 @@ export const financeActions: ActionDefinition[] = [
   {
     id: 'finance.export_data',
     label: 'Export Financial Data',
-    icon: 'Download',
+    icon: 'ArrowDownTrayIcon',
     variant: 'secondary',
     module: 'finance',
     submodule: 'export',
@@ -246,7 +244,7 @@ export const hrActions: ActionDefinition[] = [
   {
     id: 'hr.create_employee',
     label: 'Create Employee',
-    icon: 'Plus',
+    icon: 'PlusIcon',
     variant: 'primary',
     module: 'hr',
     submodule: 'employees',
@@ -258,7 +256,7 @@ export const hrActions: ActionDefinition[] = [
   {
     id: 'hr.manage_payroll',
     label: 'Manage Payroll',
-    icon: 'DollarSign',
+    icon: 'CurrencyDollarIcon',
     variant: 'secondary',
     module: 'hr',
     submodule: 'payroll',
@@ -270,7 +268,7 @@ export const hrActions: ActionDefinition[] = [
   {
     id: 'hr.view_attendance',
     label: 'View Attendance',
-    icon: 'Clock',
+    icon: 'ClockIcon',
     variant: 'secondary',
     module: 'hr',
     submodule: 'attendance',
@@ -282,7 +280,7 @@ export const hrActions: ActionDefinition[] = [
   {
     id: 'hr.manage_leave',
     label: 'Manage Leave',
-    icon: 'Calendar',
+    icon: 'CalendarDaysIcon',
     variant: 'secondary',
     module: 'hr',
     submodule: 'leave',
@@ -294,7 +292,7 @@ export const hrActions: ActionDefinition[] = [
   {
     id: 'hr.performance_review',
     label: 'Performance Review',
-    icon: 'Star',
+    icon: 'StarIcon',
     variant: 'secondary',
     module: 'hr',
     submodule: 'performance',
@@ -310,7 +308,7 @@ export const inventoryActions: ActionDefinition[] = [
   {
     id: 'inventory.add_item',
     label: 'Add Item',
-    icon: 'Plus',
+    icon: 'PlusIcon',
     variant: 'primary',
     module: 'inventory',
     submodule: 'items',
@@ -322,7 +320,7 @@ export const inventoryActions: ActionDefinition[] = [
   {
     id: 'inventory.view_stock',
     label: 'View Stock',
-    icon: 'Package',
+    icon: 'ArchiveBoxIcon',
     variant: 'secondary',
     module: 'inventory',
     submodule: 'stock',
@@ -334,7 +332,7 @@ export const inventoryActions: ActionDefinition[] = [
   {
     id: 'inventory.update_stock',
     label: 'Update Stock',
-    icon: 'Edit',
+    icon: 'PencilSquareIcon',
     variant: 'secondary',
     module: 'inventory',
     submodule: 'stock',
@@ -346,7 +344,7 @@ export const inventoryActions: ActionDefinition[] = [
   {
     id: 'inventory.generate_report',
     label: 'Generate Report',
-    icon: 'BarChart3',
+    icon: 'ChartBarIcon',
     variant: 'secondary',
     module: 'inventory',
     submodule: 'reports',
@@ -358,7 +356,7 @@ export const inventoryActions: ActionDefinition[] = [
   {
     id: 'inventory.low_stock_alert',
     label: 'Low Stock Alerts',
-    icon: 'AlertTriangle',
+    icon: 'ExclamationTriangleIcon',
     variant: 'secondary',
     module: 'inventory',
     submodule: 'alerts',
@@ -369,12 +367,12 @@ export const inventoryActions: ActionDefinition[] = [
   }
 ];
 
-// Library Module Actions
+// BuildingLibraryIcon Module Actions
 export const libraryActions: ActionDefinition[] = [
   {
     id: 'library.add_book',
     label: 'Add Book',
-    icon: 'Plus',
+    icon: 'PlusIcon',
     variant: 'primary',
     module: 'library',
     submodule: 'books',
@@ -385,8 +383,8 @@ export const libraryActions: ActionDefinition[] = [
   },
   {
     id: 'library.search_catalog',
-    label: 'Search Catalog',
-    icon: 'Search',
+    label: 'MagnifyingGlassIcon Catalog',
+    icon: 'MagnifyingGlassIcon',
     variant: 'secondary',
     module: 'library',
     submodule: 'catalog',
@@ -398,7 +396,7 @@ export const libraryActions: ActionDefinition[] = [
   {
     id: 'library.manage_loans',
     label: 'Manage Loans',
-    icon: 'BookOpen',
+    icon: 'BookOpenIcon',
     variant: 'secondary',
     module: 'library',
     submodule: 'loans',
@@ -410,7 +408,7 @@ export const libraryActions: ActionDefinition[] = [
   {
     id: 'library.overdue_notices',
     label: 'Overdue Notices',
-    icon: 'AlertTriangle',
+    icon: 'ExclamationTriangleIcon',
     variant: 'secondary',
     module: 'library',
     submodule: 'notices',
@@ -422,7 +420,7 @@ export const libraryActions: ActionDefinition[] = [
   {
     id: 'library.digital_resources',
     label: 'Digital Resources',
-    icon: 'Library',
+    icon: 'BuildingLibraryIcon',
     variant: 'secondary',
     module: 'library',
     submodule: 'digital',
@@ -438,7 +436,7 @@ export const nutritionActions: ActionDefinition[] = [
   {
     id: 'nutrition.create_menu',
     label: 'Create Menu',
-    icon: 'Plus',
+    icon: 'PlusIcon',
     variant: 'primary',
     module: 'nutrition',
     submodule: 'menus',
@@ -450,7 +448,7 @@ export const nutritionActions: ActionDefinition[] = [
   {
     id: 'nutrition.view_meals',
     label: 'View Meals',
-    icon: 'UtensilsCrossed',
+    icon: 'CakeIcon',
     variant: 'secondary',
     module: 'nutrition',
     submodule: 'meals',
@@ -462,7 +460,7 @@ export const nutritionActions: ActionDefinition[] = [
   {
     id: 'nutrition.track_allergies',
     label: 'Track Allergies',
-    icon: 'AlertTriangle',
+    icon: 'ExclamationTriangleIcon',
     variant: 'secondary',
     module: 'nutrition',
     submodule: 'allergies',
@@ -474,7 +472,7 @@ export const nutritionActions: ActionDefinition[] = [
   {
     id: 'nutrition.nutrition_report',
     label: 'Nutrition Report',
-    icon: 'BarChart3',
+    icon: 'ChartBarIcon',
     variant: 'secondary',
     module: 'nutrition',
     submodule: 'reports',
@@ -486,7 +484,7 @@ export const nutritionActions: ActionDefinition[] = [
   {
     id: 'nutrition.meal_count',
     label: 'Meal Count',
-    icon: 'Users',
+    icon: 'UsersIcon',
     variant: 'secondary',
     module: 'nutrition',
     submodule: 'count',
@@ -502,7 +500,7 @@ export const reportsActions: ActionDefinition[] = [
   {
     id: 'reports.create_report',
     label: 'Create Report',
-    icon: 'Plus',
+    icon: 'PlusIcon',
     variant: 'primary',
     module: 'reports',
     submodule: 'create',
@@ -514,7 +512,7 @@ export const reportsActions: ActionDefinition[] = [
   {
     id: 'reports.view_dashboard',
     label: 'View Dashboard',
-    icon: 'BarChart3',
+    icon: 'ChartBarIcon',
     variant: 'secondary',
     module: 'reports',
     submodule: 'dashboard',
@@ -526,7 +524,7 @@ export const reportsActions: ActionDefinition[] = [
   {
     id: 'reports.export_data',
     label: 'Export Data',
-    icon: 'Download',
+    icon: 'ArrowDownTrayIcon',
     variant: 'secondary',
     module: 'reports',
     submodule: 'export',
@@ -538,7 +536,7 @@ export const reportsActions: ActionDefinition[] = [
   {
     id: 'reports.schedule_report',
     label: 'Schedule Report',
-    icon: 'Calendar',
+    icon: 'CalendarDaysIcon',
     variant: 'secondary',
     module: 'reports',
     submodule: 'schedule',
@@ -549,8 +547,8 @@ export const reportsActions: ActionDefinition[] = [
   },
   {
     id: 'reports.share_report',
-    label: 'Share Report',
-    icon: 'Share',
+    label: 'ShareIcon Report',
+    icon: 'ShareIcon',
     variant: 'secondary',
     module: 'reports',
     submodule: 'share',
@@ -561,12 +559,12 @@ export const reportsActions: ActionDefinition[] = [
   }
 ];
 
-// Settings Module Actions
+// Cog6ToothIcon Module Actions
 export const settingsActions: ActionDefinition[] = [
   {
     id: 'settings.general',
-    label: 'General Settings',
-    icon: 'Settings',
+    label: 'General Cog6ToothIcon',
+    icon: 'Cog6ToothIcon',
     variant: 'secondary',
     module: 'settings',
     submodule: 'general',
@@ -577,8 +575,8 @@ export const settingsActions: ActionDefinition[] = [
   },
   {
     id: 'settings.security',
-    label: 'Security Settings',
-    icon: 'Shield',
+    label: 'Security Cog6ToothIcon',
+    icon: 'ShieldCheckIcon',
     variant: 'secondary',
     module: 'settings',
     submodule: 'security',
@@ -589,8 +587,8 @@ export const settingsActions: ActionDefinition[] = [
   },
   {
     id: 'settings.notifications',
-    label: 'Notification Settings',
-    icon: 'Mail',
+    label: 'Notification Cog6ToothIcon',
+    icon: 'EnvelopeIcon',
     variant: 'secondary',
     module: 'settings',
     submodule: 'notifications',
@@ -602,7 +600,7 @@ export const settingsActions: ActionDefinition[] = [
   {
     id: 'settings.integrations',
     label: 'Integrations',
-    icon: 'Link',
+    icon: 'LinkIcon',
     variant: 'secondary',
     module: 'settings',
     submodule: 'integrations',
@@ -614,7 +612,7 @@ export const settingsActions: ActionDefinition[] = [
   {
     id: 'settings.backup_restore',
     label: 'Backup & Restore',
-    icon: 'Archive',
+    icon: 'ArchiveBoxIcon',
     variant: 'secondary',
     module: 'settings',
     submodule: 'backup',

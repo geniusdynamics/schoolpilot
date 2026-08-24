@@ -4,7 +4,12 @@
 // ABOUTME: Provides dynamic actions based on active tab context with RBAC integration
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { MoreHorizontal, Search, Settings, RefreshCw } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  Cog6ToothIcon,
+  EllipsisHorizontalIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import { useTabStore } from '../../stores/tabStore';
 import { useActionRegistry, ActionDefinition, ActionContext } from '../../services/ui/actionRegistry';
 import { cn } from '../../utils/cn';
@@ -90,7 +95,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       aria-label={action.label}
     >
       {action.loading ? (
-        <RefreshCw className={cn(getIconSize(), 'animate-spin')} />
+        <ArrowPathIcon className={cn(getIconSize(), 'animate-spin')} />
       ) : (
         action.icon && (
           <span className={getIconSize()}>
@@ -191,7 +196,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
       actions.push({
         id: 'refresh',
         label: 'Refresh',
-        icon: 'RefreshCw',
+        icon: 'ArrowPathIcon',
         tooltip: 'Refresh current tab content',
         variant: 'secondary',
         loading: isRefreshing,
@@ -363,13 +368,13 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
           )}
         </div>
         
-        {/* Search */}
+        {/* MagnifyingGlassIcon */}
         {showSearch && allActions.length > 3 && (
           <div className="relative">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <MagnifyingGlassIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search actions..."
+              placeholder="MagnifyingGlassIcon actions..."
               value={searchQuery}
               onChange={handleSearchChange}
               className="pl-8 pr-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -402,7 +407,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
                 'focus:outline-none focus:ring-2 focus:ring-blue-500'
               )}
             >
-              <MoreHorizontal className="w-4 h-4" />
+              <EllipsisHorizontalIcon className="w-4 h-4" />
             </button>
             
             {showOverflow && (
@@ -426,7 +431,7 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
           </div>
         )}
         
-        {/* Settings button */}
+        {/* Cog6ToothIcon button */}
         {onSettingsClick && (
           <button
             onClick={onSettingsClick}
@@ -435,9 +440,9 @@ export const ContextualActionBar: React.FC<ContextualActionBarProps> = ({
               'text-gray-600 hover:text-gray-800 hover:bg-gray-100',
               'focus:outline-none focus:ring-2 focus:ring-blue-500'
             )}
-            title="Settings"
+            title="Cog6ToothIcon"
           >
-            <Settings className="w-4 h-4" />
+            <Cog6ToothIcon className="w-4 h-4" />
           </button>
         )}
       </div>

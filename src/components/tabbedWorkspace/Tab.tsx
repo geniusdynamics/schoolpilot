@@ -1,7 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 import { createPortal } from 'react-dom';
-import { X, Pin, Star, Copy, ExternalLink, AlertCircle } from 'lucide-react';
+import {
+  ArrowTopRightOnSquareIcon,
+  ExclamationCircleIcon,
+  MapPinIcon,
+  Square2StackIcon,
+  StarIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { cn } from '@/utils/cn';
 import { Tab as TabType } from '@/types/tabbedWorkspace';
 import { HierarchicalTab } from '@/types/hierarchical';
@@ -160,15 +167,15 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   const menuItems = [
     {
       id: 'pin',
-      label: tab.pinned ? 'Unpin Tab' : 'Pin Tab',
-      icon: Pin,
+      label: tab.pinned ? 'Unpin Tab' : 'MapPinIcon Tab',
+      icon: MapPinIcon,
       onClick: onPin,
       shortcut: 'Ctrl+P'
     },
     {
       id: 'favorite',
       label: isFavorite ? 'Unfavorite Tab' : 'Favorite Tab',
-      icon: Star,
+      icon: StarIcon,
       onClick: () => {
         onToggleFavorite?.();
         onClose();
@@ -177,42 +184,42 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     {
       id: 'duplicate',
       label: 'Duplicate Tab',
-      icon: Copy,
+      icon: Square2StackIcon,
       onClick: onDuplicate,
       shortcut: 'Ctrl+D'
     },
     ...(onOpenInNewWindow ? [{
       id: 'newWindow',
       label: 'Open in New Window',
-      icon: ExternalLink,
+      icon: ArrowTopRightOnSquareIcon,
       onClick: onOpenInNewWindow,
       shortcut: 'Ctrl+Shift+N'
     }] : []),
-    { id: 'closeTab', label: 'Close Tab', icon: X, onClick: () => handleAction('close'), shortcut: 'Del' },
+    { id: 'closeTab', label: 'Close Tab', icon: XMarkIcon, onClick: () => handleAction('close'), shortcut: 'Del' },
     { id: 'separator1', type: 'separator' as const },
     {
       id: 'closeOthers',
       label: 'Close Other Tabs',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => handleAction('close-others'),
       shortcut: 'Ctrl+Alt+W'
     },
     {
       id: 'closeToRight',
       label: 'Close Tabs to Right',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => handleAction('close-to-right')
     },
     {
       id: 'closeToLeft',
       label: 'Close Tabs to Left',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => handleAction('close-to-left')
     },
     {
       id: 'closeNonPinned',
       label: 'Close Non-Pinned Tabs',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => {
         if (onCloseAllExceptPinned) onCloseAllExceptPinned();
         else tabStore.closeAllExceptPinned();
@@ -222,7 +229,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     {
       id: 'closeAll',
       label: 'Close All Tabs',
-      icon: X,
+      icon: XMarkIcon,
       onClick: () => handleAction('close-all'),
       shortcut: 'Ctrl+Shift+W'
     }
@@ -409,7 +416,7 @@ export const Tab: React.FC<TabProps> = (props) => {
     
     if ('hasError' in tab && tab.hasError) {
       return (
-        <AlertCircle className="w-3 h-3 text-red-500" />
+        <ExclamationCircleIcon className="w-3 h-3 text-red-500" />
       );
     }
     
@@ -495,7 +502,7 @@ export const Tab: React.FC<TabProps> = (props) => {
         aria-label={`${tab.title} tab${isPinned ? ' (pinned)' : ''}${tab.isDirty ? ' (unsaved changes)' : ''}`}
         title={`${tab.title}${tab.path ? ` - ${tab.path}` : ''}${isPinned ? ' (pinned)' : ''}${tab.isDirty ? ' (unsaved changes)' : ''}`}
       >
-        {/* Pin indicator */}
+        {/* MapPinIcon indicator */}
         {isPinned && (
           <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm z-10" />
         )}
@@ -536,7 +543,7 @@ export const Tab: React.FC<TabProps> = (props) => {
           {!isPinned && (
             <div className="flex-shrink-0 flex items-center gap-1">
               {isTabFavorite && (
-                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                <StarIcon className="w-3 h-3 text-yellow-400 fill-current" />
               )}
               {getStatusIndicator()}
             </div>
@@ -562,7 +569,7 @@ export const Tab: React.FC<TabProps> = (props) => {
               aria-label={`Close ${tab.title} tab`}
               tabIndex={-1}
             >
-              <X className="w-3 h-3" />
+              <XMarkIcon className="w-3 h-3" />
             </button>
           )}
         </div>

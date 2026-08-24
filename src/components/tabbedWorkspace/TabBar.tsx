@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { ChevronLeft, ChevronRight, Plus, MoreHorizontal } from 'lucide-react';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalIcon,
+  PlusIcon,
+} from '@heroicons/react/24/outline';
 import { useTabStore } from '@/stores/tabStore';
 import { Tab as TabComponent } from './Tab';
 import { cn } from '@/utils/cn';
@@ -300,7 +305,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
           )}
           aria-label="Scroll tabs left"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeftIcon className="w-4 h-4" />
         </button>
       )}
 
@@ -380,7 +385,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
           )}
           aria-label="Scroll tabs right"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRightIcon className="w-4 h-4" />
         </button>
       )}
 
@@ -398,7 +403,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
             )}
             aria-label={`${hiddenTabs.length} more tabs`}
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <EllipsisHorizontalIcon className="w-4 h-4" />
             {hiddenTabs.length > 0 && (
               <span className={cn(
                 'absolute -top-1 -right-1 bg-green-500 text-white text-xs',
@@ -466,7 +471,7 @@ const TabBarComponent: React.FC<EnhancedTabBarProps> = ({
           )}
           aria-label="Add new tab"
         >
-          <Plus className="w-4 h-4" />
+          <PlusIcon className="w-4 h-4" />
         </button>
       )}
     </div>

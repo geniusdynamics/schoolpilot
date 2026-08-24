@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
-import { Settings, AlertCircle, RefreshCw } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  Cog6ToothIcon,
+  ExclamationCircleIcon,
+} from '@heroicons/react/24/outline';
 import { TabWorkspaceErrorBoundary } from './TabWorkspaceErrorBoundary';
 import { TabBar } from './TabBar';
 import { ActionBar } from './ActionBar';
@@ -138,7 +142,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
           registerAction({
             id: 'workspace.refresh',
             label: 'Refresh Workspace',
-            icon: RefreshCw,
+            icon: ArrowPathIcon,
             category: 'workspace',
             context: ['workspace'],
             permissions: ['workspace.refresh'],
@@ -155,8 +159,8 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
 
           registerAction({
             id: 'workspace.settings',
-            label: 'Workspace Settings',
-            icon: Settings,
+            label: 'Workspace Cog6ToothIcon',
+            icon: Cog6ToothIcon,
             category: 'workspace',
             context: ['workspace'],
             permissions: ['workspace.settings'],
@@ -360,7 +364,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       return (
         <div className="flex-1 flex items-center justify-center bg-red-50 text-red-600">
           <div className="text-center px-4">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4" />
+            <ExclamationCircleIcon className="w-12 h-12 mx-auto mb-4" />
             <p className="text-lg font-medium mb-2">Tab not found</p>
             <p className="text-sm">The requested tab could not be loaded</p>
           </div>
@@ -373,7 +377,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
       return (
         <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-700">
           <div className="text-center px-4">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4" />
+            <ExclamationCircleIcon className="w-12 h-12 mx-auto mb-4" />
             <p className="text-lg font-medium mb-2">Access Denied</p>
             <p className="text-sm">You don't have permission to view this tab</p>
           </div>
@@ -481,7 +485,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     return (
       <div className="flex items-center justify-center h-64 bg-gray-50">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-green-600" />
+          <ArrowPathIcon className="w-8 h-8 animate-spin mx-auto mb-4 text-green-600" />
           <p className="text-gray-600">Loading workspace...</p>
         </div>
       </div>
@@ -492,7 +496,7 @@ export const TabbedWorkspace: React.FC<TabbedWorkspaceProps> = ({
     return (
       <div className="flex items-center justify-center h-64 bg-red-50">
         <div className="text-center">
-          <AlertCircle className="w-8 h-8 mx-auto mb-4 text-red-600" />
+          <ExclamationCircleIcon className="w-8 h-8 mx-auto mb-4 text-red-600" />
           <p className="text-red-800 font-medium mb-2">Workspace Error</p>
           <p className="text-red-600 text-sm">{error}</p>
           <button

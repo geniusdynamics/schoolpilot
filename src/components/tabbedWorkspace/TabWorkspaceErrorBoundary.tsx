@@ -4,7 +4,9 @@
 // ABOUTME: Provides fallback UI and error handling for tab content failures.
 
 import React, { Component, ErrorInfo } from 'react';
-import { AlertCircle } from 'lucide-react';
+import {
+  ExclamationCircleIcon,
+} from '@heroicons/react/24/outline';
 
 interface Props {
   children: React.ReactNode;
@@ -47,7 +49,7 @@ export class TabWorkspaceErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center h-full p-4 text-red-600 dark:text-red-400">
-          <AlertCircle className="w-12 h-12 mb-4" />
+          <ExclamationCircleIcon className="w-12 h-12 mb-4" />
           <h3 className="text-lg font-semibold mb-2">Tab Content Error</h3>
           <p className="text-sm text-center mb-4 max-w-md">
             {this.state.error?.message || 'An error occurred while rendering this tab content.'}

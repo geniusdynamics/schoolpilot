@@ -5,7 +5,9 @@
  */
 
 import React from 'react';
-import { Globe } from 'lucide-react';
+import {
+  GlobeAltIcon,
+} from '@heroicons/react/24/outline';
 import { useTranslation } from '../useTranslation';
 import {
   DropdownMenu,
@@ -66,7 +68,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
             className={className}
             disabled={isLoading}
           >
-            <Globe className="w-4 h-4 mr-2" />
+            <GlobeAltIcon className="w-4 h-4 mr-2" />
             {showIcons && LOCALE_NAMES[locale]?.flag}
             <span className="ml-2">{LOCALE_NAMES[locale]?.name || locale}</span>
           </Button>

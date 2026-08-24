@@ -12,7 +12,15 @@ import { logger } from '@/utils/logging';
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Database, PlayCircle, ArrowRight, CheckCircle, AlertTriangle, Shield, Zap } from 'lucide-react';
+import {
+  ArrowRightIcon,
+  BoltIcon,
+  CheckCircleIcon,
+  CircleStackIcon,
+  ExclamationTriangleIcon,
+  PlayCircleIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
@@ -206,7 +214,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
         <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 space-y-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
-            <Database className="w-8 h-8 text-blue-600" />
+            <CircleStackIcon className="w-8 h-8 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome to SchoolPilot 3</h1>
           <p className="text-lg text-gray-600 max-w-md mx-auto">
@@ -226,7 +234,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           {/* Logo / Brand */}
           <div className="text-center space-y-4">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100">
-              <Database className="w-8 h-8 text-blue-600" />
+              <CircleStackIcon className="w-8 h-8 text-blue-600" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Welcome to SchoolPilot 3</h1>
             <p className="text-lg text-gray-600 max-w-md mx-auto">
@@ -254,7 +262,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
               className="px-8 py-3 text-lg"
             >
               Get Started
-              <ArrowRight className="ml-2 w-5 h-5" />
+              <ArrowRightIcon className="ml-2 w-5 h-5" />
             </Button>
           </div>
 
@@ -299,19 +307,19 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-100">
-                  <PlayCircle className="w-5 h-5 text-green-600" />
+                  <PlayCircleIcon className="w-5 h-5 text-green-600" />
                 </div>
-                {selectedPath === 'demo' && <CheckCircle className="w-5 h-5 text-green-600" />}
+                {selectedPath === 'demo' && <CheckCircleIcon className="w-5 h-5 text-green-600" />}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Explore with Demo Data</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Load realistic school data across all modules. Perfect for evaluating features and understanding workflows.
               </p>
               <ul className="space-y-1 text-sm text-gray-500">
-                <li className="flex items-center"><CheckCircle className="w-3.5 h-3.5 mr-2 text-green-500" />150+ sample students</li>
-                <li className="flex items-center"><CheckCircle className="w-3.5 h-3.5 mr-2 text-green-500" />Complete academic & finance data</li>
-                <li className="flex items-center"><CheckCircle className="w-3.5 h-3.5 mr-2 text-green-500" />Library, HR, inventory modules</li>
-                <li className="flex items-center"><CheckCircle className="w-3.5 h-3.5 mr-2 text-green-500" />Clear anytime to go production</li>
+                <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />150+ sample students</li>
+                <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />Complete academic & finance data</li>
+                <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />Library, HR, inventory modules</li>
+                <li className="flex items-center"><CheckCircleIcon className="w-3.5 h-3.5 mr-2 text-green-500" />Clear anytime to go production</li>
               </ul>
             </button>
 
@@ -326,19 +334,19 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
-                  <Shield className="w-5 h-5 text-blue-600" />
+                  <ShieldCheckIcon className="w-5 h-5 text-blue-600" />
                 </div>
-                {selectedPath === 'production' && <CheckCircle className="w-5 h-5 text-blue-600" />}
+                {selectedPath === 'production' && <CheckCircleIcon className="w-5 h-5 text-blue-600" />}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Go Direct to Production</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Start with a clean database optimized for your environment. All data you enter will be persistent.
               </p>
               <ul className="space-y-1 text-sm text-gray-500">
-                <li className="flex items-center"><Zap className="w-3.5 h-3.5 mr-2 text-blue-500" />{envDefaults.recommendedProvider} database</li>
-                <li className="flex items-center"><Zap className="w-3.5 h-3.5 mr-2 text-blue-500" />Persistent local storage</li>
-                <li className="flex items-center"><Zap className="w-3.5 h-3.5 mr-2 text-blue-500" />Offline-first architecture</li>
-                <li className="flex items-center"><Zap className="w-3.5 h-3.5 mr-2 text-blue-500" />Ready for real data entry</li>
+                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-blue-500" />{envDefaults.recommendedProvider} database</li>
+                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-blue-500" />Persistent local storage</li>
+                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-blue-500" />Offline-first architecture</li>
+                <li className="flex items-center"><BoltIcon className="w-3.5 h-3.5 mr-2 text-blue-500" />Ready for real data entry</li>
               </ul>
             </button>
           </div>
@@ -346,7 +354,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           {/* Error display */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <ExclamationTriangleIcon className="w-4 h-4 text-red-600 flex-shrink-0" />
               <span className="text-sm text-red-700">{error}</span>
             </div>
           )}
@@ -365,7 +373,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
                 disabled={!selectedPath || isProcessing}
               >
                 Continue
-                <ArrowRight className="ml-2 w-4 h-4" />
+                <ArrowRightIcon className="ml-2 w-4 h-4" />
               </Button>
             </div>
           </div>
@@ -384,9 +392,9 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           {/* Icon */}
           <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full ${isDemo ? 'bg-green-100' : 'bg-blue-100'}`}>
             {isDemo ? (
-              <PlayCircle className="w-7 h-7 text-green-600" />
+              <PlayCircleIcon className="w-7 h-7 text-green-600" />
             ) : (
-              <Shield className="w-7 h-7 text-blue-600" />
+              <ShieldCheckIcon className="w-7 h-7 text-blue-600" />
             )}
           </div>
 
@@ -406,7 +414,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           {isDemo && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <div className="flex items-start space-x-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <ExclamationTriangleIcon className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-amber-800">
                   <p className="font-medium">Important</p>
                   <p className="mt-1">
@@ -420,7 +428,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           {/* Error display */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-              <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <ExclamationTriangleIcon className="w-4 h-4 text-red-600 flex-shrink-0" />
               <span className="text-sm text-red-700">{error}</span>
             </div>
           )}
@@ -443,7 +451,7 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
               ) : (
                 <>
                   {isDemo ? 'Load Demo Data' : 'Initialize Production'}
-                  <ArrowRight className="ml-2 w-4 h-4" />
+                  <ArrowRightIcon className="ml-2 w-4 h-4" />
                 </>
               )}
             </Button>

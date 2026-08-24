@@ -7,7 +7,11 @@ import { logger } from '@/utils/logging';
 
 import React, { useState, useEffect, useMemo, useCallback, createContext, useContext } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { X, Plus, MoreHorizontal } from 'lucide-react';
+import {
+  EllipsisHorizontalIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { cn } from '@/utils/cn';
 import { usePlatformInfo, getPlatformConfig } from '@/utils/platformDetection';
 import { getIcon } from '@/utils/iconMap';
@@ -221,7 +225,7 @@ const TabButton: React.FC<TabButtonProps> = ({
           )}
           aria-label={`Close ${tab.title} tab`}
         >
-          <X className="w-3 h-3" />
+          <XMarkIcon className="w-3 h-3" />
         </button>
       )}
     </button>
@@ -324,7 +328,7 @@ const ActionBar: React.FC<ActionBarProps> = ({
               "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             )}
           >
-            <MoreHorizontal className="w-4 h-4" />
+            <EllipsisHorizontalIcon className="w-4 h-4" />
           </button>
           
           {showOverflow && (
@@ -483,7 +487,7 @@ export const AdaptiveTabs: React.FC<AdaptiveTabsProps> = ({
             )}
             aria-label="Add new tab"
           >
-            <Plus className="w-4 h-4" />
+            <PlusIcon className="w-4 h-4" />
           </button>
         )}
       </div>

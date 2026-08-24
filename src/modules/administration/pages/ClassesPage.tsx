@@ -14,7 +14,11 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { DataGrid, DataGridColumn } from '@/components/ui';
 import Spinner from '@/components/ui/Spinner';
-import { PlusIcon, EditIcon, DeleteIcon } from 'lucide-react';
+import {
+  PencilSquareIcon,
+  PlusIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
 
 import { ActionDefinition } from '@/services/ui/types';
 import DialogForm from '@/components/ui/forms/DialogForm';
@@ -232,8 +236,8 @@ export const ClassesContent: React.FC = () => {
       sticky: 'right',
       render: (value, item) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openClassModal(item)} leftIcon={<EditIcon className="w-4 h-4"/>}>{t('common:edit')}</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteClass(item.id)} leftIcon={<DeleteIcon className="w-4 h-4"/>}>{t('common:delete')}</Button>
+          <Button size="sm" variant="ghost" onClick={() => openClassModal(item)} leftIcon={<PencilSquareIcon className="w-4 h-4"/>}>{t('common:edit')}</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDeleteClass(item.id)} leftIcon={<TrashIcon className="w-4 h-4"/>}>{t('common:delete')}</Button>
           <Button size="sm" onClick={() => { setSelectedClassForStream(item); setIsStreamModalOpen(false); }}>
             {t('classes.manageStreamsButton')}
           </Button>
@@ -276,8 +280,8 @@ export const ClassesContent: React.FC = () => {
       sticky: 'right',
       render: (value, item) => (
         <div className="space-x-1">
-          <Button size="sm" variant="ghost" onClick={() => openStreamModal(item, selectedClassForStream || undefined)} leftIcon={<EditIcon className="w-4 h-4"/>}>{t('common:edit')}</Button>
-          <Button size="sm" variant="danger" onClick={() => handleDeleteStream(item.id)} leftIcon={<DeleteIcon className="w-4 h-4"/>}>{t('common:delete')}</Button>
+          <Button size="sm" variant="ghost" onClick={() => openStreamModal(item, selectedClassForStream || undefined)} leftIcon={<PencilSquareIcon className="w-4 h-4"/>}>{t('common:edit')}</Button>
+          <Button size="sm" variant="danger" onClick={() => handleDeleteStream(item.id)} leftIcon={<TrashIcon className="w-4 h-4"/>}>{t('common:delete')}</Button>
         </div>
       ),
     },

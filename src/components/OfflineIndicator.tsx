@@ -6,7 +6,10 @@
  */
 
 import React from 'react';
-import { WifiOff, Wifi } from 'lucide-react';
+import {
+  NoSymbolIcon,
+  SignalIcon,
+} from '@heroicons/react/24/outline';
 import { usePWA } from '@/hooks/usePWA';
 
 export interface OfflineIndicatorProps {
@@ -43,14 +46,14 @@ export const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
       <div className="flex items-center gap-2">
         {state.isOffline ? (
           <>
-            <WifiOff className="w-4 h-4" />
+            <NoSymbolIcon className="w-4 h-4" />
             <span className="text-sm font-medium">
               You are offline. Changes will sync when connection is restored.
             </span>
           </>
         ) : (
           <>
-            <Wifi className="w-4 h-4" />
+            <SignalIcon className="w-4 h-4" />
             <span className="text-sm font-medium">
               Back online. Syncing changes...
             </span>

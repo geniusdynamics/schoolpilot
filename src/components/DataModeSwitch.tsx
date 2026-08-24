@@ -5,7 +5,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { getDataModeManager, DataMode, DataModeStatus, ModeTransitionOptions } from '../services/data/dataModeManager';
-import { Settings, Database, RefreshCw, AlertTriangle, CheckCircle, Loader } from 'lucide-react';
+import {
+  ArrowPathIcon,
+  CheckCircleIcon,
+  CircleStackIcon,
+  Cog6ToothIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 
 interface DataModeSwitchProps {
   className?: string;
@@ -167,7 +173,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
     return (
       <div className={`p-4 border rounded-lg ${className}`}>
         <div className="flex items-center space-x-2">
-          <Loader className="w-4 h-4 animate-spin" />
+          <ArrowPathIcon className="w-4 h-4 animate-spin" />
           <span>Loading data mode status...</span>
         </div>
       </div>
@@ -180,7 +186,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Database className="w-5 h-5" />
+            <CircleStackIcon className="w-5 h-5" />
             <h3 className="text-lg font-semibold">Data Layer Mode</h3>
           </div>
           {showAdvancedOptions && (
@@ -188,7 +194,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
               onClick={() => setShowOptions(!showOptions)}
               className="p-2 text-gray-500 hover:text-gray-700 rounded"
             >
-              <Settings className="w-4 h-4" />
+              <Cog6ToothIcon className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -202,7 +208,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
             </span>
             {status.isTransitioning && (
               <div className="flex items-center space-x-1 text-orange-600">
-                <RefreshCw className="w-3 h-3 animate-spin" />
+                <ArrowPathIcon className="w-3 h-3 animate-spin" />
                 <span className="text-xs">Switching...</span>
               </div>
             )}
@@ -218,7 +224,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
         {/* Error Display */}
         {error && (
           <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded">
-            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <ExclamationTriangleIcon className="w-4 h-4 text-red-600" />
             <span className="text-sm text-red-700">{error}</span>
           </div>
         )}
@@ -248,7 +254,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
                     <div className="text-sm text-gray-600">{getModeDescription(mode)}</div>
                   </div>
                   {mode === status.currentMode && (
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircleIcon className="w-4 h-4 text-green-600" />
                   )}
                 </div>
               </button>
@@ -326,7 +332,7 @@ export const DataModeSwitch: React.FC<DataModeSwitchProps> = ({
         {/* Loading Indicator */}
         {(isLoading || status.isTransitioning) && (
           <div className="flex items-center justify-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded">
-            <Loader className="w-4 h-4 animate-spin text-blue-600" />
+            <ArrowPathIcon className="w-4 h-4 animate-spin text-blue-600" />
             <span className="text-sm text-blue-700">
               {status.isTransitioning ? 'Switching modes...' : 'Processing...'}
             </span>
