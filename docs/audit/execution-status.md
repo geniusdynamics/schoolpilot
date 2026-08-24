@@ -100,3 +100,13 @@ LanguageSwitcher/HookErrorBoundary repoint fix (`0c50642`).
   signal — see phase0-baseline.md for the Phase 1 gate analysis.
 - Known follow-ups: StockReturnsPage/StockReceptionPage MUI islands;
   AdaptiveTabs port when FeatureSettings is overhauled.
+
+## Phase 3 boundary gate (2026-08-25)
+
+| | Baseline | Phase 1 gate | Phase 3 gate |
+| --- | --- | --- | --- |
+| Failing files | 128 / 155 | 130 / 156 | **123 / 156** |
+| Failed tests | 869 | 748–886 | 769 |
+
+Five fewer failing files than baseline; failed-test count within the flake
+band. `pnpm build` green (PWA, 143 precache entries).
