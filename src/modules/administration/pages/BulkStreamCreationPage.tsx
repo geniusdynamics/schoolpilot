@@ -5,12 +5,16 @@ import Input from '@/components/ui/Input';
 import Badge from '@/components/ui/Badge';
 import { PlusIcon, XMarkIcon, CheckCircleIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
+import { useToast } from '@/hooks/useToast';
+import { logger } from '@/utils/logging';
 
 const BulkStreamCreationPage: React.FC = () => {
-  const { classes = [] } = useAppData();
+  const { classes = [], addClassStream } = useAppData();
+  const toast = useToast();
   const [selectedClassId, setSelectedClassId] = useState('');
   const [streamNames, setStreamNames] = useState<string[]>(['']);
   const [createdStreams, setCreatedStreams] = useState<string[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleAddStreamField = () => {
     setStreamNames(prev => [...prev, '']);
@@ -28,18 +32,35 @@ const BulkStreamCreationPage: React.FC = () => {
     });
   };
 
-  const handleCreateAll = () => {
+  const handleCreateAll = async () => {
     const validStreams = streamNames.filter(name => name.trim().length > 0);
-    if (!selectedClassId || validStreams.length === 0) return;
+    const targetClass = classes.find((c: any) => c.id === selectedClassId || c.name === selectedClassId);
+    if (!targetClass || validStreams.length === 0) return;
 
-    // Simulate creation
-    setCreatedStreams(validStreams);
-    setStreamNames(['']);
-    setSelectedClassId('');
+    setIsCreating(true);
+    const created: string[] = [];
+    try {
+      for (const name of validStreams) {
+        await addClassStream({
+          class_id: typeof targetClass.id === 'number' ? targetClass.id : Number(targetClass.id),
+          name: name.trim(),
+        });
+        created.push(name.trim());
+      }
+      setCreatedStreams(created);
+      toast.showSuccess(`Created ${created.length} stream(s) for ${targetClass.name}`);
+      setStreamNames(['']);
+      setSelectedClassId('');
 
-    setTimeout(() => {
-      setCreatedStreams([]);
-    }, 5000);
+      setTimeout(() => {
+        setCreatedStreams([]);
+      }, 5000);
+    } catch (error) {
+      logger.error('Bulk stream creation failed:', error);
+      toast.showError('One or more streams could not be created. They may already exist.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const selectedClass = classes.find((c: any) => c.id === selectedClassId || c.name === selectedClassId);
@@ -120,7 +141,8 @@ const BulkStreamCreationPage: React.FC = () => {
           <div className="flex justify-end">
             <Button
               onClick={handleCreateAll}
-              disabled={!selectedClassId || streamNames.filter(n => n.trim()).length === 0}
+              disabled={isCreating || !selectedClassId || streamNames.filter(n => n.trim()).length === 0}
+              loading={isCreating}
               leftIcon={<PlusIcon className="w-5 h-5" />}
             >
               Create {streamNames.filter(n => n.trim()).length} Stream(s)

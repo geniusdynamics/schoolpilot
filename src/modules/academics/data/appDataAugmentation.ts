@@ -71,5 +71,9 @@ declare module '@/core/types' {
     addTeacherSubjectAssignment: (data: any) => Promise<void>;
     updateTeacherSubjectAssignment: (id: string, data: any) => Promise<void>;
     deleteTeacherSubjectAssignment: (id: string) => Promise<void>;
+    // Student Subject Enrollment CRUD
+    addStudentSubjectEnrollment: (data: any) => Promise<any>;
+    updateStudentSubjectEnrollment: (id: string, data: any) => Promise<any>;
+    deleteStudentSubjectEnrollment: (id: string) => Promise<void>;
   }
 }

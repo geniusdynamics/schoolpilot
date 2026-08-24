@@ -13,6 +13,7 @@ import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input'; 
 
 import { useAppData } from '@/hooks/useAppData'; // Updated
+import { logger } from '@/utils/logging';
 import Spinner from '@/components/ui/Spinner';
 import { StudentEnrollmentStatus, StudentStatus } from '@/core/types';
 import type { Student } from '@/core/types';
@@ -35,6 +36,9 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
     classes,       // Added
     classStreams,  // Added
     loading, 
+    addStudentSubjectEnrollment,
+    updateStudentSubjectEnrollment,
+    deleteStudentSubjectEnrollment,
   } = useAppData(); // Updated
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -121,9 +125,21 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
     }
 
     if (editingEnrollment) {
-      // TODO: Implement updateStudentSubjectEnrollment when available in context
+      await updateStudentSubjectEnrollment(editingEnrollment.id, {
+        student_id: formData.student_id,
+        class_subject_allocation_id: formData.class_subject_allocation_id,
+        enrollment_date: formData.enrollment_date,
+        status: formData.status,
+      });
+      toast.showSuccess('Enrollment updated successfully.');
     } else {
-      // TODO: Implement addStudentSubjectEnrollment when available in context
+      await addStudentSubjectEnrollment({
+        student_id: formData.student_id,
+        class_subject_allocation_id: formData.class_subject_allocation_id,
+        enrollment_date: formData.enrollment_date,
+        status: formData.status,
+      });
+      toast.showSuccess('Student enrolled successfully.');
     }
     closeModal();
   };
@@ -134,21 +150,42 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
         e => e.student_id === studentId && e.class_subject_allocation_id === csaId && e.status === StudentEnrollmentStatus.ENROLLED
       );
       if (existingEnrollment) {
-        // Option 1: Update status to Withdrawn
-        // await updateStudentSubjectEnrollment({ ...existingEnrollment, status: StudentEnrollmentStatus.WITHDRAWN });
-        // Option 2: Delete enrollment record
+        // Withdraw (keep the record for history) rather than hard-delete
         if ((await confirm({ variant: 'danger', message: "Are you sure you want to unenroll this student from the subject?" }))) {
-            // TODO: Implement deleteStudentSubjectEnrollment when available in context
+          try {
+            await updateStudentSubjectEnrollment(existingEnrollment.id, { status: StudentEnrollmentStatus.WITHDRAWN });
+            toast.showSuccess('Student unenrolled.');
+          } catch (error) {
+            logger.error('Failed to unenroll student:', error);
+            toast.showError('Failed to unenroll student.');
+          }
         }
       }
     } else { // User wants to enroll
-      // TODO: Implement addStudentSubjectEnrollment when available in context
+      try {
+        await addStudentSubjectEnrollment({
+          student_id: studentId,
+          class_subject_allocation_id: csaId,
+          enrollment_date: new Date().toISOString().slice(0, 10),
+          status: StudentEnrollmentStatus.ENROLLED,
+        });
+        toast.showSuccess('Student enrolled.');
+      } catch (error) {
+        logger.error('Failed to enroll student:', error);
+        toast.showError('Failed to enroll student.');
+      }
     }
   };
 
   const handleDelete = async (_id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this enrollment record?' }))) {
-      // TODO: Implement deleteStudentSubjectEnrollment when available in context
+      try {
+        await deleteStudentSubjectEnrollment(_id);
+        toast.showSuccess('Enrollment record deleted.');
+      } catch (error) {
+        logger.error('Failed to delete enrollment record:', error);
+        toast.showError('Failed to delete enrollment record.');
+      }
     }
   };
   
@@ -180,7 +217,7 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
 
   const gridColumns = useMemo(() => {
     if (!showEnrollmentGrid) return [];
-    const studentCol = { header: 'Student Name', key: 'student_name', render: (_value: any, item: Student) => [item.first_name, item.last_name].filter(Boolean).join(' ') || '—' };
+    const studentCol = { header: 'Student Name', key: 'student_name', render: (_value: any, item: Student) => [item.first_name, item.last_name].filter(Boolean).join(' ') || 'â€”' };
     const subjectCols = (subjectsForGrid || []).map(csa => ({
       header: csa.subject_name || 'Unknown Subject',
       key: 'id', // Use student ID to look up enrollment
