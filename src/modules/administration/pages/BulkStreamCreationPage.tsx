@@ -41,10 +41,7 @@ const BulkStreamCreationPage: React.FC = () => {
     const created: string[] = [];
     try {
       for (const name of validStreams) {
-        await addClassStream({
-          class_id: typeof targetClass.id === 'number' ? targetClass.id : Number(targetClass.id),
-          name: name.trim(),
-        });
+        await addClassStream(Number(targetClass.id), { name: name.trim() });
         created.push(name.trim());
       }
       setCreatedStreams(created);
@@ -69,7 +66,7 @@ const BulkStreamCreationPage: React.FC = () => {
     <div className="space-y-6">
       <Card
         title="Bulk Stream Creation"
-        description="Add multiple streams to a class at once"
+        subtitle="Add multiple streams to a class at once"
         actions={
           <Button onClick={handleAddStreamField} leftIcon={<PlusIcon className="w-5 h-5" />}>
             Add Stream Field
