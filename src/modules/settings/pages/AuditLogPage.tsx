@@ -157,25 +157,16 @@ export const AuditLogContent: React.FC = () => {
           loading={isLoadingPage}
           sortable={true}
           filterable={true}
-          emptyState={
-            <div className="text-center py-12">
-              <ClockIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No audit logs found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {Object.values(filters).some(v => v) ? 
-                  'No audit logs match your current filter criteria. Try adjusting your filters.' :
-                  'System audit logs will appear here as actions are performed.'
-                }
-              </p>
-              {Object.values(filters).some(v => v) && (
-                <div className="mt-6">
-                  <Button onClick={resetFilters} variant="secondary" leftIcon={<ResetIcon className="w-4 h-4" />}>
-                    Reset Filters
-                  </Button>
-                </div>
-              )}
-            </div>
-          }
+          emptyState={{
+            icon: <ClockIcon className="h-12 w-12 text-gray-400" />,
+            title: 'No audit logs found',
+            description: Object.values(filters).some(v => v)
+              ? 'No audit logs match your current filter criteria. Try adjusting your filters.'
+              : 'System audit logs will appear here as actions are performed.',
+            ...(Object.values(filters).some(v => v)
+              ? { action: { label: 'Reset Filters', onClick: resetFilters } }
+              : {}),
+          }}
           className="mt-4"
         />
          <div className="mt-6 text-center">

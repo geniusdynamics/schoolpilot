@@ -235,13 +235,11 @@ export const StaffListContent: React.FC = () => {
               loading={loading.staff && isModalOpen}
               sortable
               filterable
-              emptyState={
-                <div className="text-center py-12">
-                  <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No staff members found</h3>
-                  <p className="mt-1 text-sm text-gray-500">Get started by adding your first staff member.</p>
-                </div>
-              }
+              emptyState={{
+                icon: <UserGroupIcon className="h-12 w-12 text-gray-400" />,
+                title: 'No staff members found',
+                description: 'Get started by adding your first staff member.',
+              }}
             />
           </div>
         )}

@@ -168,13 +168,11 @@ const StudentDetailPage: React.FC = () => {
         data={enrolled_subjects || []} 
         sortable 
         filterable 
-        emptyState={
-          <div className="text-center py-12">
-            <AcademicCapIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No subjects enrolled</h3>
-            <p className="mt-1 text-sm text-gray-500">This student is not enrolled in any subjects yet.</p>
-          </div>
-        }
+        emptyState={{
+          icon: <AcademicCapIcon className="h-12 w-12 text-gray-400" />,
+          title: 'No subjects enrolled',
+          description: 'This student is not enrolled in any subjects yet.',
+        }}
       />
     },
     {
@@ -184,13 +182,11 @@ const StudentDetailPage: React.FC = () => {
         data={payment_history || []} 
         sortable 
         filterable 
-        emptyState={
-          <div className="text-center py-12">
-            <CurrencyDollarIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No payment history found</h3>
-            <p className="mt-1 text-sm text-gray-500">No payments have been recorded for this student.</p>
-          </div>
-        }
+        emptyState={{
+          icon: <CurrencyDollarIcon className="h-12 w-12 text-gray-400" />,
+          title: 'No payment history found',
+          description: 'No payments have been recorded for this student.',
+        }}
       />
     },
   ];

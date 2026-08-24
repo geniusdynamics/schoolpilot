@@ -113,7 +113,7 @@ export const ModuleManagementContent: React.FC = () => {
         return {
           id: module.id,
           name: translatedName,
-          description: translatedDescription,
+          description: 'translatedDescription',
           version: module.version || '1.0.0',
           isEnabled: Array.isArray(enabledModuleIds) ? enabledModuleIds.includes(module.id) : false,
           isActive: moduleRegistry?.isModuleEnabled?.(module.id) || false,
@@ -453,15 +453,11 @@ export const ModuleManagementContent: React.FC = () => {
           loading={loading}
           sortable={true}
           filterable={true}
-          emptyState={
-            <div className="text-center py-12">
-              <CogIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No modules found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {t('moduleManagement.noModulesFound')}
-              </p>
-            </div>
-          }
+          emptyState={{
+            icon: <CogIcon className="h-12 w-12 text-gray-400" />,
+            title: 'No modules found',
+            description: t('moduleManagement.noModulesFound'),
+          }}
           className="mt-4"
         />
       </Card>

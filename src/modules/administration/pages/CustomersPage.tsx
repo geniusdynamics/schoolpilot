@@ -134,13 +134,11 @@ const CustomersPage: React.FC = () => {
           data={customers} 
           sortable 
           filterable 
-          emptyState={
-            <div className="text-center py-12">
-              <CustomersIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No customers found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding your first customer.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <CustomersIcon className="h-12 w-12 text-gray-400" />,
+            title: 'No customers found',
+            description: 'Get started by adding your first customer.',
+          }}
         />
       </Card>
 

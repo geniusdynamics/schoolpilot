@@ -142,13 +142,11 @@ const ClubsPage: React.FC = () => {
           data={clubsAndSocieties}
           sortable
           filterable
-          emptyState={
-            <div className="text-center py-12">
-              <ClubsIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No clubs or societies found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first club or society.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <ClubsIcon className="h-12 w-12 text-gray-400" />,
+            title: 'No clubs or societies found',
+            description: 'Get started by creating your first club or society.',
+          }}
         />
       </Card>
 

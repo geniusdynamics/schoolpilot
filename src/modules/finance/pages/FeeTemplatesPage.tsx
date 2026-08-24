@@ -122,7 +122,7 @@ export const FeeTemplatesContent: React.FC = () => {
         i.id === editingItem.id ? 
         { 
             ...editingItem, 
-            description: itemFormData.description!, 
+            description: itemFormData.description!,
             amount: Number(itemFormData.amount!), 
             revenue_account_id: Number(itemFormData.revenue_account_id!),
             linked_expense_category_id: itemFormData.linked_expense_category_id ? Number(itemFormData.linked_expense_category_id) : undefined,

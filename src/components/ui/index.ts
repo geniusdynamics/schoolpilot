@@ -70,6 +70,8 @@ export { TabsRoot as Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export { default as Spinner } from './Spinner';
 export { ConfirmProvider, useConfirm } from './ConfirmDialog';
 export type { ConfirmOptions } from './ConfirmDialog';
+export { default as EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
 export { default as Badge } from './Badge';
 export { Alert, AlertDescription } from './Alert';
 

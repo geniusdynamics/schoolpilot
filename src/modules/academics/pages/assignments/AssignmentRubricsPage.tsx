@@ -252,15 +252,11 @@ const AssignmentRubricsPage: React.FC = () => {
               data={rubricData}
               sortable
               filterable
-              emptyState={
-                <div className="text-center py-8">
-                  <ClipboardDocumentListIcon className="mx-auto h-10 w-10 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No rubrics assigned</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    No assignments have rubrics configured yet.
-                  </p>
-                </div>
-              }
+              emptyState={{
+                icon: <ClipboardDocumentListIcon className="h-12 w-12 text-gray-400" />,
+                title: 'No rubrics assigned',
+                description: 'No assignments have rubrics configured yet.',
+              }}
             />
           </Card>
 
@@ -272,15 +268,11 @@ const AssignmentRubricsPage: React.FC = () => {
               sortable
               filterable
               loading={loading}
-              emptyState={
-                <div className="text-center py-8">
-                  <ChartBarIcon className="mx-auto h-10 w-10 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No criteria found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    No rubric criteria are currently defined.
-                  </p>
-                </div>
-              }
+              emptyState={{
+                icon: <ChartBarIcon className="h-12 w-12 text-gray-400" />,
+                title: 'No criteria found',
+                description: 'No rubric criteria are currently defined.',
+              }}
             />
           </Card>
         </>

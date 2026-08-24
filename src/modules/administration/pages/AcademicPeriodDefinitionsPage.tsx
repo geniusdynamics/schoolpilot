@@ -184,13 +184,11 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
           loading={loading.academicPeriodDefinitions && isModalOpen}
           sortable 
           filterable 
-          emptyState={
-            <div className="text-center py-12">
-              <DocumentDuplicateIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No period definitions found</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first academic period definition.</p>
-            </div>
-          }
+          emptyState={{
+            icon: <DocumentDuplicateIcon className="h-12 w-12 text-gray-400" />,
+            title: 'No period definitions found',
+            description: 'Get started by creating your first academic period definition.',
+          }}
         />
       </Card>
 
