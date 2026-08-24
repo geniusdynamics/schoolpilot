@@ -91,7 +91,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     };
 
     if (editingDefinition) {
-      await updateAcademicPeriodDefinition({ ...editingDefinition, ...payload });
+      await updateAcademicPeriodDefinition(String(editingDefinition.id), payload);
     } else {
       await addAcademicPeriodDefinition(payload);
     }
@@ -99,44 +99,32 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDelete = async (id: number) => { 
+  const handleDelete = async (id: number | string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this period definition? This might affect related school periods.' }))) {
-      await deleteAcademicPeriodDefinition(id);
+      await deleteAcademicPeriodDefinition(String(id));
     }
   };
 
   const columns: DataGridColumn<AcademicPeriodDefinition>[] = [
-    { 
-      key: 'id', 
-      header: 'ID', 
-      sortable: true, 
-      filterable: true, 
-      width: 80,
-      render: (value, item) => value
+    {
+      key: 'name',
+      header: 'Definition Name',
+      sortable: true,
+      filterable: true,
+      render: (_value, item) => item.name
     },
-    { 
-      key: 'name', 
-      header: 'Definition Name', 
-      sortable: true, 
-      filterable: true, 
-      width: 200,
-      render: (value, item) => value
+    {
+      key: 'structure_name',
+      header: 'Structure',
+      sortable: true,
+      filterable: true,
+      render: (_value, item) => item.structure_name || '—'
     },
-    { 
-      key: 'structure_name', 
-      header: 'Structure', 
-      sortable: true, 
-      filterable: true, 
-      width: 180,
-      render: (value, item) => value || 'â€”'
-    },
-    { 
-      key: 'sequence_order', 
-      header: 'Sequence Order', 
-      sortable: true, 
-      filterable: true, 
-      width: 140,
-      render: (value, item) => value
+    {
+      key: 'sequence_order',
+      header: 'Sequence Order',
+      sortable: true,
+      render: (_value, item) => item.sequence_order
     },
     {
       key: 'actions',
@@ -145,7 +133,7 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
       filterable: false,
       width: 160,
       sticky: 'right',
-      render: (value, item) => (
+      render: (_value, item) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
