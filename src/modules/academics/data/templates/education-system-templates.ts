@@ -35,6 +35,22 @@ export const EDUCATION_SYSTEM_TEMPLATES: Record<string, Partial<EducationSystemC
     final_exam_weight: 60
   },
 
+  'KENYA_KCSE_SECONDARY': {
+    name: 'Kenya 8-4-4 Secondary (KCSE)',
+    country_code: 'KE',
+    system_type: EducationSystemType.SECONDARY,
+    grading_system_type: GradingSystemType.POINTS,
+    min_grade_level: 9,
+    max_grade_level: 12,
+    academic_period_type: AcademicPeriodType.TERM,
+    periods_per_year: 3,
+    passing_grade: 50,
+    max_grade_value: 100,
+    assessment_types: [AssessmentType.SUMMATIVE, AssessmentType.FORMATIVE],
+    continuous_assessment_weight: 30,
+    final_exam_weight: 70
+  },
+
   'IGCSE_SECONDARY': {
     name: 'IGCSE Secondary System',
     country_code: 'GB',
