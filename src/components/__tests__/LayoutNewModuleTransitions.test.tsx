@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import LayoutNew from '../LayoutNew';
+import LayoutNew from '../Layout'; // merged into Layout.tsx (flag-aware)
 
 const openTabMock = vi.fn();
 const switchModuleSessionMock = vi.fn();

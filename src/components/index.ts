@@ -9,7 +9,6 @@
 
 // --- Layout Components ---
 export { default as Layout } from './Layout';
-export { default as LayoutNew } from './LayoutNew';
 export { default as Header } from './Header';
 export { default as PrimarySidebar } from './PrimarySidebar';
 export { default as SecondarySidebar } from './SecondarySidebar';
