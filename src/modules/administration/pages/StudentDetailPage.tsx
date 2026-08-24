@@ -204,7 +204,7 @@ const StudentDetailPage: React.FC = () => {
             </div>
             <div className="flex space-x-2 mt-3 md:mt-0">
                 <Button variant="primary" leftIcon={<CurrencyDollarIcon className="w-5 h-5"/>} as={Link} to={`/administration/students/${studentId}/financial`}>View Financials</Button>
-                <Button variant="secondary" leftIcon={<EditIcon className="w-5 h-5" />} onClick={() => {/* TODO: Navigate to edit student page */}}>Edit Profile</Button>
+                <Button variant="secondary" leftIcon={<EditIcon className="w-5 h-5" />} as={Link} to="/administration/students?tab=bio-data">Edit Profile</Button>
             </div>
         </div>
 
