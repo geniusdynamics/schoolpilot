@@ -10,6 +10,7 @@ import type { ExamGazette } from '../data/types';
 import { logger } from '@/utils/logging';
 import { DocumentTextIcon, DownloadIcon, PrinterIcon } from '@/components/ui/icons';
 
+import { formatDate } from '@/utils/format';
 export const ExamGazettePageContent: React.FC = () => {
   const { loading } = useAppData();
 
@@ -64,7 +65,7 @@ export const ExamGazettePageContent: React.FC = () => {
       key: 'generated_at',
       header: 'Generated',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'actions',

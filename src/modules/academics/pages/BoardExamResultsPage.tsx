@@ -14,6 +14,7 @@ import { logger } from '@/utils/logging';
 import { DocumentTextIcon, PlusIcon } from '@/components/ui/icons';
 import { useToast } from '@/hooks/useToast';
 
+import { formatDate } from '@/utils/format';
 export const BoardExamResultsPageContent: React.FC = () => {
   const { students, loading } = useAppData();
 
@@ -165,7 +166,7 @@ export const BoardExamResultsPageContent: React.FC = () => {
       key: 'exam_date',
       header: 'Exam Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     }
   ];
 

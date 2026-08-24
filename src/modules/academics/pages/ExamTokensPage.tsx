@@ -15,6 +15,7 @@ import { logger } from '@/utils/logging';
 import { KeyIcon, PlusIcon } from '@/components/ui/icons';
 import { useToast } from '@/hooks/useToast';
 
+import { formatDate } from '@/utils/format';
 type ExamTokenFormData = Omit<Partial<ExamToken>, 'id' | 'generated_at' | 'used_at'>;
 
 export const ExamTokensPageContent: React.FC = () => {
@@ -149,13 +150,13 @@ export const ExamTokensPageContent: React.FC = () => {
       key: 'generated_at',
       header: 'Generated',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'expires_at',
       header: 'Expires',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'status',
