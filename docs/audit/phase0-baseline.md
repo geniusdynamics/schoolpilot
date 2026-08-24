@@ -51,3 +51,22 @@ Several failures stem from stringified enum references in test fixtures
 is expected) — consistent with the pre-phase1 id-normalization codemods.
 Full triage of the 869 failures happens in Phase 4; Phase 0–3 must not grow
 the count.
+
+## Phase 1 boundary gate (2026-08-24)
+
+Full `pnpm test:run`: 748–886 failed / 898–760 passed across two runs of
+nearly identical trees — high run-to-run variance from worker contention
+(some database suites take 170–235s and time out under load).
+
+File-level comparison against this baseline:
+
+| | Baseline | Post-Phase-1 |
+| --- | --- | --- |
+| Failing files | 128 / 155 | 130 / 156 |
+| Failed tests | 869 | 748–886 (flake range) |
+
+The +2 failing files are NEW suites (`useValidation.test.tsx`,
+`EntityForm.test.tsx`) that pass cleanly when run standalone (15/15 and 5/5)
+and only fail under full-suite parallel load. No previously-passing suite
+regressed. Suites deleted during Phase 1 (`SlideoutForm.test.tsx`,
+`__demos__`) account for the file-count differences.
