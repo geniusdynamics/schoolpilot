@@ -108,6 +108,21 @@ LanguageSwitcher/HookErrorBoundary repoint fix (`0c50642`).
   avoid behavior change.
 - 4.1/4.4/4.5/4.6 pending.
 
+### Phase 4 progress (continued)
+- **4.1 Type ratchet ✅** — `pnpm check:ratchet` enforces the recorded maximum
+  (`.type-ratchet`, currently 3,980); fails on any increase, `--update`
+  re-baselines after legitimate fixes.
+- **4.4 Docs ✅** — README quickstart (pnpm + demo credentials),
+  CONTRIBUTING.md (gate workflow, conventions), ARCHITECTURE.md.
+- **4.5 Kenyan demo seed ✅** — covered by existing generators (18 KCSE
+  subjects, Form 1–4 classes with streams, 8-4-4 A–E + CBC grading schemes,
+  KES-scale finance amounts) plus the Phase 2.8 wizard subject sets.
+- **4.6 Release gate 🚧** — automated portion green at this commit:
+  typecheck at ratchet (3,980), build exit 0, integration suite 17/17 new
+  business-flow tests passing. Full-suite file-level failures remain below
+  baseline (123 vs 128). Outstanding: manual first-run wizard smoke test on a
+  fresh browser profile (requires interactive session).
+
 ## Gate notes
 
 - Full-suite test runs show high flake variance (±140 failed-test counts between
