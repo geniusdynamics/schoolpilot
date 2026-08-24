@@ -3,7 +3,7 @@ import Card from '@/components/ui/Card';
 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -55,12 +55,12 @@ export const AccountLedgerPageContent: React.FC = () => {
   }, [generalLedgerEntries, selectedAccountId, startDate, endDate]);
 
   const columns = [
-    { header: 'Date', accessor: 'effective_date' as keyof LedgerEntryRow, render: (item: LedgerEntryRow) => new Date(item.effective_date).toLocaleDateString() },
-    { header: 'Description', accessor: 'description' as keyof LedgerEntryRow },
-    { header: 'Source', accessor: (item: LedgerEntryRow) => item.source_table ? `${item.source_table} (ID: ${item.source_id})` : '-' },
-    { header: 'Debit (KES)', accessor: 'debit' as keyof LedgerEntryRow, render: (item: LedgerEntryRow) => item.debit?.toFixed(2) || '-' },
-    { header: 'Credit (KES)', accessor: 'credit' as keyof LedgerEntryRow, render: (item: LedgerEntryRow) => item.credit?.toFixed(2) || '-' },
-    { header: 'Balance (KES)', accessor: 'running_balance_display' as keyof LedgerEntryRow, render: (item: LedgerEntryRow) => item.running_balance_display?.toFixed(2) || '0.00' },
+    { header: 'Date', key: 'effective_date' as keyof LedgerEntryRow, render: (_v: any, item: LedgerEntryRow) => new Date(item.effective_date).toLocaleDateString() },
+    { header: 'Description', key: 'description' as keyof LedgerEntryRow },
+    { header: 'Source', key: 'source', render: (_v: any, item: LedgerEntryRow) => item.source_table ? `${item.source_table} (ID: ${item.source_id})` : '-' },
+    { header: 'Debit (KES)', key: 'debit' as keyof LedgerEntryRow, render: (_v: any, item: LedgerEntryRow) => item.debit?.toFixed(2) || '-' },
+    { header: 'Credit (KES)', key: 'credit' as keyof LedgerEntryRow, render: (_v: any, item: LedgerEntryRow) => item.credit?.toFixed(2) || '-' },
+    { header: 'Balance (KES)', key: 'running_balance_display' as keyof LedgerEntryRow, render: (_v: any, item: LedgerEntryRow) => item.running_balance_display?.toFixed(2) || '0.00' },
   ];
 
   const isLoadingPage = loading.chartOfAccounts || loading.all; 
@@ -79,12 +79,10 @@ export const AccountLedgerPageContent: React.FC = () => {
       return columns.map(col => {
         let value;
         if (col.render) { // Use render function if available
-          value = col.render(row);
-        } else if (typeof col.accessor === 'function') {
-          value = col.accessor(row);
+          value = col.render(row[col.key as keyof LedgerEntryRow], row);
         } else {
           // @ts-ignore
-          value = row[col.accessor as keyof LedgerEntryRow];
+          value = row[col.key as keyof LedgerEntryRow];
         }
         const stringValue = String(value !== undefined && value !== null ? value : '-');
         return `"${stringValue.replace(/"/g, '""')}"`; // Escape double quotes and handle commas
@@ -136,7 +134,7 @@ export const AccountLedgerPageContent: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={handlePrint} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('accountLedgerPage.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={handleExportCSV} leftIcon={<DownloadIcon className="w-4 h-4"/>}>{t('accountLedgerPage.exportCSV')}</Button>
                 </div>
-                <Table columns={columns} data={(reportData || [])} isLoading={isGenerating} emptyStateMessage={t('accountLedgerPage.noTransactionsFound')}/>
+                <DataGrid columns={columns} data={(reportData || [])} loading={isGenerating} emptyState={t('accountLedgerPage.noTransactionsFound')}/>
             </>
         ) : (
             <p className="text-center text-gray-500 py-4">{t('accountLedgerPage.pleaseSelectFiltersAndClickGenerateLedger')}</p>

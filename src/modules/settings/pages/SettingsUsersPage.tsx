@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { UserGroupIcon, PlusIcon, EditIcon, DeleteIcon, ExclamationTriangleIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import { User, Role } from '@/types';
@@ -376,7 +376,7 @@ export const SettingsUsersContent: React.FC = () => {
          {loading.users ? (
           <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Loading users...</span></div>
         ) : (
-          <Table columns={userColumns} data={users} isLoading={loading.users} />
+          <DataGrid columns={userColumns} data={users} loading={loading.users} />
         )}
       </Card>
 
@@ -386,7 +386,7 @@ export const SettingsUsersContent: React.FC = () => {
          {loading.roles ? (
           <div className="flex justify-center items-center py-10"><Spinner /><span className="ml-2">Loading roles...</span></div>
         ) : (
-          <Table columns={roleColumns} data={roles} isLoading={loading.roles} />
+          <DataGrid columns={roleColumns} data={roles} loading={loading.roles} />
         )}
       </Card>
 

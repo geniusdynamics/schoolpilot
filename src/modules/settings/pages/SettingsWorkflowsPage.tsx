@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { ArrowsRightLeftIcon, PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
@@ -383,9 +383,10 @@ export const SettingsWorkflowsContent: React.FC = () => {
   const workflowColumns = [
     { header: t('tableHeaders.id'), key: 'id' as keyof Workflow },
     { header: t('tableHeaders.workflowName'), key: 'name' as keyof Workflow },
-    { 
-      header: t('tableHeaders.states'), 
-      key: ((item: Workflow) => item.states?.length || 0) as (item: Workflow) => React.ReactNode 
+    {
+      header: t('tableHeaders.states'),
+      key: 'states_count',
+      render: (_v: any, item: Workflow) => item.states?.length || 0
     },
     {
       header: t('tableHeaders.actions'), 
@@ -486,10 +487,10 @@ export const SettingsWorkflowsContent: React.FC = () => {
             <Spinner />
           </div>
         ) : (
-          <Table 
+          <DataGrid 
             columns={workflowColumns} 
             data={(workflows || [])} 
-            emptyStateMessage={t('workflows.noWorkflowsMessage') || 'No workflows found. Create one to get started.'}
+            emptyState={t('workflows.noWorkflowsMessage') || 'No workflows found. Create one to get started.'}
           />
         )}
       </Card>
@@ -518,10 +519,10 @@ export const SettingsWorkflowsContent: React.FC = () => {
               {t('workflows.backToWorkflows') || 'Back to Workflows'}
             </Button>
           </div>
-          <Table 
+          <DataGrid 
             columns={stateColumns} 
             data={(currentWorkflowForStates.states || [])} 
-            emptyStateMessage={t('workflows.noStatesMessage') || 'No states defined for this workflow. Add one to get started.'}
+            emptyState={t('workflows.noStatesMessage') || 'No states defined for this workflow. Add one to get started.'}
           />
         </Card>
       )}

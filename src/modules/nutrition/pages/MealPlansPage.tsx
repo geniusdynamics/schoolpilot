@@ -105,26 +105,24 @@ export const MealPlansPageContent: React.FC = () => {
     { 
       key: 'name', 
       header: 'Plan Name', 
-      sortable: true,
-      searchable: true
+      sortable: true
     },
     { 
       key: 'description', 
       header: 'Description', 
-      render: (item: MealPlan) => <p className="truncate max-w-xs">{item.description || '-'}</p>,
-      searchable: true
+      render: (_v: any, item: MealPlan) => <p className="truncate max-w-xs">{item.description || '-'}</p>
     },
     { 
       key: 'cost_per_period', 
       header: 'Cost per Period (KES)', 
-      render: (item: MealPlan) => item.cost_per_period?.toFixed(2) || '0.00',
+      render: (_v: any, item: MealPlan) => item.cost_per_period?.toFixed(2) || '0.00',
       sortable: true,
       align: 'right' as const
     },
     {
       key: 'actions',
       header: 'Actions',
-      render: (item: MealPlan) => (
+      render: (_v: any, item: MealPlan) => (
         <div className="space-x-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
           <Button size="sm" variant="danger" onClick={() => handleDelete(item.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>Delete</Button>
@@ -168,12 +166,9 @@ export const MealPlansPageContent: React.FC = () => {
           data={mealPlans} 
           loading={loading.mealPlans && isModalOpen}
           selectable
-          selectedRows={selectedRows}
-          onSelectionChange={setSelectedRows}
-          searchable
+          onSelectionChange={(rows) => setSelectedRows(rows.map(r => String(r.id)))}
           sortable
-          pagination
-          pageSize={10}
+          pagination={{ pageSize: 10 }}
         />
       </Card>
 

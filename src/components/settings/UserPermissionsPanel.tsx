@@ -7,7 +7,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Modal from '../ui/Modal';
-import Table from '../ui/Table';
+import DataGrid from '../ui/data/DataGrid';
 import { moduleRegistry } from '@/core/moduleRegistry';
 
 // Types for User Permissions System
@@ -158,22 +158,22 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
   };
 
   const userColumns = [
-    { header: 'Username', accessor: 'username' as keyof User },
-    { header: 'Full Name', accessor: 'fullName' as keyof User },
-    { header: 'Email', accessor: 'email' as keyof User },
-    { header: 'Active', accessor: (user: User) => user.isActive ? 'Yes' : 'No' },
-    { header: 'Actions', accessor: (user: User) => (
+    { header: 'Username', key: 'username' as keyof User },
+    { header: 'Full Name', key: 'fullName' as keyof User },
+    { header: 'Email', key: 'email' as keyof User },
+    { header: 'Active', key: 'is_active', render: (_v: any, user: User) => user.isActive ? 'Yes' : 'No' },
+    { header: 'Actions', key: 'actions', sortable: false, filterable: false, render: (_v: any, user: User) => (
       <Button size="sm" onClick={() => handleEditUser(user)}>Edit</Button>
     ) }
   ];
 
   const permissionColumns = [
-    { header: 'Name', accessor: 'name' as keyof Permission },
-    { header: 'Description', accessor: 'description' as keyof Permission },
-    { header: 'Module', accessor: 'module' as keyof Permission },
-    { header: 'Action', accessor: 'action' as keyof Permission },
-    { header: 'Resource', accessor: 'resource' as keyof Permission },
-    { header: 'Actions', accessor: (permission: Permission) => (
+    { header: 'Name', key: 'name' as keyof Permission },
+    { header: 'Description', key: 'description' as keyof Permission },
+    { header: 'Module', key: 'module' as keyof Permission },
+    { header: 'Action', key: 'action' as keyof Permission },
+    { header: 'Resource', key: 'resource' as keyof Permission },
+    { header: 'Actions', key: 'actions', sortable: false, filterable: false, render: (_v: any, permission: Permission) => (
       <Button size="sm" onClick={() => handleEditPermission(permission)}>Edit</Button>
     ) }
   ];
@@ -242,7 +242,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
                 Add User
               </Button>
             </div>
-            <Table data={users} columns={userColumns} />
+            <DataGrid data={users} columns={userColumns} />
           </div>
         )}
 
@@ -256,7 +256,7 @@ const UserPermissionsPanel: React.FC<UserPermissionsPanelProps> = ({ className =
                 Add Permission
               </Button>
             </div>
-            <Table data={permissions} columns={permissionColumns} />
+            <DataGrid data={permissions} columns={permissionColumns} />
           </div>
         )}
       </div>

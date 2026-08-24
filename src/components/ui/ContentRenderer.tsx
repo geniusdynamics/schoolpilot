@@ -1,5 +1,21 @@
 ﻿import React from 'react';
-import DataTable, { TaskItem } from './data/DataTable';
+import DataGrid, { DataGridColumn } from './data/DataGrid';
+import Badge from './Badge';
+import Button from './Button';
+import {
+  EyeIcon,
+  PencilIcon,
+  TrashIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  CalendarDaysIcon,
+  Squares2X2Icon,
+  DocumentTextIcon,
+  Bars3Icon,
+  ArrowTrendingUpIcon,
+  DocumentIcon
+} from '@heroicons/react/24/outline';
 import { Tab } from '@/types/tabbedWorkspace';
 import { logger } from '@/utils/logging';
 
@@ -7,6 +23,17 @@ import { logger } from '@/utils/logging';
 export interface ContentRendererProps {
   tab: Tab;
   className?: string;
+}
+
+export interface TaskItem {
+  id: string | number;
+  name: string;
+  status: 'active' | 'inactive' | 'pending' | 'completed' | 'to_test' | 'new' | 'closed';
+  teams: string;
+  assigned: string;
+  priority: number;
+  approved: boolean;
+  [key: string]: any;
 }
 
 // Mock data for demonstration
@@ -157,6 +184,24 @@ const mockTasksData: TaskItem[] = [
   }
 ];
 
+const TASK_STATUS_CONFIG: Record<string, { color: string; icon: typeof CheckCircleIcon; label: string }> = {
+  active: { color: 'success', icon: CheckCircleIcon, label: 'Active' },
+  inactive: { color: 'secondary', icon: ClockIcon, label: 'Inactive' },
+  pending: { color: 'warning', icon: ClockIcon, label: 'Pending' },
+  completed: { color: 'success', icon: CheckCircleIcon, label: 'Completed' },
+  to_test: { color: 'info', icon: ExclamationCircleIcon, label: 'To Test' },
+  new: { color: 'primary', icon: ExclamationCircleIcon, label: 'New' },
+  closed: { color: 'secondary', icon: CheckCircleIcon, label: 'Closed' }
+};
+
+const TEAM_COLORS: Record<string, string> = {
+  'devops': 'info',
+  'frontend': 'success',
+  'backend': 'primary',
+  'api': 'info',
+  'other': 'secondary'
+};
+
 const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }) => {
   // Handle task actions
   const handleTaskView = (task: TaskItem) => {
@@ -174,15 +219,163 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
     // TODO: Implement task deletion with confirmation
   };
 
-  const handleTaskStatusChange = (task: TaskItem, newStatus: string) => {
-    logger.info('Change task status:', task, newStatus);
-    // TODO: Implement status change logic
-  };
-
   const handleSelectionChange = (selected: TaskItem[]) => {
     logger.info('Selection changed:', selected);
     // TODO: Implement bulk actions for selected tasks
   };
+
+  const taskColumns: DataGridColumn<TaskItem>[] = [
+    {
+      key: 'id',
+      header: '#',
+      width: 60,
+      render: (value) => (
+        <span className="font-mono text-xs text-gray-500">#{value}</span>
+      )
+    },
+    {
+      key: 'name',
+      header: 'Name',
+      render: (value) => (
+        <div className="max-w-xs">
+          <div className="font-medium text-gray-900 truncate" title={String(value ?? '')}>
+            {value}
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      width: 120,
+      render: (value) => {
+        const config = TASK_STATUS_CONFIG[String(value)] || TASK_STATUS_CONFIG.inactive;
+        const Icon = config.icon;
+        return (
+          <Badge variant={config.color as any} className="inline-flex items-center gap-1">
+            <Icon className="w-3 h-3" />
+            {config.label}
+          </Badge>
+        );
+      }
+    },
+    {
+      key: 'teams',
+      header: 'Teams',
+      width: 150,
+      render: (value) => {
+        const teamList = String(value ?? '').split(',').map(t => t.trim()).filter(Boolean);
+        if (teamList.length === 0) return <span className="text-gray-400">-</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {teamList.slice(0, 2).map((team) => (
+              <Badge key={team} variant={(TEAM_COLORS[team.toLowerCase()] || 'secondary') as any} className="text-xs">
+                {team}
+              </Badge>
+            ))}
+            {teamList.length > 2 && (
+              <Badge variant="secondary" className="text-xs">+{teamList.length - 2}</Badge>
+            )}
+          </div>
+        );
+      }
+    },
+    {
+      key: 'assigned',
+      header: 'Assigned',
+      width: 160,
+      render: (value) => (
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+            <span className="text-xs font-medium text-gray-600">
+              {value ? String(value).charAt(0).toUpperCase() : '?'}
+            </span>
+          </div>
+          <span className="text-sm text-gray-900">{value || 'Unassigned'}</span>
+        </div>
+      )
+    },
+    {
+      key: 'priority',
+      header: 'Priority',
+      width: 110,
+      align: 'center',
+      render: (value: number) => {
+        const badge =
+          value >= 800 ? <Badge variant="danger">Critical</Badge> :
+          value >= 600 ? <Badge variant="warning">High</Badge> :
+          value >= 400 ? <Badge variant="warning">Medium</Badge> :
+          <Badge variant="secondary">Low</Badge>;
+        return (
+          <div className="flex flex-col items-center gap-1">
+            {badge}
+            <span className="text-xs text-gray-500">{value}</span>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'approved',
+      header: 'Approved',
+      width: 100,
+      align: 'center',
+      render: (value) => (
+        <div className="flex justify-center">
+          {value ? (
+            <CheckCircleIcon className="w-5 h-5 text-green-500" />
+          ) : (
+            <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      width: 120,
+      align: 'center',
+      sortable: false,
+      filterable: false,
+      render: (_, row) => (
+        <div className="flex items-center justify-center space-x-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              handleTaskView(row);
+            }}
+            title="View details"
+          >
+            <EyeIcon className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              handleTaskEdit(row);
+            }}
+            title="Edit task"
+          >
+            <PencilIcon className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              handleTaskDelete(row);
+            }}
+            title="Delete task"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <TrashIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      )
+    }
+  ];
 
   // Render content based on tab type and content
   const renderContent = () => {
@@ -190,85 +383,86 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
       case 'tasks':
         return (
           <div className="h-full">
-            <DataTable
+            <DataGrid<TaskItem>
+              columns={taskColumns}
               data={mockTasksData}
-              onView={handleTaskView}
-              onEdit={handleTaskEdit}
-              onDelete={handleTaskDelete}
-              onStatusChange={handleTaskStatusChange}
               selectable={true}
               onSelectionChange={handleSelectionChange}
+              emptyState={{
+                title: 'No tasks found',
+                description: 'There are no tasks to display at the moment.'
+              }}
               className="h-full"
             />
           </div>
         );
-      
+
       case 'kanban':
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">ðŸ“‹</div>
+              <Squares2X2Icon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Kanban Board</h3>
               <p className="text-gray-500">Kanban view will be implemented here.</p>
             </div>
           </div>
         );
-      
+
       case 'calendar':
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">ðŸ“…</div>
+              <CalendarDaysIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Calendar View</h3>
               <p className="text-gray-500">Calendar view will be implemented here.</p>
             </div>
           </div>
         );
-      
+
       case 'dashboard':
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">ðŸ“Š</div>
+              <Squares2X2Icon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Dashboard</h3>
               <p className="text-gray-500">Dashboard widgets will be implemented here.</p>
             </div>
           </div>
         );
-      
+
       case 'form':
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">ðŸ“</div>
+              <DocumentTextIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Form View</h3>
               <p className="text-gray-500">Dynamic form will be rendered here.</p>
             </div>
           </div>
         );
-      
+
       case 'list':
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">ðŸ“‹</div>
+              <Bars3Icon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">List View</h3>
               <p className="text-gray-500">List content will be displayed here.</p>
             </div>
           </div>
         );
-      
+
       case 'chart':
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">ðŸ“ˆ</div>
+              <ArrowTrendingUpIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Chart View</h3>
               <p className="text-gray-500">Charts and analytics will be displayed here.</p>
             </div>
           </div>
         );
-      
+
       default:
         // Fallback for unknown content types or simple text content
         if (tab.content?.data) {
@@ -286,11 +480,11 @@ const ContentRenderer: React.FC<ContentRendererProps> = ({ tab, className = '' }
             </div>
           );
         }
-        
+
         return (
           <div className="flex items-center justify-center h-full bg-gray-50">
             <div className="text-center">
-              <div className="text-6xl mb-4">ðŸ“„</div>
+              <DocumentIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" aria-hidden="true" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{tab.title}</h3>
               <p className="text-gray-500">Content for this tab will be displayed here.</p>
             </div>

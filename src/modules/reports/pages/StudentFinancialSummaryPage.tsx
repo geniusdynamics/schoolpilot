@@ -3,7 +3,7 @@ import Card from '@/components/ui/Card';
 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import type { StudentInvoice as FinStudentInvoiceType, StudentPayment as FinStudentPaymentType, FeeAdjustment as FinFeeAdjustmentType } from '@/core/types';
@@ -104,13 +104,13 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
-    { header: 'Adm No', accessor: 'admissionNo' as keyof FinancialSummaryRow },
-    { header: 'Student Name', accessor: 'studentName' as keyof FinancialSummaryRow },
-    { header: 'Class', accessor: 'className' as keyof FinancialSummaryRow },
-    { header: 'Total Billed (KES)', accessor: 'totalBilled' as keyof FinancialSummaryRow, render: (item: FinancialSummaryRow) => item.totalBilled.toFixed(2) },
-    { header: 'Total Paid (KES)', accessor: 'totalPaid' as keyof FinancialSummaryRow, render: (item: FinancialSummaryRow) => item.totalPaid.toFixed(2) },
-    { header: 'Adjustments (KES)', accessor: 'totalAdjustments' as keyof FinancialSummaryRow, render: (item: FinancialSummaryRow) => item.totalAdjustments.toFixed(2) },
-    { header: 'Balance (KES)', accessor: 'balance' as keyof FinancialSummaryRow, render: (item: FinancialSummaryRow) => item.balance.toFixed(2) },
+    { header: 'Adm No', key: 'admissionNo' as keyof FinancialSummaryRow },
+    { header: 'Student Name', key: 'studentName' as keyof FinancialSummaryRow },
+    { header: 'Class', key: 'className' as keyof FinancialSummaryRow },
+    { header: 'Total Billed (KES)', key: 'totalBilled' as keyof FinancialSummaryRow, render: (_v: any, item: FinancialSummaryRow) => item.totalBilled.toFixed(2) },
+    { header: 'Total Paid (KES)', key: 'totalPaid' as keyof FinancialSummaryRow, render: (_v: any, item: FinancialSummaryRow) => item.totalPaid.toFixed(2) },
+    { header: 'Adjustments (KES)', key: 'totalAdjustments' as keyof FinancialSummaryRow, render: (_v: any, item: FinancialSummaryRow) => item.totalAdjustments.toFixed(2) },
+    { header: 'Balance (KES)', key: 'balance' as keyof FinancialSummaryRow, render: (_v: any, item: FinancialSummaryRow) => item.balance.toFixed(2) },
   ];
 
   const isLoadingPage = loading.students || loading.classes || loading.classStreams || loading.schoolPeriods || loading.studentInvoices || loading.studentPayments || loading.feeAdjustments;
@@ -151,7 +151,7 @@ export const StudentFinancialSummaryPageContent: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.printToBeDeveloped'))}>Print</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.exportToBeDeveloped'))}>Export CSV</Button>
                 </div>
-                <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage="No financial summary data found for the selected criteria."/>
+                <DataGrid columns={columns} data={reportData} loading={isGenerating} emptyState="No financial summary data found for the selected criteria."/>
             </>
         )}
       </Card>

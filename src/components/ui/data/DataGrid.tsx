@@ -61,7 +61,8 @@ export interface DataGridProps<T> {
   sortable?: boolean;
   filterable?: boolean;
   selectable?: boolean;
-  pagination?: PaginationConfig;
+  /** Pagination config, or `true` for internal pagination with defaults. */
+  pagination?: PaginationConfig | boolean;
   onRowClick?: (row: T) => void;
   onSelectionChange?: (selected: T[]) => void;
   onSort?: (key: string, direction: 'asc' | 'desc') => void;
@@ -123,12 +124,15 @@ const DataGrid = <T extends Record<string, any>>({
   loadingState,
   className = ''
 }: DataGridProps<T>): React.ReactElement => {
+  // Pagination config is normalized once, before any state that depends on it
+  const paginationConfig: PaginationConfig | undefined = pagination === true ? {} : (pagination || undefined);
+
   const [sortState, setSortState] = useState<SortState | null>(null);
   const [filterState, setFilterState] = useState<FilterState>({});
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [internalPage, setInternalPage] = useState(1);
-  const [internalPageSize, setInternalPageSize] = useState(pagination?.pageSize ?? DEFAULT_PAGE_SIZE);
+  const [internalPageSize, setInternalPageSize] = useState(paginationConfig?.pageSize ?? DEFAULT_PAGE_SIZE);
 
   const isLoadingDeprecated = useRef(false);
   const keyFieldMissing = useRef(false);
@@ -249,17 +253,17 @@ const DataGrid = <T extends Record<string, any>>({
   }, [safeData, sortState, filterState, onSort, onFilter]);
 
   // Pagination: controlled when onPageChange is provided, internal otherwise
-  const isControlledPagination = Boolean(pagination?.onPageChange);
-  const pageSize = isControlledPagination ? (pagination?.pageSize ?? DEFAULT_PAGE_SIZE) : internalPageSize;
-  const totalRows = isControlledPagination ? (pagination?.total ?? safeData.length) : processedData.length;
-  const currentPage = isControlledPagination ? (pagination?.page ?? 1) : internalPage;
+  const isControlledPagination = Boolean(paginationConfig?.onPageChange);
+  const pageSize = isControlledPagination ? (paginationConfig?.pageSize ?? DEFAULT_PAGE_SIZE) : internalPageSize;
+  const totalRows = isControlledPagination ? (paginationConfig?.total ?? safeData.length) : processedData.length;
+  const currentPage = isControlledPagination ? (paginationConfig?.page ?? 1) : internalPage;
   const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
 
   const paginatedData = useMemo(() => {
     if (!pagination || isControlledPagination) return processedData;
     const startIndex = (currentPage - 1) * pageSize;
     return processedData.slice(startIndex, startIndex + pageSize);
-  }, [pagination, isControlledPagination, processedData, currentPage, pageSize]);
+  }, [paginationConfig, isControlledPagination, processedData, currentPage, pageSize]);
 
   // Refs so selection handlers always see current values without stale closures
   const processedDataRef = useRef(processedData);
@@ -282,20 +286,20 @@ const DataGrid = <T extends Record<string, any>>({
   const goToPage = useCallback((page: number) => {
     const clamped = Math.min(Math.max(1, page), totalPages);
     if (isControlledPagination) {
-      pagination?.onPageChange?.(clamped);
+      paginationConfig?.onPageChange?.(clamped);
     } else {
       setInternalPage(clamped);
     }
-  }, [totalPages, isControlledPagination, pagination]);
+  }, [totalPages, isControlledPagination, paginationConfig]);
 
   const changePageSize = useCallback((size: number) => {
     if (isControlledPagination) {
-      pagination?.onPageSizeChange?.(size);
+      paginationConfig?.onPageSizeChange?.(size);
     } else {
       setInternalPageSize(size);
       setInternalPage(1);
     }
-  }, [isControlledPagination, pagination]);
+  }, [isControlledPagination, paginationConfig]);
 
   // Render cell content
   const renderCellContent = useCallback((row: T, column: DataGridColumn<T>) => {
@@ -588,7 +592,7 @@ return (
                 of{' '}
                 <span className="font-medium">{totalRows}</span> results
               </p>
-              {(pagination.showSizeChanger ?? !isControlledPagination) && (
+              {(paginationConfig?.showSizeChanger ?? !isControlledPagination) && (
                 <label className="text-sm text-gray-700 flex items-center gap-2">
                   <span className="sr-only">Rows per page</span>
                   <select
@@ -597,7 +601,7 @@ return (
                     className="border border-gray-300 rounded-md text-sm py-1 px-2"
                     aria-label="Rows per page"
                   >
-                    {(pagination.pageSizeOptions ?? DEFAULT_PAGE_SIZE_OPTIONS).map(size => (
+                    {(paginationConfig?.pageSizeOptions ?? DEFAULT_PAGE_SIZE_OPTIONS).map(size => (
                       <option key={size} value={size}>{size} / page</option>
                     ))}
                   </select>

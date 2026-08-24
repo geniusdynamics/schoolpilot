@@ -599,7 +599,7 @@ describe('DataGrid', () => {
       render(
         <DataGrid
           columns={basicColumns.filter(c => c.key !== 'id')}
-          data={noKeyData}
+          data={noKeyData as unknown as TestData[]}
           selectable={true}
         />
       );

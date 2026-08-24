@@ -3,7 +3,7 @@ import Card from '@/components/ui/Card';
 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { InvoiceStatus } from '@/core/types';
@@ -84,10 +84,10 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
-    { header: 'Votehead', accessor: 'votehead' as keyof FeeCollectionSummaryRow },
-    { header: 'Expected Amount (KES)', accessor: 'expectedAmount' as keyof FeeCollectionSummaryRow, render: (item: FeeCollectionSummaryRow) => item.expectedAmount.toFixed(2) },
-    { header: 'Paid Amount (KES)', accessor: 'paidAmount' as keyof FeeCollectionSummaryRow, render: (item: FeeCollectionSummaryRow) => item.paidAmount.toFixed(2) },
-    { header: 'Arrears (KES)', accessor: 'arrears' as keyof FeeCollectionSummaryRow, render: (item: FeeCollectionSummaryRow) => item.arrears.toFixed(2) },
+    { header: 'Votehead', key: 'votehead' as keyof FeeCollectionSummaryRow },
+    { header: 'Expected Amount (KES)', key: 'expectedAmount' as keyof FeeCollectionSummaryRow, render: (_v: any, item: FeeCollectionSummaryRow) => item.expectedAmount.toFixed(2) },
+    { header: 'Paid Amount (KES)', key: 'paidAmount' as keyof FeeCollectionSummaryRow, render: (_v: any, item: FeeCollectionSummaryRow) => item.paidAmount.toFixed(2) },
+    { header: 'Arrears (KES)', key: 'arrears' as keyof FeeCollectionSummaryRow, render: (_v: any, item: FeeCollectionSummaryRow) => item.arrears.toFixed(2) },
   ];
 
   const isLoadingPage = loading.schoolPeriods || loading.classes || loading.studentInvoices || loading.studentPayments || loading.invoicePaymentApplications || loading.feeTemplates;
@@ -105,9 +105,9 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     const rows = reportData.map(row => {
       return columns.map(col => {
         // @ts-ignore
-        let value = row[col.accessor as keyof FeeCollectionSummaryRow];
+        let value = row[col.key as keyof FeeCollectionSummaryRow];
         if (col.render) {
-          value = col.render(row); // Use rendered value if available
+          value = col.render(value, row); // Use rendered value if available
         }
         // Handle potential commas in values by double-quoting
         const stringValue = String(value !== undefined && value !== null ? value : '-');
@@ -162,7 +162,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={handlePrint} leftIcon={<PrinterIcon className="w-4 h-4"/>}>Print</Button>
                     <Button variant="secondary" size="sm" onClick={handleExportCSV} leftIcon={<DownloadIcon className="w-4 h-4"/>}>Export CSV</Button>
                 </div>
-                <Table columns={columns} data={(reportData || [])} isLoading={isGenerating} emptyStateMessage="No fee collection data found for the selected criteria."/>
+                <DataGrid columns={columns} data={(reportData || [])} loading={isGenerating} emptyState="No fee collection data found for the selected criteria."/>
             </>
         ) : (
             <p className="text-center text-gray-500 py-4">Please select filters and click "Generate Summary".</p>

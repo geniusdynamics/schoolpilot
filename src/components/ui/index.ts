@@ -66,8 +66,6 @@ export type { SelectOption, SelectProps } from './Select';
 export { default as Modal } from './Modal';
 export { default as Card, CardHeader, CardTitle, CardDescription, CardContent } from './Card';
 export type { CardVariant, CardSize } from './Card';
-export { default as Table } from './Table';
-export { TableBody, TableCell, TableHead, TableHeader, TableRow, TableRoot } from './TableComponents';
 export { TabsRoot as Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs';
 export { default as Spinner } from './Spinner';
 export { default as Badge } from './Badge';

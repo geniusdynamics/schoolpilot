@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 import { ClockIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { Loan, Student, Staff, Book } from '@/types';
@@ -98,13 +98,13 @@ const OverdueReport: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
-    { header: 'Book Title', accessor: 'bookTitle' as keyof OverdueItem },
-    { header: 'ISBN', accessor: 'bookIsbn' as keyof OverdueItem },
-    { header: 'Borrower', accessor: 'borrowerName' as keyof OverdueItem },
-    { header: 'Type', accessor: 'borrowerType' as keyof OverdueItem },
-    { header: 'Loan Date', accessor: (item: OverdueItem) => new Date(item.loanDate).toLocaleDateString() },
-    { header: 'Due Date', accessor: (item: OverdueItem) => new Date(item.dueDate).toLocaleDateString() },
-    { header: 'Days Overdue', accessor: (item: OverdueItem) => (
+    { header: 'Book Title', key: 'bookTitle' as keyof OverdueItem },
+    { header: 'ISBN', key: 'bookIsbn' as keyof OverdueItem },
+    { header: 'Borrower', key: 'borrowerName' as keyof OverdueItem },
+    { header: 'Type', key: 'borrowerType' as keyof OverdueItem },
+    { header: 'Loan Date', key: 'loan_date', render: (_v: any, item: OverdueItem) => new Date(item.loanDate).toLocaleDateString() },
+    { header: 'Due Date', key: 'due_date', render: (_v: any, item: OverdueItem) => new Date(item.dueDate).toLocaleDateString() },
+    { header: 'Days Overdue', key: 'days_overdue', render: (_v: any, item: OverdueItem) => (
       <span className={`px-2 py-1 rounded text-xs font-semibold ${
         item.daysOverdue > 30 ? 'bg-red-100 text-red-800' :
         item.daysOverdue > 14 ? 'bg-orange-100 text-orange-800' :
@@ -113,7 +113,7 @@ const OverdueReport: React.FC = () => {
         {item.daysOverdue} days
       </span>
     )},
-    { header: 'Potential Fine', accessor: (item: OverdueItem) => `$${item.fineAmount?.toFixed(2) || '0.00'}` },
+    { header: 'Potential Fine', key: 'potential_fine', render: (_v: any, item: OverdueItem) => `$${item.fineAmount?.toFixed(2) || '0.00'}` },
   ];
 
   const isLoadingPage = loading.loans || loading.books || loading.students || loading.staff;
@@ -239,11 +239,11 @@ const OverdueReport: React.FC = () => {
                 Export CSV
               </Button>
             </div>
-            <Table 
+            <DataGrid 
               columns={columns} 
               data={filteredOverdueItems} 
-              isLoading={isGenerating} 
-              emptyStateMessage="No overdue books found"
+              loading={isGenerating} 
+              emptyState="No overdue books found"
             />
           </>
         )}

@@ -9,7 +9,7 @@ import Card from '@/components/ui/Card';
 import { ChartPieIcon, PrinterIcon, DownloadIcon as ExportIcon } from '@/components/ui/icons'; 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { Student, Class as SchoolClass, ClassStream } from '@/types'; 
@@ -169,7 +169,7 @@ export const ExamResultsHorizontalPageContent: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => window.print()} leftIcon={<PrinterIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.csvExportToBeDeveloped'))} leftIcon={<ExportIcon className="w-4 h-4"/>}>{t('examResultsHorizontal.exportCSV')}</Button>
                 </div>
-                <Table columns={dynamicColumns} data={(reportData || [])} isLoading={isGenerating} />
+                <DataGrid columns={dynamicColumns} data={(reportData || [])} loading={isGenerating} />
             </>
         ) : (
             <p className="text-center text-gray-500 py-4">

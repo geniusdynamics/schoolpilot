@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Alert, AlertDescription, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button, Alert, AlertDescription, Tabs, TabsContent, TabsList, TabsTrigger, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '@/components/ui';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
 import {
   AlertTriangle,
   CheckCircle,
@@ -84,39 +85,69 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
     }
   };
 
-  const AlertRow: React.FC<{ alert: ReorderAlert }> = ({ alert }) => (
-    <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAlert(alert)}>
-      <TableCell>
+  const alertColumns: DataGridColumn<ReorderAlert>[] = [
+    {
+      key: 'priority',
+      header: t('reorderAlerts.table.priority'),
+      width: 120,
+      render: (_v, alert) => (
         <div className="flex items-center gap-2">
           {getPriorityIcon(alert.priority)}
           <Badge variant={getPriorityColor(alert.priority) as any}>
             {alert.priority}
           </Badge>
         </div>
-      </TableCell>
-      <TableCell className="font-medium">{alert.item_name}</TableCell>
-      <TableCell>
+      )
+    },
+    {
+      key: 'item_name',
+      header: t('reorderAlerts.table.item'),
+      render: (_v, alert) => <span className="font-medium">{alert.item_name}</span>
+    },
+    {
+      key: 'current_stock',
+      header: t('reorderAlerts.table.currentStock'),
+      align: 'right',
+      render: (_v, alert) => (
         <div className="text-right">
           <div className="font-medium">{alert.current_stock}</div>
           <div className="text-sm text-muted-foreground">
             {t('reorderAlerts.reorderPoint')}: {alert.reorder_point}
           </div>
         </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="font-medium text-blue-600">
-          {alert.suggested_order_quantity}
+      )
+    },
+    {
+      key: 'suggested_order_quantity',
+      header: t('reorderAlerts.table.suggestedOrder'),
+      align: 'right',
+      render: (_v, alert) => (
+        <div className="text-right">
+          <div className="font-medium text-blue-600">
+            {alert.suggested_order_quantity}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {alert.reorder_quantity > 0 && `(${t('reorderAlerts.standard')}: ${alert.reorder_quantity})`}
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground">
-          {alert.reorder_quantity > 0 && `(${t('reorderAlerts.standard')}: ${alert.reorder_quantity})`}
-        </div>
-      </TableCell>
-      <TableCell>
+      )
+    },
+    {
+      key: 'alert_type',
+      header: t('reorderAlerts.table.alertType'),
+      render: (_v, alert) => (
         <Badge variant={alert.alert_type === 'REORDER_REQUIRED' ? 'destructive' : 'warning'}>
           {alert.alert_type === 'REORDER_REQUIRED' ? t('reorderAlerts.reorderRequired') : t('reorderAlerts.lowStock')}
         </Badge>
-      </TableCell>
-      <TableCell>
+      )
+    },
+    {
+      key: 'actions',
+      header: t('reorderAlerts.table.actions'),
+      width: 80,
+      sortable: false,
+      filterable: false,
+      render: (_v, alert) => (
         <Button
           variant="ghost"
           size="sm"
@@ -127,9 +158,9 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
         >
           <X className="h-4 w-4" />
         </Button>
-      </TableCell>
-    </TableRow>
-  );
+      )
+    }
+  ];
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -293,83 +324,39 @@ export const ReorderAlertsPanel: React.FC<ReorderAlertsPanelProps> = ({
               </TabsList>
               
               <TabsContent value="all">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('reorderAlerts.table.priority')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.item')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.currentStock')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.suggestedOrder')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.alertType')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {alerts.map((alert) => (
-                      <AlertRow key={alert.item_id} alert={alert} />
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  columns={alertColumns}
+                  data={alerts}
+                  keyField="item_id"
+                  onRowClick={(alert) => setSelectedAlert(alert)}
+                />
               </TabsContent>
-              
+
               <TabsContent value="high">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('reorderAlerts.table.priority')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.item')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.currentStock')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.suggestedOrder')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.alertType')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {highPriorityAlerts.map((alert) => (
-                      <AlertRow key={alert.item_id} alert={alert} />
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  columns={alertColumns}
+                  data={highPriorityAlerts}
+                  keyField="item_id"
+                  onRowClick={(alert) => setSelectedAlert(alert)}
+                />
               </TabsContent>
-              
+
               <TabsContent value="medium">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('reorderAlerts.table.priority')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.item')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.currentStock')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.suggestedOrder')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.alertType')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mediumPriorityAlerts.map((alert) => (
-                      <AlertRow key={alert.item_id} alert={alert} />
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  columns={alertColumns}
+                  data={mediumPriorityAlerts}
+                  keyField="item_id"
+                  onRowClick={(alert) => setSelectedAlert(alert)}
+                />
               </TabsContent>
-              
+
               <TabsContent value="low">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('reorderAlerts.table.priority')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.item')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.currentStock')}</TableHead>
-                      <TableHead className="text-right">{t('reorderAlerts.table.suggestedOrder')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.alertType')}</TableHead>
-                      <TableHead>{t('reorderAlerts.table.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lowPriorityAlerts.map((alert) => (
-                      <AlertRow key={alert.item_id} alert={alert} />
-                    ))}
-                  </TableBody>
-                </Table>
+                <DataGrid
+                  columns={alertColumns}
+                  data={lowPriorityAlerts}
+                  keyField="item_id"
+                  onRowClick={(alert) => setSelectedAlert(alert)}
+                />
               </TabsContent>
             </Tabs>
           )}

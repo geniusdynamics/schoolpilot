@@ -7,7 +7,7 @@ import Card from '@/components/ui/Card';
 import { CogIcon, IdentificationIcon, UserGroupIcon, ArrowsRightLeftIcon, ClockIcon, CircleStackIcon } from '@/components/ui/icons'; 
 import { useAppData } from '@/hooks/useAppData'; 
 import { User } from '@/types'; 
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { Link } from 'react-router-dom';
 import ModuleManagementPanel from '@/components/settings/ModuleManagementPanel';
 import UserPermissionsPanel from '@/components/settings/UserPermissionsPanel';
@@ -185,7 +185,7 @@ export const SettingsContent: React.FC = () => {
         <div className="mb-4">
           <p className="text-gray-600">{t('userManagement.previewDescription')}</p>
         </div>
-        <Table columns={userColumns} data={previewUsers} isLoading={usersLoading.users} />
+        <DataGrid columns={userColumns} data={previewUsers} loading={usersLoading.users} />
         <div className="mt-4 text-center">
           <Link 
             to="/settings/users" 

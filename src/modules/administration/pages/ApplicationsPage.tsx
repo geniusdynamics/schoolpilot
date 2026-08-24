@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { PlusIcon } from '@/components/ui/icons';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 
 interface Application {
   id: string;
@@ -41,10 +41,10 @@ const ApplicationsPage: React.FC = () => {
           </Button>
         }
       >
-        <Table 
+        <DataGrid 
           columns={columns} 
           data={applications} 
-          emptyStateMessage="No applications found"
+          emptyState="No applications found"
         />
       </Card>
     </div>

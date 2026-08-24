@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BookCategory } from '@/types';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Button from '@/components/ui/Button';
 import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormField from '../../../components/ui/forms/FormField';
@@ -95,7 +95,7 @@ export const BookCategoriesPageContent: React.FC = () => {
         <p className="text-sm text-gray-600 mb-4">
           {t('bookCategories.defineCategories')}
         </p>
-        <Table columns={columns} data={bookCategories} isLoading={loading.bookCategories && isModalOpen} />
+        <DataGrid columns={columns} data={bookCategories} loading={loading.bookCategories && isModalOpen} />
       </Card>
 
       <DialogForm 

@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { useTranslation } from 'react-i18next';
@@ -81,12 +81,12 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
   ]);
 
   const columns = [
-    { header: 'Date', accessor: 'date' as keyof StatementRow, render: (item: StatementRow) => new Date(item.date).toLocaleDateString() },
-    { header: 'Description', accessor: 'description' as keyof StatementRow },
-    { header: 'Invoice/Receipt No', accessor: (item: StatementRow) => item.invoiceNo || item.paymentRef || '-' },
-    { header: 'Debit (KES)', accessor: 'debit' as keyof StatementRow, render: (item: StatementRow) => item.debit > 0 ? item.debit.toFixed(2) : '-' },
-    { header: 'Credit (KES)', accessor: 'credit' as keyof StatementRow, render: (item: StatementRow) => item.credit > 0 ? item.credit.toFixed(2) : '-' },
-    { header: 'Balance (KES)', accessor: 'balance' as keyof StatementRow, render: (item: StatementRow) => item.balance.toFixed(2) },
+    { header: 'Date', key: 'date' as keyof StatementRow, render: (_v: any, item: StatementRow) => new Date(item.date).toLocaleDateString() },
+    { header: 'Description', key: 'description' as keyof StatementRow },
+    { header: 'Invoice/Receipt No', key: 'reference_no', render: (_v: any, item: StatementRow) => item.invoiceNo || item.paymentRef || '-' },
+    { header: 'Debit (KES)', key: 'debit' as keyof StatementRow, render: (_v: any, item: StatementRow) => item.debit > 0 ? item.debit.toFixed(2) : '-' },
+    { header: 'Credit (KES)', key: 'credit' as keyof StatementRow, render: (_v: any, item: StatementRow) => item.credit > 0 ? item.credit.toFixed(2) : '-' },
+    { header: 'Balance (KES)', key: 'balance' as keyof StatementRow, render: (_v: any, item: StatementRow) => item.balance.toFixed(2) },
   ];
 
   const isLoadingPage = loading.students || loading.schoolPeriods || loading.studentInvoices || loading.studentInvoiceItems || loading.studentPayments || loading.invoicePaymentApplications || loading.studentOpeningBalances;
@@ -132,7 +132,7 @@ export const StudentVoteheadStatementPageContent: React.FC = () => {
                 <Button variant="secondary" size="sm" onClick={handlePrintAndExportPDF} leftIcon={<PrinterIcon className="w-4 h-4"/>}>Print</Button>
                 <Button variant="secondary" size="sm" onClick={handlePrintAndExportPDF} leftIcon={<DownloadIcon className="w-4 h-4"/>}>Export PDF</Button>
             </div>
-            <Table columns={columns} data={reportData} isLoading={isGenerating} emptyStateMessage="No transactions found for the selected criteria."/>
+            <DataGrid columns={columns} data={reportData} loading={isGenerating} emptyState="No transactions found for the selected criteria."/>
             <div className="mt-4 text-right text-lg font-bold">
                 Closing Balance: KES {reportData.length > 0 ? reportData[reportData.length-1].balance.toFixed(2) : openingBalance.toFixed(2)}
             </div>

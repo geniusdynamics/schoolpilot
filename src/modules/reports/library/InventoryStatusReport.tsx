@@ -6,7 +6,7 @@ import Card from '@/components/ui/Card';
 import { CubeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { ItemInv, Warehouse, ItemCategoryInv, StockLevel } from '@/types';
@@ -126,15 +126,15 @@ const InventoryStatusReport: React.FC = () => {
   };
 
   const columns = [
-    { header: 'Item Name', accessor: 'itemName' as keyof InventoryStatusItem },
-    { header: 'Category', accessor: 'categoryName' as keyof InventoryStatusItem },
-    { header: 'Warehouse', accessor: 'warehouseName' as keyof InventoryStatusItem },
-    { header: 'Current Stock', accessor: (item: InventoryStatusItem) => `${item.currentStock} ${item.unitOfMeasure}` },
-    { header: 'Unit Cost', accessor: (item: InventoryStatusItem) => 
+    { header: 'Item Name', key: 'itemName' as keyof InventoryStatusItem },
+    { header: 'Category', key: 'categoryName' as keyof InventoryStatusItem },
+    { header: 'Warehouse', key: 'warehouseName' as keyof InventoryStatusItem },
+    { header: 'Current Stock', key: 'current_stock', render: (_v: any, item: InventoryStatusItem) => `${item.currentStock} ${item.unitOfMeasure}` },
+    { header: 'Unit Cost', key: 'unit_cost', render: (_v: any, item: InventoryStatusItem) =>
       item.unitCost ? `$${item.unitCost.toFixed(2)}` : 'N/A'
     },
-    { header: 'Total Value', accessor: (item: InventoryStatusItem) => `$${item.totalValue.toFixed(2)}` },
-    { header: 'Status', accessor: (item: InventoryStatusItem) => getStatusBadge(item.status) },
+    { header: 'Total Value', key: 'total_value', render: (_v: any, item: InventoryStatusItem) => `$${item.totalValue.toFixed(2)}` },
+    { header: 'Status', key: 'status', render: (_v: any, item: InventoryStatusItem) => getStatusBadge(item.status) },
   ];
 
   const isLoadingPage = loading.itemsInv || loading.warehouses || loading.itemCategoriesInv || loading.stockLevels;
@@ -271,11 +271,11 @@ const InventoryStatusReport: React.FC = () => {
                 Export CSV
               </Button>
             </div>
-            <Table 
+            <DataGrid 
               columns={columns} 
               data={filteredInventoryItems} 
-              isLoading={isGenerating} 
-              emptyStateMessage="No inventory items found"
+              loading={isGenerating} 
+              emptyState="No inventory items found"
             />
           </>
         )}

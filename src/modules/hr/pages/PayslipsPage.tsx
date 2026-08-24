@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { PlusIcon, EyeIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
@@ -202,10 +202,10 @@ export const PayslipsPageContent: React.FC = () => {
             <Spinner />
           </div>
         ) : (
-          <Table
+          <DataGrid
             columns={columns}
             data={payslips || []}
-            emptyStateMessage={t('payslips.noPayslips') || 'No payslips found'}
+            emptyState={t('payslips.noPayslips') || 'No payslips found'}
           />
         )}
       </Card>

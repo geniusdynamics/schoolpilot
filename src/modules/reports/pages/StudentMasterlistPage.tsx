@@ -3,7 +3,7 @@ import Card from '@/components/ui/Card';
 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 
@@ -59,16 +59,16 @@ export const StudentMasterlistPageContent: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps 
 
   const columns = [
-    { header: 'Adm No', accessor: 'admission_no' as keyof Student },
-    { header: 'Student Name', accessor: (item: Student) => `${item.first_name} ${item.last_name}` },
-    { header: 'Gender', accessor: 'gender' as keyof Student },
-    { header: 'Status', accessor: 'status' as keyof Student },
-    { header: 'Class', accessor: 'current_class_name' as keyof Student },
-    { header: 'Stream', accessor: 'current_class_stream_name' as keyof Student },
-    { header: 'Category', accessor: 'student_category_name' as keyof Student },
-    { header: 'Dormitory', accessor: 'dormitory_name' as keyof Student },
-    { header: 'Guardian Name', accessor: (item: Student) => item.primary_guardian?.name || '-' },
-    { header: 'Guardian Phone', accessor: (item: Student) => item.primary_guardian?.phone || '-' },
+    { header: 'Adm No', key: 'admission_no' as keyof Student },
+    { header: 'Student Name', key: 'student_name', render: (_v: any, item: Student) => `${item.first_name} ${item.last_name}` },
+    { header: 'Gender', key: 'gender' as keyof Student },
+    { header: 'Status', key: 'status' as keyof Student },
+    { header: 'Class', key: 'current_class_name' as keyof Student },
+    { header: 'Stream', key: 'current_class_stream_name' as keyof Student },
+    { header: 'Category', key: 'student_category_name' as keyof Student },
+    { header: 'Dormitory', key: 'dormitory_name' as keyof Student },
+    { header: 'Guardian Name', key: 'guardian_name', render: (_v: any, item: Student) => item.primary_guardian?.name || '-' },
+    { header: 'Guardian Phone', key: 'guardian_phone', render: (_v: any, item: Student) => item.primary_guardian?.phone || '-' },
   ];
 
   const isLoadingPage = loading.students || loading.classes || loading.classStreams;
@@ -82,10 +82,10 @@ export const StudentMasterlistPageContent: React.FC = () => {
     const rows = (filteredStudents || []).map(student => {
       return columns.map(col => {
         let value;
-        if (typeof col.accessor === 'function') {
-          value = col.accessor(student);
+        if (col.render) {
+          value = col.render(student[col.key as keyof Student], student);
         } else {
-          value = student[col.accessor as keyof Student] as string | number | undefined;
+          value = student[col.key as keyof Student] as string | number | undefined;
         }
         // Handle potential commas in values by double-quoting
         const stringValue = String(value !== undefined && value !== null ? value : '-');
@@ -148,7 +148,7 @@ export const StudentMasterlistPageContent: React.FC = () => {
                 <Button variant="secondary" size="sm" onClick={handlePrint}>{t('studentMasterlistPage.print')}</Button>
                 <Button variant="secondary" size="sm" onClick={handleExportCSV}>{t('studentMasterlistPage.exportCSV')}</Button>
             </div>
-            <Table columns={columns} data={(filteredStudents || [])} isLoading={isGenerating} emptyStateMessage={t('studentMasterlistPage.noStudentsFound')}/>
+            <DataGrid columns={columns} data={(filteredStudents || [])} loading={isGenerating} emptyState={t('studentMasterlistPage.noStudentsFound')}/>
           </>
         )}
       </Card>

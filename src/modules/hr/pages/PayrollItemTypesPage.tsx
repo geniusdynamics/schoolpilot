@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
@@ -167,15 +167,15 @@ export const PayrollItemTypesPageContent: React.FC = () => {
   }, [refreshCollection, t]);
 
   const columns = [
-    { header: t('tableHeaders.id'), accessor: 'id' as keyof PayrollItemType },
-    { header: t('tableHeaders.name'), accessor: 'name' as keyof PayrollItemType },
-    { header: t('tableHeaders.code'), accessor: 'code' as keyof PayrollItemType },
-    { header: t('tableHeaders.type'), accessor: 'type' as keyof PayrollItemType },
-    { header: t('tableHeaders.status'), accessor: 'is_active' as keyof PayrollItemType },
+    { header: t('tableHeaders.id'), key: 'id' as keyof PayrollItemType },
+    { header: t('tableHeaders.name'), key: 'name' as keyof PayrollItemType },
+    { header: t('tableHeaders.code'), key: 'code' as keyof PayrollItemType },
+    { header: t('tableHeaders.type'), key: 'type' as keyof PayrollItemType },
+    { header: t('tableHeaders.status'), key: 'is_active' as keyof PayrollItemType },
     {
       header: t('tableHeaders.actions'),
-      accessor: 'id' as keyof PayrollItemType,
-      render: (item: PayrollItemType) => (
+      key: 'id' as keyof PayrollItemType,
+      render: (_v: any, item: PayrollItemType) => (
         <div className="flex gap-2">
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>
             {t('common:edit')}
@@ -206,10 +206,10 @@ export const PayrollItemTypesPageContent: React.FC = () => {
             <Spinner />
           </div>
         ) : (
-          <Table
+          <DataGrid
             columns={columns}
             data={payrollItemTypes || []}
-            emptyStateMessage={t('payrollItemTypes.noItems') || 'No payroll item types found'}
+            emptyState={t('payrollItemTypes.noItems') || 'No payroll item types found'}
           />
         )}
       </Card>

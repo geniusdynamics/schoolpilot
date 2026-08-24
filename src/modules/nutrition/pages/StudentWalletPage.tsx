@@ -4,7 +4,18 @@ import { Card, DataGrid, Button, Modal, Input, Select, Textarea, Toast, Spinner 
 
 import { useAppData } from '@/hooks/useAppData';
 import { StudentStatus, WalletTransactionType } from '@/core/types';
-import type { StudentWallet } from '@/core/types';
+// The wallet collection is exposed via useAppData under the library module's
+// StudentWallet (string student_id, no id), while this page renders the
+// nutrition view fields (id, last_updated, student_name). Local view shape
+// bridges the two until the wallet types are unified.
+interface WalletRow {
+  id: number;
+  student_id: number;
+  balance: number;
+  last_updated: string;
+  student_name?: string | null;
+  status?: string;
+}
 import { EyeIcon, PlusIcon } from '@/components/ui/icons';
 
 type WalletTransactionFormData = {
@@ -26,9 +37,9 @@ export const StudentWalletPageContent: React.FC = () => {
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   
-  const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<StudentWallet | null>(null);
+  const [selectedStudentForHistory, setSelectedStudentForHistory] = useState<WalletRow | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [, setSelectedRows] = useState<string[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   const initialTxFormData: WalletTransactionFormData = { 
@@ -40,8 +51,8 @@ export const StudentWalletPageContent: React.FC = () => {
   const [txFormData, setTxFormData] = useState<WalletTransactionFormData>(initialTxFormData);
 
   const filteredStudentWallets = useMemo(() => {
-    return (studentWallets || []).filter(sw => {
-        const student = (students || []).find(s => s.id === sw.student_id);
+    return ((studentWallets as unknown as WalletRow[]) || []).filter(sw => {
+        const student = (students || []).find(s => String(s.id) === String(sw.student_id));
         return student && [student.first_name, student.last_name, student.admission_no].filter(Boolean).join(' ').toLowerCase().includes(searchTerm.toLowerCase());
     });
   }, [studentWallets, students, searchTerm]);
@@ -49,7 +60,7 @@ export const StudentWalletPageContent: React.FC = () => {
   const studentTransactionHistory = useMemo(() => {
     if (!selectedStudentForHistory) return [];
     return walletTransactions
-        .filter(tx => tx.student_id === selectedStudentForHistory.student_id)
+        .filter(tx => String(tx.student_id) === String(selectedStudentForHistory.student_id))
         .sort((a,b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime());
   }, [selectedStudentForHistory, walletTransactions]);
 
@@ -59,7 +70,7 @@ export const StudentWalletPageContent: React.FC = () => {
   };
   const closeTxModal = () => setIsTxModalOpen(false);
 
-  const openHistoryModal = (studentWallet: StudentWallet) => {
+  const openHistoryModal = (studentWallet: WalletRow) => {
     setSelectedStudentForHistory(studentWallet);
     setIsHistoryModalOpen(true);
   };
@@ -109,36 +120,36 @@ export const StudentWalletPageContent: React.FC = () => {
   };
 
   const walletColumns = [
-    { 
-      key: 'student_name', 
-      header: 'Student Name', 
-      sortable: true,
-      searchable: true
+    {
+      key: 'student_name',
+      header: 'Student Name',
+      sortable: true
     },
-    { 
-      key: 'admission_no', 
-      header: 'Admission No.', 
-      render: (item: StudentWallet) => students.find(s => s.id === item.student_id)?.admission_no || 'N/A',
-      sortable: true,
-      searchable: true
+    {
+      key: 'admission_no',
+      header: 'Admission No.',
+      render: (_v: any, item: WalletRow) => students.find(s => String(s.id) === String(item.student_id))?.admission_no || 'N/A',
+      sortable: true
     },
-    { 
-      key: 'balance', 
-      header: 'Wallet Balance (KES)', 
-      render: (item: StudentWallet) => item.balance.toFixed(2),
+    {
+      key: 'balance',
+      header: 'Wallet Balance (KES)',
+      render: (_v: any, item: WalletRow) => item.balance.toFixed(2),
       sortable: true,
       align: 'right' as const
     },
-    { 
-      key: 'last_updated', 
-      header: 'Last Updated', 
-      render: (item: StudentWallet) => new Date(item.last_updated).toLocaleString(),
+    {
+      key: 'last_updated',
+      header: 'Last Updated',
+      render: (_v: any, item: WalletRow) => new Date(item.last_updated).toLocaleString(),
       sortable: true
     },
     {
       key: 'actions',
       header: 'Actions',
-      render: (item: StudentWallet) => (
+      sortable: false,
+      filterable: false,
+      render: (_v: any, item: WalletRow) => (
         <Button size="sm" variant="ghost" onClick={() => openHistoryModal(item)} leftIcon={<EyeIcon className="w-4 h-4" />}>
           View History
         </Button>
@@ -148,33 +159,32 @@ export const StudentWalletPageContent: React.FC = () => {
   ];
 
   const historyColumns = [
-    { 
-      key: 'transaction_date', 
-      header: 'Date', 
-      render: (item: WalletTransaction) => new Date(item.transaction_date).toLocaleString(),
+    {
+      key: 'transaction_date',
+      header: 'Date',
+      render: (_v: any, item: WalletTransaction) => new Date(item.transaction_date).toLocaleString(),
       sortable: true
     },
-    { 
-      key: 'transaction_type', 
-      header: 'Type', 
+    {
+      key: 'transaction_type',
+      header: 'Type',
       sortable: true
     },
-    { 
-      key: 'amount', 
-      header: 'Amount (KES)', 
-      render: (item: WalletTransaction) => item.amount.toFixed(2),
+    {
+      key: 'amount',
+      header: 'Amount (KES)',
+      render: (_v: any, item: WalletTransaction) => item.amount.toFixed(2),
       sortable: true,
       align: 'right' as const
     },
-    { 
-      key: 'description', 
-      header: 'Description',
-      searchable: true
+    {
+      key: 'description',
+      header: 'Description'
     },
     { 
       key: 'running_balance', 
       header: 'Running Balance (KES)', 
-      render: (item: WalletTransaction) => item.running_balance.toFixed(2),
+      render: (_v: any, item: WalletTransaction) => item.running_balance.toFixed(2),
       align: 'right' as const
     },
   ];
@@ -207,12 +217,9 @@ export const StudentWalletPageContent: React.FC = () => {
           data={filteredStudentWallets} 
           loading={loading.studentWallets && !isTxModalOpen}
           selectable
-          selectedRows={selectedRows}
-          onSelectionChange={setSelectedRows}
-          searchable
+          onSelectionChange={(rows) => setSelectedRows(rows.map(r => String(r.id)))}
           sortable
-          pagination
-          pageSize={10}
+          pagination={{ pageSize: 10 }}
         />
       </Card>
 
@@ -257,11 +264,9 @@ export const StudentWalletPageContent: React.FC = () => {
                     columns={historyColumns} 
                     data={studentTransactionHistory} 
                     loading={loading.walletTransactions}
-                    searchable
                     sortable
-                    pagination
-                    pageSize={5}
-                    emptyStateMessage="No transactions found for this student."
+                    pagination={{ pageSize: 5 }}
+                    emptyState="No transactions found for this student."
                 />
             </div>
         )}

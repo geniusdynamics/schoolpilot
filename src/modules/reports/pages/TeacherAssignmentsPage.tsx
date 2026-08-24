@@ -3,7 +3,7 @@ import Card from '@/components/ui/Card';
 
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 
@@ -48,10 +48,10 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const columns = [
-    { header: 'Academic Year', accessor: 'academic_year_name' as keyof TeacherSubjectAssignment },
-    { header: 'Teacher', accessor: 'teacher_name' as keyof TeacherSubjectAssignment },
-    { header: 'Class Stream', accessor: 'class_stream_name' as keyof TeacherSubjectAssignment },
-    { header: 'Subject', accessor: 'subject_name' as keyof TeacherSubjectAssignment },
+    { header: 'Academic Year', key: 'academic_year_name' as keyof TeacherSubjectAssignment },
+    { header: 'Teacher', key: 'teacher_name' as keyof TeacherSubjectAssignment },
+    { header: 'Class Stream', key: 'class_stream_name' as keyof TeacherSubjectAssignment },
+    { header: 'Subject', key: 'subject_name' as keyof TeacherSubjectAssignment },
   ];
 
   const isLoadingPage = loading.staff || loading.academicYears || loading.teacherSubjectAssignments;
@@ -88,7 +88,7 @@ export const TeacherAssignmentsPageContent: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.printToBeDeveloped'))}>{t('teacherAssignmentsPage.print')}</Button>
                     <Button variant="secondary" size="sm" onClick={() => alert(t('messages.exportToBeDeveloped'))}>{t('teacherAssignmentsPage.exportCSV')}</Button>
                 </div>
-                <Table columns={columns} data={(reportData || [])} isLoading={isGenerating} emptyStateMessage={t('teacherAssignmentsPage.noAssignmentsFound')}/>
+                <DataGrid columns={columns} data={(reportData || [])} loading={isGenerating} emptyState={t('teacherAssignmentsPage.noAssignmentsFound')}/>
             </>
         )}
       </Card>

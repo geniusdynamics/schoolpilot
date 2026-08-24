@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
-import Table from '@/components/ui/Table';
+import { DataGrid } from '@/components/ui/data';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
@@ -266,10 +266,10 @@ export const StaffSalarySettingsPageContent: React.FC = () => {
             <Spinner />
           </div>
         ) : (
-          <Table
+          <DataGrid
             columns={columns}
             data={salaryComponents}
-            emptyStateMessage={t('salarySettings.noComponents') || 'No salary components found'}
+            emptyState={t('salarySettings.noComponents') || 'No salary components found'}
           />
         )}
       </Card>

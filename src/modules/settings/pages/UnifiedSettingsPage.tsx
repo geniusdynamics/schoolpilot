@@ -9,7 +9,7 @@ import { useAppData } from '../../../hooks/useAppData';
 import { useUnifiedConfig } from '../../../hooks/useUnifiedConfig';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
-import Table from '../../../components/ui/Table';
+import DataGrid from '../../../components/ui/data/DataGrid';
 import DialogForm from '../../../components/ui/forms/DialogForm';
 import { FormSection, FormField, FormActions } from '../../../components/ui/forms';
 import Input from '../../../components/ui/Input';
@@ -241,18 +241,18 @@ export const UnifiedSettingsContent: React.FC = () => {
 
   // Table column definitions
   const userColumns = [
-    { header: 'Username', accessor: 'username' as keyof User },
-    { header: 'Email', accessor: 'email' as keyof User },
-    { header: 'Type', accessor: 'userType' as keyof User },
-    { header: 'Status', accessor: 'isActive' as keyof User, render: (user: User) => user.isActive ? 'Active' : 'Inactive' },
-    { header: 'Role', accessor: 'role_id' as keyof User, render: (user: User) => {
+    { header: 'Username', key: 'username' as keyof User },
+    { header: 'Email', key: 'email' as keyof User },
+    { header: 'Type', key: 'userType' as keyof User },
+    { header: 'Status', key: 'isActive' as keyof User, render: (_v: any, user: User) => user.isActive ? 'Active' : 'Inactive' },
+    { header: 'Role', key: 'role_id' as keyof User, render: (_v: any, user: User) => {
       const role = roles?.find(r => r.id === user.role_id);
       return role ? role.name : 'No Role';
     }},
     {
       header: 'Actions',
-      accessor: ((user: User) => user.id) as any,
-      render: (user: User) => (
+      key: 'id',
+      render: (_v: any, user: User) => (
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -276,12 +276,12 @@ export const UnifiedSettingsContent: React.FC = () => {
   ];
 
   const roleColumns = [
-    { header: 'Role Name', accessor: 'name' as keyof Role },
-    { header: 'Description', accessor: 'description' as keyof Role },
+    { header: 'Role Name', key: 'name' as keyof Role },
+    { header: 'Description', key: 'description' as keyof Role },
     {
       header: 'Actions',
-      accessor: ((role: Role) => role.id) as any,
-      render: (role: Role) => (
+      key: 'id',
+      render: (_v: any, role: Role) => (
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -305,11 +305,11 @@ export const UnifiedSettingsContent: React.FC = () => {
   ];
 
   const workflowColumns = [
-    { header: 'Workflow Name', accessor: 'name' as keyof Workflow },
+    { header: 'Workflow Name', key: 'name' as keyof Workflow },
     {
       header: 'States',
-      accessor: ((workflow: Workflow) => workflow.states?.length || 0) as any,
-      render: (workflow: Workflow) => (
+      key: 'states_count',
+      render: (_v: any, workflow: Workflow) => (
         <div className="flex items-center gap-2">
           <span>{workflow.states?.length || 0} states</span>
           <Button
@@ -325,8 +325,8 @@ export const UnifiedSettingsContent: React.FC = () => {
     },
     {
       header: 'Actions',
-      accessor: ((workflow: Workflow) => workflow.id) as any,
-      render: (workflow: Workflow) => (
+      key: 'id',
+      render: (_v: any, workflow: Workflow) => (
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -350,12 +350,12 @@ export const UnifiedSettingsContent: React.FC = () => {
   ];
 
   const stateColumns = [
-    { header: 'State Name', accessor: 'name' as keyof WorkflowState },
-    { header: 'Order', accessor: 'sequence_order' as keyof WorkflowState },
+    { header: 'State Name', key: 'name' as keyof WorkflowState },
+    { header: 'Order', key: 'sequence_order' as keyof WorkflowState },
     {
       header: 'Actions',
-      accessor: ((state: WorkflowState) => state.id) as any,
-      render: (state: WorkflowState) => (
+      key: 'id',
+      render: (_v: any, state: WorkflowState) => (
         <div className="flex gap-2">
           <Button
             variant="outline"
@@ -640,10 +640,10 @@ export const UnifiedSettingsContent: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <Table
+                <DataGrid
                   data={users || []}
                   columns={userColumns}
-                  emptyMessage="No users found"
+                  emptyState="No users found"
                 />
               )}
             </div>
@@ -675,10 +675,10 @@ export const UnifiedSettingsContent: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <Table
+                <DataGrid
                   data={roles || []}
                   columns={roleColumns}
-                  emptyMessage="No roles found"
+                  emptyState="No roles found"
                 />
               )}
             </div>
@@ -722,10 +722,10 @@ export const UnifiedSettingsContent: React.FC = () => {
                   Add Workflow
                 </Button>
               </div>
-              <Table
+              <DataGrid
                 data={workflows || []}
                 columns={workflowColumns}
-                emptyMessage="No workflows found"
+                emptyState="No workflows found"
               />
             </div>
           </Card>
@@ -754,10 +754,10 @@ export const UnifiedSettingsContent: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-                <Table
+                <DataGrid
                   data={currentWorkflowForStates.states || []}
                   columns={stateColumns}
-                  emptyMessage="No states found for this workflow"
+                  emptyState="No states found for this workflow"
                 />
               </div>
             </Card>
