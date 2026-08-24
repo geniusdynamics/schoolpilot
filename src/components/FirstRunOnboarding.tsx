@@ -22,6 +22,7 @@ import {
   ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
+import { SetupWizard } from '@/components/setup/SetupWizard';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { UnifiedDatabaseManager } from '@/services/database/UnifiedDatabaseManager';
 import { CapabilityDetector } from '@/services/database/detection/CapabilityDetector';
@@ -86,16 +87,6 @@ function defaultsFromReport(report: CapabilityReport): EnvironmentDefaults {
   const hasOPFS = report.storage.hasOPFS;
   const hasWASM = report.storage.hasWASM;
   const recommendedPath = (isElectron || isTauri || (hasOPFS && hasWASM)) ? 'production' : 'demo';
-  // Map provider types to onboarding provider string
-  const providerMap: Record<string, string> = {
-    'sqlite-file': 'sqlite-file',
-    'sqlite-wasm': 'sqlite-wasm',
-    'pouchdb': 'pouchdb',
-    'backend-api': 'backend-api',
-    'hybrid': 'hybrid',
-    'livestore': 'livestore',
-    'rxdb': 'rxdb',
-  };
   const recommendedProvider = isElectron ? 'sqlite-file' : hasOPFS ? 'sqlite-wasm' : 'pouchdb';
 
   return { isElectron, isTauri, hasOPFS, hasWASM, recommendedPath, recommendedProvider };
@@ -112,6 +103,14 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
   const [error, setError] = useState<string | null>(null);
   const [showTechnical, setShowTechnical] = useState(false);
   const [envDefaults, setEnvDefaults] = useState<EnvironmentDefaults | null>(null);
+  // Production users continue into the setup wizard instead of reloading (2.1)
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
+
+  const handleSetupComplete = useCallback(() => {
+    setShowSetupWizard(false);
+    onComplete?.('production');
+    setTimeout(() => window.location.reload(), 500);
+  }, [onComplete]);
 
   // Detect environment on mount using centralized CapabilityDetector
   useEffect(() => {
@@ -164,9 +163,9 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           initialPath: 'production',
         });
 
-        // Reload to apply production configuration
-        onComplete?.('production');
-        setTimeout(() => window.location.reload(), 500);
+        setIsProcessing(false);
+        setShowSetupWizard(true);
+        return;
       } else {
         // Demo pathway: seed demo data
         updateConfig({
@@ -222,6 +221,15 @@ export const FirstRunOnboarding: React.FC<OnboardingCallbacks> = ({ onComplete, 
           </p>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
         </div>
+      </div>
+    );
+  }
+
+  // Production setup wizard (Phase 2.1)
+  if (showSetupWizard) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4 overflow-y-auto">
+        <SetupWizard onComplete={handleSetupComplete} />
       </div>
     );
   }
