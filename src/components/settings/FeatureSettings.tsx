@@ -28,7 +28,7 @@ import { useAppData } from '@/contexts/AppDataContext';
 import SyncManagementPanel from '@/components/SyncManagementPanel';
 import PerformanceDashboard from '@/components/PerformanceDashboard';
 import { MemoryDashboard } from '@/components/MemoryDashboard';
-import TooltipDemo from '@/components/__demos__/TooltipDemo';
+import TooltipDemo from './TooltipsShowcase';
 // import NetworkStatusIndicator from '@/components/NetworkStatusIndicator'; // Component does not exist
 import ConflictResolutionComponent from '@/components/ConflictResolutionInterface';
 import Card from '@/components/ui/Card';

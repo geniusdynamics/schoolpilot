@@ -1,5 +1,5 @@
-// ABOUTME: Demo component showcasing comprehensive tooltip system functionality
-// ABOUTME: Demonstrates various tooltip types, triggers, and positioning options
+// ABOUTME: Showcase panel for the tooltip system (rendered in FeatureSettings). comprehensive tooltip system functionality
+// ABOUTME: Moved out of __demos__ because FeatureSettings renders it as a real tab.
 
 import { useState } from 'react';
 import {
@@ -45,8 +45,8 @@ export default function TooltipDemo() {
                   <strong>Rich Content Tooltip</strong>
                   <p className="mt-1">This tooltip contains multiple elements and formatting.</p>
                   <ul className="mt-2 text-xs">
-                    <li>Ã¢â‚¬Â¢ Bullet point one</li>
-                    <li>Ã¢â‚¬Â¢ Bullet point two</li>
+                    <li>+óÔé¼-ó Bullet point one</li>
+                    <li>+óÔé¼-ó Bullet point two</li>
                   </ul>
                 </div>
               }
