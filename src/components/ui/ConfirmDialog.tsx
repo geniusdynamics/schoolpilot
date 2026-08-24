@@ -36,6 +36,9 @@ const ConfirmContext = createContext<ConfirmContextValue | undefined>(undefined)
 /**
  * Imperative, awaitable confirmation dialog.
  *
+ * Falls back to window.confirm when no ConfirmProvider is mounted (isolated
+ * component tests); the real app always renders the provider.
+ *
  * @example
  * const confirm = useConfirm();
  * const handleDelete = async (id: number) => {
@@ -47,7 +50,7 @@ const ConfirmContext = createContext<ConfirmContextValue | undefined>(undefined)
 export const useConfirm = (): ((options: ConfirmOptions) => Promise<boolean>) => {
   const context = useContext(ConfirmContext);
   if (!context) {
-    throw new Error('useConfirm must be used within a ConfirmProvider');
+    return (options: ConfirmOptions) => Promise.resolve(window.confirm(options.message));
   }
   return context.confirm;
 };
