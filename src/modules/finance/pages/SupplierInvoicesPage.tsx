@@ -10,6 +10,7 @@ import { PlusIcon, EditIcon, DeleteIcon, ReceiptRefundIcon } from '@/components/
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type SupplierInvoiceFormData = Omit<Partial<SupplierInvoice>, 'id' | 'created_at' | 'updated_at' | 'supplier_name' | 'status'> & {
     status: SupplierInvoiceStatus; // Ensure this is required
@@ -67,9 +68,10 @@ export const SupplierInvoicesPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: (name === 'supplier_id' || name === 'total_amount' || name === 'amount_paid') ? (value ? Number(value) : undefined) : value }));
   };
   
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.supplier_id || !formData.invoice_number || !formData.invoice_date || formData.total_amount === undefined || formData.total_amount <= 0) {
-      alert("Supplier, Invoice Number, Invoice Date, and a valid Total Amount are required.");
+      toast.showWarning("Supplier, Invoice Number, Invoice Date, and a valid Total Amount are required.");
       return;
     }
     const payload: Omit<SupplierInvoice, 'id'|'created_at'|'updated_at'|'supplier_name'> = {

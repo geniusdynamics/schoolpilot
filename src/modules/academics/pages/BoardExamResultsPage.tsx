@@ -12,6 +12,7 @@ import { initialMockBoardExamResults } from '../data/mockData';
 import type { BoardExamResult } from '../data/types';
 import { logger } from '@/utils/logging';
 import { DocumentTextIcon, PlusIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
 
 export const BoardExamResultsPageContent: React.FC = () => {
   const { students, loading } = useAppData();
@@ -85,9 +86,10 @@ export const BoardExamResultsPageContent: React.FC = () => {
     }));
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!formData.student_id || !formData.subject_name) {
-      alert('Student and subject are required.');
+      toast.showWarning('Student and subject are required.');
       return;
     }
     logger.info('Saving board exam result:', formData);

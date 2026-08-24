@@ -18,6 +18,7 @@ import FormSection from '../../../components/ui/forms/FormSection';
 import FormField from '../../../components/ui/forms/FormField';
 import FormActions from '../../../components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated_at' | 'patron_name' | 'type'> & {
     type: ClubType; // Make type required for the form
@@ -50,9 +51,10 @@ const ClubsPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value === '' && name === 'patron_id' ? undefined : value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.type) {
-      alert(t('validation.clubNameAndTypeAreRequired'));
+      toast.showWarning(t('validation.clubNameAndTypeAreRequired'));
       return;
     }
     const payload = {

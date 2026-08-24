@@ -14,6 +14,7 @@ import { ListBulletIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { getStudentsForExamEntry } from '@/utils/api';
+import { useToast } from '@/hooks/useToast';
 
 interface MarkInput {
   [studentId: string]: {
@@ -96,9 +97,10 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
     }));
   };
 
+  const toast = useToast();
   const handleSaveAllMarks = async () => {
     if (!selectedExamSessionId || !selectedClassStreamId || studentsForEntry.length === 0) {
-      alert('Please select an exam session, class stream and ensure students are loaded.');
+      toast.showWarning('Please select an exam session, class stream and ensure students are loaded.');
       return;
     }
     setSaving(true);
@@ -121,7 +123,7 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
           }
 
           if (score < 0 || score > paperSetting.marks_out_of) {
-            alert(`Score for ${student.first_name} ${student.last_name} in ${paperSetting.subject_paper_name || 'paper'} must be between 0 and ${paperSetting.marks_out_of}.`);
+            toast.showWarning(`Score for ${student.first_name} ${student.last_name} in ${paperSetting.subject_paper_name || 'paper'} must be between 0 and ${paperSetting.marks_out_of}.`);
             return;
           }
 
@@ -144,10 +146,10 @@ export const StudentExamResultsEntryPageContent: React.FC = () => {
           marks: studentMarksForPapers,
         });
       }
-      alert("Marks saved successfully! Weighted totals and grades are saved, and ranks still require further processing via 'Exam Analysis'.");
+      toast.showSuccess("Marks saved successfully! Weighted totals and grades are saved, and ranks still require further processing via 'Exam Analysis'.");
     } catch (error) {
       logger.error('Failed to save student exam results:', error);
-      alert('Unable to save the marks. Please try again.');
+      toast.showError('Unable to save the marks. Please try again.');
     } finally {
       setSaving(false);
     }

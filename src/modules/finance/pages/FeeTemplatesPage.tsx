@@ -13,6 +13,7 @@ import Spinner from '@/components/ui/Spinner';
 import { AccountType } from '@/core/types';
 import type { FeeTemplate, FeeTemplateItem } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type FeeTemplateFormData = Omit<Partial<FeeTemplate>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'student_category_name' | 'items'>;
 type FeeItemFormData = Omit<Partial<FeeTemplateItem>, 'id' | 'fee_template_id' | 'revenue_account_name' | 'linked_expense_category_name'>;
@@ -89,7 +90,7 @@ export const FeeTemplatesContent: React.FC = () => {
   
   const handleTemplateSubmit = async () => {
     if (!templateFormData.name || !templateFormData.school_period_id) {
-      alert("Template name and school period are required.");
+      toast.showWarning("Template name and school period are required.");
       return;
     }
     const payload: Omit<FeeTemplate, 'id' | 'created_at' | 'updated_at' | 'items' | 'school_period_name' | 'student_category_name'> = {
@@ -106,9 +107,10 @@ export const FeeTemplatesContent: React.FC = () => {
     closeTemplateModal();
   };
 
+  const toast = useToast();
   const handleItemSubmit = async () => {
     if (!currentTemplateForItems || !itemFormData.description || itemFormData.amount === undefined || !itemFormData.revenue_account_id) {
-      alert("Description, Amount, and Revenue Account are required for an item.");
+      toast.showWarning("Description, Amount, and Revenue Account are required for an item.");
       return;
     }
 

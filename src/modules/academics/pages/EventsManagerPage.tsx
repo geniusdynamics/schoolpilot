@@ -12,6 +12,7 @@ import { DataGrid } from '@/components/ui/data';
 import { initialMockSchoolEvents } from '../data/mockData';
 import type { SchoolEvent, EventType, EventStatus } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 export const EventsManagerPageContent: React.FC = () => {
   const { loading } = useAppData();
@@ -85,9 +86,10 @@ export const EventsManagerPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!formData.title || !formData.start_date) {
-      alert('Title and start date are required.');
+      toast.showWarning('Title and start date are required.');
       return;
     }
     logger.info('Saving event:', formData);

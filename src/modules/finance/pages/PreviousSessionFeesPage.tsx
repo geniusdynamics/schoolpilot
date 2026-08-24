@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { PreviousSessionFee } from '../data/types';
 import { logger } from '@/utils/logging';
 import { ArrowPathIcon, CheckCircleIcon, CurrencyDollarIcon, PlusIcon, UserGroupIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
 
 type PreviousSessionFeeFormData = Omit<Partial<PreviousSessionFee>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -106,9 +107,10 @@ export const PreviousSessionFeesPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.previous_session || !formData.current_session) {
-      alert('Student, previous session, and current session are required.');
+      toast.showWarning('Student, previous session, and current session are required.');
       return;
     }
     // In production, this would call addPreviousSessionFee or updatePreviousSessionFee

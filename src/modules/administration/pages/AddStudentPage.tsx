@@ -13,6 +13,7 @@ import Button from '@/components/ui/Button';
 import { UserCircleIcon, UsersIcon, AcademicCapIcon, ArrowLeftIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
+import { useToast } from '@/hooks/useToast';
 // Removed useFormValidation import to fix infinite loop issue
 
 interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {
@@ -107,13 +108,14 @@ const AddStudentPage: React.FC = () => {
   };
 
   // Handle form submission
+  const toast = useToast();
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
 
     try {
       // Simple validation
       if (!formData.admission_no || !formData.first_name || !formData.last_name) {
-        alert('Please fill in all required fields (Admission No, First Name, Last Name)');
+        toast.showWarning('Please fill in all required fields (Admission No, First Name, Last Name)');
         setIsSubmitting(false);
         return;
       }

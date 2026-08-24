@@ -13,6 +13,7 @@ import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type AcademicStructureFormData = Omit<Partial<AcademicYearStructure>, 'id'>;
 
@@ -47,9 +48,10 @@ const AcademicStructurePage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert(t('validation.structureNameRequired'));
+      toast.showWarning(t('validation.structureNameRequired'));
       return;
     }
     const payload = { name: formData.name! };

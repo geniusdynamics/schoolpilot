@@ -11,6 +11,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type StudentCategoryFormData = Omit<Partial<StudentCategory>, 'id'>;
 
@@ -40,9 +41,10 @@ export const StudentCategoriesContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert(t('validation.categoryNameRequired'));
+      toast.showWarning(t('validation.categoryNameRequired'));
       return;
     }
     const payload = {

@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockAutoSMSSettings } from '../data/mockData';
 import type { AutoSMSSetting, TriggerType, RecipientType } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 export const AutoSMSSettingsContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -81,9 +82,10 @@ export const AutoSMSSettingsContent: React.FC = () => {
     }));
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!formData.trigger_name || !formData.template_id) {
-      alert('Trigger name and template are required.');
+      toast.showWarning('Trigger name and template are required.');
       return;
     }
     logger.info('Saving auto-SMS setting:', formData);

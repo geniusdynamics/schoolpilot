@@ -14,6 +14,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at' | 'partner_type'> & {
     partner_type: PartnerType; // Make type required for the form
@@ -67,9 +68,10 @@ export const PartnersContent: React.FC = () => {
   };
 
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.partner_type) {
-      alert('Partner name and type are required');
+      toast.showWarning('Partner name and type are required');
       return;
     }
     const payload: Omit<Partner, 'id' | 'created_at' | 'updated_at'> = {

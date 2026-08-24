@@ -10,6 +10,7 @@ import { UserIcon, ArrowPathIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 interface StaffRecord {
   id: string;
@@ -128,9 +129,10 @@ export const BulkStaffUpdateContent: React.FC = () => {
     }
   };
 
+  const toast = useToast();
   const openUpdateModal = () => {
     if (selectedStaff.size === 0 && !selectedDepartment) {
-      alert('Please select a department or specific staff to update.');
+      toast.showWarning('Please select a department or specific staff to update.');
       return;
     }
     setIsModalOpen(true);

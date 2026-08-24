@@ -15,6 +15,7 @@ import Spinner from '@/components/ui/Spinner';
 import type { Staff } from '@/core/types';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type TimetableEntryFormData = Omit<Partial<TimetableEntry>, 'id' | 'class_stream_id' | 'class_stream_name' | 'period_name' | 'subject_name' | 'teacher_name' | 'day_of_week'> & {
     day_of_week?: DayOfWeek;
@@ -106,9 +107,10 @@ export const TimetableEntriesContent: React.FC = () => {
     return (staff || []).filter(s => s.is_active && uniqueTeacherIds.includes(s.id));
   }, [formData.subject_id, selectedClassStreamId, staff, classSubjectAllocations, teacherSubjectAssignments]);
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!selectedClassStreamId || !formData.day_of_week || !formData.period_id || !formData.subject_id || !formData.teacher_id) {
-      alert(t('validation.classStreamDayPeriodSubjectAndTeacherAreRequired'));
+      toast.showWarning(t('validation.classStreamDayPeriodSubjectAndTeacherAreRequired'));
       return;
     }
 

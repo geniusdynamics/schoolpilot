@@ -21,6 +21,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type ExamSessionFormData = Omit<Partial<ExamSession>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'paper_settings' | 'status'> & {
     status: ExamSessionStatus; 
@@ -120,7 +121,7 @@ export const ExamSessionsPageContent: React.FC = () => {
 
   const handleSessionSubmit = async () => {
     if (!sessionFormData.name || !sessionFormData.school_period_id) {
-      alert(t('validation.examSessionNameAndSchoolPeriodAreRequired'));
+      toast.showWarning(t('validation.examSessionNameAndSchoolPeriodAreRequired'));
       return;
     }
     const payload = {
@@ -138,13 +139,13 @@ export const ExamSessionsPageContent: React.FC = () => {
       closeSessionModal();
     } catch (error) {
       logger.error('Failed to save exam session:', error);
-      alert('Unable to save the exam session. Please try again.');
+      toast.showError('Unable to save the exam session. Please try again.');
     }
   };
   
   const handlePaperSettingSubmit = async () => {
     if (!activeSessionForPapers || !paperSettingFormData.subject_paper_id || paperSettingFormData.marks_out_of === undefined || paperSettingFormData.weight_percentage === undefined) {
-      alert(t('validation.subjectPaperMarksOutOfAndWeightPercentageAreRequired'));
+      toast.showWarning(t('validation.subjectPaperMarksOutOfAndWeightPercentageAreRequired'));
       return;
     }
 
@@ -156,12 +157,12 @@ export const ExamSessionsPageContent: React.FC = () => {
     );
 
     if (marksOutOf <= 0 || weightPercentage <= 0) {
-      alert('Marks out of and weight percentage must be greater than zero.');
+      toast.showWarning('Marks out of and weight percentage must be greater than zero.');
       return;
     }
 
     if (hasDuplicatePaper) {
-      alert('This subject paper is already configured for the selected exam session.');
+      toast.showError('This subject paper is already configured for the selected exam session.');
       return;
     }
 
@@ -182,7 +183,7 @@ export const ExamSessionsPageContent: React.FC = () => {
       setPaperSettingFormData(initialPaperSettingFormData); 
     } catch (error) {
       logger.error('Failed to save exam paper setting:', error);
-      alert('Unable to save the paper setting. Please try again.');
+      toast.showError('Unable to save the paper setting. Please try again.');
     }
   };
 
@@ -193,11 +194,12 @@ export const ExamSessionsPageContent: React.FC = () => {
         await deleteExamSession(id);
       } catch (error) {
         logger.error('Failed to delete exam session:', error);
-        alert('Unable to delete the exam session. Please try again.');
+        toast.showError('Unable to delete the exam session. Please try again.');
       }
     }
   };
 
+  const toast = useToast();
   const handleDeletePaperSetting = async (paperSettingId: string) => {
       if (!activeSessionForPapers) return;
       if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this paper setting?' }))) {
@@ -205,7 +207,7 @@ export const ExamSessionsPageContent: React.FC = () => {
             await deleteExamPaperSetting(paperSettingId);
           } catch (error) {
             logger.error('Failed to delete exam paper setting:', error);
-            alert('Unable to delete the paper setting. Please try again.');
+            toast.showError('Unable to delete the paper setting. Please try again.');
           }
       }
   };

@@ -19,6 +19,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 interface SubjectFormData extends Omit<Partial<Subject>, 'id' | 'department_name' | 'papers'> {
   department_id?: string | null;
@@ -70,9 +71,10 @@ export const SubjectsContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.subject_code || !formData.abbreviation || !formData.grouping) {
-        alert(t('validation.nameCodeAbbreviationAndGroupingAreRequired'));
+        toast.showWarning(t('validation.nameCodeAbbreviationAndGroupingAreRequired'));
         return;
     }
     

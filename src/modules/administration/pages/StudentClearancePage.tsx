@@ -11,6 +11,7 @@ import { useAppData } from '@/hooks/useAppData';
 import { useTranslation } from 'react-i18next';
 import type { StudentClearanceRequest, StudentClearance, ClearanceRequestStatus, ClearanceStatus, ClearanceType } from '../data/types';
 import { CheckCircleIcon, EyeIcon, PlusIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
 
 const StudentClearancePage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -44,9 +45,10 @@ const StudentClearancePage: React.FC = () => {
     setSelectedRequest(null);
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.reason) {
-      alert('Please select a student and provide a reason');
+      toast.showWarning('Please select a student and provide a reason');
       return;
     }
 

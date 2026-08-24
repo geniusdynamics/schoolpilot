@@ -16,6 +16,7 @@ import { PlusIcon, DeleteIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type AssignmentFormData = Omit<Partial<TeacherSubjectAssignment>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name' | 'teacher_name'>;
 
@@ -62,9 +63,10 @@ export const TeacherSubjectAssignmentPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value || undefined }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.allocation_id || !formData.teacher_id) {
-      alert(t('validation.classsubjectAllocationAndTeacherAreRequired'));
+      toast.showWarning(t('validation.classsubjectAllocationAndTeacherAreRequired'));
       return;
     }
 
@@ -75,7 +77,7 @@ export const TeacherSubjectAssignmentPageContent: React.FC = () => {
     );
 
     if (isDuplicate) {
-        alert(t('messages.thisTeacherIsAlreadyAssignedToThisClasssubjectAllocation'));
+        toast.showError(t('messages.thisTeacherIsAlreadyAssignedToThisClasssubjectAllocation'));
         return;
     }
 

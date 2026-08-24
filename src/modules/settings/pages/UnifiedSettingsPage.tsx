@@ -29,6 +29,7 @@ import {
 import FeatureSettingsPage from './FeatureSettingsPage';
 import { PageContainer } from '../../../components/layout/PageContainer';
 import { User, Role, Workflow, WorkflowState } from '../../../types';
+import { useToast } from '@/hooks/useToast';
 export const UnifiedSettingsContent: React.FC = () => {
   const navigate = useNavigate();
   const confirm = useConfirm();
@@ -168,45 +169,45 @@ export const UnifiedSettingsContent: React.FC = () => {
   // Submit handlers (with TODO placeholders)
   const handleUserSubmit = async () => {
     if (!userFormData.username || !userFormData.email || !userFormData.userType) {
-      alert("Username, Email, and User Type are required.");
+      toast.showWarning("Username, Email, and User Type are required.");
       return;
     }
     if (!editingUser && !userFormData.password) {
-      alert("Password is required for new users.");
+      toast.showWarning("Password is required for new users.");
       return;
     }
     // TODO: Implement user management API calls
-    alert(editingUser ? "Update user functionality not yet implemented" : "Add user functionality not yet implemented");
+    toast.showError(editingUser ? "Update user functionality not yet implemented" : "Add user functionality not yet implemented");
     closeUserModal();
   };
   
   const handleRoleSubmit = async () => {
     if (!roleFormData.name) {
-      alert("Role name is required.");
+      toast.showWarning("Role name is required.");
       return;
     }
     // TODO: Implement role management API calls
-    alert(editingRole ? "Update role functionality not yet implemented" : "Add role functionality not yet implemented");
+    toast.showError(editingRole ? "Update role functionality not yet implemented" : "Add role functionality not yet implemented");
     closeRoleModal();
   };
   
   const handleWorkflowSubmit = async () => {
     if (!workflowFormData.name) {
-      alert("Workflow name is required.");
+      toast.showWarning("Workflow name is required.");
       return;
     }
     // TODO: Implement workflow management API calls
-    alert(editingWorkflow ? "Update workflow functionality not yet implemented" : "Add workflow functionality not yet implemented");
+    toast.showError(editingWorkflow ? "Update workflow functionality not yet implemented" : "Add workflow functionality not yet implemented");
     closeWorkflowModal();
   };
   
   const handleStateSubmit = async () => {
     if (!currentWorkflowForStates || !stateFormData.name || stateFormData.sequence_order === undefined) {
-      alert("State name and sequence order are required.");
+      toast.showWarning("State name and sequence order are required.");
       return;
     }
     // TODO: Implement workflow state management API calls
-    alert("Workflow state management not yet implemented");
+    toast.showError("Workflow state management not yet implemented");
     closeStateModal();
   };
   
@@ -214,30 +215,31 @@ export const UnifiedSettingsContent: React.FC = () => {
   const handleDeleteUser = async (userId: string) => {
     if (await confirm({ title: 'Delete user', message: 'Are you sure you want to delete this user?', variant: 'danger' })) {
       // TODO: Implement delete user API call
-      alert("Delete user functionality not yet implemented");
+      toast.showError("Delete user functionality not yet implemented");
     }
   };
   
   const handleDeleteRole = async (roleId: number) => {
     if (await confirm({ title: 'Delete role', message: 'Are you sure you want to delete this role? Users with this role will have it unassigned.', variant: 'danger' })) {
       // TODO: Implement delete role API call
-      alert("Delete role functionality not yet implemented");
+      toast.showError("Delete role functionality not yet implemented");
     }
   };
   
   const handleDeleteWorkflow = async (id: number) => {
     if (await confirm({ title: 'Delete workflow', message: "Delete this workflow and all its states?", variant: 'danger' })) {
       // TODO: Implement delete workflow API call
-      alert("Delete workflow functionality not yet implemented");
+      toast.showError("Delete workflow functionality not yet implemented");
       if(currentWorkflowForStates?.id === id) setCurrentWorkflowForStates(null);
     }
   };
   
+  const toast = useToast();
   const handleDeleteState = async (stateId: number) => {
     if (!currentWorkflowForStates) return;
     if (await confirm({ title: 'Delete workflow state', message: 'Delete this workflow state?', variant: 'danger' })) {
       // TODO: Implement delete workflow state API call
-      alert("Delete workflow state functionality not yet implemented");
+      toast.showError("Delete workflow state functionality not yet implemented");
     }
   };
 

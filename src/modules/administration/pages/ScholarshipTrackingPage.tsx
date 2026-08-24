@@ -13,6 +13,7 @@ import { initialMockScholarshipRecords } from '../data/mockData';
 import type { ScholarshipRecord } from '../data/types';
 
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 const ScholarshipTrackingPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -89,9 +90,10 @@ const ScholarshipTrackingPage: React.FC = () => {
     }));
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!formData.student_id || !formData.scholarship_type) {
-      alert('Student and scholarship type are required.');
+      toast.showWarning('Student and scholarship type are required.');
       return;
     }
     logger.info('Saving scholarship:', formData);

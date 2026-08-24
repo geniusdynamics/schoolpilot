@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { VisitorType, VisitorStatus } from '../data/types';
 import type { VisitorLog } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 const VisitorsManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -55,9 +56,10 @@ const VisitorsManagementPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.visitor_name || !formData.phone || !formData.purpose) {
-      alert('Please fill in all required fields');
+      toast.showWarning('Please fill in all required fields');
       return;
     }
 
@@ -76,7 +78,7 @@ const VisitorsManagementPage: React.FC = () => {
       loadData();
     } catch (error) {
       logger.error('Error checking in visitor:', error);
-      alert('Failed to check in visitor');
+      toast.showError('Failed to check in visitor');
     }
   };
 

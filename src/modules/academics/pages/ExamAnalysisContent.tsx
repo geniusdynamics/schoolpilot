@@ -35,6 +35,7 @@ import {
   initialMockExamPerformanceOverTimeData,
   initialMockStreamPerformanceData
 } from '../data/mockData';
+import { useToast } from '@/hooks/useToast';
 
 interface SubjectAnalysisData {
   subjectId: number;
@@ -75,9 +76,10 @@ export const ExamAnalysisContent: React.FC = () => {
     { id: 'grading-systems', label: 'Grading Systems', icon: <ChartBarIcon className="h-4 w-4" />, to: '/academics/grading-schemes' },
   ];
 
+  const toast = useToast();
   const handleLoadAnalysis = useCallback(() => {
     if (!selectedExamSessionId || !selectedClassStreamId) {
-      alert(t('validation.pleaseSelectAnExamSessionAndAClassStream'));
+      toast.showError(t('validation.pleaseSelectAnExamSessionAndAClassStream'));
       return;
     }
     setIsAnalyzing(true);

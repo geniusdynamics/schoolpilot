@@ -13,6 +13,7 @@ import { AccountTemplateType, AccountType } from '@/core/types';
 import type { ChartOfAccount, ExpenseCategory } from '@/core/types';
 import { BanknotesIcon, DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' | 'updated_at' | 'expense_category_name' | 'type' | 'template_type'> & {
     type: AccountType; // Make type required for the form
@@ -73,9 +74,10 @@ export const ChartOfAccountsContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.account_code || !formData.name || !formData.type || !formData.template_type) {
-      alert("Account Code, Name, Type, and Template Type are required.");
+      toast.showWarning("Account Code, Name, Type, and Template Type are required.");
       return;
     }
     const payload = { 

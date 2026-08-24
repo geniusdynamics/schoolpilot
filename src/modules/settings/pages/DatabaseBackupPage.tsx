@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import { useToast } from '@/hooks/useToast';
 import { ArrowDownTrayIcon, ArrowPathIcon, ClockIcon, TrashIcon } from '@/components/ui/icons';
 
 interface BackupRecord {
@@ -28,6 +29,7 @@ const sampleBackups: BackupRecord[] = [
 
 const DatabaseBackupPage: React.FC = () => {
 
+  const toast = useToast();
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupRecord | null>(null);
@@ -63,7 +65,7 @@ const DatabaseBackupPage: React.FC = () => {
     { key: 'description', header: 'Description', width: 250, sortable: false },
     { key: 'id', header: 'Actions', width: 120, sortable: false, render: (value, item) => (
       <div className="flex gap-1">
-        <Button size="sm" variant="ghost" leftIcon={<DocumentArrowDownIcon className="w-4 h-4" />} onClick={() => alert(`Downloading: ${item.filename}`)}>Download</Button>
+        <Button size="sm" variant="ghost" leftIcon={<DocumentArrowDownIcon className="w-4 h-4" />} onClick={() => toast.showInfo(`Downloading: ${item.filename}`)}>Download</Button>
         <Button size="sm" variant="ghost" leftIcon={<TrashIcon className="w-4 h-4" />} onClick={() => setBackups(prev => prev.filter(b => b.id !== item.id))}>Delete</Button>
       </div>
     )},
@@ -153,7 +155,7 @@ const DatabaseBackupPage: React.FC = () => {
         footer={
           <>
             <Button variant="secondary" onClick={() => setIsRestoreModalOpen(false)}>Cancel</Button>
-            <Button variant="danger" onClick={() => { alert('Restore initiated. This will replace current data.'); setIsRestoreModalOpen(false); }}>Restore Selected Backup</Button>
+            <Button variant="danger" onClick={() => { toast.showWarning('Restore initiated. This will replace current data.'); setIsRestoreModalOpen(false); }}>Restore Selected Backup</Button>
           </>
         }
       >

@@ -12,6 +12,7 @@ import { initialMockMarksEntrySessions } from '../data/mockData';
 import type { MarksEntrySession } from '../data/types';
 import { logger } from '@/utils/logging';
 import { DocumentDuplicateIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
 
 export const MarksEntryByTokenPageContent: React.FC = () => {
   const { loading } = useAppData();
@@ -36,9 +37,10 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
     return filtered;
   }, [searchTerm]);
 
+  const toast = useToast();
   const handleTokenSubmit = () => {
     if (!tokenInput.trim()) {
-      alert('Please enter a token code');
+      toast.showWarning('Please enter a token code');
       return;
     }
     // In production, this would validate the token and load the session
@@ -47,7 +49,7 @@ export const MarksEntryByTokenPageContent: React.FC = () => {
       setActiveSession(session);
       setIsModalOpen(true);
     } else {
-      alert('Invalid or expired token');
+      toast.showWarning('Invalid or expired token');
     }
   };
 

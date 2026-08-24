@@ -18,6 +18,7 @@ import { StudentEnrollmentStatus, StudentStatus } from '@/core/types';
 import type { Student } from '@/core/types';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type EnrollmentFormData = Omit<Partial<StudentSubjectEnrollment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'class_name' | 'stream_name' | 'subject_name' | 'academic_year_name' | 'enrollment_status_display' | 'status'> & {
     status: StudentEnrollmentStatus;
@@ -103,7 +104,7 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.class_subject_allocation_id || !formData.enrollment_date || !formData.status) {
-      alert('Student, subject allocation, enrollment date, and status are required.');
+      toast.showWarning('Student, subject allocation, enrollment date, and status are required.');
       return;
     }
 
@@ -115,7 +116,7 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
     );
 
     if (isDuplicate && formData.status === StudentEnrollmentStatus.ENROLLED) {
-        alert('This student is already actively enrolled in this subject.');
+        toast.showError('This student is already actively enrolled in this subject.');
         return;
     }
 
@@ -211,11 +212,12 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
     );
   }
   
+  const toast = useToast();
   const handleShowGrid = () => {
     if (selectedAcademicYearId && selectedStreamId) {
         setShowEnrollmentGrid(true);
     } else {
-        alert('Please select academic year, school period, class, and stream first.');
+        toast.showWarning('Please select academic year, school period, class, and stream first.');
     }
   }
 

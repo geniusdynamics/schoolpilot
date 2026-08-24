@@ -18,6 +18,7 @@ import { logger } from '@/utils/logging';
 import type { ClassSubjectAllocation } from '@/core/types';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type AllocationFormData = Omit<Partial<ClassSubjectAllocation>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name'>;
 
@@ -70,7 +71,7 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.class_stream_id || !formData.subject_id || !formData.academic_year_id) {
-      alert(t('validation.classStreamSubjectAcademicYearRequired'));
+      toast.showWarning(t('validation.classStreamSubjectAcademicYearRequired'));
       return;
     }
 
@@ -82,7 +83,7 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
     );
 
     if (isDuplicate) {
-        alert(t('validation.subjectAlreadyAllocated'));
+        toast.showError(t('validation.subjectAlreadyAllocated'));
         return;
     }
 
@@ -101,13 +102,14 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
   };
 
   const confirm = useConfirm();
+  const toast = useToast();
   const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this subject allocation?' }))) {
       try {
         await deleteClassSubjectAllocation(id);
       } catch (error) {
         logger.error('Error deleting allocation:', error);
-        alert('Error deleting allocation');
+        toast.showError('Error deleting allocation');
       }
     }
   };

@@ -13,6 +13,7 @@ import Spinner from '@/components/ui/Spinner';
 import { AccountType, GeneralPayerType } from '@/core/types';
 import type { GeneralPayment } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type GeneralPaymentItemFormData = Omit<GeneralPaymentItem, 'id' | 'general_payment_id' | 'revenue_account_name'>;
 type GeneralPaymentFormData = Omit<GeneralPayment, 'id' | 'created_at' | 'updated_at' | 'items' | 'total_amount_paid' | 'payer_name_resolved'> & {
@@ -120,17 +121,18 @@ export const GeneralReceiptsPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== index) }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (formData.items.some(item => !item.description || item.amount <= 0 || !item.revenue_account_id)) {
-      alert("Each item must have a description, valid amount, and revenue account.");
+      toast.showError("Each item must have a description, valid amount, and revenue account.");
       return;
     }
     if (formData.payer_type === GeneralPayerType.OTHER && !formData.payer_name_external) {
-      alert("Payer name is required for 'Other' payer type.");
+      toast.showWarning("Payer name is required for 'Other' payer type.");
       return;
     }
     if (formData.payer_type !== GeneralPayerType.OTHER && !formData.payer_id) {
-      alert("Please select a payer.");
+      toast.showWarning("Please select a payer.");
       return;
     }
 

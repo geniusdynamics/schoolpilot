@@ -13,6 +13,7 @@ import Spinner from '@/components/ui/Spinner';
 import { StudentStatus, TransportAssignmentStatus } from '@/core/types';
 import type { StudentTransportAssignment } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type AssignmentFormData = Omit<Partial<StudentTransportAssignment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'route_name' | 'school_period_name' | 'status' | 'invoice_id'> & {
     status: TransportAssignmentStatus;
@@ -68,9 +69,10 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: (name.endsWith('_id') ? (value ? (name === 'student_id' ? value : parseInt(value)) : undefined) : value) }));
   };
   
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.route_id || !formData.school_period_id) {
-      alert("Student, Route, and School Period are required.");
+      toast.showWarning("Student, Route, and School Period are required.");
       return;
     }
     const payload: Omit<StudentTransportAssignment, 'id'|'created_at'|'updated_at'|'student_name'|'route_name'|'school_period_name'|'invoice_id'> = {

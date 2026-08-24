@@ -13,6 +13,7 @@ import Spinner from '@/components/ui/Spinner';
 import { AccountType, CustomerInvoiceStatus } from '@/core/types';
 import type { CustomerInvoice, Customer } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status'> & {
     status: CustomerInvoiceStatus;
@@ -100,7 +101,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
   
   const handleInvoiceSubmit = async () => {
     if (!invoiceFormData.customer_id || !invoiceFormData.invoice_number || !invoiceFormData.issue_date) {
-      alert("Customer, Invoice Number, and Issue Date are required.");
+      toast.showWarning("Customer, Invoice Number, and Issue Date are required.");
       return;
     }
     const payloadBase = {
@@ -119,9 +120,10 @@ export const CustomerInvoicesPageContent: React.FC = () => {
     closeInvoiceModal();
   };
 
+  const toast = useToast();
   const handleItemSubmit = async () => {
     if (!currentInvoiceForItems || !itemFormData.description || itemFormData.amount === undefined || itemFormData.amount <= 0 || !itemFormData.revenue_account_id) {
-      alert("Description, valid Amount, and Revenue Account are required for an item.");
+      toast.showWarning("Description, valid Amount, and Revenue Account are required for an item.");
       return;
     }
     

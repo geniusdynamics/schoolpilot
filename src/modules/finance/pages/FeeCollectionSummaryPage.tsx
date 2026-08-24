@@ -12,6 +12,7 @@ import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import { SchoolPeriod, Class as SchoolClass } from '@/core/types'; 
 import { InvoiceStatus } from '@/core/types';
+import { useToast } from '@/hooks/useToast';
 
 interface FeeCollectionSummaryRow {
   votehead: string;
@@ -42,7 +43,7 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
 
   const handleGenerateReport = useCallback(() => {
     if (!selectedSchoolPeriodId) {
-      alert(t('feeCollection.alertSelectPeriod'));
+      toast.showError(t('feeCollection.alertSelectPeriod'));
       setReportData([]);
       return;
     }
@@ -132,9 +133,10 @@ export const FeeCollectionSummaryPageContent: React.FC = () => {
     window.print();
   };
 
+  const toast = useToast();
   const handleExportCSV = () => {
     if (reportData.length === 0) {
-      alert(t('common:noDataToExport')); 
+      toast.showError(t('common:noDataToExport'));
       return;
     }
     const headers = columns.map(col => col.header).join(',');

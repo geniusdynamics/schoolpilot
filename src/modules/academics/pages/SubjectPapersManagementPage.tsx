@@ -15,6 +15,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type SubjectPaperFormData = Omit<Partial<SubjectPaper>, 'id' | 'created_at' | 'updated_at' | 'subject_name'>;
 
@@ -54,9 +55,10 @@ export const SubjectPapersManagementContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: name === 'subject_id' ? (value ? parseInt(value) : undefined) : value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.subject_id) {
-      alert(t('validation.paperNameAndSubjectAreRequired'));
+      toast.showWarning(t('validation.paperNameAndSubjectAreRequired'));
       return;
     }
     const payload = { 

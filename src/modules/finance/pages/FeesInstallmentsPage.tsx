@@ -16,6 +16,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
 import { CalendarIcon, PlusIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
 
 type InstallmentFormData = Omit<Partial<FeeInstallment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
@@ -99,9 +100,10 @@ export const FeesInstallmentsPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.school_period_id || !formData.due_date || !formData.amount_due) {
-      alert('Student, school period, due date, and amount due are required.');
+      toast.showWarning('Student, school period, due date, and amount due are required.');
       return;
     }
 

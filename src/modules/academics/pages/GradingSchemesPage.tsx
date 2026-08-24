@@ -14,6 +14,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { DeleteIcon, EditIcon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type GradingSchemeFormData = Omit<Partial<GradingScheme>, 'id' | 'created_at' | 'updated_at' | 'levels'>;
 type LevelFormData = Omit<Partial<GradingSchemeLevel>, 'id' | 'scheme_id'>;
@@ -83,7 +84,7 @@ export const GradingSchemesContent: React.FC = () => {
   
   const handleSchemeSubmit = async () => {
     if (!schemeFormData.name) {
-      alert(t('validation.schemeNameIsRequired'));
+      toast.showWarning(t('validation.schemeNameIsRequired'));
       return;
     }
     const payload = {
@@ -100,9 +101,10 @@ export const GradingSchemesContent: React.FC = () => {
     closeSchemeModal();
   };
 
+  const toast = useToast();
   const handleLevelSubmit = async () => {
     if (!currentSchemeForLevels || !levelFormData.grade || levelFormData.min_score === undefined) {
-      alert(t('validation.gradeAndMinimumScoreAreRequiredForALevel'));
+      toast.showWarning(t('validation.gradeAndMinimumScoreAreRequiredForALevel'));
       return;
     }
 

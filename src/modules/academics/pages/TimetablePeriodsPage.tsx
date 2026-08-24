@@ -13,6 +13,7 @@ import { useTimetablePeriodDefData } from '../data/useTimetablePeriodDefData'; /
 import { useTranslation } from 'react-i18next';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type TimetablePeriodFormData = Omit<Partial<TimetablePeriodDef>, 'id'>;
 
@@ -50,13 +51,14 @@ export const TimetablePeriodsContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.period_name || !formData.start_time || !formData.end_time) {
-      alert(t('validation.allFieldsAreRequired'));
+      toast.showWarning(t('validation.allFieldsAreRequired'));
       return;
     }
     if (formData.start_time >= formData.end_time) {
-        alert(t('validation.endTimeMustBeAfterStartTime'));
+        toast.showError(t('validation.endTimeMustBeAfterStartTime'));
         return;
     }
 

@@ -10,6 +10,7 @@ import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/compon
 import { useFinance } from '@/modules/finance/hooks/useFinance';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type SupplierFormData = Omit<Partial<Supplier>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -53,9 +54,10 @@ export const SuppliersPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert("Supplier name is required.");
+      toast.showWarning("Supplier name is required.");
       return;
     }
     const payload: Omit<Supplier, 'id' | 'created_at' | 'updated_at'> = {

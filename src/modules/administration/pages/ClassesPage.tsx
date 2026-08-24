@@ -23,6 +23,7 @@ import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { BulkStreamCreationContent } from './BulkStreamCreationPage';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 // Local type definitions for SchoolClass and ClassStream
 interface SchoolClass {
@@ -140,7 +141,7 @@ export const ClassesContent: React.FC = () => {
   const openStreamModal = (stream?: ClassStream, parentClass?: SchoolClass) => {
     const currentParent = parentClass || selectedClassForStream;
     if (!currentParent) {
-        alert(t('validation.selectClassFirst'));
+        toast.showError(t('validation.selectClassFirst'));
         return;
     }
     setSelectedClassForStream(currentParent);
@@ -156,7 +157,7 @@ export const ClassesContent: React.FC = () => {
   
   const handleClassSubmit = async () => {
     if (!classFormData.name) {
-        alert(t('validation.classNameIsRequired'));
+        toast.showWarning(t('validation.classNameIsRequired'));
         return;
     }
     if (editingClass) {
@@ -167,9 +168,10 @@ export const ClassesContent: React.FC = () => {
     closeClassModal();
   };
 
+  const toast = useToast();
   const handleStreamSubmit = async () => {
     if (!selectedClassForStream || !streamFormData.name) {
-        alert(t('validation.streamNameIsRequiredAndAClassMustBeSelected'));
+        toast.showWarning(t('validation.streamNameIsRequiredAndAClassMustBeSelected'));
         return;
     }
     const payload = {

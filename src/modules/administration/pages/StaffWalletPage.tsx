@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockWalletTransactions } from '../data/mockData';
 import type { WalletTransaction, WalletTransactionType } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 export const StaffWalletContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -60,9 +61,10 @@ export const StaffWalletContent: React.FC = () => {
     setDescription('');
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!selectedStaff || !amount) {
-      alert('Staff and amount are required.');
+      toast.showWarning('Staff and amount are required.');
       return;
     }
     logger.info('Creating transaction:', {

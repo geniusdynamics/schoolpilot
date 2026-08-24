@@ -16,6 +16,7 @@ import FormSection from '../../../components/ui/forms/FormSection';
 import FormField from '../../../components/ui/forms/FormField';
 import FormActions from '../../../components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updated_at' | 'type'> & {
     type: TemplateType; // Make type required
@@ -63,13 +64,14 @@ const CommunicationTemplatesPage: React.FC = () => {
     }
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.type || !formData.body_template) {
-      alert(t('validation.templateNameTypeAndBodyAreRequired'));
+      toast.showWarning(t('validation.templateNameTypeAndBodyAreRequired'));
       return;
     }
     if ((formData.type === TemplateType.EMAIL || formData.type === TemplateType.PUSH_NOTIFICATION) && !formData.subject) {
-        alert(t('validation.subjectIsRequiredForEmailAndPushNotificationTemplates'));
+        toast.showWarning(t('validation.subjectIsRequiredForEmailAndPushNotificationTemplates'));
         return;
     }
 

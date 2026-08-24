@@ -10,6 +10,7 @@ import { PlusIcon, EditIcon, DeleteIcon, BanknotesIcon } from '@/components/ui/i
 import { useFinance } from '@/modules/finance/hooks/useFinance';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type BankFormData = Omit<Partial<Bank>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
 
@@ -50,9 +51,10 @@ export const BanksPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: name === 'gl_account_id' ? (value ? parseInt(value) : undefined) : value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.gl_account_id) {
-      alert("Bank name and GL Account are required.");
+      toast.showWarning("Bank name and GL Account are required.");
       return;
     }
     const payload = { 

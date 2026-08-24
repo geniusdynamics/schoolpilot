@@ -20,6 +20,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'template_name' | 'created_by_name' | 'target_audience_display' | 'approved_by' | 'status' | 'template_id' | 'target_audience_type' | 'approved_by_name'> & {
     status: CampaignStatus;
@@ -113,21 +114,22 @@ export const MessageCampaignsContent: React.FC = () => {
     });
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.status) {
-      alert(t('validation.campaignNameAndStatusAreRequired'));
+      toast.showWarning(t('validation.campaignNameAndStatusAreRequired'));
       return;
     }
     if (!formData.body) {
-        alert(t('validation.campaignBodyContentIsRequired'));
+        toast.showWarning(t('validation.campaignBodyContentIsRequired'));
         return;
     }
     if (selectedTemplate && (selectedTemplate.type === TemplateType.EMAIL || selectedTemplate.type === TemplateType.PUSH_NOTIFICATION) && !formData.subject) {
-        alert(t('validation.subjectIsRequiredForEmailpushNotificationCampaignsBasedOnTheSelectedTemplate'));
+        toast.showWarning(t('validation.subjectIsRequiredForEmailpushNotificationCampaignsBasedOnTheSelectedTemplate'));
         return;
     }
      if ((formData.target_audience_type === CampaignAudienceType.STUDENTS_OF_CLASS || formData.target_audience_type === CampaignAudienceType.PARENTS_OF_CLASS) && !formData.target_id) {
-        alert(t('validation.pleaseSelectAClassstreamForTheChosenTargetAudience'));
+        toast.showError(t('validation.pleaseSelectAClassstreamForTheChosenTargetAudience'));
         return;
     }
 

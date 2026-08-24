@@ -19,6 +19,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'updated_at' | 'name' | 'academic_year_name' | 'period_definition_name' | 'financial_year_name' > & {
     period_definition_id?: string;
@@ -136,17 +137,18 @@ export const SchoolPeriodsContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: processedValue }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.academic_year_id || !formData.period_definition_id || !formData.financial_year_id || !formData.start_date || !formData.end_date) {
-      alert(t('validation.academicYearPeriodDefinitionFinancialYearStartDateAndEndDateAreRequired'));
+      toast.showWarning(t('validation.academicYearPeriodDefinitionFinancialYearStartDateAndEndDateAreRequired'));
       return;
     }
      if (new Date(formData.start_date) >= new Date(formData.end_date)) {
-        alert(t('validation.endDateAfterStartDate'));
+        toast.showError(t('validation.endDateAfterStartDate'));
         return;
     }
     if(formData.mid_break_start && formData.mid_break_end && new Date(formData.mid_break_start) >= new Date(formData.mid_break_end)){
-        alert(t('validation.midbreakEndDateMustBeAfterMidbreakStartDate'));
+        toast.showError(t('validation.midbreakEndDateMustBeAfterMidbreakStartDate'));
         return;
     }
 

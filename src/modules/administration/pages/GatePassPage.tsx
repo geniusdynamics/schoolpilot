@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockGatePasses } from '../data/mockData';
 import type { GatePass, PassType, PassStatus } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 export const GatePassContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -72,9 +73,10 @@ export const GatePassContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!formData.student_name || !formData.pass_type || !formData.reason) {
-      alert('Student name, pass type, and reason are required.');
+      toast.showWarning('Student name, pass type, and reason are required.');
       return;
     }
     logger.info('Creating gate pass:', formData);

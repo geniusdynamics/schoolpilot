@@ -13,6 +13,7 @@ import { initialMockExamTokens } from '../data/mockData';
 import type { ExamToken } from '../data/types';
 import { logger } from '@/utils/logging';
 import { KeyIcon, PlusIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
 
 type ExamTokenFormData = Omit<Partial<ExamToken>, 'id' | 'generated_at' | 'used_at'>;
 
@@ -88,9 +89,10 @@ export const ExamTokensPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.exam_session_id || !formData.teacher_id) {
-      alert('Exam session and teacher are required.');
+      toast.showWarning('Exam session and teacher are required.');
       return;
     }
     // In production, this would call generateExamToken or updateExamToken

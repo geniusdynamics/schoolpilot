@@ -14,6 +14,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type PeriodDefinitionFormData = Omit<Partial<AcademicPeriodDefinition>, 'id' | 'structure_name'>;
 
@@ -77,9 +78,10 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     });
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.structure_id || formData.sequence_order === undefined || formData.sequence_order <= 0) {
-      alert(t('validation.nameStructureSequenceRequired'));
+      toast.showWarning(t('validation.nameStructureSequenceRequired'));
       return;
     }
     const payload = { 

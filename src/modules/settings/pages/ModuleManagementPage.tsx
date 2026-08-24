@@ -15,6 +15,7 @@ import { moduleConfigService } from '@/services/module/moduleConfigService';
 import { moduleRegistry } from '@/core/moduleRegistry';
 import { ModuleDefinition } from '@/core/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 interface ModuleStatus {
   id: string;
@@ -135,7 +136,7 @@ export const ModuleManagementContent: React.FC = () => {
 
   const handleToggleModule = async (moduleId: string, enable: boolean) => {
     if (!canManageModules) {
-      alert(t('common:errors.insufficientPermissions'));
+      toast.showError(t('common:errors.insufficientPermissions'));
       return;
     }
 
@@ -151,7 +152,7 @@ export const ModuleManagementContent: React.FC = () => {
           );
           
           if (missingDeps.length > 0) {
-            alert(t('moduleManagement.dependencyError', { 
+            toast.showError(t('moduleManagement.dependencyError', { 
               dependencies: missingDeps.join(', ') 
             }));
             return;
@@ -185,7 +186,7 @@ export const ModuleManagementContent: React.FC = () => {
       
     } catch (error) {
       logger.error('Failed to toggle module:', error);
-      alert(t('moduleManagement.toggleError'));
+      toast.showError(t('moduleManagement.toggleError'));
     } finally {
       setProcessingModule(null);
     }
@@ -193,7 +194,7 @@ export const ModuleManagementContent: React.FC = () => {
 
   const handleConfigureModule = (module: ModuleStatus) => {
     if (!canConfigureModules) {
-      alert(t('common:errors.insufficientPermissions'));
+      toast.showError(t('common:errors.insufficientPermissions'));
       return;
     }
     
@@ -201,9 +202,10 @@ export const ModuleManagementContent: React.FC = () => {
     setShowConfigModal(true);
   };
 
+  const toast = useToast();
   const handleViewPermissions = (module: ModuleStatus) => {
     if (!canViewPermissions) {
-      alert(t('common:errors.insufficientPermissions'));
+      toast.showError(t('common:errors.insufficientPermissions'));
       return;
     }
     

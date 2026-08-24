@@ -10,6 +10,7 @@ import { PlusIcon, EditIcon, DeleteIcon, TruckIcon } from '@/components/ui/icons
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type TransportRouteFormData = Omit<Partial<TransportRoute>, 'id' | 'created_at' | 'updated_at' | 'gl_revenue_account_name'>;
 
@@ -59,9 +60,10 @@ export const TransportRoutesPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: (name === 'cost_per_period' || name === 'gl_revenue_account_id') ? (value ? Number(value) : undefined) : value }));
   };
   
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || formData.cost_per_period === undefined || formData.cost_per_period <= 0 || !formData.gl_revenue_account_id) {
-      alert("Route Name, valid Cost per Period, and GL Revenue Account are required.");
+      toast.showWarning("Route Name, valid Cost per Period, and GL Revenue Account are required.");
       return;
     }
     const payload: Omit<TransportRoute, 'id'|'created_at'|'updated_at'|'gl_revenue_account_name'> = {

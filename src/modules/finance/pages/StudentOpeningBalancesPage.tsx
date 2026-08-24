@@ -11,6 +11,7 @@ import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/ic
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type StudentOpeningBalanceFormData = Omit<Partial<StudentOpeningBalance>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'balance_type'> & {
     balance_type: OpeningBalanceType;
@@ -72,9 +73,10 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
   
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || formData.amount === undefined || !formData.as_of_date) {
-      alert("Student, Amount, and As Of Date are required.");
+      toast.showWarning("Student, Amount, and As Of Date are required.");
       return;
     }
     const payload: Omit<StudentOpeningBalance, 'id'|'created_at'|'updated_at'|'student_name'> = {

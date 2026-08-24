@@ -15,6 +15,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type AcademicYearFormData = Omit<Partial<AcademicYear>, 'id' | 'created_at' | 'updated_at' | 'structure_name'> & {
     structure_id?: number; 
@@ -60,13 +61,14 @@ export const AcademicYearsContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: processedValue })); 
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.structure_id || !formData.start_date || !formData.end_date) {
-      alert(t('validation.allFieldsRequired'));
+      toast.showWarning(t('validation.allFieldsRequired'));
       return;
     }
     if (new Date(formData.start_date) >= new Date(formData.end_date)) {
-        alert(t('validation.endDateAfterStartDate'));
+        toast.showError(t('validation.endDateAfterStartDate'));
         return;
     }
     const payload = { 

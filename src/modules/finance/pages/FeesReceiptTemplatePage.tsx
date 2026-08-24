@@ -14,6 +14,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { ReceiptTemplate } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 export const FeesReceiptTemplatePageContent: React.FC = () => {
   const { t } = useTranslation('finance');
@@ -68,9 +69,10 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name || !formData.school_name) {
-      alert('Template name and school name are required.');
+      toast.showWarning('Template name and school name are required.');
       return;
     }
     // In production, this would call addReceiptTemplate or updateReceiptTemplate

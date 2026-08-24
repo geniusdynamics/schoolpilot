@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { initialMockStudentRollNumbers } from '../data/mockData';
 import type { StudentRollNumber } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 export const BulkAssignRollNumbersContent: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -60,9 +61,10 @@ export const BulkAssignRollNumbersContent: React.FC = () => {
     }
   };
 
+  const toast = useToast();
   const openAssignModal = () => {
     if (selectedStudents.size === 0 && !selectedClass) {
-      alert('Please select a class or specific students to assign roll numbers.');
+      toast.showWarning('Please select a class or specific students to assign roll numbers.');
       return;
     }
     setIsModalOpen(true);

@@ -9,6 +9,7 @@ import { FeeTemplate, StudentInvoice } from '@/modules/finance';
 import { SchoolPeriod, StudentCategory, ClassStream } from '@/core/types';
 
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 export const EffectFeeStructuresPageContent: React.FC = () => {
   const { 
@@ -31,13 +32,14 @@ export const EffectFeeStructuresPageContent: React.FC = () => {
   
   const activeSchoolPeriods = useMemo(() => (schoolPeriods || []).filter(sp => sp.is_active), [schoolPeriods]);
 
+  const toast = useToast();
   const handleGenerateInvoices = async () => {
     if (!selectedFeeTemplateId || !selectedSchoolPeriodId) {
-      alert("Please select a Fee Template and a School Period.");
+      toast.showWarning("Please select a Fee Template and a School Period.");
       return;
     }
     if (!selectedStudentCategoryId && !selectedClassStreamId) {
-        alert("Please select either a Student Category or a Class/Stream to target students.");
+        toast.showWarning("Please select either a Student Category or a Class/Stream to target students.");
         return;
     }
 

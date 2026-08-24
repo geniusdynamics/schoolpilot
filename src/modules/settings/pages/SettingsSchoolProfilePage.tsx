@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 
 export const SettingsSchoolProfileContent: React.FC = () => {
@@ -28,15 +29,16 @@ export const SettingsSchoolProfileContent: React.FC = () => {
     setSchoolDetails({ ...schoolDetails, [e.target.name]: e.target.value });
   };
 
+  const toast = useToast();
   const handleSaveSchoolDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     try {
       await updateSchoolDetails(schoolDetails);
-      alert(t('schoolProfile.saveSuccess'));
+      toast.showSuccess(t('schoolProfile.saveSuccess'));
     } catch (error) {
       logger.error("Failed to save school details:", error);
-      alert(t('schoolProfile.saveError'));
+      toast.showError(t('schoolProfile.saveError'));
     } finally {
       setIsSaving(false);
     }

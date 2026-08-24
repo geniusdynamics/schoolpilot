@@ -10,6 +10,7 @@ import { UserIcon, PencilIcon, CheckIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 interface StudentRecord {
   id: string;
@@ -142,7 +143,7 @@ export const BulkStudentUpdateContent: React.FC = () => {
 
   const openBulkUpdateModal = () => {
     if (selectedStudents.size === 0) {
-      alert('Please select at least one student to update.');
+      toast.showWarning('Please select at least one student to update.');
       return;
     }
     setIsModalOpen(true);
@@ -154,9 +155,10 @@ export const BulkStudentUpdateContent: React.FC = () => {
     setUpdateValue('');
   };
 
+  const toast = useToast();
   const handleBulkUpdate = () => {
     if (!updateField || !updateValue) {
-      alert('Please select a field and enter a value.');
+      toast.showWarning('Please select a field and enter a value.');
       return;
     }
     logger.info('Bulk updating students:', {

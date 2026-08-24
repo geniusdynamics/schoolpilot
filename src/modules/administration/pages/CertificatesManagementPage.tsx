@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { CertificateType, CertificateStatus } from '../data/types';
 import type { CertificateRequest } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 const CertificatesManagementPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -51,9 +52,10 @@ const CertificatesManagementPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.certificate_type) {
-      alert('Please fill in all required fields');
+      toast.showWarning('Please fill in all required fields');
       return;
     }
 
@@ -74,7 +76,7 @@ const CertificatesManagementPage: React.FC = () => {
       loadData();
     } catch (error) {
       logger.error('Error creating certificate request:', error);
-      alert('Failed to create certificate request');
+      toast.showError('Failed to create certificate request');
     }
   };
 

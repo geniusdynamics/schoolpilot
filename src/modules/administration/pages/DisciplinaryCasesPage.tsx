@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { DisciplinaryCategory, DisciplinarySeverity, DisciplinaryStatus, DisciplinaryAction } from '../data/types';
 import type { DisciplinaryCase } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useToast } from '@/hooks/useToast';
 
 const DisciplinaryCasesPage: React.FC = () => {
   const { t } = useTranslation('administration');
@@ -104,9 +105,10 @@ const DisciplinaryCasesPage: React.FC = () => {
     setEditingCase(null);
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.title || !formData.description) {
-      alert('Please fill in all required fields');
+      toast.showWarning('Please fill in all required fields');
       return;
     }
 
@@ -138,7 +140,7 @@ const DisciplinaryCasesPage: React.FC = () => {
       loadData();
     } catch (error) {
       logger.error('Error saving disciplinary case:', error);
-      alert('Failed to save case');
+      toast.showError('Failed to save case');
     }
   };
 

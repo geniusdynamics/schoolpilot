@@ -14,6 +14,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type DesignationFormData = Omit<Partial<Designation>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -43,9 +44,10 @@ export const DesignationsContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.title) {
-      alert(t('validation.designationTitleIsRequired'));
+      toast.showWarning(t('validation.designationTitleIsRequired'));
       return;
     }
     const payload = {

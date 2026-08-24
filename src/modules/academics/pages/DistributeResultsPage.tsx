@@ -13,6 +13,7 @@ import { initialMockResultDistributions } from '../data/mockData';
 import type { ResultDistribution } from '../data/types';
 import { logger } from '@/utils/logging';
 import { CalendarIcon, CheckCircleIcon, MegaphoneIcon, XCircleIcon } from '@/components/ui/icons';
+import { useToast } from '@/hooks/useToast';
 
 export const DistributeResultsPageContent: React.FC = () => {
   const { examSessions, classes, loading } = useAppData();
@@ -77,9 +78,10 @@ export const DistributeResultsPageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const toast = useToast();
   const handleSubmit = () => {
     if (!formData.exam_session_id || !formData.class_id) {
-      alert('Exam session and class are required.');
+      toast.showWarning('Exam session and class are required.');
       return;
     }
     logger.info('Scheduling distribution:', formData);

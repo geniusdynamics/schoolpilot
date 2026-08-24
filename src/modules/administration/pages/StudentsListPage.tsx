@@ -171,10 +171,11 @@ const StudentsListPage: React.FC = () => {
     navigate(`/administration/students/${studentId}`);
   }, [navigate]);
 
+  const toast = useToast();
   const handleSubmit = useCallback(async () => {
     // Simple validation
     if (!formData.admission_no || !formData.first_name || !formData.last_name) {
-      alert('Please fill in all required fields (Admission No, First Name, Last Name)');
+      toast.showWarning('Please fill in all required fields (Admission No, First Name, Last Name)');
       return;
     }
 

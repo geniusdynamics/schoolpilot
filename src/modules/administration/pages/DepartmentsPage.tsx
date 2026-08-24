@@ -13,6 +13,7 @@ import FormSection from '../../../components/ui/forms/FormSection';
 import FormField from '../../../components/ui/forms/FormField';
 import FormActions from '../../../components/ui/forms/FormActions';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type DepartmentFormData = Omit<Partial<Department>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -42,9 +43,10 @@ const DepartmentsPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
+  const toast = useToast();
   const handleSubmit = async () => {
     if (!formData.name) {
-      alert(t('validation.departmentNameIsRequired'));
+      toast.showWarning(t('validation.departmentNameIsRequired'));
       return;
     }
     const payload = {

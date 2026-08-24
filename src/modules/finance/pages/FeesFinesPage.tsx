@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
 import { ExclamationTriangleIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/useToast';
 
 type FineFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
@@ -87,7 +88,7 @@ export const FeesFinesPageContent: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.student_id || !formData.school_period_id || !formData.amount) {
-      alert('Student, school period, and amount are required.');
+      toast.showWarning('Student, school period, and amount are required.');
       return;
     }
 
@@ -109,18 +110,19 @@ export const FeesFinesPageContent: React.FC = () => {
       closeModal();
     } catch (error) {
       logger.error('Error saving fine:', error);
-      alert('Error saving fine. Please try again.');
+      toast.showError('Error saving fine. Please try again.');
     }
   };
 
   const confirm = useConfirm();
+  const toast = useToast();
   const handleDelete = async (id: string) => {
     if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fine?' }))) {
       try {
         await deleteFeeAdjustment(id);
       } catch (error) {
         logger.error('Error deleting fine:', error);
-        alert('Error deleting fine. Please try again.');
+        toast.showError('Error deleting fine. Please try again.');
       }
     }
   };
