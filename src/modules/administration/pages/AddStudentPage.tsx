@@ -55,7 +55,12 @@ const AddStudentPage: React.FC = () => {
   } = appData;
   
   // Access addStudent from enhanced operations
-  const addStudent = (appData as any).addStudent;
+  const { addStudent } = useAppData() as unknown as {
+    addStudent: (
+      data: Record<string, any>,
+      guardian?: { name: string; phone?: string; relationship_type: string; id?: string }
+    ) => Promise<any>;
+  };
 
   const [activeTab, setActiveTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -168,7 +173,7 @@ const AddStudentPage: React.FC = () => {
         exam_result_summary: examSummaryPayload,
       };
 
-      await addStudent(newStudentPayload, guardianPayload as any);
+      await addStudent(newStudentPayload, guardianPayload);
 
       // Navigate back to students list on success
       navigate('/administration/students');

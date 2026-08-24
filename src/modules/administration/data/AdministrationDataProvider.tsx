@@ -306,7 +306,10 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   }, [toast]);
 
   // ===== STUDENT CRUD =====
-  const addStudent = useCallback(async (data: Omit<types.Student, 'id' | 'created_at' | 'updated_at'>) => {
+  const addStudent = useCallback(async (
+    data: Omit<types.Student, 'id' | 'created_at' | 'updated_at'>,
+    guardian?: { name: string; phone?: string; relationship_type: string; id?: string }
+  ) => {
     const validation = studentValidation.validate(data, studentSchema, students);
     if (!validation.valid) {
       toast.showError(validation.errors.map(e => e.message).join(', '));
@@ -316,13 +319,38 @@ export const AdministrationDataProvider: React.FC<Props> = ({
     setLocalLoading(true);
     try {
       const db = await databaseService.getDatabase();
+      const now = new Date().toISOString();
       const newStudent: types.Student = {
         ...data,
         id: crypto.randomUUID(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: now,
+        updated_at: now,
       };
       await db.students?.insert(newStudent);
+
+      // Persist the primary guardian + relationship when provided (Phase 3.1)
+      if (guardian?.name) {
+        const guardianId = guardian.id || crypto.randomUUID();
+        const existingGuardian = guardian.id
+          ? await db.parents_guardians?.findById(guardian.id)
+          : null;
+        if (!existingGuardian) {
+          await db.parents_guardians?.insert({
+            id: guardianId,
+            name: guardian.name,
+            phone: guardian.phone ?? '',
+            created_at: now,
+            updated_at: now,
+          } as any);
+        }
+        await db.student_guardian_relationships?.insert({
+          student_id: String(newStudent.id),
+          guardian_id: String(guardianId),
+          relationship_type: guardian.relationship_type,
+          is_primary_contact: true,
+        });
+      }
+
       toast.showSuccess('Student created successfully');
       return newStudent;
     } catch (error) {
