@@ -9,6 +9,7 @@ import { useAppData } from '../../../hooks/useAppData';
 import { useUnifiedConfig } from '../../../hooks/useUnifiedConfig';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
+import { useConfirm } from '../../../components/ui/ConfirmDialog';
 import DataGrid from '../../../components/ui/data/DataGrid';
 import DialogForm from '../../../components/ui/forms/DialogForm';
 import { FormSection, FormField, FormActions } from '../../../components/ui/forms';
@@ -30,6 +31,7 @@ import { PageContainer } from '../../../components/layout/PageContainer';
 import { User, Role, Workflow, WorkflowState } from '../../../types';
 export const UnifiedSettingsContent: React.FC = () => {
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const { config: unifiedConfig, isLoading: isConfigLoading } = useUnifiedConfig();
   const [activeTab, setActiveTab] = useState('system');
 
@@ -210,21 +212,21 @@ export const UnifiedSettingsContent: React.FC = () => {
   
   // Delete handlers
   const handleDeleteUser = async (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (await confirm({ title: 'Delete user', message: 'Are you sure you want to delete this user?', variant: 'danger' })) {
       // TODO: Implement delete user API call
       alert("Delete user functionality not yet implemented");
     }
   };
   
   const handleDeleteRole = async (roleId: number) => {
-    if (window.confirm('Are you sure you want to delete this role? Users with this role will have it unassigned.')) {
+    if (await confirm({ title: 'Delete role', message: 'Are you sure you want to delete this role? Users with this role will have it unassigned.', variant: 'danger' })) {
       // TODO: Implement delete role API call
       alert("Delete role functionality not yet implemented");
     }
   };
   
   const handleDeleteWorkflow = async (id: number) => {
-    if (window.confirm("Delete this workflow and all its states?")) {
+    if (await confirm({ title: 'Delete workflow', message: "Delete this workflow and all its states?", variant: 'danger' })) {
       // TODO: Implement delete workflow API call
       alert("Delete workflow functionality not yet implemented");
       if(currentWorkflowForStates?.id === id) setCurrentWorkflowForStates(null);
@@ -233,7 +235,7 @@ export const UnifiedSettingsContent: React.FC = () => {
   
   const handleDeleteState = async (stateId: number) => {
     if (!currentWorkflowForStates) return;
-    if (window.confirm('Delete this workflow state?')) {
+    if (await confirm({ title: 'Delete workflow state', message: 'Delete this workflow state?', variant: 'danger' })) {
       // TODO: Implement delete workflow state API call
       alert("Delete workflow state functionality not yet implemented");
     }

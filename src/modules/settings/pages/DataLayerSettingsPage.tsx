@@ -11,6 +11,7 @@ import { useDataMode } from '@/hooks/useDataMode';
 import { getDatabaseOptionsForMode, getBackendOptionsForModeAndProvider, normalizeProvider, resolveConsolidatedConfigurationOption, type ApplicationSettingsMode, type BackendIntegrationType } from '@/config/dataLayerConfig';
 import { Settings, Info, RefreshCw, AlertTriangle } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnifiedConfig } from '@/hooks/useUnifiedConfig';
 import { DataServiceFactory } from '@/services/data/DataServiceFactory';
@@ -18,6 +19,7 @@ import { MODULE_SEEDER_OPTIONS, type SeederModuleId } from '@/services/database/
 
 export const DataLayerSettingsContent: React.FC = () => {
   const { status: dataModeStatus, switchMode, isLoading, seedData, clearData, isDemoReseedingDisabled, isDemoCleared } = useDataMode();
+  const confirm = useConfirm();
   const currentMode = dataModeStatus?.currentMode || 'development';
   const [activeTab, setActiveTab] = useState<'mode' | 'sync'>('mode');
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -198,7 +200,7 @@ export const DataLayerSettingsContent: React.FC = () => {
   const handleSaveConfiguration = async () => await applyConsolidatedSelection();
 
   const handleResetToDefault = async () => {
-    if (!window.confirm('Are you sure you want to reset to the recommended data-management configuration?')) return;
+    if (!(await confirm({ title: 'Reset configuration', message: 'Are you sure you want to reset to the recommended data-management configuration?' }))) return;
     try {
       DataServiceFactory.resetToDefaultConfig();
       syncSelectionState('demo');
@@ -212,7 +214,7 @@ export const DataLayerSettingsContent: React.FC = () => {
   const handleSeedData = async () => {
     const moduleCount = selectedModules.includes('all') ? 'all' : selectedModules.length;
     const moduleText = selectedModules.includes('all') ? 'all modules' : `${moduleCount} selected module(s)`;
-    if (!window.confirm(`Seed '${seedVolume}' demo data across ${moduleText}? This may take a moment.`)) return;
+    if (!(await confirm({ title: 'Seed demo data', message: `Seed '${seedVolume}' demo data across ${moduleText}? This may take a moment.` }))) return;
     
     setIsSeeding(true);
     setSeedMessage(null);
@@ -231,7 +233,12 @@ export const DataLayerSettingsContent: React.FC = () => {
     const warningText = currentMode === 'production'
       ? 'WARNING: You are about to clear ALL PRODUCTION DATA. This action cannot be undone. Type "DELETE" to confirm.'
       : 'Are you sure you want to clear ALL data from the current database?';
-    const userInput = currentMode === 'production' ? prompt(warningText) : window.confirm(warningText);
+    let userInput: string | boolean | null;
+    if (currentMode === 'production') {
+      userInput = prompt(warningText);
+    } else {
+      userInput = await confirm({ title: 'Switch data mode', message: warningText });
+    }
     if (currentMode === 'production' && userInput !== 'DELETE') return;
     if (currentMode !== 'production' && !userInput) return;
 

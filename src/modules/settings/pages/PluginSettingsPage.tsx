@@ -9,6 +9,7 @@ import { logger } from '@/utils/logging';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { PuzzlePieceIcon, CloudArrowDownIcon, CogIcon, ShieldCheckIcon, StopIcon, TrashIcon, InformationCircleIcon, CheckCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { usePlugins } from '../../../plugins/usePlugins';
 import { PageContainer } from '../../../components/layout/PageContainer';
@@ -35,6 +36,7 @@ interface PluginSettingsPageProps {
 export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
   const { t } = useTranslation('settings');
   const { plugins, activePlugins, activatePlugin, deactivatePlugin, unloadPlugin } = usePlugins();
+  const confirm = useConfirm();
   
   const [activeTab, setActiveTab] = useState<TabType>('installed');
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,7 +86,7 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
   }, [deactivatePlugin]);
 
   const handleUninstall = useCallback(async (pluginId: string) => {
-    if (!window.confirm(t('plugins.confirmUninstall'))) return;
+    if (!(await confirm({ title: 'Uninstall plugin', message: t('plugins.confirmUninstall'), variant: 'danger' }))) return;
     
     setIsLoading(true);
     try {
@@ -94,7 +96,7 @@ export const PluginSettingsPage: React.FC<PluginSettingsPageProps> = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [unloadPlugin, t]);
+  }, [unloadPlugin, t, confirm]);
 
   const handleAdminConfigChange = useCallback((key: string, value: any) => {
     setAdminConfig(prev => {

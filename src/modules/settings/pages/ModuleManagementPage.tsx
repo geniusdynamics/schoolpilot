@@ -9,6 +9,7 @@ import { FormSection, FormField, FormActions } from '@/components/ui/forms';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useRBAC } from '@/hooks/useRBAC';
 import { moduleConfigService } from '@/services/module/moduleConfigService';
 import { moduleRegistry } from '@/core/moduleRegistry';
@@ -32,6 +33,7 @@ interface ModuleStatus {
 export const ModuleManagementContent: React.FC = () => {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const { hasPermission, userRoles, isSuperAdmin } = useRBAC();
+  const confirm = useConfirm();
   
   // State management
   const [modules, setModules] = useState<ModuleStatus[]>([]);
@@ -164,11 +166,15 @@ export const ModuleManagementContent: React.FC = () => {
         );
         
         if (dependentModules.length > 0) {
-          const confirm = window.confirm(t('moduleManagement.disableDependencyWarning', {
-            dependents: dependentModules.map(m => m.name).join(', ')
-          }));
+          const confirmed = await confirm({
+            title: 'Disable module',
+            message: t('moduleManagement.disableDependencyWarning', {
+              dependents: dependentModules.map(m => m.name).join(', ')
+            }),
+            variant: 'warning'
+          });
           
-          if (!confirm) return;
+          if (!confirmed) return;
         }
         
         moduleConfigService.disableModule(moduleId);
