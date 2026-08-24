@@ -25,6 +25,35 @@ const BUILTIN_PLUGINS: PluginDirectory[] = [
 ];
 
 /**
+ * Dormant builtin plugins (Phase 4.3).
+ *
+ * These ship with the app but stay unregistered until the corresponding
+ * feature flag (`plugin_<name>`) is enabled in featureFlagStore — loading
+ * them changes nothing by default.
+ */
+const DORMANT_PLUGINS: PluginDirectory[] = [
+  { name: 'analytics-mock', path: './analytics-mock' },
+  { name: 'erpnext-integration', path: './erpnext-integration' },
+  { name: 'frappe-integration', path: './frappe-integration' },
+  { name: 'generic-rest', path: './generic-rest' },
+  { name: 'payment-mock', path: './payment-mock' },
+  { name: 'saas-backend', path: './saas-backend' },
+  { name: 'sms-gateway', path: './sms-gateway' },
+  { name: 'sms-mock', path: './sms-mock' },
+];
+
+function isPluginEnabled(name: string): boolean {
+  try {
+    const raw = localStorage.getItem('sp_feature_flags_store');
+    if (!raw) return false;
+    const flags = JSON.parse(raw)?.state?.flags;
+    return Boolean(flags?.[`plugin_${name}`]);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Load a single builtin plugin
  */
 async function loadBuiltinPlugin(dirInfo: PluginDirectory): Promise<LoadedPlugin | null> {
@@ -68,7 +97,17 @@ export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
     const plugin = await loadBuiltinPlugin(dirInfo);
     if (plugin) {
       plugins.push(plugin);
-      logger.info(`[BuiltinLoader] âœ“ Loaded ${plugin.manifest.name} (${plugin.manifest.id})`);
+      logger.info(`[BuiltinLoader] ✓ Loaded ${plugin.manifest.name} (${plugin.manifest.id})`);
+    }
+  }
+
+  // Dormant plugins load only when explicitly enabled via feature flags
+  for (const dirInfo of DORMANT_PLUGINS) {
+    if (!isPluginEnabled(dirInfo.name)) continue;
+    const plugin = await loadBuiltinPlugin(dirInfo);
+    if (plugin) {
+      plugins.push(plugin);
+      logger.info(`[BuiltinLoader] ✓ Loaded dormant plugin ${plugin.manifest.name} (${plugin.manifest.id})`);
     }
   }
 
@@ -77,8 +116,8 @@ export async function loadAllBuiltinPlugins(): Promise<LoadedPlugin[]> {
 }
 
 /**
- * Get list of available builtin plugin IDs
+ * Get list of available builtin plugin IDs (active + dormant)
  */
 export function getBuiltinPluginIds(): string[] {
-  return BUILTIN_PLUGINS.map(p => p.name);
+  return [...BUILTIN_PLUGINS, ...DORMANT_PLUGINS].map(p => p.name);
 }
