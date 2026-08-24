@@ -93,6 +93,21 @@ LanguageSwitcher/HookErrorBoundary repoint fix (`0c50642`).
 
 ## Phase 4 — Not started
 
+## Phase 4 progress
+
+- **4.2 Business-flow tests ✅** — grading-engine.spec (KCSE letter bands, CBC
+  competencies, custom schemes, points strategy, unsupported-type rejection),
+  education-system-config.spec (template validation — caught and fixed a real
+  bug: US_UNIVERSITY_SEMESTER missing grade levels), mark-entry-ui.spec
+  (template download, CSV export, entered-score grading). 17 new tests, all green.
+- **4.3 ERPNext dedup 🚧** — registration half done: 9 dormant builtins now load
+  behind `plugin_<name>` feature flags. Dedup half blocked on a discovery: the
+  plugin's ERPNextProvider implements `IBackendProvider` (registry contract)
+  while `src/services/erpnext` implements `DataProvider` — they are NOT stale
+  copies. True dedup requires unifying those two interfaces first; deferred to
+  avoid behavior change.
+- 4.1/4.4/4.5/4.6 pending.
+
 ## Gate notes
 
 - Full-suite test runs show high flake variance (±140 failed-test counts between
