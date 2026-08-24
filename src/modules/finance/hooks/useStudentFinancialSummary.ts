@@ -34,6 +34,8 @@ export interface StudentFinancialSummary {
   overpay: number;
   /** Refund amount (always 0 in current schema, reserved for future) */
   refund: number;
+  /** Earliest due_date across the student's non-voided invoices (null when none) */
+  earliestDueDate: string | null;
 }
 
 /**
@@ -83,10 +85,18 @@ export function useStudentFinancialSummary() {
 
     // Aggregate invoices per student (non-voided, non-deleted)
     const invoiceTotals = new Map<string, number>();
+    const earliestDueDates = new Map<string, string>();
     for (const inv of invoices) {
       if (inv.status === 'Voided' || inv.deleted_at) continue;
       const sid = String(inv.student_id);
       invoiceTotals.set(sid, (invoiceTotals.get(sid) ?? 0) + (Number(inv.total_amount_billed) || 0));
+      // Track the earliest due date for aging calculations
+      if (inv.due_date) {
+        const existing = earliestDueDates.get(sid);
+        if (!existing || String(inv.due_date) < existing) {
+          earliestDueDates.set(sid, String(inv.due_date));
+        }
+      }
     }
 
     // Aggregate payments per student
@@ -169,6 +179,7 @@ export function useStudentFinancialSummary() {
         balance: Math.round(balance * 100) / 100,
         overpay: Math.round(overpay * 100) / 100,
         refund: 0, // Reserved for future use - always 0 in current schema
+        earliestDueDate: earliestDueDates.get(studentId) ?? null,
       });
     }
 
