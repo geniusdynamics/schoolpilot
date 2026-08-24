@@ -12,6 +12,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type StudentOpeningBalanceFormData = Omit<Partial<StudentOpeningBalance>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'balance_type'> & {
     balance_type: OpeningBalanceType;
@@ -135,7 +136,7 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-blue-600">{row.as_of_date ? new Date(row.as_of_date).toLocaleDateString() : '-'}</span>
+      render: (value, row) => <span className="text-blue-600">{row.as_of_date ? formatDate(row.as_of_date) : '-'}</span>
     },
     { 
       key: 'is_billed', 

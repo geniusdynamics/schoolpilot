@@ -14,6 +14,7 @@ import { AccountType, CustomerInvoiceStatus } from '@/core/types';
 import type { CustomerInvoice, Customer } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status'> & {
     status: CustomerInvoiceStatus;
@@ -216,7 +217,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       width: 120,
       render: (value) => (
         <span className="text-sm text-gray-600">
-          {new Date(value).toLocaleDateString()}
+          {formatDate(value)}
         </span>
       )
     },
@@ -227,7 +228,7 @@ export const CustomerInvoicesPageContent: React.FC = () => {
       width: 120,
       render: (value) => (
         <span className="text-sm text-gray-600">
-          {value ? new Date(value).toLocaleDateString() : '-'}
+          {value ? formatDate(value) : '-'}
         </span>
       )
     },

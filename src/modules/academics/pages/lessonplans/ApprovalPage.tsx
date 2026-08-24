@@ -23,6 +23,7 @@ import { useLessonPlansData, PlanStatus, WeeklyPlan } from '../../data/lessonpla
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '@/utils/format';
 
 const statusColors: Record<PlanStatus, string> = {
   [PlanStatus.DRAFT]: 'bg-gray-100 text-gray-800',

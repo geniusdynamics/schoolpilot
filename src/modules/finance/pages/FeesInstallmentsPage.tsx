@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
 import { CalendarIcon, PlusIcon } from '@/components/ui/icons';
 import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type InstallmentFormData = Omit<Partial<FeeInstallment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
@@ -152,7 +153,7 @@ export const FeesInstallmentsPageContent: React.FC = () => {
       key: 'due_date',
       header: 'Due Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'amount_due',

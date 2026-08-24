@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/useToast';
 import Spinner from '@/components/ui/Spinner';
 import { logger } from '@/utils/logging';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { formatDate } from '@/utils/format';
 
 type StudentPaymentFormData = Omit<Partial<StudentPayment>, 'id' | 'created_at' | 'updated_at' | 'student_name'>;
 
@@ -147,7 +148,7 @@ export const StudentPaymentsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-gray-700">{new Date(row.transaction_date).toLocaleDateString()}</span>
+      render: (value, row) => <span className="text-gray-700">{formatDate(row.transaction_date)}</span>
     },
     {
       key: 'id',

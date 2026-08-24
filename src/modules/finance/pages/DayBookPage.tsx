@@ -6,6 +6,7 @@ import Input from '@/components/ui/Input';
 import { BookOpenIcon, CalendarIcon, ArrowDownIcon, ArrowUpIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { DayBookEntry } from '../data/types';
+import { formatDate } from '@/utils/format';
 
 export const DayBookPageContent: React.FC = () => {
 
@@ -40,7 +41,7 @@ export const DayBookPageContent: React.FC = () => {
       key: 'transaction_date',
       header: 'Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'reference_no',

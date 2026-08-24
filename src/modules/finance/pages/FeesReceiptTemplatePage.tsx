@@ -16,6 +16,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { ReceiptTemplate } from '../data/types';
 import { logger } from '@/utils/logging';
+import { formatDate } from '@/utils/format';
 
 export const FeesReceiptTemplatePageContent: React.FC = () => {
   const { t } = useTranslation('finance');
@@ -134,7 +135,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
       key: 'created_at',
       header: 'Created',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'actions',
@@ -356,7 +357,7 @@ export const FeesReceiptTemplatePageContent: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Date:</span>
-              <span className="font-semibold">{new Date().toLocaleDateString()}</span>
+              <span className="font-semibold">{formatDate()}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Student:</span>

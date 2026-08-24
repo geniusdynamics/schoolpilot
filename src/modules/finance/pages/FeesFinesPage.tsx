@@ -18,6 +18,7 @@ import { logger } from '@/utils/logging';
 import { ExclamationTriangleIcon, PlusIcon } from '@/components/ui/icons';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type FineFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
@@ -175,7 +176,7 @@ export const FeesFinesPageContent: React.FC = () => {
       key: 'created_at',
       header: 'Date Applied',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'actions',

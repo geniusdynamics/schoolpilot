@@ -20,6 +20,7 @@ import {
   ClockIcon,
   UserCircleIcon,
 } from '@/components/ui/icons';
+import { formatDate } from '@/utils/format';
 import { useLessonPlansData, PlanStatus } from '../../data/lessonplans/useLessonPlansData';
 import type { DayPlan } from '../../data/types';
 

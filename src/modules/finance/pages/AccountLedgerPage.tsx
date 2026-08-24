@@ -13,6 +13,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useAccountLedger } from '../hooks/useAccountLedger';
 import type { AccountLedgerRow } from '../hooks/useAccountLedger';
 import { useAppData } from '@/hooks/useAppData';
+import { formatDate } from '@/utils/format';
 
 // Currency formatter for KES
 const formatCurrency = (value: number | null) => {

@@ -151,7 +151,7 @@ export const FeesDueReportPageContent: React.FC = () => {
       key: 'due_date',
       header: 'Due Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'days_overdue',

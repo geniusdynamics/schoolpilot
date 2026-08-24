@@ -7,6 +7,7 @@ import Select from '@/components/ui/Select';
 import { BookOpenIcon, CalendarIcon, DocumentTextIcon, CurrencyDollarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { JournalEntry } from '../data/types';
+import { formatDate } from '@/utils/format';
 
 export const JournalRegisterPageContent: React.FC = () => {
 
@@ -75,7 +76,7 @@ export const JournalRegisterPageContent: React.FC = () => {
       key: 'transaction_date',
       header: 'Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'description',

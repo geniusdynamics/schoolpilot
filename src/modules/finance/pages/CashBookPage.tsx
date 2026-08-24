@@ -6,6 +6,7 @@ import Input from '@/components/ui/Input';
 import { CurrencyDollarIcon, ArrowDownIcon, ArrowUpIcon, CalendarIcon } from '@/components/ui/icons';
 import Spinner from '@/components/ui/Spinner';
 import { CashBookEntry } from '../data/types';
+import { formatDate } from '@/utils/format';
 
 export const CashBookPageContent: React.FC = () => {
 
@@ -40,7 +41,7 @@ export const CashBookPageContent: React.FC = () => {
       key: 'transaction_date',
       header: 'Date',
       sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : '-'
+      render: (value) => value ? formatDate(value) : '-'
     },
     {
       key: 'reference_no',

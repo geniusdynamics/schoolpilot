@@ -14,6 +14,7 @@ import { AccountType, GeneralPayerType } from '@/core/types';
 import type { GeneralPayment } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type GeneralPaymentItemFormData = Omit<GeneralPaymentItem, 'id' | 'general_payment_id' | 'revenue_account_name'>;
 type GeneralPaymentFormData = Omit<GeneralPayment, 'id' | 'created_at' | 'updated_at' | 'items' | 'total_amount_paid' | 'payer_name_resolved'> & {
@@ -215,7 +216,7 @@ export const GeneralReceiptsPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-purple-600">{new Date(row.payment_date).toLocaleDateString()}</span>
+      render: (value, row) => <span className="text-purple-600">{formatDate(row.payment_date)}</span>
     },
     { 
       key: 'total_amount_paid', 

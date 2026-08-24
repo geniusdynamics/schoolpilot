@@ -13,6 +13,7 @@ import ModuleDashboardShell, {
   DashboardQuickAction,
   DashboardAlertBanner,
 } from '@/components/ModuleDashboardShell';
+import { formatKES } from '@/utils/format';
 
 export const FinanceDashboardPageContent: React.FC = () => {
   const {
@@ -103,7 +104,7 @@ export const FinanceDashboardPageContent: React.FC = () => {
     {
       key: 'income',
       label: 'Total Income',
-      value: `Ksh ${totalIncome.toLocaleString()}`,
+      value: formatKES(totalIncome),
       icon: <ArrowUpIcon className="h-6 w-6" />,
       trend: 'up',
       trendValue: '+8.5%',
@@ -114,7 +115,7 @@ export const FinanceDashboardPageContent: React.FC = () => {
     {
       key: 'expenses',
       label: 'Total Expenses',
-      value: `Ksh ${totalExpenses.toLocaleString()}`,
+      value: formatKES(totalExpenses),
       icon: <ArrowDownIcon className="h-6 w-6" />,
       trend: 'up',
       trendValue: '+3.2%',
@@ -125,7 +126,7 @@ export const FinanceDashboardPageContent: React.FC = () => {
     {
       key: 'net',
       label: 'Net Position',
-      value: `Ksh ${netPosition.toLocaleString()}`,
+      value: formatKES(netPosition),
       icon: <BanknotesIcon className="h-6 w-6" />,
       trend: netPosition >= 0 ? 'up' : 'down',
       trendValue: netPosition >= 0 ? '+5.2%' : '-2.1%',
@@ -136,7 +137,7 @@ export const FinanceDashboardPageContent: React.FC = () => {
     {
       key: 'outstanding',
       label: 'Outstanding',
-      value: `Ksh ${totalOutstanding.toLocaleString()}`,
+      value: formatKES(totalOutstanding),
       icon: <ExclamationCircleIcon className="h-6 w-6" />,
       trend: outstandingInvoices.length > 10 ? 'up' : 'down',
       trendValue: `${outstandingInvoices.length} invoices`,
@@ -254,7 +255,7 @@ export const FinanceDashboardPageContent: React.FC = () => {
     {
       id: 'net-position',
       title: 'Financial Health',
-      message: netPosition < 0 ? `Net position negative by Ksh ${Math.abs(netPosition).toLocaleString()}.` : `Net position positive at Ksh ${netPosition.toLocaleString()}.`,
+      message: netPosition < 0 ? `Net position negative by ${formatKES(Math.abs(netPosition))}.` : `Net position positive at Ksh ${netPosition.toLocaleString()}.`,
       severity: netPosition < 0 ? 'high' : 'normal',
     },
   ];
@@ -329,7 +330,7 @@ export const FinanceDashboardPageContent: React.FC = () => {
                   </p>
                 </div>
                 <span className={`text-sm font-semibold ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {tx.type === 'income' ? '+' : '-'}Ksh {tx.amount.toLocaleString()}
+                  {tx.type === 'income' ? '+' : ''}{formatKES(tx.amount)}
                 </span>
               </div>
             ))}

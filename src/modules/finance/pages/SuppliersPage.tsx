@@ -11,6 +11,7 @@ import { useFinance } from '@/modules/finance/hooks/useFinance';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type SupplierFormData = Omit<Partial<Supplier>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -130,7 +131,7 @@ export const SuppliersPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 130,
-      render: (value, row) => <span className="text-orange-600">{row.contract_expiry_date ? new Date(row.contract_expiry_date).toLocaleDateString() : '-'}</span>
+      render: (value, row) => <span className="text-orange-600">{row.contract_expiry_date ? formatDate(row.contract_expiry_date) : '-'}</span>
     },
     {
       key: 'id',

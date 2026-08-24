@@ -11,6 +11,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useToast } from '@/hooks/useToast';
+import { formatDate } from '@/utils/format';
 
 type SupplierInvoiceFormData = Omit<Partial<SupplierInvoice>, 'id' | 'created_at' | 'updated_at' | 'supplier_name' | 'status'> & {
     status: SupplierInvoiceStatus; // Ensure this is required
@@ -122,7 +123,7 @@ export const SupplierInvoicesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-blue-600">{new Date(row.invoice_date).toLocaleDateString()}</span>
+      render: (value, row) => <span className="text-blue-600">{formatDate(row.invoice_date)}</span>
     },
     { 
       key: 'due_date', 
@@ -130,7 +131,7 @@ export const SupplierInvoicesPageContent: React.FC = () => {
       sortable: true, 
       filterable: true, 
       width: 120,
-      render: (value, row) => <span className="text-orange-600">{row.due_date ? new Date(row.due_date).toLocaleDateString() : '-'}</span>
+      render: (value, row) => <span className="text-orange-600">{row.due_date ? formatDate(row.due_date) : '-'}</span>
     },
     { 
       key: 'total_amount', 
