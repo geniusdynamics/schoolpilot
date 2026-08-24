@@ -61,8 +61,15 @@ declare module '@/core/types' {
 
   export interface AppDataContextType {
     // Student CRUD
-    addStudent: (data: Omit<Student, 'id'>) => Promise<Student>;
-    updateStudent: (id: string, data: Partial<Student>) => Promise<Student>;
+    addStudent: (
+      data: Omit<Student, 'id' | 'created_at' | 'updated_at'>,
+      guardian?: { name: string; phone?: string; relationship_type: string; id?: string }
+    ) => Promise<Student>;
+    updateStudent: (
+      id: string,
+      data: Partial<Student>,
+      guardian?: { name: string; phone?: string; relationship_type: string; id?: string }
+    ) => Promise<Student>;
     deleteStudent: (id: string) => Promise<void>;
     // Staff CRUD
     addStaff: (data: Omit<Staff, 'id'>) => Promise<Staff>;

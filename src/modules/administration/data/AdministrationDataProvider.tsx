@@ -361,12 +361,45 @@ export const AdministrationDataProvider: React.FC<Props> = ({
     }
   }, [students, toast, studentValidation]);
 
-  const updateStudent = useCallback(async (id: string, data: Partial<types.Student>) => {
+  const updateStudent = useCallback(async (
+    id: string,
+    data: Partial<types.Student>,
+    guardian?: { name: string; phone?: string; relationship_type: string; id?: string }
+  ) => {
     setLocalLoading(true);
     try {
       const db = await databaseService.getDatabase();
       const updates = { ...data, updated_at: new Date().toISOString() };
       await db.students?.update(id, updates);
+
+      // Persist guardian changes when provided (Phase 3.1/3.2)
+      if (guardian?.name) {
+        const now = new Date().toISOString();
+        let guardianId = guardian.id || '';
+        if (guardianId) {
+          await db.parents_guardians?.update(guardianId, {
+            name: guardian.name,
+            phone: guardian.phone ?? '',
+            updated_at: now,
+          } as any);
+        } else {
+          guardianId = crypto.randomUUID();
+          await db.parents_guardians?.insert({
+            id: guardianId,
+            name: guardian.name,
+            phone: guardian.phone ?? '',
+            created_at: now,
+            updated_at: now,
+          } as any);
+          await db.student_guardian_relationships?.insert({
+            student_id: String(id),
+            guardian_id: String(guardianId),
+            relationship_type: guardian.relationship_type,
+            is_primary_contact: true,
+          });
+        }
+      }
+
       toast.showSuccess('Student updated successfully');
       return { ...students.find(s => s.id === id), ...updates } as types.Student;
     } catch (error) {
