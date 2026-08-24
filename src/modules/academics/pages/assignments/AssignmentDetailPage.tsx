@@ -18,6 +18,7 @@ import type { AssignmentSubmission } from '../../data/types';
 import { AssignmentStatus, SubmissionStatus } from '../../data/types';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 const submissionStatusColors: Record<SubmissionStatus, string> = {
   [SubmissionStatus.PENDING_REVIEW]: 'bg-gray-100 text-gray-800',
@@ -28,6 +29,7 @@ const submissionStatusColors: Record<SubmissionStatus, string> = {
 };
 
 const AssignmentDetailPage: React.FC = () => {
+  const confirm = useConfirm();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation('assignments');
@@ -70,7 +72,7 @@ const AssignmentDetailPage: React.FC = () => {
   // Handle delete
   const handleDelete = async () => {
     if (!assignment) return;
-    if (!window.confirm(`Are you sure you want to delete "${assignment.title}"?`)) return;
+    if (!(await confirm({ title: 'Delete assignment', message: `Are you sure you want to delete "${assignment.title}"?`, variant: 'danger' }))) return;
 
     try {
       await deleteAssignment(assignment.id);

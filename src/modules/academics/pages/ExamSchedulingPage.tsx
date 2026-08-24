@@ -9,6 +9,7 @@ import { examScheduleManager } from '../services/ExamScheduleManager';
 import ExamSchedulingUI from '@/modules/academics/components/ExamSchedulingUI';
 import SchedulingCalendar from '@/components/SchedulingCalendar';
 import { useAppData } from '@/hooks/useAppData';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface ExamSchedulingPageProps {
   examSessionId?: string;
@@ -104,8 +105,9 @@ export const ExamSchedulingPageContent: React.FC<ExamSchedulingPageProps> = ({ e
     }
   };
 
+  const confirm = useConfirm();
   const handleDeleteSchedule = async (scheduleId: string) => {
-    if (!window.confirm('Are you sure you want to delete this schedule?')) {
+    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this schedule?' }))) {
       return;
     }
 

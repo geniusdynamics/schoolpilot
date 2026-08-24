@@ -18,6 +18,7 @@ import FormActions from '@/components/ui/forms/FormActions';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface SubjectFormData extends Omit<Partial<Subject>, 'id' | 'department_name' | 'papers'> {
   department_id?: string | null;
@@ -83,8 +84,9 @@ export const SubjectsContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (_subjectId: number) => {
-    if (window.confirm('Are you sure you want to delete this subject?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this subject?' }))) {
         // Placeholder for deleteSubject
     }
   };

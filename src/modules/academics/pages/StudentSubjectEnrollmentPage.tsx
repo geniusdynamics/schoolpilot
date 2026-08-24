@@ -17,12 +17,14 @@ import Spinner from '@/components/ui/Spinner';
 import { StudentEnrollmentStatus, StudentStatus } from '@/core/types';
 import type { Student } from '@/core/types';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type EnrollmentFormData = Omit<Partial<StudentSubjectEnrollment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'class_name' | 'stream_name' | 'subject_name' | 'academic_year_name' | 'enrollment_status_display' | 'status'> & {
     status: StudentEnrollmentStatus;
 };
 
 export const StudentSubjectEnrollmentPageContent: React.FC = () => {
+  const confirm = useConfirm();
   const { 
     studentSubjectEnrollments, 
     students,
@@ -134,7 +136,7 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
         // Option 1: Update status to Withdrawn
         // await updateStudentSubjectEnrollment({ ...existingEnrollment, status: StudentEnrollmentStatus.WITHDRAWN });
         // Option 2: Delete enrollment record
-        if (window.confirm("Are you sure you want to unenroll this student from the subject?")) {
+        if ((await confirm({ variant: 'danger', message: "Are you sure you want to unenroll this student from the subject?" }))) {
             // TODO: Implement deleteStudentSubjectEnrollment when available in context
         }
       }
@@ -144,7 +146,7 @@ export const StudentSubjectEnrollmentPageContent: React.FC = () => {
   };
 
   const handleDelete = async (_id: string) => {
-    if (window.confirm('Are you sure you want to delete this enrollment record?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this enrollment record?' }))) {
       // TODO: Implement deleteStudentSubjectEnrollment when available in context
     }
   };

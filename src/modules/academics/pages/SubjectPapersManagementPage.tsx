@@ -14,6 +14,7 @@ import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type SubjectPaperFormData = Omit<Partial<SubjectPaper>, 'id' | 'created_at' | 'updated_at' | 'subject_name'>;
 
@@ -71,8 +72,9 @@ export const SubjectPapersManagementContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this subject paper? This might affect exam paper settings.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this subject paper? This might affect exam paper settings.' }))) {
       await deleteSubjectPaper(String(id));
     }
   };

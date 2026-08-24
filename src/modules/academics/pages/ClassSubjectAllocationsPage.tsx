@@ -17,6 +17,7 @@ import { Subject as CoreSubject } from '@/core/types';
 import { logger } from '@/utils/logging';
 import type { ClassSubjectAllocation } from '@/core/types';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type AllocationFormData = Omit<Partial<ClassSubjectAllocation>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name'>;
 
@@ -99,8 +100,9 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this subject allocation?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this subject allocation?' }))) {
       try {
         await deleteClassSubjectAllocation(id);
       } catch (error) {

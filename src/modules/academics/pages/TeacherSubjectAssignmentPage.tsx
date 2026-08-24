@@ -15,6 +15,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, DeleteIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type AssignmentFormData = Omit<Partial<TeacherSubjectAssignment>, 'id' | 'class_stream_name' | 'subject_name' | 'academic_year_name' | 'teacher_name'>;
 
@@ -96,8 +97,9 @@ export const TeacherSubjectAssignmentPageContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this teacher assignment?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this teacher assignment?' }))) {
       await deleteTeacherSubjectAssignment(id);
     }
   };

@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import Spinner from '@/components/ui/Spinner';
 import type { Staff } from '@/core/types';
 import { DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type TimetableEntryFormData = Omit<Partial<TimetableEntry>, 'id' | 'class_stream_id' | 'class_stream_name' | 'period_name' | 'subject_name' | 'teacher_name' | 'day_of_week'> & {
     day_of_week?: DayOfWeek;
@@ -127,8 +128,9 @@ export const TimetableEntriesContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this timetable slot?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this timetable slot?' }))) {
       await deleteTimetableEntry(id);
     }
   };

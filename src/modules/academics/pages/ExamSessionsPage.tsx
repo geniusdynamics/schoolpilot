@@ -20,6 +20,7 @@ import { PlusIcon, EditIcon, DeleteIcon, ListBulletIcon } from '@/components/ui/
 import { useAppData } from '@/hooks/useAppData'; 
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type ExamSessionFormData = Omit<Partial<ExamSession>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'paper_settings' | 'status'> & {
     status: ExamSessionStatus; 
@@ -185,8 +186,9 @@ export const ExamSessionsPageContent: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
   const handleDeleteSession = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this exam session? This will also delete all its paper settings and might affect related results.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this exam session? This will also delete all its paper settings and might affect related results.' }))) {
       try {
         await deleteExamSession(id);
       } catch (error) {
@@ -198,7 +200,7 @@ export const ExamSessionsPageContent: React.FC = () => {
 
   const handleDeletePaperSetting = async (paperSettingId: string) => {
       if (!activeSessionForPapers) return;
-      if (window.confirm('Are you sure you want to delete this paper setting?')) {
+      if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this paper setting?' }))) {
           try {
             await deleteExamPaperSetting(paperSettingId);
           } catch (error) {

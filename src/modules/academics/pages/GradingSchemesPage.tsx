@@ -13,6 +13,7 @@ import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { DeleteIcon, EditIcon, ListBulletIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type GradingSchemeFormData = Omit<Partial<GradingScheme>, 'id' | 'created_at' | 'updated_at' | 'levels'>;
 type LevelFormData = Omit<Partial<GradingSchemeLevel>, 'id' | 'scheme_id'>;
@@ -132,15 +133,16 @@ export const GradingSchemesContent: React.FC = () => {
     // Note: If you want to close level modal after each add/edit, call closeLevelModal() here.
   };
   
+  const confirm = useConfirm();
   const handleDeleteScheme = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this grading scheme? All its levels will also be deleted.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this grading scheme? All its levels will also be deleted.' }))) {
       await deleteGradingScheme(String(id));
     }
   };
 
   const handleDeleteLevel = async (levelId: number) => {
     if (!currentSchemeForLevels) return;
-    if (window.confirm('Are you sure you want to delete this grading level?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this grading level?' }))) {
       const updatedLevels = (currentSchemeForLevels.levels || []).filter(l => l.id !== levelId);
       await updateGradingScheme(String(currentSchemeForLevels.id), { levels: updatedLevels, updated_at: new Date().toISOString() });
       setCurrentSchemeForLevels(prev => prev ? {...prev, levels: updatedLevels, updated_at: new Date().toISOString()} : null);
