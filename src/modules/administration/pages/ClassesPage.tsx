@@ -191,13 +191,13 @@ export const ClassesContent: React.FC = () => {
   };
 
   const confirm = useConfirm();
-  const handleDeleteClass = async (classId: number) => {
+  const handleDeleteClass = async (classId: string) => {
     if ((await confirm({ variant: 'danger', message: "Are you sure you want to delete this class? All associated streams will also be deleted." }))) {
         await deleteClass(classId);
     }
   };
 
-  const handleDeleteStream = async (streamId: number) => {
+  const handleDeleteStream = async (streamId: string) => {
     if ((await confirm({ variant: 'danger', message: "Are you sure you want to delete this stream?" }))) {
         await deleteClassStream(streamId);
     }
