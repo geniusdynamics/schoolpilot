@@ -9,7 +9,6 @@ import { useAppData } from '@/hooks/useAppData'; // Updated
 
 import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
-import { useToast } from '@/hooks/useToast';
 import { formatDate } from '@/utils/format';
 
 /**
@@ -43,8 +42,6 @@ export const AcademicYearsContent: React.FC = () => {
     setIsModalOpen(false);
     setEditingYear(null);
   };
-
-  const toast = useToast();
 
   const handleSave = async (values: Record<string, any>) => {
     const payload = {
