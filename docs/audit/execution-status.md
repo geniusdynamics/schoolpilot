@@ -9,7 +9,12 @@ Ratchet reference: [phase0-baseline.md](./phase0-baseline.md).
 | --- | --- |
 | Phase 0 baseline | 4,206 |
 | After Phase 0 (tsconfig excludes, i18n) | 4,135 |
-| End of Phase 1a–1d + Phase 2 + 3.3 | **4,026** |
+| End of Phase 1a–1d + Phase 2 + 3.1/3.3 | **~4,025** |
+
+## Build gate
+
+`pnpm build` (vite + PWA, ~3 min) verified green after Phase 2 + the
+LanguageSwitcher/HookErrorBoundary repoint fix (`0c50642`).
 
 ## Completed
 
@@ -70,11 +75,15 @@ Ratchet reference: [phase0-baseline.md](./phase0-baseline.md).
   ResultApprovalDashboard deleted (was unreferenced).
 - 2.8 Kenyan subject seeds (CBC primary + KCSE secondary) + KCSE template.
 
-### Phase 3 — Data-entry overhaul 🚧 (1 of 7 batches)
+### Phase 3 — Data-entry overhaul 🚧 (2 of 7 batches)
 - 3.3 ClassesPage done (id typing, provider-signature alignment, augmentation
   types corrected to provider reality, ClassStream.class_id widened for string ids).
-- Remaining: AddStudentPage casts, StudentsListPage quick-edit, academic-year
-  pages, fee pages consistency pass, staff typed params, exam/marks pages.
+- 3.1 AddStudentPage done: both `as any` casts removed; provider `addStudent`
+  now persists the primary guardian + relationship (was silently dropped).
+  Alert-validation already converted to toasts in 1b.5.
+- Remaining: StudentsListPage quick-edit modal (3.2), academic-year pages
+  (3.4), fee pages consistency pass (3.5), staff typed params (3.6),
+  exam/marks pages (3.7).
 
 ## Phase 4 — Not started
 
