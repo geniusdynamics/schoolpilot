@@ -72,6 +72,8 @@ export const EDUCATION_SYSTEM_TEMPLATES: Record<string, Partial<EducationSystemC
     country_code: 'US',
     system_type: EducationSystemType.UNIVERSITY,
     grading_system_type: GradingSystemType.POINTS,
+    min_grade_level: 1,
+    max_grade_level: 4,
     academic_period_type: AcademicPeriodType.SEMESTER,
     periods_per_year: 2,
     max_grade_value: 4.0,
