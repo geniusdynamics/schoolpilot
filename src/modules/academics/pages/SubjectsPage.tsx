@@ -90,16 +90,15 @@ export const SubjectsContent: React.FC = () => {
   };
 
   const columns: DataGridColumn<Subject>[] = [
-    { key: 'subject_code', header: t('subjects.code'), width: 120, sortable: true, filterable: true },
-    { key: 'abbreviation', header: t('subjects.abbreviation'), width: 110, sortable: true },
-    { key: 'name', header: t('subjects.name'), width: 220, sortable: true, filterable: true, render: (_v: any, item: Subject) => <span className="truncate block max-w-[200px]" title={item.name}>{item.name}</span> },
-    { key: 'department_name', header: t('subjects.department'), width: 160, sortable: true, filterable: true, render: (_v: any, item: Subject) => <span className="truncate block max-w-[140px]" title={item.department_name || ''}>{item.department_name || '—'}</span> },
-    { key: 'grouping', header: t('subjects.grouping'), width: 140, sortable: true },
-    { key: 'is_compulsory', header: t('subjects.isCompulsory'), width: 110, align: 'center', render: (_value: any, item: Subject) => item.is_compulsory ? t('common:yes') : t('common:no') },
+    { key: 'subject_code', header: t('subjects.code'), sortable: true, filterable: true },
+    { key: 'abbreviation', header: t('subjects.abbreviation'), sortable: true },
+    { key: 'name', header: t('subjects.name'), sortable: true, filterable: true, render: (_v: any, item: Subject) => <span className="truncate block max-w-[240px]" title={item.name}>{item.name}</span> },
+    { key: 'department_name', header: t('subjects.department'), sortable: true, filterable: true, render: (_v: any, item: Subject) => <span className="truncate block max-w-[160px]" title={item.department_name || ''}>{item.department_name || '—'}</span> },
+    { key: 'grouping', header: t('subjects.grouping'), sortable: true },
+    { key: 'is_compulsory', header: t('subjects.isCompulsory'), align: 'center', render: (_value: any, item: Subject) => item.is_compulsory ? t('common:yes') : t('common:no') },
     {
       key: 'actions',
       header: t('common:actions'),
-      width: 180,
       sticky: 'right',
       sortable: false,
       filterable: false,

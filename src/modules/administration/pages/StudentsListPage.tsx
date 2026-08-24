@@ -540,14 +540,14 @@ const StudentsListPage: React.FC = () => {
       header: 'Adm No',
       sortable: true,
       filterable: true,
-      width: 110
+      
     },
     { 
       key: 'name',
       header: 'Name',
       sortable: true,
       filterable: true,
-      width: 180,
+      
       render: (value: any, item: Student) => {
         const displayName = item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.admission_no || '—';
         return (
@@ -562,28 +562,28 @@ const StudentsListPage: React.FC = () => {
       header: 'Class',
       sortable: true,
       filterable: true,
-      width: 110
+      
     },
     { 
       key: 'current_class_stream_name' as keyof Student, 
       header: 'Stream',
       sortable: true,
       filterable: true,
-      width: 110
+      
     },
     { 
       key: 'gender' as keyof Student, 
       header: 'Gender',
       sortable: true,
       filterable: true,
-      width: 90
+      
     },
     { 
       key: 'status' as keyof Student,
       header: 'Status',
       sortable: true,
       filterable: true,
-      width: 110,
+      
       render: (value: any, item: Student) => {
         let colorClass = '';
         switch(item.status) {
@@ -602,7 +602,7 @@ const StudentsListPage: React.FC = () => {
       header: 'Guardian',
       sortable: true,
       filterable: true,
-      width: 150,
+      
       render: (value: any, item: Student) => (
         <span className="truncate block max-w-[130px]" title={item.primary_guardian?.name || ''}>{item.primary_guardian?.name || '—'}</span>
       )
@@ -610,8 +610,7 @@ const StudentsListPage: React.FC = () => {
     {
       key: 'actions',
       header: 'Actions',
-      width: 200,
-      align: 'center' as const,
+            align: 'center' as const,
       sticky: 'right' as const,
       render: (value: any, item: Student) => (
         <div className="flex space-x-1 justify-center">

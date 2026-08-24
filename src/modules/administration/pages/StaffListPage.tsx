@@ -125,56 +125,49 @@ export const StaffListContent: React.FC = () => {
       header: 'Staff No', 
       sortable: true,
       filterable: true,
-      width: 120,
-      render: (value, item) => item.staff_no || '—'
+            render: (value, item) => item.staff_no || '—'
     },
     { 
       key: 'name',
       header: 'Name', 
       sortable: true,
       filterable: true,
-      width: 180,
-      render: (value, item) => item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.staff_no || '—'
+            render: (value, item) => item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.staff_no || '—'
     },
     { 
       key: 'department_name',
       header: 'Department', 
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value, item) => item.department_name || '—'
+            render: (value, item) => item.department_name || '—'
     },
     { 
       key: 'designation_title',
       header: 'Designation', 
       sortable: true,
       filterable: true,
-      width: 150,
-      render: (value, item) => item.designation_title || '—'
+            render: (value, item) => item.designation_title || '—'
     },
     { 
       key: 'hod_of_department_name',
       header: 'HOD Of', 
       sortable: true,
       filterable: true,
-      width: 140,
-      render: (value, item) => item.hod_of_department_name || '—'
+            render: (value, item) => item.hod_of_department_name || '—'
     },
     { 
       key: 'phone',
       header: 'Phone', 
       sortable: true,
       filterable: true,
-      width: 130,
-      render: (value, item) => item.phone || '—'
+            render: (value, item) => item.phone || '—'
     },
     { 
       key: 'email',
       header: 'Email', 
       sortable: true,
       filterable: true,
-      width: 200,
-      render: (value, item) => (
+            render: (value, item) => (
         <span className="truncate block max-w-[180px]" title={item.email || ''}>{item.email || '—'}</span>
       )
     },
@@ -183,15 +176,14 @@ export const StaffListContent: React.FC = () => {
       header: 'Status', 
       sortable: true,
       filterable: true,
-      width: 100,
-      render: (value, item) => item.is_active ? 'Active' : 'Inactive'
+            render: (value, item) => item.is_active ? 'Active' : 'Inactive'
     },
     {
       key: 'actions',
       header: 'Actions',
       sortable: false,
       filterable: false,
-      width: 220,
+      
       sticky: 'right',
       render: (value, item) => (
         <div className="flex items-center gap-1">

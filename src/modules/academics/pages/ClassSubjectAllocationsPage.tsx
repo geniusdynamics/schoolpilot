@@ -111,14 +111,13 @@ export const ClassSubjectAllocationsContent: React.FC = () => {
   };
 
   const columns: DataGridColumn<ClassSubjectAllocation>[] = [
-    { header: 'ID', key: 'id', width: 80, sortable: true },
-    { header: 'Class Stream', key: 'class_stream_name', width: 200, sortable: true, filterable: true, render: (_v: any, item: ClassSubjectAllocation) => <span className="truncate block max-w-[180px]" title={item.class_stream_name || ''}>{item.class_stream_name || '—'}</span> },
-    { header: 'Subject', key: 'subject_name', width: 220, sortable: true, filterable: true, render: (_v: any, item: ClassSubjectAllocation) => <span className="truncate block max-w-[200px]" title={item.subject_name || ''}>{item.subject_name || '—'}</span> },
-    { header: 'Academic Year', key: 'academic_year_name', width: 160, sortable: true },
+    { header: 'ID', key: 'id', sortable: true },
+    { header: 'Class Stream', key: 'class_stream_name', sortable: true, filterable: true, render: (_v: any, item: ClassSubjectAllocation) => <span className="truncate block max-w-[220px]" title={item.class_stream_name || ''}>{item.class_stream_name || '—'}</span> },
+    { header: 'Subject', key: 'subject_name', sortable: true, filterable: true, render: (_v: any, item: ClassSubjectAllocation) => <span className="truncate block max-w-[240px]" title={item.subject_name || ''}>{item.subject_name || '—'}</span> },
+    { header: 'Academic Year', key: 'academic_year_name', sortable: true },
     {
       header: 'Actions',
       key: 'actions',
-      width: 180,
       sticky: 'right',
       sortable: false,
       filterable: false,
