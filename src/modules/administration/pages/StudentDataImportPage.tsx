@@ -9,6 +9,7 @@ import { useStudentImportData } from '../data/useStudentImportData';
 import { useTranslation } from 'react-i18next';
 import type { StudentImportSession, StudentImportRecord, ImportValidationStatus, ImportStatus } from '../data/types';
 import { logger } from '@/utils/logging';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type ImportStep = 'upload' | 'preview' | 'importing' | 'results';
 
@@ -344,8 +345,9 @@ const StudentDataImportPage: React.FC = () => {
   }, []);
 
   // Delete old session
+  const confirm = useConfirm();
   const handleDeleteSession = useCallback(async (sessionId: string) => {
-    if (window.confirm('Are you sure you want to delete this import session and all its records?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this import session and all its records?' }))) {
       await deleteImportSession(sessionId);
     }
   }, [deleteImportSession]);

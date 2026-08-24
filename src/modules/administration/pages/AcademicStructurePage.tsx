@@ -12,6 +12,7 @@ import { PlusIcon, EditIcon, DeleteIcon, PuzzlePieceIcon } from '@/components/ui
 import { useAppData } from '@/hooks/useAppData'; // Updated
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type AcademicStructureFormData = Omit<Partial<AcademicYearStructure>, 'id'>;
 
@@ -61,8 +62,9 @@ const AcademicStructurePage: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => { 
-    if (window.confirm('Are you sure you want to delete this academic structure? This might affect related period definitions and academic years.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this academic structure? This might affect related period definitions and academic years.' }))) {
       await deleteAcademicYearStructure(id);
     }
   };

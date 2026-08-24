@@ -13,6 +13,7 @@ import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '@/compone
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type PeriodDefinitionFormData = Omit<Partial<AcademicPeriodDefinition>, 'id' | 'structure_name'>;
 
@@ -95,8 +96,9 @@ const AcademicPeriodDefinitionsPage: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => { 
-    if (window.confirm('Are you sure you want to delete this period definition? This might affect related school periods.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this period definition? This might affect related school periods.' }))) {
       await deleteAcademicPeriodDefinition(id);
     }
   };

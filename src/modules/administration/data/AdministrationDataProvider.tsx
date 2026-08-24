@@ -7,6 +7,7 @@ import { databaseService } from '@/services/database/databaseService';
 import { useToast } from '@/hooks/useToast';
 import { useValidation, ValidationSchema } from '@/hooks/useValidation';
 import * as types from './types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface AdministrationDataContextType {
   // Data collections (read-only, from AppDataContext)
@@ -99,6 +100,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   loading: parentLoading,
 }) => {
   const toast = useToast();
+  const confirm = useConfirm();
   const [localLoading, setLocalLoading] = useState(false);
   const loading = parentLoading || localLoading;
 
@@ -169,7 +171,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   }, [classes, toast]);
 
   const deleteClass = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this class?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this class?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -225,7 +227,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   }, [updateClass, toast]);
 
   const bulkDeleteClasses = useCallback(async (ids: string[]) => {
-    const confirmed = window.confirm(`Are you sure you want to delete ${ids.length} classes?`);
+    const confirmed = await confirm({ variant: 'danger', message: `Are you sure you want to delete ${ids.length} classes?` });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -287,7 +289,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   }, [classStreams, toast]);
 
   const deleteClassStream = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this class stream?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this class stream?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -348,7 +350,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   }, [students, toast]);
 
   const deleteStudent = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this student?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this student?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -403,7 +405,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   }, [staff, toast]);
 
   const deleteStaff = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this staff member?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this staff member?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -458,7 +460,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   }, [departments, toast]);
 
   const deleteDepartment = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this department?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this department?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -513,7 +515,7 @@ export const AdministrationDataProvider: React.FC<Props> = ({
   }, [academicYears, toast]);
 
   const deleteAcademicYear = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this academic year?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this academic year?' });
     if (!confirmed) return;
 
     setLocalLoading(true);

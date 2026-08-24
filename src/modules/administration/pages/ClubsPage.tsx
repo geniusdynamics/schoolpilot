@@ -17,6 +17,7 @@ import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormSection from '../../../components/ui/forms/FormSection';
 import FormField from '../../../components/ui/forms/FormField';
 import FormActions from '../../../components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type ClubFormData = Omit<Partial<ClubAndSociety>, 'id' | 'created_at' | 'updated_at' | 'patron_name' | 'type'> & {
     type: ClubType; // Make type required for the form
@@ -68,8 +69,9 @@ const ClubsPage: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this club/society?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this club/society?' }))) {
       deleteClubAndSociety(id);
     }
   };

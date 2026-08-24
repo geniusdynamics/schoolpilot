@@ -10,6 +10,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import DialogForm from '@/components/ui/forms/DialogForm';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type StudentCategoryFormData = Omit<Partial<StudentCategory>, 'id'>;
 
@@ -56,8 +57,9 @@ export const StudentCategoriesContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this category?' }))) {
       await deleteStudentCategory(id);
     }
   };

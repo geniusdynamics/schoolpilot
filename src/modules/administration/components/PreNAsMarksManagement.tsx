@@ -12,6 +12,7 @@ import Spinner from '../../../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../../../hooks/useToast';
 import TabbedForm, { FormTab } from '../../../components/ui/forms/TabbedForm';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 // Types for PreNAs Marks Management
 export interface PreNAsMarks {
@@ -287,8 +288,9 @@ const PreNAsMarksManagement: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (marksId: string) => {
-    if (window.confirm(t('preNAsMarks.messages.confirmDelete'))) {
+    if ((await confirm({ variant: 'danger', message: t('preNAsMarks.messages.confirmDelete') }))) {
       setPreNAsMarks(prev => prev.filter(mark => mark.id !== marksId));
       showToast(t('preNAsMarks.messages.marksDeleted'), 'success');
     }

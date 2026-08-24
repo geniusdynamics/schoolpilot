@@ -13,6 +13,7 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type DesignationFormData = Omit<Partial<Designation>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -59,8 +60,9 @@ export const DesignationsContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this designation?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this designation?' }))) {
       await deleteDesignation(id);
     }
   };

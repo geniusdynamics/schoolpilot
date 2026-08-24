@@ -14,6 +14,7 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type AcademicYearFormData = Omit<Partial<AcademicYear>, 'id' | 'created_at' | 'updated_at' | 'structure_name'> & {
     structure_id?: number; 
@@ -83,8 +84,9 @@ export const AcademicYearsContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this academic year? This might affect related school periods and other academic data.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this academic year? This might affect related school periods and other academic data.' }))) {
       await deleteAcademicYear(id);
     }
   };

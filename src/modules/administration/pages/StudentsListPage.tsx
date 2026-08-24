@@ -21,6 +21,7 @@ import { getQuickEditConfig } from '@/config/quickEditConfig';
 import { logger } from '@/utils/logging';
 import { PersonGender, StudentStatus } from '@/core/types';
 import type { ExamResultSummary, Student } from '@/core/types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface StudentFormData extends Omit<Partial<Student>, 'id' | 'created_at' | 'updated_at' | 'primary_guardian' | 'exam_result_summary' | 'status' | 'gender' | 'admission_no' | 'first_name' | 'last_name'> {
   admission_no: string; // Required
@@ -266,8 +267,9 @@ const StudentsListPage: React.FC = () => {
   }, []);
 
   // Memoized delete handler to prevent column re-creation
+  const confirm = useConfirm();
   const handleDelete = useCallback(async (studentId: string) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this student?' }))) {
       try {
         await mockDeleteStudent(studentId);
         showToast({

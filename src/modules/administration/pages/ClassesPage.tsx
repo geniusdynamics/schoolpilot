@@ -22,6 +22,7 @@ import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
 import { BulkStreamCreationContent } from './BulkStreamCreationPage';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 // Local type definitions for SchoolClass and ClassStream
 interface SchoolClass {
@@ -183,14 +184,15 @@ export const ClassesContent: React.FC = () => {
     closeStreamModal();
   };
 
+  const confirm = useConfirm();
   const handleDeleteClass = async (classId: number) => {
-    if (window.confirm("Are you sure you want to delete this class? All associated streams will also be deleted.")) {
+    if ((await confirm({ variant: 'danger', message: "Are you sure you want to delete this class? All associated streams will also be deleted." }))) {
         await deleteClass(classId);
     }
   };
 
   const handleDeleteStream = async (streamId: number) => {
-    if (window.confirm("Are you sure you want to delete this stream?")) {
+    if ((await confirm({ variant: 'danger', message: "Are you sure you want to delete this stream?" }))) {
         await deleteClassStream(streamId);
     }
   };

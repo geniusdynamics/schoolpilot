@@ -13,6 +13,7 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type PartnerFormData = Omit<Partial<Partner>, 'id' | 'created_at' | 'updated_at' | 'partner_type'> & {
     partner_type: PartnerType; // Make type required for the form
@@ -88,8 +89,9 @@ export const PartnersContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this partner?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this partner?' }))) {
       await deletePartner(id);
     }
   };

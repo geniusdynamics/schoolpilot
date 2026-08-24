@@ -12,6 +12,8 @@ import {
   PlusIcon
 } from '@/components/ui/icons';
 
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+
 // Mock newsletter data
 const mockNewsletters = [
   {
@@ -91,8 +93,9 @@ export const NewslettersContent: React.FC = () => {
     // navigate(`/administration/newsletters/${id}/edit`);
   };
 
-  const handleDeleteNewsletter = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this newsletter?')) {
+  const confirm = useConfirm();
+  const handleDeleteNewsletter = async (id: string) => {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this newsletter?' }))) {
       logger.info('Delete newsletter:', id);
     }
   };

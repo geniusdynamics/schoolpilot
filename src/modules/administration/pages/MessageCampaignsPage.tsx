@@ -19,6 +19,7 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type CampaignFormData = Omit<Partial<Campaign>, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'template_name' | 'created_by_name' | 'target_audience_display' | 'approved_by' | 'status' | 'template_id' | 'target_audience_type' | 'approved_by_name'> & {
     status: CampaignStatus;
@@ -151,8 +152,9 @@ export const MessageCampaignsContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this message campaign?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this message campaign?' }))) {
       deleteCampaign(id);
     }
   };

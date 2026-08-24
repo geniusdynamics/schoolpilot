@@ -18,6 +18,7 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type SchoolPeriodFormData = Omit<Partial<SchoolPeriod>, 'id' | 'created_at' | 'updated_at' | 'name' | 'academic_year_name' | 'period_definition_name' | 'financial_year_name' > & {
     period_definition_id?: string;
@@ -173,8 +174,9 @@ export const SchoolPeriodsContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this school period?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this school period?' }))) {
       await deleteSchoolPeriod(id);
     }
   };

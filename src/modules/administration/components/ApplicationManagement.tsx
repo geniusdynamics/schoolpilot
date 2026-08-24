@@ -34,6 +34,8 @@ import {
   AttendanceType
 } from '../data/types';
 
+import { useConfirm } from '@/components/ui/ConfirmDialog';
+
 // Types for Application Management
 export interface Application {
   id: string;
@@ -224,8 +226,9 @@ const ApplicationManagement: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (applicationId: string) => {
-    if (window.confirm(t('admissions.messages.confirmDelete'))) {
+    if ((await confirm({ variant: 'danger', message: t('admissions.messages.confirmDelete') }))) {
       setApplications(prev => prev.filter(app => app.id !== applicationId));
       showToast(t('admissions.messages.applicationSubmitted'), 'success');
     }

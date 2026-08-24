@@ -14,6 +14,7 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import FormSection from '@/components/ui/forms/FormSection';
 import FormField from '@/components/ui/forms/FormField';
 import FormActions from '@/components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type DormitoryFormData = Omit<Partial<Dormitory>, 'id' | 'created_at' | 'updated_at' | 'master_name'>;
 
@@ -62,8 +63,9 @@ export const DormitoriesContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this dormitory?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this dormitory?' }))) {
       await deleteDormitory(id);
     }
   };

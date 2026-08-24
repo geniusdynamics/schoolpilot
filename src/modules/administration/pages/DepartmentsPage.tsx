@@ -12,6 +12,7 @@ import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormSection from '../../../components/ui/forms/FormSection';
 import FormField from '../../../components/ui/forms/FormField';
 import FormActions from '../../../components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type DepartmentFormData = Omit<Partial<Department>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -59,8 +60,9 @@ const DepartmentsPage: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this department?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this department?' }))) {
       await deleteDepartment(id);
     }
   };

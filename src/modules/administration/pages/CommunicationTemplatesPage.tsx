@@ -15,6 +15,7 @@ import DialogForm from '../../../components/ui/forms/DialogForm';
 import FormSection from '../../../components/ui/forms/FormSection';
 import FormField from '../../../components/ui/forms/FormField';
 import FormActions from '../../../components/ui/forms/FormActions';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type TemplateFormData = Omit<Partial<TemplateComm>, 'id' | 'created_at' | 'updated_at' | 'type'> & {
     type: TemplateType; // Make type required
@@ -87,8 +88,9 @@ const CommunicationTemplatesPage: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this communication template?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this communication template?' }))) {
       await deleteTemplateComm(id);
     }
   };

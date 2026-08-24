@@ -14,6 +14,7 @@ import Spinner from '@/components/ui/Spinner';
 
 import DialogForm from '@/components/ui/forms/DialogForm';
 import type { Staff } from '@/core/types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'department_name' | 'designation_title' | 'email' | 'hod_of_department_name' | 'display_name' | 'user_username' | 'deleted_at'> { 
   department_id?: number; 
@@ -95,8 +96,9 @@ export const StaffListContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (staffId: string) => {
-    if (window.confirm('Are you sure you want to delete this staff member?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this staff member?' }))) {
       await mockDeleteStaff(staffId);
     }
   };
