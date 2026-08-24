@@ -25,6 +25,7 @@ export function useCrudFactory<T extends BaseEntity>(
     entityName,
     initialData = [],
     enableOptimisticUpdates = true,
+    confirmBeforeDelete = true,
     onError,
     onSuccess,
   } = options;
@@ -268,8 +269,8 @@ export function useCrudFactory<T extends BaseEntity>(
 
   // DELETE operation
   const remove = useCallback(async (id: string): Promise<void> => {
-    // Confirmation dialog
-    if (typeof window !== 'undefined') {
+    // Confirmation dialog (callers using ConfirmDialog set confirmBeforeDelete: false)
+    if (confirmBeforeDelete && typeof window !== 'undefined') {
       const confirmed = window.confirm(`Are you sure you want to delete this ${entityName}?`);
       if (!confirmed) return;
     }
@@ -324,7 +325,7 @@ export function useCrudFactory<T extends BaseEntity>(
     } finally {
       setLoading(false);
     }
-  }, [items, selectedItem, getCollection, entityName, toast, enableOptimisticUpdates, applyOptimisticUpdate, commitOptimisticUpdate, rollbackOptimisticUpdate, onSuccess, onError]);
+  }, [items, selectedItem, getCollection, entityName, toast, enableOptimisticUpdates, confirmBeforeDelete, applyOptimisticUpdate, commitOptimisticUpdate, rollbackOptimisticUpdate, onSuccess, onError]);
 
   // READ operations
   const findById = useCallback((id: string): T | undefined => {
@@ -402,7 +403,7 @@ export function useCrudFactory<T extends BaseEntity>(
   }, [update, entityName, toast, onError]);
 
   const removeMany = useCallback(async (ids: string[]): Promise<void> => {
-    if (typeof window !== 'undefined') {
+    if (confirmBeforeDelete && typeof window !== 'undefined') {
       const confirmed = window.confirm(`Are you sure you want to delete ${ids.length} ${entityName}s?`);
       if (!confirmed) return;
     }
@@ -425,7 +426,7 @@ export function useCrudFactory<T extends BaseEntity>(
     } finally {
       setLoading(false);
     }
-  }, [remove, entityName, toast, onError]);
+  }, [remove, entityName, toast, confirmBeforeDelete, onError]);
 
   return {
     // State

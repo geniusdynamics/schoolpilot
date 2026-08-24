@@ -66,6 +66,12 @@ export interface UseCrudOptions<T extends BaseEntity> {
   entityName: string;
   initialData?: T[];
   enableOptimisticUpdates?: boolean;
+  /**
+   * When true (default), remove/removeMany call window.confirm internally.
+   * Set false when the caller owns confirmation (e.g. useEntityCrud pages
+   * using the ConfirmDialog flow).
+   */
+  confirmBeforeDelete?: boolean;
   onError?: (error: Error) => void;
   onSuccess?: (action: 'create' | 'update' | 'delete', item: T) => void;
 }

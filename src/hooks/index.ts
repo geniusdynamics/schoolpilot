@@ -19,6 +19,8 @@ export { useMediaQuery } from './useMediaQuery';
 export { useKeyPress } from './useKeyPress';
 
 // Data access hooks
+export { useEntityCrud } from './useEntityCrud';
+export type { UseEntityCrudOptions, UseEntityCrudReturn } from './useEntityCrud';
 export {
   useSharedData,
   useSharedEntity,
