@@ -2,32 +2,57 @@
 // ABOUTME: Provides comprehensive supplier management with CRUD operations, search, and filtering.
 
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Card, CardContent, Typography, TextField, Grid, Chip, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, Rating, Alert } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Business as BusinessIcon, Phone as PhoneIcon, Email as EmailIcon } from '@mui/icons-material';
-import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
+import { DataGrid, DataGridColumn } from '@/components/ui/data';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Modal from '@/components/ui/Modal';
+import Badge from '@/components/ui/Badge';
+import { useToast } from '@/hooks/useToast';
+import { EditIcon, DeleteIcon, PlusIcon, StarIcon } from '@/components/ui/icons';
 import { useSupplierData } from '../data/useSupplierData';
 import { InvSupplierType, InvSupplierStatusEnum } from '../data/types';
 import { useTranslation } from 'react-i18next';
-import { useSnackbar } from 'notistack';
+
+const StarRating: React.FC<{ value: number; onChange?: (value: number) => void; readOnly?: boolean }> = ({
+  value,
+  onChange,
+  readOnly = false
+}) => (
+  <div className="flex items-center gap-1">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <button
+        key={star}
+        type="button"
+        disabled={readOnly}
+        onClick={() => onChange?.(star)}
+        aria-label={`${star} star${star > 1 ? 's' : ''}`}
+        className={readOnly ? 'cursor-default' : 'hover:scale-110 transition-transform'}
+      >
+        <StarIcon
+          className={`h-4 w-4 ${star <= value ? 'text-yellow-400' : 'text-gray-300'}`}
+        />
+      </button>
+    ))}
+  </div>
+);
 
 export const SuppliersPageContent: React.FC = () => {
   const { t } = useTranslation();
-  const { enqueueSnackbar } = useSnackbar();
+  const toast = useToast();
   const {
     suppliers,
     loading,
     error,
     create,
     update,
-    remove,
-    findActiveSuppliers,
-    findSuppliersByStatus,
-    searchSuppliers
+    remove
   } = useSupplierData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<InvSupplierType | null>(null);
   const [formData, setFormData] = useState<Partial<InvSupplierType>>({
     name: '',
@@ -94,13 +119,14 @@ export const SuppliersPageContent: React.FC = () => {
   };
 
   const handleSave = async () => {
+    setSaving(true);
     try {
       if (editingSupplier) {
         await update(editingSupplier.id, {
           ...formData,
           updated_at: new Date().toISOString()
         } as InvSupplierType);
-        enqueueSnackbar(t('inventory.suppliers.updated'), { variant: 'success' });
+        toast.showSuccess(t('inventory.suppliers.updated'));
       } else {
         const now = new Date().toISOString();
         await create({
@@ -109,11 +135,13 @@ export const SuppliersPageContent: React.FC = () => {
           created_at: now,
           updated_at: now
         } as InvSupplierType);
-        enqueueSnackbar(t('inventory.suppliers.created'), { variant: 'success' });
+        toast.showSuccess(t('inventory.suppliers.created'));
       }
       handleCloseDialog();
-    } catch (error) {
-      enqueueSnackbar(t('common.error'), { variant: 'error' });
+    } catch {
+      toast.showError(t('common.error'));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -121,309 +149,230 @@ export const SuppliersPageContent: React.FC = () => {
     if (window.confirm(t('common.confirmDelete'))) {
       try {
         await remove(id);
-        enqueueSnackbar(t('inventory.suppliers.deleted'), { variant: 'success' });
-      } catch (error) {
-        enqueueSnackbar(t('common.error'), { variant: 'error' });
+        toast.showSuccess(t('inventory.suppliers.deleted'));
+      } catch {
+        toast.showError(t('common.error'));
       }
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case InvSupplierStatusEnum.ACTIVE:
         return 'success';
       case InvSupplierStatusEnum.INACTIVE:
-        return 'default';
+        return 'secondary';
       case InvSupplierStatusEnum.BLACKLISTED:
-        return 'error';
+        return 'danger';
       case InvSupplierStatusEnum.PENDING_APPROVAL:
         return 'warning';
       default:
-        return 'default';
+        return 'secondary';
     }
   };
 
-  const columns: GridColDef[] = [
+  const columns: DataGridColumn<InvSupplierType>[] = [
     {
-      field: 'name',
-      headerName: t('inventory.suppliers.name'),
-      flex: 1,
+      key: 'name',
+      header: t('inventory.suppliers.name'),
       minWidth: 200,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <BusinessIcon color="primary" />
-          <Typography variant="body2" fontWeight="medium">
-            {params.value}
-          </Typography>
-        </Box>
+      render: (_v, supplier) => (
+        <span className="font-medium text-gray-900">{supplier.name}</span>
       )
     },
     {
-      field: 'contact_person',
-      headerName: t('inventory.suppliers.contactPerson'),
-      flex: 1,
+      key: 'contact_person',
+      header: t('inventory.suppliers.contactPerson'),
       minWidth: 150
     },
     {
-      field: 'email',
-      headerName: t('inventory.suppliers.email'),
-      flex: 1,
-      minWidth: 200,
-      renderCell: (params) => params.value ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <EmailIcon fontSize="small" color="action" />
-          <Typography variant="body2">{params.value}</Typography>
-        </Box>
-      ) : null
+      key: 'email',
+      header: t('inventory.suppliers.email'),
+      minWidth: 200
     },
     {
-      field: 'phone',
-      headerName: t('inventory.suppliers.phone'),
-      flex: 1,
-      minWidth: 150,
-      renderCell: (params) => params.value ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PhoneIcon fontSize="small" color="action" />
-          <Typography variant="body2">{params.value}</Typography>
-        </Box>
-      ) : null
+      key: 'phone',
+      header: t('inventory.suppliers.phone'),
+      minWidth: 150
     },
     {
-      field: 'status',
-      headerName: t('inventory.suppliers.status'),
-      width: 120,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          color={getStatusColor(params.value) as any}
-          size="small"
-        />
+      key: 'status',
+      header: t('inventory.suppliers.status'),
+      width: 160,
+      render: (_v, supplier) => (
+        <Badge variant={getStatusVariant(supplier.status) as any}>
+          {supplier.status}
+        </Badge>
       )
     },
     {
-      field: 'performance_rating',
-      headerName: t('inventory.suppliers.rating'),
+      key: 'performance_rating',
+      header: t('inventory.suppliers.rating'),
       width: 150,
-      renderCell: (params) => (
-        <Rating value={params.value || 0} readOnly size="small" />
+      sortable: false,
+      render: (_v, supplier) => (
+        <StarRating value={supplier.performance_rating || 0} readOnly />
       )
     },
     {
-      field: 'actions',
-      type: 'actions',
-      headerName: t('common.actions'),
+      key: 'actions',
+      header: t('common.actions'),
       width: 120,
-      getActions: (params) => [
-        <GridActionsCellItem
-          icon={<EditIcon />}
-          label={t('common.edit')}
-          onClick={() => handleOpenDialog(params.row)}
-        />,
-        <GridActionsCellItem
-          icon={<DeleteIcon />}
-          label={t('common.delete')}
-          onClick={() => handleDelete(params.row.id)}
-        />
-      ]
+      sortable: false,
+      filterable: false,
+      render: (_v, supplier) => (
+        <div className="flex items-center gap-1">
+          <Button size="sm" variant="ghost" onClick={() => handleOpenDialog(supplier)} leftIcon={<EditIcon className="w-4 h-4" />}>
+            {t('common.edit')}
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(supplier.id)} leftIcon={<DeleteIcon className="w-4 h-4" />}>
+            {t('common.delete')}
+          </Button>
+        </div>
+      )
     }
   ];
 
   if (error) {
     return (
-      <Alert severity="error">
+      <div className="p-4 rounded-md bg-red-50 border border-red-200 text-red-700">
         {t('common.errorLoading')}: {error.message}
-      </Alert>
+      </div>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">
           {t('inventory.suppliers.title')}
-        </Typography>
-        <Button
-          variant="contained"
-          leftIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
+        </h1>
+        <Button onClick={() => handleOpenDialog()} leftIcon={<PlusIcon className="w-4 h-4" />}>
           {t('inventory.suppliers.add')}
         </Button>
-      </Box>
+      </div>
 
       {/* Filters */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                placeholder={t('inventory.suppliers.search')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{
-                  startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>{t('inventory.suppliers.status')}</InputLabel>
-                <Select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  label={t('inventory.suppliers.status')}
-                >
-                  <MenuItem value="ALL">{t('common.all')}</MenuItem>
-                  {Object.values(InvSupplierStatusEnum).map((status) => (
-                    <MenuItem key={status} value={status}>
-                      {status}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            placeholder={t('inventory.suppliers.search')}
+            value={searchTerm}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+          />
+          <Select
+            label={t('inventory.suppliers.status')}
+            value={statusFilter}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
+            options={[
+              { value: 'ALL', label: t('common.all') },
+              ...Object.values(InvSupplierStatusEnum).map((status) => ({
+                value: status,
+                label: status
+              }))
+            ]}
+          />
+        </div>
+      </div>
 
       {/* Data Grid */}
-      <Card>
-        <DataGrid
-          rows={filteredSuppliers}
-          columns={columns}
-          loading={loading}
-          autoHeight
-          disableRowSelectionOnClick
-          pageSizeOptions={[10, 25, 50]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 25 } }
-          }}
-        />
-      </Card>
+      <DataGrid
+        columns={columns}
+        data={filteredSuppliers}
+        loading={loading}
+        pagination={{ pageSize: 25 }}
+        emptyState={{
+          title: t('inventory.suppliers.title'),
+          description: t('common.noData')
+        }}
+      />
 
       {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingSupplier ? t('inventory.suppliers.edit') : t('inventory.suppliers.add')}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.name')}
-                value={formData.name || ''}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.contactPerson')}
-                value={formData.contact_person || ''}
-                onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.email')}
-                type="email"
-                value={formData.email || ''}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.phone')}
-                value={formData.phone || ''}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.address')}
-                multiline
-                rows={2}
-                value={formData.address || ''}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.taxId')}
-                value={formData.tax_id || ''}
-                onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.registrationNumber')}
-                value={formData.registration_number || ''}
-                onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>{t('inventory.suppliers.status')}</InputLabel>
-                <Select
-                  value={formData.status || InvSupplierStatusEnum.ACTIVE}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value as InvSupplierStatusEnum })}
-                  label={t('inventory.suppliers.status')}
-                >
-                  {Object.values(InvSupplierStatusEnum).map((status) => (
-                    <MenuItem key={status} value={status}>
-                      {status}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.paymentTerms')}
-                value={formData.payment_terms || ''}
-                onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
-                placeholder="e.g., Net 30, COD"
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label={t('inventory.suppliers.creditLimit')}
-                type="number"
-                value={formData.credit_limit || 0}
-                onChange={(e) => setFormData({ ...formData, credit_limit: parseFloat(e.target.value) || 0 })}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography component="legend">{t('inventory.suppliers.rating')}</Typography>
-                <Rating
-                  value={formData.performance_rating || 5}
-                  onChange={(event, newValue) => {
-                    setFormData({ ...formData, performance_rating: newValue || 5 });
-                  }}
-                />
-              </Box>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{t('common.cancel')}</Button>
-          <Button onClick={handleSave} variant="contained">
-            {editingSupplier ? t('common.update') : t('common.create')}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      <Modal
+        isOpen={dialogOpen}
+        onClose={handleCloseDialog}
+        title={editingSupplier ? t('inventory.suppliers.edit') : t('inventory.suppliers.add')}
+        size="lg"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCloseDialog}>{t('common.cancel')}</Button>
+            <Button onClick={handleSave} disabled={saving || !formData.name}>
+              {editingSupplier ? t('common.update') : t('common.create')}
+            </Button>
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label={t('inventory.suppliers.name')}
+            value={formData.name || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+          <Input
+            label={t('inventory.suppliers.contactPerson')}
+            value={formData.contact_person || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, contact_person: e.target.value })}
+          />
+          <Input
+            label={t('inventory.suppliers.email')}
+            type="email"
+            value={formData.email || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, email: e.target.value })}
+          />
+          <Input
+            label={t('inventory.suppliers.phone')}
+            value={formData.phone || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, phone: e.target.value })}
+          />
+          <div className="md:col-span-2">
+            <Input
+              label={t('inventory.suppliers.address')}
+              value={formData.address || ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, address: e.target.value })}
+            />
+          </div>
+          <Input
+            label={t('inventory.suppliers.taxId')}
+            value={formData.tax_id || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, tax_id: e.target.value })}
+          />
+          <Input
+            label={t('inventory.suppliers.registrationNumber')}
+            value={formData.registration_number || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, registration_number: e.target.value })}
+          />
+          <Select
+            label={t('inventory.suppliers.status')}
+            value={formData.status || InvSupplierStatusEnum.ACTIVE}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, status: e.target.value as InvSupplierStatusEnum })}
+            options={Object.values(InvSupplierStatusEnum).map((status) => ({
+              value: status,
+              label: status
+            }))}
+          />
+          <Input
+            label={t('inventory.suppliers.paymentTerms')}
+            value={formData.payment_terms || ''}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, payment_terms: e.target.value })}
+            placeholder="e.g., Net 30, COD"
+          />
+          <Input
+            label={t('inventory.suppliers.creditLimit')}
+            type="number"
+            value={formData.credit_limit || 0}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, credit_limit: parseFloat(e.target.value) || 0 })}
+          />
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">{t('inventory.suppliers.rating')}</span>
+            <StarRating
+              value={formData.performance_rating || 5}
+              onChange={(newValue) => setFormData({ ...formData, performance_rating: newValue || 5 })}
+            />
+          </div>
+        </div>
+      </Modal>
+    </div>
   );
 };
 const SuppliersPage: React.FC = () => (
