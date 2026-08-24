@@ -12,6 +12,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { AccountType, GeneralPayerType } from '@/core/types';
 import type { GeneralPayment } from '@/core/types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type GeneralPaymentItemFormData = Omit<GeneralPaymentItem, 'id' | 'general_payment_id' | 'revenue_account_name'>;
 type GeneralPaymentFormData = Omit<GeneralPayment, 'id' | 'created_at' | 'updated_at' | 'items' | 'total_amount_paid' | 'payer_name_resolved'> & {
@@ -174,8 +175,9 @@ export const GeneralReceiptsPageContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this receipt?")) {
+    if ((await confirm({ variant: 'danger', message: "Are you sure you want to delete this receipt?" }))) {
         await deleteGeneralPayment(id);
     }
   };

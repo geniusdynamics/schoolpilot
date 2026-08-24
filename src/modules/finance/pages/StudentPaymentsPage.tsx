@@ -12,6 +12,7 @@ import { useAppData } from '@/hooks/useAppData';
 import { useToast } from '@/hooks/useToast';
 import Spinner from '@/components/ui/Spinner';
 import { logger } from '@/utils/logging';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type StudentPaymentFormData = Omit<Partial<StudentPayment>, 'id' | 'created_at' | 'updated_at' | 'student_name'>;
 
@@ -92,8 +93,9 @@ export const StudentPaymentsPageContent: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (paymentId: string) => {
-    if (!window.confirm('Are you sure you want to delete this payment record?')) {
+    if (!(await confirm({ variant: 'danger', message: 'Are you sure you want to delete this payment record?' }))) {
       return;
     }
     

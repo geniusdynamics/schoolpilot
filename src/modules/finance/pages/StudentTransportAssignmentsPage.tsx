@@ -12,6 +12,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { StudentStatus, TransportAssignmentStatus } from '@/core/types';
 import type { StudentTransportAssignment } from '@/core/types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type AssignmentFormData = Omit<Partial<StudentTransportAssignment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'route_name' | 'school_period_name' | 'status' | 'invoice_id'> & {
     status: TransportAssignmentStatus;
@@ -87,8 +88,9 @@ export const StudentTransportAssignmentsPageContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this transport assignment?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this transport assignment?' }))) {
       await deleteStudentTransportAssignment(id);
     }
   };

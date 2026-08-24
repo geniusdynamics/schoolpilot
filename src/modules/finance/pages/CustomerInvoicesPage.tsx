@@ -12,6 +12,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { AccountType, CustomerInvoiceStatus } from '@/core/types';
 import type { CustomerInvoice, Customer } from '@/core/types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type CustomerInvoiceFormData = Omit<Partial<CustomerInvoice>, 'id' | 'created_at' | 'updated_at' | 'items' | 'customer_name' | 'status'> & {
     status: CustomerInvoiceStatus;
@@ -162,15 +163,16 @@ export const CustomerInvoicesPageContent: React.FC = () => {
     setItemFormData(initialItemFormData); 
   };
   
+  const confirm = useConfirm();
   const handleDeleteInvoice = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this customer invoice? All its items will also be deleted.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this customer invoice? All its items will also be deleted.' }))) {
       await deleteCustomerInvoice(id);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
       if (!currentInvoiceForItems) return;
-      if (window.confirm('Are you sure you want to delete this invoice item?')) {
+      if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this invoice item?' }))) {
           const updatedItems = (currentInvoiceForItems.items || []).filter(i => i.id !== itemId);
           const updatedInvoice = { ...currentInvoiceForItems, items: updatedItems, updated_at: new Date().toISOString() };
           updatedInvoice.total_amount = updatedItems.reduce((sum, item) => sum + (item.amount || 0), 0);

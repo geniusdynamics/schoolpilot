@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BanknotesIcon } from '@/components/ui/icons';
 import { useFinance } from '@/modules/finance/hooks/useFinance';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type BankFormData = Omit<Partial<Bank>, 'id' | 'created_at' | 'updated_at' | 'gl_account_name'>;
 
@@ -68,8 +69,9 @@ export const BanksPageContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this bank account?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this bank account?' }))) {
       await deleteBank(id);
     }
   };

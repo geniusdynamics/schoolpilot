@@ -10,6 +10,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, BookOpenIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type StudentOpeningBalanceFormData = Omit<Partial<StudentOpeningBalance>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'balance_type'> & {
     balance_type: OpeningBalanceType;
@@ -92,8 +93,9 @@ export const StudentOpeningBalancesPageContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this opening balance record?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this opening balance record?' }))) {
       await deleteStudentOpeningBalance(id);
     }
   };

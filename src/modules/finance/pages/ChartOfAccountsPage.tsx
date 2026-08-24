@@ -12,6 +12,7 @@ import Spinner from '@/components/ui/Spinner';
 import { AccountTemplateType, AccountType } from '@/core/types';
 import type { ChartOfAccount, ExpenseCategory } from '@/core/types';
 import { BanknotesIcon, DeleteIcon, EditIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type ChartOfAccountFormData = Omit<Partial<ChartOfAccount>, 'id' | 'created_at' | 'updated_at' | 'expense_category_name' | 'type' | 'template_type'> & {
     type: AccountType; // Make type required for the form
@@ -94,8 +95,9 @@ export const ChartOfAccountsContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this account? This might affect linked bank accounts or fee templates.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this account? This might affect linked bank accounts or fee templates.' }))) {
       await deleteChartOfAccount(id);
     }
   };

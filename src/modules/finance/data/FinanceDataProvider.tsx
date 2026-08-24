@@ -7,6 +7,7 @@ import { databaseService } from '@/services/database/databaseService';
 import { useToast } from '@/hooks/useToast';
 import { useValidation, ValidationSchema } from '@/hooks/useValidation';
 import * as types from './types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface FinanceDataContextType {
   // Data collections (read-only, from AppDataContext)
@@ -98,6 +99,7 @@ export const FinanceDataProvider: React.FC<Props> = ({
   loading: parentLoading,
 }) => {
   const toast = useToast();
+  const confirm = useConfirm();
   const [localLoading, setLocalLoading] = useState(false);
   const loading = parentLoading || localLoading;
 
@@ -173,7 +175,7 @@ export const FinanceDataProvider: React.FC<Props> = ({
   }, [banks, chartOfAccounts, toast]);
 
   const deleteBank = useCallback(async (id: string | number) => {
-    const confirmed = window.confirm('Are you sure you want to delete this bank?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this bank?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -211,7 +213,7 @@ export const FinanceDataProvider: React.FC<Props> = ({
   }, [addBank, toast]);
 
   const bulkDeleteBanks = useCallback(async (ids: (string | number)[]) => {
-    const confirmed = window.confirm(`Are you sure you want to delete ${ids.length} banks?`);
+    const confirmed = await confirm({ variant: 'danger', message: `Are you sure you want to delete ${ids.length} banks?` });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -274,7 +276,7 @@ export const FinanceDataProvider: React.FC<Props> = ({
   }, [chartOfAccounts, toast]);
 
   const deleteChartOfAccount = useCallback(async (id: number) => {
-    const confirmed = window.confirm('Are you sure you want to delete this account?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this account?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -329,7 +331,7 @@ export const FinanceDataProvider: React.FC<Props> = ({
   }, [suppliers, toast]);
 
   const deleteSupplier = useCallback(async (id: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this supplier?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this supplier?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -391,7 +393,7 @@ export const FinanceDataProvider: React.FC<Props> = ({
   }, [feeTemplates, toast]);
 
   const deleteFeeTemplate = useCallback(async (id: number) => {
-    const confirmed = window.confirm('Are you sure you want to delete this fee template?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -446,7 +448,7 @@ export const FinanceDataProvider: React.FC<Props> = ({
   }, [customers, toast]);
 
   const deleteCustomer = useCallback(async (id: number) => {
-    const confirmed = window.confirm('Are you sure you want to delete this customer?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this customer?' });
     if (!confirmed) return;
 
     setLocalLoading(true);
@@ -501,7 +503,7 @@ export const FinanceDataProvider: React.FC<Props> = ({
   }, [financialYears, toast]);
 
   const deleteFinancialYear = useCallback(async (id: number) => {
-    const confirmed = window.confirm('Are you sure you want to delete this financial year?');
+    const confirmed = await confirm({ variant: 'danger', message: 'Are you sure you want to delete this financial year?' });
     if (!confirmed) return;
 
     setLocalLoading(true);

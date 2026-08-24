@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, ReceiptRefundIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type SupplierInvoiceFormData = Omit<Partial<SupplierInvoice>, 'id' | 'created_at' | 'updated_at' | 'supplier_name' | 'status'> & {
     status: SupplierInvoiceStatus; // Ensure this is required
@@ -89,8 +90,9 @@ export const SupplierInvoicesPageContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this supplier invoice?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this supplier invoice?' }))) {
       await deleteSupplierInvoice(id);
     }
   };

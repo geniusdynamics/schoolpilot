@@ -12,6 +12,7 @@ import { PlusIcon, EditIcon, DeleteIcon, DocumentDuplicateIcon } from '@/compone
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { useToast } from '@/hooks/useToast';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type FeeAdjustmentFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'student_name' | 'school_period_name' | 'adjustment_type'> & {
     adjustment_type: FeeAdjustmentType;
@@ -96,8 +97,9 @@ export const FeeAdjustmentsPageContent: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this fee adjustment?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee adjustment?' }))) {
       try {
         await deleteFeeAdjustment(id);
         showToast("Fee adjustment deleted successfully", "success");

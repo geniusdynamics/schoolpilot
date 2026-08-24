@@ -12,6 +12,7 @@ import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
 import { AccountType } from '@/core/types';
 import type { FeeTemplate, FeeTemplateItem } from '@/core/types';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type FeeTemplateFormData = Omit<Partial<FeeTemplate>, 'id' | 'created_at' | 'updated_at' | 'school_period_name' | 'student_category_name' | 'items'>;
 type FeeItemFormData = Omit<Partial<FeeTemplateItem>, 'id' | 'fee_template_id' | 'revenue_account_name' | 'linked_expense_category_name'>;
@@ -150,15 +151,16 @@ export const FeeTemplatesContent: React.FC = () => {
     setItemFormData(initialItemFormData); 
   };
   
+  const confirm = useConfirm();
   const handleDeleteTemplate = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this fee template? All its items will also be deleted.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template? All its items will also be deleted.' }))) {
       await deleteFeeTemplate(id);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
     if (!currentTemplateForItems) return;
-    if (window.confirm('Are you sure you want to delete this fee template item?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fee template item?' }))) {
       const updatedItems = (currentTemplateForItems.items || []).filter(i => i.id !== itemId);
       const updatedTemplate = { ...currentTemplateForItems, items: updatedItems, updated_at: new Date().toISOString() };
       await updateFeeTemplate(updatedTemplate);

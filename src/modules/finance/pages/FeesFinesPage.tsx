@@ -16,6 +16,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { logger } from '@/utils/logging';
 import { ExclamationTriangleIcon, PlusIcon } from '@/components/ui/icons';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type FineFormData = Omit<Partial<FeeAdjustment>, 'id' | 'created_at' | 'updated_at' | 'student_name' | 'school_period_name'>;
 
@@ -112,8 +113,9 @@ export const FeesFinesPageContent: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this fine?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this fine?' }))) {
       try {
         await deleteFeeAdjustment(id);
       } catch (error) {

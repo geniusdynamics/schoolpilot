@@ -9,6 +9,7 @@ import Select from '@/components/ui/Select';
 import { PlusIcon, EditIcon, DeleteIcon, TruckIcon } from '@/components/ui/icons';
 import { useAppData } from '@/hooks/useAppData';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type TransportRouteFormData = Omit<Partial<TransportRoute>, 'id' | 'created_at' | 'updated_at' | 'gl_revenue_account_name'>;
 
@@ -77,8 +78,9 @@ export const TransportRoutesPageContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this transport route?')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this transport route?' }))) {
       await deleteTransportRoute(id);
     }
   };

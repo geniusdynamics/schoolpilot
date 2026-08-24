@@ -9,6 +9,7 @@ import Textarea from '@/components/ui/Textarea';
 import { PlusIcon, EditIcon, DeleteIcon, BuildingStorefrontIcon } from '@/components/ui/icons';
 import { useFinance } from '@/modules/finance/hooks/useFinance';
 import Spinner from '@/components/ui/Spinner';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 type SupplierFormData = Omit<Partial<Supplier>, 'id' | 'created_at' | 'updated_at'>;
 
@@ -73,8 +74,9 @@ export const SuppliersPageContent: React.FC = () => {
     closeModal();
   };
 
+  const confirm = useConfirm();
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this supplier? This may affect related purchase orders or supplier invoices.')) {
+    if ((await confirm({ variant: 'danger', message: 'Are you sure you want to delete this supplier? This may affect related purchase orders or supplier invoices.' }))) {
       await deleteSupplier(id);
     }
   };
