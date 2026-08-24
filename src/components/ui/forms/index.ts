@@ -33,6 +33,9 @@ export type { FormHeaderProps } from './FormHeader';
 export { default as DialogForm } from './DialogForm';
 export type { DialogFormProps, DialogFormRef } from './DialogForm';
 
+export { default as EntityForm } from './EntityForm';
+export type { EntityFormProps, EntityFieldConfig, EntityFormFieldType } from './EntityForm';
+
 export { default as WizardForm } from './WizardForm';
 export type { WizardFormProps, WizardFormRef, WizardStep } from './WizardForm';
 
