@@ -58,7 +58,7 @@ export const administrationModule: ModuleDefinition = {
     { name: 'navigation:administration.studentImport', path: '/administration/student-import', icon: ArrowUpTrayIcon, page: 'StudentDataImportPage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/students/bulk-ops?tab=data-import' },
     { name: 'navigation:administration.studentClearance', path: '/administration/student-clearance', icon: ClipboardDocumentCheckIcon, page: 'StudentClearancePage', deprecated: true, showInModes: ['fullwidth'], redirectTo: '/administration/students?tab=clearance' },
     // Standalone pages (visible in both modes - no hub consolidation yet)
-    { name: 'navigation:administration.applications', path: '/administration/applications', icon: DocumentAddIcon, page: 'ApplicationsPage', showInModes: ['standard', 'fullwidth'] },
+    // (Applications moved to the Admissions module — /admissions/applications-hub)
     { name: 'navigation:administration.entryMarks', path: '/administration/entry-marks', icon: DocumentSearchIcon, page: 'EntryMarksPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.disciplinaryCases', path: '/administration/disciplinary-cases', icon: ShieldCheckIcon, page: 'DisciplinaryCasesPage', showInModes: ['standard', 'fullwidth'] },
     { name: 'navigation:administration.visitors', path: '/administration/visitors', icon: ShieldCheckIcon, page: 'VisitorsManagementPage', showInModes: ['standard', 'fullwidth'] },
@@ -109,7 +109,6 @@ export const administrationModule: ModuleDefinition = {
     { path: '/administration/staff/operations', page: 'StaffOperationsPage' },
     { path: '/administration/students/bulk-ops', page: 'StudentBulkOperationsPage' },
     // Existing routes
-    { path: '/administration/applications', page: 'ApplicationsPage' },
     { path: '/administration/entry-marks', page: 'EntryMarksPage' },
     { path: '/administration/classes', page: 'ClassesPage' },
     { path: '/administration/students', page: 'StudentDirectoryPage' },

@@ -4,6 +4,5 @@
 export { default as NewsletterCard } from './NewsletterCard';
 export type { Newsletter } from './NewsletterCard';
 
-export { default as ApplicationManagement } from './ApplicationManagement';
 export { default as EntryMarksManagement } from './EntryMarksManagement';
 export { default as QuickEditConfigModal } from './QuickEditConfigModal';

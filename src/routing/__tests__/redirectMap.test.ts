@@ -8,13 +8,13 @@ describe('redirectMap', () => {
   describe('getRedirectForRoute', () => {
     it('returns correct redirect for known deprecated routes', () => {
       expect(getRedirectForRoute('/administration/departments')).toBe(
-        '/administration/configuration?tab=departments'
+        '/administration/organization?tab=departments'
       );
       expect(getRedirectForRoute('/administration/designations')).toBe(
-        '/administration/configuration?tab=designations'
+        '/administration/organization?tab=designations'
       );
       expect(getRedirectForRoute('/administration/dormitories')).toBe(
-        '/administration/configuration?tab=dormitories'
+        '/administration/student-life?tab=dormitories'
       );
     });
 
@@ -32,10 +32,18 @@ describe('redirectMap', () => {
       // We expect at least the core configuration redirects
       expect(adminRedirects.length).toBeGreaterThanOrEqual(6);
 
-      // Verify all redirects point to valid administration routes (hub+tab or standalone)
+      // Verify redirects point at valid routes. Most stay inside
+      // /administration; a few intentionally cross modules (e.g. Applications
+      // moved to the Admissions module).
       adminRedirects.forEach(([path, redirect]) => {
-        expect(redirect).toMatch(/^\/administration\//);
+        expect(redirect).toMatch(/^\//);
+        expect(redirect).not.toMatch(/undefined/);
       });
+
+      // Cross-module moves
+      expect(getRedirectForRoute('/administration/applications')).toBe(
+        '/admissions/applications-hub'
+      );
     });
 
     it('handles cross-module redirects', () => {

@@ -17,6 +17,7 @@ export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
   '/administration/student-health': '/administration/students?tab=health',
   '/administration/student-clearance': '/administration/students?tab=clearance',
   '/administration/student-id-cards': '/administration/students?tab=id-cards',
+  '/administration/applications': '/admissions/applications-hub',
   '/administration/manual-attendance': '/administration/attendance?tab=manual',
   '/administration/dynamic-attendance': '/administration/attendance?tab=dynamic',
   '/administration/student-attendance': '/administration/attendance?tab=student-view',
