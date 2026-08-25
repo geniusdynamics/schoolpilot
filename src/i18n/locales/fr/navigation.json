@@ -5,7 +5,7 @@
     "description": "Gestion des ├®tudiants et du personnel",
     "dashboard": "Tableau de bord Administration",
     "applications": "Candidatures",
-    "preNAsMarks": "Notes Pr├®-NAS",
+    "entryMarks": "Notes Pr├®-NAS",
     "students": "├ëtudiants",
     "studentImport": "Importation d'├ëtudiants",
     "studentClearance": "Autorisation d'├ëtudiant",

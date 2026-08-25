@@ -5,7 +5,7 @@
       "description": "Gestión de estudiantes, personal, estructura académica y operaciones escolares",
       "dashboard": "Panel",
       "applications": "Solicitudes",
-      "preNAsMarks": "Notas Pre-NAs",
+      "entryMarks": "Notas Entry Marks",
       "students": "Estudiantes",
       "studentMasterlist": "Lista Maestra de Estudiantes",
       "studentPromotion": "Promoción de Estudiantes",

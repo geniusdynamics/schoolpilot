@@ -24,14 +24,14 @@ interface PreNAMark {
   status: 'pending' | 'submitted' | 'approved' | 'rejected';
 }
 
-interface PreNAsMarksManagementProps {
+interface EntryMarksManagementProps {
   onSave: (marks: Partial<PreNAMark>) => void;
   onDelete: (id: string) => void;
   onCancel: () => void;
   loading?: boolean;
 }
 
-export const PreNAsMarksManagement: React.FC<PreNAsMarksManagementProps> = ({
+export const EntryMarksManagement: React.FC<EntryMarksManagementProps> = ({
   onSave,
   onDelete,
   onCancel,
@@ -198,4 +198,4 @@ export const PreNAsMarksManagement: React.FC<PreNAsMarksManagementProps> = ({
   );
 };
 
-export default PreNAsMarksManagement;
+export default EntryMarksManagement;

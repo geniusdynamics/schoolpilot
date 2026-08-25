@@ -8,7 +8,7 @@
     "description": "Gérer les élèves, le personnel, les classes et les opérations administratives",
     "dashboard": "TB Admin",
     "applications": "Candidatures",
-    "preNAsMarks": "Notes PreNAs",
+    "entryMarks": "Notes Entry Marks",
     "students": "Élèves",
     "staff": "Personnel",
     "classes": "Classes & Filières",

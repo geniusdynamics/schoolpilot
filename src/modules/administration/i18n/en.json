@@ -6,7 +6,7 @@
       "description": "Manage students, staff, academic structure, and school operations",
       "dashboard": "Dashboard",
       "applications": "Applications",
-      "preNAsMarks": "Pre-NAs Marks",
+      "entryMarks": "Entry Marks Marks",
       "students": "Students",
       "studentImport": "Student Import",
       "studentClearance": "Student Clearance",
@@ -438,8 +438,8 @@
       "specialNeeds": "Special Needs Accommodation"
     }
   },
-  "preNAsMarks": {
-    "title": "PreNAs Marks Management",
+  "entryMarks": {
+    "title": "Entry Marks Marks Management",
     "description": "Manage Previous National Assessment marks for students and applicants",
     "indexNumber": "Index Number",
     "studentName": "Student Name",

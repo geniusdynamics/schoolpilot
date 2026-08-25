@@ -16,7 +16,7 @@ export { default as StaffDirectoryPage } from './StaffDirectoryPage';
 
 export { default as AdministrationDashboardPage } from './AdministrationDashboardPage';
 export { default as ApplicationsPage } from './ApplicationsPage';
-export { default as PreNAsMarksPage } from './PreNAsMarksPage';
+export { default as EntryMarksPage } from './EntryMarksPage';
 export { default as StudentsListPage } from './StudentsListPage';
 export { default as AddStudentPage } from './AddStudentPage';
 export { default as StudentDetailPage } from './StudentDetailPage';

@@ -2,6 +2,7 @@
 // ABOUTME: Prevents hardcoded redirect strings scattered across module definitions
 
 export const DEPRECATED_ROUTE_REDIRECTS: Record<string, string> = {
+  '/administration/prenas-marks': '/administration/entry-marks',
   // Administration
   // M5: SchoolConfigurationPage split into /administration/organization + /administration/student-life
   '/administration/configuration': '/administration/organization',

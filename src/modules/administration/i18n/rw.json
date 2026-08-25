@@ -6,7 +6,7 @@
       "description": "Gucunga abanyeshuri, abakozi, imiterere y'uburezi, n'ibikorwa by'ishuri",
       "dashboard": "Ikibaho",
       "applications": "Amasaba",
-      "preNAsMarks": "Amanota mbere ya NAs",
+      "entryMarks": "Amanota mbere ya NAs",
       "students": "Abanyeshuri",
       "staff": "Abakozi",
       "partners": "Abafatanyabikorwa",
@@ -458,7 +458,7 @@
       "specialNeeds": "Gukemura ibikenewe bidasanzwe"
     }
   },
-  "preNAsMarks": {
+  "entryMarks": {
     "title": "Gucunga amanota mbere ya NAs",
     "description": "Gucunga amanota y'isuzuma ry'igihugu rya mbere ku banyeshuri n'abasaba",
     "indexNumber": "Nomero y'urutonde",

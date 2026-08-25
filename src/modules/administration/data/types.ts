@@ -217,7 +217,7 @@ export interface AdminApplicationType {
   academic_year_name?: string;
 }
 
-export interface AdminPreNAsMarksType {
+export interface AdminEntryMarksType {
   id: string;
   student_id?: string;
   application_id?: string;

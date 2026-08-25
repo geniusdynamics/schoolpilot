@@ -6,7 +6,7 @@
       "description": "Simamia wanafunzi, wafanyakazi, muundo wa kitaaluma, na shughuli za shule",
       "dashboard": "Dashibodi",
       "applications": "Maombi",
-      "preNAsMarks": "Alama za Kabla ya NAs",
+      "entryMarks": "Alama za Kabla ya NAs",
       "students": "Wanafunzi",
       "staff": "Wafanyakazi",
       "partners": "Washirika",
@@ -458,7 +458,7 @@
       "specialNeeds": "Makazi ya Mahitaji Maalum"
     }
   },
-  "preNAsMarks": {
+  "entryMarks": {
     "title": "Usimamizi wa Alama za Kabla ya NAs",
     "description": "Simamia alama za Tathmini za Kitaifa za Awali kwa wanafunzi na waombaji",
     "indexNumber": "Namba ya Fahirisi",

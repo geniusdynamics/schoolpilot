@@ -6,7 +6,7 @@
       "description": "Gérer les élèves, le personnel, la structure académique et les opérations scolaires",
       "dashboard": "Tableau de Bord",
       "applications": "Candidatures",
-      "preNAsMarks": "Notes Pré-NAs",
+      "entryMarks": "Notes Pré-NAs",
       "students": "Élèves",
       "studentMasterlist": "Liste Principale des Élèves",
       "studentPromotion": "Promotion des Élèves",

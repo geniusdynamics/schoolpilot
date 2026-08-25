@@ -5,7 +5,7 @@
       "description": "Gestão de estudantes, equipe, estrutura acadêmica e operações escolares",
       "dashboard": "Painel",
       "applications": "Candidaturas",
-      "preNAsMarks": "Notas Pré-NAs",
+      "entryMarks": "Notas Pré-NAs",
       "students": "Estudantes",
       "studentMasterlist": "Lista Mestra de Estudantes",
       "studentPromotion": "Promoção de Estudantes",
