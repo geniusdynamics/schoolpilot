@@ -1,5 +1,5 @@
 import React from 'react';
-import EntryMarksManagement from '../../components/EntryMarksManagement';
+import EntryMarksManagement from '../components/EntryMarksManagement';
 
 const EntryMarksPage: React.FC = () => {
 
