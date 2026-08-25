@@ -12,7 +12,7 @@ import { useAppData } from '@/hooks/useAppData'; // Import useAppData
 
 import TabbedForm, { FormTab } from '@/components/ui/forms/TabbedForm';
 import { EntityForm, EntityFieldConfig } from '@/components/ui/forms';
-import { usePageActions } from '@/hooks/usePageActions';
+// (usePageActions removed — its ActionBar registry is not rendered in the current layout)
 import { useToast } from '@/hooks/useToast';
 import DialogForm from '@/components/ui/forms/DialogForm';
 
@@ -60,22 +60,12 @@ const StudentsListPage: React.FC = () => {
   } = useAppData(); // Use useAppData
   
   const { showToast } = useToast();
-  
-  // Navigate to add student page - moved before usePageActions to fix temporal dead zone
+
+  // Opens the in-page add/edit modal. (The old ActionBar registry this used to
+  // register with is not rendered anywhere in the current layout.)
   const handleAddStudent = useCallback(() => {
-    navigate('/administration/students/add');
-  }, [navigate]);
-  
-  // Register page actions
-  usePageActions([
-    {
-      id: 'add-student',
-      label: 'Add Student',
-      icon: PlusIcon,
-      onClick: handleAddStudent,
-      variant: 'primary'
-    }
-  ]);
+    openModal();
+  }, []);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -684,6 +674,9 @@ const StudentsListPage: React.FC = () => {
     <div className="space-y-6">
       <Card title="Student Management" bodyClassName="p-0" actions={
         <div className="flex space-x-2">
+          <Button onClick={handleAddStudent} leftIcon={<PlusIcon className="w-5 h-5" />}>
+            Add Student
+          </Button>
         </div>
       }>
         <div className="border-t border-gray-200">

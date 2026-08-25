@@ -99,6 +99,12 @@ declare module '@/core/types' {
     updateAcademicPeriodDefinition: (id: string, data: any) => Promise<any>;
     deleteAcademicPeriodDefinition: (id: string) => Promise<void>;
     academicPeriodDefinitions: any[];
+    // Staff CRUD
+    addStaffMember: (data: any) => Promise<any>;
+    updateStaffMember: (id: string, data: any) => Promise<any>;
+    deleteStaffMember: (id: string) => Promise<void>;
+    departments: any[];
+    designations: any[];
     // Partner CRUD
     addPartner: (data: any) => Promise<void>;
     updatePartner: (data: any) => Promise<void>;

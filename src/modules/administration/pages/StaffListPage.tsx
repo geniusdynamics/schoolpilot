@@ -16,10 +16,10 @@ import DialogForm from '@/components/ui/forms/DialogForm';
 import type { Staff } from '@/core/types';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 
-interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'department_name' | 'designation_title' | 'email' | 'hod_of_department_name' | 'display_name' | 'user_username' | 'deleted_at'> { 
-  department_id?: number; 
-  designation_id?: number;
-  hod_of_department_id?: number; 
+interface StaffFormData extends Omit<Partial<Staff>, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'department_name' | 'designation_title' | 'email' | 'hod_of_department_name' | 'display_name' | 'user_username' | 'deleted_at' | 'department_id' | 'designation_id' | 'hod_of_department_id'> { 
+  department_id?: number | string | null; 
+  designation_id?: number | string | null;
+  hod_of_department_id?: number | string | null; 
 }
 
 export const StaffListContent: React.FC = () => {
@@ -48,7 +48,9 @@ export const StaffListContent: React.FC = () => {
         hod_of_department_id: staffMember.hod_of_department_id,
       });
     } else {
-      const existingStaffNos = staff.map(s => parseInt(s.staff_no.replace(/\D/g, ''), 10)).filter(n => !isNaN(n));
+      const existingStaffNos = staff
+        .map(s => parseInt(String(s.staff_no ?? '').replace(/\D/g, ''), 10))
+        .filter(n => !isNaN(n));
       const nextStaffNoSuffix = existingStaffNos.length > 0 ? Math.max(...existingStaffNos) + 1 : 1;
       const nextStaffNo = `EMP${String(nextStaffNoSuffix).padStart(3, '0')}`;
       setFormData({...initialStaffFormData, staff_no: nextStaffNo});
@@ -83,13 +85,13 @@ export const StaffListContent: React.FC = () => {
       last_name: formData.last_name || '',
       is_active: formData.is_active || false,
       phone: formData.phone,
-      department_id: formData.department_id,
-      designation_id: formData.designation_id,
-      hod_of_department_id: formData.hod_of_department_id,
+      department_id: formData.department_id != null && formData.department_id !== '' ? String(formData.department_id) : undefined,
+      designation_id: formData.designation_id != null && formData.designation_id !== '' ? Number(formData.designation_id) : undefined,
+      hod_of_department_id: formData.hod_of_department_id != null && formData.hod_of_department_id !== '' ? String(formData.hod_of_department_id) : undefined,
     };
 
     if (editingStaff) {
-      await updateStaffMember({ ...editingStaff, ...payload } );
+      await updateStaffMember(String(editingStaff.id), payload);
     } else {
       await addStaffMember(payload);
     }
@@ -127,50 +129,50 @@ export const StaffListContent: React.FC = () => {
       header: 'Staff No', 
       sortable: true,
       filterable: true,
-            render: (value, item) => item.staff_no || '—'
+            render: (_value, item) => item.staff_no || 'â€”'
     },
     { 
       key: 'name',
       header: 'Name', 
       sortable: true,
       filterable: true,
-            render: (value, item) => item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.staff_no || '—'
+            render: (_value, item) => item.display_name || [item.first_name, item.last_name].filter(Boolean).join(' ') || item.staff_no || 'â€”'
     },
     { 
       key: 'department_name',
       header: 'Department', 
       sortable: true,
       filterable: true,
-            render: (value, item) => item.department_name || '—'
+            render: (_value, item) => item.department_name || 'â€”'
     },
     { 
       key: 'designation_title',
       header: 'Designation', 
       sortable: true,
       filterable: true,
-            render: (value, item) => item.designation_title || '—'
+            render: (_value, item) => item.designation_title || 'â€”'
     },
     { 
       key: 'hod_of_department_name',
       header: 'HOD Of', 
       sortable: true,
       filterable: true,
-            render: (value, item) => item.hod_of_department_name || '—'
+            render: (_value, item) => item.hod_of_department_name || 'â€”'
     },
     { 
       key: 'phone',
       header: 'Phone', 
       sortable: true,
       filterable: true,
-            render: (value, item) => item.phone || '—'
+            render: (_value, item) => item.phone || 'â€”'
     },
     { 
       key: 'email',
       header: 'Email', 
       sortable: true,
       filterable: true,
-            render: (value, item) => (
-        <span className="truncate block max-w-[180px]" title={item.email || ''}>{item.email || '—'}</span>
+            render: (_value, item) => (
+        <span className="truncate block max-w-[180px]" title={item.email || ''}>{item.email || 'â€”'}</span>
       )
     },
     { 
@@ -178,7 +180,7 @@ export const StaffListContent: React.FC = () => {
       header: 'Status', 
       sortable: true,
       filterable: true,
-            render: (value, item) => item.is_active ? 'Active' : 'Inactive'
+            render: (_value, item) => item.is_active ? 'Active' : 'Inactive'
     },
     {
       key: 'actions',
@@ -187,7 +189,7 @@ export const StaffListContent: React.FC = () => {
       filterable: false,
       
       sticky: 'right',
-      render: (value, item) => (
+      render: (_value, item) => (
         <div className="flex items-center gap-1">
           <Button size="sm" variant="ghost" onClick={() => handleView(item.id)} leftIcon={<EyeIcon className="w-4 h-4" />}>View</Button>
           <Button size="sm" variant="ghost" onClick={() => openModal(item)} leftIcon={<EditIcon className="w-4 h-4" />}>Edit</Button>
